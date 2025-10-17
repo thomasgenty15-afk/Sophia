@@ -1,0 +1,89 @@
+[
+  {
+    "key": "onboarding_confirm_01",
+    "category": "onboarding",
+    "language": "fr",
+    "body_template": "Bienvenue {{1}} ! Prêt·e à clarifier tes objectifs cette semaine ?",
+    "buttons": [
+      { "type": "quick_reply", "text": "Oui, allons-y" },
+      { "type": "quick_reply", "text": "Plus tard" }
+    ],
+    "version": 1,
+    "active": true
+  },
+  {
+    "key": "onboarding_start_01",
+    "category": "onboarding",
+    "language": "fr",
+    "body_template": "Merci d’avoir rejoint Sophia. Découvrons 3 objectifs adaptés à ton rythme.",
+    "buttons": [
+      { "type": "quick_reply", "text": "Voir les objectifs" },
+      { "type": "quick_reply", "text": "Besoin d’aide" }
+    ],
+    "version": 1,
+    "active": true
+  },
+  {
+    "key": "check_action_01",
+    "category": "checkin",
+    "language": "fr",
+    "body_template": "Comment s’est passée l’action d’aujourd’hui pour {{1}} ?",
+    "buttons": [
+      { "type": "quick_reply", "text": "Fait" },
+      { "type": "quick_reply", "text": "Pas encore" },
+      { "type": "quick_reply", "text": "J’ai besoin d’aide" }
+    ],
+    "version": 1,
+    "active": true
+  },
+  {
+    "key": "after_event_01",
+    "category": "follow_up",
+    "language": "fr",
+    "body_template": "Bravo pour cette étape ! Un mot sur ce que tu ressens maintenant ?",
+    "buttons": [
+      { "type": "quick_reply", "text": "Motivé·e" },
+      { "type": "quick_reply", "text": "Fatigué·e" },
+      { "type": "quick_reply", "text": "Autre" }
+    ],
+    "version": 1,
+    "active": true
+  },
+  {
+    "key": "weekly_bilan_invite_01",
+    "category": "bilan",
+    "language": "fr",
+    "body_template": "C’est l’heure du mini-bilan 🌱 On se prend 3 minutes pour faire le point ?",
+    "buttons": [
+      { "type": "quick_reply", "text": "Je suis prêt·e" },
+      { "type": "quick_reply", "text": "Rappelle-moi plus tard" }
+    ],
+    "version": 1,
+    "active": true
+  },
+  {
+    "key": "weekly_bilan_feedback_01",
+    "category": "bilan",
+    "language": "fr",
+    "body_template": "Merci pour ton bilan. Un mot sur ta semaine ?",
+    "buttons": [
+      { "type": "quick_reply", "text": "Positive" },
+      { "type": "quick_reply", "text": "Mitigée" },
+      { "type": "quick_reply", "text": "Compliquée" }
+    ],
+    "version": 1,
+    "active": true
+  },
+  {
+    "key": "weekly_bilan_summary_01",
+    "category": "bilan",
+    "language": "fr",
+    "body_template": "Voici ton récap {{1}} : objectifs tenus {{2}}/{{3}}. On continue ensemble 💪",
+    "buttons": [
+      { "type": "quick_reply", "text": "Super" },
+      { "type": "quick_reply", "text": "À ajuster" }
+    ],
+    "version": 1,
+    "active": true
+  }
+]
