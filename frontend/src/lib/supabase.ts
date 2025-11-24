@@ -39,6 +39,11 @@ export const supabase = {
 
       return { data: { subscription: { unsubscribe: () => window.removeEventListener('mock-auth-change', handler) } } };
     },
+    resetPasswordForEmail: async (email: string, options: any) => {
+      // Simulation d'envoi d'email
+      console.log(`[MOCK] Reset password email sent to ${email} with options:`, options);
+      return { data: {}, error: null };
+    },
     signUp: async ({ email, options }: any) => {
       const user = { 
         id: 'mock-user-id', 
