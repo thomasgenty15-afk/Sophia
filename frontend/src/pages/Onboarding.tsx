@@ -6,12 +6,20 @@ import type { Theme } from '../data/onboarding/types';
 import { THEME_SLEEP } from '../data/onboarding/theme_sleep';
 import { THEME_ENERGY } from '../data/onboarding/theme_energy';
 import { THEME_CONFIDENCE } from '../data/onboarding/theme_confidence';
+import { THEME_DISCIPLINE } from '../data/onboarding/theme_discipline';
+import { THEME_RELATIONS } from '../data/onboarding/theme_relations';
+import { THEME_SENSE } from '../data/onboarding/theme_sense';
+import { THEME_TRANSVERSE } from '../data/onboarding/theme_transverse';
 
 // --- DONNÉES COMPLÈTES ---
 const DATA: Theme[] = [
   THEME_SLEEP,
   THEME_ENERGY,
-  THEME_CONFIDENCE
+  THEME_CONFIDENCE,
+  THEME_DISCIPLINE,
+  THEME_RELATIONS,
+  THEME_SENSE,
+  THEME_TRANSVERSE
 ];
 
 // --- COMPOSANT ---
