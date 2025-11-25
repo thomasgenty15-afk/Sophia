@@ -1,10 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-// import { Session, User } from '@supabase/supabase-js'; // Désactivé car lib manquante
+import { Session, User } from '@supabase/supabase-js';
 import { supabase } from '../lib/supabase';
-
-// Types Mockés
-type Session = any;
-type User = any;
 
 interface AuthContextType {
   session: Session | null;

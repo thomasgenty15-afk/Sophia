@@ -105,7 +105,7 @@ const WeeklyAlignment = () => {
                onChange={(e) => setEnergyLevel(parseInt(e.target.value))}
                className="w-full h-2 bg-emerald-900 rounded-lg appearance-none cursor-pointer accent-amber-500"
              />
-             <div className="flex justify-between text-[10px] text-emerald-500 mt-2 uppercase font-bold tracking-wider">
+             <div className="flex justify-between text-xs text-emerald-500 mt-2 uppercase font-bold tracking-wider">
                <span>Épuisé</span>
                <span>Neutre</span>
                <span>Survolté</span>
@@ -122,7 +122,7 @@ const WeeklyAlignment = () => {
 
           <div className="grid gap-4">
             <div className="bg-emerald-900/30 border border-emerald-800 rounded-xl p-4">
-               <label className="block text-emerald-200 text-xs font-bold uppercase mb-2">3 Victoires (Gratitude)</label>
+               <label className="block text-emerald-200 text-xs md:text-sm font-bold uppercase mb-2">3 Victoires (Gratitude)</label>
                <textarea 
                  value={wins}
                  onChange={(e) => setWins(e.target.value)}
@@ -131,7 +131,7 @@ const WeeklyAlignment = () => {
                />
             </div>
             <div className="bg-emerald-900/30 border border-emerald-800 rounded-xl p-4">
-               <label className="block text-red-300/80 text-xs font-bold uppercase mb-2">1 Blocage Majeur</label>
+               <label className="block text-red-300/80 text-xs md:text-sm font-bold uppercase mb-2">1 Blocage Majeur</label>
                <textarea 
                  value={block}
                  onChange={(e) => setBlock(e.target.value)}
@@ -162,7 +162,7 @@ const WeeklyAlignment = () => {
                   }`}
                 >
                   <XCircle className="w-6 h-6" />
-                  <span className="text-[10px] font-bold uppercase">Non</span>
+                  <span className="text-xs font-bold uppercase">Non</span>
                 </button>
 
                 <button 
@@ -172,7 +172,7 @@ const WeeklyAlignment = () => {
                   }`}
                 >
                   <MinusCircle className="w-6 h-6" />
-                  <span className="text-[10px] font-bold uppercase">Moyen</span>
+                  <span className="text-xs font-bold uppercase">Moyen</span>
                 </button>
 
                 <button 
@@ -182,7 +182,7 @@ const WeeklyAlignment = () => {
                   }`}
                 >
                   <CheckCircle2 className="w-6 h-6" />
-                  <span className="text-[10px] font-bold uppercase">Oui</span>
+                  <span className="text-xs font-bold uppercase">Oui</span>
                 </button>
               </div>
             </div>

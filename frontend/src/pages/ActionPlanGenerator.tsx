@@ -81,19 +81,19 @@ const ActionPlanGenerator = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-12 px-6">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-8 px-4 md:py-12 md:px-6">
       <div className="max-w-3xl mx-auto">
         
         {/* HEADER */}
-        <div className="mb-10">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 text-violet-700 text-xs font-bold uppercase tracking-wider mb-4">
-            <Brain className="w-4 h-4" />
+        <div className="mb-6 md:mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-violet-100 text-violet-700 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-2 md:mb-4">
+            <Brain className="w-3 h-3 md:w-4 md:h-4" />
             Intelligence Artificielle
           </div>
-          <h1 className="text-3xl font-bold text-slate-900 mb-2">
-            Générateur de Plan : <span className="text-violet-600">{currentAxis.title}</span>
+          <h1 className="text-2xl min-[350px]:text-3xl font-bold text-slate-900 mb-1 md:mb-2 leading-tight">
+            Générateur de Plan : <span className="text-violet-600 block min-[350px]:inline">{currentAxis.title}</span>
           </h1>
-          <p className="text-slate-500">
+          <p className="text-xs md:text-sm text-slate-500">
             Transformation prioritaire • {currentAxis.theme}
           </p>
         </div>
@@ -102,59 +102,59 @@ const ActionPlanGenerator = () => {
           <div className="space-y-8 animate-fade-in-up">
             
             {/* RAPPEL CONTEXTE */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <Target className="w-4 h-4" />
+            <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 md:mb-4 flex items-center gap-2">
+                <Target className="w-3 h-3 md:w-4 md:h-4" />
                 Ce que Sophia sait déjà
               </h3>
               <div className="space-y-2">
                 {currentAxis.problems?.map((prob, i) => (
-                  <div key={i} className="flex items-start gap-2 text-slate-700">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                  <div key={i} className="flex items-start gap-2 text-sm md:text-base text-slate-700">
+                    <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5 text-emerald-500 flex-shrink-0 mt-0.5" />
                     <span>{prob}</span>
                   </div>
-                )) || <p className="text-slate-400 italic">Aucune donnée préalable.</p>}
+                )) || <p className="text-slate-400 italic text-sm">Aucune donnée préalable.</p>}
               </div>
             </div>
 
             {/* FORMULAIRE QUALITATIF */}
             <div className="space-y-6">
-              <p className="text-lg font-medium text-slate-700">
+              <p className="text-base md:text-lg font-medium text-slate-700">
                 Aidez Sophia à affiner votre plan avec vos propres mots :
               </p>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
+                <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
                   Pourquoi est-ce important pour toi aujourd'hui ?
                 </label>
                 <textarea 
                   value={inputs.why}
                   onChange={e => setInputs({...inputs, why: e.target.value})}
-                  className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] placeholder-slate-400"
+                  className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
                   placeholder="Ex: Je suis épuisé d'être irritable avec mes enfants le matin..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
+                <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
                   Quels sont les vrais blocages (honnêtement) ?
                 </label>
                 <textarea 
                   value={inputs.blockers}
                   onChange={e => setInputs({...inputs, blockers: e.target.value})}
-                  className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] placeholder-slate-400"
+                  className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
                   placeholder="Ex: J'ai peur de m'ennuyer si je lâche mon téléphone..."
                 />
               </div>
 
               <div>
-                <label className="block text-sm font-bold text-slate-700 mb-2">
+                <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
                   Informations contextuelles utiles (matériel, horaires...)
                 </label>
                 <textarea 
                   value={inputs.context}
                   onChange={e => setInputs({...inputs, context: e.target.value})}
-                  className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] placeholder-slate-400"
+                  className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
                   placeholder="Ex: Je vis en colocation, je n'ai pas de tapis de sport..."
                 />
               </div>
@@ -162,9 +162,9 @@ const ActionPlanGenerator = () => {
 
             <button 
               onClick={handleGenerate}
-              className="w-full bg-slate-900 text-white font-bold text-lg py-5 rounded-xl hover:bg-violet-600 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3"
+              className="w-full bg-slate-900 text-white font-bold text-base md:text-lg py-4 md:py-5 rounded-xl hover:bg-violet-600 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 md:gap-3"
             >
-              <Sparkles className="w-5 h-5" />
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
               Générer mon Plan d'Action
             </button>
           </div>
@@ -184,23 +184,23 @@ const ActionPlanGenerator = () => {
           <div className="animate-fade-in-up">
             {/* LE PLAN GÉNÉRÉ */}
             <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden mb-8">
-              <div className="bg-slate-900 p-6 text-white">
+              <div className="bg-slate-900 p-4 md:p-6 text-white">
                 <div className="flex items-center justify-between mb-2">
-                  <h2 className="text-xl font-bold flex items-center gap-2">
-                    <Target className="w-5 h-5 text-emerald-400" />
+                  <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                    <Target className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
                     Feuille de Route Complète
                   </h2>
-                  <span className="bg-slate-800 text-slate-300 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-2 border border-slate-700">
+                  <span className="bg-slate-800 text-slate-300 px-2 py-1 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold flex items-center gap-2 border border-slate-700">
                     <Calendar className="w-3 h-3" />
-                    Durée estimée : {plan.estimatedDuration}
+                    Durée : {plan.estimatedDuration}
                   </span>
                 </div>
               </div>
               
-              <div className="p-6 space-y-8">
-                <div className="bg-violet-50 p-4 rounded-xl border border-violet-100 text-violet-900 text-sm leading-relaxed">
+              <div className="p-4 md:p-6 space-y-6 md:space-y-8">
+                <div className="bg-violet-50 p-3 md:p-4 rounded-xl border border-violet-100 text-violet-900 text-sm leading-relaxed">
                   <strong>Stratégie Globale :</strong> {plan.strategy}
-                  <div className="mt-3 pt-3 border-t border-violet-200 flex gap-4 text-xs text-violet-700">
+                  <div className="mt-3 pt-3 border-t border-violet-200 flex flex-wrap gap-2 md:gap-4 text-xs text-violet-700">
                     <div className="flex items-center gap-1">
                        <Lock className="w-3 h-3" /> Max 3 actions actives
                     </div>
@@ -212,53 +212,53 @@ const ActionPlanGenerator = () => {
 
                 {/* AFFICHAGE PAR PHASES */}
                 {plan.phases.map((phase: any, phaseIndex: number) => (
-                  <div key={phaseIndex} className="relative pl-6 border-l-2 border-slate-100 pb-8 last:pb-0 last:border-l-0">
+                  <div key={phaseIndex} className="relative pl-4 md:pl-6 border-l-2 border-slate-100 pb-6 md:pb-8 last:pb-0 last:border-l-0">
                     <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-slate-200"></div>
                     
-                    <h3 className="text-lg font-bold text-slate-900 mb-1">{phase.title}</h3>
-                    <p className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-6">{phase.subtitle}</p>
+                    <h3 className="text-base min-[350px]:text-lg font-bold text-slate-900 mb-0.5">{phase.title}</h3>
+                    <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-400 mb-4">{phase.subtitle}</p>
 
-                    <div className="space-y-6">
+                    <div className="space-y-4 md:space-y-6">
                       {phase.actions.map((action: any, i: number) => {
                         const isGroupA = action.type === 'habitude';
                         const isFramework = action.type === 'framework';
                         const isMainQuest = action.questType === 'main';
 
                         return (
-                        <div key={i} className={`relative bg-white border rounded-xl p-4 transition-all ${
+                        <div key={i} className={`relative bg-white border rounded-xl p-3 md:p-4 transition-all ${
                           isMainQuest ? 'border-blue-200 shadow-sm ring-1 ring-blue-100' : 'border-gray-200 opacity-90'
                         }`}>
                           {/* Badge Quest Type */}
-                          <div className={`absolute -top-3 left-4 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm flex items-center gap-1 ${
+                          <div className={`absolute -top-2 md:-top-3 left-4 px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-wider border shadow-sm flex items-center gap-1 ${
                             isMainQuest ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 border-slate-200'
                           }`}>
                             {isMainQuest ? <><Sword className="w-3 h-3" /> Quête Principale</> : <><Shield className="w-3 h-3" /> Quête Secondaire</>}
                           </div>
 
-                          <div className="flex items-start gap-4 mt-2">
-                            <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${
+                          <div className="flex items-start gap-3 md:gap-4 mt-2">
+                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${
                               isGroupA ? 'bg-emerald-100 text-emerald-700' : 
                               isFramework ? 'bg-violet-100 text-violet-700' : 'bg-amber-100 text-amber-700'
                             }`}>
-                              {isGroupA ? <Zap className="w-5 h-5" /> : 
-                               isFramework ? <FileText className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
+                              {isGroupA ? <Zap className="w-4 h-4 md:w-5 md:h-5" /> : 
+                               isFramework ? <FileText className="w-4 h-4 md:w-5 md:h-5" /> : <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" />}
                             </div>
                             
                             <div className="flex-1">
                               <div className="flex items-center justify-between mb-1">
-                                <h4 className="font-bold text-slate-900">{action.title}</h4>
-                                <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
+                                <h4 className="font-bold text-sm min-[350px]:text-base text-slate-900">{action.title}</h4>
+                                <span className={`text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold uppercase ${
                                   isGroupA ? 'bg-emerald-50 text-emerald-700' : 
                                   isFramework ? 'bg-violet-50 text-violet-700' : 'bg-amber-50 text-amber-700'
                                 }`}>
                                   {action.type}
                                 </span>
                               </div>
-                              <p className="text-sm text-slate-600 mb-3">{action.description}</p>
+                              <p className="text-xs min-[350px]:text-sm text-slate-600 mb-2 md:mb-3">{action.description}</p>
                               
                               {isGroupA && (
                                 <div className="mt-2">
-                                  <div className="flex items-center justify-between text-xs font-bold text-slate-500 mb-1">
+                                  <div className="flex items-center justify-between text-[10px] md:text-xs font-bold text-slate-500 mb-1">
                                     <span className="flex items-center gap-1"><Trophy className="w-3 h-3 text-amber-500" /> Objectif XP</span>
                                     <span>{action.targetReps} répétitions</span>
                                   </div>
@@ -269,14 +269,14 @@ const ActionPlanGenerator = () => {
                               )}
 
                               {!isGroupA && isFramework && (
-                                <div className="mt-2 flex items-center gap-2 text-xs font-bold text-violet-600">
+                                <div className="mt-2 flex items-center gap-2 text-[10px] md:text-xs font-bold text-violet-600">
                                   <Layout className="w-3 h-3" />
                                   Outil Mental : Fiche à remplir
                                 </div>
                               )}
 
                               {!isGroupA && !isFramework && (
-                                <div className="mt-2 flex items-center gap-2 text-xs font-bold text-amber-600">
+                                <div className="mt-2 flex items-center gap-2 text-[10px] md:text-xs font-bold text-amber-600">
                                   <CheckSquare className="w-3 h-3" />
                                   Mission Unique : À cocher
                                 </div>
@@ -293,12 +293,12 @@ const ActionPlanGenerator = () => {
             </div>
 
             {/* ZONE D'ITÉRATION (CHAT) */}
-            <div className="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm mb-8">
-              <h3 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                <MessageSquare className="w-4 h-4" />
+            <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm mb-6 md:mb-8">
+              <h3 className="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 md:mb-4 flex items-center gap-2">
+                <MessageSquare className="w-3 h-3 md:w-4 md:h-4" />
                 Ajustements & Feedback
               </h3>
-              <p className="text-sm text-slate-600 mb-4">
+              <p className="text-xs md:text-sm text-slate-600 mb-3 md:mb-4 leading-relaxed">
                 Ce plan n'est pas figé. Si une action vous semble irréaliste ou mal adaptée, dites-le à Sophia pour qu'elle recalcule l'itinéraire.
               </p>
               <div className="flex gap-2">
@@ -307,14 +307,14 @@ const ActionPlanGenerator = () => {
                   value={feedback}
                   onChange={e => setFeedback(e.target.value)}
                   placeholder="Ex: Je ne peux pas me lever à 7h le weekend..."
-                  className="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-sm"
+                  className="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-sm md:text-base"
                 />
                 <button 
                   onClick={handleRegenerate}
                   disabled={!feedback}
-                  className="px-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                  className="px-3 md:px-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 disabled:opacity-50 transition-colors"
                 >
-                  <RotateCcw className="w-5 h-5" />
+                  <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
                 </button>
               </div>
             </div>
@@ -322,10 +322,10 @@ const ActionPlanGenerator = () => {
             {/* VALIDATION FINALE */}
             <button 
               onClick={handleValidatePlan}
-              className="w-full bg-emerald-600 text-white font-bold text-lg py-5 rounded-xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-3"
+              className="w-full bg-emerald-600 text-white font-bold text-base md:text-lg py-4 md:py-5 rounded-xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 md:gap-3"
             >
               C'est parfait, on commence !
-              <ArrowRight className="w-5 h-5" />
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
             </button>
 
           </div>

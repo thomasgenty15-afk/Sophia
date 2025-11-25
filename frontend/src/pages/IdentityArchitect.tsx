@@ -12,7 +12,9 @@ import {
   Maximize2,
   Clock,
   Layers,
-  ChevronDown
+  ChevronDown,
+  ChevronUp,
+  X
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { WEEKS_CONTENT } from '../data/weeksContent';
@@ -44,6 +46,8 @@ const IdentityArchitect = () => {
   
   // NOUVEAU : State pour le mode Zen (Question active en plein écran)
   const [zenModeQuestionId, setZenModeQuestionId] = useState<string | null>(null);
+  const [expandedInstructions, setExpandedInstructions] = useState<Record<string, boolean>>({});
+  const [showMobileChat, setShowMobileChat] = useState(false); // State pour le chat mobile
 
   // Effect to save answers to localStorage whenever they change
   useEffect(() => {
@@ -92,7 +96,7 @@ const IdentityArchitect = () => {
           <div className="p-4 md:p-6 flex justify-between items-center border-b border-emerald-900/50 bg-emerald-950/50 backdrop-blur-sm">
             <div className="flex items-center gap-2 md:gap-3 text-emerald-400">
               <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
-              <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">Mode Immersion</span>
+              <span className="text-xs md:text-sm font-bold uppercase tracking-widest">Mode Immersion</span>
             </div>
             <button 
               onClick={() => setZenModeQuestionId(null)}
@@ -104,37 +108,137 @@ const IdentityArchitect = () => {
           </div>
 
           {/* Corps Zen */}
-          <div className="flex-1 max-w-4xl mx-auto w-full p-4 md:p-8 flex flex-col overflow-y-auto">
+          <div className="flex-1 max-w-4xl mx-auto w-full p-4 md:p-8 flex flex-col overflow-y-auto relative">
+
+            {/* PANEL CHAT MOBILE INTÉGRÉ (OVERLAY) - MODE ZEN */}
+            {showMobileChat && (
+              <div className="md:hidden absolute inset-0 z-[100] bg-emerald-950 flex flex-col h-full rounded-xl overflow-hidden">
+                  <div className="flex items-center justify-between p-4 border-b border-emerald-800 bg-emerald-900/50">
+                      <div className="flex items-center gap-2">
+                          <Bot className="w-5 h-5 text-emerald-400" />
+                          <span className="font-bold text-emerald-100">Sophia</span>
+                      </div>
+                      <button 
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              setShowMobileChat(false);
+                          }}
+                          className="text-emerald-400 hover:text-white p-2"
+                      >
+                          <X className="w-6 h-6" />
+                      </button>
+                  </div>
+                  
+                  {/* Zone de messages (Copie du chat desktop pour mobile) */}
+                  <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-800">
+                      <div className="bg-emerald-900/40 p-3 rounded-lg border border-emerald-800/50 mb-4">
+                          <div className="flex items-center gap-2 mb-2">
+                              <Sparkles className="w-3 h-3 text-amber-400" />
+                              <span className="text-xs font-bold text-amber-400 uppercase">Conseil</span>
+                          </div>
+                          <p className="text-xs text-emerald-200 italic">
+                              "{currentWeek.aiNuggets[0]}"
+                          </p>
+                      </div>
+
+                      {messages.map((msg) => (
+                          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                              <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${
+                                  msg.sender === 'user' 
+                                  ? 'bg-emerald-600 text-white rounded-br-none' 
+                                  : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
+                              }`}>
+                                  {msg.text}
+                              </div>
+                          </div>
+                      ))}
+                  </div>
+
+                  {/* Input Chat Mobile */}
+                  <div className="p-4 border-t border-emerald-900 bg-emerald-950 relative">
+                      <input
+                          type="text"
+                          value={inputMessage}
+                          onChange={(e) => setInputMessage(e.target.value)}
+                          placeholder="Répondre..."
+                          className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:ring-1 focus:ring-emerald-500 outline-none"
+                      />
+                      <button 
+                          onClick={(e) => {
+                              e.stopPropagation();
+                              handleSendMessage();
+                          }}
+                          className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-400"
+                      >
+                          <Send className="w-4 h-4" />
+                      </button>
+                  </div>
+              </div>
+            )}
             
             <div className="mb-4 md:mb-8 text-center">
               <h2 className="text-xl md:text-3xl font-serif font-bold text-white mb-1 md:mb-2">
                 {q.question}
               </h2>
-              <span className="text-emerald-500 text-[10px] md:text-sm uppercase tracking-widest font-bold">
+              <span className="text-emerald-500 text-xs md:text-sm uppercase tracking-widest font-bold">
                 {currentWeek.title} • Question {currentWeek.subQuestions.indexOf(q) + 1}/{currentWeek.subQuestions.length}
               </span>
             </div>
 
-            {/* ENCART CONTEXTE (Question précise) - BLEU/EMERAUDE */}
-            <div className="mb-3 md:mb-4 bg-emerald-900/30 border-l-4 border-emerald-500 p-3 md:p-4 rounded-r-xl">
-              <h4 className="text-emerald-400 font-bold text-xs md:text-sm uppercase tracking-wider mb-1 flex items-center gap-2">
-                 <Layers className="w-3 h-3 md:w-4 md:h-4" /> Question Clé
-              </h4>
-              <p className="text-emerald-100 text-sm md:text-lg font-serif leading-relaxed">
-                "{q.placeholder}"
-              </p>
-            </div>
+            {/* ENCARTS CONTEXTE ET PISTES DE RÉFLEXION */}
+            {(() => {
+               const isExpanded = expandedInstructions[q.id] !== false;
+               return (
+                 <>
+                   <div className={`transition-all duration-500 ease-in-out overflow-hidden flex flex-col ${isExpanded ? 'max-h-[60vh] opacity-100 mb-4 md:mb-6' : 'max-h-0 opacity-0 mb-0'}`}>
+                     
+                     {/* ENCART CONTEXTE (Question précise) - DÉPLACÉ ICI */}
+                     <div className="mb-3 md:mb-4 bg-emerald-900/30 border-l-4 border-emerald-500 p-3 md:p-4 rounded-r-xl">
+                       <h4 className="text-emerald-400 font-bold text-xs md:text-sm uppercase tracking-wider mb-1 flex items-center gap-2">
+                          <Layers className="w-3 h-3 md:w-4 md:h-4" /> Question Clé
+                       </h4>
+                       <p className="text-emerald-100 text-sm md:text-lg font-serif leading-relaxed">
+                         {q.placeholder.replace(/\*\*/g, '')}
+                       </p>
+                     </div>
 
-            {/* ENCART OR : PISTES DE RÉFLEXION */}
-            <div className="mb-4 md:mb-6 bg-amber-900/10 border border-amber-500/30 rounded-xl p-3 md:p-4">
-              <div className="flex items-center gap-2 mb-1 md:mb-2 text-amber-400 font-bold text-xs md:text-sm uppercase tracking-wider">
-                <Sparkles className="w-3 h-3 md:w-4 md:h-4" /> Pistes de Réflexion
-              </div>
-              <p className="text-amber-200/80 text-xs md:text-sm italic flex items-start gap-2">
-                 <span className="text-amber-500/50 mt-1">•</span>
-                 {q.helperText}
-              </p>
-            </div>
+                     <div className="bg-amber-900/10 border border-amber-500/30 rounded-xl p-3 md:p-4 mb-4">
+                       <div className="flex items-center gap-2 mb-1 md:mb-2 text-amber-400 font-bold text-xs md:text-sm uppercase tracking-wider">
+                         <Sparkles className="w-3 h-3 md:w-4 md:h-4" /> Pistes de Réflexion
+                       </div>
+                       <ul className="space-y-2 text-amber-200/80 text-xs md:text-sm italic">
+                         {q.helperText.split('\n\n').map((part, i) => (
+                           <li key={i} className="flex items-start gap-2">
+                             <span className="text-amber-500/50 mt-1">•</span>
+                             <span>{part}</span>
+                           </li>
+                         ))}
+                       </ul>
+                     </div>
+                   </div>
+
+                   <div className="flex justify-between items-center mb-4 border-b border-emerald-900/30 pb-2">
+                     {!isExpanded && (
+                       <div className="hidden min-[280px]:flex text-emerald-500 text-xs uppercase tracking-widest font-bold items-center gap-2 animate-fade-in">
+                         <Layers className="w-4 h-4" /> Instructions Masquées
+                       </div>
+                     )}
+                     <button 
+                       onClick={() => {
+                         setExpandedInstructions(prev => ({ ...prev, [q.id]: !isExpanded }));
+                       }}
+                       className="ml-auto text-emerald-400 hover:text-emerald-200 text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors bg-emerald-900/30 px-3 py-1.5 rounded-lg border border-emerald-800/50 hover:bg-emerald-800"
+                     >
+                       {isExpanded ? (
+                         <>Masquer les instructions <ChevronUp className="w-4 h-4" /></>
+                       ) : (
+                         <>Afficher les instructions <ChevronDown className="w-4 h-4" /></>
+                       )}
+                     </button>
+                   </div>
+                 </>
+               );
+            })()}
             
             <div className="flex-1 relative mt-2 md:mt-4">
               <textarea
@@ -151,6 +255,24 @@ const IdentityArchitect = () => {
 
           </div>
         </div>
+
+        {/* BOUTON FLOTTANT MOBILE CHAT (MODE ZEN) */}
+        {!showMobileChat && (
+          <div className="md:hidden fixed bottom-6 right-6 z-[999]">
+            <div 
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                setShowMobileChat(true);
+              }}
+              className="bg-emerald-600 text-white p-4 rounded-full shadow-xl shadow-emerald-900/50 animate-bounce-slow border border-emerald-400/20 active:scale-95 transition-transform pointer-events-auto cursor-pointer flex items-center justify-center"
+              role="button"
+              aria-label="Ouvrir l'assistant Sophia"
+            >
+              <Sparkles className="w-6 h-6 pointer-events-none" />
+            </div>
+          </div>
+        )}
 
         {/* DROITE : SOPHIA (30%) */}
         <div className="flex-[30%] hidden md:flex flex-col bg-emerald-950/50 h-full border-l border-emerald-900 relative backdrop-blur-sm">
@@ -221,7 +343,7 @@ const IdentityArchitect = () => {
     <div className="min-h-screen bg-emerald-950 text-emerald-50 flex flex-col md:flex-row overflow-hidden font-sans">
       
       {/* --- COLONNE GAUCHE : CONTENU DU MODULE (60%) --- */}
-      <div className="w-full md:w-[60%] flex flex-col h-screen overflow-y-auto border-r border-emerald-900">
+      <div className="w-full md:w-[60%] flex flex-col h-screen overflow-y-auto border-r border-emerald-900 relative">
         
         {/* HEADER */}
         <div className="sticky top-0 z-10 bg-emerald-950/90 backdrop-blur-md border-b border-emerald-900 p-4 md:p-6 flex items-center justify-between">
@@ -232,7 +354,7 @@ const IdentityArchitect = () => {
             <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" /> Retour au Plan
           </button>
           <div className="flex items-center gap-2">
-             <span className="text-[10px] md:text-xs font-bold text-emerald-600 uppercase tracking-widest">Sauvegarde auto</span>
+             <span className="hidden sm:inline text-xs font-bold text-emerald-600 uppercase tracking-widest">Sauvegarde auto</span>
              <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4 text-emerald-600" />
           </div>
         </div>
@@ -243,7 +365,7 @@ const IdentityArchitect = () => {
             {/* En-tête du module (Slide 0 - Intro) */}
             <div className="snap-start w-full h-screen flex flex-col justify-center items-start px-4 md:px-8 lg:px-20 max-w-5xl mx-auto relative">
               <div className="flex flex-col justify-center items-start">
-                <span className="inline-block px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-emerald-900/50 border border-emerald-700/50 text-amber-400 text-[9px] md:text-xs font-bold uppercase tracking-widest mb-3 md:mb-4 w-fit">
+                <span className="inline-block px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-emerald-900/50 border border-emerald-700/50 text-amber-400 text-xs font-bold uppercase tracking-widest mb-3 md:mb-4 w-fit">
                   Semaine {currentWeek.id} • {currentWeek.subtitle}
                 </span>
                 <h1 className="text-2xl sm:text-3xl md:text-5xl lg:text-6xl font-serif font-bold text-white mb-3 md:mb-6 leading-tight">
@@ -261,7 +383,7 @@ const IdentityArchitect = () => {
                      document.getElementById(`question-${currentWeek.subQuestions[0].id}`)?.scrollIntoView({ behavior: 'smooth' });
                   }}
                 >
-                  <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest">
+                  <span className="text-xs md:text-sm font-bold uppercase tracking-widest">
                     {hasStartedWork ? "Continuer le travail" : "Commencer le travail"}
                   </span>
                   <ArrowLeft className="w-3 h-3 md:w-4 md:h-4 -rotate-90" />
@@ -277,6 +399,72 @@ const IdentityArchitect = () => {
               className="snap-start w-full min-h-full flex flex-col relative px-4 lg:px-20 max-w-5xl mx-auto"
               onClick={() => setActiveQuestion(q.id)}
             >
+              {/* PANEL CHAT MOBILE INTÉGRÉ (OVERLAY) */}
+              {showMobileChat && activeQuestion === q.id && (
+                <div className="md:hidden absolute inset-0 z-[100] bg-emerald-950 flex flex-col h-full">
+                    <div className="flex items-center justify-between p-4 border-b border-emerald-800 bg-emerald-900/50">
+                        <div className="flex items-center gap-2">
+                            <Bot className="w-5 h-5 text-emerald-400" />
+                            <span className="font-bold text-emerald-100">Sophia</span>
+                        </div>
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                setShowMobileChat(false);
+                            }}
+                            className="text-emerald-400 hover:text-white p-2"
+                        >
+                            <X className="w-6 h-6" />
+                        </button>
+                    </div>
+                    
+                    {/* Zone de messages (Copie du chat desktop pour mobile) */}
+                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-800">
+                        <div className="bg-emerald-900/40 p-3 rounded-lg border border-emerald-800/50 mb-4">
+                            <div className="flex items-center gap-2 mb-2">
+                                <Sparkles className="w-3 h-3 text-amber-400" />
+                                <span className="text-xs font-bold text-amber-400 uppercase">Conseil</span>
+                            </div>
+                            <p className="text-xs text-emerald-200 italic">
+                                "{currentWeek.aiNuggets[0]}"
+                            </p>
+                        </div>
+
+                        {messages.map((msg) => (
+                            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                                <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${
+                                    msg.sender === 'user' 
+                                    ? 'bg-emerald-600 text-white rounded-br-none' 
+                                    : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
+                                }`}>
+                                    {msg.text}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {/* Input Chat Mobile */}
+                    <div className="p-4 border-t border-emerald-900 bg-emerald-950 relative">
+                        <input
+                            type="text"
+                            value={inputMessage}
+                            onChange={(e) => setInputMessage(e.target.value)}
+                            placeholder="Répondre..."
+                            className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:ring-1 focus:ring-emerald-500 outline-none"
+                        />
+                        <button 
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleSendMessage();
+                            }}
+                            className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-400"
+                        >
+                            <Send className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
+              )}
+
               {/* Contenu centré verticalement */}
               <div className="flex-1 flex flex-col justify-center py-8">
                 <div className="flex items-center gap-4 opacity-80 mb-4 absolute top-4 left-6 lg:top-0 lg:left-0">
@@ -284,40 +472,76 @@ const IdentityArchitect = () => {
                   <div className="h-px w-16 md:w-24 bg-emerald-700/50" />
                 </div>
 
-                <h2 className="text-xl md:text-3xl lg:text-4xl font-serif font-bold text-white mb-6 md:mb-8 mt-12 md:mt-0">
+                <h2 className="text-xl md:text-3xl lg:text-4xl font-serif font-bold text-white mb-6 md:mb-8 mt-16 md:mt-8">
                   {q.question}
                 </h2>
 
-                {/* NOUVEAUX ENCARTS INTÉGRÉS DANS LA VUE NORMALE */}
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4 md:mb-6">
-                  {/* Contexte */}
-                  <div className="bg-emerald-900/20 border-l-2 border-emerald-600 p-3 md:p-4 rounded-r-lg">
-                    <h4 className="text-emerald-500 font-bold text-[10px] md:text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
-                      <Layers className="w-3 h-3" /> Question Clé
-                    </h4>
-                    <p className="text-emerald-200 text-xs md:text-sm font-serif italic">
-                      "{q.placeholder}"
-                    </p>
-                  </div>
-                  
-                  {/* Pistes */}
-                  <div className="bg-amber-900/10 border-l-2 border-amber-600/50 p-3 md:p-4 rounded-r-lg">
-                    <h4 className="text-amber-500 font-bold text-[10px] md:text-xs uppercase tracking-wider mb-1 flex items-center gap-2">
-                      <Sparkles className="w-3 h-3" /> Conseil
-                    </h4>
-                    <p className="text-amber-200/80 text-xs md:text-sm italic">
-                      {q.helperText}
-                    </p>
-                  </div>
-                </div>
+                {/* NOUVEAUX ENCARTS INTÉGRÉS DANS LA VUE NORMALE (COLLAPSIBLE) */}
+                {(() => {
+                   const isExpanded = expandedInstructions[q.id] !== false;
+                   return (
+                     <>
+                       <div className={`transition-all duration-500 ease-in-out overflow-hidden flex flex-col ${isExpanded ? 'max-h-[60vh] opacity-100 mb-4 md:mb-6' : 'max-h-0 opacity-0 mb-0'}`}>
+                         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                           {/* Contexte */}
+                           <div className="bg-emerald-900/20 border-l-2 border-emerald-600 p-3 md:p-4 rounded-r-lg">
+                             <h4 className="text-emerald-500 font-bold text-xs min-[350px]:text-sm uppercase tracking-wider mb-1 flex items-center gap-2">
+                               <Layers className="w-3 h-3" /> Question Clé
+                             </h4>
+                             <p className="text-emerald-200 text-xs md:text-sm font-serif leading-relaxed whitespace-pre-line">
+                               "{q.placeholder.replace(/\*\*/g, '')}"
+                             </p>
+                           </div>
+                           
+                           {/* Pistes */}
+                           <div className="bg-amber-900/10 border-l-2 border-amber-600/50 p-3 md:p-4 rounded-r-lg">
+                             <h4 className="text-amber-500 font-bold text-xs min-[350px]:text-sm uppercase tracking-wider mb-1 flex items-center gap-2">
+                               <Sparkles className="w-3 h-3" /> Conseil
+                             </h4>
+                             <ul className="space-y-2 text-amber-200/80 text-xs md:text-sm italic mt-2">
+                               {q.helperText.split('\n\n').map((part, i) => (
+                                 <li key={i} className="flex items-start gap-2">
+                                   <span className="text-amber-500/50 mt-1">•</span>
+                                   <span>{part}</span>
+                                 </li>
+                               ))}
+                             </ul>
+                           </div>
+                         </div>
+                       </div>
+
+                       <div className="flex justify-between items-center mb-4 border-b border-emerald-900/30 pb-2">
+                         {!isExpanded && (
+                           <div className="hidden min-[280px]:flex text-emerald-500 text-xs uppercase tracking-widest font-bold items-center gap-2 animate-fade-in">
+                             <Layers className="w-4 h-4" /> Consignes Masquées
+                           </div>
+                         )}
+                         <button 
+                           onClick={(e) => {
+                             e.stopPropagation();
+                             setExpandedInstructions(prev => ({ ...prev, [q.id]: !isExpanded }));
+                           }}
+                           className="ml-auto text-emerald-400 hover:text-emerald-200 text-xs font-bold uppercase tracking-wider flex items-center gap-2 transition-colors bg-emerald-900/30 px-3 py-1.5 rounded-lg border border-emerald-800/50 hover:bg-emerald-800"
+                         >
+                           {isExpanded ? (
+                             <>Masquer les instructions <ChevronUp className="w-4 h-4" /></>
+                           ) : (
+                             <>Afficher les instructions <ChevronDown className="w-4 h-4" /></>
+                           )}
+                         </button>
+                       </div>
+                     </>
+                   );
+                })()}
                 
                 <div className="relative min-h-[200px] mb-20">
                   <textarea
                     value={answers[q.id] || ''}
                     onChange={(e) => setAnswers({...answers, [q.id]: e.target.value})}
                     placeholder="Développe ta pensée ici..."
-                    className="w-full h-full bg-emerald-900/30 border border-emerald-800 rounded-xl p-4 md:p-6 text-base md:text-xl text-white placeholder-emerald-700/50 focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 outline-none transition-all resize-none leading-relaxed font-serif shadow-inner min-h-[200px]"
+                    className="w-full h-full bg-emerald-900/30 border border-emerald-800 rounded-xl p-4 md:p-6 text-sm md:text-base text-white placeholder-emerald-700/50 focus:ring-2 focus:ring-amber-500/50 focus:border-amber-500/50 outline-none transition-all resize-none leading-relaxed font-serif shadow-inner min-h-[200px]"
                   />
+                  
                   {/* BOUTON AGRANDIR (Toujours là si besoin) */}
                   <button 
                     className="absolute top-4 right-4 text-emerald-500 hover:text-amber-400 transition-colors p-2 bg-emerald-900/50 rounded-lg border border-emerald-800/50 z-20"
@@ -342,7 +566,7 @@ const IdentityArchitect = () => {
                       }}
                       className="flex flex-col items-center gap-2 text-emerald-500 hover:text-emerald-300 transition-all opacity-60 hover:opacity-100 group animate-pulse hover:animate-none cursor-pointer"
                     >
-                      <span className="text-[10px] font-bold uppercase tracking-[0.2em]">Suivant</span>
+                      <span className="text-xs font-bold uppercase tracking-[0.2em]">Suivant</span>
                       <ChevronDown className="w-6 h-6 group-hover:translate-y-1 transition-transform" />
                     </button>
                   ) : (
@@ -355,6 +579,27 @@ const IdentityArchitect = () => {
             </div>
           ))}
         </div>
+
+        {/* BOUTON FLOTTANT MOBILE CHAT (GLOBAL) */}
+        {!showMobileChat && !zenModeQuestionId && (
+            <div className="md:hidden fixed bottom-24 right-6 z-[999]">
+                <div 
+                    onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        setShowMobileChat(true);
+                        // Force le focus sur la slide active au cas où
+                        const el = document.getElementById(`question-${activeQuestion}`);
+                        if (el) el.scrollIntoView({ behavior: 'instant', block: 'center' });
+                    }}
+                    className="bg-emerald-600 text-white p-4 rounded-full shadow-xl shadow-emerald-900/50 animate-bounce-slow border border-emerald-400/20 active:scale-95 transition-transform pointer-events-auto cursor-pointer flex items-center justify-center"
+                    role="button"
+                    aria-label="Ouvrir l'assistant Sophia"
+                >
+                    <Sparkles className="w-6 h-6 pointer-events-none" />
+                </div>
+            </div>
+        )}
 
         {/* FOOTER */}
         <div className="sticky bottom-0 bg-emerald-950 border-t border-emerald-900 p-4 md:p-6 flex justify-end z-20">
@@ -369,7 +614,7 @@ const IdentityArchitect = () => {
       </div>
 
       {/* --- COLONNE DROITE : SOPHIA (40%) --- */}
-      <div className="hidden md:flex w-[40%] flex-col bg-emerald-900/10 h-screen border-l border-emerald-900/50 relative">
+      <div className="hidden md:flex md:w-[40%] flex-col bg-emerald-900/10 h-screen border-l border-emerald-900/50 relative">
         
         {/* PÉPITES */}
         <div className="p-6 bg-gradient-to-b from-emerald-900/40 to-transparent">

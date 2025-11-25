@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { Book, ArrowLeft, Check, Play, Star, Calendar, Zap, FileText, Sword } from 'lucide-react';
 
@@ -97,40 +97,44 @@ const MOCK_COMPLETED_TRANSFORMATIONS: CompletedTransformation[] = [
 
 // --- COMPONENTS ---
 
-const GrimoireHome: React.FC<{ transformations: CompletedTransformation[] }> = ({ transformations }) => {
+interface GrimoireHomeProps {
+  transformations: CompletedTransformation[];
+}
+
+function GrimoireHome({ transformations }: GrimoireHomeProps) {
   const navigate = useNavigate();
   return (
-    <div className="space-y-8 animate-fade-in">
+    <div className="space-y-6 md:space-y-8 animate-fade-in">
       <button 
         onClick={() => navigate('/dashboard')} 
-        className="flex items-center gap-2 text-gray-400 hover:text-indigo-600 transition-colors text-sm font-bold uppercase tracking-wider"
+        className="flex items-center gap-2 text-gray-400 hover:text-indigo-600 transition-colors text-xs min-[350px]:text-sm md:text-base font-bold uppercase tracking-wider"
       >
-        <ArrowLeft className="w-4 h-4" /> Retour au tableau de bord
+        <ArrowLeft className="w-3 h-3 min-[350px]:w-4 min-[350px]:h-4" /> Retour au tableau de bord
       </button>
 
-      <div className="text-center max-w-2xl mx-auto mb-12">
-        <h2 className="text-3xl font-serif font-bold text-indigo-900 mb-4">Tes Conquêtes</h2>
-        <p className="text-indigo-600/80">
-          "Le passé n'est pas un poids, c'est une bibliothèque de victoires."<br/>
+      <div className="text-center max-w-2xl mx-auto mb-8 md:mb-12">
+        <h2 className="text-xl min-[350px]:text-2xl md:text-3xl font-serif font-bold text-indigo-900 mb-2 md:mb-4">Tes Conquêtes</h2>
+        <p className="text-xs min-[350px]:text-sm md:text-base text-indigo-600/80 leading-snug md:leading-normal">
+          "Le passé n'est pas un poids, c'est une bibliothèque de victoires."<br className="hidden md:block"/>
           Retrouve ici toutes tes transformations achevées et tes outils acquis.
         </p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
         {transformations.map(t => (
           <div 
             key={t.id}
             onClick={() => navigate(`/grimoire/${t.id}`)}
-            className="bg-white border border-indigo-100 rounded-xl p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-indigo-300 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden"
+            className="bg-white border border-indigo-100 rounded-xl p-4 min-[350px]:p-6 flex flex-col items-center text-center shadow-sm hover:shadow-md hover:border-indigo-300 hover:-translate-y-1 transition-all cursor-pointer group relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-indigo-400 to-violet-500" />
             
-            <div className="w-16 h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-indigo-100 transition-all">
-              <Book className="w-8 h-8" />
+            <div className="w-12 h-12 min-[350px]:w-16 min-[350px]:h-16 bg-indigo-50 text-indigo-600 rounded-full flex items-center justify-center mb-3 min-[350px]:mb-4 group-hover:scale-110 group-hover:bg-indigo-100 transition-all">
+              <Book className="w-6 h-6 min-[350px]:w-8 min-[350px]:h-8" />
             </div>
             
-            <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-2">{t.theme}</span>
-            <h3 className="font-bold text-lg text-indigo-900 mb-4 leading-tight">{t.title}</h3>
+            <span className="text-xs font-bold text-indigo-400 uppercase tracking-wider mb-1 min-[350px]:mb-2">{t.theme}</span>
+            <h3 className="font-bold text-sm min-[350px]:text-lg text-indigo-900 mb-3 min-[350px]:mb-4 leading-tight">{t.title}</h3>
             
             <div className="mt-auto flex items-center gap-2 text-xs font-medium text-gray-500 bg-gray-50 px-3 py-1 rounded-full">
               <Calendar className="w-3 h-3" />
@@ -141,9 +145,13 @@ const GrimoireHome: React.FC<{ transformations: CompletedTransformation[] }> = (
       </div>
     </div>
   );
-};
+}
 
-const GrimoireDetail: React.FC<{ transformation: CompletedTransformation }> = ({ transformation }) => {
+interface GrimoireDetailProps {
+  transformation: CompletedTransformation;
+}
+
+function GrimoireDetail({ transformation }: GrimoireDetailProps) {
   const navigate = useNavigate();
 
   // On sépare les hypnoses des autres actions pour l'affichage
@@ -151,65 +159,65 @@ const GrimoireDetail: React.FC<{ transformation: CompletedTransformation }> = ({
   const regularActions = transformation.actions.filter(a => !a.isHypnosis);
 
   return (
-    <div className="space-y-8 animate-fade-in max-w-4xl mx-auto">
-      <button onClick={() => navigate('/grimoire')} className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-sm font-bold uppercase tracking-wide mb-6 transition-colors">
-        <ArrowLeft className="w-4 h-4" /> Retour à la bibliothèque
+    <div className="space-y-6 md:space-y-8 animate-fade-in max-w-4xl mx-auto">
+      <button onClick={() => navigate('/grimoire')} className="flex items-center gap-2 text-indigo-600 hover:text-indigo-800 text-[10px] min-[350px]:text-sm font-bold uppercase tracking-wide mb-4 md:mb-6 transition-colors">
+        <ArrowLeft className="w-3 h-3 min-[350px]:w-4 min-[350px]:h-4" /> Retour à la bibliothèque
       </button>
 
-      <header className="mb-10">
-         <div className="flex items-center gap-3 mb-2">
-           <span className="bg-indigo-100 text-indigo-700 text-xs font-bold px-3 py-1 rounded-full uppercase tracking-wider">{transformation.theme}</span>
-           <span className="text-gray-400 text-xs font-bold uppercase tracking-wider">Archivé le {transformation.completedDate}</span>
+      <header className="mb-6 md:mb-10">
+         <div className="flex flex-wrap items-center gap-2 md:gap-3 mb-2">
+           <span className="bg-indigo-100 text-indigo-700 text-[10px] min-[350px]:text-xs font-bold px-2 py-0.5 md:px-3 md:py-1 rounded-full uppercase tracking-wider">{transformation.theme}</span>
+           <span className="text-gray-400 text-[10px] min-[350px]:text-xs font-bold uppercase tracking-wider">Archivé le {transformation.completedDate}</span>
          </div>
-         <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2">{transformation.title}</h1>
+         <h1 className="text-xl min-[350px]:text-3xl md:text-4xl font-bold text-gray-900 mb-2 leading-tight">{transformation.title}</h1>
       </header>
 
       {/* Stratégie Gagnante */}
-      <section className="bg-white border border-indigo-100 rounded-2xl p-8 shadow-sm relative overflow-hidden">
+      <section className="bg-white border border-indigo-100 rounded-2xl p-4 min-[350px]:p-8 shadow-sm relative overflow-hidden">
         <div className="absolute top-0 left-0 w-1 h-full bg-indigo-500" />
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-indigo-100 rounded-lg text-indigo-600">
-             <Star className="w-5 h-5" />
+        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+          <div className="p-1.5 md:p-2 bg-indigo-100 rounded-lg text-indigo-600">
+             <Star className="w-4 h-4 min-[350px]:w-5 min-[350px]:h-5" />
           </div>
-          <h3 className="text-xl font-bold text-indigo-900">Ta Stratégie Gagnante</h3>
+          <h3 className="text-base min-[350px]:text-xl font-bold text-indigo-900">Ta Stratégie Gagnante</h3>
         </div>
         
-        <div className="mb-8">
-          <p className="font-serif text-2xl text-indigo-900 italic leading-relaxed">
+        <div className="mb-6 md:mb-8">
+          <p className="font-serif text-base min-[350px]:text-xl md:text-2xl text-indigo-900 italic leading-relaxed">
             "{transformation.strategy.identity}"
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 text-sm border-t border-gray-100 pt-6">
+        <div className="grid md:grid-cols-2 gap-4 md:gap-8 text-sm border-t border-gray-100 pt-4 md:pt-6">
           <div>
-            <h4 className="font-bold text-gray-500 uppercase tracking-wider mb-3 text-xs">Ton Pourquoi Profond</h4>
-            <p className="bg-gray-50 p-4 rounded-xl border border-gray-100 text-gray-700 leading-relaxed">{transformation.strategy.bigWhy}</p>
+            <h4 className="font-bold text-gray-500 uppercase tracking-wider mb-2 md:mb-3 text-xs min-[350px]:text-sm">Ton Pourquoi Profond</h4>
+            <p className="bg-gray-50 p-3 md:p-4 rounded-xl border border-gray-100 text-xs min-[350px]:text-base text-gray-700 leading-relaxed">{transformation.strategy.bigWhy}</p>
           </div>
           <div>
-            <h4 className="font-bold text-gray-500 uppercase tracking-wider mb-3 text-xs">Tes Règles d'Or</h4>
-            <p className="bg-yellow-50/50 p-4 rounded-xl border border-yellow-100 text-gray-800 whitespace-pre-line leading-relaxed">{transformation.strategy.goldenRules}</p>
+            <h4 className="font-bold text-gray-500 uppercase tracking-wider mb-2 md:mb-3 text-xs min-[350px]:text-sm">Tes Règles d'Or</h4>
+            <p className="bg-yellow-50/50 p-3 md:p-4 rounded-xl border border-yellow-100 text-xs min-[350px]:text-base text-gray-800 whitespace-pre-line leading-relaxed">{transformation.strategy.goldenRules}</p>
           </div>
         </div>
       </section>
 
       {/* Hypnoses Personnalisées */}
       {hypnoses.length > 0 && (
-        <section className="bg-gradient-to-br from-violet-50 to-white border border-violet-100 rounded-2xl p-8 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-violet-100 rounded-lg text-violet-600">
-              <Play className="w-5 h-5" />
+        <section className="bg-gradient-to-br from-violet-50 to-white border border-violet-100 rounded-2xl p-4 min-[350px]:p-8 shadow-sm">
+          <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+            <div className="p-1.5 md:p-2 bg-violet-100 rounded-lg text-violet-600">
+              <Play className="w-4 h-4 min-[350px]:w-5 min-[350px]:h-5" />
             </div>
-            <h3 className="text-xl font-bold text-violet-900">Tes Hypnoses Personnalisées</h3>
+            <h3 className="text-base min-[350px]:text-xl font-bold text-violet-900">Tes Hypnoses Personnalisées</h3>
           </div>
           <div className="space-y-3">
             {hypnoses.map(hypnosis => (
-              <div key={hypnosis.id} className="bg-white border border-violet-100 rounded-xl p-4 flex items-center justify-between hover:shadow-md transition-all cursor-pointer group">
-                <div>
-                  <h4 className="font-bold text-violet-900 group-hover:text-violet-700 transition-colors">{hypnosis.title}</h4>
-                  <p className="text-sm text-violet-500">{hypnosis.description} ({hypnosis.media_duration})</p>
+              <div key={hypnosis.id} className="bg-white border border-violet-100 rounded-xl p-3 md:p-4 flex items-center justify-between hover:shadow-md transition-all cursor-pointer group">
+                <div className="min-w-0 pr-2">
+                  <h4 className="font-bold text-sm min-[350px]:text-lg text-violet-900 group-hover:text-violet-700 transition-colors truncate">{hypnosis.title}</h4>
+                  <p className="text-xs min-[350px]:text-base text-violet-500 truncate">{hypnosis.description} ({hypnosis.media_duration})</p>
                 </div>
-                <button className="w-10 h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-all">
-                  <Play className="w-4 h-4 fill-current ml-0.5" />
+                <button className="w-8 h-8 min-[350px]:w-10 min-[350px]:h-10 rounded-full bg-violet-100 text-violet-600 flex items-center justify-center group-hover:bg-violet-600 group-hover:text-white transition-all flex-shrink-0">
+                  <Play className="w-3 h-3 min-[350px]:w-4 min-[350px]:h-4 fill-current ml-0.5" />
                 </button>
               </div>
             ))}
@@ -218,28 +226,28 @@ const GrimoireDetail: React.FC<{ transformation: CompletedTransformation }> = ({
       )}
 
       {/* Réactiver une Action */}
-      <section className="bg-white border border-green-100 rounded-2xl p-8 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 bg-green-100 rounded-lg text-green-600">
-            <Check className="w-5 h-5" />
+      <section className="bg-white border border-green-100 rounded-2xl p-4 min-[350px]:p-8 shadow-sm">
+        <div className="flex items-center gap-2 md:gap-3 mb-4 md:mb-6">
+          <div className="p-1.5 md:p-2 bg-green-100 rounded-lg text-green-600">
+            <Check className="w-4 h-4 min-[350px]:w-5 min-[350px]:h-5" />
           </div>
-          <h3 className="text-xl font-bold text-green-900">Réactiver une action</h3>
+          <h3 className="text-base min-[350px]:text-xl font-bold text-green-900">Réactiver une action</h3>
         </div>
-        <div className="space-y-4">
+        <div className="space-y-3 md:space-y-4">
           {regularActions.map(action => (
-            <div key={action.id} className="bg-green-50/50 border border-green-100 rounded-xl p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 hover:bg-green-50 transition-colors">
-              <div className="flex-1">
+            <div key={action.id} className="bg-green-50/50 border border-green-100 rounded-xl p-3 md:p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 md:gap-4 hover:bg-green-50 transition-colors">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-1">
                   {/* Icône selon le type */}
-                  {action.type === 'habitude' && <Zap className="w-4 h-4 text-emerald-600" />}
-                  {action.type === 'mission' && <Sword className="w-4 h-4 text-blue-600" />}
-                  {action.type === 'framework' && <FileText className="w-4 h-4 text-violet-600" />}
+                  {action.type === 'habitude' && <Zap className="w-3 h-3 min-[350px]:w-4 min-[350px]:h-4 text-emerald-600 flex-shrink-0" />}
+                  {action.type === 'mission' && <Sword className="w-3 h-3 min-[350px]:w-4 min-[350px]:h-4 text-blue-600 flex-shrink-0" />}
+                  {action.type === 'framework' && <FileText className="w-3 h-3 min-[350px]:w-4 min-[350px]:h-4 text-violet-600 flex-shrink-0" />}
                   
-                  <h4 className="font-bold text-green-900">{action.title}</h4>
+                  <h4 className="font-bold text-sm min-[350px]:text-lg text-green-900 truncate">{action.title}</h4>
                 </div>
-                {action.mantra && <p className="text-sm text-green-700 mt-1 italic font-serif">"{action.mantra}"</p>}
+                {action.mantra && <p className="text-xs min-[350px]:text-base text-green-700 mt-1 italic font-serif truncate">"{action.mantra}"</p>}
               </div>
-              <button className="px-5 py-2 bg-white border border-green-200 text-green-700 rounded-lg text-sm font-bold hover:bg-green-600 hover:text-white hover:border-green-600 transition-all shadow-sm flex-shrink-0">
+              <button className="w-full sm:w-auto px-4 py-2 bg-white border border-green-200 text-green-700 rounded-lg text-xs min-[350px]:text-sm font-bold hover:bg-green-600 hover:text-white hover:border-green-600 transition-all shadow-sm flex-shrink-0 whitespace-nowrap">
                 Réactiver 3 jours
               </button>
             </div>
@@ -248,10 +256,10 @@ const GrimoireDetail: React.FC<{ transformation: CompletedTransformation }> = ({
       </section>
     </div>
   );
-};
+}
 
 // Main Grimoire Component
-const Grimoire = () => {
+export default function Grimoire() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
 
@@ -259,26 +267,26 @@ const Grimoire = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900 pb-24">
-      <header className="bg-white px-6 py-6 sticky top-0 z-20 shadow-sm border-b border-gray-100">
+      <header className="bg-white px-4 md:px-6 py-4 md:py-6 sticky top-0 z-20 shadow-sm border-b border-gray-100">
         <div className="max-w-5xl mx-auto flex justify-between items-end">
           <div className="flex items-center gap-4">
             <div>
-              <p className="text-indigo-400 text-xs uppercase font-bold tracking-wider mb-1">Mon Espace Sacré</p>
-              <h1 className="text-2xl font-bold flex items-center gap-3 text-indigo-950">
+              <p className="text-indigo-400 text-[10px] min-[350px]:text-xs uppercase font-bold tracking-wider mb-1">Mon Espace Sacré</p>
+              <h1 className="text-lg min-[350px]:text-2xl font-bold flex items-center gap-2 md:gap-3 text-indigo-950">
                 Le Grimoire
               </h1>
             </div>
           </div>
           <div 
             onClick={() => navigate('/dashboard')}
-            className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500 border-2 border-white shadow-sm cursor-pointer hover:bg-gray-300 transition-colors"
+            className="w-8 h-8 min-[350px]:w-10 min-[350px]:h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-xs min-[350px]:text-base text-gray-500 border-2 border-white shadow-sm cursor-pointer hover:bg-gray-300 transition-colors"
           >
             Ah
           </div>
         </div>
       </header>
 
-      <main className="max-w-5xl mx-auto px-6 py-10">
+      <main className="max-w-5xl mx-auto px-4 md:px-6 py-6 md:py-10">
         {selectedTransformation ? (
           <GrimoireDetail transformation={selectedTransformation} />
         ) : (
@@ -287,6 +295,4 @@ const Grimoire = () => {
       </main>
     </div>
   );
-};
-
-export default Grimoire;
+}

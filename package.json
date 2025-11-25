@@ -2,7 +2,13 @@
   "scripts": {
     "dev": "cd frontend && npm run dev",
     "build": "cd frontend && npm run build",
-    "start": "cd frontend && npm run preview"
+    "start": "cd frontend && npm run preview",
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:dump": "npx supabase db dump --local > schema.sql"
+  },
+  "devDependencies": {
+    "supabase": "^1.115.4"
   }
 }
-

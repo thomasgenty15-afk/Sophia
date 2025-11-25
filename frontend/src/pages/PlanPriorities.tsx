@@ -129,36 +129,36 @@ const PlanPriorities = () => {
   };
 
   return (
-    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-12 px-6">
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-8 px-4 md:py-12 md:px-6">
       <div className="max-w-3xl mx-auto">
         
         {/* HEADER */}
-        <div className="text-center mb-10 animate-fade-in-up">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-violet-100 text-violet-700 text-xs font-bold uppercase tracking-wider mb-6">
-            <GitMerge className="w-4 h-4" />
+        <div className="text-center mb-8 md:mb-10 animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-violet-100 text-violet-700 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-4 md:mb-6">
+            <GitMerge className="w-3 h-3 md:w-4 md:h-4" />
             Stratégie Séquentielle
           </div>
-          <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+          <h1 className="text-2xl min-[350px]:text-3xl md:text-4xl font-bold text-slate-900 mb-2 md:mb-4">
             L'ordre des facteurs change le résultat.
           </h1>
-          <p className="text-lg text-slate-600 max-w-xl mx-auto">
-            L'IA a calculé l'itinéraire le plus sûr. <br/>
+          <p className="text-sm min-[350px]:text-base md:text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
+            L'IA a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/>
             Vous pouvez le modifier, mais attention aux incohérences.
           </p>
         </div>
 
         {/* ALERTE SI MODIFIÉ */}
         {isModified && (
-          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-8 flex items-center justify-between animate-fade-in-up">
-            <div className="flex items-center gap-3">
-              <AlertTriangle className="w-5 h-5 text-amber-600" />
-              <p className="text-sm text-amber-800 font-medium">
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 md:p-4 mb-6 md:mb-8 flex items-center justify-between animate-fade-in-up">
+            <div className="flex items-center gap-2 md:gap-3">
+              <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
+              <p className="text-xs md:text-sm text-amber-800 font-medium leading-tight">
                 Vous avez modifié l'ordre recommandé par l'IA.
               </p>
             </div>
             <button 
               onClick={handleReset}
-              className="text-xs font-bold uppercase tracking-wider text-amber-700 hover:text-amber-900 flex items-center gap-1"
+              className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-amber-700 hover:text-amber-900 flex items-center gap-1 bg-amber-100/50 px-2 py-1 rounded-lg"
             >
               <RotateCcw className="w-3 h-3" /> Rétablir
             </button>
@@ -167,8 +167,8 @@ const PlanPriorities = () => {
 
         {/* INSTRUCTION DE REORDER */}
         {!isModified && (
-          <div className="flex items-center justify-center gap-2 text-slate-400 text-sm font-bold uppercase tracking-wider mb-8">
-            <Move className="w-4 h-4" />
+          <div className="flex items-center justify-center gap-2 text-slate-400 text-xs md:text-sm font-bold uppercase tracking-wider mb-6 md:mb-8 text-center px-4">
+            <Move className="w-3 h-3 md:w-4 md:h-4" />
             Glissez les cartes pour modifier l'ordre
           </div>
         )}
@@ -201,36 +201,36 @@ const PlanPriorities = () => {
                   style={{ animationDelay: `${index * 150}ms` }}
                 >
                   {/* Numéro Ordre Actuel */}
-                  <div className={`absolute -left-4 top-8 w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg shadow-lg border-4 border-slate-50 z-20 ${
+                  <div className={`absolute -left-2 min-[350px]:-left-3 md:-left-4 top-6 md:top-8 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-lg shadow-lg border-2 md:border-4 border-slate-50 z-20 ${
                     index === 0 ? 'bg-slate-900 text-white' : 'bg-white text-slate-400 border-slate-200'
                   }`}>
                     {index + 1}
                   </div>
 
-                  <div className="flex items-start gap-5 pl-6">
-                    <div className="text-slate-300 mt-2 group-hover:text-violet-400 transition-colors">
-                      <GripVertical className="w-6 h-6" />
+                  <div className="flex items-start gap-3 md:gap-5 pl-4 md:pl-6">
+                    <div className="text-slate-300 mt-1 md:mt-2 group-hover:text-violet-400 transition-colors hidden min-[350px]:block">
+                      <GripVertical className="w-4 h-4 md:w-6 md:h-6" />
                     </div>
                     
                     <div className="flex-1">
-                      <div className="flex items-center justify-between mb-2">
-                        <span className="text-xs font-bold text-violet-600 uppercase tracking-wider bg-violet-50 px-2 py-0.5 rounded">
+                      <div className="flex items-center justify-between mb-1 md:mb-2">
+                        <span className="text-[10px] md:text-xs font-bold text-violet-600 uppercase tracking-wider bg-violet-50 px-2 py-0.5 rounded">
                           {item.theme}
                         </span>
                       </div>
 
-                      <h3 className="text-lg font-bold text-slate-900 mb-3 leading-tight">
+                      <h3 className="text-base min-[350px]:text-lg md:text-xl font-bold text-slate-900 mb-2 md:mb-3 leading-tight">
                         {item.title}
                       </h3>
                       
                       {/* LOGIQUE IA FIXE (ATTACHÉE À LA CARTE) */}
-                      <div className={`flex gap-3 p-3 rounded-lg border ${logic.style}`}>
-                        <div className="mt-0.5">{logic.icon}</div>
+                      <div className={`flex gap-2 md:gap-3 p-2 md:p-3 rounded-lg border ${logic.style}`}>
+                        <div className="mt-0.5 shrink-0">{logic.icon}</div>
                         <div>
-                          <p className="text-xs font-bold uppercase mb-0.5 opacity-90">
+                          <p className="text-[10px] md:text-xs font-bold uppercase mb-0.5 opacity-90">
                             {logic.role}
                           </p>
-                          <p className="text-sm opacity-80 leading-relaxed">
+                          <p className="text-xs md:text-sm opacity-80 leading-relaxed">
                             {logic.text}
                           </p>
                         </div>
@@ -245,14 +245,16 @@ const PlanPriorities = () => {
 
         <button 
           onClick={handleValidate}
-          className={`w-full text-white font-bold text-lg py-5 rounded-xl transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-3 animate-fade-in-up delay-500 group ${
+          className={`w-full text-white font-bold text-base md:text-lg py-3 md:py-5 rounded-xl transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 md:gap-3 animate-fade-in-up delay-500 group ${
             isModified ? 'bg-amber-600 hover:bg-amber-700' : 'bg-slate-900 hover:bg-violet-600'
           }`}
         >
+          <span className="truncate px-2">
           {isModified 
             ? `Générer mon plan ${currentOrder[0].theme} (Malgré le risque)` 
             : `Générer mon plan ${currentOrder[0].theme}`}
-          <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+          </span>
+          <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform shrink-0" />
         </button>
 
       </div>

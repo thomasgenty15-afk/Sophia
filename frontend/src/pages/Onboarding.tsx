@@ -141,26 +141,26 @@ const Questionnaire = () => {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row text-gray-900 pb-24"> {/* pb-24 pour la barre fixe */}
       {/* Sidebar */}
-      <aside className="w-full md:w-64 bg-white border-r border-gray-200 p-6 sticky top-0 h-auto md:h-screen z-10">
-        <h2 className="text-xl font-bold mb-6">Thèmes</h2>
-        <div className="space-y-2">
+      <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-4 md:p-6 sticky top-0 h-auto md:h-screen z-40 flex flex-col gap-3 md:gap-0">
+        <h2 className="text-lg md:text-xl font-bold mb-0 md:mb-6">Thèmes</h2>
+        <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-visible scrollbar-hide w-full pb-1 md:pb-0">
           {DATA.map(theme => {
             const isAxisSelectedInTheme = selectedAxisByTheme[theme.id] != null;
             return (
               <button
                 key={theme.id}
                 onClick={() => setCurrentTheme(theme)}
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-colors relative ${currentTheme.id === theme.id
+                className={`shrink-0 md:shrink md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-colors relative whitespace-nowrap ${currentTheme.id === theme.id
                   ? "bg-blue-600 text-white shadow-md"
                   : "hover:bg-gray-100 text-gray-600"
                   }`}
               >
-                <span className="text-xl">{theme.icon}</span>
-                <span className="font-medium">{theme.shortTitle}</span>
+                <span className="text-lg md:text-xl">{theme.icon}</span>
+                <span className="font-medium text-sm md:text-base">{theme.shortTitle}</span>
 
                 {/* Indicateur si un axe est choisi dans ce thème */}
                 {isAxisSelectedInTheme && (
-                  <div className={`absolute right-3 w-2 h-2 rounded-full ${currentTheme.id === theme.id ? 'bg-white' : 'bg-blue-500'}`} />
+                  <div className={`ml-2 md:absolute md:right-3 w-2 h-2 rounded-full ${currentTheme.id === theme.id ? 'bg-white' : 'bg-blue-500'}`} />
                 )}
               </button>
             );
@@ -208,7 +208,7 @@ const Questionnaire = () => {
                     </div>
                     <div>
                       <h3 className={`font-bold text-base md:text-lg ${isSelected ? 'text-blue-900' : 'text-gray-900'}`}>{axis.title}</h3>
-                      <p className="text-gray-500 text-xs md:text-sm mt-1">{axis.description}</p>
+                      <p className="text-gray-500 text-sm mt-1">{axis.description}</p>
                     </div>
                   </div>
                   <ChevronDown className={`w-6 h-6 text-gray-400 transition-transform ${isSelected ? 'rotate-180 text-blue-500' : ''}`} />
@@ -237,7 +237,7 @@ const Questionnaire = () => {
 
                             {/* Questions détaillées */}
                             {isChecked && (
-                              <div className="px-4 pb-4 ml-8 space-y-6 border-l-2 border-blue-200 pl-6">
+                              <div className="px-4 ml-8 space-y-6 border-l-2 border-blue-200 pl-6 pb-2 mb-2">
                                 {prob.detailQuestions.map(q => (
                                   <div key={q.id}>
                                     <p className="text-sm font-bold text-gray-800 mb-2">{q.question}</p>

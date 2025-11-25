@@ -257,12 +257,12 @@ const WeekCard = ({ week }: { week: any }) => {
 
       <div className="flex items-center justify-between relative z-10 px-4">
         <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            <span className={`text-[10px] font-bold uppercase tracking-widest ${isCurrent ? "text-amber-400" : isCompleted ? "text-emerald-300" : "text-emerald-700"}`}>
+          <div className="flex flex-col-reverse items-start min-[300px]:flex-row min-[300px]:items-center gap-1 min-[300px]:gap-3 mb-2">
+            <span className={`text-xs font-bold uppercase tracking-widest ${isCurrent ? "text-amber-400" : isCompleted ? "text-emerald-300" : "text-emerald-700"}`}>
               Semaine {week.id}
             </span>
             {isCompleted && (
-              <span className="bg-emerald-500/20 text-emerald-300 text-[9px] px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-emerald-500/30">
+              <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-emerald-500/30">
                 Validé
               </span>
             )}
@@ -273,7 +273,7 @@ const WeekCard = ({ week }: { week: any }) => {
           </h3>
 
           {isLocked && (
-            <p className="text-[10px] md:text-xs text-emerald-800 mt-2 font-medium flex items-center gap-1">
+            <p className="text-xs md:text-sm text-emerald-800 mt-2 font-medium flex items-center gap-1">
               <Lock className="w-3 h-3" /> Se débloque bientôt
             </p>
           )}
@@ -303,18 +303,18 @@ const RitualCard = ({ action }: { action: any }) => {
     return (
       <div className="bg-gradient-to-r from-indigo-900 to-violet-900 border border-indigo-800 rounded-xl p-4 mb-4 shadow-md relative overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform">
         <div className="absolute top-0 right-0 -mt-2 -mr-2 w-20 h-20 bg-white opacity-5 blur-2xl rounded-full pointer-events-none"></div>
-        <div className="flex items-start justify-between relative z-10">
-          <div className="flex items-center gap-3">
+        <div className="flex flex-col min-[400px]:flex-row items-start justify-between relative z-10 gap-3 min-[400px]:gap-0">
+          <div className="flex flex-col min-[350px]:flex-row items-start min-[350px]:items-center gap-3">
             <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-amber-400 shadow-inner">
               <Sparkles className="w-5 h-5" />
             </div>
             <div>
-              <h3 className="font-bold text-white text-sm leading-tight">{action.title}</h3>
-              <p className="text-indigo-200 text-xs mt-1 max-w-[200px]">{action.description}</p>
+              <h3 className="font-bold text-sm min-[350px]:text-base leading-tight text-indigo-200">{action.title}</h3>
+              <p className="text-indigo-200 text-xs min-[350px]:text-sm mt-1 max-w-[200px]">{action.description}</p>
             </div>
           </div>
-          <div className="flex flex-col items-end">
-            <span className="bg-amber-400 text-amber-950 text-[10px] font-bold px-2 py-0.5 rounded-full mb-1 shadow-sm">
+          <div className="flex flex-col items-end self-end min-[400px]:self-auto">
+            <span className="bg-amber-400 text-amber-950 text-xs font-bold px-2 py-0.5 rounded-full mb-1 shadow-sm">
               +50% de réussite
             </span>
             <span className="text-white font-bold text-lg">{action.price}</span>
@@ -326,18 +326,18 @@ const RitualCard = ({ action }: { action: any }) => {
 
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-4 mb-3 flex items-center justify-between shadow-sm min-h-[80px]">
-      <div className="flex items-center gap-3 w-full">
+      <div className="flex flex-col min-[350px]:flex-row items-start min-[350px]:items-center gap-3 w-full">
         <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${action.subType === 'hypnose_daily' ? 'bg-indigo-100 text-indigo-600' : 'bg-blue-100 text-blue-600'}`}>
           {action.subType === 'hypnose_daily' ? <CheckCircle2 className="w-5 h-5" /> : <Target className="w-5 h-5" />}
         </div>
-        <div className="min-w-0 flex-1 pr-2">
-          <h3 className="font-bold text-sm text-gray-900 leading-tight mb-1.5">{action.title}</h3>
+        <div className="min-w-0 flex-1 pr-0 min-[350px]:pr-2 w-full">
+          <h3 className="font-bold text-sm min-[350px]:text-base text-gray-900 leading-tight mb-1.5">{action.title}</h3>
           {action.subType === 'hypnose_daily' ? (
             <div className="flex flex-wrap items-center gap-2">
               {isLimitReached ? (
                 <span className="text-red-500 text-xs font-bold flex items-center gap-1"><Lock className="w-3 h-3" /> Limite atteinte</span>
               ) : (
-                <span className="inline-block bg-gray-100 px-2 py-0.5 rounded text-[10px] font-medium text-gray-600 border border-gray-200">
+                <span className={`inline-block bg-gray-100 px-2 py-0.5 rounded text-xs font-medium text-gray-600 border border-gray-200 ${action.subType === 'hypnose_daily' ? 'hidden min-[430px]:inline-block' : ''}`}>
                   Essai : J-{action.current_trial_day} / {action.free_trial_days}
                 </span>
               )}
@@ -348,7 +348,7 @@ const RitualCard = ({ action }: { action: any }) => {
         </div>
       </div>
       {isLimitReached ? (
-        <button className="ml-2 px-2 py-1 bg-gray-100 text-gray-400 rounded text-[10px] font-bold cursor-not-allowed flex-shrink-0">
+        <button className="ml-2 px-2 py-1 bg-gray-100 text-gray-400 rounded text-xs font-bold cursor-not-allowed flex-shrink-0">
           Bloqué
         </button>
       ) : (
@@ -380,28 +380,32 @@ const MetricCard = () => {
         <BarChart3 className="w-32 h-32" />
       </div>
 
-      <div className="relative z-10 flex items-start justify-between">
+      <div className="relative z-10 flex flex-col min-[400px]:flex-row items-start justify-between gap-4 min-[400px]:gap-0">
         <div>
           <div className="flex items-center gap-2 mb-2">
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider">Signal Vital Suivi</h3>
+            <h3 className="text-xs min-[350px]:text-sm font-bold text-slate-400 uppercase tracking-wider">Signal Vital Suivi</h3>
           </div>
-          <h2 className="text-lg font-bold text-slate-900 mb-1">{metricName}</h2>
-          <p className="text-xs text-slate-500 flex items-center gap-1">
+          <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 mb-1">{metricName}</h2>
+          <p className="text-xs min-[350px]:text-sm text-slate-500 flex items-center gap-1">
             <MessageCircle className="w-3 h-3" />
             Relevé via WhatsApp • {lastUpdate}
           </p>
         </div>
 
-        <div className="text-right">
-          <div className="text-3xl font-bold text-slate-900 leading-none">{currentValue}</div>
-          <div className="text-xs font-medium text-slate-400 mt-1">{unit}</div>
+        <div className="text-center self-end min-[400px]:self-auto w-full min-[400px]:w-auto mt-2 min-[400px]:mt-0 min-[400px]:text-right">
+          <div className="text-xl min-[350px]:text-3xl font-bold text-slate-900 leading-none flex flex-col items-center min-[350px]:flex-row min-[350px]:items-baseline min-[400px]:justify-end">
+            {currentValue}
+            <span className="block min-[350px]:inline text-xs min-[350px]:text-sm font-medium text-slate-400 mt-1 min-[350px]:ml-1">
+              {unit}
+            </span>
+          </div>
         </div>
       </div>
 
       {/* Zone de Tendance (Universelle) */}
       <div className="mt-6 relative z-10">
-        <div className="flex items-center justify-between text-xs font-bold mb-2">
+        <div className="flex items-center justify-between text-xs min-[350px]:text-sm font-bold mb-2">
           <span className="text-slate-400">Point de départ : {startValue}</span>
           <span className={`${isPositive ? 'text-emerald-600' : 'text-amber-600'} flex items-center gap-1`}>
             {isPositive ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
@@ -515,16 +519,16 @@ const StrategyCard = ({ strategy }: { strategy: string }) => {
     <div className="bg-white border border-blue-100 rounded-2xl shadow-sm overflow-hidden mb-8 transition-all duration-300">
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className="p-6 flex items-start justify-between cursor-pointer hover:bg-blue-50/50 transition-colors group"
+        className="p-4 md:p-6 flex items-start justify-between cursor-pointer hover:bg-blue-50/50 transition-colors group"
       >
-        <div className="flex gap-4 w-full">
-          <div className="w-10 h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200 flex-shrink-0">
-            <Target className="w-5 h-5" />
+        <div className="flex gap-3 md:gap-4 w-full">
+          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200 flex-shrink-0">
+            <Target className="w-4 h-4 md:w-5 md:h-5" />
           </div>
           <div className="flex-1">
-            <h2 className="text-sm font-bold text-blue-600 uppercase tracking-wide mb-1">Ma Vision (Identité)</h2>
-            <div className="flex items-start gap-3">
-              <p className={`font-serif text-lg text-gray-800 italic leading-relaxed ${isOpen ? '' : 'line-clamp-1'}`}>
+            <h2 className="text-[10px] min-[310px]:text-xs min-[802px]:text-sm font-bold text-blue-600 uppercase tracking-wide mb-1">Ma Vision (Identité)</h2>
+            <div className="flex items-start gap-2 md:gap-3">
+              <p className={`font-serif text-sm min-[310px]:text-base min-[802px]:text-lg text-gray-800 italic leading-relaxed ${isOpen ? '' : 'line-clamp-1'}`}>
                 "{identity}"
               </p>
               <button
@@ -547,67 +551,67 @@ const StrategyCard = ({ strategy }: { strategy: string }) => {
       </div>
 
       {isOpen && (
-        <div className="px-6 pb-6 pt-0 animation-fade-in">
+        <div className="px-4 md:px-6 pb-4 md:pb-6 pt-0 animation-fade-in">
           <div className="border-t border-gray-100 my-4"></div>
 
           {isEditing ? (
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Qui je deviens (Identité)</label>
+                <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2">Qui je deviens (Identité)</label>
                 <textarea
                   value={identity}
                   onChange={(e) => setIdentity(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                   rows={2}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Mon Pourquoi Profond</label>
+                <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2">Mon Pourquoi Profond</label>
                 <textarea
                   value={why}
                   onChange={(e) => setWhy(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                   rows={2}
                 />
               </div>
               <div>
-                <label className="block text-xs font-bold text-gray-500 uppercase mb-2">Mes Règles d'Or</label>
+                <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2">Mes Règles d'Or</label>
                 <textarea
                   value={rules}
                   onChange={(e) => setRules(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 outline-none"
+                  className="w-full p-3 border border-gray-300 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
                   rows={4}
                 />
               </div>
               <div className="flex justify-end gap-2 pt-2">
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-lg"
+                  className="px-4 py-2 text-xs md:text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-lg"
                 >
                   Annuler
                 </button>
                 <button
                   onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md"
+                  className="px-4 py-2 text-xs md:text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md"
                 >
                   Enregistrer
                 </button>
               </div>
             </div>
           ) : (
-            <div className="grid md:grid-cols-2 gap-8">
-              <div className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4 md:gap-8">
+              <div className="space-y-3 md:space-y-4">
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Mon Pourquoi Profond</h3>
-                  <p className="text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
+                  <h3 className="text-[10px] md:text-xs font-bold text-gray-400 uppercase mb-2">Mon Pourquoi Profond</h3>
+                  <p className="text-xs md:text-sm text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
                     {why}
                   </p>
                 </div>
               </div>
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 <div>
-                  <h3 className="text-xs font-bold text-gray-400 uppercase mb-2">Mes Règles d'Or</h3>
-                  <div className="text-gray-700 leading-relaxed bg-yellow-50 p-3 rounded-lg border border-yellow-100 whitespace-pre-line">
+                  <h3 className="text-[10px] md:text-xs font-bold text-gray-400 uppercase mb-2">Mes Règles d'Or</h3>
+                  <div className="text-xs md:text-sm text-gray-700 leading-relaxed bg-yellow-50 p-3 rounded-lg border border-yellow-100 whitespace-pre-line">
                     {rules}
                   </div>
                 </div>
@@ -616,7 +620,7 @@ const StrategyCard = ({ strategy }: { strategy: string }) => {
               <div className="md:col-span-2 flex justify-end mt-2">
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 text-sm font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors"
+                  className="flex items-center gap-2 text-xs md:text-sm font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors"
                 >
                   <Edit3 className="w-4 h-4" /> Modifier ma stratégie
                 </button>
@@ -655,27 +659,16 @@ const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked
   };
 
   return (
-    <div className={`relative bg-white border rounded-xl p-4 shadow-sm transition-all duration-300 group ${isLocked ? 'opacity-60 grayscale border-gray-100' :
+    <div className={`relative bg-white border rounded-xl p-3 min-[260px]:p-4 shadow-sm transition-all duration-300 group ${isLocked ? 'opacity-60 grayscale border-gray-100' :
         isMainQuest ? 'border-blue-200 shadow-md ring-1 ring-blue-100' : 'hover:shadow-md border-gray-200'
       }`}>
 
       {/* Badge Quest Type */}
-      <div className={`absolute -top-3 left-4 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider border shadow-sm flex items-center gap-1 ${isLocked ? 'bg-gray-100 text-gray-400 border-gray-200' :
+      <div className={`absolute -top-3 left-1/2 -translate-x-1/2 min-[350px]:left-4 min-[350px]:translate-x-0 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border shadow-sm flex items-center justify-center gap-1 ${isLocked ? 'bg-gray-100 text-gray-400 border-gray-200' :
           isMainQuest ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 border-slate-200'
         }`}>
         {isMainQuest ? <><Sword className="w-3 h-3" /> Quête Principale</> : <><Shield className="w-3 h-3" /> Quête Secondaire</>}
       </div>
-
-      {/* Help / SOS Button (Remplace Info) */}
-      {!isLocked && !action.isCompleted && !isChecked && (
-        <button
-          onClick={() => onHelp(action)}
-          className="absolute top-3 right-3 text-slate-300 hover:text-amber-500 hover:bg-amber-50 p-1 rounded-full transition-all"
-          title="Je bloque sur cette action"
-        >
-          <LifeBuoy className="w-4 h-4" />
-        </button>
-      )}
 
       <div className="flex items-start gap-4 mt-2">
         {/* Icône Type */}
@@ -687,27 +680,27 @@ const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked
             isFramework ? <FileText className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
         </div>
 
-        <div className="flex-1 pr-6 min-w-0">
+        <div className="flex-1 pr-0 min-[350px]:pr-6 min-w-0">
           {/* En-tête */}
-          <div className="flex flex-wrap items-center gap-2 mb-1">
-            <span className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap ${isLocked ? 'bg-gray-100 text-gray-400' :
+          <div className="flex flex-wrap items-center gap-2 mb-1 pr-8 min-[350px]:pr-0 mt-4 min-[350px]:mt-0">
+            <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap ${isLocked ? 'bg-gray-100 text-gray-400' :
                 isGroupA ? 'bg-emerald-50 text-emerald-600' :
                   isFramework ? 'bg-violet-50 text-violet-600' : 'bg-amber-50 text-amber-600'
               }`}>
               {action.type}
             </span>
-            <h3 className={`font-bold text-sm md:text-base truncate ${isLocked ? 'text-gray-400' : 'text-gray-900'}`}>{action.title}</h3>
+            <h3 className={`font-bold text-sm min-[350px]:text-base md:text-lg leading-tight ${isLocked ? 'text-gray-400' : 'text-gray-900'}`}>{action.title}</h3>
           </div>
 
-          <p className="text-xs text-gray-500 mb-3 leading-snug min-h-[32px] break-words">{action.description}</p>
+          <p className="text-xs min-[350px]:text-sm text-gray-500 mb-3 leading-snug min-h-[32px] break-words">{action.description}</p>
 
           {/* EXPLICATION STRATEGIQUE (RATIONALE) SI PRESENTE */}
           {action.rationale && (
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-3 text-xs text-amber-900 relative">
+            <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-3 text-xs min-[350px]:text-sm text-amber-900 relative">
               <div className="absolute -top-2 -left-2 bg-amber-100 rounded-full p-1">
                 <Sparkles className="w-3 h-3 text-amber-600" />
               </div>
-              <span className="font-bold text-amber-700 block mb-1 uppercase text-[10px] tracking-wide">Pourquoi ça t'aide :</span>
+              <span className="font-bold text-amber-700 block mb-1 uppercase text-xs tracking-wide">Pourquoi ça t'aide :</span>
               {action.rationale}
             </div>
           )}
@@ -718,17 +711,17 @@ const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked
               {isGroupA ? (
                 /* --- GROUPE A : PROGRESS BAR --- */
                 <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                  <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] font-bold text-gray-400 uppercase">Progression</span>
-                    <span className="text-[10px] font-bold text-emerald-600">{currentReps}/{targetReps}</span>
+                  <div className="flex flex-col items-start gap-1 min-[260px]:flex-row min-[260px]:items-center min-[260px]:justify-between mb-1.5">
+                    <span className="text-xs font-bold text-gray-400 uppercase">Progression</span>
+                    <span className="text-xs font-bold text-emerald-600">{currentReps}/{targetReps}</span>
                   </div>
                   <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mb-2">
                     <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${progress}%` }} />
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex flex-col min-[260px]:flex-row gap-2">
                     <button
-                      className="flex-1 py-1.5 text-gray-400 hover:text-emerald-600 text-[10px] font-medium underline decoration-dotted transition-colors flex items-center justify-center gap-1"
+                      className="flex-1 py-1.5 text-gray-400 hover:text-emerald-600 text-xs font-medium underline decoration-dotted transition-colors flex items-center justify-center gap-1"
                       title="Passer à la suite (Maîtrise acquise)"
                     >
                       <FastForward className="w-3 h-3" /> Je maîtrise déjà
@@ -744,7 +737,7 @@ const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked
                 </div>
               ) : isFramework ? (
                 /* --- GROUPE B : FRAMEWORK (BOUTON REMPLIR) --- */
-                <button className="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs font-bold flex items-center justify-center gap-2 transition-colors shadow-sm">
+                <button className="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs min-[350px]:text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm">
                   <Edit3 className="w-4 h-4" />
                   Remplir la fiche
                 </button>
@@ -755,7 +748,7 @@ const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked
                   className={`cursor-pointer flex items-center justify-between p-2 rounded-lg border transition-all ${isChecked ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200 hover:border-amber-200'
                     }`}
                 >
-                  <span className={`text-xs font-bold ${isChecked ? 'text-amber-700' : 'text-gray-500'}`}>
+                  <span className={`text-xs min-[350px]:text-sm font-bold ${isChecked ? 'text-amber-700' : 'text-gray-500'}`}>
                     {isChecked ? "Mission accomplie" : "Marquer comme fait"}
                   </span>
                   <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isChecked ? 'bg-amber-500 border-amber-500 text-white' : 'bg-white border-gray-300'
@@ -768,6 +761,19 @@ const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked
           )}
         </div>
       </div>
+
+      {/* Help / SOS Button (Repositionné pour Mobile) */}
+      {!isLocked && !action.isCompleted && !isChecked && (
+        <div className="flex justify-center mt-2 min-[350px]:absolute min-[350px]:top-3 min-[350px]:right-3 min-[350px]:mt-0">
+          <button
+            onClick={() => onHelp(action)}
+            className="text-slate-300 hover:text-amber-500 hover:bg-amber-50 p-1 rounded-full transition-all"
+            title="Je bloque sur cette action"
+          >
+            <LifeBuoy className="w-4 h-4" />
+          </button>
+        </div>
+      )}
     </div>
   );
 };
@@ -778,15 +784,15 @@ const PlanPhaseBlock = ({ phase, isLast, onHelpAction }: { phase: PlanPhase, isL
   const isActive = phase.status === 'active';
 
   return (
-    <div className="relative pl-0 min-[350px]:pl-4 md:pl-8 pb-10 last:pb-0">
+    <div className="relative pl-0 md:pl-8 pb-10 last:pb-0">
       {/* Ligne Verticale */}
       {!isLast && (
-        <div className={`hidden min-[350px]:block absolute left-[11px] top-8 bottom-0 w-0.5 ${isActive ? 'bg-emerald-200' : 'bg-gray-100'
+        <div className={`hidden md:block absolute left-[11px] top-8 bottom-0 w-0.5 ${isActive ? 'bg-emerald-200' : 'bg-gray-100'
           }`} />
       )}
 
       {/* Puce Timeline */}
-      <div className={`hidden min-[350px]:flex absolute left-0 top-1 w-6 h-6 rounded-full border-4 items-center justify-center z-10 ${phase.status === 'completed' ? 'bg-emerald-500 border-emerald-100' :
+      <div className={`hidden md:flex absolute left-0 top-1 w-6 h-6 rounded-full border-4 items-center justify-center z-10 ${phase.status === 'completed' ? 'bg-emerald-500 border-emerald-100' :
           isActive ? 'bg-white border-emerald-500 shadow-md scale-110' :
             'bg-gray-100 border-gray-50'
         }`}>
@@ -796,11 +802,11 @@ const PlanPhaseBlock = ({ phase, isLast, onHelpAction }: { phase: PlanPhase, isL
 
       {/* En-tête Phase */}
       <div className="mb-6 mt-1">
-        <h3 className={`text-sm font-bold uppercase tracking-wide ${isActive ? 'text-emerald-700' : isLocked ? 'text-gray-400' : 'text-emerald-900'
+        <h3 className={`text-sm min-[350px]:text-base font-bold uppercase tracking-wide ${isActive ? 'text-emerald-700' : isLocked ? 'text-gray-400' : 'text-emerald-900'
           }`}>
           {phase.title}
         </h3>
-        <p className="text-xs text-gray-400">{phase.subtitle}</p>
+        <p className="text-xs min-[350px]:text-sm text-gray-400">{phase.subtitle}</p>
       </div>
 
       {/* Liste Verticale Actions */}
@@ -838,6 +844,8 @@ const EmptyState = ({ onGenerate }: { onGenerate: () => void }) => (
   </div>
 );
 
+import UserProfile from '../components/UserProfile';
+
 // --- MAIN PAGE ---
 
 const Dashboard = () => {
@@ -847,6 +855,9 @@ const Dashboard = () => {
   const [mode, setMode] = useState<'action' | 'architecte'>(() => {
     return (location.state as any)?.mode === 'architecte' ? 'architecte' : 'action';
   });
+
+  // État pour le profil utilisateur
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Gestion du Plan (State pour pouvoir le modifier)
   const [activePlan, setActivePlan] = useState<GeneratedPlan>(MOCK_CHAOS_PLAN);
@@ -911,38 +922,47 @@ const Dashboard = () => {
       )}
 
       {/* HEADER */}
-      <header className={`${isArchitectMode ? "bg-emerald-900/50 border-emerald-800" : "bg-white border-gray-100"} px-6 py-4 sticky top-0 z-20 shadow-sm border-b backdrop-blur-md transition-colors duration-500`}>
-        <div className="max-w-5xl mx-auto flex justify-between items-center">
+      <header className={`${isArchitectMode ? "bg-emerald-900/50 border-emerald-800" : "bg-white border-gray-100"} px-3 md:px-6 py-3 md:py-4 sticky top-0 z-20 shadow-sm border-b backdrop-blur-md transition-colors duration-500`}>
+        <div className="max-w-5xl mx-auto flex justify-between items-center gap-2">
 
           {/* SWITCHER */}
-          <div className="flex flex-col min-[270px]:flex-row bg-gray-100/10 p-1 rounded-[2rem] min-[270px]:rounded-full border border-gray-200/20 gap-1 min-[270px]:gap-0">
+          <div className="flex flex-row bg-gray-100/10 p-1 rounded-full border border-gray-200/20 gap-0 shrink-0">
             <button
               onClick={() => setMode('action')}
-              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${!isArchitectMode
+              className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${!isArchitectMode
                   ? "bg-white text-blue-600 shadow-sm"
                   : "text-emerald-300 hover:text-white"
                 }`}
             >
               <Zap className="w-3 h-3" />
-              Action
+              <span className="hidden min-[360px]:inline">Action</span>
             </button>
             <button
               onClick={() => setMode('architecte')}
-              className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-2 ${isArchitectMode
+              className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${isArchitectMode
                   ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/50"
                   : "text-gray-400 hover:text-gray-600"
                 }`}
             >
               <Compass className="w-3 h-3" />
-              Architecte
+              <span className="hidden min-[360px]:inline">Architecte</span>
             </button>
           </div>
 
-          <div className="w-10 h-10 rounded-full bg-gray-200/20 flex items-center justify-center font-bold border-2 border-white/10 shadow-sm cursor-pointer">
+          {/* Bouton Profil "Ah" */}
+          <div 
+            onClick={() => setIsProfileOpen(true)}
+            className="w-8 h-8 min-[310px]:w-10 min-[310px]:h-10 rounded-full bg-gray-200/20 flex items-center justify-center font-bold text-xs min-[310px]:text-base border-2 border-white/10 shadow-sm cursor-pointer hover:scale-105 transition-transform shrink-0 z-30">
             {isArchitectMode ? "🏛️" : "Ah"}
           </div>
         </div>
       </header>
+
+      <UserProfile 
+        isOpen={isProfileOpen} 
+        onClose={() => setIsProfileOpen(false)} 
+        mode={mode} 
+      />
 
       <main className="max-w-5xl mx-auto px-6 py-10">
 
@@ -1152,52 +1172,52 @@ const Dashboard = () => {
                   {/* COLONNE GAUCHE : LE PLAN COMPLET (TIMELINE) */}
                   <div className="lg:col-span-8">
 
-                    {/* MONITEUR DE CONTRÔLE (METRICS) */}
-                    <div className="mb-8">
-                      <h2 className="text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4 text-blue-600" />
-                        Moniteur de Contrôle
-                      </h2>
-                      <MetricCard />
-                    </div>
+                  {/* MONITEUR DE CONTRÔLE (METRICS) */}
+                  <div className="mb-8">
+                    <h2 className="text-xs min-[350px]:text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <BarChart3 className="w-4 h-4 text-blue-600" />
+                      Moniteur de Contrôle
+                    </h2>
+                    <MetricCard />
+                  </div>
 
-                    {/* SECTION ACCÉLÉRATEURS */}
-                    <div className="mb-10">
-                      <h2 className="text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-indigo-600" />
-                        Accélérateurs
-                      </h2>
-                      <RitualCard action={{
-                        id: 'h_perso',
-                        type: 'ancrage',
-                        subType: 'hypnose_perso',
-                        title: 'Hypnose Sur-Mesure',
-                        description: 'Générée spécifiquement pour tes blocages.',
-                        isCompleted: false,
-                        price: '5,00 €'
-                      }} />
-                      <RitualCard action={{
-                        id: 'h_global',
-                        type: 'ancrage',
-                        subType: 'hypnose_daily',
-                        title: 'Hypnose : Ancrage du Calme',
-                        description: 'Session standard.',
-                        isCompleted: false,
-                        target_days: 21,
-                        current_streak: 3,
-                        media_duration: '12 min',
-                        free_trial_days: 5,
-                        current_trial_day: 3
-                      }} />
-                    </div>
+                  {/* SECTION ACCÉLÉRATEURS */}
+                  <div className="mb-10">
+                    <h2 className="text-xs min-[350px]:text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-indigo-600" />
+                      Accélérateurs
+                    </h2>
+                    <RitualCard action={{
+                      id: 'h_perso',
+                      type: 'ancrage',
+                      subType: 'hypnose_perso',
+                      title: 'Hypnose Sur-Mesure',
+                      description: 'Générée spécifiquement pour tes blocages.',
+                      isCompleted: false,
+                      price: '5,00 €'
+                    }} />
+                    <RitualCard action={{
+                      id: 'h_global',
+                      type: 'ancrage',
+                      subType: 'hypnose_daily',
+                      title: 'Hypnose : Ancrage du Calme',
+                      description: 'Session standard.',
+                      isCompleted: false,
+                      target_days: 21,
+                      current_streak: 3,
+                      media_duration: '12 min',
+                      free_trial_days: 5,
+                      current_trial_day: 3
+                    }} />
+                  </div>
 
-                    {/* TITRE PLAN */}
-                    <div className="flex items-center justify-between mb-6">
-                      <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <Target className="w-6 h-6 text-emerald-600" />
-                        Mon Plan d'Action
-                      </h2>
-                    </div>
+                  {/* TITRE PLAN */}
+                  <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
+                      <Target className="w-6 h-6 text-emerald-600" />
+                      Mon Plan d'Action
+                    </h2>
+                  </div>
 
                     {/* TIMELINE DES PHASES */}
                     <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
@@ -1213,22 +1233,22 @@ const Dashboard = () => {
                   </div>
 
                   {/* COLONNE DROITE : RESSOURCES & GRIMOIRE */}
-                  <div className="lg:col-span-4 space-y-8">
+                  <div className="lg:col-span-4 space-y-6 md:space-y-8">
 
                     {/* VIDEOS */}
                     <section>
-                      <h2 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                      <h2 className="text-xs min-[350px]:text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <Tv className="w-4 h-4" />
                         Vidéos pour t'aider
                       </h2>
                       <div className="flex md:flex-col gap-3 overflow-x-auto pb-4 md:pb-0">
                         <div className="min-w-[200px] md:min-w-0 bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow cursor-pointer">
-                          <h3 className="font-bold text-sm text-gray-900 leading-tight">Comprendre la Dopamine</h3>
-                          <p className="text-xs text-gray-400 mt-1">6 min • Neurosc.</p>
+                          <h3 className="font-bold text-sm min-[350px]:text-base text-gray-900 leading-tight">Comprendre la Dopamine</h3>
+                          <p className="text-xs min-[350px]:text-sm text-gray-400 mt-1">6 min • Neurosc.</p>
                         </div>
                         <div className="min-w-[200px] md:min-w-0 bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow cursor-pointer">
-                          <h3 className="font-bold text-sm text-gray-900 leading-tight">La règle des 2 minutes</h3>
-                          <p className="text-xs text-gray-400 mt-1">3 min • Prod.</p>
+                          <h3 className="font-bold text-sm min-[350px]:text-base text-gray-900 leading-tight">La règle des 2 minutes</h3>
+                          <p className="text-xs min-[350px]:text-sm text-gray-400 mt-1">3 min • Prod.</p>
                         </div>
                       </div>
                     </section>
@@ -1236,18 +1256,18 @@ const Dashboard = () => {
                     {/* GRIMOIRE (EN BAS DE COLONNE) */}
                     <section
                       onClick={() => navigate('/grimoire')}
-                      className="bg-indigo-50 border border-indigo-100 rounded-xl p-5 flex items-center justify-between cursor-pointer hover:bg-indigo-100 transition-colors shadow-sm mt-auto"
+                      className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 md:p-5 flex flex-col min-[300px]:flex-row items-center justify-between cursor-pointer hover:bg-indigo-100 transition-colors shadow-sm mt-auto gap-3 min-[300px]:gap-4"
                     >
-                      <div className="flex items-center gap-4">
-                        <div className="w-12 h-12 bg-indigo-200 text-indigo-700 rounded-full flex items-center justify-center">
-                          <Book className="w-6 h-6" />
+                      <div className="flex items-center gap-3 md:gap-4 w-full">
+                        <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-200 text-indigo-700 rounded-full flex items-center justify-center flex-shrink-0">
+                          <Book className="w-5 h-5 md:w-6 md:h-6" />
                         </div>
-                        <div>
-                          <h3 className="font-bold text-indigo-900 text-lg">Le Grimoire</h3>
-                          <p className="text-xs text-indigo-700 opacity-80 max-w-[160px] leading-snug">Victoires, historiques, hypnoses & réactivations</p>
+                        <div className="flex-1">
+                          <h3 className="font-bold text-indigo-900 text-base min-[350px]:text-lg md:text-xl">Le Grimoire</h3>
+                          <p className="text-xs min-[350px]:text-sm text-indigo-700 opacity-80 leading-snug">Victoires, historiques, hypnoses & réactivations</p>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-indigo-400" />
+                      <ArrowRight className="w-5 h-5 text-indigo-400 self-end min-[300px]:self-auto" />
                     </section>
 
                   </div>

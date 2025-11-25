@@ -1,0 +1,10 @@
+{
+  "tasks": {
+    "start": "deno run --allow-net --allow-env --watch index.ts"
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.168.0/",
+    "serve": "https://deno.land/std@0.168.0/http/server.ts"
+  }
+}
+
