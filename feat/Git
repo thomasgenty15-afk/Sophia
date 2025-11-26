@@ -1,0 +1,3 @@
+git add -A
+git commit -m "Message qui décrit ce que tu as fait"
+git push sophia main

@@ -21,6 +21,11 @@ create policy "Users can update their own profile"
   on profiles for update 
   using ( auth.uid() = id );
 
+-- Les utilisateurs peuvent insérer leur propre profil (nécessaire si le trigger échoue ou pour insertion manuelle)
+create policy "Users can insert their own profile" 
+  on profiles for insert 
+  with check ( auth.uid() = id );
+
 -- 3. AUTOMATISATION (TRIGGER)
 -- Crée automatiquement un profil quand un utilisateur s'inscrit
 create or replace function public.handle_new_user()
@@ -29,11 +34,12 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
+  -- VERSION SIMPLIFIÉE : On n'utilise pas raw_user_metadata car la colonne manque en local
   insert into public.profiles (id, full_name, avatar_url)
   values (
     new.id,
-    coalesce(new.raw_user_metadata->>'full_name', ''), -- Gère le cas où le nom est vide
-    coalesce(new.raw_user_metadata->>'avatar_url', '')
+    '', -- Nom vide par défaut
+    ''  -- Avatar vide par défaut
   );
   return new;
 end;
@@ -42,4 +48,3 @@ $$;
 create trigger on_auth_user_created
   after insert on auth.users
   for each row execute procedure public.handle_new_user();
-
