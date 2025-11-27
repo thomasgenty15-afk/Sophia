@@ -39,12 +39,68 @@ const ActionPlanGenerator = () => {
   
   // On récupère l'axe prioritaire (le premier de la liste validée)
   const finalOrder = location.state?.finalOrder as AxisContext[] || [];
-  const currentAxis = finalOrder[0] || { 
-    id: 'SLP_1', 
-    title: 'Passer en mode nuit & s’endormir facilement', 
-    theme: 'Sommeil',
-    problems: ['Je me couche trop tard', 'Je scrolle sur mon téléphone']
-  };
+  
+  // State local pour l'axe courant (peut être hydraté par location.state OU par récupération DB)
+  const [currentAxis, setCurrentAxis] = useState<AxisContext | null>(
+      finalOrder[0] || null
+  );
+
+  // Redirection / Récupération si pas d'axe
+  useEffect(() => {
+    let isMounted = true;
+
+    // Si on a déjà un axe, tout va bien
+    if (currentAxis) return;
+
+    const recoverState = async () => {
+        if (!user) {
+            // Pas de user -> Auth
+            navigate('/auth');
+            return;
+        }
+
+        console.log("⚠️ currentAxis manquant (Reload ou Back). Tentative de récupération du contexte...");
+        
+        // 1. Essayer de trouver le dernier goal ACTIF
+        // Cela signifie qu'on est probablement en train de revenir sur un plan généré
+        try {
+            const { data: activeGoal } = await supabase
+                .from('user_goals')
+                .select('axis_id, axis_title, theme_id')
+                .eq('user_id', user.id)
+                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+
+            if (!isMounted) return;
+
+            if (activeGoal) {
+                console.log("✅ Contexte restauré depuis la DB :", activeGoal.axis_title);
+                setCurrentAxis({
+                    id: activeGoal.axis_id,
+                    title: activeGoal.axis_title,
+                    theme: activeGoal.theme_id
+                });
+                return;
+            }
+        } catch (err) {
+            console.error("Erreur recovery:", err);
+        }
+
+        // 2. Si vraiment rien (ni state, ni DB), c'est une impasse.
+        // On redirige vers le DASHBOARD pour briser toute boucle potentielle avec PlanPriorities
+        console.warn("🚫 Impossible de restaurer le contexte. Redirection de sécurité vers Dashboard.");
+        navigate('/dashboard');
+    };
+
+    // Petit délai pour laisser React respirer
+    const timer = setTimeout(recoverState, 50);
+    return () => {
+        clearTimeout(timer);
+        isMounted = false;
+    };
+  }, [currentAxis, navigate, user]);
 
   const [step, setStep] = useState<'input' | 'generating' | 'result'>('input');
   const [inputs, setInputs] = useState({
@@ -61,17 +117,95 @@ const ActionPlanGenerator = () => {
   const [contextSummary, setContextSummary] = useState<string | null>(null);
   const [isContextLoading, setIsContextLoading] = useState(false);
 
-  // --- ETAPE -1 : RECUPERATION DU RESUME CONTEXTUEL ---
+  // --- LOGIQUE DE RETRY (LIMITÉE) ---
+  // On permet de modifier les inputs SI le plan a été généré moins de 2 fois (1er essai + 1 retry)
+  const canRetry = plan && (plan.generationAttempts || 1) < 2;
+
+  const handleRetryInputs = async () => {
+      // On supprime le plan actuel pour permettre la regénération
+      // (Ou on pourrait juste repasser en mode input et update au save)
+      setStep('input');
+      setPlan(null); // On efface visuellement pour forcer le re-clic
+  };
+
+  // --- GESTION DU RETOUR NAVIGATEUR (NAVIGATION INTRA-PAGE) ---
   useEffect(() => {
+    // Si on est sur l'étape résultat et qu'on peut revenir en arrière (retry)
+    if (step === 'result' && canRetry) {
+        // On pousse une entrée dans l'historique pour que le bouton "Précédent" 
+        // serve à revenir à l'étape "input" au lieu de quitter la page
+        window.history.pushState({ step: 'result' }, '', '');
+
+        const handlePopState = () => {
+             // L'utilisateur a cliqué sur Précédent.
+             // On intercepte pour revenir à l'étape input (partie qualitative)
+             console.log("🔙 Retour arrière détecté : Retour aux inputs.");
+             handleRetryInputs();
+        };
+
+        window.addEventListener('popstate', handlePopState);
+
+        return () => {
+            window.removeEventListener('popstate', handlePopState);
+            // NOTE : On ne tente pas de nettoyer l'historique ici car c'est complexe
+            // et le navigateur gère sa pile.
+        };
+    }
+  }, [step, canRetry]);
+
+  // --- ETAPE -1 : RECUPERATION DU RESUME CONTEXTUEL ---
+  const fetchSummaryRef = React.useRef(false);
+  const [isGoalsReady, setIsGoalsReady] = useState(false);
+
+  useEffect(() => {
+      let isMounted = true;
+      
       const fetchContextSummary = async () => {
-          if (!user || !currentAxis) return;
+          // On attend que les objectifs soient synchronisés (créés en base)
+          if (!isGoalsReady) return;
+          if (!user) return;
           
-          setIsContextLoading(true);
+          // Si pas d'axe, on ne peut rien faire
+          if (!currentAxis) return;
+
+          // Éviter le double appel/boucle
+          if (fetchSummaryRef.current) return;
+          fetchSummaryRef.current = true;
+          
+          if (isMounted) setIsContextLoading(true);
           try {
-              // 0. Vérifier si on a déjà le résumé dans user_goals
+          // 0. Récupérer les réponses (nécessaire pour vérifier la fraîcheur)
+              const { data: answersData } = await supabase
+                  .from('user_answers')
+                  .select('content, updated_at')
+                  .eq('user_id', user.id)
+                  .eq('questionnaire_type', 'onboarding')
+                  .order('created_at', { ascending: false })
+                  .limit(1)
+                  .maybeSingle();
+
+              // CHECK DE FRAICHEUR (DÉPLACÉ AVANT LE CHECK DE PLAN EXISTANT)
+              let isStale = false;
+              let forceRegen = false; // "Nouveau clic" -> On force le mode input + regen résumé
+
+              // 1. Check "Navigation Force Refresh" (Bouton "Générer" cliqué)
+              const requestTimestamp = location.state?.generationRequestTimestamp;
+              
+              if (requestTimestamp) {
+                  const processedKey = `processed_summary_${requestTimestamp}`;
+                  if (!sessionStorage.getItem(processedKey)) {
+                      console.log("⚡ Demande de génération explicite détectée (Nouveau clic). Force Input Mode.");
+                      forceRegen = true;
+                      sessionStorage.setItem(processedKey, 'true');
+                  } else {
+                      console.log("ℹ️ Demande de génération déjà traitée (Reload).");
+                  }
+              }
+
+              // 1. Vérifier si on a déjà le résumé dans user_goals
               let { data: existingGoal } = await supabase
                  .from('user_goals')
-                 .select('id, sophia_knowledge, summary_attempts')
+                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at')
                  .eq('user_id', user.id)
                  .eq('axis_id', currentAxis.id)
                  .in('status', ['active', 'pending'])
@@ -79,7 +213,7 @@ const ActionPlanGenerator = () => {
                  .limit(1)
                  .maybeSingle();
 
-              // --- VERROUILLAGE : SI UN PLAN EXISTE DÉJÀ, ON LE CHARGE DIRECTEMENT ---
+              // --- VERROUILLAGE : SI UN PLAN EXISTE DÉJÀ ---
               if (existingGoal) {
                   const { data: existingPlan } = await supabase
                       .from('user_plans')
@@ -89,139 +223,242 @@ const ActionPlanGenerator = () => {
                       .limit(1)
                       .maybeSingle();
 
+                  if (!isMounted) return;
+
                   if (existingPlan) {
-                      console.log("🔒 Plan existant trouvé, verrouillage des inputs.");
-                      setPlan(existingPlan.content);
+                      console.log("🔒 Plan existant trouvé.");
+                      
+                      // On pré-remplit TOUJOURS les inputs (pour que le user puisse les modifier)
                       setInputs({
                           why: existingPlan.inputs_why || '',
                           blockers: existingPlan.inputs_blockers || '',
                           context: existingPlan.inputs_context || '',
                           pacing: existingPlan.inputs_pacing || 'balanced'
                       });
-                      setStep('result');
-                      setIsContextLoading(false);
-                      return; // ON STOPPE TOUT ICI
+
+                      // S'il n'y a PAS de demande de génération explicite (forceRegen),
+                      // ALORS on affiche directement le résultat (comportement de reload / visite ultérieure)
+                      if (!forceRegen) {
+                          console.log("...Chargement direct du résultat (Reload/Déjà vu).");
+                          setPlan(existingPlan.content);
+                          setStep('result');
+                          setIsContextLoading(false);
+                          return; // ON STOPPE TOUT ICI
+                      } else {
+                          console.log("...Mode Édition activé (Nouvelle demande).");
+                          // On NE PASSE PAS à 'result', on reste sur 'input' pour laisser le user valider/modifier
+                          // Et on laisse la suite s'exécuter (potentielle màj du résumé)
+                      }
                   }
               }
               // -----------------------------------------------------------------------
 
-              // Si on a déjà le résumé stocké, on l'utilise direct !
-              if (existingGoal?.sophia_knowledge) {
+              // 2. Check "Données modifiées" (Answers update)
+              if (existingGoal?.knowledge_generated_at && answersData?.updated_at) {
+                  const knowledgeTime = new Date(existingGoal.knowledge_generated_at).getTime();
+                  const answersTime = new Date(answersData.updated_at).getTime();
+                  // Si les réponses sont plus récentes que le résumé, on régénère
+                  if (answersTime > knowledgeTime) {
+                      console.log("🔄 Données utilisateur modifiées, régénération du résumé requise.");
+                      isStale = true;
+                  }
+              }
+
+              // Si on a déjà le résumé stocké ET qu'il n'est pas périmé ET qu'on ne force pas, on l'utilise direct !
+              if (existingGoal?.sophia_knowledge && !isStale && !forceRegen) {
                   console.log("✅ Résumé trouvé en cache (DB):", existingGoal.sophia_knowledge);
-                  setContextSummary(existingGoal.sophia_knowledge);
-                  
-                  // LOGIQUE DE RÉGÉNÉRATION LIMITÉE (CONTEXTE)
-                  // Si l'utilisateur revient en arrière, on ne regénère pas si summary_attempts >= 3
-                  // Mais ici, comme on l'a déjà en DB, on ne rappelle PAS l'IA par défaut.
-                  // L'IA n'est appelée que si sophia_knowledge est NULL.
-                  
-                  setIsContextLoading(false);
-                  return; // ON S'ARRÊTE LÀ
+                  if (isMounted) {
+                      setContextSummary(existingGoal.sophia_knowledge);
+                      setIsContextLoading(false);
+                  }
+                  return; // ON S'ARRÊTE LÀ (Pas d'incrément de compteur)
               }
 
-              // SINON, on doit le générer (si limite pas atteinte)
+              // STOPPER LA RÉGÉNÉRATION SI LA LIMITE EST ATTEINTE (sauf si stale ?)
+              // On peut décider d'autoriser la regen si stale même si limit atteinte ?
+              // Pour l'instant on garde la limite stricte pour éviter les abus.
               if (existingGoal && (existingGoal.summary_attempts || 0) >= 3) {
-                  console.warn("⚠️ Limite de génération de résumé atteinte.");
-                  setContextSummary("Limite d'analyse atteinte. Veuillez utiliser les données existantes.");
-                  setIsContextLoading(false);
-                  return;
+                  console.warn("🚫 Limite de génération de résumé atteinte (summary_attempts >= 3). Arrêt forcé.");
+                  if (isMounted) {
+                      // Si on a un vieux résumé, on l'affiche quand même faute de mieux
+                      setContextSummary(existingGoal.sophia_knowledge || "Limite d'analyse atteinte. Veuillez utiliser les données existantes.");
+                      setIsContextLoading(false);
+                  }
+                  return; // STOPPER ICI ABSOLUMENT
               }
 
-              // 1. Récupérer les réponses brutes
-              const { data: answersData } = await supabase
-                  .from('user_answers')
-                  .select('content')
-                  .eq('user_id', user.id)
-                  .eq('questionnaire_type', 'onboarding')
-                  .order('created_at', { ascending: false })
-                  .limit(1)
-                  .single();
-
+              // 2. Génération (si pas de cache ou stale)
               if (answersData?.content) {
                    console.log("🧠 Appel IA pour résumé contextuel...");
-                   // 2. Appeler l'IA pour résumer
-                   const { data: summaryData, error } = await supabase.functions.invoke('summarize-context', {
-                       body: { 
-                           responses: answersData.content,
-                           currentAxis: currentAxis
-                       }
-                   });
-
-                   if (error) throw error;
                    
-                   if (summaryData?.summary) {
-                       console.log("✨ Résumé généré par IA:", summaryData.summary);
-                       setContextSummary(summaryData.summary);
-
-                       // 3. SAUVEGARDER DANS USER_GOALS + INCREMENTER COMPTEUR
-                       if (existingGoal) {
-                           console.log("💾 Tentative de sauvegarde dans user_goals...", existingGoal.id);
-                           const { error: updateError } = await supabase
-                             .from('user_goals')
-                             .update({ 
-                                 sophia_knowledge: summaryData.summary,
-                                 summary_attempts: (existingGoal.summary_attempts || 0) + 1
-                             })
-                             .eq('id', existingGoal.id);
-                           
-                           if (updateError) {
-                               console.error("❌ Erreur update goal:", updateError);
+                   try {
+                       // 2. Appeler l'IA pour résumer avec TIMEOUT FORCE CÔTÉ CLIENT (Race)
+                       const invokePromise = supabase.functions.invoke('summarize-context', {
+                           body: { 
+                               responses: answersData.content,
+                               currentAxis: currentAxis
                            }
+                       });
+
+                       // Promesse de timeout qui rejette après 15s
+                       const timeoutPromise = new Promise((_, reject) => 
+                           setTimeout(() => reject(new Error('Timeout frontend (15s)')), 15000)
+                       );
+
+                       // On course les deux : le premier qui finit gagne
+                       const { data: summaryData, error } = await Promise.race([invokePromise, timeoutPromise]) as any;
+                       
+                       if (error) throw error;
+                       
+                       if (!isMounted) return;
+                       
+                       if (summaryData?.summary) {
+                           console.log("✨ Résumé généré par IA:", summaryData.summary);
+                           // FORCE UPDATE STATE
+                           if (isMounted) {
+                               console.log("⚡ Setting contextSummary state...");
+                               setContextSummary(summaryData.summary);
+                               setIsContextLoading(false); // On arrête le chargement explicitement ici
+                           }
+
+                           // 3. SAUVEGARDER DANS USER_GOALS + INCREMENTER COMPTEUR
+                           
+                           // Stratégie : On tente de récupérer le goal. S'il existe on update, sinon on le crée.
+                           let targetGoalId = existingGoal?.id;
+                           let currentAttempts = existingGoal?.summary_attempts || 0;
+
+                           // Si on ne l'avait pas au début, on re-vérifie (cas de race condition résolu)
+                           if (!targetGoalId) {
+                               const { data: retryGoal } = await supabase
+                                   .from('user_goals')
+                                   .select('id, summary_attempts')
+                                   .eq('user_id', user.id)
+                                   .eq('axis_id', currentAxis.id)
+                                   .maybeSingle();
+                               
+                               if (retryGoal) {
+                                   targetGoalId = retryGoal.id;
+                                   currentAttempts = retryGoal.summary_attempts || 0;
+                               }
+                           }
+
+                           if (targetGoalId) {
+                               console.log("💾 Update goal existant (Increment attempts)...", targetGoalId);
+                               const { error: updateError } = await supabase
+                                 .from('user_goals')
+                                 .update({ 
+                                     sophia_knowledge: summaryData.summary,
+                                     summary_attempts: currentAttempts + 1,
+                                     knowledge_generated_at: new Date().toISOString()
+                                 })
+                                 .eq('id', targetGoalId);
+                               
+                               if (updateError) console.error("❌ Erreur update goal:", updateError);
+                           } else {
+                               console.log("💾 Création goal à la volée pour sauvegarde résumé (Fallback)...");
+                               // Si le goal n'existe vraiment pas, on le crée pour ne pas perdre le résumé
+                               const { error: insertError } = await supabase
+                                 .from('user_goals')
+                                 .insert({
+                                     user_id: user.id,
+                                     axis_id: currentAxis.id,
+                                     axis_title: currentAxis.title,
+                                     theme_id: currentAxis.theme,
+                                     priority_order: 1, // Valeur par défaut
+                                     status: 'active',
+                                     sophia_knowledge: summaryData.summary,
+                                     summary_attempts: 1,
+                                     knowledge_generated_at: new Date().toISOString()
+                                 });
+                               
+                               if (insertError) console.error("❌ Erreur création goal fallback:", insertError);
+                           }
+                       } else {
+                           // Cas où la fonction répond mais sans summary (ex: JSON mal formé côté Edge Function, ou erreur avalée)
+                           console.warn("⚠️ Réponse fonction valide mais 'summary' vide:", summaryData);
+                           if (isMounted) setIsContextLoading(false);
+                           // On pourrait mettre un fallback ici
                        }
+                   } catch (invokeError) {
+                       console.error("Erreur ou Timeout appel IA:", invokeError);
+                       if (isMounted) {
+                            // En cas d'erreur, on ne bloque pas l'UI indéfiniment
+                            // On peut soit afficher un message d'erreur, soit rien (le user verra les problèmes par défaut)
+                            setContextSummary(null); 
+                            setIsContextLoading(false); // IMPORTANT : Arrêter le chargement en cas d'erreur
+                       }
+                       // Pas besoin de re-throw si on gère l'erreur ici pour ne pas casser le reste
+                       // throw invokeError; 
                    }
               }
           } catch (err) {
               console.error("Erreur récupération contexte:", err);
-          } finally {
-              setIsContextLoading(false);
-          }
+              // En cas d'erreur, on permet de réessayer éventuellement
+              fetchSummaryRef.current = false;
+              if (isMounted) setIsContextLoading(false); // Safety net
+          } 
+          // Le finally est déjà là mais on assure les sorties anticipées
       };
 
       fetchContextSummary();
-  }, [user, currentAxis]);
+      
+      return () => { 
+          isMounted = false;
+          // Note: On ne reset PAS fetchSummaryRef ici pour éviter le refetch lors d'un remount rapide ou tab switch
+          // Sauf si on veut vraiment réessayer à chaque fois.
+          // Mais pour éviter le "refetch on tab switch", il vaut mieux le laisser à true tant que le composant est en vie dans le contexte SPA.
+          // Si le user reload la page (F5), tout le state est perdu, donc ça refera un fetch, ce qui est correct.
+      };
+  }, [user?.id, currentAxis.id, isGoalsReady]); // Dépendances stables (primitives)
 
   // --- ETAPE 0 : SAUVEGARDE DES GOALS SI NECESSAIRE ---
   const syncAttempted = React.useRef(false); // Ref pour éviter le double appel (React Strict Mode)
 
   useEffect(() => {
     const syncGoals = async () => {
-        if (!user || !finalOrder || finalOrder.length === 0) return;
-        if (syncAttempted.current) return; // Déjà tenté
+        if (!user) return;
         
-        syncAttempted.current = true; // Marquer comme tenté
+        // Si déjà fait dans cette instance, on marque juste comme prêt
+        if (syncAttempted.current) {
+            setIsGoalsReady(true);
+            return;
+        }
 
-        // On vérifie si on a déjà des goals pour ne pas doubler
-        const { count } = await supabase
-            .from('user_goals')
-            .select('*', { count: 'exact', head: true })
-            .eq('user_id', user.id);
+        if (finalOrder && finalOrder.length > 0) {
+            syncAttempted.current = true; // Marquer comme tenté
 
-        if (count === 0) {
-            console.log("Sauvegarde des objectifs post-inscription...", finalOrder);
+            console.log("Synchronisation des objectifs (Upsert)...", finalOrder);
             const goalsPayload = finalOrder.map((item, index) => ({
                 user_id: user.id,
                 axis_id: item.id,
                 axis_title: item.title,
                 theme_id: item.theme,
                 priority_order: index + 1,
+                // On force le statut active/pending seulement si c'est une nouvelle insertion ou un reset explicite
+                // Mais pour l'upsert, on veut s'assurer que le premier est 'active'
                 status: index === 0 ? 'active' : 'pending'
             }));
 
+            // On utilise UPSERT avec ignoreDuplicates: false pour mettre à jour les priorités/status
+            // Note: les colonnes non mentionnées (comme sophia_knowledge, summary_attempts) ne devraient pas être écrasées
             const { error } = await supabase
                 .from('user_goals')
-                .insert(goalsPayload);
+                .upsert(goalsPayload, { onConflict: 'user_id, axis_id' });
             
             if (error) {
                 console.error("Erreur sync goals:", error);
                 syncAttempted.current = false; // Retry possible si erreur
             } else {
-                console.log("Objectifs sauvegardés avec succès !");
+                console.log("Objectifs synchronisés avec succès !");
             }
         }
+        
+        // Dans tous les cas (synchro faite, pas besoin, ou erreur gérée), on permet la suite
+        setIsGoalsReady(true);
     };
 
     syncGoals();
-  }, [user, finalOrder]);
+  }, [user?.id, finalOrder]);
 
   // --- ETAPE 1 : INPUTS ---
   const handleGenerate = async () => {
@@ -237,28 +474,29 @@ const ActionPlanGenerator = () => {
       // Récupérer l'objectif actif s'il n'est pas passé via le state
       let activeAxis = currentAxis;
       
-      // Si currentAxis est le placeholder par défaut ('SLP_1') et qu'on n'a pas de state (ex: après un reset)
-      // On force la récupération depuis la base
-      if ((currentAxis.id === 'SLP_1' && !location.state?.finalOrder) || !location.state?.finalOrder) {
+      if (!activeAxis) {
          console.log("Recherche de l'objectif actif en base...");
          const { data: goalData } = await supabase
             .from('user_goals')
             .select('*')
             .eq('user_id', user.id)
             .eq('status', 'active')
-            .single();
+            .order('created_at', { ascending: false }) // Le plus récent actif
+            .limit(1)
+            .maybeSingle();
          
          if (goalData) {
             console.log("Objectif actif trouvé :", goalData);
-            // On reconstruit l'objet AxisContext
             activeAxis = {
                 id: goalData.axis_id,
                 title: goalData.axis_title,
                 theme: goalData.theme_id,
-                problems: [] // Idéalement à récupérer aussi
+                problems: [] 
             };
          } else {
-             console.warn("Aucun objectif actif trouvé. Utilisation du mock.");
+             setError("Aucun objectif trouvé. Veuillez retourner à la sélection.");
+             setStep('input');
+             return;
          }
       }
 
@@ -345,23 +583,11 @@ const ActionPlanGenerator = () => {
     }
   };
 
-  // ... (MODE DÉMO) ...
-          // --- MODE DÉMO (FALLBACK) ---
+  // --- MODE DÉMO (FALLBACK) ---
   const useDemoMode = () => {
     setPlan(MOCK_GENERATED_PLAN);
     setStep('result');
     setError(null);
-  };
-
-  // --- LOGIQUE DE RETRY (LIMITÉE) ---
-  // On permet de modifier les inputs SI le plan a été généré moins de 2 fois (1er essai + 1 retry)
-  const canRetry = plan && (plan.generationAttempts || 1) < 2;
-
-  const handleRetryInputs = async () => {
-      // On supprime le plan actuel pour permettre la regénération
-      // (Ou on pourrait juste repasser en mode input et update au save)
-      setStep('input');
-      setPlan(null); // On efface visuellement pour forcer le re-clic
   };
 
   // --- ETAPE 3 : ITERATION (CHAT) ---
@@ -432,19 +658,19 @@ const ActionPlanGenerator = () => {
         // On récupère le goal 'active' ou le premier 'pending' si on vient d'une réinit
         let { data: activeGoal, error: goalError } = await supabase
             .from('user_goals')
-            .select('id')
+            .select('id, submission_id') // On récupère aussi le submission_id
             .eq('user_id', user.id)
             .eq('status', 'active')
             .order('created_at', { ascending: false })
             .limit(1)
-            .maybeSingle(); // maybeSingle est plus sûr que single
+            .maybeSingle();
 
         // Si pas de goal actif trouvé, on cherche le dernier goal créé (cas possible juste après création)
         if (!activeGoal) {
              console.log("Pas de goal actif trouvé, recherche du dernier goal créé...");
              const { data: lastGoal } = await supabase
                 .from('user_goals')
-                .select('id')
+                .select('id, submission_id')
                 .eq('user_id', user.id)
                 .order('created_at', { ascending: false })
                 .limit(1)
@@ -477,6 +703,7 @@ const ActionPlanGenerator = () => {
                   .insert({
                     user_id: user.id,
                     goal_id: activeGoal.id,
+                    submission_id: activeGoal.submission_id, // PROPAGATION DU SUBMISSION ID
                     inputs_why: inputs.why,
                     inputs_blockers: inputs.blockers,
                     inputs_context: inputs.context,
@@ -494,6 +721,7 @@ const ActionPlanGenerator = () => {
                 const { error: updateError } = await supabase
                     .from('user_plans')
                     .update({
+                        submission_id: activeGoal.submission_id, // Mettre à jour si jamais ça a changé (peu probable mais safe)
                         inputs_why: inputs.why,
                         inputs_blockers: inputs.blockers,
                         inputs_context: inputs.context,
@@ -528,6 +756,7 @@ const ActionPlanGenerator = () => {
       <div className="max-w-3xl mx-auto">
         
         {/* HEADER */}
+        {currentAxis ? (
         <div className="mb-6 md:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-violet-100 text-violet-700 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-2 md:mb-4">
             <Brain className="w-3 h-3 md:w-4 md:h-4" />
@@ -540,6 +769,12 @@ const ActionPlanGenerator = () => {
             Transformation prioritaire • {currentAxis.theme}
           </p>
         </div>
+        ) : (
+            <div className="mb-10 animate-pulse">
+                <div className="h-8 bg-slate-200 rounded w-1/3 mb-2"></div>
+                <div className="h-4 bg-slate-200 rounded w-1/4"></div>
+            </div>
+        )}
 
         {error && (
           <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-8 animate-fade-in-up">
@@ -573,6 +808,7 @@ const ActionPlanGenerator = () => {
           <div className="space-y-8 animate-fade-in-up">
             
             {/* RAPPEL CONTEXTE */}
+            {currentAxis && (
             <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
               <h3 className="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 md:mb-4 flex items-center gap-2">
                 <Target className="w-3 h-3 md:w-4 md:h-4" />
@@ -602,6 +838,7 @@ const ActionPlanGenerator = () => {
                   </div>
               )}
             </div>
+            )}
 
             {/* FORMULAIRE QUALITATIF */}
             <div className="space-y-6">
@@ -968,3 +1205,4 @@ const MOCK_GENERATED_PLAN = {
 };
 
 export default ActionPlanGenerator;
+

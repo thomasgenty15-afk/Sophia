@@ -588,58 +588,10 @@ export const THEME_SENSE: Theme = {
     },
     {
       id: 'SNS_3',
-      title: 'Traverser une rupture, un deuil ou une grosse transition',
-      description: 'Je veux réussir à traverser ce que je vis en ce moment (rupture, deuil, changement de vie…), arrêter de juste survivre, et peu à peu me reconstruire.',
+      title: 'Traverser un deuil ou une grosse transition',
+      description: 'Je veux réussir à traverser ce que je vis en ce moment (deuil, changement de vie…), arrêter de juste survivre, et peu à peu me reconstruire.',
       problemsTitle: 'Qu’est-ce qui te parle le plus ?',
       problems: [
-        {
-          id: 'SNS_3_P1',
-          label: 'Je traverse (ou viens de traverser) une rupture amoureuse importante.',
-          detailQuestions: [
-            {
-              id: 'SNS_3_P1_Q1',
-              question: 'La rupture date d’environ :',
-              type: 'single',
-              options: [
-                { label: 'Moins d’1 mois' },
-                { label: '1–6 mois' },
-                { label: '6–12 mois' },
-                { label: 'Plus d’1 an (mais c’est encore très présent pour toi)' }
-              ]
-            },
-            {
-              id: 'SNS_3_P1_Q2',
-              question: 'C’était :',
-              type: 'single',
-              options: [
-                { label: 'Une relation longue / importante' },
-                { label: 'Une relation plus courte mais très intense' },
-                { label: 'Une histoire floue / “situationship” qui te touchait beaucoup' }
-              ]
-            },
-            {
-              id: 'SNS_3_P1_Q3',
-              question: 'Aujourd’hui, tu ressens surtout :',
-              type: 'multiple',
-              options: [
-                { label: 'Beaucoup de tristesse' },
-                { label: 'De la colère / incompréhension' },
-                { label: 'De la culpabilité (“c’est de ma faute”)' },
-                { label: 'Un grand vide / une perte de sens' }
-              ]
-            },
-            {
-              id: 'SNS_3_P1_Q4',
-              question: 'Tu te surprends souvent à :',
-              type: 'multiple',
-              options: [
-                { label: 'Regarder ses réseaux / penser à le/la contacter' },
-                { label: 'Rejouer la relation / la rupture dans ta tête' },
-                { label: 'Te demander si tu retrouveras quelque chose comme ça un jour' }
-              ]
-            }
-          ]
-        },
         {
           id: 'SNS_3_P2',
           label: 'J’ai perdu quelqu’un (décès) et j’ai du mal à avancer avec ça.',

@@ -37,6 +37,7 @@ const Questionnaire = () => {
   }
 
   const [isLoaded, setIsLoaded] = useState(false);
+  const [loadError, setLoadError] = useState<string | null>(null); // Nouvel état pour gérer l'erreur de chargement
 
   // --- NOUVEL ÉTAT DE SÉLECTION DES AXES ---
   // On stocke quels axes sont "sélectionnés" (ouverts pour être travaillés)
@@ -105,12 +106,21 @@ const Questionnaire = () => {
         // CHARGEMENT DES RÉPONSES EXISTANTES
         const { data: answersData } = await supabase
           .from('user_answers')
-          .select('content')
+          .select('content, sorting_attempts')
           .eq('user_id', user.id)
           .eq('questionnaire_type', 'onboarding')
           .order('created_at', { ascending: false })
           .limit(1)
           .maybeSingle();
+
+        // --- VÉRIFICATION DU QUOTA ---
+        // Si la limite est atteinte et qu'on n'est pas en mode Reset explicite, 
+        // on redirige direct vers PlanPriorities (qui affichera le dernier plan valide).
+        if (answersData?.sorting_attempts >= 3 && !isResetMode && !isRefineMode) {
+            console.log("🚫 Limite de génération atteinte. Redirection forcée vers le plan.");
+            navigate('/plan-priorities');
+            return;
+        }
 
         if (answersData?.content) {
           const savedData = answersData.content;
@@ -123,6 +133,27 @@ const Questionnaire = () => {
         }
       } catch (err) {
         console.error('Error loading progress:', err);
+        
+        // TENTATIVE DE SECOURS : Si on n'arrive pas à lire user_answers (erreur réseau/glitch),
+        // on vérifie si l'utilisateur a déjà des objectifs (un plan en cours).
+        // Si oui, on le redirige vers PlanPriorities au lieu de montrer une erreur ou un questionnaire vide.
+        try {
+            const { data: existingGoals } = await supabase
+                .from('user_goals')
+                .select('id')
+                .eq('user_id', user.id)
+                .limit(1);
+            
+            if (existingGoals && existingGoals.length > 0) {
+                console.log("⚠️ Erreur chargement questionnaire, mais objectifs trouvés -> Redirection PlanPriorities.");
+                navigate('/plan-priorities');
+                return;
+            }
+        } catch (recoveryErr) {
+            console.error("Echec de la récupération de secours:", recoveryErr);
+        }
+
+        setLoadError("Impossible de récupérer vos données. Veuillez vérifier votre connexion ou rafraîchir la page.");
       } finally {
         setIsLoaded(true);
       }
@@ -130,6 +161,27 @@ const Questionnaire = () => {
 
     loadProgress();
   }, [user, navigate, searchParams]);
+
+  // Si une erreur critique survient au chargement, on bloque l'interface pour éviter d'écraser les données ou de contourner la sécurité
+  if (loadError) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+              <div className="bg-white p-8 rounded-xl shadow-lg border border-red-100 text-center max-w-md">
+                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl font-bold">!</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Erreur de chargement</h2>
+                  <p className="text-gray-600 mb-6">{loadError}</p>
+                  <button 
+                      onClick={() => window.location.reload()}
+                      className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors"
+                  >
+                      Réessayer
+                  </button>
+              </div>
+          </div>
+      );
+  }
 
   // Helper pour construire la structure de données riche
   const buildStructuredData = () => {
@@ -151,9 +203,9 @@ const Questionnaire = () => {
                 const answer = responses.detailAnswers[q.id];
                 const otherText = responses.otherAnswers[q.id];
                 return {
-                    question_id: q.id,
                     question_text: q.question,
                     answer_value: answer,
+                    question_id: q.id,
                     other_text: otherText || null
                 };
             }).filter(d => d.answer_value); // On ne garde que ceux qui ont une réponse
@@ -516,9 +568,87 @@ const Questionnaire = () => {
           </div>
 
           <button
-            onClick={() => {
+            onClick={async () => {
               const data = prepareSelectionData();
-              navigate('/plan-priorities', { state: { selectedAxes: data, fromOnboarding: true } });
+              // On génère un ID unique pour cette soumission (Le "Numéro de questionnaire")
+              const submissionId = crypto.randomUUID();
+              
+              // Sauvegarde immédiate avec le submissionId
+              if (user) {
+                  try {
+                      // 0. Récupérer l'entrée existante pour mettre à jour
+                      const { data: existingAnswers } = await supabase
+                          .from('user_answers')
+                          .select('id, sorting_attempts, content')
+                          .eq('user_id', user.id)
+                          .eq('questionnaire_type', 'onboarding')
+                          .order('created_at', { ascending: false })
+                          .limit(1)
+                          .maybeSingle();
+                      
+                      // 1. NETTOYAGE : On supprime UNIQUEMENT les objectifs et plans (l'ancien monde)
+                      // On garde user_answers mais on le met à jour
+                      await supabase.from('user_goals')
+                        .delete()
+                        .eq('user_id', user.id)
+                        .in('status', ['active', 'pending']);
+
+                      await supabase.from('user_plans')
+                        .delete()
+                        .eq('user_id', user.id)
+                        .eq('status', 'active');
+
+                      // 2. MISE À JOUR OU INSERTION USER_ANSWERS
+                      const structuredData = buildStructuredData();
+                      const payload = {
+                          user_id: user.id,
+                          questionnaire_type: 'onboarding',
+                          submission_id: submissionId, // On update l'ID de soumission
+                          content: {
+                              structured_data: structuredData,
+                              ui_state: { selectedAxisByTheme, responses },
+                              last_updated: new Date().toISOString()
+                          },
+                          // On incrémente sorting_attempts ici même si PlanPriorities le refera peut-être
+                          // Mais surtout on préserve l'existant + update
+                          updated_at: new Date().toISOString()
+                      };
+
+                      if (existingAnswers) {
+                          console.log("📝 Mise à jour user_answers existant avec nouveau submissionId...");
+                          await supabase
+                              .from('user_answers')
+                              .update({
+                                  ...payload,
+                                  sorting_attempts: (existingAnswers.sorting_attempts || 0) // On garde, l'incrément se fera plus tard ou ici si on veut
+                              })
+                              .eq('id', existingAnswers.id);
+                      } else {
+                          console.log("📝 Création user_answers...");
+                          await supabase
+                              .from('user_answers')
+                              .insert({
+                                  ...payload,
+                                  sorting_attempts: 0
+                              });
+                      }
+
+                  } catch (e) {
+                      console.error("Erreur save onboarding submit:", e);
+                  }
+              }
+
+              // On ajoute forceRefresh et un timestamp unique
+              const timestamp = Date.now();
+              navigate('/plan-priorities', { 
+                  state: { 
+                      selectedAxes: data, 
+                      fromOnboarding: true, // C'est le flag "Global Questionnaire"
+                      forceRefresh: true,
+                      generationTimestamp: timestamp,
+                      submissionId: submissionId // On passe l'ID
+                  } 
+              });
             }}
             disabled={totalSelectedAxes === 0}
             className={`px-8 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${totalSelectedAxes > 0
