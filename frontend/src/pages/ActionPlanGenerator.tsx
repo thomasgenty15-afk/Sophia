@@ -37,13 +37,19 @@ const ActionPlanGenerator = () => {
   const location = useLocation();
   const { user } = useAuth();
   
+  // LOGS DEBUG
+  console.log("🔄 ActionPlanGenerator Render");
+  console.log("📍 Location State:", location.state);
+  
   // On récupère l'axe prioritaire (le premier de la liste validée)
   const finalOrder = location.state?.finalOrder as AxisContext[] || [];
+  console.log("📊 Final Order resolved:", finalOrder);
   
   // State local pour l'axe courant (peut être hydraté par location.state OU par récupération DB)
   const [currentAxis, setCurrentAxis] = useState<AxisContext | null>(
       finalOrder[0] || null
   );
+  console.log("🎯 Current Axis State:", currentAxis);
 
   // Redirection / Récupération si pas d'axe
   useEffect(() => {
@@ -51,6 +57,8 @@ const ActionPlanGenerator = () => {
 
     // Si on a déjà un axe, tout va bien
     if (currentAxis) return;
+
+    console.log("⚠️ TRIGGERING RECOVERY: currentAxis is null");
 
     const recoverState = async () => {
         if (!user) {
@@ -134,21 +142,28 @@ const ActionPlanGenerator = () => {
     if (step === 'result' && canRetry) {
         // On pousse une entrée dans l'historique pour que le bouton "Précédent" 
         // serve à revenir à l'étape "input" au lieu de quitter la page
-        window.history.pushState({ step: 'result' }, '', '');
+        // MAIS on le fait UNIQUEMENT si on n'est pas déjà dans cet état (évite les doublons)
+        if (window.history.state?.step !== 'result') {
+            console.log("📌 Pushing history state: result");
+            window.history.pushState({ step: 'result' }, '', '');
+        }
 
-        const handlePopState = () => {
+        const handlePopState = (event: PopStateEvent) => {
              // L'utilisateur a cliqué sur Précédent.
-             // On intercepte pour revenir à l'étape input (partie qualitative)
-             console.log("🔙 Retour arrière détecté : Retour aux inputs.");
-             handleRetryInputs();
+             // On vérifie si c'est pour revenir de 'result' vers 'input'
+             console.log("🔙 PopState detected. State:", event.state);
+             
+             // Si le nouvel état est null ou différent de 'result', c'est qu'on recule
+             if (!event.state?.step) {
+                 console.log("🔙 Retour arrière vers inputs confirmé.");
+                 handleRetryInputs();
+             }
         };
 
         window.addEventListener('popstate', handlePopState);
 
         return () => {
             window.removeEventListener('popstate', handlePopState);
-            // NOTE : On ne tente pas de nettoyer l'historique ici car c'est complexe
-            // et le navigateur gère sa pile.
         };
     }
   }, [step, canRetry]);
@@ -236,19 +251,21 @@ const ActionPlanGenerator = () => {
                           pacing: existingPlan.inputs_pacing || 'balanced'
                       });
 
-                      // S'il n'y a PAS de demande de génération explicite (forceRegen),
-                      // ALORS on affiche directement le résultat (comportement de reload / visite ultérieure)
-                      if (!forceRegen) {
-                          console.log("...Chargement direct du résultat (Reload/Déjà vu).");
-                          setPlan(existingPlan.content);
-                          setStep('result');
-                          setIsContextLoading(false);
-                          return; // ON STOPPE TOUT ICI
-                      } else {
-                          console.log("...Mode Édition activé (Nouvelle demande).");
-                          // On NE PASSE PAS à 'result', on reste sur 'input' pour laisser le user valider/modifier
-                          // Et on laisse la suite s'exécuter (potentielle màj du résumé)
-                      }
+          // S'il n'y a PAS de demande de génération explicite (forceRegen),
+          // ALORS on affiche directement le résultat (comportement de reload / visite ultérieure)
+          if (!forceRegen) {
+              console.log("...Chargement direct du résultat (Reload/Déjà vu).");
+              setPlan(existingPlan.content);
+              setStep('result');
+              setIsContextLoading(false);
+              return; // ON STOPPE TOUT ICI
+          } else {
+              console.log("...Mode Édition activé (Nouvelle demande).");
+              // On NE PASSE PAS à 'result', on reste sur 'input' pour laisser le user valider/modifier
+              // Et on laisse la suite s'exécuter (potentielle màj du résumé)
+              // IMPORTANT : Si on force la regen, on s'assure que le step est bien 'input'
+              setStep('input');
+          }
                   }
               }
               // -----------------------------------------------------------------------
@@ -409,12 +426,13 @@ const ActionPlanGenerator = () => {
           // Mais pour éviter le "refetch on tab switch", il vaut mieux le laisser à true tant que le composant est en vie dans le contexte SPA.
           // Si le user reload la page (F5), tout le state est perdu, donc ça refera un fetch, ce qui est correct.
       };
-  }, [user?.id, currentAxis.id, isGoalsReady]); // Dépendances stables (primitives)
+  }, [user?.id, currentAxis?.id, isGoalsReady]); // Dépendances stables (primitives)
 
   // --- ETAPE 0 : SAUVEGARDE DES GOALS SI NECESSAIRE ---
   const syncAttempted = React.useRef(false); // Ref pour éviter le double appel (React Strict Mode)
 
   useEffect(() => {
+    console.log("🔄 Sync Goals Effect. User:", user?.id, "FinalOrder Length:", finalOrder?.length);
     const syncGoals = async () => {
         if (!user) return;
         
@@ -473,20 +491,24 @@ const ActionPlanGenerator = () => {
     try {
       // Récupérer l'objectif actif s'il n'est pas passé via le state
       let activeAxis = currentAxis;
+      let targetGoalId = null;
       
+      // 1. RÉCUPÉRATION DU CONTEXTE (Goal & Axis)
       if (!activeAxis) {
+         // ... (code existant de recherche fallback)
+         // Je laisse le code existant ici, mais on va l'adapter légèrement pour récupérer l'ID
          console.log("Recherche de l'objectif actif en base...");
          const { data: goalData } = await supabase
             .from('user_goals')
             .select('*')
             .eq('user_id', user.id)
             .eq('status', 'active')
-            .order('created_at', { ascending: false }) // Le plus récent actif
+            .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
          
          if (goalData) {
-            console.log("Objectif actif trouvé :", goalData);
+            targetGoalId = goalData.id;
             activeAxis = {
                 id: goalData.axis_id,
                 title: goalData.axis_title,
@@ -498,8 +520,45 @@ const ActionPlanGenerator = () => {
              setStep('input');
              return;
          }
+      } else {
+          // Si on a activeAxis du state, on cherche quand même son ID en base pour vérifier le quota
+          const { data: goalData } = await supabase
+            .from('user_goals')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('axis_id', activeAxis.id)
+            .in('status', ['active', 'pending']) // Pending accepté si c'est le premier load
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+          targetGoalId = goalData?.id;
       }
 
+      // 2. VÉRIFICATION DU QUOTA (Anti-Abus & Règle des 2 essais)
+      if (targetGoalId) {
+          const { data: existingPlan } = await supabase
+              .from('user_plans')
+              .select('content, generation_attempts')
+              .eq('goal_id', targetGoalId)
+              .maybeSingle();
+
+          // SI ON A DÉJÀ ATTEINT LA LIMITE (2 essais : 1 initial + 1 retry)
+          if (existingPlan && existingPlan.generation_attempts >= 2) {
+              console.warn("🚫 Quota atteint (2/2). Blocage de la régénération.");
+              
+              // On recharge le dernier plan valide
+              setPlan(existingPlan.content);
+              
+              // On informe l'utilisateur
+              alert("Vous avez utilisé vos 2 essais (1 création + 1 modification). Voici votre plan final.");
+              
+              // On affiche le résultat et on arrête tout
+              setStep('result');
+              return; 
+          }
+      }
+
+      // 3. APPEL IA (Si quota OK)
       const { data, error } = await supabase.functions.invoke('generate-plan', {
         body: {
           inputs,
@@ -518,7 +577,7 @@ const ActionPlanGenerator = () => {
             // 1. Retrouver l'ID du goal
             const { data: targetGoal } = await supabase
                 .from('user_goals')
-                .select('id')
+                .select('id, submission_id')
                 .eq('user_id', user.id)
                 .eq('axis_id', activeAxis.id)
                 .in('status', ['active', 'pending'])
@@ -545,6 +604,7 @@ const ActionPlanGenerator = () => {
                             inputs_pacing: inputs.pacing,
                             sophia_knowledge: data.sophiaKnowledge,
                             content: data,
+                            status: 'pending', // On remet en pending si on régénère
                             generation_attempts: (existingPlan.generation_attempts || 1) + 1
                         })
                         .eq('id', existingPlan.id);
@@ -555,13 +615,14 @@ const ActionPlanGenerator = () => {
                         .insert({
                             user_id: user.id,
                             goal_id: targetGoal.id,
+                            submission_id: targetGoal.submission_id, // AJOUT DU SUBMISSION ID
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
                             inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
                             sophia_knowledge: data.sophiaKnowledge,
                             content: data,
-                            status: 'active',
+                            status: 'pending', // Le plan est une proposition, donc 'pending' jusqu'à validation
                             generation_attempts: 1
                         });
                     if (saveError) console.error("Erreur sauvegarde plan:", saveError);
@@ -638,7 +699,7 @@ const ActionPlanGenerator = () => {
 
   // Helper pour récupérer l'ID du goal si besoin (si pas stocké dans l'objet plan local)
   const getGoalId = async () => {
-       if (!user) return null;
+       if (!user || !currentAxis) return null;
        const { data } = await supabase
         .from('user_goals')
         .select('id')
@@ -728,6 +789,7 @@ const ActionPlanGenerator = () => {
                         inputs_pacing: inputs.pacing,
                         sophia_knowledge: plan.sophiaKnowledge,
                         content: plan,
+                        status: 'active', // VALIDATION FINALE : Passage en active
                         generation_attempts: (existingPlan.generation_attempts || 1) + 1 // Incrément
                     })
                     .eq('id', existingPlan.id);

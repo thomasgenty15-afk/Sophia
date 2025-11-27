@@ -40,6 +40,8 @@ const MOCK_IA_ORDER: PriorityItem[] = [
 ];
 
 const PlanPriorities = () => {
+  // DEBUG LOG
+  console.log("📍 PAGE MOUNTED: PlanPriorities"); 
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth(); // Récupérer l'utilisateur
@@ -60,19 +62,6 @@ const PlanPriorities = () => {
     const isDifferent = JSON.stringify(currentOrder) !== JSON.stringify(initialOrder);
     setIsModified(isDifferent);
   }, [currentOrder, initialOrder]);
-
-  // --- VERROUILLAGE : SI UN PLAN EXISTE DÉJÀ ---
-  // AVIS : Suppression de la redirection automatique. 
-  // L'utilisateur doit pouvoir revenir sur ses priorités pour les changer s'il le souhaite.
-  // La redirection forcée créait des boucles infinies et une mauvaise UX.
-  /*
-  useEffect(() => {
-    const checkExistingPlan = async () => {
-        // ... code supprimé ...
-    };
-    checkExistingPlan();
-  }, [user, location.state, navigate]);
-  */
 
   // --- LOGIQUE DYNAMIQUE ---
   const [isLoading, setIsLoading] = useState(true);
@@ -352,7 +341,8 @@ const PlanPriorities = () => {
                   priority_order: index + 1,
                   status: index === 0 ? 'active' : 'pending',
                   role: aiItem?.role || (index === 0 ? 'foundation' : index === 1 ? 'lever' : 'optimization'),
-                  reasoning: aiItem?.reasoning || null
+                  reasoning: aiItem?.reasoning || null,
+                  submission_id: submissionId // Propagation du submission_id dès la sauvegarde automatique
                 };
             });
 
@@ -448,6 +438,9 @@ const PlanPriorities = () => {
   };
 
   const handleValidate = async () => {
+    // On ajoute un timestamp pour forcer la régénération du résumé (nouveau clic = nouvelle demande)
+    const requestTimestamp = Date.now();
+    
     // Si connecté, on sauvegarde les objectifs
     if (user) {
       try {
@@ -463,20 +456,6 @@ const PlanPriorities = () => {
                 .delete()
                 .eq('user_id', user.id)
                 .in('status', ['active', 'pending']);
-            
-            // 2. Nettoyage des PLANS obsolètes liés à des soumissions précédentes (si submissionId change)
-            // On veut éviter que des vieux plans traînent.
-            // Idéalement, on pourrait lier le plan au goal, et la suppression en cascade ferait le job.
-            // Mais par sécurité, si on a des plans orphelins ou liés à une ancienne session "active", on peut vouloir les cleaner.
-            // Ici, on se contente de cleaner les goals, ce qui devrait suffire car les plans sont liés aux goals.
-            // MAIS pour être sûr : si on a un submissionId, on peut marquer les anciens plans comme "archivés" ou les supprimer.
-            
-            // Optionnelle : Clean plans if needed directly (si pas de CASCADE DELETE configuré)
-             await supabase
-                .from('user_plans')
-                .delete()
-                .eq('user_id', user.id)
-                .in('status', ['active']); // On vire les plans actifs qui ne correspondent plus à la nouvelle réalité
         } else {
              // Cas "Questionnaire Particulier" (Juste un update d'axe)
              // On supprime seulement ceux qui ne sont plus dans la liste actuelle (nettoyage sélectif)
@@ -489,7 +468,17 @@ const PlanPriorities = () => {
             .in('status', ['active', 'pending']); 
         }
 
-        // On insère ou met à jour les nouveaux
+        // --- NETTOYAGE DES PLANS ACTIFS/PENDING ---
+        // On supprime les plans en cours pour éviter les doublons ou incohérences.
+        // Seuls les plans "completed" (archivés) sont conservés.
+        console.log("🧹 Nettoyage des plans actifs/pending précédents...");
+        await supabase
+            .from('user_plans')
+            .delete()
+            .eq('user_id', user.id)
+            .in('status', ['active', 'pending']);
+
+        // On insère ou met à jour les nouveaux goals
         const goalsPayload = currentOrder.map((item, index) => {
             // Récupérer les infos IA si disponibles pour cet item
             const aiInfo = aiReasoning[item.id];
@@ -513,6 +502,19 @@ const PlanPriorities = () => {
           .from('user_goals')
           .upsert(goalsPayload, { onConflict: 'user_id,axis_id' });
 
+        // VERIFICATION DE SÉCURITÉ : On s'assure que le submission_id est bien passé
+        // Si pour une raison obscure l'upsert a échoué silencieusement sur ce champ (rare mais possible avec RLS parfois)
+        // on force une mise à jour ciblée.
+        if (!error && submissionId) {
+             const { error: patchError } = await supabase
+                .from('user_goals')
+                .update({ submission_id: submissionId })
+                .eq('user_id', user.id)
+                .in('axis_id', currentOrder.map(c => c.id));
+             
+             if (patchError) console.error("Erreur patch submission_id:", patchError);
+        }
+
         if (error) throw error;
 
       } catch (err) {
@@ -523,11 +525,12 @@ const PlanPriorities = () => {
     // Fallback pour le mock: on vérifie aussi le localStorage directement
     const isMockAuthenticated = localStorage.getItem('mock_supabase_session');
     
-    // On ajoute un timestamp pour forcer la régénération du résumé
+    // On construit le state de navigation
     const navigationState = { 
         finalOrder: currentOrder,
         // Ce timestamp servira de "token de fraicheur" unique pour cette demande
-        generationRequestTimestamp: Date.now() 
+        // Il permet à la page suivante de savoir que c'est une demande explicite (clic bouton) et non un "Back/Forward"
+        generationRequestTimestamp: requestTimestamp 
     };
 
     if (user || isMockAuthenticated) {

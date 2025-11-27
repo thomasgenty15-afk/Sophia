@@ -35,14 +35,14 @@ serve(async (req) => {
         * "balanced" (Progressif) : Équilibre classique, durée moyenne (8 semaines).
         * "slow" (Douceur) : Micro-habitudes très faciles, phases longues (10-12 semaines), charge très faible.
 
-      RÈGLES DE CONTENU (STRICT) :
-      1.  **Structure** : EXACTEMENT 3 phases, dans cet ordre précis :
-          - Phase 1 : La Fondation (Préparer le terrain, physiologie, nettoyage).
-          - Phase 2 : Le Levier (L'action à plus fort impact, le changement visible).
-          - Phase 3 : L'Optimisation (Raffiner, aller plus loin, maintenance).
-      2.  **Densité** : EXACTEMENT 2 actions par phase, pas plus, pas moins :
-          - 1 "Quête Principale" ('main') : L'action majeure.
-          - 1 "Quête Secondaire" ('side') : Une action de soutien.
+      RÈGLES DE CONTENU (FLEXIBLE ET PERSONNALISÉ) :
+      1.  **Structure** : Entre 3 et 6 phases maximum. 
+          - Tu es LIBRE de définir le nombre de phases nécessaire pour atteindre l'objectif.
+          - Les titres des phases doivent être CRÉATIFS, PERSONNALISÉS et ÉVOCATEURS (Pas de "Phase 1", "Phase 2" générique).
+          - Exemple de bons titres : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
+      2.  **Densité** : 1 à 3 actions par phase maximum :
+          - Au moins 1 "Quête Principale" ('main') par phase.
+          - Optionnel : 1 ou 2 "Quêtes Secondaires" ('side') pour soutenir.
       3.  **Types d'Actions** :
           - "habitude" (Groupe A) : Action récurrente (ex: Couvre-feu digital). A besoin de 'targetReps'.
           - "mission" (Groupe B) : Action logistique "One-shot" à cocher (ex: Acheter des boules Quies).

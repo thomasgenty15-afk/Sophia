@@ -117,8 +117,10 @@ const Questionnaire = () => {
         // Si la limite est atteinte et qu'on n'est pas en mode Reset explicite, 
         // on redirige direct vers PlanPriorities (qui affichera le dernier plan valide).
         if (answersData?.sorting_attempts >= 3 && !isResetMode && !isRefineMode) {
-            console.log("🚫 Limite de génération atteinte. Redirection forcée vers le plan.");
-            navigate('/plan-priorities');
+            console.log("🚫 Limite de génération atteinte (3/3). Redirection forcée vers le plan.");
+            // DEBUG : Alerte temporaire pour confirmer le flux à l'utilisateur
+            // alert("DEBUG FLUX : Quota Onboarding atteint -> Redirection vers PlanPriorities");
+            navigate('/plan-priorities', { replace: true });
             return;
         }
 
@@ -128,7 +130,25 @@ const Questionnaire = () => {
           // On restaure l'UI State s'il existe, sinon on prend la racine (rétrocompatibilité)
           const uiState = savedData.ui_state || savedData;
           
-          if (uiState.selectedAxisByTheme) setSelectedAxisByTheme(uiState.selectedAxisByTheme);
+          if (uiState.selectedAxisByTheme) {
+              setSelectedAxisByTheme(uiState.selectedAxisByTheme);
+
+              // SMART RESUME : On positionne l'utilisateur sur le dernier thème touché
+              const touchedThemes = Object.keys(uiState.selectedAxisByTheme).filter(k => uiState.selectedAxisByTheme[k]);
+              if (touchedThemes.length > 0) {
+                  let lastIndex = -1;
+                  DATA.forEach((theme, index) => {
+                      if (touchedThemes.includes(theme.id)) {
+                          lastIndex = index;
+                      }
+                  });
+
+                  // Si on a trouvé un thème, on s'y met (sauf si un paramètre d'URL forçait déjà un thème)
+                  if (lastIndex !== -1 && !themeParam) {
+                      setCurrentTheme(DATA[lastIndex]);
+                  }
+              }
+          }
           if (uiState.responses) setResponses(uiState.responses);
         }
       } catch (err) {
@@ -632,6 +652,24 @@ const Questionnaire = () => {
                                   sorting_attempts: 0
                               });
                       }
+
+                      // 3. CRÉATION IMMÉDIATE DES USER_GOALS (PENDING) AVEC LE SUBMISSION_ID
+                      // Cela garantit que les goals existent AVANT d'arriver sur PlanPriorities
+                      // et qu'ils ont le bon submission_id associé.
+                      console.log("🎯 Création initiale des user_goals avec submission_id...");
+                      const initialGoals = data.map((item: any, index: number) => ({
+                          user_id: user.id,
+                          axis_id: item.id,
+                          axis_title: item.title,
+                          theme_id: item.theme,
+                          priority_order: index + 1, // Ordre de sélection par défaut
+                          status: index === 0 ? 'active' : 'pending', // On active le premier par défaut
+                          submission_id: submissionId, // ICI : On s'assure que l'ID est bien présent
+                          role: 'pending', // Sera affiné par l'IA dans PlanPriorities
+                          reasoning: null
+                      }));
+
+                      await supabase.from('user_goals').upsert(initialGoals, { onConflict: 'user_id,axis_id' });
 
                   } catch (e) {
                       console.error("Erreur save onboarding submit:", e);
