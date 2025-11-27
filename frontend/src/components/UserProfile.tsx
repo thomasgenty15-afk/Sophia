@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   X, 
   User, 
@@ -12,6 +12,9 @@ import {
   Check,
   ChevronRight
 } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
+import { useNavigate } from 'react-router-dom';
 
 interface UserProfileProps {
   isOpen: boolean;
@@ -22,9 +25,46 @@ interface UserProfileProps {
 type TabType = 'general' | 'subscription' | 'settings';
 
 const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<TabType>('general');
+  const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      // Fetch profile data
+      const fetchProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (data) {
+          setProfile(data);
+        }
+      };
+      fetchProfile();
+    }
+  }, [user]);
 
   if (!isOpen) return null;
+
+  const handleSignOut = async () => {
+    await signOut();
+    onClose();
+    navigate('/auth');
+  };
+
+  // Get display values
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || "Utilisateur";
+  const displayEmail = user?.email || "";
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   const isArchitect = mode === 'architecte';
 
@@ -70,11 +110,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
             <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-lg border-2 ${
               isArchitect ? "bg-emerald-900 text-emerald-100 border-emerald-700" : "bg-slate-200 text-slate-600 border-white shadow-sm"
             }`}>
-              Ah
+              {initials}
             </div>
             <div>
-              <h2 className="font-bold text-sm leading-tight">Ahmed Amara</h2>
-              <p className={`text-xs ${isArchitect ? "text-emerald-500" : "text-slate-500"}`}>ahmed@sophia.app</p>
+              <h2 className="font-bold text-sm leading-tight">{displayName}</h2>
+              <p className={`text-xs ${isArchitect ? "text-emerald-500" : "text-slate-500"}`}>{displayEmail}</p>
             </div>
           </div>
           <button onClick={onClose} className={styles.closeBtn}>
@@ -108,12 +148,12 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
                 <div className="space-y-4">
                   <div>
                     <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Nom complet</label>
-                    <input type="text" defaultValue="Ahmed Amara" className={styles.input} />
+                    <input type="text" defaultValue={displayName} className={styles.input} />
                   </div>
                   <div>
                     <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Email</label>
                     <div className="relative">
-                      <input type="email" defaultValue="ahmed@sophia.app" className={styles.input} />
+                      <input type="email" defaultValue={displayEmail} className={styles.input} readOnly />
                       <div className="absolute right-3 top-3 text-emerald-500">
                         <Check className="w-4 h-4" />
                       </div>
@@ -205,7 +245,9 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
                   </div>
                 </div>
 
-                <button className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
+                <button 
+                  onClick={handleSignOut}
+                  className={`w-full flex items-center justify-between p-4 rounded-xl border transition-all ${
                   isArchitect 
                     ? "border-red-900/50 text-red-400 hover:bg-red-950/30" 
                     : "border-red-100 text-red-600 hover:bg-red-50"

@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronDown, Check, ArrowRight } from 'lucide-react';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 import type { Theme } from '../data/onboarding/types';
 import { THEME_SLEEP } from '../data/onboarding/theme_sleep';
@@ -25,12 +27,16 @@ const DATA: Theme[] = [
 // --- COMPOSANT ---
 const Questionnaire = () => {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
   const [currentTheme, setCurrentTheme] = useState<Theme>(DATA[0]);
 
   // Sécurité si les données ne sont pas chargées
   if (!currentTheme) {
     return <div className="p-10 text-center">Erreur : Impossible de charger les thèmes.</div>;
   }
+
+  const [isLoaded, setIsLoaded] = useState(false);
 
   // --- NOUVEL ÉTAT DE SÉLECTION DES AXES ---
   // On stocke quels axes sont "sélectionnés" (ouverts pour être travaillés)
@@ -51,6 +57,188 @@ const Questionnaire = () => {
     detailAnswers: {},
     otherAnswers: {},
   });
+
+  // --- CHARGEMENT & SAUVEGARDE PROGRESSION ---
+  
+  // CHARGEMENT & SAUVEGARDE PROGRESSION
+  useEffect(() => {
+    const loadProgress = async () => {
+      // 1. Initialisation du thème ciblé via URL (prioritaire)
+      const themeParam = searchParams.get('theme');
+      
+      // NOTE: On initialise le thème avant même d'attendre le user
+      if (themeParam) {
+        // Recherche par ID d'abord, puis par titre/shortTitle (fallback pour rétrocompatibilité)
+        const targetTheme = DATA.find(t => t.id === themeParam) || 
+                            DATA.find(t => t.shortTitle === themeParam) ||
+                            DATA.find(t => t.title === themeParam);
+                            
+        if (targetTheme) {
+            console.log("Mode Reset/Refine activé. Thème forcé:", targetTheme.shortTitle);
+            setCurrentTheme(targetTheme);
+        }
+      }
+
+      if (!user) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('onboarding_completed')
+          .eq('id', user.id)
+          .single();
+
+        if (error) throw error;
+
+        // NAVIGATION GUARD
+        const isResetMode = searchParams.get('reset') === 'true';
+        const isRefineMode = searchParams.get('mode') === 'refine'; // Nouveau mode
+
+        // Si terminé et ni reset ni refine -> Dashboard
+        if (data?.onboarding_completed && !isResetMode && !isRefineMode) {
+          navigate('/dashboard');
+          return;
+        }
+        
+        // ... suite du chargement des réponses ...
+
+        // CHARGEMENT DES RÉPONSES EXISTANTES
+        const { data: answersData } = await supabase
+          .from('user_answers')
+          .select('content')
+          .eq('user_id', user.id)
+          .eq('questionnaire_type', 'onboarding')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+        if (answersData?.content) {
+          const savedData = answersData.content;
+          
+          // On restaure l'UI State s'il existe, sinon on prend la racine (rétrocompatibilité)
+          const uiState = savedData.ui_state || savedData;
+          
+          if (uiState.selectedAxisByTheme) setSelectedAxisByTheme(uiState.selectedAxisByTheme);
+          if (uiState.responses) setResponses(uiState.responses);
+        }
+      } catch (err) {
+        console.error('Error loading progress:', err);
+      } finally {
+        setIsLoaded(true);
+      }
+    };
+
+    loadProgress();
+  }, [user, navigate, searchParams]);
+
+  // Helper pour construire la structure de données riche
+  const buildStructuredData = () => {
+    const structuredData: any[] = [];
+
+    Object.entries(selectedAxisByTheme).forEach(([themeId, axisId]) => {
+        if (!axisId) return;
+
+        const theme = DATA.find(t => t.id === themeId);
+        if (!theme) return;
+
+        const axis = theme.axes?.find(a => a.id === axisId);
+        if (!axis) return;
+
+        const selectedProblems = axis.problems.filter(p => responses.selectedProblemsIds.includes(p.id));
+        
+        const problemsData = selectedProblems.map(prob => {
+            const detailQuestions = prob.detailQuestions.map(q => {
+                const answer = responses.detailAnswers[q.id];
+                const otherText = responses.otherAnswers[q.id];
+                return {
+                    question_id: q.id,
+                    question_text: q.question,
+                    answer_value: answer,
+                    other_text: otherText || null
+                };
+            }).filter(d => d.answer_value); // On ne garde que ceux qui ont une réponse
+
+            return {
+                problem_id: prob.id,
+                problem_label: prob.label,
+                details: detailQuestions
+            };
+        });
+
+        structuredData.push({
+            theme_id: theme.id,
+            theme_title: theme.title,
+            selected_axis: {
+                id: axis.id,
+                title: axis.title,
+                problems: problemsData
+            }
+        });
+    });
+
+    return structuredData;
+  };
+
+  // Sauvegarder à chaque changement significatif
+  useEffect(() => {
+    const saveProgress = async () => {
+      if (!user || !isLoaded) return;
+
+      // On ne sauvegarde que si on a commencé à faire quelque chose
+      if (totalSelectedAxes === 0 && responses.selectedProblemsIds.length === 0) return;
+
+      try {
+        // 1. Chercher l'entrée existante (la plus récente)
+        const { data: existingEntry } = await supabase
+            .from('user_answers')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('questionnaire_type', 'onboarding')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        const structuredData = buildStructuredData();
+
+        const payload = {
+            user_id: user.id,
+            questionnaire_type: 'onboarding',
+            content: {
+              // Pour l'IA : Données riches et structurées
+              structured_data: structuredData,
+              
+              // Pour l'UI : État brut pour restauration facile
+              ui_state: {
+                  selectedAxisByTheme,
+                  responses
+              },
+              
+              // Méta
+              last_updated: new Date().toISOString()
+            },
+            updated_at: new Date().toISOString()
+        };
+
+        if (existingEntry) {
+            await supabase
+                .from('user_answers')
+                .update(payload)
+                .eq('id', existingEntry.id);
+        } else {
+            await supabase
+                .from('user_answers')
+                .insert(payload);
+        }
+
+      } catch (err) {
+        console.error('Error saving progress:', err);
+      }
+    };
+
+    // Debounce simple : sauvegarder après 1s d'inactivité pour ne pas spammer la DB
+    const timeoutId = setTimeout(saveProgress, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [user, selectedAxisByTheme, responses, totalSelectedAxes, isLoaded]);
 
   // --- LOGIQUE DE SÉLECTION ---
   const toggleAxis = (themeId: string, axisId: string) => {
@@ -129,8 +317,9 @@ const Questionnaire = () => {
           selectedItems.push({
             id: axis.id,
             title: axis.title,
-            theme: theme.shortTitle,
-            reason: "Recommandation IA basée sur tes réponses." // Placeholder pour la logique IA
+            theme: theme.id, // Utiliser l'ID (ex: 'SLP') pour la persistence et le routage
+            theme_label: theme.shortTitle, // Garder le label pour l'affichage si besoin
+            reason: "Recommandation IA basée sur tes réponses." 
           });
         }
       }
@@ -138,13 +327,20 @@ const Questionnaire = () => {
     return selectedItems;
   };
 
+  const isRefineMode = searchParams.get('mode') === 'refine';
+  
+  // FILTRAGE DES THÈMES (SI MODE REFINE)
+  const displayedThemes = isRefineMode 
+    ? DATA.filter(t => t.id === currentTheme.id) // On ne montre que le thème courant (celui du reset)
+    : DATA;
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row text-gray-900 pb-24"> {/* pb-24 pour la barre fixe */}
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-4 md:p-6 sticky top-0 h-auto md:h-screen z-40 flex flex-col gap-3 md:gap-0">
         <h2 className="text-lg md:text-xl font-bold mb-0 md:mb-6">Thèmes</h2>
         <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-visible scrollbar-hide w-full pb-1 md:pb-0">
-          {DATA.map(theme => {
+          {displayedThemes.map(theme => {
             const isAxisSelectedInTheme = selectedAxisByTheme[theme.id] != null;
             return (
               <button
@@ -177,9 +373,15 @@ const Questionnaire = () => {
               <span className="font-bold text-sm">i</span>
             </div>
             <div>
-              <h3 className="font-bold text-blue-900 text-sm">Règle des 3 Piliers</h3>
+              <h3 className="font-bold text-blue-900 text-sm">
+                {isRefineMode ? "Réinitialisation du Plan" : "Règle des 3 Piliers"}
+              </h3>
               <p className="text-blue-800 text-sm mt-1">
-                Pour être efficace, ne te disperse pas. Choisis <strong>jusqu'à 3 axes prioritaires</strong> au total (maximum 1 par thème).
+                {isRefineMode ? (
+                  "Pour réinitialiser, commence par identifier une transformation dans le thème que tu avais choisi."
+                ) : (
+                   <>Pour être efficace, ne te disperse pas. Choisis <strong>3 transformations prioritaires</strong> au total (maximum 1 par thème).</>
+                )}
               </p>
             </div>
           </div>
@@ -188,7 +390,7 @@ const Questionnaire = () => {
             <span className="text-3xl md:text-4xl">{currentTheme.icon}</span>
             <h1 className="text-2xl md:text-3xl font-bold">{currentTheme.title}</h1>
           </div>
-          <p className="text-gray-500 text-base md:text-lg">Sélectionne un axe pour commencer.</p>
+          <p className="text-gray-500 text-base md:text-lg">Sélectionne une transformation pour commencer.</p>
         </header>
 
         <div className="space-y-4">
@@ -316,7 +518,7 @@ const Questionnaire = () => {
           <button
             onClick={() => {
               const data = prepareSelectionData();
-              navigate('/plan-priorities', { state: { selectedAxes: data } });
+              navigate('/plan-priorities', { state: { selectedAxes: data, fromOnboarding: true } });
             }}
             disabled={totalSelectedAxes === 0}
             className={`px-8 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${totalSelectedAxes > 0

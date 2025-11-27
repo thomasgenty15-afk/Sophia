@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext'; // Ajout du contexte auth
+import { supabase } from '../lib/supabase'; // AJOUT DE L'IMPORT MANQUANT
 import { 
   ArrowRight, 
   GripVertical, 
@@ -44,7 +45,7 @@ const PlanPriorities = () => {
   const { user } = useAuth(); // Récupérer l'utilisateur
   
   // On récupère l'ordre initial et on le fige comme "Optimal"
-  const [initialOrder] = useState<PriorityItem[]>(
+  const [initialOrder, setInitialOrder] = useState<PriorityItem[]>(
     (location.state?.selectedAxes as PriorityItem[]) || MOCK_IA_ORDER
   );
 
@@ -60,33 +61,151 @@ const PlanPriorities = () => {
     setIsModified(isDifferent);
   }, [currentOrder, initialOrder]);
 
-  // --- LOGIQUE STATIQUE BASÉE SUR L'IA ---
-  // On récupère le rôle en fonction de la position INITIALE (recommandée) de l'item
-  const getIARole = (itemId: string) => {
-    const originalIndex = initialOrder.findIndex(i => i.id === itemId);
-    
-    if (originalIndex === 0) {
-      return {
-        role: "LA FONDATION (Recommandé N°1)",
-        style: "bg-emerald-50 border-emerald-100 text-emerald-800",
-        icon: <ShieldCheck className="w-4 h-4 text-emerald-600" />,
-        text: "Selon l'IA, c'est par là qu'il faut commencer pour débloquer le reste."
-      };
-    }
-    if (originalIndex === 1) {
-      return {
-        role: "LE LEVIER (Recommandé N°2)",
-        style: "bg-amber-50 border-amber-100 text-amber-800",
-        icon: <Zap className="w-4 h-4 text-amber-600" />,
-        text: "Devrait idéalement venir en second, une fois la fondation posée."
-      };
-    }
-    return {
-      role: "L'OPTIMISATION (Recommandé N°3)",
-      style: "bg-violet-50 border-violet-100 text-violet-800",
-      icon: <Trophy className="w-4 h-4 text-violet-600" />,
-      text: "La touche finale. Risqué de commencer par ça sans les bases."
+  // --- VERROUILLAGE : SI UN PLAN EXISTE DÉJÀ ---
+  useEffect(() => {
+    const checkExistingPlan = async () => {
+        // Si on vient de l'onboarding, on autorise la refonte (Reset)
+        if (location.state?.fromOnboarding) return;
+        
+        if (!user) return;
+
+        // Sinon, on vérifie si un plan est déjà actif. Si oui, on redirige.
+        const { data: existingPlan } = await supabase
+            .from('user_plans')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('status', 'active')
+            .limit(1)
+            .maybeSingle();
+
+        if (existingPlan) {
+            console.log("🔒 Plan déjà actif détecté. Redirection vers le plan...");
+            navigate('/plan-generator');
+        }
     };
+
+    checkExistingPlan();
+  }, [user, location.state, navigate]);
+
+  // --- LOGIQUE DYNAMIQUE ---
+  const [isLoading, setIsLoading] = useState(true);
+  const [aiReasoning, setAiReasoning] = useState<Record<string, { 
+      role: string, 
+      reasoning: string, 
+      roleTitle: string, 
+      iconType: string, 
+      style: string,
+      type: string 
+  }>>({});
+
+  // Appel à l'IA pour trier
+  useEffect(() => {
+    const fetchIAPriorities = async () => {
+      // Si on a déjà des axes mockés ou passés, on les utilise
+      const axesToAnalyze = location.state?.selectedAxes || MOCK_IA_ORDER;
+      
+      setIsLoading(true);
+
+      try {
+        if (!user) throw new Error("User not authenticated");
+
+        // 1. Vérifier le compteur d'essais de tri (user_answers)
+        // On récupère le dernier questionnaire 'onboarding' pour incrémenter son compteur
+        const { data: lastAnswers } = await supabase
+            .from('user_answers')
+            .select('id, sorting_attempts')
+            .eq('user_id', user.id)
+            .eq('questionnaire_type', 'onboarding')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+        if (lastAnswers && (lastAnswers.sorting_attempts || 0) >= 3) {
+            console.warn("⚠️ Limite de tentatives de tri atteinte (3/3). Blocage.");
+            // TODO: Afficher un toast ou une alerte à l'utilisateur
+            // On ne bloque pas l'affichage, mais on empêche l'IA de tourner pour rien
+            // On peut aussi rediriger ou désactiver le bouton retour
+        }
+
+        const { data, error } = await supabase.functions.invoke('sort-priorities', {
+          body: { axes: axesToAnalyze }
+        });
+
+        if (error) throw error;
+
+        // Si succès, on incrémente le compteur
+        if (lastAnswers) {
+            await supabase
+                .from('user_answers')
+                .update({ sorting_attempts: (lastAnswers.sorting_attempts || 0) + 1 })
+                .eq('id', lastAnswers.id);
+        }
+
+        if (data && data.sortedAxes) {
+          // ... (reste du code inchangé)
+          // 1. Reconstruire la liste ordonnée complète avec les objets d'origine
+          const newOrder = data.sortedAxes.map((sortedItem: any) => {
+            const originalItem = axesToAnalyze.find((i: any) => i.id === sortedItem.originalId);
+            return originalItem;
+          }).filter(Boolean); // Sécurité
+
+          // 2. Stocker les raisonnements pour l'affichage
+          const reasoningMap: Record<string, any> = {};
+          data.sortedAxes.forEach((item: any, index: number) => {
+            reasoningMap[item.originalId] = {
+              role: index === 0 ? "LA FONDATION (Recommandé N°1)" : index === 1 ? "LE LEVIER (Recommandé N°2)" : "L'OPTIMISATION (Recommandé N°3)",
+              reasoning: item.reasoning,
+              type: item.role // 'foundation', 'lever', 'optimization'
+            };
+          });
+
+          setCurrentOrder(newOrder); // Met à jour l'ordre affiché
+          setInitialOrder(newOrder); // C'est la nouvelle référence "IA"
+        }
+        
+        setAiReasoning(data.sortedAxes.reduce((acc: any, item: any, index: number) => {
+            acc[item.originalId] = {
+                roleTitle: index === 0 ? "LA FONDATION (Recommandé N°1)" : index === 1 ? "LE LEVIER (Recommandé N°2)" : "L'OPTIMISATION (Recommandé N°3)",
+                reasoning: item.reasoning,
+                iconType: index === 0 ? 'shield' : index === 1 ? 'zap' : 'trophy',
+                style: index === 0 ? "bg-emerald-50 border-emerald-100 text-emerald-800" 
+                     : index === 1 ? "bg-amber-50 border-amber-100 text-amber-800" 
+                     : "bg-violet-50 border-violet-100 text-violet-800"
+            };
+            return acc;
+        }, {}));
+
+      } catch (err) {
+        console.error("Erreur tri IA:", err);
+        // Fallback silencieux sur l'ordre par défaut
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchIAPriorities();
+  }, [user]); // Run once on mount (dependance user ajoutée)
+
+  // --- UI HELPER ---
+  const getCardInfo = (itemId: string, index: number) => {
+    // Si on a l'info IA, on l'utilise
+    if (aiReasoning[itemId]) {
+        const info = aiReasoning[itemId];
+        return {
+            role: info.roleTitle,
+            style: info.style,
+            icon: info.iconType === 'shield' ? <ShieldCheck className="w-4 h-4 text-emerald-600" /> 
+                 : info.iconType === 'zap' ? <Zap className="w-4 h-4 text-amber-600" /> 
+                 : <Trophy className="w-4 h-4 text-violet-600" />,
+            text: info.reasoning
+        };
+    }
+
+    // FALLBACK (Pendant le chargement ou si erreur)
+    // On utilise la position actuelle comme "fausse vérité" temporaire
+    if (index === 0) return { role: "LA FONDATION", style: "bg-emerald-50 text-emerald-800", icon: <ShieldCheck className="w-4 h-4"/>, text: "Chargement de l'analyse..." };
+    if (index === 1) return { role: "LE LEVIER", style: "bg-amber-50 text-amber-800", icon: <Zap className="w-4 h-4"/>, text: "Chargement de l'analyse..." };
+    return { role: "L'OPTIMISATION", style: "bg-violet-50 text-violet-800", icon: <Trophy className="w-4 h-4"/>, text: "Chargement de l'analyse..." };
   };
 
   // --- DRAG & DROP LOGIC ---
@@ -116,7 +235,52 @@ const PlanPriorities = () => {
     setCurrentOrder([...initialOrder]);
   };
 
-  const handleValidate = () => {
+  const handleValidate = async () => {
+    // Si connecté, on sauvegarde les objectifs
+    if (user) {
+      try {
+        // On supprime TOUS les anciens objectifs (active + pending) pour éviter les doublons/conflits
+        // SAUF CEUX QUI SONT DANS LA NOUVELLE LISTE (pour garder l'historique si on veut)
+        // Mais pour faire simple et propre : on supprime tout ce qui n'est pas dans la liste actuelle
+        const currentIds = currentOrder.map(c => c.id);
+        
+        await supabase
+          .from('user_goals')
+          .delete()
+          .eq('user_id', user.id)
+          .not('axis_id', 'in', `(${currentIds.join(',')})`); // On nettoie les axes abandonnés
+
+
+        // On insère ou met à jour les nouveaux (upsert)
+        const goalsPayload = currentOrder.map((item, index) => {
+            // Récupérer les infos IA si disponibles pour cet item
+            const aiInfo = aiReasoning[item.id];
+            
+            return {
+              user_id: user.id,
+              axis_id: item.id,
+              axis_title: item.title,
+              theme_id: item.theme,
+              priority_order: index + 1,
+              status: index === 0 ? 'active' : 'pending',
+              // Nouveaux champs : on stocke l'analyse IA
+              role: aiInfo?.type || (index === 0 ? 'foundation' : index === 1 ? 'lever' : 'optimization'),
+              reasoning: aiInfo?.reasoning || null
+            };
+        });
+
+        // Upsert : Si le couple (user_id, axis_id) existe, on met à jour le reste
+        const { error } = await supabase
+          .from('user_goals')
+          .upsert(goalsPayload, { onConflict: 'user_id,axis_id' });
+
+        if (error) throw error;
+
+      } catch (err) {
+        console.error('Error saving goals:', err);
+      }
+    }
+
     // Fallback pour le mock: on vérifie aussi le localStorage directement
     const isMockAuthenticated = localStorage.getItem('mock_supabase_session');
     
@@ -178,8 +342,21 @@ const PlanPriorities = () => {
           {/* Ligne connectrice en arrière plan */}
           <div className="absolute left-[2.4rem] top-8 bottom-8 w-0.5 bg-slate-200 border-l border-dashed border-slate-300 -z-10"></div>
 
+          {/* LOADING STATE OVERLAY */}
+          {isLoading && (
+             <div className="absolute inset-0 bg-slate-50/80 backdrop-blur-[2px] z-50 flex flex-col items-center justify-center rounded-2xl border border-white/50">
+                <div className="bg-white p-6 rounded-2xl shadow-xl border border-violet-100 text-center max-w-sm mx-4">
+                   <div className="w-12 h-12 bg-violet-100 text-violet-600 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                      <GitMerge className="w-6 h-6" />
+                   </div>
+                   <h3 className="text-lg font-bold text-slate-900 mb-2">Analyse Stratégique...</h3>
+                   <p className="text-slate-500 text-sm">Sophia compare vos priorités pour trouver l'effet domino le plus puissant.</p>
+                </div>
+             </div>
+          )}
+
           {currentOrder.map((item, index) => {
-            const logic = getIARole(item.id); // Rôle fixe basé sur l'ID, pas la position actuelle
+            const logic = getCardInfo(item.id, index); // Utilise la nouvelle fonction dynamique
 
             return (
               <div key={item.id} className="relative">

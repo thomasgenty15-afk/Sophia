@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Check,
   Play,
@@ -28,9 +28,15 @@ import {
   MessageCircle, // Pour WhatsApp
   LifeBuoy, // NOUVEAU : Alternative pour SOS
   Users,
-  X // NOUVEAU : Fermer modal
+  X, // NOUVEAU : Fermer modal
+  Settings, // NOUVEAU : Paramètres plan
+  Trash2, // NOUVEAU : Reset
+  SkipForward, // NOUVEAU : Passer au suivant
+  RefreshCw // NOUVEAU : Recommencer
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 // --- TYPES ---
 type ActionType = 'habitude' | 'mission' | 'framework';
@@ -360,18 +366,50 @@ const RitualCard = ({ action }: { action: any }) => {
   );
 };
 
-// --- NOUVEAU COMPOSANT : METRIC TRACKING (MÉTRIQUES CLÉS - VERSION PASSIVE WHATSAPP) ---
-const MetricCard = () => {
-  // Ces données viendraient du Backend (agrégation des réponses WhatsApp)
-  const metricName = "Consommation Tabac";
-  const currentValue = 12;
-  const startValue = 20; // Pour calculer le progrès
-  const unit = "cigs / jour";
-  const lastUpdate = "Aujourd'hui, 10:30";
+// --- NOUVEAU COMPOSANT : METRIC TRACKING (MÉTRIQUES CLÉS - VERSION DYNAMIQUE) ---
+const MetricCard = ({ plan }: { plan: GeneratedPlan | null }) => {
+  if (!plan) return null; // Protection si le plan n'est pas encore chargé
 
-  // Calcul simple de tendance
+  // On cherche l'action de type "constat" (Signe Vital) dans le plan
+  // L'IA est supposée renvoyer un champ "vitalSignal" à la racine, sinon on cherche dans les actions ou on fallback
+  let vitalSignal = (plan as any).vitalSignal;
+  
+  if (!vitalSignal) {
+    // Fallback intelligent : on cherche la première habitude traçable
+    const firstHabit = plan.phases
+        .flatMap(p => p.actions)
+        .find(a => a.type === 'habitude' && a.targetReps);
+    
+    if (firstHabit) {
+        vitalSignal = {
+            title: `Suivi : ${firstHabit.title}`,
+            unit: "répétitions",
+            startValue: 0,
+            targetValue: firstHabit.targetReps
+        };
+    } else {
+        // Fallback ultime
+        vitalSignal = {
+            title: "Score de Régularité",
+            unit: "points",
+            startValue: 0,
+            targetValue: 100
+        };
+    }
+  }
+
+  // Correction : Le JSON de l'IA renvoie souvent "name" au lieu de "title" pour le vitalSignal
+  const metricName = vitalSignal.name || vitalSignal.title || "Métrique clé";
+  const unit = vitalSignal.unit || "unités";
+  
+  // Valeurs Mockées pour l'instant (à connecter plus tard à une table de tracking)
+  const currentValue = vitalSignal.startValue || 0; 
+  const startValue = vitalSignal.startValue || 0;
+  const lastUpdate = "En attente de relevé";
+
+  // Calcul simple de tendance (si start != current)
   const progress = startValue - currentValue;
-  const isPositive = progress > 0; // C'est positif si on a réduit (pour tabac)
+  const isPositive = progress > 0; 
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-8 relative overflow-hidden">
@@ -389,7 +427,7 @@ const MetricCard = () => {
           <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 mb-1">{metricName}</h2>
           <p className="text-xs min-[350px]:text-sm text-slate-500 flex items-center gap-1">
             <MessageCircle className="w-3 h-3" />
-            Relevé via WhatsApp • {lastUpdate}
+            {lastUpdate}
           </p>
         </div>
 
@@ -407,18 +445,17 @@ const MetricCard = () => {
       <div className="mt-6 relative z-10">
         <div className="flex items-center justify-between text-xs min-[350px]:text-sm font-bold mb-2">
           <span className="text-slate-400">Point de départ : {startValue}</span>
-          <span className={`${isPositive ? 'text-emerald-600' : 'text-amber-600'} flex items-center gap-1`}>
-            {isPositive ? <TrendingDown className="w-3 h-3" /> : <TrendingUp className="w-3 h-3" />}
-            {isPositive ? "Tendance à la baisse" : "Tendance à la hausse"}
+          <span className="text-slate-400 flex items-center gap-1">
+            <TrendingUp className="w-3 h-3" />
+            En attente de données
           </span>
         </div>
 
-        {/* Jauge de Tendance Simplifiée */}
+        {/* Jauge de Tendance Simplifiée (Grisée pour l'instant) */}
         <div className="h-2 bg-slate-100 rounded-full overflow-hidden flex">
-          {/* On visualise le chemin parcouru. Si start=20 et current=12, on a fait 40% du chemin vers 0 */}
           <div
-            className={`h-full ${isPositive ? 'bg-emerald-500' : 'bg-amber-500'} opacity-80`}
-            style={{ width: `${((startValue - currentValue) / startValue) * 100}%` }}
+            className="h-full bg-slate-300 opacity-50"
+            style={{ width: `5%` }}
           />
         </div>
       </div>
@@ -825,32 +862,185 @@ const PlanPhaseBlock = ({ phase, isLast, onHelpAction }: { phase: PlanPhase, isL
 };
 
 
-const EmptyState = ({ onGenerate }: { onGenerate: () => void }) => (
+const EmptyState = ({ onGenerate, isResetMode = false }: { onGenerate: () => void, isResetMode?: boolean }) => (
   <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-fade-in-up">
     <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
       <Zap className="w-10 h-10 text-slate-300" />
     </div>
-    <h2 className="text-2xl font-bold text-slate-900 mb-3">Aucun plan actif</h2>
+    <h2 className="text-2xl font-bold text-slate-900 mb-3">
+        {isResetMode ? "Plan en cours de modification" : "Aucun plan actif"}
+    </h2>
     <p className="text-slate-500 max-w-md mb-8">
-      Tu n'as pas encore défini ta stratégie. Commence par un audit rapide pour générer ta feuille de route.
+      {isResetMode 
+        ? "Tu as réinitialisé ton plan mais la nouvelle feuille de route n'est pas encore générée."
+        : "Tu n'as pas encore défini ta stratégie. Commence par un audit rapide pour générer ta feuille de route."
+      }
     </p>
     <button
       onClick={onGenerate}
       className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 flex items-center gap-3 group"
     >
       <PlayCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-      Lancer mon premier plan
+      {isResetMode ? "Finir de réinitialiser mon plan" : "Lancer mon premier plan"}
     </button>
   </div>
 );
 
 import UserProfile from '../components/UserProfile';
 
+// --- COMPOSANT : REPRISE ONBOARDING (USER NON FINALISÉ) ---
+const ResumeOnboardingView = () => {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 animate-fade-in text-center">
+      <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-8 shadow-inner relative group">
+        <div className="absolute inset-0 bg-indigo-100 rounded-full animate-ping opacity-20"></div>
+        <Compass className="w-10 h-10 text-indigo-600 group-hover:scale-110 transition-transform duration-500" />
+      </div>
+
+      <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 mb-4 max-w-2xl mx-auto leading-tight">
+        Votre transformation est en attente.
+      </h1>
+      
+      <p className="text-slate-500 text-lg mb-10 max-w-lg mx-auto leading-relaxed">
+        Vous avez initié le processus, mais nous n'avons pas encore toutes les clés pour construire votre plan sur-mesure.
+      </p>
+
+      <div className="grid gap-4 w-full max-w-sm mx-auto">
+        <button
+          onClick={() => navigate('/onboarding')}
+          className="w-full py-4 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-xl shadow-xl shadow-slate-200 hover:shadow-indigo-200/50 transition-all duration-300 flex items-center justify-center gap-3 group"
+        >
+          <PlayCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />
+          Reprendre mon questionnaire
+        </button>
+        
+        <button 
+          onClick={() => navigate('/onboarding?reset=true')}
+          className="text-sm font-medium text-slate-400 hover:text-slate-600 transition-colors py-2"
+        >
+          Recommencer depuis le début
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// --- NOUVEAU COMPOSANT : GESTION DU PLAN (SETTINGS) ---
+const PlanSettingsModal = ({ 
+  isOpen, 
+  onClose, 
+  onReset, 
+  onSkip,
+  currentAxisTitle 
+}: { 
+  isOpen: boolean, 
+  onClose: () => void, 
+  onReset: () => void, 
+  onSkip: () => void,
+  currentAxisTitle: string
+}) => {
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up">
+        <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
+          <h3 className="font-bold text-slate-900">Gestion du Plan</h3>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        
+        <div className="p-4 space-y-3">
+          <div className="mb-4">
+            <p className="text-xs text-slate-500 uppercase font-bold mb-1">Axe actuel</p>
+            <p className="text-sm font-medium text-slate-900">{currentAxisTitle}</p>
+          </div>
+
+          <button 
+            onClick={onReset}
+            className="w-full p-3 rounded-xl border border-slate-200 hover:border-red-200 hover:bg-red-50 text-left group transition-all flex items-center gap-3 cursor-pointer active:scale-95"
+          >
+            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-red-100 text-slate-500 group-hover:text-red-500 flex items-center justify-center flex-shrink-0">
+              <RefreshCw className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 text-sm group-hover:text-red-700">Réinitialiser ce plan</p>
+              <p className="text-xs text-slate-500">Effacer la progression et régénérer.</p>
+            </div>
+          </button>
+
+          <button 
+            onClick={onSkip}
+            className="w-full p-3 rounded-xl border border-slate-200 hover:border-amber-200 hover:bg-amber-50 text-left group transition-all flex items-center gap-3"
+          >
+            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-100 text-slate-500 group-hover:text-amber-600 flex items-center justify-center flex-shrink-0">
+              <SkipForward className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="font-bold text-slate-900 text-sm group-hover:text-amber-700">Passer à l'axe suivant</p>
+              <p className="text-xs text-slate-500">Archiver ce plan et commencer le prochain.</p>
+            </div>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 // --- MAIN PAGE ---
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, loading: authLoading } = useAuth();
+  
+  const [loading, setLoading] = useState(true);
+  const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
+  const [userInitials, setUserInitials] = useState("AH");
+
+  useEffect(() => {
+    const checkUserStatus = async () => {
+        if (!user) return;
+        
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('onboarding_completed, full_name')
+                .eq('id', user.id)
+                .single();
+            
+            if (error) throw error;
+            setIsOnboardingCompleted(data?.onboarding_completed ?? false);
+            
+            if (data?.full_name) {
+              const firstName = data.full_name.split(' ')[0];
+              if (firstName.length >= 2) {
+                setUserInitials(firstName.substring(0, 2).toUpperCase());
+              } else if (firstName.length === 1) {
+                 setUserInitials(firstName.toUpperCase());
+              }
+            }
+        } catch (err) {
+            console.error('Error checking onboarding status:', err);
+            // Par sécurité, on considère non complété en cas d'erreur pour ne pas montrer de données vides
+            setIsOnboardingCompleted(false); 
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    if (!authLoading) {
+        if (!user) {
+            // Pas connecté -> Redirection Auth
+            navigate('/auth');
+        } else {
+            checkUserStatus();
+        }
+    }
+  }, [user, authLoading, navigate]);
 
   const [mode, setMode] = useState<'action' | 'architecte'>(() => {
     return (location.state as any)?.mode === 'architecte' ? 'architecte' : 'action';
@@ -860,8 +1050,189 @@ const Dashboard = () => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   // Gestion du Plan (State pour pouvoir le modifier)
-  const [activePlan, setActivePlan] = useState<GeneratedPlan>(MOCK_CHAOS_PLAN);
-  const hasActivePlan = true;
+  const [activePlan, setActivePlan] = useState<GeneratedPlan | null>(null);
+  const [activeGoalId, setActiveGoalId] = useState<string | null>(null); // ID de l'objectif en cours
+  const [activeThemeId, setActiveThemeId] = useState<string | null>(null); // NOUVEAU: ID du thème pour reset ciblé
+  const [activeAxisTitle, setActiveAxisTitle] = useState<string>("Plan d'Action");
+
+  const hasActivePlan = activePlan !== null;
+
+  // Gestion Settings
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // Effet pour charger le plan réel
+  useEffect(() => {
+    const fetchActiveGoalAndPlan = async () => {
+        if (!user) return;
+
+        // On cherche d'abord un goal explicitement 'active'
+        let { data: goalData, error: goalError } = await supabase
+          .from('user_goals')
+          .select('*')
+          .eq('user_id', user.id)
+          .eq('status', 'active')
+          .order('created_at', { ascending: false }) // Le plus récent
+          .limit(1)
+          .maybeSingle();
+
+        // Si pas de goal active trouvé, mais qu'on a un plan en state (cas navigation rapide),
+        // on essaie de récupérer le dernier goal créé (peut-être encore pending ou mal synchronisé)
+        if (!goalData) {
+           const { data: lastGoal } = await supabase
+              .from('user_goals')
+              .select('*')
+              .eq('user_id', user.id)
+              .order('created_at', { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            
+            if (lastGoal) {
+                console.log("Fallback: Utilisation du dernier goal trouvé:", lastGoal);
+                goalData = lastGoal;
+            }
+        }
+
+        if (goalData) {
+          console.log("Goal actif chargé:", goalData);
+          setActiveGoalId(goalData.id);
+          setActiveAxisTitle(goalData.axis_title);
+          setActiveThemeId(goalData.theme_id);
+
+          const { data: planData, error: planError } = await supabase
+            .from('user_plans')
+            .select('content')
+            .eq('user_id', user.id)
+            .eq('goal_id', goalData.id)
+            .eq('status', 'active')
+            .maybeSingle(); // Utilisation de maybeSingle pour éviter l'erreur JSON si vide
+
+          if (planError) {
+            console.error('Error fetching active plan:', planError);
+          }
+
+          if (planData?.content) {
+            setActivePlan(planData.content);
+          } else {
+            // Si on n'a pas de plan en base, on ne met à null QUE si on n'a pas déjà un plan valide via location.state
+            setActivePlan(current => {
+                 if (current && location.state?.activePlan) return current;
+                 return null;
+            });
+          }
+        } else {
+            // Vraiment aucun goal trouvé
+            setActiveGoalId(null);
+            setActivePlan(null);
+            setActiveAxisTitle("Plan d'Action");
+            setActiveThemeId(null);
+        }
+    };
+
+    if (location.state?.activePlan) {
+      setActivePlan(location.state.activePlan);
+      if (location.state?.axisTitle) setActiveAxisTitle(location.state.axisTitle);
+      fetchActiveGoalAndPlan();
+    } else if (user) {
+      fetchActiveGoalAndPlan();
+    }
+  }, [user, location.state]);
+
+  // --- LOGIQUE DE FIN DE PLAN & SETTINGS ---
+  
+  const handleResetCurrentPlan = async () => {
+    // On ferme d'abord la modale pour éviter tout blocage visuel
+    setIsSettingsOpen(false);
+    
+    // Petit délai pour laisser l'UI se mettre à jour
+    setTimeout(async () => {
+        console.log("Tentative de reset. User:", user?.id, "ActiveGoalId:", activeGoalId);
+        
+        if (!user) return;
+
+        if (!activeGoalId) {
+            alert("Erreur technique : L'objectif actif n'est pas détecté. Recharge la page et réessaie.");
+            return;
+        }
+        
+        if (!window.confirm("Es-tu sûr de vouloir tout effacer et recommencer ce plan ? Cette action est irréversible.")) return;
+
+        try {
+            // 1. Supprimer le plan actuel (user_plans)
+            const { error } = await supabase
+                .from('user_plans')
+                .delete()
+                .eq('goal_id', activeGoalId);
+            
+            if (error) throw error;
+            
+            // 2. Rediriger vers l'Onboarding ciblé sur le thème
+            if (activeThemeId) {
+                navigate(`/onboarding?theme=${activeThemeId}&mode=refine`);
+            } else {
+                navigate('/onboarding');
+            }
+
+        } catch (err) {
+            console.error("Erreur reset:", err);
+            alert("Une erreur est survenue lors de la suppression du plan.");
+        }
+    }, 100);
+  };
+
+  const handleSkipToNextAxis = async () => {
+    if (!user || !activeGoalId) return;
+
+    if (!confirm("Veux-tu archiver ce plan et passer immédiatement à l'axe suivant ?")) return;
+
+    try {
+        // 1. Marquer le goal actuel comme terminé (ou skipped)
+        await supabase
+            .from('user_goals')
+            .update({ status: 'completed' })
+            .eq('id', activeGoalId);
+        
+        // 2. Archiver le plan actuel
+        await supabase
+            .from('user_plans')
+            .update({ status: 'archived' })
+            .eq('goal_id', activeGoalId);
+
+        // 3. Trouver le prochain goal (pending) avec la priorité la plus haute
+        const { data: nextGoal } = await supabase
+            .from('user_goals')
+            .select('*')
+            .eq('user_id', user.id)
+            .eq('status', 'pending')
+            .order('priority_order', { ascending: true })
+            .limit(1)
+            .single();
+
+        if (nextGoal) {
+            // 4. Activer le prochain goal
+            await supabase
+                .from('user_goals')
+                .update({ status: 'active' })
+                .eq('id', nextGoal.id);
+            
+            // 5. Rediriger vers le générateur pour ce nouveau goal
+            navigate('/action-plan-generator');
+        } else {
+            alert("Bravo ! Tu as terminé tous tes axes prioritaires !");
+            // TODO: Rediriger vers une page de célébration ou Dashboard vide
+            window.location.reload();
+        }
+
+    } catch (err) {
+        console.error("Erreur skip:", err);
+    }
+  };
+
+  // Vérification si le plan est terminé (Toutes phases completed ou check manuel)
+  // Pour l'instant, on check si la dernière phase est active ou completed
+  // Simplification : On affiche le bouton "Plan Terminé" en bas si on scrolle, ou si user le décide.
+  // Mieux : On vérifie si toutes les actions de la dernière phase sont cochées.
+  const isPlanFullyCompleted = activePlan?.phases[activePlan.phases.length - 1]?.status === 'completed'; // A adapter selon ta logique exacte
+
 
   // --- MOCK : ÉTAT D'AVANCEMENT DE LA PHASE 1 ---
   // Change ceci en 'true' pour tester la vue finale Phase 2
@@ -875,11 +1246,13 @@ const Dashboard = () => {
   };
 
   const handleGenerateStep = (problem: string) => {
-    if (!helpingAction) return;
+    if (!helpingAction || !activePlan) return;
 
     // LOGIQUE D'INSERTION D'UNE NOUVELLE ACTION
     // 1. On copie le plan
     const newPlan = { ...activePlan };
+    
+    if (!newPlan.phases) return;
 
     // 2. On trouve la phase et l'index de l'action bloquante
     const phaseIndex = newPlan.phases.findIndex(p => p.actions.some(a => a.id === helpingAction.id));
@@ -907,7 +1280,24 @@ const Dashboard = () => {
   };
 
   const isArchitectMode = mode === 'architecte';
-  const displayStrategy = activePlan?.strategy;
+  const displayStrategy = activePlan?.strategy || "Chargement de la stratégie...";
+
+  // CHARGEMENT
+  if (authLoading || loading) {
+    return (
+        <div className="min-h-screen flex items-center justify-center bg-gray-50">
+            <div className="animate-pulse flex flex-col items-center gap-4">
+                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
+                <div className="h-4 w-32 bg-gray-200 rounded"></div>
+            </div>
+        </div>
+    );
+  }
+
+  // INTERCEPTION : Si l'onboarding n'est pas fini
+  if (!isOnboardingCompleted) {
+    return <ResumeOnboardingView />;
+  }
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isArchitectMode ? "bg-emerald-950 text-emerald-50" : "bg-gray-50 text-gray-900"} pb-24`}>
@@ -953,10 +1343,18 @@ const Dashboard = () => {
           <div 
             onClick={() => setIsProfileOpen(true)}
             className="w-8 h-8 min-[310px]:w-10 min-[310px]:h-10 rounded-full bg-gray-200/20 flex items-center justify-center font-bold text-xs min-[310px]:text-base border-2 border-white/10 shadow-sm cursor-pointer hover:scale-105 transition-transform shrink-0 z-30">
-            {isArchitectMode ? "🏛️" : "Ah"}
+            {isArchitectMode ? "🏛️" : userInitials}
           </div>
         </div>
       </header>
+
+      <PlanSettingsModal 
+        isOpen={isSettingsOpen} 
+        onClose={() => setIsSettingsOpen(false)}
+        onReset={handleResetCurrentPlan}
+        onSkip={handleSkipToNextAxis}
+        currentAxisTitle={activeAxisTitle}
+      />
 
       <UserProfile 
         isOpen={isProfileOpen} 
@@ -1163,7 +1561,22 @@ const Dashboard = () => {
           <div className="animate-fade-in">
 
             {!hasActivePlan ? (
-              <EmptyState onGenerate={() => navigate('/onboarding')} />
+              <EmptyState 
+                onGenerate={() => {
+                    if (activeGoalId) {
+                        // Mode Reset : On renvoie vers l'onboarding ciblé ou le générateur
+                        if (activeThemeId) {
+                             navigate(`/onboarding?theme=${activeThemeId}&mode=refine`);
+                        } else {
+                             navigate('/onboarding');
+                        }
+                    } else {
+                        // Mode Initial
+                        navigate('/onboarding');
+                    }
+                }} 
+                isResetMode={!!activeGoalId} // Si on a un goal actif mais pas de plan, c'est qu'on est en cours de modif
+              />
             ) : (
               <>
                 <StrategyCard strategy={displayStrategy} />
@@ -1178,7 +1591,7 @@ const Dashboard = () => {
                       <BarChart3 className="w-4 h-4 text-blue-600" />
                       Moniteur de Contrôle
                     </h2>
-                    <MetricCard />
+                    <MetricCard plan={activePlan} />
                   </div>
 
                   {/* SECTION ACCÉLÉRATEURS */}
@@ -1211,24 +1624,71 @@ const Dashboard = () => {
                     }} />
                   </div>
 
-                  {/* TITRE PLAN */}
+          {/* TITRE PLAN & PARAMÈTRES */}
                   <div className="flex items-center justify-between mb-6">
                     <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
                       <Target className="w-6 h-6 text-emerald-600" />
                       Mon Plan d'Action
                     </h2>
+                    <button 
+                        onClick={() => setIsSettingsOpen(true)}
+                        className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                        title="Gérer le plan"
+                    >
+                        <Settings className="w-5 h-5" />
+                    </button>
                   </div>
 
                     {/* TIMELINE DES PHASES */}
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm">
-                      {activePlan.phases.map((phase, index) => (
-                        <PlanPhaseBlock
-                          key={phase.id}
-                          phase={phase}
-                          isLast={index === activePlan.phases.length - 1}
-                          onHelpAction={handleOpenHelp}
-                        />
-                      ))}
+                    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-8">
+                      {activePlan.phases.map((phase, index) => {
+                        // Calcul dynamique du statut de la phase
+                        let currentPhaseStatus = 'locked';
+                        
+                        // La phase 1 est toujours active au minimum (si pas completed)
+                        if (index === 0) {
+                            currentPhaseStatus = phase.status === 'completed' ? 'completed' : 'active';
+                        } else {
+                            // Les phases suivantes dépendent de la précédente
+                            const previousPhase = activePlan.phases[index - 1];
+                            const isPrevCompleted = previousPhase.status === 'completed';
+                            
+                            if (isPrevCompleted) {
+                                currentPhaseStatus = phase.status === 'completed' ? 'completed' : 'active';
+                            } else {
+                                currentPhaseStatus = 'locked';
+                            }
+                        }
+
+                        // On force le statut calculé dans l'objet phase pour l'affichage
+                        const displayPhase = { ...phase, status: currentPhaseStatus };
+
+                        return (
+                            <PlanPhaseBlock
+                            key={phase.id}
+                            phase={displayPhase as any}
+                            isLast={index === activePlan.phases.length - 1}
+                            onHelpAction={handleOpenHelp}
+                            />
+                        );
+                      })}
+                    </div>
+
+                    {/* BOUTON FIN DE PLAN (Apparaît toujours en bas pour l'instant, ou conditionnel) */}
+                    <div className="flex justify-center pb-8">
+                        <button
+                            onClick={handleSkipToNextAxis}
+                            className="group bg-slate-900 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-emerald-200 transition-all flex items-center gap-3"
+                        >
+                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                <Check className="w-5 h-5" />
+                            </div>
+                            <div>
+                                <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Mission Achevée ?</span>
+                                <span className="block">Lancer la Prochaine Transformation</span>
+                            </div>
+                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
+                        </button>
                     </div>
                   </div>
 

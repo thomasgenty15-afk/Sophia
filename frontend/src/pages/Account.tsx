@@ -1,9 +1,45 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { ArrowLeft, User, Settings, LogOut, Bell, Shield } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/AuthContext';
+import { supabase } from '../lib/supabase';
 
 const Account = () => {
   const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+  const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
+
+  useEffect(() => {
+    if (user) {
+      const fetchProfile = async () => {
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .single();
+        
+        if (data) {
+          setProfile(data);
+        }
+      };
+      fetchProfile();
+    }
+  }, [user]);
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/auth');
+  };
+
+  // Get display values
+  const displayName = profile?.full_name || user?.user_metadata?.full_name || "Utilisateur";
+  const displayEmail = user?.email || "";
+  const initials = displayName
+    .split(' ')
+    .map((n: string) => n[0])
+    .slice(0, 2)
+    .join('')
+    .toUpperCase();
 
   return (
     <div className="min-h-screen bg-gray-50 text-gray-900">
@@ -25,10 +61,10 @@ const Account = () => {
         {/* Profile Section */}
         <div className="bg-white rounded-2xl border border-gray-200 p-4 md:p-6 mb-6 flex flex-col min-[350px]:flex-row items-center gap-4 md:gap-6 shadow-sm text-center min-[350px]:text-left">
           <div className="w-16 h-16 md:w-20 md:h-20 rounded-full bg-gray-900 text-white flex items-center justify-center text-xl md:text-2xl font-bold shadow-md shrink-0">
-            Ah
+            {initials}
           </div>
           <div>
-            <h2 className="text-lg md:text-xl font-bold text-gray-900">Ahmed Amara</h2>
+            <h2 className="text-lg md:text-xl font-bold text-gray-900">{displayName}</h2>
             <p className="text-sm md:text-base text-gray-500">Membre depuis Nov. 2025</p>
             <div className="mt-2 inline-flex items-center px-2 py-0.5 md:px-3 md:py-1 rounded-full bg-emerald-100 text-emerald-700 text-[10px] md:text-xs font-bold uppercase tracking-wider">
               Architecte Niveau 3
@@ -61,7 +97,10 @@ const Account = () => {
             </div>
           </div>
 
-          <button className="w-full bg-white border border-red-200 text-red-600 rounded-xl p-3 md:p-4 flex items-center justify-center gap-2 font-bold hover:bg-red-50 transition-colors mt-6 md:mt-8 text-sm md:text-base">
+          <button 
+            onClick={handleSignOut}
+            className="w-full bg-white border border-red-200 text-red-600 rounded-xl p-3 md:p-4 flex items-center justify-center gap-2 font-bold hover:bg-red-50 transition-colors mt-6 md:mt-8 text-sm md:text-base"
+          >
             <LogOut className="w-4 h-4 md:w-5 md:h-5" />
             Se déconnecter
           </button>
