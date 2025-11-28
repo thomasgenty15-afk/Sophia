@@ -663,6 +663,38 @@ const ActionPlanGenerator = () => {
     // (Dans un vrai cas, on aurait un état isLoadingFeedback)
     
     try {
+        // 1. SAUVEGARDE DU FEEDBACK (Avant génération)
+        const goalId = plan.goalId || (await getGoalId());
+        let planId = null;
+
+        if (goalId) {
+            const { data: currentPlanRow } = await supabase
+                .from('user_plans')
+                .select('id, content')
+                .eq('goal_id', goalId)
+                .maybeSingle();
+            
+            if (currentPlanRow) {
+                planId = currentPlanRow.id;
+                await supabase.from('plan_feedbacks').insert({
+                    user_id: user.id,
+                    plan_id: planId,
+                    feedback_text: feedback,
+                    previous_plan_content: currentPlanRow.content
+                });
+            }
+        }
+
+        // Récupérer les réponses du questionnaire pour le contexte
+        const { data: answersData } = await supabase
+            .from('user_answers')
+            .select('content')
+            .eq('user_id', user.id)
+            .eq('questionnaire_type', 'onboarding')
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
         const { data: adjustedPlan, error } = await supabase.functions.invoke('generate-plan', {
             body: {
                 inputs,
@@ -670,7 +702,8 @@ const ActionPlanGenerator = () => {
                 userId: user.id,
                 currentPlan: plan, // On envoie le plan actuel comme contexte
                 feedback: feedback, // Le feedback de l'utilisateur
-                mode: 'refine' // Mode "refine" = moins couteux, pas d'incrément compteur
+                mode: 'refine', // Mode "refine" = moins couteux, pas d'incrément compteur
+                answers: answersData?.content || {}
             }
         });
 
@@ -687,9 +720,28 @@ const ActionPlanGenerator = () => {
                     content: adjustedPlan,
                     // generation_attempts: inchangé !
                 })
-                .eq('goal_id', plan.goalId || (await getGoalId())); // Helper nécessaire si on n'a pas l'ID sous la main
+                .eq('goal_id', goalId);
             
             if (updateError) console.error("Erreur sauvegarde ajustement:", updateError);
+
+            // Optionnel : Mettre à jour le feedback avec le nouveau contenu pour avoir l'avant/après
+            if (planId) {
+                // On récupère le dernier feedback inséré pour cet user/plan
+                // (Ou on aurait pu garder l'ID retourné par le premier insert si on avait fait select())
+                const { data: lastFeedback } = await supabase
+                    .from('plan_feedbacks')
+                    .select('id')
+                    .eq('plan_id', planId)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .single();
+                
+                if (lastFeedback) {
+                    await supabase.from('plan_feedbacks').update({
+                        new_plan_content: adjustedPlan
+                    }).eq('id', lastFeedback.id);
+                }
+            }
         }
     } catch (err) {
         console.error("Erreur ajustement plan:", err);
