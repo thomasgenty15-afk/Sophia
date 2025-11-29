@@ -120,6 +120,7 @@ const ActionPlanGenerator = () => {
   
   const [plan, setPlan] = useState<any>(null);
   const [feedback, setFeedback] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const [contextSummary, setContextSummary] = useState<string | null>(null);
@@ -659,8 +660,7 @@ const ActionPlanGenerator = () => {
     // On utilise un endpoint (ou un paramètre) différent pour signifier que c'est une itération légère
     console.log("💬 Envoi du feedback pour ajustement :", feedback);
     
-    // UI Loading state local
-    // (Dans un vrai cas, on aurait un état isLoadingFeedback)
+    setIsRefining(true);
     
     try {
         // 1. SAUVEGARDE DU FEEDBACK (Avant génération)
@@ -746,6 +746,8 @@ const ActionPlanGenerator = () => {
     } catch (err) {
         console.error("Erreur ajustement plan:", err);
         alert("Impossible de prendre en compte le feedback pour le moment.");
+    } finally {
+        setIsRefining(false);
     }
   };
 
@@ -1220,16 +1222,27 @@ const ActionPlanGenerator = () => {
                   value={feedback}
                   onChange={e => setFeedback(e.target.value)}
                   placeholder="Ex: Je ne peux pas me lever à 7h le weekend..."
-                  className="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-sm md:text-base"
+                  disabled={isRefining}
+                  className="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-sm md:text-base disabled:opacity-50 disabled:bg-slate-50"
                 />
                 <button 
                   onClick={handleRegenerate}
-                  disabled={!feedback}
-                  className="px-3 md:px-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 disabled:opacity-50 transition-colors"
+                  disabled={!feedback || isRefining}
+                  className="px-3 md:px-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 disabled:opacity-50 transition-colors min-w-[50px] flex items-center justify-center"
                 >
-                  <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
+                  {isRefining ? (
+                    <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
+                  )}
                 </button>
               </div>
+              {isRefining && (
+                <p className="text-xs text-violet-600 mt-2 animate-pulse flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Sophia réajuste le plan selon vos contraintes...
+                </p>
+              )}
             </div>
 
             {/* VALIDATION FINALE */}

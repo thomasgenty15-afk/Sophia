@@ -7,6 +7,12 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  // DEBUG ENV VARS
+  console.log("--- ENV VARS DEBUG ---");
+  console.log("Keys available:", Object.keys(Deno.env.toObject()));
+  console.log("GEMINI_API_KEY present?", !!Deno.env.get('GEMINI_API_KEY'));
+  console.log("----------------------");
+
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
