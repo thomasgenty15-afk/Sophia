@@ -1,0 +1,68 @@
+L'objectif est d'avoir une IA qui est à la fois une amie, une coach, une secrétaire et un filet de sécurité, sans jamais s'emmêler les pinceaux. Pour ça, on utilise une architecture modulaire avec un superviseur.
+
+**1. Le Chef de Gare (Le Routeur / The Dispatcher)**
+
+C'est la tour de contrôle. Un modèle IA rapide et économique (ex: GPT-4o-mini) qui analyse **chaque message entrant** avant tout le monde. Il ne répond jamais à l'utilisateur, il décide juste **qui** doit répondre.
+
+- **Son Super-Pouvoir :** La "Variable d'État Persistante" (Score de Risque). Il se souvient si l'utilisateur était en crise il y a 2 minutes pour ne pas se faire berner par de l'ironie.
+- **Sa Règle d'Or :** Dans le doute, on privilégie toujours la sécurité (Faux Positif > Faux Négatif).
+
+---
+
+**2. Les 5 Agents Spécialisés (Les Modes)**
+
+Chaque agent a sa propre personnalité (System Prompt) et son propre objectif. Ils ne s'activent que si le Chef de Gare leur donne la parole.
+
+**🛑 Priorité 1 : Le Guetteur (Sécurité Absolue)**
+
+- **Rôle :** Détecter le danger vital immédiat (Suicide, Violence).
+- **Action :** **Override Total.** Il coupe la parole à tout le monde.
+- **Réponse :** Message scripté (non-généré) avec numéros d'urgence (3114, 112). Pas de discussion.
+
+**🚒 Priorité 2 : Le Pompier (Urgence Émotionnelle)**
+
+- **Rôle :** Gérer les crises aiguës (Craving, Panique, Angoisse).
+- **Style :** Directif, apaisant, hypnotique (PNL, Respiration).
+- **Sortie :** C'est LUI (le modèle intelligent) qui décide quand la crise est finie et qu'on peut repasser la main, pas le petit modèle.
+
+**📊 Priorité 3 : Le Comptable (Enquêteur Data)**
+
+- **Rôle :** Récupérer une donnée précise (Nb cigarettes, Heure coucher).
+- **Déclencheur :** Clic sur un bouton "J'ai fait" ou "Bilan".
+- **Workflow :**
+1. Demande le chiffre.
+2. Si l'utilisateur tergiverse, il recadre gentiment.
+3. Dès qu'il a le chiffre -> Il stocke en base et rend la main immédiatement ("Handover").
+
+**🏛️ Priorité 4 : L'Architecte (Deep Work - Premium)**
+
+- **Rôle :** Construire l'Identité 2.0 (Valeurs, Vision, Croyances).
+- **Style :** Socratique (Maïeutique). Il pose des questions profondes, ne donne pas de réponses toutes faites.
+- **Contexte :** A accès à la "Identity DB" de l'utilisateur.
+
+**💬 Priorité 5 : Le Compagnon (Mode Par Défaut)**
+
+- **Rôle :** Le lien quotidien. Motivation, écoute active, chat libre.
+- **Style :** Empathique, chaleureux, "Pote Coach".
+- **Mémoire :** Se souvient de la journée en cours.
+
+Priorité 6 : le philosophe pour aider les gens à remplir leurs questions. 
+
+Priorité 7 : L’assistant, pour répondre au question par rapport à Sophia, RGPD, problèmes etc..
+
+---
+
+**3. Le Flux de Conversation (Exemple)**
+
+1. **User :** *"J'ai envie de fumer !"*
+- **Chef de Gare :** Détecte Urgence -> Active 🚒 **Pompier**.
+- **Pompier :** "Ok, respire. Bloque 4 secondes..."
+1. **User :** *"C'est bon, ça va mieux."*
+- **Pompier (Intelligent) :** Valide la fin de crise -> Rend la main.
+- **Système :** Repasse en mode 💬 **Compagnon**.
+1. **Compagnon :** *"Super. On note cet épisode ? C'était quoi le déclencheur ?"*
+2. **User :** *"Le stress du boulot... J'ai envie de me tuer parfois."*
+- **Chef de Gare :** Détecte Danger Vital -> Active 🛑 **Guetteur**.
+- **Guetteur :** "Je perçois une grande détresse. Appelle le 3114." (Fin de l'interaction IA).
+
+C'est un système complet, sûr, et capable de gérer la complexité humaine réelle.

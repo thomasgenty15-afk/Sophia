@@ -1,3 +1,6 @@
 git add -A
 git commit -m "Message qui décrit ce que tu as fait"
 git push sophia main
+
+SUPABASE_URL=http://host.docker.internal:54321
+SUPABASE_ANON_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH

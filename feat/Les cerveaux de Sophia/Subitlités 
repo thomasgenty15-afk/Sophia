@@ -1,0 +1,43 @@
+### **1. La Gestion du "Silence Radio" (Tergiversation)**
+
+- **Le Problème :** L'utilisateur ouvre la fenêtre (clic sur "J'ai fumé") mais ne donne pas le chiffre ensuite (honte, distraction).
+- **La Règle :** Ne jamais bloquer le système indéfiniment en mode "Enquêteur".
+- **La Solution :**
+- **Timeout (30min) :** Relance douce ("T'es là ?").
+- **Reset (Lendemain) :** Si toujours pas de réponse le lendemain matin, l'Enquêteur abandonne ("On n'a pas fini hier, tu veux noter ou passer ?") et rend la main au Compagnon. Mieux vaut un trou dans la data qu'un utilisateur bloqué.
+
+### **2. L'Ironie et le "Faux Calme"**
+
+- **Le Problème :** L'utilisateur dit "Tout va bien" alors qu'il est au fond du trou, ou fait du sarcasme.
+- **La Règle :** Un petit modèle (Chef de Gare) est mauvais pour détecter l'ironie.
+- **La Solution :** Le **Score de Risque Persistant**. Si l'utilisateur était en mode Pompier il y a 5 minutes, on considère tout message ambigu comme "suspect". On laisse le modèle intelligent (Pompier/Compagnon) vérifier ("Tu es sûr ? Je sens de l'ironie.").
+
+### **3. Le Conflit de Modes (Le "Switch" en plein vol)**
+
+- **Le Problème :** L'utilisateur est en plein Deep Work avec l'Architecte (réflexion intense) et soudain, il doit noter une cigarette (Enquêteur) ou a une urgence (Pompier).
+- **La Règle :** La Sécurité et la Data rapide priment sur la réflexion.
+- **La Solution :** Le Chef de Gare doit pouvoir interrompre l'Architecte ("Pause"), activer l'Enquêteur ("Note le chiffre"), puis **restaurer le contexte** de l'Architecte ("C'est noté. Revenons à tes valeurs, tu disais...").
+
+### **4. La Fenêtre des 24h WhatsApp**
+
+- **Le Problème :** On veut envoyer un message proactif (ex: Bilan du soir), mais la fenêtre est fermée (plus de 24h sans message user).
+- **La Règle :** Impossible d'envoyer du texte libre.
+- **La Solution :** La Stratégie **"L'Ouvre-Boîte"**. Toujours commencer par un Template (Texte fixe + Boutons). Le clic sur le bouton ("J'ai fait" / "Pas fait") est l'action qui rouvre la fenêtre et permet à Sophia d'enchaîner avec sa vraie personnalité.
+
+### **5. L'Hallucination du Guetteur**
+
+- **Le Problème :** L'utilisateur dit "Je vais tuer ma séance de sport !" et le Guetteur (bête) comprend "Tuer" -> "Meurtre/Suicide" -> Bloque tout.
+- **La Règle :** Ne pas déclencher l'alerte nucléaire pour une métaphore.
+- **La Solution :** Le Chef de Gare doit avoir un prompt système qui lui explique les expressions courantes ("Tuer le game", "Mourir de rire"). Si le score de confiance du danger est moyen (pas 100%), il peut demander une confirmation interne au modèle intelligent avant de bloquer.
+
+### **6. La "Schizophrénie" de la Mémoire**
+
+- **Le Problème :** L'Architecte ne sait pas que l'utilisateur vient de dire au Compagnon qu'il a mal dormi. Résultat : L'Architecte le pousse trop fort.
+- **La Règle :** Les agents sont séparés, mais la **Mémoire Court Terme** (État de l'utilisateur) doit être partagée.
+- **La Solution :** Un objet "User State" commun (Humeur, Énergie, Dernier événement) est injecté dans le prompt de TOUS les agents. Si l'utilisateur a dit "Je suis KO" au Compagnon, l'Architecte le sait et adapte son ton ("Je sais que tu es fatigué, on y va doucement").
+
+### **7. Le "Joker" de Sortie**
+
+- **Le Problème :** L'utilisateur est coincé dans un exercice de l'Architecte ou du Pompier et veut juste parler normalement.
+- **La Règle :** L'utilisateur doit toujours avoir le contrôle.
+- **La Solution :** Des mots-clés universels ("Stop", "Menu", "Autre chose") qui forcent le retour immédiat au mode Compagnon (Default), quel que soit l'état en cours.

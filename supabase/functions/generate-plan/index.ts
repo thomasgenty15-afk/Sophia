@@ -22,7 +22,7 @@ serve(async (req) => {
     // On ignore totalement l'auth Supabase pour voir si Gemini fonctionne
     
     // 2. Data Retrieval
-    const { inputs, currentAxis, currentPlan, feedback, mode, answers } = await req.json()
+    const { inputs, currentAxis, currentPlan, feedback, mode, answers, userProfile } = await req.json()
     
     // On utilise les réponses passées par le frontend
     const onboardingResponses = answers || {}
@@ -161,6 +161,7 @@ serve(async (req) => {
           PROFIL UTILISATEUR :
           - Axe prioritaire : ${currentAxis.title} (Thème: ${currentAxis.theme})
           - Problèmes spécifiques : ${JSON.stringify(currentAxis.problems)}
+          - INFO PHYSIOLOGIQUE : ${userProfile ? `Né(e) le ${userProfile.birth_date}, Sexe: ${userProfile.gender}` : "Non renseigné"}
           
           SES MOTS (Analyse psychologique requise) :
           - Motivation (Why) : "${inputs.why}"

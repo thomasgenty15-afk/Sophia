@@ -1,0 +1,46 @@
+Ok ça marche très clair. Maintenant il faut qu'on discute de comment on fait pour éviter d'être trop insistant au niveau des utilisateurs quand par exemple il ont prévus de faire leur sport vendredi, mais qu'on est mardi et qu'ils nous l'ont dit. Idéalement il faudrait faire des checks les jours où ils ont décidé de le faire, si ils nos l'ont dit. Sinon on demande tous les jours.
+
+Mais si on fait ça il faut aussi prévoir le cas ou l'utilisateur a dit qu'il le ferait pas et le fait finalement (peut etre qu'il aura le reflexe d'aller dans la web app pour renseigner le chiffre tu en penses quoi ?)
+
+C'est une question d'UX cruciale : **La pression vs la flexibilité.**
+
+Si Sophia demande tous les jours "T'as fait ton sport ?" alors que l'utilisateur a dit "Je le ferai Vendredi", elle devient un **harceleur stupide**, pas un coach.
+
+Voici la stratégie pour gérer ça :
+
+**1. La Notion de "Planification" dans la Data (L'Intent)**
+
+L'Enquêteur ne doit pas juste stocker "Fait / Pas fait". Il doit pouvoir stocker une **Intention Future**.
+
+- **Sophia :** "Sport aujourd'hui ?"
+- **User :** "Non, vendredi."
+- **Enquêteur (Extraction) :**
+- status: skipped (pour aujourd'hui).
+- next_intent: Friday.
+
+**Conséquence Backend :**
+
+Le système voit next_intent: Friday.
+
+- Mercredi : Pas de question Sport.
+- Jeudi : Pas de question Sport.
+- Vendredi : **Sophia :** "C'est Vendredi ! Jour de sport comme prévu. On valide ?"
+
+**2. La "Déclaration Spontanée" (L'Exception)**
+
+Si l'utilisateur change d'avis et fait du sport Mercredi :
+
+- **Il peut le dire à Sophia :** "Finalement j'ai couru aujourd'hui !"
+- Le Chef de Gare (Mode Data Spontanée) capture l'info.
+- Le système met à jour Mercredi (status: done).
+- Le système maintient (ou annule, selon réglage) le rappel de Vendredi.
+- **Il peut utiliser la Web App (Dashboard) :**
+- C'est là que le Dashboard est puissant. Il permet de **forcer une validation** sans attendre que Sophia pose la question.
+- Si l'utilisateur coche "Fait" sur le Dashboard le Mercredi, le Backend le sait.
+- Le soir, Sophia ne demandera pas "T'as fait ton sport ?", elle dira "J'ai vu que tu avais validé ton sport sur l'appli. Bien joué !".
+
+**Résumé de la Règle "Anti-Harcèlement"**
+
+1. **Respect de la date :** Si une date est donnée, on ne demande rien avant (sauf si c'est une habitude quotidienne obligatoire type "Boire de l'eau").
+2. **Synchronisation App/Chat :** Toute action validée sur l'App supprime la question correspondante dans le chat du soir.
+3. **Reconnaissance :** Si l'utilisateur valide via l'App, le Chat du soir doit commencer par une félicitation ("J'ai vu que tu avais déjà tout validé"), pas par une question. Ça renforce le sentiment d'être suivi par une intelligence cohérence.

@@ -1,0 +1,107 @@
+# **ARCHITECTURE DES ACTIONS**
+
+**(Modèle Psychologique & Technique)**
+
+**Objectif :** Passer d'un système binaire (Habitude/Mission) à un modèle complet couvrant tout le spectre de la transformation humaine (Comportemental, Cognitif, Éducatif, Métrologie).
+
+---
+
+## **1. LES 4 GROUPES D'ACTIONS (LE CYCLE DE VIE)**
+
+*Classification selon le comportement de l'action dans le temps et sa condition de validation.*
+
+**🟢 GROUPE A : LES RÉPÉTABLES (Ancrage & Construction)**
+
+*« Je construis une nouvelle réalité par la répétition. »*
+
+- **Logique :** Progression incrémentale (Compteur current / target).
+- **Validation :** L'action est "Terminée" quand le quota est atteint (ex: 5/5 ou 21/21).
+- **Types inclus :**
+- **Habitudes classiques :** (ex: Boire de l'eau, Couper les écrans).
+- **Le Défi Hypnose (21 jours) :** Écoute active programmée pour reprogrammation.
+- **UI Dashboard :** Barre de progression + Bouton "Fait aujourd'hui".
+
+**🔵 GROUPE B : LES ONE-SHOT (Déblocage & Thérapie)**
+
+*« Je déverrouille une situation précise. »*
+
+- **Logique :** Booléenne (Fait / Pas fait).
+- **Validation :** Disparaît du plan actif dès qu'elle est cochée une fois.
+- **Types inclus :**
+- **Impulsion (Logistique) :** (ex: Jeter ses cigarettes, Prendre RDV médical).
+- **Framework (Cognitif) :** (ex: Remplir le protocole DMA, Traiter un trauma).
+- **UI Dashboard :** Case à cocher (Impulsion) OU Bouton "Ouvrir l'outil" (Framework).
+
+**🟣 GROUPE C : LE FIL ROUGE (Soutien & Conscience)**
+
+*« Je maintiens le cap au quotidien. »*
+
+- **Logique :** Récurrence Infinie (Tant que l'Axe est actif).
+- **Validation :** Ne "finit" jamais l'axe. Sert de support journalier.
+- **Types inclus :**
+- **Imprégnation (Libre) :** Ressources à consommer au besoin (Vidéos "Pourquoi", Hypnose de secours).
+- **Constat (Tracking) :** Mesure de données (Note 1-10, Quantité).
+- **UI Dashboard :** Lecteur Média (Imprégnation) OU Slider/Compteur (Constat).
+
+**⚫ GROUPE D : LA SURVEILLANCE (Maintenance)**
+
+*« Je m'assure que l'acquis perdure. »*
+
+- **Logique :** Invisible (Background Check).
+- **Validation :** Aucune. S'active uniquement quand un Axe est terminé.
+- **Fonctionnement :** "Ping" périodique via WhatsApp pour vérifier qu'il n'y a pas de rechute.
+- **Types inclus :**
+- **Vigilance :** Question hebdomadaire ou bimensuelle.
+
+---
+
+## **2. DÉTAIL TECHNIQUE DES 6 TYPES D'ACTIONS**
+
+Chaque type appelle une interface (UI) et une structure de données spécifiques.
+
+| TYPE | GROUPE | UI (Au clic) | DATA (Base de données) | EXEMPLE |
+| --- | --- | --- | --- | --- |
+| **1. ANCRAGE** | Répétable | **Fiche Système** (Pourquoi, Bloqueurs, Mantra) | target_days (int), current_streak | "Couper écrans à 22h" |
+| **2. IMPULSION** | One-Shot | **Fiche Système** | deadline (date), is_done (bool) | "Jeter le paquet de tabac" |
+| **3. FRAMEWORK** | One-Shot | **Formulaire** (Champs inputs spécifiques : DMA, C-A-QB...) | answers (json), template_id | "Résoudre le trauma X" |
+| **4. IMPRÉGNATION** | Fil Rouge | **Lecteur Média** (Audio/Vidéo) | media_url, duration | "Comprendre le cortisol" |
+| **5. CONSTAT** | Fil Rouge | **Input Numérique** (Slider / Compteur) | metric_name, value_history | "Niveau d'énergie (1-10)" |
+| **6. VIGILANCE** | Surveillance | *Aucune (WhatsApp uniquement)* | check_frequency, alert_threshold | "Check tabac hebdo" |
+
+---
+
+## **3. LE GRIMOIRE (L'ARCHIVE VIVANTE)**
+
+*Le destin des actions terminées.*
+
+Une fois qu'une action du Groupe A ou B est validée, elle n'est pas supprimée. Elle part dans
+
+**"Le Grimoire"**
+
+(Page "Mon Arsenal").
+
+- **Contenu :** Liste des Mantras acquis, des Frameworks remplis (PDF/Lecture seule), des Victoires.
+- **Fonction "SOS" :** L'utilisateur peut cliquer sur **"Réactiver"** une action du Grimoire.
+- *Effet :* Elle revient dans le Plan du Jour (Groupe A) pour une durée courte (ex: 3 jours) pour reconsolider un acquis chancelant.
+
+---
+
+## **4. STRATÉGIE WHATSAPP "L'OUVRE-BOÎTE"**
+
+*Solution technique pour le tracking (Constat/Vigilance) quand la fenêtre de 24h est fermée.*
+
+Problème : Impossible de demander un chiffre (input) si l'utilisateur n'a pas parlé depuis 24h.
+
+Solution : Le Workflow en 2 temps.
+
+1. **L'Appât (Template Message) :**
+- Sophia envoie un template validé par Meta.
+- *Contenu :* "📊 Suivi Hebdo : C'est l'heure de ta note."
+- *Bouton :* **"Noter ma journée"**.
+1. **L'Ouverture (Le Clic) :**
+- L'utilisateur clique sur le bouton.
+- Cela compte comme un message utilisateur → **La fenêtre de 24h s'ouvre.**
+1. **La Question (Le Bot) :**
+- Sophia détecte l'ouverture et envoie immédiatement la question libre.
+- *Sophia :* "Ça marche. Sur 10, comment évalues-tu ton énergie ?"
+- *Utilisateur :* "7". (Sauvegardé en DB).

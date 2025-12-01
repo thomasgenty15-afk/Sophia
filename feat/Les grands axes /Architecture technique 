@@ -1,0 +1,144 @@
+# Architecture Technique
+
+# **🏗️ MASTER SHEET - Sophia**
+
+**ARCHITECTURE TECHNIQUE "AI-NATIVE" & FULL CODE**
+
+**Objectif :** Déploiement d'une Web App haute performance et d'un écosystème IA autonome.
+
+**Philosophie :** Zéro dette technique, Zéro No-Code, Contrôle total via le code.
+
+**Stack Principale :** React (Vite) + Supabase (BaaS) + Deno Edge Functions + OpenAI/Gemini.
+
+---
+
+## **1. LE FRONTEND (L'INTERFACE UTILISATEUR)**
+
+*Le visage de la transformation. Rapide, fluide, sans friction.*
+
+**Technologie :** React + Vite + TypeScript.
+
+**Hébergement :** Vercel (Déploiement continu depuis GitHub).
+
+### **A. Architecture Visuelle & UX**
+
+- **Framework CSS :** **Tailwind CSS v4**. Utilisation du moteur natif pour une performance maximale.
+- **Design System :** Mode "Light" pur. Fond gray-50, Texte gray-900, Accents sémantiques (Violet=Coachy, Bleu=Homme, Rose=Femme).
+- **Composants Atomiques :**
+- **Boutons Globaux :** "Sticky Footer" (Barre fixe en bas d'écran) pour la validation des actions majeures (Générer le plan, Valider la journée). / **La validation de la journée se fait via whatsapp, via des messages envoyés au bon moment en fonction**
+- **Cards "Système" :** Cartes interactives injectées dynamiquement (Titre, Mantra, Checkbox, Audio Player conditionnel). / Les
+- **Feedback Visuel :** Confettis pour les victoires (J+3), Modales douces pour les micro-échecs.
+
+**B. Logique Onboarding (Interne)**
+
+*Remplacement de Tally par un formulaire natif.*
+
+- **SPA (Single Page Application) :** Le questionnaire est intégré directement dans l'application React (/onboarding).
+- **Logique de Sélection :**
+- Contrainte stricte : 1 Axe par Thème.
+- Limite globale : Max 3 Axes actifs (Règle des "3 Piliers").
+- **Flux de Données :** À la validation, le JSON complet des réponses est envoyé directement à Supabase, déclenchant instantanément la génération du Plan (Agent A2) sans passer par un webhook externe fragile.
+
+### **C. Sécurité & Session**
+
+- **Auth :** Supabase Auth (Email/Password ).
+- **Protection des Routes :** Middleware React (RequireAuth) qui redirige systématiquement les utilisateurs non connectés vers /login.
+- **Auto-Logout (Sécurité Bancaire) :** Timer d'inactivité (IdleTimer) de 30 minutes. Si aucune souris/clavier détecté → Déconnexion forcée pour protéger les données intimes.
+
+---
+
+## **2. LE BACKEND & DONNÉES (LE CERVEAU)**
+
+*Toute l'intelligence est centralisée chez Supabase. Pas de serveur à gérer.*
+
+**Technologie :** Supabase Cloud.
+
+**A. Base de Données Relationnelle (PostgreSQL)**
+
+Structure stricte pour garantir l'intégrité du parcours utilisateur.
+
+- **users :** ID, Email, Prénom, Timezone (pour les notifications locales), Date d'inscription.
+- **onboarding_answers :** Stockage brut du JSON des réponses au questionnaire (Source de vérité pour l'IA).
+- **themes & axes :** Tables de référence (SLP, ENG, CNF...) pour éviter les erreurs de typage par l'IA.
+- **plans :** Le "Contrat" en cours (Date de début, Axes choisis, Statut).
+- **objectives :** Les buts spécifiques liés au plan (Lien direct vers les Axes).
+- **actions :** Les tâches quotidiennes (Titre, Description, Heure, Statut, Mantra).
+- **logs :** Historique de toutes les interactions (Chat WhatsApp + Validations Web).
+
+**B. Mémoire Vectorielle (RAG Avancé)**
+
+Pour que Sophia n'oublie jamais rien.
+
+- **Extension :** pgvector activé sur Supabase.
+- **Stratégie de Filtrage (Metadata Filtering) :**
+- Chaque souvenir est tagué (ex: category: 'SLP', emotion: 'anxiety').
+- Avant de répondre, l'IA ne charge que les souvenirs pertinents pour la conversation en cours (Économie de tokens + Précision).
+- **Architecture Mémoire 3 Niveaux :**
+1. **Buffer (Court terme) :** 10 derniers messages bruts (Fluidité conversationnelle).
+2. **Journal (Moyen terme) :** Synthèse quotidienne vectorisée par Cron Job la nuit.
+3. **Core (Long terme) :** Croyances limitantes et Traumas (Score de rétention 5/5, jamais archivés).
+
+---
+
+## **3. L'INTELLIGENCE (AGENTS & EDGE FUNCTIONS)**
+
+*Le moteur qui anime le produit. Hébergé sur Supabase Edge Functions (Deno).*
+
+### **A. L'Orchestration des Agents**
+
+- **A1 — Sophia (Chat) :**
+- Trigger : Message WhatsApp entrant (Webhook Twilio).
+- Rôle : Empathie, Soutien, Aiguillage vers l'App.
+- Sécurité : Analyse de sentiment avant réponse (Flagging suicide/détresse).
+- **A2 — L'Architecte (Plan Global) :**
+- Trigger : Validation du Formulaire Onboarding React.
+- Rôle : Analyse les réponses, sélectionne les 3 axes, rédige la "Vision".
+- **A3 — Le Stratège (Plan d'Action) :**
+- Trigger : Fin du travail de A2.
+- Rôle : Génère les entrées dans la table actions (Quoi, Quand, Comment, Pourquoi).
+- **A4 — Le Mécanicien (Ajustement) :**
+- Trigger : Demande utilisateur "C'est trop dur" ou "Je m'ennuie".
+- Rôle : Modifie la difficulté des actions en base de données.
+- **A5 — L'Hypnothérapeute (Audio) :**
+- Trigger : Détection de blocage émotionnel profond.
+- Rôle : Génère script → Hash Check (Cache) → ElevenLabs API → Supabase Storage.
+- **A6 — Le Filet de Sécurité (Micro-Actions) :**
+- Trigger : Cron Job (7 jours sans validation).
+- Rôle : Remplace une action bloquée par une version "Ridiculement facile".
+
+### **B. Automatisations Temporelles (Cron Jobs)**
+
+- **Timezone Aware :** Les scripts tournent toutes les heures et scannent : *"Qui sont les utilisateurs pour qui il est 9h00 ?"*
+- **Routine de Suivi :** Vérifie les validations de la veille.
+- 3 jours succès → Trigger Message Félicitation + Déblocage niveau suivant.
+- Silence radio → Trigger Message "Douceur" (Pas de culpabilisation).
+
+---
+
+## **4. FLUX & CONNECTIVITÉ (LES TUYAUX)**
+
+### **A. WhatsApp (Twilio)**
+
+- Interface bidirectionnelle.
+- Webhook sécurisé (vérification de signature X-Twilio-Signature) sur Supabase Edge Function.
+- Tout message est loggé dans logs avant d'être traité.
+
+### **B. Optimisation des Coûts (API Smart Caching)**
+
+- **Audio Hash-Caching :**
+- Avant de générer un audio (coûteux), on calcule le HASH du texte.
+- On vérifie dans le Storage si ce Hash existe.
+- Oui ? → On sert le fichier existant (Gratuit).
+- Non ? → On appelle ElevenLabs.
+- **LLM Context Pruning :** On ne nourrit le LLM qu'avec les données vectorielles strictement nécessaires (Top-K similarity) pour réduire la facture OpenAI.
+
+---
+
+## **5. WORKFLOW DE DÉVELOPPEMENT (PROMPT ENGINEERING)**
+
+*Comment nous construisons cela avec Gemini & Cursor.*
+
+1. **Context First :** Toujours initialiser la session avec la Master Sheet.
+2. **Atomicité :** Une fonctionnalité = Un Prompt. Ne jamais demander "Fais tout le dashboard", mais "Connecte le composant Card à la table Actions".
+3. **Naming Convention :** Le code doit utiliser EXCLUSIVEMENT les termes de la DB (objectives et non goals, axes et non categories).
+4. **Validation par l'Humain :** Chaque itération critique (Auth, Paiement, Génération IA) est testée manuellement avant de passer à la suite.

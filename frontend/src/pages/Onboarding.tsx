@@ -104,28 +104,49 @@ const Questionnaire = () => {
         // ... suite du chargement des réponses ...
 
         // CHARGEMENT DES RÉPONSES EXISTANTES
+        // On cherche la dernière réponse qui contient réellement des données (ui_state ou selectedAxisByTheme)
+        // pour éviter de charger une entrée vide créée uniquement pour le tracking des tentatives.
         const { data: answersData } = await supabase
           .from('user_answers')
           .select('content, sorting_attempts')
           .eq('user_id', user.id)
           .eq('questionnaire_type', 'onboarding')
+          .not('content', 'is', null) // S'assurer qu'il y a du contenu
+          // Idéalement on voudrait vérifier que le JSON n'est pas vide, mais en SQL simple c'est dur.
+          // On va filtrer en JS après si besoin, mais prenons les plus récents d'abord.
           .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .limit(5); // On en prend quelques uns pour trouver le bon
+
+        let validAnswer = null;
+        if (answersData && answersData.length > 0) {
+            // Trouver le premier qui a des données significatives
+            validAnswer = answersData.find((a: any) => {
+                const c = a.content;
+                // Vérifier si c'est pas juste {}
+                if (!c || Object.keys(c).length === 0) return false;
+                // Vérifier si structure V2 ou V1
+                if (c.ui_state?.selectedAxisByTheme && Object.keys(c.ui_state.selectedAxisByTheme).length > 0) return true;
+                if (c.selectedAxisByTheme && Object.keys(c.selectedAxisByTheme).length > 0) return true;
+                return false;
+            });
+            
+            // Si aucun valide trouvé, on prend le premier quand même (peut-être un début de saisie)
+            if (!validAnswer) validAnswer = answersData[0];
+        }
 
         // --- VÉRIFICATION DU QUOTA ---
         // Si la limite est atteinte et qu'on n'est pas en mode Reset explicite, 
         // on redirige direct vers PlanPriorities (qui affichera le dernier plan valide).
-        if (answersData?.sorting_attempts >= 3 && !isResetMode && !isRefineMode) {
+        if (validAnswer?.sorting_attempts >= 3 && !isResetMode && !isRefineMode) {
             console.log("🚫 Limite de génération atteinte (3/3). Redirection forcée vers le plan.");
-            // DEBUG : Alerte temporaire pour confirmer le flux à l'utilisateur
-            // alert("DEBUG FLUX : Quota Onboarding atteint -> Redirection vers PlanPriorities");
+            // On redirige sans passer de state particulier pour forcer le chargement depuis la DB
             navigate('/plan-priorities', { replace: true });
             return;
         }
-
-        if (answersData?.content) {
-          const savedData = answersData.content;
+        
+        if (validAnswer?.content) {
+          console.log("✅ Données Onboarding trouvées:", validAnswer.content);
+          const savedData = validAnswer.content;
           
           // On restaure l'UI State s'il existe, sinon on prend la racine (rétrocompatibilité)
           const uiState = savedData.ui_state || savedData;
