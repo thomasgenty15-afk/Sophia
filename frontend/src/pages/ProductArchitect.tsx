@@ -224,7 +224,7 @@ const ProductArchitect = () => {
         <div className="text-center px-6">
           <h2 className="text-3xl md:text-5xl font-bold text-white mb-8">Prêt à changer de dimension ?</h2>
           <button
-            onClick={() => navigate('/onboarding')}
+            onClick={() => navigate('/global-plan')}
             className="px-12 py-6 rounded-full bg-emerald-600 text-white font-bold text-xl hover:bg-emerald-500 hover:scale-105 transition-all shadow-2xl shadow-emerald-900/50 flex items-center justify-center gap-3 mx-auto"
           >
             Générer mon Plan (Gratuit)

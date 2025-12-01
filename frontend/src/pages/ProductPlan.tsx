@@ -202,7 +202,7 @@ const ProductPlan = () => {
         {/* CTA */}
         <div className="text-center px-4">
             <button 
-              onClick={() => navigate('/onboarding')}
+              onClick={() => navigate('/global-plan')}
               className="px-8 py-4 md:px-12 md:py-6 rounded-full bg-slate-900 text-white font-bold text-lg md:text-xl hover:bg-violet-600 hover:scale-105 transition-all shadow-2xl shadow-slate-300 flex items-center justify-center gap-2 md:gap-3 mx-auto w-full md:w-auto"
             >
               Générer mon Plan (Gratuit)

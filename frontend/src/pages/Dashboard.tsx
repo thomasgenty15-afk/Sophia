@@ -863,34 +863,135 @@ const PlanPhaseBlock = ({ phase, isLast, onHelpAction }: { phase: PlanPhase, isL
 };
 
 
-const EmptyState = ({ onGenerate, isResetMode = false }: { onGenerate: () => void, isResetMode?: boolean }) => (
+const EmptyState = ({ onGenerate, isResetMode = false, isOnboardingCompleted = false }: { onGenerate: () => void, isResetMode?: boolean, isOnboardingCompleted?: boolean }) => {
+  const [isResuming, setIsResuming] = useState(false);
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Gestionnaire intelligent pour "Reprendre" le parcours Follow (Nouveau Cycle)
+  const handleSmartResume = async () => {
+    if (!user) return;
+    setIsResuming(true);
+
+    try {
+        console.log("🧠 Smart Resume (Follow Mode) initié...");
+
+        // 1. Vérifier s'il y a un plan "pending" (Généré mais pas validé)
+        const { data: plans } = await supabase
+            .from('user_plans')
+            .select('id, goal_id, status')
+            .eq('user_id', user.id)
+            .eq('status', 'pending')
+            .order('created_at', { ascending: false })
+            .limit(1);
+        
+        if (plans && plans.length > 0) {
+            const pendingPlan = plans[0];
+            console.log("📍 Plan PENDING trouvé (Reprise Générateur):", pendingPlan.id);
+            
+            // On tente de récupérer le contexte pour hydrater (Optionnel)
+            let navigationState = {};
+            if (pendingPlan.goal_id) {
+                const { data: goalData } = await supabase
+                    .from('user_goals')
+                    .select('axis_id, axis_title, theme_id')
+                    .eq('id', pendingPlan.goal_id)
+                    .maybeSingle();
+                if (goalData) {
+                    navigationState = { 
+                        finalOrder: [{
+                            id: goalData.axis_id,
+                            title: goalData.axis_title,
+                            theme: goalData.theme_id
+                        }]
+                    };
+                }
+            }
+            
+            // On redirige vers le Générateur FOLLOW (car on est dans un contexte de suite)
+            navigate('/plan-generator-follow', { state: navigationState });
+            return;
+        }
+
+        // 2. Vérifier s'il y a des objectifs (Goals) "pending" ou "active"
+        // (Si on a un goal active mais pas de plan, on est à l'étape "Priorities" ou "Generator" qui a fail)
+        const { data: goals } = await supabase
+            .from('user_goals')
+            .select('id, status')
+            .eq('user_id', user.id)
+            .in('status', ['active', 'pending'])
+            .order('created_at', { ascending: false }) // Le plus récent
+            .limit(1);
+
+        if (goals && goals.length > 0) {
+            console.log("📍 Objectifs trouvés (Reprise Priorities):", goals.length);
+            navigate('/plan-priorities-follow');
+            return;
+        }
+
+        // 3. Si rien de tout ça -> On reprend au questionnaire Follow
+        console.log("📍 Aucun artefact intermédiaire trouvé. Reprise Questionnaire.");
+        // On passe mode=new pour éviter le blocage, mais idéalement on devrait charger le draft si il existe
+        // GlobalPlanFollow gère le chargement du draft si pas de 'new', mais ici on veut reprendre le fil
+        // Si on met 'new', ça reset. Si on met rien, ça load le dernier.
+        // Comme on "Reprend", on ne met pas 'new' pour charger le brouillon en cours.
+        navigate('/global-plan-follow');
+
+    } catch (e) {
+        console.error("Erreur smart resume:", e);
+        navigate('/global-plan-follow');
+    } finally {
+        setIsResuming(false);
+    }
+  };
+
+  return (
   <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-fade-in-up">
     <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
       <Zap className="w-10 h-10 text-slate-300" />
     </div>
+    
+    {/* TEXTE DYNAMIQUE SELON LE CONTEXTE */}
     <h2 className="text-2xl font-bold text-slate-900 mb-3">
-        {isResetMode ? "Plan en cours de modification" : "Aucun plan actif"}
+        {isOnboardingCompleted 
+            ? "Tu as terminé ton précédent plan global, mais il reste des choses à faire pour créer le nouveau !"
+            : isResetMode ? "Plan en cours de modification" : "Aucun plan actif"
+        }
     </h2>
     <p className="text-slate-500 max-w-md mb-8">
-      {isResetMode 
-        ? "Tu as réinitialisé ton plan mais la nouvelle feuille de route n'est pas encore générée."
-        : "Tu n'as pas encore défini ta stratégie. Commence par un audit rapide pour générer ta feuille de route."
+      {isOnboardingCompleted
+        ? "Reprends là où tu t'étais arrêté pour finaliser ta prochaine transformation."
+        : isResetMode 
+            ? "Tu as réinitialisé ton plan mais la nouvelle feuille de route n'est pas encore générée."
+            : "Tu n'as pas encore défini ta stratégie. Commence par un audit rapide pour générer ta feuille de route."
       }
     </p>
-    <button
-      onClick={onGenerate}
-      className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 flex items-center gap-3 group"
-    >
-      <PlayCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-      {isResetMode ? "Finir de réinitialiser mon plan" : "Lancer mon premier plan"}
-    </button>
+
+    {/* BOUTON DYNAMIQUE */}
+    {isOnboardingCompleted ? (
+        <button
+          onClick={handleSmartResume}
+          disabled={isResuming}
+          className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 flex items-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
+        >
+          {isResuming ? <Loader2 className="w-5 h-5 animate-spin" /> : <PlayCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />}
+          Reprendre
+        </button>
+    ) : (
+        <button
+          onClick={onGenerate}
+          className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 flex items-center gap-3 group"
+        >
+          <PlayCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
+          {isResetMode ? "Finir de réinitialiser mon plan" : "Lancer mon premier plan"}
+        </button>
+    )}
   </div>
-);
+)};
 
 import UserProfile from '../components/UserProfile';
 
 // --- COMPOSANT : REPRISE ONBOARDING (USER NON FINALISÉ) ---
-// Note: Ceci est le composant LOCAL au Dashboard que l'utilisateur souhaite conserver
 const ResumeOnboardingView = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
@@ -982,11 +1083,11 @@ const ResumeOnboardingView = () => {
 
         // 3. DERNIER RECOURS : Questionnaire
         console.log("📍 RIEN TROUVÉ, redirection vers /onboarding pour reprise");
-        navigate('/onboarding');
+        navigate('/global-plan');
 
     } catch (error) {
         console.error("Erreur lors de la reprise:", error);
-        navigate('/onboarding'); // Fallback safe
+        navigate('/global-plan'); // Fallback safe
     } finally {
         setIsLoading(false);
     }
@@ -1165,6 +1266,7 @@ const Dashboard = () => {
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null); // ID de l'objectif en cours
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null); // NOUVEAU: ID du thème pour reset ciblé
   const [activeAxisTitle, setActiveAxisTitle] = useState<string>("Plan d'Action");
+  const [hasPendingAxes, setHasPendingAxes] = useState(false);
 
   const hasActivePlan = activePlan !== null;
 
@@ -1230,12 +1332,35 @@ const Dashboard = () => {
                  return null;
             });
           }
+
+          // Check if there are pending axes for the current submission
+          if (goalData.submission_id) {
+              console.log("🔍 Checking pending axes for submission:", goalData.submission_id);
+              const { count, error: countError } = await supabase
+                  .from('user_goals')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('user_id', user.id)
+                  .eq('status', 'pending')
+                  .eq('submission_id', goalData.submission_id)
+                  .neq('id', goalData.id); // Sécurité : ne pas se compter soi-même (même si status diffère)
+              
+              if (countError) console.error("Error checking pending axes:", countError);
+              
+              const pendingCount = count || 0;
+              console.log("🔢 Pending axes count:", pendingCount);
+              
+              setHasPendingAxes(pendingCount > 0);
+          } else {
+              console.log("⚠️ No submission_id on active goal. Assuming no pending axes.");
+              setHasPendingAxes(false);
+          }
         } else {
             // Vraiment aucun goal trouvé
             setActiveGoalId(null);
             setActivePlan(null);
             setActiveAxisTitle("Plan d'Action");
             setActiveThemeId(null);
+            setHasPendingAxes(false);
         }
     };
 
@@ -1278,9 +1403,23 @@ const Dashboard = () => {
             
             // 2. Rediriger vers l'Onboarding ciblé sur le thème
             if (activeThemeId) {
-                navigate(`/onboarding?theme=${activeThemeId}&mode=refine`);
+                // ANCIEN : navigate(`/global-plan?theme=${activeThemeId}&mode=refine`);
+                // NOUVEAU : On utilise la page dédiée Recraft
+                // On doit récupérer l'axeId aussi si possible, sinon Recraft essaiera de le deviner
+                // activeGoalId est l'ID du goal, mais on a besoin de l'axis_id (ex: 'SLP_1')
+                // On peut le récupérer depuis les données du goal si on les a stockées quelque part ou refetch
+                // Ici on a activeGoalId, on peut fetcher l'axis_id vite fait
+                
+                const { data: goal } = await supabase.from('user_goals').select('axis_id').eq('id', activeGoalId).single();
+                
+                navigate('/recraft', { 
+                    state: { 
+                        themeId: activeThemeId,
+                        axisId: goal?.axis_id
+                    } 
+                });
             } else {
-                navigate('/onboarding');
+                navigate('/global-plan');
             }
 
         } catch (err) {
@@ -1296,7 +1435,7 @@ const Dashboard = () => {
 
     if (!user) return;
 
-    if (!window.confirm("⚠️ ATTENTION : ACTION IRRÉVERSIBLE.\n\nVous êtes sur le point d'effacer TOUT votre parcours :\n- Toutes vos réponses au questionnaire\n- Tous vos objectifs (active, pending, completed)\n- Tous vos plans générés\n\nVous devrez recommencer l'onboarding depuis zéro.\n\nConfirmer l'effacement total ?")) return;
+    if (!window.confirm("Vous êtes sur le point d'effacer votre parcours lié au dernier questionnaire \"global\" que vous avez rempli.\n\n- Toutes vos réponses au questionnaire\n- Tous vos objectifs (active, pending, completed)\n- Tous vos plans générés\n\nVous devrez recommencer le dernier plan global que vous avez fait à 0.\n\nVous confirmez son effacement ?")) return;
 
     try {
         console.log("🧨 Lancement du RESET GLOBAL...");
@@ -1350,7 +1489,7 @@ const Dashboard = () => {
             .eq('id', user.id);
 
         console.log("✅ Reset global terminé. Redirection...");
-        navigate('/onboarding');
+        navigate('/global-plan');
 
     } catch (err) {
         console.error("Erreur global reset:", err);
@@ -1377,33 +1516,51 @@ const Dashboard = () => {
             .eq('goal_id', activeGoalId);
 
         // 3. Trouver le prochain goal (pending) avec la priorité la plus haute
-        const { data: nextGoal } = await supabase
+        // Pas besoin de faire la requête ici, NextPlan le fera.
+        // On récupère juste le submission_id pour le passer à NextPlan
+        
+        // Récupération submission_id
+        const { data: currentGoal } = await supabase
             .from('user_goals')
-            .select('*')
-            .eq('user_id', user.id)
-            .eq('status', 'pending')
-            .order('priority_order', { ascending: true })
-            .limit(1)
+            .select('submission_id')
+            .eq('id', activeGoalId)
             .single();
-
-        if (nextGoal) {
-            // 4. Activer le prochain goal
-            await supabase
-                .from('user_goals')
-                .update({ status: 'active' })
-                .eq('id', nextGoal.id);
             
-            // 5. Rediriger vers le générateur pour ce nouveau goal
-            navigate('/action-plan-generator');
-        } else {
-            alert("Bravo ! Tu as terminé tous tes axes prioritaires !");
-            // TODO: Rediriger vers une page de célébration ou Dashboard vide
-            window.location.reload();
-        }
+        navigate('/next-plan', {
+            state: {
+                submissionId: currentGoal?.submission_id
+            }
+        });
 
     } catch (err) {
         console.error("Erreur skip:", err);
     }
+  };
+
+  const handleCreateNextGlobalPlan = async () => {
+      if (!user || !activeGoalId) return;
+
+      if (!confirm("Félicitations ! Vous avez terminé tous les axes de ce plan global.\n\nVous allez maintenant créer votre PROCHAIN plan de transformation (Nouveau cycle).\n\nL'axe actuel sera marqué comme terminé.")) return;
+
+      try {
+          // 1. Marquer le goal actuel comme terminé
+          await supabase
+              .from('user_goals')
+              .update({ status: 'completed' })
+              .eq('id', activeGoalId);
+          
+          // 2. Archiver le plan actuel
+          await supabase
+              .from('user_plans')
+              .update({ status: 'archived' })
+              .eq('goal_id', activeGoalId);
+
+          // 3. Redirection vers Global Plan en mode "Nouveau" (Follow)
+          navigate('/global-plan-follow?mode=new');
+
+      } catch (err) {
+          console.error("Erreur création next global plan:", err);
+      }
   };
 
   // Vérification si le plan est terminé (Toutes phases completed ou check manuel)
@@ -1746,16 +1903,17 @@ const Dashboard = () => {
                     if (activeGoalId) {
                         // Mode Reset : On renvoie vers l'onboarding ciblé ou le générateur
                         if (activeThemeId) {
-                             navigate(`/onboarding?theme=${activeThemeId}&mode=refine`);
+                             navigate(`/global-plan?theme=${activeThemeId}&mode=refine`);
                         } else {
-                             navigate('/onboarding');
+                             navigate('/global-plan');
                         }
                     } else {
                         // Mode Initial
-                        navigate('/onboarding');
+                        navigate('/global-plan');
                     }
                 }} 
                 isResetMode={!!activeGoalId} // Si on a un goal actif mais pas de plan, c'est qu'on est en cours de modif
+                isOnboardingCompleted={isOnboardingCompleted} // Pour différencier le mode Follow
               />
             ) : (
               <>
@@ -1856,19 +2014,35 @@ const Dashboard = () => {
 
                     {/* BOUTON FIN DE PLAN (Apparaît toujours en bas pour l'instant, ou conditionnel) */}
                     <div className="flex justify-center pb-8">
-                        <button
-                            onClick={handleSkipToNextAxis}
-                            className="group bg-slate-900 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-emerald-200 transition-all flex items-center gap-3"
-                        >
-                            <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                <Check className="w-5 h-5" />
-                            </div>
-                            <div>
-                                <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Mission Achevée ?</span>
-                                <span className="block">Lancer la Prochaine Transformation</span>
-                            </div>
-                            <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
-                        </button>
+                        {hasPendingAxes ? (
+                            <button
+                                onClick={handleSkipToNextAxis}
+                                className="group bg-slate-900 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-emerald-200 transition-all flex items-center gap-3"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Check className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Mission Achevée ?</span>
+                                    <span className="block">Lancer la Prochaine Transformation</span>
+                                </div>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
+                            </button>
+                        ) : (
+                            <button
+                                onClick={handleCreateNextGlobalPlan}
+                                className="group bg-indigo-900 hover:bg-indigo-800 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center gap-3"
+                            >
+                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                    <Sparkles className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Cycle Terminé</span>
+                                    <span className="block">Créer mon prochain plan de transformation</span>
+                                </div>
+                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
+                            </button>
+                        )}
                     </div>
                   </div>
 

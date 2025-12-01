@@ -95,12 +95,12 @@ const ResumeOnboardingView = () => {
         }
 
         // 3. DERNIER RECOURS : Questionnaire
-        console.log("📍 RIEN TROUVÉ, redirection vers /onboarding pour reprise");
-        navigate('/onboarding');
+        console.log("📍 RIEN TROUVÉ, redirection vers /global-plan pour reprise");
+        navigate('/global-plan');
 
     } catch (error) {
         console.error("Erreur lors de la reprise:", error);
-        navigate('/onboarding'); // Fallback safe
+        navigate('/global-plan'); // Fallback safe
     } finally {
         setIsLoading(false);
     }

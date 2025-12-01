@@ -25,7 +25,7 @@ const DATA: Theme[] = [
 ];
 
 // --- COMPOSANT ---
-const Questionnaire = () => {
+const GlobalPlan = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
@@ -38,6 +38,7 @@ const Questionnaire = () => {
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null); // Nouvel état pour gérer l'erreur de chargement
+  const [currentAnswerId, setCurrentAnswerId] = useState<string | null>(null); // Pour traquer si on update ou insert
 
   // --- NOUVEL ÉTAT DE SÉLECTION DES AXES ---
   // On stocke quels axes sont "sélectionnés" (ouverts pour être travaillés)
@@ -94,9 +95,10 @@ const Questionnaire = () => {
         // NAVIGATION GUARD
         const isResetMode = searchParams.get('reset') === 'true';
         const isRefineMode = searchParams.get('mode') === 'refine'; // Nouveau mode
+        const isNewGlobalMode = searchParams.get('mode') === 'new_global'; // Mode "Nouveau Cycle"
 
-        // Si terminé et ni reset ni refine -> Dashboard
-        if (data?.onboarding_completed && !isResetMode && !isRefineMode) {
+        // Si terminé et ni reset ni refine ni new_global -> Dashboard
+        if (data?.onboarding_completed && !isResetMode && !isRefineMode && !isNewGlobalMode) {
           navigate('/dashboard');
           return;
         }
@@ -104,6 +106,13 @@ const Questionnaire = () => {
         // ... suite du chargement des réponses ...
 
         // CHARGEMENT DES RÉPONSES EXISTANTES
+        // Si c'est un nouveau cycle global, on ne charge PAS les réponses précédentes (on repart à zéro)
+        if (isNewGlobalMode) {
+            console.log("🆕 Mode 'Nouveau Plan Global' détecté. Démarrage à vierge.");
+            setIsLoaded(true);
+            return; 
+        }
+
         // On cherche la dernière réponse qui contient réellement des données (ui_state ou selectedAxisByTheme)
         // pour éviter de charger une entrée vide créée uniquement pour le tracking des tentatives.
         const { data: answersData } = await supabase
@@ -723,4 +732,4 @@ const Questionnaire = () => {
   );
 };
 
-export default Questionnaire;
+export default GlobalPlan;

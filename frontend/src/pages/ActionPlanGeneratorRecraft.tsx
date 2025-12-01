@@ -1,0 +1,612 @@
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { 
+  ArrowRight, 
+  Sparkles, 
+  Brain, 
+  MessageSquare, 
+  AlertTriangle,
+  RotateCcw,
+  CheckCircle2,
+  Edit3,
+  Target,
+  Calendar,
+  Trophy,
+  Lock,
+  Zap,
+  FileText,
+  Sword,
+  Shield,
+  CheckSquare,
+  Layout
+} from 'lucide-react';
+
+interface AxisContext {
+  id: string;
+  title: string;
+  theme: string;
+  problems?: string[];
+}
+
+const ActionPlanGeneratorRecraft = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { user } = useAuth();
+  
+  // State récupéré de Recraft.tsx
+  const state = location.state as { axisId: string, themeId: string, axisTitle: string, submissionId?: string };
+  
+  const [currentAxis, setCurrentAxis] = useState<AxisContext | null>(null);
+
+  // Initialisation
+  useEffect(() => {
+    if (state && state.axisId) {
+        setCurrentAxis({
+            id: state.axisId,
+            title: state.axisTitle || "Axe Inconnu",
+            theme: state.themeId,
+            problems: []
+        });
+    } else {
+        // Fallback si pas de state (refresh page)
+        // On pourrait essayer de retrouver le dernier goal modifié...
+        console.warn("Pas de state trouvé pour Recraft Generator.");
+        navigate('/dashboard'); 
+    }
+  }, [state, navigate]);
+
+  const [step, setStep] = useState<'input' | 'generating' | 'result'>('input');
+  const [inputs, setInputs] = useState({
+    why: '',
+    blockers: '',
+    context: '',
+    pacing: 'balanced'
+  });
+  
+  const [plan, setPlan] = useState<any>(null);
+  const [feedback, setFeedback] = useState('');
+  const [isRefining, setIsRefining] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // --- LOGIQUE DE RETRY (LIMITÉE) ---
+  const canRetry = plan && (plan.generationAttempts || 1) < 2;
+
+  const handleRetryInputs = async () => {
+      setStep('input');
+      setPlan(null);
+  };
+
+  const [contextSummary, setContextSummary] = useState<string | null>(null);
+  const [isContextLoading, setIsContextLoading] = useState(false);
+  const fetchSummaryRef = React.useRef(false);
+
+  // --- GENERATION DU RESUME CONTEXTUEL (OPTIMISÉ POUR RECRAFT) ---
+  useEffect(() => {
+      if (!user || !currentAxis || fetchSummaryRef.current) return;
+      
+      const fetchContextSummary = async () => {
+          fetchSummaryRef.current = true;
+          setIsContextLoading(true);
+          try {
+              // On récupère les réponses FRAICHES (puisqu'on vient de les mettre à jour dans Recraft)
+              const { data: answersData } = await supabase
+                  .from('user_answers')
+                  .select('content')
+                  .eq('user_id', user.id)
+                  .eq('questionnaire_type', 'onboarding')
+                  .order('updated_at', { ascending: false }) // Le plus récemment mis à jour
+                  .limit(1)
+                  .maybeSingle();
+
+              if (answersData?.content) {
+                   console.log("🧠 Appel IA pour résumé contextuel (Recraft)...");
+                   
+                   const { data: summaryData, error } = await supabase.functions.invoke('summarize-context', {
+                       body: { 
+                           responses: answersData.content,
+                           currentAxis: currentAxis
+                       }
+                   });
+                   
+                   if (error) throw error;
+                   if (summaryData?.summary) {
+                       setContextSummary(summaryData.summary);
+                   }
+              }
+          } catch (err) {
+              console.error("Erreur résumé contextuel:", err);
+              setContextSummary(null);
+          } finally {
+              setIsContextLoading(false);
+          }
+      };
+
+      fetchContextSummary();
+  }, [user, currentAxis]);
+
+  // --- GENERATION DU PLAN ---
+  const handleGenerate = async () => {
+    if (!user || !currentAxis) return;
+
+    setStep('generating');
+    setError(null);
+
+    try {
+      // 2. VÉRIFICATION DU QUOTA (Anti-Abus & Règle des 2 essais)
+      // On doit trouver le goal correspondant à cet axe pour vérifier le quota
+      const { data: checkGoal } = await supabase
+          .from('user_goals')
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('axis_id', currentAxis.id)
+          .limit(1)
+          .maybeSingle();
+
+      if (checkGoal) {
+          const { data: existingPlan } = await supabase
+              .from('user_plans')
+              .select('content, generation_attempts')
+              .eq('goal_id', checkGoal.id)
+              .maybeSingle();
+
+          // SI ON A DÉJÀ ATTEINT LA LIMITE (2 essais : 1 initial + 1 retry)
+          if (existingPlan && existingPlan.generation_attempts >= 2) {
+              console.warn("🚫 Quota atteint (2/2). Blocage de la régénération.");
+              
+              // On recharge le dernier plan valide
+              setPlan(existingPlan.content);
+              
+              // On informe l'utilisateur
+              alert("Vous avez utilisé vos 2 essais (1 création + 1 modification). Voici votre plan final.");
+              
+              // On affiche le résultat et on arrête tout
+              setStep('result');
+              return; 
+          }
+      }
+
+      // 1. Récupération explicite des réponses complètes (qualitatives)
+      const { data: answersData } = await supabase
+          .from('user_answers')
+          .select('content')
+          .eq('user_id', user.id)
+          .eq('questionnaire_type', 'onboarding')
+          .order('updated_at', { ascending: false })
+          .limit(1)
+          .maybeSingle();
+
+      // On appelle l'IA avec les infos + LES REPONSES
+      const { data, error } = await supabase.functions.invoke('generate-plan', {
+        body: {
+          inputs,
+          currentAxis: currentAxis,
+          userId: user.id,
+          answers: answersData?.content || {} // Injection explicite ici
+        }
+      });
+
+      if (error) throw error;
+      
+      if (data) {
+        setPlan(data);
+        setStep('result');
+        
+        // --- SAUVEGARDE EN BASE ---
+        // On doit trouver le goal correspondant à cet axe pour le mettre à jour ou recréer le plan
+        // Comme c'est un "Recraft", le goal existe surement déjà.
+        const { data: goal } = await supabase
+            .from('user_goals')
+            .select('id, submission_id')
+            .eq('user_id', user.id)
+            .eq('axis_id', currentAxis.id)
+            .limit(1)
+            .maybeSingle();
+            
+        if (goal) {
+            // On supprime l'ancien plan actif s'il y en a un (ou on l'archive ?)
+            // Le prompt dit "Refaire ce plan", donc on remplace.
+            
+            // On vérifie s'il existe un plan
+            const { data: existingPlan } = await supabase
+                .from('user_plans')
+                .select('id')
+                .eq('goal_id', goal.id)
+                .maybeSingle();
+
+            if (existingPlan) {
+                // Update
+                 await supabase.from('user_plans').update({
+                     content: data,
+                     inputs_why: inputs.why,
+                     inputs_blockers: inputs.blockers,
+                     inputs_context: inputs.context,
+                     inputs_pacing: inputs.pacing,
+                     sophia_knowledge: data.sophiaKnowledge,
+                     status: 'active', // On met direct en active car c'est un recraft explicit ?
+                     // Ou on laisse pending et on demande validation ?
+                     // Le prompt dit "on tombe directement sur la partie qualitative...".
+                     // Pour simplifier le flux Recraft, on peut valider à la fin avec le bouton "C'est parfait".
+                     generation_attempts: (existingPlan.generation_attempts || 1) + 1 // Reset compteur ou incrément ? Disons reset pour ce nouveau cycle
+                 }).eq('id', existingPlan.id);
+            } else {
+                // Insert
+                await supabase.from('user_plans').insert({
+                    user_id: user.id,
+                    goal_id: goal.id,
+                    submission_id: goal.submission_id,
+                    content: data,
+                    inputs_why: inputs.why,
+                    inputs_blockers: inputs.blockers,
+                    inputs_context: inputs.context,
+                    inputs_pacing: inputs.pacing,
+                    sophia_knowledge: data.sophiaKnowledge,
+                    status: 'active',
+                    generation_attempts: 1
+                });
+            }
+        }
+      }
+
+    } catch (err) {
+      console.error('Erreur génération plan:', err);
+      setError("Erreur lors de la génération. Veuillez réessayer.");
+      setStep('input');
+    }
+  };
+
+  // --- VALIDATION FINALE ---
+  const handleValidatePlan = async () => {
+      // Le plan est déjà sauvegardé (ou updaté) lors du generate, on a juste à rediriger vers le dashboard
+      // On s'assure juste que le statut est bien 'active' si on avait mis 'pending' avant.
+      if (user && currentAxis) {
+          const { data: goal } = await supabase.from('user_goals').select('id').eq('user_id', user.id).eq('axis_id', currentAxis.id).single();
+          if (goal) {
+             await supabase.from('user_plans').update({ status: 'active' }).eq('goal_id', goal.id);
+          }
+      }
+      navigate('/dashboard');
+  };
+  
+    // --- ITERATION (CHAT) ---
+  const handleRegenerate = async () => {
+    if (!user || !feedback || !plan) return;
+    setIsRefining(true);
+    
+    try {
+        // Récupérer les réponses du questionnaire pour le contexte
+        const { data: answersData } = await supabase
+            .from('user_answers')
+            .select('content')
+            .eq('user_id', user.id)
+            .eq('questionnaire_type', 'onboarding')
+            .order('updated_at', { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+        const { data: adjustedPlan, error } = await supabase.functions.invoke('generate-plan', {
+            body: {
+                inputs,
+                currentAxis,
+                userId: user.id,
+                currentPlan: plan, 
+                feedback: feedback,
+                mode: 'refine',
+                answers: answersData?.content || {}
+            }
+        });
+
+        if (error) throw error;
+
+        if (adjustedPlan) {
+            setPlan(adjustedPlan);
+            setFeedback('');
+            
+            // Update DB
+             if (currentAxis) {
+                const { data: goal } = await supabase.from('user_goals').select('id').eq('user_id', user.id).eq('axis_id', currentAxis.id).single();
+                if (goal) {
+                    await supabase.from('user_plans').update({ content: adjustedPlan }).eq('goal_id', goal.id);
+                }
+             }
+        }
+    } catch (err) {
+        console.error("Erreur ajustement:", err);
+        alert("Erreur lors de l'ajustement.");
+    } finally {
+        setIsRefining(false);
+    }
+  };
+
+
+  return (
+    <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-8 px-4 md:py-12 md:px-6">
+      <div className="max-w-3xl mx-auto">
+        
+        <div className="mb-6 md:mb-10">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-100 text-indigo-700 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-2 md:mb-4">
+            <RotateCcw className="w-3 h-3 md:w-4 md:h-4" />
+            Recraft Mode
+          </div>
+          <h1 className="text-2xl min-[350px]:text-3xl font-bold text-slate-900 mb-1 md:mb-2 leading-tight">
+            Nouveau Plan : <span className="text-indigo-600 block min-[350px]:inline">{currentAxis?.title}</span>
+          </h1>
+        </div>
+
+        {error && (
+            <div className="bg-red-50 text-red-700 p-4 rounded-xl mb-6 border border-red-200">
+                {error}
+            </div>
+        )}
+
+        {step === 'input' && (
+          <div className="space-y-8 animate-fade-in-up">
+            
+            {/* Context Summary */}
+            <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm">
+              <h3 className="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 md:mb-4 flex items-center gap-2">
+                <Brain className="w-3 h-3 md:w-4 md:h-4" />
+                Analyse du nouveau contexte
+              </h3>
+              
+              {isContextLoading ? (
+                  <div className="flex items-center gap-3 text-slate-400 animate-pulse">
+                      <Sparkles className="w-4 h-4" />
+                      <span className="text-sm italic">Analyse de vos nouvelles réponses...</span>
+                  </div>
+              ) : (
+                  <p className="text-sm md:text-base text-slate-600 leading-relaxed italic">
+                      "{contextSummary || "Prêt à générer."}"
+                  </p>
+              )}
+            </div>
+
+            {/* FORMULAIRE */}
+            <div className="space-y-6">
+              <div>
+                <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
+                  Pourquoi ce changement de plan ? (Qu'est-ce qui n'a pas marché ?)
+                </label>
+                <textarea 
+                  value={inputs.why}
+                  onChange={e => setInputs({...inputs, why: e.target.value})}
+                  className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
+                  placeholder="Ex: C'était trop intense, ou je me suis lassé..."
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
+                  Nouveaux blocages ou contraintes ?
+                </label>
+                <textarea 
+                  value={inputs.blockers}
+                  onChange={e => setInputs({...inputs, blockers: e.target.value})}
+                  className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
+                  placeholder="Ex: J'ai moins de temps le soir maintenant..."
+                />
+              </div>
+            </div>
+
+            <button 
+              onClick={handleGenerate}
+              className="w-full bg-slate-900 text-white font-bold text-base md:text-lg py-4 md:py-5 rounded-xl hover:bg-indigo-600 transition-all shadow-xl shadow-slate-200 flex items-center justify-center gap-2 md:gap-3"
+            >
+              <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
+              Régénérer mon Plan
+            </button>
+          </div>
+        )}
+
+        {step === 'generating' && (
+          <div className="flex flex-col items-center justify-center py-20 animate-pulse">
+            <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-8">
+              <RotateCcw className="w-10 h-10 animate-spin" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Refonte du plan en cours...</h2>
+            <p className="text-slate-500">Sophia intègre vos nouvelles données.</p>
+          </div>
+        )}
+
+        {step === 'result' && plan && (
+          <div className="animate-fade-in-up">
+            
+            {/* ALERT INFO RETRY */}
+            {canRetry ? (
+                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 mb-6 flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                        <Edit3 className="w-5 h-5 text-blue-600" />
+                        <p className="text-sm text-blue-800">
+                            Le plan ne vous convient pas ? Vous pouvez ajuster vos réponses.
+                        </p>
+                    </div>
+                    <button 
+                        onClick={handleRetryInputs}
+                        className="text-xs font-bold bg-white border border-blue-200 text-blue-700 px-3 py-2 rounded-lg hover:bg-blue-100 transition-colors"
+                    >
+                        Modifier mes réponses (1 essai)
+                    </button>
+                </div>
+            ) : (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center gap-3">
+                     <Lock className="w-5 h-5 text-amber-600" />
+                     <p className="text-sm text-amber-800">
+                        Version finale du plan. Utilisez le chat ci-dessous pour des ajustements mineurs.
+                     </p>
+                </div>
+            )}
+
+            {/* LE PLAN GÉNÉRÉ */}
+            <div className="bg-white rounded-2xl border border-slate-200 shadow-lg overflow-hidden mb-8">
+              <div className="bg-slate-900 p-4 md:p-6 text-white">
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-lg md:text-xl font-bold flex items-center gap-2">
+                    <Target className="w-4 h-4 md:w-5 md:h-5 text-emerald-400" />
+                    Feuille de Route Complète
+                  </h2>
+                  <span className="bg-slate-800 text-slate-300 px-2 py-1 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold flex items-center gap-2 border border-slate-700">
+                    <Calendar className="w-3 h-3" />
+                    Durée : {typeof plan.estimatedDuration === 'string' ? plan.estimatedDuration : (plan.estimatedDuration?.total || plan.estimatedDuration?.weekly || "6 semaines")}
+                  </span>
+                </div>
+              </div>
+              
+              <div className="p-4 md:p-6 space-y-6 md:space-y-8">
+                <div className="bg-violet-50 p-3 md:p-4 rounded-xl border border-violet-100 text-violet-900 text-sm leading-relaxed">
+                  <strong>Stratégie Globale :</strong> {plan.strategy}
+                  <div className="mt-3 pt-3 border-t border-violet-200 flex flex-wrap gap-2 md:gap-4 text-xs text-violet-700">
+                    <div className="flex items-center gap-1">
+                       <Lock className="w-3 h-3" /> Max 3 actions actives
+                    </div>
+                    <div className="flex items-center gap-1">
+                       <CheckCircle2 className="w-3 h-3" /> Validation anticipée possible
+                    </div>
+                  </div>
+                </div>
+
+                {/* AFFICHAGE PAR PHASES */}
+                {plan.phases.map((phase: any, phaseIndex: number) => (
+                  <div key={phaseIndex} className="relative pl-4 md:pl-6 border-l-2 border-slate-100 pb-6 md:pb-8 last:pb-0 last:border-l-0">
+                    <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-slate-200"></div>
+                    
+                    <h3 className="text-base min-[350px]:text-lg font-bold text-slate-900 mb-0.5">{phase.title}</h3>
+                    <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-400 mb-6">{phase.subtitle}</p>
+                    
+                    {phase.rationale && (
+                      <div className="text-xs text-violet-700 bg-violet-50 p-3 rounded-lg mb-4 italic border border-violet-100 flex gap-2">
+                         <Sparkles className="w-3 h-3 mt-0.5 flex-shrink-0" />
+                         <span>{phase.rationale}</span>
+                      </div>
+                    )}
+
+                    <div className="space-y-4 md:space-y-6">
+                      {phase.actions.map((action: any, i: number) => {
+                        const isGroupA = action.type === 'habitude';
+                        const isFramework = action.type === 'framework';
+                        const isMainQuest = action.questType === 'main';
+
+                        return (
+                        <div key={i} className={`relative bg-white border rounded-xl p-2.5 sm:p-3 md:p-4 transition-all ${
+                          isMainQuest ? 'border-blue-200 shadow-sm ring-1 ring-blue-100' : 'border-gray-200 opacity-90'
+                        }`}>
+                          {/* Badge Quest Type */}
+                          <div className={`absolute -top-2.5 left-3 px-2 py-0.5 rounded-full text-[9px] md:text-[10px] font-bold uppercase tracking-wider border shadow-sm flex items-center gap-1 ${
+                            isMainQuest ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 border-slate-200'
+                          }`}>
+                            {isMainQuest ? <><Sword className="w-3 h-3" /> Quête Principale</> : <><Shield className="w-3 h-3" /> Quête Secondaire</>}
+                          </div>
+
+                          <div className="flex items-start gap-2 sm:gap-3 md:gap-4 mt-2.5 md:mt-2">
+                            <div className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold flex-shrink-0 ${
+                              isGroupA ? 'bg-emerald-100 text-emerald-700' : 
+                              isFramework ? 'bg-violet-100 text-violet-700' : 'bg-amber-100 text-amber-700'
+                            }`}>
+                              {isGroupA ? <Zap className="w-4 h-4 md:w-5 md:h-5" /> : 
+                               isFramework ? <FileText className="w-4 h-4 md:w-5 md:h-5" /> : <CheckCircle2 className="w-4 h-4 md:w-5 md:h-5" />}
+                            </div>
+                            
+                            <div className="flex-1 min-w-0">
+                              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-1 gap-1 sm:gap-0">
+                                <h4 className="font-bold text-sm min-[350px]:text-base text-slate-900 break-words">{action.title}</h4>
+                                <span className={`text-[9px] md:text-[10px] px-2 py-0.5 rounded-full font-bold uppercase self-start sm:self-auto ${
+                                  isGroupA ? 'bg-emerald-50 text-emerald-700' : 
+                                  isFramework ? 'bg-violet-50 text-violet-700' : 'bg-amber-50 text-amber-700'
+                                }`}>
+                                  {action.type}
+                                </span>
+                              </div>
+                              <p className="text-xs min-[350px]:text-sm text-slate-600 mb-2 md:mb-3 break-words">{action.description}</p>
+                              
+                              {isGroupA && (
+                                <div className="mt-2">
+                                  <div className="flex flex-wrap items-center justify-between text-[10px] md:text-xs font-bold text-slate-500 mb-1 gap-2">
+                                    <span className="flex items-center gap-1 whitespace-nowrap"><Trophy className="w-3 h-3 text-amber-500" /> Objectif XP</span>
+                                    <span className="whitespace-nowrap">{action.targetReps} répétitions</span>
+                                  </div>
+                                  <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
+                                    <div className="h-full bg-slate-300 w-[30%] rounded-full"></div> 
+                                  </div>
+                                </div>
+                              )}
+
+                              {!isGroupA && isFramework && (
+                                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] md:text-xs font-bold text-violet-600">
+                                  <Layout className="w-3 h-3 flex-shrink-0" />
+                                  <span className="break-words">Outil Mental : Fiche à remplir</span>
+                                </div>
+                              )}
+
+                              {!isGroupA && !isFramework && (
+                                <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px] md:text-xs font-bold text-amber-600">
+                                  <CheckSquare className="w-3 h-3 flex-shrink-0" />
+                                  <span className="break-words">Mission Unique : À cocher</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* ZONE D'ITÉRATION (CHAT) */}
+            <div className="bg-white p-4 md:p-6 rounded-2xl border border-slate-200 shadow-sm mb-6 md:mb-8">
+              <h3 className="text-xs md:text-sm font-bold text-slate-400 uppercase tracking-wider mb-2 md:mb-4 flex items-center gap-2">
+                <MessageSquare className="w-3 h-3 md:w-4 md:h-4" />
+                Ajustements & Feedback
+              </h3>
+              <p className="text-xs md:text-sm text-slate-600 mb-3 md:mb-4 leading-relaxed">
+                Ce plan n'est pas figé. Si une action vous semble irréaliste ou mal adaptée, dites-le à Sophia pour qu'elle recalcule l'itinéraire.
+              </p>
+              <div className="flex gap-2">
+                <input 
+                  type="text"
+                  value={feedback}
+                  onChange={e => setFeedback(e.target.value)}
+                  placeholder="Ex: Je ne peux pas me lever à 7h le weekend..."
+                  disabled={isRefining}
+                  className="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-sm md:text-base disabled:opacity-50 disabled:bg-slate-50"
+                />
+                <button 
+                  onClick={handleRegenerate}
+                  disabled={!feedback || isRefining}
+                  className="px-3 md:px-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 disabled:opacity-50 transition-colors min-w-[50px] flex items-center justify-center"
+                >
+                  {isRefining ? (
+                    <div className="w-5 h-5 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"></div>
+                  ) : (
+                    <RotateCcw className="w-4 h-4 md:w-5 md:h-5" />
+                  )}
+                </button>
+              </div>
+              {isRefining && (
+                <p className="text-xs text-violet-600 mt-2 animate-pulse flex items-center gap-1">
+                    <Sparkles className="w-3 h-3" />
+                    Sophia réajuste le plan selon vos contraintes...
+                </p>
+              )}
+            </div>
+
+            {/* VALIDATION FINALE */}
+            <button 
+              onClick={handleValidatePlan}
+              className="w-full bg-emerald-600 text-white font-bold text-base md:text-lg py-4 md:py-5 rounded-xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 md:gap-3"
+            >
+              C'est parfait, on commence !
+              <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+            </button>
+
+          </div>
+        )}
+
+      </div>
+    </div>
+  );
+};
+
+export default ActionPlanGeneratorRecraft;

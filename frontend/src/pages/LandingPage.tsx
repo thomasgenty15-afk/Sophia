@@ -70,7 +70,7 @@ const LandingPage = () => {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
             <button 
-              onClick={() => navigate('/onboarding')}
+              onClick={() => navigate('/global-plan')}
               className="w-full sm:w-auto px-6 py-3 md:px-8 md:py-4 rounded-xl bg-violet-600 text-white font-bold text-base md:text-lg hover:bg-violet-700 transition-all shadow-xl shadow-violet-200 flex items-center justify-center gap-2 group"
             >
               Générer mon Plan (Gratuit)
@@ -532,7 +532,7 @@ const LandingPage = () => {
           </h2>
           
           <button 
-            onClick={() => navigate('/onboarding')}
+            onClick={() => navigate('/global-plan')}
             className="px-12 py-6 rounded-full bg-slate-900 text-white font-bold text-xl hover:bg-violet-600 hover:scale-105 transition-all shadow-2xl shadow-slate-300 flex items-center justify-center gap-3 mx-auto"
           >
             Générer mon Plan (Gratuit)

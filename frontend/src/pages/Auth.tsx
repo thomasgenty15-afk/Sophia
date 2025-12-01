@@ -88,7 +88,7 @@ const Auth = () => {
                 navigate('/plan-generator', { state: planData });
             } else if (isSignUp) {
                 // Inscription Directe (via Landing) -> Onboarding
-                navigate('/onboarding');
+                navigate('/global-plan');
             } else {
                 // Connexion (via Landing) -> Dashboard
                 navigate('/dashboard');

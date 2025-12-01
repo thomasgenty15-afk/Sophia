@@ -32,13 +32,13 @@ interface AxisContext {
   problems?: string[];
 }
 
-const ActionPlanGenerator = () => {
+const ActionPlanGeneratorFollow = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   
   // LOGS DEBUG
-  console.log("🔄 ActionPlanGenerator Render");
+  console.log("🔄 ActionPlanGeneratorFollow Render");
   console.log("📍 Location State:", location.state);
   
   // On récupère l'axe prioritaire (le premier de la liste validée)
@@ -224,7 +224,7 @@ const ActionPlanGenerator = () => {
                   .from('user_answers')
                   .select('content, updated_at')
                   .eq('user_id', user.id)
-                  .eq('questionnaire_type', 'onboarding')
+                  .eq('questionnaire_type', 'global_plan') // TYPE: GLOBAL PLAN
                   .order('created_at', { ascending: false })
                   .limit(1)
                   .maybeSingle();
@@ -237,7 +237,7 @@ const ActionPlanGenerator = () => {
               const requestTimestamp = location.state?.generationRequestTimestamp;
               
               if (requestTimestamp) {
-                  const processedKey = `processed_summary_${requestTimestamp}`;
+                  const processedKey = `processed_summary_follow_${requestTimestamp}`; // KEY ADAPTÉE
                   if (!sessionStorage.getItem(processedKey)) {
                       console.log("⚡ Demande de génération explicite détectée (Nouveau clic). Force Input Mode.");
                       forceRegen = true;
@@ -299,7 +299,7 @@ const ActionPlanGenerator = () => {
                   }
               }
               // -----------------------------------------------------------------------
-
+              
               // 2. Check "Données modifiées" (Answers update)
               if (existingGoal?.knowledge_generated_at && answersData?.updated_at) {
                   const knowledgeTime = new Date(existingGoal.knowledge_generated_at).getTime();
@@ -740,7 +740,7 @@ const ActionPlanGenerator = () => {
             .from('user_answers')
             .select('content')
             .eq('user_id', user.id)
-            .eq('questionnaire_type', 'onboarding')
+            .eq('questionnaire_type', 'global_plan')
             .order('created_at', { ascending: false })
             .limit(1)
             .maybeSingle();
@@ -819,32 +819,59 @@ const ActionPlanGenerator = () => {
   const handleValidatePlan = async () => {
     if (user) {
       try {
-        // 1. Récupérer l'ID de l'objectif actif pour lier le plan
-        // On récupère le goal 'active' ou le premier 'pending' si on vient d'une réinit
-        let { data: activeGoal, error: goalError } = await supabase
-            .from('user_goals')
-            .select('id, submission_id') // On récupère aussi le submission_id
-            .eq('user_id', user.id)
-            .eq('status', 'active')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
-
-        // Si pas de goal actif trouvé, on cherche le dernier goal créé (cas possible juste après création)
-        if (!activeGoal) {
-             console.log("Pas de goal actif trouvé, recherche du dernier goal créé...");
-             const { data: lastGoal } = await supabase
+        // 1. CIBLAGE PRÉCIS : On cherche le goal correspondant à l'axe en cours
+        // Cela est plus robuste que de chercher 'status=active' car ça marche même si le goal est resté pending
+        let activeGoal = null;
+        
+        if (currentAxis?.id) {
+             const { data: targetGoal } = await supabase
                 .from('user_goals')
-                .select('id, submission_id')
+                .select('id, submission_id, status')
                 .eq('user_id', user.id)
+                .eq('axis_id', currentAxis.id)
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .maybeSingle();
              
-             if (lastGoal) {
-                 activeGoal = lastGoal;
-                 // On le passe en active pour être sûr
-                 await supabase.from('user_goals').update({ status: 'active' }).eq('id', lastGoal.id);
+             if (targetGoal) {
+                 activeGoal = targetGoal;
+                 // ACTIVATION FORCÉE : Si le goal n'est pas actif, on le force maintenant
+                 if (targetGoal.status !== 'active') {
+                     console.log(`⚡ Activation forcée du goal ${targetGoal.id} (était ${targetGoal.status})...`);
+                     await supabase.from('user_goals').update({ status: 'active' }).eq('id', targetGoal.id);
+                 }
+             }
+        }
+
+        // Fallback : Si on n'a pas trouvé par ID (très rare), on cherche le dernier actif ou dernier créé
+        if (!activeGoal) {
+             console.log("⚠️ Goal non trouvé par ID, recherche fallback...");
+             const { data: fallbackGoal } = await supabase
+                .from('user_goals')
+                .select('id, submission_id')
+                .eq('user_id', user.id)
+                .eq('status', 'active')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+             
+             if (fallbackGoal) {
+                 activeGoal = fallbackGoal;
+             } else {
+                 // Dernier recours : dernier goal tout court
+                 const { data: lastGoal } = await supabase
+                    .from('user_goals')
+                    .select('id, submission_id')
+                    .eq('user_id', user.id)
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                 
+                 if (lastGoal) {
+                     activeGoal = lastGoal;
+                     // On le passe en active pour être sûr
+                     await supabase.from('user_goals').update({ status: 'active' }).eq('id', lastGoal.id);
+                 }
              }
         }
 
@@ -901,7 +928,8 @@ const ActionPlanGenerator = () => {
                 if (updateError) throw updateError;
             }
 
-        // 3. Mettre à jour le profil pour dire "Onboarding Terminé"
+        // 3. Mettre à jour le profil pour dire "Onboarding Terminé" (Peut-être inutile pour le Follow ?)
+        // On le laisse pour être sûr que c'est marqué
         const { error: profileError } = await supabase
             .from('profiles')
             .update({ onboarding_completed: true })
@@ -1422,5 +1450,4 @@ const MOCK_GENERATED_PLAN = {
   ]
 };
 
-export default ActionPlanGenerator;
-
+export default ActionPlanGeneratorFollow;
