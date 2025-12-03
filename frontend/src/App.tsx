@@ -16,6 +16,7 @@ import ActionPlanGenerator from './pages/ActionPlanGenerator';
 import ActionPlanGeneratorRecraft from './pages/ActionPlanGeneratorRecraft';
 import ActionPlanGeneratorFollow from './pages/ActionPlanGeneratorFollow';
 import ActionPlanGeneratorNext from './pages/ActionPlanGeneratorNext';
+import FrameworkExecution from './pages/FrameworkExecution';
 import Recraft from './pages/Recraft';
 import ProductPlan from './pages/ProductPlan';
 import ProductArchitect from './pages/ProductArchitect';
@@ -42,6 +43,7 @@ function App() {
             <Route path="/recraft" element={<Recraft />} />
             <Route path="/next-plan" element={<NextPlan />} />
             <Route path="/plan-generator-next" element={<ActionPlanGeneratorNext />} />
+            <Route path="/framework-execution" element={<FrameworkExecution />} />
             <Route path="/grimoire" element={<Grimoire />} />
             <Route path="/grimoire/:id" element={<Grimoire />} />
             <Route path="/architecte/:weekId" element={<IdentityArchitect />} />

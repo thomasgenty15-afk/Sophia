@@ -70,6 +70,9 @@ interface PlanPhase {
 interface GeneratedPlan {
   strategy: string;
   phases: PlanPhase[];
+  identity?: string;
+  deepWhy?: string;
+  goldenRules?: string;
 }
 
 // --- MOCK DATA : PROFIL "CHAOS / À LA RAMASSE" ---
@@ -546,12 +549,12 @@ const ActionHelpModal = ({ action, onClose, onGenerateStep }: { action: Action, 
   );
 };
 
-const StrategyCard = ({ strategy }: { strategy: string }) => {
+const StrategyCard = ({ strategy, identityProp, whyProp, rulesProp }: { strategy: string, identityProp?: string, whyProp?: string, rulesProp?: string }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
-  const [identity, setIdentity] = useState(strategy && strategy.length < 100 ? strategy : "Je deviens une personne calme et maître de son temps.");
-  const [why, setWhy] = useState("Pour avoir l'énergie de jouer avec mes enfants le matin sans être irritable.");
-  const [rules, setRules] = useState("1. Pas d'écran dans la chambre.\n2. Si je ne dors pas après 20min, je me lève.\n3. Le lit ne sert qu'à dormir.");
+  const [identity, setIdentity] = useState(identityProp || (strategy && strategy.length < 100 ? strategy : "Je deviens une personne calme et maître de son temps."));
+  const [why, setWhy] = useState(whyProp || "Pour avoir l'énergie de jouer avec mes enfants le matin sans être irritable.");
+  const [rules, setRules] = useState(rulesProp || "1. Pas d'écran dans la chambre.\n2. Si je ne dors pas après 20min, je me lève.\n3. Le lit ne sert qu'à dormir.");
 
   return (
     <div className="bg-white border border-blue-100 rounded-2xl shadow-sm overflow-hidden mb-8 transition-all duration-300">
@@ -1543,6 +1546,21 @@ const Dashboard = () => {
       if (!confirm("Félicitations ! Vous avez terminé tous les axes de ce plan global.\n\nVous allez maintenant créer votre PROCHAIN plan de transformation (Nouveau cycle).\n\nL'axe actuel sera marqué comme terminé.")) return;
 
       try {
+          // 0. Marquer le questionnaire (user_answers) associé à ce cycle comme terminé
+          // Cela permet de clore proprement l'ancien cycle avant d'en ouvrir un nouveau
+          const { data: currentGoalData } = await supabase
+            .from('user_goals')
+            .select('submission_id')
+            .eq('id', activeGoalId)
+            .maybeSingle();
+            
+          if (currentGoalData?.submission_id) {
+            await supabase
+                .from('user_answers')
+                .update({ status: 'completed' })
+                .eq('submission_id', currentGoalData.submission_id);
+          }
+
           // 1. Marquer le goal actuel comme terminé
           await supabase
               .from('user_goals')
@@ -1555,11 +1573,38 @@ const Dashboard = () => {
               .update({ status: 'archived' })
               .eq('goal_id', activeGoalId);
 
-          // 3. Redirection vers Global Plan en mode "Nouveau" (Follow)
-          navigate('/global-plan-follow?mode=new');
+          // 3. GESTION DES QUESTIONNAIRES (USER_ANSWERS)
+          // A. Marquer l'ancien questionnaire comme 'completed' (si ce n'est pas déjà fait)
+          // On cherche le dernier qui pourrait être encore 'in_progress' ou même 'completed' pour être sûr
+          // Mais surtout, on veut clore le chapitre précédent.
+          
+          // B. Créer le NOUVEAU questionnaire 'in_progress' avec un nouveau submission_id
+          const newSubmissionId = crypto.randomUUID();
+          
+          const { error: insertError } = await supabase
+            .from('user_answers')
+            .insert({
+                user_id: user.id,
+                questionnaire_type: 'global_plan',
+                status: 'in_progress',
+                submission_id: newSubmissionId,
+                content: {}, // Vide au départ
+                created_at: new Date().toISOString(),
+                updated_at: new Date().toISOString()
+            });
+
+          if (insertError) throw insertError;
+
+          console.log("✅ Nouveau cycle initié. Submission ID:", newSubmissionId);
+
+          // 4. Redirection vers Global Plan avec le nouveau submissionId
+          navigate('/global-plan-follow?mode=new', { 
+              state: { submissionId: newSubmissionId } 
+          });
 
       } catch (err) {
           console.error("Erreur création next global plan:", err);
+          alert("Une erreur est survenue lors de la création du nouveau cycle.");
       }
   };
 
@@ -1917,7 +1962,12 @@ const Dashboard = () => {
               />
             ) : (
               <>
-                <StrategyCard strategy={displayStrategy} />
+                <StrategyCard 
+                  strategy={displayStrategy} 
+                  identityProp={activePlan?.identity}
+                  whyProp={activePlan?.deepWhy}
+                  rulesProp={activePlan?.goldenRules}
+                />
 
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
                   {/* COLONNE GAUCHE : LE PLAN COMPLET (TIMELINE) */}

@@ -255,7 +255,18 @@ const PlanPrioritiesFollow = () => {
 
             // Clean & Upsert
             const currentIds = newOrder.map((c: any) => c.id);
-            await supabase.from('user_goals').delete().eq('user_id', user.id).not('axis_id', 'in', `(${currentIds.join(',')})`);
+            
+            // SÉCURITÉ : On ne supprime que les goals de CETTE submission qui ne sont plus dans la liste
+            // On ne touche JAMAIS aux goals des autres submissions (historique).
+            const currentSubmissionId = location.state?.submissionId;
+            if (currentSubmissionId) {
+                await supabase.from('user_goals')
+                    .delete()
+                    .eq('user_id', user.id)
+                    .eq('submission_id', currentSubmissionId)
+                    .not('axis_id', 'in', `(${currentIds.join(',')})`);
+            }
+
             await supabase.from('user_goals').upsert(goalsPayload, { onConflict: 'user_id,axis_id' });
 
             // C. Mettre à jour l'UI

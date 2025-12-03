@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { ChevronDown, Check, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
@@ -39,6 +39,9 @@ const GlobalPlanFollow = () => {
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null); // Nouvel état pour gérer l'erreur de chargement
   const [currentAnswerId, setCurrentAnswerId] = useState<string | null>(null); // Pour traquer si on update ou insert
+  const [currentSubmissionId, setCurrentSubmissionId] = useState<string | null>(null); // CRITIQUE : Pour lier aux goals
+
+  const location = useLocation(); // Pour récupérer le state du Dashboard
 
   // --- NOUVEL ÉTAT DE SÉLECTION DES AXES ---
   // On stocke quels axes sont "sélectionnés" (ouverts pour être travaillés)
@@ -103,83 +106,102 @@ const GlobalPlanFollow = () => {
         // On cherche la dernière réponse qui contient réellement des données (ui_state ou selectedAxisByTheme)
         // pour éviter de charger une entrée vide créée uniquement pour le tracking des tentatives.
         const isNewGlobalMode = searchParams.get('mode') === 'new';
+        const stateSubmissionId = location.state?.submissionId;
 
-        if (isNewGlobalMode) {
-          console.log("🆕 Mode 'Nouveau Cycle' détecté. Démarrage à vierge.");
-          setIsLoaded(true);
-          return;
+        // 1. Si on a un submissionId passé par le Dashboard, on le charge spécifiquement
+        let query = supabase
+          .from('user_answers')
+          .select('id, content, sorting_attempts, submission_id, status')
+          .eq('user_id', user.id)
+          .eq('questionnaire_type', 'global_plan');
+
+        let shouldFetch = true;
+
+        if (stateSubmissionId) {
+            console.log("📍 Chargement via Submission ID du state:", stateSubmissionId);
+            query = query.eq('submission_id', stateSubmissionId);
+        } else if (!isNewGlobalMode) {
+            // Sinon on cherche le brouillon en cours, MAIS SEULEMENT SI on n'est pas en mode "Nouveau"
+            // Si mode=new et pas d'ID, on ne veut surtout pas reprendre un vieux brouillon.
+            query = query.eq('status', 'in_progress');
+        } else {
+            // Mode NEW sans ID : On ne cherche rien en base, on part de zéro.
+            shouldFetch = false;
         }
 
-        const { data: answersData } = await supabase
-          .from('user_answers')
-          .select('content, sorting_attempts')
-          .eq('user_id', user.id)
-          .eq('questionnaire_type', 'global_plan')
-          .eq('status', 'in_progress') // Filtrer par statut
-          .not('content', 'is', null) // S'assurer qu'il y a du contenu
-          // Idéalement on voudrait vérifier que le JSON n'est pas vide, mais en SQL simple c'est dur.
-          // On va filtrer en JS après si besoin, mais prenons les plus récents d'abord.
-          .order('created_at', { ascending: false })
-          .limit(5); // On en prend quelques uns pour trouver le bon
+        const { data: answersData } = shouldFetch 
+          ? await query.order('created_at', { ascending: false }).limit(5)
+          : { data: [] };
 
         console.log("🔍 GlobalPlanFollow - Answers fetched:", answersData);
 
         let validAnswer = null;
         if (answersData && answersData.length > 0) {
-            // 1. SÉCURITÉ : Vérification PRIORITAIRE du quota sur TOUTES les entrées récentes
-            // Si n'importe quelle entrée récente a atteint la limite, on bloque.
-            // SAUF si le cycle est terminé (isCycleCompleted), car cela signifie qu'on veut repartir à neuf
-            const blockedEntry = answersData.find((a: any) => (a.sorting_attempts || 0) >= 3);
-            
-            if (blockedEntry && !isCycleCompleted) {
-                 console.log("🚫 Limite de génération atteinte (3/3) détectée sur une entrée récente. Redirection forcée.");
-                 navigate('/plan-priorities-follow', { replace: true });
-                 return;
+            // ... (logique de filtrage existante ou on prend le premier si submissionId spécifique)
+            if (stateSubmissionId) {
+                validAnswer = answersData[0];
+            } else {
+                 // Logique existante pour trouver le bon brouillon
+                 // ...
+                 validAnswer = answersData.find((a: any) => {
+                    const c = a.content;
+                    if (!c || Object.keys(c).length === 0) return false; // Ignorer vides
+                    return true;
+                 });
+                 if (!validAnswer && answersData.length > 0) validAnswer = answersData[0]; // Fallback
             }
-
-            // 2. Si pas bloqué, on cherche le contenu valide pour l'affichage
-            validAnswer = answersData.find((a: any) => {
-                const c = a.content;
-                // Vérifier si c'est pas juste {}
-                if (!c || Object.keys(c).length === 0) return false;
-                // Vérifier si structure V2 ou V1
-                if (c.ui_state?.selectedAxisByTheme && Object.keys(c.ui_state.selectedAxisByTheme).length > 0) return true;
-                if (c.selectedAxisByTheme && Object.keys(c.selectedAxisByTheme).length > 0) return true;
-                return false;
-            });
-            
-            // Si aucun valide trouvé, on prend le premier quand même (peut-être un début de saisie)
-            if (!validAnswer) validAnswer = answersData[0];
         }
         
-        if (validAnswer?.content) {
-          console.log("✅ Données Global Plan trouvées:", validAnswer.content);
-          const savedData = validAnswer.content;
-          
-          // On restaure l'UI State s'il existe, sinon on prend la racine (rétrocompatibilité)
-          const uiState = savedData.ui_state || savedData;
-          
-          if (uiState.selectedAxisByTheme) {
-              setSelectedAxisByTheme(uiState.selectedAxisByTheme);
+        // Si on a trouvé une réponse
+        if (validAnswer) {
+             // CHECK DE SÉCURITÉ : Le plan doit être en cours.
+             if (validAnswer.status !== 'in_progress') {
+                 setLoadError("Ce plan est déjà terminé ou archivé (statut : " + validAnswer.status + "). Impossible de le modifier.");
+                 return;
+             }
 
-              // SMART RESUME : On positionne l'utilisateur sur le dernier thème touché
-              const touchedThemes = Object.keys(uiState.selectedAxisByTheme).filter(k => uiState.selectedAxisByTheme[k]);
-              if (touchedThemes.length > 0) {
-                  let lastIndex = -1;
-                  DATA.forEach((theme, index) => {
-                      if (touchedThemes.includes(theme.id)) {
-                          lastIndex = index;
-                      }
-                  });
+             // REDIRECTION SI LIMITE ATTEINTE : Si déjà 3 tentatives (ou plus), on force la suite
+             if ((validAnswer.sorting_attempts || 0) >= 3) {
+                 console.log("🚫 Limite de tentatives atteinte (3/3). Redirection vers Priorités.");
+                 navigate('/plan-priorities-follow', { 
+                     state: { 
+                         submissionId: validAnswer.submission_id,
+                         fromGlobalPlan: true 
+                     } 
+                 });
+                 return;
+             }
 
-                  // Si on a trouvé un thème, on s'y met (sauf si un paramètre d'URL forçait déjà un thème)
-                  if (lastIndex !== -1 && !themeParam) {
-                      setCurrentTheme(DATA[lastIndex]);
-                  }
-              }
-          }
-          if (uiState.responses) setResponses(uiState.responses);
+             setCurrentAnswerId(validAnswer.id);
+             setCurrentSubmissionId(validAnswer.submission_id); // ON STOCKE L'ID
+
+             if (validAnswer.content) {
+                 const savedData = validAnswer.content;
+                 const uiState = savedData.ui_state || savedData;
+                 
+                 if (uiState.selectedAxisByTheme) {
+                     setSelectedAxisByTheme(uiState.selectedAxisByTheme);
+                     // ... (Smart Resume Logic)
+                     const touchedThemes = Object.keys(uiState.selectedAxisByTheme).filter(k => uiState.selectedAxisByTheme[k]);
+                     if (touchedThemes.length > 0) {
+                         let lastIndex = -1;
+                         DATA.forEach((theme, index) => {
+                             if (touchedThemes.includes(theme.id)) {
+                                 lastIndex = index;
+                             }
+                         });
+                         if (lastIndex !== -1 && !themeParam) {
+                             setCurrentTheme(DATA[lastIndex]);
+                         }
+                     }
+                 }
+                 if (uiState.responses) setResponses(uiState.responses);
+             }
+        } else if (isNewGlobalMode) {
+             // Si mode new mais pas de réponse trouvée (cas rare si Dashboard a bien fait son job, mais possible en direct)
+             console.log("🆕 Mode 'Nouveau Cycle' sans réponse trouvée. Prêt à créer.");
         }
+        
       } catch (err) {
         console.error('Error loading progress:', err);
         
@@ -300,19 +322,27 @@ const GlobalPlanFollow = () => {
       try {
         // Mode Nouveau Cycle : On force une insertion si on n'a pas encore d'ID
         const isNewGlobalMode = searchParams.get('mode') === 'new';
+        
+        // RECUPERATION DU SUBMISSION ID (State > Current > New)
+        let submissionIdToUse = currentSubmissionId || location.state?.submissionId;
+        if (!submissionIdToUse && isNewGlobalMode && !currentAnswerId) {
+            submissionIdToUse = crypto.randomUUID();
+            setCurrentSubmissionId(submissionIdToUse);
+        }
 
-        // 1. Chercher l'entrée existante (la plus récente) SI ce n'est pas un nouveau cycle OU si on a déjà un currentAnswerId
+        // 1. Chercher l'entrée existante
         let existingEntry = null;
 
         if (currentAnswerId) {
              existingEntry = { id: currentAnswerId };
         } else if (!isNewGlobalMode) {
+            // Si on n'est pas en mode "Force New", on essaie de récupérer le brouillon
             const { data } = await supabase
                 .from('user_answers')
                 .select('id')
                 .eq('user_id', user.id)
                 .eq('questionnaire_type', 'global_plan')
-                .eq('status', 'in_progress') // NOUVEAU : On ne cherche que les brouillons
+                .eq('status', 'in_progress')
                 .order('created_at', { ascending: false })
                 .limit(1)
                 .maybeSingle();
@@ -324,6 +354,7 @@ const GlobalPlanFollow = () => {
         const payload = {
             user_id: user.id,
             questionnaire_type: 'global_plan',
+            submission_id: submissionIdToUse, // IMPORTANT : On sauvegarde l'ID
             content: {
               // Pour l'IA : Données riches et structurées
               structured_data: structuredData,
@@ -346,6 +377,11 @@ const GlobalPlanFollow = () => {
                 .from('user_answers')
                 .update(payload)
                 .eq('id', existingEntry.id);
+                
+            // Si on a récupéré un entry qu'on n'avait pas tracké (ex: reconnexion)
+            if (!currentAnswerId) setCurrentAnswerId(existingEntry.id);
+            if (!currentSubmissionId && submissionIdToUse) setCurrentSubmissionId(submissionIdToUse);
+            
         } else {
             const { data: newEntry } = await supabase
                 .from('user_answers')
@@ -355,6 +391,7 @@ const GlobalPlanFollow = () => {
             
             if (newEntry) {
                 setCurrentAnswerId(newEntry.id);
+                if (submissionIdToUse) setCurrentSubmissionId(submissionIdToUse);
             }
         }
 
@@ -637,114 +674,67 @@ const GlobalPlanFollow = () => {
           <button
             onClick={async () => {
               const data = prepareSelectionData();
-              // On génère un ID unique pour cette soumission (Le "Numéro de questionnaire")
-              const submissionId = crypto.randomUUID();
+              
+              // CRITIQUE : On utilise le submissionId existant s'il y en a un (ce qui devrait être le cas via Dashboard)
+              // Sinon on en génère un (fallback)
+              const submissionId = currentSubmissionId || crypto.randomUUID();
+              console.log("🚀 Génération Plan - Submission ID:", submissionId);
               
               // Sauvegarde immédiate avec le submissionId
               if (user) {
                   try {
-                      // 0. Récupérer l'entrée existante pour mettre à jour
-                      const { data: existingAnswers } = await supabase
-                          .from('user_answers')
-                          .select('id, sorting_attempts, content')
-                          .eq('user_id', user.id)
-                          .eq('questionnaire_type', 'global_plan')
-                          .order('created_at', { ascending: false })
-                          .limit(1)
-                          .maybeSingle();
+                      // 1. (Logique de nettoyage désactivée pour éviter les suppressions accidentelles)
+                      // On ne supprime plus les anciens goals/plans ici.
                       
-                      // 1. NETTOYAGE : (Désactivé) On ne supprime PLUS les anciens goals/plans pour garder l'historique
-                      // Le dashboard a déjà marqué le dernier goal comme completed.
-                      
-                      /* 
-                      await supabase.from('user_goals')
-                        .delete()
-                        .eq('user_id', user.id)
-                        .in('status', ['active', 'pending']);
-
-                      await supabase.from('user_plans')
-                        .delete()
-                        .eq('user_id', user.id)
-                        .eq('status', 'active');
-                      */
-
                       // 2. MISE À JOUR OU INSERTION USER_ANSWERS
                       const structuredData = buildStructuredData();
-                      
-                      const isNewGlobalMode = searchParams.get('mode') === 'new';
                       
                       const payload = {
                           user_id: user.id,
                           questionnaire_type: 'global_plan',
-                          submission_id: submissionId, // On update l'ID de soumission
+                          submission_id: submissionId, // On s'assure qu'il est set
                           content: {
                               structured_data: structuredData,
                               ui_state: { selectedAxisByTheme, responses },
                               last_updated: new Date().toISOString()
                           },
-                          // On incrémente sorting_attempts ici même si PlanPriorities le refera peut-être
-                          // Mais surtout on préserve l'existant + update
-                          updated_at: new Date().toISOString()
+                          updated_at: new Date().toISOString(),
+                          status: 'in_progress' // ON GARDE EN 'in_progress' TANT QUE LE PLAN N'EST PAS FINALISÉ AILLEURS
                       };
-
-                      // Logique de sauvegarde finale :
-                      // Si on a un currentAnswerId, on update celui-là (c'est celui de la session en cours)
-                      // Sinon, si mode new, on insert. Sinon on cherche le dernier.
                       
                       let targetId = currentAnswerId;
                       
-                      if (!targetId && !isNewGlobalMode) {
-                           const { data: last } = await supabase
-                              .from('user_answers')
-                              .select('id')
-                              .eq('user_id', user.id)
-                              .eq('questionnaire_type', 'global_plan')
-                              .eq('status', 'in_progress') // On cherche le brouillon
-                              .order('created_at', { ascending: false })
-                              .limit(1)
-                              .maybeSingle();
-                           targetId = last?.id;
-                      }
-
                       if (targetId) {
-                          console.log("📝 Mise à jour user_answers existant avec nouveau submissionId...");
+                          console.log("📝 Mise à jour user_answers existant...");
                           await supabase
                               .from('user_answers')
-                              .update({
-                                  ...payload,
-                                  status: 'completed' // ON VALIDE LE QUESTIONNAIRE
-                                  // Si c'était un brouillon (sorting_attempts null), on initialise. 
-                                  // Si c'est une reprise, on garde l'existant.
-                              })
+                              .update(payload)
                               .eq('id', targetId);
                       } else {
-                          console.log("📝 Création user_answers...");
-                          await supabase
+                          console.log("📝 Création user_answers (Fallback)...");
+                          const { data: newEntry } = await supabase
                               .from('user_answers')
-                              .insert({
-                                  ...payload,
-                                  status: 'completed', // DIRECTEMENT VALIDÉ
-                                  sorting_attempts: 0
-                              });
+                              .insert(payload)
+                              .select('id')
+                              .single();
+                          if (newEntry) setCurrentAnswerId(newEntry.id);
                       }
 
-                      // 3. CRÉATION IMMÉDIATE DES USER_GOALS (PENDING) AVEC LE SUBMISSION_ID
-                      // Cela garantit que les goals existent AVANT d'arriver sur PlanPriorities
-                      // et qu'ils ont le bon submission_id associé.
-                      console.log("🎯 Création initiale des user_goals avec submission_id...");
+                      // 3. CRÉATION DES USER_GOALS AVEC LE SUBMISSION_ID
+                      console.log("🎯 Création des user_goals avec submission_id...");
                       const initialGoals = data.map((item: any, index: number) => ({
                           user_id: user.id,
                           axis_id: item.id,
                           axis_title: item.title,
                           theme_id: item.theme,
-                          priority_order: index + 1, // Ordre de sélection par défaut
-                          status: index === 0 ? 'active' : 'pending', // On active le premier par défaut
-                          submission_id: submissionId, // ICI : On s'assure que l'ID est bien présent
-                          role: 'pending', // Sera affiné par l'IA dans PlanPriorities
+                          priority_order: index + 1,
+                          status: index === 0 ? 'active' : 'pending',
+                          submission_id: submissionId,
+                          role: 'pending',
                           reasoning: null
                       }));
 
-                      await supabase.from('user_goals').upsert(initialGoals, { onConflict: 'user_id,axis_id' });
+                      await supabase.from('user_goals').insert(initialGoals);
 
                   } catch (e) {
                       console.error("Erreur save global plan submit:", e);

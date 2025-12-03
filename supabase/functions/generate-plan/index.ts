@@ -95,7 +95,12 @@ serve(async (req) => {
           3.  **Types d'Actions** :
               - "habitude" (Groupe A) : Action récurrente (ex: Couvre-feu digital). A besoin de 'targetReps'.
               - "mission" (Groupe B) : Action logistique "One-shot" à cocher (ex: Acheter des boules Quies).
-              - "framework" (Groupe B - TYPE SPÉCIAL) : C'est un EXERCICE D'ÉCRITURE ou de RÉFLEXION que l'utilisateur doit remplir DANS L'INTERFACE. Ce N'EST PAS une action physique comme "respirer". C'est "Remplir le journal", "Compléter le bilan", "Écrire la lettre". La description doit être explicite sur ce qu'il faut saisir.
+              - "framework" (Groupe B - TYPE SPÉCIAL) : C'est un EXERCICE D'ÉCRITURE ou de RÉFLEXION que l'utilisateur doit remplir DANS L'INTERFACE. Ce N'EST PAS une action physique comme "respirer". C'est "Remplir le journal", "Compléter le bilan", "Écrire la lettre".
+                **IMPORTANT** : Si tu utilises ce type, tu DOIS inclure un objet "frameworkDetails" dans l'action avec :
+                - "type": "one_shot" (une fois) ou "recurring" (répétable)
+                - "intro": (Texte Markdown court expliquant l'exercice ou donnant de l'inspiration)
+                - "sections": Array de champs à remplir. Chaque champ doit avoir : "id", "label", "inputType" ("text", "textarea", "scale"), "placeholder".
+              
           4.  **Actions Spéciales** :
               - "constat" (Groupe C) : Le KPI "Signe Vital" OBLIGATOIRE (métrique chiffrée à suivre).
               - "surveillance" (Groupe D) : La question de maintenance OBLIGATOIRE.
@@ -149,7 +154,15 @@ serve(async (req) => {
                     "description": "Écrire tout ce qui tourne en boucle dans ta tête avant de dormir sur papier.",
                     "questType": "side",
                     "tips": "Ne cherche pas à faire joli, vide juste ton cache.",
-                    "rationale": "Réduit le cortisol pré-endormissement."
+                    "rationale": "Réduit le cortisol pré-endormissement.",
+                    "frameworkDetails": {
+                        "type": "recurring",
+                        "intro": "Le but est de vider ta RAM. Ne filtre rien. Si tu penses à ta liste de course, écris-la. Si tu es en colère contre ton chat, écris-le.",
+                        "sections": [
+                            { "id": "s1", "label": "Ce qui me préoccupe", "inputType": "textarea", "placeholder": "Je pense à..." },
+                            { "id": "s2", "label": "Niveau de stress (1-10)", "inputType": "scale", "placeholder": "5" }
+                        ]
+                    }
                   }
                 ]
               }
