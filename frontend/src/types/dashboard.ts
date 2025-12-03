@@ -6,6 +6,7 @@ export interface Action {
   title: string;
   description: string;
   isCompleted: boolean;
+  status?: 'pending' | 'active' | 'completed' | 'cancelled' | 'abandoned'; // NOUVEAU : Gestion fine du verrouillage
   // Pour les Habitudes (Groupe A)
   targetReps?: number;
   currentReps?: number;

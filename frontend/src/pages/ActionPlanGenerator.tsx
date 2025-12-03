@@ -911,6 +911,7 @@ const ActionPlanGenerator = () => {
                 if (updateError) throw updateError;
 
                 // DISTRIBUTION DES ACTIONS (Mise à jour)
+                // On s'assure que les actions correspondent bien à la dernière version du plan 'plan' (du state)
                 await distributePlanActions(user.id, existingPlan.id, activeGoal.submission_id, plan);
             }
 
@@ -1239,8 +1240,8 @@ const ActionPlanGenerator = () => {
 
                     <div className="space-y-4 md:space-y-6">
                       {phase.actions.map((action: any, i: number) => {
-                        const isGroupA = action.type === 'habitude';
-                        const isFramework = action.type === 'framework';
+                        const isGroupA = action.type?.toLowerCase().trim() === 'habitude' || action.type?.toLowerCase().trim() === 'habit';
+                        const isFramework = action.type?.toLowerCase().trim() === 'framework';
                         const isMainQuest = action.questType === 'main';
 
                         return (

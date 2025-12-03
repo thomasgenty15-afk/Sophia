@@ -1,5 +1,54 @@
 import { supabase } from './supabase';
-import { GeneratedPlan } from '../types/plan';
+import type { GeneratedPlan } from '../types/dashboard';
+
+/**
+ * Marque comme "abandoned" toutes les actions et frameworks ACTIFS
+ * qui ne font PAS partie du nouveau plan.
+ * Utilisé pour clore proprement les anciennes transformations quand on en commence une nouvelle.
+ */
+export const abandonPreviousActions = async (userId: string, excludePlanId: string) => {
+  console.log("🏚️ Abandon des anciennes actions actives (sauf plan:", excludePlanId, ")...");
+
+  // 1. Diagnostic : Combien d'actions sont concernées ?
+  const { count } = await supabase
+      .from('user_actions')
+      .select('*', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .neq('plan_id', excludePlanId)
+      .in('status', ['active', 'pending']);
+  
+  console.log(`🔎 Diagnostic: ${count} anciennes actions à abandonner.`);
+
+  // On sépare pour mieux gérer les erreurs
+  const updates = [
+      supabase
+          .from('user_actions')
+          .update({ status: 'abandoned' })
+          .eq('user_id', userId)
+          .neq('plan_id', excludePlanId)
+          .in('status', ['active', 'pending']),
+
+      supabase
+          .from('user_framework_tracking')
+          .update({ status: 'abandoned' })
+          .eq('user_id', userId)
+          .neq('plan_id', excludePlanId)
+          .in('status', ['active', 'pending'])
+  ];
+
+  const results = await Promise.all(updates);
+  
+  // Vérification des erreurs
+  const errors = results.filter(r => r.error).map(r => r.error);
+  if (errors.length > 0) {
+      console.error("❌ Erreur lors de l'abandon des anciennes actions :", errors);
+      // On ne throw pas forcément pour ne pas bloquer la création du nouveau plan, 
+      // mais on alerte.
+      // Si l'erreur est "check constraint", c'est que la migration manque.
+  } else {
+      console.log("✅ Anciennes actions abandonnées (ou aucune à abandonner).");
+  }
+};
 
 /**
  * Cette fonction est appelée au moment de la VALIDATION du plan (passage en 'active').
@@ -15,25 +64,51 @@ export const distributePlanActions = async (
 ) => {
   console.log("🚀 Distribution des actions pour le plan:", planId);
 
-  // 0. NETTOYAGE PRÉALABLE (Idempotence)
+  // 0.A. ABANDON DES ANCIENS PLANS (Requirements: Clean slate transition)
+  await abandonPreviousActions(userId, planId);
+
+  // 0.B. NETTOYAGE PRÉALABLE DU PLAN ACTUEL (Idempotence)
   // On supprime les anciennes actions/signes liés à ce plan pour éviter les doublons si on re-valide
   await supabase.from('user_actions').delete().eq('plan_id', planId);
   await supabase.from('user_vital_signs').delete().eq('plan_id', planId);
+  await supabase.from('user_framework_tracking').delete().eq('plan_id', planId);
 
-  // 1. Préparer les actions (Missions & Habitudes)
+  // 1. Préparer les actions (Missions & Habitudes) ET Frameworks
   const actionsToInsert: any[] = [];
+  const frameworksToTrack: any[] = [];
   
+  let globalActionIndex = 0; // Pour déterminer les 2 premières actions globales
+
   // On parcourt toutes les phases
   planContent.phases.forEach(phase => {
     phase.actions.forEach(action => {
-      // On ignore les frameworks car ils ont leur propre table (user_framework_entries)
-      // On ne prend que 'mission' et 'habitude' (mappé en 'habit' en base, ou on garde 'habitude' ?)
-      // La migration dit: check (type in ('mission', 'habit'))
-      // Le JSON de l'IA renvoie 'habitude'. Il faut mapper.
       
+      const isInitialActive = globalActionIndex < 2;
+      const initialStatus = isInitialActive ? 'active' : 'pending';
+      globalActionIndex++;
+
+      // CAS 1: Frameworks (Table user_framework_tracking)
+      if (action.type === 'framework') {
+        frameworksToTrack.push({
+          user_id: userId,
+          plan_id: planId,
+          submission_id: submissionId,
+          action_id: action.id,
+          title: action.title,
+          type: (action as any).frameworkDetails?.type || 'unknown', // 'one_shot' | 'recurring'
+          target_reps: action.targetReps || 1,
+          current_reps: 0,
+          status: initialStatus
+        });
+      }
+      
+      // CAS 2: Missions & Habitudes (Table user_actions)
       let dbType = '';
-      if (action.type === 'mission') dbType = 'mission';
-      if (action.type === 'habitude') dbType = 'habit';
+      // Normalisation des types (supporte 'habit', 'HABIT', 'habitude')
+      const normalizedType = action.type?.toLowerCase().trim();
+      
+      if (normalizedType === 'mission') dbType = 'mission';
+      if (normalizedType === 'habitude' || normalizedType === 'habit') dbType = 'habit';
       
       if (dbType) {
         actionsToInsert.push({
@@ -45,7 +120,7 @@ export const distributePlanActions = async (
           description: action.description,
           target_reps: action.targetReps || (dbType === 'mission' ? 1 : null), // Mission = 1 fois par défaut
           current_reps: 0,
-          status: 'active'
+          status: initialStatus
         });
       }
     });
@@ -76,6 +151,13 @@ export const distributePlanActions = async (
     console.log(`📝 Insertion de ${actionsToInsert.length} actions...`);
     promises.push(
       supabase.from('user_actions').insert(actionsToInsert)
+    );
+  }
+
+  if (frameworksToTrack.length > 0) {
+    console.log(`📚 Insertion de ${frameworksToTrack.length} frameworks à tracker...`);
+    promises.push(
+        supabase.from('user_framework_tracking').insert(frameworksToTrack)
     );
   }
 
@@ -128,8 +210,10 @@ export const cleanupSubmissionData = async (userId: string, submissionId: string
         // 3. Supprimer les signes vitaux
         supabase.from('user_vital_signs').delete().eq('user_id', userId).eq('submission_id', submissionId),
 
-        // 4. Supprimer les frameworks liés à cette submission
-        // (Attention : Framework Entries a submission_id maintenant ? Oui via migration 20241203000001)
+        // 4. Supprimer le tracking framework
+        supabase.from('user_framework_tracking').delete().eq('user_id', userId).eq('submission_id', submissionId),
+
+        // 5. Supprimer les frameworks liés à cette submission
         supabase.from('user_framework_entries').delete().eq('user_id', userId).eq('submission_id', submissionId)
     ];
 
@@ -149,6 +233,7 @@ export const cleanupPlanData = async (planId: string) => {
     await Promise.all([
         supabase.from('user_actions').delete().eq('plan_id', planId),
         supabase.from('user_vital_signs').delete().eq('plan_id', planId),
+        supabase.from('user_framework_tracking').delete().eq('plan_id', planId),
         supabase.from('user_framework_entries').delete().eq('plan_id', planId)
     ]);
 };

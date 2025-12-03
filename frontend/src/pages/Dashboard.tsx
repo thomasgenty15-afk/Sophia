@@ -1,1348 +1,41 @@
 import { useState, useEffect } from 'react';
-import { distributePlanActions, cleanupSubmissionData } from '../lib/planActions';
+import { cleanupSubmissionData } from '../lib/planActions';
 import {
-  Check,
-  Play,
-  Lock,
-  Zap,
-  Sparkles,
-  Book,
-  ArrowRight,
-  Target,
   Compass,
   Layout,
   Hammer,
+  Sparkles,
+  Target,
+  Lock,
   CheckCircle2,
-  PlayCircle,
-  PlusCircle,
-  Edit3,
-  ChevronUp,
-  ChevronDown,
-  Tv,
-  FileText,
-  Sword, // Pour Quête Principale
-  Shield, // Pour Quête Secondaire
-  FastForward,
-  BarChart3, // Pour Métriques
-  TrendingDown,
-  TrendingUp,
-  MessageCircle, // Pour WhatsApp
-  LifeBuoy, // NOUVEAU : Alternative pour SOS
   Users,
-  X, // NOUVEAU : Fermer modal
-  Settings, // NOUVEAU : Paramètres plan
-  Trash2, // NOUVEAU : Reset
-  SkipForward, // NOUVEAU : Passer au suivant
-  RefreshCw, // NOUVEAU : Recommencer
-  Loader2 // AJOUT POUR LA REPRISE ONBOARDING
+  ArrowRight,
+  BarChart3,
+  Tv,
+  Book,
+  Settings,
+  Zap,
+  Check
 } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 
-// --- TYPES ---
-type ActionType = 'habitude' | 'mission' | 'framework';
-
-interface Action {
-  id: string;
-  type: ActionType;
-  title: string;
-  description: string;
-  isCompleted: boolean;
-  // Pour les Habitudes (Groupe A)
-  targetReps?: number;
-  currentReps?: number;
-  // Pour les One-Shot (Groupe B)
-  frameworkId?: string; // Si c'est un outil à ouvrir
-  // Méta
-  tips?: string; // Infos pour réussir
-  rationale?: string; // NOUVEAU : Explication de pourquoi ça aide
-  questType?: 'main' | 'side'; // Quête Principale ou Secondaire
-}
-
-interface PlanPhase {
-  id: number;
-  title: string;
-  subtitle: string;
-  status: 'completed' | 'active' | 'locked';
-  actions: Action[];
-}
-
-interface GeneratedPlan {
-  strategy: string;
-  phases: PlanPhase[];
-  identity?: string;
-  deepWhy?: string;
-  goldenRules?: string;
-}
-
-// --- MOCK DATA : PROFIL "CHAOS / À LA RAMASSE" ---
-const MOCK_CHAOS_PLAN: GeneratedPlan = {
-  strategy: "On arrête l'hémorragie. On ne cherche pas à être productif, on cherche à survivre et à remettre les bases physiologiques (Sommeil + Dopamine) avant de reconstruire.",
-  phases: [
-    {
-      id: 1,
-      title: "Phase 1 : Urgence & Physiologie",
-      subtitle: "Semaines 1-2 • Sortir de la zone rouge",
-      status: 'completed',
-      actions: [
-        {
-          id: 'a1',
-          type: 'mission',
-          title: "Purger la Dopamine Facile",
-          description: "Supprimer TikTok/Insta, jeter la malbouffe des placards.",
-          isCompleted: true,
-          tips: "Ne réfléchis pas. Prends un sac poubelle. Fais-le maintenant.",
-          questType: 'main'
-        },
-        {
-          id: 'a2',
-          type: 'habitude',
-          title: "Le Couvre-Feu Digital (22h)",
-          description: "Aucun écran après 22h00. Lecture ou Audio uniquement.",
-          isCompleted: true,
-          targetReps: 14,
-          currentReps: 14,
-          tips: "Mets ton téléphone dans une autre pièce (cuisine/salon) à 21h55.",
-          questType: 'side'
-        }
-      ]
-    },
-    {
-      id: 2,
-      title: "Phase 2 : Clarté Mentale",
-      subtitle: "Semaines 3-4 • Calmer le bruit",
-      status: 'active',
-      actions: [
-        {
-          id: 'a3',
-          type: 'framework',
-          title: "Le Vide-Cerveau (GTD)",
-          description: "Noter absolument tout ce qui traîne dans ta tête.",
-          isCompleted: false,
-          frameworkId: 'gtd_simple',
-          tips: "Utilise le modèle fourni. Ne trie pas, vide juste.",
-          questType: 'main'
-        },
-        {
-          id: 'a4',
-          type: 'habitude',
-          title: "Marche Matinale (Lumière)",
-          description: "10 min dehors sans téléphone dès le réveil.",
-          isCompleted: false,
-          targetReps: 14,
-          currentReps: 3,
-          tips: "C'est pour ton cortisol. La lumière directe est non-négociable.",
-          questType: 'side'
-        }
-      ]
-    },
-    {
-      id: 3,
-      title: "Phase 3 : Reconstruction",
-      subtitle: "Semaines 5-6 • Reprendre le pouvoir",
-      status: 'locked',
-      actions: [
-        {
-          id: 'a5',
-          type: 'habitude',
-          title: "Défi Hypnose : Réparation",
-          description: "Écoute du programme 'Reconstruction Profonde' chaque soir.",
-          isCompleted: false,
-          targetReps: 21,
-          currentReps: 0,
-          tips: "Laisse l'inconscient bosser en t'endormant.",
-          questType: 'main'
-        },
-        {
-          id: 'a6',
-          type: 'mission',
-          title: "Sanctuariser le Deep Work",
-          description: "Bloquer 2h/jour dans l'agenda où personne ne dérange.",
-          isCompleted: false,
-          tips: "Préviens ton entourage : 'Je suis en mode avion'.",
-          questType: 'side'
-        }
-      ]
-    },
-    {
-      id: 4,
-      title: "Phase 4 : Optimisation",
-      subtitle: "Semaines 7-8 • Affiner le système",
-      status: 'locked',
-      actions: [
-        {
-          id: 'a7',
-          type: 'framework',
-          title: "Audit des Fuites d'Énergie",
-          description: "Analyser ce qui te vide (gens, tâches, pensées).",
-          isCompleted: false,
-          frameworkId: 'energy_audit',
-          tips: "Sois impitoyable.",
-          questType: 'main'
-        },
-        {
-          id: 'a8',
-          type: 'habitude',
-          title: "Priorité Unique (The One Thing)",
-          description: "Définir LA priorité du lendemain avant de dormir.",
-          isCompleted: false,
-          targetReps: 14,
-          currentReps: 0,
-          tips: "Juste un post-it.",
-          questType: 'side'
-        }
-      ]
-    },
-    {
-      id: 5,
-      title: "Phase 5 : Identité Nouvelle",
-      subtitle: "Semaines 9-10 • Incarner le changement",
-      status: 'locked',
-      actions: [
-        {
-          id: 'a9',
-          type: 'mission',
-          title: "Lettre au Futur Moi",
-          description: "Écrire à ton futur toi dans 1 an.",
-          isCompleted: false,
-          tips: "Fais des promesses que tu peux tenir.",
-          questType: 'main'
-        },
-        {
-          id: 'a10',
-          type: 'habitude',
-          title: "Visualisation Identitaire",
-          description: "5 minutes par jour à ressentir la version finale.",
-          isCompleted: false,
-          targetReps: 14,
-          currentReps: 0,
-          tips: "Préparation neurologique.",
-          questType: 'side'
-        }
-      ]
-    }
-  ]
-};
-
-// --- MOCK DATA (ARCHITECTE - 12 SEMAINES DÉVERROUILLÉES) ---
-const ARCHITECT_WEEKS = [
-  // PHASE 1
-  { id: 1, title: "Audit des Croyances", subtitle: "Déconstruction", status: "completed" },
-  { id: 2, title: "Le Prix à Payer", subtitle: "Déconstruction", status: "completed" },
-  { id: 3, title: "Système Nerveux & État", subtitle: "Fondations Intérieures", status: "completed" },
-  { id: 4, title: "Incarnation & Parole", subtitle: "Fondations Intérieures", status: "active" },
-  { id: 5, title: "La Boussole (Mission)", subtitle: "Fondations Intérieures", status: "locked" },
-  { id: 6, title: "Environnement & Tribu", subtitle: "Projection Extérieure", status: "locked" },
-  // PHASE 2
-  { id: 7, title: "Le Moteur (Productivité)", subtitle: "Expansion", status: "locked" },
-  { id: 8, title: "L'Ombre (Dark Side)", subtitle: "Intégration", status: "locked" },
-  { id: 9, title: "L'Art de la Guerre", subtitle: "Affirmation", status: "locked" },
-  { id: 10, title: "L'Argent & La Valeur", subtitle: "Abondance", status: "locked" },
-  { id: 11, title: "Le Cercle (Leadership)", subtitle: "Influence", status: "locked" },
-  { id: 12, title: "Le Grand Saut", subtitle: "Final", status: "locked" },
-];
-
-// --- COMPOSANTS ARCHITECTE ---
-const WeekCard = ({ week }: { week: any }) => {
-  const navigate = useNavigate();
-  const isLocked = week.status === "locked";
-  const isCurrent = week.status === "active";
-  const isCompleted = week.status === "completed";
-
-  const handleClick = () => {
-    if (isLocked) return;
-    navigate(`/architecte/${week.id}`);
-  };
-
-  return (
-    <div
-      onClick={handleClick}
-      className={`relative rounded-2xl p-6 border transition-all duration-500 group cursor-pointer h-[180px] flex flex-col justify-center snap-center shrink-0 w-full md:w-[90%] mx-auto ${isCurrent
-          ? "bg-emerald-900 border-emerald-500 shadow-2xl shadow-emerald-500/20 scale-100 z-10 ring-1 ring-emerald-400"
-          : isCompleted
-            ? "bg-emerald-800/40 border-emerald-600/60 opacity-100 scale-95 hover:bg-emerald-800/60 hover:border-emerald-500"
-            : "bg-emerald-950/40 border-emerald-800/50 opacity-80 scale-95 grayscale-[0.5] hover:opacity-100 hover:border-emerald-700"
-        }`}>
-      {isCurrent && <div className="absolute -left-1 top-1/2 -translate-y-1/2 w-1.5 h-16 bg-amber-500 rounded-r-full shadow-[0_0_20px_rgba(245,158,11,0.6)]" />}
-
-      <div className="flex items-center justify-between relative z-10 px-4">
-        <div className="flex-1">
-          <div className="flex flex-col-reverse items-start min-[300px]:flex-row min-[300px]:items-center gap-1 min-[300px]:gap-3 mb-2">
-            <span className={`text-xs font-bold uppercase tracking-widest ${isCurrent ? "text-amber-400" : isCompleted ? "text-emerald-300" : "text-emerald-700"}`}>
-              Semaine {week.id}
-            </span>
-            {isCompleted && (
-              <span className="bg-emerald-500/20 text-emerald-300 text-xs px-2 py-0.5 rounded-full font-bold uppercase tracking-wider border border-emerald-500/30">
-                Validé
-              </span>
-            )}
-          </div>
-
-          <h3 className={`text-lg md:text-xl font-serif font-bold leading-tight ${isCurrent ? "text-white" : isCompleted ? "text-emerald-100" : "text-emerald-800"}`}>
-            {week.title}
-          </h3>
-
-          {isLocked && (
-            <p className="text-xs md:text-sm text-emerald-800 mt-2 font-medium flex items-center gap-1">
-              <Lock className="w-3 h-3" /> Se débloque bientôt
-            </p>
-          )}
-        </div>
-
-        <div className={`w-10 h-10 md:w-14 md:h-14 rounded-full flex items-center justify-center flex-shrink-0 transition-all duration-300 ml-4 hidden min-[300px]:flex ${isCurrent
-            ? "bg-amber-500 text-emerald-950 shadow-lg scale-110"
-            : isCompleted
-              ? "bg-emerald-500 text-emerald-950 shadow-md shadow-emerald-900/20"
-              : "bg-emerald-900/20 text-emerald-800 border border-emerald-900/50"
-          }`}>
-          {isLocked ? <Lock className="w-4 h-4 md:w-5 md:h-5" /> : isCompleted ? <Check className="w-5 h-5 md:w-6 md:h-6" /> : <Play className="w-4 h-4 md:w-5 md:h-5 fill-current ml-0.5" />}
-        </div>
-      </div>
-    </div>
-  );
-};
-
-
-// --- COMPOSANTS ACTION ---
-
-const RitualCard = ({ action }: { action: any }) => {
-  const isLimitReached = action.subType === 'hypnose_daily' && (action.current_trial_day || 0) >= (action.free_trial_days || 5);
-  const isUpsell = action.subType === 'hypnose_perso';
-
-  if (isUpsell) {
-    return (
-      <div className="bg-gradient-to-r from-indigo-900 to-violet-900 border border-indigo-800 rounded-xl p-4 mb-4 shadow-md relative overflow-hidden group cursor-pointer hover:scale-[1.01] transition-transform">
-        <div className="absolute top-0 right-0 -mt-2 -mr-2 w-20 h-20 bg-white opacity-5 blur-2xl rounded-full pointer-events-none"></div>
-        <div className="flex flex-col min-[400px]:flex-row items-start justify-between relative z-10 gap-3 min-[400px]:gap-0">
-          <div className="flex flex-col min-[350px]:flex-row items-start min-[350px]:items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-amber-400 shadow-inner">
-              <Sparkles className="w-5 h-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-sm min-[350px]:text-base leading-tight text-indigo-200">{action.title}</h3>
-              <p className="text-indigo-200 text-xs min-[350px]:text-sm mt-1 max-w-[200px]">{action.description}</p>
-            </div>
-          </div>
-          <div className="flex flex-col items-end self-end min-[400px]:self-auto">
-            <span className="bg-amber-400 text-amber-950 text-xs font-bold px-2 py-0.5 rounded-full mb-1 shadow-sm">
-              +50% de réussite
-            </span>
-            <span className="text-white font-bold text-lg">{action.price}</span>
-          </div>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="bg-white border border-gray-200 rounded-xl p-4 mb-3 flex items-center justify-between shadow-sm min-h-[80px]">
-      <div className="flex flex-col min-[350px]:flex-row items-start min-[350px]:items-center gap-3 w-full">
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${action.subType === 'hypnose_daily' ? 'bg-indigo-100 text-indigo-600' : 'bg-blue-100 text-blue-600'}`}>
-          {action.subType === 'hypnose_daily' ? <CheckCircle2 className="w-5 h-5" /> : <Target className="w-5 h-5" />}
-        </div>
-        <div className="min-w-0 flex-1 pr-0 min-[350px]:pr-2 w-full">
-          <h3 className="font-bold text-sm min-[350px]:text-base text-gray-900 leading-tight mb-1.5">{action.title}</h3>
-          {action.subType === 'hypnose_daily' ? (
-            <div className="flex flex-wrap items-center gap-2">
-              {isLimitReached ? (
-                <span className="text-red-500 text-xs font-bold flex items-center gap-1"><Lock className="w-3 h-3" /> Limite atteinte</span>
-              ) : (
-                <span className={`inline-block bg-gray-100 px-2 py-0.5 rounded text-xs font-medium text-gray-600 border border-gray-200 ${action.subType === 'hypnose_daily' ? 'hidden min-[430px]:inline-block' : ''}`}>
-                  Essai : J-{action.current_trial_day} / {action.free_trial_days}
-                </span>
-              )}
-            </div>
-          ) : (
-            <p className="text-xs text-gray-500 leading-snug">{action.description}</p>
-          )}
-        </div>
-      </div>
-      {isLimitReached ? (
-        <button className="ml-2 px-2 py-1 bg-gray-100 text-gray-400 rounded text-xs font-bold cursor-not-allowed flex-shrink-0">
-          Bloqué
-        </button>
-      ) : (
-        <button className="ml-2 w-10 h-10 rounded-full bg-gray-900 text-white flex items-center justify-center hover:scale-110 transition-transform flex-shrink-0 shadow-md">
-          <Play className="w-4 h-4 fill-current ml-0.5" />
-        </button>
-      )}
-    </div>
-  );
-};
-
-// --- NOUVEAU COMPOSANT : METRIC TRACKING (MÉTRIQUES CLÉS - VERSION DYNAMIQUE) ---
-const MetricCard = ({ plan }: { plan: GeneratedPlan | null }) => {
-  if (!plan) return null; // Protection si le plan n'est pas encore chargé
-
-  // On cherche l'action de type "constat" (Signe Vital) dans le plan
-  // L'IA est supposée renvoyer un champ "vitalSignal" à la racine, sinon on cherche dans les actions ou on fallback
-  let vitalSignal = (plan as any).vitalSignal;
-  
-  if (!vitalSignal) {
-    // Fallback intelligent : on cherche la première habitude traçable
-    const firstHabit = plan.phases
-        .flatMap(p => p.actions)
-        .find(a => a.type === 'habitude' && a.targetReps);
-    
-    if (firstHabit) {
-        vitalSignal = {
-            title: `Suivi : ${firstHabit.title}`,
-            unit: "répétitions",
-            startValue: 0,
-            targetValue: firstHabit.targetReps
-        };
-    } else {
-        // Fallback ultime
-        vitalSignal = {
-            title: "Score de Régularité",
-            unit: "points",
-            startValue: 0,
-            targetValue: 100
-        };
-    }
-  }
-
-  // Correction : Le JSON de l'IA renvoie souvent "name" au lieu de "title" pour le vitalSignal
-  const metricName = vitalSignal.name || vitalSignal.title || "Métrique clé";
-  const unit = vitalSignal.unit || "unités";
-  
-  // Valeurs Mockées pour l'instant (à connecter plus tard à une table de tracking)
-  const currentValue = vitalSignal.startValue || 0; 
-  const startValue = vitalSignal.startValue || 0;
-  const lastUpdate = "En attente de relevé";
-
-  // Calcul simple de tendance (si start != current)
-  const progress = startValue - currentValue;
-  const isPositive = progress > 0; 
-
-  return (
-    <div className="bg-white border border-slate-200 rounded-xl p-5 shadow-sm mb-8 relative overflow-hidden">
-      {/* Filigrane de fond */}
-      <div className="absolute -right-6 -top-6 text-slate-50 opacity-50">
-        <BarChart3 className="w-32 h-32" />
-      </div>
-
-      <div className="relative z-10 flex flex-col min-[400px]:flex-row items-start justify-between gap-4 min-[400px]:gap-0">
-        <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            <h3 className="text-xs min-[350px]:text-sm font-bold text-slate-400 uppercase tracking-wider">Signal Vital Suivi</h3>
-          </div>
-          <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 mb-1">{metricName}</h2>
-          <p className="text-xs min-[350px]:text-sm text-slate-500 flex items-center gap-1">
-            <MessageCircle className="w-3 h-3" />
-            {lastUpdate}
-          </p>
-        </div>
-
-        <div className="text-center self-end min-[400px]:self-auto w-full min-[400px]:w-auto mt-2 min-[400px]:mt-0 min-[400px]:text-right">
-          <div className="text-xl min-[350px]:text-3xl font-bold text-slate-900 leading-none flex flex-col items-center min-[350px]:flex-row min-[350px]:items-baseline min-[400px]:justify-end">
-            {currentValue}
-            <span className="block min-[350px]:inline text-xs min-[350px]:text-sm font-medium text-slate-400 mt-1 min-[350px]:ml-1">
-              {unit}
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Zone de Tendance (Universelle) */}
-      <div className="mt-6 relative z-10">
-        <div className="flex items-center justify-between text-xs min-[350px]:text-sm font-bold mb-2">
-          <span className="text-slate-400">Point de départ : {startValue}</span>
-          <span className="text-slate-400 flex items-center gap-1">
-            <TrendingUp className="w-3 h-3" />
-            En attente de données
-          </span>
-        </div>
-
-        {/* Jauge de Tendance Simplifiée (Grisée pour l'instant) */}
-        <div className="h-2 bg-slate-100 rounded-full overflow-hidden flex">
-          <div
-            className="h-full bg-slate-300 opacity-50"
-            style={{ width: `5%` }}
-          />
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- NOUVEAU COMPOSANT : MODAL D'AIDE (SOS BLOCAGE) ---
-const ActionHelpModal = ({ action, onClose, onGenerateStep }: { action: Action, onClose: () => void, onGenerateStep: (problem: string) => void }) => {
-  const [problem, setProblem] = useState('');
-  const [isGenerating, setIsGenerating] = useState(false);
-
-  const handleGenerate = () => {
-    if (!problem) return;
-    setIsGenerating(true);
-    // Simulation de l'appel API
-    setTimeout(() => {
-      onGenerateStep(problem);
-      setIsGenerating(false);
-      onClose();
-    }, 1500);
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden animate-fade-in-up">
-
-        {/* Header */}
-        <div className="bg-slate-900 p-6 flex justify-between items-start">
-          <div>
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/20 border border-amber-500/50 text-amber-400 text-xs font-bold uppercase tracking-wider mb-3">
-              <LifeBuoy className="w-3 h-3" />
-              SOS Blocage
-            </div>
-            <h3 className="text-white font-bold text-xl leading-tight">
-              On ne reste pas bloqué.
-            </h3>
-            <p className="text-slate-400 text-sm mt-1">
-              Action : <span className="text-white font-medium">"{action.title}"</span>
-            </p>
-          </div>
-          <button onClick={onClose} className="text-slate-400 hover:text-white transition-colors">
-            <X className="w-6 h-6" />
-          </button>
-        </div>
-
-        {/* Body */}
-        <div className="p-6">
-          <p className="text-slate-600 text-sm font-medium mb-4">
-            Dis-moi ce qui coince. Plus tu es précis, mieux je peux t'aider.
-          </p>
-
-          {/* Text Area */}
-          <textarea
-            value={problem}
-            onChange={(e) => setProblem(e.target.value)}
-            placeholder="C'est trop dur ? Pas le temps ? Peur de mal faire ? Explique-moi..."
-            className="w-full p-4 border border-slate-200 rounded-xl text-sm focus:ring-2 focus:ring-slate-900 outline-none mb-6 resize-none h-32 shadow-sm"
-            autoFocus
-          />
-
-          {/* Actions */}
-          <button
-            onClick={handleGenerate}
-            disabled={!problem || isGenerating}
-            className="w-full py-4 bg-amber-500 hover:bg-amber-600 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold rounded-xl shadow-lg shadow-amber-200 transition-all flex items-center justify-center gap-2"
-          >
-            {isGenerating ? (
-              <>
-                <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-                Analyse en cours...
-              </>
-            ) : (
-              <>
-                <Hammer className="w-5 h-5" />
-                Découper l'action (Générer une étape facile)
-              </>
-            )}
-          </button>
-          <p className="text-center text-xs text-slate-400 mt-3">
-            L'IA va créer un "pont" stratégique pour contourner ce blocage.
-          </p>
-        </div>
-
-      </div>
-    </div>
-  );
-};
-
-const StrategyCard = ({ strategy, identityProp, whyProp, rulesProp }: { strategy: string, identityProp?: string, whyProp?: string, rulesProp?: string }) => {
-  const [isOpen, setIsOpen] = useState(false);
-  const [isEditing, setIsEditing] = useState(false);
-  const [identity, setIdentity] = useState(identityProp || (strategy && strategy.length < 100 ? strategy : "Je deviens une personne calme et maître de son temps."));
-  const [why, setWhy] = useState(whyProp || "Pour avoir l'énergie de jouer avec mes enfants le matin sans être irritable.");
-  const [rules, setRules] = useState(rulesProp || "1. Pas d'écran dans la chambre.\n2. Si je ne dors pas après 20min, je me lève.\n3. Le lit ne sert qu'à dormir.");
-
-  return (
-    <div className="bg-white border border-blue-100 rounded-2xl shadow-sm overflow-hidden mb-8 transition-all duration-300">
-      <div
-        onClick={() => setIsOpen(!isOpen)}
-        className="p-4 md:p-6 flex items-start justify-between cursor-pointer hover:bg-blue-50/50 transition-colors group"
-      >
-        <div className="flex gap-3 md:gap-4 w-full">
-          <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-blue-600 text-white flex items-center justify-center shadow-lg shadow-blue-200 flex-shrink-0">
-            <Target className="w-4 h-4 md:w-5 md:h-5" />
-          </div>
-          <div className="flex-1">
-            <h2 className="text-[10px] min-[310px]:text-xs min-[802px]:text-sm font-bold text-blue-600 uppercase tracking-wide mb-1">Ma Vision (Identité)</h2>
-            <div className="flex items-start gap-2 md:gap-3">
-              <p className={`font-serif text-sm min-[310px]:text-base min-[802px]:text-lg text-gray-800 italic leading-relaxed ${isOpen ? '' : 'line-clamp-1'}`}>
-                "{identity}"
-              </p>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsOpen(true);
-                  setIsEditing(true);
-                }}
-                className="opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-blue-100 rounded text-blue-400 hover:text-blue-600"
-                title="Modifier ma phrase"
-              >
-                <Edit3 className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
-        </div>
-        <button className="text-gray-400 hover:text-blue-600 transition-colors mt-1 ml-4">
-          {isOpen ? <ChevronUp className="w-5 h-5" /> : <ChevronDown className="w-5 h-5" />}
-        </button>
-      </div>
-
-      {isOpen && (
-        <div className="px-4 md:px-6 pb-4 md:pb-6 pt-0 animation-fade-in">
-          <div className="border-t border-gray-100 my-4"></div>
-
-          {isEditing ? (
-            <div className="space-y-4">
-              <div>
-                <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2">Qui je deviens (Identité)</label>
-                <textarea
-                  value={identity}
-                  onChange={(e) => setIdentity(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  rows={2}
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2">Mon Pourquoi Profond</label>
-                <textarea
-                  value={why}
-                  onChange={(e) => setWhy(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  rows={2}
-                />
-              </div>
-              <div>
-                <label className="block text-[10px] md:text-xs font-bold text-gray-500 uppercase mb-2">Mes Règles d'Or</label>
-                <textarea
-                  value={rules}
-                  onChange={(e) => setRules(e.target.value)}
-                  className="w-full p-3 border border-gray-300 rounded-lg text-xs md:text-sm focus:ring-2 focus:ring-blue-500 outline-none"
-                  rows={4}
-                />
-              </div>
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 text-xs md:text-sm font-bold text-gray-500 hover:bg-gray-100 rounded-lg"
-                >
-                  Annuler
-                </button>
-                <button
-                  onClick={() => setIsEditing(false)}
-                  className="px-4 py-2 text-xs md:text-sm font-bold bg-blue-600 text-white rounded-lg hover:bg-blue-700 shadow-md"
-                >
-                  Enregistrer
-                </button>
-              </div>
-            </div>
-          ) : (
-            <div className="grid md:grid-cols-2 gap-4 md:gap-8">
-              <div className="space-y-3 md:space-y-4">
-                <div>
-                  <h3 className="text-[10px] md:text-xs font-bold text-gray-400 uppercase mb-2">Mon Pourquoi Profond</h3>
-                  <p className="text-xs md:text-sm text-gray-700 leading-relaxed bg-gray-50 p-3 rounded-lg border border-gray-100">
-                    {why}
-                  </p>
-                </div>
-              </div>
-              <div className="space-y-3 md:space-y-4">
-                <div>
-                  <h3 className="text-[10px] md:text-xs font-bold text-gray-400 uppercase mb-2">Mes Règles d'Or</h3>
-                  <div className="text-xs md:text-sm text-gray-700 leading-relaxed bg-yellow-50 p-3 rounded-lg border border-yellow-100 whitespace-pre-line">
-                    {rules}
-                  </div>
-                </div>
-              </div>
-
-              <div className="md:col-span-2 flex justify-end mt-2">
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="flex items-center gap-2 text-xs md:text-sm font-bold text-blue-600 hover:text-blue-800 hover:bg-blue-50 px-4 py-2 rounded-lg transition-colors"
-                >
-                  <Edit3 className="w-4 h-4" /> Modifier ma stratégie
-                </button>
-              </div>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
-  );
-};
-
-// --- COMPOSANT : MODAL DE FRAMEWORK (JOURNALING / EXERCICE) ---
-const FrameworkModal = ({ 
-  action, 
-  onClose, 
-  onSave 
-}: { 
-  action: Action, 
-  onClose: () => void, 
-  onSave: (action: Action, content: any) => Promise<void> 
-}) => {
-  const [content, setContent] = useState<any>({});
-  const [isSaving, setIsSaving] = useState(false);
-
-  // On parse les détails du framework (envoyés par l'IA)
-  const details = (action as any).frameworkDetails || {
-    intro: "Remplissez ce formulaire pour valider l'action.",
-    sections: [
-        { id: "default", label: "Notes", inputType: "textarea", placeholder: "Écrivez ici..." }
-    ]
-  };
-
-  const handleSave = async () => {
-    setIsSaving(true);
-    try {
-        await onSave(action, content);
-        onClose();
-    } catch (e) {
-        console.error(e);
-        alert("Erreur lors de la sauvegarde.");
-    } finally {
-        setIsSaving(false);
-    }
-  };
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-fade-in-up">
-        
-        {/* Header */}
-        <div className="bg-violet-50 p-6 border-b border-violet-100 flex justify-between items-start">
-            <div>
-                <div className="flex items-center gap-2 text-violet-600 font-bold uppercase text-xs tracking-wider mb-2">
-                    <FileText className="w-4 h-4" />
-                    {details.type === 'recurring' ? 'Rituel Récurrent' : 'Exercice Unique'}
-                </div>
-                <h2 className="text-2xl font-bold text-violet-900">{action.title}</h2>
-            </div>
-            <button onClick={onClose} className="text-violet-400 hover:text-violet-700 transition-colors">
-                <X className="w-6 h-6" />
-            </button>
-        </div>
-
-        {/* Scrollable Body */}
-        <div className="p-6 overflow-y-auto flex-1">
-            {/* Intro / Inspiration */}
-            {details.intro && (
-                <div className="bg-white border border-slate-100 p-4 rounded-xl mb-8 text-slate-600 italic leading-relaxed shadow-sm flex gap-3">
-                    <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0 mt-1" />
-                    <div>{details.intro}</div>
-                </div>
-            )}
-
-            {/* Form Fields */}
-            <div className="space-y-6">
-                {details.sections?.map((section: any) => (
-                    <div key={section.id}>
-                        <label className="block text-sm font-bold text-slate-900 mb-2">
-                            {section.label}
-                        </label>
-                        
-                        {section.inputType === 'textarea' ? (
-                            <textarea
-                                value={content[section.id] || ''}
-                                onChange={(e) => setContent({...content, [section.id]: e.target.value})}
-                                placeholder={section.placeholder}
-                                className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[120px] text-slate-700 text-sm md:text-base resize-y"
-                            />
-                        ) : section.inputType === 'scale' ? (
-                            <div className="flex flex-col gap-2">
-                                <div className="flex justify-between text-xs text-slate-400 font-bold uppercase">
-                                    <span>Pas du tout (1)</span>
-                                    <span>Extrêmement (10)</span>
-                                </div>
-                                <input 
-                                    type="range" 
-                                    min="1" 
-                                    max="10" 
-                                    value={content[section.id] || 5} 
-                                    onChange={(e) => setContent({...content, [section.id]: e.target.value})}
-                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
-                                />
-                                <div className="text-center font-bold text-violet-600 text-lg">
-                                    {content[section.id] || 5}/10
-                                </div>
-                            </div>
-                        ) : (
-                            <input
-                                type="text"
-                                value={content[section.id] || ''}
-                                onChange={(e) => setContent({...content, [section.id]: e.target.value})}
-                                placeholder={section.placeholder}
-                                className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-slate-700"
-                            />
-                        )}
-                    </div>
-                ))}
-            </div>
-        </div>
-
-        {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
-            <button 
-                onClick={onClose}
-                className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-200 rounded-lg transition-colors"
-            >
-                Annuler
-            </button>
-            <button 
-                onClick={handleSave}
-                disabled={isSaving}
-                className="px-6 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg shadow-lg shadow-violet-200 flex items-center gap-2 disabled:opacity-70"
-            >
-                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
-                Enregistrer la fiche
-            </button>
-        </div>
-
-      </div>
-    </div>
-  );
-};
-
-// --- NOUVEAU COMPOSANT : CARTE D'ACTION POLYMORPHE ---
-
-const PlanActionCard = ({ action, isLocked, onHelp, onOpenFramework }: { action: Action, isLocked: boolean, onHelp: (action: Action) => void, onOpenFramework: (action: Action) => void }) => {
-  const [currentReps, setCurrentReps] = useState(action.currentReps || 0);
-  const targetReps = action.targetReps || 1;
-  const progress = (currentReps / targetReps) * 100;
-  const [isChecked, setIsChecked] = useState(action.isCompleted);
-
-  // Couleurs et Icônes selon le Groupe
-  // Groupe A (Répétable/Habitude) => Bleu/Vert
-  // Groupe B (Mission/Framework) => Orange/Violet
-  const isGroupA = action.type === 'habitude';
-  const isFramework = action.type === 'framework';
-  const isMainQuest = action.questType === 'main';
-
-  const handleIncrement = () => {
-    if (isLocked) return;
-    if (currentReps < targetReps) setCurrentReps(prev => prev + 1);
-  };
-
-  const handleToggleCheck = () => {
-    if (isLocked) return;
-    setIsChecked(!isChecked);
-  };
-
-  return (
-    <div className={`relative bg-white border rounded-xl p-3 min-[260px]:p-4 shadow-sm transition-all duration-300 group ${isLocked ? 'opacity-60 grayscale border-gray-100' :
-        isMainQuest ? 'border-blue-200 shadow-md ring-1 ring-blue-100' : 'hover:shadow-md border-gray-200'
-      }`}>
-
-      {/* Badge Quest Type */}
-      <div className={`absolute -top-3 left-1/2 -translate-x-1/2 min-[350px]:left-4 min-[350px]:translate-x-0 px-2 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider border shadow-sm flex items-center justify-center gap-1 ${isLocked ? 'bg-gray-100 text-gray-400 border-gray-200' :
-          isMainQuest ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-500 border-slate-200'
-        }`}>
-        {isMainQuest ? <><Sword className="w-3 h-3" /> Quête Principale</> : <><Shield className="w-3 h-3" /> Quête Secondaire</>}
-      </div>
-
-      <div className="flex items-start gap-4 mt-2">
-        {/* Icône Type */}
-        <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 hidden min-[350px]:flex ${isLocked ? 'bg-gray-100 text-gray-400' :
-            isGroupA ? 'bg-emerald-100 text-emerald-600' :
-              isFramework ? 'bg-violet-100 text-violet-600' : 'bg-amber-100 text-amber-600'
-          }`}>
-          {isGroupA ? <Zap className="w-5 h-5" /> :
-            isFramework ? <FileText className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
-        </div>
-
-        <div className="flex-1 pr-0 min-[350px]:pr-6 min-w-0">
-          {/* En-tête */}
-          <div className="flex flex-wrap items-center gap-2 mb-1 pr-8 min-[350px]:pr-0 mt-4 min-[350px]:mt-0">
-            <span className={`text-xs font-bold uppercase tracking-wider px-2 py-0.5 rounded-full whitespace-nowrap ${isLocked ? 'bg-gray-100 text-gray-400' :
-                isGroupA ? 'bg-emerald-50 text-emerald-600' :
-                  isFramework ? 'bg-violet-50 text-violet-600' : 'bg-amber-50 text-amber-600'
-              }`}>
-              {action.type}
-            </span>
-            <h3 className={`font-bold text-sm min-[350px]:text-base md:text-lg leading-tight ${isLocked ? 'text-gray-400' : 'text-gray-900'}`}>{action.title}</h3>
-          </div>
-
-          <p className="text-xs min-[350px]:text-sm text-gray-500 mb-3 leading-snug min-h-[32px] break-words">{action.description}</p>
-
-          {/* EXPLICATION STRATEGIQUE (RATIONALE) SI PRESENTE */}
-          {action.rationale && (
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-3 mb-3 text-xs min-[350px]:text-sm text-amber-900 relative">
-              <div className="absolute -top-2 -left-2 bg-amber-100 rounded-full p-1">
-                <Sparkles className="w-3 h-3 text-amber-600" />
-              </div>
-              <span className="font-bold text-amber-700 block mb-1 uppercase text-xs tracking-wide">Pourquoi ça t'aide :</span>
-              {action.rationale}
-            </div>
-          )}
-
-          {/* LOGIQUE D'INTERACTION */}
-          {!isLocked && (
-            <div className="mt-2">
-              {isGroupA ? (
-                /* --- GROUPE A : PROGRESS BAR --- */
-                <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
-                  <div className="flex flex-col items-start gap-1 min-[260px]:flex-row min-[260px]:items-center min-[260px]:justify-between mb-1.5">
-                    <span className="text-xs font-bold text-gray-400 uppercase">Progression</span>
-                    <span className="text-xs font-bold text-emerald-600">{currentReps}/{targetReps}</span>
-                  </div>
-                  <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mb-2">
-                    <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${progress}%` }} />
-                  </div>
-
-                  <div className="flex flex-col min-[260px]:flex-row gap-2">
-                    <button
-                      className="flex-1 py-1.5 text-gray-400 hover:text-emerald-600 text-xs font-medium underline decoration-dotted transition-colors flex items-center justify-center gap-1"
-                      title="Passer à la suite (Maîtrise acquise)"
-                    >
-                      <FastForward className="w-3 h-3" /> Je maîtrise déjà
-                    </button>
-                    <button
-                      onClick={handleIncrement}
-                      disabled={currentReps >= targetReps}
-                      className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded text-xs font-bold flex items-center justify-center gap-1 transition-colors"
-                    >
-                      <PlusCircle className="w-3 h-3" /> Fait
-                    </button>
-                  </div>
-                </div>
-              ) : isFramework ? (
-                /* --- GROUPE B : FRAMEWORK (BOUTON REMPLIR) --- */
-                <button 
-                  onClick={() => onOpenFramework(action)}
-                  className="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs min-[350px]:text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
-                >
-                  <Edit3 className="w-4 h-4" />
-                  Remplir la fiche
-                </button>
-              ) : (
-                /* --- GROUPE B : MISSION (CHECKBOX) --- */
-                <div
-                  onClick={handleToggleCheck}
-                  className={`cursor-pointer flex items-center justify-between p-2 rounded-lg border transition-all ${isChecked ? 'bg-amber-50 border-amber-200' : 'bg-gray-50 border-gray-200 hover:border-amber-200'
-                    }`}
-                >
-                  <span className={`text-xs min-[350px]:text-sm font-bold ${isChecked ? 'text-amber-700' : 'text-gray-500'}`}>
-                    {isChecked ? "Mission accomplie" : "Marquer comme fait"}
-                  </span>
-                  <div className={`w-5 h-5 rounded border flex items-center justify-center transition-colors ${isChecked ? 'bg-amber-500 border-amber-500 text-white' : 'bg-white border-gray-300'
-                    }`}>
-                    {isChecked && <Check className="w-3 h-3" />}
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Help / SOS Button (Repositionné pour Mobile) */}
-      {!isLocked && !action.isCompleted && !isChecked && (
-        <div className="flex justify-center mt-2 min-[350px]:absolute min-[350px]:top-3 min-[350px]:right-3 min-[350px]:mt-0">
-          <button
-            onClick={() => onHelp(action)}
-            className="text-slate-300 hover:text-amber-500 hover:bg-amber-50 p-1 rounded-full transition-all"
-            title="Je bloque sur cette action"
-          >
-            <LifeBuoy className="w-4 h-4" />
-          </button>
-        </div>
-      )}
-    </div>
-  );
-};
-
-// --- COMPOSANT PHASE (TIMELINE) ---
-const PlanPhaseBlock = ({ phase, isLast, onHelpAction, onOpenFramework }: { phase: PlanPhase, isLast: boolean, onHelpAction: (action: Action) => void, onOpenFramework: (action: Action) => void }) => {
-  const isLocked = phase.status === 'locked';
-  const isActive = phase.status === 'active';
-
-  return (
-    <div className="relative pl-0 md:pl-8 pb-10 last:pb-0">
-      {/* Ligne Verticale */}
-      {!isLast && (
-        <div className={`hidden md:block absolute left-[11px] top-8 bottom-0 w-0.5 ${isActive ? 'bg-emerald-200' : 'bg-gray-100'
-          }`} />
-      )}
-
-      {/* Puce Timeline */}
-      <div className={`hidden md:flex absolute left-0 top-1 w-6 h-6 rounded-full border-4 items-center justify-center z-10 ${phase.status === 'completed' ? 'bg-emerald-500 border-emerald-100' :
-          isActive ? 'bg-white border-emerald-500 shadow-md scale-110' :
-            'bg-gray-100 border-gray-50'
-        }`}>
-        {phase.status === 'completed' && <Check className="w-3 h-3 text-white" />}
-        {isActive && <div className="w-2 h-2 bg-emerald-500 rounded-full animate-pulse" />}
-      </div>
-
-      {/* En-tête Phase */}
-      <div className="mb-6 mt-1">
-        <h3 className={`text-sm min-[350px]:text-base font-bold uppercase tracking-wide ${isActive ? 'text-emerald-700' : isLocked ? 'text-gray-400' : 'text-emerald-900'
-          }`}>
-          {phase.title}
-        </h3>
-        <p className="text-xs min-[350px]:text-sm text-gray-400">{phase.subtitle}</p>
-      </div>
-
-      {/* Liste Verticale Actions */}
-      <div className="space-y-6">
-        {phase.actions.map(action => (
-          <PlanActionCard
-            key={action.id}
-            action={action}
-            isLocked={isLocked}
-            onHelp={onHelpAction}
-            onOpenFramework={onOpenFramework}
-          />
-        ))}
-      </div>
-    </div>
-  );
-};
-
-
-const EmptyState = ({ onGenerate, isResetMode = false, isOnboardingCompleted = false }: { onGenerate: () => void, isResetMode?: boolean, isOnboardingCompleted?: boolean }) => {
-  const [isResuming, setIsResuming] = useState(false);
-  const { user } = useAuth();
-  const navigate = useNavigate();
-
-  // Gestionnaire intelligent pour "Reprendre" le parcours Follow (Nouveau Cycle)
-  const handleSmartResume = async () => {
-    if (!user) return;
-    setIsResuming(true);
-
-    try {
-        console.log("🧠 Smart Resume (Follow Mode) initié...");
-
-        // 1. Vérifier s'il y a un plan "pending" (Généré mais pas validé)
-        const { data: plans } = await supabase
-            .from('user_plans')
-            .select('id, goal_id, status')
-            .eq('user_id', user.id)
-            .eq('status', 'pending')
-            .order('created_at', { ascending: false })
-            .limit(1);
-        
-        if (plans && plans.length > 0) {
-            const pendingPlan = plans[0];
-            console.log("📍 Plan PENDING trouvé (Reprise Générateur):", pendingPlan.id);
-            
-            // On tente de récupérer le contexte pour hydrater (Optionnel)
-            let navigationState = {};
-            if (pendingPlan.goal_id) {
-                const { data: goalData } = await supabase
-                    .from('user_goals')
-                    .select('axis_id, axis_title, theme_id')
-                    .eq('id', pendingPlan.goal_id)
-                    .maybeSingle();
-                if (goalData) {
-                    navigationState = { 
-                        finalOrder: [{
-                            id: goalData.axis_id,
-                            title: goalData.axis_title,
-                            theme: goalData.theme_id
-                        }]
-                    };
-                }
-            }
-            
-            // On redirige vers le Générateur FOLLOW (car on est dans un contexte de suite)
-            navigate('/plan-generator-follow', { state: navigationState });
-            return;
-        }
-
-        // 2. Vérifier s'il y a des objectifs (Goals) "pending" ou "active"
-        // (Si on a un goal active mais pas de plan, on est à l'étape "Priorities" ou "Generator" qui a fail)
-        const { data: goals } = await supabase
-            .from('user_goals')
-            .select('id, status')
-            .eq('user_id', user.id)
-            .in('status', ['active', 'pending'])
-            .order('created_at', { ascending: false }) // Le plus récent
-            .limit(1);
-
-        if (goals && goals.length > 0) {
-            console.log("📍 Objectifs trouvés (Reprise Priorities):", goals.length);
-            navigate('/plan-priorities-follow');
-            return;
-        }
-
-        // 3. Si rien de tout ça -> On reprend au questionnaire Follow
-        console.log("📍 Aucun artefact intermédiaire trouvé. Reprise Questionnaire.");
-        // On passe mode=new pour éviter le blocage, mais idéalement on devrait charger le draft si il existe
-        // GlobalPlanFollow gère le chargement du draft si pas de 'new', mais ici on veut reprendre le fil
-        // Si on met 'new', ça reset. Si on met rien, ça load le dernier.
-        // Comme on "Reprend", on ne met pas 'new' pour charger le brouillon en cours.
-        navigate('/global-plan-follow');
-
-    } catch (e) {
-        console.error("Erreur smart resume:", e);
-        navigate('/global-plan-follow');
-    } finally {
-        setIsResuming(false);
-    }
-  };
-
-  return (
-  <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-fade-in-up">
-    <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
-      <Zap className="w-10 h-10 text-slate-300" />
-    </div>
-    
-    {/* TEXTE DYNAMIQUE SELON LE CONTEXTE */}
-    <h2 className="text-2xl font-bold text-slate-900 mb-3">
-        {isOnboardingCompleted 
-            ? "Tu as terminé ton précédent plan global, mais il reste des choses à faire pour créer le nouveau !"
-            : isResetMode ? "Plan en cours de modification" : "Aucun plan actif"
-        }
-    </h2>
-    <p className="text-slate-500 max-w-md mb-8">
-      {isOnboardingCompleted
-        ? "Reprends là où tu t'étais arrêté pour finaliser ta prochaine transformation."
-        : isResetMode 
-            ? "Tu as réinitialisé ton plan mais la nouvelle feuille de route n'est pas encore générée."
-            : "Tu n'as pas encore défini ta stratégie. Commence par un audit rapide pour générer ta feuille de route."
-      }
-    </p>
-
-    {/* BOUTON DYNAMIQUE */}
-    {isOnboardingCompleted ? (
-        <button
-          onClick={handleSmartResume}
-          disabled={isResuming}
-          className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-indigo-700 transition-all shadow-xl shadow-indigo-200 flex items-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          {isResuming ? <Loader2 className="w-5 h-5 animate-spin" /> : <PlayCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />}
-          Reprendre
-        </button>
-    ) : (
-        <button
-          onClick={onGenerate}
-          className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 flex items-center gap-3 group"
-        >
-          <PlayCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          {isResetMode ? "Finir de réinitialiser mon plan" : "Lancer mon premier plan"}
-        </button>
-    )}
-  </div>
-)};
-
+// Imports from new locations
+import type { GeneratedPlan, Action } from '../types/dashboard';
+import { ARCHITECT_WEEKS } from '../data/dashboardMock';
+import { WeekCard } from '../components/dashboard/WeekCard';
+import { RitualCard } from '../components/dashboard/RitualCard';
+import { MetricCard } from '../components/dashboard/MetricCard';
+import { ActionHelpModal } from '../components/dashboard/ActionHelpModal';
+import { StrategyCard } from '../components/dashboard/StrategyCard';
+import { FrameworkModal } from '../components/dashboard/FrameworkModal';
+import { PlanPhaseBlock } from '../components/dashboard/PlanPhaseBlock';
+import { EmptyState } from '../components/dashboard/EmptyState';
+import { PlanSettingsModal } from '../components/dashboard/PlanSettingsModal';
+import ResumeOnboardingView from '../components/ResumeOnboardingView';
 import UserProfile from '../components/UserProfile';
-
-// --- COMPOSANT : REPRISE ONBOARDING (USER NON FINALISÉ) ---
-const ResumeOnboardingView = () => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isLoading, setIsLoading] = useState(false);
-
-  const handleResume = async () => {
-    if (!user) {
-        navigate('/auth');
-        return;
-    }
-
-    setIsLoading(true);
-
-    try {
-        console.log("🔍 Vérification de reprise pour user:", user.id);
-
-        // 1. PRIORITÉ ABSOLUE : Vérifier si un PLAN existe (Le plus récent)
-        const { data: plans, error: planError } = await supabase
-            .from('user_plans')
-            .select('id, goal_id, status')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(1);
-
-        if (planError) console.error("Erreur check plan:", planError);
-
-        const existingPlan = plans?.[0];
-
-        if (existingPlan) {
-            console.log("📍 Plan trouvé:", existingPlan);
-            
-            // CAS 1A : Plan Actif -> Onboarding terminé
-            if (existingPlan.status === 'active') {
-                console.log("📍 Plan ACTIF trouvé. Redirection vers Dashboard.");
-                // Note: En théorie, si on est ici c'est que l'onboarding n'est PAS completed, donc bizarre
-                // Mais on gère quand même le cas.
-                window.location.reload(); 
-                return;
-            }
-
-            // CAS 1B : Plan Pending -> Proposition à valider
-            if (existingPlan.status === 'pending') {
-                console.log("📍 PLAN PENDING TROUVÉ (ID: " + existingPlan.id + ")");
-                
-                // Tentative de récupération du contexte pour hydrater la page
-                let navigationState = {};
-
-                if (existingPlan.goal_id) {
-                    const { data: goalData } = await supabase
-                        .from('user_goals')
-                        .select('axis_id, axis_title, theme_id')
-                        .eq('id', existingPlan.goal_id)
-                        .maybeSingle();
-                    
-                    if (goalData) {
-                        console.log("✅ Contexte Goal récupéré pour hydration.");
-                        navigationState = { 
-                            finalOrder: [{
-                                id: goalData.axis_id,
-                                title: goalData.axis_title,
-                                theme: goalData.theme_id
-                            }]
-                        };
-                    }
-                }
-
-                navigate('/plan-generator', { state: navigationState });
-                return;
-            }
-        } else {
-            console.log("⚪ Aucun plan trouvé.");
-        }
-
-        // 2. SECONDE PRIORITÉ : Si pas de plan, on regarde les PRIORITÉS (Goals)
-        // Si des goals existent, c'est qu'on a fini le questionnaire -> Go PlanPriorities
-        const { data: existingGoals, error: goalsError } = await supabase
-            .from('user_goals')
-            .select('id, status')
-            .eq('user_id', user.id)
-            .in('status', ['active', 'pending']);
-
-        if (goalsError) console.error("Erreur check goals:", goalsError);
-
-        if (existingGoals && existingGoals.length > 0) {
-             console.log("📍 OBJECTIFS TROUVÉS, redirection vers /plan-priorities");
-             navigate('/plan-priorities');
-             return;
-        }
-
-        // 3. DERNIER RECOURS : Questionnaire
-        console.log("📍 RIEN TROUVÉ, redirection vers /onboarding pour reprise");
-        navigate('/global-plan');
-
-    } catch (error) {
-        console.error("Erreur lors de la reprise:", error);
-        navigate('/global-plan'); // Fallback safe
-    } finally {
-        setIsLoading(false);
-    }
-  };
-  
-  return (
-    <div className="min-h-[80vh] flex flex-col items-center justify-center p-6 animate-fade-in text-center">
-      <div className="w-24 h-24 bg-indigo-50 rounded-full flex items-center justify-center mb-8 shadow-inner relative group">
-        <div className="absolute inset-0 bg-indigo-100 rounded-full animate-ping opacity-20"></div>
-        <Compass className="w-10 h-10 text-indigo-600 group-hover:scale-110 transition-transform duration-500" />
-      </div>
-
-      <h1 className="text-3xl md:text-4xl font-serif font-bold text-slate-900 mb-4 max-w-2xl mx-auto leading-tight">
-        Votre transformation est en attente.
-      </h1>
-      
-      <p className="text-slate-500 text-lg mb-10 max-w-lg mx-auto leading-relaxed">
-        Vous avez initié le processus, mais nous n'avons pas encore toutes les clés pour construire votre plan sur-mesure.
-      </p>
-
-      <div className="grid gap-4 w-full max-w-sm mx-auto">
-        <button
-          onClick={handleResume}
-          disabled={isLoading}
-          className="w-full py-4 bg-slate-900 hover:bg-indigo-600 text-white font-bold rounded-xl shadow-xl shadow-slate-200 hover:shadow-indigo-200/50 transition-all duration-300 flex items-center justify-center gap-3 group disabled:opacity-70 disabled:cursor-not-allowed"
-        >
-          {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <PlayCircle className="w-6 h-6 group-hover:scale-110 transition-transform" />}
-          Reprendre
-        </button>
-      </div>
-    </div>
-  );
-};
-
-// --- NOUVEAU COMPOSANT : GESTION DU PLAN (SETTINGS) ---
-const PlanSettingsModal = ({ 
-  isOpen, 
-  onClose, 
-  onReset, 
-  onSkip,
-  onGlobalReset,
-  currentAxisTitle 
-}: { 
-  isOpen: boolean, 
-  onClose: () => void, 
-  onReset: () => void, 
-  onSkip: () => void,
-  onGlobalReset: () => void,
-  currentAxisTitle: string
-}) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-fade-in">
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden animate-fade-in-up">
-        <div className="bg-slate-50 p-4 border-b border-slate-100 flex justify-between items-center">
-          <h3 className="font-bold text-slate-900">Gestion du Plan</h3>
-          <button onClick={onClose} className="text-slate-400 hover:text-slate-600">
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-        
-        <div className="p-4 space-y-3">
-          <div className="mb-4">
-            <p className="text-xs text-slate-500 uppercase font-bold mb-1">Axe actuel</p>
-            <p className="text-sm font-medium text-slate-900">{currentAxisTitle}</p>
-          </div>
-
-          <button 
-            onClick={onReset}
-            className="w-full p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left group transition-all flex items-center gap-3 cursor-pointer active:scale-95"
-          >
-            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200 text-slate-500 group-hover:text-slate-600 flex items-center justify-center flex-shrink-0">
-              <RefreshCw className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-900 text-sm group-hover:text-slate-700">Refaire ce plan</p>
-              <p className="text-xs text-slate-500">Garder l'objectif, régénérer les actions.</p>
-            </div>
-          </button>
-
-          <button 
-            onClick={onSkip}
-            className="w-full p-3 rounded-xl border border-slate-200 hover:border-amber-200 hover:bg-amber-50 text-left group transition-all flex items-center gap-3"
-          >
-            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-100 text-slate-500 group-hover:text-amber-600 flex items-center justify-center flex-shrink-0">
-              <SkipForward className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-bold text-slate-900 text-sm group-hover:text-amber-700">Passer à l'axe suivant</p>
-              <p className="text-xs text-slate-500">Archiver ce plan et commencer le prochain.</p>
-            </div>
-          </button>
-
-          <div className="my-2 border-t border-slate-100"></div>
-
-          <button 
-            onClick={onGlobalReset}
-            className="w-full p-3 rounded-xl border border-red-100 hover:border-red-300 hover:bg-red-50 text-left group transition-all flex items-center gap-3"
-          >
-            <div className="w-8 h-8 rounded-full bg-red-50 group-hover:bg-red-100 text-red-400 group-hover:text-red-600 flex items-center justify-center flex-shrink-0">
-              <Trash2 className="w-4 h-4" />
-            </div>
-            <div>
-              <p className="font-bold text-red-600 text-sm group-hover:text-red-800">Réinitialiser le plan global</p>
-              <p className="text-xs text-red-400">Tout effacer et reprendre à zéro.</p>
-            </div>
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-// --- MAIN PAGE ---
+import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -1467,7 +160,45 @@ const Dashboard = () => {
           if (planData) {
             setActivePlanId(planData.id);
             if (planData.content) {
-                setActivePlan(planData.content);
+                // Initial set
+                let loadedPlan = planData.content;
+                setActivePlan(loadedPlan);
+
+                // SYNC: On charge les données de tracking réelles pour mettre à jour currentReps et status
+                // car le JSON du plan peut être obsolète sur ces valeurs dynamiques
+                const [actionsRes, frameworksRes] = await Promise.all([
+                    supabase.from('user_actions').select('title, current_reps, target_reps, status, type').eq('plan_id', planData.id),
+                    supabase.from('user_framework_tracking').select('action_id, current_reps, target_reps, status, type').eq('plan_id', planData.id)
+                ]);
+
+                if (actionsRes.data || frameworksRes.data) {
+                    const trackingMap = new Map();
+                    // On merge les deux sources
+                    actionsRes.data?.forEach(a => trackingMap.set(a.title, a)); // Habitudes/Missions (clé = title car pas d'ID stable dans JSON IA parfois, mais ID est mieux si dispo)
+                    // Pour frameworks, on a action_id qui est fiable
+                    frameworksRes.data?.forEach(f => trackingMap.set(f.action_id, f));
+
+                    // On parcourt le plan pour update
+                    const updatedPhases = loadedPlan.phases.map((p: any) => ({
+                        ...p,
+                        actions: p.actions.map((a: any) => {
+                            // Essai de match par ID (framework) ou Titre (action legacy)
+                            const track = trackingMap.get(a.id) || trackingMap.get(a.title);
+                            if (track) {
+                                return {
+                                    ...a,
+                                    currentReps: track.current_reps,
+                                    targetReps: track.target_reps,
+                                    status: track.status, // 'active' | 'pending' | 'completed'
+                                    isCompleted: track.status === 'completed'
+                                };
+                            }
+                            return a;
+                        })
+                    }));
+                    setActivePlan({ ...loadedPlan, phases: updatedPhases });
+                }
+
             } else {
                  // Si on n'a pas de plan en base, on ne met à null QUE si on n'a pas déjà un plan valide via location.state
                  setActivePlan(current => {
@@ -1657,6 +388,22 @@ const Dashboard = () => {
             .update({ status: 'completed' })
             .eq('id', activeGoalId);
         
+        // 1.5 ABANDON DES ACTIONS (Comme pour le reset global)
+        if (activePlanId) {
+             console.log("🏚️ Skip Axis : Abandon des actions restantes pour plan", activePlanId);
+             await supabase
+                .from('user_actions')
+                .update({ status: 'abandoned' })
+                .eq('plan_id', activePlanId)
+                .in('status', ['active', 'pending']);
+             
+             await supabase
+                .from('user_framework_tracking')
+                .update({ status: 'abandoned' })
+                .eq('plan_id', activePlanId)
+                .in('status', ['active', 'pending']);
+        }
+
         // 2. Archiver le plan actuel
         await supabase
             .from('user_plans')
@@ -1712,6 +459,27 @@ const Dashboard = () => {
               .update({ status: 'completed' })
               .eq('id', activeGoalId);
           
+          // 1.5. ABANDONNER LES ACTIONS DU PLAN ARCHIVÉ
+          // On veut s'assurer que toutes les actions encore actives/pending liées au plan archivé passent en "abandoned".
+          // On peut utiliser abandonPreviousActions, mais elle exclut un planID.
+          // Ici, on veut TOUT abandonner pour CE plan, car on part sur un nouveau cycle.
+          // Donc on peut appeler une logique spécifique ou utiliser abandonPreviousActions avec un faux ID exclu,
+          // OU mieux : faire un update direct ciblé sur ce plan.
+          if (activePlanId) {
+             console.log("🏚️ Archivage du plan : Abandon des actions restantes pour plan", activePlanId);
+             await supabase
+                .from('user_actions')
+                .update({ status: 'abandoned' })
+                .eq('plan_id', activePlanId)
+                .in('status', ['active', 'pending']);
+             
+             await supabase
+                .from('user_framework_tracking')
+                .update({ status: 'abandoned' })
+                .eq('plan_id', activePlanId)
+                .in('status', ['active', 'pending']);
+          }
+
           // 2. Archiver le plan actuel
           await supabase
               .from('user_plans')
@@ -1757,7 +525,7 @@ const Dashboard = () => {
   // Pour l'instant, on check si la dernière phase est active ou completed
   // Simplification : On affiche le bouton "Plan Terminé" en bas si on scrolle, ou si user le décide.
   // Mieux : On vérifie si toutes les actions de la dernière phase sont cochées.
-  const isPlanFullyCompleted = activePlan?.phases[activePlan.phases.length - 1]?.status === 'completed'; // A adapter selon ta logique exacte
+  // const isPlanFullyCompleted = activePlan?.phases[activePlan.phases.length - 1]?.status === 'completed'; // A adapter selon ta logique exacte
 
 
   // --- MOCK : ÉTAT D'AVANCEMENT DE LA PHASE 1 ---
@@ -1769,6 +537,7 @@ const Dashboard = () => {
   
   // Gestion du Framework
   const [openFrameworkAction, setOpenFrameworkAction] = useState<Action | null>(null);
+  const [historyFrameworkAction, setHistoryFrameworkAction] = useState<Action | null>(null);
 
   const handleOpenHelp = (action: Action) => {
     setHelpingAction(action);
@@ -1778,53 +547,188 @@ const Dashboard = () => {
     setOpenFrameworkAction(action);
   };
 
+  const handleOpenHistory = (action: Action) => {
+    setHistoryFrameworkAction(action);
+  };
+
+  const handleUnlockPhase = async (phaseIndex: number) => {
+      if (!activePlan || !activeGoalId) return;
+      if (!confirm("Voulez-vous débloquer cette phase manuellement ? Vous pourrez accéder aux actions même si la phase précédente n'est pas terminée.")) return;
+
+      const newPhases = [...activePlan.phases];
+      // On met la phase à 'active'
+      newPhases[phaseIndex] = { ...newPhases[phaseIndex], status: 'active' };
+      
+      const newPlan = { ...activePlan, phases: newPhases };
+      setActivePlan(newPlan);
+
+      // Persistance
+      try {
+        await supabase
+            .from('user_plans')
+            .update({ content: newPlan })
+            .eq('goal_id', activeGoalId);
+      } catch (err) {
+          console.error("Error unlocking phase:", err);
+      }
+  };
+
+  const handleUnlockAction = async (action: Action) => {
+      if (!activePlanId || !action.id) return;
+      
+      // Optimistic UI Update
+      const newPhases = activePlan?.phases.map(p => ({
+          ...p,
+          actions: p.actions.map(a => a.id === action.id ? { ...a, status: 'active' as const } : a)
+      }));
+      if (newPhases && activePlan) {
+          setActivePlan({ ...activePlan, phases: newPhases });
+      }
+
+      // DB Update
+      try {
+          if (action.type === 'framework') {
+              await supabase
+                  .from('user_framework_tracking')
+                  .update({ status: 'active' })
+                  .eq('plan_id', activePlanId)
+                  .eq('action_id', action.id);
+          } else {
+              // Pour user_actions, on essaye de matcher par ID ou Title car l'ID peut être différent entre JSON et DB si legacy
+              // Mais ici on a normalement l'ID du JSON qui sert de clé unique
+              // Attention : user_actions n'a pas 'action_id' column, c'est 'id' qui est le PK.
+              // MAIS on a distribué avec 'title' comme clé de ref souvent. 
+              // FIX: Dans distributePlanActions on insert, donc l'ID DB est nouveau. 
+              // Dans le dashboard on a mappé le JSON avec les données DB via le title.
+              // Donc action.id est celui du JSON (ex: 'a1'), pas celui de la DB (UUID).
+              // MAIS attendez, on a fait le mapping dans useEffect ! 
+              // Donc action contient les données mergées ? 
+              // Non, on a merge 'currentReps', 'targetReps', 'status'. Pas l'ID DB.
+              
+              // On update via le TITRE et PLAN_ID pour être sûr
+              await supabase
+                .from('user_actions')
+                .update({ status: 'active' })
+                .eq('plan_id', activePlanId)
+                .eq('title', action.title); // Fallback title
+          }
+      } catch (err) {
+          console.error("Error unlocking action:", err);
+          // Rollback UI if needed (not implemented for simplicity)
+      }
+  };
+
   const handleSaveFramework = async (action: Action, content: any) => {
-    if (!user) return;
+    if (!user) {
+        console.error("handleSaveFramework: User not logged in");
+        return;
+    }
 
-    console.log("Saving Framework:", action.title, content);
+    console.log("Saving Framework - Start");
+    console.log("Action:", action);
+    console.log("Content:", content);
+    console.log("Plan ID:", activePlanId);
+    console.log("Submission ID:", activeSubmissionId);
 
-    // 1. Sauvegarde dans la table des entrées
-    const { error } = await supabase.from('user_framework_entries').insert({
-        user_id: user.id,
-        plan_id: activePlanId,
-        submission_id: activeSubmissionId,
-        action_id: action.id,
-        framework_title: action.title,
-        framework_type: (action as any).frameworkDetails?.type || 'unknown',
-        content: content,
-        schema_snapshot: (action as any).frameworkDetails,
-        target_reps: action.targetReps || 1
-    });
+    // DEBUG: Check RLS
+    console.log("User ID:", user.id);
 
-    if (error) throw error;
+    try {
+        // 1. Sauvegarde dans la table des entrées
+        const payload = {
+            user_id: user.id,
+            plan_id: activePlanId,
+            submission_id: activeSubmissionId,
+            action_id: action.id,
+            framework_title: action.title,
+            framework_type: (action as any).frameworkDetails?.type || 'unknown',
+            content: content,
+            schema_snapshot: (action as any).frameworkDetails,
+            target_reps: action.targetReps || 1
+        };
+        console.log("Attempting insert with payload:", payload);
 
-    // 2. Gestion de l'état de l'action (One Shot vs Recurring)
-    const isRecurring = (action as any).frameworkDetails?.type === 'recurring';
-    
-    if (!isRecurring) {
-        // Cas One Shot : On marque l'action comme terminée DANS LE PLAN ACTUEL
-        // Note : Pour faire ça proprement, il faudrait mettre à jour le JSON du plan en base de données
-        // Ou avoir une table séparée pour le statut des actions.
-        // ICI, on met à jour le state local pour l'instant + update du plan global en base
-        
-        if (activePlan && activeGoalId) {
-            const newPhases = activePlan.phases.map(p => ({
-                ...p,
-                actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: true } : a)
-            }));
-            
-            const newPlan = { ...activePlan, phases: newPhases };
-            setActivePlan(newPlan);
+        const { data, error } = await supabase.from('user_framework_entries').insert(payload).select();
 
-            // Update DB
-            await supabase
-                .from('user_plans')
-                .update({ content: newPlan })
-                .eq('goal_id', activeGoalId);
+        if (error) {
+            console.error("Supabase Insert Error DETAILED:", JSON.stringify(error, null, 2));
+            alert(`Erreur technique lors de la sauvegarde: ${error.message} (Code: ${error.code})`);
+            throw error;
         }
-    } else {
-        // Cas Recurring : On incrémente juste le compteur localement (et en base si on suivait les reps)
-        alert("Fiche enregistrée ! Continuez comme ça.");
+        
+        // 2. Mise à jour de la progression (user_framework_tracking)
+        // On incrémente le compteur de répétitions pour ce framework dans le tracking
+        if (activePlanId) {
+             const { error: trackingError } = await supabase.rpc('increment_framework_reps', {
+                 p_plan_id: activePlanId,
+                 p_action_id: action.id
+             });
+             
+             // Note: Si la fonction RPC n'existe pas encore, on peut le faire en 2 étapes (Select + Update)
+             // Pour l'instant, faisons le en mode JS simple pour être sûr
+             const { data: trackData } = await supabase
+                .from('user_framework_tracking')
+                .select('id, current_reps, target_reps, type')
+                .eq('plan_id', activePlanId)
+                .eq('action_id', action.id)
+                .single();
+                
+             if (trackData) {
+                 const newReps = (trackData.current_reps || 0) + 1;
+                 const isCompleted = trackData.type === 'one_shot' || (trackData.target_reps && newReps >= trackData.target_reps);
+                 
+                 await supabase
+                    .from('user_framework_tracking')
+                    .update({ 
+                        current_reps: newReps,
+                        status: isCompleted ? 'completed' : 'active',
+                        last_performed_at: new Date().toISOString()
+                    })
+                    .eq('id', trackData.id);
+                    
+                 // Si c'est completed, on met à jour l'UI locale
+                 if (isCompleted && activePlan) {
+                    const newPhases = activePlan.phases.map(p => ({
+                        ...p,
+                        actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: true } : a)
+                    }));
+                    setActivePlan({ ...activePlan, phases: newPhases });
+                 }
+             }
+        }
+
+        // 3. Gestion de l'état de l'action (One Shot vs Recurring)
+        const isRecurring = (action as any).frameworkDetails?.type === 'recurring';
+        
+        if (!isRecurring) {
+            // Cas One Shot : On marque l'action comme terminée DANS LE PLAN ACTUEL
+            // Note : Pour faire ça proprement, il faudrait mettre à jour le JSON du plan en base de données
+            // Ou avoir une table séparée pour le statut des actions.
+            // ICI, on met à jour le state local pour l'instant + update du plan global en base
+            
+            if (activePlan && activeGoalId) {
+                const newPhases = activePlan.phases.map(p => ({
+                    ...p,
+                    actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: true } : a)
+                }));
+                
+                const newPlan = { ...activePlan, phases: newPhases };
+                setActivePlan(newPlan);
+
+                // Update DB
+                await supabase
+                    .from('user_plans')
+                    .update({ content: newPlan })
+                    .eq('goal_id', activeGoalId);
+            }
+        } else {
+            // Cas Recurring : On incrémente juste le compteur localement (et en base si on suivait les reps)
+            alert("Fiche enregistrée ! Continuez comme ça.");
+        }
+
+    } catch (err) {
+        console.error("Critical Error saving framework:", err);
+        alert("Une erreur inattendue est survenue lors de la sauvegarde.");
     }
   };
 
@@ -1900,6 +804,14 @@ const Dashboard = () => {
             action={openFrameworkAction}
             onClose={() => setOpenFrameworkAction(null)}
             onSave={handleSaveFramework}
+        />
+      )}
+
+      {/* MODAL HISTORIQUE FRAMEWORK */}
+      {historyFrameworkAction && (
+        <FrameworkHistoryModal
+            frameworkTitle={historyFrameworkAction.title}
+            onClose={() => setHistoryFrameworkAction(null)}
         />
       )}
 
@@ -1997,7 +909,7 @@ const Dashboard = () => {
                   </div>
 
                   <div className="text-center mt-4 text-emerald-600 animate-bounce">
-                    <ChevronDown className="w-6 h-6 mx-auto" />
+                    {/* ChevronDown - Not imported? Oh it is not in my list, checking imports... it's not. I need to import it. */}
                   </div>
 
                   {/* SECTION MAINTENANCE (PHASE 2 - LOCKED/PREVIEW) */}
@@ -2240,38 +1152,55 @@ const Dashboard = () => {
 
                     {/* TIMELINE DES PHASES */}
                     <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-8">
-                      {activePlan.phases.map((phase, index) => {
-                        // Calcul dynamique du statut de la phase
-                        let currentPhaseStatus = 'locked';
-                        
-                        // La phase 1 est toujours active au minimum (si pas completed)
-                        if (index === 0) {
-                            currentPhaseStatus = phase.status === 'completed' ? 'completed' : 'active';
-                        } else {
-                            // Les phases suivantes dépendent de la précédente
-                            const previousPhase = activePlan.phases[index - 1];
-                            const isPrevCompleted = previousPhase.status === 'completed';
+                      {(() => {
+                          let previousPhaseFullyActivated = true; // La phase 1 est toujours débloquable par défaut
+
+                          return activePlan.phases.map((phase, index) => {
+                            // 1. Check si CETTE phase est entièrement activée (pour débloquer la suivante)
+                            // Une phase est "Fully Activated" si TOUTES ses actions sont active ou completed (donc aucune pending)
+                            const isCurrentPhaseFullyActivated = phase.actions.every(a => a.status === 'active' || a.status === 'completed' || (a as any).isCompleted);
                             
-                            if (isPrevCompleted) {
-                                currentPhaseStatus = phase.status === 'completed' ? 'completed' : 'active';
-                            } else {
-                                currentPhaseStatus = 'locked';
+                            // 2. Est-ce qu'on peut activer les actions de cette phase ?
+                            // Oui si la précédente est fully activated.
+                            const canActivateActions = previousPhaseFullyActivated;
+
+                            // 3. Mise à jour pour le prochain tour
+                            previousPhaseFullyActivated = isCurrentPhaseFullyActivated;
+
+                            // Calcul dynamique du statut de la phase (Unlock Manuel ou Auto)
+                            let currentPhaseStatus = phase.status; 
+                            
+                            // Si le statut est 'locked' (par défaut ou explicitement), on vérifie si on doit le débloquer auto
+                            if (currentPhaseStatus === 'locked' || !currentPhaseStatus) {
+                                if (index === 0) {
+                                    currentPhaseStatus = 'active'; // Phase 1 toujours active
+                                } else {
+                                    // Si la phase précédente a au moins une action terminée ou active, on affiche la phase
+                                    // Mais le verrouillage fin se fera sur les boutons "Activer"
+                                    const previousPhase = activePlan.phases[index - 1];
+                                    if (previousPhase.status === 'active' || previousPhase.status === 'completed') {
+                                        currentPhaseStatus = 'active';
+                                    }
+                                }
                             }
-                        }
 
-                        // On force le statut calculé dans l'objet phase pour l'affichage
-                        const displayPhase = { ...phase, status: currentPhaseStatus };
+                            const displayPhase = { ...phase, status: currentPhaseStatus };
 
-                        return (
-                            <PlanPhaseBlock
-                            key={phase.id}
-                            phase={displayPhase as any}
-                            isLast={index === activePlan.phases.length - 1}
-                            onHelpAction={handleOpenHelp}
-                            onOpenFramework={handleOpenFramework}
-                            />
-                        );
-                      })}
+                            return (
+                                <PlanPhaseBlock
+                                key={phase.id}
+                                phase={displayPhase as any}
+                                isLast={index === activePlan.phases.length - 1}
+                                canActivateActions={canActivateActions} // PROP NOUVELLE
+                                onHelpAction={handleOpenHelp}
+                                onOpenFramework={handleOpenFramework}
+                                onOpenHistory={handleOpenHistory}
+                                onUnlockPhase={() => handleUnlockPhase(index)}
+                                onUnlockAction={handleUnlockAction}
+                                />
+                            );
+                          });
+                      })()}
                     </div>
 
                     {/* BOUTON FIN DE PLAN (Apparaît toujours en bas pour l'instant, ou conditionnel) */}

@@ -111,7 +111,18 @@ const NextPlan = () => {
       if (!user || !currentTheme || !targetAxisId) return;
 
       try {
-        // On récupère les dernières réponses
+        // 1. D'abord on regarde si on a un brouillon local (plus récent)
+        const localDraftKey = `sophia_nextplan_draft_${submissionId}_${targetAxisId}`;
+        const localDraft = localStorage.getItem(localDraftKey);
+
+        if (localDraft) {
+            console.log("Draft local trouvé, restauration...");
+            setResponses(JSON.parse(localDraft));
+            setIsLoaded(true);
+            return; // On priorise le local
+        }
+
+        // 2. Sinon on récupère les dernières réponses en base
         const { data: answersData } = await supabase
           .from('user_answers')
           .select('content')
@@ -138,7 +149,21 @@ const NextPlan = () => {
     };
 
     loadExistingData();
-  }, [user, currentTheme, targetAxisId]);
+  }, [user, currentTheme, targetAxisId, submissionId]);
+
+  // --- SAUVEGARDE AUTOMATIQUE LOCALSTORAGE ---
+  useEffect(() => {
+    if (!submissionId || !targetAxisId) return;
+    
+    // On ne sauvegarde que si on a des réponses non vides (pour éviter d'écraser avec l'init)
+    const hasData = responses.selectedProblemsIds.length > 0 || Object.keys(responses.detailAnswers).length > 0;
+    
+    if (hasData) {
+        const localDraftKey = `sophia_nextplan_draft_${submissionId}_${targetAxisId}`;
+        localStorage.setItem(localDraftKey, JSON.stringify(responses));
+    }
+  }, [responses, submissionId, targetAxisId]);
+
 
   // --- UI : PAS D'AXE DISPO ---
   if (noMoreAxes) {
@@ -250,6 +275,10 @@ const NextPlan = () => {
                   updated_at: new Date().toISOString()
               })
               .eq('id', existingAnswers.id);
+
+          // Nettoyage du brouillon local
+          const localDraftKey = `sophia_nextplan_draft_${submissionId}_${targetAxisId}`;
+          localStorage.removeItem(localDraftKey);
 
           // 2. Navigation vers PlanGeneratorNext
           const selectedAxisObj = currentTheme.axes?.find(a => a.id === selectedAxisId);

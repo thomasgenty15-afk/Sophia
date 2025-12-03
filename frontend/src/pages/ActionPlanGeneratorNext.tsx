@@ -347,7 +347,7 @@ const ActionPlanGeneratorNext = () => {
           // 1. CIBLAGE PRÉCIS : On cherche le goal correspondant à l'axe en cours
           const { data: goal } = await supabase
             .from('user_goals')
-            .select('id, status')
+            .select('id, status, submission_id')
             .eq('user_id', user.id)
             .eq('axis_id', currentAxis.id)
             .order('created_at', { ascending: false })
@@ -363,6 +363,24 @@ const ActionPlanGeneratorNext = () => {
 
              // 3. ACTIVATION DU PLAN
              await supabase.from('user_plans').update({ status: 'active' }).eq('goal_id', goal.id);
+
+             // 4. DISTRIBUTION / MISE A JOUR DES ACTIONS
+             // On s'assure que les actions correspondent bien à la dernière version du plan (ex: si régénéré via le chat)
+             // On doit récupérer l'ID du plan actif
+             const { data: activePlan } = await supabase
+                .from('user_plans')
+                .select('id, content')
+                .eq('goal_id', goal.id)
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+             
+             if (activePlan) {
+                 // Note: 'plan' du state est censé être à jour, mais par sécurité on peut utiliser activePlan.content 
+                 // ou 'plan' si on est sûr qu'il est sync. Utilisons 'plan' du state car c'est ce que voit l'user.
+                 console.log("⚡ Validation : Distribution des actions pour le plan", activePlan.id);
+                 await distributePlanActions(user.id, activePlan.id, goal.submission_id, plan);
+             }
           }
       }
       navigate('/dashboard');
@@ -618,8 +636,8 @@ const ActionPlanGeneratorNext = () => {
                           
                           <div className="mt-2 space-y-4 md:space-y-6">
                               {phase.actions.map((action: any, i: number) => {
-                                  const isGroupA = action.type === 'habitude';
-                                  const isFramework = action.type === 'framework';
+                                  const isGroupA = action.type?.toLowerCase().trim() === 'habitude' || action.type?.toLowerCase().trim() === 'habit';
+                                  const isFramework = action.type?.toLowerCase().trim() === 'framework';
                                   const isMainQuest = action.questType === 'main';
 
                                   return (

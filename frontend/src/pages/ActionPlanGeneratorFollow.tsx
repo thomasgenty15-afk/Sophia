@@ -938,6 +938,7 @@ const ActionPlanGeneratorFollow = () => {
                 if (updateError) throw updateError;
 
                 // DISTRIBUTION DES ACTIONS (Mise à jour)
+                // On utilise bien le 'plan' du state qui est potentiellement modifié par le chat
                 await distributePlanActions(user.id, existingPlan.id, activeGoal.submission_id, plan);
             }
 
@@ -1267,8 +1268,8 @@ const ActionPlanGeneratorFollow = () => {
 
                     <div className="space-y-4 md:space-y-6">
                       {phase.actions.map((action: any, i: number) => {
-                        const isGroupA = action.type === 'habitude';
-                        const isFramework = action.type === 'framework';
+                        const isGroupA = action.type?.toLowerCase().trim() === 'habitude' || action.type?.toLowerCase().trim() === 'habit';
+                        const isFramework = action.type?.toLowerCase().trim() === 'framework';
                         const isMainQuest = action.questType === 'main';
 
                         return (

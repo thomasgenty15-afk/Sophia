@@ -1,5 +1,5 @@
 import { Sparkles, CheckCircle2, Target, Lock, Play } from 'lucide-react';
-import { Action } from '../../types/dashboard';
+import type { Action } from '../../types/dashboard';
 
 export const RitualCard = ({ action }: { action: any }) => {
   // Casting action to any because of custom fields used here not present in strict Action interface yet
