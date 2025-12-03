@@ -8,7 +8,7 @@ const FrameworkExecution = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  const { action, planId } = location.state || {};
+  const { action, planId, submissionId } = location.state || {};
 
   const [responses, setResponses] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
@@ -35,12 +35,14 @@ const FrameworkExecution = () => {
         // 1. Sauvegarder l'entrée dans user_framework_entries
         const { error } = await supabase.from('user_framework_entries').insert({
             user_id: user.id,
-            framework_id: action.id, // On utilise l'ID de l'action comme ref, ou un slug si dispo
-            title: action.title,
+            action_id: action.id,
+            framework_title: action.title,
+            framework_type: details.type || 'unknown',
             content: responses,
-            schema_snapshot: details, // On garde une trace de la structure
+            schema_snapshot: details,
             plan_id: planId,
-            action_id: action.id
+            submission_id: submissionId,
+            target_reps: action.targetReps || 1
         });
 
         if (error) throw error;

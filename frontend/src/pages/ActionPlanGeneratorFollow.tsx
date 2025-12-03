@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { distributePlanActions } from '../lib/planActions';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -890,7 +891,7 @@ const ActionPlanGeneratorFollow = () => {
 
             if (!existingPlan) {
                 console.log("⚠️ Plan non trouvé en base, insertion...");
-                const { error: planError } = await supabase
+                const { data: newPlan, error: planError } = await supabase
                   .from('user_plans')
                   .insert({
                     user_id: user.id,
@@ -904,8 +905,17 @@ const ActionPlanGeneratorFollow = () => {
                     content: plan,
                     status: 'active',
                     generation_attempts: 1 // Premier essai
-                  });
+                  })
+                  .select()
+                  .single();
+
                 if (planError) throw planError;
+                
+                // DISTRIBUTION DES ACTIONS
+                if (newPlan) {
+                   await distributePlanActions(user.id, newPlan.id, activeGoal.submission_id, plan);
+                }
+
             } else {
                 // Si on est là, c'est qu'on a peut-être fait un "Retry".
                 // On met à jour le plan existant au lieu d'en créer un autre (grace au verrouillage UI, on sait qu'on a le droit)
@@ -926,6 +936,9 @@ const ActionPlanGeneratorFollow = () => {
                     .eq('id', existingPlan.id);
                 
                 if (updateError) throw updateError;
+
+                // DISTRIBUTION DES ACTIONS (Mise à jour)
+                await distributePlanActions(user.id, existingPlan.id, activeGoal.submission_id, plan);
             }
 
         // 3. Mettre à jour le profil pour dire "Onboarding Terminé" (Peut-être inutile pour le Follow ?)

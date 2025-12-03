@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { distributePlanActions } from '../lib/planActions';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -299,9 +300,13 @@ const ActionPlanGeneratorNext = () => {
                      status: 'active', 
                      generation_attempts: (existingPlan.generation_attempts || 1) + 1
                  }).eq('id', existingPlan.id);
+                 
+                 // DISTRIBUTION DES ACTIONS (Mise à jour)
+                 await distributePlanActions(user.id, existingPlan.id, goal.submission_id, data);
+
             } else {
                 // Insert
-                await supabase.from('user_plans').insert({
+                const { data: newPlan, error: planError } = await supabase.from('user_plans').insert({
                     user_id: user.id,
                     goal_id: goal.id,
                     submission_id: goal.submission_id,
@@ -313,7 +318,16 @@ const ActionPlanGeneratorNext = () => {
                     sophia_knowledge: data.sophiaKnowledge,
                     status: 'active',
                     generation_attempts: 1
-                });
+                })
+                .select()
+                .single();
+
+                if (planError) throw planError;
+
+                // DISTRIBUTION DES ACTIONS
+                if (newPlan) {
+                    await distributePlanActions(user.id, newPlan.id, goal.submission_id, data);
+                }
             }
         }
       }

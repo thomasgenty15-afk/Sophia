@@ -1,42 +1,45 @@
--- Table pour stocker les entrées/réponses aux frameworks (outils d'écriture)
-create table if not exists user_framework_entries (
+-- Table pour stocker les entrées des frameworks (Journaling, Exercices, etc.)
+create table if not exists public.user_framework_entries (
   id uuid default gen_random_uuid() primary key,
-  user_id uuid references auth.users not null,
+  user_id uuid references auth.users(id) on delete cascade not null,
   
-  -- Identifiant du type de framework (ex: 'gratitude_journal', 'deuil_letter')
-  -- Permet de les regrouper dans le Grimoire plus tard
-  framework_id text not null, 
+  -- Lien vers le plan et l'action spécifique (pour savoir de quel outil il s'agit)
+  plan_id uuid references public.user_plans(id) on delete set null,
+  action_id text not null, -- L'ID de l'action dans le JSON du plan (ex: 'a3')
   
-  -- Titre au moment de la création (ex: "Journal de Gratitude")
-  title text,
+  -- Méta-données pour le Grimoire (facilite le filtrage sans parser le JSON plan)
+  framework_title text not null, -- Ex: "Journal de Gratitude"
+  framework_type text not null, -- Ex: "gratitude", "shadow_work", "daily_planner"
   
-  -- Les réponses de l'utilisateur (JSON)
-  -- Ex: { "q1": "Je suis reconnaissant pour...", "q2": "..." }
-  content jsonb default '{}'::jsonb,
+  -- Le contenu rempli par l'utilisateur
+  content jsonb not null default '{}'::jsonb, -- { "question_1": "Réponse...", "humeur": 5 }
   
-  -- Snapshot de la structure au moment de la réponse (pour l'historique si l'IA change le format plus tard)
+  -- Snapshot du schéma pour pouvoir rejouer le framework plus tard
   schema_snapshot jsonb,
-  
-  -- Lien optionnel vers le plan ou l'action qui a déclenché ça
-  plan_id uuid references user_plans(id),
-  action_id text, -- ID de l'action dans le JSON du plan
-  
+
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
 
--- RLS
-alter table user_framework_entries enable row level security;
+-- Index pour récupérer rapidement l'historique d'un type de framework (Grimoire)
+create index if not exists framework_entries_user_type_idx on public.user_framework_entries(user_id, framework_type);
+create index if not exists framework_entries_plan_action_idx on public.user_framework_entries(plan_id, action_id);
 
-create policy "Users can insert their own entries"
-  on user_framework_entries for insert
+-- RLS (Sécurité)
+alter table public.user_framework_entries enable row level security;
+
+create policy "Users can view their own framework entries"
+  on public.user_framework_entries for select
+  using (auth.uid() = user_id);
+
+create policy "Users can insert their own framework entries"
+  on public.user_framework_entries for insert
   with check (auth.uid() = user_id);
 
-create policy "Users can view their own entries"
-  on user_framework_entries for select
+create policy "Users can update their own framework entries"
+  on public.user_framework_entries for update
   using (auth.uid() = user_id);
 
-create policy "Users can update their own entries"
-  on user_framework_entries for update
+create policy "Users can delete their own framework entries"
+  on public.user_framework_entries for delete
   using (auth.uid() = user_id);
-

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Book, ArrowLeft, Check, Play, Star, Calendar, Zap, FileText, Sword } from 'lucide-react';
+import { Book, ArrowLeft, Check, Play, Star, Calendar, Zap, FileText, Sword, History } from 'lucide-react';
+import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
 
 // --- TYPES ALIGNÉS AVEC LE DASHBOARD ---
 type ActionType = 'habitude' | 'mission' | 'framework';
@@ -153,6 +154,7 @@ interface GrimoireDetailProps {
 
 function GrimoireDetail({ transformation }: GrimoireDetailProps) {
   const navigate = useNavigate();
+  const [selectedFramework, setSelectedFramework] = useState<{title: string} | null>(null);
 
   // On sépare les hypnoses des autres actions pour l'affichage
   const hypnoses = transformation.actions.filter(a => a.isHypnosis);
@@ -247,13 +249,31 @@ function GrimoireDetail({ transformation }: GrimoireDetailProps) {
                 </div>
                 {action.mantra && <p className="text-xs min-[350px]:text-base text-green-700 mt-1 italic font-serif truncate">"{action.mantra}"</p>}
               </div>
-              <button className="w-full sm:w-auto px-4 py-2 bg-white border border-green-200 text-green-700 rounded-lg text-xs min-[350px]:text-sm font-bold hover:bg-green-600 hover:text-white hover:border-green-600 transition-all shadow-sm flex-shrink-0 whitespace-nowrap">
-                Réactiver 3 jours
-              </button>
+              
+              {action.type === 'framework' ? (
+                <button 
+                  onClick={() => setSelectedFramework({ title: action.title })}
+                  className="w-full sm:w-auto px-4 py-2 bg-white border border-violet-200 text-violet-700 rounded-lg text-xs min-[350px]:text-sm font-bold hover:bg-violet-600 hover:text-white hover:border-violet-600 transition-all shadow-sm flex-shrink-0 whitespace-nowrap flex items-center justify-center gap-2"
+                >
+                  <History className="w-4 h-4" />
+                  Journal & Archives
+                </button>
+              ) : (
+                <button className="w-full sm:w-auto px-4 py-2 bg-white border border-green-200 text-green-700 rounded-lg text-xs min-[350px]:text-sm font-bold hover:bg-green-600 hover:text-white hover:border-green-600 transition-all shadow-sm flex-shrink-0 whitespace-nowrap">
+                  Réactiver 3 jours
+                </button>
+              )}
             </div>
           ))}
         </div>
       </section>
+
+      {selectedFramework && (
+        <FrameworkHistoryModal 
+          frameworkTitle={selectedFramework.title} 
+          onClose={() => setSelectedFramework(null)} 
+        />
+      )}
     </div>
   );
 }

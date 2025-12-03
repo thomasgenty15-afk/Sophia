@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { distributePlanActions, cleanupSubmissionData } from '../lib/planActions';
 import {
   Check,
   Play,
@@ -674,9 +675,141 @@ const StrategyCard = ({ strategy, identityProp, whyProp, rulesProp }: { strategy
   );
 };
 
+// --- COMPOSANT : MODAL DE FRAMEWORK (JOURNALING / EXERCICE) ---
+const FrameworkModal = ({ 
+  action, 
+  onClose, 
+  onSave 
+}: { 
+  action: Action, 
+  onClose: () => void, 
+  onSave: (action: Action, content: any) => Promise<void> 
+}) => {
+  const [content, setContent] = useState<any>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  // On parse les détails du framework (envoyés par l'IA)
+  const details = (action as any).frameworkDetails || {
+    intro: "Remplissez ce formulaire pour valider l'action.",
+    sections: [
+        { id: "default", label: "Notes", inputType: "textarea", placeholder: "Écrivez ici..." }
+    ]
+  };
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+        await onSave(action, content);
+        onClose();
+    } catch (e) {
+        console.error(e);
+        alert("Erreur lors de la sauvegarde.");
+    } finally {
+        setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-[70] flex items-center justify-center p-4 animate-fade-in">
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-fade-in-up">
+        
+        {/* Header */}
+        <div className="bg-violet-50 p-6 border-b border-violet-100 flex justify-between items-start">
+            <div>
+                <div className="flex items-center gap-2 text-violet-600 font-bold uppercase text-xs tracking-wider mb-2">
+                    <FileText className="w-4 h-4" />
+                    {details.type === 'recurring' ? 'Rituel Récurrent' : 'Exercice Unique'}
+                </div>
+                <h2 className="text-2xl font-bold text-violet-900">{action.title}</h2>
+            </div>
+            <button onClick={onClose} className="text-violet-400 hover:text-violet-700 transition-colors">
+                <X className="w-6 h-6" />
+            </button>
+        </div>
+
+        {/* Scrollable Body */}
+        <div className="p-6 overflow-y-auto flex-1">
+            {/* Intro / Inspiration */}
+            {details.intro && (
+                <div className="bg-white border border-slate-100 p-4 rounded-xl mb-8 text-slate-600 italic leading-relaxed shadow-sm flex gap-3">
+                    <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0 mt-1" />
+                    <div>{details.intro}</div>
+                </div>
+            )}
+
+            {/* Form Fields */}
+            <div className="space-y-6">
+                {details.sections?.map((section: any) => (
+                    <div key={section.id}>
+                        <label className="block text-sm font-bold text-slate-900 mb-2">
+                            {section.label}
+                        </label>
+                        
+                        {section.inputType === 'textarea' ? (
+                            <textarea
+                                value={content[section.id] || ''}
+                                onChange={(e) => setContent({...content, [section.id]: e.target.value})}
+                                placeholder={section.placeholder}
+                                className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[120px] text-slate-700 text-sm md:text-base resize-y"
+                            />
+                        ) : section.inputType === 'scale' ? (
+                            <div className="flex flex-col gap-2">
+                                <div className="flex justify-between text-xs text-slate-400 font-bold uppercase">
+                                    <span>Pas du tout (1)</span>
+                                    <span>Extrêmement (10)</span>
+                                </div>
+                                <input 
+                                    type="range" 
+                                    min="1" 
+                                    max="10" 
+                                    value={content[section.id] || 5} 
+                                    onChange={(e) => setContent({...content, [section.id]: e.target.value})}
+                                    className="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-violet-600"
+                                />
+                                <div className="text-center font-bold text-violet-600 text-lg">
+                                    {content[section.id] || 5}/10
+                                </div>
+                            </div>
+                        ) : (
+                            <input
+                                type="text"
+                                value={content[section.id] || ''}
+                                onChange={(e) => setContent({...content, [section.id]: e.target.value})}
+                                placeholder={section.placeholder}
+                                className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-slate-700"
+                            />
+                        )}
+                    </div>
+                ))}
+            </div>
+        </div>
+
+        {/* Footer Actions */}
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+            <button 
+                onClick={onClose}
+                className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-200 rounded-lg transition-colors"
+            >
+                Annuler
+            </button>
+            <button 
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-6 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg shadow-lg shadow-violet-200 flex items-center gap-2 disabled:opacity-70"
+            >
+                {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
+                Enregistrer la fiche
+            </button>
+        </div>
+
+      </div>
+    </div>
+  );
+};
+
 // --- NOUVEAU COMPOSANT : CARTE D'ACTION POLYMORPHE ---
 
-const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked: boolean, onHelp: (action: Action) => void }) => {
+const PlanActionCard = ({ action, isLocked, onHelp, onOpenFramework }: { action: Action, isLocked: boolean, onHelp: (action: Action) => void, onOpenFramework: (action: Action) => void }) => {
   const [currentReps, setCurrentReps] = useState(action.currentReps || 0);
   const targetReps = action.targetReps || 1;
   const progress = (currentReps / targetReps) * 100;
@@ -778,7 +911,10 @@ const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked
                 </div>
               ) : isFramework ? (
                 /* --- GROUPE B : FRAMEWORK (BOUTON REMPLIR) --- */
-                <button className="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs min-[350px]:text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm">
+                <button 
+                  onClick={() => onOpenFramework(action)}
+                  className="w-full py-2 bg-violet-600 hover:bg-violet-700 text-white rounded-lg text-xs min-[350px]:text-sm font-bold flex items-center justify-center gap-2 transition-colors shadow-sm"
+                >
                   <Edit3 className="w-4 h-4" />
                   Remplir la fiche
                 </button>
@@ -820,7 +956,7 @@ const PlanActionCard = ({ action, isLocked, onHelp }: { action: Action, isLocked
 };
 
 // --- COMPOSANT PHASE (TIMELINE) ---
-const PlanPhaseBlock = ({ phase, isLast, onHelpAction }: { phase: PlanPhase, isLast: boolean, onHelpAction: (action: Action) => void }) => {
+const PlanPhaseBlock = ({ phase, isLast, onHelpAction, onOpenFramework }: { phase: PlanPhase, isLast: boolean, onHelpAction: (action: Action) => void, onOpenFramework: (action: Action) => void }) => {
   const isLocked = phase.status === 'locked';
   const isActive = phase.status === 'active';
 
@@ -858,6 +994,7 @@ const PlanPhaseBlock = ({ phase, isLast, onHelpAction }: { phase: PlanPhase, isL
             action={action}
             isLocked={isLocked}
             onHelp={onHelpAction}
+            onOpenFramework={onOpenFramework}
           />
         ))}
       </div>
@@ -1270,6 +1407,8 @@ const Dashboard = () => {
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null); // NOUVEAU: ID du thème pour reset ciblé
   const [activeAxisTitle, setActiveAxisTitle] = useState<string>("Plan d'Action");
   const [hasPendingAxes, setHasPendingAxes] = useState(false);
+  const [activePlanId, setActivePlanId] = useState<string | null>(null);
+  const [activeSubmissionId, setActiveSubmissionId] = useState<string | null>(null);
 
   const hasActivePlan = activePlan !== null;
 
@@ -1303,20 +1442,19 @@ const Dashboard = () => {
               .maybeSingle();
             
             if (lastGoal) {
-                console.log("Fallback: Utilisation du dernier goal trouvé:", lastGoal);
                 goalData = lastGoal;
             }
         }
 
         if (goalData) {
-          console.log("Goal actif chargé:", goalData);
           setActiveGoalId(goalData.id);
           setActiveAxisTitle(goalData.axis_title);
           setActiveThemeId(goalData.theme_id);
+          setActiveSubmissionId(goalData.submission_id);
 
           const { data: planData, error: planError } = await supabase
             .from('user_plans')
-            .select('content')
+            .select('id, content')
             .eq('user_id', user.id)
             .eq('goal_id', goalData.id)
             .eq('status', 'active')
@@ -1326,10 +1464,19 @@ const Dashboard = () => {
             console.error('Error fetching active plan:', planError);
           }
 
-          if (planData?.content) {
-            setActivePlan(planData.content);
+          if (planData) {
+            setActivePlanId(planData.id);
+            if (planData.content) {
+                setActivePlan(planData.content);
+            } else {
+                 // Si on n'a pas de plan en base, on ne met à null QUE si on n'a pas déjà un plan valide via location.state
+                 setActivePlan(current => {
+                      if (current && location.state?.activePlan) return current;
+                      return null;
+                 });
+            }
           } else {
-            // Si on n'a pas de plan en base, on ne met à null QUE si on n'a pas déjà un plan valide via location.state
+            setActivePlanId(null);
             setActivePlan(current => {
                  if (current && location.state?.activePlan) return current;
                  return null;
@@ -1338,7 +1485,6 @@ const Dashboard = () => {
 
           // Check if there are pending axes for the current submission
           if (goalData.submission_id) {
-              console.log("🔍 Checking pending axes for submission:", goalData.submission_id);
               const { count, error: countError } = await supabase
                   .from('user_goals')
                   .select('*', { count: 'exact', head: true })
@@ -1350,17 +1496,17 @@ const Dashboard = () => {
               if (countError) console.error("Error checking pending axes:", countError);
               
               const pendingCount = count || 0;
-              console.log("🔢 Pending axes count:", pendingCount);
               
               setHasPendingAxes(pendingCount > 0);
           } else {
-              console.log("⚠️ No submission_id on active goal. Assuming no pending axes.");
               setHasPendingAxes(false);
           }
         } else {
             // Vraiment aucun goal trouvé
             setActiveGoalId(null);
             setActivePlan(null);
+            setActivePlanId(null);
+            setActiveSubmissionId(null);
             setActiveAxisTitle("Plan d'Action");
             setActiveThemeId(null);
             setHasPendingAxes(false);
@@ -1443,14 +1589,10 @@ const Dashboard = () => {
     try {
         console.log("🧨 Lancement du RESET GLOBAL...");
         
-        // 1. Récupération du submission_id via le goal actif (s'il existe)
-        // Cela permet de cibler la suppression si on veut être fin, 
-        // mais pour un "Global Reset", on veut souvent tout nettoyer pour le user.
-        // Le prompt demande de supprimer "tous les éléments liés au submission_id du plan en cours".
-        
-        let targetSubmissionId = null;
+        let targetSubmissionId = activeSubmissionId; // On utilise l'ID en cache si possible
 
-        if (activeGoalId) {
+        // Si pas d'ID en cache, on cherche via le goal actif
+        if (!targetSubmissionId && activeGoalId) {
              const { data: goal } = await supabase
                 .from('user_goals')
                 .select('submission_id')
@@ -1462,26 +1604,29 @@ const Dashboard = () => {
         if (targetSubmissionId) {
             console.log("Ciblage suppression par submission_id:", targetSubmissionId);
             
-            // A. Supprimer les Réponses
+            // 1. SUPPRIMER LES DONNÉES DE SUIVI (Actions, Vital Signs, Frameworks, Plans)
+            await cleanupSubmissionData(user.id, targetSubmissionId);
+            
+            // 2. SUPPRIMER LES GOALS
+            await supabase.from('user_goals').delete().eq('submission_id', targetSubmissionId);
+
+            // 3. SUPPRIMER LES RÉPONSES (Optionnel mais demandé pour un reset "Total")
+            // Si on veut vraiment repartir de zéro sur ce questionnaire
             await supabase.from('user_answers').delete().eq('submission_id', targetSubmissionId);
-            
-            // B. Supprimer les Plans (liés via goal, mais on peut aussi via submission_id si ajouté, sinon cascade via goal)
-            // On le fait via les goals pour être sûr car submission_id sur plan est récent
-            
-            // On récupère les goals IDs liés à cette submission pour supprimer leurs plans
-            const { data: goalsToDelete } = await supabase.from('user_goals').select('id').eq('submission_id', targetSubmissionId);
-            const goalIds = goalsToDelete?.map(g => g.id) || [];
-            
-            if (goalIds.length > 0) {
-                await supabase.from('user_plans').delete().in('goal_id', goalIds);
-                await supabase.from('user_goals').delete().in('id', goalIds);
-            }
             
         } else {
             console.warn("Pas de submission_id détecté (Legacy ou bug). Nettoyage global par User ID.");
+            
             // Fallback : On nettoie tout pour le user si pas de submission ID trouvé
+            // C'est radical, mais nécessaire pour un "Global Reset" sans contexte
             await supabase.from('user_plans').delete().eq('user_id', user.id);
             await supabase.from('user_goals').delete().eq('user_id', user.id);
+            // On ne peut pas supprimer user_actions facilement ici sans cascade
+            // Idéalement on devrait faire un delete user_actions where user_id = ...
+            await supabase.from('user_actions').delete().eq('user_id', user.id);
+            await supabase.from('user_vital_signs').delete().eq('user_id', user.id);
+            await supabase.from('user_framework_entries').delete().eq('user_id', user.id);
+            
             await supabase.from('user_answers').delete().eq('user_id', user.id).eq('questionnaire_type', 'onboarding');
         }
 
@@ -1621,9 +1766,66 @@ const Dashboard = () => {
 
   // Gestion du Modal d'Aide
   const [helpingAction, setHelpingAction] = useState<Action | null>(null);
+  
+  // Gestion du Framework
+  const [openFrameworkAction, setOpenFrameworkAction] = useState<Action | null>(null);
 
   const handleOpenHelp = (action: Action) => {
     setHelpingAction(action);
+  };
+
+  const handleOpenFramework = (action: Action) => {
+    setOpenFrameworkAction(action);
+  };
+
+  const handleSaveFramework = async (action: Action, content: any) => {
+    if (!user) return;
+
+    console.log("Saving Framework:", action.title, content);
+
+    // 1. Sauvegarde dans la table des entrées
+    const { error } = await supabase.from('user_framework_entries').insert({
+        user_id: user.id,
+        plan_id: activePlanId,
+        submission_id: activeSubmissionId,
+        action_id: action.id,
+        framework_title: action.title,
+        framework_type: (action as any).frameworkDetails?.type || 'unknown',
+        content: content,
+        schema_snapshot: (action as any).frameworkDetails,
+        target_reps: action.targetReps || 1
+    });
+
+    if (error) throw error;
+
+    // 2. Gestion de l'état de l'action (One Shot vs Recurring)
+    const isRecurring = (action as any).frameworkDetails?.type === 'recurring';
+    
+    if (!isRecurring) {
+        // Cas One Shot : On marque l'action comme terminée DANS LE PLAN ACTUEL
+        // Note : Pour faire ça proprement, il faudrait mettre à jour le JSON du plan en base de données
+        // Ou avoir une table séparée pour le statut des actions.
+        // ICI, on met à jour le state local pour l'instant + update du plan global en base
+        
+        if (activePlan && activeGoalId) {
+            const newPhases = activePlan.phases.map(p => ({
+                ...p,
+                actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: true } : a)
+            }));
+            
+            const newPlan = { ...activePlan, phases: newPhases };
+            setActivePlan(newPlan);
+
+            // Update DB
+            await supabase
+                .from('user_plans')
+                .update({ content: newPlan })
+                .eq('goal_id', activeGoalId);
+        }
+    } else {
+        // Cas Recurring : On incrémente juste le compteur localement (et en base si on suivait les reps)
+        alert("Fiche enregistrée ! Continuez comme ça.");
+    }
   };
 
   const handleGenerateStep = (problem: string) => {
@@ -1689,6 +1891,15 @@ const Dashboard = () => {
           action={helpingAction}
           onClose={() => setHelpingAction(null)}
           onGenerateStep={handleGenerateStep}
+        />
+      )}
+
+      {/* MODAL FRAMEWORK */}
+      {openFrameworkAction && (
+        <FrameworkModal
+            action={openFrameworkAction}
+            onClose={() => setOpenFrameworkAction(null)}
+            onSave={handleSaveFramework}
         />
       )}
 
@@ -2057,6 +2268,7 @@ const Dashboard = () => {
                             phase={displayPhase as any}
                             isLast={index === activePlan.phases.length - 1}
                             onHelpAction={handleOpenHelp}
+                            onOpenFramework={handleOpenFramework}
                             />
                         );
                       })}

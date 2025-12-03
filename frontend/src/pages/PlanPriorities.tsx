@@ -28,6 +28,8 @@ const MOCK_IA_ORDER: PriorityItem[] = [
   { id: 'PDT_3', title: 'Système de Deep Work (4h/jour)', theme: 'Productivité' }
 ];
 
+import { cleanupSubmissionData } from '../lib/planActions';
+
 const PlanPriorities = () => {
   console.log("📍 PAGE MOUNTED: PlanPriorities"); 
   const navigate = useNavigate();
@@ -396,19 +398,10 @@ const PlanPriorities = () => {
 
         // NETTOYAGE PREALABLE DES PLANS (Pour éviter les doublons/conflits si changement d'ordre)
         if (submissionId) {
-             console.log("🧹 Nettoyage des plans obsolètes pour submission:", submissionId);
+             console.log("🧹 Nettoyage des plans et données obsolètes pour submission:", submissionId);
              
-             const { error, count } = await supabase
-                 .from('user_plans')
-                 .delete({ count: 'exact' })
-                 .eq('user_id', user.id)
-                 .eq('submission_id', submissionId);
-             
-             if (error) {
-                 console.error("❌ Erreur suppression plans:", error);
-             } else {
-                 console.log(`✅ Plans supprimés : ${count}`);
-             }
+             // On utilise la fonction centralisée qui nettoie TOUT (plans, actions, vital_signs, frameworks)
+             await cleanupSubmissionData(user.id, submissionId);
         } else {
             console.warn("⚠️ Impossible de nettoyer les plans : SubmissionID introuvable.");
         }
