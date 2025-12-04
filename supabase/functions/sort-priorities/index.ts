@@ -14,17 +14,52 @@ serve(async (req) => {
   try {
     const { axes } = await req.json()
 
+    if (!axes || !Array.isArray(axes) || axes.length === 0) {
+        throw new Error('Axes invalides ou vides');
+    }
+
+    const count = axes.length;
+    
+    let instructions = "";
+    
+    if (count === 1) {
+        instructions = `
+            CAS UNIQUE (1 AXE) :
+            L'utilisateur a choisi un seul combat. C'est une excellente stratégie de focus.
+            - Renvoie cet unique axe.
+            - Role: "foundation"
+            - Reasoning: Tu DOIS rédiger un message d'encouragement spécifique commençant par "Tu as décidé de choisir seulement une transformation, tu as raison c'est mieux de faire étape par étape, surtout que..." et complète avec les bénéfices globaux de travailler sur cet axe précis (${axes[0].title}). Sois bienveillante et motivante.
+        `;
+    } else if (count === 2) {
+        instructions = `
+            CAS DUO (2 AXES) :
+            Trier ces 2 axes dans l'ordre "Fondation" -> "Levier".
+            
+            ROLES :
+            1. LA FONDATION (N°1) : Le problème racine / urgence physiologique ou mentale.
+            2. LE LEVIER (N°2) : L'action à fort impact une fois la fondation posée.
+            
+            Pour chaque axe, explique brièvement le choix dans "reasoning".
+        `;
+    } else {
+        instructions = `
+            CAS TRIO (3 AXES) :
+            Trier ces 3 axes dans l'ordre "Fondation" -> "Levier" -> "Optimisation".
+            
+            ROLES :
+            1. LA FONDATION (N°1) : Problème racine / urgence.
+            2. LE LEVIER (N°2) : Fort impact, organisation, productivité.
+            3. L'OPTIMISATION (N°3) : Raffinement, long terme.
+            
+            Pour chaque axe, explique brièvement le choix dans "reasoning".
+        `;
+    }
+
     const systemPrompt = `
       Tu es Sophia, une intelligence artificielle experte en stratégie comportementale et en développement personnel.
-      Ton rôle est d'analyser un ensemble de 3 problématiques (axes) identifiées chez un utilisateur et de déterminer l'ordre optimal pour les traiter.
+      Ton rôle est d'analyser les problématiques (axes) identifiées chez un utilisateur et de déterminer l'ordre optimal pour les traiter, ou de valider leur choix unique.
 
-      TA MISSION :
-      Trier ces 3 axes dans l'ordre "Fondation" -> "Levier" -> "Optimisation" et expliquer pourquoi.
-
-      DÉFINITIONS :
-      1. LA FONDATION (N°1) : C'est le problème racine. S'il n'est pas réglé, les autres efforts seront vains. C'est souvent lié à l'énergie physique, au sommeil, ou à une charge mentale paralysante. C'est le "goulot d'étranglement".
-      2. LE LEVIER (N°2) : C'est l'action qui aura le plus d'impact visible une fois la fondation posée. C'est souvent lié à l'organisation, la productivité ou les relations.
-      3. L'OPTIMISATION (N°3) : C'est le raffinement. C'est aller chercher les derniers %, ou traiter des sujets importants mais moins urgents physiologiquement (ex: sens de la vie, créativité avancée).
+      ${instructions}
 
       FORMAT DE RÉPONSE ATTENDU (JSON STRICT) :
       {
@@ -32,22 +67,22 @@ serve(async (req) => {
           {
             "originalId": "ID_DU_AXE",
             "role": "foundation", // ou "lever" ou "optimization"
-            "reasoning": "Phrase courte et percutante expliquant pourquoi c'est la fondation (ex: 'Impossible d'être productif si tu dors 4h par nuit')."
-          },
-          // ... les 2 autres
+            "reasoning": "Ton explication ou message d'encouragement ici."
+          }
+          // ... répéter pour chaque axe
         ]
       }
 
       RÈGLES :
-      - Tu dois renvoyer EXACTEMENT les 3 axes fournis, mais dans le nouvel ordre.
+      - Tu dois renvoyer EXACTEMENT les ${count} axe(s) fourni(s).
       - Le champ "reasoning" doit s'adresser directement à l'utilisateur ("tu").
     `
 
     const userPrompt = `
-      Voici les 3 axes identifiés pour cet utilisateur (l'ordre actuel est arbitraire) :
+      Voici les ${count} axe(s) identifié(s) pour cet utilisateur :
       ${JSON.stringify(axes)}
-
-      Classe-les maintenant du plus fondamental au plus "optimisation".
+      
+      Génère la réponse JSON.
     `
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
@@ -56,7 +91,7 @@ serve(async (req) => {
       throw new Error('Clé API manquante')
     }
 
-    console.log("Calling Gemini API for sorting...")
+    console.log(`Calling Gemini API for sorting (${count} axes)...`)
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
@@ -101,4 +136,3 @@ serve(async (req) => {
     )
   }
 })
-

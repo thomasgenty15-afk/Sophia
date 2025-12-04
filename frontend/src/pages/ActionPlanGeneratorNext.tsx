@@ -162,7 +162,11 @@ const ActionPlanGeneratorNext = () => {
                    
                    if (error) throw error;
                    
-                   if (summaryData?.summary) {
+                   if (summaryData?.error) {
+                        console.warn("Erreur résumé (métier):", summaryData.error);
+                        // On n'affiche pas l'erreur technique à l'utilisateur pour le résumé, on met un placeholder
+                        setContextSummary("Analyse momentanément indisponible. Vous pouvez lancer la génération.");
+                   } else if (summaryData?.summary) {
                        setContextSummary(summaryData.summary);
                        
                        // D. SAUVEGARDE & INCREMENT
@@ -264,6 +268,11 @@ const ActionPlanGeneratorNext = () => {
 
       if (error) throw error;
       
+      // Gestion des erreurs métier renvoyées en 200 OK (ex: Quota Gemini)
+      if (data && data.error) {
+          throw new Error(data.error);
+      }
+      
       if (data) {
         setPlan(data);
         setStep('result');
@@ -298,7 +307,7 @@ const ActionPlanGeneratorNext = () => {
                      inputs_pacing: inputs.pacing,
                      sophia_knowledge: data.sophiaKnowledge,
                      status: 'active', 
-                     generation_attempts: (existingPlan.generation_attempts || 1) + 1
+                     generation_attempts: (existingPlan.generation_attempts || 0) + 1
                  }).eq('id', existingPlan.id);
                  
                  // DISTRIBUTION DES ACTIONS (Mise à jour)
@@ -332,9 +341,10 @@ const ActionPlanGeneratorNext = () => {
         }
       }
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erreur génération plan:', err);
-      setError("Erreur lors de la génération. Veuillez réessayer.");
+      // On affiche le message d'erreur précis (ex: "Le cerveau de Sophia est en surchauffe...")
+      setError(err.message || "Erreur lors de la génération. Veuillez réessayer.");
       setStep('input');
     }
   };

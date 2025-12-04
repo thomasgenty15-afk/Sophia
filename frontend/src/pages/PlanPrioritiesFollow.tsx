@@ -275,7 +275,7 @@ const PlanPrioritiesFollow = () => {
             // On re-transforme le format API en format UI
             const reasoningMap: any = {};
             data.sortedAxes.forEach((item: any, index: number) => {
-                reasoningMap[item.originalId] = formatReasoning(item, index);
+                reasoningMap[item.originalId] = formatReasoning(item, index, newOrder.length);
             });
             
             setAiReasoning(reasoningMap);
@@ -331,9 +331,17 @@ const PlanPrioritiesFollow = () => {
   };
 
   // Formatte la réponse API pour l'UI
-  const formatReasoning = (apiItem: any, index: number) => {
+  const formatReasoning = (apiItem: any, index: number, totalCount: number = 3) => {
+       // Adaptation des titres si moins de 3 items
+       let title = "";
+       if (totalCount === 1) {
+           title = "LA FONDATION (Focus Unique)";
+       } else {
+           title = index === 0 ? "LA FONDATION (Recommandé N°1)" : index === 1 ? "LE LEVIER (Recommandé N°2)" : "L'OPTIMISATION (Recommandé N°3)";
+       }
+
        return {
-            roleTitle: index === 0 ? "LA FONDATION (Recommandé N°1)" : index === 1 ? "LE LEVIER (Recommandé N°2)" : "L'OPTIMISATION (Recommandé N°3)",
+            roleTitle: title,
             reasoning: apiItem.reasoning,
             type: apiItem.role,
             style: index === 0 ? "bg-emerald-50 border-emerald-100 text-emerald-800" 
@@ -477,11 +485,12 @@ const PlanPrioritiesFollow = () => {
             STRATÉGIE SÉQUENTIELLE (CYCLE 2+)
           </div>
           <h1 className="text-2xl min-[350px]:text-3xl md:text-4xl font-bold text-slate-900 mb-2 md:mb-4">
-            L'ordre des facteurs change le résultat.
+            {currentOrder.length === 1 ? "Focus Absolu." : "L'ordre des facteurs change le résultat."}
           </h1>
           <p className="text-sm min-[350px]:text-base md:text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
-            L'IA a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/>
-            Vous pouvez le modifier, mais attention aux incohérences.
+            {currentOrder.length === 1 
+             ? "L'IA valide votre choix de concentration unique. C'est souvent la clé de la réussite."
+             : <>L'IA a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/> Vous pouvez le modifier, mais attention aux incohérences.</>}
           </p>
         </div>
 
@@ -504,7 +513,7 @@ const PlanPrioritiesFollow = () => {
         )}
 
         {/* INSTRUCTION DE REORDER */}
-        {!isModified && (
+        {!isModified && currentOrder.length > 1 && (
           <div className="flex items-center justify-center gap-2 text-slate-400 text-xs md:text-sm font-bold uppercase tracking-wider mb-6 md:mb-8 text-center px-4">
             <Move className="w-3 h-3 md:w-4 md:h-4" />
             Glissez les cartes pour modifier l'ordre

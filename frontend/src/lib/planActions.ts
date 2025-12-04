@@ -59,7 +59,7 @@ export const abandonPreviousActions = async (userId: string, excludePlanId: stri
 export const distributePlanActions = async (
   userId: string,
   planId: string,
-  submissionId: string | null, // Peut être null si vieux plan
+  submissionId: string | null | undefined, // Peut être null si vieux plan
   planContent: GeneratedPlan
 ) => {
   console.log("🚀 Distribution des actions pour le plan:", planId);
@@ -78,6 +78,9 @@ export const distributePlanActions = async (
   const frameworksToTrack: any[] = [];
   
   let globalActionIndex = 0; // Pour déterminer les 2 premières actions globales
+  
+  // Clean submissionId : ensures it's null if undefined
+  const cleanSubmissionId = submissionId || null;
 
   // On parcourt toutes les phases
   planContent.phases.forEach(phase => {
@@ -89,14 +92,18 @@ export const distributePlanActions = async (
 
       // CAS 1: Frameworks (Table user_framework_tracking)
       if (action.type === 'framework') {
+        // Validation stricte des données requises
+        const actionId = action.id || `fw_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+        const title = action.title || 'Framework sans titre';
+
         frameworksToTrack.push({
           user_id: userId,
           plan_id: planId,
-          submission_id: submissionId,
-          action_id: action.id,
-          title: action.title,
+          submission_id: cleanSubmissionId,
+          action_id: actionId,
+          title: title,
           type: (action as any).frameworkDetails?.type || 'unknown', // 'one_shot' | 'recurring'
-          target_reps: action.targetReps || 1,
+          target_reps: typeof action.targetReps === 'number' ? action.targetReps : 1, // Force integer
           current_reps: 0,
           status: initialStatus
         });
@@ -111,14 +118,25 @@ export const distributePlanActions = async (
       if (normalizedType === 'habitude' || normalizedType === 'habit') dbType = 'habit';
       
       if (dbType) {
+        // Handle targetReps logic cleanly
+        let targetReps = null;
+        if (dbType === 'habit') {
+            targetReps = typeof action.targetReps === 'number' ? action.targetReps : 1;
+        } else {
+            // Missions usually default to 1, but let's be explicit. Null means N/A? No, for mission it is usually 1.
+            targetReps = 1;
+        }
+
+        const title = action.title || 'Action sans titre';
+
         actionsToInsert.push({
           user_id: userId,
           plan_id: planId,
-          submission_id: submissionId,
+          submission_id: cleanSubmissionId,
           type: dbType,
-          title: action.title,
-          description: action.description,
-          target_reps: action.targetReps || (dbType === 'mission' ? 1 : null), // Mission = 1 fois par défaut
+          title: title,
+          description: action.description || '',
+          target_reps: targetReps,
           current_reps: 0,
           status: initialStatus
         });
@@ -132,14 +150,18 @@ export const distributePlanActions = async (
   let vitalSignToInsert = null;
 
   if (vitalSignal) {
+    // Validation stricte : label est requis (NOT NULL constraint)
+    const label = vitalSignal.name || vitalSignal.label || 'Signe Vital';
+    
+    // Conversion explicite en string pour les valeurs
     vitalSignToInsert = {
       user_id: userId,
       plan_id: planId,
-      submission_id: submissionId,
-      label: vitalSignal.name,
-      target_value: vitalSignal.targetValue,
-      current_value: vitalSignal.startValue,
-      unit: vitalSignal.unit,
+      submission_id: cleanSubmissionId,
+      label: label,
+      target_value: String(vitalSignal.targetValue || ''),
+      current_value: String(vitalSignal.startValue || ''),
+      unit: vitalSignal.unit || '',
       status: 'active'
     };
   }
@@ -148,21 +170,21 @@ export const distributePlanActions = async (
   const promises = [];
 
   if (actionsToInsert.length > 0) {
-    console.log(`📝 Insertion de ${actionsToInsert.length} actions...`);
+    console.log(`📝 Insertion de ${actionsToInsert.length} actions...`, actionsToInsert[0]); // Log sample
     promises.push(
       supabase.from('user_actions').insert(actionsToInsert)
     );
   }
 
   if (frameworksToTrack.length > 0) {
-    console.log(`📚 Insertion de ${frameworksToTrack.length} frameworks à tracker...`);
+    console.log(`📚 Insertion de ${frameworksToTrack.length} frameworks à tracker...`, frameworksToTrack[0]); // Log sample
     promises.push(
         supabase.from('user_framework_tracking').insert(frameworksToTrack)
     );
   }
 
   if (vitalSignToInsert) {
-    console.log("❤️ Insertion du signe vital...", vitalSignToInsert.label);
+    console.log("❤️ Insertion du signe vital...", vitalSignToInsert);
     promises.push(
       supabase.from('user_vital_signs').insert(vitalSignToInsert)
     );
@@ -175,6 +197,8 @@ export const distributePlanActions = async (
   const errors = results.filter(r => r.error).map(r => r.error);
   if (errors.length > 0) {
     console.error("❌ Erreurs lors de la distribution:", errors);
+    // On affiche l'erreur en détail pour debug
+    errors.forEach(e => console.error("Detailed Error:", JSON.stringify(e, null, 2)));
     throw new Error("Erreur lors de la création du suivi détaillé.");
   }
 

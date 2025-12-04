@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { distributePlanActions, cleanupPlanData } from '../lib/planActions';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -177,13 +178,36 @@ const ActionPlanGeneratorRecraft = () => {
           .limit(1)
           .maybeSingle();
 
-      // On appelle l'IA avec les infos + LES REPONSES
+      // MODIFICATION RECRAFT : Récupération de l'ancien plan (contexte initial)
+      // On veut passer à l'IA les anciens inputs (inputs_why, inputs_blockers) pour qu'elle comprenne l'évolution.
+      let previousPlanContext = null;
+
+      if (checkGoal) {
+          const { data: existingPlan } = await supabase
+              .from('user_plans')
+              .select('content, inputs_why, inputs_blockers, inputs_context')
+              .eq('goal_id', checkGoal.id)
+              .maybeSingle();
+          
+          if (existingPlan) {
+              previousPlanContext = {
+                  initialWhy: existingPlan.inputs_why,
+                  initialBlockers: existingPlan.inputs_blockers,
+                  initialContext: existingPlan.inputs_context,
+                  previousContent: existingPlan.content // Optionnel, si on veut que l'IA analyse le contenu généré précédent
+              };
+          }
+      }
+
+      // On appelle l'IA avec les infos + LES REPONSES + ANCIEN PLAN
       const { data, error } = await supabase.functions.invoke('generate-plan', {
         body: {
-          inputs,
+          inputs, // Les nouveaux inputs (Raison du changement, Nouveaux blocages)
           currentAxis: currentAxis,
           userId: user.id,
-          answers: answersData?.content || {} // Injection explicite ici
+          answers: answersData?.content || {},
+          previousPlanContext: previousPlanContext, // On passe le contexte historique
+          mode: 'recraft' // Mode explicite pour le backend
         }
       });
 
@@ -211,40 +235,54 @@ const ActionPlanGeneratorRecraft = () => {
             // On vérifie s'il existe un plan
             const { data: existingPlan } = await supabase
                 .from('user_plans')
-                .select('id')
+                .select('id, inputs_why, inputs_blockers, inputs_context')
                 .eq('goal_id', goal.id)
                 .maybeSingle();
 
+            // CONTEXTE INITIAL : On sauvegarde les inputs d'origine avant de supprimer
+            const initialWhy = existingPlan?.inputs_why || inputs.why; // Fallback sur inputs actuels si pas d'historique (Cas rare)
+            const initialBlockers = existingPlan?.inputs_blockers || inputs.blockers;
+            const initialContext = existingPlan?.inputs_context || inputs.context;
+
             if (existingPlan) {
-                // Update
-                 await supabase.from('user_plans').update({
-                     content: data,
-                     inputs_why: inputs.why,
-                     inputs_blockers: inputs.blockers,
-                     inputs_context: inputs.context,
-                     inputs_pacing: inputs.pacing,
-                     sophia_knowledge: data.sophiaKnowledge,
-                     status: 'active', // On met direct en active car c'est un recraft explicit ?
-                     // Ou on laisse pending et on demande validation ?
-                     // Le prompt dit "on tombe directement sur la partie qualitative...".
-                     // Pour simplifier le flux Recraft, on peut valider à la fin avec le bouton "C'est parfait".
-                     generation_attempts: (existingPlan.generation_attempts || 1) + 1 // Reset compteur ou incrément ? Disons reset pour ce nouveau cycle
-                 }).eq('id', existingPlan.id);
-            } else {
-                // Insert
-                await supabase.from('user_plans').insert({
-                    user_id: user.id,
-                    goal_id: goal.id,
-                    submission_id: goal.submission_id,
-                    content: data,
-                    inputs_why: inputs.why,
-                    inputs_blockers: inputs.blockers,
-                    inputs_context: inputs.context,
-                    inputs_pacing: inputs.pacing,
-                    sophia_knowledge: data.sophiaKnowledge,
-                    status: 'active',
-                    generation_attempts: 1
-                });
+                console.log("♻️ Nettoyage complet de l'ancien plan (Recraft Mode Robust)...");
+                // 1. Suppression des artefacts (Actions, Frameworks, Signes Vitaux)
+                // cleanupPlanData supprime TOUT ce qui est lié à cet ID, y compris les entrées de journal (user_framework_entries)
+                await cleanupPlanData(existingPlan.id);
+
+                // 2. Suppression du plan lui-même pour repartir sur un ID propre
+                await supabase.from('user_plans').delete().eq('id', existingPlan.id);
+            }
+
+            // 3. CRÉATION DU NOUVEAU PLAN (Insert Always)
+            const { data: newPlan, error: planError } = await supabase.from('user_plans').insert({
+                user_id: user.id,
+                goal_id: goal.id,
+                submission_id: goal.submission_id,
+                content: data,
+                
+                // ON PRÉSERVE L'HISTOIRE D'ORIGINE
+                inputs_why: initialWhy,
+                inputs_blockers: initialBlockers,
+                inputs_context: initialContext,
+                
+                // ON AJOUTE LE CHAPITRE RECRAFT
+                recraft_reason: inputs.why,      // "Pourquoi ce changement ?"
+                recraft_challenges: inputs.blockers, // "Nouveaux blocages ?"
+                
+                inputs_pacing: inputs.pacing,
+                sophia_knowledge: data.sophiaKnowledge,
+                status: 'active',
+                generation_attempts: 1 // Nouveau départ = Compteur à 1
+            })
+            .select()
+            .single();
+
+            if (planError) throw planError;
+
+            // 4. DISTRIBUTION DES ACTIONS
+            if (newPlan) {
+                await distributePlanActions(user.id, newPlan.id, goal.submission_id, data);
             }
         }
       }
@@ -258,12 +296,21 @@ const ActionPlanGeneratorRecraft = () => {
 
   // --- VALIDATION FINALE ---
   const handleValidatePlan = async () => {
-      // Le plan est déjà sauvegardé (ou updaté) lors du generate, on a juste à rediriger vers le dashboard
-      // On s'assure juste que le statut est bien 'active' si on avait mis 'pending' avant.
+      // Le plan est déjà sauvegardé et les actions distribuées lors du generate
+      // On force juste le statut 'active' par sécurité et on redirige
       if (user && currentAxis) {
           const { data: goal } = await supabase.from('user_goals').select('id').eq('user_id', user.id).eq('axis_id', currentAxis.id).single();
           if (goal) {
+             // On s'assure que le goal est actif
+             await supabase.from('user_goals').update({ status: 'active' }).eq('id', goal.id);
+             // On s'assure que le plan est actif
              await supabase.from('user_plans').update({ status: 'active' }).eq('goal_id', goal.id);
+             
+             // On relance une distribution pour être sûr que tout est synchro avec la dernière version du plan (feedback chat)
+             const { data: activePlan } = await supabase.from('user_plans').select('id, submission_id').eq('goal_id', goal.id).single();
+             if (activePlan && plan) {
+                 await distributePlanActions(user.id, activePlan.id, activePlan.submission_id, plan);
+             }
           }
       }
       navigate('/dashboard');

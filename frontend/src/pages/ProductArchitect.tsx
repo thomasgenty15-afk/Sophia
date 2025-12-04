@@ -147,7 +147,7 @@ const ProductArchitect = () => {
                   Le Grand Oeuvre
                 </h2>
                 <p className="text-emerald-200/70 mb-8 leading-relaxed">
-                  Les 6 premières semaines sont dédiées à nettoyer le terrain et poser les premières pierres. Tu ne construis pas sur du sable.
+                  Les 12 premières semaines sont dédiées à nettoyer le terrain et poser les premières pierres. Tu ne construis pas sur du sable.
                 </p>
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center gap-3 text-emerald-100">
@@ -194,7 +194,7 @@ const ProductArchitect = () => {
                 <ul className="space-y-4 mb-8">
                   <li className="flex items-center gap-3 text-emerald-100">
                     <Sword className="w-5 h-5 text-emerald-500" />
-                    <span>12 Semaines de transformation</span>
+                    <span>Gamification du développement personnel</span>
                   </li>
                   <li className="flex items-center gap-3 text-emerald-100">
                     <Sword className="w-5 h-5 text-emerald-500" />

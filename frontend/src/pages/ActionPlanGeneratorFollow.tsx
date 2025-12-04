@@ -915,7 +915,6 @@ const ActionPlanGeneratorFollow = () => {
                 if (newPlan) {
                    await distributePlanActions(user.id, newPlan.id, activeGoal.submission_id, plan);
                 }
-
             } else {
                 // Si on est là, c'est qu'on a peut-être fait un "Retry".
                 // On met à jour le plan existant au lieu d'en créer un autre (grace au verrouillage UI, on sait qu'on a le droit)
@@ -931,7 +930,7 @@ const ActionPlanGeneratorFollow = () => {
                         sophia_knowledge: plan.sophiaKnowledge,
                         content: plan,
                         status: 'active', // VALIDATION FINALE : Passage en active
-                        generation_attempts: (existingPlan.generation_attempts || 1) + 1 // Incrément
+                        // generation_attempts: INCHANGÉ ICI car déjà incrémenté à la génération
                     })
                     .eq('id', existingPlan.id);
                 
@@ -942,8 +941,7 @@ const ActionPlanGeneratorFollow = () => {
                 await distributePlanActions(user.id, existingPlan.id, activeGoal.submission_id, plan);
             }
 
-        // 3. Mettre à jour le profil pour dire "Onboarding Terminé" (Peut-être inutile pour le Follow ?)
-        // On le laisse pour être sûr que c'est marqué
+        // 3. Mettre à jour le profil pour dire "Onboarding Terminé"
         const { error: profileError } = await supabase
             .from('profiles')
             .update({ onboarding_completed: true })

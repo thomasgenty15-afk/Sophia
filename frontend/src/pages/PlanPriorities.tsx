@@ -20,6 +20,8 @@ interface PriorityItem {
   id: string;
   title: string;
   theme: string;
+  role?: string;
+  reasoning?: string;
 }
 
 const MOCK_IA_ORDER: PriorityItem[] = [
@@ -212,59 +214,66 @@ const PlanPriorities = () => {
         }
 
         // --- APPEL GEMINI ---
-        if (!user) {
-            // Mode invité : Simulé
-            loadSimple(axesToAnalyze);
-            setIsLoading(false);
-            return;
-        }
-
+        // Pour les invités, on appelle aussi l'IA pour avoir la stratégie, mais on ne sauvegarde pas en DB
         console.log(`🚀 Appel Gemini en cours... (Essai ${attemptsCount + 1}/3)`);
         
         const { data, error } = await supabase.functions.invoke('sort-priorities', {
-            body: { axes: axesToAnalyze }
+            body: { axes: axesToAnalyze },
+            // Force le header Authorization pour les invités (fix 401)
+            headers: !user ? { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` } : undefined
         });
 
         if (error) throw error;
 
         if (data && data.sortedAxes) {
-            // A. Incrémenter le compteur
-            if (lastAnswerId) {
-                await supabase.from('user_answers')
-                    .update({ sorting_attempts: attemptsCount + 1 })
-                    .eq('id', lastAnswerId);
-            }
-
-            // B. Sauvegarder les nouveaux goals en base
-            const newOrder = data.sortedAxes.map((sorted: any) => 
-                axesToAnalyze.find((a: any) => a.id === sorted.originalId)
-            ).filter(Boolean);
-
-            const goalsPayload = newOrder.map((item: any, index: number) => {
-                const aiItem = data.sortedAxes.find((i: any) => i.originalId === item.id);
+            // B. Préparer le nouvel ordre
+            const newOrder = data.sortedAxes.map((sorted: any) => {
+                const original = axesToAnalyze.find((a: any) => a.id === sorted.originalId);
+                if (!original) return null;
                 return {
-                    user_id: user.id,
-                    axis_id: item.id,
-                    axis_title: item.title,
-                    theme_id: item.theme,
-                    priority_order: index + 1,
-                    status: index === 0 ? 'active' : 'pending',
-                    role: aiItem?.role || 'optimization',
-                    reasoning: aiItem?.reasoning || null,
-                    submission_id: location.state?.submissionId
+                    ...original,
+                    role: sorted.role,
+                    reasoning: sorted.reasoning
                 };
-            });
+            }).filter(Boolean);
 
-            // Clean & Upsert
-            const currentIds = newOrder.map((c: any) => c.id);
-            await supabase.from('user_goals').delete().eq('user_id', user.id).not('axis_id', 'in', `(${currentIds.join(',')})`);
-            await supabase.from('user_goals').upsert(goalsPayload, { onConflict: 'user_id,axis_id' });
+            // SI USER CONNECTÉ -> DB
+            if (user) {
+                // A. Incrémenter le compteur
+                if (lastAnswerId) {
+                    await supabase.from('user_answers')
+                        .update({ sorting_attempts: attemptsCount + 1 })
+                        .eq('id', lastAnswerId);
+                }
+
+                const goalsPayload = newOrder.map((item: any, index: number) => {
+                    const aiItem = data.sortedAxes.find((i: any) => i.originalId === item.id);
+                    return {
+                        user_id: user.id,
+                        axis_id: item.id,
+                        axis_title: item.title,
+                        theme_id: item.theme,
+                        priority_order: index + 1,
+                        status: index === 0 ? 'active' : 'pending',
+                        role: aiItem?.role || 'optimization',
+                        reasoning: aiItem?.reasoning || null,
+                        submission_id: location.state?.submissionId
+                    };
+                });
+
+                // Clean & Upsert
+                const currentIds = newOrder.map((c: any) => c.id);
+                await supabase.from('user_goals').delete().eq('user_id', user.id).not('axis_id', 'in', `(${currentIds.join(',')})`);
+                await supabase.from('user_goals').upsert(goalsPayload, { onConflict: 'user_id,axis_id' });
+            } else {
+                console.log("👻 Mode Invité : Résultats en mémoire uniquement.");
+            }
 
             // C. Mettre à jour l'UI
             // On re-transforme le format API en format UI
             const reasoningMap: any = {};
             data.sortedAxes.forEach((item: any, index: number) => {
-                reasoningMap[item.originalId] = formatReasoning(item, index);
+                reasoningMap[item.originalId] = formatReasoning(item, index, newOrder.length);
             });
             
             setAiReasoning(reasoningMap);
@@ -272,8 +281,8 @@ const PlanPriorities = () => {
             setCurrentOrder(newOrder);
         }
 
-      } catch (err) {
-        console.error("❌ Erreur PlanPriorities:", err);
+      } catch (err: any) {
+        console.warn("⚠️ Erreur PlanPriorities (Mode Fallback activé):", err.message || err);
         // Fallback en cas d'erreur
         loadSimple(location.state?.selectedAxes || MOCK_IA_ORDER);
       } finally {
@@ -320,9 +329,17 @@ const PlanPriorities = () => {
   };
 
   // Formatte la réponse API pour l'UI
-  const formatReasoning = (apiItem: any, index: number) => {
+  const formatReasoning = (apiItem: any, index: number, totalCount: number = 3) => {
+       // Adaptation des titres si moins de 3 items
+       let title = "";
+       if (totalCount === 1) {
+           title = "LA FONDATION (Focus Unique)";
+       } else {
+           title = index === 0 ? "LA FONDATION (Recommandé N°1)" : index === 1 ? "LE LEVIER (Recommandé N°2)" : "L'OPTIMISATION (Recommandé N°3)";
+       }
+
        return {
-            roleTitle: index === 0 ? "LA FONDATION (Recommandé N°1)" : index === 1 ? "LE LEVIER (Recommandé N°2)" : "L'OPTIMISATION (Recommandé N°3)",
+            roleTitle: title,
             reasoning: apiItem.reasoning,
             type: apiItem.role,
             style: index === 0 ? "bg-emerald-50 border-emerald-100 text-emerald-800" 
@@ -466,11 +483,12 @@ const PlanPriorities = () => {
             Stratégie Séquentielle
           </div>
           <h1 className="text-2xl min-[350px]:text-3xl md:text-4xl font-bold text-slate-900 mb-2 md:mb-4">
-            L'ordre des facteurs change le résultat.
+            {currentOrder.length === 1 ? "Focus Absolu." : "L'ordre des facteurs change le résultat."}
           </h1>
           <p className="text-sm min-[350px]:text-base md:text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
-            L'IA a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/>
-            Vous pouvez le modifier, mais attention aux incohérences.
+            {currentOrder.length === 1 
+             ? "L'IA valide votre choix de concentration unique. C'est souvent la clé de la réussite."
+             : <>L'IA a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/> Vous pouvez le modifier, mais attention aux incohérences.</>}
           </p>
         </div>
 
@@ -493,7 +511,7 @@ const PlanPriorities = () => {
         )}
 
         {/* INSTRUCTION DE REORDER */}
-        {!isModified && (
+        {!isModified && currentOrder.length > 1 && (
           <div className="flex items-center justify-center gap-2 text-slate-400 text-xs md:text-sm font-bold uppercase tracking-wider mb-6 md:mb-8 text-center px-4">
             <Move className="w-3 h-3 md:w-4 md:h-4" />
             Glissez les cartes pour modifier l'ordre

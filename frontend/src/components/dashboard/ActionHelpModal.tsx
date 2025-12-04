@@ -2,19 +2,22 @@ import { useState } from 'react';
 import { LifeBuoy, X, Hammer } from 'lucide-react';
 import type { Action } from '../../types/dashboard';
 
-export const ActionHelpModal = ({ action, onClose, onGenerateStep }: { action: Action, onClose: () => void, onGenerateStep: (problem: string) => void }) => {
+export const ActionHelpModal = ({ action, onClose, onGenerateStep }: { action: Action, onClose: () => void, onGenerateStep: (problem: string) => Promise<void> | void }) => {
   const [problem, setProblem] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     if (!problem) return;
     setIsGenerating(true);
-    // Simulation de l'appel API
-    setTimeout(() => {
-      onGenerateStep(problem);
-      setIsGenerating(false);
+    try {
+      await onGenerateStep(problem);
       onClose();
-    }, 1500);
+    } catch (error) {
+      console.error("Error generating step:", error);
+      // Optionally handle error in UI
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (

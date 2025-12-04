@@ -1,15 +1,34 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   Sword, Shield, Zap, FileText, CheckCircle2, Sparkles, 
   FastForward, PlusCircle, Check, LifeBuoy, Edit3, Lock
 } from 'lucide-react';
 import type { Action } from '../../types/dashboard';
 
-export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true, onHelp, onOpenFramework, onOpenHistory, onUnlock }: { action: Action, isLocked: boolean, isPending?: boolean, canActivate?: boolean, onHelp: (action: Action) => void, onOpenFramework: (action: Action) => void, onOpenHistory?: (action: Action) => void, onUnlock?: () => void }) => {
+export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true, onHelp, onOpenFramework, onOpenHistory, onUnlock, onToggleMission, onIncrementHabit }: { 
+    action: Action, 
+    isLocked: boolean, 
+    isPending?: boolean, 
+    canActivate?: boolean, 
+    onHelp: (action: Action) => void, 
+    onOpenFramework: (action: Action) => void, 
+    onOpenHistory?: (action: Action) => void, 
+    onUnlock?: () => void,
+    onToggleMission?: (action: Action) => void,
+    onIncrementHabit?: (action: Action) => void
+}) => {
   const [currentReps, setCurrentReps] = useState(action.currentReps || 0);
   const targetReps = action.targetReps || 1;
-  const progress = (currentReps / targetReps) * 100;
+  const progress = Math.min((currentReps / targetReps) * 100, 100); // Cap visual progress at 100%
   const [isChecked, setIsChecked] = useState(action.isCompleted);
+
+  // Sync state with props when they change (e.g. after DB update)
+  useEffect(() => {
+      if (action.currentReps !== undefined) {
+          setCurrentReps(action.currentReps);
+      }
+      setIsChecked(action.isCompleted);
+  }, [action.currentReps, action.isCompleted]);
 
   // Couleurs et Icônes selon le Groupe
   // Groupe A (Répétable/Habitude) => Bleu/Vert
@@ -24,12 +43,16 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
 
   const handleIncrement = () => {
     if (isVisuallyLocked) return;
-    if (currentReps < targetReps) setCurrentReps(prev => prev + 1);
+    if (currentReps < targetReps) {
+        setCurrentReps(prev => prev + 1);
+        if (onIncrementHabit) onIncrementHabit(action);
+    }
   };
 
   const handleToggleCheck = () => {
     if (isVisuallyLocked) return;
     setIsChecked(!isChecked);
+    if (onToggleMission) onToggleMission(action);
   };
 
   return (

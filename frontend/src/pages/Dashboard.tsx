@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { cleanupSubmissionData } from '../lib/planActions';
+import { cleanupSubmissionData, cleanupPlanData } from '../lib/planActions';
 import {
   Compass,
   Layout,
@@ -98,6 +98,8 @@ const Dashboard = () => {
   const [activePlan, setActivePlan] = useState<GeneratedPlan | null>(null);
   const [activeGoalId, setActiveGoalId] = useState<string | null>(null); // ID de l'objectif en cours
   const [activeThemeId, setActiveThemeId] = useState<string | null>(null); // NOUVEAU: ID du thème pour reset ciblé
+  const [activeAxisId, setActiveAxisId] = useState<string | null>(null); // NOUVEAU: ID de l'axe pour navigation précise
+  const [activeGoalStatus, setActiveGoalStatus] = useState<string | null>(null); // NOUVEAU: Statut pour différencier Recraft vs Completed
   const [activeAxisTitle, setActiveAxisTitle] = useState<string>("Plan d'Action");
   const [hasPendingAxes, setHasPendingAxes] = useState(false);
   const [activePlanId, setActivePlanId] = useState<string | null>(null);
@@ -143,6 +145,8 @@ const Dashboard = () => {
           setActiveGoalId(goalData.id);
           setActiveAxisTitle(goalData.axis_title);
           setActiveThemeId(goalData.theme_id);
+          setActiveAxisId(goalData.axis_id);
+          setActiveGoalStatus(goalData.status);
           setActiveSubmissionId(goalData.submission_id);
 
           const { data: planData, error: planError } = await supabase
@@ -212,6 +216,69 @@ const Dashboard = () => {
                  if (current && location.state?.activePlan) return current;
                  return null;
             });
+
+            // --- LOGIQUE DE REDIRECTION INTELLIGENTE (RESUME) ---
+            if (goalData) {
+                // Scenario 1: Objectif Actif mais Plan Archivé (Recraft en cours)
+                if (goalData.status === 'active') {
+                    // On vérifie s'il y a des plans archivés pour cet objectif (preuve qu'on a déjà généré et qu'on recraft)
+                    const { count } = await supabase
+                        .from('user_plans')
+                        .select('*', { count: 'exact', head: true })
+                        .eq('goal_id', goalData.id)
+                        .eq('status', 'archived');
+                    
+                    if (count && count > 0) {
+                        console.log("🔄 Recraft détecté : Redirection vers l'éditeur...");
+                        navigate('/recraft', { 
+                            state: { 
+                                themeId: goalData.theme_id,
+                                axisId: goalData.axis_id,
+                                submissionId: goalData.submission_id
+                            } 
+                        });
+                        return;
+                    }
+                } 
+                // Scenario 2: Objectif Terminé (Passage à la suite)
+                else if (goalData.status === 'completed') {
+                    // 2a. Vérifier s'il reste des objectifs en attente (Next Axis)
+                    const { data: nextGoal } = await supabase
+                        .from('user_goals')
+                        .select('id')
+                        .eq('user_id', user.id)
+                        .eq('submission_id', goalData.submission_id)
+                        .eq('status', 'pending')
+                        .limit(1)
+                        .maybeSingle();
+
+                    if (nextGoal) {
+                        console.log("➡️ Axe suivant détecté : Redirection...");
+                        navigate('/next-plan', { state: { submissionId: goalData.submission_id } });
+                        return;
+                    }
+
+                    // 2b. Vérifier si un nouveau plan global est commencé (Next Global Plan)
+                    // On cherche une réponse 'global_plan' ou 'onboarding' plus récente et en cours
+                    const { data: newAnswers } = await supabase
+                        .from('user_answers')
+                        .select('submission_id')
+                        .eq('user_id', user.id)
+                        .in('questionnaire_type', ['global_plan', 'onboarding'])
+                        .eq('status', 'in_progress')
+                        .neq('submission_id', goalData.submission_id)
+                        .order('created_at', { ascending: false })
+                        .limit(1)
+                        .maybeSingle();
+
+                    if (newAnswers) {
+                        console.log("🌍 Nouveau Plan Global détecté : Redirection...");
+                        // Si c'est 'global_plan', on suppose que c'est le flow de suivi
+                        navigate('/global-plan-follow', { state: { submissionId: newAnswers.submission_id } });
+                        return;
+                    }
+                }
+            }
           }
 
           // Check if there are pending axes for the current submission
@@ -240,6 +307,8 @@ const Dashboard = () => {
             setActiveSubmissionId(null);
             setActiveAxisTitle("Plan d'Action");
             setActiveThemeId(null);
+            setActiveAxisId(null);
+            setActiveGoalStatus(null);
             setHasPendingAxes(false);
         }
     };
@@ -273,15 +342,29 @@ const Dashboard = () => {
         if (!window.confirm("Es-tu sûr de vouloir recommencer la génération pour CET axe ?")) return;
 
         try {
-            // 1. Supprimer le plan actuel (user_plans)
-            const { error } = await supabase
+            // 1. Marquer les actions actuelles comme abandonnées (Cleanup logique)
+            if (activePlanId) {
+                 await supabase
+                    .from('user_actions')
+                    .update({ status: 'abandoned' })
+                    .eq('plan_id', activePlanId)
+                    .in('status', ['active', 'pending']);
+                 
+                 await supabase
+                    .from('user_framework_tracking')
+                    .update({ status: 'abandoned' })
+                    .eq('plan_id', activePlanId)
+                    .in('status', ['active', 'pending']);
+            }
+
+            // 2. Archiver le plan actuel (au lieu de le supprimer ou de laisser actif)
+            // Cela permet à la logique de "Resume" de comprendre qu'on est en cours de modification
+            await supabase
                 .from('user_plans')
-                .delete()
+                .update({ status: 'archived' })
                 .eq('goal_id', activeGoalId);
             
-            if (error) throw error;
-            
-            // 2. Rediriger vers l'Onboarding ciblé sur le thème
+            // 3. Rediriger vers l'Onboarding ciblé sur le thème
             if (activeThemeId) {
                 // ANCIEN : navigate(`/global-plan?theme=${activeThemeId}&mode=refine`);
                 // NOUVEAU : On utilise la page dédiée Recraft
@@ -290,12 +373,13 @@ const Dashboard = () => {
                 // On peut le récupérer depuis les données du goal si on les a stockées quelque part ou refetch
                 // Ici on a activeGoalId, on peut fetcher l'axis_id vite fait
                 
-                const { data: goal } = await supabase.from('user_goals').select('axis_id').eq('id', activeGoalId).single();
+                const { data: goal } = await supabase.from('user_goals').select('axis_id, submission_id').eq('id', activeGoalId).single();
                 
                 navigate('/recraft', { 
                     state: { 
                         themeId: activeThemeId,
-                        axisId: goal?.axis_id
+                        axisId: goal?.axis_id,
+                        submissionId: goal?.submission_id
                     } 
                 });
             } else {
@@ -521,6 +605,15 @@ const Dashboard = () => {
       }
   };
 
+  const handleManualSkip = async () => {
+     // Cette fonction unifie le comportement pour l'utilisateur
+     if (hasPendingAxes) {
+         await handleSkipToNextAxis();
+     } else {
+         await handleCreateNextGlobalPlan();
+     }
+  };
+
   // Vérification si le plan est terminé (Toutes phases completed ou check manuel)
   // Pour l'instant, on check si la dernière phase est active ou completed
   // Simplification : On affiche le bouton "Plan Terminé" en bas si on scrolle, ou si user le décide.
@@ -618,6 +711,72 @@ const Dashboard = () => {
       }
   };
 
+  const handleToggleMission = async (action: Action) => {
+    if (!activePlanId || !activePlan) return;
+
+    // 1. Déterminer le nouveau statut
+    const isNowCompleted = !action.isCompleted;
+    const newStatus: Action['status'] = isNowCompleted ? 'completed' : 'active';
+
+    // 2. Optimistic UI Update
+    const newPhases = activePlan.phases.map(p => ({
+        ...p,
+        actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: isNowCompleted, status: newStatus } : a)
+    }));
+    setActivePlan({ ...activePlan, phases: newPhases });
+
+    // 3. DB Update
+    try {
+        await supabase
+            .from('user_actions')
+            .update({ status: newStatus })
+            .eq('plan_id', activePlanId)
+            .eq('title', action.title);
+    } catch (err) {
+        console.error("Error toggling mission:", err);
+        // Rollback idealement
+    }
+  };
+
+  const handleIncrementHabit = async (action: Action) => {
+    if (!activePlanId || !activePlan) return;
+
+    const currentReps = action.currentReps || 0;
+    const targetReps = action.targetReps || 1;
+    
+    if (currentReps >= targetReps) return; // Déjà fini
+
+    const newReps = currentReps + 1;
+    const isNowCompleted = newReps >= targetReps;
+    const newStatus: Action['status'] = isNowCompleted ? 'completed' : 'active';
+
+    // 2. Optimistic UI Update
+    const newPhases = activePlan.phases.map(p => ({
+        ...p,
+        actions: p.actions.map(a => a.id === action.id ? { 
+            ...a, 
+            currentReps: newReps,
+            isCompleted: isNowCompleted,
+            status: isNowCompleted ? 'completed' : a.status
+        } : a)
+    }));
+    setActivePlan({ ...activePlan, phases: newPhases });
+
+    // 3. DB Update
+    try {
+        await supabase
+            .from('user_actions')
+            .update({ 
+                current_reps: newReps,
+                status: newStatus 
+            })
+            .eq('plan_id', activePlanId)
+            .eq('title', action.title);
+    } catch (err) {
+        console.error("Error incrementing habit:", err);
+    }
+  };
+
   const handleSaveFramework = async (action: Action, content: any) => {
     if (!user) {
         console.error("handleSaveFramework: User not logged in");
@@ -686,11 +845,16 @@ const Dashboard = () => {
                     })
                     .eq('id', trackData.id);
                     
-                 // Si c'est completed, on met à jour l'UI locale
-                 if (isCompleted && activePlan) {
+                 // Mise à jour de l'UI locale (Toujours, pour montrer la progression ex: 1/1 ou 14/1)
+                 if (activePlan) {
                     const newPhases = activePlan.phases.map(p => ({
                         ...p,
-                        actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: true } : a)
+                        actions: p.actions.map(a => a.id === action.id ? { 
+                            ...a, 
+                            isCompleted: isCompleted || a.isCompleted,
+                            currentReps: newReps,
+                            status: isCompleted ? 'completed' : a.status
+                        } : a)
                     }));
                     setActivePlan({ ...activePlan, phases: newPhases });
                  }
@@ -698,32 +862,15 @@ const Dashboard = () => {
         }
 
         // 3. Gestion de l'état de l'action (One Shot vs Recurring)
+        // NOTE: La mise à jour de l'UI est déjà faite à l'étape 2 (Tracking).
+        // On ne fait plus de mise à jour du JSON user_plans ici pour éviter les conflits de state (Race conditions).
+        // Le tracking (user_framework_tracking) est la source de vérité.
+
         const isRecurring = (action as any).frameworkDetails?.type === 'recurring';
         
-        if (!isRecurring) {
-            // Cas One Shot : On marque l'action comme terminée DANS LE PLAN ACTUEL
-            // Note : Pour faire ça proprement, il faudrait mettre à jour le JSON du plan en base de données
-            // Ou avoir une table séparée pour le statut des actions.
-            // ICI, on met à jour le state local pour l'instant + update du plan global en base
-            
-            if (activePlan && activeGoalId) {
-                const newPhases = activePlan.phases.map(p => ({
-                    ...p,
-                    actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: true } : a)
-                }));
-                
-                const newPlan = { ...activePlan, phases: newPhases };
-                setActivePlan(newPlan);
-
-                // Update DB
-                await supabase
-                    .from('user_plans')
-                    .update({ content: newPlan })
-                    .eq('goal_id', activeGoalId);
-            }
-        } else {
-            // Cas Recurring : On incrémente juste le compteur localement (et en base si on suivait les reps)
-            alert("Fiche enregistrée ! Continuez comme ça.");
+        if (isRecurring) {
+            // Feedback optionnel pour les récurrents
+            // alert("Fiche enregistrée ! Continuez comme ça.");
         }
 
     } catch (err) {
@@ -732,38 +879,69 @@ const Dashboard = () => {
     }
   };
 
-  const handleGenerateStep = (problem: string) => {
-    if (!helpingAction || !activePlan) return;
+  const handleGenerateStep = async (problem: string) => {
+    if (!helpingAction || !activePlan || !activePlanId) return;
 
-    // LOGIQUE D'INSERTION D'UNE NOUVELLE ACTION
-    // 1. On copie le plan
-    const newPlan = { ...activePlan };
-    
-    if (!newPlan.phases) return;
+    try {
+        // 1. Appel à l'Edge Function
+        const { data: newAction, error } = await supabase.functions.invoke('break-down-action', {
+            body: {
+                action: helpingAction,
+                problem,
+                plan: activePlan,
+                submissionId: activeSubmissionId
+            }
+        });
 
-    // 2. On trouve la phase et l'index de l'action bloquante
-    const phaseIndex = newPlan.phases.findIndex(p => p.actions.some(a => a.id === helpingAction.id));
-    if (phaseIndex === -1) return;
+        if (error || !newAction) throw error || new Error("No action generated");
 
-    const actionIndex = newPlan.phases[phaseIndex].actions.findIndex(a => a.id === helpingAction.id);
+        // 2. Mise à jour du Plan (JSON)
+        const newPlan = { ...activePlan };
+        if (!newPlan.phases) return;
 
-    // 3. On crée la nouvelle action "Renfort"
-    const newAction: Action = {
-      id: `inter_${Date.now()}`,
-      type: 'mission',
-      title: `Préparation : ${helpingAction.title}`,
-      description: `Action débloquante générée suite à : "${problem}".`,
-      isCompleted: false,
-      questType: 'side',
-      tips: "C'est une étape intermédiaire pour te remettre en selle.",
-      rationale: "Le Vide-Cerveau complet est trop anxiogène pour l'instant. On va réduire la pression : liste uniquement les 3 choses qui brûlent vraiment. Le reste n'existe pas pour les 10 prochaines minutes. Ça va calmer ton amygdale."
-    };
+        const phaseIndex = newPlan.phases.findIndex(p => p.actions.some(a => a.id === helpingAction.id));
+        if (phaseIndex === -1) return;
 
-    // 4. On insère AVANT l'action bloquante
-    newPlan.phases[phaseIndex].actions.splice(actionIndex, 0, newAction);
+        const actionIndex = newPlan.phases[phaseIndex].actions.findIndex(a => a.id === helpingAction.id);
+        
+        // Insertion AVANT l'action bloquante
+        newPlan.phases[phaseIndex].actions.splice(actionIndex, 0, newAction);
 
-    // 5. On met à jour le state
-    setActivePlan(newPlan);
+        // 3. Persistance
+        // A. Update user_plans JSON
+        await supabase
+            .from('user_plans')
+            .update({ content: newPlan })
+            .eq('id', activePlanId);
+
+        // B. Insert into user_actions table (pour le tracking)
+        // Mapping des types pour la DB
+        let dbType = 'mission';
+        if (newAction.type === 'habitude') dbType = 'habit';
+        
+        const { error: insertError } = await supabase.from('user_actions').insert({
+             user_id: user?.id,
+             plan_id: activePlanId,
+             submission_id: activeSubmissionId,
+             type: dbType,
+             title: newAction.title,
+             description: newAction.description,
+             target_reps: newAction.targetReps || 1,
+             current_reps: 0,
+             status: 'active'
+        });
+
+        if (insertError) {
+             console.error("Error inserting new action to DB:", insertError);
+        }
+
+        // 4. Update Local State
+        setActivePlan(newPlan);
+
+    } catch (err) {
+        console.error("Error in handleGenerateStep:", err);
+        alert("Impossible de générer l'action pour le moment. Réessaie !");
+    }
   };
 
   const isArchitectMode = mode === 'architecte';
@@ -856,7 +1034,7 @@ const Dashboard = () => {
         isOpen={isSettingsOpen} 
         onClose={() => setIsSettingsOpen(false)}
         onReset={handleResetCurrentPlan}
-        onSkip={handleSkipToNextAxis}
+        onSkip={handleManualSkip}
         onGlobalReset={handleGlobalReset}
         currentAxisTitle={activeAxisTitle}
       />
@@ -1068,20 +1246,30 @@ const Dashboard = () => {
             {!hasActivePlan ? (
               <EmptyState 
                 onGenerate={() => {
-                    if (activeGoalId) {
-                        // Mode Reset : On renvoie vers l'onboarding ciblé ou le générateur
-                        if (activeThemeId) {
-                             navigate(`/global-plan?theme=${activeThemeId}&mode=refine`);
-                        } else {
-                             navigate('/global-plan');
-                        }
+                    // Logic to determine mode
+                    const isRecraft = !!activeGoalId && activeGoalStatus === 'active';
+                    const isNextStep = (!!activeGoalId && activeGoalStatus === 'pending') || hasPendingAxes;
+
+                    if (isRecraft) {
+                        // Mode Reset/Recraft : UNIQUEMENT si le goal est 'active' (Plan en cours modifié)
+                        navigate('/recraft', { 
+                            state: { 
+                                themeId: activeThemeId,
+                                axisId: activeAxisId,
+                                submissionId: activeSubmissionId
+                            } 
+                        });
+                    } else if (isNextStep) {
+                        // Mode Next Axis : Si on a fini un plan ou qu'on est entre deux (goal pending)
+                        navigate('/next-plan', { state: { submissionId: activeSubmissionId } });
                     } else {
-                        // Mode Initial
+                        // Mode Initial ou Nouveau Cycle Global
                         navigate('/global-plan');
                     }
                 }} 
-                isResetMode={!!activeGoalId} // Si on a un goal actif mais pas de plan, c'est qu'on est en cours de modif
-                isOnboardingCompleted={isOnboardingCompleted} // Pour différencier le mode Follow
+                isResetMode={!!activeGoalId && activeGoalStatus === 'active'} // STRICTEMENT active pour le mode Reset
+                hasPendingAxes={hasPendingAxes || (!!activeGoalId && activeGoalStatus === 'pending')} // Next Plan Mode
+                isOnboardingCompleted={isOnboardingCompleted} 
               />
             ) : (
               <>
@@ -1197,6 +1385,8 @@ const Dashboard = () => {
                                 onOpenHistory={handleOpenHistory}
                                 onUnlockPhase={() => handleUnlockPhase(index)}
                                 onUnlockAction={handleUnlockAction}
+                                onToggleMission={handleToggleMission}
+                                onIncrementHabit={handleIncrementHabit}
                                 />
                             );
                           });

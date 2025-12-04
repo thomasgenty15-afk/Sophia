@@ -4,7 +4,19 @@ import { Zap, Loader2, PlayCircle } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 
-export const EmptyState = ({ onGenerate, isResetMode = false, isOnboardingCompleted = false }: { onGenerate: () => void, isResetMode?: boolean, isOnboardingCompleted?: boolean }) => {
+export const EmptyState = ({ 
+    onGenerate, 
+    isResetMode = false, 
+    isOnboardingCompleted = false,
+    hasPendingAxes = false,
+    isNextMode = false 
+}: { 
+    onGenerate: () => void, 
+    isResetMode?: boolean, 
+    isOnboardingCompleted?: boolean,
+    hasPendingAxes?: boolean,
+    isNextMode?: boolean
+}) => {
   const [isResuming, setIsResuming] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -86,7 +98,9 @@ export const EmptyState = ({ onGenerate, isResetMode = false, isOnboardingComple
     }
   };
 
-  return (
+    const showNextMode = isNextMode || hasPendingAxes;
+
+    return (
   <div className="flex flex-col items-center justify-center py-20 px-4 text-center animate-fade-in-up">
     <div className="w-20 h-20 bg-slate-100 rounded-full flex items-center justify-center mb-6 shadow-inner">
       <Zap className="w-10 h-10 text-slate-300" />
@@ -94,22 +108,28 @@ export const EmptyState = ({ onGenerate, isResetMode = false, isOnboardingComple
     
     {/* TEXTE DYNAMIQUE SELON LE CONTEXTE */}
     <h2 className="text-2xl font-bold text-slate-900 mb-3">
-        {isOnboardingCompleted 
-            ? "Tu as terminé ton précédent plan global, mais il reste des choses à faire pour créer le nouveau !"
-            : isResetMode ? "Plan en cours de modification" : "Aucun plan actif"
+        {isResetMode 
+            ? "Plan en cours de modification"
+            : showNextMode
+                ? "Axe suivant prêt à être activé !" 
+                : isOnboardingCompleted 
+                    ? "Tu as terminé ton précédent plan global, mais il reste des choses à faire pour créer le nouveau !"
+                    : "Aucun plan actif"
         }
     </h2>
     <p className="text-slate-500 max-w-md mb-8">
-      {isOnboardingCompleted
-        ? "Reprends là où tu t'étais arrêté pour finaliser ta prochaine transformation."
-        : isResetMode 
-            ? "Tu as réinitialisé ton plan mais la nouvelle feuille de route n'est pas encore générée."
-            : "Tu n'as pas encore défini ta stratégie. Commence par un audit rapide pour générer ta feuille de route."
+      {isResetMode 
+        ? "Tu as réinitialisé ton plan mais la nouvelle feuille de route n'est pas encore générée."
+        : showNextMode
+            ? "Tu t'apprêtes à lancer ta prochaine transformation. Génère ton plan pour commencer."
+            : isOnboardingCompleted
+                ? "Reprends là où tu t'étais arrêté pour finaliser ta prochaine transformation."
+                : "Tu n'as pas encore défini ta stratégie. Commence par un audit rapide pour générer ta feuille de route."
       }
     </p>
 
     {/* BOUTON DYNAMIQUE */}
-    {isOnboardingCompleted ? (
+    {isOnboardingCompleted && !isResetMode && !showNextMode ? (
         <button
           onClick={handleSmartResume}
           disabled={isResuming}
@@ -124,7 +144,12 @@ export const EmptyState = ({ onGenerate, isResetMode = false, isOnboardingComple
           className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold text-lg hover:bg-blue-600 transition-all shadow-xl shadow-slate-200 flex items-center gap-3 group"
         >
           <PlayCircle className="w-5 h-5 group-hover:scale-110 transition-transform" />
-          {isResetMode ? "Finir de réinitialiser mon plan" : "Lancer mon premier plan"}
+          {isResetMode 
+            ? "Finir de réinitialiser mon plan" 
+            : showNextMode
+                ? "Générer mon prochain plan"
+                : "Lancer mon premier plan"
+          }
         </button>
     )}
   </div>

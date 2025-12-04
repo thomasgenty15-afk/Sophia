@@ -22,7 +22,7 @@ serve(async (req) => {
     // On ignore totalement l'auth Supabase pour voir si Gemini fonctionne
     
     // 2. Data Retrieval
-    const { inputs, currentAxis, currentPlan, feedback, mode, answers, userProfile } = await req.json()
+    const { inputs, currentAxis, currentPlan, feedback, mode, answers, userProfile, previousPlanContext } = await req.json()
     
     // On utilise les réponses passées par le frontend
     const onboardingResponses = answers || {}
@@ -31,6 +31,7 @@ serve(async (req) => {
     let userPrompt = '';
 
     if (mode === 'refine' && currentPlan && feedback) {
+        // ... (Existing Refine Logic) ...
         console.log("🛠️ Mode Refine activé avec feedback :", feedback);
         
         systemPrompt = `
@@ -66,6 +67,160 @@ serve(async (req) => {
           Renvoie le JSON complet.
         `;
 
+    } else if (mode === 'recraft' && previousPlanContext) {
+        // --- MODE RECRAFT (REFAIRE UN PLAN ÉCHOUÉ) ---
+        console.log("♻️ Mode Recraft activé. Historique récupéré.");
+
+        systemPrompt = `
+          Tu es Sophia, l'Architecte de Vie. L'utilisateur revient vers toi car le plan précédent n'a pas fonctionné.
+          C'est une opportunité critique : tu dois analyser l'échec pour proposer une stratégie différente.
+          
+          TA MISSION :
+          Générer un NOUVEAU plan de transformation complet pour l'utilisateur, formaté STRICTEMENT en JSON, en prenant en compte l'échec du précédent.
+          
+          RÈGLES SPÉCIFIQUES AU RECRAFT :
+          1. Analyse pourquoi ça a raté (donné dans "RAISON DE L'ÉCHEC").
+          2. Si c'était "trop dur", propose une approche "Tiny Habits" (très petits pas).
+          3. Si c'était "ennuyeux", propose une approche plus ludique ou intense ("fast").
+          4. Ne redonne PAS les mêmes actions qui ont échoué. Change d'angle d'attaque.
+          
+          RÈGLES DE DURÉE ET INTENSITÉ (PACING) :
+          Adapte STRICTEMENT la structure selon le choix "pacing" de l'utilisateur :
+
+          1. SI PACING = "fast" (Intense / Hyper motivé) :
+             - Durée Totale : 4 semaines (1 mois).
+             - Structure : 4 Phases de 1 semaine chacune.
+             - Densité : Jusqu'à 3 actions par phase.
+             - Ton : Radical, rapide, résultats immédiats.
+
+          2. SI PACING = "balanced" (Progressif / Recommandé) :
+             - Durée Totale : 8 semaines (2 mois).
+             - Structure : 4 Phases de 2 semaines chacune (ex: Semaines 1-2, 3-4...).
+             - Densité : 2 actions par phase maximum.
+             - Ton : Équilibré, durable.
+
+          3. SI PACING = "slow" (Prendre son temps / Douceur) :
+             - Durée Totale : 12 semaines (3 mois).
+             - Structure : 6 Phases de 2 semaines chacune.
+             - Densité : 2 actions par phase maximum.
+             - Ton : Micro-habitudes, très faible pression, ancrage profond.
+
+          RÈGLES DE CONTENU (FLEXIBLE ET PERSONNALISÉ) :
+          1.  **Structure** : Entre 3 et 6 phases maximum. 
+              - Tu es LIBRE de définir le nombre de phases nécessaire pour atteindre l'objectif.
+              - Les titres des phases doivent être CRÉATIFS, PERSONNALISÉS et ÉVOCATEURS (Pas de "Phase 1", "Phase 2" générique).
+              - Exemple de bons titres : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
+          2.  **Densité** : 1 à 3 actions par phase maximum :
+              - Au moins 1 "Quête Principale" ('main') par phase.
+              - Optionnel : 1 ou 2 "Quêtes Secondaires" ('side') pour soutenir.
+          3.  **Types d'Actions** (CRITIQUE - STRICTES DÉFINITIONS) :
+              - "habitude" (Groupe A) : Action RÉELLE et RÉPÉTITIVE (ex: "Faire 5min de cohérence cardiaque", "Rituel de relaxation", "Prendre ses compléments").
+                * ATTENTION : Les exercices de respiration, méditation ou visualisation SONT DES HABITUDES (car c'est une action à faire, pas forcément à écrire).
+                * A besoin de 'targetReps' (Combien de fois).
+              - "mission" (Groupe B) : Action RÉELLE "One-shot" à cocher (ex: "Acheter des boules Quies", "Ranger le bureau").
+              - "framework" (Groupe B - TYPE SPÉCIAL) : EXERCICE D'ÉCRITURE ou de SAISIE.
+                * L'utilisateur doit ÉCRIRE quelque chose dans l'interface.
+                * Ce type est RÉSERVÉ aux actions nécessitant une INPUT CLAVIER (Journaling, Bilan, Worksheet).
+                * Si l'action est juste "Réfléchir" ou "Méditer" sans rien noter, C'EST UNE HABITUDE.
+                **IMPORTANT POUR FRAMEWORK** : 
+                - Tu DOIS définir 'targetReps'.
+                - Tu DOIS définir 'title'.
+                - Tu DOIS inclure un objet "frameworkDetails" avec :
+                - "type": "one_shot" ou "recurring"
+                - "intro": (Texte inspirant)
+                - "sections": Array de champs à remplir (id, label, inputType, placeholder).
+              
+          4.  **Actions Spéciales** :
+              - "constat" (Groupe C) : Le KPI "Signe Vital" OBLIGATOIRE (métrique chiffrée à suivre). DOIT AVOIR UN NAME.
+              - "surveillance" (Groupe D) : La question de maintenance OBLIGATOIRE.
+          
+          5.  **Stratégie Identitaire** : Identité, Pourquoi, Règles d'or.
+          6.  **Métriques OBLIGATOIRES** : Tu dois inclure un objet "vitalSignal" (le KPI principal) et un objet "maintenanceCheck" (la question de suivi long terme) à la racine du JSON.
+          7.  **Ce que Sophia sait déjà** : Tu dois générer un résumé synthétique de la situation de l'utilisateur ("sophiaKnowledge") qui explique ce que tu as compris de lui.
+
+          STRUCTURE JSON ATTENDUE (Exemple complet) :
+          {
+            "strategy": "Phrase de synthèse de la méthode (ex: On répare le sommeil avant de toucher à la productivité).",
+            "sophiaKnowledge": "Tu es un parent fatigué qui veut bien faire mais qui compense le stress par le scrolling. Ton environnement est bruyant.",
+            "identity": "Je suis un Athlète du Sommeil (Phrase d'identité au présent).",
+            "deepWhy": "Pour avoir l'énergie d'être un père présent le soir (Motivation émotionnelle).",
+            "goldenRules": "1. Jamais de téléphone dans la chambre.\\n2. Le lit ne sert qu'à dormir.\\n3. Si je ne dors pas en 20min, je me lève.",
+            "vitalSignal": {
+              "name": "Heure de coucher moyenne",
+              "unit": "h",
+              "startValue": "01:00",
+              "targetValue": "22:30",
+              "description": "On décalera progressivement de 15min tous les 3 jours.",
+              "type": "constat"
+            },
+            "maintenanceCheck": {
+              "question": "Combien de fois t'es-tu couché après minuit cette semaine ?",
+              "frequency": "hebdomadaire",
+              "type": "surveillance"
+            },
+            "estimatedDuration": "8 semaines",
+            "phases": [
+              {
+                "id": 1,
+                "title": "Phase 1 : La Fondation - Le Nettoyage",
+                "subtitle": "Semaines 1-2 • Sortir de la zone rouge",
+                "rationale": "C'est la fondation car on ne peut pas construire sur un terrain miné par la dopamine facile.",
+                "status": "active",
+                "actions": [
+                  {
+                    "id": "a1",
+                    "type": "mission",
+                    "title": "Le Grand Reset",
+                    "description": "Sortir tous les écrans de la chambre définitivement.",
+                    "questType": "main",
+                    "tips": "Achète un réveil analogique à 10€.",
+                    "rationale": "Ton cerveau associe la chambre au scroll. Il faut briser ce lien spatial."
+                  },
+                  {
+                    "id": "a2",
+                    "type": "framework",
+                    "title": "Journal de décharge mentale",
+                    "description": "Écrire tout ce qui tourne en boucle dans ta tête avant de dormir sur papier.",
+                    "questType": "side",
+                    "tips": "Ne cherche pas à faire joli, vide juste ton cache.",
+                    "rationale": "Réduit le cortisol pré-endormissement.",
+                    "frameworkDetails": {
+                        "type": "recurring",
+                        "intro": "Le but est de vider ta RAM. Ne filtre rien. Si tu penses à ta liste de course, écris-la. Si tu es en colère contre ton chat, écris-le.",
+                        "sections": [
+                            { "id": "s1", "label": "Ce qui me préoccupe", "inputType": "textarea", "placeholder": "Je pense à..." },
+                            { "id": "s2", "label": "Niveau de stress (1-10)", "inputType": "scale", "placeholder": "5" }
+                        ]
+                    }
+                  }
+                ]
+              }
+            ]
+          }
+        `;
+
+        userPrompt = `
+          PROFIL UTILISATEUR :
+          - Axe prioritaire : ${currentAxis.title} (Thème: ${currentAxis.theme})
+          - Problèmes spécifiques : ${JSON.stringify(currentAxis.problems)}
+          - INFO PHYSIOLOGIQUE : ${userProfile ? `Né(e) le ${userProfile.birth_date}, Sexe: ${userProfile.gender}` : "Non renseigné"}
+          
+          HISTORIQUE DU PREMIER ESSAI (Ce qui était prévu à la base) :
+          - Motivation Initiale : "${previousPlanContext.initialWhy}"
+          - Blocages Initiaux : "${previousPlanContext.initialBlockers}"
+          - Contexte Initial : "${previousPlanContext.initialContext}"
+          
+          POURQUOI ÇA A RATÉ (Le Recraft) :
+          - RAISON DE L'ÉCHEC (Why) : "${inputs.why}"
+          - NOUVEAUX BLOCAGES (Blockers) : "${inputs.blockers}"
+          - NOUVEAU RYTHME SOUHAITÉ (Pacing) : "${inputs.pacing || 'balanced'}"
+          
+          DONNÉES BACKGROUND (Questionnaire) :
+          ${JSON.stringify(onboardingResponses)}
+          
+          Génère le NOUVEAU JSON maintenant. Prends en compte l'échec pour ajuster le tir.
+        `;
+
     } else {
         // --- MODE GÉNÉRATION STANDARD ---
         systemPrompt = `
@@ -74,12 +229,26 @@ serve(async (req) => {
           TA MISSION :
           Générer un plan de transformation complet pour l'utilisateur, formaté STRICTEMENT en JSON.
 
-          RÈGLES DE DURÉE ET INTENSITÉ :
-          - Le plan complet doit durer entre 4 et 12 semaines.
-          - ADAPTE L'INTENSITÉ SELON LA DEMANDE DE L'UTILISATEUR ("Pacing") :
-            * "fast" (Intense) : Actions radicales, phases courtes (4-6 semaines), charge cognitive élevée.
-            * "balanced" (Progressif) : Équilibre classique, durée moyenne (8 semaines).
-            * "slow" (Douceur) : Micro-habitudes très faciles, phases longues (10-12 semaines), charge très faible.
+          RÈGLES DE DURÉE ET INTENSITÉ (PACING) :
+          Adapte STRICTEMENT la structure selon le choix "pacing" de l'utilisateur :
+
+          1. SI PACING = "fast" (Intense / Hyper motivé) :
+             - Durée Totale : 4 semaines (1 mois).
+             - Structure : 4 Phases de 1 semaine chacune.
+             - Densité : Jusqu'à 3 actions par phase.
+             - Ton : Radical, rapide, résultats immédiats.
+
+          2. SI PACING = "balanced" (Progressif / Recommandé) :
+             - Durée Totale : 8 semaines (2 mois).
+             - Structure : 4 Phases de 2 semaines chacune (ex: Semaines 1-2, 3-4...).
+             - Densité : 2 actions par phase maximum.
+             - Ton : Équilibré, durable.
+
+          3. SI PACING = "slow" (Prendre son temps / Douceur) :
+             - Durée Totale : 12 semaines (3 mois).
+             - Structure : 6 Phases de 2 semaines chacune.
+             - Densité : 2 actions par phase maximum.
+             - Ton : Micro-habitudes, très faible pression, ancrage profond.
 
           RÈGLES DE CONTENU (FLEXIBLE ET PERSONNALISÉ) :
           1.  **Structure** : Entre 3 et 6 phases maximum. 
@@ -203,34 +372,76 @@ serve(async (req) => {
     console.log("Calling Gemini API with key length:", GEMINI_API_KEY.length)
 
     // Utilisation du modèle spécifié par l'utilisateur (Modèle 2.0 Flash)
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      }
-    )
+    // RETRY LOGIC for 429
+    let response;
+    let data;
+    let attempt = 0;
+    const MAX_ATTEMPTS = 20; // Tentatives max (environ 100s d'attente max) pour absorber les pics
 
-    const data = await response.json()
+    while (true) {
+        attempt++;
+        try {
+            response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
+                  generationConfig: { responseMimeType: "application/json" }
+                })
+              }
+            )
+
+            // GESTION ERREUR 429 (QUOTA EXCEEDED) - RETRY LOOP
+            if (response.status === 429) {
+                if (attempt < MAX_ATTEMPTS) {
+                    console.log(`Gemini 429: Surchauffe (Quota). Nouvelle tentative dans 5s... (Essai ${attempt}/${MAX_ATTEMPTS})`);
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    continue; // On recommence la boucle
+                } else {
+                    console.error(`Gemini 429: Max retries (${MAX_ATTEMPTS}) reached. Abandon.`);
+                }
+            }
+
+            // Si on est ici, soit c'est OK, soit c'est une autre erreur, soit on a épuisé les retries
+            data = await response.json()
+            break; 
+
+        } catch (err) {
+             // Erreur réseau critique
+             console.error("Erreur Fetch Gemini:", err);
+             throw err;
+        }
+    }
     
     // LOG DEBUG
     console.log("Gemini Response Status:", response.status);
+    
     if (!response.ok) {
         console.log("Gemini Error Body:", JSON.stringify(data, null, 2));
+        
+        // GESTION ERREUR 429 (QUOTA EXCEEDED) - Si on arrive ici c'est que les retries ont échoué
+        if (response.status === 429) {
+            throw new Error('Le cerveau de Sophia est en surchauffe (Quota atteint). Veuillez réessayer dans quelques minutes.')
+        }
+
+        const errorMessage = data.error?.message || 'Erreur inconnue de Gemini';
+        throw new Error(`Erreur Gemini (${response.status}): ${errorMessage}`);
     } else {
         // Vérifions si candidates est vide
         if (!data.candidates || data.candidates.length === 0) {
              console.log("Gemini OK but no candidates:", JSON.stringify(data, null, 2));
+             // Parfois Gemini renvoie OK mais filtre tout le contenu (Safety settings)
+             if (data.promptFeedback?.blockReason) {
+                 throw new Error(`Génération bloquée par sécurité: ${data.promptFeedback.blockReason}`);
+             }
         }
     }
 
     // 5. Parsing & Cleanup
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!rawText) throw new Error('Réponse vide de Gemini')
+    if (!rawText) throw new Error('Réponse vide de Gemini (structure inattendue)')
     
     const jsonString = rawText.replace(/```json\n?|```/g, '').trim()
     const plan = JSON.parse(jsonString)
@@ -242,9 +453,11 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Func Error:', error)
+    // On renvoie 200 (OK) même en cas d'erreur pour que le client Supabase puisse lire le JSON de l'erreur
+    // au lieu de lancer une exception générique "FunctionsHttpError".
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   }
 })

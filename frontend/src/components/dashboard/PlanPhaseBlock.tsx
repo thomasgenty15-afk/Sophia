@@ -2,7 +2,29 @@ import { Check, Lock } from 'lucide-react';
 import type { PlanPhase, Action } from '../../types/dashboard';
 import { PlanActionCard } from './PlanActionCard';
 
-export const PlanPhaseBlock = ({ phase, isLast, canActivateActions = true, onHelpAction, onOpenFramework, onOpenHistory, onUnlockPhase, onUnlockAction }: { phase: PlanPhase, isLast: boolean, canActivateActions?: boolean, onHelpAction: (action: Action) => void, onOpenFramework: (action: Action) => void, onOpenHistory?: (action: Action) => void, onUnlockPhase?: () => void, onUnlockAction?: (action: Action) => void }) => {
+export const PlanPhaseBlock = ({ 
+    phase, 
+    isLast, 
+    canActivateActions = true, 
+    onHelpAction, 
+    onOpenFramework, 
+    onOpenHistory, 
+    onUnlockPhase, 
+    onUnlockAction,
+    onToggleMission,
+    onIncrementHabit
+}: { 
+    phase: PlanPhase, 
+    isLast: boolean, 
+    canActivateActions?: boolean, 
+    onHelpAction: (action: Action) => void, 
+    onOpenFramework: (action: Action) => void, 
+    onOpenHistory?: (action: Action) => void, 
+    onUnlockPhase?: () => void, 
+    onUnlockAction?: (action: Action) => void,
+    onToggleMission?: (action: Action) => void,
+    onIncrementHabit?: (action: Action) => void
+}) => {
   const isPhaseLocked = phase.status === 'locked'; // Le verrouillage de phase global
   const isActive = phase.status === 'active';
 
@@ -64,6 +86,8 @@ export const PlanPhaseBlock = ({ phase, isLast, canActivateActions = true, onHel
                     onOpenFramework={onOpenFramework}
                     onOpenHistory={onOpenHistory}
                     onUnlock={() => onUnlockAction && onUnlockAction(action)}
+                    onToggleMission={onToggleMission}
+                    onIncrementHabit={onIncrementHabit}
                 />
             );
         })}

@@ -54,7 +54,7 @@ export const PlanSettingsModal = ({
               <SkipForward className="w-4 h-4" />
             </div>
             <div>
-              <p className="font-bold text-slate-900 text-sm group-hover:text-amber-700">Passer à l'axe suivant</p>
+              <p className="font-bold text-slate-900 text-sm group-hover:text-amber-700">Lancer la prochaine transformation</p>
               <p className="text-xs text-slate-500">Archiver ce plan et commencer le prochain.</p>
             </div>
           </button>

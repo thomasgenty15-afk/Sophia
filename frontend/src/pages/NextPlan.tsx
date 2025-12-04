@@ -123,14 +123,19 @@ const NextPlan = () => {
         }
 
         // 2. Sinon on récupère les dernières réponses en base
-        const { data: answersData } = await supabase
+        let query = supabase
           .from('user_answers')
           .select('content')
           .eq('user_id', user.id)
-          .eq('questionnaire_type', 'onboarding')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .eq('questionnaire_type', 'onboarding');
+
+        if (submissionId) {
+            query = query.eq('submission_id', submissionId);
+        } else {
+            query = query.order('created_at', { ascending: false }).limit(1);
+        }
+
+        const { data: answersData } = await query.maybeSingle();
 
         if (answersData?.content) {
             const savedData = answersData.content;
@@ -242,31 +247,145 @@ const NextPlan = () => {
     }));
   };
 
+  // Helper to build structured data for the current theme
+  const buildCurrentThemeData = () => {
+    if (!currentTheme || !selectedAxisId) return null;
+
+    const axis = currentTheme.axes?.find(a => a.id === selectedAxisId);
+    if (!axis) return null;
+
+    // Filter problems that belong to this axis AND are selected
+    const selectedProblemsForAxis = axis.problems.filter(p => responses.selectedProblemsIds.includes(p.id));
+
+    const problemsData = selectedProblemsForAxis.map(prob => {
+        const detailQuestions = prob.detailQuestions.map(q => {
+            const answer = responses.detailAnswers[q.id];
+            const otherText = responses.otherAnswers[q.id];
+            return {
+                question_text: q.question,
+                answer_value: answer,
+                question_id: q.id,
+                other_text: otherText || null
+            };
+        }).filter(d => d.answer_value); 
+
+        return {
+            problem_id: prob.id,
+            problem_label: prob.label,
+            details: detailQuestions
+        };
+    });
+
+    return {
+        theme_id: currentTheme.id,
+        theme_title: currentTheme.title,
+        selected_axis: {
+            id: axis.id,
+            title: axis.title,
+            problems: problemsData
+        }
+    };
+  };
+
   const handleGenerate = async () => {
       if (!user || !selectedAxisId) return;
 
       // 1. Mise à jour des réponses en base (Fusion avec l'existant)
       try {
-          const { data: existingAnswers } = await supabase
+          let query = supabase
               .from('user_answers')
               .select('id, content, submission_id')
               .eq('user_id', user.id)
-              .eq('questionnaire_type', 'onboarding')
-              .order('created_at', { ascending: false })
-              .limit(1)
-              .maybeSingle();
+              .eq('questionnaire_type', 'onboarding');
+
+          if (submissionId) {
+              query = query.eq('submission_id', submissionId);
+          } else {
+              query = query.order('created_at', { ascending: false }).limit(1);
+          }
+
+          const { data: existingAnswers } = await query.maybeSingle();
           
           let newContent = existingAnswers?.content || {};
           let uiState = newContent.ui_state || {};
           
-          // Mise à jour de l'axe pour ce thème (Juste pour être sûr)
+          // Mise à jour de l'axe pour ce thème
           if (!uiState.selectedAxisByTheme) uiState.selectedAxisByTheme = {};
           uiState.selectedAxisByTheme[currentTheme.id] = selectedAxisId;
+
+          // NETTOYAGE : Suppression de l'historique obsolète pour ce thème
+          // IDs des problèmes de l'axe sélectionné
+          const activeAxis = currentTheme.axes?.find(a => a.id === selectedAxisId);
+          const activeProblemIds = activeAxis ? activeAxis.problems.map(p => p.id) : [];
+
+          // IDs des problèmes des AUTRES axes de ce thème (à supprimer)
+          const otherAxes = currentTheme.axes?.filter(a => a.id !== selectedAxisId) || [];
+          const otherAxesProblemIds = otherAxes.flatMap(a => a.problems.map(p => p.id));
           
-          // Mise à jour des réponses (On fusionne les nouvelles réponses spécifiques à cet axe)
-          uiState.responses = responses;
+          const cleanSelectedProblemsIds = responses.selectedProblemsIds.filter(id => {
+              if (otherAxesProblemIds.includes(id)) return false;
+              return true;
+          });
+
+          // On identifie aussi les problèmes de l'axe actif qui ont été DÉCOCHÉS
+          const uncheckedActiveProblems = activeProblemIds.filter(id => !responses.selectedProblemsIds.includes(id));
+          
+          // Liste finale des IDs de problèmes dont on veut supprimer les détails
+          const problemsToClean = [...otherAxesProblemIds, ...uncheckedActiveProblems];
+          
+          const questionIdsToClean: string[] = [];
+          
+          // 1. Questions des autres axes
+          otherAxes.forEach(a => {
+             a.problems.forEach(p => {
+                 p.detailQuestions.forEach(q => questionIdsToClean.push(q.id));
+             });
+          });
+          
+          // 2. Questions des problèmes décochés de l'axe actif
+          if (activeAxis) {
+              activeAxis.problems.forEach(p => {
+                  if (uncheckedActiveProblems.includes(p.id)) {
+                      p.detailQuestions.forEach(q => questionIdsToClean.push(q.id));
+                  }
+              });
+          }
+
+          const cleanDetailAnswers = { ...responses.detailAnswers };
+          const cleanOtherAnswers = { ...responses.otherAnswers };
+          
+          questionIdsToClean.forEach(qId => {
+              delete cleanDetailAnswers[qId];
+              delete cleanOtherAnswers[qId];
+          });
+
+          // Application du nettoyage
+          uiState.responses = {
+              selectedProblemsIds: cleanSelectedProblemsIds,
+              detailAnswers: cleanDetailAnswers,
+              otherAnswers: cleanOtherAnswers
+          };
           
           newContent.ui_state = uiState;
+
+          // Mise à jour de structured_data pour ce thème spécifique
+          const themeData = buildCurrentThemeData();
+          let structuredData = newContent.structured_data || [];
+
+          if (themeData) {
+              // S'assurer que structuredData est bien un tableau
+              if (!Array.isArray(structuredData)) {
+                  console.warn("structured_data n'était pas un tableau, réinitialisation.");
+                  structuredData = [];
+              }
+              // On retire l'ancienne entrée pour ce thème si elle existe
+              structuredData = structuredData.filter((d: any) => d.theme_id !== currentTheme.id);
+              // On ajoute la nouvelle
+              structuredData.push(themeData);
+          }
+          
+          // CRITIQUE : Il faut mettre à jour l'objet newContent avec la nouvelle référence
+          newContent.structured_data = structuredData;
           
           await supabase
               .from('user_answers')
@@ -274,7 +393,7 @@ const NextPlan = () => {
                   content: newContent,
                   updated_at: new Date().toISOString()
               })
-              .eq('id', existingAnswers.id);
+              .eq('id', existingAnswers?.id);
 
           // Nettoyage du brouillon local
           const localDraftKey = `sophia_nextplan_draft_${submissionId}_${targetAxisId}`;

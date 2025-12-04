@@ -76,62 +76,91 @@ serve(async (req) => {
     }
 
     // 2. Appel Gemini (Modèle 2.0 Flash)
-    // Utilisation d'un AbortController pour timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => {
-        console.log("⏰ Timeout Triggered (10s)");
-        controller.abort();
-    }, 10000); // 10s timeout
+    let response;
+    let data;
+    let attempt = 0;
+    const MAX_ATTEMPTS = 10; // ~50s max de retry pour le résumé
 
-    try {
-        console.log("📡 Calling Gemini API...");
-        const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-              generationConfig: { responseMimeType: "text/plain" }
-            }),
-            signal: controller.signal
-          }
-        )
-        clearTimeout(timeoutId);
-        console.log("📨 Response received, status:", response.status);
+    while (true) {
+        attempt++;
+        
+        // Timeout par requête (10s)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => {
+            console.log("⏰ Timeout Triggered (10s)");
+            controller.abort();
+        }, 10000); 
 
-        const data = await response.json()
+        try {
+            console.log(`📡 Calling Gemini API (Attempt ${attempt}/${MAX_ATTEMPTS})...`);
+            response = await fetch(
+              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+              {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
+                  generationConfig: { responseMimeType: "text/plain" }
+                }),
+                signal: controller.signal
+              }
+            )
+            clearTimeout(timeoutId);
+            
+            // GESTION ERREUR 429 (QUOTA EXCEEDED) - RETRY LOOP
+            if (response.status === 429) {
+                if (attempt < MAX_ATTEMPTS) {
+                    console.log(`Gemini 429 (Summary): Surchauffe. Nouvelle tentative dans 5s...`);
+                    await new Promise(resolve => setTimeout(resolve, 5000));
+                    continue; 
+                } else {
+                    console.error("Gemini 429 (Summary): Max retries reached.");
+                }
+            }
 
-        if (!response.ok) {
-             console.error("Gemini Error:", JSON.stringify(data));
-             throw new Error(`Gemini Error: ${data.error?.message || 'Unknown error'}`);
+            console.log("📨 Response received, status:", response.status);
+            data = await response.json()
+            break;
+
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            console.error("💥 Fetch Error Block:", fetchError);
+            if (fetchError.name === 'AbortError') {
+                throw new Error('Gemini request timed out');
+            }
+            throw fetchError;
         }
-
-        const summary = data.candidates?.[0]?.content?.parts?.[0]?.text
-        if (!summary) {
-            console.error("❌ No summary in response:", JSON.stringify(data));
-            throw new Error('Réponse vide de Gemini')
-        }
-
-        console.log("✅ Summary generated successfully");
-        return new Response(
-          JSON.stringify({ summary }),
-          { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-        )
-    } catch (fetchError) {
-        console.error("💥 Fetch Error Block:", fetchError);
-        clearTimeout(timeoutId);
-        if (fetchError.name === 'AbortError') {
-            throw new Error('Gemini request timed out');
-        }
-        throw fetchError;
     }
+
+    if (!response.ok) {
+            console.error("Gemini Error:", JSON.stringify(data));
+            
+            // GESTION ERREUR 429 (QUOTA EXCEEDED)
+            if (response.status === 429) {
+                throw new Error('Le cerveau de Sophia est en surchauffe (Quota atteint). Veuillez réessayer dans quelques minutes.')
+            }
+            
+            throw new Error(`Gemini Error: ${data.error?.message || 'Unknown error'}`);
+    }
+
+    const summary = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!summary) {
+        console.error("❌ No summary in response:", JSON.stringify(data));
+        throw new Error('Réponse vide de Gemini')
+    }
+
+    console.log("✅ Summary generated successfully");
+    return new Response(
+        JSON.stringify({ summary }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
 
   } catch (error) {
     console.error('🔥 Final Error Catch:', error)
+    // On renvoie 200 pour faciliter la lecture du message d'erreur côté client
     return new Response(
       JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   }
 })

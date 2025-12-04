@@ -31,6 +31,8 @@ interface AxisContext {
   title: string;
   theme: string;
   problems?: string[];
+  role?: string;
+  reasoning?: string;
 }
 
 const ActionPlanGenerator = () => {
@@ -485,7 +487,9 @@ const ActionPlanGenerator = () => {
                 priority_order: index + 1,
                 // On force le statut active/pending seulement si c'est une nouvelle insertion ou un reset explicite
                 // Mais pour l'upsert, on veut s'assurer que le premier est 'active'
-                status: index === 0 ? 'active' : 'pending'
+                status: index === 0 ? 'active' : 'pending',
+                role: item.role || (index === 0 ? 'foundation' : index === 1 ? 'lever' : 'optimization'),
+                reasoning: item.reasoning || null
             }));
 
             // On utilise UPSERT avec ignoreDuplicates: false pour mettre à jour les priorités/status
@@ -657,7 +661,7 @@ const ActionPlanGenerator = () => {
                             sophia_knowledge: data.sophiaKnowledge,
                             content: data,
                             status: 'pending', // On remet en pending si on régénère
-                            generation_attempts: (existingPlan.generation_attempts || 1) + 1
+                            generation_attempts: (existingPlan.generation_attempts || 0) + 1
                         })
                         .eq('id', existingPlan.id);
                 } else {
@@ -904,7 +908,7 @@ const ActionPlanGenerator = () => {
                         sophia_knowledge: plan.sophiaKnowledge,
                         content: plan,
                         status: 'active', // VALIDATION FINALE : Passage en active
-                        generation_attempts: (existingPlan.generation_attempts || 1) + 1 // Incrément
+                        // generation_attempts: INCHANGÉ ICI car déjà incrémenté à la génération
                     })
                     .eq('id', existingPlan.id);
                 
