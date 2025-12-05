@@ -40,34 +40,34 @@ export const FrameworkModal = ({
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col animate-fade-in-up">
         
         {/* Header */}
-        <div className="bg-violet-50 p-6 border-b border-violet-100 flex justify-between items-start">
+        <div className="bg-violet-50 p-4 min-[720px]:p-6 border-b border-violet-100 flex justify-between items-start">
             <div>
-                <div className="flex items-center gap-2 text-violet-600 font-bold uppercase text-xs tracking-wider mb-2">
-                    <FileText className="w-4 h-4" />
+                <div className="flex items-center gap-2 text-violet-600 font-bold uppercase text-[10px] min-[720px]:text-xs tracking-wider mb-2">
+                    <FileText className="w-3 h-3 min-[720px]:w-4 min-[720px]:h-4" />
                     {details.type === 'recurring' ? 'Rituel Récurrent' : 'Exercice Unique'}
                 </div>
-                <h2 className="text-2xl font-bold text-violet-900">{action.title}</h2>
+                <h2 className="text-base min-[330px]:text-lg min-[720px]:text-2xl font-bold text-violet-900 leading-tight">{action.title}</h2>
             </div>
-            <button onClick={onClose} className="text-violet-400 hover:text-violet-700 transition-colors">
-                <X className="w-6 h-6" />
+            <button onClick={onClose} className="text-violet-400 hover:text-violet-700 transition-colors p-1">
+                <X className="w-5 h-5 min-[720px]:w-6 min-[720px]:h-6" />
             </button>
         </div>
 
         {/* Scrollable Body */}
-        <div className="p-6 overflow-y-auto flex-1">
+        <div className="p-4 min-[720px]:p-6 overflow-y-auto flex-1">
             {/* Intro / Inspiration */}
             {details.intro && (
-                <div className="bg-white border border-slate-100 p-4 rounded-xl mb-8 text-slate-600 italic leading-relaxed shadow-sm flex gap-3">
-                    <Sparkles className="w-5 h-5 text-amber-400 flex-shrink-0 mt-1" />
+                <div className="bg-white border border-slate-100 p-3 min-[720px]:p-4 rounded-xl mb-6 min-[720px]:mb-8 text-slate-600 italic leading-relaxed shadow-sm flex gap-3 text-xs min-[330px]:text-sm min-[720px]:text-base">
+                    <Sparkles className="w-4 h-4 min-[720px]:w-5 min-[720px]:h-5 text-amber-400 flex-shrink-0 mt-1" />
                     <div>{details.intro}</div>
                 </div>
             )}
 
             {/* Form Fields */}
-            <div className="space-y-6">
+            <div className="space-y-5 min-[720px]:space-y-6">
                 {details.sections?.map((section: any) => (
                     <div key={section.id}>
-                        <label className="block text-sm font-bold text-slate-900 mb-2">
+                        <label className="block text-xs min-[330px]:text-sm font-bold text-slate-900 mb-2">
                             {section.label}
                         </label>
                         
@@ -76,11 +76,11 @@ export const FrameworkModal = ({
                                 value={content[section.id] || ''}
                                 onChange={(e) => setContent({...content, [section.id]: e.target.value})}
                                 placeholder={section.placeholder}
-                                className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[120px] text-slate-700 text-sm md:text-base resize-y"
+                                className="w-full p-3 min-[720px]:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[120px] text-slate-700 text-xs min-[330px]:text-sm min-[720px]:text-base resize-y"
                             />
                         ) : section.inputType === 'scale' ? (
                             <div className="flex flex-col gap-2">
-                                <div className="flex justify-between text-xs text-slate-400 font-bold uppercase">
+                                <div className="flex justify-between text-[10px] min-[720px]:text-xs text-slate-400 font-bold uppercase">
                                     <span>Pas du tout (1)</span>
                                     <span>Extrêmement (10)</span>
                                 </div>
@@ -102,7 +102,7 @@ export const FrameworkModal = ({
                                 value={content[section.id] || ''}
                                 onChange={(e) => setContent({...content, [section.id]: e.target.value})}
                                 placeholder={section.placeholder}
-                                className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-slate-700"
+                                className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-slate-700 text-xs min-[330px]:text-sm min-[720px]:text-base"
                             />
                         )}
                     </div>
@@ -111,17 +111,17 @@ export const FrameworkModal = ({
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 border-t border-slate-100 bg-slate-50 flex justify-end gap-3">
+        <div className="p-4 border-t border-slate-100 bg-slate-50 flex flex-col-reverse min-[720px]:flex-row min-[720px]:justify-end gap-3">
             <button 
                 onClick={onClose}
-                className="px-4 py-2 text-slate-500 font-bold hover:bg-slate-200 rounded-lg transition-colors"
+                className="w-full min-[720px]:w-auto px-4 py-3 min-[720px]:py-2 text-slate-500 font-bold hover:bg-slate-200 rounded-lg transition-colors text-xs min-[330px]:text-sm min-[720px]:text-base"
             >
                 Annuler
             </button>
             <button 
                 onClick={handleSave}
                 disabled={isSaving}
-                className="px-6 py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg shadow-lg shadow-violet-200 flex items-center gap-2 disabled:opacity-70"
+                className="w-full min-[720px]:w-auto px-6 py-3 min-[720px]:py-2 bg-violet-600 hover:bg-violet-700 text-white font-bold rounded-lg shadow-lg shadow-violet-200 flex items-center justify-center gap-2 disabled:opacity-70 text-xs min-[330px]:text-sm min-[720px]:text-base"
             >
                 {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4" />}
                 Enregistrer la fiche

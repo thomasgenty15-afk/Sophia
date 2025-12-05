@@ -43,6 +43,7 @@ const Dashboard = () => {
   const { user, loading: authLoading } = useAuth();
   
   const [loading, setLoading] = useState(true);
+  const [isPlanLoading, setIsPlanLoading] = useState(true); // Loading spécifique pour le plan
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
   const [userInitials, setUserInitials] = useState("AH");
 
@@ -57,7 +58,25 @@ const Dashboard = () => {
                 .eq('id', user.id)
                 .single();
             
-            if (error) throw error;
+            if (error) {
+                // SI PROFIL INTROUVABLE (ex: DB Reset mais Session locale active)
+                if (error.code === 'PGRST116' || error.message.includes('0 rows')) {
+                    console.error("Profil introuvable pour ce user, déconnexion forcée.");
+                    await supabase.auth.signOut();
+                    navigate('/auth');
+                    return;
+                }
+                throw error;
+            }
+            
+            // Si data est null (pas d'erreur mais pas de résultat avec maybeSingle ou autre)
+            if (!data) {
+                 console.error("Profil vide, déconnexion forcée.");
+                 await supabase.auth.signOut();
+                 navigate('/auth');
+                 return;
+            }
+
             setIsOnboardingCompleted(data?.onboarding_completed ?? false);
             
             if (data?.full_name) {
@@ -110,13 +129,19 @@ const Dashboard = () => {
   // Gestion Settings
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
+  const [activeVitalSignData, setActiveVitalSignData] = useState<any | null>(null);
+
   // Effet pour charger le plan réel
   useEffect(() => {
     const fetchActiveGoalAndPlan = async () => {
         if (!user) return;
+        
+        // On ne met le loading à true que si on n'a pas déjà un plan affiché (pour éviter le clignotement lors d'un refresh background)
+        if (!activePlan) setIsPlanLoading(true); 
 
-        // On cherche d'abord un goal explicitement 'active'
-        let { data: goalData, error: goalError } = await supabase
+        try {
+            // On cherche d'abord un goal explicitement 'active'
+            let { data: goalData, error: goalError } = await supabase
           .from('user_goals')
           .select('*')
           .eq('user_id', user.id)
@@ -142,6 +167,20 @@ const Dashboard = () => {
         }
 
         if (goalData) {
+          // On prépare les données du plan avant de mettre à jour le state pour éviter le flash "EmptyState"
+          const { data: planData, error: planError } = await supabase
+            .from('user_plans')
+            .select('id, content, submission_id')
+            .eq('user_id', user.id)
+            .eq('goal_id', goalData.id)
+            .eq('status', 'active')
+            .maybeSingle();
+
+          if (planError) {
+            console.error('Error fetching active plan:', planError);
+          }
+
+          // BATCH UPDATE : On met à jour tout le state d'un coup
           setActiveGoalId(goalData.id);
           setActiveAxisTitle(goalData.axis_title);
           setActiveThemeId(goalData.theme_id);
@@ -149,27 +188,38 @@ const Dashboard = () => {
           setActiveGoalStatus(goalData.status);
           setActiveSubmissionId(goalData.submission_id);
 
-          const { data: planData, error: planError } = await supabase
-            .from('user_plans')
-            .select('id, content')
-            .eq('user_id', user.id)
-            .eq('goal_id', goalData.id)
-            .eq('status', 'active')
-            .maybeSingle(); // Utilisation de maybeSingle pour éviter l'erreur JSON si vide
-
-          if (planError) {
-            console.error('Error fetching active plan:', planError);
-          }
-
           if (planData) {
             setActivePlanId(planData.id);
+            // Prioritize plan's submission_id if available (fix for missing submission_id in vital entries)
+            if (planData.submission_id) {
+                setActiveSubmissionId(planData.submission_id);
+            }
             if (planData.content) {
                 // Initial set
                 let loadedPlan = planData.content;
-                setActivePlan(loadedPlan);
+                
+                // SYNC: Fetch Vital Sign for this Plan
+                const { data: vitalData } = await supabase
+                    .from('user_vital_signs')
+                    .select('*')
+                    .eq('plan_id', planData.id)
+                    .maybeSingle();
+                
+                if (vitalData) {
+                    setActiveVitalSignData({
+                        id: vitalData.id,
+                        title: vitalData.label,
+                        currentValue: vitalData.current_value,
+                        targetValue: vitalData.target_value,
+                        unit: vitalData.unit,
+                        startValue: vitalData.current_value,
+                        last_checked_at: vitalData.last_checked_at // AJOUT
+                    });
+                } else {
+                    setActiveVitalSignData(null);
+                }
 
-                // SYNC: On charge les données de tracking réelles pour mettre à jour currentReps et status
-                // car le JSON du plan peut être obsolète sur ces valeurs dynamiques
+                // SYNC: On charge les données de tracking réelles
                 const [actionsRes, frameworksRes] = await Promise.all([
                     supabase.from('user_actions').select('title, current_reps, target_reps, status, type').eq('plan_id', planData.id),
                     supabase.from('user_framework_tracking').select('action_id, current_reps, target_reps, status, type').eq('plan_id', planData.id)
@@ -177,23 +227,19 @@ const Dashboard = () => {
 
                 if (actionsRes.data || frameworksRes.data) {
                     const trackingMap = new Map();
-                    // On merge les deux sources
-                    actionsRes.data?.forEach(a => trackingMap.set(a.title, a)); // Habitudes/Missions (clé = title car pas d'ID stable dans JSON IA parfois, mais ID est mieux si dispo)
-                    // Pour frameworks, on a action_id qui est fiable
+                    actionsRes.data?.forEach(a => trackingMap.set(a.title, a));
                     frameworksRes.data?.forEach(f => trackingMap.set(f.action_id, f));
 
-                    // On parcourt le plan pour update
                     const updatedPhases = loadedPlan.phases.map((p: any) => ({
                         ...p,
                         actions: p.actions.map((a: any) => {
-                            // Essai de match par ID (framework) ou Titre (action legacy)
                             const track = trackingMap.get(a.id) || trackingMap.get(a.title);
                             if (track) {
                                 return {
                                     ...a,
                                     currentReps: track.current_reps,
                                     targetReps: track.target_reps,
-                                    status: track.status, // 'active' | 'pending' | 'completed'
+                                    status: track.status,
                                     isCompleted: track.status === 'completed'
                                 };
                             }
@@ -201,10 +247,11 @@ const Dashboard = () => {
                         })
                     }));
                     setActivePlan({ ...loadedPlan, phases: updatedPhases });
+                } else {
+                    setActivePlan(loadedPlan);
                 }
 
             } else {
-                 // Si on n'a pas de plan en base, on ne met à null QUE si on n'a pas déjà un plan valide via location.state
                  setActivePlan(current => {
                       if (current && location.state?.activePlan) return current;
                       return null;
@@ -218,10 +265,8 @@ const Dashboard = () => {
             });
 
             // --- LOGIQUE DE REDIRECTION INTELLIGENTE (RESUME) ---
-            if (goalData) {
-                // Scenario 1: Objectif Actif mais Plan Archivé (Recraft en cours)
-                if (goalData.status === 'active') {
-                    // On vérifie s'il y a des plans archivés pour cet objectif (preuve qu'on a déjà généré et qu'on recraft)
+            // ... (Moved inside logic) ...
+            if (goalData.status === 'active') {
                     const { count } = await supabase
                         .from('user_plans')
                         .select('*', { count: 'exact', head: true })
@@ -239,10 +284,8 @@ const Dashboard = () => {
                         });
                         return;
                     }
-                } 
-                // Scenario 2: Objectif Terminé (Passage à la suite)
-                else if (goalData.status === 'completed') {
-                    // 2a. Vérifier s'il reste des objectifs en attente (Next Axis)
+            } 
+            else if (goalData.status === 'completed') {
                     const { data: nextGoal } = await supabase
                         .from('user_goals')
                         .select('id')
@@ -258,8 +301,6 @@ const Dashboard = () => {
                         return;
                     }
 
-                    // 2b. Vérifier si un nouveau plan global est commencé (Next Global Plan)
-                    // On cherche une réponse 'global_plan' ou 'onboarding' plus récente et en cours
                     const { data: newAnswers } = await supabase
                         .from('user_answers')
                         .select('submission_id')
@@ -273,15 +314,13 @@ const Dashboard = () => {
 
                     if (newAnswers) {
                         console.log("🌍 Nouveau Plan Global détecté : Redirection...");
-                        // Si c'est 'global_plan', on suppose que c'est le flow de suivi
                         navigate('/global-plan-follow', { state: { submissionId: newAnswers.submission_id } });
                         return;
                     }
-                }
             }
           }
 
-          // Check if there are pending axes for the current submission
+          // Check pending axes
           if (goalData.submission_id) {
               const { count, error: countError } = await supabase
                   .from('user_goals')
@@ -289,13 +328,10 @@ const Dashboard = () => {
                   .eq('user_id', user.id)
                   .eq('status', 'pending')
                   .eq('submission_id', goalData.submission_id)
-                  .neq('id', goalData.id); // Sécurité : ne pas se compter soi-même (même si status diffère)
+                  .neq('id', goalData.id);
               
               if (countError) console.error("Error checking pending axes:", countError);
-              
-              const pendingCount = count || 0;
-              
-              setHasPendingAxes(pendingCount > 0);
+              setHasPendingAxes((count || 0) > 0);
           } else {
               setHasPendingAxes(false);
           }
@@ -311,11 +347,19 @@ const Dashboard = () => {
             setActiveGoalStatus(null);
             setHasPendingAxes(false);
         }
+      } catch (err) {
+          console.error("Erreur chargement plan:", err);
+      } finally {
+          setIsPlanLoading(false);
+      }
     };
 
     if (location.state?.activePlan) {
       setActivePlan(location.state.activePlan);
       if (location.state?.axisTitle) setActiveAxisTitle(location.state.axisTitle);
+      // On considère que le chargement initial est fait puisqu'on a les données de nav
+      // Mais on lance quand même le fetch pour sync en background sans bloquer l'UI
+      setIsPlanLoading(false); 
       fetchActiveGoalAndPlan();
     } else if (user) {
       fetchActiveGoalAndPlan();
@@ -342,26 +386,26 @@ const Dashboard = () => {
         if (!window.confirm("Es-tu sûr de vouloir recommencer la génération pour CET axe ?")) return;
 
         try {
-            // 1. Marquer les actions actuelles comme abandonnées (Cleanup logique)
+            // 1. SUPPRIMER les actions actuelles (Cleanup logique pour un reset)
             if (activePlanId) {
                  await supabase
                     .from('user_actions')
-                    .update({ status: 'abandoned' })
-                    .eq('plan_id', activePlanId)
-                    .in('status', ['active', 'pending']);
+                    .delete()
+                    .eq('plan_id', activePlanId);
                  
                  await supabase
                     .from('user_framework_tracking')
-                    .update({ status: 'abandoned' })
-                    .eq('plan_id', activePlanId)
-                    .in('status', ['active', 'pending']);
+                    .delete()
+                    .eq('plan_id', activePlanId);
             }
 
-            // 2. Archiver le plan actuel (au lieu de le supprimer ou de laisser actif)
-            // Cela permet à la logique de "Resume" de comprendre qu'on est en cours de modification
+            // 2. Marquer le plan comme "abandonné" (Reset) pour qu'il n'apparaisse pas dans le Grimoire
             await supabase
                 .from('user_plans')
-                .update({ status: 'archived' })
+                .update({ 
+                    status: 'abandoned',
+                    generation_attempts: 0
+                }) // Pas de date de fin car c'est un échec/reset
                 .eq('goal_id', activeGoalId);
             
             // 3. Rediriger vers l'Onboarding ciblé sur le thème
@@ -405,6 +449,7 @@ const Dashboard = () => {
         console.log("🧨 Lancement du RESET GLOBAL...");
         
         let targetSubmissionId = activeSubmissionId; // On utilise l'ID en cache si possible
+        let targetQuestionnaireType = 'onboarding'; // Par défaut
 
         // Si pas d'ID en cache, on cherche via le goal actif
         if (!targetSubmissionId && activeGoalId) {
@@ -418,6 +463,19 @@ const Dashboard = () => {
 
         if (targetSubmissionId) {
             console.log("Ciblage suppression par submission_id:", targetSubmissionId);
+
+            // 0. Identifier le type de questionnaire AVANT suppression
+            const { data: answers } = await supabase
+                .from('user_answers')
+                .select('questionnaire_type')
+                .eq('submission_id', targetSubmissionId)
+                .limit(1)
+                .maybeSingle();
+            
+            if (answers?.questionnaire_type) {
+                targetQuestionnaireType = answers.questionnaire_type;
+                console.log("Type de questionnaire détecté pour reset:", targetQuestionnaireType);
+            }
             
             // 1. SUPPRIMER LES DONNÉES DE SUIVI (Actions, Vital Signs, Frameworks, Plans)
             await cleanupSubmissionData(user.id, targetSubmissionId);
@@ -445,19 +503,57 @@ const Dashboard = () => {
             await supabase.from('user_answers').delete().eq('user_id', user.id).eq('questionnaire_type', 'onboarding');
         }
 
-        // 2. Reset du profil (Onboarding Completed = false)
-        await supabase
-            .from('profiles')
-            .update({ onboarding_completed: false })
-            .eq('id', user.id);
+        console.log("✅ Reset global terminé. Redirection selon le type:", targetQuestionnaireType);
 
-        console.log("✅ Reset global terminé. Redirection...");
-        navigate('/global-plan');
+        if (targetQuestionnaireType === 'global_plan') {
+            // Si c'est un plan de suivi (Follow), on redirige vers le questionnaire de suivi
+            // On ne reset PAS le flag onboarding_completed car l'utilisateur a déjà fait l'onboarding initial
+            navigate('/global-plan-follow');
+        } else {
+            // Si c'est un onboarding (ou inconnu/legacy), on redirige vers l'onboarding initial
+            // Et on reset le flag pour qu'il soit obligé de le refaire
+            await supabase
+                .from('profiles')
+                .update({ onboarding_completed: false })
+                .eq('id', user.id);
+            
+            navigate('/global-plan');
+        }
 
     } catch (err) {
         console.error("Erreur global reset:", err);
         alert("Une erreur technique a empêché la réinitialisation complète.");
     }
+  };
+
+  const calculatePlanCompletionStatus = async (planId: string): Promise<{ status: 'completed' | 'archived', percentage: number }> => {
+    // Actions
+    // Utilisation de limit(0) au lieu de head: true pour éviter les erreurs 500 potentielles sur HEAD
+    const { count: totalActions, error: err1 } = await supabase.from('user_actions').select('*', { count: 'exact' }).eq('plan_id', planId).limit(0);
+    const { count: completedActions, error: err2 } = await supabase.from('user_actions').select('*', { count: 'exact' }).eq('plan_id', planId).eq('status', 'completed').limit(0);
+    
+    if (err1 || err2) {
+        console.error("Erreur calcul completion actions:", err1, err2);
+    }
+
+    // Frameworks
+    const { count: totalFrameworks, error: err3 } = await supabase.from('user_framework_tracking').select('*', { count: 'exact' }).eq('plan_id', planId).limit(0);
+    const { count: completedFrameworks, error: err4 } = await supabase.from('user_framework_tracking').select('*', { count: 'exact' }).eq('plan_id', planId).eq('status', 'completed').limit(0);
+
+    if (err3 || err4) {
+         console.error("Erreur calcul completion frameworks:", err3, err4);
+    }
+
+    const total = (totalActions || 0) + (totalFrameworks || 0);
+    const completed = (completedActions || 0) + (completedFrameworks || 0);
+
+    if (total === 0) return { status: 'archived', percentage: 0 };
+    
+    const percentage = Math.round((completed / total) * 100);
+    return { 
+        status: percentage >= 80 ? 'completed' : 'archived',
+        percentage
+    };
   };
 
   const handleSkipToNextAxis = async () => {
@@ -466,45 +562,67 @@ const Dashboard = () => {
     if (!confirm("Veux-tu archiver ce plan et passer immédiatement à l'axe suivant ?")) return;
 
     try {
-        // 1. Marquer le goal actuel comme terminé (ou skipped)
-        await supabase
+        // 1. Calcul du statut final basé sur la complétion (80% rule)
+        let finalStatus: 'completed' | 'archived' = 'archived';
+        let finalPercentage = 0;
+
+        if (activePlanId) {
+            const result = await calculatePlanCompletionStatus(activePlanId);
+            finalStatus = result.status;
+            finalPercentage = result.percentage;
+            console.log(`Plan completion calculation: ${finalPercentage}% -> ${finalStatus}`);
+        }
+
+        // 2. Marquer le goal actuel comme terminé
+        const { error: goalError } = await supabase
             .from('user_goals')
             .update({ status: 'completed' })
             .eq('id', activeGoalId);
         
-        // 1.5 ABANDON DES ACTIONS (Comme pour le reset global)
+        if (goalError) throw goalError;
+        
+        // 3. ABANDON DES ACTIONS RESTANTES (Cleanup)
         if (activePlanId) {
              console.log("🏚️ Skip Axis : Abandon des actions restantes pour plan", activePlanId);
-             await supabase
+             
+             const { error: actionsError } = await supabase
                 .from('user_actions')
                 .update({ status: 'abandoned' })
                 .eq('plan_id', activePlanId)
                 .in('status', ['active', 'pending']);
              
-             await supabase
+             if (actionsError) console.error("Erreur update actions abandoned:", actionsError);
+
+             const { error: fwError } = await supabase
                 .from('user_framework_tracking')
                 .update({ status: 'abandoned' })
                 .eq('plan_id', activePlanId)
                 .in('status', ['active', 'pending']);
+             
+             if (fwError) console.error("Erreur update frameworks abandoned:", fwError);
         }
 
-        // 2. Archiver le plan actuel
-        await supabase
+        // 4. Archiver le plan actuel avec le bon statut calculé
+        const { error: planError } = await supabase
             .from('user_plans')
-            .update({ status: 'archived' })
+            .update({ 
+                status: finalStatus, 
+                completed_at: new Date().toISOString(),
+                progress_percentage: finalPercentage
+            })
             .eq('goal_id', activeGoalId);
 
-        // 3. Trouver le prochain goal (pending) avec la priorité la plus haute
-        // Pas besoin de faire la requête ici, NextPlan le fera.
-        // On récupère juste le submission_id pour le passer à NextPlan
-        
-        // Récupération submission_id
-        const { data: currentGoal } = await supabase
+        if (planError) throw planError;
+
+        // 5. Récupération submission_id pour suite
+        const { data: currentGoal, error: fetchError } = await supabase
             .from('user_goals')
             .select('submission_id')
             .eq('id', activeGoalId)
             .single();
             
+        if (fetchError) throw fetchError;
+
         navigate('/next-plan', {
             state: {
                 submissionId: currentGoal?.submission_id
@@ -513,6 +631,7 @@ const Dashboard = () => {
 
     } catch (err) {
         console.error("Erreur skip:", err);
+        alert("Une erreur est survenue lors de l'archivage. Veuillez réessayer.");
     }
   };
 
@@ -537,18 +656,24 @@ const Dashboard = () => {
                 .eq('submission_id', currentGoalData.submission_id);
           }
 
-          // 1. Marquer le goal actuel comme terminé
+          // 1. Calcul du statut final basé sur la complétion (80% rule)
+          let finalStatus: 'completed' | 'archived' = 'archived';
+          let finalPercentage = 0;
+
+          if (activePlanId) {
+            const result = await calculatePlanCompletionStatus(activePlanId);
+            finalStatus = result.status;
+            finalPercentage = result.percentage;
+            console.log(`Global Plan finish calculation: ${finalPercentage}% -> ${finalStatus}`);
+          }
+
+          // 2. Marquer le goal actuel comme terminé
           await supabase
               .from('user_goals')
               .update({ status: 'completed' })
               .eq('id', activeGoalId);
           
-          // 1.5. ABANDONNER LES ACTIONS DU PLAN ARCHIVÉ
-          // On veut s'assurer que toutes les actions encore actives/pending liées au plan archivé passent en "abandoned".
-          // On peut utiliser abandonPreviousActions, mais elle exclut un planID.
-          // Ici, on veut TOUT abandonner pour CE plan, car on part sur un nouveau cycle.
-          // Donc on peut appeler une logique spécifique ou utiliser abandonPreviousActions avec un faux ID exclu,
-          // OU mieux : faire un update direct ciblé sur ce plan.
+          // 3. ABANDONNER LES ACTIONS DU PLAN ARCHIVÉ
           if (activePlanId) {
              console.log("🏚️ Archivage du plan : Abandon des actions restantes pour plan", activePlanId);
              await supabase
@@ -564,10 +689,14 @@ const Dashboard = () => {
                 .in('status', ['active', 'pending']);
           }
 
-          // 2. Archiver le plan actuel
+          // 4. Archiver le plan actuel avec le bon statut calculé
           await supabase
               .from('user_plans')
-              .update({ status: 'archived' })
+              .update({ 
+                  status: finalStatus, 
+                  completed_at: new Date().toISOString(),
+                  progress_percentage: finalPercentage 
+                })
               .eq('goal_id', activeGoalId);
 
           // 3. GESTION DES QUESTIONNAIRES (USER_ANSWERS)
@@ -777,6 +906,43 @@ const Dashboard = () => {
     }
   };
 
+  const handleMasterHabit = async (action: Action) => {
+    if (!activePlanId || !activePlan) return;
+
+    if (!confirm("Confirmes-tu maîtriser cette habitude ? Elle sera marquée comme terminée.")) return;
+
+    const targetReps = action.targetReps || 1;
+    const newReps = targetReps;
+    const isNowCompleted = true;
+    const newStatus: Action['status'] = 'completed';
+
+    // 2. Optimistic UI Update
+    const newPhases = activePlan.phases.map(p => ({
+        ...p,
+        actions: p.actions.map(a => a.id === action.id ? { 
+            ...a, 
+            currentReps: newReps,
+            isCompleted: isNowCompleted,
+            status: newStatus
+        } : a)
+    }));
+    setActivePlan({ ...activePlan, phases: newPhases });
+
+    // 3. DB Update
+    try {
+        await supabase
+            .from('user_actions')
+            .update({ 
+                current_reps: newReps,
+                status: newStatus 
+            })
+            .eq('plan_id', activePlanId)
+            .eq('title', action.title);
+    } catch (err) {
+        console.error("Error mastering habit:", err);
+    }
+  };
+
   const handleSaveFramework = async (action: Action, content: any) => {
     if (!user) {
         console.error("handleSaveFramework: User not logged in");
@@ -944,11 +1110,115 @@ const Dashboard = () => {
     }
   };
 
+  const handleUpdateVitalSign = async (newValue: string) => {
+    if (!user || !activePlanId) return;
+
+    // 1. Check if vital sign exists
+    if (activeVitalSignData && activeVitalSignData.id) {
+        
+        // A. Sauvegarde de l'historique (NEW)
+        const { error: entryError } = await supabase
+            .from('user_vital_sign_entries')
+            .insert({
+                user_id: user.id,
+                vital_sign_id: activeVitalSignData.id,
+                plan_id: activePlanId,
+                submission_id: activeSubmissionId,
+                value: newValue,
+                recorded_at: new Date().toISOString()
+            });
+
+        if (entryError) {
+             console.error("Error saving vital sign history:", entryError);
+             // On continue quand même pour mettre à jour l'affichage
+        }
+
+        // B. Update existing Snapshot
+        const { error } = await supabase
+            .from('user_vital_signs')
+            .update({ 
+                current_value: newValue, 
+                last_checked_at: new Date().toISOString() 
+            })
+            .eq('id', activeVitalSignData.id);
+        
+        if (error) {
+            console.error("Error updating vital sign:", error);
+            alert("Erreur lors de la mise à jour.");
+            return;
+        }
+
+        // Update local state
+        setActiveVitalSignData({ 
+            ...activeVitalSignData, 
+            currentValue: newValue,
+            last_checked_at: new Date().toISOString() // Update local date immediately
+        });
+
+    } else {
+        // Create new
+        // We need to infer label/target/unit from the Plan JSON (via MetricCard logic essentially)
+        // Since we are in Dashboard, we have 'activePlan'
+        const jsonSignal = (activePlan as any)?.vitalSignal;
+        const label = jsonSignal?.title || jsonSignal?.name || "Métrique clé";
+        const target = jsonSignal?.targetValue || "0";
+        const unit = jsonSignal?.unit || "unités";
+
+        // 1. Create the Vital Sign Parent
+        const { data, error } = await supabase
+            .from('user_vital_signs')
+            .insert({
+                user_id: user.id,
+                plan_id: activePlanId,
+                submission_id: activeSubmissionId,
+                label: label,
+                target_value: String(target),
+                current_value: newValue,
+                unit: unit,
+                status: 'active',
+                last_checked_at: new Date().toISOString()
+            })
+            .select()
+            .single();
+
+        if (error) {
+            console.error("Error creating vital sign:", error);
+            alert("Erreur lors de la création du suivi.");
+            return;
+        }
+
+        // 2. Create the First Entry in History
+        if (data) {
+            await supabase
+                .from('user_vital_sign_entries')
+                .insert({
+                    user_id: user.id,
+                    vital_sign_id: data.id,
+                    plan_id: activePlanId,
+                    submission_id: activeSubmissionId,
+                    value: newValue,
+                    recorded_at: new Date().toISOString()
+                });
+
+            // Update local state with new ID
+            setActiveVitalSignData({
+                id: data.id,
+                title: data.label,
+                currentValue: data.current_value,
+                targetValue: data.target_value,
+                unit: data.unit,
+                startValue: data.current_value,
+                last_checked_at: data.last_checked_at
+            });
+        }
+    }
+  };
+
   const isArchitectMode = mode === 'architecte';
   const displayStrategy = activePlan?.strategy || "Chargement de la stratégie...";
 
-  // CHARGEMENT
-  if (authLoading || loading) {
+  // CHARGEMENT (Auth, Profile, ou Plan)
+  if (authLoading || loading || isPlanLoading) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="animate-pulse flex flex-col items-center gap-4">
@@ -1290,7 +1560,11 @@ const Dashboard = () => {
                       <BarChart3 className="w-4 h-4 text-blue-600" />
                       Moniteur de Contrôle
                     </h2>
-                    <MetricCard plan={activePlan} />
+                    <MetricCard 
+                        plan={activePlan} 
+                        vitalSignData={activeVitalSignData}
+                        onUpdateVitalSign={handleUpdateVitalSign}
+                    />
                   </div>
 
                   {/* SECTION ACCÉLÉRATEURS */}
@@ -1387,6 +1661,7 @@ const Dashboard = () => {
                                 onUnlockAction={handleUnlockAction}
                                 onToggleMission={handleToggleMission}
                                 onIncrementHabit={handleIncrementHabit}
+                                onMasterHabit={handleMasterHabit}
                                 />
                             );
                           });

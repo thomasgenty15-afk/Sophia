@@ -43,6 +43,10 @@ serve(async (req) => {
 
     const contextData = axisSpecificData || fallbackRawData;
 
+    if (!contextData) {
+        throw new Error("Impossible de trouver des données contextuelles à résumer.");
+    }
+
     const systemPrompt = `
       Tu es Sophia, une IA empathique et perspicace.
       Ton rôle est de rassurer l'utilisateur en lui montrant que tu as parfaitement compris sa situation avant de construire son plan d'action pour l'objectif : "${currentAxis.title}".

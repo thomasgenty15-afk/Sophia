@@ -223,7 +223,7 @@ const ActionPlanGenerator = () => {
           if (isMounted) setIsContextLoading(true);
           try {
           // 0. Récupérer les réponses (nécessaire pour vérifier la fraîcheur)
-              const { data: answersData } = await supabase
+              let { data: answersData } = await supabase
                   .from('user_answers')
                   .select('content, updated_at')
                   .eq('user_id', user.id)
@@ -231,6 +231,34 @@ const ActionPlanGenerator = () => {
                   .order('created_at', { ascending: false })
                   .limit(1)
                   .maybeSingle();
+
+              // RECOVERY (Legacy / Migration)
+              // Si pas de user_answers trouvé via le flux normal, on regarde si on a un submission_id dans le goal
+              // qui permettrait de retrouver une réponse orpheline ou "guest" convertie
+              if (!answersData) {
+                  const { data: activeGoal } = await supabase
+                    .from('user_goals')
+                    .select('submission_id')
+                    .eq('user_id', user.id)
+                    .eq('status', 'active')
+                    .limit(1)
+                    .maybeSingle();
+                  
+                  if (activeGoal?.submission_id) {
+                      console.log("🔍 Recherche user_answers via submission_id du goal...", activeGoal.submission_id);
+                      const { data: linkedAnswers } = await supabase
+                        .from('user_answers')
+                        .select('content, updated_at')
+                        .eq('submission_id', activeGoal.submission_id)
+                        .limit(1)
+                        .maybeSingle();
+                        
+                      if (linkedAnswers) {
+                          console.log("✅ Réponses retrouvées via submission_id !");
+                          answersData = linkedAnswers;
+                      }
+                  }
+              }
 
               // CHECK DE FRAICHEUR (DÉPLACÉ AVANT LE CHECK DE PLAN EXISTANT)
               let isStale = false;
@@ -253,7 +281,7 @@ const ActionPlanGenerator = () => {
               // 1. Vérifier si on a déjà le résumé dans user_goals
               let { data: existingGoal } = await supabase
                  .from('user_goals')
-                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at')
+                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at, submission_id')
                  .eq('user_id', user.id)
                  .eq('axis_id', currentAxis.id)
                  .in('status', ['active', 'pending'])
@@ -440,6 +468,75 @@ const ActionPlanGenerator = () => {
                        // Pas besoin de re-throw si on gère l'erreur ici pour ne pas casser le reste
                        // throw invokeError; 
                    }
+              } else {
+                  // FALLBACK : Si pas de réponses en base (Guest converti), on regarde si on les a reçues via le state
+                  const stateAnswers = location.state?.fullAnswers;
+                  
+                  if (stateAnswers) {
+                      console.log("⚠️ Réponses DB introuvables, utilisation des données en mémoire (State)...");
+                      
+                      // On vérifie si on a reçu le payload complet (avec ui_state) ou juste structured_data (ancien format)
+                      const isCompletePayload = stateAnswers.ui_state !== undefined;
+                      
+                      // On construit un objet compatible pour l'appel IA (qui n'a besoin que de structured_data/responses)
+                      const iaPayload = isCompletePayload ? { structured_data: stateAnswers.structured_data } : { structured_data: stateAnswers };
+
+                      // Appel IA avec ces données
+                      try {
+                           const { data: summaryData, error } = await supabase.functions.invoke('summarize-context', {
+                               body: { 
+                                   responses: iaPayload,
+                                   currentAxis: currentAxis
+                               }
+                           });
+                           
+                           if (summaryData?.summary) {
+                               console.log("✨ Résumé généré via State:", summaryData.summary);
+                               if (isMounted) {
+                                   setContextSummary(summaryData.summary);
+                                   setIsContextLoading(false);
+                               }
+                               
+                               // BACKFILL : On en profite pour créer user_answers maintenant qu'on est connecté !
+                               // C'est le moment idéal pour "sauver" les données du guest
+                               const submissionId = existingGoal?.submission_id || location.state?.submissionId || crypto.randomUUID();
+                               
+                               // On prépare le contenu à sauvegarder en base
+                               // Si on a le payload complet (nouveau GlobalPlan), on l'utilise direct
+                               // Sinon on essaie de reconstruire un minimum (Ancien format)
+                               const contentToSave = isCompletePayload ? stateAnswers : {
+                                   structured_data: stateAnswers,
+                                   ui_state: {}, // Perdu si ancien format
+                                   last_updated: new Date().toISOString()
+                               };
+
+                               console.log("💾 Backfill user_answers pour nouveau user...", contentToSave);
+                               await supabase.from('user_answers').insert({
+                                   user_id: user.id,
+                                   questionnaire_type: 'onboarding',
+                                   submission_id: submissionId,
+                                   content: contentToSave,
+                                   sorting_attempts: 0
+                               });
+                               
+                               // On met à jour le goal avec le résumé
+                               if (existingGoal?.id) {
+                                   await supabase.from('user_goals').update({
+                                       sophia_knowledge: summaryData.summary,
+                                       summary_attempts: (existingGoal.summary_attempts || 0) + 1,
+                                       knowledge_generated_at: new Date().toISOString()
+                                   }).eq('id', existingGoal.id);
+                               }
+                               
+                               return; // Succès
+                           }
+                      } catch (errState) {
+                          console.error("Erreur génération via state:", errState);
+                      }
+                  }
+                  
+                  console.warn("⚠️ Impossible de générer le résumé : Réponses introuvables ou vides.", { answersData });
+                  if (isMounted) setIsContextLoading(false);
               }
           } catch (err) {
               console.error("Erreur récupération contexte:", err);
@@ -489,7 +586,8 @@ const ActionPlanGenerator = () => {
                 // Mais pour l'upsert, on veut s'assurer que le premier est 'active'
                 status: index === 0 ? 'active' : 'pending',
                 role: item.role || (index === 0 ? 'foundation' : index === 1 ? 'lever' : 'optimization'),
-                reasoning: item.reasoning || null
+                reasoning: item.reasoning || null,
+                submission_id: location.state?.submissionId // PROPAGATION CRITIQUE DU SUBMISSION ID (Guest -> User)
             }));
 
             // On utilise UPSERT avec ignoreDuplicates: false pour mettre à jour les priorités/status
@@ -658,9 +756,11 @@ const ActionPlanGenerator = () => {
                             inputs_blockers: inputs.blockers,
                             inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
-                            sophia_knowledge: data.sophiaKnowledge,
+                            title: data.grimoireTitle,
+                            deep_why: data.deepWhy, // NOUVEAU : Mise à jour motivation profonde
+                            context_problem: data.context_problem, // NOUVEAU : Contexte Grimoire
                             content: data,
-                            status: 'pending', // On remet en pending si on régénère
+                            status: 'pending',
                             generation_attempts: (existingPlan.generation_attempts || 0) + 1
                         })
                         .eq('id', existingPlan.id);
@@ -671,14 +771,16 @@ const ActionPlanGenerator = () => {
                         .insert({
                             user_id: user.id,
                             goal_id: targetGoal.id,
-                            submission_id: targetGoal.submission_id, // AJOUT DU SUBMISSION ID
+                            submission_id: targetGoal.submission_id,
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
                             inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
-                            sophia_knowledge: data.sophiaKnowledge,
+                            title: data.grimoireTitle,
+                            deep_why: data.deepWhy, // NOUVEAU : Sauvegarde de la motivation profonde
+                            context_problem: data.context_problem, // NOUVEAU : Contexte Grimoire
                             content: data,
-                            status: 'pending', // Le plan est une proposition, donc 'pending' jusqu'à validation
+                            status: 'pending', 
                             generation_attempts: 1
                         });
                     if (saveError) console.error("Erreur sauvegarde plan:", saveError);
@@ -873,15 +975,16 @@ const ActionPlanGenerator = () => {
                   .insert({
                     user_id: user.id,
                     goal_id: activeGoal.id,
-                    submission_id: activeGoal.submission_id, // PROPAGATION DU SUBMISSION ID
+                    submission_id: activeGoal.submission_id,
                     inputs_why: inputs.why,
                     inputs_blockers: inputs.blockers,
                     inputs_context: inputs.context,
                     inputs_pacing: inputs.pacing,
-                    sophia_knowledge: plan.sophiaKnowledge,
+                    title: plan.grimoireTitle,
+                    deep_why: plan.deepWhy, // NOUVEAU
                     content: plan,
                     status: 'active',
-                    generation_attempts: 1 // Premier essai
+                    generation_attempts: 1
                   })
                   .select()
                   .single();
@@ -900,15 +1003,15 @@ const ActionPlanGenerator = () => {
                 const { error: updateError } = await supabase
                     .from('user_plans')
                     .update({
-                        submission_id: activeGoal.submission_id, // Mettre à jour si jamais ça a changé (peu probable mais safe)
+                        submission_id: activeGoal.submission_id,
                         inputs_why: inputs.why,
                         inputs_blockers: inputs.blockers,
                         inputs_context: inputs.context,
                         inputs_pacing: inputs.pacing,
-                        sophia_knowledge: plan.sophiaKnowledge,
+                        title: plan.grimoireTitle,
+                        deep_why: plan.deepWhy, // NOUVEAU
                         content: plan,
-                        status: 'active', // VALIDATION FINALE : Passage en active
-                        // generation_attempts: INCHANGÉ ICI car déjà incrémenté à la génération
+                        status: 'active',
                     })
                     .eq('id', existingPlan.id);
                 

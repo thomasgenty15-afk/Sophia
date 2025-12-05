@@ -267,13 +267,15 @@ const ActionPlanGeneratorRecraft = () => {
                 inputs_context: initialContext,
                 
                 // ON AJOUTE LE CHAPITRE RECRAFT
-                recraft_reason: inputs.why,      // "Pourquoi ce changement ?"
-                recraft_challenges: inputs.blockers, // "Nouveaux blocages ?"
+                recraft_reason: inputs.why,
+                recraft_challenges: inputs.blockers,
                 
                 inputs_pacing: inputs.pacing,
-                sophia_knowledge: data.sophiaKnowledge,
+                title: data.grimoireTitle,
+                deep_why: data.deepWhy, // NOUVEAU : Sauvegarde motivation
+                context_problem: data.context_problem, // NOUVEAU : Contexte Grimoire
                 status: 'active',
-                generation_attempts: 1 // Nouveau départ = Compteur à 1
+                generation_attempts: 1
             })
             .select()
             .single();
@@ -299,7 +301,7 @@ const ActionPlanGeneratorRecraft = () => {
       // Le plan est déjà sauvegardé et les actions distribuées lors du generate
       // On force juste le statut 'active' par sécurité et on redirige
       if (user && currentAxis) {
-          const { data: goal } = await supabase.from('user_goals').select('id').eq('user_id', user.id).eq('axis_id', currentAxis.id).single();
+          const { data: goal } = await supabase.from('user_goals').select('id, submission_id').eq('user_id', user.id).eq('axis_id', currentAxis.id).single();
           if (goal) {
              // On s'assure que le goal est actif
              await supabase.from('user_goals').update({ status: 'active' }).eq('id', goal.id);

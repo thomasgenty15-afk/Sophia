@@ -33,13 +33,18 @@ export interface PlanPhase {
 }
 
 export interface VitalSignal {
+  id?: string; // ID de la base de données
   title: string;
   unit: string;
-  startValue: number;
-  targetValue: number;
+  startValue: string | number; // Peut être texte ou nombre
+  targetValue: string | number;
+  currentValue?: string | number; // La valeur actuelle en base
+  last_checked_at?: string; // Date de la dernière mise à jour
+  type?: 'time' | 'duration' | 'number' | 'range' | 'text'; // Type explicite
 }
 
 export interface GeneratedPlan {
+  grimoireTitle?: string;
   strategy: string;
   phases: PlanPhase[];
   identity?: string;
@@ -47,4 +52,3 @@ export interface GeneratedPlan {
   goldenRules?: string;
   vitalSignal?: VitalSignal;
 }
-

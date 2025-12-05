@@ -31,11 +31,6 @@ const GlobalPlan = () => {
   const { user } = useAuth();
   const [currentTheme, setCurrentTheme] = useState<Theme>(DATA[0]);
 
-  // Sécurité si les données ne sont pas chargées
-  if (!currentTheme) {
-    return <div className="p-10 text-center">Erreur : Impossible de charger les thèmes.</div>;
-  }
-
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null); // Nouvel état pour gérer l'erreur de chargement
   const [currentAnswerId, setCurrentAnswerId] = useState<string | null>(null); // Pour traquer si on update ou insert
@@ -88,7 +83,7 @@ const GlobalPlan = () => {
           .from('profiles')
           .select('onboarding_completed')
           .eq('id', user.id)
-          .single();
+          .maybeSingle(); // Utilisation de maybeSingle pour éviter l'erreur si le profil n'existe pas encore
 
         if (error) throw error;
 
@@ -212,27 +207,6 @@ const GlobalPlan = () => {
     loadProgress();
   }, [user, navigate, searchParams]);
 
-  // Si une erreur critique survient au chargement, on bloque l'interface pour éviter d'écraser les données ou de contourner la sécurité
-  if (loadError) {
-      return (
-          <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
-              <div className="bg-white p-8 rounded-xl shadow-lg border border-red-100 text-center max-w-md">
-                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
-                      <span className="text-2xl font-bold">!</span>
-                  </div>
-                  <h2 className="text-xl font-bold text-gray-900 mb-2">Erreur de chargement</h2>
-                  <p className="text-gray-600 mb-6">{loadError}</p>
-                  <button 
-                      onClick={() => window.location.reload()}
-                      className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors"
-                  >
-                      Réessayer
-                  </button>
-              </div>
-          </div>
-      );
-  }
-
   // Helper pour construire la structure de données riche
   const buildStructuredData = () => {
     const structuredData: any[] = [];
@@ -281,24 +255,40 @@ const GlobalPlan = () => {
     return structuredData;
   };
 
+  const isSaving = React.useRef(false);
+
   // Sauvegarder à chaque changement significatif
   useEffect(() => {
     const saveProgress = async () => {
+      // Si une sauvegarde est déjà en cours, on ignore (debounce naturel)
+      if (isSaving.current) return;
       if (!user || !isLoaded) return;
 
       // On ne sauvegarde que si on a commencé à faire quelque chose
       if (totalSelectedAxes === 0 && responses.selectedProblemsIds.length === 0) return;
 
+      isSaving.current = true;
+
       try {
-        // 1. Chercher l'entrée existante (la plus récente)
-        const { data: existingEntry } = await supabase
-            .from('user_answers')
-            .select('id')
-            .eq('user_id', user.id)
-            .eq('questionnaire_type', 'onboarding')
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .maybeSingle();
+        // 1. Chercher l'entrée existante (la plus récente) OU utiliser l'ID local
+        let targetId = currentAnswerId;
+
+        // Double check DB si pas d'ID local, pour éviter les doublons/conflits
+        if (!targetId) {
+            const { data: existingEntry } = await supabase
+                .from('user_answers')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('questionnaire_type', 'onboarding')
+                .order('created_at', { ascending: false })
+                .limit(1)
+                .maybeSingle();
+            
+            if (existingEntry) {
+                targetId = existingEntry.id;
+                setCurrentAnswerId(existingEntry.id);
+            }
+        }
 
         const structuredData = buildStructuredData();
 
@@ -321,26 +311,77 @@ const GlobalPlan = () => {
             updated_at: new Date().toISOString()
         };
 
-        if (existingEntry) {
+        if (targetId) {
             await supabase
                 .from('user_answers')
                 .update(payload)
-                .eq('id', existingEntry.id);
+                .eq('id', targetId);
         } else {
-            await supabase
+            // Tentative d'insertion sécurisée
+            const { data: newEntry, error: insertError } = await supabase
                 .from('user_answers')
-                .insert(payload);
+                .insert(payload)
+                .select('id')
+                .maybeSingle();
+            
+            if (newEntry) {
+                setCurrentAnswerId(newEntry.id);
+            } else if (insertError && insertError.code === '23505') {
+                 // Conflit = Déjà créé par une autre requête concurrente
+                 // On récupère l'ID et on update
+                 const { data: existing } = await supabase
+                    .from('user_answers')
+                    .select('id')
+                    .eq('user_id', user.id)
+                    .eq('questionnaire_type', 'onboarding')
+                    .order('created_at', { ascending: false })
+                    .limit(1)
+                    .maybeSingle();
+                 
+                 if (existing) {
+                     setCurrentAnswerId(existing.id);
+                     await supabase.from('user_answers').update(payload).eq('id', existing.id);
+                 }
+            }
         }
 
       } catch (err) {
         console.error('Error saving progress:', err);
+      } finally {
+        isSaving.current = false;
       }
     };
 
-    // Debounce simple : sauvegarder après 1s d'inactivité pour ne pas spammer la DB
-    const timeoutId = setTimeout(saveProgress, 1000);
+    // Debounce plus long (2s) pour éviter le spam de requêtes
+    const timeoutId = setTimeout(saveProgress, 2000);
     return () => clearTimeout(timeoutId);
-  }, [user, selectedAxisByTheme, responses, totalSelectedAxes, isLoaded]);
+  }, [user, selectedAxisByTheme, responses, totalSelectedAxes, isLoaded, currentAnswerId]);
+
+  // Sécurité si les données ne sont pas chargées
+  if (!currentTheme) {
+    return <div className="p-10 text-center">Erreur : Impossible de charger les thèmes.</div>;
+  }
+
+  // Si une erreur critique survient au chargement, on bloque l'interface pour éviter d'écraser les données ou de contourner la sécurité
+  if (loadError) {
+      return (
+          <div className="min-h-screen flex items-center justify-center bg-gray-50 p-6">
+              <div className="bg-white p-8 rounded-xl shadow-lg border border-red-100 text-center max-w-md">
+                  <div className="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <span className="text-2xl font-bold">!</span>
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 mb-2">Erreur de chargement</h2>
+                  <p className="text-gray-600 mb-6">{loadError}</p>
+                  <button 
+                      onClick={() => window.location.reload()}
+                      className="bg-red-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-red-700 transition-colors"
+                  >
+                      Réessayer
+                  </button>
+              </div>
+          </div>
+      );
+  }
 
   // --- LOGIQUE DE SÉLECTION ---
   const toggleAxis = (themeId: string, axisId: string) => {
@@ -416,12 +457,18 @@ const GlobalPlan = () => {
         const theme = DATA.find(t => t.id === themeId);
         const axis = theme?.axes?.find(a => a.id === axisId);
         if (theme && axis) {
+          // Retrieve selected problems for this axis
+          const selectedProbs = axis.problems
+            .filter(p => responses.selectedProblemsIds.includes(p.id))
+            .map(p => p.label);
+
           selectedItems.push({
             id: axis.id,
             title: axis.title,
             theme: theme.id, // Utiliser l'ID (ex: 'SLP') pour la persistence et le routage
             theme_label: theme.shortTitle, // Garder le label pour l'affichage si besoin
-            reason: "Recommandation IA basée sur tes réponses." 
+            reason: "Recommandation IA basée sur tes réponses.",
+            problems: selectedProbs // Ajout de la liste des problèmes sélectionnés
           });
         }
       }
@@ -623,7 +670,8 @@ const GlobalPlan = () => {
               // On génère un ID unique pour cette soumission (Le "Numéro de questionnaire")
               const submissionId = crypto.randomUUID();
               
-              // Sauvegarde immédiate avec le submissionId
+              // Sauvegarde immédiate avec le submissionId (SEULEMENT SI CONNECTÉ)
+              // Si le user n'est pas connecté, on passe juste les données en state
               if (user) {
                   try {
                       // 0. Récupérer l'entrée existante pour mettre à jour
@@ -675,12 +723,26 @@ const GlobalPlan = () => {
                               .eq('id', existingAnswers.id);
                       } else {
                           console.log("📝 Création user_answers...");
-                          await supabase
+                          // Utilisation de maybeSingle + gestion d'erreur 409
+                          const { error: insertError } = await supabase
                               .from('user_answers')
                               .insert({
                                   ...payload,
                                   sorting_attempts: 0
                               });
+                          
+                          if (insertError && insertError.code === '23505') {
+                              console.log("⚠️ Conflit détecté (déjà créé), on update à la place.");
+                              // Fallback Update
+                              await supabase
+                                .from('user_answers')
+                                .update({
+                                    ...payload,
+                                    sorting_attempts: 0
+                                })
+                                .eq('user_id', user.id)
+                                .eq('questionnaire_type', 'onboarding'); // Cible large mais safe ici car on veut juste écraser le dernier
+                          }
                       }
 
                       // 3. CRÉATION IMMÉDIATE DES USER_GOALS (PENDING) AVEC LE SUBMISSION_ID
@@ -708,13 +770,24 @@ const GlobalPlan = () => {
 
               // On ajoute forceRefresh et un timestamp unique
               const timestamp = Date.now();
+              
+              // On construit fullAnswers pour le mode invité (ou fallback)
+              // IMPORTANT : On doit matcher la structure { content: { structured_data, ui_state } }
+              // Pour que le backfill fonctionne correctement
+              const fullContentPayload = {
+                  structured_data: buildStructuredData(),
+                  ui_state: { selectedAxisByTheme, responses },
+                  last_updated: new Date().toISOString()
+              };
+
               navigate('/plan-priorities', { 
                   state: { 
                       selectedAxes: data, 
                       fromOnboarding: true, // C'est le flag "Global Questionnaire"
                       forceRefresh: true,
                       generationTimestamp: timestamp,
-                      submissionId: submissionId // On passe l'ID
+                      submissionId: submissionId, // On passe l'ID
+                      fullAnswers: fullContentPayload // TRANSMISSION DES DONNÉES COMPLÈTES (Guest)
                   } 
               });
             }}

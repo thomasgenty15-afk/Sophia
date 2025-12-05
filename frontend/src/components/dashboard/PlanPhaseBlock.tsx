@@ -12,7 +12,8 @@ export const PlanPhaseBlock = ({
     onUnlockPhase, 
     onUnlockAction,
     onToggleMission,
-    onIncrementHabit
+    onIncrementHabit,
+    onMasterHabit
 }: { 
     phase: PlanPhase, 
     isLast: boolean, 
@@ -23,7 +24,8 @@ export const PlanPhaseBlock = ({
     onUnlockPhase?: () => void, 
     onUnlockAction?: (action: Action) => void,
     onToggleMission?: (action: Action) => void,
-    onIncrementHabit?: (action: Action) => void
+    onIncrementHabit?: (action: Action) => void,
+    onMasterHabit?: (action: Action) => void
 }) => {
   const isPhaseLocked = phase.status === 'locked'; // Le verrouillage de phase global
   const isActive = phase.status === 'active';
@@ -88,6 +90,7 @@ export const PlanPhaseBlock = ({
                     onUnlock={() => onUnlockAction && onUnlockAction(action)}
                     onToggleMission={onToggleMission}
                     onIncrementHabit={onIncrementHabit}
+                    onMasterHabit={onMasterHabit}
                 />
             );
         })}

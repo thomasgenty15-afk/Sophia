@@ -119,7 +119,7 @@ const ActionPlanGeneratorNext = () => {
               // On cherche le goal par axis_id pour voir s'il a déjà un résumé
               let { data: existingGoal } = await supabase
                  .from('user_goals')
-                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at')
+                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at, submission_id')
                  .eq('user_id', user.id)
                  .eq('axis_id', currentAxis.id)
                  .maybeSingle();
@@ -305,7 +305,9 @@ const ActionPlanGeneratorNext = () => {
                      inputs_blockers: inputs.blockers,
                      inputs_context: inputs.context,
                      inputs_pacing: inputs.pacing,
-                     sophia_knowledge: data.sophiaKnowledge,
+                     title: data.grimoireTitle,
+                     deep_why: data.deepWhy, // NOUVEAU
+                     context_problem: data.context_problem, // NOUVEAU : Contexte Grimoire
                      status: 'active', 
                      generation_attempts: (existingPlan.generation_attempts || 0) + 1
                  }).eq('id', existingPlan.id);
@@ -324,7 +326,9 @@ const ActionPlanGeneratorNext = () => {
                     inputs_blockers: inputs.blockers,
                     inputs_context: inputs.context,
                     inputs_pacing: inputs.pacing,
-                    sophia_knowledge: data.sophiaKnowledge,
+                    title: data.grimoireTitle,
+                    deep_why: data.deepWhy, // NOUVEAU
+                    context_problem: data.context_problem, // NOUVEAU : Contexte Grimoire
                     status: 'active',
                     generation_attempts: 1
                 })

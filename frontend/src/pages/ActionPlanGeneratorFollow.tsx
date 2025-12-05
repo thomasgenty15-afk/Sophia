@@ -251,7 +251,7 @@ const ActionPlanGeneratorFollow = () => {
               // 1. Vérifier si on a déjà le résumé dans user_goals
               let { data: existingGoal } = await supabase
                  .from('user_goals')
-                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at')
+                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at, submission_id')
                  .eq('user_id', user.id)
                  .eq('axis_id', currentAxis.id)
                  .in('status', ['active', 'pending'])
@@ -654,7 +654,6 @@ const ActionPlanGeneratorFollow = () => {
                             inputs_blockers: inputs.blockers,
                             inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
-                            sophia_knowledge: data.sophiaKnowledge,
                             content: data,
                             status: 'pending', // On remet en pending si on régénère
                             generation_attempts: (existingPlan.generation_attempts || 1) + 1
@@ -672,7 +671,6 @@ const ActionPlanGeneratorFollow = () => {
                             inputs_blockers: inputs.blockers,
                             inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
-                            sophia_knowledge: data.sophiaKnowledge,
                             content: data,
                             status: 'pending', // Le plan est une proposition, donc 'pending' jusqu'à validation
                             generation_attempts: 1
@@ -901,7 +899,6 @@ const ActionPlanGeneratorFollow = () => {
                     inputs_blockers: inputs.blockers,
                     inputs_context: inputs.context,
                     inputs_pacing: inputs.pacing,
-                    sophia_knowledge: plan.sophiaKnowledge,
                     content: plan,
                     status: 'active',
                     generation_attempts: 1 // Premier essai
@@ -927,7 +924,6 @@ const ActionPlanGeneratorFollow = () => {
                         inputs_blockers: inputs.blockers,
                         inputs_context: inputs.context,
                         inputs_pacing: inputs.pacing,
-                        sophia_knowledge: plan.sophiaKnowledge,
                         content: plan,
                         status: 'active', // VALIDATION FINALE : Passage en active
                         // generation_attempts: INCHANGÉ ICI car déjà incrémenté à la génération

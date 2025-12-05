@@ -124,17 +124,35 @@ const PlanPriorities = () => {
             attemptsCount = answerData.sorting_attempts || 0;
             lastAnswerId = answerData.id;
           } else if (submissionId) {
+             // CRUCIAL : Si l'utilisateur n'est pas connecté ou est en mode "guest", 
+             // user sera undefined et on ne passera pas ici.
+             // Mais si user est défini (même nouvellement créé), on doit sécuriser l'insertion.
+             
              // Créer l'entrée si elle n'existe pas (cas rare mais possible)
-             const { data: newAns } = await supabase.from('user_answers').insert({
+             // On utilise maybeSingle pour éviter les erreurs de doublons si une autre requête l'a créé entre temps
+             const { data: newAns, error: insertError } = await supabase.from('user_answers').insert({
                  user_id: user.id, 
                  questionnaire_type: 'onboarding',
                  submission_id: submissionId,
                  content: {},
                  sorting_attempts: 0
-             }).select().single();
+             }).select().maybeSingle();
+             
              if (newAns) {
                  lastAnswerId = newAns.id;
                  attemptsCount = 0;
+             } else if (insertError && insertError.code === '23505') {
+                 // 409 Conflict : L'entrée existe déjà (créée par GlobalPlan ou autre), on la récupère
+                 // On log en info et non en erreur pour ne pas polluer la console
+                 // car c'est un comportement attendu en cas de race condition ou navigation rapide
+                 const { data: existing } = await supabase.from('user_answers')
+                    .select('id, sorting_attempts')
+                    .eq('submission_id', submissionId)
+                    .maybeSingle();
+                 if (existing) {
+                    lastAnswerId = existing.id;
+                    attemptsCount = existing.sorting_attempts;
+                 }
              }
           }
         }
@@ -217,10 +235,10 @@ const PlanPriorities = () => {
         // Pour les invités, on appelle aussi l'IA pour avoir la stratégie, mais on ne sauvegarde pas en DB
         console.log(`🚀 Appel Gemini en cours... (Essai ${attemptsCount + 1}/3)`);
         
+        // On n'a pas besoin de forcer les headers pour le mode invité, le client Supabase 
+        // configuré avec la clé anon gère cela automatiquement pour les fonctions publiques.
         const { data, error } = await supabase.functions.invoke('sort-priorities', {
-            body: { axes: axesToAnalyze },
-            // Force le header Authorization pour les invités (fix 401)
-            headers: !user ? { Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}` } : undefined
+            body: { axes: axesToAnalyze }
         });
 
         if (error) throw error;
@@ -238,7 +256,7 @@ const PlanPriorities = () => {
             }).filter(Boolean);
 
             // SI USER CONNECTÉ -> DB
-            if (user) {
+            if (user && user.role !== 'anon') {
                 // A. Incrémenter le compteur
                 if (lastAnswerId) {
                     await supabase.from('user_answers')
@@ -262,9 +280,16 @@ const PlanPriorities = () => {
                 });
 
                 // Clean & Upsert
+                // On récupère d'abord les IDs pour éviter de supprimer ce qu'on va insérer (optimisation)
                 const currentIds = newOrder.map((c: any) => c.id);
-                await supabase.from('user_goals').delete().eq('user_id', user.id).not('axis_id', 'in', `(${currentIds.join(',')})`);
-                await supabase.from('user_goals').upsert(goalsPayload, { onConflict: 'user_id,axis_id' });
+                
+                // On utilise un try/catch pour l'upsert pour gérer les éventuels conflits silencieusement
+                try {
+                    await supabase.from('user_goals').delete().eq('user_id', user.id).not('axis_id', 'in', `(${currentIds.join(',')})`);
+                    await supabase.from('user_goals').upsert(goalsPayload, { onConflict: 'user_id,axis_id' });
+                } catch (dbErr) {
+                    console.warn("Erreur mineure lors de la mise à jour des objectifs (probablement résolue par upsert):", dbErr);
+                }
             } else {
                 console.log("👻 Mode Invité : Résultats en mémoire uniquement.");
             }
@@ -384,16 +409,18 @@ const PlanPriorities = () => {
 
   const handleReset = () => setCurrentOrder([...initialOrder]);
 
-  const handleValidate = async () => {
+    const handleValidate = async () => {
     // Navigation vers la suite
     const navigationState = { 
         finalOrder: currentOrder,
-        generationRequestTimestamp: Date.now() 
+        fullAnswers: location.state?.fullAnswers, // On propage les données complètes
+        generationRequestTimestamp: Date.now(),
+        submissionId: location.state?.submissionId // PROPAGATION EXPLICTE DU SUBMISSION ID
     };
 
     // Note : La sauvegarde a déjà été faite lors de la génération IA.
     // On refait une passe de mise à jour si l'utilisateur a changé l'ordre
-    if (user) {
+    if (user && user.role !== 'anon') {
         let submissionId = location.state?.submissionId;
 
         // SECURE RECOVERY : Si submissionId est perdu dans le state, on le récupère depuis les goals actifs
@@ -442,9 +469,11 @@ const PlanPriorities = () => {
         }
     }
 
-    if (user) {
+    if (user && user.role !== 'anon') {
       navigate('/plan-generator', { state: navigationState });
     } else {
+      // Force signOut if anonymous just in case to clean state
+      if (user) await supabase.auth.signOut();
       navigate('/auth', { state: navigationState });
     }
   };

@@ -19,6 +19,7 @@ export interface Phase {
 }
 
 export interface GeneratedPlan {
+  grimoireTitle?: string;
   strategy: string;
   sophiaKnowledge: string;
   estimatedDuration: string;

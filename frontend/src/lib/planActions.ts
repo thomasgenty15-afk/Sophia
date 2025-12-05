@@ -238,7 +238,10 @@ export const cleanupSubmissionData = async (userId: string, submissionId: string
         supabase.from('user_framework_tracking').delete().eq('user_id', userId).eq('submission_id', submissionId),
 
         // 5. Supprimer les frameworks liés à cette submission
-        supabase.from('user_framework_entries').delete().eq('user_id', userId).eq('submission_id', submissionId)
+        supabase.from('user_framework_entries').delete().eq('user_id', userId).eq('submission_id', submissionId),
+
+        // 6. Supprimer les entrées d'historique signes vitaux
+        supabase.from('user_vital_sign_entries').delete().eq('user_id', userId).eq('submission_id', submissionId)
     ];
 
     await Promise.all(promises);
@@ -258,6 +261,7 @@ export const cleanupPlanData = async (planId: string) => {
         supabase.from('user_actions').delete().eq('plan_id', planId),
         supabase.from('user_vital_signs').delete().eq('plan_id', planId),
         supabase.from('user_framework_tracking').delete().eq('plan_id', planId),
-        supabase.from('user_framework_entries').delete().eq('plan_id', planId)
+        supabase.from('user_framework_entries').delete().eq('plan_id', planId),
+        supabase.from('user_vital_sign_entries').delete().eq('plan_id', planId)
     ]);
 };

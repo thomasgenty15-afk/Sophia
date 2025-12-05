@@ -112,6 +112,7 @@ serve(async (req) => {
               - Exemple de bons titres : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
           2.  **Densité** : 1 à 3 actions par phase maximum :
               - Au moins 1 "Quête Principale" ('main') par phase.
+              - **RÈGLE OBLIGATOIRE : Au moins une action de type "habitude" par phase.**
               - Optionnel : 1 ou 2 "Quêtes Secondaires" ('side') pour soutenir.
           3.  **Types d'Actions** (CRITIQUE - STRICTES DÉFINITIONS) :
               - "habitude" (Groupe A) : Action RÉELLE et RÉPÉTITIVE (ex: "Faire 5min de cohérence cardiaque", "Rituel de relaxation", "Prendre ses compléments").
@@ -131,27 +132,33 @@ serve(async (req) => {
                 - "sections": Array de champs à remplir (id, label, inputType, placeholder).
               
           4.  **Actions Spéciales** :
-              - "constat" (Groupe C) : Le KPI "Signe Vital" OBLIGATOIRE (métrique chiffrée à suivre). DOIT AVOIR UN NAME.
+              - "constat" (Groupe C) : Le KPI "Signe Vital" OBLIGATOIRE (métrique chiffrée à suivre). DOIT AVOIR UN NAME et un TYPE ('time', 'duration', 'number', 'range', 'text').
+                * CRITIQUE : Ce signe doit être tracké CHAQUE JOUR. Ne donne PAS de métrique hebdomadaire.
+                * Exemple : Pas de "Moyenne par semaine", mais "Temps de sommeil cette nuit" ou "Nombre de réveils cette nuit".
               - "surveillance" (Groupe D) : La question de maintenance OBLIGATOIRE.
           
           5.  **Stratégie Identitaire** : Identité, Pourquoi, Règles d'or.
           6.  **Métriques OBLIGATOIRES** : Tu dois inclure un objet "vitalSignal" (le KPI principal) et un objet "maintenanceCheck" (la question de suivi long terme) à la racine du JSON.
           7.  **Ce que Sophia sait déjà** : Tu dois générer un résumé synthétique de la situation de l'utilisateur ("sophiaKnowledge") qui explique ce que tu as compris de lui.
+          8.  **Problème Contextuel (Grimoire)** : Tu dois générer un résumé court (2-3 phrases max) intitulé "context_problem" qui décrit la situation initiale, les blocages et le pourquoi de l'utilisateur. Ce texte servira de "Rappel du point de départ" dans le Grimoire une fois le plan terminé. Il doit être factuel mais empathique.
+          9.  **Titre du Grimoire** : Tu dois inventer un nom ÉPIQUE, MYSTIQUE ou PUISSANT pour cette transformation spécifique (ex: "Le Protocole Phénix", "L'Architecture de l'Invisible", "La Citadelle du Calme"). Ce titre servira de nom d'archive dans le Grimoire de l'utilisateur.
 
           STRUCTURE JSON ATTENDUE (Exemple complet) :
           {
+            "grimoireTitle": "Le Protocole Phénix",
             "strategy": "Phrase de synthèse de la méthode (ex: On répare le sommeil avant de toucher à la productivité).",
             "sophiaKnowledge": "Tu es un parent fatigué qui veut bien faire mais qui compense le stress par le scrolling. Ton environnement est bruyant.",
+            "context_problem": "Tu te sentais épuisé par tes nuits hachées et tu n'arrivais plus à être patient avec tes enfants. Ton principal blocage était l'usage du téléphone au lit.",
             "identity": "Je suis un Athlète du Sommeil (Phrase d'identité au présent).",
             "deepWhy": "Pour avoir l'énergie d'être un père présent le soir (Motivation émotionnelle).",
             "goldenRules": "1. Jamais de téléphone dans la chambre.\\n2. Le lit ne sert qu'à dormir.\\n3. Si je ne dors pas en 20min, je me lève.",
             "vitalSignal": {
-              "name": "Heure de coucher moyenne",
+              "name": "Heure de coucher",
               "unit": "h",
               "startValue": "01:00",
               "targetValue": "22:30",
               "description": "On décalera progressivement de 15min tous les 3 jours.",
-              "type": "constat"
+              "type": "time"
             },
             "maintenanceCheck": {
               "question": "Combien de fois t'es-tu couché après minuit cette semaine ?",
@@ -257,6 +264,7 @@ serve(async (req) => {
               - Exemple de bons titres : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
           2.  **Densité** : 1 à 3 actions par phase maximum :
               - Au moins 1 "Quête Principale" ('main') par phase.
+              - **RÈGLE OBLIGATOIRE : Au moins une action de type "habitude" par phase.**
               - Optionnel : 1 ou 2 "Quêtes Secondaires" ('side') pour soutenir.
           3.  **Types d'Actions** :
               - "habitude" (Groupe A) : Action récurrente (ex: Couvre-feu digital). A besoin de 'targetReps'.
@@ -275,21 +283,27 @@ serve(async (req) => {
               
           4.  **Actions Spéciales** :
               - "constat" (Groupe C) : Le KPI "Signe Vital" OBLIGATOIRE (métrique chiffrée à suivre).
+                * CRITIQUE : Ce signe doit être tracké CHAQUE JOUR. Ne donne PAS de métrique hebdomadaire.
+                * Exemple : Pas de "Moyenne par semaine", mais "Temps de sommeil cette nuit" ou "Nombre de réveils cette nuit".
               - "surveillance" (Groupe D) : La question de maintenance OBLIGATOIRE.
           
           5.  **Stratégie Identitaire** : Identité, Pourquoi, Règles d'or.
           6.  **Métriques OBLIGATOIRES** : Tu dois inclure un objet "vitalSignal" (le KPI principal) et un objet "maintenanceCheck" (la question de suivi long terme) à la racine du JSON.
           7.  **Ce que Sophia sait déjà** : Tu dois générer un résumé synthétique de la situation de l'utilisateur ("sophiaKnowledge") qui explique ce que tu as compris de lui.
+          8.  **Problème Contextuel (Grimoire)** : Tu dois générer un résumé court (2-3 phrases max) intitulé "context_problem" qui décrit la situation initiale, les blocages et le pourquoi de l'utilisateur. Ce texte servira de "Rappel du point de départ" dans le Grimoire une fois le plan terminé. Il doit être factuel mais empathique.
+          9.  **Titre du Grimoire** : Tu dois inventer un nom ÉPIQUE, MYSTIQUE ou PUISSANT pour cette transformation spécifique (ex: "Le Protocole Phénix", "L'Architecture de l'Invisible", "La Citadelle du Calme"). Ce titre servira de nom d'archive dans le Grimoire de l'utilisateur.
 
           STRUCTURE JSON ATTENDUE (Exemple complet) :
           {
+            "grimoireTitle": "Le Protocole Phénix",
             "strategy": "Phrase de synthèse de la méthode (ex: On répare le sommeil avant de toucher à la productivité).",
             "sophiaKnowledge": "Tu es un parent fatigué qui veut bien faire mais qui compense le stress par le scrolling. Ton environnement est bruyant.",
+            "context_problem": "Tu te sentais épuisé par tes nuits hachées et tu n'arrivais plus à être patient avec tes enfants. Ton principal blocage était l'usage du téléphone au lit.",
             "identity": "Je suis un Athlète du Sommeil (Phrase d'identité au présent).",
             "deepWhy": "Pour avoir l'énergie d'être un père présent le soir (Motivation émotionnelle).",
             "goldenRules": "1. Jamais de téléphone dans la chambre.\\n2. Le lit ne sert qu'à dormir.\\n3. Si je ne dors pas en 20min, je me lève.",
             "vitalSignal": {
-              "name": "Heure de coucher moyenne",
+              "name": "Heure de coucher",
               "unit": "h",
               "startValue": "01:00",
               "targetValue": "22:30",

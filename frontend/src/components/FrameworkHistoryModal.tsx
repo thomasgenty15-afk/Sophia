@@ -124,18 +124,38 @@ const FrameworkHistoryModal: React.FC<FrameworkHistoryModalProps> = ({ framework
                 
                 {expandedId === entry.id && (
                   <div className="p-4 border-t border-slate-100 bg-white">
-                    <div className="space-y-4">
-                      {Object.entries(entry.content).map(([key, value]) => (
-                        <div key={key}>
-                           {/* Try to find the question label from schema if possible, otherwise use key */}
-                           {/* Since we might not have the schema easily correlated here without complex logic, we'll just display the value mostly */}
-                           <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{key}</h5>
-                           <p className="text-slate-800 text-sm whitespace-pre-wrap leading-relaxed">
-                             {typeof value === 'object' ? JSON.stringify(value) : String(value)}
-                           </p>
+                    {entry.schema_snapshot && entry.schema_snapshot.sections ? (
+                        <div className="space-y-6">
+                             {entry.schema_snapshot.intro && (
+                                <div className="bg-indigo-50 border border-indigo-100 p-4 rounded-xl text-indigo-800/80 italic text-sm mb-4 flex gap-3">
+                                    <span className="text-2xl">💡</span>
+                                    <div>{entry.schema_snapshot.intro}</div>
+                                </div>
+                             )}
+                             {entry.schema_snapshot.sections.map((section: any) => {
+                                 const val = entry.content[section.id];
+                                 return (
+                                     <div key={section.id} className="border-b border-slate-50 pb-4 last:border-0 last:pb-0">
+                                         <h5 className="text-sm font-bold text-slate-900 mb-2 block">{section.label}</h5>
+                                         <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-700 text-sm whitespace-pre-wrap shadow-sm">
+                                             {val ? String(val) : <span className="text-slate-400 italic">Non répondu</span>}
+                                         </div>
+                                     </div>
+                                 );
+                             })}
                         </div>
-                      ))}
-                    </div>
+                    ) : (
+                        <div className="space-y-4">
+                          {Object.entries(entry.content).map(([key, value]) => (
+                            <div key={key}>
+                               <h5 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">{key}</h5>
+                               <p className="text-slate-800 text-sm whitespace-pre-wrap leading-relaxed">
+                                 {typeof value === 'object' ? JSON.stringify(value) : String(value)}
+                               </p>
+                            </div>
+                          ))}
+                        </div>
+                    )}
                   </div>
                 )}
               </div>
