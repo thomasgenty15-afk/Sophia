@@ -32,6 +32,7 @@ const ProductArchitect = () => {
               <button onClick={() => navigate('/l-architecte')} className="text-emerald-400 font-bold flex items-center gap-1">
                 L'Architecte <span className="bg-emerald-900 text-emerald-400 border border-emerald-700/50 text-[10px] px-1.5 py-0.5 rounded-full font-bold">PRO</span>
               </button>
+              <button onClick={() => navigate('/formules')} className="hover:text-emerald-400 transition-colors">Offres</button>
             </div>
             <button
               onClick={() => navigate('/auth')}
