@@ -36,6 +36,7 @@ const LandingPage = () => {
               <button onClick={() => navigate('/l-architecte')} className="hover:text-violet-600 transition-colors flex items-center gap-1">
                 L'Architecte <span className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">PRO</span>
               </button>
+              <button onClick={() => navigate('/formules')} className="hover:text-violet-600 transition-colors">Tarifs</button>
             </div>
             <button 
               onClick={() => navigate('/auth')}

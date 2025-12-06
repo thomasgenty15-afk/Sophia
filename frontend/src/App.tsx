@@ -20,6 +20,7 @@ import FrameworkExecution from './pages/FrameworkExecution';
 import Recraft from './pages/Recraft';
 import ProductPlan from './pages/ProductPlan';
 import ProductArchitect from './pages/ProductArchitect';
+import Formules from './pages/Formules';
 import Auth from './pages/Auth'; 
 
 function App() {
@@ -31,6 +32,7 @@ function App() {
             <Route path="/" element={<LandingPage />} />
             <Route path="/le-plan" element={<ProductPlan />} />
             <Route path="/l-architecte" element={<ProductArchitect />} />
+            <Route path="/formules" element={<Formules />} />
             <Route path="/auth" element={<Auth />} /> 
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/global-plan" element={<GlobalPlan />} />
