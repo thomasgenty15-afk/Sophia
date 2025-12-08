@@ -22,6 +22,7 @@ import ProductPlan from './pages/ProductPlan';
 import ProductArchitect from './pages/ProductArchitect';
 import Formules from './pages/Formules';
 import Auth from './pages/Auth'; 
+import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
 
 function App() {
   return (
@@ -48,6 +49,10 @@ function App() {
             <Route path="/framework-execution" element={<FrameworkExecution />} />
             <Route path="/grimoire" element={<Grimoire />} />
             <Route path="/grimoire/:id" element={<Grimoire />} />
+            
+            {/* NOUVELLE ROUTE POUR LE TABLEAU DE BORD ARCHITECTE */}
+            <Route path="/architecte" element={<ModulesPage />} />
+            
             <Route path="/architecte/:weekId" element={<IdentityArchitect />} />
             <Route path="/architecte/alignment" element={<WeeklyAlignment />} />
             <Route path="/architecte/evolution" element={<IdentityEvolution />} />

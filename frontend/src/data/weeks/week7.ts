@@ -8,14 +8,14 @@ export const week7Paths: Record<string, WeekPath> = {
         levelId: 1,
         title: "Niveau 1 – Le Socle (La Vérité)",
         cardName: "L’Inventaire de l’Héritage",
-        question: `“Si ta vie s’arrêtait dans quelques années :
+        question: `Si ta vie s’arrêtait dans quelques années :
 
 • Qu’est-ce qui resterait concrètement de toi dans le monde ?
 
 (ex : livre, entreprise, famille, enfants, œuvre d’art, contenu, patrimoine, communauté, système, méthode, lieux créés…)
 
 • Quelles formes d’héritage t’attirent le plus aujourd’hui, même si rien n’est encore construit ?
-• Note toutes les traces tangibles que tu aimerais laisser derrière toi.”`,
+• Note toutes les traces tangibles que tu aimerais laisser derrière toi.`,
         advice: `Tu mets des mots sur ce qui doit te survivre.
 
 Pour l’instant, c’est un inventaire brut, pas un plan.`
@@ -24,7 +24,7 @@ Pour l’instant, c’est un inventaire brut, pas un plan.`
         levelId: 2,
         title: "Niveau 2 – La Structure (Ce que ça signifie vraiment)",
         cardName: "Le Sens Derrière les Traces",
-        question: `“En relisant les formes d’héritage que tu as notées :
+        question: `En relisant les formes d’héritage que tu as notées :
 
 • Que représente chacune pour toi ?
 
@@ -35,7 +35,7 @@ Pour l’instant, c’est un inventaire brut, pas un plan.`
 
 ‘Mon héritage, ce n’est pas juste des choses,
 
-c’est la continuité de ______ dans le monde.’”`,
+c’est la continuité de ______ dans le monde.`,
         advice: `Ton héritage n’est pas seulement ce que les gens voient.
 
 C’est le message qui continue quand tu n’es plus là pour le dire.`
@@ -44,7 +44,7 @@ C’est le message qui continue quand tu n’es plus là pour le dire.`
         levelId: 3,
         title: "Niveau 3 – L’Épreuve (Choisir ce que tu construis en premier)",
         cardName: "La Première Pierre",
-        question: `“En partant de tout ce que tu veux laisser :
+        question: `En partant de tout ce que tu veux laisser :
 
 • Quelle forme d’héritage te semble la plus prioritaire à commencer maintenant ?
 
@@ -56,7 +56,7 @@ C’est le message qui continue quand tu n’es plus là pour le dire.`
 
 • Note 1 à 3 actions précises que tu peux poser dans les 7 à 30 prochains jours
 
-pour passer de l’idée à la construction.”`,
+pour passer de l’idée à la construction.`,
         advice: `Ton héritage ne se construit pas “un jour”.
 
 Il commence le jour où tu poses une première brique, même minuscule.`
@@ -65,7 +65,7 @@ Il commence le jour où tu poses une première brique, même minuscule.`
         levelId: 4,
         title: "Niveau 4 – L’Ancrage (Construire sur la durée)",
         cardName: "L’Œuvre en Cours",
-        question: `“En pensant à ce que tu veux bâtir sur plusieurs années :
+        question: `En pensant à ce que tu veux bâtir sur plusieurs années :
 
 • De quoi as-tu besoin pour rendre cette construction durable ?
 
@@ -77,7 +77,7 @@ pour avancer régulièrement sur ton héritage (hebdo / mensuel) ?
 
 • Quelles choses devront être sacrifiées ou réduites
 
-pour que ton héritage ait de la place dans ta vie ?”`,
+pour que ton héritage ait de la place dans ta vie ?`,
         advice: `Une œuvre ne se crée pas dans les “temps libres”.
 
 Elle demande une place réelle dans ton calendrier, ton énergie et tes priorités.`
@@ -86,7 +86,7 @@ Elle demande une place réelle dans ton calendrier, ton énergie et tes priorit�
         levelId: 5,
         title: "Niveau 5 – La Souveraineté (Formuler ton héritage)",
         cardName: "La Trace Que Tu Assumes",
-        question: `“Avec tout ce que tu as clarifié :
+        question: `Avec tout ce que tu as clarifié :
 
 • Complète ces phrases :
     • ‘Ce que je veux laisser derrière moi, c’est…’
@@ -95,10 +95,10 @@ Elle demande une place réelle dans ton calendrier, ton énergie et tes priorit�
 
 qu’est-ce que tu lui dirais en 3–5 phrases ?
 
-• Écris une version de ton héritage que tu te sens prêt(e) à assumer.”`,
+• Écris une version de ton héritage que tu te sens prêt(e) à assumer.`,
         advice: `Tu reprends le pouvoir sur ton héritage le jour où tu arrêtes d’espérer qu’il “apparaîtra”.
 
-Tu dis : “Voilà ce que je veux laisser. Et je commence maintenant.”`
+Tu dis : “Voilà ce que je veux laisser. Et je commence maintenant.`
       }
     ]
   },
@@ -109,7 +109,7 @@ Tu dis : “Voilà ce que je veux laisser. Et je commence maintenant.”`
         levelId: 1,
         title: "Niveau 1 – Le Socle (La Vérité)",
         cardName: "Le Sillage Actuel",
-        question: `“Pense aux personnes que tu croises ou accompagnes le plus souvent (amis, clients, collègues, proches, communauté…) :
+        question: `Pense aux personnes que tu croises ou accompagnes le plus souvent (amis, clients, collègues, proches, communauté…) :
 
 • Comment se sentent-elles généralement après t’avoir vu(e) ou parlé avec toi ?
 
@@ -119,7 +119,7 @@ Tu dis : “Voilà ce que je veux laisser. Et je commence maintenant.”`
 
 (ex : ‘merci, ça m’a fait du bien’, ‘je me sens moins seul’, ‘je suis reboosté’, etc.)
 
-• Note tous les effets possibles, même ceux qui ne te plaisent pas.”`,
+• Note tous les effets possibles, même ceux qui ne te plaisent pas.`,
         advice: `Tu observes ton sillage humain : l’état dans lequel tu laisses les gens après ton passage.
 
 Pas pour te juger — pour voir ce qui est déjà là.`
@@ -128,7 +128,7 @@ Pas pour te juger — pour voir ce qui est déjà là.`
         levelId: 2,
         title: "Niveau 2 – La Structure (Ce que tu apportes vraiment)",
         cardName: "Le Miroir des Rencontres",
-        question: `“En relisant tout ce que tu as noté au niveau 1 :
+        question: `En relisant tout ce que tu as noté au niveau 1 :
 
 • Quels sont les points communs entre ces effets ?
 • Qu’est-ce que tu sembles apporter le plus souvent :
@@ -138,7 +138,7 @@ clarté, calme, énergie, conflit, lucidité, pression, douceur, humour, structu
 • Complète :
     • ‘Après m’avoir rencontré, les gens ont souvent…’
     • ‘Aujourd’hui, mon impact humain principal, c’est…’
-• Qu’est-ce que ça te fait de voir ça écrit noir sur blanc ?”`,
+• Qu’est-ce que ça te fait de voir ça écrit noir sur blanc ?`,
         advice: `Tu ne contrôles pas tout, mais tu as déjà un pattern d’impact.
 
 Le reconnaître, c’est pouvoir ensuite le choisir.`
@@ -147,7 +147,7 @@ Le reconnaître, c’est pouvoir ensuite le choisir.`
         levelId: 3,
         title: "Niveau 3 – L’Épreuve (Choisir l’impact voulu)",
         cardName: "L’Intention de Rencontre",
-        question: `“En te connectant à la personne que tu veux devenir :
+        question: `En te connectant à la personne que tu veux devenir :
 
 • Comment veux-tu que la vie des gens ait changé après t’avoir rencontré ? (même brièvement)
 
@@ -160,7 +160,7 @@ ex : plus courageux, plus apaisés, plus lucides, plus alignés, plus libres, pl
 
 (appel, message, rendez-vous, contenu, rencontre)
 
-dans lesquelles tu vas délibérément viser cet impact.”`,
+dans lesquelles tu vas délibérément viser cet impact.`,
         advice: `L’impact n’est pas du hasard.
 
 C’est une intention que tu poses avant la rencontre.`
@@ -169,7 +169,7 @@ C’est une intention que tu poses avant la rencontre.`
         levelId: 4,
         title: "Niveau 4 – L’Ancrage (Observer les transformations)",
         cardName: "La Trace Profonde",
-        question: `“Après avoir vécu ces interactions avec une intention claire :
+        question: `Après avoir vécu ces interactions avec une intention claire :
 
 • Qu’est-ce que tu as remarqué de différent dans ta manière d’être ?
 • Quelles réactions, messages ou retours t’ont montré
@@ -180,7 +180,7 @@ que quelque chose avait vraiment bougé chez l’autre ?
 
 (ceux où ton impact positif est le plus fort) ?
 
-• Note les preuves concrètes de ton impact humain.”`,
+• Note les preuves concrètes de ton impact humain.`,
         advice: `Tu passes de :
 
 ‘j’espère que ça aide’
@@ -195,7 +195,7 @@ que quelque chose avait vraiment bougé chez l’autre ?
         levelId: 5,
         title: "Niveau 5 – La Souveraineté (Formuler ton impact)",
         cardName: "La Signature Humaine",
-        question: `“Avec tout ce que tu as compris sur ton impact :
+        question: `Avec tout ce que tu as compris sur ton impact :
 
 • Complète ces phrases :
     • ‘Je veux que, après m’avoir rencontré, les gens se sentent…’
@@ -206,7 +206,7 @@ en quoi sa vie pourrait être différente après avoir travaillé avec toi,
 
 que dirais-tu en 3–5 phrases ?
 
-• Écris une version que tu te sens capable d’assumer dès maintenant.”`,
+• Écris une version que tu te sens capable d’assumer dès maintenant.`,
         advice: `Tu prends ta vraie place le jour où tu assumes l’impact que tu as sur les autres, et que tu arrêtes de prétendre que “ce n’est rien”.
 
 C’est cette signature qui donne du poids à ton œuvre.`
@@ -220,7 +220,7 @@ C’est cette signature qui donne du poids à ton œuvre.`
         levelId: 1,
         title: "Niveau 1 – Le Socle (La Vérité)",
         cardName: "Le Musée des Possibles",
-        question: `“Si tu avais plusieurs vies devant toi :
+        question: `Si tu avais plusieurs vies devant toi :
 
 • Quels seraient les grands projets que tu rêverais de réaliser ?
 
@@ -228,7 +228,7 @@ C’est cette signature qui donne du poids à ton œuvre.`
 
 • Note toutes les idées de chef-d’œuvre qui te viennent,
 
-même si elles te semblent irréalistes ou floues.”`,
+même si elles te semblent irréalistes ou floues.`,
         advice: `Ton chef-d’œuvre commence souvent comme une idée “trop grande”.
 
 Ici, tu ouvres le musée, tu ne choisis pas encore une seule salle.`
@@ -237,14 +237,14 @@ Ici, tu ouvres le musée, tu ne choisis pas encore une seule salle.`
         levelId: 2,
         title: "Niveau 2 – La Structure (Tester la grandeur)",
         cardName: "Le Test de l’Œuvre",
-        question: `“En relisant toutes tes idées de grands projets :
+        question: `En relisant toutes tes idées de grands projets :
 
 • Pour chacune, complète :
     • ‘Ce projet me fait vibrer parce que…’
     • ‘S’il existait, il apporterait ______ aux autres / au monde.’
     • ‘Il est aligné avec mon ennemi, mon super-pouvoir et ma grande cause parce que…’
 • Puis demande-toi :
-    • ‘Lequel de ces projets me ferait le plus regretter de ne pas l’avoir tenté si ma vie s’arrêtait trop tôt ?’”`,
+    • ‘Lequel de ces projets me ferait le plus regretter de ne pas l’avoir tenté si ma vie s’arrêtait trop tôt ?`,
         advice: `Ton chef-d’œuvre n’est pas le projet le plus “logique”,
 
 c’est celui dont l’absence laisserait le plus grand vide en toi.`
@@ -253,7 +253,7 @@ c’est celui dont l’absence laisserait le plus grand vide en toi.`
         levelId: 3,
         title: "Niveau 3 – L’Épreuve (Choisir & commencer)",
         cardName: "La Première Pierre du Chef-d’Œuvre",
-        question: `“En partant du projet qui ressort le plus au niveau 2 :
+        question: `En partant du projet qui ressort le plus au niveau 2 :
 
 • Écris-le clairement :
     • ‘Mon chef-d’œuvre potentiel, c’est ______.’
@@ -265,7 +265,7 @@ c’est celui dont l’absence laisserait le plus grand vide en toi.`
 
 pour que ce chef-d’œuvre existe au moins à l’état d’embryon ?
 
-(ex : plan détaillé, premier chapitre, maquette, pitch, rencontre clé…)”`,
+(ex : plan détaillé, premier chapitre, maquette, pitch, rencontre clé…)`,
         advice: `Un chef-d’œuvre ne commence jamais comme un chef-d’œuvre.
 
 Il commence comme une V1 un peu bancale… mais réelle.`
@@ -274,7 +274,7 @@ Il commence comme une V1 un peu bancale… mais réelle.`
         levelId: 4,
         title: "Niveau 4 – L’Ancrage (Penser en chantier, pas en fantasme)",
         cardName: "Le Chantier de Vie",
-        question: `“En regardant ce projet comme un chantier de plusieurs années :
+        question: `En regardant ce projet comme un chantier de plusieurs années :
 
 • Quelles grandes étapes vois-tu (3 à 7 blocs : apprentissage, création, lancement, amélioration, transmission…) ?
 • De quoi auras-tu besoin pour tenir sur la durée ?
@@ -283,7 +283,7 @@ Il commence comme une V1 un peu bancale… mais réelle.`
 
 • Quelles routines ou créneaux réguliers peux-tu réserver
 
-pour avancer dessus chaque semaine / mois, même un peu ?”`,
+pour avancer dessus chaque semaine / mois, même un peu ?`,
         advice: `Ton chef-d’œuvre ne se fera pas en un sprint, mais en une suite de saisons.
 
 Tu passes du fantasme à l’architecture.`
@@ -292,7 +292,7 @@ Tu passes du fantasme à l’architecture.`
         levelId: 5,
         title: "Niveau 5 – La Souveraineté (Assumer son chef-d’œuvre)",
         cardName: "Le Serment de l’Œuvre",
-        question: `“Avec tout ce que tu as clarifié :
+        question: `Avec tout ce que tu as clarifié :
 
 • Complète ces phrases :
     • ‘S’il n’y avait qu’un seul grand projet que je réalise dans ma vie, ce serait…’
@@ -303,7 +303,7 @@ pourquoi ce projet compte autant pour toi,
 
 qu’est-ce que tu lui dirais en 3–5 phrases ?
 
-• Écris une version que tu te sens prêt(e) à affirmer.”`,
+• Écris une version que tu te sens prêt(e) à affirmer.`,
         advice: `Tu ne contrôles pas le résultat final.
 
 Mais tu contrôles ton engagement envers ton œuvre.

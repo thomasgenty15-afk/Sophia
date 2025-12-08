@@ -5,56 +5,147 @@ import {
   Send, 
   Bot, 
   Save, 
-  Lightbulb,
-  History,
-  CheckCircle2,
-  Lock,
-  Maximize2,
-  Clock,
-  Layers,
-  ChevronDown,
+  Lightbulb, 
+  History, 
+  CheckCircle2, 
+  Lock, 
+  Maximize2, 
+  Clock, 
+  Layers, 
+  ChevronDown, 
   ChevronUp,
   X
 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { WEEKS_CONTENT } from '../data/weeksContent';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
+import { MODULES_REGISTRY } from '../config/modules-registry';
 
 const IdentityArchitect = () => {
   const navigate = useNavigate();
   const { weekId } = useParams();
+  const { user } = useAuth();
   
-  // On récupère la semaine spécifique
-  const currentWeek = weekId ? WEEKS_CONTENT[weekId] : WEEKS_CONTENT["1"];
+  // Normalisation de l'ID du module pour correspondre au registre (ex: "1" -> "week_1")
+  // Le paramètre URL est souvent juste le numéro (1, 2, 3...) mais le registre utilise 'week_X'
+  const weekNumber = weekId || "1";
+  const moduleId = `week_${weekNumber}`;
+  
+  // On récupère la semaine spécifique depuis le contenu statique
+  const currentWeek = WEEKS_CONTENT[weekNumber] || WEEKS_CONTENT["1"];
   
   // États
   const [activeQuestion, setActiveQuestion] = useState<string>(currentWeek?.subQuestions[0]?.id || "");
-  const [answers, setAnswers] = useState<Record<string, string>>(() => {
-    // Load answers from localStorage or initial state
-    if (weekId) {
-       const savedAnswers = localStorage.getItem(`architect_answers_week_${weekId}`);
-       return savedAnswers ? JSON.parse(savedAnswers) : {};
-    }
-    return {};
-  });
+  const [answers, setAnswers] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [lastSavedAt, setLastSavedAt] = useState<Date | null>(null);
+
+  // State pour suivre les valeurs initiales (pour détecter les changements)
+  const [initialAnswers, setInitialAnswers] = useState<Record<string, string>>({});
+
+  // Charger les réponses existantes depuis Supabase (Mode Granulaire)
+  useEffect(() => {
+    const loadAnswers = async () => {
+        if (!user || !currentWeek) return;
+        setIsLoading(true);
+
+        try {
+            // 1. On récupère les IDs des sous-questions de la semaine
+            const subModuleIds = currentWeek.subQuestions.map(q => q.id);
+            
+            // 2. On fetch les entrées correspondant à ces IDs
+            const { data, error } = await supabase
+                .from('user_module_state_entries')
+                .select('module_id, content, updated_at')
+                .eq('user_id', user.id)
+                .in('module_id', subModuleIds);
+            
+            if (error) throw error;
+
+            const newAnswers: Record<string, string> = {};
+            let maxDate: Date | null = null;
+
+            // 3. On reconstruit l'objet answers
+            data?.forEach(entry => {
+                // Le contenu est stocké sous forme { answer: "..." } ou directement la string ?
+                // On va standardiser sur { answer: "..." } pour être propre, mais gérons le legacy string au cas où.
+                const val = entry.content?.answer || entry.content; // Compatibilité
+                if (typeof val === 'string') {
+                    newAnswers[entry.module_id] = val;
+                }
+                
+                if (entry.updated_at) {
+                    const d = new Date(entry.updated_at);
+                    if (!maxDate || d > maxDate) maxDate = d;
+                }
+            });
+
+            // 4. Fallback LocalStorage (Migration) si aucune donnée DB trouvée
+            if (Object.keys(newAnswers).length === 0) {
+                 const local = localStorage.getItem(`architect_answers_week_${weekNumber}`);
+                 if (local) {
+                     const localParsed = JSON.parse(local);
+                     setAnswers(localParsed);
+                     setInitialAnswers(localParsed); // Set initial state from local storage
+                     // On ne set pas lastSavedAt car ce n'est pas en base
+                 } else {
+                     setAnswers({});
+                     setInitialAnswers({});
+                 }
+            } else {
+                setAnswers(newAnswers);
+                setInitialAnswers(newAnswers); // Set initial state from DB
+                setLastSavedAt(maxDate);
+            }
+
+        } catch (err) {
+            console.error("Erreur chargement réponses:", err);
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    loadAnswers();
+  }, [user, weekNumber, currentWeek]); // Dependances stables
+
+
   
   // Chat
   const [messages, setMessages] = useState([
     { id: 1, sender: 'ai', text: `Salut Architecte. Bienvenue dans le module "${currentWeek?.title}". Par où veux-tu commencer ?` }
   ]);
   const [inputMessage, setInputMessage] = useState("");
-  const [isSaving, setIsSaving] = useState(false);
   
   // NOUVEAU : State pour le mode Zen (Question active en plein écran)
   const [zenModeQuestionId, setZenModeQuestionId] = useState<string | null>(null);
   const [expandedInstructions, setExpandedInstructions] = useState<Record<string, boolean>>({});
   const [showMobileChat, setShowMobileChat] = useState(false); // State pour le chat mobile
+  const [showArchives, setShowArchives] = useState<string | null>(null); // ID de la question dont on veut voir l'historique
+  const [archivesData, setArchivesData] = useState<any[]>([]); // Données d'archives chargées
+  const [isLoadingArchives, setIsLoadingArchives] = useState(false);
 
-  // Effect to save answers to localStorage whenever they change
-  useEffect(() => {
-    if (weekId) {
-      localStorage.setItem(`architect_answers_week_${weekId}`, JSON.stringify(answers));
-    }
-  }, [answers, weekId]);
+  // --- CHARGEMENT DES ARCHIVES ---
+  const handleOpenArchives = async (questionId: string) => {
+      setShowArchives(questionId);
+      setIsLoadingArchives(true);
+      try {
+          const { data, error } = await supabase
+              .from('user_module_archives')
+              .select('*')
+              .eq('user_id', user?.id)
+              .eq('module_id', questionId)
+              .order('archived_at', { ascending: false });
+          
+          if (error) throw error;
+          setArchivesData(data || []);
+      } catch (err) {
+          console.error("Erreur chargement archives:", err);
+      } finally {
+          setIsLoadingArchives(false);
+      }
+  };
 
   // Check if any answers exist for the current week
   const hasStartedWork = Object.keys(answers).length > 0;
@@ -62,10 +153,95 @@ const IdentityArchitect = () => {
   // Si l'ID n'est pas bon
   if (!currentWeek) return <div>Module introuvable</div>;
 
-  const handleSave = () => {
+  const handleSave = async () => {
+    if (!user) return;
     setIsSaving(true);
-    setTimeout(() => setIsSaving(false), 1000);
+    
+    try {
+        // Sauvegarde GRANULAIRE (Chaque réponse est un module Forge Niveau 1)
+        // UPDATE : On ne sauvegarde QUE ce qui a changé par rapport à initialAnswers
+        
+        const changedEntries = Object.entries(answers).filter(([key, value]) => {
+            return value !== initialAnswers[key];
+        });
+
+        if (changedEntries.length === 0) {
+            // Rien n'a changé, on ne fait rien (ou juste un petit feedback visuel)
+            console.log("Aucun changement à sauvegarder.");
+            setIsSaving(false);
+            return;
+        }
+
+        const updates = changedEntries.map(async ([questionId, answerText]) => {
+            // On vérifie si l'entrée existe déjà pour cet ID spécifique (ex: 'w1_q1')
+            // Note: C'est pas super optimal de faire N select + N upsert, mais pour 3-4 questions ça passe large.
+            // Optimisation future: Upsert global si la DB a une contrainte unique. 
+            // Pour l'instant on fait simple et robuste.
+            
+            const { data: existing } = await supabase
+                .from('user_module_state_entries')
+                .select('id')
+                .eq('user_id', user.id)
+                .eq('module_id', questionId) // ID spécifique (ex: w1_q1)
+                .maybeSingle();
+            
+            const payload = {
+                answer: answerText,
+                // On peut ajouter d'autres métadonnées ici si besoin (ex: date de complétion, etc.)
+            };
+
+            if (existing) {
+                return supabase
+                    .from('user_module_state_entries')
+                    .update({ 
+                        content: payload,
+                        updated_at: new Date().toISOString()
+                    })
+                    .eq('id', existing.id);
+            } else {
+                return supabase
+                    .from('user_module_state_entries')
+                    .insert({
+                        user_id: user.id,
+                        module_id: questionId,
+                        content: payload
+                    });
+            }
+        });
+
+        await Promise.all(updates);
+        
+        // Mise à jour de l'état initial pour refléter la nouvelle version "clean"
+        // On ne met à jour QUE les clés qui ont changé pour éviter des race conditions bizarres
+        const newInitials = { ...initialAnswers };
+        changedEntries.forEach(([k, v]) => {
+            newInitials[k] = v;
+        });
+        setInitialAnswers(newInitials);
+
+        setLastSavedAt(new Date());
+
+    } catch (err) {
+        console.error("Erreur sauvegarde:", err);
+        alert("Erreur lors de la sauvegarde.");
+    } finally {
+        setIsSaving(false);
+    }
   };
+
+  // Auto-save debounced (toutes les 5s si changement)
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+        if (hasStartedWork && !isLoading) {
+            // On sauvegarde silencieusement
+            // handleSave(); // Attention aux appels trop fréquents, on garde le bouton manuel pour l'instant
+            // Ou on implémente un vrai debounce plus tard.
+            // Pour l'instant on laisse manuel + bouton "Sauvegarde auto" visuel (qui est statique pour le moment)
+        }
+    }, 5000);
+    return () => clearTimeout(timeout);
+  }, [answers, hasStartedWork, isLoading]);
+
 
   const handleSendMessage = () => {
     if (!inputMessage.trim()) return;
@@ -85,26 +261,120 @@ const IdentityArchitect = () => {
   // --- RENDER MODE ZEN (MODALE PLEIN ÉCRAN) ---
   if (zenModeQuestionId) {
     const q = currentWeek.subQuestions.find(sq => sq.id === zenModeQuestionId);
+    // Si la question n'existe pas, on retourne null (ce qui sort du render Zen)
     if (!q) return null;
 
     return (
       <div className="fixed inset-0 bg-emerald-950 z-50 flex flex-col md:flex-row animate-fade-in">
         
+        {/* --- MODALE ARCHIVES (INTÉGRÉE AU MODE ZEN) --- */}
+        {showArchives && (
+            <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fade-in">
+                <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={(e) => {
+                    e.stopPropagation(); // Empêcher le clic de traverser
+                    setShowArchives(null);
+                }} />
+                <div className="relative bg-emerald-950 w-full max-w-2xl rounded-2xl border border-emerald-800 shadow-2xl flex flex-col max-h-[80vh]">
+                    <div className="p-4 border-b border-emerald-900 flex justify-between items-center bg-emerald-900/30 rounded-t-2xl">
+                        <div className="flex items-center gap-2 text-emerald-100">
+                            <History className="w-5 h-5 text-emerald-400" />
+                            <h3 className="font-bold font-serif text-lg">Historique des versions</h3>
+                        </div>
+                        <button onClick={(e) => {
+                            e.stopPropagation();
+                            setShowArchives(null);
+                        }} className="p-2 hover:bg-emerald-900 rounded-full text-emerald-400 hover:text-white transition-colors">
+                            <X className="w-5 h-5" />
+                        </button>
+                    </div>
+                    
+                    <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                        {isLoadingArchives ? (
+                            <div className="text-center py-12 text-emerald-500 animate-pulse">Chargement...</div>
+                        ) : archivesData.length === 0 ? (
+                            <div className="text-center py-12 text-emerald-600 opacity-50 flex flex-col items-center gap-2">
+                                <History className="w-12 h-12" />
+                                <p>Aucune archive disponible pour cette question.</p>
+                            </div>
+                        ) : (
+                            <div className="space-y-6">
+                                {archivesData.map((archive, i) => (
+                                    <div key={archive.id} className="relative pl-6 border-l-2 border-emerald-800/50 pb-6 last:pb-0">
+                                        <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-emerald-950 border-2 border-emerald-600" />
+                                        <div className="bg-emerald-900/20 rounded-xl p-4 border border-emerald-800/30">
+                                            <div className="flex justify-between items-center mb-3">
+                                                <span className="text-xs font-mono text-emerald-500 bg-emerald-900/50 px-2 py-1 rounded border border-emerald-800/50">
+                                                    v{archivesData.length - i}.0
+                                                </span>
+                                                <span className="text-xs text-emerald-400 flex items-center gap-1">
+                                                    <Clock className="w-3 h-3" />
+                                                    {new Date(archive.archived_at).toLocaleString()}
+                                                </span>
+                                            </div>
+                                            <p className="text-emerald-100 text-sm md:text-base font-serif leading-relaxed whitespace-pre-line">
+                                                "{archive.content?.answer || archive.content}"
+                                            </p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+        )}
+
         {/* GAUCHE : WORKSPACE (70%) */}
         <div className="flex-[70%] flex flex-col h-full relative bg-emerald-950 border-r border-emerald-900">
           {/* Header Zen */}
-          <div className="p-4 md:p-6 flex justify-between items-center border-b border-emerald-900/50 bg-emerald-950/50 backdrop-blur-sm">
-            <div className="flex items-center gap-2 md:gap-3 text-emerald-400">
+          <div className="p-4 md:p-6 flex flex-col min-[382px]:flex-row justify-between items-center border-b border-emerald-900/50 bg-emerald-950/50 backdrop-blur-sm gap-3 min-[382px]:gap-0">
+            <div className="flex items-center gap-2 md:gap-3 text-emerald-400 w-full min-[382px]:w-auto justify-center min-[382px]:justify-start">
               <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-amber-500" />
               <span className="text-xs md:text-sm font-bold uppercase tracking-widest">Mode Immersion</span>
             </div>
-            <button 
-              onClick={() => setZenModeQuestionId(null)}
-              className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-emerald-900/50 hover:bg-emerald-800 rounded-lg text-emerald-200 text-xs md:text-sm font-bold transition-colors border border-emerald-800/50"
-            >
-              <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4" />
-              <span className="hidden xs:inline">Terminer &</span> Fermer
-            </button>
+            <div className="flex items-center gap-3 w-full min-[382px]:w-auto justify-center min-[382px]:justify-end">
+                <button 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleOpenArchives(q.id);
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-emerald-900/30 hover:bg-emerald-800 rounded-lg text-emerald-400 text-xs md:text-sm font-bold transition-colors border border-emerald-800/30"
+                >
+                    <History className="w-3 h-3 md:w-4 md:h-4" />
+                    <span className="hidden xs:inline">Archives</span>
+                </button>
+                <button 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        handleSave();
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-amber-500 hover:bg-amber-400 rounded-lg text-emerald-950 text-xs md:text-sm font-bold transition-colors shadow-lg shadow-amber-900/20"
+                >
+                    {isSaving ? (
+                        <>
+                            <span className="animate-spin rounded-full h-3 w-3 border-b-2 border-emerald-950"></span>
+                            <span className="inline">...</span>
+                        </>
+                    ) : (
+                        <>
+                            <Save className="w-3 h-3 md:w-4 md:h-4" />
+                            <span className="inline">Enregistrer</span>
+                        </>
+                    )}
+                </button>
+                <button 
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        setZenModeQuestionId(null);
+                    }}
+                    className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 bg-emerald-900/50 hover:bg-emerald-800 rounded-lg text-emerald-200 text-xs md:text-sm font-bold transition-colors border border-emerald-800/50"
+                    title="Fermer"
+                >
+                    <CheckCircle2 className="hidden md:block w-3 h-3 md:w-4 md:h-4" />
+                    <X className="block md:hidden w-4 h-4" />
+                    <span className="hidden md:inline">Fermer</span>
+                </button>
+            </div>
           </div>
 
           {/* Corps Zen */}
@@ -342,6 +612,57 @@ const IdentityArchitect = () => {
   return (
     <div className="min-h-screen bg-emerald-950 text-emerald-50 flex flex-col md:flex-row overflow-hidden font-sans">
       
+      {/* --- MODALE ARCHIVES (SI MODE NORMAL) --- */}
+      {showArchives && !zenModeQuestionId && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 animate-fade-in">
+            <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setShowArchives(null)} />
+            <div className="relative bg-emerald-950 w-full max-w-2xl rounded-2xl border border-emerald-800 shadow-2xl flex flex-col max-h-[80vh]">
+                <div className="p-4 border-b border-emerald-900 flex justify-between items-center bg-emerald-900/30 rounded-t-2xl">
+                    <div className="flex items-center gap-2 text-emerald-100">
+                        <History className="w-5 h-5 text-emerald-400" />
+                        <h3 className="font-bold font-serif text-lg">Historique des versions</h3>
+                    </div>
+                    <button onClick={() => setShowArchives(null)} className="p-2 hover:bg-emerald-900 rounded-full text-emerald-400 hover:text-white transition-colors">
+                        <X className="w-5 h-5" />
+                    </button>
+                </div>
+                
+                <div className="flex-1 overflow-y-auto p-6 custom-scrollbar">
+                    {isLoadingArchives ? (
+                        <div className="text-center py-12 text-emerald-500 animate-pulse">Chargement...</div>
+                    ) : archivesData.length === 0 ? (
+                        <div className="text-center py-12 text-emerald-600 opacity-50 flex flex-col items-center gap-2">
+                            <History className="w-12 h-12" />
+                            <p>Aucune archive disponible pour cette question.</p>
+                        </div>
+                    ) : (
+                        <div className="space-y-6">
+                            {archivesData.map((archive, i) => (
+                                <div key={archive.id} className="relative pl-6 border-l-2 border-emerald-800/50 pb-6 last:pb-0">
+                                    <div className="absolute -left-[9px] top-0 w-4 h-4 rounded-full bg-emerald-950 border-2 border-emerald-600" />
+                                    <div className="bg-emerald-900/20 rounded-xl p-4 border border-emerald-800/30">
+                                        <div className="flex justify-between items-center mb-3">
+                                            <span className="text-xs font-mono text-emerald-500 bg-emerald-900/50 px-2 py-1 rounded border border-emerald-800/50">
+                                                v{archivesData.length - i}.0
+                                            </span>
+                                            <span className="text-xs text-emerald-400 flex items-center gap-1">
+                                                <Clock className="w-3 h-3" />
+                                                {new Date(archive.archived_at).toLocaleString()}
+                                            </span>
+                                        </div>
+                                        <p className="text-emerald-100 text-sm md:text-base font-serif leading-relaxed whitespace-pre-line">
+                                            "{archive.content?.answer || archive.content}"
+                                        </p>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+            </div>
+        </div>
+      )}
+
       {/* --- COLONNE GAUCHE : CONTENU DU MODULE (60%) --- */}
       <div className="w-full md:w-[60%] flex flex-col h-screen overflow-y-auto border-r border-emerald-900 relative">
         
@@ -354,8 +675,10 @@ const IdentityArchitect = () => {
             <ArrowLeft className="w-3 h-3 md:w-4 md:h-4" /> Retour au Plan
           </button>
           <div className="flex items-center gap-2">
-             <span className="hidden sm:inline text-xs font-bold text-emerald-600 uppercase tracking-widest">Sauvegarde auto</span>
-             <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4 text-emerald-600" />
+             <span className="hidden sm:inline text-xs font-bold text-emerald-600 uppercase tracking-widest">
+                {lastSavedAt ? `Sauvegardé à ${lastSavedAt.toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}` : 'Non sauvegardé'}
+             </span>
+             <CheckCircle2 className={`w-3 h-3 md:w-4 md:h-4 ${lastSavedAt ? 'text-emerald-500' : 'text-emerald-800'}`} />
           </div>
         </div>
 
@@ -489,7 +812,7 @@ const IdentityArchitect = () => {
                                <Layers className="w-3 h-3" /> Question Clé
                              </h4>
                              <p className="text-emerald-200 text-xs md:text-sm font-serif leading-relaxed whitespace-pre-line">
-                               "{q.placeholder.replace(/\*\*/g, '')}"
+                               {q.placeholder.replace(/\*\*/g, '')}
                              </p>
                            </div>
                            

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { 
   ArrowLeft, 
   Cpu, 
@@ -33,6 +33,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { WEEKS_CONTENT } from '../data/weeksContent';
 import { WEEKS_PATHS } from '../data/weeksPaths';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 // --- TYPES ---
 type ModuleStatus = 'locked' | 'active' | 'completed' | 'stable';
@@ -82,29 +84,48 @@ const ARMOR_IDS = [1, 2, 3, 6, 9, 10];
 const WEAPON_IDS = [4, 5, 7, 8, 11, 12];
 
 // --- DATA GENERATOR ---
-const generateBranchData = (weekId: number) => {
+const generateBranchData = (weekId: number, moduleData: Record<string, any>) => {
   const weekStr = weekId.toString();
   const weekData = WEEKS_CONTENT[weekStr];
   if (!weekData) return [];
 
   const modules: SystemModule[] = [];
-  const folderId = `folder_${weekId}`;
-
-  // Mock de progression
-  const DEMO_PROGRESS: Record<number, number> = {
-    0: 2,
-    1: 1,
-    2: 3,
-    3: 4
-  };
+  const folderId = `folder_a${weekId}`;
 
   weekData.subQuestions.forEach((sq, index) => {
     const rowTitle = sq.question;
-    // const currentLevel = DEMO_PROGRESS[index] ?? 1; // Unused for now
-    
+    const pathIndex = index + 1; // 1-based index for ID generation
+
+    // Helper to check status based on previous levels AND time lock
     const getStatus = (lvl: number): ModuleStatus => {
-        return 'completed'; 
+        const currentId = `a${weekId}_c${pathIndex}_m${lvl}`;
+        const prevId = `a${weekId}_c${pathIndex}_m${lvl - 1}`;
+        const moduleInfo = moduleData[currentId];
+        
+        // 1. Si le module a du contenu -> Completed
+        // Note: on vérifie si 'content' (la réponse) existe
+        if (moduleInfo?.content) return 'completed';
+
+        // 2. Si c'est le Niveau 1, c'est toujours actif (point d'entrée)
+        if (lvl === 1) return 'active';
+
+        // 3. Si le niveau précédent n'est pas fini -> Locked
+        const prevInfo = moduleData[prevId];
+        if (!prevInfo?.content) return 'locked';
+
+        // 4. VÉRIFICATION DU DÉLAI (Time Lock)
+        // On regarde si une date de déblocage est définie (via le trigger user_week_states)
+        if (moduleInfo?.availableAt) {
+            const unlockDate = new Date(moduleInfo.availableAt);
+            const now = new Date();
+            if (now < unlockDate) return 'locked'; // Cadenas si date future
+        }
+
+        // Si tout est bon (Précédent fini + Date passée ou pas de date) -> Active
+        return 'active';
     };
+    
+    // ... (rest of variable definitions)
     
     let lvl1Title = sq.question;
     let lvl1Question = sq.placeholder;
@@ -213,7 +234,7 @@ const generateBranchData = (weekId: number) => {
     // Surcharge spécifique pour "L'Étiquette Passée" (Week 1, Index 3)
     else if (weekId === 1 && index === 3) {
         // lvl1Title = "Le Musée des Étiquettes";
-        lvl1Question = "Quelles définitions de toi-même utilises-tu pour ne pas changer ?\n\n(ex : ‘je suis timide’, ‘je suis bordélique’, ‘je suis nul en maths’, ‘je ne suis pas le genre de personne qui…’)\n\nNote **toutes** les phrases qui te viennent, surtout celles qui commencent par\n‘je suis…’ ou ‘je ne suis pas…’.”";
+        lvl1Question = "Quelles définitions de toi-même utilises-tu pour ne pas changer ?\n\n(ex : ‘je suis timide’, ‘je suis bordélique’, ‘je suis nul en maths’, ‘je ne suis pas le genre de personne qui…’)\n\nNote **toutes** les phrases qui te viennent, surtout celles qui commencent par\n‘je suis…’ ou ‘je ne suis pas…’.";
         lvl1Helper = "Tu n’es pas ton passé.\n\nIci, tu exposes les vieilles étiquettes que tu portes encore comme si elles étaient définitives.";
 
         lvl2Title = "Les Scripts du Passé";
@@ -318,18 +339,19 @@ const generateBranchData = (weekId: number) => {
     }
     
     // NIVEAU 1 : LE SOCLE (Racine de la ligne)
+    const id1 = `a${weekId}_c${pathIndex}_m1`;
     modules.push({
-      id: `card_${weekId}_row${index}_lvl1`,
+      id: id1,
       parentId: folderId,
       level: 1,
       rowId: index,
       title: lvl1Title,
       icon: <Layers className="w-6 h-6" />,
-      version: "v1.0",
-      lastUpdate: "Auj.",
+      version: moduleData[id1]?.version || "v1.0",
+      lastUpdate: moduleData[id1]?.updated_at ? new Date(moduleData[id1].updated_at).toLocaleDateString() : "-",
       status: getStatus(1),
-      content: "",
-      history: [],
+      content: moduleData[id1]?.content || "",
+      history: [], // Todo: fetch history
       originalQuestion: lvl1Question,
       originalHelper: lvl1Helper,
       originalWeekTitle: weekData.title,
@@ -337,17 +359,18 @@ const generateBranchData = (weekId: number) => {
     });
 
     // NIVEAU 2 : LA STRUCTURE
+    const id2 = `a${weekId}_c${pathIndex}_m2`;
     modules.push({
-      id: `card_${weekId}_row${index}_lvl2`,
+      id: id2,
       parentId: folderId,
       level: 2,
       rowId: index,
       title: lvl2Title,
       icon: <PenTool className="w-6 h-6" />,
-      version: "v0.0",
-      lastUpdate: "-",
+      version: moduleData[id2]?.version || "v0.0",
+      lastUpdate: moduleData[id2]?.updated_at ? new Date(moduleData[id2].updated_at).toLocaleDateString() : "-",
       status: getStatus(2),
-      content: "",
+      content: moduleData[id2]?.content || "",
       history: [],
       originalQuestion: lvl2Question,
       originalHelper: lvl2Helper,
@@ -356,17 +379,18 @@ const generateBranchData = (weekId: number) => {
     });
 
     // NIVEAU 3 : L’ÉPREUVE
+    const id3 = `a${weekId}_c${pathIndex}_m3`;
     modules.push({
-      id: `card_${weekId}_row${index}_lvl3`,
+      id: id3,
       parentId: folderId,
       level: 3,
       rowId: index,
       title: lvl3Title,
       icon: <Sword className="w-6 h-6" />,
-      version: "v0.0",
-      lastUpdate: "-",
+      version: moduleData[id3]?.version || "v0.0",
+      lastUpdate: moduleData[id3]?.updated_at ? new Date(moduleData[id3].updated_at).toLocaleDateString() : "-",
       status: getStatus(3),
-      content: "",
+      content: moduleData[id3]?.content || "",
       history: [],
       originalQuestion: lvl3Question,
       originalHelper: lvl3Helper,
@@ -375,17 +399,18 @@ const generateBranchData = (weekId: number) => {
     });
 
     // NIVEAU 4 : L’ANCRAGE
+    const id4 = `a${weekId}_c${pathIndex}_m4`;
     modules.push({
-      id: `card_${weekId}_row${index}_lvl4`,
+      id: id4,
       parentId: folderId,
       level: 4,
       rowId: index,
       title: lvl4Title,
       icon: <ShieldCheck className="w-6 h-6" />,
-      version: "v0.0",
-      lastUpdate: "-",
+      version: moduleData[id4]?.version || "v0.0",
+      lastUpdate: moduleData[id4]?.updated_at ? new Date(moduleData[id4].updated_at).toLocaleDateString() : "-",
       status: getStatus(4),
-      content: "",
+      content: moduleData[id4]?.content || "",
       history: [],
       originalQuestion: lvl4Question,
       originalHelper: lvl4Helper,
@@ -394,17 +419,18 @@ const generateBranchData = (weekId: number) => {
     });
 
     // NIVEAU 5 : LA SOUVERAINETÉ
+    const id5 = `a${weekId}_c${pathIndex}_m5`;
     modules.push({
-      id: `card_${weekId}_row${index}_lvl5`,
+      id: id5,
       parentId: folderId,
       level: 5,
       rowId: index,
       title: lvl5Title,
       icon: <Crown className="w-6 h-6" />,
-      version: "v0.0",
-      lastUpdate: "-",
+      version: moduleData[id5]?.version || "v0.0",
+      lastUpdate: moduleData[id5]?.updated_at ? new Date(moduleData[id5].updated_at).toLocaleDateString() : "-",
       status: getStatus(5),
-      content: "",
+      content: moduleData[id5]?.content || "",
       history: [],
       originalQuestion: lvl5Question,
       originalHelper: lvl5Helper,
@@ -417,8 +443,8 @@ const generateBranchData = (weekId: number) => {
 };
 
 // --- COMPOSANT ARBORESCENCE (LIGNES PARALLÈLES) ---
-const SkillTree = ({ weekId, onModuleClick }: { weekId: number, onModuleClick: (m: SystemModule) => void }) => {
-  const modules = useMemo(() => generateBranchData(weekId), [weekId]);
+const SkillTree = ({ weekId, moduleData, onModuleClick }: { weekId: number, moduleData: Record<string, any>, onModuleClick: (m: SystemModule) => void }) => {
+  const modules = useMemo(() => generateBranchData(weekId, moduleData), [weekId, moduleData]);
   
   const rows = useMemo(() => {
     const r: Record<number, SystemModule[]> = {};
@@ -827,6 +853,35 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
   const specificQuestion = module.originalQuestion || "Quelle est la vérité fondamentale que tu veux graver ici ?";
   const specificHelper = module.originalHelper || "Sois honnête et radical.";
 
+  // --- STATE HISTORIQUE ---
+  const [history, setHistory] = useState<ModuleHistory[]>([]);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
+
+  // Charger l'historique quand l'onglet change
+  useEffect(() => {
+    if (activeTab === 'history' && module.id) {
+        const fetchHistory = async () => {
+            setIsLoadingHistory(true);
+            const { data, error } = await supabase
+                .from('user_module_archives')
+                .select('*')
+                .eq('module_id', module.id)
+                .order('archived_at', { ascending: false });
+
+            if (data) {
+                const formattedHistory: ModuleHistory[] = data.map((entry, index) => ({
+                    version: `v${data.length - index}.0`, // Calcul de version simple
+                    date: new Date(entry.archived_at).toLocaleDateString(),
+                    content: entry.content?.content || entry.content?.answer || "Contenu illisible"
+                }));
+                setHistory(formattedHistory);
+            }
+            setIsLoadingHistory(false);
+        };
+        fetchHistory();
+    }
+  }, [activeTab, module.id]);
+
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center animate-fade-in ${!isImmersive ? 'p-2 min-[350px]:p-4 md:p-8' : ''}`}>
         <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={onClose} />
@@ -975,9 +1030,13 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
                 </div>
               </div>
             ) : (
-              <div className="space-y-8 max-w-2xl mx-auto">
-                {module.history.length > 0 ? (
-                  module.history.map((entry, i) => (
+              <div className="space-y-8 max-w-2xl mx-auto h-full overflow-y-auto pr-2 custom-scrollbar">
+                {isLoadingHistory ? (
+                    <div className="flex items-center justify-center h-full opacity-50">
+                        <p>Chargement des archives...</p>
+                    </div>
+                ) : history.length > 0 ? (
+                  history.map((entry, i) => (
                     <div key={i} className="relative pl-8 border-l-2 border-emerald-800/30 last:border-l-0 pb-8">
                       <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-emerald-950 border-2 border-emerald-600 z-10 shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
                       <div className="bg-emerald-900/20 rounded-xl p-6 border border-emerald-800/30 hover:bg-emerald-900/30 transition-colors">
@@ -1064,6 +1123,55 @@ const IdentityEvolution = () => {
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
   const [selectedModule, setSelectedModule] = useState<SystemModule | null>(null);
   
+  // State for module data
+  const [moduleData, setModuleData] = useState<Record<string, any>>({});
+  const { user } = useAuth();
+
+  // Fetch data when branch changes
+  useEffect(() => {
+      if (!user || selectedBranch === null) return;
+      
+      const fetchModules = async () => {
+          // 1. Fetch Entries (Content)
+          const { data: entriesData, error: entriesError } = await supabase
+            .from('user_module_state_entries')
+            .select('*')
+            .eq('user_id', user.id)
+            .like('module_id', `a${selectedBranch}_%`);
+            
+          if (entriesError) console.error("Error fetching entries:", entriesError);
+          
+          // 2. Fetch States (Unlock Schedule)
+          const { data: statesData, error: statesError } = await supabase
+            .from('user_week_states')
+            .select('*')
+            .eq('user_id', user.id)
+            .like('module_id', `a${selectedBranch}_%`);
+
+          if (statesError) console.error("Error fetching states:", statesError);
+          
+          const map: Record<string, any> = {};
+          
+          // Merge Entries (Content)
+          entriesData?.forEach(entry => {
+              map[entry.module_id] = { ...map[entry.module_id], ...entry };
+          });
+
+          // Merge States (Unlock info)
+          statesData?.forEach(state => {
+              map[state.module_id] = { 
+                  ...map[state.module_id], 
+                  stateStatus: state.status,
+                  availableAt: state.available_at 
+              };
+          });
+
+          setModuleData(map);
+      };
+      
+      fetchModules();
+  }, [user, selectedBranch]);
+  
   const handleBranchClick = (id: number) => {
     setSelectedBranch(id);
   };
@@ -1073,9 +1181,49 @@ const IdentityEvolution = () => {
     setSelectedModule(module);
   };
 
-  const handleSave = (id: string, content: string) => {
+  const handleSave = async (id: string, content: string) => {
+    if (!user) return;
     console.log(`Saving module ${id}:`, content);
-    setSelectedModule(null);
+    
+    try {
+        // Upsert logic similar to IdentityArchitect
+        const { data: existing } = await supabase
+            .from('user_module_state_entries')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('module_id', id)
+            .maybeSingle();
+            
+        const payload = { content }; // or { answer: content } depending on consistency
+        
+        if (existing) {
+            await supabase.from('user_module_state_entries').update({
+                content: payload,
+                updated_at: new Date().toISOString()
+            }).eq('id', existing.id);
+        } else {
+            await supabase.from('user_module_state_entries').insert({
+                user_id: user.id,
+                module_id: id,
+                content: payload
+            });
+        }
+        
+        // Refresh local state
+        setModuleData(prev => ({
+            ...prev,
+            [id]: {
+                ...prev[id],
+                content: payload,
+                updated_at: new Date().toISOString()
+            }
+        }));
+        
+        setSelectedModule(null);
+    } catch (err) {
+        console.error("Error saving:", err);
+        alert("Erreur lors de la sauvegarde.");
+    }
   };
 
   const handleBack = () => {
@@ -1118,7 +1266,7 @@ const IdentityEvolution = () => {
         ) : (
             <div className="flex-1 overflow-hidden flex items-start justify-center bg-emerald-950/30 rounded-2xl relative">
                 <div className="absolute right-0 top-0 bottom-0 w-[15%] bg-gradient-to-l from-emerald-950 to-transparent z-20 pointer-events-none" />
-                <SkillTree weekId={selectedBranch} onModuleClick={handleModuleClick} />
+                <SkillTree weekId={selectedBranch} moduleData={moduleData} onModuleClick={handleModuleClick} />
             </div>
                   )}
 

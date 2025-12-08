@@ -20,10 +20,10 @@ import {
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { useModules } from '../hooks/useModules';
 
 // Imports from new locations
 import type { GeneratedPlan, Action } from '../types/dashboard';
-import { ARCHITECT_WEEKS } from '../data/dashboardMock';
 import { WeekCard } from '../components/dashboard/WeekCard';
 import { RitualCard } from '../components/dashboard/RitualCard';
 import { MetricCard } from '../components/dashboard/MetricCard';
@@ -41,6 +41,7 @@ const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
+  const { modules, loading: modulesLoading } = useModules();
   
   const [loading, setLoading] = useState(true);
   const [isPlanLoading, setIsPlanLoading] = useState(true); // Loading spécifique pour le plan
@@ -1214,11 +1215,73 @@ const Dashboard = () => {
     }
   };
 
+  const architectWeeks = Object.values(modules)
+    .filter(m => m.type === 'week')
+    .sort((a, b) => {
+        const numA = parseInt(a.id.replace('week_', ''));
+        const numB = parseInt(b.id.replace('week_', ''));
+        return numA - numB;
+    })
+    .map(m => {
+        const weekNum = m.id.replace('week_', '');
+        const cleanTitle = m.title.replace(/^Semaine \d+ : /, '');
+        
+        let status = 'locked';
+        
+        // LOGIQUE DE VALIDATION CONDITIONNELLE AMÉLIORÉE
+        // Un module est "Validé" (Vert) SI :
+        // 1. Il est techniquement terminé (status = completed)
+        // 2. ET (
+        //      Le suivant a commencé (first_updated_at existe)
+        //      OU Le suivant est carrément terminé (cas des migrations ou speed run)
+        //    )
+        
+        const nextModuleIds = m.nextModuleIds || [];
+        const isNextModuleStartedOrCompleted = nextModuleIds.some(nextId => {
+            const nextModule = modules[nextId];
+            return !!nextModule?.state?.first_updated_at || nextModule?.state?.status === 'completed';
+        });
+
+        // Si le module est terminé techniquement (en base)
+        if (m.state?.status === 'completed') {
+            if (isNextModuleStartedOrCompleted) {
+                status = 'completed'; // Validé visuellement
+            } else {
+                status = 'active'; // Reste "Active" (Ambre) tant qu'on a pas attaqué la suite
+            }
+        } 
+        else if (!m.isLocked && m.isAvailableNow) {
+            // FIX MANUEL TEMPORAIRE POUR SEMAINE 1
+            // Si c'est la semaine 1 et que la semaine 2 est commencée/finie, on force le vert
+            // même si la DB dit "available" (cas où le trigger de completion a raté)
+            if (m.id === 'week_1' && isNextModuleStartedOrCompleted) {
+                status = 'completed';
+            } else {
+                status = 'active';
+            }
+        }
+        
+        let subtitle = "Fondations";
+        const n = parseInt(weekNum);
+        if (n <= 2) subtitle = "Déconstruction";
+        else if (n <= 5) subtitle = "Fondations Intérieures";
+        else if (n <= 6) subtitle = "Projection Extérieure";
+        else if (n <= 9) subtitle = "Expansion";
+        else subtitle = "Final";
+
+        return {
+            id: weekNum,
+            title: cleanTitle,
+            subtitle,
+            status
+        };
+    });
+
   const isArchitectMode = mode === 'architecte';
   const displayStrategy = activePlan?.strategy || "Chargement de la stratégie...";
 
   // CHARGEMENT (Auth, Profile, ou Plan)
-  if (authLoading || loading || isPlanLoading) {
+  if (authLoading || loading || isPlanLoading || modulesLoading) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="animate-pulse flex flex-col items-center gap-4">
@@ -1349,7 +1412,7 @@ const Dashboard = () => {
 
                     <div className="h-full overflow-y-auto snap-y snap-mandatory scroll-smooth scrollbar-hide p-4 relative z-0">
                       <div className="space-y-4 py-20">
-                        {ARCHITECT_WEEKS.map(week => (
+                        {architectWeeks.map(week => (
                           <WeekCard key={week.id} week={week} />
                         ))}
                       </div>

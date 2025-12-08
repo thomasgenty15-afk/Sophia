@@ -94,7 +94,7 @@ Décris ton rituel comme une scène de film : on voit ce que tu fais.`,
 
 • ‘La cérémonie d’adieu à mon ancien moi aura lieu le… à…’
 
-• ‘Après ça, je me rappelle que…’`,
+• ‘Après ça, je me rappelle que…`,
         advice: `Une transformation devient réelle quand elle a une date, un geste, un avant et un après.
 
 Là, tu ne penses plus à changer : tu changes.`
@@ -118,7 +118,7 @@ Là, tu ne penses plus à changer : tu changes.`
 
 Liste tout ce que tu décides de laisser mourir dans cette version :
 
-‘Là, ça suffit. Ça ne peut plus faire partie de ma vie 2.0.’`,
+‘Là, ça suffit. Ça ne peut plus faire partie de ma vie 2.0.`,
         advice: `Tu n’es pas en train de te punir.
 
 Tu fais l’inventaire lucide de ce que tu refuses de revivre.`
@@ -238,7 +238,7 @@ Exemples : réserver un billet, lancer une offre, quitter/accepter un job, dire 
 
 Note toutes les actions possibles qui, si tu les faisais, feraient dire :
 
-‘Ok, là, il/elle a vraiment changé.’`,
+‘Ok, là, il/elle a vraiment changé.`,
         advice: `Tu identifies les gestes qui créent un avant/après,
 
 pas les petites optimisations.`
@@ -267,7 +267,7 @@ ce serait laquelle ?
 
 Écris :
 
-• ‘Ma première action de nouvelle vie, c’est : _______.’`,
+• ‘Ma première action de nouvelle vie, c’est : _______.`,
         advice: `Une vraie action de bascule = un mélange de trouille et d’enthousiasme.`
       },
       {
@@ -334,7 +334,7 @@ tu cherches à bloquer le retour vers l’ancien toi.`
 
 • ‘Mon Jour 1 commence le… à… avec cette action : ______.’
 
-• ‘La suite logique sera : ______, ______, ______.’`,
+• ‘La suite logique sera : ______, ______, ______.`,
         advice: `Une nouvelle vie ne commence pas quand tout est prêt,
 
 mais quand tu fais le geste
