@@ -103,25 +103,42 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
         const moduleInfo = moduleData[currentId];
         
         // 1. VÉRIFICATION DU DÉLAI (Time Lock) - PRIORITAIRE
-        // On regarde si une date de déblocage est définie (via le trigger user_week_states)
+        // On vérifie le available_at dans user_module_state_entries pour CHAQUE carte
         if (moduleInfo?.availableAt) {
             const unlockDate = new Date(moduleInfo.availableAt);
             const now = new Date();
             if (now < unlockDate) return 'locked'; // Cadenas si date future
+        } else if (lvl > 1) {
+            // Si pas de date définie et niveau > 1, on verrouille par sécurité
+            // Cela force l'existence d'une entrée (ou trigger) pour débloquer
+            return 'locked';
         }
 
         // 2. Si le module a du contenu -> Completed
-        // Note: on vérifie si 'content' (la réponse) existe
-        if (moduleInfo?.content) return 'completed';
+        // On vérifie que le contenu n'est pas vide (objet vide ou chaîne vide)
+        const hasContent = (() => {
+            if (!moduleInfo?.content) return false;
+            // Si c'est un objet { content: "..." }
+            if (typeof moduleInfo.content === 'object' && 'content' in moduleInfo.content) {
+                return (moduleInfo.content.content as string)?.trim().length > 0;
+            }
+            // Si c'est une string directe (legacy ou autre format)
+            if (typeof moduleInfo.content === 'string') {
+                return moduleInfo.content.trim().length > 0;
+            }
+            return false;
+        })();
 
-        // 3. Si c'est le Niveau 1, c'est toujours actif (point d'entrée)
+        if (hasContent) return 'completed';
+
+        // 3. Si c'est le Niveau 1, et que le Time Lock est passé (ou absent), c'est actif
         if (lvl === 1) return 'active';
 
         // 4. Si le niveau précédent n'est pas fini -> Locked
         const prevInfo = moduleData[prevId];
         if (!prevInfo?.content) return 'locked';
 
-        // Si tout est bon (Précédent fini + Date passée ou pas de date) -> Active
+        // Si tout est bon (Précédent fini + Date passée) -> Active
         return 'active';
     };
     
@@ -350,7 +367,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id1]?.version || "v1.0",
       lastUpdate: moduleData[id1]?.updated_at ? new Date(moduleData[id1].updated_at).toLocaleDateString() : "-",
       status: getStatus(1),
-      content: (typeof moduleData[id1]?.content === 'object' ? moduleData[id1]?.content?.content : moduleData[id1]?.content) || "",
+      content: moduleData[id1]?.content || "",
       history: [], // Todo: fetch history
       originalQuestion: lvl1Question,
       originalHelper: lvl1Helper,
@@ -370,7 +387,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id2]?.version || "v0.0",
       lastUpdate: moduleData[id2]?.updated_at ? new Date(moduleData[id2].updated_at).toLocaleDateString() : "-",
       status: getStatus(2),
-      content: (typeof moduleData[id2]?.content === 'object' ? moduleData[id2]?.content?.content : moduleData[id2]?.content) || "",
+      content: moduleData[id2]?.content || "",
       history: [],
       originalQuestion: lvl2Question,
       originalHelper: lvl2Helper,
@@ -390,7 +407,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id3]?.version || "v0.0",
       lastUpdate: moduleData[id3]?.updated_at ? new Date(moduleData[id3].updated_at).toLocaleDateString() : "-",
       status: getStatus(3),
-      content: (typeof moduleData[id3]?.content === 'object' ? moduleData[id3]?.content?.content : moduleData[id3]?.content) || "",
+      content: moduleData[id3]?.content || "",
       history: [],
       originalQuestion: lvl3Question,
       originalHelper: lvl3Helper,
@@ -410,7 +427,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id4]?.version || "v0.0",
       lastUpdate: moduleData[id4]?.updated_at ? new Date(moduleData[id4].updated_at).toLocaleDateString() : "-",
       status: getStatus(4),
-      content: (typeof moduleData[id4]?.content === 'object' ? moduleData[id4]?.content?.content : moduleData[id4]?.content) || "",
+      content: moduleData[id4]?.content || "",
       history: [],
       originalQuestion: lvl4Question,
       originalHelper: lvl4Helper,
@@ -430,7 +447,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id5]?.version || "v0.0",
       lastUpdate: moduleData[id5]?.updated_at ? new Date(moduleData[id5].updated_at).toLocaleDateString() : "-",
       status: getStatus(5),
-      content: (typeof moduleData[id5]?.content === 'object' ? moduleData[id5]?.content?.content : moduleData[id5]?.content) || "",
+      content: moduleData[id5]?.content || "",
       history: [],
       originalQuestion: lvl5Question,
       originalHelper: lvl5Helper,
@@ -1189,10 +1206,27 @@ const IdentityEvolution = () => {
           const map: Record<string, any> = {};
           
           // Merge Entries (Content)
+          // On s'assure de récupérer le contenu peu importe son format
           entriesData?.forEach(entry => {
+              // Extraction du contenu : soit entry.content est une string (legacy), soit un objet { content: "..." }
+              let actualContent = "";
+              
+              // DEBUG: Log pour voir ce qu'on reçoit vraiment
+              // console.log(`[DEBUG] Entry ${entry.module_id} content type:`, typeof entry.content, entry.content);
+
+              if (typeof entry.content === 'string') {
+                  actualContent = entry.content;
+              } else if (entry.content && typeof entry.content === 'object') {
+                  // On gère le cas où c'est { content: "..." } OU { answer: "..." } OU juste un objet vide
+                  // Le cast 'as any' permet d'accéder aux propriétés sans que TS râle si le type JSONB est générique
+                  const c = entry.content as any;
+                  actualContent = c.content || c.answer || "";
+              }
+
               map[entry.module_id] = { 
                   ...map[entry.module_id], 
                   ...entry,
+                  content: actualContent, // On stocke la string directement pour l'UI
                   // Map available_at (snake_case from DB) to availableAt (camelCase for getStatus)
                   availableAt: entry.available_at 
               };
@@ -1230,23 +1264,30 @@ const IdentityEvolution = () => {
         // Upsert logic similar to IdentityArchitect
         const { data: existing } = await supabase
             .from('user_module_state_entries')
-            .select('id')
+            .select('id, completed_at')
             .eq('user_id', user.id)
             .eq('module_id', id)
             .maybeSingle();
             
         const payload = { content }; // or { answer: content } depending on consistency
+        const isCompleted = content.trim().length > 0;
+        const now = new Date().toISOString();
+        
+        // On met à jour le statut et completed_at pour refléter la réalité
+        const updateData = {
+            content: payload,
+            updated_at: now,
+            status: isCompleted ? 'completed' : 'available',
+            completed_at: isCompleted ? (existing?.completed_at || now) : null
+        };
         
         if (existing) {
-            await supabase.from('user_module_state_entries').update({
-                content: payload,
-                updated_at: new Date().toISOString()
-            }).eq('id', existing.id);
+            await supabase.from('user_module_state_entries').update(updateData).eq('id', existing.id);
         } else {
             await supabase.from('user_module_state_entries').insert({
                 user_id: user.id,
                 module_id: id,
-                content: payload
+                ...updateData
             });
         }
         
@@ -1255,8 +1296,8 @@ const IdentityEvolution = () => {
             ...prev,
             [id]: {
                 ...prev[id],
-                content: payload,
-                updated_at: new Date().toISOString()
+                ...updateData,
+                content: content // Force string content for local state to avoid [object Object]
             }
         }));
         

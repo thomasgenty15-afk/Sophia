@@ -1435,12 +1435,6 @@ const Dashboard = () => {
                     {/* LOGIQUE D'ACCÈS DYNAMIQUE (Basée sur la présence des modules dans user_week_states) */}
                     {(() => {
                         // On vérifie si les modules d'accès existent dans l'état chargé
-                        // La Forge est débloquée si 'forge_level_2' existe (ou forge_week_1 selon votre logique)
-                        // La Table Ronde est débloquée si 'round_table_1' existe
-                        
-                        // Note: modules est un objet { [id]: Module } venant de useModules()
-                        // useModules renvoie TOUJOURS un objet (basé sur le registry), même si pas en base.
-                        // Si pas en base, module.state est undefined.
                         const forgeModule = modules['forge_access'];
                         const roundTableModule = modules['round_table_1'];
                         
@@ -1453,6 +1447,20 @@ const Dashboard = () => {
                             
                         const isRoundTableUnlocked = roundTableModule?.state && 
                             (!roundTableModule.state.available_at || new Date(roundTableModule.state.available_at) <= now);
+                            
+                        // Helper pour le texte de décompte (si state existe mais date future)
+                        const getUnlockText = (mod: any) => {
+                             if (!mod?.state) return "Débloqué après Semaine 12";
+                             if (mod.state.available_at) {
+                                 const unlockDate = new Date(mod.state.available_at);
+                                 if (unlockDate > now) {
+                                     const diffTime = Math.abs(unlockDate.getTime() - now.getTime());
+                                     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)); 
+                                     return `Disponible dans ${diffDays} jour${diffDays > 1 ? 's' : ''}`;
+                                 }
+                             }
+                             return "Débloqué après Semaine 12";
+                        };
 
                         return (
                             <div className="grid md:grid-cols-2 gap-6">
@@ -1475,7 +1483,7 @@ const Dashboard = () => {
                                 ) : (
                                     <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
                                       <Lock className="w-3 h-3" />
-                                      Débloqué après Semaine 12
+                                      {getUnlockText(roundTableModule)}
                                     </div>
                                 )}
                               </div>
@@ -1499,7 +1507,7 @@ const Dashboard = () => {
                                 ) : (
                                     <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
                                       <Lock className="w-3 h-3" />
-                                      Débloqué après Semaine 12
+                                      {getUnlockText(forgeModule)}
                                     </div>
                                 )}
                               </div>

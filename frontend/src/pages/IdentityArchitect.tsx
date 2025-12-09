@@ -53,7 +53,15 @@ const IdentityArchitect = () => {
 
         try {
             // 1. On récupère les IDs des sous-questions de la semaine
-            const subModuleIds = currentWeek.subQuestions.map(q => q.id);
+            const subModuleIds = currentWeek.subQuestions.map(q => {
+                // Conversion w1_q1 -> a1_c1_m1 pour la requête
+                if (q.id.startsWith('w') && q.id.includes('_q')) {
+                    const w = q.id.split('_')[0].substring(1);
+                    const qIdx = q.id.split('_')[1].substring(1);
+                    return `a${w}_c${qIdx}_m1`;
+                }
+                return q.id;
+            });
             
             // 2. On fetch les entrées correspondant à ces IDs
             const { data, error } = await supabase
@@ -69,11 +77,16 @@ const IdentityArchitect = () => {
 
             // 3. On reconstruit l'objet answers
             data?.forEach(entry => {
+                // On garde l'ID DB tel quel car weeksContent utilise maintenant les IDs aX_cY_m1
+                const uiId = entry.module_id;
+
                 // Le contenu est stocké sous forme { answer: "..." } ou directement la string ?
                 // On va standardiser sur { answer: "..." } pour être propre, mais gérons le legacy string au cas où.
                 const val = entry.content?.answer || entry.content; // Compatibilité
                 if (typeof val === 'string') {
-                    newAnswers[entry.module_id] = val;
+                    newAnswers[uiId] = val;
+                } else if (val && typeof val === 'object' && val.content) {
+                     newAnswers[uiId] = val.content;
                 }
                 
                 if (entry.updated_at) {
@@ -173,38 +186,54 @@ const IdentityArchitect = () => {
         }
 
         const updates = changedEntries.map(async ([questionId, answerText]) => {
-            // On vérifie si l'entrée existe déjà pour cet ID spécifique (ex: 'w1_q1')
-            // Note: C'est pas super optimal de faire N select + N upsert, mais pour 3-4 questions ça passe large.
-            // Optimisation future: Upsert global si la DB a une contrainte unique. 
-            // Pour l'instant on fait simple et robuste.
+            // CORRECTION: Assurer que l'ID est au format Forge aX_cY_m1
+            // Si l'ID venant du front est déjà bon (w1_q1 -> a1_c1_m1), tant mieux.
+            // Sinon on doit le mapper si possible, ou alors le trigger SQL ne marchera pas.
+            // Pour l'instant, IdentityArchitect utilise les IDs définis dans weeksContent (ex: 'w1_q1').
             
+            // On tente une conversion simple si l'ID ne commence pas par 'a'
+            let finalModuleId = questionId;
+            if (questionId.startsWith('w') && questionId.includes('_q')) {
+                // w1_q1 => a1_c1_m1 (Niveau 1 par défaut pour l'Architecte)
+                const w = questionId.split('_')[0].substring(1); // 1
+                const q = questionId.split('_')[1].substring(1); // 1
+                finalModuleId = `a${w}_c${q}_m1`;
+            }
+
             const { data: existing } = await supabase
                 .from('user_module_state_entries')
-                .select('id')
+                .select('id, completed_at')
                 .eq('user_id', user.id)
-                .eq('module_id', questionId) // ID spécifique (ex: w1_q1)
+                .eq('module_id', finalModuleId)
                 .maybeSingle();
             
             const payload = {
                 answer: answerText,
-                // On peut ajouter d'autres métadonnées ici si besoin (ex: date de complétion, etc.)
+            };
+            
+            // Logique de complétion
+            const isCompleted = answerText.trim().length > 0;
+            const now = new Date().toISOString();
+            
+            const updateData = {
+                content: payload,
+                updated_at: now,
+                status: isCompleted ? 'completed' : 'available',
+                completed_at: isCompleted ? (existing?.completed_at || now) : null
             };
 
             if (existing) {
                 return supabase
                     .from('user_module_state_entries')
-                    .update({ 
-                        content: payload,
-                        updated_at: new Date().toISOString()
-                    })
+                    .update(updateData)
                     .eq('id', existing.id);
             } else {
                 return supabase
                     .from('user_module_state_entries')
                     .insert({
                         user_id: user.id,
-                        module_id: questionId,
-                        content: payload
+                        module_id: finalModuleId,
+                        ...updateData
                     });
             }
         });
