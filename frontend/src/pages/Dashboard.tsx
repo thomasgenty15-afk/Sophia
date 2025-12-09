@@ -1432,37 +1432,80 @@ const Dashboard = () => {
                       <h2 className="text-xs sm:text-sm md:text-lg font-bold text-emerald-400 uppercase tracking-widest text-center">Phase 2 : Amélioration du Temple</h2>
                     </div>
 
-                    <div className="grid md:grid-cols-2 gap-6">
-                      <div
-                        onClick={() => navigate('/architecte/alignment')}
-                        className="bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform group"
-                      >
-                        <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                          <Target className="w-12 h-12 md:w-24 md:h-24" />
-                        </div>
-                        <h3 className="text-white font-bold text-lg md:text-xl mb-2">La Table Ronde</h3>
-                        <p className="text-emerald-400 text-xs md:text-sm mb-6">Rituel du Dimanche • 15 min</p>
-                        <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
-                          <Lock className="w-3 h-3" />
-                          Débloqué post-fondations (Test: Cliquable)
-                        </div>
-                      </div>
+                    {/* LOGIQUE D'ACCÈS DYNAMIQUE (Basée sur la présence des modules dans user_week_states) */}
+                    {(() => {
+                        // On vérifie si les modules d'accès existent dans l'état chargé
+                        // La Forge est débloquée si 'forge_level_2' existe (ou forge_week_1 selon votre logique)
+                        // La Table Ronde est débloquée si 'round_table_1' existe
+                        
+                        // Note: modules est un objet { [id]: Module } venant de useModules()
+                        // useModules renvoie TOUJOURS un objet (basé sur le registry), même si pas en base.
+                        // Si pas en base, module.state est undefined.
+                        const forgeModule = modules['forge_access'];
+                        const roundTableModule = modules['round_table_1'];
+                        
+                        // Vérification de la date (Time Lock)
+                        const now = new Date();
+                        
+                        // CORRECTION : On exige que .state existe (donc présent en base) pour être débloqué
+                        const isForgeUnlocked = forgeModule?.state && 
+                            (!forgeModule.state.available_at || new Date(forgeModule.state.available_at) <= now);
+                            
+                        const isRoundTableUnlocked = roundTableModule?.state && 
+                            (!roundTableModule.state.available_at || new Date(roundTableModule.state.available_at) <= now);
 
-                      <div
-                        onClick={() => navigate('/architecte/evolution')}
-                        className="bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden cursor-pointer hover:scale-[1.02] transition-transform group"
-                      >
-                        <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                          <Layout className="w-12 h-12 md:w-24 md:h-24" />
-                        </div>
-                        <h3 className="text-white font-bold text-lg md:text-xl mb-2">La Forge</h3>
-                        <p className="text-emerald-400 text-xs md:text-sm mb-6">Patch Notes • v2.1, v2.2...</p>
-                        <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
-                          <Lock className="w-3 h-3" />
-                          Débloqué post-fondations (Test: Cliquable)
-                        </div>
-                      </div>
-                    </div>
+                        return (
+                            <div className="grid md:grid-cols-2 gap-6">
+                              {/* TABLE RONDE */}
+                              <div
+                                onClick={() => isRoundTableUnlocked && navigate('/architecte/alignment')}
+                                className={`bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden transition-transform group ${isRoundTableUnlocked ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-not-allowed opacity-70'}`}
+                              >
+                                <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                  <Target className="w-12 h-12 md:w-24 md:h-24" />
+                                </div>
+                                <h3 className="text-white font-bold text-lg md:text-xl mb-2">La Table Ronde</h3>
+                                <p className="text-emerald-400 text-xs md:text-sm mb-6">Rituel du Dimanche • 15 min</p>
+                                
+                                {isRoundTableUnlocked ? (
+                                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-950 bg-emerald-400 py-2 px-4 rounded-lg w-fit shadow-lg shadow-emerald-900/50">
+                                      <Zap className="w-3 h-3" />
+                                      Accès Ouvert
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
+                                      <Lock className="w-3 h-3" />
+                                      Débloqué après Semaine 12
+                                    </div>
+                                )}
+                              </div>
+
+                              {/* FORGE */}
+                              <div
+                                onClick={() => isForgeUnlocked && navigate('/architecte/evolution')}
+                                className={`bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden transition-transform group ${isForgeUnlocked ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-not-allowed opacity-70'}`}
+                              >
+                                <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                                  <Layout className="w-12 h-12 md:w-24 md:h-24" />
+                                </div>
+                                <h3 className="text-white font-bold text-lg md:text-xl mb-2">La Forge</h3>
+                                <p className="text-emerald-400 text-xs md:text-sm mb-6">Patch Notes • v2.1, v2.2...</p>
+                                
+                                {isForgeUnlocked ? (
+                                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-950 bg-amber-400 py-2 px-4 rounded-lg w-fit shadow-lg shadow-amber-900/50">
+                                      <Hammer className="w-3 h-3" />
+                                      Accès Ouvert
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
+                                      <Lock className="w-3 h-3" />
+                                      Débloqué après Semaine 12
+                                    </div>
+                                )}
+                              </div>
+                            </div>
+                        );
+                    })()}
                   </div>
                 </>
               ) : (

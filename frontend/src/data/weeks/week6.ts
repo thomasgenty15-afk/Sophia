@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week6Paths: Record<string, WeekPath> = {
-  "w6_q1": {
-    questionId: "w6_q1",
+  "a6_c1_m1": {
+    questionId: "a6_c1_m1",
     levels: [
       {
         levelId: 1,
@@ -83,8 +83,8 @@ Mais tu peux doser : qui a accès à ton temps, à ton énergie, à ton intimit�
       }
     ]
   },
-  "w6_q2": {
-    questionId: "w6_q2",
+  "a6_c2_m1": {
+    questionId: "a6_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -167,8 +167,8 @@ Avec le temps, tu deviens un maillon de la même lignée : celui qui incarne ce 
       }
     ]
   },
-  "w6_q3": {
-    questionId: "w6_q3",
+  "a6_c3_m1": {
+    questionId: "a6_c3_m1",
     levels: [
       {
         levelId: 1,

@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week9Paths: Record<string, WeekPath> = {
-  "w9_q1": {
-    questionId: "w9_q1",
+  "a9_c1_m1": {
+    questionId: "a9_c1_m1",
     levels: [
       {
         levelId: 1,
@@ -108,8 +108,8 @@ qui ne mesure sa vie qu’avec l’argent, les likes ou la validation des autres
       }
     ]
   },
-  "w9_q2": {
-    questionId: "w9_q2",
+  "a9_c2_m1": {
+    questionId: "a9_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -233,8 +233,8 @@ Les nombres doivent être tes serviteurs, pas tes dieux.`
       }
     ]
   },
-  "w9_q3": {
-    questionId: "w9_q3",
+  "a9_c3_m1": {
+    questionId: "a9_c3_m1",
     levels: [
       {
         levelId: 1,

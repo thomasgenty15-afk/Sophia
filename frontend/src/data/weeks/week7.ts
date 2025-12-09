@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week7Paths: Record<string, WeekPath> = {
-  "w7_q1": {
-    questionId: "w7_q1",
+  "a7_c1_m1": {
+    questionId: "a7_c1_m1",
     levels: [
       {
         levelId: 1,
@@ -102,8 +102,8 @@ Tu dis : “Voilà ce que je veux laisser. Et je commence maintenant.`
       }
     ]
   },
-  "w7_q2": {
-    questionId: "w7_q2",
+  "a7_c2_m1": {
+    questionId: "a7_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -213,8 +213,8 @@ C’est cette signature qui donne du poids à ton œuvre.`
       }
     ]
   },
-  "w7_q3": {
-    questionId: "w7_q3",
+  "a7_c3_m1": {
+    questionId: "a7_c3_m1",
     levels: [
       {
         levelId: 1,

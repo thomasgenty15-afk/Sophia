@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week8Paths: Record<string, WeekPath> = {
-  "w8_q2": {
-    questionId: "w8_q2",
+  "a8_c2_m1": {
+    questionId: "a8_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -107,8 +107,8 @@ C’est ça, ta vraie aventure.`
       }
     ]
   },
-  "w8_q3": {
-    questionId: "w8_q3",
+  "a8_c3_m1": {
+    questionId: "a8_c3_m1",
     levels: [
       {
         levelId: 1,

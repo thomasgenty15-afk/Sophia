@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week10Paths: Record<string, WeekPath> = {
-  "w10_q1": {
-    questionId: "w10_q1",
+  "a10_c1_m1": {
+    questionId: "a10_c1_m1",
     levels: [
       {
         levelId: 1,
@@ -101,8 +101,8 @@ Si tu le choisis bien, tu peux aller loin sans te perdre.`
       }
     ]
   },
-  "w10_q2": {
-    questionId: "w10_q2",
+  "a10_c2_m1": {
+    questionId: "a10_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -194,8 +194,8 @@ même pour une réussite éclatante.`
       }
     ]
   },
-  "w10_q3": {
-    questionId: "w10_q3",
+  "a10_c3_m1": {
+    questionId: "a10_c3_m1",
     levels: [
       {
         levelId: 1,

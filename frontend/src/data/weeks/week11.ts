@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week11Paths: Record<string, WeekPath> = {
-  "w11_q1": {
-    questionId: "w11_q1",
+  "a11_c1_m1": {
+    questionId: "a11_c1_m1",
     levels: [
       {
         levelId: 1,
@@ -80,8 +80,8 @@ C’est vivre tellement aligné que les autres se redressent rien qu’en te reg
       }
     ]
   },
-  "w11_q2": {
-    questionId: "w11_q2",
+  "a11_c2_m1": {
+    questionId: "a11_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -163,8 +163,8 @@ C’est une phrase que tu assumes maintenant, et que tu incarnes chaque jour.`
       }
     ]
   },
-  "w11_q3": {
-    questionId: "w11_q3",
+  "a11_c3_m1": {
+    questionId: "a11_c3_m1",
     levels: [
       {
         levelId: 1,

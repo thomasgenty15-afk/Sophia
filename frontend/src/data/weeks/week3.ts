@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week3Paths: Record<string, WeekPath> = {
-  "w3_q1": {
-    questionId: "w3_q1",
+  "a3_c1_m1": {
+    questionId: "a3_c1_m1",
     levels: [
       {
         levelId: 1,
@@ -79,8 +79,8 @@ Chaque micro-rituel est un signal : “Voici la nouvelle météo par défaut.`
       }
     ]
   },
-  "w3_q2": {
-    questionId: "w3_q2",
+  "a3_c2_m1": {
+    questionId: "a3_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -152,8 +152,8 @@ Tu deviens souverain quand tu ne cherches plus à éviter toutes les tempêtes, 
       }
     ]
   },
-  "w3_q3": {
-    questionId: "w3_q3",
+  "a3_c3_m1": {
+    questionId: "a3_c3_m1",
     levels: [
       {
         levelId: 1,

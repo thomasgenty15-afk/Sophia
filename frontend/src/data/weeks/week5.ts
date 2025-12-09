@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week5Paths: Record<string, WeekPath> = {
-  "w5_q1": {
-    questionId: "w5_q1",
+  "a5_c1_m1": {
+    questionId: "a5_c1_m1",
     levels: [
       {
         levelId: 1,
@@ -98,8 +98,8 @@ Ce serment est le début de ta boussole.`
       }
     ]
   },
-  "w5_q2": {
-    questionId: "w5_q2",
+  "a5_c2_m1": {
+    questionId: "a5_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -200,8 +200,8 @@ qui a du talent mais qui n’ose pas le reconnaître ou en faire quelque chose ?
       }
     ]
   },
-  "w5_q3": {
-    questionId: "w5_q3",
+  "a5_c3_m1": {
+    questionId: "a5_c3_m1",
     levels: [
       {
         levelId: 1,

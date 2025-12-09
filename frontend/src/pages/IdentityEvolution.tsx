@@ -102,24 +102,24 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
         const prevId = `a${weekId}_c${pathIndex}_m${lvl - 1}`;
         const moduleInfo = moduleData[currentId];
         
-        // 1. Si le module a du contenu -> Completed
-        // Note: on vérifie si 'content' (la réponse) existe
-        if (moduleInfo?.content) return 'completed';
-
-        // 2. Si c'est le Niveau 1, c'est toujours actif (point d'entrée)
-        if (lvl === 1) return 'active';
-
-        // 3. Si le niveau précédent n'est pas fini -> Locked
-        const prevInfo = moduleData[prevId];
-        if (!prevInfo?.content) return 'locked';
-
-        // 4. VÉRIFICATION DU DÉLAI (Time Lock)
+        // 1. VÉRIFICATION DU DÉLAI (Time Lock) - PRIORITAIRE
         // On regarde si une date de déblocage est définie (via le trigger user_week_states)
         if (moduleInfo?.availableAt) {
             const unlockDate = new Date(moduleInfo.availableAt);
             const now = new Date();
             if (now < unlockDate) return 'locked'; // Cadenas si date future
         }
+
+        // 2. Si le module a du contenu -> Completed
+        // Note: on vérifie si 'content' (la réponse) existe
+        if (moduleInfo?.content) return 'completed';
+
+        // 3. Si c'est le Niveau 1, c'est toujours actif (point d'entrée)
+        if (lvl === 1) return 'active';
+
+        // 4. Si le niveau précédent n'est pas fini -> Locked
+        const prevInfo = moduleData[prevId];
+        if (!prevInfo?.content) return 'locked';
 
         // Si tout est bon (Précédent fini + Date passée ou pas de date) -> Active
         return 'active';
@@ -350,7 +350,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id1]?.version || "v1.0",
       lastUpdate: moduleData[id1]?.updated_at ? new Date(moduleData[id1].updated_at).toLocaleDateString() : "-",
       status: getStatus(1),
-      content: moduleData[id1]?.content || "",
+      content: (typeof moduleData[id1]?.content === 'object' ? moduleData[id1]?.content?.content : moduleData[id1]?.content) || "",
       history: [], // Todo: fetch history
       originalQuestion: lvl1Question,
       originalHelper: lvl1Helper,
@@ -370,7 +370,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id2]?.version || "v0.0",
       lastUpdate: moduleData[id2]?.updated_at ? new Date(moduleData[id2].updated_at).toLocaleDateString() : "-",
       status: getStatus(2),
-      content: moduleData[id2]?.content || "",
+      content: (typeof moduleData[id2]?.content === 'object' ? moduleData[id2]?.content?.content : moduleData[id2]?.content) || "",
       history: [],
       originalQuestion: lvl2Question,
       originalHelper: lvl2Helper,
@@ -390,7 +390,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id3]?.version || "v0.0",
       lastUpdate: moduleData[id3]?.updated_at ? new Date(moduleData[id3].updated_at).toLocaleDateString() : "-",
       status: getStatus(3),
-      content: moduleData[id3]?.content || "",
+      content: (typeof moduleData[id3]?.content === 'object' ? moduleData[id3]?.content?.content : moduleData[id3]?.content) || "",
       history: [],
       originalQuestion: lvl3Question,
       originalHelper: lvl3Helper,
@@ -410,7 +410,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id4]?.version || "v0.0",
       lastUpdate: moduleData[id4]?.updated_at ? new Date(moduleData[id4].updated_at).toLocaleDateString() : "-",
       status: getStatus(4),
-      content: moduleData[id4]?.content || "",
+      content: (typeof moduleData[id4]?.content === 'object' ? moduleData[id4]?.content?.content : moduleData[id4]?.content) || "",
       history: [],
       originalQuestion: lvl4Question,
       originalHelper: lvl4Helper,
@@ -430,7 +430,7 @@ const generateBranchData = (weekId: number, moduleData: Record<string, any>) => 
       version: moduleData[id5]?.version || "v0.0",
       lastUpdate: moduleData[id5]?.updated_at ? new Date(moduleData[id5].updated_at).toLocaleDateString() : "-",
       status: getStatus(5),
-      content: moduleData[id5]?.content || "",
+      content: (typeof moduleData[id5]?.content === 'object' ? moduleData[id5]?.content?.content : moduleData[id5]?.content) || "",
       history: [],
       originalQuestion: lvl5Question,
       originalHelper: lvl5Helper,
@@ -1126,10 +1126,46 @@ const IdentityEvolution = () => {
   // State for module data
   const [moduleData, setModuleData] = useState<Record<string, any>>({});
   const { user } = useAuth();
+  const [hasAccess, setHasAccess] = useState<boolean | null>(null); // null = loading
+
+  // GUARD : Vérification des accès à la Forge
+  useEffect(() => {
+      if (!user) return;
+      
+      const checkAccess = async () => {
+          // On vérifie si le module 'forge_access' (clé d'entrée Forge) est présent dans user_week_states
+          const { data, error } = await supabase
+            .from('user_week_states')
+            .select('status, available_at')
+            .eq('user_id', user.id)
+            .eq('module_id', 'forge_access') 
+            .maybeSingle();
+            
+          if (!data) {
+              // Pas d'accès -> Redirection
+              setHasAccess(false);
+              // Petit délai pour laisser l'UI respirer ou afficher un toast
+              setTimeout(() => {
+                  navigate('/dashboard', { state: { mode: 'architecte' } });
+                  // alert("La Forge n'est pas encore ouverte."); // Optionnel, un peu agressif
+              }, 100);
+          } else {
+              // Vérification de la date
+              if (data.available_at && new Date(data.available_at) > new Date()) {
+                   setHasAccess(false);
+                   setTimeout(() => navigate('/dashboard', { state: { mode: 'architecte' } }), 100);
+              } else {
+                   setHasAccess(true);
+              }
+          }
+      };
+      
+      checkAccess();
+  }, [user, navigate]);
 
   // Fetch data when branch changes
   useEffect(() => {
-      if (!user || selectedBranch === null) return;
+      if (!user || selectedBranch === null || !hasAccess) return;
       
       const fetchModules = async () => {
           // 1. Fetch Entries (Content)
@@ -1154,7 +1190,12 @@ const IdentityEvolution = () => {
           
           // Merge Entries (Content)
           entriesData?.forEach(entry => {
-              map[entry.module_id] = { ...map[entry.module_id], ...entry };
+              map[entry.module_id] = { 
+                  ...map[entry.module_id], 
+                  ...entry,
+                  // Map available_at (snake_case from DB) to availableAt (camelCase for getStatus)
+                  availableAt: entry.available_at 
+              };
           });
 
           // Merge States (Unlock info)

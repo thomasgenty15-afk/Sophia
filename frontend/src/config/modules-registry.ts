@@ -111,7 +111,7 @@ export const MODULES_REGISTRY: Record<string, ModuleDefinition> = {
     // C'est ici que le chemin se sépare !
     nextModuleIds: [
         'round_table_1', // La Table Ronde démarre
-        'forge_level_2'  // La Forge démarre
+        'forge_access'   // Accès Global à la Forge
     ], 
     unlockCondition: 'fixed_delay',
     unlockDelayDays: 7 // 7 jours après la semaine 12 (Comme le reste)
@@ -134,13 +134,13 @@ export const MODULES_REGISTRY: Record<string, ModuleDefinition> = {
   },
 
   // --- PARCOURS FORGE ---
-  'forge_level_2': {
-    id: 'forge_level_2',
-    title: 'Forge Niveau 2',
+  'forge_access': {
+    id: 'forge_access',
+    title: 'Accès Forge',
     type: 'forge',
-    nextModuleIds: ['forge_level_3'],
+    nextModuleIds: [], // Pas de next, c'est un état permanent
     unlockCondition: 'fixed_delay',
-    unlockDelayDays: 5
+    unlockDelayDays: 0
   }
 };
 

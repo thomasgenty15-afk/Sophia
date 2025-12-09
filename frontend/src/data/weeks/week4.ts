@@ -1,8 +1,8 @@
 import type { WeekPath } from './types';
 
 export const week4Paths: Record<string, WeekPath> = {
-  "w4_q1": {
-    questionId: "w4_q1",
+  "a4_c1_m1": {
+    questionId: "a4_c1_m1",
     levels: [
       {
         levelId: 1,
@@ -86,8 +86,8 @@ Ton corps est ta première carte de visite.`
       }
     ]
   },
-  "w4_q2": {
-    questionId: "w4_q2",
+  "a4_c2_m1": {
+    questionId: "a4_c2_m1",
     levels: [
       {
         levelId: 1,
@@ -170,8 +170,8 @@ Tes mots deviennent des commandes, pas des lamentations automatiques.`
       }
     ]
   },
-  "w4_q3": {
-    questionId: "w4_q3",
+  "a4_c3_m1": {
+    questionId: "a4_c3_m1",
     levels: [
       {
         levelId: 1,
@@ -246,4 +246,3 @@ Le jour où tu le choisis consciemment, tu arrêtes juste d’entrer quelque par
     ]
   }
 };
-
