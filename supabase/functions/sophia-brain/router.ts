@@ -6,7 +6,30 @@ import { runInvestigator } from './agents/investigator.ts'
 import { runArchitect } from './agents/architect.ts'
 import { runCompanion } from './agents/companion.ts'
 import { runAssistant } from './agents/assistant.ts'
-import { generateWithGemini } from './lib/gemini.ts'
+import { generateWithGemini, generateEmbedding } from './lib/gemini.ts'
+
+// RAG Helper
+async function retrieveContext(supabase: SupabaseClient, message: string): Promise<string> {
+  try {
+    const embedding = await generateEmbedding(message);
+    const { data: memories } = await supabase.rpc('match_memories', {
+      query_embedding: embedding,
+      match_threshold: 0.65, 
+      match_count: 3,
+      filter_type: 'insight' // Default: Only search ACTIVE insights (not history)
+      // Note: We don't filter by source_type here, we want EVERYTHING (module, daily, plan)
+    });
+
+    if (!memories || memories.length === 0) return "";
+
+    return memories.map((m: any) => 
+      `[Souvenir (${m.source_type} - ${m.source_id || '?'}): ${m.content}]`
+    ).join('\n\n');
+  } catch (err) {
+    console.error("Error retrieving context:", err);
+    return "";
+  }
+}
 
 // Classification intelligente par Gemini
 async function analyzeIntentAndRisk(message: string, currentState: any): Promise<{ targetMode: AgentMode, riskScore: number }> {
@@ -66,6 +89,16 @@ export async function processMessage(
     await updateUserState(supabase, userId, { risk_level: riskScore })
   }
 
+  // 4.5 RAG Retrieval (Forge Memory)
+  // Only for Architect, Companion, Firefighter
+  let context = "";
+  if (['architect', 'companion', 'firefighter'].includes(targetMode)) {
+    context = await retrieveContext(supabase, userMessage);
+    if (context) {
+      console.log(`[RAG] Found ${context.length} chars of context`);
+    }
+  }
+
   // 5. Exécution de l'Agent Choisi
   let responseContent = ""
   let nextMode = targetMode
@@ -77,7 +110,7 @@ export async function processMessage(
       responseContent = await runSentry(userMessage)
       break
     case 'firefighter':
-      const ffResult = await runFirefighter(userMessage, history)
+      const ffResult = await runFirefighter(userMessage, history, context)
       responseContent = ffResult.content
       if (ffResult.crisisResolved) nextMode = 'companion'
       break
@@ -92,7 +125,7 @@ export async function processMessage(
       }
       break
     case 'architect':
-      responseContent = await runArchitect(userMessage, history)
+      responseContent = await runArchitect(userMessage, history, context)
       break
     case 'assistant':
       responseContent = await runAssistant(userMessage)
@@ -100,7 +133,7 @@ export async function processMessage(
       break
     case 'companion':
     default:
-      responseContent = await runCompanion(userMessage, history, state)
+      responseContent = await runCompanion(userMessage, history, state, context)
       break
   }
 

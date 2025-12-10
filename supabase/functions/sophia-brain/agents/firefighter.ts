@@ -1,6 +1,6 @@
 import { generateWithGemini } from '../lib/gemini.ts'
 
-export async function runFirefighter(message: string, history: any[]): Promise<{ content: string, crisisResolved: boolean }> {
+export async function runFirefighter(message: string, history: any[], context: string = ""): Promise<{ content: string, crisisResolved: boolean }> {
   const systemPrompt = `
     Tu es Sophia, en mode "Pompier".
     L'utilisateur est en situation de stress, d'angoisse ou de craving.
@@ -9,6 +9,8 @@ export async function runFirefighter(message: string, history: any[]): Promise<{
     - Calmer l'utilisateur IMMÉDIATEMENT.
     - Utiliser des techniques simples : Respiration (4-7-8), Ancrage (5 sens), Validation émotionnelle.
     - Phrases courtes, apaisantes, directives mais douces.
+
+    ${context ? `INFO CONTEXTE (Déclencheurs connus) :\n${context}\nUtilise ça si pertinent pour comprendre la crise.` : ""}
     
     IMPORTANT - DÉTECTION DE FIN DE CRISE :
     À la fin de ta réponse, tu dois évaluer si la crise semble passée.

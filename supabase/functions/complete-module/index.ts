@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts";
+import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
 
 // --- REGISTRY AMÉLIORÉ ---
 // On définit les cibles avec leurs propres règles de délai
@@ -87,10 +89,108 @@ serve(async (req) => {
 
   const table = getTableForModule(moduleId);
 
-  // 1. Mark completed
+  // --- FORGE & MEMORY LOGIC ---
+  let aiSummary: string | null = null;
+
+  if (table === 'user_module_state_entries') {
+    try {
+      const { data: entry } = await supabaseClient
+        .from('user_module_state_entries')
+        .select('content')
+        .eq('user_id', user.id)
+        .eq('module_id', moduleId)
+        .single();
+      
+      // Extract content string (handle JSON wrapper or direct string)
+      const contentStr = typeof entry?.content === 'string' 
+        ? entry.content 
+        : (entry?.content as any)?.content; 
+
+      if (contentStr && contentStr.length > 10) {
+        // 1. Find Question Context
+        let questionText = "Question du module";
+        let found = false;
+        
+        for (const week of Object.values(WEEKS_CONTENT)) {
+           // Type assertion needed because TS might not know subQuestions exists on all values if type is not explicit
+           const w = week as any; 
+           if (w.subQuestions) {
+             const sq = w.subQuestions.find((s: any) => s.id === moduleId);
+             if (sq) {
+               questionText = sq.question + " : " + sq.placeholder;
+               found = true;
+               break;
+             }
+           }
+        }
+
+        // 2. Generate Summary
+        const prompt = `Voici la réponse de l'utilisateur au module "${questionText}".
+        Fais un résumé dense à la 3ème personne ("Il est stressé par...").
+        Inclus les mots-clés de la question.`;
+
+        aiSummary = await generateWithGemini(prompt, contentStr);
+
+        // 3. Vectorize
+        // "Question : [Texte Question] + Résumé Réponse : [Synthèse IA]"
+        const vectorText = `Question : ${questionText}\nRésumé Réponse : ${aiSummary}`;
+        const embedding = await generateEmbedding(vectorText);
+
+        // 4. Store Memory
+        
+        // A. ARCHIVE OLD MEMORIES
+        // Instead of deleting, we downgrade existing 'forge' memories to 'history'
+        await supabaseClient
+          .from('memories')
+          .update({ 
+            type: 'history',
+            metadata: { 
+              archived_at: new Date().toISOString(),
+              source: 'complete-module-history'
+            }
+          })
+          .eq('user_id', user.id)
+          .eq('source_id', moduleId)
+          .eq('source_type', 'module')
+          .eq('type', 'insight'); // We only archive active insights
+
+        // B. INSERT NEW MEMORY (Active)
+        await supabaseClient
+          .from('memories')
+          .insert({
+            user_id: user.id,
+            source_id: moduleId,
+            source_type: 'module',
+            type: 'insight', // Active truth
+            content: vectorText,
+            embedding: embedding,
+            metadata: { 
+              source: 'complete-module', 
+              version_date: new Date().toISOString() 
+            }
+          });
+          
+        console.log(`Forge Memory created for ${moduleId}`);
+      }
+    } catch (err) {
+      console.error("Error creating Forge Memory:", err);
+      // Continue execution even if memory fails
+    }
+  }
+
+  // 1. Mark completed (and save summary)
+  const updatePayload: any = { 
+    status: 'completed', 
+    completed_at: new Date().toISOString() 
+  };
+  
+  if (aiSummary) {
+    updatePayload.ai_summary = aiSummary;
+  }
+
   const { error: updateError } = await supabaseClient
     .from(table)
-    .update({ status: 'completed', completed_at: new Date().toISOString() })
+    .update(updatePayload)
     .eq('user_id', user.id)
     .eq('module_id', moduleId);
 
@@ -167,3 +267,5 @@ serve(async (req) => {
 
   return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
 });
+
+

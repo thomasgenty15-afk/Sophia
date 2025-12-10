@@ -1290,6 +1290,21 @@ const IdentityEvolution = () => {
                 ...updateData
             });
         }
+
+        // --- FORGE TRIGGER ---
+        // On déclenche la vectorisation si le module est complété
+        if (isCompleted) {
+             const { data: { session } } = await supabase.auth.getSession();
+             // On ne bloque pas l'UI pour ça
+             fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/complete-module`, {
+                 method: 'POST',
+                 headers: {
+                   'Content-Type': 'application/json',
+                   'Authorization': `Bearer ${session?.access_token}`
+                 },
+                 body: JSON.stringify({ moduleId: id })
+             }).catch(err => console.error("Forge Vectorization trigger failed:", err));
+        }
         
         // Refresh local state
         setModuleData(prev => ({
