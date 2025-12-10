@@ -23,6 +23,7 @@ import ProductArchitect from './pages/ProductArchitect';
 import Formules from './pages/Formules';
 import Auth from './pages/Auth'; 
 import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
+import { ChatPage } from './pages/ChatPage'; // Import ChatPage
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
         <div className="min-h-screen bg-white text-black font-sans">
           <Routes>
             <Route path="/" element={<LandingPage />} />
+            <Route path="/chat" element={<ChatPage />} />
             <Route path="/le-plan" element={<ProductPlan />} />
             <Route path="/l-architecte" element={<ProductArchitect />} />
             <Route path="/formules" element={<Formules />} />
