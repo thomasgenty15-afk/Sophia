@@ -1,5 +1,5 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
-import { generateWithGemini } from '../lib/gemini.ts'
+import { generateWithGemini } from '../../_shared/gemini.ts'
 
 interface Question {
   id: string

@@ -1,5 +1,5 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
-import { getUserState, updateUserState, logMessage, AgentMode, getCoreIdentity } from './state-manager.ts'
+import { getUserState, updateUserState, logMessage, AgentMode, getCoreIdentity, getDashboardContext } from './state-manager.ts'
 import { runSentry } from './agents/sentry.ts'
 import { runFirefighter } from './agents/firefighter.ts'
 import { runInvestigator } from './agents/investigator.ts'
@@ -16,9 +16,8 @@ async function retrieveContext(supabase: SupabaseClient, message: string): Promi
     const { data: memories } = await supabase.rpc('match_memories', {
       query_embedding: embedding,
       match_threshold: 0.65, 
-      match_count: 3,
-      filter_type: 'insight' // Default: Only search ACTIVE insights (not history)
-      // Note: We don't filter by source_type here, we want EVERYTHING (module, daily, plan)
+      match_count: 5, // Increased from 3 to allow both insights and history
+      // filter_type: 'insight'  <-- REMOVED to allow 'chat_history' + 'insight'
     });
 
     if (!memories || memories.length === 0) return "";
@@ -44,7 +43,7 @@ async function analyzeIntentAndRisk(message: string, currentState: any): Promise
     2. firefighter (URGENCE ÉMOTIONNELLE) : Panique, angoisse, craving fort, pleurs.
     3. investigator (DATA) : L'utilisateur donne des chiffres (cigarettes, sommeil) ou dit "J'ai fait mon sport".
     4. architect (DEEP WORK & AIDE MODULE) : L'utilisateur parle de ses Valeurs, Vision, Identité, ou demande de l'aide pour un exercice.
-    5. assistant (TECHNIQUE) : Question sur l'app, bug, RGPD, prix, "Comment ça marche ?".
+    5. assistant (TECHNIQUE) : BUGS de l'application, problèmes de compte, erreur technique. ATTENTION : Parler du CONTENU du plan (objectifs, vie) = 'architect' ou 'companion'.
     6. companion (DÉFAUT) : Tout le reste. Discussion, "Salut", "Ça va", partage de journée.
     
     ÉTAT ACTUEL :
@@ -112,13 +111,17 @@ export async function processMessage(
     
     // B. Core Identity (Temple)
     const identityContext = await getCoreIdentity(supabase, userId);
+
+    // C. Dashboard Context (Live Data)
+    const dashboardContext = await getDashboardContext(supabase, userId);
     
     context = ""
+    if (dashboardContext) context += `${dashboardContext}\n\n`; // Dashboard en premier (Priorité Immédiate)
     if (identityContext) context += `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identityContext}\n\n`;
     if (vectorContext) context += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${vectorContext}`;
     
     if (context) {
-      console.log(`[Context] Loaded Identity (${identityContext.length} chars) + Vectors (${vectorContext.length} chars)`);
+      console.log(`[Context] Loaded Dashboard + Identity + Vectors`);
     }
   }
 

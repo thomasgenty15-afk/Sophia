@@ -80,3 +80,68 @@ export async function getCoreIdentity(supabase: SupabaseClient, userId: string):
   return data.map(d => `[IDENTITÉ PROFONDE - ${d.week_id.toUpperCase()}]\n${d.content}`).join('\n\n')
 }
 
+export async function getDashboardContext(supabase: SupabaseClient, userId: string): Promise<string> {
+  let context = "";
+
+  // 1. ACTIVE PLAN
+  const { data: activePlan } = await supabase
+    .from('user_plans')
+    .select('title, deep_why, inputs_why, inputs_context, inputs_blockers, recraft_reason, content')
+    .eq('user_id', userId)
+    .in('status', ['active', 'in_progress', 'pending']) // Accepte tous les statuts "vivants"
+    .order('created_at', { ascending: false }) // Prend le plus récent si plusieurs
+    .limit(1)
+    .maybeSingle();
+
+  if (activePlan) {
+    context += `=== PLAN ACTUEL (Tableau de Bord) ===\n`;
+    context += `Titre: ${activePlan.title || 'Sans titre'}\n`;
+    context += `Pourquoi (Deep Why): ${activePlan.deep_why || activePlan.inputs_why}\n`;
+    
+    if (activePlan.inputs_context) context += `Contexte Initial: ${activePlan.inputs_context}\n`;
+    if (activePlan.inputs_blockers) context += `Blocages identifiés: ${activePlan.inputs_blockers}\n`;
+    if (activePlan.recraft_reason) context += `Pivot récent: ${activePlan.recraft_reason}\n`;
+
+    // Injection intelligente du JSON Content
+    if (activePlan.content) {
+        context += `DÉTAIL COMPLET DU PLAN (Structure JSON) :\n`;
+        // On envoie TOUT le contenu pour que l'IA ait une vision parfaite
+        context += JSON.stringify(activePlan.content, null, 2);
+    }
+    context += `\n`;
+  }
+
+  // 2. ACTIONS DU JOUR
+  const today = new Date().toISOString().split('T')[0];
+  const { data: actions } = await supabase
+    .from('user_actions')
+    .select('text, status, due_date')
+    .eq('user_id', userId)
+    .eq('due_date', today);
+
+  if (actions && actions.length > 0) {
+    context += `=== ACTIONS DU JOUR (${today}) ===\n`;
+    actions.forEach(a => {
+        context += `- [${a.status === 'completed' ? 'X' : ' '}] ${a.text}\n`;
+    });
+    context += `\n`;
+  }
+
+  // 3. VITAL SIGNS (Derniers relevés)
+  // On récupère aussi le nom du vital sign via une jointure si possible, sinon on fera avec l'ID
+  const { data: vitals } = await supabase
+    .from('user_vital_sign_entries')
+    .select('vital_id, value, created_at')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+    .limit(5);
+
+  if (vitals && vitals.length > 0) {
+      context += `=== SIGNES VITAUX RÉCENTS ===\n`;
+      vitals.forEach(v => {
+          context += `- Vital ID ${v.vital_id}: ${v.value}/10\n`;
+      });
+  }
+
+  return context;
+}

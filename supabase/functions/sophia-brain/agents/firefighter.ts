@@ -1,4 +1,4 @@
-import { generateWithGemini } from '../lib/gemini.ts'
+import { generateWithGemini } from '../../_shared/gemini.ts'
 
 export async function runFirefighter(message: string, history: any[], context: string = ""): Promise<{ content: string, crisisResolved: boolean }> {
   const systemPrompt = `
@@ -9,6 +9,8 @@ export async function runFirefighter(message: string, history: any[], context: s
     - Calmer l'utilisateur IMMÉDIATEMENT.
     - Utiliser des techniques simples : Respiration (4-7-8), Ancrage (5 sens), Validation émotionnelle.
     - Phrases courtes, apaisantes, directives mais douces.
+    - RÈGLE DE FORME : Pas de gras (**texte**) ni de Markdown. Texte brut simple.
+    - RÈGLE D'IMMERSION : Ne dis jamais "Je suis le mode Pompier". Tu es Sophia, présente et calme.
 
     ${context ? `INFO CONTEXTE (Déclencheurs connus) :\n${context}\nUtilise ça si pertinent pour comprendre la crise.` : ""}
     

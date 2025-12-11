@@ -1,5 +1,6 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
+import { getUserState, updateUserState } from '../state-manager.ts' // Need access to state
 
 export async function runWatcher(
   supabase: SupabaseClient, 
@@ -8,7 +9,11 @@ export async function runWatcher(
 ) {
   console.log(`[Veilleur] Triggered for user ${userId}`)
 
-  // 1. Fetch messages since last_processed_at
+  // 1. Fetch State (to get current Short Term Context)
+  const state = await getUserState(supabase, userId);
+  const currentContext = state.short_term_context || "Aucun contexte précédent.";
+
+  // 2. Fetch messages since last_processed_at
   const { data: messages, error } = await supabase
     .from('chat_messages')
     .select('role, content, created_at')
@@ -21,61 +26,82 @@ export async function runWatcher(
     return
   }
 
-  // 2. Prepare transcript
-  // Limit to reasonable amount if somehow 100s of messages
+  // 3. Prepare transcript
   const batch = messages.slice(-50) // Safe upper limit
   const transcript = batch.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')
 
-  // 3. Analyze with Gemini
+  // 4. Analyze with Gemini (TRIPLE ACTION: Insights + Archive + Context)
   const systemPrompt = `
     Tu es "Le Veilleur" du système Sophia.
-    Ton rôle est d'analyser ce lot de messages récents pour en extraire des "Pépites" (Insights clés) sur l'utilisateur.
-    
-    Une Pépite c'est :
-    - Une info FACTUELLE (ex: "Il fait du tennis le mardi", "Vit à Paris", "En couple").
-    - Une info ÉMOTIONNELLE ou PSYCHOLOGIQUE récurrente (ex: "Souvent anxieux le soir", "Motivation intrinsèque forte").
-    - Une préférence ou contrainte (ex: "N'aime pas les notifications", "Préfère le tutoiement").
-    - Un objectif ou projet mentionné.
+    Tu analyses le dernier bloc de conversation (15 messages) pour mettre à jour la mémoire du système.
 
-    N'invente rien. Si rien de pertinent, renvoie une liste vide.
-    Sois concis et précis.
-    
+    INPUTS :
+    - Contexte Précédent (Fil Rouge) : "${currentContext}"
+    - Nouveaux Messages : (Voir ci-dessous)
+
+    TES 3 MISSIONS :
+    1. PÉPITES (RAG Précis) : Extrait les faits atomiques NOUVEAUX (ex: "Il aime le jazz", "Il veut changer de job").
+    2. ARCHIVAGE (RAG Narratif) : Rédige un paragraphe dense (3-4 phrases) résumant ce bloc de conversation pour l'histoire.
+    3. FIL ROUGE (Contexte Actif) : Mets à jour le "Contexte Précédent" pour qu'il reflète la situation ACTUELLE. Supprime ce qui est obsolète, garde ce qui est en cours.
+
     SORTIE JSON ATTENDUE :
     {
-      "insights": [
-        "Insight 1...",
-        "Insight 2..."
-      ]
+      "insights": ["Pépite 1", "Pépite 2"],
+      "chat_history_paragraph": "Texte du résumé narratif pour archivage...",
+      "new_short_term_context": "Texte du nouveau fil rouge mis à jour..."
     }
   `
 
   try {
-    const jsonStr = await generateWithGemini(systemPrompt, transcript, 0.2, true)
+    const jsonStr = await generateWithGemini(systemPrompt, transcript, 0.3, true)
     const result = JSON.parse(jsonStr)
     const insights = result.insights || []
+    const archiveText = result.chat_history_paragraph
+    const newContext = result.new_short_term_context
 
-    console.log(`[Veilleur] Extracted ${insights.length} insights`)
+    console.log(`[Veilleur] Analysis done. Insights: ${insights.length}.`)
 
-    // 4. Vectorize and Store
+    // A. Store Insights (Atomic Facts)
     for (const insight of insights) {
       try {
         const embedding = await generateEmbedding(insight)
-        
         await supabase.from('memories').insert({
           user_id: userId,
           content: insight,
           type: 'insight',
           source_type: 'chat',
-          source_id: `batch_${new Date().toISOString()}`,
+          source_id: `insight_${Date.now()}`,
           embedding
         })
-      } catch (embError) {
-        console.error(`[Veilleur] Error embedding insight: "${insight}"`, embError)
-      }
+      } catch (e) { console.error("Error storing insight", e) }
+    }
+
+    // B. Store Narrative Archive (History Paragraph)
+    if (archiveText && archiveText.length > 10) {
+        try {
+            const embedding = await generateEmbedding(archiveText);
+            await supabase.from('memories').insert({
+                user_id: userId,
+                content: archiveText,
+                type: 'chat_history', // New type
+                source_type: 'chat',
+                source_id: `batch_${new Date().toISOString()}`,
+                embedding
+            });
+            console.log(`[Veilleur] Chat History Archived.`);
+        } catch (e) { console.error("Error storing history", e) }
+    }
+
+    // C. Update Short Term Context (Flow)
+    if (newContext) {
+        await updateUserState(supabase, userId, { 
+            short_term_context: newContext 
+            // Note: unprocessed_msg_count is reset by the router, not here
+        })
+        console.log(`[Veilleur] Short Term Context Updated.`);
     }
 
   } catch (err) {
     console.error('[Veilleur] Error processing batch:', err)
   }
 }
-
