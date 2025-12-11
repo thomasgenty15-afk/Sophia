@@ -14,6 +14,8 @@ export interface UserChatState {
   risk_level: number
   investigation_state: any // JSON
   short_term_context: string
+  unprocessed_msg_count: number
+  last_processed_at: string
 }
 
 export async function getUserState(supabase: SupabaseClient, userId: string): Promise<UserChatState> {
@@ -29,7 +31,9 @@ export async function getUserState(supabase: SupabaseClient, userId: string): Pr
       current_mode: 'companion',
       risk_level: 0,
       investigation_state: null,
-      short_term_context: ''
+      short_term_context: '',
+      unprocessed_msg_count: 0,
+      last_processed_at: new Date().toISOString()
     }
     await supabase.from('user_chat_states').insert({ user_id: userId, ...initialState })
     return initialState
@@ -61,5 +65,18 @@ export async function logMessage(
     content,
     agent_used: agentUsed
   })
+}
+
+export async function getCoreIdentity(supabase: SupabaseClient, userId: string): Promise<string> {
+  const { data, error } = await supabase
+    .from('user_core_identity')
+    .select('week_id, content')
+    .eq('user_id', userId)
+    .order('week_id', { ascending: true })
+
+  if (error || !data || data.length === 0) return ""
+
+  // Formatter : "AXE [week_id] : [content]"
+  return data.map(d => `[IDENTITÉ PROFONDE - ${d.week_id.toUpperCase()}]\n${d.content}`).join('\n\n')
 }
 

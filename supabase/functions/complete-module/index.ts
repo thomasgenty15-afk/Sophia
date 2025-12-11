@@ -2,24 +2,20 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts";
 import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
+import { processCoreIdentity } from "../_shared/identity-manager.ts";
 
-// --- REGISTRY AMÉLIORÉ ---
-// On définit les cibles avec leurs propres règles de délai
-
+// --- REGISTRY ---
 type ModuleType = 'week' | 'forge' | 'round_table';
 
 interface TargetModule {
   id: string;
-  delayDays?: number; // Délai spécifique pour ce lien (écrase le défaut)
+  delayDays?: number;
   condition?: 'next_sunday' | 'immediate' | 'fixed_delay';
 }
 
 interface ModuleDefinition {
   id: string;
-  // Au lieu d'une simple liste de strings, on accepte des objets complexes
   nextModules?: (string | TargetModule)[]; 
-  
-  // Valeurs par défaut si pas spécifié dans la target
   defaultUnlockDelayDays?: number;
   defaultUnlockCondition?: 'next_sunday' | 'immediate' | 'fixed_delay';
 }
@@ -29,23 +25,15 @@ const MODULES_REGISTRY: Record<string, ModuleDefinition> = {
   'week_1': { id: 'week_1', nextModules: ['week_2'], defaultUnlockDelayDays: 7 },
   'week_2': { id: 'week_2', nextModules: ['week_3'], defaultUnlockDelayDays: 7 },
   'week_3': { id: 'week_3', nextModules: ['week_4'], defaultUnlockDelayDays: 7 },
-  // ... 
-  
-  // LE CAS SPÉCIAL : SEMAINE 12
+  // ... (suite simplifiée pour l'exemple)
   'week_12': { 
     id: 'week_12', 
     nextModules: [
-      // La Forge s'ouvre dans 7 jours (comme une semaine normale)
       { id: 'forge_level_2', delayDays: 7, condition: 'fixed_delay' },
-      // La Table Ronde s'ouvre Dimanche prochain
       { id: 'round_table_1', condition: 'next_sunday' } 
     ]
   },
-
-  // --- FORGE ---
   'forge_level_2': { id: 'forge_level_2', nextModules: ['forge_level_3'], defaultUnlockDelayDays: 5 },
-
-  // --- TABLE RONDE ---
   'round_table_1': { id: 'round_table_1', nextModules: ['round_table_2'], defaultUnlockCondition: 'next_sunday' },
   'round_table_2': { id: 'round_table_2', nextModules: ['round_table_3'], defaultUnlockCondition: 'next_sunday' },
 };
@@ -53,7 +41,6 @@ const MODULES_REGISTRY: Record<string, ModuleDefinition> = {
 // --- HELPER DATES ---
 function getUnlockDate(condition: string = 'fixed_delay', delayDays: number = 0): Date {
   const now = new Date();
-  
   if (condition === 'next_sunday') {
     const nextSunday = new Date(now);
     nextSunday.setDate(now.getDate() + (7 - now.getDay()) % 7);
@@ -63,7 +50,6 @@ function getUnlockDate(condition: string = 'fixed_delay', delayDays: number = 0)
     nextSunday.setHours(9, 0, 0, 0);
     return nextSunday;
   }
-
   const unlockDate = new Date(now);
   unlockDate.setDate(now.getDate() + delayDays);
   return unlockDate;
@@ -89,10 +75,11 @@ serve(async (req) => {
 
   const table = getTableForModule(moduleId);
 
-  // --- FORGE & MEMORY LOGIC ---
+  // --- 1. LOGIC: FORGE & MICRO-MEMORY (Le Micro-Souvenir) ---
+  // Uniquement pour les modules de la Forge (pas Table Ronde, pas Semaine globale)
   let aiSummary: string | null = null;
 
-  if (table === 'user_module_state_entries') {
+  if (table === 'user_module_state_entries' && !moduleId.startsWith('round_table_')) {
     try {
       const { data: entry } = await supabaseClient
         .from('user_module_state_entries')
@@ -101,7 +88,6 @@ serve(async (req) => {
         .eq('module_id', moduleId)
         .single();
       
-      // Extract content string (handle JSON wrapper or direct string)
       const contentStr = typeof entry?.content === 'string' 
         ? entry.content 
         : (entry?.content as any)?.content; 
@@ -109,16 +95,12 @@ serve(async (req) => {
       if (contentStr && contentStr.length > 10) {
         // 1. Find Question Context
         let questionText = "Question du module";
-        let found = false;
-        
         for (const week of Object.values(WEEKS_CONTENT)) {
-           // Type assertion needed because TS might not know subQuestions exists on all values if type is not explicit
            const w = week as any; 
            if (w.subQuestions) {
              const sq = w.subQuestions.find((s: any) => s.id === moduleId);
              if (sq) {
                questionText = sq.question + " : " + sq.placeholder;
-               found = true;
                break;
              }
            }
@@ -132,14 +114,11 @@ serve(async (req) => {
         aiSummary = await generateWithGemini(prompt, contentStr);
 
         // 3. Vectorize
-        // "Question : [Texte Question] + Résumé Réponse : [Synthèse IA]"
         const vectorText = `Question : ${questionText}\nRésumé Réponse : ${aiSummary}`;
         const embedding = await generateEmbedding(vectorText);
 
-        // 4. Store Memory
-        
-        // A. ARCHIVE OLD MEMORIES
-        // Instead of deleting, we downgrade existing 'forge' memories to 'history'
+        // 4. Store Memory (Micro-Souvenir)
+        // A. Archive old active insight
         await supabaseClient
           .from('memories')
           .update({ 
@@ -152,16 +131,16 @@ serve(async (req) => {
           .eq('user_id', user.id)
           .eq('source_id', moduleId)
           .eq('source_type', 'module')
-          .eq('type', 'insight'); // We only archive active insights
+          .eq('type', 'insight');
 
-        // B. INSERT NEW MEMORY (Active)
+        // B. Insert new active insight
         await supabaseClient
           .from('memories')
           .insert({
             user_id: user.id,
             source_id: moduleId,
             source_type: 'module',
-            type: 'insight', // Active truth
+            type: 'insight',
             content: vectorText,
             embedding: embedding,
             metadata: { 
@@ -170,15 +149,14 @@ serve(async (req) => {
             }
           });
           
-        console.log(`Forge Memory created for ${moduleId}`);
+        console.log(`Forge Micro-Memory created for ${moduleId}`);
       }
     } catch (err) {
       console.error("Error creating Forge Memory:", err);
-      // Continue execution even if memory fails
     }
   }
 
-  // 1. Mark completed (and save summary)
+  // --- 2. UPDATE STATUS ---
   const updatePayload: any = { 
     status: 'completed', 
     completed_at: new Date().toISOString() 
@@ -196,21 +174,15 @@ serve(async (req) => {
 
   if (updateError) return new Response(JSON.stringify({ error: updateError }), { status: 500 });
 
-  // 2. Unlock next
+  // --- 3. UNLOCK NEXT MODULES ---
   const config = MODULES_REGISTRY[moduleId];
   if (config && config.nextModules) {
-    
     const nextModulesPayload = config.nextModules.map(target => {
-      // Normalisation : target peut être "string" ou "object"
       const targetId = typeof target === 'string' ? target : target.id;
-      
-      // Calcul des règles (Spécifique > Défaut)
       const specificDelay = typeof target === 'object' ? target.delayDays : undefined;
       const specificCondition = typeof target === 'object' ? target.condition : undefined;
-      
       const delay = specificDelay ?? config.defaultUnlockDelayDays ?? 0;
       const condition = specificCondition ?? config.defaultUnlockCondition ?? 'fixed_delay';
-
       const availableAt = getUnlockDate(condition, delay);
 
       return {
@@ -224,7 +196,6 @@ serve(async (req) => {
       };
     });
 
-    // We need to group inserts by table
     const weekPayloads = nextModulesPayload
       .filter(item => getTableForModule(item.targetId) === 'user_week_states')
       .map(item => item.payload);
@@ -234,38 +205,43 @@ serve(async (req) => {
       .map(item => item.payload);
 
     if (weekPayloads.length > 0) {
-      await supabaseClient
-        .from('user_week_states')
-        .upsert(weekPayloads, { onConflict: 'user_id, module_id' });
+      await supabaseClient.from('user_week_states').upsert(weekPayloads, { onConflict: 'user_id, module_id' });
     }
-
     if (modulePayloads.length > 0) {
-      await supabaseClient
-        .from('user_module_state_entries')
-        // For module entries, we might want to preserve content if it exists?
-        // Upsert on conflict (user_id, module_id) will overwrite.
-        // If row exists, we update status/available_at. Content is not touched unless specified.
-        // Wait, supabase .upsert() replaces the whole row by default unless ignoreDuplicates is true, 
-        // OR we need to verify if partial update works with upsert.
-        // Typically upsert replaces. To merge, we might need a different approach or rely on default.
-        // But if content exists, we don't want to lose it!
-        // user_module_state_entries has content.
-        // Solution: Use onConflict ignore? No, we want to update availability.
-        // Better: Use INSERT ... ON CONFLICT (user_id, module_id) DO UPDATE SET status=EXCLUDED.status...
-        // Supabase upsert handles this if we provide the columns.
-        // But if we don't provide 'content', and the row exists, does it nullify content?
-        // Postgres INSERT ... ON CONFLICT DO UPDATE SET ... only updates specified columns if explicitly written.
-        // Supabase-js upsert: "If the record exists, it will be updated with the data provided."
-        // So if we don't provide 'content', and the row exists, 'content' should be preserved (not touched)?
-        // NO. If we provide { id, ... } it replaces? 
-        // Actually, supabase-js upsert performs an INSERT ... ON CONFLICT DO UPDATE SET ...
-        // It updates columns provided in the object. It does NOT set missing columns to null/default unless it's a new row.
-        // So omitting 'content' is safe for existing rows.
-        .upsert(modulePayloads, { onConflict: 'user_id, module_id' });
+      await supabaseClient.from('user_module_state_entries').upsert(modulePayloads, { onConflict: 'user_id, module_id' });
     }
+  }
+
+  // --- 4. LOGIC: CORE IDENTITY (Le Temple) ---
+  // Nous sommes à la fin du traitement, c'est le moment idéal pour mettre à jour l'identité en asynchrone (ou await pour être sûr)
+  
+  // Cas A : Fin de Semaine (ex: 'week_1')
+  if (moduleId.startsWith('week_')) {
+      const weekNum = parseInt(moduleId.replace('week_', ''));
+      if (!isNaN(weekNum)) {
+          // On lance la construction du Temple pour cette semaine
+          await processCoreIdentity(supabaseClient, user.id, weekNum, 'completion');
+      }
+  }
+  
+  // Cas B : Update Module Forge (ex: 'a1_c2_m1')
+  // Note: complete-module est appelé quand on valide. Si on met juste à jour le contenu sans valider, c'est une autre route ?
+  // Généralement complete-module est appelé à la fin. Si l'user revient dessus et sauvegarde, ça passe par où ?
+  // Si c'est juste un 'update' SQL depuis le front, complete-module n'est PAS appelé.
+  // C'est là que le bat blesse pour le "Temps 2" (Mise à jour).
+  // SI le front appelle 'complete-module' même pour une mise à jour d'un module déjà complété, alors c'est bon.
+  // SINON, il faut que le front appelle cette fonction explicitement.
+  // Supposons pour l'instant que 'complete-module' est appelé aussi lors des updates de la Forge (re-validation).
+  
+  else if (moduleId.startsWith('a') && !moduleId.startsWith('round_table')) {
+      // Regex pour extraire l'axe (weekNum) : a(\d+)_
+      const match = moduleId.match(/^a(\d+)_/);
+      if (match) {
+          const weekNum = parseInt(match[1]);
+          // On lance la mise à jour du Temple
+          await processCoreIdentity(supabaseClient, user.id, weekNum, 'update_forge');
+      }
   }
 
   return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
 });
-
-

@@ -841,6 +841,70 @@ const Dashboard = () => {
       }
   };
 
+  const checkPhaseCompletionAndAutoUnlock = async (currentPlan: GeneratedPlan) => {
+    if (!activePlanId) return;
+
+    let hasUpdates = false;
+    const newPhases = [...currentPlan.phases];
+
+    // On parcourt les phases pour voir si une est complétée et la suivante pending
+    for (let i = 0; i < newPhases.length - 1; i++) {
+        const currentPhase = newPhases[i];
+        const nextPhase = newPhases[i+1];
+
+        // 1. Est-ce que la phase actuelle est TERMINÉE ? (Toutes les actions completed)
+        // Note: on inclut 'completed' et isCompleted (UI state)
+        const isPhaseCompleted = currentPhase.actions.every(a => a.isCompleted || a.status === 'completed');
+
+        if (isPhaseCompleted) {
+            // 2. Est-ce que la phase suivante a des actions PENDING ?
+            const pendingActions = nextPhase.actions.filter(a => a.status === 'pending');
+
+            if (pendingActions.length > 0) {
+                console.log(`Phase ${i+1} completed! Unlocking Phase ${i+2} automatically.`);
+                
+                // 3. Update Local State (Optimistic)
+                newPhases[i+1] = {
+                    ...nextPhase,
+                    actions: nextPhase.actions.map(a => 
+                        a.status === 'pending' ? { ...a, status: 'active' } : a
+                    )
+                };
+                hasUpdates = true;
+
+                // 4. Update DB (Background)
+                const pendingActionTitles = pendingActions.map(a => a.title);
+                const pendingActionIds = pendingActions.map(a => a.id);
+
+                // A. Update user_actions (Basé sur titre car ID peut différer json vs db)
+                if (pendingActionTitles.length > 0) {
+                    await supabase
+                        .from('user_actions')
+                        .update({ status: 'active' })
+                        .eq('plan_id', activePlanId)
+                        .in('title', pendingActionTitles)
+                        .eq('status', 'pending');
+                }
+
+                // B. Update user_framework_tracking (Basé sur action_id qui est l'ID du JSON)
+                if (pendingActionIds.length > 0) {
+                    await supabase
+                        .from('user_framework_tracking')
+                        .update({ status: 'active' })
+                        .eq('plan_id', activePlanId)
+                        .in('action_id', pendingActionIds)
+                        .eq('status', 'pending');
+                }
+            }
+        }
+    }
+
+    if (hasUpdates) {
+        setActivePlan({ ...currentPlan, phases: newPhases });
+    }
+  };
+
+
   const handleToggleMission = async (action: Action) => {
     if (!activePlanId || !activePlan) return;
 
@@ -853,7 +917,8 @@ const Dashboard = () => {
         ...p,
         actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: isNowCompleted, status: newStatus } : a)
     }));
-    setActivePlan({ ...activePlan, phases: newPhases });
+    const updatedPlan = { ...activePlan, phases: newPhases };
+    setActivePlan(updatedPlan);
 
     // 3. DB Update
     try {
@@ -862,6 +927,9 @@ const Dashboard = () => {
             .update({ status: newStatus })
             .eq('plan_id', activePlanId)
             .eq('title', action.title);
+
+        // NEW: Check auto-unlock
+        await checkPhaseCompletionAndAutoUnlock(updatedPlan);
     } catch (err) {
         console.error("Error toggling mission:", err);
         // Rollback idealement
@@ -890,7 +958,8 @@ const Dashboard = () => {
             status: isNowCompleted ? 'completed' : a.status
         } : a)
     }));
-    setActivePlan({ ...activePlan, phases: newPhases });
+    const updatedPlan = { ...activePlan, phases: newPhases };
+    setActivePlan(updatedPlan);
 
     // 3. DB Update
     try {
@@ -902,6 +971,10 @@ const Dashboard = () => {
             })
             .eq('plan_id', activePlanId)
             .eq('title', action.title);
+            
+        if (isNowCompleted) {
+             await checkPhaseCompletionAndAutoUnlock(updatedPlan);
+        }
     } catch (err) {
         console.error("Error incrementing habit:", err);
     }
@@ -927,7 +1000,8 @@ const Dashboard = () => {
             status: newStatus
         } : a)
     }));
-    setActivePlan({ ...activePlan, phases: newPhases });
+    const updatedPlan = { ...activePlan, phases: newPhases };
+    setActivePlan(updatedPlan);
 
     // 3. DB Update
     try {
@@ -939,6 +1013,8 @@ const Dashboard = () => {
             })
             .eq('plan_id', activePlanId)
             .eq('title', action.title);
+
+        await checkPhaseCompletionAndAutoUnlock(updatedPlan);
     } catch (err) {
         console.error("Error mastering habit:", err);
     }
@@ -1023,7 +1099,12 @@ const Dashboard = () => {
                             status: isCompleted ? 'completed' : a.status
                         } : a)
                     }));
-                    setActivePlan({ ...activePlan, phases: newPhases });
+                    const updatedPlan = { ...activePlan, phases: newPhases };
+                    setActivePlan(updatedPlan);
+
+                    if (isCompleted) {
+                        await checkPhaseCompletionAndAutoUnlock(updatedPlan);
+                    }
                  }
              }
         }

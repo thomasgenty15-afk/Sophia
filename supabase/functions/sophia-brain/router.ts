@@ -1,12 +1,13 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
-import { getUserState, updateUserState, logMessage, AgentMode } from './state-manager.ts'
+import { getUserState, updateUserState, logMessage, AgentMode, getCoreIdentity } from './state-manager.ts'
 import { runSentry } from './agents/sentry.ts'
 import { runFirefighter } from './agents/firefighter.ts'
 import { runInvestigator } from './agents/investigator.ts'
 import { runArchitect } from './agents/architect.ts'
 import { runCompanion } from './agents/companion.ts'
 import { runAssistant } from './agents/assistant.ts'
-import { generateWithGemini, generateEmbedding } from './lib/gemini.ts'
+import { runWatcher } from './agents/watcher.ts'
+import { generateWithGemini, generateEmbedding } from '../_shared/gemini.ts'
 
 // RAG Helper
 async function retrieveContext(supabase: SupabaseClient, message: string): Promise<string> {
@@ -81,6 +82,18 @@ export async function processMessage(
   // 2. Récupérer l'état actuel (Mémoire)
   const state = await getUserState(supabase, userId)
 
+  // --- LOGIC VEILLEUR (Watcher) ---
+  let msgCount = (state.unprocessed_msg_count || 0) + 1
+  let lastProcessed = state.last_processed_at || new Date().toISOString()
+
+  if (msgCount >= 15) {
+      // Trigger watcher analysis
+      await runWatcher(supabase, userId, lastProcessed)
+      msgCount = 0
+      lastProcessed = new Date().toISOString()
+  }
+  // ---------------------------------
+
   // 3. Analyse du Chef de Gare (Dispatcher)
   const { targetMode, riskScore } = await analyzeIntentAndRisk(userMessage, state)
 
@@ -93,9 +106,18 @@ export async function processMessage(
   // Only for Architect, Companion, Firefighter
   let context = "";
   if (['architect', 'companion', 'firefighter'].includes(targetMode)) {
-    context = await retrieveContext(supabase, userMessage);
+    // A. Vector Memory
+    const vectorContext = await retrieveContext(supabase, userMessage);
+    
+    // B. Core Identity (Temple)
+    const identityContext = await getCoreIdentity(supabase, userId);
+    
+    context = ""
+    if (identityContext) context += `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identityContext}\n\n`;
+    if (vectorContext) context += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${vectorContext}`;
+    
     if (context) {
-      console.log(`[RAG] Found ${context.length} chars of context`);
+      console.log(`[Context] Loaded Identity (${identityContext.length} chars) + Vectors (${vectorContext.length} chars)`);
     }
   }
 
@@ -138,7 +160,11 @@ export async function processMessage(
   }
 
   // 6. Mise à jour du mode final et log réponse
-  await updateUserState(supabase, userId, { current_mode: nextMode })
+  await updateUserState(supabase, userId, { 
+    current_mode: nextMode,
+    unprocessed_msg_count: msgCount,
+    last_processed_at: lastProcessed
+  })
   await logMessage(supabase, userId, 'assistant', responseContent, targetMode)
 
   return {

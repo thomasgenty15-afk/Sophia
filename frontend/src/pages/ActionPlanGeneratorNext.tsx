@@ -74,6 +74,35 @@ const ActionPlanGeneratorNext = () => {
   const [isContextLoading, setIsContextLoading] = useState(false);
   const fetchSummaryRef = React.useRef(false);
 
+  // --- PROFILE INFO STATE ---
+  const [profileBirthDate, setProfileBirthDate] = useState<string>('');
+  const [profileGender, setProfileGender] = useState<string>('');
+  const [needsProfileInfo, setNeedsProfileInfo] = useState(false);
+
+  // Fetch Profile Info
+  useEffect(() => {
+    if (!user) return;
+    const fetchProfile = async () => {
+        const { data } = await supabase
+            .from('profiles')
+            .select('birth_date, gender')
+            .eq('id', user.id)
+            .maybeSingle();
+        
+        if (data) {
+            // If either is missing, we need to ask
+            if (!data.birth_date || !data.gender) {
+                setNeedsProfileInfo(true);
+                setProfileBirthDate(data.birth_date || '');
+                setProfileGender(data.gender || '');
+            } else {
+                setNeedsProfileInfo(false);
+            }
+        }
+    };
+    fetchProfile();
+  }, [user]);
+
   // --- LOGIQUE DE RETRY (LIMITÉE) ---
   const canRetry = plan && (plan.generationAttempts || 1) < 2;
 
@@ -234,6 +263,24 @@ const ActionPlanGeneratorNext = () => {
           }
       }
 
+      // 3. APPEL IA (Si quota OK)
+      // D'abord, sauvegarde du profil si nécessaire
+      if (needsProfileInfo && (profileBirthDate || profileGender)) {
+          console.log("💾 Mise à jour du profil (Age/Sexe)...");
+          const { error: profileUpdateError } = await supabase
+            .from('profiles')
+            .update({
+                birth_date: profileBirthDate || null,
+                gender: profileGender || null
+            })
+            .eq('id', user.id);
+          
+          if (profileUpdateError) {
+              console.error("Erreur mise à jour profil:", profileUpdateError);
+              // On continue quand même la génération, ce n'est pas bloquant
+          }
+      }
+
       // 1. Récupération explicite des réponses complètes (qualitatives)
       let answersData = null;
       if (state?.submissionId) {
@@ -262,7 +309,11 @@ const ActionPlanGeneratorNext = () => {
           inputs,
           currentAxis: currentAxis,
           userId: user.id,
-          answers: answersData?.content || {} // Injection explicite ici
+          answers: answersData?.content || {}, // Injection explicite ici
+          userProfile: { // On passe aussi les infos profil pour que l'IA en tienne compte immédiatement
+              birth_date: profileBirthDate,
+              gender: profileGender
+          }
         }
       });
 
@@ -495,6 +546,48 @@ const ActionPlanGeneratorNext = () => {
 
             {/* FORMULAIRE IDENTIQUE A GLOBAL PLAN */}
             <div className="space-y-6">
+              
+              {/* CHAMPS PROFIL MANQUANTS */}
+              {needsProfileInfo && (
+                <div className="bg-blue-50/50 p-4 md:p-6 rounded-2xl border border-blue-100 shadow-sm">
+                    <h3 className="text-xs md:text-sm font-bold text-blue-600 uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+                        Personnalisation Physiologique
+                    </h3>
+                    <p className="text-sm text-slate-600 mb-4">
+                        Ces informations permettent à Sophia d'adapter le plan à votre métabolisme et votre biologie. Elles ne seront demandées qu'une seule fois.
+                    </p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">
+                                Date de naissance
+                            </label>
+                            <input
+                                type="date"
+                                value={profileBirthDate}
+                                onChange={(e) => setProfileBirthDate(e.target.value)}
+                                className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-slate-900 bg-white"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">
+                                Sexe biologique
+                            </label>
+                            <select
+                                value={profileGender}
+                                onChange={(e) => setProfileGender(e.target.value)}
+                                className="w-full p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none bg-white text-slate-900"
+                            >
+                                <option value="">Sélectionner...</option>
+                                <option value="male">Homme</option>
+                                <option value="female">Femme</option>
+                                <option value="other">Autre</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+              )}
+
               {/* SÉLECTEUR DE RYTHME (PACING) */}
               <div className="bg-violet-50 border border-violet-100 rounded-xl p-4">
                 <label className="block text-sm md:text-base font-bold text-violet-900 mb-3 flex items-center gap-2">
