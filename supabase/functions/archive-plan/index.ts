@@ -209,7 +209,7 @@ Deno.serve(async (req) => {
         .insert({
             user_id: userId,
             content: narrative,
-            type: 'archive',
+            type: 'insight', // Changed from 'archive' to be active in RAG
             source_type: 'plan',
             source_id: planId,
             embedding: embedding,

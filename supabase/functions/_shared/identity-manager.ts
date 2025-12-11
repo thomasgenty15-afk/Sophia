@@ -79,6 +79,7 @@ export async function processCoreIdentity(
         - Garde ce qui est toujours vrai.
         - Ajuste ce qui a changé ou s'est précisé.
         - Produis un résumé dense de 5 lignes maximum.
+        - Ne mets pas de titre comme "Nouvelle version". Commence directement le texte.
       `;
   }
 

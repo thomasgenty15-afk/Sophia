@@ -23,9 +23,10 @@ async function retrieveContext(supabase: SupabaseClient, message: string): Promi
 
     if (!memories || memories.length === 0) return "";
 
-    return memories.map((m: any) => 
-      `[Souvenir (${m.source_type} - ${m.source_id || '?'}): ${m.content}]`
-    ).join('\n\n');
+    return memories.map((m: any) => {
+      const dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('fr-FR') : 'Date inconnue';
+      return `[Souvenir (${m.source_type}) du ${dateStr}] : ${m.content}`;
+    }).join('\n\n');
   } catch (err) {
     console.error("Error retrieving context:", err);
     return "";

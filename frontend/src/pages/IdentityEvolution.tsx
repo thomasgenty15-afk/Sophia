@@ -1258,7 +1258,7 @@ const IdentityEvolution = () => {
 
   const handleSave = async (id: string, content: string) => {
     if (!user) return;
-    console.log(`Saving module ${id}:`, content);
+    console.log(`[Forge] handleSave called for ${id}. Content length: ${content.length}. Content: "${content}"`);
     
     try {
         // Upsert logic similar to IdentityArchitect
@@ -1269,8 +1269,9 @@ const IdentityEvolution = () => {
             .eq('module_id', id)
             .maybeSingle();
             
-        const payload = { content }; // or { answer: content } depending on consistency
         const isCompleted = content.trim().length > 0;
+        console.log(`[Forge] isCompleted evaluated to: ${isCompleted} (trimmed length: ${content.trim().length})`);
+        
         const now = new Date().toISOString();
         
         // On met à jour le statut et completed_at pour refléter la réalité
@@ -1295,15 +1296,23 @@ const IdentityEvolution = () => {
         // On déclenche la vectorisation si le module est complété
         if (isCompleted) {
              const { data: { session } } = await supabase.auth.getSession();
+             const functionUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/complete-module`;
+             console.log("[Forge] Triggering complete-module at:", functionUrl);
+             
              // On ne bloque pas l'UI pour ça
-             fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/complete-module`, {
+             fetch(functionUrl, {
                  method: 'POST',
                  headers: {
                    'Content-Type': 'application/json',
                    'Authorization': `Bearer ${session?.access_token}`
                  },
                  body: JSON.stringify({ moduleId: id })
-             }).catch(err => console.error("Forge Vectorization trigger failed:", err));
+             })
+             .then(res => {
+                 if (res.ok) console.log("[Forge] complete-module success");
+                 else res.text().then(t => console.error("[Forge] complete-module error:", t));
+             })
+             .catch(err => console.error("[Forge] Vectorization trigger failed:", err));
         }
         
         // Refresh local state

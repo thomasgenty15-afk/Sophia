@@ -81,16 +81,23 @@ serve(async (req) => {
 
   if (table === 'user_module_state_entries' && !moduleId.startsWith('round_table_')) {
     try {
-      const { data: entry } = await supabaseClient
+      console.log(`[CompleteModule] Fetching content for ${moduleId} user ${user.id}`);
+      const { data: entry, error: fetchError } = await supabaseClient
         .from('user_module_state_entries')
         .select('content')
         .eq('user_id', user.id)
         .eq('module_id', moduleId)
         .single();
       
+      if (fetchError) {
+          console.error("[CompleteModule] Fetch error:", fetchError);
+      }
+
       const contentStr = typeof entry?.content === 'string' 
         ? entry.content 
         : (entry?.content as any)?.content; 
+
+      console.log(`[CompleteModule] Content found: "${contentStr?.substring(0, 20)}..." (Length: ${contentStr?.length})`);
 
       if (contentStr && contentStr.length > 10) {
         // 1. Find Question Context
