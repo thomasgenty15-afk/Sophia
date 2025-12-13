@@ -622,6 +622,12 @@ const ActionPlanGeneratorFollow = () => {
       if (error) throw error;
       
       if (data) {
+        // ERROR HANDLING : Si la fonction renvoie 200 OK mais avec un objet erreur
+        if (data.error) {
+            console.error("Erreur renvoyée par la fonction (200 OK):", data.error);
+            throw new Error(data.error);
+        }
+
         setPlan(data);
         
         // --- VÉROUILLAGE : SAUVEGARDE IMMÉDIATE DU PLAN ---
@@ -1246,7 +1252,7 @@ const ActionPlanGeneratorFollow = () => {
                 </div>
 
                 {/* AFFICHAGE PAR PHASES */}
-                {plan.phases.map((phase: any, phaseIndex: number) => (
+                {plan.phases && Array.isArray(plan.phases) ? plan.phases.map((phase: any, phaseIndex: number) => (
                   <div key={phaseIndex} className="relative pl-4 md:pl-6 border-l-2 border-slate-100 pb-6 md:pb-8 last:pb-0 last:border-l-0">
                     <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-slate-200"></div>
                     
@@ -1330,7 +1336,11 @@ const ActionPlanGeneratorFollow = () => {
                       })}
                     </div>
                   </div>
-                ))}
+                )) : (
+                    <div className="p-4 text-center text-slate-500 italic">
+                        Aucune phase générée. Le plan semble incomplet.
+                    </div>
+                )}
               </div>
             </div>
 

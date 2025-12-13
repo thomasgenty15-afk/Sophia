@@ -2,8 +2,9 @@ export async function generateWithGemini(
   systemPrompt: string, 
   userMessage: string, 
   temperature: number = 0.7,
-  jsonMode: boolean = false
-): Promise<string> {
+  jsonMode: boolean = false,
+  tools: any[] = []
+): Promise<string | { tool: string, args: any }> {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
   if (!GEMINI_API_KEY) {
     throw new Error('Clé API Gemini manquante')
@@ -25,6 +26,10 @@ export async function generateWithGemini(
     payload.generationConfig.responseMimeType = "application/json"
   }
 
+  if (tools && tools.length > 0) {
+    payload.tools = [{ function_declarations: tools }];
+  }
+
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -38,7 +43,22 @@ export async function generateWithGemini(
   }
 
   const data = await response.json()
-  const text = data.candidates?.[0]?.content?.parts?.[0]?.text
+  const parts = data.candidates?.[0]?.content?.parts || []
+  
+  // 1. Priorité absolue aux outils : On cherche SI n'importe quelle partie est un appel d'outil
+  const toolCallPart = parts.find((p: any) => p.functionCall)
+  
+  if (toolCallPart) {
+    console.log("Gemini Tool Call Found:", toolCallPart.functionCall.name)
+    return {
+      tool: toolCallPart.functionCall.name,
+      args: toolCallPart.functionCall.args
+    }
+  }
+
+  // 2. Sinon on prend le texte
+  const textPart = parts.find((p: any) => p.text)
+  const text = textPart?.text
   
   if (!text) throw new Error('Réponse vide de Gemini')
 
@@ -69,4 +89,3 @@ export async function generateEmbedding(text: string): Promise<number[]> {
   const data = await response.json()
   return data.embedding.values
 }
-

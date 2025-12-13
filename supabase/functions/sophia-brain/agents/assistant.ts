@@ -16,6 +16,7 @@ export async function runAssistant(message: string): Promise<string> {
 
     STYLE :
     - Court, efficace, solution. Pas de blabla "Bonjour je suis...".
+    - RÈGLE SALUTATIONS (STRICTE) : Ne dis JAMAIS "Salut" ou "Bonjour". Rentre directement dans la solution technique.
   `
   
   return await generateWithGemini(systemPrompt, message)

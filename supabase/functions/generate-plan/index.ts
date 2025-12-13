@@ -45,6 +45,7 @@ serve(async (req) => {
           4. Si l'utilisateur veut changer une action spécifique, remplace-la par une alternative pertinente.
           5. Si l'utilisateur demande de changer le rythme (ex: "plus lent"), ajuste la durée (estimatedDuration) et la densité des actions.
           6. Renvoie UNIQUEMENT le JSON complet mis à jour.
+          7. Assure-toi que chaque action a bien un "tracking_type" ('boolean' ou 'counter').
         `;
 
         userPrompt = `
@@ -142,6 +143,18 @@ serve(async (req) => {
           7.  **Ce que Sophia sait déjà** : Tu dois générer un résumé synthétique de la situation de l'utilisateur ("sophiaKnowledge") qui explique ce que tu as compris de lui.
           8.  **Problème Contextuel (Grimoire)** : Tu dois générer un résumé court (2-3 phrases max) intitulé "context_problem" qui décrit la situation initiale, les blocages et le pourquoi de l'utilisateur. Ce texte servira de "Rappel du point de départ" dans le Grimoire une fois le plan terminé. Il doit être factuel mais empathique.
           9.  **Titre du Grimoire** : Tu dois inventer un nom ÉPIQUE, MYSTIQUE ou PUISSANT pour cette transformation spécifique (ex: "Le Protocole Phénix", "L'Architecture de l'Invisible", "La Citadelle du Calme"). Ce titre servira de nom d'archive dans le Grimoire de l'utilisateur.
+          10. **Type de Tracking (NOUVEAU - CRITIQUE)** : 
+              Pour CHAQUE action et pour le vitalSignal, tu DOIS ajouter le champ "tracking_type" :
+              - "boolean" : Si c'est une action binaire (Fait/Pas fait). Ex: Sport, Méditation, Dormir.
+              - "counter" : Si c'est une quantité accumulable. Ex: Cigarettes, Verres d'eau, Pages lues.
+              
+          11. **Timing de l'Action (NOUVEAU - CRITIQUE)** :
+              Pour CHAQUE action, tu DOIS ajouter le champ "time_of_day" pour savoir QUAND vérifier l'action :
+              - "morning" : Matin (au réveil, petit déj). Ex: Méditation, Sport matin.
+              - "afternoon" : Midi/Après-midi.
+              - "evening" : Soir (fin de journée, dîner).
+              - "night" : Juste avant de dormir ou pendant la nuit (Sommeil). Ex: Couvre-feu digital, Dormir.
+              - "any_time" : N'importe quand dans la journée.
 
           STRUCTURE JSON ATTENDUE (Exemple complet) :
           {
@@ -292,6 +305,18 @@ serve(async (req) => {
           7.  **Ce que Sophia sait déjà** : Tu dois générer un résumé synthétique de la situation de l'utilisateur ("sophiaKnowledge") qui explique ce que tu as compris de lui.
           8.  **Problème Contextuel (Grimoire)** : Tu dois générer un résumé court (2-3 phrases max) intitulé "context_problem" qui décrit la situation initiale, les blocages et le pourquoi de l'utilisateur. Ce texte servira de "Rappel du point de départ" dans le Grimoire une fois le plan terminé. Il doit être factuel mais empathique.
           9.  **Titre du Grimoire** : Tu dois inventer un nom ÉPIQUE, MYSTIQUE ou PUISSANT pour cette transformation spécifique (ex: "Le Protocole Phénix", "L'Architecture de l'Invisible", "La Citadelle du Calme"). Ce titre servira de nom d'archive dans le Grimoire de l'utilisateur.
+          10. **Type de Tracking (NOUVEAU - CRITIQUE)** : 
+              Pour CHAQUE action et pour le vitalSignal, tu DOIS ajouter le champ "tracking_type" :
+              - "boolean" : Si c'est une action binaire (Fait/Pas fait). Ex: Sport, Méditation, Dormir.
+              - "counter" : Si c'est une quantité accumulable. Ex: Cigarettes, Verres d'eau, Pages lues.
+              
+          11. **Timing de l'Action (NOUVEAU - CRITIQUE)** :
+              Pour CHAQUE action, tu DOIS ajouter le champ "time_of_day" pour savoir QUAND vérifier l'action :
+              - "morning" : Matin (au réveil, petit déj). Ex: Méditation, Sport matin.
+              - "afternoon" : Midi/Après-midi.
+              - "evening" : Soir (fin de journée, dîner).
+              - "night" : Juste avant de dormir ou pendant la nuit (Sommeil). Ex: Couvre-feu digital, Dormir.
+              - "any_time" : N'importe quand dans la journée.
 
           STRUCTURE JSON ATTENDUE (Exemple complet) :
           {
@@ -457,8 +482,28 @@ serve(async (req) => {
     const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
     if (!rawText) throw new Error('Réponse vide de Gemini (structure inattendue)')
     
-    const jsonString = rawText.replace(/```json\n?|```/g, '').trim()
-    const plan = JSON.parse(jsonString)
+    // Nettoyage plus robuste : extraction du JSON entre les accolades
+    // On cherche la première accolade ouvrante et la dernière fermante
+    const firstBrace = rawText.indexOf('{');
+    const lastBrace = rawText.lastIndexOf('}');
+    
+    let jsonString;
+    if (firstBrace !== -1 && lastBrace !== -1) {
+        jsonString = rawText.substring(firstBrace, lastBrace + 1);
+    } else {
+        // Fallback si pas d'accolades (peu probable)
+        jsonString = rawText.replace(/```json\n?|```/g, '').trim()
+    }
+
+    let plan;
+    try {
+        plan = JSON.parse(jsonString)
+    } catch (parseError) {
+        console.error("JSON Parse Error:", parseError);
+        console.error("Raw Text:", rawText);
+        console.error("Extracted String:", jsonString);
+        throw new Error(`Erreur de syntaxe JSON dans la réponse IA: ${parseError.message}`);
+    }
 
     return new Response(
       JSON.stringify(plan),

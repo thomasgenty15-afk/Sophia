@@ -41,17 +41,18 @@ async function analyzeIntentAndRisk(message: string, currentState: any): Promise
     LES AGENTS DISPONIBLES :
     1. sentry (DANGER VITAL) : Suicide, automutilation, violence immédiate. PRIORITÉ ABSOLUE.
     2. firefighter (URGENCE ÉMOTIONNELLE) : Panique, angoisse, craving fort, pleurs.
-    3. investigator (DATA) : L'utilisateur donne des chiffres (cigarettes, sommeil) ou dit "J'ai fait mon sport".
-    4. architect (DEEP WORK & AIDE MODULE) : L'utilisateur parle de ses Valeurs, Vision, Identité, ou demande de l'aide pour un exercice.
-    5. assistant (TECHNIQUE) : BUGS de l'application, problèmes de compte, erreur technique. ATTENTION : Parler du CONTENU du plan (objectifs, vie) = 'architect' ou 'companion'.
+    3. investigator (DATA & BILAN) : L'utilisateur veut faire son bilan ("Check du soir", "Bilan"), donne des chiffres (cigarettes, sommeil) ou dit "J'ai fait mon sport".
+    4. architect (DEEP WORK & AIDE MODULE) : L'utilisateur parle de ses Valeurs, Vision, Identité, ou demande de l'aide pour un exercice. C'est AUSSI lui qui gère la création/modification du plan.
+    5. assistant (TECHNIQUE PUR) : BUGS DE L'APPLICATION (Crash, écran blanc, login impossible). ATTENTION : Si l'utilisateur dit "Tu n'as pas créé l'action" ou "Je ne vois pas le changement", C'EST ENCORE DU RESSORT DE L'ARCHITECTE. Ne passe à 'assistant' que si l'app est cassée techniquement.
     6. companion (DÉFAUT) : Tout le reste. Discussion, "Salut", "Ça va", partage de journée.
     
     ÉTAT ACTUEL :
     Mode en cours : "${currentState.current_mode}"
     Risque précédent : ${currentState.risk_level}
     
-    RÈGLE DE STABILITÉ :
-    Si l'utilisateur est déjà en conversation suivie (ex: Architecte), ne change pas de mode sauf si c'est une URGENCE (Sentry/Firefighter) ou de la DATA (Investigator).
+    RÈGLE DE STABILITÉ (CRITIQUE) :
+    Si le mode en cours est 'architect', RESTE en 'architect' sauf si c'est une URGENCE VITALE (Sentry).
+    Même si l'utilisateur râle ("ça marche pas", "je ne vois rien"), l'Architecte est le mieux placé pour réessayer. L'assistant technique ne sert à rien pour le contenu du plan.
     
     SORTIE JSON ATTENDUE :
     {
@@ -114,9 +115,16 @@ export async function processMessage(
 
     // C. Dashboard Context (Live Data)
     const dashboardContext = await getDashboardContext(supabase, userId);
-    
+
+    // D. Context Temporel
+    const now = new Date();
+    // Hack rapide pour l'heure de Paris (UTC+1 ou +2). On simplifie à UTC+1 pour l'instant
+    const parisTime = new Date(now.getTime() + (1 * 60 * 60 * 1000));
+    const timeContext = `NOUS SOMMES LE ${parisTime.toLocaleDateString('fr-FR')} À ${parisTime.toLocaleTimeString('fr-FR', {hour: '2-digit', minute:'2-digit'})}.`;
+
     context = ""
-    if (dashboardContext) context += `${dashboardContext}\n\n`; // Dashboard en premier (Priorité Immédiate)
+    if (dashboardContext) context += `${dashboardContext}\n\n`; 
+    if (timeContext) context += `=== REPÈRES TEMPORELS ===\n${timeContext}\n(Adapte tes salutations/conseils à ce moment de la journée)\n\n`;
     if (identityContext) context += `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identityContext}\n\n`;
     if (vectorContext) context += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${vectorContext}`;
     
@@ -141,7 +149,7 @@ export async function processMessage(
       if (ffResult.crisisResolved) nextMode = 'companion'
       break
     case 'investigator':
-      const invResult = await runInvestigator(supabase, userId, userMessage, state.investigation_state)
+      const invResult = await runInvestigator(supabase, userId, userMessage, history, state.investigation_state)
       responseContent = invResult.content
       if (invResult.investigationComplete) {
           nextMode = 'companion'
@@ -151,7 +159,7 @@ export async function processMessage(
       }
       break
     case 'architect':
-      responseContent = await runArchitect(userMessage, history, context)
+      responseContent = await runArchitect(supabase, userId, userMessage, history, context)
       break
     case 'assistant':
       responseContent = await runAssistant(userMessage)
@@ -159,7 +167,7 @@ export async function processMessage(
       break
     case 'companion':
     default:
-      responseContent = await runCompanion(userMessage, history, state, context)
+      responseContent = await runCompanion(supabase, userId, userMessage, history, state, context)
       break
   }
 

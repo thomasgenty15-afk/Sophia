@@ -90,6 +90,9 @@ export const distributePlanActions = async (
       const initialStatus = isInitialActive ? 'active' : 'pending';
       globalActionIndex++;
 
+      // Extraction propre du tracking_type (avec fallback 'boolean' si absent)
+      const trackingType = (action as any).tracking_type === 'counter' ? 'counter' : 'boolean';
+
       // CAS 1: Frameworks (Table user_framework_tracking)
       if (action.type === 'framework') {
         // Validation stricte des données requises
@@ -105,7 +108,8 @@ export const distributePlanActions = async (
           type: (action as any).frameworkDetails?.type || 'unknown', // 'one_shot' | 'recurring'
           target_reps: typeof action.targetReps === 'number' ? action.targetReps : 1, // Force integer
           current_reps: 0,
-          status: initialStatus
+          status: initialStatus,
+          tracking_type: trackingType // Ajout du tracking_type
         });
       }
       
@@ -138,7 +142,8 @@ export const distributePlanActions = async (
           description: action.description || '',
           target_reps: targetReps,
           current_reps: 0,
-          status: initialStatus
+          status: initialStatus,
+          tracking_type: trackingType // Ajout du tracking_type
         });
       }
     });
@@ -152,6 +157,7 @@ export const distributePlanActions = async (
   if (vitalSignal) {
     // Validation stricte : label est requis (NOT NULL constraint)
     const label = vitalSignal.name || vitalSignal.label || 'Signe Vital';
+    const trackingType = vitalSignal.tracking_type === 'boolean' ? 'boolean' : 'counter'; // Vital often counter
     
     // Conversion explicite en string pour les valeurs
     vitalSignToInsert = {
@@ -162,7 +168,8 @@ export const distributePlanActions = async (
       target_value: String(vitalSignal.targetValue || ''),
       current_value: String(vitalSignal.startValue || ''),
       unit: vitalSignal.unit || '',
-      status: 'active'
+      status: 'active',
+      tracking_type: trackingType // Ajout du tracking_type
     };
   }
 

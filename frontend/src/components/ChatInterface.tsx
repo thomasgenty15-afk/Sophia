@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, AlertTriangle, FileText, Heart, Shield } from 'lucide-react';
+import { Send, User, Bot, AlertTriangle, FileText, Heart, Shield, Trash2, X } from 'lucide-react';
 import { useChat } from '../hooks/useChat';
 import type { Message } from '../hooks/useChat';
 
 export const ChatInterface: React.FC = () => {
-  const { messages, sendMessage, isLoading, error } = useChat();
+  const { messages, sendMessage, deleteMessage, isLoading, error } = useChat();
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -28,7 +28,7 @@ export const ChatInterface: React.FC = () => {
       case 'sentry': return <Shield className="w-4 h-4 text-red-500" />;
       case 'firefighter': return <Heart className="w-4 h-4 text-orange-500" />;
       case 'investigator': return <FileText className="w-4 h-4 text-blue-500" />;
-      case 'architect': return <Bot className="w-4 h-4 text-purple-500" />; // TODO: Icone Architecte
+      case 'architect': return <Bot className="w-4 h-4 text-purple-500" />; 
       default: return <Bot className="w-4 h-4 text-indigo-500" />;
     }
   };
@@ -56,16 +56,27 @@ export const ChatInterface: React.FC = () => {
         {messages.map((msg) => (
           <div
             key={msg.id}
-            className={`flex gap-3 ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
+            className={`flex gap-3 group items-start ${msg.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
+            {/* Bouton Supprimer (apparaît au survol, à gauche pour user, à droite pour bot) */}
+            {msg.role === 'user' && (
+                <button 
+                    onClick={() => deleteMessage(msg.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 hover:text-red-500"
+                    title="Supprimer ce message"
+                >
+                    <Trash2 className="w-4 h-4" />
+                </button>
+            )}
+
             {msg.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0 mt-1">
                  {getAgentIcon(msg.agent)}
               </div>
             )}
             
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm ${
+              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm relative ${
                 msg.role === 'user'
                   ? 'bg-indigo-600 text-white rounded-br-none'
                   : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'
@@ -80,10 +91,22 @@ export const ChatInterface: React.FC = () => {
             </div>
 
             {msg.role === 'user' && (
-              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0">
+              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center flex-shrink-0 mt-1">
                 <User className="w-4 h-4 text-slate-500" />
               </div>
             )}
+
+            {/* Bouton Supprimer pour assistant (à droite) */}
+            {msg.role === 'assistant' && (
+                <button 
+                    onClick={() => deleteMessage(msg.id)}
+                    className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 hover:text-red-500"
+                    title="Supprimer ce message"
+                >
+                    <Trash2 className="w-4 h-4" />
+                </button>
+            )}
+
           </div>
         ))}
         
@@ -133,4 +156,3 @@ export const ChatInterface: React.FC = () => {
     </div>
   );
 };
-

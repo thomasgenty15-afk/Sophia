@@ -80,6 +80,8 @@ serve(async (req) => {
         "description": "Description précise de ce qu'il faut faire",
         "questType": "side", 
         "type": "mission" (ou "habitude" / "framework"),
+        "tracking_type": "boolean" (ou "counter"), // OBLIGATOIRE
+        "time_of_day": "morning" (ou "afternoon", "evening", "night", "any_time"), // OBLIGATOIRE
         "targetReps": 1 (Nombre de fois si habitude, sinon 1),
         "tips": "Un conseil rapide",
         "rationale": "Pourquoi ça va marcher (explication neuro/psycho)",

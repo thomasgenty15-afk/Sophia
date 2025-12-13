@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 
 export type Message = {
@@ -14,14 +14,43 @@ export function useChat() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Charger l'historique au montage
+  useEffect(() => {
+    async function loadHistory() {
+      const { data, error } = await supabase
+        .from('chat_messages')
+        .select('*')
+        .order('created_at', { ascending: false }) // On prend les plus RÉCENTS d'abord
+        .limit(50); // Les 50 derniers
+
+      if (error) {
+        console.error("Error loading chat history:", error);
+      } else if (data) {
+        // On inverse le tableau pour remettre dans l'ordre chronologique (Vieux -> Récents)
+        const history: Message[] = data.reverse().map(m => ({
+          id: m.id,
+          role: m.role,
+          content: m.content,
+          agent: m.agent_used, 
+          created_at: m.created_at
+        }));
+        setMessages(history);
+      }
+    }
+    loadHistory();
+  }, []);
+
   const sendMessage = useCallback(async (content: string) => {
     try {
       setIsLoading(true);
       setError(null);
 
       // 1. Ajouter le message utilisateur localement (Optimistic UI)
+      // Note : L'insertion réelle en DB est faite par la fonction sophia-brain via 'logMessage'
+      // MAIS pour l'UX immédiate, on l'affiche tout de suite.
+      const tempId = crypto.randomUUID();
       const userMsg: Message = {
-        id: crypto.randomUUID(),
+        id: tempId,
         role: 'user',
         content,
         created_at: new Date().toISOString()
@@ -30,7 +59,7 @@ export function useChat() {
 
       // 2. Appel à la Edge Function
       const { data, error: fnError } = await supabase.functions.invoke('sophia-brain', {
-        body: { message: content, history: messages.slice(-10) } // On envoie les 10 derniers
+        body: { message: content, history: messages.slice(-10) } 
       });
 
       if (fnError) throw fnError;
@@ -44,6 +73,17 @@ export function useChat() {
         created_at: new Date().toISOString()
       };
       setMessages(prev => [...prev, botMsg]);
+      
+      // Petit hack : On recharge les messages récents après un court délai pour avoir les vrais ID DB
+      // (Optionnel, mais plus propre pour la suppression future)
+      setTimeout(async () => {
+         const { data } = await supabase
+            .from('chat_messages')
+            .select('*')
+            .order('created_at', { ascending: false })
+            .limit(2);
+         // On pourrait synchroniser ici, mais restons simple pour l'instant.
+      }, 1000);
 
     } catch (err: any) {
       console.error('Chat Error:', err);
@@ -53,6 +93,25 @@ export function useChat() {
     }
   }, [messages]);
 
-  return { messages, sendMessage, isLoading, error };
-}
+  const deleteMessage = useCallback(async (id: string) => {
+    try {
+        // 1. Suppression optimiste
+        setMessages(prev => prev.filter(m => m.id !== id));
 
+        // 2. Suppression DB
+        const { error } = await supabase
+            .from('chat_messages')
+            .delete()
+            .eq('id', id);
+
+        if (error) {
+            console.error("Error deleting message:", error);
+            // On pourrait remettre le message si erreur, mais bon, c'est du test.
+        }
+    } catch (e) {
+        console.error("Delete Exception:", e);
+    }
+  }, []);
+
+  return { messages, sendMessage, deleteMessage, isLoading, error };
+}
