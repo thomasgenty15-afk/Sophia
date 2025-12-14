@@ -69,8 +69,7 @@ serve(async (req) => {
             .insert({
                 user_id: userId,
                 role: 'assistant',
-                content: message,
-                is_processed: true // Important pour que le watcher ne le re-traite pas comme un msg user à traiter (si on avait cette logique)
+                content: message
             })
         
         if (msgError) {

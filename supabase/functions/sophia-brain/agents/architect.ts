@@ -11,7 +11,7 @@ const CREATE_ACTION_TOOL = {
       title: { type: "STRING", description: "Titre court et impactant." },
       description: { type: "STRING", description: "Description précise." },
       type: { type: "STRING", enum: ["habit", "mission"], description: "'habit' = récurrent, 'mission' = une fois." },
-      targetReps: { type: "INTEGER", description: "Si habit, nombre de fois par semaine/jour (défaut 1). Si mission, mettre 1." },
+      targetReps: { type: "INTEGER", description: "Si habit, nombre de fois par SEMAINE. Doit être entre 7 (minimum) et 14 (maximum). Si mission, mettre 1." },
       tips: { type: "STRING", description: "Un petit conseil court pour réussir." },
       time_of_day: { type: "STRING", enum: ["morning", "afternoon", "evening", "night", "any_time"], description: "Moment idéal pour faire l'action." }
     },
@@ -57,13 +57,14 @@ const CREATE_FRAMEWORK_TOOL = {
 
 const TRACK_PROGRESS_TOOL = {
   name: "track_progress",
-  description: "Enregistre une progression (Action faite ou Signe Vital mesuré). À utiliser quand l'utilisateur dit 'J'ai fait mon sport' ou 'J'ai fumé 3 clopes'.",
+  description: "Enregistre une progression ou un raté (Action faite, Pas faite, ou Signe Vital mesuré). À utiliser quand l'utilisateur dit 'J'ai fait mon sport' ou 'J'ai raté mon sport'.",
   parameters: {
     type: "OBJECT",
     properties: {
       target_name: { type: "STRING", description: "Nom approximatif de l'action ou du signe vital." },
-      value: { type: "NUMBER", description: "Valeur à ajouter (ex: 1 pour 'J'ai fait', 3 pour '3 clopes')." },
-      operation: { type: "STRING", enum: ["add", "set"], description: "'add' = ajouter au total existant, 'set' = définir la valeur absolue (écraser)." },
+      value: { type: "NUMBER", description: "Valeur à ajouter (ex: 1 pour 'J'ai fait', 0 pour 'Raté')." },
+      operation: { type: "STRING", enum: ["add", "set"], description: "'add' = ajouter au total existant, 'set' = définir la valeur absolue." },
+      status: { type: "STRING", enum: ["completed", "missed", "partial"], description: "Statut de l'action : 'completed' (fait), 'missed' (pas fait/raté), 'partial' (à moitié)." },
       date: { type: "STRING", description: "Date concernée (YYYY-MM-DD). Laisser vide pour aujourd'hui." }
     },
     required: ["target_name", "value", "operation"]
@@ -137,8 +138,9 @@ async function injectActionIntoPlanJson(supabase: SupabaseClient, planId: string
 }
 
 async function handleTracking(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
-    const { target_name, value, operation } = args
+    const { target_name, value, operation, status } = args
     const searchTerm = target_name.trim()
+    const entryStatus = status || 'completed'
 
     // 1. Actions
     const { data: actions } = await supabase
@@ -149,6 +151,12 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
         .ilike('title', `%${searchTerm}%`)
         .limit(1)
 
+    if (!actions || actions.length === 0) {
+        // Aucune action trouvée => On ne tracke PAS. On renvoie un message naturel pour l'agent.
+        // Important : On retourne une chaîne qui explique que l'action n'est pas suivie, pour que l'agent puisse rebondir.
+        return `INFO_POUR_AGENT: L'action "${target_name}" n'est PAS dans le plan actif de l'utilisateur. Ne dis pas "C'est noté". Dis plutôt quelque chose comme "Ah trop bien pour [action], même si ce n'est pas dans ton plan officiel, c'est super !".`
+    }
+
     if (actions && actions.length > 0) {
         const action = actions[0]
         const today = new Date().toISOString().split('T')[0]
@@ -157,32 +165,65 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
         let newReps = action.current_reps || 0
         const trackingType = action.tracking_type || 'boolean'
 
-        if (trackingType === 'boolean') {
-            if (operation === 'add' || operation === 'set') {
-                if (lastPerformed === today && operation === 'add') {
-                    return `C'est noté, mais je vois que tu avais déjà validé "**${action.title}**" aujourd'hui. Je laisse validé ! ✅`
+        // Mise à jour des répétitions SEULEMENT si c'est 'completed' ou 'partial'
+        if (entryStatus === 'completed' || entryStatus === 'partial') {
+            if (trackingType === 'boolean') {
+                if (operation === 'add' || operation === 'set') {
+                    if (lastPerformed === today && operation === 'add') {
+                        // Already done today, don't increment reps but log history
+                        return `C'est noté, mais je vois que tu avais déjà validé "${action.title}" aujourd'hui. Je laisse validé ! ✅`
+                    } else {
+                        newReps = Math.max(newReps + 1, 1)
+                    }
                 }
-                newReps = Math.max(newReps + 1, 1)
+            } else {
+                if (operation === 'add') newReps += value
+                else if (operation === 'set') newReps = value
             }
-        } else {
-            if (operation === 'add') newReps += value
-            else if (operation === 'set') newReps = value
+        } else if (entryStatus === 'missed') {
+            // SI C'EST 'MISSED', on vérifie aussi si une entrée 'missed' existe déjà aujourd'hui
+            const { data: existingMissed } = await supabase
+                .from('user_action_entries')
+                .select('id')
+                .eq('user_id', userId)
+                .eq('action_id', action.id)
+                .eq('status', 'missed')
+                .gte('performed_at', `${today}T00:00:00`)
+                .limit(1)
+
+            if (existingMissed && existingMissed.length > 0) {
+                 return `Je sais, c'est déjà noté comme raté pour aujourd'hui. T'inquiète pas. 📉`
+            }
         }
 
-        const { error } = await supabase
-            .from('user_actions')
-            .update({ 
-                current_reps: newReps,
-                last_performed_at: new Date().toISOString()
+        if (entryStatus === 'completed') {
+            const { error } = await supabase
+                .from('user_actions')
+                .update({ 
+                    current_reps: newReps,
+                    last_performed_at: new Date().toISOString()
+                })
+                .eq('id', action.id)
+            if (error) console.error("Tracking Update Error:", error)
+        }
+        
+        // Insert History Entry
+        await supabase
+            .from('user_action_entries')
+            .insert({
+                user_id: userId,
+                action_id: action.id,
+                action_title: action.title,
+                status: entryStatus,
+                value: value,
+                performed_at: new Date().toISOString()
             })
-            .eq('id', action.id)
 
-        if (error) {
-            console.error("Tracking Error:", error)
-            return "Oups, petit bug technique en notant ton action."
+        if (entryStatus === 'missed') {
+             return `C'est noté (Pas fait). 📉\nAction : ${action.title}`
         }
 
-        return `C'est noté ! ✅\nAction : **${action.title}**\nTotal : ${newReps}`
+        return `C'est noté ! ✅\nAction : ${action.title}\nTotal : ${newReps}`
     }
 
     // 2. Signes Vitaux
@@ -220,10 +261,11 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
                 recorded_at: new Date().toISOString()
             })
 
-        return `C'est enregistré. 📊\n**${sign.label}** : ${newValue} ${sign.unit || ''}`
+        return `C'est enregistré. 📊\n${sign.label} : ${newValue} ${sign.unit || ''}`
     }
 
-    return `Je ne trouve pas l'action ou le signe vital "**${target_name}**" dans ton plan actif.`
+        // SI NI ACTION NI VITAL TROUVÉ (Double check de sécurité si on arrive ici)
+    return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions ou Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`
 }
 
 async function handleUpdateAction(supabase: SupabaseClient, userId: string, planId: string, args: any): Promise<string> {
@@ -287,7 +329,7 @@ async function handleUpdateAction(supabase: SupabaseClient, userId: string, plan
 
     if (!actionFound) {
         console.warn(`[Architect] ⚠️ No action matched "${searchTerm}" in the plan.`)
-        return `Je ne trouve pas l'action "**${target_name}**" dans ton plan.`
+        return `Je ne trouve pas l'action "${target_name}" dans ton plan.`
     }
 
     // 3. Save JSON
@@ -337,7 +379,7 @@ async function handleUpdateAction(supabase: SupabaseClient, userId: string, plan
         }
     }
 
-    return `C'est modifié ! ✏️\nL'action **"${new_title || oldTitle}"** a été mise à jour.`
+    return `C'est modifié ! ✏️\nL'action "${new_title || oldTitle}" a été mise à jour.`
 }
 
 // --- FONCTION PRINCIPALE ---
@@ -347,6 +389,7 @@ export async function runArchitect(
   userId: string,
   message: string, 
   history: any[], 
+  userState: any,
   context: string = ""
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
@@ -361,6 +404,8 @@ export async function runArchitect(
     1. "create_simple_action" : CRÉER action simple. (Validation requise).
     2. "create_framework" : CRÉER exercice. (Validation requise).
     3. "track_progress" : VALIDER/TRACKER. (Pas de validation requise).
+       - Si l'utilisateur dit qu'il a FAIT une action : UTILISE "track_progress" avec status="completed".
+       - Si l'utilisateur dit qu'il n'a PAS FAIT une action ("Non pas encore", "J'ai raté") : UTILISE "track_progress" avec status="missed" et value=0.
     4. "update_action_structure" : MODIFIER une action existante (Nom, Description, Fréquence).
        - Utilise cet outil si l'utilisateur dit "Change le nom en...", "Mets la fréquence à 3".
        - Demande confirmation si le changement est drastique, sinon exécute.
@@ -368,9 +413,23 @@ export async function runArchitect(
     RÈGLE D'OR (CRÉATION/MODIF) :
     - Pour créer ou modifier la structure, assure-toi d'avoir l'accord de l'utilisateur.
     - Lors de la création, n'oublie PAS de définir le 'time_of_day' le plus pertinent (Matin, Soir, etc.).
+    - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut uniquement.
+    - Utilise 1 smiley (maximum 2) par message pour rendre le ton plus humain et moins "machine", mais reste pro.
+    - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
+    - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
+    - Ton but est de maintenir la conversation ouverte et engageante.
+    - GESTION DU BONJOUR : Regarde l'historique. Si la conversation a déjà commencé ou si l'utilisateur ne dit pas bonjour, NE DIS PAS BONJOUR. Attaque direct.
     
     CONTEXTE OPÉRATIONNEL :
     ${context ? `${context}\n(Utilise ces infos intelligemment)` : ""}
+    ${userState?.investigation_state ? `
+    ⚠️ ATTENTION : UN CHECKUP EST ACTUELLEMENT EN COURS (investigation_state actif).
+    L'utilisateur a peut-être fait une digression.
+    Ton objectif ABSOLU est de ramener l'utilisateur vers le checkup.
+    1. Réponds à sa remarque courtoisement mais brièvement.
+    2. Termine OBLIGATOIREMENT par une question de relance pour le checkup (ex: "On continue le bilan ?", "On passe à la suite ?").
+    Ne te lance pas dans une conversation longue. La priorité est de finir le checkup.
+    ` : ""}
   `
   
   const historyText = history.slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
@@ -383,13 +442,52 @@ export async function runArchitect(
     [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL]
   )
 
+  if (typeof response === 'string') {
+      // Nettoyage de sécurité pour virer les ** si l'IA a désobéi
+      return response.replace(/\*\*/g, '')
+  }
+
   if (typeof response === 'object') {
     console.log(`[Architect] 🛠️ Tool Call: ${response.tool}`)
     console.log(`[Architect] Args:`, JSON.stringify(response.args))
 
     // TRACKING (Pas besoin de plan)
     if (response.tool === 'track_progress') {
-        return await handleTracking(supabase, userId, response.args)
+        const trackingResult = await handleTracking(supabase, userId, response.args)
+
+        // Cas : Non trouvé dans le plan => Info pour agent
+        if (trackingResult.startsWith("INFO_POUR_AGENT")) {
+            const followUpPrompt = `
+              Tu as voulu noter une action ("${response.args.target_name}") mais le système te dit :
+              "${trackingResult}"
+              
+              RÉAGIS MAINTENANT :
+              - Félicite ou discute normalement de ce sujet.
+              - NE DIS PAS "C'est noté" ou "J'ai enregistré".
+              - Sois naturel, efficace et concis.
+            `
+            const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7)
+            return typeof followUpResponse === 'string' ? followUpResponse.replace(/\*\*/g, '') : "Ok, c'est noté !"
+        }
+
+        // Cas : Succès => On génère une confirmation naturelle
+        const confirmationPrompt = `
+          ACTION VALIDÉE : "${response.args.target_name}"
+          STATUT : ${response.args.status === 'missed' ? 'Raté / Pas fait' : 'Réussi / Fait'}
+          
+          CONTEXTE CONVERSATION (POUR ÉVITER LES RÉPÉTITIONS) :
+          Dernier message de l'utilisateur : "${message}"
+          
+          TA MISSION :
+          1. Confirme que c'est pris en compte (sans dire "C'est enregistré").
+          2. Enchaîne sur une question pour optimiser ou passer à la suite.
+          3. SI l'utilisateur a donné des détails (ex: "J'ai lu et c'était pas mal"), REBONDIS SUR CES DÉTAILS.
+          
+          Exemple (User dit "J'ai lu un super livre") : "Top pour la lecture ! C'était quoi le titre ?"
+          Exemple (User dit juste "Fait") : "C'est noté. On passe à la suite ?"
+        `
+        const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7)
+        return typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "C'est noté."
     }
 
     // OPERATIONS SUR LE PLAN (Besoin du plan actif)
@@ -443,10 +541,10 @@ export async function runArchitect(
       }
       
       const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
-      if (status === 'duplicate') return `Oula ! ✋\n\nL'action **"${title}"** existe déjà.`
+      if (status === 'duplicate') return `Oula ! ✋\n\nL'action "${title}" existe déjà.`
       if (status === 'error') return "Erreur technique lors de la mise à jour du plan visuel."
 
-      return `C'est validé ! ✅\n\nJ'ai ajouté l'action **"${title}"** à ton plan.\nOn s'y met quand ?`
+      return `C'est validé ! ✅\n\nJ'ai ajouté l'action "${title}" à ton plan.\nOn s'y met quand ?`
     }
 
     if (response.tool === 'create_framework') {
@@ -466,7 +564,7 @@ export async function runArchitect(
       }
 
       const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
-      if (status === 'duplicate') return `Doucement ! ✋\n\nL'exercice **"${title}"** est déjà là.`
+      if (status === 'duplicate') return `Doucement ! ✋\n\nL'exercice "${title}" est déjà là.`
       if (status === 'error') return "Erreur technique lors de l'intégration du framework."
 
       await supabase.from('user_actions').insert({
@@ -481,7 +579,7 @@ export async function runArchitect(
         time_of_day: time_of_day || 'any_time'
       })
 
-      return `C'est fait ! 🏗️\n\nJ'ai intégré le framework **"${title}"** directement dans ton plan interactif.\nTu devrais le voir apparaître dans tes actions du jour.`
+      return `C'est fait ! 🏗️\n\nJ'ai intégré le framework "${title}" directement dans ton plan interactif.\nTu devrais le voir apparaître dans tes actions du jour.`
     }
   }
 

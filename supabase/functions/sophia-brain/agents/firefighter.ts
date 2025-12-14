@@ -16,9 +16,10 @@ export async function runFirefighter(message: string, history: any[], context: s
     - Pas de politesse. De la présence pure.
 
     RÈGLES DE FORME :
-    - Pas de gras.
+    - Pas de gras (pas d'astérisques **).
     - Pas de pavés. Une phrase par ligne parfois.
-    - Jamais de "Salut".
+    - Jamais de "Salut", "Bonjour" ou de formules de politesse. On est dans l'action immédiate.
+    - Utilise 1 smiley calme (🌿, 🧘‍♀️, ✨) si ça peut apaiser, mais avec parcimonie.
 
     CONTEXTE CRISE :
     ${context ? `${context}\n(Cherche les déclencheurs ici)` : ""}
@@ -40,7 +41,7 @@ export async function runFirefighter(message: string, history: any[], context: s
     const jsonStr = await generateWithGemini(systemPrompt, `Historique:\n${historyText}\n\nUser: ${message}`, 0.3, true)
     const result = JSON.parse(jsonStr)
     return {
-      content: result.response,
+      content: result.response.replace(/\*\*/g, ''),
       crisisResolved: result.resolved
     }
   } catch (e) {

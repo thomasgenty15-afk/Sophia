@@ -4,22 +4,12 @@ import type { GeneratedPlan } from '../types/dashboard';
 /**
  * Marque comme "abandoned" toutes les actions et frameworks ACTIFS
  * qui ne font PAS partie du nouveau plan.
- * Utilisé pour clore proprement les anciennes transformations quand on en commence une nouvelle.
+ * Pour les Signes Vitaux, le statut dépend de la réussite du plan parent.
  */
 export const abandonPreviousActions = async (userId: string, excludePlanId: string) => {
   console.log("🏚️ Abandon des anciennes actions actives (sauf plan:", excludePlanId, ")...");
 
-  // 1. Diagnostic : Combien d'actions sont concernées ?
-  const { count } = await supabase
-      .from('user_actions')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .neq('plan_id', excludePlanId)
-      .in('status', ['active', 'pending']);
-  
-  console.log(`🔎 Diagnostic: ${count} anciennes actions à abandonner.`);
-
-  // On sépare pour mieux gérer les erreurs
+  // 1. Actions & Frameworks : On abandonne tout ce qui traîne (si active/pending)
   const updates = [
       supabase
           .from('user_actions')
@@ -33,21 +23,59 @@ export const abandonPreviousActions = async (userId: string, excludePlanId: stri
           .update({ status: 'abandoned' })
           .eq('user_id', userId)
           .neq('plan_id', excludePlanId)
-          .in('status', ['active', 'pending'])
+          .in('status', ['active', 'pending']),
   ];
 
-  const results = await Promise.all(updates);
-  
-  // Vérification des erreurs
-  const errors = results.filter(r => r.error).map(r => r.error);
-  if (errors.length > 0) {
-      console.error("❌ Erreur lors de l'abandon des anciennes actions :", errors);
-      // On ne throw pas forcément pour ne pas bloquer la création du nouveau plan, 
-      // mais on alerte.
-      // Si l'erreur est "check constraint", c'est que la migration manque.
-  } else {
-      console.log("✅ Anciennes actions abandonnées (ou aucune à abandonner).");
+  await Promise.all(updates);
+  console.log("✅ Actions et Frameworks orphelins marqués comme abandoned.");
+
+  // 2. Signes Vitaux : Logique Intelligente (Completed vs Abandoned)
+  // On récupère les signes vitaux encore actifs qui ne sont pas du nouveau plan
+  const { data: activeVitals, error } = await supabase
+      .from('user_vital_signs')
+      .select('id, plan_id')
+      .eq('user_id', userId)
+      .neq('plan_id', excludePlanId)
+      .in('status', ['active', 'pending']);
+
+  if (error) {
+      console.error("❌ Erreur fetch vital signs:", error);
+      return;
   }
+
+  if (!activeVitals || activeVitals.length === 0) {
+      console.log("✅ Aucun signe vital actif à traiter.");
+      return;
+  }
+
+  // On récupère les IDs des plans concernés pour connaître leur statut
+  const planIds = [...new Set(activeVitals.map(v => v.plan_id))];
+  const { data: plans } = await supabase
+      .from('user_plans')
+      .select('id, status')
+      .in('id', planIds);
+  
+  const planStatusMap = new Map();
+  plans?.forEach(p => planStatusMap.set(p.id, p.status));
+
+  // On prépare les updates
+  const vitalUpdates = activeVitals.map(vital => {
+      const parentPlanStatus = planStatusMap.get(vital.plan_id);
+      
+      // Si le plan est FINI (completed) -> Le signe vital est considéré comme VALIDÉ (completed)
+      // Si le plan est ARCHIVÉ (abandon/échec) -> Le signe vital est ABANDONNÉ (abandoned)
+      // Si le plan est encore ACTIVE (bug?) -> On force abandoned pour nettoyer
+      
+      const newStatus = parentPlanStatus === 'completed' ? 'completed' : 'abandoned';
+      
+      return supabase
+          .from('user_vital_signs')
+          .update({ status: newStatus })
+          .eq('id', vital.id);
+  });
+
+  await Promise.all(vitalUpdates);
+  console.log(`✅ ${vitalUpdates.length} signes vitaux mis à jour (Completed/Abandoned).`);
 };
 
 /**
@@ -92,6 +120,9 @@ export const distributePlanActions = async (
 
       // Extraction propre du tracking_type (avec fallback 'boolean' si absent)
       const trackingType = (action as any).tracking_type === 'counter' ? 'counter' : 'boolean';
+      
+      // Extraction propre du time_of_day (avec fallback 'any_time')
+      const timeOfDay = (action as any).time_of_day || 'any_time';
 
       // CAS 1: Frameworks (Table user_framework_tracking)
       if (action.type === 'framework') {
@@ -143,7 +174,8 @@ export const distributePlanActions = async (
           target_reps: targetReps,
           current_reps: 0,
           status: initialStatus,
-          tracking_type: trackingType // Ajout du tracking_type
+          tracking_type: trackingType, // Ajout du tracking_type
+          time_of_day: timeOfDay // Ajout du time_of_day
         });
       }
     });

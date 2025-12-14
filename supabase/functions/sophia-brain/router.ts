@@ -4,33 +4,10 @@ import { runSentry } from './agents/sentry.ts'
 import { runFirefighter } from './agents/firefighter.ts'
 import { runInvestigator } from './agents/investigator.ts'
 import { runArchitect } from './agents/architect.ts'
-import { runCompanion } from './agents/companion.ts'
+import { runCompanion, retrieveContext } from './agents/companion.ts'
 import { runAssistant } from './agents/assistant.ts'
 import { runWatcher } from './agents/watcher.ts'
-import { generateWithGemini, generateEmbedding } from '../_shared/gemini.ts'
-
-// RAG Helper
-async function retrieveContext(supabase: SupabaseClient, message: string): Promise<string> {
-  try {
-    const embedding = await generateEmbedding(message);
-    const { data: memories } = await supabase.rpc('match_memories', {
-      query_embedding: embedding,
-      match_threshold: 0.65, 
-      match_count: 5, // Increased from 3 to allow both insights and history
-      // filter_type: 'insight'  <-- REMOVED to allow 'chat_history' + 'insight'
-    });
-
-    if (!memories || memories.length === 0) return "";
-
-    return memories.map((m: any) => {
-      const dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('fr-FR') : 'Date inconnue';
-      return `[Souvenir (${m.source_type}) du ${dateStr}] : ${m.content}`;
-    }).join('\n\n');
-  } catch (err) {
-    console.error("Error retrieving context:", err);
-    return "";
-  }
-}
+import { generateWithGemini } from '../_shared/gemini.ts'
 
 // Classification intelligente par Gemini
 async function analyzeIntentAndRisk(message: string, currentState: any, lastAssistantMessage: string): Promise<{ targetMode: AgentMode, riskScore: number }> {
@@ -51,11 +28,18 @@ async function analyzeIntentAndRisk(message: string, currentState: any, lastAssi
     
     ÉTAT ACTUEL :
     Mode en cours : "${currentState.current_mode}"
+    Checkup en cours : ${currentState.investigation_state ? "OUI" : "NON"}
     Risque précédent : ${currentState.risk_level}
     
     RÈGLE DE STABILITÉ (CRITIQUE) :
-    Si le mode en cours est 'architect', RESTE en 'architect' sauf si c'est une URGENCE VITALE (Sentry).
-    Même si l'utilisateur râle ("ça marche pas", "je ne vois rien"), l'Architecte est le mieux placé pour réessayer. L'assistant technique ne sert à rien pour le contenu du plan.
+    1. Si un CHECKUP est en cours (investigation_state = OUI) :
+       - RESTE sur 'investigator' si l'utilisateur répond à la question, même s'il râle, se plaint du budget ou fait une remarque.
+       - L'investigateur doit finir son travail.
+       - Ne change de mode que si l'utilisateur demande EXPLICITEMENT d'arrêter ("Stop", "Je veux parler d'autre chose").
+    
+    2. Si le mode en cours est 'architect' :
+       - RESTE en 'architect' sauf si c'est une URGENCE VITALE (Sentry).
+       - Même si l'utilisateur râle ("ça marche pas", "je ne vois rien"), l'Architecte est le mieux placé pour réessayer. L'assistant technique ne sert à rien pour le contenu du plan.
     
     SORTIE JSON ATTENDUE :
     {
@@ -65,8 +49,8 @@ async function analyzeIntentAndRisk(message: string, currentState: any, lastAssi
   `
 
   try {
-    const jsonStr = await generateWithGemini(systemPrompt, message, 0.0, true)
-    return JSON.parse(jsonStr)
+    const response = await generateWithGemini(systemPrompt, message, 0.0, true)
+    return JSON.parse(response as string)
   } catch (e) {
     console.error("Erreur Dispatcher Gemini:", e)
     // Fallback de sécurité
@@ -155,17 +139,26 @@ export async function processMessage(
       if (ffResult.crisisResolved) nextMode = 'companion'
       break
     case 'investigator':
-      const invResult = await runInvestigator(supabase, userId, userMessage, history, state.investigation_state)
-      responseContent = invResult.content
-      if (invResult.investigationComplete) {
+      try {
+          console.log("[Router] Starting Investigator execution...")
+          const invResult = await runInvestigator(supabase, userId, userMessage, history, state.investigation_state)
+          console.log("[Router] Investigator result received:", invResult ? "OK" : "NULL")
+          
+          responseContent = invResult.content
+          if (invResult.investigationComplete) {
+              nextMode = 'companion'
+              await updateUserState(supabase, userId, { investigation_state: null })
+          } else {
+              await updateUserState(supabase, userId, { investigation_state: invResult.newState })
+          }
+      } catch (err) {
+          console.error("[Router] ❌ CRITICAL ERROR IN INVESTIGATOR:", err)
+          responseContent = "Désolée, j'ai eu un petit bug de cerveau pendant le bilan. On reprend ?"
           nextMode = 'companion'
-          await updateUserState(supabase, userId, { investigation_state: null })
-      } else {
-          await updateUserState(supabase, userId, { investigation_state: invResult.newState })
       }
       break
     case 'architect':
-      responseContent = await runArchitect(supabase, userId, userMessage, history, context)
+      responseContent = await runArchitect(supabase, userId, userMessage, history, state, context)
       break
     case 'assistant':
       responseContent = await runAssistant(userMessage)

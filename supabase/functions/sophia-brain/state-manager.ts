@@ -115,14 +115,15 @@ export async function getDashboardContext(supabase: SupabaseClient, userId: stri
   const today = new Date().toISOString().split('T')[0];
   const { data: actions } = await supabase
     .from('user_actions')
-    .select('text, status, due_date')
+    .select('title, status, time_of_day')
     .eq('user_id', userId)
-    .eq('due_date', today);
+    .in('status', ['active', 'pending']); 
 
   if (actions && actions.length > 0) {
-    context += `=== ACTIONS DU JOUR (${today}) ===\n`;
+    context += `=== ACTIONS ACTIVES DU PLAN ===\n`;
     actions.forEach(a => {
-        context += `- [${a.status === 'completed' ? 'X' : ' '}] ${a.text}\n`;
+        // Simple listing pour contexte global
+        context += `- ${a.title} (${a.time_of_day})\n`;
     });
     context += `\n`;
   }
@@ -130,16 +131,15 @@ export async function getDashboardContext(supabase: SupabaseClient, userId: stri
   // 3. VITAL SIGNS (Derniers relevés)
   // On récupère aussi le nom du vital sign via une jointure si possible, sinon on fera avec l'ID
   const { data: vitals } = await supabase
-    .from('user_vital_sign_entries')
-    .select('vital_id, value, created_at')
+    .from('user_vital_signs')
+    .select('label, current_value, unit')
     .eq('user_id', userId)
-    .order('created_at', { ascending: false })
-    .limit(5);
+    .eq('status', 'active');
 
   if (vitals && vitals.length > 0) {
-      context += `=== SIGNES VITAUX RÉCENTS ===\n`;
+      context += `=== SIGNES VITAUX (État Actuel) ===\n`;
       vitals.forEach(v => {
-          context += `- Vital ID ${v.vital_id}: ${v.value}/10\n`;
+          context += `- ${v.label}: ${v.current_value || '?'} ${v.unit || ''}\n`;
       });
   }
 

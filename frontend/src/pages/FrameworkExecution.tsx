@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { ArrowLeft, Save, CheckCircle2, HelpCircle, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, CheckCircle2, HelpCircle, Loader2, Plus, Trash2, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 
@@ -11,6 +11,7 @@ const FrameworkExecution = () => {
   const { action, planId, submissionId } = location.state || {};
 
   const [responses, setResponses] = useState<Record<string, any>>({});
+  const [tempInputs, setTempInputs] = useState<Record<string, any>>({});
   const [isSaving, setIsSaving] = useState(false);
 
   // Protection si accès direct sans state
@@ -99,48 +100,173 @@ const FrameworkExecution = () => {
 
         {/* FORMULAIRE */}
         <div className="space-y-4 min-[720px]:space-y-6">
-            {details.sections && details.sections.map((section: any, index: number) => (
-                <div key={section.id || index} className="bg-white rounded-2xl border border-slate-200 p-4 min-[330px]:p-5 shadow-sm">
-                    <label className="block text-sm min-[720px]:text-base font-bold text-slate-900 mb-2 min-[330px]:mb-3">
-                        {section.label}
-                    </label>
-                    
-                    {section.inputType === 'textarea' ? (
-                        <textarea
-                            value={responses[section.id] || ''}
-                            onChange={(e) => setResponses({...responses, [section.id]: e.target.value})}
-                            placeholder={section.placeholder}
-                            className="w-full p-3 min-[330px]:p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none min-h-[120px] min-[330px]:min-h-[150px] text-slate-700 transition-all resize-y text-sm min-[330px]:text-base"
-                        />
-                    ) : section.inputType === 'scale' ? (
-                        <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-x-auto">
-                            <div className="flex items-center justify-between gap-2 min-w-max">
-                                {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
-                                    <button
-                                        key={num}
-                                        onClick={() => setResponses({...responses, [section.id]: num})}
-                                        className={`w-8 h-8 min-[330px]:w-10 min-[330px]:h-10 rounded-lg font-bold text-xs min-[330px]:text-sm transition-all flex items-center justify-center ${
-                                            responses[section.id] === num 
-                                            ? 'bg-indigo-600 text-white shadow-md scale-110' 
-                                            : 'hover:bg-white text-slate-400'
-                                        }`}
-                                    >
-                                        {num}
-                                    </button>
-                                ))}
+            {details.sections && details.sections.map((section: any, index: number) => {
+                // Normalisation du type pour éviter les erreurs de casse ou d'espace
+                const inputType = (section.inputType || 'text').trim().toLowerCase();
+
+                return (
+                    <div key={section.id || index} className="bg-white rounded-2xl border border-slate-200 p-4 min-[330px]:p-5 shadow-sm">
+                        <label className="block text-sm min-[720px]:text-base font-bold text-slate-900 mb-2 min-[330px]:mb-3">
+                            {section.label}
+                        </label>
+                        
+                        {inputType === 'textarea' ? (
+                            <textarea
+                                value={responses[section.id] || ''}
+                                onChange={(e) => setResponses({...responses, [section.id]: e.target.value})}
+                                placeholder={section.placeholder}
+                                className="w-full p-3 min-[330px]:p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none min-h-[120px] min-[330px]:min-h-[150px] text-slate-700 transition-all resize-y text-sm min-[330px]:text-base"
+                            />
+                        ) : inputType === 'scale' ? (
+                            <div className="bg-slate-50 p-2 rounded-xl border border-slate-200 overflow-x-auto">
+                                <div className="flex items-center justify-between gap-2 min-w-max">
+                                    {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
+                                        <button
+                                            key={num}
+                                            onClick={() => setResponses({...responses, [section.id]: num})}
+                                            className={`w-8 h-8 min-[330px]:w-10 min-[330px]:h-10 rounded-lg font-bold text-xs min-[330px]:text-sm transition-all flex items-center justify-center ${
+                                                responses[section.id] === num 
+                                                ? 'bg-indigo-600 text-white shadow-md scale-110' 
+                                                : 'hover:bg-white text-slate-400'
+                                            }`}
+                                        >
+                                            {num}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    ) : (
-                        <input
-                            type="text"
-                            value={responses[section.id] || ''}
-                            onChange={(e) => setResponses({...responses, [section.id]: e.target.value})}
-                            placeholder={section.placeholder}
-                            className="w-full p-3 min-[330px]:p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 transition-all text-sm min-[330px]:text-base"
-                        />
-                    )}
-                </div>
-            ))}
+                        ) : inputType === 'list' ? (
+                            <div className="space-y-3">
+                                <div className="space-y-2">
+                                    {(responses[section.id] || []).map((item: string, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 group">
+                                            <span className="flex-1 text-slate-700 text-sm">{item}</span>
+                                            <button 
+                                                onClick={() => {
+                                                    const newList = [...(responses[section.id] || [])];
+                                                    newList.splice(idx, 1);
+                                                    setResponses({...responses, [section.id]: newList});
+                                                }}
+                                                className="text-slate-400 hover:text-red-500 opacity-100 min-[720px]:opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex gap-2">
+                                    <input
+                                        type="text"
+                                        value={tempInputs[section.id] || ''}
+                                        onChange={(e) => setTempInputs({...tempInputs, [section.id]: e.target.value})}
+                                        onKeyDown={(e) => {
+                                            if (e.key === 'Enter') {
+                                                e.preventDefault();
+                                                const val = tempInputs[section.id]?.trim();
+                                                if (val) {
+                                                    setResponses({...responses, [section.id]: [...(responses[section.id] || []), val]});
+                                                    setTempInputs({...tempInputs, [section.id]: ''});
+                                                }
+                                            }
+                                        }}
+                                        placeholder={section.placeholder || "Ajouter un élément..."}
+                                        className="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none text-sm"
+                                    />
+                                    <button
+                                        onClick={() => {
+                                            const val = tempInputs[section.id]?.trim();
+                                            if (val) {
+                                                setResponses({...responses, [section.id]: [...(responses[section.id] || []), val]});
+                                                setTempInputs({...tempInputs, [section.id]: ''});
+                                            }
+                                        }}
+                                        className="p-3 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700"
+                                    >
+                                        <Plus className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        ) : inputType === 'categorized_list' ? (
+                            <div className="space-y-3">
+                                <div className="space-y-2">
+                                    {(responses[section.id] || []).map((item: any, idx: number) => (
+                                        <div key={idx} className="flex items-center gap-2 bg-slate-50 p-3 rounded-xl border border-slate-200 group">
+                                            <div className="flex-1 flex flex-col min-[330px]:flex-row min-[330px]:items-center gap-1 min-[330px]:gap-3">
+                                                <span className="font-medium text-slate-800 text-sm">{item.text}</span>
+                                                {item.category && (
+                                                    <span className="text-xs px-2 py-1 bg-indigo-100 text-indigo-700 rounded-full w-fit font-medium">
+                                                        {item.category}
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <button 
+                                                onClick={() => {
+                                                    const newList = [...(responses[section.id] || [])];
+                                                    newList.splice(idx, 1);
+                                                    setResponses({...responses, [section.id]: newList});
+                                                }}
+                                                className="text-slate-400 hover:text-red-500 opacity-100 min-[720px]:opacity-0 group-hover:opacity-100 transition-opacity"
+                                            >
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    ))}
+                                </div>
+                                <div className="flex flex-col gap-2 p-3 bg-slate-50 rounded-xl border border-slate-200 border-dashed">
+                                    <div className="flex flex-col min-[330px]:flex-row gap-2">
+                                        <input
+                                            type="text"
+                                            value={tempInputs[`${section.id}_text`] || ''}
+                                            onChange={(e) => setTempInputs({...tempInputs, [`${section.id}_text`]: e.target.value})}
+                                            placeholder={section.placeholder?.split('|')[0] || "Tâche..."}
+                                            className="flex-[2] p-2 rounded-lg border border-slate-200 outline-none text-sm focus:border-indigo-500 bg-white"
+                                        />
+                                        <input
+                                            type="text"
+                                            value={tempInputs[`${section.id}_cat`] || ''}
+                                            onChange={(e) => setTempInputs({...tempInputs, [`${section.id}_cat`]: e.target.value})}
+                                            onKeyDown={(e) => {
+                                                if (e.key === 'Enter') {
+                                                    e.preventDefault();
+                                                    const text = tempInputs[`${section.id}_text`]?.trim();
+                                                    const cat = tempInputs[`${section.id}_cat`]?.trim();
+                                                    if (text) {
+                                                        setResponses({...responses, [section.id]: [...(responses[section.id] || []), { text, category: cat }]});
+                                                        setTempInputs({...tempInputs, [`${section.id}_text`]: '', [`${section.id}_cat`]: ''});
+                                                    }
+                                                }
+                                            }}
+                                            placeholder={section.placeholder?.split('|')[1] || "Catégorie..."}
+                                            className="flex-1 p-2 rounded-lg border border-slate-200 outline-none text-sm focus:border-indigo-500 bg-white"
+                                        />
+                                    </div>
+                                    <button
+                                        onClick={() => {
+                                            const text = tempInputs[`${section.id}_text`]?.trim();
+                                            const cat = tempInputs[`${section.id}_cat`]?.trim();
+                                            if (text) {
+                                                setResponses({...responses, [section.id]: [...(responses[section.id] || []), { text, category: cat }]});
+                                                setTempInputs({...tempInputs, [`${section.id}_text`]: '', [`${section.id}_cat`]: ''});
+                                            }
+                                        }}
+                                        className="w-full py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 text-sm font-medium flex items-center justify-center gap-2"
+                                    >
+                                        <Plus className="w-4 h-4" /> Ajouter à la liste
+                                    </button>
+                                </div>
+                            </div>
+                        ) : (
+                            <input
+                                type="text"
+                                value={responses[section.id] || ''}
+                                onChange={(e) => setResponses({...responses, [section.id]: e.target.value})}
+                                placeholder={section.placeholder}
+                                className="w-full p-3 min-[330px]:p-4 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 outline-none text-slate-700 transition-all text-sm min-[330px]:text-base"
+                            />
+                        )}
+                    </div>
+                );
+            })}
         </div>
 
         {/* ACTION BAR */}

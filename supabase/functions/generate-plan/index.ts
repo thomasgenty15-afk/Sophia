@@ -111,14 +111,19 @@ serve(async (req) => {
               - Tu es LIBRE de définir le nombre de phases nécessaire pour atteindre l'objectif.
               - Les titres des phases doivent être CRÉATIFS, PERSONNALISÉS et ÉVOCATEURS (Pas de "Phase 1", "Phase 2" générique).
               - Exemple de bons titres : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
-          2.  **Densité** : 1 à 3 actions par phase maximum :
+          2.  **Densité et Distribution (CRITIQUE)** :
+              - 1 à 3 actions par phase maximum.
+              - **RÈGLE DE RATIO GLOBALE** : Sur la totalité du plan, tu DOIS respecter cette distribution :
+                * 50% d'Habitudes ("habitude")
+                * 25% de Missions ("mission")
+                * 25% de Frameworks ("framework")
+                (Exemple : Pour 8 actions au total -> 4 Habitudes, 2 Missions, 2 Frameworks).
               - Au moins 1 "Quête Principale" ('main') par phase.
-              - **RÈGLE OBLIGATOIRE : Au moins une action de type "habitude" par phase.**
-              - Optionnel : 1 ou 2 "Quêtes Secondaires" ('side') pour soutenir.
           3.  **Types d'Actions** (CRITIQUE - STRICTES DÉFINITIONS) :
               - "habitude" (Groupe A) : Action RÉELLE et RÉPÉTITIVE (ex: "Faire 5min de cohérence cardiaque", "Rituel de relaxation", "Prendre ses compléments").
                 * ATTENTION : Les exercices de respiration, méditation ou visualisation SONT DES HABITUDES (car c'est une action à faire, pas forcément à écrire).
                 * A besoin de 'targetReps' (Combien de fois).
+                * CONTRAINTE STRICTE : 'targetReps' DOIT être compris entre 7 (minimum, 1/jour) et 14 (maximum, 2/jour). Pas moins de 7.
               - "mission" (Groupe B) : Action RÉELLE "One-shot" à cocher (ex: "Acheter des boules Quies", "Ranger le bureau").
               - "framework" (Groupe B - TYPE SPÉCIAL) : EXERCICE D'ÉCRITURE ou de SAISIE.
                 * L'utilisateur doit ÉCRIRE quelque chose dans l'interface.
@@ -275,12 +280,17 @@ serve(async (req) => {
               - Tu es LIBRE de définir le nombre de phases nécessaire pour atteindre l'objectif.
               - Les titres des phases doivent être CRÉATIFS, PERSONNALISÉS et ÉVOCATEURS (Pas de "Phase 1", "Phase 2" générique).
               - Exemple de bons titres : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
-          2.  **Densité** : 1 à 3 actions par phase maximum :
+          2.  **Densité et Distribution (CRITIQUE)** :
+              - 1 à 3 actions par phase maximum.
+              - **RÈGLE DE RATIO GLOBALE** : Sur la totalité du plan, tu DOIS respecter cette distribution :
+                * 50% d'Habitudes ("habitude")
+                * 25% de Missions ("mission")
+                * 25% de Frameworks ("framework")
+                (Exemple : Pour 8 actions au total -> 4 Habitudes, 2 Missions, 2 Frameworks).
               - Au moins 1 "Quête Principale" ('main') par phase.
-              - **RÈGLE OBLIGATOIRE : Au moins une action de type "habitude" par phase.**
-              - Optionnel : 1 ou 2 "Quêtes Secondaires" ('side') pour soutenir.
           3.  **Types d'Actions** :
               - "habitude" (Groupe A) : Action récurrente (ex: Couvre-feu digital). A besoin de 'targetReps'.
+                * CONTRAINTE STRICTE : 'targetReps' DOIT être compris entre 7 (minimum, 1/jour) et 14 (maximum, 2/jour). Pas moins de 7.
               - "mission" (Groupe B) : Action logistique "One-shot" à cocher (ex: Acheter des boules Quies).
               - "framework" (Groupe B - TYPE SPÉCIAL) : C'est un EXERCICE D'ÉCRITURE ou de RÉFLEXION que l'utilisateur doit remplir DANS L'INTERFACE.
                 **IMPORTANT** : 
@@ -291,8 +301,13 @@ serve(async (req) => {
                 - "sections": Array de champs à remplir. Chaque champ doit avoir : 
                     - "id": string unique
                     - "label": string (La question posée)
-                    - "inputType": "text" (court), "textarea" (long), "scale" (1-10)
-                    - "placeholder": (Exemple de réponse ou début de phrase)
+                    - "inputType": Choisir le plus adapté :
+                        * "text" (Réponse courte unique)
+                        * "textarea" (Réflexion longue, Journaling)
+                        * "scale" (Note de 1 à 10)
+                        * "list" (Liste à puces dynamique - Pour accumuler plusieurs éléments)
+                        * "categorized_list" (Liste structurée Tâche + Catégorie - ex: Matrice Eisenhower, Inventaire)
+                    - "placeholder": (Exemple de réponse ou début de phrase. Pour categorized_list: "Tâche...|Catégorie...")
               
           4.  **Actions Spéciales** :
               - "constat" (Groupe C) : Le KPI "Signe Vital" OBLIGATOIRE (métrique chiffrée à suivre).

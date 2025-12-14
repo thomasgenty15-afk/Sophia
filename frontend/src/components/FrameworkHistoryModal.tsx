@@ -77,6 +77,43 @@ const FrameworkHistoryModal: React.FC<FrameworkHistoryModalProps> = ({ framework
     }).format(new Date(dateStr));
   };
 
+  const renderValue = (val: any) => {
+    if (!val) return <span className="text-slate-400 italic">Non répondu</span>;
+    
+    // Check if array
+    if (Array.isArray(val)) {
+        if (val.length === 0) return <span className="text-slate-400 italic">Vide</span>;
+        
+        // Check if array of objects (Categorized List)
+        if (typeof val[0] === 'object' && val[0] !== null) {
+            return (
+                <ul className="space-y-2">
+                    {val.map((item: any, idx: number) => (
+                        <li key={idx} className="flex flex-wrap gap-2 items-center">
+                            <span className="font-medium text-slate-800">• {item.text || JSON.stringify(item)}</span>
+                            {item.category && (
+                                <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full font-medium">{item.category}</span>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            );
+        }
+        
+        // Simple list
+        return (
+            <ul className="list-disc list-inside space-y-1">
+                {val.map((item: any, idx: number) => (
+                    <li key={idx}>{String(item)}</li>
+                ))}
+            </ul>
+        );
+    }
+    
+    // Default
+    return String(val);
+  };
+
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] flex items-center justify-center p-4 animate-fade-in">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col overflow-hidden animate-fade-in-up border border-slate-200">
@@ -138,7 +175,7 @@ const FrameworkHistoryModal: React.FC<FrameworkHistoryModalProps> = ({ framework
                                      <div key={section.id} className="border-b border-slate-50 pb-4 last:border-0 last:pb-0">
                                          <h5 className="text-sm font-bold text-slate-900 mb-2 block">{section.label}</h5>
                                          <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-slate-700 text-sm whitespace-pre-wrap shadow-sm">
-                                             {val ? String(val) : <span className="text-slate-400 italic">Non répondu</span>}
+                                             {renderValue(val)}
                                          </div>
                                      </div>
                                  );

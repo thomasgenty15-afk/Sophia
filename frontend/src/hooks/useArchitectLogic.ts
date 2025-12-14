@@ -1,0 +1,141 @@
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+
+export const useArchitectLogic = (
+  user: any,
+  weekNumber: string,
+  answers: Record<string, string>,
+  setInitialAnswers: (answers: Record<string, string>) => void,
+  setLastSavedAt: (date: Date) => void
+) => {
+  const navigate = useNavigate();
+  const [isSaving, setIsSaving] = useState(false);
+  
+  // AI State
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const [showAiPanel, setShowAiPanel] = useState(false);
+
+  // --- 1. SAUVEGARDE ---
+  const handleSave = async (silent = false) => {
+    if (!user) return;
+    if (!silent) setIsSaving(true);
+
+    try {
+        const timestamp = new Date().toISOString();
+        const moduleId = `week_${weekNumber}`;
+
+        // 1. Sauvegarde Granulaire (Entries)
+        const entries = Object.entries(answers).map(([key, value]) => ({
+            user_id: user.id,
+            module_id: key, 
+            parent_module_id: moduleId,
+            content: { answer: value },
+            updated_at: timestamp
+        }));
+
+        if (entries.length > 0) {
+            const { error } = await supabase
+                .from('user_module_state_entries')
+                .upsert(entries, { onConflict: 'user_id, module_id' });
+            
+            if (error) throw error;
+        }
+
+        // 2. Sauvegarde Meta (Module State) -> Avancement
+        // On considère le module "started" s'il y a au moins une réponse
+        // On ne le marque "completed" que si on clique sur "Terminer" (voir handleNext)
+        await supabase
+            .from('user_week_states')
+            .upsert({
+                user_id: user.id,
+                week_id: weekNumber,
+                status: 'active', // Reste active tant qu'on edite
+                last_updated_at: timestamp
+            }, { onConflict: 'user_id, week_id' });
+
+        setInitialAnswers({ ...answers });
+        setLastSavedAt(new Date());
+
+    } catch (err) {
+        console.error("Erreur sauvegarde:", err);
+        if (!silent) alert("Erreur lors de la sauvegarde.");
+    } finally {
+        if (!silent) setIsSaving(false);
+    }
+  };
+
+  // --- 2. IA (SOPHIA) ---
+  const handleAskSophia = async (currentQuestionText: string, currentAnswer: string, setAnswer: (val: string) => void) => {
+    if (!aiPrompt.trim()) return;
+    setIsAiLoading(true);
+
+    try {
+        const { data, error } = await supabase.functions.invoke('sophia-brain', {
+            body: {
+                mode: 'architect_help',
+                context: {
+                    question: currentQuestionText,
+                    currentAnswer: currentAnswer,
+                    userPrompt: aiPrompt
+                }
+            }
+        });
+
+        if (error) throw error;
+
+        if (data?.suggestion) {
+            setAnswer(data.suggestion);
+            setShowAiPanel(false);
+            setAiPrompt('');
+        }
+    } catch (err) {
+        console.error("Erreur Sophia:", err);
+        alert("Sophia est indisponible.");
+    } finally {
+        setIsAiLoading(false);
+    }
+  };
+
+  // --- 3. NAVIGATION (NEXT) ---
+  const handleNext = async () => {
+      // 1. Sauvegarder
+      await handleSave(true);
+
+      // 2. Marquer comme terminé (Optionnel, ou juste avancer)
+      // Pour l'instant on marque le module comme "completed" si on est à la fin ?
+      // Non, on laisse 'active'. On marque 'completed' seulement si on passe à la semaine suivante.
+      
+      const nextWeekNum = parseInt(weekNumber) + 1;
+      
+      // Si on est à la semaine 12, on retourne au dashboard
+      if (nextWeekNum > 12) {
+          navigate('/dashboard');
+          return;
+      }
+
+      // Sinon on navigue vers la semaine suivante
+      navigate(`/architecte/${nextWeekNum}`);
+  };
+
+  const handleBackToDashboard = async () => {
+      await handleSave(true);
+      navigate('/dashboard', { state: { mode: 'architecte' } });
+  };
+
+  return {
+    isSaving,
+    handleSave,
+    handleNext,
+    handleBackToDashboard,
+    // AI
+    aiPrompt,
+    setAiPrompt,
+    isAiLoading,
+    showAiPanel,
+    setShowAiPanel,
+    handleAskSophia
+  };
+};
+

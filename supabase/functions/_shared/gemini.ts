@@ -3,7 +3,8 @@ export async function generateWithGemini(
   userMessage: string, 
   temperature: number = 0.7,
   jsonMode: boolean = false,
-  tools: any[] = []
+  tools: any[] = [],
+  toolChoice: string = "auto" // 'auto', 'any' or specific tool name (not supported by all models but 'any' forces tool use)
 ): Promise<string | { tool: string, args: any }> {
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
   if (!GEMINI_API_KEY) {
@@ -28,12 +29,24 @@ export async function generateWithGemini(
 
   if (tools && tools.length > 0) {
     payload.tools = [{ function_declarations: tools }];
+    
+    // Support for tool_config to force tool use
+    if (toolChoice !== "auto") {
+         payload.toolConfig = {
+            functionCallingConfig: {
+                mode: toolChoice === "any" ? "ANY" : "AUTO" 
+                // Note: Gemini doesn't fully support specific tool name forcing in this API version easily, 
+                // but "ANY" forces *some* tool to be called.
+            }
+        }
+    }
   }
 
   const response = await fetch(url, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(payload)
+    // ... rest of function
   })
 
   if (!response.ok) {
@@ -44,6 +57,9 @@ export async function generateWithGemini(
 
   const data = await response.json()
   const parts = data.candidates?.[0]?.content?.parts || []
+
+  // LOG DEBUG : Afficher la réponse brute de Gemini pour comprendre pourquoi il ne voit pas l'outil
+  console.log("DEBUG GEMINI RAW PARTS:", JSON.stringify(parts, null, 2))
   
   // 1. Priorité absolue aux outils : On cherche SI n'importe quelle partie est un appel d'outil
   const toolCallPart = parts.find((p: any) => p.functionCall)

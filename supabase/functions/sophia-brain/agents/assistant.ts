@@ -17,8 +17,10 @@ export async function runAssistant(message: string): Promise<string> {
     STYLE :
     - Court, efficace, solution. Pas de blabla "Bonjour je suis...".
     - RÈGLE SALUTATIONS (STRICTE) : Ne dis JAMAIS "Salut" ou "Bonjour". Rentre directement dans la solution technique.
+    - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
   `
   
-  return await generateWithGemini(systemPrompt, message)
+  const response = await generateWithGemini(systemPrompt, message)
+  return typeof response === 'string' ? response.replace(/\*\*/g, '') : response
 }
 

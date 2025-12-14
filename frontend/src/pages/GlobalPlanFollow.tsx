@@ -722,6 +722,15 @@ const GlobalPlanFollow = () => {
 
                       // 3. CRÉATION DES USER_GOALS AVEC LE SUBMISSION_ID
                       console.log("🎯 Création des user_goals avec submission_id...");
+                      
+                      // D'abord on nettoie les anciens objectifs sur ces axes (car la contrainte unique bloquerait l'insert)
+                      const axisIdsToCheck = data.map((d: any) => d.id);
+                      if (axisIdsToCheck.length > 0) {
+                          await supabase.from('user_goals').delete()
+                              .eq('user_id', user.id)
+                              .in('axis_id', axisIdsToCheck);
+                      }
+
                       const initialGoals = data.map((item: any, index: number) => ({
                           user_id: user.id,
                           axis_id: item.id,
@@ -734,6 +743,7 @@ const GlobalPlanFollow = () => {
                           reasoning: null
                       }));
 
+                      // Là on peut faire un INSERT propre car la place est libre
                       await supabase.from('user_goals').insert(initialGoals);
 
                   } catch (e) {

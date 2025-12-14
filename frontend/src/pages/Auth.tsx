@@ -93,6 +93,43 @@ const Auth = () => {
         }
         
         if (data.user) {
+            // --- BACKFILL DES RÉPONSES POUR LE NOUVEAU COMPTE ---
+            if (isRegistrationFlow && planData?.fullAnswers) {
+                try {
+                    console.log("💾 Sauvegarde des réponses Invité pour le nouveau compte...");
+                    
+                    // On vérifie si on a le payload complet (nouveau format) ou partiel
+                    const answersPayload = planData.fullAnswers;
+                    const submissionId = planData.submissionId || crypto.randomUUID();
+                    
+                    // On adapte le contenu pour qu'il soit compatible (structured_data vs ui_state)
+                    // Si fullAnswers contient déjà la structure, on l'utilise, sinon on l'enrobe
+                    const contentToSave = answersPayload.ui_state ? answersPayload : {
+                        structured_data: answersPayload,
+                        ui_state: {},
+                        last_updated: new Date().toISOString()
+                    };
+
+                    const { error: answersError } = await supabase.from('user_answers').insert({
+                        user_id: data.user.id,
+                        questionnaire_type: 'onboarding',
+                        submission_id: submissionId,
+                        content: contentToSave,
+                        status: 'completed', // On considère le questionnaire fini puisqu'on est là
+                        sorting_attempts: 1
+                    });
+
+                    if (answersError) {
+                        console.error("Erreur sauvegarde réponses post-inscription:", answersError);
+                        // On ne bloque pas le flux, le fallback state prendra le relais, mais c'est noté
+                    } else {
+                        console.log("✅ Réponses sauvegardées avec succès pour", data.user.id);
+                    }
+                } catch (backfillErr) {
+                    console.error("Erreur backfill:", backfillErr);
+                }
+            }
+
             if (isRegistrationFlow) {
                 // Flow Standard : Génération après questionnaire
                 navigate('/plan-generator', { state: planData });
