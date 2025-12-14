@@ -33,15 +33,18 @@ async function retrieveContext(supabase: SupabaseClient, message: string): Promi
 }
 
 // Classification intelligente par Gemini
-async function analyzeIntentAndRisk(message: string, currentState: any): Promise<{ targetMode: AgentMode, riskScore: number }> {
+async function analyzeIntentAndRisk(message: string, currentState: any, lastAssistantMessage: string): Promise<{ targetMode: AgentMode, riskScore: number }> {
   const systemPrompt = `
     Tu es le "Chef de Gare" (Dispatcher) du système Sophia.
     Ton rôle est d'analyser le message de l'utilisateur pour décider QUEL AGENT doit répondre.
     
+    DERNIER MESSAGE DE L'ASSISTANT (Contexte) :
+    "${lastAssistantMessage.substring(0, 200)}..."
+    
     LES AGENTS DISPONIBLES :
     1. sentry (DANGER VITAL) : Suicide, automutilation, violence immédiate. PRIORITÉ ABSOLUE.
     2. firefighter (URGENCE ÉMOTIONNELLE) : Panique, angoisse, craving fort, pleurs.
-    3. investigator (DATA & BILAN) : L'utilisateur veut faire son bilan ("Check du soir", "Bilan"), donne des chiffres (cigarettes, sommeil) ou dit "J'ai fait mon sport".
+    3. investigator (DATA & BILAN) : L'utilisateur veut faire son bilan ("Check du soir", "Bilan"), donne des chiffres (cigarettes, sommeil), dit "J'ai fait mon sport", OU répond "Oui" à une invitation au bilan.
     4. architect (DEEP WORK & AIDE MODULE) : L'utilisateur parle de ses Valeurs, Vision, Identité, ou demande de l'aide pour un exercice. C'est AUSSI lui qui gère la création/modification du plan.
     5. assistant (TECHNIQUE PUR) : BUGS DE L'APPLICATION (Crash, écran blanc, login impossible). ATTENTION : Si l'utilisateur dit "Tu n'as pas créé l'action" ou "Je ne vois pas le changement", C'EST ENCORE DU RESSORT DE L'ARCHITECTE. Ne passe à 'assistant' que si l'app est cassée techniquement.
     6. companion (DÉFAUT) : Tout le reste. Discussion, "Salut", "Ça va", partage de journée.
@@ -96,7 +99,10 @@ export async function processMessage(
   // ---------------------------------
 
   // 3. Analyse du Chef de Gare (Dispatcher)
-  const { targetMode, riskScore } = await analyzeIntentAndRisk(userMessage, state)
+  // On récupère le dernier message de l'assistant pour le contexte
+  const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
+  
+  const { targetMode, riskScore } = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage)
 
   // 4. Mise à jour du risque si nécessaire
   if (riskScore !== state.risk_level) {

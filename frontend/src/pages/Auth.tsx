@@ -8,6 +8,7 @@ import {
   Sparkles, 
   ShieldCheck, 
   User,
+  Phone,
   AlertCircle,
   Loader2
 } from 'lucide-react';
@@ -27,6 +28,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
   const [confirmationPending, setConfirmationPending] = useState(false); // Nouvel état
   const [isResettingPassword, setIsResettingPassword] = useState(false); // Pour la demande de reset MDP
 
@@ -61,11 +63,19 @@ const Auth = () => {
     try {
       if (isSignUp) {
         // --- INSCRIPTION ---
+        // Basic phone validation (optional but recommended)
+        if (!phone) {
+             throw new Error("Le numéro de téléphone est requis pour Sophia.");
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
-            data: { full_name: name } // Stocker le nom dans les métadonnées
+            data: { 
+                full_name: name,
+                phone: phone // Stocker le téléphone dans les métadonnées
+            } 
           }
         });
 
@@ -243,26 +253,69 @@ const Auth = () => {
             
             {/* Champ NOM (Seulement si Inscription) */}
             {isSignUp && (
-              <div>
-                <label className="block text-sm font-bold text-slate-700 mb-1">
-                  Prénom
-                </label>
-                <div className="relative">
-                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                    <User className="h-5 w-5 text-slate-400" />
+              <>
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">
+                    Prénom
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <User className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="text"
+                      required={isSignUp}
+                      value={name}
+                      onChange={(e) => setName(e.target.value)}
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
+                      placeholder="Votre prénom"
+                    />
                   </div>
-                  <input
-                    type="text"
-                    required={isSignUp}
-                    value={name}
-                    onChange={(e) => setName(e.target.value)}
-                    className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                    placeholder="Votre prénom"
-                  />
                 </div>
-              </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">
+                    Adresse Email
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Mail className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="email"
+                      required
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
+                      placeholder="vous@exemple.com"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-bold text-slate-700 mb-1">
+                    Numéro WhatsApp
+                  </label>
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <Phone className="h-5 w-5 text-slate-400" />
+                    </div>
+                    <input
+                      type="tel"
+                      required={isSignUp}
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
+                      placeholder="+33 6 12 34 56 78"
+                    />
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">Pour que Sophia puisse vous contacter.</p>
+                </div>
+              </>
             )}
 
+            {/* Pour le Login, on affiche juste l'email (sans les champs d'inscription) */}
+            {!isSignUp && (
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
                 Adresse Email
@@ -281,6 +334,7 @@ const Auth = () => {
                 />
               </div>
             </div>
+            )}
 
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
