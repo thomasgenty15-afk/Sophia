@@ -212,10 +212,10 @@ serve(async (req) => {
       .map(item => item.payload);
 
     if (weekPayloads.length > 0) {
-      await supabaseClient.from('user_week_states').upsert(weekPayloads, { onConflict: 'user_id, module_id' });
+      await supabaseClient.from('user_week_states').upsert(weekPayloads, { onConflict: 'user_id,module_id' });
     }
     if (modulePayloads.length > 0) {
-      await supabaseClient.from('user_module_state_entries').upsert(modulePayloads, { onConflict: 'user_id, module_id' });
+      await supabaseClient.from('user_module_state_entries').upsert(modulePayloads, { onConflict: 'user_id,module_id' });
     }
   }
 

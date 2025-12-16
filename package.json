@@ -6,7 +6,8 @@
     "db:start": "npx supabase start",
     "db:stop": "npx supabase stop",
     "db:reset": "npx supabase db reset",
-    "db:dump": "npx supabase db dump --local > schema.sql"
+    "db:dump": "npx supabase db dump --local > schema.sql",
+    "test:mega": "node ./scripts/mega-test.mjs"
   },
   "devDependencies": {
     "supabase": "^1.115.4"

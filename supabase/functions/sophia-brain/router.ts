@@ -8,10 +8,27 @@ import { runCompanion, retrieveContext } from './agents/companion.ts'
 import { runAssistant } from './agents/assistant.ts'
 import { runWatcher } from './agents/watcher.ts'
 import { generateWithGemini } from '../_shared/gemini.ts'
+import { appendPromptOverride, fetchPromptOverride } from '../_shared/prompt-overrides.ts'
 
 // Classification intelligente par Gemini
-async function analyzeIntentAndRisk(message: string, currentState: any, lastAssistantMessage: string): Promise<{ targetMode: AgentMode, riskScore: number }> {
-  const systemPrompt = `
+async function analyzeIntentAndRisk(
+  message: string,
+  currentState: any,
+  lastAssistantMessage: string,
+  meta?: { requestId?: string; forceRealAi?: boolean }
+): Promise<{ targetMode: AgentMode, riskScore: number }> {
+  // Deterministic test mode: avoid LLM dependency and avoid writing invalid risk levels.
+  if ((Deno.env.get("MEGA_TEST_MODE") ?? "").trim() === "1" && !meta?.forceRealAi) {
+    const m = (message ?? "").toString().toLowerCase();
+    // If an investigation is already active, ALWAYS keep investigator unless explicit stop.
+    const hasStop = /\b(stop|arr[êe]te|on arr[êe]te|pause)\b/i.test(message ?? "");
+    if (currentState?.investigation_state && !hasStop) return { targetMode: "investigator", riskScore: 0 };
+    // Trigger investigator on common checkup intents.
+    if (/\b(check|checkup|bilan)\b/i.test(m)) return { targetMode: "investigator", riskScore: 0 };
+    return { targetMode: "companion", riskScore: 0 };
+  }
+
+  const basePrompt = `
     Tu es le "Chef de Gare" (Dispatcher) du système Sophia.
     Ton rôle est d'analyser le message de l'utilisateur pour décider QUEL AGENT doit répondre.
     
@@ -47,9 +64,15 @@ async function analyzeIntentAndRisk(message: string, currentState: any, lastAssi
       "riskScore": (0 = calme, 10 = danger vital)
     }
   `
+  const override = await fetchPromptOverride("sophia.dispatcher")
+  const systemPrompt = appendPromptOverride(basePrompt, override)
 
   try {
-    const response = await generateWithGemini(systemPrompt, message, 0.0, true)
+    const response = await generateWithGemini(systemPrompt, message, 0.0, true, [], "auto", {
+      requestId: meta?.requestId,
+      model: "gemini-2.0-flash",
+      source: "sophia-brain:dispatcher",
+    })
     return JSON.parse(response as string)
   } catch (e) {
     console.error("Erreur Dispatcher Gemini:", e)
@@ -62,7 +85,8 @@ export async function processMessage(
   supabase: SupabaseClient, 
   userId: string, 
   userMessage: string,
-  history: any[]
+  history: any[],
+  meta?: { requestId?: string; forceRealAi?: boolean }
 ) {
   // 1. Log le message user
   await logMessage(supabase, userId, 'user', userMessage)
@@ -76,7 +100,7 @@ export async function processMessage(
 
   if (msgCount >= 15) {
       // Trigger watcher analysis
-      await runWatcher(supabase, userId, lastProcessed)
+      await runWatcher(supabase, userId, lastProcessed, meta)
       msgCount = 0
       lastProcessed = new Date().toISOString()
   }
@@ -86,7 +110,7 @@ export async function processMessage(
   // On récupère le dernier message de l'assistant pour le contexte
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
   
-  const { targetMode, riskScore } = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage)
+  const { targetMode, riskScore } = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage, meta)
 
   // 4. Mise à jour du risque si nécessaire
   if (riskScore !== state.risk_level) {
@@ -134,14 +158,14 @@ export async function processMessage(
       responseContent = await runSentry(userMessage)
       break
     case 'firefighter':
-      const ffResult = await runFirefighter(userMessage, history, context)
+      const ffResult = await runFirefighter(userMessage, history, context, meta)
       responseContent = ffResult.content
       if (ffResult.crisisResolved) nextMode = 'companion'
       break
     case 'investigator':
       try {
           console.log("[Router] Starting Investigator execution...")
-          const invResult = await runInvestigator(supabase, userId, userMessage, history, state.investigation_state)
+          const invResult = await runInvestigator(supabase, userId, userMessage, history, state.investigation_state, meta)
           console.log("[Router] Investigator result received:", invResult ? "OK" : "NULL")
           
           responseContent = invResult.content
@@ -158,15 +182,15 @@ export async function processMessage(
       }
       break
     case 'architect':
-      responseContent = await runArchitect(supabase, userId, userMessage, history, state, context)
+      responseContent = await runArchitect(supabase, userId, userMessage, history, state, context, meta)
       break
     case 'assistant':
-      responseContent = await runAssistant(userMessage)
+      responseContent = await runAssistant(userMessage, meta)
       nextMode = 'companion' 
       break
     case 'companion':
     default:
-      responseContent = await runCompanion(supabase, userId, userMessage, history, state, context)
+      responseContent = await runCompanion(supabase, userId, userMessage, history, state, context, meta)
       break
   }
 

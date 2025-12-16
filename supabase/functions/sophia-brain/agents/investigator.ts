@@ -1,6 +1,7 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { retrieveContext } from './companion.ts' // Import retrieveContext to use RAG
+import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 // --- OUTILS ---
 
@@ -341,6 +342,11 @@ async function logItem(supabase: SupabaseClient, userId: string, args: any): Pro
     return "Logged"
 }
 
+// Exposed for deterministic tool testing (DB writes). This does not change runtime behavior.
+export async function megaTestLogItem(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
+    return await logItem(supabase, userId, args)
+}
+
 // --- MAIN FUNCTION ---
 
 export async function runInvestigator(
@@ -348,7 +354,8 @@ export async function runInvestigator(
   userId: string, 
   message: string, 
   history: any[],
-  state: any
+  state: any,
+  meta?: { requestId?: string }
 ): Promise<{ content: string, investigationComplete: boolean, newState: any }> {
 
   // 1. INIT STATE
@@ -406,7 +413,7 @@ export async function runInvestigator(
 
   // 4. GENERATE RESPONSE / TOOL CALL
   
-  const systemPrompt = `
+  const basePrompt = `
     Tu es Sophia (Mode : Investigateur / Bilan).
     Ton but : Faire le point sur les actions du jour avec l'utilisateur.
     Ton ton : Bienveillant, curieux, jamais dans le jugement, mais précis.
@@ -457,6 +464,8 @@ export async function runInvestigator(
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
     - Utilise 1 smiley (maximum 2) par message pour être sympa mais focus.
   `
+  const override = await fetchPromptOverride("sophia.investigator")
+  const systemPrompt = appendPromptOverride(basePrompt, override)
 
   console.log(`[Investigator] Generating response for item: ${currentItem.title}`)
 
@@ -466,7 +475,12 @@ export async function runInvestigator(
     0.3, 
     false,
     [LOG_ACTION_TOOL],
-    "auto"
+    "auto",
+    {
+      requestId: meta?.requestId,
+      model: "gemini-2.0-flash",
+      source: "sophia-brain:investigator",
+    }
   )
 
   if (typeof response === 'string') {
@@ -512,7 +526,11 @@ export async function runInvestigator(
             INTERDICTION ABSOLUE DE DIRE "BONJOUR", "SALUT", "HELLO". Enchaîne direct sur la question suivante.
             Exemple : "C'est noté. Et pour X ?"
           `
-          let transitionText = await generateWithGemini(transitionPrompt, "Transitionne.", 0.7)
+          let transitionText = await generateWithGemini(transitionPrompt, "Transitionne.", 0.7, false, [], "auto", {
+            requestId: meta?.requestId,
+            model: "gemini-2.0-flash",
+            source: "sophia-brain:investigator_transition",
+          })
           
           if (typeof transitionText === 'string') {
               transitionText = transitionText.replace(/\*\*/g, '')

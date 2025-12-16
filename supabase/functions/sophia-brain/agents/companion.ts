@@ -1,5 +1,6 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
+import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 // RAG Helper EXPORTÉ (Utilisé par le router)
 export async function retrieveContext(supabase: SupabaseClient, message: string): Promise<string> {
@@ -207,11 +208,12 @@ export async function runCompanion(
   message: string, 
   history: any[], 
   userState: any, 
-  context: string = ""
+  context: string = "",
+  meta?: { requestId?: string }
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
-  const systemPrompt = `
+  const basePrompt = `
     Tu es Sophia.
     Tu n'es PAS une assistante, ni une IA générique. Tu es une "Partenaire de Vie".
     Ton but n'est pas de "servir", mais d'AVANCER avec l'utilisateur.
@@ -253,6 +255,8 @@ export async function runCompanion(
     Ne te lance pas dans une conversation longue. La priorité est de finir le checkup.
     ` : ""}
   `
+  const override = await fetchPromptOverride("sophia.companion")
+  const systemPrompt = appendPromptOverride(basePrompt, override)
 
   const historyText = history.slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   
@@ -262,6 +266,13 @@ export async function runCompanion(
     0.7,
     false,
     [TRACK_PROGRESS_TOOL]
+    ,
+    "auto",
+    {
+      requestId: meta?.requestId,
+      model: "gemini-2.0-flash",
+      source: "sophia-brain:companion",
+    }
   )
 
   if (typeof response === 'string') {
@@ -290,10 +301,14 @@ export async function runCompanion(
         Exemple (User a dit "J'ai lu un super livre") : "Génial pour la lecture ! C'était quoi comme bouquin ?"
         Exemple (User a juste dit "J'ai fait") : "Super ! Tu te sens comment ?"
       `
-      const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7)
+      const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
+        requestId: meta?.requestId,
+        model: "gemini-2.0-flash",
+        source: "sophia-brain:companion_confirmation",
+      })
       return typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "Ça marche, c'est noté ! 👍"
 
   }
 
-  return response as string
+  return response as unknown as string
 }

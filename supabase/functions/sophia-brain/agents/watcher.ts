@@ -1,11 +1,13 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { getUserState, updateUserState } from '../state-manager.ts' // Need access to state
+import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 export async function runWatcher(
   supabase: SupabaseClient, 
   userId: string, 
-  lastProcessedAt: string
+  lastProcessedAt: string,
+  meta?: { requestId?: string }
 ) {
   console.log(`[Veilleur] Triggered for user ${userId}`)
 
@@ -30,8 +32,57 @@ export async function runWatcher(
   const batch = messages.slice(-50) // Safe upper limit
   const transcript = batch.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')
 
+  // Deterministic mode (MEGA): ensure this pipeline actually writes DB rows (so we can test it).
+  const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
+  const isLocalSupabase =
+    (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+    (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000");
+  const megaEnabled = megaRaw === "1" || (megaRaw === "" && isLocalSupabase);
+
+  if (megaEnabled) {
+    const insights = [
+      `MEGA_TEST_STUB: insight 1 (${batch.length} msgs)`,
+      `MEGA_TEST_STUB: insight 2 (${batch.length} msgs)`,
+    ];
+    const archiveText = `MEGA_TEST_STUB: archive (${batch.length} msgs)`;
+    const newContext = `MEGA_TEST_STUB: context updated`;
+
+    for (const insight of insights) {
+      try {
+        const embedding = await generateEmbedding(insight);
+        await supabase.from('memories').insert({
+          user_id: userId,
+          content: insight,
+          type: 'insight',
+          source_type: 'chat',
+          source_id: `insight_${Date.now()}`,
+          embedding
+        });
+      } catch (e) { console.error("Error storing insight", e) }
+    }
+
+    try {
+      const embedding = await generateEmbedding(archiveText);
+      await supabase.from('memories').insert({
+        user_id: userId,
+        content: archiveText,
+        type: 'chat_history',
+        source_type: 'chat',
+        source_id: `batch_${new Date().toISOString()}`,
+        embedding
+      });
+    } catch (e) { console.error("Error storing history", e) }
+
+    try {
+      await updateUserState(supabase, userId, { short_term_context: newContext });
+    } catch (e) { console.error("Error updating short_term_context", e) }
+
+    console.log(`[Veilleur] MEGA stub: wrote insights + archive + context.`);
+    return;
+  }
+
   // 4. Analyze with Gemini (TRIPLE ACTION: Insights + Archive + Context)
-  const systemPrompt = `
+  const basePrompt = `
     Tu es "Le Veilleur" du système Sophia.
     Tu analyses le dernier bloc de conversation (15 messages) pour mettre à jour la mémoire du système.
 
@@ -51,9 +102,18 @@ export async function runWatcher(
       "new_short_term_context": "Texte du nouveau fil rouge mis à jour..."
     }
   `
+  const override = await fetchPromptOverride("sophia.watcher")
+  const systemPrompt = appendPromptOverride(basePrompt, override)
 
   try {
-    const jsonStr = await generateWithGemini(systemPrompt, transcript, 0.3, true)
+    const jsonStr = await generateWithGemini(systemPrompt, transcript, 0.3, true, [], "auto", {
+      requestId: meta?.requestId,
+      model: "gemini-2.0-flash",
+      source: "sophia-brain:watcher",
+    })
+    if (typeof jsonStr !== "string") {
+      throw new Error("Watcher expected JSON string from generateWithGemini()");
+    }
     const result = JSON.parse(jsonStr)
     const insights = result.insights || []
     const archiveText = result.chat_history_paragraph

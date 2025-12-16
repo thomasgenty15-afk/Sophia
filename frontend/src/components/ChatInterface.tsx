@@ -62,6 +62,7 @@ export const ChatInterface: React.FC = () => {
             {msg.role === 'user' && (
                 <button 
                     onClick={() => deleteMessage(msg.id)}
+                    data-testid={`chat-delete-${msg.id}`}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 hover:text-red-500"
                     title="Supprimer ce message"
                 >
@@ -100,6 +101,7 @@ export const ChatInterface: React.FC = () => {
             {msg.role === 'assistant' && (
                 <button 
                     onClick={() => deleteMessage(msg.id)}
+                    data-testid={`chat-delete-${msg.id}`}
                     className="opacity-0 group-hover:opacity-100 transition-opacity p-1 text-slate-300 hover:text-red-500"
                     title="Supprimer ce message"
                 >
@@ -111,7 +113,7 @@ export const ChatInterface: React.FC = () => {
         ))}
         
         {isLoading && (
-          <div className="flex gap-3 justify-start">
+          <div data-testid="chat-loading" className="flex gap-3 justify-start">
              <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center flex-shrink-0">
                  <Bot className="w-4 h-4 text-indigo-500 animate-pulse" />
              </div>
@@ -124,7 +126,7 @@ export const ChatInterface: React.FC = () => {
         )}
 
         {error && (
-            <div className="flex items-center gap-2 text-red-500 text-sm justify-center p-2 bg-red-50 rounded-lg">
+            <div data-testid="chat-error" className="flex items-center gap-2 text-red-500 text-sm justify-center p-2 bg-red-50 rounded-lg">
                 <AlertTriangle className="w-4 h-4" />
                 {error}
             </div>
@@ -137,6 +139,7 @@ export const ChatInterface: React.FC = () => {
       <form onSubmit={handleSubmit} className="p-4 bg-white border-t border-slate-200">
         <div className="flex gap-2">
           <input
+            data-testid="chat-input"
             type="text"
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
@@ -145,6 +148,7 @@ export const ChatInterface: React.FC = () => {
             disabled={isLoading}
           />
           <button
+            data-testid="chat-send"
             type="submit"
             disabled={isLoading || !inputValue.trim()}
             className="p-2 bg-indigo-600 text-white rounded-full hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"

@@ -334,8 +334,33 @@ inspector_port = 8083
 # The Deno major version to use.
 deno_version = 2
 
-# [edge_runtime.secrets]
-# secret_key = "env(SECRET_VALUE)"
+[edge_runtime.secrets]
+# Inject secrets/env into the local edge runtime container.
+# IMPORTANT: values are resolved from your shell environment when running `supabase start`.
+# The mega test runner sets these automatically.
+INTERNAL_FUNCTION_SECRET = "env(INTERNAL_FUNCTION_SECRET)"
+SECRET_KEY = "env(SECRET_KEY)"
+MEGA_TEST_MODE = "env(MEGA_TEST_MODE)"
+GEMINI_API_KEY = "env(GEMINI_API_KEY)"
+
+# Edge Functions invoked by DB triggers/cron/internal jobs do NOT have a JWT.
+# They are protected by `X-Internal-Secret` instead, so JWT verification must be disabled locally.
+[functions.archive-plan]
+verify_jwt = false
+[functions.create-module-memory]
+verify_jwt = false
+[functions.create-round-table-summary]
+verify_jwt = false
+[functions.update-core-identity]
+verify_jwt = false
+[functions.detect-future-events]
+verify_jwt = false
+[functions.process-checkins]
+verify_jwt = false
+[functions.trigger-memory-echo]
+verify_jwt = false
+[functions.trigger-checkup]
+verify_jwt = false
 
 [analytics]
 enabled = false

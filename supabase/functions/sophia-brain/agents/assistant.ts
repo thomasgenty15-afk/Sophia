@@ -1,7 +1,8 @@
 import { generateWithGemini } from '../../_shared/gemini.ts'
+import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
-export async function runAssistant(message: string): Promise<string> {
-  const systemPrompt = `
+export async function runAssistant(message: string, meta?: { requestId?: string }): Promise<string> {
+  const basePrompt = `
     Tu es Sophia.
     Ton utilisateur rencontre un souci technique (app, bug, compte).
 
@@ -19,8 +20,14 @@ export async function runAssistant(message: string): Promise<string> {
     - RÈGLE SALUTATIONS (STRICTE) : Ne dis JAMAIS "Salut" ou "Bonjour". Rentre directement dans la solution technique.
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
   `
+  const override = await fetchPromptOverride("sophia.assistant")
+  const systemPrompt = appendPromptOverride(basePrompt, override)
   
-  const response = await generateWithGemini(systemPrompt, message)
+  const response = await generateWithGemini(systemPrompt, message, 0.7, false, [], "auto", {
+    requestId: meta?.requestId,
+    model: "gemini-2.0-flash",
+    source: "sophia-brain:assistant",
+  })
   return typeof response === 'string' ? response.replace(/\*\*/g, '') : response
 }
 

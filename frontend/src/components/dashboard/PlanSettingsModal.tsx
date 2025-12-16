@@ -35,6 +35,7 @@ export const PlanSettingsModal = ({
 
           <button 
             onClick={onReset}
+            data-testid="plan-settings-reset"
             className="w-full p-3 rounded-xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-left group transition-all flex items-center gap-3 cursor-pointer active:scale-95"
           >
             <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-slate-200 text-slate-500 group-hover:text-slate-600 flex items-center justify-center flex-shrink-0">
@@ -48,6 +49,7 @@ export const PlanSettingsModal = ({
 
           <button 
             onClick={onSkip}
+            data-testid="plan-settings-skip"
             className="w-full p-3 rounded-xl border border-slate-200 hover:border-amber-200 hover:bg-amber-50 text-left group transition-all flex items-center gap-3"
           >
             <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-100 text-slate-500 group-hover:text-amber-600 flex items-center justify-center flex-shrink-0">
@@ -63,6 +65,7 @@ export const PlanSettingsModal = ({
 
           <button 
             onClick={onGlobalReset}
+            data-testid="plan-settings-global-reset"
             className="w-full p-3 rounded-xl border border-red-100 hover:border-red-300 hover:bg-red-50 text-left group transition-all flex items-center gap-3"
           >
             <div className="w-8 h-8 rounded-full bg-red-50 group-hover:bg-red-100 text-red-400 group-hover:text-red-600 flex items-center justify-center flex-shrink-0">

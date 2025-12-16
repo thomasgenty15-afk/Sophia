@@ -8,11 +8,9 @@
  * This file is only for editor/linting ergonomics and does not affect Edge runtime.
  */
 
-// Deno is provided by the Edge/Deno runtime, but TS in this repo may not know it.
-declare const Deno: {
-  env: { get(key: string): string | undefined };
-  serve: any;
-} & Record<string, unknown>;
+// NOTE: Do not redeclare the global `Deno` value here.
+// - Deno v2 ships its own global typings, and redeclaring `const Deno` breaks `deno test` type-checking.
+// - This file remains useful for shimming `jsr:` modules in editors that don't understand them.
 
 // JSR specifier shim for supabase-js (used by Edge Functions).
 declare module "jsr:@supabase/supabase-js@2.87.3" {

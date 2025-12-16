@@ -1,0 +1,184 @@
+### Fiche commandes — tests & jobs internes (local)
+
+Prérequis:
+- Docker (Supabase local)
+- Node + npm
+- Deno (pour les tests Deno dans `supabase/functions/**/*_test.ts`, inclut les tests “tools agents”)
+- (Optionnel E2E) Playwright browsers (voir plus bas)
+
+---
+
+### Test ultime (A→Z) — 1 commande
+
+#### SMOKE (rapide, fiable, sans dépendre de Gemini)
+Start Supabase + reset DB + tests Deno + tests Vitest d’intégration (inclut flows “UI” DB + triggers DB non-edge).
+
+```bash
+npm run test:mega
+```
+
+#### FULL (inclut triggers/cron → Edge Functions → effets DB comme `memories`, `user_core_identity`, archive)
+```bash
+npm run test:mega -- --full
+```
+
+#### FULL + IA réelle (Gemini + embeddings)
+⚠️ plus lent + dépend du réseau/quotas/coût. Nécessite `GEMINI_API_KEY` configurée dans les secrets Edge.
+
+```bash
+npm run test:mega -- --full --ai
+```
+
+#### Options utiles
+```bash
+# ne reset pas la DB
+npm run test:mega -- --no-reset
+
+# isoler une partie
+npm run test:mega -- --skip-deno
+npm run test:mega -- --skip-frontend
+
+# inclure les tests E2E UI (Playwright)
+npm run test:mega -- --full --no-reset --e2e
+```
+
+---
+
+### Lancer une partie seulement
+
+#### Vitest (tests d’intégration frontend)
+```bash
+cd frontend
+npm run test:int
+```
+
+#### Vitest (sécurité / RLS) — tests “négatifs” (doivent échouer côté DB)
+Inclus dans `npm run test:int` et donc dans `test:mega`, mais tu peux les cibler :
+
+```bash
+cd frontend
+npx vitest run src/security/rls-negative.int.test.ts
+```
+
+#### Deno (tests unitaires des helpers Edge)
+```bash
+cd supabase/functions
+deno test -A --no-lock
+```
+
+#### Playwright (tests E2E UI: clics réels)
+
+1) Installer les browsers (une fois) :
+
+```bash
+cd frontend
+npm run test:e2e:install
+```
+
+2) Lancer les E2E :
+
+```bash
+cd frontend
+npm run test:e2e
+```
+
+#### Playwright (stress / volume) — Chat
+Ce test est inclus dans `npm run test:e2e` :
+
+```bash
+cd frontend
+npx playwright test e2e/stress-chat.e2e.spec.ts
+```
+
+Astuce (recommandé) : lancer via le mega-test pour avoir les variables d’env automatiquement :
+
+```bash
+npm run test:mega -- --full --no-reset --e2e
+```
+
+#### Supabase local
+```bash
+npm run db:start
+npm run db:reset
+npm run db:stop
+```
+
+---
+
+### Jobs internes (cron) — reset / sync / trigger manuel
+
+#### Après un `db reset`, est-ce qu’il faut refaire les crons ?
+Oui. Un reset remet la DB à zéro → les jobs `pg_cron` disparaissent.
+
+#### Workflow simple
+```bash
+./scripts/local_reset.sh
+```
+
+#### Re-synchroniser le secret interne (Vault ↔ Edge Runtime)
+```bash
+./scripts/local_sync_internal_secret.sh
+```
+
+#### Déclencher les jobs “à la main” (sans cron)
+```bash
+./scripts/local_trigger_internal_job.sh detect-future-events
+./scripts/local_trigger_internal_job.sh process-checkins
+./scripts/local_trigger_internal_job.sh trigger-memory-echo
+```
+
+---
+
+### (Legacy) Déclencher une fonction interne via curl + secret récupéré depuis Vault
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+0) Récupérer le secret (sans l’afficher) + helper
+
+```bash
+SECRET="$(docker exec -i supabase_db_Sophia_2 psql -U postgres -d postgres -tA -c \
+"select decrypted_secret from vault.decrypted_secrets where name='INTERNAL_FUNCTION_SECRET' limit 1;")"
+```
+
+1) Déclencher `detect-future-events`
+
+```bash
+curl -s -X POST "http://127.0.0.1:54321/functions/v1/detect-future-events" \
+  -H "Content-Type: application/json" \
+  -H "X-Internal-Secret: $SECRET" \
+  -d '{}' | cat
+```
+
+2) Déclencher `process-checkins`
+
+```bash
+curl -s -X POST "http://127.0.0.1:54321/functions/v1/process-checkins" \
+  -H "Content-Type: application/json" \
+  -H "X-Internal-Secret: $SECRET" \
+  -d '{}' | cat
+```
+
+3) (optionnel) Déclencher `trigger-memory-echo`
+
+```bash
+curl -s -X POST "http://127.0.0.1:54321/functions/v1/trigger-memory-echo" \
+  -H "Content-Type: application/json" \
+  -H "X-Internal-Secret: $SECRET" \
+  -d '{}' | cat
+```

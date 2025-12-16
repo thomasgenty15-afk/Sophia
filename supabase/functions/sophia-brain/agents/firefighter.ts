@@ -1,9 +1,15 @@
 import { generateWithGemini } from '../../_shared/gemini.ts'
+import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
-export async function runFirefighter(message: string, history: any[], context: string = ""): Promise<{ content: string, crisisResolved: boolean }> {
+export async function runFirefighter(
+  message: string,
+  history: any[],
+  context: string = "",
+  meta?: { requestId?: string }
+): Promise<{ content: string, crisisResolved: boolean }> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
-  const systemPrompt = `
+  const basePrompt = `
     Tu es Sophia. (Mode : Ancrage & Urgence).
     L'utilisateur est en crise (stress, angoisse, craving).
     
@@ -34,11 +40,17 @@ export async function runFirefighter(message: string, history: any[], context: s
       "resolved": true/false
     }
   `
+  const override = await fetchPromptOverride("sophia.firefighter")
+  const systemPrompt = appendPromptOverride(basePrompt, override)
 
   const historyText = history.slice(-3).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   
   try {
-    const jsonStr = await generateWithGemini(systemPrompt, `Historique:\n${historyText}\n\nUser: ${message}`, 0.3, true)
+    const jsonStr = await generateWithGemini(systemPrompt, `Historique:\n${historyText}\n\nUser: ${message}`, 0.3, true, [], "auto", {
+      requestId: meta?.requestId,
+      model: "gemini-2.0-flash",
+      source: "sophia-brain:firefighter",
+    })
     const result = JSON.parse(jsonStr)
     return {
       content: result.response.replace(/\*\*/g, ''),

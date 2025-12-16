@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { createAuthedTestUser } from "../test/supabaseTestUtils";
 import { distributePlanActions } from "./planActions";
 import type { SupabaseClient } from "@supabase/supabase-js";
+import { supabase } from "./supabase";
 import type { GeneratedPlan } from "../types/dashboard";
 
 describe("integration: distributePlanActions()", () => {
@@ -12,6 +13,8 @@ describe("integration: distributePlanActions()", () => {
     const res = await createAuthedTestUser();
     userId = res.userId;
     client = res.client;
+    // distributePlanActions uses the module-level `supabase` singleton, so we must auth it too.
+    await supabase.auth.setSession({ access_token: res.accessToken, refresh_token: res.refreshToken });
   });
 
   afterEach(async () => {

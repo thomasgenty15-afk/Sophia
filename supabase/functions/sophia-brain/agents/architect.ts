@@ -1,5 +1,6 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini } from '../../_shared/gemini.ts'
+import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 // --- OUTILS ---
 const CREATE_ACTION_TOOL = {
@@ -382,6 +383,104 @@ async function handleUpdateAction(supabase: SupabaseClient, userId: string, plan
     return `C'est modifié ! ✏️\nL'action "${new_title || oldTitle}" a été mise à jour.`
 }
 
+// ---- Exports for deterministic tool testing (DB writes + plan JSON sync) ----
+// These wrappers keep production behavior unchanged, but let Deno tests call tool handlers directly.
+
+async function getActivePlanForUser(supabase: SupabaseClient, userId: string): Promise<{ id: string; submission_id: string } | null> {
+    const { data: plan, error: planError } = await supabase
+      .from('user_plans')
+      .select('id, submission_id')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .single()
+
+    if (planError || !plan) return null
+    return plan as any
+}
+
+export async function megaToolUpdateActionStructure(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
+    const plan = await getActivePlanForUser(supabase, userId)
+    if (!plan) return "Je ne trouve pas de plan actif pour faire cette modification."
+    return await handleUpdateAction(supabase, userId, plan.id, args)
+}
+
+export async function megaToolCreateSimpleAction(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
+    const plan = await getActivePlanForUser(supabase, userId)
+    if (!plan) return "Je ne trouve pas de plan actif pour faire cette modification."
+
+    const { title, description, type, targetReps, tips, time_of_day } = args
+    const actionId = `act_${Date.now()}`
+
+    await supabase.from('user_actions').insert({
+        user_id: userId,
+        plan_id: plan.id,
+        submission_id: plan.submission_id,
+        title,
+        description,
+        type: type || 'habit',
+        target_reps: targetReps || 1,
+        status: 'active',
+        tracking_type: 'boolean',
+        time_of_day: time_of_day || 'any_time'
+    })
+
+    const newActionJson = {
+        id: actionId,
+        type: type || 'habit',
+        title: title,
+        description: description,
+        questType: "side",
+        targetReps: targetReps || 1,
+        tips: tips || "",
+        rationale: "Ajouté via discussion avec Sophia.",
+        tracking_type: 'boolean',
+        time_of_day: time_of_day || 'any_time'
+    }
+
+    const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
+    if (status === 'duplicate') return `Oula ! ✋\n\nL'action "${title}" existe déjà.`
+    if (status === 'error') return "Erreur technique lors de la mise à jour du plan visuel."
+    return `C'est validé ! ✅\n\nJ'ai ajouté l'action "${title}" à ton plan.\nOn s'y met quand ?`
+}
+
+export async function megaToolCreateFramework(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
+    const plan = await getActivePlanForUser(supabase, userId)
+    if (!plan) return "Je ne trouve pas de plan actif pour faire cette modification."
+
+    const { title, description, targetReps, frameworkDetails, time_of_day } = args
+    const actionId = `act_${Date.now()}`
+
+    const newActionJson = {
+        id: actionId,
+        type: "framework",
+        title: title,
+        description: description,
+        questType: "side",
+        targetReps: targetReps || 1,
+        frameworkDetails: frameworkDetails,
+        tracking_type: 'boolean',
+        time_of_day: time_of_day || 'any_time'
+    }
+
+    const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
+    if (status === 'duplicate') return `Doucement ! ✋\n\nL'exercice "${title}" est déjà là.`
+    if (status === 'error') return "Erreur technique lors de l'intégration du framework."
+
+    await supabase.from('user_actions').insert({
+        user_id: userId,
+        plan_id: plan.id,
+        submission_id: plan.submission_id,
+        title: title,
+        description: description,
+        type: 'mission',
+        status: 'active',
+        tracking_type: 'boolean',
+        time_of_day: time_of_day || 'any_time'
+    })
+
+    return `C'est fait ! 🏗️\n\nJ'ai intégré le framework "${title}" directement dans ton plan interactif.\nTu devrais le voir apparaître dans tes actions du jour.`
+}
+
 // --- FONCTION PRINCIPALE ---
 
 export async function runArchitect(
@@ -390,11 +489,12 @@ export async function runArchitect(
   message: string, 
   history: any[], 
   userState: any,
-  context: string = ""
+  context: string = "",
+  meta?: { requestId?: string }
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
-  const systemPrompt = `
+  const basePrompt = `
     Tu es Sophia. (Casquette : Architecte de Systèmes).
     Ton obsession : L'efficacité, la clarté, l'action.
     
@@ -431,6 +531,8 @@ export async function runArchitect(
     Ne te lance pas dans une conversation longue. La priorité est de finir le checkup.
     ` : ""}
   `
+  const override = await fetchPromptOverride("sophia.architect")
+  const systemPrompt = appendPromptOverride(basePrompt, override)
   
   const historyText = history.slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   
@@ -439,7 +541,13 @@ export async function runArchitect(
     `Historique:\n${historyText}\n\nUser: ${message}`,
     0.7,
     false,
-    [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL]
+    [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL],
+    "auto",
+    {
+      requestId: meta?.requestId,
+      model: "gemini-2.0-flash",
+      source: "sophia-brain:architect",
+    }
   )
 
   if (typeof response === 'string') {
@@ -466,7 +574,11 @@ export async function runArchitect(
               - NE DIS PAS "C'est noté" ou "J'ai enregistré".
               - Sois naturel, efficace et concis.
             `
-            const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7)
+            const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7, false, [], "auto", {
+              requestId: meta?.requestId,
+              model: "gemini-2.0-flash",
+              source: "sophia-brain:architect_followup",
+            })
             return typeof followUpResponse === 'string' ? followUpResponse.replace(/\*\*/g, '') : "Ok, c'est noté !"
         }
 
@@ -486,7 +598,11 @@ export async function runArchitect(
           Exemple (User dit "J'ai lu un super livre") : "Top pour la lecture ! C'était quoi le titre ?"
           Exemple (User dit juste "Fait") : "C'est noté. On passe à la suite ?"
         `
-        const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7)
+        const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
+          requestId: meta?.requestId,
+          model: "gemini-2.0-flash",
+          source: "sophia-brain:architect_confirmation",
+        })
         return typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "C'est noté."
     }
 
@@ -583,5 +699,5 @@ export async function runArchitect(
     }
   }
 
-  return response as string
+  return response as unknown as string
 }

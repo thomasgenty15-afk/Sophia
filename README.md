@@ -2,6 +2,34 @@
 
 Initial Supabase database schema, Zod/TypeScript types, seeds, and Edge Function skeletons for the Sophia (Coachy) MVP.
 
+## Mega test (1 commande)
+
+Lance un check “bout-en-bout” local: Supabase local + reset DB + tests Edge (Deno) + tests d’intégration (Vitest).
+
+```bash
+npm run test:mega
+```
+
+Options utiles:
+
+- `npm run test:mega -- --no-reset`: ne reset pas la DB (plus rapide si tu veux juste rerun)
+- `npm run test:mega -- --full`: en plus, sync le secret interne Vault↔Edge Runtime (nécessaire pour triggers/cron qui appellent des Edge Functions)
+- `npm run test:mega -- --ai`: exécute l’IA réelle (Gemini) au lieu du stub (nécessite `GEMINI_API_KEY` configurée côté Edge Runtime)
+- `npm run test:mega -- --skip-deno` / `--skip-frontend`: pour isoler une partie
+
+Prérequis:
+
+- Docker (Supabase local tourne via containers)
+- Node + npm
+- Deno (pour `supabase/functions/_shared/*_test.ts`)
+
+Notes:
+
+- Les tests d’intégration utilisent `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` et `SUPABASE_SERVICE_ROLE_KEY` (le runner les récupère via `supabase status`).
+- La commande active aussi `MEGA_TEST_MODE=1` dans l’Edge Runtime pour **stubber Gemini/embeddings** (pas besoin de `GEMINI_API_KEY` pour exécuter la suite).
+- Avec `--ai`, le runner met `MEGA_TEST_MODE=0` et tes tests utilisent Gemini/embeddings réels (plus lent, dépend du réseau, peut coûter).
+- Si tu ajoutes/modifies des triggers qui appellent des Edge Functions via `pg_net`, pense à mettre `verify_jwt = false` dans `supabase/functions/<fn>/config.toml` si l’appel ne fournit pas de JWT.
+
 ## Installation
 
 - Install the Supabase CLI and log in with a project that has the `service_role` key.

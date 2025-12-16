@@ -13,6 +13,7 @@ Deno.serve(async (req) => {
 
   try {
     const { message, history } = await req.json()
+    const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
     
     // Auth Check
     const authHeader = req.headers.get('Authorization')!
@@ -28,7 +29,7 @@ Deno.serve(async (req) => {
     console.log(`Processing message for user ${user.id}: "${message.substring(0, 50)}..."`)
 
     // LE CŒUR DU RÉACTEUR
-    const response = await processMessage(supabaseClient, user.id, message, history)
+    const response = await processMessage(supabaseClient, user.id, message, history, { requestId })
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

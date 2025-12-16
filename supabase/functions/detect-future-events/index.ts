@@ -4,6 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { generateWithGemini } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { appendPromptOverride, fetchPromptOverride } from "../_shared/prompt-overrides.ts"
 
 console.log("Detect Events: Function initialized")
 
@@ -18,6 +19,42 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
+
+    // Deterministic test mode: always schedule one checkin per active user (no LLM / no network).
+    const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
+    const isLocalSupabase =
+      (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
+    const megaEnabled = megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
+
+    if (megaEnabled) {
+      const { data: activeUsers, error: usersError } = await supabaseAdmin
+        .from('chat_messages')
+        .select('user_id')
+        .eq('role', 'user')
+        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+
+      if (usersError) throw usersError
+      const userIds = [...new Set((activeUsers ?? []).map(u => u.user_id))]
+
+      const now = Date.now()
+      const results = userIds.map((userId) => ({
+        user_id: userId,
+        event_context: "MEGA_TEST_STUB_EVENT",
+        draft_message: "MEGA_TEST_STUB: checkin",
+        scheduled_for: new Date(now + 60 * 60 * 1000).toISOString(),
+        status: 'pending',
+      }))
+
+      if (results.length > 0) {
+        const { error: insertError } = await supabaseAdmin
+          .from('scheduled_checkins')
+          .upsert(results, { onConflict: 'user_id,event_context,scheduled_for' })
+        if (insertError) throw insertError
+      }
+
+      return jsonResponse(req, { success: true, count: results.length, request_id: requestId }, { includeCors: false })
+    }
 
     // 1. Identify active users in the last 24h
     // We check for messages from 'user' role in the last 24h
@@ -59,7 +96,7 @@ Deno.serve(async (req) => {
       const now = new Date().toISOString()
 
       // 3. Prompt Gemini
-      const systemPrompt = `
+      const basePrompt = `
         Tu es "Le Veilleur", une IA bienveillante intégrée à l'assistant Sophia.
         Ta mission est d'analyser les conversations récentes pour identifier des événements futurs importants dans la vie de l'utilisateur.
         
@@ -89,13 +126,18 @@ Deno.serve(async (req) => {
         - Assure-toi que "scheduled_for" est dans le FUTUR par rapport à "Maintenant" (${now}).
         - Le message doit être chaleureux, comme un ami qui prend des nouvelles.
       `
+      const override = await fetchPromptOverride("sophia.detect_future_events")
+      const systemPrompt = appendPromptOverride(basePrompt, override)
 
       try {
         const responseText = await generateWithGemini(
             systemPrompt, 
             `Voici l'historique des dernières 48h :\n\n${transcript}`, 
             0.4, // Low temperature for factual extraction
-            true // JSON mode
+            true, // JSON mode
+            [],
+            "auto",
+            { requestId, model: "gemini-2.0-flash", source: "detect-future-events" }
         )
 
         const events = JSON.parse(responseText as string)

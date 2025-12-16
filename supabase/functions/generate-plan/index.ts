@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { retryOn429 } from "../_shared/retry429.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -18,6 +19,81 @@ serve(async (req) => {
   }
 
   try {
+    // Deterministic test mode (no network / no GEMINI_API_KEY required).
+    // This function historically called Gemini directly; MEGA_TEST_MODE makes it stable for the mega runner.
+    const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
+    const isLocalSupabase =
+      (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000");
+    if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
+      const { currentAxis, mode } = await req.json().catch(() => ({} as any));
+      const axisTitle = currentAxis?.title ?? "Axe";
+      const plan = {
+        grimoireTitle: `MEGA_TEST_STUB: ${axisTitle}`,
+        strategy: "MEGA_TEST_STUB: strategy",
+        sophiaKnowledge: "MEGA_TEST_STUB: knowledge",
+        context_problem: "MEGA_TEST_STUB: context_problem",
+        identity: "MEGA_TEST_STUB: identity",
+        deepWhy: "MEGA_TEST_STUB: deepWhy",
+        goldenRules: "MEGA_TEST_STUB: goldenRules",
+        vitalSignal: {
+          name: "Sommeil (heures)",
+          unit: "h",
+          startValue: "7",
+          targetValue: "8",
+          tracking_type: "counter",
+          type: "number",
+        },
+        maintenanceCheck: {
+          question: "MEGA_TEST_STUB: maintenance question",
+          frequency: "weekly",
+          type: "reflection",
+        },
+        estimatedDuration: "4 semaines",
+        phases: [
+          {
+            id: 1,
+            title: `MEGA_TEST_STUB: Phase 1 (${mode ?? "standard"})`,
+            subtitle: "Semaines 1-2",
+            status: "active",
+            actions: [
+              {
+                id: "a1",
+                type: "habitude",
+                title: "MEGA_TEST_STUB: Habitude",
+                description: "MEGA_TEST_STUB: description",
+                tracking_type: "boolean",
+                time_of_day: "morning",
+                targetReps: 7,
+                isCompleted: false,
+              },
+              {
+                id: "a2",
+                type: "mission",
+                title: "MEGA_TEST_STUB: Mission",
+                description: "MEGA_TEST_STUB: description",
+                tracking_type: "boolean",
+                time_of_day: "any_time",
+                isCompleted: false,
+              },
+              {
+                id: "a3",
+                type: "framework",
+                title: "MEGA_TEST_STUB: Framework",
+                description: "MEGA_TEST_STUB: description",
+                tracking_type: "boolean",
+                time_of_day: "evening",
+                targetReps: 3,
+                isCompleted: false,
+                frameworkDetails: { type: "recurring", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
+              },
+            ],
+          },
+        ],
+      };
+      return new Response(JSON.stringify(plan), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+
     // 1. Auth & Client Setup - BYPASS TEMPORAIRE DEBUG
     // On ignore totalement l'auth Supabase pour voir si Gemini fonctionne
     
@@ -427,47 +503,24 @@ serve(async (req) => {
 
     // Utilisation du modèle spécifié par l'utilisateur (Modèle 2.0 Flash)
     // RETRY LOGIC for 429
-    let response;
-    let data;
-    let attempt = 0;
     const MAX_ATTEMPTS = 20; // Tentatives max (environ 100s d'attente max) pour absorber les pics
+    const response = await retryOn429(
+      () =>
+        fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
+              generationConfig: { responseMimeType: "application/json" }
+            })
+          }
+        ),
+      { maxAttempts: MAX_ATTEMPTS, delayMs: 5000 },
+    )
 
-    while (true) {
-        attempt++;
-        try {
-            response = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-                  generationConfig: { responseMimeType: "application/json" }
-                })
-              }
-            )
-
-            // GESTION ERREUR 429 (QUOTA EXCEEDED) - RETRY LOOP
-            if (response.status === 429) {
-                if (attempt < MAX_ATTEMPTS) {
-                    console.log(`Gemini 429: Surchauffe (Quota). Nouvelle tentative dans 5s... (Essai ${attempt}/${MAX_ATTEMPTS})`);
-                    await new Promise(resolve => setTimeout(resolve, 5000));
-                    continue; // On recommence la boucle
-                } else {
-                    console.error(`Gemini 429: Max retries (${MAX_ATTEMPTS}) reached. Abandon.`);
-                }
-            }
-
-            // Si on est ici, soit c'est OK, soit c'est une autre erreur, soit on a épuisé les retries
-            data = await response.json()
-            break; 
-
-        } catch (err) {
-             // Erreur réseau critique
-             console.error("Erreur Fetch Gemini:", err);
-             throw err;
-        }
-    }
+    const data = await response.json()
     
     // LOG DEBUG
     console.log("Gemini Response Status:", response.status);
@@ -518,6 +571,24 @@ serve(async (req) => {
         console.error("Raw Text:", rawText);
         console.error("Extracted String:", jsonString);
         throw new Error(`Erreur de syntaxe JSON dans la réponse IA: ${parseError.message}`);
+    }
+
+    // Normalize: ensure required fields exist even if the model forgets them.
+    // This makes the function resilient and keeps the app + tests stable.
+    try {
+      if (plan && Array.isArray(plan.phases)) {
+        for (const phase of plan.phases) {
+          const actions = phase?.actions;
+          if (!Array.isArray(actions)) continue;
+          for (const a of actions) {
+            if (!a) continue;
+            if (!a.tracking_type) a.tracking_type = "boolean";
+            if (!a.time_of_day) a.time_of_day = "any_time";
+          }
+        }
+      }
+    } catch {
+      // best-effort only
     }
 
     return new Response(

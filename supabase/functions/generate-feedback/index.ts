@@ -11,6 +11,22 @@ serve(async (req) => {
   }
 
   try {
+    // Deterministic test mode (no network / no GEMINI_API_KEY required)
+    const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
+    const isLocalSupabase =
+      (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
+    if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
+      return new Response(
+        JSON.stringify({
+          feedback: "MEGA_TEST_STUB: feedback",
+          insight: "MEGA_TEST_STUB: insight",
+          tip: "MEGA_TEST_STUB: tip",
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
+
     const { energyLevel, wins, block, ratings, nextFocus, history } = await req.json()
 
     const identityAligned = ratings[3] === 'yes' ? "Oui" : ratings[3] === 'mixed' ? "Moyen" : "Non";

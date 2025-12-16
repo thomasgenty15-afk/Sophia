@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { retryOn429 } from "../_shared/retry429.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -15,6 +16,18 @@ serve(async (req) => {
     console.log("🚀 START summarize-context");
     const { responses, currentAxis } = await req.json()
     console.log("📥 Body parsed, currentAxis:", currentAxis?.title);
+
+    // Deterministic test mode (no network / no GEMINI_API_KEY required)
+    const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
+    const isLocalSupabase =
+      (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
+    if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
+      return new Response(
+        JSON.stringify({ summary: `MEGA_TEST_STUB: résumé pour ${currentAxis?.title ?? "axe"}` }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+      )
+    }
 
     // 1. Filtrage Intelligent : On ne garde que les données de l'axe concerné
     // La structure attendue de 'responses.structured_data' est :
@@ -79,62 +92,49 @@ serve(async (req) => {
       throw new Error('Clé API manquante')
     }
 
-    // 2. Appel Gemini (Modèle 2.0 Flash)
-    let response;
-    let data;
-    let attempt = 0;
+    // 2. Appel Gemini (Modèle 2.0 Flash) — retry 429 avec backoff (timeout 10s par tentative)
     const MAX_ATTEMPTS = 10; // ~50s max de retry pour le résumé
+    let response: Response;
+    let data: any;
 
-    while (true) {
-        attempt++;
-        
+    response = await retryOn429(
+      async () => {
         // Timeout par requête (10s)
         const controller = new AbortController();
         const timeoutId = setTimeout(() => {
-            console.log("⏰ Timeout Triggered (10s)");
-            controller.abort();
-        }, 10000); 
+          console.log("⏰ Timeout Triggered (10s)");
+          controller.abort();
+        }, 10000);
 
         try {
-            console.log(`📡 Calling Gemini API (Attempt ${attempt}/${MAX_ATTEMPTS})...`);
-            response = await fetch(
-              `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
-              {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-                  generationConfig: { responseMimeType: "text/plain" }
-                }),
-                signal: controller.signal
-              }
-            )
-            clearTimeout(timeoutId);
-            
-            // GESTION ERREUR 429 (QUOTA EXCEEDED) - RETRY LOOP
-            if (response.status === 429) {
-                if (attempt < MAX_ATTEMPTS) {
-                    console.log(`Gemini 429 (Summary): Surchauffe. Nouvelle tentative dans 5s...`);
-                    await new Promise(resolve => setTimeout(resolve, 5000));
-                    continue; 
-                } else {
-                    console.error("Gemini 429 (Summary): Max retries reached.");
-                }
+          console.log(`📡 Calling Gemini API (Summary)...`);
+          return await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+            {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
+                generationConfig: { responseMimeType: "text/plain" }
+              }),
+              signal: controller.signal
             }
-
-            console.log("📨 Response received, status:", response.status);
-            data = await response.json()
-            break;
-
+          );
         } catch (fetchError) {
-            clearTimeout(timeoutId);
-            console.error("💥 Fetch Error Block:", fetchError);
-            if (fetchError.name === 'AbortError') {
-                throw new Error('Gemini request timed out');
-            }
-            throw fetchError;
+          console.error("💥 Fetch Error Block:", fetchError);
+          if (fetchError?.name === 'AbortError') {
+            throw new Error('Gemini request timed out');
+          }
+          throw fetchError;
+        } finally {
+          clearTimeout(timeoutId);
         }
-    }
+      },
+      { maxAttempts: MAX_ATTEMPTS, delayMs: 5000 },
+    );
+
+    console.log("📨 Response received, status:", response.status);
+    data = await response.json();
 
     if (!response.ok) {
             console.error("Gemini Error:", JSON.stringify(data));

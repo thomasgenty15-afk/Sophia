@@ -1,0 +1,22 @@
+{
+  "dataset_key": "core",
+  "id": "checkup_stability_digression_no_stop",
+  "description": "When investigation_state is active, dispatcher should keep investigator unless the user explicitly asks to stop.",
+  "tags": ["sophia.dispatcher", "sophia.investigator", "sophia.companion"],
+  "persona": {
+    "label": "Utilisateur pressé",
+    "age_range": "25-50",
+    "style": "direct, oral",
+    "background": "fatigué, veut terminer vite"
+  },
+  "objectives": [{ "kind": "trigger_checkup" }],
+  "max_turns": 4,
+  "assertions": {
+    "must_include_agent": ["investigator"],
+    "must_keep_investigator_until_stop": true,
+    "stop_regex": "\\b(stop|arr[êe]te|on arr[êe]te|pause)\\b",
+    "assistant_must_not_match": ["\\*\\*"]
+  }
+}
+
+

@@ -14,26 +14,45 @@ if [[ -z "${DB_CONTAINER}" || -z "${EDGE_CONTAINER}" ]]; then
   exit 1
 fi
 
-SECRET_KEY_VAL="$(docker exec -i "${EDGE_CONTAINER}" sh -lc 'printf %s "$SECRET_KEY"')"
-if [[ -z "${SECRET_KEY_VAL}" ]]; then
-  echo "ERROR: SECRET_KEY is empty in edge runtime container (${EDGE_CONTAINER})." >&2
-  exit 1
+# Prefer Vault as source of truth (works regardless of what the edge container env exposes).
+VAULT_SECRET="$(docker exec -i "${DB_CONTAINER}" psql -U postgres -d postgres -tA -c "select decrypted_secret from vault.decrypted_secrets where name='INTERNAL_FUNCTION_SECRET' limit 1;" | tr -d '\r' | tr -d '\n')"
+
+SECRET_VAL="${VAULT_SECRET}"
+
+# If Vault is empty (first run), fall back to edge env, then generate a random secret.
+if [[ -z "${SECRET_VAL}" ]]; then
+  EDGE_SECRET_KEY_VAL="$(docker exec -i "${EDGE_CONTAINER}" sh -lc 'printf %s "$SECRET_KEY"')"
+  EDGE_INTERNAL_SECRET_VAL="$(docker exec -i "${EDGE_CONTAINER}" sh -lc 'printf %s "$INTERNAL_FUNCTION_SECRET"')"
+  SECRET_VAL="${EDGE_INTERNAL_SECRET_VAL:-${EDGE_SECRET_KEY_VAL}}"
+fi
+
+if [[ -z "${SECRET_VAL}" ]]; then
+  # Generate a stable-looking secret if absolutely nothing exists yet.
+  if command -v openssl >/dev/null 2>&1; then
+    SECRET_VAL="$(openssl rand -hex 32)"
+  else
+    SECRET_VAL="$(date +%s%N | shasum | awk '{print $1}')"
+  fi
 fi
 
 # Escape single quotes for SQL literal.
-SECRET_KEY_ESC="$(printf %s "${SECRET_KEY_VAL}" | sed "s/'/''/g")"
+SECRET_ESC="$(printf %s "${SECRET_VAL}" | sed "s/'/''/g")"
 
+# Ensure Vault secret exists/updated (source of truth).
 docker exec -i "${DB_CONTAINER}" psql -U postgres -d postgres -v ON_ERROR_STOP=1 -c \
   "do \$\$ declare sid uuid; begin
-     delete from vault.secrets where name='__INTERNAL_FUNCTION_SECRET__';
      select id into sid from vault.secrets where name='INTERNAL_FUNCTION_SECRET' limit 1;
      if sid is null then
-       perform vault.create_secret('${SECRET_KEY_ESC}', 'INTERNAL_FUNCTION_SECRET');
+       perform vault.create_secret('${SECRET_ESC}', 'INTERNAL_FUNCTION_SECRET');
      else
-       perform vault.update_secret(sid, new_secret => '${SECRET_KEY_ESC}', new_name => 'INTERNAL_FUNCTION_SECRET');
+       perform vault.update_secret(sid, new_secret => '${SECRET_ESC}', new_name => 'INTERNAL_FUNCTION_SECRET');
      end if;
    end \$\$;"
 
-echo "OK: Vault.INTERNAL_FUNCTION_SECRET synced to Edge Runtime SECRET_KEY."
+# Push to Edge secrets too (so Deno.env.get('INTERNAL_FUNCTION_SECRET') works in functions).
+# This does not print the secret.
+npx supabase secrets set "INTERNAL_FUNCTION_SECRET=${SECRET_VAL}" "SECRET_KEY=${SECRET_VAL}" >/dev/null
+
+echo "OK: INTERNAL_FUNCTION_SECRET synced (Vault + Edge secrets)."
 
 

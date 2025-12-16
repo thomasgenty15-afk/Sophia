@@ -25,12 +25,15 @@ describe("integration: complete-module Edge Function", () => {
 
   it("marks week_1 as completed and schedules week_2", async () => {
     // Seed the initial week state so the UPDATE path definitely touches a row.
-    const { error: seedErr } = await client.from("user_week_states").insert({
+    const { error: seedErr } = await client.from("user_week_states").upsert(
+      {
       user_id: userId,
       module_id: "week_1",
       status: "available",
       available_at: new Date().toISOString(),
-    });
+      },
+      { onConflict: "user_id,module_id" },
+    );
     if (seedErr) throw seedErr;
 
     const { data, error } = await client.functions.invoke("complete-module", {

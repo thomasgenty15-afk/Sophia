@@ -24,6 +24,8 @@ import Formules from './pages/Formules';
 import Auth from './pages/Auth'; 
 import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
 import { ChatPage } from './pages/ChatPage'; // Import ChatPage
+import AdminEvals from './pages/AdminEvals';
+import AdminDashboard from './pages/AdminDashboard';
 
 function App() {
   return (
@@ -58,6 +60,8 @@ function App() {
             <Route path="/architecte/:weekId" element={<IdentityArchitect />} />
             <Route path="/architecte/alignment" element={<WeeklyAlignment />} />
             <Route path="/architecte/evolution" element={<IdentityEvolution />} />
+            <Route path="/admin/evals" element={<AdminEvals />} />
+            <Route path="/admin" element={<AdminDashboard />} />
           </Routes>
         </div>
       </Router>

@@ -12,6 +12,29 @@ serve(async (req) => {
   }
 
   try {
+    // Deterministic test mode (no network / no GEMINI_API_KEY required)
+    const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
+    const isLocalSupabase =
+      (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
+    if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
+      const finalAction = {
+        id: `inter_${Date.now()}`,
+        title: "MEGA_TEST_STUB: Step intermédiaire",
+        description: "MEGA_TEST_STUB: fais un micro-pas de 2 minutes.",
+        questType: "side",
+        type: "mission",
+        tracking_type: "boolean",
+        time_of_day: "any_time",
+        targetReps: 1,
+        tips: "MEGA_TEST_STUB: tip",
+        rationale: "MEGA_TEST_STUB: rationale",
+        isCompleted: false,
+        status: "active",
+      }
+      return new Response(JSON.stringify(finalAction), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    }
+
     const { action, problem, plan, submissionId } = await req.json()
 
     // 1. Initialize Supabase Client

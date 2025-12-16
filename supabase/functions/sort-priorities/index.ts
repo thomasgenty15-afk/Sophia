@@ -19,6 +19,21 @@ serve(async (req) => {
     }
 
     const count = axes.length;
+
+    // Deterministic test mode (no network / no GEMINI_API_KEY required)
+    const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
+    const isLocalSupabase =
+      (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
+    if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
+      const roles = count === 1 ? ["foundation"] : count === 2 ? ["foundation", "lever"] : ["foundation", "lever", "optimization"];
+      const sortedAxes = axes.map((a: any, i: number) => ({
+        originalId: a.originalId ?? a.id ?? String(i),
+        role: roles[Math.min(i, roles.length - 1)],
+        reasoning: `MEGA_TEST_STUB: reasoning for ${a.title ?? a.axis_title ?? a.originalId ?? a.id ?? i}`,
+      }));
+      return new Response(JSON.stringify({ sortedAxes }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
     
     let instructions = "";
     

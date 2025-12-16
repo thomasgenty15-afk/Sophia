@@ -16,6 +16,7 @@ import {
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const redirectTo = new URLSearchParams(location.search).get('redirect');
   
   // Récupérer les données du plan si on vient du flux onboarding
   const planData = location.state || null;
@@ -133,6 +134,9 @@ const Auth = () => {
             if (isRegistrationFlow) {
                 // Flow Standard : Génération après questionnaire
                 navigate('/plan-generator', { state: planData });
+            } else if (redirectTo) {
+                // Redirect override (ex: /admin)
+                navigate(redirectTo);
             } else if (isSignUp) {
                 // Inscription Directe (via Landing) -> Onboarding
                 navigate('/global-plan');
@@ -152,7 +156,7 @@ const Auth = () => {
         if (error) throw error;
 
         if (data.user) {
-            navigate('/dashboard');
+            navigate(redirectTo || '/dashboard');
         }
       }
     } catch (err: any) {

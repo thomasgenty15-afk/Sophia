@@ -301,7 +301,11 @@ export const useDashboardLogic = ({
     const updatedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
-    await supabase.from('user_actions').update({ status: newStatus }).eq('plan_id', activePlanId).eq('title', action.title);
+    if (newStatus === "completed") {
+      await supabase.from('user_actions').update({ status: newStatus, last_performed_at: new Date().toISOString() }).eq('plan_id', activePlanId).eq('title', action.title);
+    } else {
+      await supabase.from('user_actions').update({ status: newStatus }).eq('plan_id', activePlanId).eq('title', action.title);
+    }
     await checkPhaseCompletionAndAutoUnlock(updatedPlan);
   };
 
@@ -325,7 +329,15 @@ export const useDashboardLogic = ({
     const updatedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
-    await supabase.from('user_actions').update({ current_reps: newReps, status: newStatus }).eq('plan_id', activePlanId).eq('title', action.title);
+    if (isNowCompleted) {
+      await supabase
+        .from('user_actions')
+        .update({ current_reps: newReps, status: newStatus, last_performed_at: new Date().toISOString() })
+        .eq('plan_id', activePlanId)
+        .eq('title', action.title);
+    } else {
+      await supabase.from('user_actions').update({ current_reps: newReps, status: newStatus }).eq('plan_id', activePlanId).eq('title', action.title);
+    }
     if (isNowCompleted) await checkPhaseCompletionAndAutoUnlock(updatedPlan);
   };
 
@@ -341,7 +353,11 @@ export const useDashboardLogic = ({
     const updatedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
-    await supabase.from('user_actions').update({ current_reps: newReps, status: 'completed' }).eq('plan_id', activePlanId).eq('title', action.title);
+    await supabase
+      .from('user_actions')
+      .update({ current_reps: newReps, status: 'completed', last_performed_at: new Date().toISOString() })
+      .eq('plan_id', activePlanId)
+      .eq('title', action.title);
     await checkPhaseCompletionAndAutoUnlock(updatedPlan);
   };
 
