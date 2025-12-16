@@ -346,7 +346,7 @@ const ActionPlanGenerator = () => {
                 </div>
 
                 {/* AFFICHAGE PAR PHASES */}
-                {plan.phases.map((phase: any, phaseIndex: number) => (
+                {plan.phases?.map((phase: any, phaseIndex: number) => (
                   <div key={phaseIndex} className="relative pl-4 md:pl-6 border-l-2 border-slate-100 pb-6 md:pb-8 last:pb-0 last:border-l-0">
                     <div className="absolute left-[-9px] top-0 w-4 h-4 rounded-full bg-white border-4 border-slate-200"></div>
                     
@@ -361,7 +361,7 @@ const ActionPlanGenerator = () => {
                     )}
 
                     <div className="space-y-4 md:space-y-6">
-                      {phase.actions.map((action: any, i: number) => {
+                      {phase.actions?.map((action: any, i: number) => {
                         const isGroupA = action.type?.toLowerCase().trim() === 'habitude' || action.type?.toLowerCase().trim() === 'habit';
                         const isFramework = action.type?.toLowerCase().trim() === 'framework';
                         const isMainQuest = action.questType === 'main';
