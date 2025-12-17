@@ -3,6 +3,7 @@
 -- Schedules:
 -- - detect-future-events: every day at 04:00
 -- - process-checkins: every day at 21:00
+-- - trigger-daily-bilan: every day at 21:01
 -- - trigger-memory-echo: every other Sunday at 10:00 (based on week number parity)
 --
 -- Security:
@@ -28,6 +29,11 @@ begin
   end if;
 
   select jobid into existing_jobid from cron.job where jobname = 'trigger-memory-echo' limit 1;
+  if existing_jobid is not null then
+    perform cron.unschedule(existing_jobid);
+  end if;
+
+  select jobid into existing_jobid from cron.job where jobname = 'trigger-daily-bilan' limit 1;
   if existing_jobid is not null then
     perform cron.unschedule(existing_jobid);
   end if;
@@ -90,6 +96,23 @@ select cron.schedule(
       else
         null
     end as request_id;
+  $$
+);
+
+-- 4) Daily bilan: every day 21:01
+select cron.schedule(
+  'trigger-daily-bilan',
+  '1 21 * * *',
+  $$
+  select
+    net.http_post(
+      url := 'http://host.docker.internal:54321/functions/v1/trigger-daily-bilan',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'X-Internal-Secret', (select decrypted_secret from vault.decrypted_secrets where name='INTERNAL_FUNCTION_SECRET' limit 1)
+      ),
+      body := '{}'::jsonb
+    ) as request_id;
   $$
 );
 

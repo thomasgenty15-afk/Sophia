@@ -110,6 +110,7 @@ export async function runWatcher(
       requestId: meta?.requestId,
       model: "gemini-2.0-flash",
       source: "sophia-brain:watcher",
+      forceRealAi: meta?.forceRealAi,
     })
     if (typeof jsonStr !== "string") {
       throw new Error("Watcher expected JSON string from generateWithGemini()");

@@ -522,6 +522,14 @@ export async function runArchitect(
     
     CONTEXTE OPÉRATIONNEL :
     ${context ? `${context}\n(Utilise ces infos intelligemment)` : ""}
+    
+    RÈGLE SPÉCIALE "APRÈS 23H + FATIGUE" (PRIORITAIRE) :
+    - Si les REPÈRES TEMPORELS indiquent qu'il est 23h00 ou plus (heure de Paris) ET que l'utilisateur montre des signes de fatigue / veut dormir / veut terminer vite :
+      - Ne lance PAS un flow long (pas de création complexe, pas de questionnaire).
+      - Réponds en mode "minimum utile" : 2-4 phrases max.
+      - Propose de couper et de reprendre demain, et fais une amorce "bonne nuit" intelligente (très simple).
+      - Exception: tu as le droit de dire "bonne nuit" même si l'utilisateur ne l'a pas dit.
+      - Si l'utilisateur demande quand même une action, propose UNE micro-étape ultra simple, puis stop.
     ${userState?.investigation_state ? `
     ⚠️ ATTENTION : UN CHECKUP EST ACTUELLEMENT EN COURS (investigation_state actif).
     L'utilisateur a peut-être fait une digression.
@@ -547,6 +555,7 @@ export async function runArchitect(
       requestId: meta?.requestId,
       model: "gemini-2.0-flash",
       source: "sophia-brain:architect",
+      forceRealAi: meta?.forceRealAi,
     }
   )
 
@@ -578,6 +587,7 @@ export async function runArchitect(
               requestId: meta?.requestId,
               model: "gemini-2.0-flash",
               source: "sophia-brain:architect_followup",
+              forceRealAi: meta?.forceRealAi,
             })
             return typeof followUpResponse === 'string' ? followUpResponse.replace(/\*\*/g, '') : "Ok, c'est noté !"
         }
@@ -602,6 +612,7 @@ export async function runArchitect(
           requestId: meta?.requestId,
           model: "gemini-2.0-flash",
           source: "sophia-brain:architect_confirmation",
+          forceRealAi: meta?.forceRealAi,
         })
         return typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "C'est noté."
     }

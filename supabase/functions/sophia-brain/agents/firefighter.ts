@@ -50,6 +50,7 @@ export async function runFirefighter(
       requestId: meta?.requestId,
       model: "gemini-2.0-flash",
       source: "sophia-brain:firefighter",
+      forceRealAi: meta?.forceRealAi,
     })
     const result = JSON.parse(jsonStr)
     return {

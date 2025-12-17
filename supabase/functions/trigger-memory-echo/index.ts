@@ -12,6 +12,39 @@ const MIN_DAYS_OLD = 30 // Minimum 1 month old memories
 const MAX_DAYS_OLD = 180 // Max 6 months
 const COOLDOWN_DAYS = 10 // Don't trigger if triggered recently
 
+function internalSecret(): string {
+  return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() || Deno.env.get("SECRET_KEY")?.trim() || "")
+}
+
+function functionsBaseUrl(): string {
+  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim()
+  if (!supabaseUrl) return "http://kong:8000"
+  if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000"
+  return supabaseUrl.replace(/\/+$/, "")
+}
+
+async function callWhatsappSend(payload: unknown) {
+  const secret = internalSecret()
+  if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET")
+  const url = `${functionsBaseUrl()}/functions/v1/whatsapp-send`
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Secret": secret,
+    },
+    body: JSON.stringify(payload),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) {
+    const err = new Error(`whatsapp-send failed (${res.status}): ${JSON.stringify(data)}`)
+    ;(err as any).status = res.status
+    ;(err as any).data = data
+    throw err
+  }
+  return data
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
   try {
@@ -92,7 +125,49 @@ Deno.serve(async (req) => {
             continue
         }
 
-        // D. Generate the Echo
+        // D. Decide whether to ask permission via template (window closed) or send immediately (window open).
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("whatsapp_opted_in, phone_invalid, whatsapp_last_inbound_at")
+          .eq("id", userId)
+          .maybeSingle()
+
+        const canWhatsapp = Boolean(profile && profile.whatsapp_opted_in && !profile.phone_invalid)
+        const lastInbound = profile?.whatsapp_last_inbound_at ? new Date(profile.whatsapp_last_inbound_at).getTime() : null
+        const in24h = lastInbound != null && Date.now() - lastInbound <= 24 * 60 * 60 * 1000
+
+        if (canWhatsapp && !in24h) {
+          // Window closed: send template + create pending action, generate later on "Oui".
+          try {
+            await callWhatsappSend({
+              user_id: userId,
+              message: {
+                type: "template",
+                name: (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_NAME") ?? "sophia_memory_echo_v1").trim(),
+                language: (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_LANG") ?? "fr").trim(),
+              },
+              purpose: "memory_echo",
+              require_opted_in: true,
+              force_template: true,
+              metadata_extra: { source: "memory_echo", strategy: selectedStrategy },
+            })
+
+            await supabaseAdmin.from("whatsapp_pending_actions").insert({
+              user_id: userId,
+              kind: "memory_echo",
+              status: "pending",
+              payload: { strategy: selectedStrategy, data: payload },
+              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            })
+
+            triggeredCount++
+          } catch (e) {
+            // ignore user-level failures
+          }
+          continue
+        }
+
+        // D. Generate the Echo (window open, or WhatsApp not available -> we'll log in-app)
         const prompt = `
             Tu es "L'Archiviste", une facette de Sophia.
             Ton rôle est de reconnecter l'utilisateur avec son passé pour lui donner de la perspective.
@@ -114,23 +189,47 @@ Deno.serve(async (req) => {
 
         const echoMessage = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7)
 
-        // E. Send Message
-        const { error: msgError } = await supabaseAdmin
-            .from('chat_messages')
-            .insert({
-                user_id: userId,
-                role: 'assistant',
-                content: echoMessage,
-                agent_used: 'philosopher', // Or a new 'archivist' agent
-                metadata: {
-                    source: 'memory_echo',
-                    strategy: selectedStrategy,
-                    ref_id: payload?.id || 'old_messages'
-                }
-            })
+        // E. Send via WhatsApp if possible (text if window open, template fallback if closed).
+        // Also ensure a DB log with metadata.source='memory_echo' for cooldown tracking.
+        let sentViaWhatsapp = false
+        try {
+          await callWhatsappSend({
+            user_id: userId,
+            message: { type: "text", body: echoMessage },
+            purpose: "memory_echo",
+            require_opted_in: true,
+            metadata_extra: {
+              source: "memory_echo",
+              strategy: selectedStrategy,
+              ref_id: payload?.id || "old_messages",
+            },
+          })
+          sentViaWhatsapp = true
+          triggeredCount++
+        } catch (e) {
+          const status = (e as any)?.status
+          // 429 throttle => skip this user this run
+          if (status === 429) continue
+          // 409 not opted in / phone invalid => fall back to in-app log
+          sentViaWhatsapp = false
+        }
 
-        if (!msgError) {
-            triggeredCount++
+        if (!sentViaWhatsapp) {
+          const { error: msgError } = await supabaseAdmin
+              .from('chat_messages')
+              .insert({
+                  user_id: userId,
+                  role: 'assistant',
+                  content: echoMessage,
+                  agent_used: 'philosopher', // Or a new 'archivist' agent
+                  metadata: {
+                      source: 'memory_echo',
+                      strategy: selectedStrategy,
+                      ref_id: payload?.id || 'old_messages'
+                  }
+              })
+
+          if (!msgError) triggeredCount++
         }
     }
 

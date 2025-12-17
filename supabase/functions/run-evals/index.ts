@@ -178,7 +178,8 @@ Deno.serve(async (req) => {
         const { data: stBefore } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).maybeSingle();
 
         const history: any[] = [];
-        const maxTurns = Math.min(Number(s.max_turns ?? body.limits.max_turns_per_scenario), body.limits.max_turns_per_scenario);
+        // Dashboard limit is the authoritative upper bound; scenario max_turns is informational only.
+        const maxTurns = Number(body.limits.max_turns_per_scenario);
 
         const meta = { requestId: scenarioRequestId, forceRealAi: Boolean(body.limits.use_real_ai) };
 
@@ -189,15 +190,48 @@ Deno.serve(async (req) => {
             history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
           }
         } else {
-          // Simulated mode (deterministic in MEGA_TEST_MODE)
+          // Simulated mode:
+          // - STUB: deterministic messages (MEGA_TEST_MODE)
+          // - REAL AI: call simulate-user each turn (force_real_ai) so the user-agent is also real
           let turn = 0;
           let done = false;
           while (!done && turn < maxTurns) {
-            const { msg, done: stubDone } = stubUserMessage(s.objectives ?? [], turn);
-            const resp = await processMessage(admin as any, testUserId, msg, history, meta);
-            history.push({ role: "user", content: msg });
+            let userMsg = "";
+            let nextDone = false;
+
+            if (body.limits.use_real_ai) {
+              const simResp = await fetch(`${url}/functions/v1/simulate-user`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": authHeader,
+                  "apikey": anonKey,
+                  "x-request-id": scenarioRequestId,
+                },
+                body: JSON.stringify({
+                  persona: s.persona ?? { label: "default", age_range: "25-50", style: "naturel" },
+                  objectives: s.objectives ?? [],
+                  transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
+                  turn_index: turn,
+                  max_turns: maxTurns,
+                  force_real_ai: true,
+                }),
+              });
+              const simJson = await simResp.json().catch(() => ({}));
+              if (!simResp.ok || simJson?.error) throw new Error(simJson?.error || `simulate-user failed (${simResp.status})`);
+              userMsg = String(simJson.next_message ?? "");
+              nextDone = Boolean(simJson.done);
+            } else {
+              const { msg, done: stubDone } = stubUserMessage(s.objectives ?? [], turn);
+              userMsg = msg;
+              // In stub mode, allow early completion (faster) but maxTurns remains a hard upper bound.
+              nextDone = stubDone;
+            }
+
+            const resp = await processMessage(admin as any, testUserId, userMsg, history, meta);
+            history.push({ role: "user", content: userMsg });
             history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
-            done = isMegaEnabled() ? stubDone : stubDone; // placeholder for future LLM user-agent mode inside run-evals
+            done = nextDone;
             turn += 1;
           }
         }

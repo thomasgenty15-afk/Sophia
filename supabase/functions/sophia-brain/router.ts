@@ -86,10 +86,14 @@ export async function processMessage(
   userId: string, 
   userMessage: string,
   history: any[],
-  meta?: { requestId?: string; forceRealAi?: boolean }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" },
+  opts?: { logMessages?: boolean }
 ) {
+  const logMessages = opts?.logMessages !== false
   // 1. Log le message user
-  await logMessage(supabase, userId, 'user', userMessage)
+  if (logMessages) {
+    await logMessage(supabase, userId, 'user', userMessage)
+  }
 
   // 2. Récupérer l'état actuel (Mémoire)
   const state = await getUserState(supabase, userId)
@@ -200,7 +204,9 @@ export async function processMessage(
     unprocessed_msg_count: msgCount,
     last_processed_at: lastProcessed
   })
-  await logMessage(supabase, userId, 'assistant', responseContent, targetMode)
+  if (logMessages) {
+    await logMessage(supabase, userId, 'assistant', responseContent, targetMode)
+  }
 
   return {
     content: responseContent,

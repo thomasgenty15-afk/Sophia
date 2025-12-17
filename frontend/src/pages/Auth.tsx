@@ -94,6 +94,16 @@ const Auth = () => {
         }
         
         if (data.user) {
+            // Send WhatsApp opt-in template (best-effort, non-blocking)
+            // Note: requires an active session/JWT; if email confirmations are enabled, this will be retried on first login.
+            try {
+              if (data.session) {
+                await supabase.functions.invoke('whatsapp-optin', { body: {} });
+              }
+            } catch (e) {
+              console.warn("WhatsApp opt-in send failed (non-blocking):", e);
+            }
+
             // --- BACKFILL DES RÉPONSES POUR LE NOUVEAU COMPTE ---
             if (isRegistrationFlow && planData?.fullAnswers) {
                 try {
@@ -156,6 +166,12 @@ const Auth = () => {
         if (error) throw error;
 
         if (data.user) {
+            // Retry WhatsApp opt-in template on first login (best-effort)
+            try {
+              await supabase.functions.invoke('whatsapp-optin', { body: {} });
+            } catch (e) {
+              console.warn("WhatsApp opt-in send failed on login (non-blocking):", e);
+            }
             navigate(redirectTo || '/dashboard');
         }
       }

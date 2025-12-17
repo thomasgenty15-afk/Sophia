@@ -342,6 +342,18 @@ INTERNAL_FUNCTION_SECRET = "env(INTERNAL_FUNCTION_SECRET)"
 SECRET_KEY = "env(SECRET_KEY)"
 MEGA_TEST_MODE = "env(MEGA_TEST_MODE)"
 GEMINI_API_KEY = "env(GEMINI_API_KEY)"
+WHATSAPP_ACCESS_TOKEN = "env(WHATSAPP_ACCESS_TOKEN)"
+WHATSAPP_PHONE_NUMBER_ID = "env(WHATSAPP_PHONE_NUMBER_ID)"
+WHATSAPP_APP_SECRET = "env(WHATSAPP_APP_SECRET)"
+WHATSAPP_WEBHOOK_VERIFY_TOKEN = "env(WHATSAPP_WEBHOOK_VERIFY_TOKEN)"
+WHATSAPP_OPTIN_TEMPLATE_NAME = "env(WHATSAPP_OPTIN_TEMPLATE_NAME)"
+WHATSAPP_OPTIN_TEMPLATE_LANG = "env(WHATSAPP_OPTIN_TEMPLATE_LANG)"
+WHATSAPP_BILAN_TEMPLATE_NAME = "env(WHATSAPP_BILAN_TEMPLATE_NAME)"
+WHATSAPP_BILAN_TEMPLATE_LANG = "env(WHATSAPP_BILAN_TEMPLATE_LANG)"
+WHATSAPP_CHECKIN_TEMPLATE_NAME = "env(WHATSAPP_CHECKIN_TEMPLATE_NAME)"
+WHATSAPP_CHECKIN_TEMPLATE_LANG = "env(WHATSAPP_CHECKIN_TEMPLATE_LANG)"
+WHATSAPP_MEMORY_ECHO_TEMPLATE_NAME = "env(WHATSAPP_MEMORY_ECHO_TEMPLATE_NAME)"
+WHATSAPP_MEMORY_ECHO_TEMPLATE_LANG = "env(WHATSAPP_MEMORY_ECHO_TEMPLATE_LANG)"
 
 # Edge Functions invoked by DB triggers/cron/internal jobs do NOT have a JWT.
 # They are protected by `X-Internal-Secret` instead, so JWT verification must be disabled locally.
@@ -360,6 +372,16 @@ verify_jwt = false
 [functions.trigger-memory-echo]
 verify_jwt = false
 [functions.trigger-checkup]
+verify_jwt = false
+
+# Public webhooks / internal senders (no JWT)
+[functions.whatsapp-webhook]
+verify_jwt = false
+[functions.whatsapp-send]
+verify_jwt = false
+[functions.sophia-brain-internal]
+verify_jwt = false
+[functions.trigger-daily-bilan]
 verify_jwt = false
 
 [analytics]

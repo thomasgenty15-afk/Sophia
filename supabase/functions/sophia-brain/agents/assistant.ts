@@ -27,6 +27,7 @@ export async function runAssistant(message: string, meta?: { requestId?: string 
     requestId: meta?.requestId,
     model: "gemini-2.0-flash",
     source: "sophia-brain:assistant",
+    forceRealAi: meta?.forceRealAi,
   })
   return typeof response === 'string' ? response.replace(/\*\*/g, '') : response
 }
