@@ -33,6 +33,7 @@ const ProductArchitect = () => {
                 L'Architecte <span className="bg-emerald-900 text-emerald-400 border border-emerald-700/50 text-[10px] px-1.5 py-0.5 rounded-full font-bold">PRO</span>
               </button>
               <button onClick={() => navigate('/formules')} className="hover:text-emerald-400 transition-colors">Offres</button>
+              <button onClick={() => navigate('/legal')} className="hover:text-emerald-400 transition-colors">Légal</button>
             </div>
             <button
               onClick={() => navigate('/auth')}

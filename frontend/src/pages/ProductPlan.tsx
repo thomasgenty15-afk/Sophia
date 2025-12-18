@@ -36,6 +36,7 @@ const ProductPlan = () => {
                 L'Architecte <span className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">PRO</span>
               </button>
               <button onClick={() => navigate('/formules')} className="hover:text-violet-600 transition-colors">Offres</button>
+              <button onClick={() => navigate('/legal')} className="hover:text-violet-600 transition-colors">Légal</button>
             </div>
             <button 
               onClick={() => navigate('/auth')}

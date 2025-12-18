@@ -28,6 +28,12 @@ const Formules = () => {
             <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900">Sophia</span>
           </div>
           <div className="flex items-center gap-4 md:gap-8">
+             <button
+              onClick={() => navigate('/legal')}
+              className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors"
+            >
+              Légal
+            </button>
              <button 
               onClick={() => navigate('/auth')}
               className="text-sm font-medium text-slate-600 hover:text-violet-600 transition-colors"
