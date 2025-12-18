@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions } from '../lib/planActions';
+import { startLoadingSequence } from '../lib/loadingSequence';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -69,6 +70,7 @@ const ActionPlanGeneratorNext = () => {
   const [feedback, setFeedback] = useState('');
   const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
 
   const [contextSummary, setContextSummary] = useState<string | null>(null);
   const [isContextLoading, setIsContextLoading] = useState(false);
@@ -228,6 +230,7 @@ const ActionPlanGeneratorNext = () => {
 
     setStep('generating');
     setError(null);
+    const stopLoading = startLoadingSequence(setLoadingMessage, 'plan_next');
 
     try {
       // 2. VÉRIFICATION DU QUOTA (Anti-Abus & Règle des 2 essais)
@@ -256,6 +259,7 @@ const ActionPlanGeneratorNext = () => {
               
               // On informe l'utilisateur
               alert("Vous avez utilisé vos 2 essais (1 création + 1 modification). Voici votre plan final.");
+              stopLoading();
               
               // On affiche le résultat et on arrête tout
               setStep('result');
@@ -327,6 +331,7 @@ const ActionPlanGeneratorNext = () => {
       if (data) {
         setPlan(data);
         setStep('result');
+        stopLoading();
         
         // --- SAUVEGARDE EN BASE ---
         // On doit trouver le goal correspondant à cet axe pour le mettre à jour ou recréer le plan
@@ -401,6 +406,7 @@ const ActionPlanGeneratorNext = () => {
       // On affiche le message d'erreur précis (ex: "Le cerveau de Sophia est en surchauffe...")
       setError(err.message || "Erreur lors de la génération. Veuillez réessayer.");
       setStep('input');
+      stopLoading();
     }
   };
 
@@ -535,7 +541,7 @@ const ActionPlanGeneratorNext = () => {
               {isContextLoading ? (
                   <div className="flex items-center gap-3 text-slate-400 animate-pulse">
                       <Sparkles className="w-4 h-4" />
-                      <span className="text-sm italic">Analyse de vos nouvelles réponses...</span>
+                      <span className="text-sm italic">Analyse de tes nouvelles réponses...</span>
                   </div>
               ) : (
                   <p className="text-sm md:text-base text-slate-600 leading-relaxed italic">
@@ -685,7 +691,7 @@ const ActionPlanGeneratorNext = () => {
               <RotateCcw className="w-10 h-10 animate-spin" />
             </div>
             <h2 className="text-2xl font-bold text-slate-900 mb-2">Génération du plan en cours...</h2>
-            <p className="text-slate-500">Sophia intègre vos nouvelles données.</p>
+            <p className="text-slate-500 font-medium">{loadingMessage || "Sophia intègre tes nouvelles données."}</p>
           </div>
         )}
 
@@ -698,7 +704,7 @@ const ActionPlanGeneratorNext = () => {
                     <div className="flex items-center gap-3">
                         <Edit3 className="w-5 h-5 text-blue-600" />
                         <p className="text-sm text-blue-800">
-                            Le plan ne vous convient pas ? Vous pouvez ajuster vos réponses.
+                            Le plan ne te convient pas ? Tu peux ajuster tes réponses.
                         </p>
                     </div>
                     <button 
@@ -712,7 +718,7 @@ const ActionPlanGeneratorNext = () => {
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center gap-3">
                      <Lock className="w-5 h-5 text-amber-600" />
                      <p className="text-sm text-amber-800">
-                        Version finale du plan. Utilisez le chat ci-dessous pour des ajustements mineurs.
+                        Version finale du plan. Utilise le chat ci-dessous pour des ajustements mineurs.
                      </p>
                 </div>
             )}
@@ -822,7 +828,7 @@ const ActionPlanGeneratorNext = () => {
                 Ajustements & Feedback
               </h3>
               <p className="text-xs md:text-sm text-slate-600 mb-3 md:mb-4 leading-relaxed">
-                Ce plan n'est pas figé. Si une action vous semble irréaliste ou mal adaptée, dites-le à Sophia pour qu'elle recalcule l'itinéraire.
+                Ce plan n'est pas figé. Si une action te semble irréaliste ou mal adaptée, dis-le à Sophia pour qu'elle recalcule l'itinéraire.
               </p>
               <div className="flex gap-2">
                 <input 
@@ -848,7 +854,7 @@ const ActionPlanGeneratorNext = () => {
               {isRefining && (
                 <p className="text-xs text-violet-600 mt-2 animate-pulse flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
-                    Sophia réajuste le plan selon vos contraintes...
+                    Sophia réajuste le plan selon tes contraintes...
                 </p>
               )}
             </div>

@@ -12,8 +12,37 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { message, history } = await req.json()
+    const body = await req.json()
+    let message = (body?.message ?? body?.content ?? "").toString()
+    const history = Array.isArray(body?.history) ? body.history : []
+    let forceMode = (body?.forceMode ?? body?.force_mode) as string | undefined
+    let contextOverride = (body?.contextOverride ?? body?.context_override ?? body?.context) as string | undefined
+    const logMessages = body?.logMessages ?? body?.log_messages
+    const messageMetadata = (body?.messageMetadata ?? body?.message_metadata ?? body?.metadata) as Record<string, unknown> | undefined
+    const channel = (body?.channel as ("web" | "whatsapp") | undefined) ?? "web"
     const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
+
+    // Backward compatibility: some frontend calls used { mode, context } without { message }.
+    // We synthesize a user message and a textual context override, and force the appropriate agent.
+    const legacyMode = (body?.mode ?? "").toString().trim()
+    const legacyContext = body?.context
+    if (!message && legacyMode && legacyContext && typeof legacyContext === 'object') {
+      const userPrompt = (legacyContext?.userPrompt ?? legacyContext?.prompt ?? "").toString().trim()
+      message = userPrompt || "Aide-moi à avancer."
+
+      if (!contextOverride) {
+        const safeContext = { ...legacyContext }
+        // Avoid duplicating userPrompt in the context header.
+        if ('userPrompt' in safeContext) delete (safeContext as any).userPrompt
+        if ('prompt' in safeContext) delete (safeContext as any).prompt
+        contextOverride = `LegacyMode: ${legacyMode}\nLegacyContext: ${JSON.stringify(safeContext)}`
+      }
+
+      // Force architect for these legacy content modes.
+      if (!forceMode && (legacyMode === 'architect_help' || legacyMode === 'refine_module')) {
+        forceMode = 'architect'
+      }
+    }
     
     // Auth Check
     const authHeader = req.headers.get('Authorization')!
@@ -29,7 +58,21 @@ Deno.serve(async (req) => {
     console.log(`Processing message for user ${user.id}: "${message.substring(0, 50)}..."`)
 
     // LE CŒUR DU RÉACTEUR
-    const response = await processMessage(supabaseClient, user.id, message, history, { requestId })
+    const response = await processMessage(
+      supabaseClient,
+      user.id,
+      message,
+      history,
+      { requestId, channel },
+      {
+        logMessages: typeof logMessages === "boolean" ? logMessages : undefined,
+        forceMode: (forceMode === 'dispatcher' || forceMode === 'sentry' || forceMode === 'firefighter' || forceMode === 'investigator' || forceMode === 'architect' || forceMode === 'companion' || forceMode === 'assistant')
+          ? forceMode
+          : undefined,
+        contextOverride: contextOverride ? contextOverride.toString() : undefined,
+        messageMetadata: messageMetadata ?? undefined,
+      }
+    )
 
     return new Response(JSON.stringify(response), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

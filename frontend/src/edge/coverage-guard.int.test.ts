@@ -67,14 +67,20 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "generate-feedback",
       "generate-plan",
       "process-checkins",
+      "recommend-transformations",
       "run-evals",
       "simulate-user",
       "sophia-brain",
+      "sophia-brain-internal",
       "sort-priorities",
       "summarize-context",
       "trigger-checkup",
+      "trigger-daily-bilan",
       "trigger-memory-echo",
       "update-core-identity",
+      "whatsapp-optin",
+      "whatsapp-send",
+      "whatsapp-webhook",
     ].sort();
 
     expect(discovered).toEqual(expected);
@@ -92,6 +98,7 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "update_user_chat_states_modtime",
 
       // From migrations (recent)
+      "enforce_single_master_admin_trg",
       "on_auth_user_created",
       "on_auth_user_updated_email",
       "on_week12_manual_unlock",
@@ -101,6 +108,7 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "on_week_completed_identity",
       "on_module_updated_identity",
       "on_plan_completed_archive",
+      "on_profile_created_master_admin",
     ].sort();
 
     expect(discovered).toEqual(expected);

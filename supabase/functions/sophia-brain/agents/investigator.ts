@@ -688,7 +688,7 @@ export async function runInvestigator(
   message: string, 
   history: any[],
   state: any,
-  meta?: { requestId?: string }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
 ): Promise<{ content: string, investigationComplete: boolean, newState: any }> {
 
   // 1. INIT STATE

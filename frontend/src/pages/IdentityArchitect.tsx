@@ -139,6 +139,8 @@ const IdentityArchitect = () => {
     { id: 1, sender: 'ai', text: `Salut Architecte. Bienvenue dans le module "${currentWeek?.title}". Par où veux-tu commencer ?` }
   ]);
   const [inputMessage, setInputMessage] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
   
   // NOUVEAU : State pour le mode Zen (Question active en plein écran)
   const [zenModeQuestionId, setZenModeQuestionId] = useState<string | null>(null);
@@ -281,19 +283,124 @@ const IdentityArchitect = () => {
   }, [answers, hasStartedWork, isLoading]);
 
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
-    const newMsg = { id: Date.now(), sender: 'user', text: inputMessage };
-    setMessages(prev => [...prev, newMsg]);
-    setInputMessage("");
+  const handleSendMessage = async () => {
+    const userText = inputMessage.trim();
+    if (!userText || isChatLoading) return;
+    if (!currentWeek) return;
 
-    setTimeout(() => {
-      setMessages(prev => [...prev, { 
-        id: Date.now() + 1, 
-        sender: 'ai', 
-        text: "C'est une réflexion intéressante. Comment cela s'inscrit-il dans ta vision à long terme ?" 
-      }]);
-    }, 1000);
+    const trunc = (s: string, max = 12000) => {
+      const txt = (s ?? "").toString();
+      if (txt.length <= max) return txt;
+      return txt.slice(0, max) + "…";
+    };
+    const oneLine = (s: string) => (s ?? "").toString().replace(/\s+/g, " ").trim();
+
+    const userMsg = { id: Date.now(), sender: 'user' as const, text: userText };
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
+    setInputMessage("");
+    setIsChatLoading(true);
+    setChatError(null);
+
+    try {
+      const historyForBrain = nextMessages.slice(-10).map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text,
+      }));
+
+      const activeQ =
+        currentWeek.subQuestions.find((q) => q.id === activeQuestion) ??
+        currentWeek.subQuestions[0];
+
+      const activeQuestionIndex = Math.max(
+        1,
+        currentWeek.subQuestions.findIndex((q) => q.id === activeQ?.id) + 1
+      );
+
+      const activeAnswer = answers[activeQ?.id] || "";
+
+      const allQuestionsFull = currentWeek.subQuestions
+        .map((q, idx) => {
+          const answer = answers[q.id] || "";
+          const answerBlock = answer.trim().length > 0
+            ? trunc(answer, 2500)
+            : "(vide)";
+          return [
+            `### Q${idx + 1} / ${currentWeek.subQuestions.length}`,
+            `ID: ${q.id}`,
+            `Titre: ${q.question}`,
+            ``,
+            `PROMPT (intégral):`,
+            q.placeholder,
+            ``,
+            `AIDE (intégrale):`,
+            q.helperText,
+            ``,
+            `RÉPONSE UTILISATEUR (si présente):`,
+            answerBlock,
+          ].join("\n");
+        })
+        .join("\n\n---\n\n");
+
+      const contextOverrideRaw = [
+        `Type: Module Semaine (Architecte)`,
+        `Week: ${weekNumber}`,
+        `ModuleId: ${moduleId}`,
+        `Titre: ${currentWeek.title}`,
+        `Zen mode: ${zenModeQuestionId ? 'on' : 'off'}`,
+        ``,
+        `=== QUESTION ACTIVE (RÉFÉRENCE ABSOLUE) ===`,
+        `ActiveQuestionIndex: ${activeQuestionIndex} / ${currentWeek.subQuestions.length}`,
+        `ActiveQuestionId: ${activeQ?.id || 'N/A'}`,
+        `ActiveQuestionTitle: ${activeQ?.question || 'N/A'}`,
+        ``,
+        `ACTIVE_PROMPT (intégral):`,
+        activeQ?.placeholder || '',
+        ``,
+        `ACTIVE_AIDE (intégrale):`,
+        activeQ?.helperText || '',
+        ``,
+        `ACTIVE_RÉPONSE (si présente):`,
+        activeAnswer.trim().length ? trunc(activeAnswer, 3000) : '(vide)',
+        ``,
+        `=== TOUTES LES QUESTIONS CLÉS DE LA SEMAINE (INTÉGRAL) ===`,
+        allQuestionsFull || "(aucune question trouvée)",
+      ].join("\n");
+
+      const contextOverride = trunc(contextOverrideRaw, 20000);
+
+      const { data, error } = await supabase.functions.invoke('sophia-brain', {
+        body: {
+          message: userText,
+          history: historyForBrain,
+          forceMode: 'architect',
+          contextOverride,
+          channel: 'web',
+          messageMetadata: {
+            source: 'module_conversation',
+            ui: 'IdentityArchitect',
+            moduleKind: 'week',
+            moduleId,
+            weekNumber,
+            activeQuestion,
+            zenMode: !!zenModeQuestionId,
+            activeQuestionText: activeQ?.question,
+            activeQuestionIndex,
+          },
+        }
+      });
+
+      if (error) throw error;
+
+      const assistantText = (data?.content ?? "").toString().trim() || "Je n'ai pas réussi à répondre. Réessaie ?";
+      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: assistantText }]);
+    } catch (e: any) {
+      console.error("[IdentityArchitect] Chat error:", e);
+      setChatError(e?.message || "Erreur lors de l'appel à Sophia.");
+      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: "Désolée, je bug un instant. Réessaie dans quelques secondes." }]);
+    } finally {
+      setIsChatLoading(false);
+    }
   };
 
   // --- RENDER MODE ZEN (MODALE PLEIN ÉCRAN) ---
@@ -451,7 +558,7 @@ const IdentityArchitect = () => {
 
                       {messages.map((msg) => (
                           <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${
+                              <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
                                   msg.sender === 'user' 
                                   ? 'bg-emerald-600 text-white rounded-br-none' 
                                   : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
@@ -460,6 +567,18 @@ const IdentityArchitect = () => {
                               </div>
                           </div>
                       ))}
+                      {isChatLoading && (
+                        <div className="flex justify-start">
+                          <div className="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                            ...
+                          </div>
+                        </div>
+                      )}
+                      {chatError && (
+                        <div className="text-xs text-red-300 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
+                          {chatError}
+                        </div>
+                      )}
                   </div>
 
                   {/* Input Chat Mobile */}
@@ -613,7 +732,7 @@ const IdentityArchitect = () => {
             <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-emerald-800">
               {messages.map((msg) => (
                 <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
-                  <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                  <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-line shadow-sm ${
                     msg.sender === 'user' 
                       ? 'bg-emerald-600 text-white rounded-br-none' 
                       : 'bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
@@ -622,6 +741,18 @@ const IdentityArchitect = () => {
                   </div>
                 </div>
               ))}
+              {isChatLoading && (
+                <div className="flex justify-start animate-fade-in-up">
+                  <div className="max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                    ...
+                  </div>
+                </div>
+              )}
+              {chatError && (
+                <div className="text-xs text-red-300 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
+                  {chatError}
+                </div>
+              )}
             </div>
 
             <div className="mt-4 relative">
@@ -793,7 +924,7 @@ const IdentityArchitect = () => {
 
                         {messages.map((msg) => (
                             <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed ${
+                                <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
                                     msg.sender === 'user' 
                                     ? 'bg-emerald-600 text-white rounded-br-none' 
                                     : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
@@ -802,6 +933,18 @@ const IdentityArchitect = () => {
                                 </div>
                             </div>
                         ))}
+                        {isChatLoading && (
+                          <div className="flex justify-start">
+                            <div className="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                              ...
+                            </div>
+                          </div>
+                        )}
+                        {chatError && (
+                          <div className="text-xs text-red-300 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
+                            {chatError}
+                          </div>
+                        )}
                     </div>
 
                     {/* Input Chat Mobile */}
@@ -1005,7 +1148,7 @@ const IdentityArchitect = () => {
           <div className="flex-1 overflow-y-auto space-y-4 pr-2 scrollbar-thin scrollbar-thumb-emerald-800">
             {messages.map((msg) => (
               <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in-up`}>
-                <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm ${
+                <div className={`max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed whitespace-pre-line shadow-sm ${
                   msg.sender === 'user' 
                     ? 'bg-emerald-600 text-white rounded-br-none' 
                     : 'bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
@@ -1014,6 +1157,18 @@ const IdentityArchitect = () => {
                 </div>
               </div>
             ))}
+            {isChatLoading && (
+              <div className="flex justify-start animate-fade-in-up">
+                <div className="max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                  ...
+                </div>
+              </div>
+            )}
+            {chatError && (
+              <div className="text-xs text-red-300 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
+                {chatError}
+              </div>
+            )}
           </div>
 
           <div className="mt-4 relative">

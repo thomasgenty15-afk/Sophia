@@ -1,0 +1,117 @@
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
+serve(async (req) => {
+  // Gestion du pre-flight CORS
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
+  try {
+    // On lit le body. On ne vérifie PAS le JWT ici (on suppose que la fonction est déployée en --no-verify-jwt si besoin)
+    // ou que le client envoie un token Anon valide.
+    const { userAnswers, availableTransformations } = await req.json()
+
+    if (!userAnswers || !availableTransformations) {
+        throw new Error('Données manquantes (userAnswers ou availableTransformations)');
+    }
+
+    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+    if (!GEMINI_API_KEY) {
+      throw new Error('Clé API Gemini manquante')
+    }
+
+    // On allège les données envoyées à Gemini
+    const simplifiedCatalog = availableTransformations.map((theme: any) => ({
+        id: theme.id,
+        title: theme.title,
+        axes: theme.axes?.map((axis: any) => ({
+            id: axis.id,
+            title: axis.title,
+            description: axis.description,
+            problems: axis.problems?.map((p: any) => ({
+                id: p.id,
+                label: p.label
+            }))
+        }))
+    }));
+
+    const systemPrompt = `
+      Tu es Sophia, une IA "Architecte de vie" bienveillante, perspicace et pragmatique.
+      Ton rôle est d'aider l'utilisateur à choisir ses transformations prioritaires (axes de travail) parmi un catalogue, en fonction de ses réponses à 3 questions introspectives.
+
+      RÈGLES DE SÉLECTION :
+      1. Tu dois choisir entre 1 et 3 Axes (Transformations) maximum au total.
+      2. Pour chaque Axe choisi, tu dois sélectionner les Problèmes (checkboxes) qui semblent correspondre à la situation de l'utilisateur.
+      3. Tes choix doivent être justifiés par la situation décrite par l'utilisateur.
+
+      FORMAT DE SORTIE (JSON STRICT) :
+      {
+        "recommendations": [
+          {
+            "themeId": "ID_DU_THEME",
+            "axisId": "ID_DE_L_AXE",
+            "problemIds": ["ID_PROBLEME_1", "ID_PROBLEME_2"], 
+            "reasoning": "Une phrase courte expliquant pourquoi cet axe est pertinent pour lui."
+          }
+        ],
+        "globalMessage": "Un message chaleureux (max 3 phrases) expliquant ta stratégie globale. Tutoiement uniquement. Termine par un rappel clair : tu dois vérifier et compléter les détails (sous-questions)."
+      }
+    `
+
+    const userPrompt = `
+      CONTEXTE UTILISATEUR :
+      1. Points à améliorer pour être heureux à 100% : "${userAnswers.improvement}"
+      2. Obstacles identifiés : "${userAnswers.obstacles}"
+      3. Autres infos importantes : "${userAnswers.other}"
+
+      CATALOGUE DES TRANSFORMATIONS DISPONIBLES :
+      ${JSON.stringify(simplifiedCatalog)}
+
+      Analyse ces réponses et génère le JSON de recommandation.
+    `
+
+    console.log("Calling Gemini API...")
+
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
+          generationConfig: { responseMimeType: "application/json" }
+        })
+      }
+    )
+
+    const data = await response.json()
+
+    if (!response.ok) {
+        console.error("Gemini Error:", JSON.stringify(data));
+        throw new Error(`Gemini Error: ${data.error?.message || 'Unknown error'}`);
+    }
+
+    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!rawText) throw new Error('Réponse vide de Gemini')
+    
+    const jsonString = rawText.replace(/```json\n?|```/g, '').trim()
+    const result = JSON.parse(jsonString)
+
+    return new Response(
+      JSON.stringify(result),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+    )
+
+  } catch (error) {
+    console.error('Error:', error)
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
+    )
+  }
+})

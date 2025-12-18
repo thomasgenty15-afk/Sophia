@@ -384,6 +384,9 @@ verify_jwt = false
 [functions.trigger-daily-bilan]
 verify_jwt = false
 
+[functions.recommend-transformations]
+verify_jwt = false
+
 [analytics]
 enabled = false
 port = 54327

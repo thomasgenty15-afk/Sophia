@@ -857,14 +857,79 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
     { id: 1, sender: 'ai', text: `Bonjour Architecte. Nous travaillons sur le module "${module.title}" du système "${module.originalWeekTitle || 'Inconnu'}".` }
   ]);
   const [inputMessage, setInputMessage] = useState("");
+  const [isChatLoading, setIsChatLoading] = useState(false);
+  const [chatError, setChatError] = useState<string | null>(null);
 
-  const handleSendMessage = () => {
-    if (!inputMessage.trim()) return;
-    setMessages([...messages, { id: Date.now(), sender: 'user', text: inputMessage }]);
+  const handleSendMessage = async () => {
+    const userText = inputMessage.trim();
+    if (!userText || isChatLoading) return;
+
+    const trunc = (s: string, max = 12000) => {
+      const txt = (s ?? "").toString();
+      if (txt.length <= max) return txt;
+      return txt.slice(0, max) + "…";
+    };
+
+    const userMsg = { id: Date.now(), sender: 'user' as const, text: userText };
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setInputMessage("");
-    setTimeout(() => {
-      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: "C'est noté. Je te conseille d'ajouter cette précision dans le texte à gauche." }]);
-    }, 1000);
+    setIsChatLoading(true);
+    setChatError(null);
+
+    try {
+      const historyForBrain = nextMessages.slice(-10).map((m) => ({
+        role: m.sender === 'user' ? 'user' : 'assistant',
+        content: m.text,
+      }));
+
+      const contextOverrideRaw = [
+        `Type: Module Individuel (Forge)`,
+        `ModuleId: ${module.id}`,
+        `Titre: ${module.title}`,
+        `Système: ${module.originalWeekTitle || 'Inconnu'}`,
+        `Immersion: ${isImmersive ? 'on' : 'off'}`,
+        ``,
+        `=== QUESTION CLÉ (INTÉGRAL) ===`,
+        `Question: ${specificQuestion}`,
+        ``,
+        `Aide:`,
+        specificHelper,
+        ``,
+        `=== CONTENU ACTUEL DU MODULE (EN COURS D'ÉDITION) ===`,
+        trunc(content, 8000) || "(vide)",
+      ].join('\n');
+      const contextOverride = trunc(contextOverrideRaw, 20000);
+
+      const { data, error } = await supabase.functions.invoke('sophia-brain', {
+        body: {
+          message: userText,
+          history: historyForBrain,
+          forceMode: 'architect',
+          contextOverride,
+          channel: 'web',
+          messageMetadata: {
+            source: 'module_conversation',
+            ui: 'IdentityEvolution.EvolutionForge',
+            moduleKind: 'individual',
+            moduleId: module.id,
+            immersion: isImmersive,
+            moduleTitle: module.title,
+          },
+        }
+      });
+
+      if (error) throw error;
+
+      const assistantText = (data?.content ?? "").toString().trim() || "Je n'ai pas réussi à répondre. Réessaie ?";
+      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: assistantText }]);
+    } catch (e: any) {
+      console.error("[IdentityEvolution] Chat error:", e);
+      setChatError(e?.message || "Erreur lors de l'appel à Sophia.");
+      setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: "Désolée, je bug un instant. Réessaie dans quelques secondes." }]);
+    } finally {
+      setIsChatLoading(false);
+    }
   };
 
   const specificQuestion = module.originalQuestion || "Quelle est la vérité fondamentale que tu veux graver ici ?";
@@ -1105,13 +1170,25 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
               <div className="flex-1 overflow-y-auto space-y-3 md:space-y-4 mb-3 md:mb-4 pr-2 scrollbar-thin scrollbar-thumb-emerald-800">
                 {messages.map((msg) => (
                   <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                    <div className={`max-w-[85%] p-2 md:p-3 rounded-2xl text-xs md:text-sm leading-relaxed ${
+                    <div className={`max-w-[85%] p-2 md:p-3 rounded-2xl text-xs md:text-sm leading-relaxed whitespace-pre-line ${
                       msg.sender === 'user' ? 'bg-emerald-600 text-white' : 'bg-emerald-900 text-emerald-100 border border-emerald-800'
                     }`}>
                       {msg.text}
                     </div>
                   </div>
                 ))}
+                {isChatLoading && (
+                  <div className="flex justify-start">
+                    <div className="max-w-[85%] p-2 md:p-3 rounded-2xl text-xs md:text-sm leading-relaxed bg-emerald-900 text-emerald-100 border border-emerald-800">
+                      ...
+                    </div>
+                  </div>
+                )}
+                {chatError && (
+                  <div className="text-[10px] md:text-xs text-red-400/90 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
+                    {chatError}
+                  </div>
+                )}
               </div>
               
               <div className="relative">
@@ -1120,7 +1197,7 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
                   value={inputMessage}
                   onChange={(e) => setInputMessage(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSendMessage()}
-                  placeholder="Discuter avec l'assistant..."
+                  placeholder="Discuter avec Sophia..."
                   className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-3 md:pl-4 pr-10 md:pr-12 py-3 md:py-4 text-xs md:text-sm text-white focus:ring-1 focus:ring-emerald-500 outline-none shadow-inner"
                 />
                 <button onClick={handleSendMessage} className="absolute right-2 top-2 bottom-2 text-emerald-400 hover:text-white hover:bg-emerald-800 p-1.5 md:p-2 rounded-lg transition-colors">

@@ -209,7 +209,7 @@ export async function runCompanion(
   history: any[], 
   userState: any, 
   context: string = "",
-  meta?: { requestId?: string }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
@@ -229,6 +229,8 @@ export async function runCompanion(
     - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
     - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
     - Ton but est de maintenir la conversation ouverte et engageante.
+    - FORMAT (IMPORTANT) : Réponse aérée. Fais 2 à 3 petits paragraphes séparés par une ligne vide.
+      Si tu donnes une liste, mets une ligne vide avant la liste et utilise des tirets "- ".
     
     TON SUPER-POUVOIR (TRACKING) :
     - Si l'utilisateur dit qu'il a FAIT une action : UTILISE "track_progress" avec status="completed".
@@ -306,6 +308,10 @@ export async function runCompanion(
         1. Confirme que c'est pris en compte (sans dire "C'est enregistré dans la base de données").
         2. Félicite (si réussi) ou Encourage (si raté).
         3. SI l'utilisateur a donné des détails (ex: "J'ai lu et c'était pas mal"), REBONDIS SUR CES DÉTAILS. Ne pose pas une question générique.
+
+        FORMAT :
+        - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
+        - Pas de gras.
         
         Exemple (User a dit "J'ai lu un super livre") : "Génial pour la lecture ! C'était quoi comme bouquin ?"
         Exemple (User a juste dit "J'ai fait") : "Super ! Tu te sens comment ?"

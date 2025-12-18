@@ -2,6 +2,64 @@
 
 Initial Supabase database schema, Zod/TypeScript types, seeds, and Edge Function skeletons for the Sophia (Coachy) MVP.
 
+## Déploiement Vercel (site `sophia-coach.ai`)
+
+Ce repo contient:
+- `frontend/`: l’app web (React + Vite)
+- `supabase/`: migrations + edge functions
+
+### 1) Supabase Cloud (production)
+
+Dans Supabase Dashboard du projet (`https://ybyqxwnwjvuxckolsddn.supabase.co`) :
+- **Auth → Settings**:
+  - **Disable signups** (inscriptions OFF) → personne ne peut créer de compte
+  - **Site URL**: `https://sophia-coach.ai`
+  - **Additional Redirect URLs**: ajoute aussi `https://sophia-coach.ai/auth` (et `https://www.sophia-coach.ai/auth` si tu utilises le www)
+- **Auth → Users**:
+  - crée/invite l’utilisateur `thomasgenty15@gmail.com`
+- **DB**:
+  - tes migrations incluent un verrou “master_admin” via `public.internal_admins` (email `thomasgenty15@gmail.com`)
+
+### 2) Vercel (frontend)
+
+Dans Vercel:
+- **New Project → Import Git Repository**
+- **Root Directory**: `frontend`
+- **Build Command**: `npm run build`
+- **Output Directory**: `dist`
+- **Environment Variables** (Production):
+  - `VITE_SUPABASE_URL` = `https://ybyqxwnwjvuxckolsddn.supabase.co`
+  - `VITE_SUPABASE_ANON_KEY` = (clé anon du projet Supabase cloud)
+  - `VITE_PRELAUNCH_LOCKDOWN` = `true` (pré-lancement: app accessible uniquement aux `internal_admins`)
+
+> Le fichier `frontend/vercel.json` ajoute le rewrite SPA nécessaire pour React Router.
+
+### 3) Domaine `sophia-coach.ai`
+
+Dans Vercel → **Project → Settings → Domains**:
+- ajoute `sophia-coach.ai` (et `www.sophia-coach.ai` si souhaité)
+
+Puis dans ton DNS (registrar):
+- **A record (apex)**: `@` → `76.76.21.21`
+- **CNAME (www)**: `www` → `cname.vercel-dns.com`
+
+## Environnements (local vs production)
+
+### Local (Supabase CLI + Vite)
+
+- Supabase local:
+  - copie `supabase/env.example` vers `supabase/.env` (non commité) et remplis
+  - démarre: `./scripts/supabase_local.sh start`
+  - récupère les clés: `supabase status`
+- Frontend local:
+  - copie `frontend/env.example` vers `frontend/.env.local` (non commité)
+  - démarre: `npm run dev`
+
+### Production (Vercel + Supabase Cloud)
+
+- Les variables `VITE_*` sont fournies par Vercel.
+- Les inscriptions sont **bloquées côté Supabase** (Auth), donc sécurité OK même si quelqu’un appelle l’API directement.
+
 ## Mega test (1 commande)
 
 Lance un check “bout-en-bout” local: Supabase local + reset DB + tests Edge (Deno) + tests d’intégration (Vitest).

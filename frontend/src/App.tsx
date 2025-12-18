@@ -22,10 +22,12 @@ import ProductPlan from './pages/ProductPlan';
 import ProductArchitect from './pages/ProductArchitect';
 import Formules from './pages/Formules';
 import Auth from './pages/Auth'; 
+import Legal from './pages/Legal'; // IMPORT PAGE LEGALE
 import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
 import { ChatPage } from './pages/ChatPage'; // Import ChatPage
 import AdminEvals from './pages/AdminEvals';
 import AdminDashboard from './pages/AdminDashboard';
+import { RequireAdmin, RequireAppAccess } from './security/RouteGuards';
 
 function App() {
   return (
@@ -34,34 +36,35 @@ function App() {
         <div className="min-h-screen bg-white text-black font-sans">
           <Routes>
             <Route path="/" element={<LandingPage />} />
-            <Route path="/chat" element={<ChatPage />} />
+            <Route path="/chat" element={<RequireAppAccess><ChatPage /></RequireAppAccess>} />
             <Route path="/le-plan" element={<ProductPlan />} />
             <Route path="/l-architecte" element={<ProductArchitect />} />
             <Route path="/formules" element={<Formules />} />
             <Route path="/auth" element={<Auth />} /> 
-            <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/global-plan" element={<GlobalPlan />} />
-            <Route path="/global-plan-follow" element={<GlobalPlanFollow />} />
-            <Route path="/plan-priorities" element={<PlanPriorities />} />
-            <Route path="/plan-priorities-follow" element={<PlanPrioritiesFollow />} />
-            <Route path="/plan-generator" element={<ActionPlanGenerator />} />
-            <Route path="/plan-generator-recraft" element={<ActionPlanGeneratorRecraft />} />
-            <Route path="/plan-generator-follow" element={<ActionPlanGeneratorFollow />} />
-            <Route path="/recraft" element={<Recraft />} />
-            <Route path="/next-plan" element={<NextPlan />} />
-            <Route path="/plan-generator-next" element={<ActionPlanGeneratorNext />} />
-            <Route path="/framework-execution" element={<FrameworkExecution />} />
-            <Route path="/grimoire" element={<Grimoire />} />
-            <Route path="/grimoire/:id" element={<Grimoire />} />
+            <Route path="/legal" element={<Legal />} /> {/* ROUTE LEGALE */}
+            <Route path="/dashboard" element={<RequireAppAccess><Dashboard /></RequireAppAccess>} />
+            <Route path="/global-plan" element={<RequireAppAccess><GlobalPlan /></RequireAppAccess>} />
+            <Route path="/global-plan-follow" element={<RequireAppAccess><GlobalPlanFollow /></RequireAppAccess>} />
+            <Route path="/plan-priorities" element={<RequireAppAccess><PlanPriorities /></RequireAppAccess>} />
+            <Route path="/plan-priorities-follow" element={<RequireAppAccess><PlanPrioritiesFollow /></RequireAppAccess>} />
+            <Route path="/plan-generator" element={<RequireAppAccess><ActionPlanGenerator /></RequireAppAccess>} />
+            <Route path="/plan-generator-recraft" element={<RequireAppAccess><ActionPlanGeneratorRecraft /></RequireAppAccess>} />
+            <Route path="/plan-generator-follow" element={<RequireAppAccess><ActionPlanGeneratorFollow /></RequireAppAccess>} />
+            <Route path="/recraft" element={<RequireAppAccess><Recraft /></RequireAppAccess>} />
+            <Route path="/next-plan" element={<RequireAppAccess><NextPlan /></RequireAppAccess>} />
+            <Route path="/plan-generator-next" element={<RequireAppAccess><ActionPlanGeneratorNext /></RequireAppAccess>} />
+            <Route path="/framework-execution" element={<RequireAppAccess><FrameworkExecution /></RequireAppAccess>} />
+            <Route path="/grimoire" element={<RequireAppAccess><Grimoire /></RequireAppAccess>} />
+            <Route path="/grimoire/:id" element={<RequireAppAccess><Grimoire /></RequireAppAccess>} />
             
             {/* NOUVELLE ROUTE POUR LE TABLEAU DE BORD ARCHITECTE */}
-            <Route path="/architecte" element={<ModulesPage />} />
+            <Route path="/architecte" element={<RequireAppAccess><ModulesPage /></RequireAppAccess>} />
             
-            <Route path="/architecte/:weekId" element={<IdentityArchitect />} />
-            <Route path="/architecte/alignment" element={<WeeklyAlignment />} />
-            <Route path="/architecte/evolution" element={<IdentityEvolution />} />
-            <Route path="/admin/evals" element={<AdminEvals />} />
-            <Route path="/admin" element={<AdminDashboard />} />
+            <Route path="/architecte/:weekId" element={<RequireAppAccess><IdentityArchitect /></RequireAppAccess>} />
+            <Route path="/architecte/alignment" element={<RequireAppAccess><WeeklyAlignment /></RequireAppAccess>} />
+            <Route path="/architecte/evolution" element={<RequireAppAccess><IdentityEvolution /></RequireAppAccess>} />
+            <Route path="/admin/evals" element={<RequireAdmin><AdminEvals /></RequireAdmin>} />
+            <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
           </Routes>
         </div>
       </Router>

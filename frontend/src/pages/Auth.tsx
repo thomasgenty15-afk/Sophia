@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { 
   Mail, 
   Lock, 
@@ -17,12 +18,14 @@ const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = new URLSearchParams(location.search).get('redirect');
+  const forbidden = new URLSearchParams(location.search).get('forbidden') === '1';
+  const prelaunchLockdown = isPrelaunchLockdownEnabled();
   
   // Récupérer les données du plan si on vient du flux onboarding
   const planData = location.state || null;
   const isRegistrationFlow = !!planData?.finalOrder; // Si on a des priorités, c'est une inscription
 
-  const [isSignUp, setIsSignUp] = useState(isRegistrationFlow); // Par défaut Inscription si flux, sinon Connexion
+  const [isSignUp, setIsSignUp] = useState(prelaunchLockdown ? false : isRegistrationFlow); // Par défaut Inscription si flux, sinon Connexion
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
@@ -30,8 +33,20 @@ const Auth = () => {
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
+  const [hasAcceptedLegal, setHasAcceptedLegal] = useState(false); // New state for legal acceptance
   const [confirmationPending, setConfirmationPending] = useState(false); // Nouvel état
   const [isResettingPassword, setIsResettingPassword] = useState(false); // Pour la demande de reset MDP
+
+  useEffect(() => {
+    // En pré-lancement, on force le mode connexion (inscription interdite)
+    if (prelaunchLockdown && isSignUp) setIsSignUp(false);
+  }, [prelaunchLockdown, isSignUp]);
+
+  useEffect(() => {
+    if (forbidden) {
+      setError("Accès restreint (pré-lancement). Seul le compte master_admin peut se connecter.");
+    }
+  }, [forbidden]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,8 +77,17 @@ const Auth = () => {
     setError(null);
 
     try {
-      if (isSignUp) {
+        if (isSignUp) {
+        if (prelaunchLockdown) {
+          throw new Error("Inscription désactivée (pré-lancement). Connectez-vous avec le compte master_admin.");
+        }
         // --- INSCRIPTION ---
+        
+        // Validation CGV/CGU
+        if (!hasAcceptedLegal) {
+          throw new Error("Veuillez accepter les CGU et la Politique de Confidentialité pour continuer.");
+        }
+
         // Basic phone validation (optional but recommended)
         if (!phone) {
              throw new Error("Le numéro de téléphone est requis pour Sophia.");
@@ -242,6 +266,11 @@ const Auth = () => {
                   ? "Créez votre compte pour commencer." 
                   : "Connectez-vous pour reprendre votre transformation."}
             </p>
+            {prelaunchLockdown && !isResettingPassword && (
+              <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
+                Accès restreint (pré-lancement) · master_admin uniquement
+              </div>
+            )}
           </div>
         )}
       </div>
@@ -309,7 +338,7 @@ const Auth = () => {
             <form className="space-y-6" onSubmit={handleAuth}>
             
             {/* Champ NOM (Seulement si Inscription) */}
-            {isSignUp && (
+            {isSignUp && !prelaunchLockdown && (
               <>
                 <div>
                   <label className="block text-sm font-bold text-slate-700 mb-1">
@@ -368,11 +397,30 @@ const Auth = () => {
                   </div>
                   <p className="mt-1 text-xs text-slate-500">Pour que Sophia puisse vous contacter.</p>
                 </div>
+
+                {/* Case à cocher CGV / CGU */}
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 items-center">
+                    <input
+                      id="legal-checkbox"
+                      name="legal"
+                      type="checkbox"
+                      checked={hasAcceptedLegal}
+                      onChange={(e) => setHasAcceptedLegal(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                    />
+                  </div>
+                  <div className="text-sm leading-6">
+                    <label htmlFor="legal-checkbox" className="font-medium text-slate-700 cursor-pointer select-none">
+                      J'accepte les <a href="/legal" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Conditions Générales</a> et la <a href="/legal#confidentialite" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Politique de Confidentialité</a>.
+                    </label>
+                  </div>
+                </div>
               </>
             )}
 
             {/* Pour le Login, on affiche juste l'email (sans les champs d'inscription) */}
-            {!isSignUp && (
+            {(!isSignUp || prelaunchLockdown) && (
             <div>
               <label className="block text-sm font-bold text-slate-700 mb-1">
                 Adresse Email
@@ -456,8 +504,8 @@ const Auth = () => {
             </form>
           )}
 
-          {/* SWITCHER LOGIN/SIGNUP (Masqué si Reset Password) */}
-          {!isResettingPassword && (
+          {/* SWITCHER LOGIN/SIGNUP (Masqué si Reset Password / Pré-lancement) */}
+          {!isResettingPassword && !prelaunchLockdown && (
             <div className="mt-6">
               <div className="relative">
                 <div className="absolute inset-0 flex items-center">
@@ -483,7 +531,7 @@ const Auth = () => {
         </div>
 
         {/* Trust Signals */}
-        {isSignUp && !isResettingPassword && (
+        {isSignUp && !isResettingPassword && !prelaunchLockdown && (
             <div className="mt-8 flex justify-center gap-6 text-xs text-slate-400 font-medium uppercase tracking-wider">
                 <span className="flex items-center gap-1"><ShieldCheck className="w-4 h-4" /> Données Privées</span>
                 <span className="flex items-center gap-1"><Sparkles className="w-4 h-4" /> IA Sécurisée</span>

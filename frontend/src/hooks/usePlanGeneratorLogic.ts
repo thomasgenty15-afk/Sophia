@@ -35,10 +35,10 @@ export const usePlanGeneratorLogic = (
   // --- LOADING SEQUENCE ---
   const startLoadingSequence = () => {
       const messages = [
-          "Analyse de votre profil...",
-          "Étude des blocages psychologiques...",
-          "Consultation des protocoles neuroscientifiques...",
-          "Rédaction de votre stratégie sur-mesure...",
+          "Analyse de ton profil...",
+          "Étude de tes blocages...",
+          "Consultation des protocoles (neurosciences & habitudes)...",
+          "Construction de ta stratégie sur-mesure...",
           "Finalisation du plan..."
       ];
       let i = 0;

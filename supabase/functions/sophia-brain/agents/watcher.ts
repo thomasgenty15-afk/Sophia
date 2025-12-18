@@ -7,7 +7,7 @@ export async function runWatcher(
   supabase: SupabaseClient, 
   userId: string, 
   lastProcessedAt: string,
-  meta?: { requestId?: string }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
 ) {
   console.log(`[Veilleur] Triggered for user ${userId}`)
 

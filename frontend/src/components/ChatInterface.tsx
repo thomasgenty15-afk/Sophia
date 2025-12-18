@@ -77,7 +77,7 @@ export const ChatInterface: React.FC = () => {
             )}
             
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm relative ${
+              className={`max-w-[80%] rounded-2xl px-4 py-2 text-sm shadow-sm relative whitespace-pre-line ${
                 msg.role === 'user'
                   ? 'bg-indigo-600 text-white rounded-br-none'
                   : 'bg-white text-slate-700 border border-slate-100 rounded-bl-none'

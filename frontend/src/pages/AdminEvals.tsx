@@ -46,22 +46,12 @@ type SuggestionRow = {
 };
 
 export default function AdminEvals() {
-  const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const { user, loading, isAdmin } = useAuth();
   const [runs, setRuns] = useState<EvalRunRow[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
   const [pendingSuggestions, setPendingSuggestions] = useState<SuggestionRow[]>([]);
   const [busy, setBusy] = useState(false);
   const selectedRun = useMemo(() => runs.find((r) => r.id === selectedRunId) ?? null, [runs, selectedRunId]);
-
-  useEffect(() => {
-    async function checkAdmin() {
-      if (!user) return;
-      const { data } = await supabase.from("internal_admins").select("user_id").eq("user_id", user.id).maybeSingle();
-      setIsAdmin(Boolean(data));
-    }
-    if (!loading) checkAdmin();
-  }, [user, loading]);
 
   useEffect(() => {
     async function load() {

@@ -493,7 +493,7 @@ const PlanPriorities = () => {
                     Analyse Stratégique...
                 </h2>
                 <p className="text-slate-500 leading-relaxed">
-                    Sophia analyse vos réponses pour identifier votre point de bascule optimal.
+                    Sophia analyse tes réponses pour identifier ton point de bascule optimal.
                 </p>
             </div>
         </div>

@@ -405,7 +405,7 @@ const LandingPage = () => {
                     Tu veux aller plus loin&nbsp;?
                  </h2>
               </div>
-              <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-emerald-400 -mt-4">
+              <h2 className="text-3xl md:text-5xl font-bold mb-6 leading-tight text-emerald-400 -mt-4 font-serif">
                 Deviens l'Architecte.
               </h2>
               <p className="text-slate-300 text-lg mb-8 leading-relaxed">
@@ -556,7 +556,7 @@ const LandingPage = () => {
             <span className="font-bold text-slate-900">Sophia</span>
           </div>
           <div className="text-sm text-slate-500">
-            © 2024 MySophia Inc.
+            © 2024 sophia-coach.ai
           </div>
         </div>
       </footer>

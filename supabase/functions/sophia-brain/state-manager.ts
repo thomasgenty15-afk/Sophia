@@ -57,13 +57,16 @@ export async function logMessage(
   userId: string, 
   role: 'user' | 'assistant' | 'system', 
   content: string, 
-  agentUsed?: AgentMode
+  agentUsed?: AgentMode,
+  metadata?: Record<string, unknown>
 ) {
   await supabase.from('chat_messages').insert({
     user_id: userId,
     role,
     content,
     agent_used: agentUsed
+    ,
+    metadata: metadata ?? {}
   })
 }
 

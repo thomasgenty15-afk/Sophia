@@ -10,6 +10,12 @@ import { runWatcher } from './agents/watcher.ts'
 import { generateWithGemini } from '../_shared/gemini.ts'
 import { appendPromptOverride, fetchPromptOverride } from '../_shared/prompt-overrides.ts'
 
+function normalizeChatText(text: string): string {
+  // Some model outputs include the literal characters "\n" instead of real newlines.
+  // Convert them so UI and WhatsApp both display properly.
+  return (text ?? "").toString().replace(/\\n/g, "\n");
+}
+
 // Classification intelligente par Gemini
 async function analyzeIntentAndRisk(
   message: string,
@@ -87,12 +93,17 @@ export async function processMessage(
   userMessage: string,
   history: any[],
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" },
-  opts?: { logMessages?: boolean }
+  opts?: { 
+    logMessages?: boolean;
+    forceMode?: AgentMode;
+    contextOverride?: string;
+    messageMetadata?: Record<string, unknown>;
+  }
 ) {
   const logMessages = opts?.logMessages !== false
   // 1. Log le message user
   if (logMessages) {
-    await logMessage(supabase, userId, 'user', userMessage)
+    await logMessage(supabase, userId, 'user', userMessage, undefined, opts?.messageMetadata)
   }
 
   // 2. Récupérer l'état actuel (Mémoire)
@@ -114,7 +125,10 @@ export async function processMessage(
   // On récupère le dernier message de l'assistant pour le contexte
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
   
-  const { targetMode, riskScore } = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage, meta)
+  const analysis = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage, meta)
+  const riskScore = analysis.riskScore
+  // If a forceMode is requested (e.g. module conversation), we keep safety priority for sentry.
+  const targetMode: AgentMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
 
   // 4. Mise à jour du risque si nécessaire
   if (riskScore !== state.risk_level) {
@@ -149,6 +163,9 @@ export async function processMessage(
     if (context) {
       console.log(`[Context] Loaded Dashboard + Identity + Vectors`);
     }
+  }
+  if (opts?.contextOverride) {
+    context = `=== CONTEXTE MODULE (UI) ===\n${opts.contextOverride}\n\n${context}`.trim()
   }
 
   // 5. Exécution de l'Agent Choisi
@@ -198,6 +215,8 @@ export async function processMessage(
       break
   }
 
+  responseContent = normalizeChatText(responseContent)
+
   // 6. Mise à jour du mode final et log réponse
   await updateUserState(supabase, userId, { 
     current_mode: nextMode,
@@ -205,7 +224,7 @@ export async function processMessage(
     last_processed_at: lastProcessed
   })
   if (logMessages) {
-    await logMessage(supabase, userId, 'assistant', responseContent, targetMode)
+    await logMessage(supabase, userId, 'assistant', responseContent, targetMode, opts?.messageMetadata)
   }
 
   return {

@@ -490,7 +490,7 @@ export async function runArchitect(
   history: any[], 
   userState: any,
   context: string = "",
-  meta?: { requestId?: string }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
@@ -519,6 +519,8 @@ export async function runArchitect(
     - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
     - Ton but est de maintenir la conversation ouverte et engageante.
     - GESTION DU BONJOUR : Regarde l'historique. Si la conversation a déjà commencé ou si l'utilisateur ne dit pas bonjour, NE DIS PAS BONJOUR. Attaque direct.
+    - FORMAT (IMPORTANT) : Réponse aérée. Fais 2 à 3 petits paragraphes séparés par une ligne vide.
+      Si tu proposes un mini-plan, utilise une liste avec des tirets "- " et laisse une ligne vide avant la liste.
     
     CONTEXTE OPÉRATIONNEL :
     ${context ? `${context}\n(Utilise ces infos intelligemment)` : ""}
@@ -582,6 +584,9 @@ export async function runArchitect(
               - Félicite ou discute normalement de ce sujet.
               - NE DIS PAS "C'est noté" ou "J'ai enregistré".
               - Sois naturel, efficace et concis.
+              
+              FORMAT :
+              - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
             `
             const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7, false, [], "auto", {
               requestId: meta?.requestId,
@@ -604,6 +609,10 @@ export async function runArchitect(
           1. Confirme que c'est pris en compte (sans dire "C'est enregistré").
           2. Enchaîne sur une question pour optimiser ou passer à la suite.
           3. SI l'utilisateur a donné des détails (ex: "J'ai lu et c'était pas mal"), REBONDIS SUR CES DÉTAILS.
+          
+          FORMAT :
+          - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
+          - Pas de gras.
           
           Exemple (User dit "J'ai lu un super livre") : "Top pour la lecture ! C'était quoi le titre ?"
           Exemple (User dit juste "Fait") : "C'est noté. On passe à la suite ?"

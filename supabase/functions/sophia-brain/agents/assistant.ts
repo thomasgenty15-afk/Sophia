@@ -1,7 +1,10 @@
 import { generateWithGemini } from '../../_shared/gemini.ts'
 import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
-export async function runAssistant(message: string, meta?: { requestId?: string }): Promise<string> {
+export async function runAssistant(
+  message: string,
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" },
+): Promise<string> {
   const basePrompt = `
     Tu es Sophia.
     Ton utilisateur rencontre un souci technique (app, bug, compte).

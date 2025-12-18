@@ -75,7 +75,7 @@ Repo: `supabase/functions/*` (Edge Functions) + `supabase/functions/sophia-brain
   - **Tables**: `scheduled_checkins`, `chat_messages`
 
 - **`break-down-action`** (`/functions/v1/break-down-action`)
-  - **Type**: Interne (appelé par `investigator`)
+  - **Type**: Interne (appelé par `investigator, mais aussi par l'utilisateur depuis le frint)
   - **Auth**: service role (dans la function)
   - **Rôle**: génère une micro-étape (Gemini) pour débloquer une action
   - **Tables**: lecture éventuelle `user_answers` (si submissionId)

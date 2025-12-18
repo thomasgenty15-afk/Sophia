@@ -5,7 +5,7 @@ export async function runFirefighter(
   message: string,
   history: any[],
   context: string = "",
-  meta?: { requestId?: string }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
 ): Promise<{ content: string, crisisResolved: boolean }> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 

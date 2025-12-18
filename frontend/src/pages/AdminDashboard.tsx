@@ -52,8 +52,7 @@ const PROMPT_KEYS = [
 ] as const;
 
 export default function AdminDashboard() {
-  const { user, loading } = useAuth();
-  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const { user, loading, isAdmin } = useAuth();
   const [metricsLoading, setMetricsLoading] = useState(false);
 
   const [runs24h, setRuns24h] = useState(0);
@@ -81,15 +80,6 @@ export default function AdminDashboard() {
     if (promptKey === "(all)") return allScenarios;
     return allScenarios.filter((s) => Array.isArray(s.tags) && s.tags.includes(promptKey));
   }, [allScenarios, promptKey]);
-
-  useEffect(() => {
-    async function checkAdmin() {
-      if (!user) return;
-      const { data } = await supabase.from("internal_admins").select("user_id").eq("user_id", user.id).maybeSingle();
-      setIsAdmin(Boolean(data));
-    }
-    if (!loading) checkAdmin();
-  }, [user, loading]);
 
   useEffect(() => {
     async function loadMetrics() {

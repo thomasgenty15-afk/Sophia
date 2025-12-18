@@ -3,6 +3,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions } from '../lib/planActions';
+import { startLoadingSequence } from '../lib/loadingSequence';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -123,6 +124,7 @@ const ActionPlanGeneratorFollow = () => {
   const [feedback, setFeedback] = useState('');
   const [isRefining, setIsRefining] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [loadingMessage, setLoadingMessage] = useState<string>('');
 
   const [contextSummary, setContextSummary] = useState<string | null>(null);
   const [isContextLoading, setIsContextLoading] = useState(false);
@@ -518,6 +520,7 @@ const ActionPlanGeneratorFollow = () => {
 
     setStep('generating');
     setError(null);
+    const stopLoading = startLoadingSequence(setLoadingMessage, 'plan_follow');
 
     try {
       // Récupérer l'objectif actif s'il n'est pas passé via le state
@@ -582,6 +585,7 @@ const ActionPlanGeneratorFollow = () => {
               
               // On informe l'utilisateur
               alert("Vous avez utilisé vos 2 essais (1 création + 1 modification). Voici votre plan final.");
+              stopLoading();
               
               // On affiche le résultat et on arrête tout
               setStep('result');
@@ -692,11 +696,13 @@ const ActionPlanGeneratorFollow = () => {
         // --------------------------------------------------
 
         setStep('result');
+        stopLoading();
       }
     } catch (err: any) {
       console.error('Erreur génération plan:', err);
-      setError("Impossible de contacter l'IA. Vérifiez votre connexion ou réessayez.");
+      setError("Impossible de contacter l'IA. Vérifie ta connexion ou réessaie.");
       setStep('input');
+      stopLoading();
     }
   };
 
@@ -1026,7 +1032,7 @@ const ActionPlanGeneratorFollow = () => {
               {isContextLoading ? (
                   <div className="flex items-center gap-3 text-slate-400 animate-pulse">
                       <Sparkles className="w-4 h-4" />
-                      <span className="text-sm italic">Analyse de vos réponses en cours...</span>
+                      <span className="text-sm italic">Analyse de tes réponses en cours...</span>
                   </div>
               ) : contextSummary ? (
                   <div className="relative">
@@ -1051,7 +1057,7 @@ const ActionPlanGeneratorFollow = () => {
             {/* FORMULAIRE QUALITATIF */}
             <div className="space-y-6">
               <p className="text-base md:text-lg font-medium text-slate-700">
-                Aidez Sophia à affiner votre plan avec vos propres mots :
+                Aide Sophia à affiner ton plan avec tes propres mots :
               </p>
 
               {/* CHAMPS PROFIL MANQUANTS */}
@@ -1191,8 +1197,8 @@ const ActionPlanGeneratorFollow = () => {
             <div className="w-20 h-20 bg-violet-100 text-violet-600 rounded-full flex items-center justify-center mb-8">
               <Brain className="w-10 h-10 animate-bounce" />
             </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Sophia analyse vos réponses...</h2>
-            <p className="text-slate-500">Construction de la stratégie optimale en cours.</p>
+            <h2 className="text-2xl font-bold text-slate-900 mb-2">Sophia analyse tes réponses...</h2>
+            <p className="text-slate-500 font-medium">{loadingMessage || "Construction de la stratégie optimale en cours."}</p>
           </div>
         )}
 
@@ -1204,7 +1210,7 @@ const ActionPlanGeneratorFollow = () => {
                     <div className="flex items-center gap-3">
                         <Edit3 className="w-5 h-5 text-blue-600" />
                         <p className="text-sm text-blue-800">
-                            Le plan ne vous convient pas ? Vous pouvez ajuster vos réponses.
+                            Le plan ne te convient pas ? Tu peux ajuster tes réponses.
                         </p>
                     </div>
                     <button 
@@ -1218,7 +1224,7 @@ const ActionPlanGeneratorFollow = () => {
                 <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-center gap-3">
                      <Lock className="w-5 h-5 text-amber-600" />
                      <p className="text-sm text-amber-800">
-                        Version finale du plan. Utilisez le chat ci-dessous pour des ajustements mineurs.
+                        Version finale du plan. Utilise le chat ci-dessous pour des ajustements mineurs.
                      </p>
                 </div>
             )}
@@ -1351,7 +1357,7 @@ const ActionPlanGeneratorFollow = () => {
                 Ajustements & Feedback
               </h3>
               <p className="text-xs md:text-sm text-slate-600 mb-3 md:mb-4 leading-relaxed">
-                Ce plan n'est pas figé. Si une action vous semble irréaliste ou mal adaptée, dites-le à Sophia pour qu'elle recalcule l'itinéraire.
+                Ce plan n'est pas figé. Si une action te semble irréaliste ou mal adaptée, dis-le à Sophia pour qu'elle recalcule l'itinéraire.
               </p>
               <div className="flex gap-2">
                 <input 
@@ -1377,7 +1383,7 @@ const ActionPlanGeneratorFollow = () => {
               {isRefining && (
                 <p className="text-xs text-violet-600 mt-2 animate-pulse flex items-center gap-1">
                     <Sparkles className="w-3 h-3" />
-                    Sophia réajuste le plan selon vos contraintes...
+                    Sophia réajuste le plan selon tes contraintes...
                 </p>
               )}
             </div>

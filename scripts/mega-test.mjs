@@ -191,6 +191,11 @@ console.log("\n=== Sophia mega test ===");
 console.log(`mode: ${FULL ? "FULL" : "SMOKE"}`);
 console.log(`ai: ${USE_REAL_AI ? "REAL" : "STUB"}`);
 
+// WhatsApp: tests need deterministic secrets for webhook signature + GET handshake.
+// These are safe dummy values for local/offline test execution.
+const waAppSecret = process.env.WHATSAPP_APP_SECRET || "MEGA_TEST_WHATSAPP_APP_SECRET";
+const waVerifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "MEGA_TEST_WHATSAPP_VERIFY_TOKEN";
+
 // Secrets/env needed by local edge runtime are injected via `supabase/config.toml` [edge_runtime.secrets] env(...)
 // so they must exist in the environment when we (re)start Supabase.
 const vaultInternalSecret = tryGetVaultInternalSecret() ?? "Sophia on fire";
@@ -211,6 +216,8 @@ const supabaseEnvForStart = {
   SECRET_KEY: vaultInternalSecret,
   MEGA_TEST_MODE: USE_REAL_AI ? "0" : "1",
   ...(geminiKey ? { GEMINI_API_KEY: geminiKey } : {}),
+  WHATSAPP_APP_SECRET: waAppSecret,
+  WHATSAPP_WEBHOOK_VERIFY_TOKEN: waVerifyToken,
 };
 
 if (!NO_START) {
@@ -276,6 +283,8 @@ if (!SKIP_DENO) {
     MEGA_TEST_MODE: "1",
     MEGA_TEST_FULL: FULL ? "1" : "0",
     ...(internalSecret ? { MEGA_INTERNAL_SECRET: internalSecret } : {}),
+    WHATSAPP_APP_SECRET: waAppSecret,
+    WHATSAPP_WEBHOOK_VERIFY_TOKEN: waVerifyToken,
   };
   run("deno", ["test", "-A", "--no-lock"], { cwd: path.join(ROOT, "supabase", "functions"), env: denoEnv });
 }
@@ -290,6 +299,8 @@ if (!SKIP_FRONTEND) {
     MEGA_TEST_FULL: FULL ? "1" : "0",
     MEGA_TEST_MODE: USE_REAL_AI ? "0" : "1",
     ...(internalSecret ? { MEGA_INTERNAL_SECRET: internalSecret } : {}),
+    WHATSAPP_APP_SECRET: waAppSecret,
+    WHATSAPP_WEBHOOK_VERIFY_TOKEN: waVerifyToken,
   };
   run("npm", ["run", "test:int"], { cwd: path.join(ROOT, "frontend"), env });
 }
