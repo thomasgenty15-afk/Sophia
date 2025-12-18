@@ -156,7 +156,7 @@ export const useEvolutionData = () => {
             parentId: folderId, // Linked to folder
             level: 3, // Leaf
             rowId: index,
-            title: sq.title || `Module ${weekId}.${pathIndex}`,
+            title: sq.question || `Module ${weekId}.${pathIndex}`,
             icon: ICONS_BY_WEEK[weekStr],
             version: "1.0",
             lastUpdate: "Aujourd'hui",
@@ -164,7 +164,7 @@ export const useEvolutionData = () => {
             content,
             history,
             originalQuestion: sq.question,
-            originalHelper: sq.helper,
+            originalHelper: sq.helperText,
             originalWeekTitle: weekData.title,
             rowTitle: sq.question
           });

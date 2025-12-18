@@ -231,6 +231,7 @@ const Recraft = () => {
           }
 
           const { data: existingAnswers } = await query.maybeSingle();
+          const effectiveSubmissionId = existingAnswers?.submission_id ?? submissionId ?? crypto.randomUUID();
           
           let newContent = existingAnswers?.content || {};
           let uiState = newContent.ui_state || {};
@@ -315,20 +316,34 @@ const Recraft = () => {
           
           // Debug pour vérifier
           console.log("💾 Sauvegarde Recraft...", { 
-              id: existingAnswers.id, 
-              submissionId: existingAnswers.submission_id,
+              id: existingAnswers?.id, 
+              submissionId: effectiveSubmissionId,
               themeId: currentTheme.id,
               newStructuredDataLength: structuredData.length,
               themeData
           });
 
-          await supabase
+          if (existingAnswers?.id) {
+            await supabase
               .from('user_answers')
               .update({
-                  content: newContent,
-                  updated_at: new Date().toISOString()
+                content: newContent,
+                updated_at: new Date().toISOString()
               })
               .eq('id', existingAnswers.id);
+          } else {
+            // Fallback: if no onboarding answers exist yet, create them before continuing
+            const { error: insertErr } = await supabase
+              .from('user_answers')
+              .insert({
+                user_id: user.id,
+                questionnaire_type: 'onboarding',
+                submission_id: effectiveSubmissionId,
+                content: newContent,
+                status: 'completed',
+              });
+            if (insertErr) throw insertErr;
+          }
 
           // 2. Navigation vers PlanGeneratorRecraft
           const selectedAxisObj = currentTheme.axes?.find(a => a.id === selectedAxisId);
@@ -338,7 +353,7 @@ const Recraft = () => {
                   axisId: selectedAxisId,
                   themeId: currentTheme.id,
                   axisTitle: selectedAxisObj?.title,
-                  submissionId: existingAnswers?.submission_id
+                  submissionId: effectiveSubmissionId
               }
           });
 

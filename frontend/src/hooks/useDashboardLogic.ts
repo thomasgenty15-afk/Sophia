@@ -294,11 +294,13 @@ export const useDashboardLogic = ({
     const isNowCompleted = !action.isCompleted;
     const newStatus: Action['status'] = isNowCompleted ? 'completed' : 'active';
 
-    const newPhases = activePlan.phases.map(p => ({
-        ...p,
-        actions: p.actions.map(a => a.id === action.id ? { ...a, isCompleted: isNowCompleted, status: newStatus } : a)
+    const newPhases: GeneratedPlan["phases"] = activePlan.phases.map((p) => ({
+      ...p,
+      actions: p.actions.map((a) =>
+        a.id === action.id ? ({ ...a, isCompleted: isNowCompleted, status: newStatus } as Action) : a,
+      ),
     }));
-    const updatedPlan = { ...activePlan, phases: newPhases };
+    const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
     if (newStatus === "completed") {
@@ -320,13 +322,20 @@ export const useDashboardLogic = ({
     const isNowCompleted = newReps >= targetReps;
     const newStatus: Action['status'] = isNowCompleted ? 'completed' : 'active';
 
-    const newPhases = activePlan.phases.map(p => ({
-        ...p,
-        actions: p.actions.map(a => a.id === action.id ? { 
-            ...a, currentReps: newReps, isCompleted: isNowCompleted, status: isNowCompleted ? 'completed' : a.status
-        } : a)
+    const newPhases: GeneratedPlan["phases"] = activePlan.phases.map((p) => ({
+      ...p,
+      actions: p.actions.map((a) =>
+        a.id === action.id
+          ? ({
+              ...a,
+              currentReps: newReps,
+              isCompleted: isNowCompleted,
+              status: isNowCompleted ? "completed" : a.status,
+            } as Action)
+          : a,
+      ),
     }));
-    const updatedPlan = { ...activePlan, phases: newPhases };
+    const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
     if (isNowCompleted) {
@@ -346,11 +355,15 @@ export const useDashboardLogic = ({
     if (!confirm("Maîtriser cette habitude ?")) return;
 
     const newReps = action.targetReps || 1;
-    const newPhases = activePlan.phases.map(p => ({
-        ...p,
-        actions: p.actions.map(a => a.id === action.id ? { ...a, currentReps: newReps, isCompleted: true, status: 'completed' } : a)
+    const newPhases: GeneratedPlan["phases"] = activePlan.phases.map((p) => ({
+      ...p,
+      actions: p.actions.map((a) =>
+        a.id === action.id
+          ? ({ ...a, currentReps: newReps, isCompleted: true, status: "completed" } as Action)
+          : a,
+      ),
     }));
-    const updatedPlan = { ...activePlan, phases: newPhases };
+    const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
     await supabase
