@@ -5,7 +5,7 @@ export async function generateWithGemini(
   jsonMode: boolean = false,
   tools: any[] = [],
   toolChoice: string = "auto", // 'auto', 'any' or specific tool name (not supported by all models but 'any' forces tool use)
-  meta?: { requestId?: string; model?: string; source?: string; forceRealAi?: boolean }
+  meta?: { requestId?: string; model?: string; source?: string; forceRealAi?: boolean; userId?: string }
 ): Promise<string | { tool: string, args: any }> {
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
@@ -84,6 +84,7 @@ export async function generateWithGemini(
       const { computeCostUsd, logLlmUsageEvent } = await import("./llm-usage.ts");
       const costUsd = await computeCostUsd("gemini", model, promptTokens, outputTokens);
       await logLlmUsageEvent({
+        user_id: meta?.userId ?? null,
         request_id: meta?.requestId ?? null,
         source: meta?.source ?? null,
         provider: "gemini",
@@ -124,7 +125,7 @@ export async function generateWithGemini(
   return jsonMode ? text.replace(/```json\n?|```/g, '').trim() : text
 }
 
-export async function generateEmbedding(text: string): Promise<number[]> {
+export async function generateEmbedding(text: string, meta?: { userId?: string }): Promise<number[]> {
   // Test mode: deterministic stub embedding (vector(768)).
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
@@ -167,6 +168,7 @@ export async function generateEmbedding(text: string): Promise<number[]> {
       const { computeCostUsd, logLlmUsageEvent } = await import("./llm-usage.ts");
       const costUsd = await computeCostUsd("gemini", "text-embedding-004", promptTokens, 0);
       await logLlmUsageEvent({
+        user_id: meta?.userId ?? null,
         request_id: null,
         source: null,
         provider: "gemini",

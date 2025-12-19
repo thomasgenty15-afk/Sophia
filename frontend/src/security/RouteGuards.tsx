@@ -1,7 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { isPrelaunchLockdownEnabled } from "./prelaunch";
 
 function buildRedirectQuery(pathname: string, search: string) {
   const dest = `${pathname}${search || ""}`;
@@ -22,9 +21,9 @@ export function RequireUser({ children }: { children: React.ReactNode }) {
 }
 
 export function RequireAppAccess({ children }: { children: React.ReactNode }) {
-  const { user, loading, isAdmin } = useAuth();
+  const { user, loading, isAdmin, prelaunchLockdown } = useAuth();
   const location = useLocation();
-  const lockdown = isPrelaunchLockdownEnabled();
+  const lockdown = prelaunchLockdown;
 
   if (loading) return null;
 
@@ -40,6 +39,19 @@ export function RequireAppAccess({ children }: { children: React.ReactNode }) {
   }
 
   return <>{children}</>;
+}
+
+/**
+ * Allows access when prelaunch lockdown is OFF.
+ * When prelaunch lockdown is ON, behaves like RequireAppAccess (master_admin only).
+ *
+ * Use this for "guest funnel" routes (ex: questionnaire) that should be publicly accessible
+ * during normal operation, but closed during prelaunch.
+ */
+export function RequirePrelaunchGate({ children }: { children: React.ReactNode }) {
+  const { prelaunchLockdown } = useAuth();
+  if (!prelaunchLockdown) return <>{children}</>;
+  return <RequireAppAccess>{children}</RequireAppAccess>;
 }
 
 export function RequireAdmin({ children }: { children: React.ReactNode }) {

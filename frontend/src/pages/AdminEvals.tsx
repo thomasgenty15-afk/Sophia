@@ -4,6 +4,7 @@ import { useAuth } from "../context/AuthContext";
 import { 
   Activity, 
   AlertCircle, 
+  BarChart3,
   ArrowRight, 
   CheckCircle2, 
   ChevronRight, 
@@ -160,9 +161,18 @@ export default function AdminEvals() {
             <div className="h-4 w-px bg-neutral-800" />
             <h1 className="font-semibold text-white">Conversation Evals</h1>
           </div>
-          <div className="flex items-center gap-3 text-xs text-neutral-500">
-            <span>Runs: {runs.length}</span>
-            <span>Pending Suggestions: {pendingSuggestions.length}</span>
+          <div className="flex items-center gap-4">
+             <a
+              href="/admin/usage"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-neutral-400 hover:text-white transition-colors"
+            >
+              <BarChart3 className="w-4 h-4" />
+              Usage & Costs
+            </a>
+            <div className="flex items-center gap-3 text-xs text-neutral-500">
+              <span>Runs: {runs.length}</span>
+              <span>Pending Suggestions: {pendingSuggestions.length}</span>
+            </div>
           </div>
         </div>
       </header>

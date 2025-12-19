@@ -27,7 +27,8 @@ import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
 import { ChatPage } from './pages/ChatPage'; // Import ChatPage
 import AdminEvals from './pages/AdminEvals';
 import AdminDashboard from './pages/AdminDashboard';
-import { RequireAdmin, RequireAppAccess } from './security/RouteGuards';
+import AdminUsageDashboard from './pages/AdminUsageDashboard';
+import { RequireAdmin, RequireAppAccess, RequirePrelaunchGate } from './security/RouteGuards';
 
 function App() {
   return (
@@ -43,10 +44,10 @@ function App() {
             <Route path="/auth" element={<Auth />} /> 
             <Route path="/legal" element={<Legal />} /> {/* ROUTE LEGALE */}
             <Route path="/dashboard" element={<RequireAppAccess><Dashboard /></RequireAppAccess>} />
-            <Route path="/global-plan" element={<RequireAppAccess><GlobalPlan /></RequireAppAccess>} />
-            <Route path="/global-plan-follow" element={<RequireAppAccess><GlobalPlanFollow /></RequireAppAccess>} />
-            <Route path="/plan-priorities" element={<RequireAppAccess><PlanPriorities /></RequireAppAccess>} />
-            <Route path="/plan-priorities-follow" element={<RequireAppAccess><PlanPrioritiesFollow /></RequireAppAccess>} />
+            <Route path="/global-plan" element={<RequirePrelaunchGate><GlobalPlan /></RequirePrelaunchGate>} />
+            <Route path="/global-plan-follow" element={<RequirePrelaunchGate><GlobalPlanFollow /></RequirePrelaunchGate>} />
+            <Route path="/plan-priorities" element={<RequirePrelaunchGate><PlanPriorities /></RequirePrelaunchGate>} />
+            <Route path="/plan-priorities-follow" element={<RequirePrelaunchGate><PlanPrioritiesFollow /></RequirePrelaunchGate>} />
             <Route path="/plan-generator" element={<RequireAppAccess><ActionPlanGenerator /></RequireAppAccess>} />
             <Route path="/plan-generator-recraft" element={<RequireAppAccess><ActionPlanGeneratorRecraft /></RequireAppAccess>} />
             <Route path="/plan-generator-follow" element={<RequireAppAccess><ActionPlanGeneratorFollow /></RequireAppAccess>} />
@@ -64,6 +65,7 @@ function App() {
             <Route path="/architecte/alignment" element={<RequireAppAccess><WeeklyAlignment /></RequireAppAccess>} />
             <Route path="/architecte/evolution" element={<RequireAppAccess><IdentityEvolution /></RequireAppAccess>} />
             <Route path="/admin/evals" element={<RequireAdmin><AdminEvals /></RequireAdmin>} />
+            <Route path="/admin/usage" element={<RequireAdmin><AdminUsageDashboard /></RequireAdmin>} />
             <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
           </Routes>
         </div>

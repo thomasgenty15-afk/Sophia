@@ -52,6 +52,7 @@ export async function computeCostUsd(provider: string, model: string, promptToke
 }
 
 export async function logLlmUsageEvent(evt: {
+  user_id?: string | null;
   request_id?: string | null;
   source?: string | null;
   provider: string;
@@ -66,6 +67,7 @@ export async function logLlmUsageEvent(evt: {
   try {
     const admin = getAdmin();
     await admin.from("llm_usage_events").insert({
+      user_id: evt.user_id ?? null,
       request_id: evt.request_id ?? null,
       source: evt.source ?? null,
       provider: evt.provider,
