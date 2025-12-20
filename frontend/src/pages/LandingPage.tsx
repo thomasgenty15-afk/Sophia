@@ -15,6 +15,8 @@ import {
   MessageCircle // Import MessageCircle
 } from 'lucide-react';
 
+import Footer from '../components/Footer';
+
 const LandingPage = () => {
   const navigate = useNavigate();
 
@@ -25,10 +27,11 @@ const LandingPage = () => {
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 md:w-8 md:h-8 bg-violet-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-violet-200 font-serif">
-              S
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-7 h-7 md:w-8 md:h-8 rounded-lg" />
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
+              <span className="text-[10px] md:text-xs text-slate-400 font-medium tracking-wide uppercase">by IKIZEN</span>
             </div>
-            <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900">Sophia</span>
           </div>
           <div className="flex items-center gap-4 md:gap-8">
             <div className="hidden md:flex gap-6 text-sm font-medium text-slate-600">
@@ -548,19 +551,7 @@ const LandingPage = () => {
       </section>
 
       {/* FOOTER */}
-      <footer className="bg-white border-t border-slate-100 py-12">
-        <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-violet-600 rounded-md flex items-center justify-center text-white text-xs font-bold font-serif">
-              S
-            </div>
-            <span className="font-bold text-slate-900">Sophia</span>
-          </div>
-          <div className="text-sm text-slate-500">
-            © 2024 sophia-coach.ai
-          </div>
-        </div>
-      </footer>
+      <Footer />
     </div>
   );
 };

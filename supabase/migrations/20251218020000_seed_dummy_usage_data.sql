@@ -1,10 +1,21 @@
--- Seed dummy data for visualization
+-- Seed dummy data for visualization (DISABLED by default).
+--
+-- This was useful for demos, but it pollutes staging/prod and local resets.
+-- To enable intentionally, set a Postgres setting before running migrations:
+--   alter database postgres set sophia.seed_dummy_usage = 'true';
+-- Or for a session:
+--   set sophia.seed_dummy_usage = 'true';
+--
+-- If the setting is absent/false, this migration becomes a no-op.
 do $$
 declare
   u1_id uuid := gen_random_uuid();
   u2_id uuid := gen_random_uuid();
   u3_id uuid := gen_random_uuid();
 begin
+  if coalesce(current_setting('sophia.seed_dummy_usage', true), '') <> 'true' then
+    raise notice 'Skipping dummy usage seed (sophia.seed_dummy_usage != true).';
+  else
   -- Update pricing to have non-zero values for visualization
   update public.llm_pricing 
   set input_per_1k_tokens_usd = 0.0001, output_per_1k_tokens_usd = 0.0004
@@ -76,6 +87,7 @@ begin
     150,
     0.0001
   from generate_series(1, 2);
+  end if;
 
 end $$;
 

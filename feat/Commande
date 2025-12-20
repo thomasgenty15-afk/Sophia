@@ -110,17 +110,20 @@ npm run db:stop
 #### Après un `db reset`, est-ce qu’il faut refaire les crons ?
 Oui. Un reset remet la DB à zéro → les jobs `pg_cron` disparaissent.
 
-#### Workflow simple
+#### Reset “safe” (ne pousse aucun secret)
 ```bash
 ./scripts/local_reset.sh
 ```
 
-#### Re-synchroniser le secret interne (Vault ↔ Edge Runtime)
+#### (Optionnel) Si tu utilises des jobs internes en local
+Si tu as des 403 sur des Edge Functions “internes” (jobs/cron), synchronise le secret **uniquement en local** (Vault) :
+
 ```bash
 ./scripts/local_sync_internal_secret.sh
 ```
 
-#### Déclencher les jobs “à la main” (sans cron)
+Puis tu peux déclencher un job manuellement :
+
 ```bash
 ./scripts/local_trigger_internal_job.sh detect-future-events
 ./scripts/local_trigger_internal_job.sh process-checkins
@@ -357,3 +360,44 @@ SUPPRIMER TOUS LES SECRETS DE LA BD :
 for k in $(supabase secrets list | awk 'NR>1 && $1!="NAME"{print $1}'); do
   supabase secrets unset "$k"
 done
+
+
+Script “supprimer partout où user_id = ce user” (cloud Supabase)
+À coller dans Supabase Dashboard → SQL Editor (⚠️ irréversible) :
+1) Récupère l’UUID :
+select id, email
+from auth.users
+where email = 'EMAIL_DE_L_USER';
+
+2) Purge toutes les lignes qui ont une colonne user_id + suppression du user :
+
+begin;
+
+do $$
+declare
+  uid uuid := 'UUID_DE_L_USER';
+  r record;
+begin
+  -- 1) Delete partout où il y a une colonne user_id (schema public)
+  for r in
+    select table_schema, table_name
+    from information_schema.columns
+    where table_schema = 'public'
+      and column_name = 'user_id'
+      and udt_name = 'uuid'
+  loop
+    execute format('delete from %I.%I where user_id = %L', r.table_schema, r.table_name, uid);
+  end loop;
+
+  -- 2) profiles: la colonne s'appelle id (pas user_id)
+  delete from public.profiles where id = uid;
+
+  -- 3) supprime le user auth (nettoie le reste via FK / cascade / set null côté auth)
+  delete from auth.users where id = uid;
+end $$;
+
+commit;
+
+
+
+
