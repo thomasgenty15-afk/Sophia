@@ -1,3 +1,8 @@
+// @ts-nocheck
+// This file runs in the Supabase Edge (Deno) runtime. Cursor/TS language services
+// may not have Deno globals enabled for this workspace, so we disable TS checking here.
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
 const DEFAULT_ALLOWED_ORIGINS = [
   "http://localhost:5173",
   "http://127.0.0.1:5173",
@@ -51,16 +56,24 @@ export function enforceCors(req: Request): Response | null {
 
   // In production we want an explicit allowlist; otherwise it's too easy to forget configuring it.
   if (isProdEnv() && !isCorsAllowlistConfigured()) {
+    // Important: include CORS headers so browsers don't mask the real error as a CORS failure.
     return new Response(JSON.stringify({ error: "CORS_ALLOWED_ORIGINS is required in production" }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        // Echo origin so the frontend can read the error and fix the env var quickly.
+        "Access-Control-Allow-Origin": origin,
+        "Vary": "Origin",
+        "Access-Control-Allow-Methods": "POST, OPTIONS",
+        "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type, x-request-id, x-internal-secret",
+        "Content-Type": "application/json",
+      },
     });
   }
   if (isAllowedOrigin(origin)) return null;
 
   return new Response(JSON.stringify({ error: "CORS origin not allowed" }), {
     status: 403,
-    headers: { "Content-Type": "application/json" },
+    headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
   });
 }
 
