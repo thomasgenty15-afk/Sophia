@@ -203,7 +203,7 @@ GIT pour selectionner le bon projet :
 git status
 git branch
 
-Pour pousser (vers staging ): 
+Pour pousser (vers staging): 
     git add .
     git commit -m "feat: ajout master admin et gestion abonnement stripe"
     git push origin staging
