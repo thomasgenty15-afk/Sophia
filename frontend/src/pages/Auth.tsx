@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { isPrelaunchLockdownEnabled } from '../security/prelaunch';
+import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { 
   Mail, 
   Lock, 
@@ -14,12 +14,20 @@ import {
   Loader2
 } from 'lucide-react';
 
+function getErrorMessage(err: unknown, fallback: string) {
+  if (err instanceof Error && err.message) return err.message;
+  if (typeof err === "string" && err) return err;
+  return fallback;
+}
+
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const redirectTo = new URLSearchParams(location.search).get('redirect');
   const forbidden = new URLSearchParams(location.search).get('forbidden') === '1';
+  const debug = new URLSearchParams(location.search).get('debug') === '1';
   const prelaunchLockdown = isPrelaunchLockdownEnabled();
+  const prelaunchRaw = debug ? getPrelaunchLockdownRawValue() : "";
   
   // Récupérer les données du plan si on vient du flux onboarding
   const planData = location.state || null;
@@ -63,9 +71,9 @@ const Auth = () => {
 
       alert("Email de réinitialisation envoyé !");
       setIsResettingPassword(false);
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Reset error:", err);
-      setError(err.message || "Erreur lors de l'envoi.");
+      setError(getErrorMessage(err, "Erreur lors de l'envoi."));
     } finally {
       setLoading(false);
     }
@@ -199,9 +207,9 @@ const Auth = () => {
             navigate(redirectTo || '/dashboard');
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Auth error:", err);
-      setError(err.message || "Une erreur est survenue.");
+      setError(getErrorMessage(err, "Une erreur est survenue."));
     } finally {
       setLoading(false);
     }
@@ -269,6 +277,11 @@ const Auth = () => {
             {prelaunchLockdown && !isResettingPassword && (
               <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
                 Accès restreint (pré-lancement) · master_admin uniquement
+              </div>
+            )}
+            {debug && (
+              <div className="mt-3 text-xs text-slate-500 font-mono">
+                VITE_PRELAUNCH_LOCKDOWN="{prelaunchRaw}" → prelaunchLockdown={String(prelaunchLockdown)}
               </div>
             )}
           </div>
@@ -397,25 +410,6 @@ const Auth = () => {
                   </div>
                   <p className="mt-1 text-xs text-slate-500">Pour que Sophia puisse vous contacter.</p>
                 </div>
-
-                {/* Case à cocher CGV / CGU */}
-                <div className="flex items-start gap-3">
-                  <div className="flex h-6 items-center">
-                    <input
-                      id="legal-checkbox"
-                      name="legal"
-                      type="checkbox"
-                      checked={hasAcceptedLegal}
-                      onChange={(e) => setHasAcceptedLegal(e.target.checked)}
-                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
-                    />
-                  </div>
-                  <div className="text-sm leading-6">
-                    <label htmlFor="legal-checkbox" className="font-medium text-slate-700 cursor-pointer select-none">
-                      J'accepte les <a href="/legal" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Conditions Générales</a> et la <a href="/legal#confidentialite" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Politique de Confidentialité</a>.
-                    </label>
-                  </div>
-                </div>
               </>
             )}
 
@@ -461,6 +455,27 @@ const Auth = () => {
               </div>
             </div>
 
+            {/* Case à cocher CGV / CGU (déplacée après le mot de passe) */}
+            {isSignUp && !prelaunchLockdown && (
+                <div className="flex items-start gap-3">
+                  <div className="flex h-6 items-center">
+                    <input
+                      id="legal-checkbox"
+                      name="legal"
+                      type="checkbox"
+                      checked={hasAcceptedLegal}
+                      onChange={(e) => setHasAcceptedLegal(e.target.checked)}
+                      className="h-4 w-4 rounded border-slate-300 text-indigo-600 focus:ring-indigo-600 cursor-pointer"
+                    />
+                  </div>
+                  <div className="text-sm leading-6">
+                    <label htmlFor="legal-checkbox" className="font-medium text-slate-700 cursor-pointer select-none">
+                      J'accepte les <a href="/legal" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Conditions Générales</a> et la <a href="/legal#confidentialite" target="_blank" className="text-indigo-600 hover:text-indigo-500 hover:underline">Politique de Confidentialité</a>.
+                    </label>
+                  </div>
+                </div>
+            )}
+
             {!isSignUp && (
               <div className="flex items-center justify-end">
                 <div className="text-sm">
@@ -485,7 +500,7 @@ const Auth = () => {
             <div>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || (isSignUp && !prelaunchLockdown && !hasAcceptedLegal)}
                 className="w-full flex justify-center py-4 px-4 border border-transparent rounded-xl shadow-lg text-sm font-bold text-white bg-slate-900 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-2"
               >
                 {loading ? (
