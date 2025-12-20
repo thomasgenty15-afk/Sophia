@@ -1,0 +1,25 @@
+Dans le terminal (zsh/bash sur Mac), la souris ne marche pas pour déplacer le curseur comme dans un éditeur de texte. C'est 100% clavier. Voici les raccourcis essentiels pour aller vite :
+
+
+
+1. Se déplacer rapidement (sans spammer les flèches)
+Début de ligne : Ctrl + A
+Fin de ligne : Ctrl + E
+Mot précédent : Alt (Option) + Flèche Gauche (ou Esc puis B)
+Mot suivant : Alt (Option) + Flèche Droite (ou Esc puis F)
+
+
+2. Supprimer rapidement
+Supprimer tout avant le curseur (toute la ligne) : Ctrl + U (Très utile pour effacer une commande ratée)
+Supprimer tout après le curseur : Ctrl + K
+Supprimer le mot précédent : Ctrl + W (Top pour supprimer juste le dernier argument)
+
+
+3. Retour à la ligne (Saut de ligne dans une commande)
+Si tu veux écrire une commande sur plusieurs lignes pour qu'elle soit plus lisible avant de l'exécuter, tu as deux options :
+Option A (Le backslash) : Tu tapes \ à la fin de ta ligne, puis Entrée. Le terminal va afficher > et attendre la suite.
+"
+    git commit -m "Ceci est un titre \    et ceci est la suite sur une autre ligne"
+Option B (Éditer dans un vrai éditeur) : Si ta commande est trop longue, fais Ctrl + X puis Ctrl + E. Ça ouvre ta commande dans ton éditeur par défaut (vi/nano/code). Tu édites, tu sauvegardes et tu quittes, et la commande se lance.
+En résumé, pour ton besoin "supprimer globalement" :
+Fais Ctrl + U. Ça nettoie toute la ligne à gauche du curseur. C'est le "reset" de la ligne de commande

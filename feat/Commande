@@ -200,8 +200,13 @@ Si ce fichier affiche iabxchanerdkczbxyjgg, tu es sur le bon projet.
 
 
 GIT pour selectionner le bon projet : 
+git status
+git branch
 
-
+Pour pousser (vers staging ): 
+    git add .
+    git commit -m "feat: ajout master admin et gestion abonnement stripe"
+    git push origin staging
 
 Commande pour créer le master admin : 
 do $$
