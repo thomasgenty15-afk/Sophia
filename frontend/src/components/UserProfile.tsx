@@ -99,27 +99,6 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     ? Math.max(0, Math.ceil((new Date(trialEnd).getTime() - now) / (1000 * 60 * 60 * 24)))
     : null;
 
-  const startCheckout = async (
-    tier: 'system' | 'alliance' | 'architecte',
-    interval: 'monthly' | 'yearly',
-  ) => {
-    setBillingError(null);
-    setBillingLoading(true);
-    try {
-      const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
-        body: { tier, interval },
-      });
-      if (error) throw error;
-      const url = (data as any)?.url as string | undefined;
-      if (!url) throw new Error("Checkout URL manquante");
-      window.location.href = url;
-    } catch (err: any) {
-      setBillingError(err?.message ?? "Erreur billing");
-    } finally {
-      setBillingLoading(false);
-    }
-  };
-
   const openPortal = async () => {
     setBillingError(null);
     setBillingLoading(true);
@@ -305,17 +284,28 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                   )}
 
                   {subActive ? (
-                    <button
-                      onClick={openPortal}
-                      disabled={billingLoading}
-                      className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
-                        isArchitect
-                          ? "bg-emerald-800 hover:bg-emerald-700 text-emerald-100 disabled:opacity-60"
-                          : "bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-60"
-                      }`}
-                    >
-                      {billingLoading ? "Ouverture..." : "Gérer la facturation"}
-                    </button>
+                    <div className="space-y-3">
+                      <button
+                        onClick={openPortal}
+                        disabled={billingLoading}
+                        className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                          isArchitect
+                            ? "bg-emerald-800 hover:bg-emerald-700 text-emerald-100 disabled:opacity-60"
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-60"
+                        }`}
+                      >
+                        {billingLoading ? "Ouverture..." : "Gérer la facturation"}
+                      </button>
+                      
+                      {/* BOUTON SE DESABONNER */}
+                      <button
+                        onClick={openPortal}
+                        disabled={billingLoading}
+                        className="w-full text-xs text-slate-400 hover:text-red-500 underline decoration-slate-300 hover:decoration-red-500 transition-all text-center"
+                      >
+                        Se désabonner
+                      </button>
+                    </div>
                   ) : (
                     <div className="space-y-3">
                       <div className={`text-xs font-bold uppercase tracking-widest ${
@@ -324,104 +314,26 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         Choisir un plan
                       </div>
 
-                      <div className="grid grid-cols-1 gap-3">
-                        <div className={`p-4 rounded-xl border ${
-                          isArchitect ? "bg-emerald-900/30 border-emerald-800" : "bg-slate-50 border-slate-200"
-                        }`}>
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <div className={`font-bold text-sm ${isArchitect ? "text-emerald-100" : "text-slate-900"}`}>Le Système</div>
-                              <div className={`text-xs ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>Dashboard + Plans</div>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => startCheckout("system", "monthly")}
-                                disabled={billingLoading}
-                                className={`px-3 py-2 rounded-lg font-bold text-xs transition-all disabled:opacity-60 ${
-                                  isArchitect ? "bg-emerald-800 hover:bg-emerald-700 text-emerald-100" : "bg-white hover:bg-slate-100 text-slate-800 border border-slate-200"
-                                }`}
-                              >
-                                Mensuel
-                              </button>
-                              <button
-                                onClick={() => startCheckout("system", "yearly")}
-                                disabled={billingLoading}
-                                className={`px-3 py-2 rounded-lg font-bold text-xs transition-all disabled:opacity-60 ${
-                                  isArchitect ? "bg-emerald-900 hover:bg-emerald-800 text-emerald-100 border border-emerald-800" : "bg-slate-900 hover:bg-slate-800 text-white"
-                                }`}
-                              >
-                                Annuel
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className={`p-4 rounded-xl border ${
-                          isArchitect ? "bg-emerald-900/30 border-emerald-800" : "bg-slate-50 border-slate-200"
-                        }`}>
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <div className={`font-bold text-sm ${isArchitect ? "text-emerald-100" : "text-slate-900"}`}>L’Alliance</div>
-                              <div className={`text-xs ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>Système + Sophia WhatsApp</div>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => startCheckout("alliance", "monthly")}
-                                disabled={billingLoading}
-                                className={`px-3 py-2 rounded-lg font-bold text-xs transition-all disabled:opacity-60 ${
-                                  isArchitect ? "bg-emerald-800 hover:bg-emerald-700 text-emerald-100" : "bg-white hover:bg-slate-100 text-slate-800 border border-slate-200"
-                                }`}
-                              >
-                                Mensuel
-                              </button>
-                              <button
-                                onClick={() => startCheckout("alliance", "yearly")}
-                                disabled={billingLoading}
-                                className={`px-3 py-2 rounded-lg font-bold text-xs transition-all disabled:opacity-60 ${
-                                  isArchitect ? "bg-emerald-900 hover:bg-emerald-800 text-emerald-100 border border-emerald-800" : "bg-violet-600 hover:bg-violet-500 text-white"
-                                }`}
-                              >
-                                Annuel
-                              </button>
-                            </div>
-                          </div>
-                        </div>
-
-                        <div className={`p-4 rounded-xl border ${
-                          isArchitect ? "bg-emerald-900/30 border-emerald-800" : "bg-slate-50 border-slate-200"
-                        }`}>
-                          <div className="flex items-center justify-between gap-3">
-                            <div>
-                              <div className={`font-bold text-sm ${isArchitect ? "text-emerald-100" : "text-slate-900"}`}>L’Architecte</div>
-                              <div className={`text-xs ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>Alliance + Architecte complet</div>
-                            </div>
-                            <div className="flex gap-2">
-                              <button
-                                onClick={() => startCheckout("architecte", "monthly")}
-                                disabled={billingLoading}
-                                className={`px-3 py-2 rounded-lg font-bold text-xs transition-all disabled:opacity-60 ${
-                                  isArchitect ? "bg-emerald-800 hover:bg-emerald-700 text-emerald-100" : "bg-white hover:bg-slate-100 text-slate-800 border border-slate-200"
-                                }`}
-                              >
-                                Mensuel
-                              </button>
-                              <button
-                                onClick={() => startCheckout("architecte", "yearly")}
-                                disabled={billingLoading}
-                                className={`px-3 py-2 rounded-lg font-bold text-xs transition-all disabled:opacity-60 ${
-                                  isArchitect ? "bg-emerald-900 hover:bg-emerald-800 text-emerald-100 border border-emerald-800" : "bg-amber-500 hover:bg-amber-400 text-slate-900"
-                                }`}
-                              >
-                                Annuel
-                              </button>
-                            </div>
-                          </div>
-                        </div>
+                      <div className="text-center py-6">
+                        <p className="text-sm text-slate-500 mb-4">
+                          Débloque tout le potentiel de Sophia.
+                        </p>
+                        <button
+                          onClick={() => {
+                            onClose();
+                            navigate('/upgrade');
+                          }}
+                          className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                             isArchitect ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-200"
+                          }`}
+                        >
+                          Passer à la vitesse supérieure
+                        </button>
                       </div>
 
                       {billingLoading && (
                         <div className={`${isArchitect ? "text-emerald-500" : "text-slate-500"} text-xs`}>
-                          Redirection vers Stripe...
+                          Redirection...
                         </div>
                       )}
                     </div>

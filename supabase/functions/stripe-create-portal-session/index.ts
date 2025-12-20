@@ -81,6 +81,9 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { url: portal.url, request_id: requestId });
   } catch (err) {
     console.error("[stripe-create-portal-session] error", err);
+    const msg = err instanceof Error ? err.message : "Internal Server Error";
+    // Helpful diagnostics for misconfigured Edge secrets.
+    if (msg.startsWith("Missing env var:")) return serverError(req, requestId, msg);
     return serverError(req, requestId);
   }
 });

@@ -123,6 +123,9 @@ Deno.serve(async (req) => {
   } catch (err) {
     console.error("[stripe-create-checkout-session] error", err);
     const msg = err instanceof Error ? err.message : "Internal Server Error";
+    // Helpful diagnostics for misconfigured Edge secrets.
+    // Safe to surface: it only reveals which env var is missing, not its value.
+    if (msg.startsWith("Missing env var:")) return serverError(req, requestId, msg);
     // Stripe errors are safe-ish to surface as 400.
     if (msg.toLowerCase().includes("stripe")) return badRequest(req, requestId, msg);
     return serverError(req, requestId);

@@ -205,7 +205,7 @@ git branch
 
 Pour pousser (vers staging): 
     git add .
-    git commit -m "feat: ajout master admin et gestion abonnement stripe"
+    git commit -m " "
     git push origin staging
 
 Commande pour créer le master admin : 
@@ -348,3 +348,12 @@ begin
   values (master_id)
   on conflict (user_id) do nothing;
 end $$;
+
+
+
+
+
+SUPPRIMER TOUS LES SECRETS DE LA BD : 
+for k in $(supabase secrets list | awk 'NR>1 && $1!="NAME"{print $1}'); do
+  supabase secrets unset "$k"
+done

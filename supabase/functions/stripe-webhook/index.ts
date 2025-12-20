@@ -152,6 +152,9 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { ok: true, ignored: true, type: evt.type, request_id: requestId });
   } catch (err) {
     console.error("[stripe-webhook] error", err);
+    const msg = err instanceof Error ? err.message : "Internal Server Error";
+    // Helpful diagnostics for misconfigured Edge secrets.
+    if (msg.startsWith("Missing env var:")) return serverError(req, requestId, msg);
     return serverError(req, requestId);
   }
 });
