@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { generateWithGemini } from "../_shared/gemini.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -108,35 +109,28 @@ serve(async (req) => {
 
     console.log(`Calling Gemini API for sorting (${count} axes)...`)
 
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-exp:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      }
-    )
+    const resultStr = await generateWithGemini(
+      systemPrompt,
+      userPrompt,
+      0.7,
+      true, // jsonMode
+      [], 
+      "auto",
+      { source: "sort-priorities" } // No userId here as it might be pre-auth
+    );
 
-    const data = await response.json()
-    
-    // DEBUG LOGS
-    console.log("Gemini Status:", response.status);
-    if (!response.ok) {
-        console.error("Gemini Error:", JSON.stringify(data));
-        throw new Error(`Gemini Error: ${data.error?.message || 'Unknown error'}`);
+    let result;
+    if (typeof resultStr === 'string') {
+        try {
+            result = JSON.parse(resultStr);
+        } catch (e) {
+            console.error("JSON Parse Error:", e, resultStr);
+            throw new Error("Invalid JSON from Gemini");
+        }
+    } else {
+        // Should not happen as we didn't pass tools
+        throw new Error("Unexpected tool call response");
     }
-
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!rawText) {
-        console.error("Empty Candidate Response:", JSON.stringify(data));
-        throw new Error('Réponse vide de Gemini (No candidates)')
-    }
-    
-    const jsonString = rawText.replace(/```json\n?|```/g, '').trim()
-    const result = JSON.parse(jsonString)
 
     return new Response(
       JSON.stringify(result),

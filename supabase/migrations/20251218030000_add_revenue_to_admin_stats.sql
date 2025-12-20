@@ -1,4 +1,6 @@
 -- Update the RPC to include revenue per user (placeholder for now)
+drop function if exists public.get_admin_user_stats(timestamptz);
+
 create or replace function public.get_admin_user_stats(period_start timestamptz)
 returns table (
   user_id uuid,

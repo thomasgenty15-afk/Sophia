@@ -17,6 +17,7 @@ interface DashboardLogicProps {
   activeVitalSignData: any;
   setActiveVitalSignData: (data: any) => void;
   setIsSettingsOpen: (isOpen: boolean) => void;
+  onBillingRequired?: () => void;
 }
 
 export const useDashboardLogic = ({
@@ -32,9 +33,32 @@ export const useDashboardLogic = ({
   hasPendingAxes,
   activeVitalSignData,
   setActiveVitalSignData,
-  setIsSettingsOpen
+  setIsSettingsOpen,
+  onBillingRequired,
 }: DashboardLogicProps) => {
   const navigate = useNavigate();
+
+  const maybeHandleBillingGate = (err: any): boolean => {
+    const msg = (err?.message ?? err?.error_description ?? err?.details ?? "").toString().toLowerCase();
+    const code = (err?.code ?? err?.status ?? "").toString();
+    const isRls =
+      code === "42501" ||
+      msg.includes("row level security") ||
+      msg.includes("violates row-level security") ||
+      msg.includes("permission denied");
+
+    if (isRls) {
+      onBillingRequired?.();
+      return true;
+    }
+    return false;
+  };
+
+  const mustOk = (error: any) => {
+    if (!error) return;
+    if (maybeHandleBillingGate(error)) throw error;
+    throw error;
+  };
 
   // --- 1. RESET PLAN ---
   const handleResetCurrentPlan = async () => {
@@ -70,6 +94,7 @@ export const useDashboardLogic = ({
 
         } catch (err) {
             console.error("Erreur reset:", err);
+            if (maybeHandleBillingGate(err)) return;
             alert("Une erreur est survenue lors de la suppression du plan.");
         }
     }, 100);
@@ -115,6 +140,7 @@ export const useDashboardLogic = ({
 
     } catch (err) {
         console.error("Erreur global reset:", err);
+        if (maybeHandleBillingGate(err)) return;
         alert("Erreur technique lors du reset global.");
     }
   };
@@ -291,6 +317,7 @@ export const useDashboardLogic = ({
   const handleToggleMission = async (action: Action) => {
     if (!activePlanId || !activePlan) return;
 
+    const prevPlan = activePlan;
     const isNowCompleted = !action.isCompleted;
     const newStatus: Action['status'] = isNowCompleted ? 'completed' : 'active';
 
@@ -303,17 +330,35 @@ export const useDashboardLogic = ({
     const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
-    if (newStatus === "completed") {
-      await supabase.from('user_actions').update({ status: newStatus, last_performed_at: new Date().toISOString() }).eq('plan_id', activePlanId).eq('title', action.title);
-    } else {
-      await supabase.from('user_actions').update({ status: newStatus }).eq('plan_id', activePlanId).eq('title', action.title);
+    try {
+      if (newStatus === "completed") {
+        const { error } = await supabase
+          .from('user_actions')
+          .update({ status: newStatus, last_performed_at: new Date().toISOString() })
+          .eq('plan_id', activePlanId)
+          .eq('title', action.title);
+        mustOk(error);
+      } else {
+        const { error } = await supabase
+          .from('user_actions')
+          .update({ status: newStatus })
+          .eq('plan_id', activePlanId)
+          .eq('title', action.title);
+        mustOk(error);
+      }
+      await checkPhaseCompletionAndAutoUnlock(updatedPlan);
+    } catch (err) {
+      console.error("Error toggling mission:", err);
+      setActivePlan(prevPlan);
+      if (maybeHandleBillingGate(err)) return;
+      alert("Erreur mise à jour action.");
     }
-    await checkPhaseCompletionAndAutoUnlock(updatedPlan);
   };
 
   const handleIncrementHabit = async (action: Action) => {
     if (!activePlanId || !activePlan) return;
 
+    const prevPlan = activePlan;
     const currentReps = action.currentReps || 0;
     const targetReps = action.targetReps || 1;
     if (currentReps >= targetReps) return;
@@ -338,22 +383,36 @@ export const useDashboardLogic = ({
     const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
-    if (isNowCompleted) {
-      await supabase
-        .from('user_actions')
-        .update({ current_reps: newReps, status: newStatus, last_performed_at: new Date().toISOString() })
-        .eq('plan_id', activePlanId)
-        .eq('title', action.title);
-    } else {
-      await supabase.from('user_actions').update({ current_reps: newReps, status: newStatus }).eq('plan_id', activePlanId).eq('title', action.title);
+    try {
+      if (isNowCompleted) {
+        const { error } = await supabase
+          .from('user_actions')
+          .update({ current_reps: newReps, status: newStatus, last_performed_at: new Date().toISOString() })
+          .eq('plan_id', activePlanId)
+          .eq('title', action.title);
+        mustOk(error);
+      } else {
+        const { error } = await supabase
+          .from('user_actions')
+          .update({ current_reps: newReps, status: newStatus })
+          .eq('plan_id', activePlanId)
+          .eq('title', action.title);
+        mustOk(error);
+      }
+      if (isNowCompleted) await checkPhaseCompletionAndAutoUnlock(updatedPlan);
+    } catch (err) {
+      console.error("Error increment habit:", err);
+      setActivePlan(prevPlan);
+      if (maybeHandleBillingGate(err)) return;
+      alert("Erreur mise à jour habitude.");
     }
-    if (isNowCompleted) await checkPhaseCompletionAndAutoUnlock(updatedPlan);
   };
 
   const handleMasterHabit = async (action: Action) => {
     if (!activePlanId || !activePlan) return;
     if (!confirm("Maîtriser cette habitude ?")) return;
 
+    const prevPlan = activePlan;
     const newReps = action.targetReps || 1;
     const newPhases: GeneratedPlan["phases"] = activePlan.phases.map((p) => ({
       ...p,
@@ -366,19 +425,27 @@ export const useDashboardLogic = ({
     const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
     setActivePlan(updatedPlan);
 
-    await supabase
-      .from('user_actions')
-      .update({ current_reps: newReps, status: 'completed', last_performed_at: new Date().toISOString() })
-      .eq('plan_id', activePlanId)
-      .eq('title', action.title);
-    await checkPhaseCompletionAndAutoUnlock(updatedPlan);
+    try {
+      const { error } = await supabase
+        .from('user_actions')
+        .update({ current_reps: newReps, status: 'completed', last_performed_at: new Date().toISOString() })
+        .eq('plan_id', activePlanId)
+        .eq('title', action.title);
+      mustOk(error);
+      await checkPhaseCompletionAndAutoUnlock(updatedPlan);
+    } catch (err) {
+      console.error("Error master habit:", err);
+      setActivePlan(prevPlan);
+      if (maybeHandleBillingGate(err)) return;
+      alert("Erreur mise à jour habitude.");
+    }
   };
 
   // --- 5. FRAMEWORKS & VITAL SIGNS ---
   const handleSaveFramework = async (action: Action, content: any) => {
     if (!user) return;
     try {
-        await supabase.from('user_framework_entries').insert({
+        const { error: insErr } = await supabase.from('user_framework_entries').insert({
             user_id: user.id,
             plan_id: activePlanId,
             submission_id: activeSubmissionId,
@@ -389,6 +456,7 @@ export const useDashboardLogic = ({
             schema_snapshot: (action as any).frameworkDetails,
             target_reps: action.targetReps || 1
         });
+        mustOk(insErr);
         
         if (activePlanId) {
              const { data: trackData } = await supabase.from('user_framework_tracking').select('id, current_reps, target_reps, type').eq('plan_id', activePlanId).eq('action_id', action.id).single();
@@ -396,7 +464,11 @@ export const useDashboardLogic = ({
                  const newReps = (trackData.current_reps || 0) + 1;
                  const isCompleted = trackData.type === 'one_shot' || (trackData.target_reps && newReps >= trackData.target_reps);
                  
-                 await supabase.from('user_framework_tracking').update({ current_reps: newReps, status: isCompleted ? 'completed' : 'active', last_performed_at: new Date().toISOString() }).eq('id', trackData.id);
+                 const { error: trkErr } = await supabase
+                   .from('user_framework_tracking')
+                   .update({ current_reps: newReps, status: isCompleted ? 'completed' : 'active', last_performed_at: new Date().toISOString() })
+                   .eq('id', (trackData as any).id);
+                 mustOk(trkErr);
                     
                  if (activePlan) {
                     const newPhases = activePlan.phases.map(p => ({
@@ -411,6 +483,7 @@ export const useDashboardLogic = ({
         }
     } catch (err) {
         console.error("Critical Error saving framework:", err);
+        if (maybeHandleBillingGate(err)) return;
         alert("Erreur lors de la sauvegarde.");
     }
   };

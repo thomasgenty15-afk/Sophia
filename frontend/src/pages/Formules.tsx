@@ -61,7 +61,7 @@ const Formules = () => {
           <span className="text-violet-600">Choisis ton évolution ensuite.</span>
         </h1>
         <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed">
-          Pendant <strong>1 mois</strong>, tu as accès à tout : Le Plan, Sophia sur WhatsApp et les premiers modules de l'Architecte. Sans engagement.
+          Pendant <strong>14 jours</strong>, tu as accès à tout : Le Plan, Sophia sur WhatsApp et les premiers modules de l'Architecte. Sans engagement.
         </p>
       </div>
 
@@ -201,12 +201,12 @@ const Formules = () => {
             
             <div className="space-y-8 text-left">
                 <div>
-                    <h3 className="font-bold text-slate-900 mb-2">Comment fonctionne le mois gratuit ?</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">Tu accèdes à tout (l'offre Architecte à 30€) pendant 30 jours. Aucune carte bancaire n'est débitée avant la fin. Tu peux annuler à tout moment.</p>
+                    <h3 className="font-bold text-slate-900 mb-2">Comment fonctionne l'essai gratuit ?</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed">Tu accèdes à tout pendant 14 jours. Aucune carte bancaire n'est nécessaire pour démarrer. À la fin, tu choisis si tu veux t'abonner.</p>
                 </div>
                 <div>
-                    <h3 className="font-bold text-slate-900 mb-2">Puis-je changer d'offre après le mois gratuit ?</h3>
-                    <p className="text-slate-600 text-sm leading-relaxed">Oui ! À la fin de l'essai, tu choisis ce que tu gardes. Si tu veux juste le Dashboard (10€), ou Sophia (20€), ou tout garder (30€). C'est toi qui décides.</p>
+                    <h3 className="font-bold text-slate-900 mb-2">Puis-je passer en mensuel ou en annuel ?</h3>
+                    <p className="text-slate-600 text-sm leading-relaxed">Oui. Tu peux choisir mensuel ou annuel au moment de l'abonnement, puis changer ou résilier depuis ton espace "Mon Compte".</p>
                 </div>
                 <div>
                     <h3 className="font-bold text-slate-900 mb-2">Pourquoi Sophia est différente de ChatGPT ?</h3>

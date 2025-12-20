@@ -169,9 +169,9 @@ export default function AdminEvals() {
               <BarChart3 className="w-4 h-4" />
               Usage & Costs
             </a>
-            <div className="flex items-center gap-3 text-xs text-neutral-500">
-              <span>Runs: {runs.length}</span>
-              <span>Pending Suggestions: {pendingSuggestions.length}</span>
+          <div className="flex items-center gap-3 text-xs text-neutral-500">
+            <span>Runs: {runs.length}</span>
+            <span>Pending Suggestions: {pendingSuggestions.length}</span>
             </div>
           </div>
         </div>
