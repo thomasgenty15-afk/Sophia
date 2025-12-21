@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import { 
   X, 
   User, 
@@ -28,10 +28,30 @@ type TabType = 'general' | 'subscription' | 'settings';
 const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initialTab }) => {
   const { user, signOut, subscription, trialEnd } = useAuth();
   const navigate = useNavigate();
+  const shouldRender = isOpen;
   const [activeTab, setActiveTab] = useState<TabType>(initialTab ?? 'general');
-  const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
+  const [profile, setProfile] = useState<{ full_name: string | null; phone_number?: string | null } | null>(null);
   const [billingLoading, setBillingLoading] = useState<boolean>(false);
   const [billingError, setBillingError] = useState<string | null>(null);
+  const [saveLoading, setSaveLoading] = useState<boolean>(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [saveSuccess, setSaveSuccess] = useState<string | null>(null);
+  const [fullNameDraft, setFullNameDraft] = useState<string>("");
+  const [phoneDraft, setPhoneDraft] = useState<string>("");
+  const [originalPhone, setOriginalPhone] = useState<string>("");
+
+  const [phoneEditOpen, setPhoneEditOpen] = useState<boolean>(false);
+  const [phoneLoading, setPhoneLoading] = useState<boolean>(false);
+  const [phoneError, setPhoneError] = useState<string | null>(null);
+  const [phoneSuccess, setPhoneSuccess] = useState<string | null>(null);
+
+  const [emailEditOpen, setEmailEditOpen] = useState<boolean>(false);
+  const [emailDraft, setEmailDraft] = useState<string>("");
+  const [emailLoading, setEmailLoading] = useState<boolean>(false);
+  const [emailError, setEmailError] = useState<string | null>(null);
+  const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
+
+  const displayEmail = user?.email || "";
 
   useEffect(() => {
     if (user) {
@@ -39,24 +59,47 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name')
+          .select('full_name, phone_number')
           .eq('id', user.id)
           .single();
         
         if (data) {
           setProfile(data);
+          setFullNameDraft((data as any)?.full_name || user?.user_metadata?.full_name || "");
+          const p = ((data as any)?.phone_number ?? "") as string;
+          // IMPORTANT: Ne pas écraser phoneDraft si l'utilisateur est en train d'éditer ?
+          // Pour faire simple et éviter les conflits, on update le draft seulement si on vient d'ouvrir ou charger.
+          // Ici c'est le fetch initial.
+          setPhoneDraft(p);
+          setOriginalPhone(p);
         }
       };
       fetchProfile();
     }
   }, [user]);
 
+  // Update phone draft if profile loads later or changes externally
   useEffect(() => {
-    if (!isOpen) return;
-    setActiveTab(initialTab ?? "general");
-  }, [isOpen, initialTab]);
+    if (profile && !phoneEditOpen) {
+       const p = (profile.phone_number ?? "") as string;
+       setPhoneDraft(p);
+       setOriginalPhone(p);
+    }
+  }, [profile, phoneEditOpen]);
 
-  if (!isOpen) return null;
+  useEffect(() => {
+    if (!shouldRender) return;
+    setActiveTab(initialTab ?? "general");
+    setSaveError(null);
+    setSaveSuccess(null);
+    setEmailError(null);
+    setEmailSuccess(null);
+    setEmailDraft(displayEmail);
+    setEmailEditOpen(false);
+    setPhoneError(null);
+    setPhoneSuccess(null);
+    setPhoneEditOpen(false);
+  }, [shouldRender, initialTab, displayEmail]);
 
   const handleSignOut = async () => {
     await signOut();
@@ -65,8 +108,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   };
 
   // Get display values
-  const displayName = profile?.full_name || user?.user_metadata?.full_name || "Utilisateur";
-  const displayEmail = user?.email || "";
+  const displayName = useMemo(() => {
+    const n = (profile?.full_name || user?.user_metadata?.full_name || "").trim();
+    return n || "Utilisateur";
+  }, [profile?.full_name, user?.user_metadata?.full_name]);
   const initials = displayName
     .split(' ')
     .map((n: string) => n[0])
@@ -75,6 +120,142 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     .toUpperCase();
 
   const isArchitect = mode === 'architecte';
+  const successColor = isArchitect ? "text-emerald-300" : "text-emerald-700";
+  const errorColor = isArchitect ? "text-red-300" : "text-red-600";
+
+  function normalizePhoneInput(raw: string): string | null {
+    const cleaned = (raw ?? "").trim().replace(/[()\s.-]/g, "");
+    if (!cleaned) return null;
+    // Common FR case: 06/07XXXXXXXX => +336/7XXXXXXXX
+    if (/^0[67]\d{8}$/.test(cleaned)) return `+33${cleaned.slice(1)}`;
+    if (cleaned.startsWith("00") && /^\d+$/.test(cleaned.slice(2))) return `+${cleaned.slice(2)}`;
+    if (cleaned.startsWith("+") && /^\+\d{8,15}$/.test(cleaned)) return cleaned;
+    throw new Error("Numéro invalide. Utilise le format international, ex: +33612345678.");
+  }
+
+  const handleUpdatePhone = async () => {
+    if (!user) return;
+    setPhoneLoading(true);
+    setPhoneError(null);
+    setPhoneSuccess(null);
+
+    try {
+      const nextPhone = normalizePhoneInput(phoneDraft);
+      const prevPhone = (originalPhone ?? "").trim();
+      const nextPhoneStr = (nextPhone ?? "").trim();
+      const phoneChanged = (prevPhone || "") !== (nextPhoneStr || "");
+
+      if (!phoneChanged) {
+        setPhoneSuccess("Numéro inchangé.");
+        setPhoneEditOpen(false);
+        return;
+      }
+
+      const updatePayload: any = {
+        phone_number: nextPhone,
+        // Reset WhatsApp flags
+        whatsapp_opted_in: false,
+        whatsapp_bilan_opted_in: false,
+        phone_invalid: false,
+        whatsapp_optin_sent_at: null,
+        whatsapp_opted_out_at: null,
+        whatsapp_optout_reason: null,
+        whatsapp_optout_confirmed_at: null
+      };
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update(updatePayload)
+        .eq('id', user.id)
+        .select('phone_number')
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setProfile((prev: any) => ({ ...prev, phone_number: data.phone_number }));
+        setOriginalPhone(data.phone_number ?? "");
+        setPhoneDraft(data.phone_number ?? "");
+      }
+
+      // Best-effort: (re)send WhatsApp opt-in template for the new number.
+      try {
+        await supabase.functions.invoke('whatsapp-optin', { body: {} });
+      } catch (e) {
+        console.warn("WhatsApp opt-in send failed (non-blocking):", e);
+      }
+
+      setPhoneSuccess("Numéro modifié avec succès.");
+      setPhoneEditOpen(false);
+    } catch (err: any) {
+      const msg = err?.message || "Impossible d’enregistrer le numéro.";
+      if (typeof msg === "string" && (msg.toLowerCase().includes("duplicate") || msg.toLowerCase().includes("unique"))) {
+        setPhoneError("Ce numéro est déjà utilisé par un autre compte.");
+      } else {
+        setPhoneError(msg);
+      }
+    } finally {
+      setPhoneLoading(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    setSaveLoading(true);
+    setSaveError(null);
+    setSaveSuccess(null);
+    try {
+      const nextFullName = (fullNameDraft ?? "").trim() || null;
+      
+      // On ne sauvegarde que le nom ici maintenant, le téléphone est géré à part.
+      // Sauf si on veut garder la compatibilité ? 
+      // Pour être safe et cohérent avec l'UI scindée, on ne touche qu'au nom.
+
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ full_name: nextFullName })
+        .eq('id', user.id)
+        .select('full_name')
+        .single();
+
+      if (error) throw error;
+
+      if (data) {
+        setProfile((prev: any) => ({ ...prev, full_name: data.full_name }));
+        setFullNameDraft(data.full_name ?? "");
+      }
+
+      setSaveSuccess("Informations enregistrées.");
+    } catch (err: any) {
+      setSaveError(err?.message || "Impossible d’enregistrer.");
+    } finally {
+      setSaveLoading(false);
+    }
+  };
+
+  const handleUpdateEmail = async () => {
+    if (!user) return;
+    setEmailLoading(true);
+    setEmailError(null);
+    setEmailSuccess(null);
+    try {
+      const nextEmail = (emailDraft ?? "").trim().toLowerCase();
+      if (!nextEmail) throw new Error("Email requis.");
+      if (nextEmail === (displayEmail || "").toLowerCase()) {
+        setEmailSuccess("Email inchangé.");
+        setEmailEditOpen(false);
+        return;
+      }
+      const { error } = await supabase.auth.updateUser({ email: nextEmail });
+      if (error) throw error;
+      setEmailSuccess("Demande envoyée. Vérifie tes emails pour confirmer le changement.");
+      setEmailEditOpen(false);
+    } catch (err: any) {
+      setEmailError(err?.message || "Impossible de modifier l’email.");
+    } finally {
+      setEmailLoading(false);
+    }
+  };
 
   const priceIdToPlanLabel = (priceId: string | null | undefined): string | null => {
     if (!priceId) return null;
@@ -85,6 +266,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     if (tier) return tier;
     return null;
   };
+
+  if (!shouldRender) return null;
 
   const now = Date.now();
   const trialActive = trialEnd ? new Date(trialEnd).getTime() > now : false;
@@ -195,17 +378,184 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                 <div className="space-y-4">
                   <div>
                     <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Nom complet</label>
-                    <input type="text" defaultValue={displayName} className={styles.input} />
+                    <input
+                      type="text"
+                      value={fullNameDraft}
+                      onChange={(e) => setFullNameDraft(e.target.value)}
+                      className={styles.input}
+                      placeholder="Ton nom"
+                    />
                   </div>
                   <div>
                     <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Email</label>
                     <div className="relative">
                       <input type="email" defaultValue={displayEmail} className={styles.input} readOnly />
-                      <div className="absolute right-3 top-3 text-emerald-500">
+                      <div className={`absolute right-3 top-3 ${isArchitect ? "text-emerald-500" : "text-emerald-600"}`}>
                         <Check className="w-4 h-4" />
                       </div>
                     </div>
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setEmailDraft(displayEmail);
+                          setEmailError(null);
+                          setEmailSuccess(null);
+                          setEmailEditOpen((v) => !v);
+                        }}
+                        className={`text-xs font-semibold underline ${
+                          isArchitect ? "text-emerald-400 hover:text-emerald-300" : "text-slate-600 hover:text-slate-900"
+                        }`}
+                      >
+                        Modifier mon email
+                      </button>
+                      {emailSuccess && <div className={`text-xs ${successColor}`}>{emailSuccess}</div>}
+                      {emailError && <div className={`text-xs ${errorColor}`}>{emailError}</div>}
+                    </div>
+                    {emailEditOpen && (
+                      <div className={`mt-3 p-3 rounded-xl border ${isArchitect ? "bg-emerald-900/30 border-emerald-800" : "bg-white border-slate-200"}`}>
+                        <div className="space-y-2">
+                          <input
+                            type="email"
+                            value={emailDraft}
+                            onChange={(e) => setEmailDraft(e.target.value)}
+                            className={styles.input}
+                            placeholder="nouvel-email@example.com"
+                          />
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setEmailEditOpen(false)}
+                              className={`px-3 py-2 rounded-lg text-xs font-bold border ${
+                                isArchitect ? "border-emerald-800 text-emerald-200 hover:bg-emerald-900/40" : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                              }`}
+                              disabled={emailLoading}
+                            >
+                              Annuler
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleUpdateEmail}
+                              className={`px-3 py-2 rounded-lg text-xs font-bold ${
+                                isArchitect ? "bg-emerald-700 hover:bg-emerald-600 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
+                              }`}
+                              disabled={emailLoading}
+                            >
+                              {emailLoading ? "Envoi..." : "Valider"}
+                            </button>
+                          </div>
+                          <p className={`text-[11px] leading-snug ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
+                            Si la confirmation email est activée, Sophia te demandera de confirmer via un lien envoyé sur ta boîte.
+                          </p>
+                        </div>
+                      </div>
+                    )}
                   </div>
+                  <div>
+                    <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>Téléphone (WhatsApp)</label>
+                    
+                    {!phoneEditOpen ? (
+                       <div className="relative">
+                          <input 
+                            type="text" 
+                            value={originalPhone || "Aucun numéro"} 
+                            className={`${styles.input} opacity-70`} 
+                            readOnly 
+                          />
+                          <div className={`absolute right-3 top-3 ${isArchitect ? "text-emerald-500" : "text-emerald-600"}`}>
+                             {originalPhone && <Check className="w-4 h-4" />}
+                          </div>
+                       </div>
+                    ) : null}
+
+                    <div className="mt-2 flex items-center justify-between gap-3">
+                      {!phoneEditOpen && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setPhoneDraft(originalPhone);
+                            setPhoneError(null);
+                            setPhoneSuccess(null);
+                            setPhoneEditOpen(true);
+                          }}
+                          className={`text-xs font-semibold underline ${
+                            isArchitect ? "text-emerald-400 hover:text-emerald-300" : "text-slate-600 hover:text-slate-900"
+                          }`}
+                        >
+                          Modifier mon numéro
+                        </button>
+                      )}
+                      
+                      {phoneSuccess && <div className={`text-xs ${successColor}`}>{phoneSuccess}</div>}
+                      {phoneError && <div className={`text-xs ${errorColor}`}>{phoneError}</div>}
+                    </div>
+
+                    {phoneEditOpen && (
+                      <div className={`mt-3 p-3 rounded-xl border ${isArchitect ? "bg-emerald-900/30 border-emerald-800" : "bg-white border-slate-200"}`}>
+                        <div className="space-y-2">
+                          <input
+                            type="tel"
+                            value={phoneDraft}
+                            onChange={(e) => setPhoneDraft(e.target.value)}
+                            className={styles.input}
+                            placeholder="Ex: +33612345678"
+                          />
+                          
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              type="button"
+                              onClick={() => setPhoneEditOpen(false)}
+                              className={`px-3 py-2 rounded-lg text-xs font-bold border ${
+                                isArchitect ? "border-emerald-800 text-emerald-200 hover:bg-emerald-900/40" : "border-slate-200 text-slate-600 hover:bg-slate-50"
+                              }`}
+                              disabled={phoneLoading}
+                            >
+                              Annuler
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleUpdatePhone}
+                              className={`px-3 py-2 rounded-lg text-xs font-bold ${
+                                isArchitect ? "bg-emerald-700 hover:bg-emerald-600 text-white" : "bg-slate-900 hover:bg-slate-800 text-white"
+                              }`}
+                              disabled={phoneLoading}
+                            >
+                              {phoneLoading ? "Enregistrement..." : "Valider"}
+                            </button>
+                          </div>
+                          
+                          <p className={`text-[11px] leading-snug ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
+                            Format demandé: international (E.164), ex: +33612345678. Si tu changes de numéro, on te redemandera l’opt-in WhatsApp.
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                <div className="mt-6 space-y-2">
+                  {(saveError || saveSuccess) && (
+                    <div className={`text-xs rounded-lg p-3 border ${
+                      saveError
+                        ? (isArchitect ? "border-red-900/50 bg-red-950/30" : "border-red-100 bg-red-50")
+                        : (isArchitect ? "border-emerald-800 bg-emerald-900/30" : "border-emerald-200 bg-emerald-50")
+                    }`}>
+                      <span className={saveError ? errorColor : successColor}>{saveError ?? saveSuccess}</span>
+                    </div>
+                  )}
+
+                  <button
+                    type="button"
+                    onClick={handleSaveProfile}
+                    disabled={saveLoading || !user}
+                    className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                      isArchitect
+                        ? "bg-emerald-700 hover:bg-emerald-600 text-white disabled:opacity-60"
+                        : "bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-60"
+                    }`}
+                  >
+                    {saveLoading ? "Enregistrement..." : "Enregistrer"}
+                  </button>
                 </div>
 
                 <div className={`mt-8 p-4 rounded-xl flex items-center gap-4 border ${

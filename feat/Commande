@@ -372,8 +372,6 @@ SUPPRIMER TOUS LES SECRETS DE LA BD :
 for k in $(supabase secrets list | awk 'NR>1 && $1!="NAME"{print $1}'); do
   supabase secrets unset "$k"
 done
-<<<<<<< HEAD
-=======
 
 
 Script “supprimer partout où user_id = ce user” (cloud Supabase)
@@ -415,4 +413,3 @@ commit;
 
 
 
->>>>>>> staging

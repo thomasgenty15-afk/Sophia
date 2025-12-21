@@ -250,6 +250,13 @@ export default function AdminDashboard() {
               Usage & Costs
             </a>
             <a
+              href="/admin/production-log"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-neutral-400 hover:text-white transition-colors"
+            >
+              <Terminal className="w-4 h-4" />
+              Production log
+            </a>
+            <a
               href="/admin/evals"
               className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-neutral-400 hover:text-white transition-colors"
             >

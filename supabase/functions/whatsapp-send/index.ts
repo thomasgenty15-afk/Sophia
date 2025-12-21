@@ -120,7 +120,7 @@ Deno.serve(async (req) => {
 
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("phone_number, full_name, whatsapp_opted_in, phone_invalid, whatsapp_last_inbound_at")
+      .select("phone_number, full_name, whatsapp_opted_in, whatsapp_opted_out_at, phone_invalid, whatsapp_last_inbound_at")
       .eq("id", body.user_id)
       .maybeSingle()
 
@@ -128,7 +128,7 @@ Deno.serve(async (req) => {
     if (!profile) return jsonResponse(req, { error: "Profile not found", request_id: requestId }, { status: 404, includeCors: false })
     if (profile.phone_invalid) return jsonResponse(req, { error: "Phone marked invalid", request_id: requestId }, { status: 409, includeCors: false })
     const requireOptedIn = body.require_opted_in !== false
-    if (requireOptedIn && !profile.whatsapp_opted_in) {
+    if (requireOptedIn && (!profile.whatsapp_opted_in || profile.whatsapp_opted_out_at)) {
       return jsonResponse(req, { error: "User not opted in", request_id: requestId }, { status: 409, includeCors: false })
     }
 

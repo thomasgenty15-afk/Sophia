@@ -29,6 +29,7 @@ import { ChatPage } from './pages/ChatPage'; // Import ChatPage
 import AdminEvals from './pages/AdminEvals';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsageDashboard from './pages/AdminUsageDashboard';
+import AdminProductionLog from './pages/AdminProductionLog';
 import { RequireAdmin, RequireAppAccess, RequirePrelaunchGate } from './security/RouteGuards';
 
 function App() {
@@ -68,6 +69,7 @@ function App() {
             <Route path="/architecte/evolution" element={<RequireAppAccess><IdentityEvolution /></RequireAppAccess>} />
             <Route path="/admin/evals" element={<RequireAdmin><AdminEvals /></RequireAdmin>} />
             <Route path="/admin/usage" element={<RequireAdmin><AdminUsageDashboard /></RequireAdmin>} />
+            <Route path="/admin/production-log" element={<RequireAdmin><AdminProductionLog /></RequireAdmin>} />
             <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />
           </Routes>
         </div>

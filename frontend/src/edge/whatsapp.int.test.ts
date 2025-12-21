@@ -110,7 +110,7 @@ describe("WhatsApp: webhook + send (integration, offline-safe paths)", () => {
     expect(text).toContain("Invalid signature");
   });
 
-  it.skipIf(!HAS_WA_APP_SECRET)("whatsapp-webhook POST: STOP logs inbound + opts user out (no outbound send)", async () => {
+  it.skipIf(!HAS_WA_APP_SECRET)("whatsapp-webhook POST: STOP logs inbound + opts user out", async () => {
     const { data: profile, error: pErr } = await admin.from("profiles").select("phone_number").eq("id", userId).single();
     if (pErr) throw pErr;
     const phone = profile.phone_number as string;
@@ -157,7 +157,7 @@ describe("WhatsApp: webhook + send (integration, offline-safe paths)", () => {
     expect(count).toBe(1);
   });
 
-  it.skipIf(!HAS_WA_APP_SECRET)("whatsapp-webhook POST: wrong-number marks profile invalid and does not log inbound", async () => {
+  it.skipIf(!HAS_WA_APP_SECRET)("whatsapp-webhook POST: wrong-number clears phone_number and does not log inbound", async () => {
     const { data: profile, error: pErr } = await admin.from("profiles").select("phone_number").eq("id", userId).single();
     if (pErr) throw pErr;
     const phone = profile.phone_number as string;
@@ -181,9 +181,10 @@ describe("WhatsApp: webhook + send (integration, offline-safe paths)", () => {
     const { res } = await callWebhookRaw("POST", "", body, { "X-Hub-Signature-256": sig });
     expect(res.status).toBe(200);
 
-    const { data: prof2, error: p2Err } = await admin.from("profiles").select("phone_invalid").eq("id", userId).single();
+    const { data: prof2, error: p2Err } = await admin.from("profiles").select("phone_number,whatsapp_opted_in").eq("id", userId).single();
     if (p2Err) throw p2Err;
-    expect(prof2.phone_invalid).toBe(true);
+    expect(prof2.phone_number).toBe(null);
+    expect(prof2.whatsapp_opted_in).toBe(false);
 
     const { count, error: cntErr } = await admin
       .from("chat_messages")
@@ -233,6 +234,129 @@ describe("WhatsApp: webhook + send (integration, offline-safe paths)", () => {
       .filter("metadata->>wa_message_id", "eq", waId);
     if (cntErr) throw cntErr;
     expect(count).toBe(1);
+  });
+
+  it.skipIf(!HAS_WA_APP_SECRET)("whatsapp-webhook POST: LINK:<token> links unknown phone to user", async () => {
+    const { data: profile, error: pErr } = await admin.from("profiles").select("phone_number,email").eq("id", userId).single();
+    if (pErr) throw pErr;
+    const phone = profile.phone_number as string;
+
+    // Unlink phone from profile so the inbound phone becomes "unknown".
+    const { error: unlinkErr } = await admin.from("profiles").update({ phone_number: null, whatsapp_opted_in: false, phone_invalid: false }).eq("id", userId);
+    if (unlinkErr) throw unlinkErr;
+
+    // Create a token for this user.
+    const token = `test_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    const { error: tokErr } = await admin.from("whatsapp_link_tokens").insert({
+      token,
+      user_id: userId,
+      status: "active",
+      expires_at: expiresAt,
+    });
+    if (tokErr) throw tokErr;
+
+    const body = JSON.stringify({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                contacts: [{ profile: { name: "Test User" } }],
+                messages: [{ from: phone, id: `wamid.${Date.now()}`, type: "text", text: { body: `LINK:${token}` } }],
+              },
+            },
+          ],
+        },
+      ],
+    });
+    const sig = signXHubSha256(mustGetWhatsAppAppSecret(), body);
+    const { res } = await callWebhookRaw("POST", "", body, { "X-Hub-Signature-256": sig });
+    expect(res.status).toBe(200);
+
+    const { data: prof2, error: p2Err } = await admin.from("profiles").select("phone_number,whatsapp_opted_in").eq("id", userId).single();
+    if (p2Err) throw p2Err;
+    expect(prof2.phone_number).toBe(phone);
+    expect(prof2.whatsapp_opted_in).toBe(true);
+
+    const { data: tok2, error: tok2Err } = await admin.from("whatsapp_link_tokens").select("status,consumed_at,consumed_phone_e164").eq("token", token).single();
+    if (tok2Err) throw tok2Err;
+    expect(tok2.status).toBe("consumed");
+    expect(tok2.consumed_at).toBeTruthy();
+    expect(tok2.consumed_phone_e164).toBe(phone);
+  });
+
+  it.skipIf(!HAS_WA_APP_SECRET)("whatsapp-webhook POST: unknown phone + unknown email increments link attempts", async () => {
+    const { data: profile, error: pErr } = await admin.from("profiles").select("phone_number").eq("id", userId).single();
+    if (pErr) throw pErr;
+    const phone = profile.phone_number as string;
+
+    // Ensure the inbound phone is treated as unknown.
+    const { error: unlinkErr } = await admin.from("profiles").update({ phone_number: null, whatsapp_opted_in: false, phone_invalid: false }).eq("id", userId);
+    if (unlinkErr) throw unlinkErr;
+
+    // Clean any previous link request for this phone.
+    await admin.from("whatsapp_link_requests").delete().eq("phone_e164", phone);
+
+    const waId1 = `wamid.${Date.now()}`;
+    const body1 = JSON.stringify({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                contacts: [{ profile: { name: "Test User" } }],
+                messages: [{ from: phone, id: waId1, type: "text", text: { body: "nope1@example.com" } }],
+              },
+            },
+          ],
+        },
+      ],
+    });
+    const sig1 = signXHubSha256(mustGetWhatsAppAppSecret(), body1);
+    const r1 = await callWebhookRaw("POST", "", body1, { "X-Hub-Signature-256": sig1 });
+    expect(r1.res.status).toBe(200);
+
+    const { data: lr1, error: lr1Err } = await admin
+      .from("whatsapp_link_requests")
+      .select("attempts,status,last_email_attempt")
+      .eq("phone_e164", phone)
+      .single();
+    if (lr1Err) throw lr1Err;
+    expect(lr1.attempts).toBeGreaterThanOrEqual(1);
+    expect(lr1.last_email_attempt).toBe("nope1@example.com");
+    expect(["confirm_email", "support_required"]).toContain(lr1.status);
+
+    const waId2 = `wamid.${Date.now() + 1}`;
+    const body2 = JSON.stringify({
+      object: "whatsapp_business_account",
+      entry: [
+        {
+          changes: [
+            {
+              value: {
+                contacts: [{ profile: { name: "Test User" } }],
+                messages: [{ from: phone, id: waId2, type: "text", text: { body: "nope2@example.com" } }],
+              },
+            },
+          ],
+        },
+      ],
+    });
+    const sig2 = signXHubSha256(mustGetWhatsAppAppSecret(), body2);
+    const r2 = await callWebhookRaw("POST", "", body2, { "X-Hub-Signature-256": sig2 });
+    expect(r2.res.status).toBe(200);
+
+    const { data: lr2, error: lr2Err } = await admin
+      .from("whatsapp_link_requests")
+      .select("attempts,last_email_attempt")
+      .eq("phone_e164", phone)
+      .single();
+    if (lr2Err) throw lr2Err;
+    expect(lr2.attempts).toBeGreaterThanOrEqual(2);
+    expect(lr2.last_email_attempt).toBe("nope2@example.com");
   });
 
   it.skipIf(!HAS_INTERNAL_SECRET)("whatsapp-send: require_opted_in=true blocks non-opted users (409) without network", async () => {

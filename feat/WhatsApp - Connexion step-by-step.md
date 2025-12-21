@@ -100,7 +100,15 @@ Requête (service role):
 - `select id from profiles where phone_number = <normalized>` → `user_id`
 
 Cas limites:
-- Aucun user trouvé → répondre avec un message standard (“Ton numéro n’est pas reconnu…”) **OU** ne rien répondre.
+- Aucun user trouvé → démarrer un flow de **liaison**:
+  - Si l’utilisateur envoie un **email**: tenter de trouver `profiles.email`, mais **ne jamais relier le numéro uniquement sur l’email** (faille).
+    - Si email introuvable: flow en 2 étapes:
+      - 1) “Tu es sûr ?” (renvoyer l’email exact ou répondre OUI)
+      - 2) si re-email ou confirmation: rediriger vers support (`hello@sophia-coach.ai`)
+    - Si email trouvé:
+      - Envoyer un **email de validation** (au titulaire du compte) avec un lien `wa.me` pré-rempli (`LINK:<token>`).
+      - Sur WhatsApp, préciser: **garder le texte pré-rempli tel quel** et l’envoyer (sinon impossible d’appliquer la modification).
+      - Si le compte est déjà lié à un autre numéro: ne pas écraser; même flow de validation par token (email + lien).
 - Plusieurs users (ne devrait pas arriver car `unique`) → log + refuser.
 
 ---
@@ -269,6 +277,21 @@ Avant prod, ajouter:
 1) Template opt-in: tu veux plutôt **Quick Reply buttons** (“Oui” / “Mauvais numéro”) ou des réponses texte ?
 2) Tu valides qu’on **force E.164** à l’inscription (sinon impossible de router proprement) ?
 3) Pour “Mauvais numéro”: on marque `profiles.phone_invalid=true` et on bloque tout envoi futur, OK ?
+
+---
+
+## 9bis) Mini state-machine WhatsApp (post opt-in)
+
+Objectif: rendre le premier contact **vivant** et éviter les boucles / incompréhensions.
+
+On stocke un état léger dans `profiles.whatsapp_state` (avec timestamp `profiles.whatsapp_state_updated_at`) pour intercepter certaines réponses **avant** d’appeler l’IA.
+
+États utilisés:
+- `awaiting_plan_finalization`: l’utilisateur a opt-in mais n’a pas de plan actif → on attend “C’est bon”.
+- `awaiting_plan_motivation`: l’utilisateur a un plan actif → on attend une note 0–10.
+- `awaiting_personal_fact`: on attend “1 chose que tu aimerais que je sache sur toi”.
+
+Règle: dès que l’état est consommé, on le met à `null` et on repasse au flux normal (IA).
 
 ---
 

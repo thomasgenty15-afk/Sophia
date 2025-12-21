@@ -138,6 +138,13 @@ export default function AdminUsageDashboard() {
             <h1 className="font-semibold text-white">Usage Dashboard</h1>
           </div>
           <div className="flex items-center gap-4">
+            <a
+              href="/admin/production-log"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-neutral-400 hover:text-white transition-colors"
+            >
+              <Server className="w-4 h-4" />
+              Production log
+            </a>
              <div className="flex items-center bg-neutral-900 rounded-lg p-1 border border-neutral-800">
                 {PERIODS.map((p) => (
                   <button

@@ -1,0 +1,26 @@
+Dans le cas du flow rattrapage numéro/ email : 
+Ce que je propose comme comportement produit (aligné avec ce que tu veux)
+
+1) Numéro WhatsApp inconnu
+Sophia demande l’email.
+Si l’email existe:
+Sophia répond: “J’ai trouvé un compte. Pour valider que c’est bien toi, je t’envoie un email avec un message WhatsApp pré-rempli.”
+Elle envoie au titulaire du compte un email contenant un lien wa.me avec un message LINK:<token>.
+Sophia précise sur WhatsApp: “garde le texte pré-rempli tel quel et envoie-le”.
+Aucune mise à jour tant que le token n’est pas reçu.
+Si l’email n’existe pas:
+1ère fois: “Je ne trouve pas… est-ce que tu es sûr ?”
+Si il renvoie un email (encore inconnu) ou répond “oui je suis sûr”:
+“Ok — écris à hello@sophia-coach.ai en indiquant ton numéro WhatsApp”.
+
+2) Email trouvé mais compte déjà lié à un autre numéro
+WhatsApp: “J’ai trouvé un compte, mais il est associé à un autre numéro.”
+“Je t’envoie un email avec un lien + message WhatsApp pré-rempli (token).”
+“Important: garde le texte pré-rempli.”
+
+3) Quelqu’un répond “Mauvais numéro”
+On retire le numéro du profil (comme aujourd’hui).
+On envoie un email au titulaire du compte avec le lien/token pour relier le bon numéro.
+Si ensuite, depuis un nouveau numéro, la personne tape juste son email:
+On ne relie pas.
+On répond: “Je t’ai envoyé un email avec le message LINK:<token> à envoyer ici pour valider.”

@@ -5,6 +5,23 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { processMessage } from "../sophia-brain/router.ts"
 import { generateWithGemini } from "../_shared/gemini.ts"
 
+const LINK_PROMPT_COOLDOWN_MS = Number.parseInt(
+  (Deno.env.get("WHATSAPP_LINK_PROMPT_COOLDOWN_MS") ?? "").trim() || String(10 * 60 * 1000),
+  10,
+)
+// We use a strict 2-step flow for "email not found":
+// 1) ask "are you sure?" (confirm step)
+// 2) if they confirm or resend an email, ask them to contact support.
+const LINK_MAX_ATTEMPTS = Number.parseInt((Deno.env.get("WHATSAPP_LINK_MAX_ATTEMPTS") ?? "").trim() || "2", 10)
+// When a number is "blocked" due to repeated failures, we still allow a correct email to succeed,
+// but we don't keep spamming "email not found" replies more often than this.
+const LINK_BLOCK_NOTICE_COOLDOWN_MS = Number.parseInt(
+  (Deno.env.get("WHATSAPP_LINK_BLOCK_NOTICE_COOLDOWN_MS") ?? "").trim() || String(24 * 60 * 60 * 1000),
+  10,
+)
+const SUPPORT_EMAIL = (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "hello@sophia-coach.ai").trim()
+const SITE_URL = (Deno.env.get("WHATSAPP_SITE_URL") ?? "https://sophia-coach.ai").trim()
+
 type WaInbound = {
   object?: string
   entry?: Array<{
@@ -14,6 +31,88 @@ type WaInbound = {
       value?: any
     }>
   }>
+}
+
+function looksLikeEmail(raw: string): string | null {
+  const t = (raw ?? "").trim()
+  // Conservative email regex; good enough for onboarding.
+  const m = t.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i)
+  return m ? m[0] : null
+}
+
+function normalizeEmail(raw: string): string {
+  return (raw ?? "").trim().toLowerCase()
+}
+
+function extractLinkToken(raw: string): string | null {
+  const t = (raw ?? "").trim()
+  const m = t.match(/(?:^|\s)link\s*:\s*([A-Za-z0-9_-]{10,})/i)
+  return m ? m[1] : null
+}
+
+function base64Url(bytes: Uint8Array): string {
+  // btoa expects binary string
+  let s = ""
+  for (const b of bytes) s += String.fromCharCode(b)
+  // Base64url without padding
+  return btoa(s).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "")
+}
+
+function newLinkToken(): string {
+  const bytes = new Uint8Array(18) // ~24 chars base64url
+  crypto.getRandomValues(bytes)
+  return base64Url(bytes)
+}
+
+async function createLinkToken(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  ttlDays = 30,
+): Promise<{ token: string; expires_at: string }> {
+  const token = newLinkToken()
+  const expiresAt = new Date(Date.now() + ttlDays * 24 * 60 * 60 * 1000).toISOString()
+  const { error } = await admin.from("whatsapp_link_tokens").insert({
+    token,
+    user_id: userId,
+    status: "active",
+    expires_at: expiresAt,
+  })
+  if (error) throw error
+  return { token, expires_at: expiresAt }
+}
+
+async function maybeSendEmail(params: { to: string; subject: string; html: string }) {
+  const apiKey = Deno.env.get("RESEND_API_KEY")?.trim()
+  if (!apiKey) return { ok: false as const, error: "Missing RESEND_API_KEY" }
+  const from = (Deno.env.get("RESEND_SENDER_EMAIL") ?? "Sophia <hello@sophia-app.com>").trim()
+
+  const res = await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${apiKey}`,
+    },
+    body: JSON.stringify({
+      from,
+      to: [params.to],
+      subject: params.subject,
+      html: params.html,
+    }),
+  })
+  const data = await res.json().catch(() => ({}))
+  if (!res.ok) return { ok: false as const, error: `Resend error ${res.status}: ${JSON.stringify(data)}` }
+  return { ok: true as const, data }
+}
+
+async function getAccountEmailForProfile(
+  admin: ReturnType<typeof createClient>,
+  profileId: string,
+  profileEmail?: string | null,
+): Promise<string> {
+  const direct = (profileEmail ?? "").trim()
+  if (direct) return direct
+  const { data: userData } = await admin.auth.admin.getUserById(profileId)
+  return (userData?.user?.email ?? "").trim()
 }
 
 function hexFromBuffer(buf: ArrayBuffer): string {
@@ -107,6 +206,41 @@ function extractMessages(payload: WaInbound): Array<{
     }
   }
   return out
+}
+
+function normalizeTextForStop(raw: string): string {
+  return (raw ?? "")
+    .trim()
+    .toLowerCase()
+    // Normalize apostrophes/accents for common French variants
+    .replace(/[’']/g, "'")
+    .normalize("NFD")
+    .replace(/\p{Diacritic}/gu, "")
+}
+
+function isStopKeyword(raw: string, interactiveId?: string | null): boolean {
+  if ((interactiveId ?? "").trim().toUpperCase() === "STOP") return true
+  const t = normalizeTextForStop(raw)
+  // Common opt-out keywords (Meta-style + FR)
+  return /^(stop|unsubscribe|unsub|opt\s*-?\s*out|desinscrire|desinscription)\b/.test(t)
+}
+
+function isYesConfirm(raw: string): boolean {
+  const t = normalizeTextForStop(raw)
+  return /^(oui|yes|ok|d['’]accord|je\s*suis\s*sur|je\s*suis\s*sure|je\s*confirme|confirm[eé])\b/.test(t)
+}
+
+function isDonePhrase(raw: string): boolean {
+  const t = normalizeTextForStop(raw)
+  return /^(c['’]est\s*bon|cest\s*bon|ok|fait|done|termin[eé]|j['’]ai\s*fini|j ai fini)\b/.test(t)
+}
+
+function parseMotivationScore(raw: string): number | null {
+  const t = (raw ?? "").trim()
+  const m = t.match(/\b(10|[0-9])\b/)
+  if (!m) return null
+  const n = Number.parseInt(m[1], 10)
+  return Number.isFinite(n) && n >= 0 && n <= 10 ? n : null
 }
 
 async function sendWhatsAppText(toE164: string, body: string) {
@@ -213,11 +347,319 @@ Deno.serve(async (req) => {
       // Lookup profile by phone_number (unique)
       const { data: profile, error: profErr } = await admin
         .from("profiles")
-        .select("id, full_name, phone_invalid, whatsapp_opted_in")
+        .select("id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state")
         .eq("phone_number", fromE164)
         .maybeSingle()
       if (profErr) throw profErr
-      if (!profile || profile.phone_invalid) continue
+      if (!profile) {
+        // Unknown number: ask for email to link, or link if the user sends an email.
+        const tokenCandidate = extractLinkToken(msg.text ?? "")
+        const emailCandidate = looksLikeEmail(msg.text ?? "")
+        const nowIso = new Date().toISOString()
+        const isConfirm = isYesConfirm(msg.text ?? "") || /^(oui|yes)$/i.test((msg.interactive_title ?? "").trim())
+
+        // If they send STOP from an unlinked number, just acknowledge silently.
+        if (isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)) {
+          continue
+        }
+
+        // Always log inbound from unknown numbers (no user_id yet), for support/debugging.
+        // Idempotent on wa_message_id.
+        await admin.from("whatsapp_unlinked_inbound_messages").upsert({
+          phone_e164: fromE164,
+          wa_message_id: msg.wa_message_id,
+          wa_type: msg.type,
+          text_content: msg.text ?? "",
+          interactive_id: msg.interactive_id ?? null,
+          interactive_title: msg.interactive_title ?? null,
+          wa_profile_name: msg.profile_name ?? null,
+          raw: msg as any,
+        }, { onConflict: "wa_message_id", ignoreDuplicates: true })
+
+        const { data: linkReq, error: linkReqErr } = await admin
+          .from("whatsapp_link_requests")
+          .select("last_prompted_at, attempts, status, last_email_attempt, linked_user_id")
+          .eq("phone_e164", fromE164)
+          .maybeSingle()
+        if (linkReqErr) throw linkReqErr
+
+        // If we previously asked "are you sure?" and they confirm (or they keep sending emails),
+        // we stop here and route to support.
+        if (linkReq?.status === "confirm_email" && (isConfirm || Boolean(emailCandidate))) {
+          const lastEmail = emailCandidate ? normalizeEmail(emailCandidate) : (linkReq?.last_email_attempt ?? "")
+          const msgTxt =
+            "Merci 🙏\n" +
+            "Je ne retrouve pas ce compte et je préfère éviter qu'on tourne en rond ici.\n\n" +
+            `Écris à ${SUPPORT_EMAIL} avec:\n` +
+            `- ton numéro WhatsApp: ${fromE164}\n` +
+            `- l'email essayé: ${lastEmail || "—"}\n\n` +
+            "On te débloque rapidement."
+          const lastPromptTs = linkReq?.last_prompted_at ? new Date(linkReq.last_prompted_at).getTime() : 0
+          const canNotify = !lastPromptTs || (Date.now() - lastPromptTs) > LINK_BLOCK_NOTICE_COOLDOWN_MS
+          if (canNotify) await sendWhatsAppText(fromE164, msgTxt)
+          await admin.from("whatsapp_link_requests").upsert({
+            phone_e164: fromE164,
+            status: "support_required",
+            last_prompted_at: nowIso,
+            attempts: (linkReq?.attempts ?? 0) + 1,
+            last_email_attempt: lastEmail || (linkReq?.last_email_attempt ?? null),
+            updated_at: nowIso,
+          }, { onConflict: "phone_e164" })
+          continue
+        }
+
+        // Token-based linking (preferred): LINK:<token>
+        if (tokenCandidate) {
+          const { data: tok, error: tokErr } = await admin
+            .from("whatsapp_link_tokens")
+            .select("token,user_id,status,expires_at,consumed_at")
+            .eq("token", tokenCandidate)
+            .maybeSingle()
+          if (tokErr) throw tokErr
+
+          const expired = tok?.expires_at ? new Date(tok.expires_at).getTime() < Date.now() : true
+          const usable = tok && tok.status === "active" && !tok.consumed_at && !expired
+
+          if (!usable) {
+            const msgTxt =
+              "Oups — ce lien n'est plus valide.\n" +
+              "Renvoie-moi l'email de ton compte Sophia et je te renverrai un email de validation."
+            await sendWhatsAppText(fromE164, msgTxt)
+            continue
+          }
+
+          // Ensure phone isn't already linked to another user.
+          const { data: other, error: oErr } = await admin
+            .from("profiles")
+            .select("id")
+            .eq("phone_number", fromE164)
+            .maybeSingle()
+          if (oErr) throw oErr
+          if (other?.id) {
+            const msgTxt =
+              "Ce numéro WhatsApp est déjà relié à un compte.\n" +
+              "Si tu penses que c'est une erreur, réponds avec l'email de ton compte."
+            await sendWhatsAppText(fromE164, msgTxt)
+            continue
+          }
+
+          const { data: target, error: tErr } = await admin
+            .from("profiles")
+            .select("id, full_name, phone_number, phone_invalid")
+            .eq("id", tok.user_id)
+            .maybeSingle()
+          if (tErr) throw tErr
+          if (!target) {
+            await sendWhatsAppText(fromE164, "Je ne retrouve pas le compte associé à ce lien. Réessaie depuis le site, ou renvoie ton email ici.")
+            continue
+          }
+
+          // Link phone -> profile
+          const { error: updErr } = await admin
+            .from("profiles")
+            .update({
+              phone_number: fromE164,
+              phone_invalid: false,
+              whatsapp_opted_in: true,
+              whatsapp_opted_out_at: null,
+              whatsapp_optout_reason: null,
+              whatsapp_optout_confirmed_at: null,
+              whatsapp_last_inbound_at: nowIso,
+            })
+            .eq("id", target.id)
+          if (updErr) throw updErr
+
+          await admin.from("whatsapp_link_tokens").update({
+            status: "consumed",
+            consumed_at: nowIso,
+            consumed_phone_e164: fromE164,
+          }).eq("token", tokenCandidate)
+
+          await admin.from("whatsapp_link_requests").upsert({
+            phone_e164: fromE164,
+            status: "linked",
+            last_prompted_at: nowIso,
+            attempts: (linkReq?.attempts ?? 0) + 1,
+            linked_user_id: target.id,
+            last_email_attempt: null,
+            updated_at: nowIso,
+          }, { onConflict: "phone_e164" })
+
+          const ok =
+            `Parfait ${target.full_name || ""} — c'est bon, ton WhatsApp est relié à ton compte.\n\n` +
+            `Tu peux te désinscrire à tout moment en répondant STOP.\n\n` +
+            `Pour commencer simple: là tout de suite, c’est quoi le 1 truc que tu veux améliorer (même petit) ?`
+          await sendWhatsAppText(fromE164, ok)
+          continue
+        }
+
+        if (emailCandidate) {
+          const emailNorm = normalizeEmail(emailCandidate)
+          const { data: target, error: tErr } = await admin
+            .from("profiles")
+            .select("id, full_name, phone_number, phone_invalid, whatsapp_opted_out_at")
+            .ilike("email", emailNorm)
+            .maybeSingle()
+          if (tErr) throw tErr
+
+          if (!target) {
+            const prevAttempts = linkReq?.attempts ?? 0
+            const nextAttempts = prevAttempts + 1
+
+            // First failure: ask "are you sure?" (confirm step). Second: route to support.
+            const isSecond = nextAttempts >= LINK_MAX_ATTEMPTS
+            const msgTxt = isSecond
+              ? (
+                "Merci 🙏\n" +
+                "Je ne retrouve toujours pas de compte avec cet email.\n\n" +
+                `Écris à ${SUPPORT_EMAIL} avec:\n` +
+                `- ton numéro WhatsApp: ${fromE164}\n` +
+                `- l'email essayé: ${emailNorm}\n\n` +
+                "On te débloque rapidement."
+              )
+              : (
+                "Je ne retrouve pas de compte Sophia avec cet email.\n" +
+                "Tu es sûr que c'est le bon ?\n\n" +
+                "- Si oui, réponds: OUI\n" +
+                "- Sinon, renvoie-moi l'email exact"
+              )
+
+            const nextStatus = isSecond ? "support_required" : "confirm_email"
+            await sendWhatsAppText(fromE164, msgTxt)
+
+            await admin.from("whatsapp_link_requests").upsert({
+              phone_e164: fromE164,
+              status: nextStatus,
+              last_prompted_at: nowIso,
+              attempts: nextAttempts,
+              last_email_attempt: emailNorm,
+              updated_at: nowIso,
+            }, { onConflict: "phone_e164" })
+            continue
+          }
+
+          // SECURITY: do NOT link by email alone.
+          // Always send a validation email containing a LINK:<token> prefilled WhatsApp message.
+          const existingPhone = (target.phone_number ?? "").trim()
+          const mismatch = Boolean(existingPhone) && normalizeFrom(existingPhone) !== fromE164
+
+          const targetEmail = await getAccountEmailForProfile(admin, target.id)
+          if (!targetEmail) {
+            await sendWhatsAppText(
+              fromE164,
+              "Je retrouve ton compte, mais je n'arrive pas à t'envoyer l'email de validation.\n\n" +
+                `Écris à ${SUPPORT_EMAIL} avec ton numéro WhatsApp (${fromE164}) et on règle ça.`,
+            )
+            await admin.from("whatsapp_link_requests").upsert({
+              phone_e164: fromE164,
+              status: "support_required",
+              last_prompted_at: nowIso,
+              attempts: (linkReq?.attempts ?? 0) + 1,
+              linked_user_id: target.id,
+              last_email_attempt: emailNorm,
+              updated_at: nowIso,
+            }, { onConflict: "phone_e164" })
+            continue
+          }
+
+          const { token } = await createLinkToken(admin, target.id, 7)
+          const waNum = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? "").trim()
+          const waLink = waNum
+            ? `https://wa.me/${waNum}?text=${encodeURIComponent(`LINK:${token}`)}`
+            : "https://sophia-coach.ai"
+
+          const prenom = (target.full_name ?? "").split(" ")[0] || ""
+          const subject = mismatch
+            ? "Relier ton WhatsApp à Sophia (changement de numéro)"
+            : "Relier ton WhatsApp à Sophia (validation)"
+          const html = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color:#0f172a; line-height:1.7; max-width:640px; margin:0 auto;">
+              <p style="margin:0 0 14px;">Hello${prenom ? ` ${prenom}` : ""},</p>
+
+              <p style="margin:0 0 14px;">
+                ${mismatch
+                  ? "On a trouvé ton compte Sophia, mais il est actuellement associé à un autre numéro WhatsApp."
+                  : "On a trouvé ton compte Sophia. Pour le relier à WhatsApp, on doit vérifier que c'est bien toi."}
+              </p>
+
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin:16px 0;">
+                <p style="margin:0 0 8px;"><strong>✅ Étape importante</strong> : ouvre WhatsApp via le bouton ci-dessous et <strong>garde le message pré-rempli tel quel</strong>, puis envoie-le.</p>
+              </div>
+
+              <p style="margin: 18px 0;">
+                <a href="${waLink}" style="display:inline-block; background:#111827; color:#ffffff; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:700;">
+                  Ouvrir WhatsApp et valider
+                </a>
+              </p>
+
+              <p style="margin:0 0 14px; color:#475569; font-size:13px;">
+                Si le message pré-rempli est modifié ou supprimé, on ne pourra pas effectuer la modification automatiquement.
+              </p>
+
+              <p style="margin:18px 0 6px;">À tout de suite,</p>
+              <p style="margin:0;"><strong>Sophia Coach</strong> <span style="color:#64748b;">— Powered by IKIZEN</span></p>
+            </div>
+          `
+          const sendRes = await maybeSendEmail({ to: targetEmail, subject, html })
+          await admin.from("communication_logs").insert({
+            user_id: target.id,
+            channel: "email",
+            type: mismatch ? "whatsapp_link_change_number_email" : "whatsapp_link_validation_email",
+            status: sendRes.ok ? "sent" : "failed",
+            metadata: sendRes.ok ? { wa_link_token: token } : { error: sendRes.error, wa_link_token: token },
+          })
+
+          await admin.from("whatsapp_link_requests").upsert({
+            phone_e164: fromE164,
+            status: "pending",
+            last_prompted_at: nowIso,
+            attempts: (linkReq?.attempts ?? 0) + 1,
+            linked_user_id: target.id,
+            last_email_attempt: emailNorm,
+            updated_at: nowIso,
+          }, { onConflict: "phone_e164" })
+
+          await sendWhatsAppText(
+            fromE164,
+            mismatch
+              ? (
+                "Ok, je retrouve ton compte Sophia ✅\n" +
+                "Par contre, il est associé à un autre numéro WhatsApp.\n\n" +
+                "Je t'envoie un email avec un lien qui ouvre WhatsApp avec un message pré-rempli.\n" +
+                "Important: garde le texte pré-rempli tel quel et envoie-le (sinon je ne pourrai pas faire la modification)."
+              )
+              : (
+                "Ok, je retrouve ton compte Sophia ✅\n\n" +
+                "Je t'envoie un email avec un lien qui ouvre WhatsApp avec un message pré-rempli.\n" +
+                "Important: garde le texte pré-rempli tel quel et envoie-le pour valider."
+              ),
+          )
+          continue
+        }
+
+        // Anti-spam: don't prompt more than once every 10 minutes per number.
+        const last = linkReq?.last_prompted_at ? new Date(linkReq.last_prompted_at).getTime() : 0
+        const shouldPrompt = !last || (Date.now() - last) > LINK_PROMPT_COOLDOWN_MS
+        const isTerminal = linkReq?.status === "blocked" || linkReq?.status === "support_required"
+        if (shouldPrompt && !isTerminal) {
+          const prompt =
+            "Bonjour ! Je suis Sophia, enchantée.\n" +
+            "Je ne retrouve pas ton numéro dans mon système.\n\n" +
+            "Peux-tu m'envoyer l'email de ton compte Sophia ?\n" +
+            `(Si tu n'as pas encore de compte: ${SITE_URL})`
+          await sendWhatsAppText(fromE164, prompt)
+          await admin.from("whatsapp_link_requests").upsert({
+            phone_e164: fromE164,
+            status: linkReq?.status ?? "pending",
+            last_prompted_at: nowIso,
+            attempts: (linkReq?.attempts ?? 0) + 1,
+            updated_at: nowIso,
+          }, { onConflict: "phone_e164" })
+        }
+        continue
+      }
+
+      if (profile.phone_invalid) continue
 
       // Idempotency: skip if already logged this wa_message_id
       const { count: already } = await admin
@@ -242,7 +684,7 @@ Deno.serve(async (req) => {
       const isOptInYes =
         actionId === "OPTIN_YES" ||
         /\b(oui|yes|absolument)\b/i.test(textLower)
-      const isStop = actionId === "STOP" || /^stop\b|^unsubscribe\b/.test(textLower)
+    const isStop = isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)
       // Daily bilan template buttons (UI doesn't expose stable ids; match by title)
       const isBilanYes = /carr[ée]ment/i.test(textLower) || /\bok\b|\bgo\b|\boui\b/.test(textLower)
       const isBilanLater =
@@ -259,21 +701,105 @@ Deno.serve(async (req) => {
       const isEchoLater = /plus\s*tard/i.test(textLower)
 
       if (isWrongNumber) {
-        await admin.from("profiles").update({ phone_invalid: true }).eq("id", profile.id)
+        const nowIso = new Date().toISOString()
+        const emailNorm = (profile.email ?? "").trim()
+
+        // Remove the phone number from the profile so the user can relink from the correct phone.
+        await admin.from("profiles").update({
+          phone_number: null,
+          phone_invalid: false,
+          whatsapp_opted_in: false,
+          whatsapp_bilan_opted_in: false,
+          whatsapp_opted_out_at: nowIso,
+          whatsapp_optout_reason: "wrong_number",
+          whatsapp_optout_confirmed_at: null,
+        }).eq("id", profile.id)
+
+        // Send an email to the account owner with the WhatsApp link and instructions.
+        // This helps recover when the user entered the wrong number.
+        const targetEmail = await getAccountEmailForProfile(admin, profile.id, emailNorm)
+
+        if (targetEmail) {
+          // Prefer token-based relinking via wa.me prefilled message.
+          const { token } = await createLinkToken(admin, profile.id, 30)
+          const waNum = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? "").trim()
+          const waLink = waNum
+            ? `https://wa.me/${waNum}?text=${encodeURIComponent(`LINK:${token}`)}`
+            : "https://sophia-coach.ai"
+
+          const prenom = (profile.full_name ?? "").split(" ")[0] || ""
+          const subject = "On relie ton WhatsApp à Sophia (1 clic)"
+          const html = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color:#0f172a; line-height:1.7; max-width:640px; margin:0 auto;">
+              <p style="margin:0 0 14px;">Hello${prenom ? ` ${prenom}` : ""},</p>
+
+              <p style="margin:0 0 14px;">
+                Petite vérification : sur WhatsApp, quelqu’un a indiqué <strong>“Mauvais numéro”</strong> pour ton compte Sophia.
+              </p>
+
+              <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin:16px 0;">
+                <p style="margin:0 0 8px;"><strong>✅ Pas de stress.</strong> On relie le bon numéro en 10 secondes :</p>
+                <ol style="margin:0; padding-left:18px;">
+                  <li>Ouvre WhatsApp via le bouton ci-dessous</li>
+                  <li>Envoie le message <strong>pré-rempli</strong></li>
+                </ol>
+              </div>
+
+              <p style="margin: 18px 0;">
+                <a href="${waLink}" style="display:inline-block; background:#111827; color:#ffffff; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:700;">
+                  Ouvrir WhatsApp et relier mon compte
+                </a>
+              </p>
+
+              <p style="margin:0 0 14px; color:#475569; font-size:13px;">
+                Si le message pré-rempli disparaît, réponds simplement sur WhatsApp avec l’email de ton compte Sophia — je relierai ton numéro automatiquement.
+              </p>
+
+              <p style="margin:18px 0 6px;">À tout de suite,</p>
+              <p style="margin:0;"><strong>Sophia Coach</strong> <span style="color:#64748b;">— Powered by IKIZEN</span></p>
+            </div>
+          `
+          const sendRes = await maybeSendEmail({ to: targetEmail, subject, html })
+          await admin.from("communication_logs").insert({
+            user_id: profile.id,
+            channel: "email",
+            type: "whatsapp_wrong_number_email",
+            status: sendRes.ok ? "sent" : "failed",
+            metadata: sendRes.ok
+              ? { resend_id: (sendRes.data as any)?.id ?? null, wa_link_token: token }
+              : { error: sendRes.error, wa_link_token: token },
+          })
+        }
         continue
       }
 
-      // Update inbound timestamps + opt-in flags.
-      // We consider any inbound message as “conversation started” (opt-in),
-      // except explicit STOP.
-      const optedIn = isStop ? false : true
-      await admin
-        .from("profiles")
-        .update({
-          whatsapp_last_inbound_at: new Date().toISOString(),
-          whatsapp_opted_in: isStop ? false : optedIn,
-        })
-        .eq("id", profile.id)
+    const nowIso = new Date().toISOString()
+
+    // Update inbound timestamps + opt-in/opt-out flags.
+    // Important: do NOT auto-re-opt-in after a STOP unless the user explicitly opts in again (OPTIN_YES).
+    // We still always record the inbound timestamp.
+    const nextOptedIn = isStop ? false : (isOptInYes ? true : Boolean(profile.whatsapp_opted_in))
+    const optOutUpdates = isStop
+      ? {
+        whatsapp_opted_out_at: nowIso,
+        whatsapp_optout_reason: "stop_inbound",
+      }
+      : (isOptInYes
+        ? {
+          whatsapp_opted_out_at: null,
+          whatsapp_optout_reason: null,
+          whatsapp_optout_confirmed_at: null,
+        }
+        : {})
+
+    await admin
+      .from("profiles")
+      .update({
+        whatsapp_last_inbound_at: nowIso,
+        whatsapp_opted_in: nextOptedIn,
+        ...(optOutUpdates as any),
+      })
+      .eq("id", profile.id)
 
       // Log inbound
       const { error: inErr } = await admin.from("chat_messages").insert({
@@ -292,8 +818,27 @@ Deno.serve(async (req) => {
       })
       if (inErr) throw inErr
 
-      // If user just opted out, don't reply.
-      if (isStop) continue
+    // If user just opted out, send a single confirmation message (once), then stop.
+    if (isStop) {
+      const enabled = (Deno.env.get("WHATSAPP_STOP_CONFIRMATION_ENABLED") ?? "true").trim().toLowerCase() !== "false"
+      const alreadyConfirmed = Boolean(profile.whatsapp_optout_confirmed_at)
+      if (enabled && !alreadyConfirmed) {
+        const confirmation =
+          "C'est noté. Sophia ne te contactera plus sur WhatsApp.\n" +
+          "Tu peux reprendre quand tu veux depuis le site."
+        const sendResp = await sendWhatsAppText(fromE164, confirmation)
+        const outId = sendResp?.messages?.[0]?.id ?? null
+        await admin.from("chat_messages").insert({
+          user_id: profile.id,
+          role: "assistant",
+          content: confirmation,
+          agent_used: "companion",
+          metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "optout_confirmation" },
+        })
+        await admin.from("profiles").update({ whatsapp_optout_confirmed_at: nowIso }).eq("id", profile.id)
+      }
+      continue
+    }
 
       // If user accepts the daily bilan prompt, enable and kick off the bilan conversation.
       if (isBilanYes && !isOptInYes) {
@@ -436,15 +981,204 @@ Deno.serve(async (req) => {
         continue
       }
 
+      // Mini state-machine for a lively first WhatsApp onboarding (post opt-in).
+      // We intercept these states BEFORE calling the AI brain.
+      if (profile.whatsapp_state) {
+        const st = String(profile.whatsapp_state || "").trim()
+
+        if (st === "awaiting_plan_finalization") {
+          if (!isDonePhrase(msg.text ?? "")) {
+            const nudge =
+              "Je te laisse finaliser ton plan sur le site, et tu reviens ici quand c'est prêt 🙂\n" +
+              `Quand c'est bon, réponds juste: “C'est bon”.\n` +
+              `(Lien: ${SITE_URL})`
+            const sendResp = await sendWhatsAppText(fromE164, nudge)
+            const outId = sendResp?.messages?.[0]?.id ?? null
+            await admin.from("chat_messages").insert({
+              user_id: profile.id,
+              role: "assistant",
+              content: nudge,
+              agent_used: "companion",
+              metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_finalization_nudge" },
+            })
+            continue
+          }
+
+          // They say "done": re-check if an active plan exists now.
+          const { data: activePlan, error: planErr } = await admin
+            .from("user_plans")
+            .select("title, updated_at")
+            .eq("user_id", profile.id)
+            .eq("status", "active")
+            .order("updated_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          if (planErr) throw planErr
+
+          const planTitle = (activePlan?.title ?? "").trim()
+          if (!planTitle) {
+            const msgTxt =
+              "J'ai bien noté ✅\n" +
+              "Je ne vois toujours pas de plan “actif” de mon côté.\n" +
+              `Tu peux vérifier sur ${SITE_URL}, et quand c'est bon tu me renvoies “C'est bon”.`
+            const sendResp = await sendWhatsAppText(fromE164, msgTxt)
+            const outId = sendResp?.messages?.[0]?.id ?? null
+            await admin.from("chat_messages").insert({
+              user_id: profile.id,
+              role: "assistant",
+              content: msgTxt,
+              agent_used: "companion",
+              metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_finalization_still_missing" },
+            })
+            continue
+          }
+
+          const prompt =
+            `Top ✅ J’ai retrouvé ton plan: “${planTitle}”.\n\n` +
+            "Sur 10, tu te sens à combien motivé(e) là tout de suite ?"
+          const sendResp = await sendWhatsAppText(fromE164, prompt)
+          const outId = sendResp?.messages?.[0]?.id ?? null
+          await admin.from("chat_messages").insert({
+            user_id: profile.id,
+            role: "assistant",
+            content: prompt,
+            agent_used: "companion",
+            metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_motivation_prompt" },
+          })
+          await admin.from("profiles").update({
+            whatsapp_state: "awaiting_plan_motivation",
+            whatsapp_state_updated_at: new Date().toISOString(),
+          }).eq("id", profile.id)
+          continue
+        }
+
+        if (st === "awaiting_plan_motivation") {
+          const score = parseMotivationScore(msg.text ?? "")
+          if (score == null) {
+            const ask = "Juste un chiffre de 0 à 10 🙂 (0 = pas du tout, 10 = à fond)."
+            const sendResp = await sendWhatsAppText(fromE164, ask)
+            const outId = sendResp?.messages?.[0]?.id ?? null
+            await admin.from("chat_messages").insert({
+              user_id: profile.id,
+              role: "assistant",
+              content: ask,
+              agent_used: "companion",
+              metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_motivation_retry" },
+            })
+            continue
+          }
+
+          const follow = score <= 3
+            ? (
+              `Merci 🙏 ${score}/10, c'est honnête.\n` +
+              "C’est quoi le principal truc qui te freine là, tout de suite ? (temps / énergie / peur / autre)"
+            )
+            : (score <= 7
+              ? (
+                `Nice, ${score}/10 ✅\n` +
+                "Qu’est-ce qui ferait passer ça à +1 (juste un cran) ?"
+              )
+              : (
+                `Yes 🔥 ${score}/10.\n` +
+                "On capitalise: c’est quoi la toute première micro-étape que tu peux faire aujourd’hui ?"
+              ))
+
+          const sendResp = await sendWhatsAppText(fromE164, follow)
+          const outId = sendResp?.messages?.[0]?.id ?? null
+          await admin.from("chat_messages").insert({
+            user_id: profile.id,
+            role: "assistant",
+            content: follow,
+            agent_used: "companion",
+            metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_motivation_followup", score },
+          })
+
+          // Next: ask the personal fact question.
+          const personal =
+            "D'ailleurs, si il y a une chose que tu aimerais que je sache sur toi, ce serait quoi ?\n" +
+            "(même si tu me l'as déjà dit sur le site)"
+          const send2 = await sendWhatsAppText(fromE164, personal)
+          const out2 = send2?.messages?.[0]?.id ?? null
+          await admin.from("chat_messages").insert({
+            user_id: profile.id,
+            role: "assistant",
+            content: personal,
+            agent_used: "companion",
+            metadata: { channel: "whatsapp", wa_outbound_message_id: out2, is_proactive: false, purpose: "awaiting_personal_fact_prompt" },
+          })
+
+          await admin.from("profiles").update({
+            whatsapp_state: "awaiting_personal_fact",
+            whatsapp_state_updated_at: new Date().toISOString(),
+          }).eq("id", profile.id)
+          continue
+        }
+
+        if (st === "awaiting_personal_fact") {
+          const fact = (msg.text ?? "").trim()
+          if (fact.length > 0) {
+            await admin.from("memories").insert({
+              user_id: profile.id,
+              content: `Sur WhatsApp, l'utilisateur partage: ${fact}`,
+              type: "whatsapp_personal_fact",
+              metadata: { channel: "whatsapp", wa_from: fromE164, wa_message_id: msg.wa_message_id },
+              source_type: "whatsapp",
+            } as any)
+          }
+
+          const ack =
+            "Merci, je note ❤️\n" +
+            "Maintenant, dis-moi: là tout de suite, tu veux que je t’aide sur quoi ?"
+          const sendResp = await sendWhatsAppText(fromE164, ack)
+          const outId = sendResp?.messages?.[0]?.id ?? null
+          await admin.from("chat_messages").insert({
+            user_id: profile.id,
+            role: "assistant",
+            content: ack,
+            agent_used: "companion",
+            metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "personal_fact_ack" },
+          })
+
+          await admin.from("profiles").update({
+            whatsapp_state: null,
+            whatsapp_state_updated_at: new Date().toISOString(),
+          }).eq("id", profile.id)
+          continue
+        }
+      }
+
       // If this is the opt-in “Oui”, answer with a welcome message (fast path)
       if (isOptInYes) {
         // User explicitly accepted the opt-in template: enable daily bilan reminders too.
         await admin.from("profiles").update({ whatsapp_bilan_opted_in: true }).eq("id", profile.id)
 
-        const welcome =
-          `Trop bien ${profile.full_name || ""}.\n` +
-          `Je suis là avec toi, au quotidien.\n\n` +
-          `Pour commencer simple: là tout de suite, c’est quoi le 1 truc que tu veux améliorer (même petit) ?`
+        const prenom = (profile.full_name ?? "").trim().split(" ")[0] || ""
+
+        const { data: activePlan, error: planErr } = await admin
+          .from("user_plans")
+          .select("title, updated_at")
+          .eq("user_id", profile.id)
+          .eq("status", "active")
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (planErr) throw planErr
+
+        const planTitle = (activePlan?.title ?? "").trim()
+        const welcome = planTitle
+          ? (
+            `Trop bien${prenom ? ` ${prenom}` : ""} ✅\n` +
+            `J’ai retrouvé ton plan: “${planTitle}”.\n\n` +
+            `On le lance doucement ? Sur 10, tu te sens à combien motivé(e) là tout de suite ?`
+          )
+          : (
+            `Trop bien${prenom ? ` ${prenom}` : ""} ✅\n` +
+            `Je suis contente de te retrouver ici.\n\n` +
+            `Petit détail: je ne vois pas encore de plan “actif” sur ton compte.\n` +
+            `Va le finaliser sur ${SITE_URL} (2 minutes), puis reviens ici et réponds:\n` +
+            `1) “C’est bon”\n` +
+            `2) Et d’ailleurs: s’il y a 1 chose que tu aimerais que je sache sur toi, ce serait quoi ?`
+          )
         const sendResp = await sendWhatsAppText(fromE164, welcome)
         const outId = sendResp?.messages?.[0]?.id ?? null
         await admin.from("chat_messages").insert({
@@ -454,6 +1188,11 @@ Deno.serve(async (req) => {
           agent_used: "companion",
           metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false },
         })
+
+        await admin.from("profiles").update({
+          whatsapp_state: planTitle ? "awaiting_plan_motivation" : "awaiting_plan_finalization",
+          whatsapp_state_updated_at: new Date().toISOString(),
+        }).eq("id", profile.id)
         continue
       }
 

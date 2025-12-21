@@ -169,6 +169,13 @@ export default function AdminEvals() {
               <BarChart3 className="w-4 h-4" />
               Usage & Costs
             </a>
+            <a
+              href="/admin/production-log"
+              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-neutral-400 hover:text-white transition-colors"
+            >
+              <Activity className="w-4 h-4" />
+              Production log
+            </a>
           <div className="flex items-center gap-3 text-xs text-neutral-500">
             <span>Runs: {runs.length}</span>
             <span>Pending Suggestions: {pendingSuggestions.length}</span>
