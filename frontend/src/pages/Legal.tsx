@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { ArrowLeft, Shield, FileText, Lock, Scale, Mail, Eye } from 'lucide-react';
+import { ArrowLeft, Shield, FileText, Lock, Scale, Mail, Eye, Briefcase } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
 
 const Legal = () => {
@@ -45,6 +45,9 @@ const Legal = () => {
         
         {/* Navigation Rapide */}
         <div className="flex flex-wrap gap-4 justify-center mb-12">
+          <a href="#mentions-legales" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-slate-900 hover:border-slate-400 transition-all">
+            <Briefcase className="w-4 h-4" /> Mentions Légales
+          </a>
           <a href="#cgu" className="flex items-center gap-2 px-4 py-2 bg-white rounded-full shadow-sm border border-slate-200 text-sm font-bold text-slate-700 hover:text-indigo-600 hover:border-indigo-200 transition-all">
             <FileText className="w-4 h-4" /> CGU
           </a>
@@ -58,6 +61,46 @@ const Legal = () => {
 
         <div className="grid gap-12">
           
+          {/* Mentions Légales (Nouveau) */}
+          <section id="mentions-legales" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
+            <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
+              <div className="p-3 bg-slate-100 rounded-2xl text-slate-600">
+                <Briefcase className="w-8 h-8" />
+              </div>
+              <div>
+                <h2 className="text-2xl font-bold text-slate-900">Mentions Légales</h2>
+                <p className="text-slate-500 text-sm">Informations légales obligatoires</p>
+              </div>
+            </div>
+            
+            <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900">
+              <h3>1. Éditeur du site</h3>
+              <p>
+                Le site <strong>sophia-coach.ai</strong> est édité par la société <strong>IKIZEN</strong>.
+              </p>
+
+              <h3>2. Contact</h3>
+              <p>
+                Pour toute question ou demande, vous pouvez nous contacter à l'adresse suivante :<br/>
+                <a href="mailto:hello@sophia-coach.ai" className="text-violet-600 hover:underline">hello@sophia-coach.ai</a>
+              </p>
+
+              <h3>3. Hébergement</h3>
+              <p>
+                Le site est hébergé par :<br/>
+                <strong>Vercel Inc.</strong><br/>
+                440 N Barranca Ave #4133<br/>
+                Covina, CA 91723<br/>
+                États-Unis
+              </p>
+
+              <h3>4. Propriété intellectuelle</h3>
+              <p>
+                L'ensemble de ce site relève de la législation française et internationale sur le droit d'auteur et la propriété intellectuelle. Tous les droits de reproduction sont réservés, y compris pour les documents téléchargeables et les représentations iconographiques et photographiques.
+              </p>
+            </div>
+          </section>
+
           {/* CGU */}
           <section id="cgu" className="bg-white p-8 md:p-12 rounded-3xl shadow-sm border border-slate-200 scroll-mt-24">
             <div className="flex items-center gap-4 mb-8 pb-8 border-b border-slate-100">
@@ -75,7 +118,7 @@ const Legal = () => {
               
               <h3>1. Objet et Acceptation</h3>
               <p>
-                Les présentes Conditions Générales d'Utilisation (les "CGU") régissent l'accès et l'utilisation de la plateforme SaaS "Sophia" (ci-après le "Service"), éditée par la société <strong>sophia-coach.ai</strong> (ci-après "l'Éditeur").
+                Les présentes Conditions Générales d'Utilisation (les "CGU") régissent l'accès et l'utilisation de la plateforme SaaS "Sophia" (ci-après le "Service"), éditée par la société <strong>IKIZEN</strong> (ci-après "l'Éditeur").
               </p>
               <p>
                 L'utilisation du Service implique l'acceptation sans réserve des présentes CGU. L'utilisateur reconnaît avoir pris connaissance de l'ensemble des conditions avant de cocher la case "J'accepte" lors de son inscription.
@@ -106,7 +149,7 @@ const Legal = () => {
 
               <h3>5. Propriété Intellectuelle</h3>
               <p>
-                <strong>Contenu du Service :</strong> L'ensemble des éléments du Service (structure, design, codes, algorithmes, marques "Sophia") est la propriété exclusive de sophia-coach.ai. Toute reproduction est interdite sans autorisation.
+                <strong>Contenu du Service :</strong> L'ensemble des éléments du Service (structure, design, codes, algorithmes, marques "Sophia") est la propriété exclusive de IKIZEN. Toute reproduction est interdite sans autorisation.
               </p>
               <p>
                 <strong>Contenu Utilisateur :</strong> Les données, textes et informations fournis par l'Utilisateur restent sa propriété. L'Utilisateur concède à l'Éditeur un droit d'utilisation de ces contenus pour les seuls besoins de fonctionnement et d'amélioration du Service (notamment l'entraînement des modèles IA, sous forme anonymisée).
@@ -201,7 +244,7 @@ const Legal = () => {
             <div className="prose prose-slate max-w-none text-slate-600 prose-headings:font-bold prose-headings:text-slate-900">
               <h3>1. Offres et Prix</h3>
               <p>
-                Les services sont proposés sous forme d'abonnements (mensuels ou annuels) ou d'achats uniques. Les tarifs sont indiqués en Euros (€) toutes taxes comprises (TTC) sur la page "Tarifs". sophia-coach.ai se réserve le droit de modifier ses prix à tout moment, mais le Service sera facturé sur la base des tarifs en vigueur au moment de la validation de la commande.
+                Les services sont proposés sous forme d'abonnements (mensuels ou annuels) ou d'achats uniques. Les tarifs sont indiqués en Euros (€) toutes taxes comprises (TTC) sur la page "Tarifs". IKIZEN se réserve le droit de modifier ses prix à tout moment, mais le Service sera facturé sur la base des tarifs en vigueur au moment de la validation de la commande.
               </p>
 
               <h3>2. Paiement</h3>
@@ -227,7 +270,7 @@ const Legal = () => {
               
               <h3>5. Loi Applicable</h3>
               <p>
-                Les présentes CGV sont soumises à la loi française. En cas de litige, compétence est attribuée aux tribunaux compétents du ressort du siège social de sophia-coach.ai, nonobstant pluralité de défendeurs ou appel en garantie.
+                Les présentes CGV sont soumises à la loi française. En cas de litige, compétence est attribuée aux tribunaux compétents du ressort du siège social de IKIZEN, nonobstant pluralité de défendeurs ou appel en garantie.
               </p>
             </div>
           </section>
@@ -236,7 +279,7 @@ const Legal = () => {
         
         <div className="mt-16 pt-8 border-t border-slate-200 text-center">
           <p className="text-slate-400 text-sm font-medium">
-            © {new Date().getFullYear()} sophia-coach.ai • Fait avec <span className="text-rose-400">♥</span> et Intelligence Artificielle.
+            © {new Date().getFullYear()} IKIZEN • Fait avec <span className="text-rose-400">♥</span> et Intelligence Artificielle.
           </p>
         </div>
       </div>

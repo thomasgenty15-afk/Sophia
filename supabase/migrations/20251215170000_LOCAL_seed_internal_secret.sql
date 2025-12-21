@@ -24,7 +24,6 @@ begin
     -- => 1st arg = secret VALUE, 2nd arg = secret NAME
     -- Local placeholder only. The *real* value should be synced after reset:
     --   ./scripts/local_sync_internal_secret.sh
-    --   (or ./scripts/local_reset.sh which includes the sync)
     perform vault.create_secret('__LOCAL_PLACEHOLDER__', 'INTERNAL_FUNCTION_SECRET');
     raise notice 'Created vault secret INTERNAL_FUNCTION_SECRET';
   else

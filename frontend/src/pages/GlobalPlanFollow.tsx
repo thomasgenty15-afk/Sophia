@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
-import { ChevronDown, Check, ArrowRight } from 'lucide-react';
+import { ChevronDown, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { SophiaAssistantModal } from '../components/SophiaAssistantModal';
 
 import type { Theme } from '../data/onboarding/types';
 import { THEME_SLEEP } from '../data/onboarding/theme_sleep';
@@ -494,8 +495,82 @@ const GlobalPlanFollow = () => {
 
   const displayedThemes = DATA;
 
+  // --- SOPHIA ASSISTANT LOGIC ---
+  const [showAssistant, setShowAssistant] = useState(false);
+
+  const handleAssistantAnalysis = async ({ answers, setStep, setRecommendationResult }: any) => {
+    setStep('loading');
+    
+    try {
+        // 1. Préparer le catalogue simplifié
+        const catalog = DATA.map(theme => ({
+            id: theme.id,
+            title: theme.title,
+            axes: theme.axes?.map(axis => ({
+                id: axis.id,
+                title: axis.title,
+                description: axis.description,
+                problems: axis.problems.map(p => ({ id: p.id, label: p.label }))
+            }))
+        }));
+
+        // 2. Appel Edge Function
+        const { data, error } = await supabase.functions.invoke('recommend-transformations', {
+            body: { 
+                userAnswers: answers,
+                availableTransformations: catalog
+            }
+        });
+
+        if (error) throw error;
+        if (!data || !data.recommendations) throw new Error("Format de réponse invalide");
+
+        // 3. Appliquer les changements (Magie)
+        const newAxisSelection = { ...selectedAxisByTheme };
+        let newProblemsIds = [...responses.selectedProblemsIds];
+        
+        data.recommendations.forEach((rec: any) => {
+            // A. Sélectionner l'axe
+            if (rec.themeId && rec.axisId) {
+                newAxisSelection[rec.themeId] = rec.axisId;
+            }
+
+            // B. Sélectionner les problèmes
+            if (rec.problemIds && Array.isArray(rec.problemIds)) {
+                rec.problemIds.forEach((pid: string) => {
+                    if (!newProblemsIds.includes(pid)) {
+                        newProblemsIds.push(pid);
+                    }
+                });
+            }
+        });
+
+        setSelectedAxisByTheme(newAxisSelection);
+        setResponses(prev => ({
+            ...prev,
+            selectedProblemsIds: newProblemsIds
+        }));
+
+        // 4. Afficher le résultat
+        setRecommendationResult(data);
+        setStep('result');
+
+    } catch (err) {
+        console.error("Erreur Sophia Assistant:", err);
+        alert("Désolé, je n'ai pas réussi à analyser tes réponses. Tu peux essayer de nouveau ou sélectionner manuellement.");
+        setStep('questions'); // Retour
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col md:flex-row text-gray-900 pb-24"> {/* pb-24 pour la barre fixe */}
+      {showAssistant && (
+        <SophiaAssistantModal 
+            onClose={() => setShowAssistant(false)} 
+            onApply={handleAssistantAnalysis}
+        />
+      )}
+
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-4 md:p-6 sticky top-0 h-auto md:h-screen z-40 flex flex-col gap-3 md:gap-0">
         <h2 className="text-lg md:text-xl font-bold mb-0 md:mb-6">Thèmes</h2>
@@ -540,6 +615,29 @@ const GlobalPlanFollow = () => {
                    Pour être efficace, ne te disperse pas. Choisis <strong>3 transformations prioritaires</strong> au total (maximum 1 par thème) pour ce nouveau cycle.
               </p>
             </div>
+          </div>
+
+          {/* BOUTON ASSISTANT SOPHIA */}
+          <div className="mb-8">
+            <button 
+                onClick={() => setShowAssistant(true)}
+                className="w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white p-1 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
+            >
+                <div className="bg-slate-900 rounded-xl p-4 flex items-center justify-between border border-slate-700 group-hover:bg-slate-800 transition-colors">
+                    <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-white shadow-inner">
+                            <Sparkles className="w-6 h-6 animate-pulse" />
+                        </div>
+                        <div className="text-left">
+                            <h3 className="font-bold text-lg text-white">Besoin d'aide pour choisir ?</h3>
+                            <p className="text-slate-400 text-sm">Laisse Sophia analyser tes besoins et te proposer un plan sur-mesure.</p>
+                        </div>
+                    </div>
+                    <div className="bg-slate-800 p-2 rounded-full text-violet-400 group-hover:bg-slate-700 group-hover:text-white transition-all">
+                            <ArrowRight className="w-5 h-5" />
+                    </div>
+                </div>
+            </button>
           </div>
 
           <div className="flex items-center gap-3 mb-2">

@@ -20,19 +20,22 @@ interface UserProfileProps {
   isOpen: boolean;
   onClose: () => void;
   mode: 'action' | 'architecte';
+  initialTab?: TabType;
 }
 
 type TabType = 'general' | 'subscription' | 'settings';
 
-const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
-  const { user, signOut } = useAuth();
+const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initialTab }) => {
+  const { user, signOut, subscription, trialEnd } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<TabType>('general');
+  const [activeTab, setActiveTab] = useState<TabType>(initialTab ?? 'general');
   const [profile, setProfile] = useState<{ full_name: string | null } | null>(null);
+  const [billingLoading, setBillingLoading] = useState<boolean>(false);
+  const [billingError, setBillingError] = useState<string | null>(null);
 
   useEffect(() => {
     if (user) {
-      // Fetch profile data
+      // Fetch profile data (only name needed here, trialEnd is in context)
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
@@ -47,6 +50,11 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
       fetchProfile();
     }
   }, [user]);
+
+  useEffect(() => {
+    if (!isOpen) return;
+    setActiveTab(initialTab ?? "general");
+  }, [isOpen, initialTab]);
 
   if (!isOpen) return null;
 
@@ -67,6 +75,45 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
     .toUpperCase();
 
   const isArchitect = mode === 'architecte';
+
+  const priceIdToPlanLabel = (priceId: string | null | undefined): string | null => {
+    if (!priceId) return null;
+    const v = priceId.toLowerCase();
+    const tier = v.includes("system") ? "Le Système" : v.includes("alliance") ? "L’Alliance" : v.includes("architecte") ? "L’Architecte" : null;
+    const interval = v.includes("year") || v.includes("annual") ? "Annuel" : v.includes("month") ? "Mensuel" : null;
+    if (tier && interval) return `${tier} · ${interval}`;
+    if (tier) return tier;
+    return null;
+  };
+
+  const now = Date.now();
+  const trialActive = trialEnd ? new Date(trialEnd).getTime() > now : false;
+  const subActive =
+    subscription?.status === 'active' &&
+    Boolean(subscription?.current_period_end) &&
+    new Date(subscription!.current_period_end!).getTime() > now;
+
+  const softLocked = !trialActive && !subActive;
+
+  const trialDaysLeft = trialEnd
+    ? Math.max(0, Math.ceil((new Date(trialEnd).getTime() - now) / (1000 * 60 * 60 * 24)))
+    : null;
+
+  const openPortal = async () => {
+    setBillingError(null);
+    setBillingLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('stripe-create-portal-session', { body: {} });
+      if (error) throw error;
+      const url = (data as any)?.url as string | undefined;
+      if (!url) throw new Error("Portal URL manquante");
+      window.location.href = url;
+    } catch (err: any) {
+      setBillingError(err?.message ?? "Erreur portail");
+    } finally {
+      setBillingLoading(false);
+    }
+  };
 
   // Styles dynamiques selon le mode
   const styles = {
@@ -180,7 +227,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
             {/* --- TAB: SUBSCRIPTION --- */}
             {activeTab === 'subscription' && (
               <div className="animate-fade-in">
-                <h3 className={styles.sectionTitle}>Abonnement Actif</h3>
+                <h3 className={styles.sectionTitle}>Plan & Accès</h3>
                 
                 <div className={`relative overflow-hidden rounded-2xl p-6 border ${
                   isArchitect ? "bg-gradient-to-br from-emerald-900 to-emerald-950 border-emerald-700" : "bg-gradient-to-br from-slate-900 to-slate-800 border-slate-700 text-white"
@@ -189,18 +236,38 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
                     <div className="flex justify-between items-start mb-4">
                       <div>
                         <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 backdrop-blur-md border border-white/20 text-white">
-                          Premium
+                          {subActive ? "Actif" : trialActive ? "Essai" : "Lecture seule"}
                         </span>
-                        <h2 className="text-2xl font-serif font-bold mt-2 text-white">Sophia Architecte</h2>
+                        <h2 className="text-2xl font-serif font-bold mt-2 text-white">Sophia Pro</h2>
                       </div>
                       <Zap className="w-8 h-8 text-amber-400" />
                     </div>
-                    <p className="text-sm text-slate-300 mb-6">Accès illimité à la Forge, au Grimoire et aux Plans d'Action.</p>
+                    {subActive && (
+                      <div className="text-xs text-slate-300 mb-2">
+                        {priceIdToPlanLabel(subscription?.stripe_price_id) ?? "Plan actif"}
+                      </div>
+                    )}
+
+                    {subActive ? (
+                      <p className="text-sm text-slate-300 mb-6">
+                        Ton abonnement est actif{subscription?.cancel_at_period_end ? " (résiliation en fin de période)." : "."}
+                      </p>
+                    ) : trialActive ? (
+                      <p className="text-sm text-slate-300 mb-6">
+                        Essai gratuit en cours{trialDaysLeft !== null ? ` · ${trialDaysLeft}j restants` : ""}.
+                      </p>
+                    ) : (
+                      <p className="text-sm text-slate-300 mb-6">
+                        Ton essai est terminé. L’app est en lecture seule tant que tu n’es pas abonné.
+                      </p>
+                    )}
                     
-                    <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
-                      <CreditCard className="w-3 h-3" />
-                      •••• 4242
-                    </div>
+                    {subscription?.current_period_end && (
+                      <div className="flex items-center gap-2 text-xs font-mono text-slate-400">
+                        <CreditCard className="w-3 h-3" />
+                        Renouvelle jusqu’au {new Date(subscription.current_period_end).toLocaleDateString("fr-FR")}
+                      </div>
+                    )}
                   </div>
                   
                   {/* Background Decor */}
@@ -208,13 +275,69 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode }) => {
                 </div>
 
                 <div className="mt-6 flex flex-col gap-3">
-                  <button className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
-                    isArchitect 
-                      ? "bg-emerald-800 hover:bg-emerald-700 text-emerald-100" 
-                      : "bg-slate-100 hover:bg-slate-200 text-slate-700"
-                  }`}>
-                    Gérer la facturation
-                  </button>
+                  {billingError && (
+                    <div className={`text-xs rounded-lg p-3 border ${
+                      isArchitect ? "border-red-900/50 text-red-300 bg-red-950/30" : "border-red-100 text-red-600 bg-red-50"
+                    }`}>
+                      {billingError}
+                    </div>
+                  )}
+
+                  {subActive ? (
+                    <div className="space-y-3">
+                      <button
+                        onClick={openPortal}
+                        disabled={billingLoading}
+                        className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                          isArchitect
+                            ? "bg-emerald-800 hover:bg-emerald-700 text-emerald-100 disabled:opacity-60"
+                            : "bg-slate-100 hover:bg-slate-200 text-slate-700 disabled:opacity-60"
+                        }`}
+                      >
+                        {billingLoading ? "Ouverture..." : "Gérer la facturation"}
+                      </button>
+                      
+                      {/* BOUTON SE DESABONNER */}
+                      <button
+                        onClick={openPortal}
+                        disabled={billingLoading}
+                        className="w-full text-xs text-slate-400 hover:text-red-500 underline decoration-slate-300 hover:decoration-red-500 transition-all text-center"
+                      >
+                        Se désabonner
+                      </button>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      <div className={`text-xs font-bold uppercase tracking-widest ${
+                        isArchitect ? "text-emerald-600" : "text-slate-400"
+                      }`}>
+                        Choisir un plan
+                      </div>
+
+                      <div className="text-center py-6">
+                        <p className="text-sm text-slate-500 mb-4">
+                          Débloque tout le potentiel de Sophia.
+                        </p>
+                        <button
+                          onClick={() => {
+                            onClose();
+                            navigate('/upgrade');
+                          }}
+                          className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                             isArchitect ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-200"
+                          }`}
+                        >
+                          Passer à la vitesse supérieure
+                        </button>
+                      </div>
+
+                      {billingLoading && (
+                        <div className={`${isArchitect ? "text-emerald-500" : "text-slate-500"} text-xs`}>
+                          Redirection...
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}

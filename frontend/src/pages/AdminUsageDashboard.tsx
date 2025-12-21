@@ -11,7 +11,7 @@ import {
   MessageSquare, 
   Search, 
   Users,
-  FileText
+  Server
 } from "lucide-react";
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
@@ -30,6 +30,13 @@ type UserStat = {
   total_revenue_usd: number;
 };
 
+type SourceStat = {
+  source: string;
+  total_cost_usd: number;
+  total_tokens: number;
+  call_count: number;
+};
+
 const PERIODS = [
   { label: "24 Hours", value: "24h", minutes: 24 * 60 },
   { label: "7 Days", value: "7d", minutes: 7 * 24 * 60 },
@@ -40,6 +47,7 @@ const PERIODS = [
 export default function AdminUsageDashboard() {
   const { user, loading, isAdmin } = useAuth();
   const [stats, setStats] = useState<UserStat[]>([]);
+  const [sourceStats, setSourceStats] = useState<SourceStat[]>([]);
   const [totalCost, setTotalCost] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [totalMargin, setTotalMargin] = useState<number>(0);
@@ -62,6 +70,13 @@ export default function AdminUsageDashboard() {
         if (costError) console.error("Error loading cost:", costError);
         setTotalCost(Number(costData ?? 0));
 
+        // Load Source Stats (System/Anon Functions)
+        const { data: sourceData, error: sourceError } = await supabase
+          .rpc("get_usage_by_source", { period_start: since });
+        
+        if (sourceError) console.error("Error loading source stats:", sourceError);
+        setSourceStats((sourceData as any) ?? []);
+
         // Load User Stats
         const { data: userData, error: userError } = await supabase
           .rpc("get_admin_user_stats", { period_start: since });
@@ -69,28 +84,11 @@ export default function AdminUsageDashboard() {
         if (userError) console.error("Error loading user stats:", userError);
 
         const realStats = (userData as any) ?? [];
-
-        // --- MOCK DATA FOR DEMO (if empty) ---
-        if (realStats.length === 0) {
-          const mockStats: UserStat[] = [
-             { user_id: "m1", full_name: "Alice Wonder (Mock)", email: "alice@mock.com", plans_count: 2, messages_count: 45, total_cost_usd: 0.1240, total_revenue_usd: 19.99 },
-             { user_id: "m2", full_name: "Bob Builder (Mock)", email: "bob@mock.com", plans_count: 1, messages_count: 12, total_cost_usd: 0.0350, total_revenue_usd: 9.99 },
-             { user_id: "m3", full_name: "Charlie Chaplin (Mock)", email: "charlie@mock.com", plans_count: 0, messages_count: 5, total_cost_usd: 0.0012, total_revenue_usd: 0 },
-          ];
-          setStats(mockStats);
-          
-          const mockCost = 0.1602;
-          const mockRev = mockStats.reduce((acc, s) => acc + s.total_revenue_usd, 0);
-          setTotalCost(Number(costData ?? 0) + mockCost);
-          setTotalRevenue(mockRev);
-          setTotalMargin(mockRev - (Number(costData ?? 0) + mockCost));
-        } else {
-          setStats(realStats);
-          const rev = realStats.reduce((acc: number, s: any) => acc + (Number(s.total_revenue_usd) || 0), 0);
-          setTotalRevenue(rev);
-          setTotalMargin(rev - Number(costData ?? 0));
-        }
-        // -------------------------------------
+        setStats(realStats);
+        
+        const rev = realStats.reduce((acc: number, s: any) => acc + (Number(s.total_revenue_usd) || 0), 0);
+        setTotalRevenue(rev);
+        setTotalMargin(rev - Number(costData ?? 0));
 
       } finally {
         setDataLoading(false);
@@ -195,6 +193,68 @@ export default function AdminUsageDashboard() {
             trend="active"
             subtext={`${totalPlans} plans generated`}
           />
+        </div>
+
+        {/* System / Public API Usage */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden">
+            <div className="px-5 py-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Server className="w-4 h-4 text-indigo-400" />
+                <h3 className="font-medium text-white">System Functions (Anonymous)</h3>
+              </div>
+            </div>
+            <div className="p-0">
+              {sourceStats.filter(s => ["sort-priorities", "recommend-transformations"].includes(s.source)).length === 0 ? (
+                <div className="p-6 text-center text-sm text-neutral-500">No system function usage recorded.</div>
+              ) : (
+                <div className="divide-y divide-neutral-800">
+                  {sourceStats
+                    .filter(s => ["sort-priorities", "recommend-transformations"].includes(s.source))
+                    .map((s) => (
+                    <div key={s.source} className="flex items-center justify-between p-4 hover:bg-neutral-800/30 transition-colors">
+                      <div>
+                        <div className="font-medium text-neutral-200 text-sm mb-1">{s.source}</div>
+                        <div className="text-xs text-neutral-500 font-mono">{s.call_count} calls · {s.total_tokens} tokens</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-emerald-400 font-mono text-sm">${Number(s.total_cost_usd).toFixed(4)}</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden">
+             <div className="px-5 py-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className="w-4 h-4 text-indigo-400" />
+                <h3 className="font-medium text-white">Top Sources Breakdown</h3>
+              </div>
+            </div>
+            <div className="p-0">
+               {sourceStats.length === 0 ? (
+                <div className="p-6 text-center text-sm text-neutral-500">No usage recorded.</div>
+              ) : (
+                <div className="divide-y divide-neutral-800">
+                  {sourceStats.slice(0, 5).map((s) => (
+                    <div key={s.source} className="flex items-center justify-between p-4 hover:bg-neutral-800/30 transition-colors">
+                      <div>
+                        <div className="font-medium text-neutral-200 text-sm mb-1">{s.source}</div>
+                        <div className="text-xs text-neutral-500 font-mono">{s.call_count} calls</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-emerald-400 font-mono text-sm">${Number(s.total_cost_usd).toFixed(4)}</div>
+                        <div className="text-xs text-neutral-500 font-mono">{((s.total_cost_usd / (totalCost || 1)) * 100).toFixed(1)}% of total</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* User Table */}

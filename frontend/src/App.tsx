@@ -21,6 +21,7 @@ import Recraft from './pages/Recraft';
 import ProductPlan from './pages/ProductPlan';
 import ProductArchitect from './pages/ProductArchitect';
 import Formules from './pages/Formules';
+import UpgradePlan from './pages/UpgradePlan'; // IMPORT UPGRADE PAGE
 import Auth from './pages/Auth'; 
 import Legal from './pages/Legal'; // IMPORT PAGE LEGALE
 import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
@@ -41,6 +42,7 @@ function App() {
             <Route path="/le-plan" element={<ProductPlan />} />
             <Route path="/l-architecte" element={<ProductArchitect />} />
             <Route path="/formules" element={<Formules />} />
+            <Route path="/upgrade" element={<RequireAppAccess><UpgradePlan /></RequireAppAccess>} /> {/* ROUTE UPGRADE */}
             <Route path="/auth" element={<Auth />} /> 
             <Route path="/legal" element={<Legal />} /> {/* ROUTE LEGALE */}
             <Route path="/dashboard" element={<RequireAppAccess><Dashboard /></RequireAppAccess>} />

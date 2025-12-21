@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Compass,
   Layout,
@@ -14,9 +14,12 @@ import {
   Book,
   Settings,
   Zap,
-  Check
+  Check,
+  Crown
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { supabase } from '../lib/supabase';
+import { useAuth } from '../context/AuthContext';
 
 // Hooks extraits
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -38,6 +41,7 @@ import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const { subscription, trialEnd } = useAuth();
 
   // 1. DATA HOOK : Récupère toutes les données (Plan, User, Modules)
   const {
@@ -68,6 +72,7 @@ const Dashboard = () => {
   // State local pour les modales (purement UI)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileInitialTab, setProfileInitialTab] = useState<'general' | 'subscription' | 'settings'>('general');
   const [helpingAction, setHelpingAction] = useState<Action | null>(null);
   const [openFrameworkAction, setOpenFrameworkAction] = useState<Action | null>(null);
   const [historyFrameworkAction, setHistoryFrameworkAction] = useState<Action | null>(null);
@@ -86,13 +91,29 @@ const Dashboard = () => {
     hasPendingAxes,
     activeVitalSignData,
     setActiveVitalSignData,
-    setIsSettingsOpen
+    setIsSettingsOpen,
+    onBillingRequired: () => {
+      setProfileInitialTab('subscription');
+      setIsProfileOpen(true);
+    }
   });
 
   const isArchitectMode = mode === 'architecte';
   const hasActivePlan = activePlan !== null;
   const displayStrategy = activePlan?.strategy || "Chargement de la stratégie...";
   const isPhase1Completed = false; // Mock
+
+  const nowMs = Date.now();
+  const trialActive = trialEnd ? new Date(trialEnd).getTime() > nowMs : false;
+  const subActive = subscription?.status === 'active' && 
+                    subscription?.current_period_end && 
+                    new Date(subscription.current_period_end).getTime() > nowMs;
+  
+  const softLocked = !trialActive && !subActive;
+  const daysLeft = trialEnd ? Math.max(0, Math.ceil((new Date(trialEnd).getTime() - nowMs) / (1000 * 60 * 60 * 24))) : null;
+  
+  // Afficher la bannière si pas d'abo actif (soit bloqué, soit essai)
+  const showBanner = !subActive;
 
   // Calcul des semaines Architecte
   const architectWeeks = Object.values(modules)
@@ -197,7 +218,7 @@ const Dashboard = () => {
           </div>
 
           <div 
-            onClick={() => setIsProfileOpen(true)}
+            onClick={() => { setProfileInitialTab('general'); setIsProfileOpen(true); }}
             className="w-8 h-8 min-[310px]:w-10 min-[310px]:h-10 rounded-full bg-gray-200/20 flex items-center justify-center font-bold text-xs min-[310px]:text-base border-2 border-white/10 shadow-sm cursor-pointer hover:scale-105 transition-transform shrink-0 z-30">
             {isArchitectMode ? "🏛️" : userInitials}
           </div>
@@ -217,9 +238,59 @@ const Dashboard = () => {
         isOpen={isProfileOpen} 
         onClose={() => setIsProfileOpen(false)} 
         mode={mode} 
+        initialTab={profileInitialTab}
       />
 
       <main className="max-w-5xl mx-auto px-6 py-10">
+        {showBanner && (
+          <div
+            className={`mb-6 rounded-2xl border p-4 flex flex-col min-[450px]:flex-row min-[450px]:items-center min-[450px]:justify-between gap-3 ${
+              softLocked
+                ? (isArchitectMode ? "bg-amber-950/30 border-amber-900/50 text-amber-200" : "bg-amber-50 border-amber-200 text-amber-900")
+                : (isArchitectMode ? "bg-emerald-900/20 border-emerald-800/30 text-emerald-200" : "bg-indigo-50 border-indigo-100 text-indigo-900")
+            }`}
+          >
+            <div className="flex items-start gap-3">
+              <div className={`mt-0.5 w-9 h-9 rounded-full flex items-center justify-center ${
+                softLocked
+                  ? (isArchitectMode ? "bg-amber-900/40 text-amber-300" : "bg-amber-200 text-amber-900")
+                  : (isArchitectMode ? "bg-emerald-900/40 text-emerald-300" : "bg-indigo-200 text-indigo-700")
+              }`}>
+                {softLocked ? <Lock className="w-4 h-4" /> : <Crown className="w-4 h-4" />}
+              </div>
+              <div>
+                <div className="font-bold text-sm">
+                  {softLocked
+                    ? "Accès en lecture seule"
+                    : "Passez à la vitesse supérieure"}
+                </div>
+                <div className={`text-xs ${
+                  softLocked
+                    ? (isArchitectMode ? "text-amber-300/80" : "text-amber-700")
+                    : (isArchitectMode ? "text-emerald-300/80" : "text-indigo-700/80")
+                }`}>
+                  {softLocked
+                    ? "Ton essai est terminé. Abonne-toi pour débloquer l’écriture et continuer ta progression."
+                    : `Essai gratuit en cours (${daysLeft}j restants). Abonne-toi dès maintenant pour ne pas être interrompu.`}
+                </div>
+              </div>
+            </div>
+            <button
+              onClick={() => {
+                setProfileInitialTab('subscription');
+                setIsProfileOpen(true);
+              }}
+              className={`px-4 py-2 rounded-xl font-bold text-xs transition-colors shrink-0 ${
+                softLocked
+                  ? (isArchitectMode ? "bg-amber-600/20 hover:bg-amber-600/30 text-amber-200 border border-amber-700/40" : "bg-amber-500 hover:bg-amber-400 text-white shadow-sm")
+                  : (isArchitectMode ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20" : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-200")
+              }`}
+            >
+              {softLocked ? "Débloquer l'accès" : "Voir les plans"}
+            </button>
+          </div>
+        )}
+
         {isArchitectMode ? (
           <div className="animate-fade-in">
             <div className="text-center mb-12">

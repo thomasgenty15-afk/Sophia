@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Sync Vault.INTERNAL_FUNCTION_SECRET to the Edge Runtime SECRET_KEY (local Supabase CLI + Docker).
-# This avoids 403 when DB triggers / cron jobs call protected Edge Functions.
+# Sync Vault.INTERNAL_FUNCTION_SECRET from the local Edge Runtime SECRET_KEY / INTERNAL_FUNCTION_SECRET.
+# This avoids 403 when DB triggers / cron jobs call protected Edge Functions locally.
 #
 # It does NOT print the secret.
 
@@ -49,10 +49,7 @@ docker exec -i "${DB_CONTAINER}" psql -U postgres -d postgres -v ON_ERROR_STOP=1
      end if;
    end \$\$;"
 
-# Push to Edge secrets too (so Deno.env.get('INTERNAL_FUNCTION_SECRET') works in functions).
-# This does not print the secret.
-npx supabase secrets set "INTERNAL_FUNCTION_SECRET=${SECRET_VAL}" "SECRET_KEY=${SECRET_VAL}" >/dev/null
-
-echo "OK: INTERNAL_FUNCTION_SECRET synced (Vault + Edge secrets)."
+echo "OK: INTERNAL_FUNCTION_SECRET synced to Vault (local)."
+echo "Note: This script no longer pushes secrets via 'supabase secrets set' (to avoid accidental remote pollution)."
 
 

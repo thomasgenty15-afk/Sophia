@@ -9,6 +9,13 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean | null;
   prelaunchLockdown: boolean;
+  subscription: {
+    status: string | null;
+    current_period_end: string | null;
+    cancel_at_period_end: boolean | null;
+    stripe_price_id: string | null;
+  } | null;
+  trialEnd: string | null;
   signOut: () => Promise<void>;
 }
 
@@ -18,6 +25,8 @@ const AuthContext = createContext<AuthContextType>({
   loading: false,
   isAdmin: null,
   prelaunchLockdown: false,
+  subscription: null,
+  trialEnd: null,
   signOut: async () => {},
 });
 
@@ -26,6 +35,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [subscription, setSubscription] = useState<AuthContextType['subscription']>(null);
+  const [trialEnd, setTrialEnd] = useState<string | null>(null);
   const prelaunchLockdown = isPrelaunchLockdownEnabled();
 
   const refreshAdmin = async (u: User | null) => {
@@ -52,14 +63,47 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
+  const refreshSubscription = async (u: User | null) => {
+    if (!u) {
+      setSubscription(null);
+      setTrialEnd(null);
+      return;
+    }
+    try {
+      // Fetch profile for trial_end
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('trial_end')
+        .eq('id', u.id)
+        .single();
+      
+      setTrialEnd((profileData as any)?.trial_end ?? null);
+
+      // Fetch subscription
+      const { data: subData } = await supabase
+        .from('subscriptions')
+        .select('status, current_period_end, cancel_at_period_end, stripe_price_id')
+        .eq('user_id', u.id)
+        .maybeSingle();
+      
+      setSubscription((subData as any) ?? null);
+    } catch (err) {
+      console.warn('Subscription check error', err);
+    }
+  };
+
   useEffect(() => {
     const initializeAuth = async () => {
       try {
         const { data, error } = await supabase.auth.getSession();
         if (error) console.warn("Auth init session error", error);
         setSession(data?.session ?? null);
-        setUser(data?.session?.user ?? null);
-        await refreshAdmin(data?.session?.user ?? null);
+        const currentUser = data?.session?.user ?? null;
+        setUser(currentUser);
+        await Promise.all([
+          refreshAdmin(currentUser),
+          refreshSubscription(currentUser)
+        ]);
       } catch (err) {
         console.warn("Auth init error", err);
       } finally {
@@ -74,6 +118,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const nextUser = nextSession?.user ?? null;
       setUser(nextUser);
       refreshAdmin(nextUser);
+      refreshSubscription(nextUser);
       setLoading(false);
     });
     
@@ -86,7 +131,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ session, user, loading, isAdmin, prelaunchLockdown, signOut }}>
+    <AuthContext.Provider value={{ session, user, loading, isAdmin, prelaunchLockdown, subscription, trialEnd, signOut }}>
       {children}
     </AuthContext.Provider>
   );

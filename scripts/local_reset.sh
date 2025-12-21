@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# One-shot local reset that also re-syncs internal secret for protected Edge Functions.
+# One-shot local reset.
 #
 # Usage:
 #   ./scripts/local_reset.sh
@@ -26,8 +26,10 @@ if command -v docker >/dev/null 2>&1 && [ -n "${PROJECT_ID}" ]; then
   docker restart "supabase_kong_${PROJECT_ID}" >/dev/null 2>&1 || true
 fi
 
-./scripts/local_sync_internal_secret.sh
-
-echo "OK: local reset + internal secret sync completed."
+echo "OK: local reset completed."
+echo
+echo "Note: internal secret sync is no longer automatic."
+echo "If you need DB triggers/cron to call protected Edge Functions locally, run:"
+echo "  ./scripts/local_sync_internal_secret.sh"
 
 
