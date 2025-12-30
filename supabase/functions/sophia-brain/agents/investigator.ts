@@ -682,13 +682,71 @@ export async function megaTestLogItem(supabase: SupabaseClient, userId: string, 
 
 // --- MAIN FUNCTION ---
 
+function normalizeChatText(text: unknown): string {
+  // Some model outputs include the literal characters "\n" instead of real newlines.
+  return (text ?? "").toString().replace(/\\n/g, "\n").replace(/\*\*/g, "").trim()
+}
+
+function isMegaTestMode(meta?: { forceRealAi?: boolean }): boolean {
+  return (Deno.env.get("MEGA_TEST_MODE") ?? "").trim() === "1" && !meta?.forceRealAi
+}
+
+async function investigatorSay(
+  scenario: string,
+  data: unknown,
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string },
+  opts?: { temperature?: number },
+): Promise<string> {
+  if (isMegaTestMode(meta)) {
+    // Deterministic text for offline tests (avoid LLM dependency).
+    return `(${scenario})`
+  }
+
+  const basePrompt = `
+Tu es Sophia (Mode : Investigateur / Bilan).
+Tu réponds en français, en tutoyant.
+Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout en gardant le fil du bilan.
+
+RÈGLES DE STYLE (OBLIGATOIRES):
+- Pas de message "en dur" robotique: réagis brièvement au message user si nécessaire, puis enchaîne.
+- Une seule question à la fois.
+- Interdiction absolue de dire "bonjour", "salut", "hello" (sauf historique vide — mais ici, évite).
+- Interdiction formelle d’utiliser du gras (pas d’astérisques **).
+- Maximum 2 emojis (0-1 recommandé).
+- Output: uniquement du texte brut (pas de JSON).
+
+SCÉNARIO: ${scenario}
+DONNÉES (JSON): ${JSON.stringify(data)}
+  `.trim()
+
+  const override = await fetchPromptOverride("sophia.investigator.copy")
+  const systemPrompt = appendPromptOverride(basePrompt, override)
+
+  const res = await generateWithGemini(
+    systemPrompt,
+    "Rédige le prochain message à envoyer à l’utilisateur.",
+    opts?.temperature ?? 0.6,
+    false,
+    [],
+    "auto",
+    {
+      requestId: meta?.requestId,
+      model: meta?.model ?? "gemini-2.0-flash",
+      source: `sophia-brain:investigator_copy:${scenario}`,
+      forceRealAi: meta?.forceRealAi,
+    },
+  )
+
+  return normalizeChatText(res)
+}
+
 export async function runInvestigator(
   supabase: SupabaseClient, 
   userId: string, 
   message: string, 
   history: any[],
   state: any,
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
 ): Promise<{ content: string, investigationComplete: boolean, newState: any }> {
 
   // 1. INIT STATE
@@ -704,7 +762,7 @@ export async function runInvestigator(
       const items = await getPendingItems(supabase, userId)
       if (items.length === 0) {
           return {
-              content: "Tout est à jour pour ce créneau ! Tu as déjà tout validé. 🎉",
+              content: await investigatorSay("no_pending_items", { user_message: message, channel: meta?.channel }, meta),
               investigationComplete: true,
               newState: null
           }
@@ -723,44 +781,35 @@ export async function runInvestigator(
       const summary = await getYesterdayCheckupSummary(supabase, userId)
       const currentItem0 = currentState.pending_items[0]
 
-      let opening = ""
-      if (summary.completed === 0 && summary.missed === 0) {
-        opening = "Ok. Petit bilan en douceur 🙂"
-      } else if (summary.completed > 0 && summary.missed === 0) {
-        opening = `Hier t’as été solide : ${summary.completed} truc(s) validé(s). On garde le rythme 🙂`
-      } else if (summary.completed === 0 && summary.missed > 0) {
-        opening = `Hier ça a été plus dur (${summary.missed} truc(s) ont sauté). Aucun jugement. On repart simple aujourd’hui.`
-      } else {
-        opening = `Hier t’as quand même avancé : ${summary.completed} validé(s), ${summary.missed} raté(s). On continue tranquille.`
-      }
-
-      if (summary.topBlocker) {
-        opening += ` (Et je note que le blocage principal, c’était plutôt: ${summary.topBlocker}.)`
-      } else if (summary.lastWinTitle) {
-        opening += ` (Gros point positif: ${summary.lastWinTitle}.)`
-      }
-
-      const q =
-        currentItem0.type === "vital"
-          ? `\n\nOn commence : ${currentItem0.title} — c’est combien ?`
-          : currentItem0.type === "framework"
-            ? `\n\nOn commence : ${currentItem0.title} — tu l’as fait aujourd’hui ?`
-            : `\n\nOn commence : ${currentItem0.title} — tu l’as fait aujourd’hui ?`
-
       const nextState = {
         ...currentState,
         temp_memory: { ...(currentState.temp_memory || {}), opening_done: true },
       }
-      return { content: `${opening}${q}`, investigationComplete: false, newState: nextState }
+      const openingText = await investigatorSay(
+        "opening_first_item",
+        {
+          user_message: message,
+          channel: meta?.channel,
+          summary_yesterday: summary,
+          first_item: currentItem0,
+          recent_history: history.slice(-3),
+        },
+        meta,
+      )
+      return { content: openingText, investigationComplete: false, newState: nextState }
     } catch (e) {
       console.error("[Investigator] opening summary failed:", e)
       const currentItem0 = currentState.pending_items[0]
-      const q = `On commence : ${currentItem0.title} — tu l’as fait aujourd’hui ?`
       const nextState = {
         ...currentState,
         temp_memory: { ...(currentState.temp_memory || {}), opening_done: true },
       }
-      return { content: q, investigationComplete: false, newState: nextState }
+      const openingText = await investigatorSay(
+        "opening_first_item_fallback",
+        { user_message: message, channel: meta?.channel, first_item: currentItem0, recent_history: history.slice(-3) },
+        meta,
+      )
+      return { content: openingText, investigationComplete: false, newState: nextState }
     }
   }
 
@@ -775,7 +824,11 @@ export async function runInvestigator(
            currentState.pending_items = [...currentState.pending_items, ...freshItems]
        } else {
            return {
-              content: "C'est tout bon pour le bilan ! Merci d'avoir pris ce temps. Repose-toi bien. 🌙",
+              content: await investigatorSay(
+                "end_checkup_no_more_items",
+                { user_message: message, channel: meta?.channel, recent_history: history.slice(-3) },
+                meta,
+              ),
               investigationComplete: true,
               newState: null
           }
@@ -802,8 +855,11 @@ export async function runInvestigator(
           },
         }
         return {
-          content:
-            "Ok. Dis-moi vite fait : qu’est-ce qui te bloquerait le plus sur cette action ? (temps, énergie, oubli, contexte…)\n\nEt surtout : qu’est-ce qui te permettrait d’avancer un tout petit peu ?",
+          content: await investigatorSay(
+            "breakdown_ask_blocker",
+            { user_message: message, action_title: breakdown?.action_title ?? currentItem.title, streak_days: breakdown?.streak_days },
+            meta,
+          ),
           investigationComplete: false,
           newState: nextState,
         }
@@ -817,17 +873,25 @@ export async function runInvestigator(
           temp_memory: { ...(currentState.temp_memory || {}), breakdown: null },
         }
         if (nextIndex >= currentState.pending_items.length) {
-          return { content: "Ok. On continue une autre fois. Le bilan est terminé. ✅", investigationComplete: true, newState: null }
+          return {
+            content: await investigatorSay("breakdown_declined_end", { user_message: message, channel: meta?.channel }, meta),
+            investigationComplete: true,
+            newState: null,
+          }
         }
         const nextItem = currentState.pending_items[nextIndex]
         return {
-          content: `Ok. On passe à la suite.\n\nEt pour ${nextItem.title} ?`,
+          content: await investigatorSay("breakdown_declined_continue", { user_message: message, next_item: nextItem }, meta),
           investigationComplete: false,
           newState: cleaned,
         }
       }
       return {
-        content: "Juste pour être sûre : tu veux qu’on la découpe en une micro-étape ? (oui / non)",
+        content: await investigatorSay(
+          "breakdown_reprompt_consent",
+          { user_message: message, action_title: breakdown?.action_title ?? currentItem.title, streak_days: breakdown?.streak_days },
+          meta,
+        ),
         investigationComplete: false,
         newState: currentState,
       }
@@ -839,7 +903,11 @@ export async function runInvestigator(
         const problem = String(message ?? "").trim()
         if (!problem) {
           return {
-            content: "Vas-y, dis-moi en 1 phrase ce qui bloque le plus (ex: temps, fatigue, oubli…).",
+            content: await investigatorSay(
+              "breakdown_missing_problem",
+              { user_message: message, action_title: breakdown?.action_title ?? currentItem.title },
+              meta,
+            ),
             investigationComplete: false,
             newState: currentState,
           }
@@ -880,8 +948,16 @@ export async function runInvestigator(
         const tip = String(proposed?.tips ?? "").trim()
 
         return {
-          content:
-            `Ok. Voilà une micro-étape :\n${stepTitle}\n${stepDesc ? `→ ${stepDesc}\n` : ""}${tip ? `Tip : ${tip}\n` : ""}\nTu veux que je te la crée et que je l’ajoute à ton plan ? (oui / non)`,
+          content: await investigatorSay(
+            "breakdown_propose_step",
+            {
+              user_message: message,
+              action_title: breakdown?.action_title ?? currentItem.title,
+              problem,
+              proposed_step: { title: stepTitle, description: stepDesc, tip },
+            },
+            meta,
+          ),
           investigationComplete: false,
           newState: nextState,
         }
@@ -889,7 +965,11 @@ export async function runInvestigator(
         const msg = e instanceof Error ? e.message : String(e)
         console.error("[Investigator] breakdown proposal failed:", e)
         return {
-          content: `Ok, j’ai eu un souci pour générer la micro-étape (${msg}). Donne-moi juste une raison plus précise (ex: “je suis rincé le soir”), et je te propose une version simple.`, 
+          content: await investigatorSay(
+            "breakdown_proposal_error",
+            { user_message: message, error: msg, action_title: breakdown?.action_title ?? currentItem.title },
+            meta,
+          ),
           investigationComplete: false,
           newState: currentState,
         }
@@ -904,7 +984,15 @@ export async function runInvestigator(
           ...currentState,
           temp_memory: { ...(currentState.temp_memory || {}), breakdown: { ...breakdown, stage: "awaiting_blocker" } },
         }
-        return { content: "Je n’ai plus la micro-étape sous la main. Redis-moi en 1 phrase ce qui bloque et je la régénère.", investigationComplete: false, newState: nextState }
+        return {
+          content: await investigatorSay(
+            "breakdown_missing_proposed_step",
+            { user_message: message, action_title: breakdown?.action_title ?? currentItem.title },
+            meta,
+          ),
+          investigationComplete: false,
+          newState: nextState,
+        }
       }
 
       if (isAffirmative(message)) {
@@ -923,11 +1011,23 @@ export async function runInvestigator(
           }
 
           if (nextIndex >= currentState.pending_items.length) {
-            return { content: "Ok, c’est créé. On s’arrête là pour ce soir. ✅", investigationComplete: true, newState: null }
+            return {
+              content: await investigatorSay(
+                "breakdown_committed_end",
+                { user_message: message, created_step: proposed, channel: meta?.channel },
+                meta,
+              ),
+              investigationComplete: true,
+              newState: null,
+            }
           }
           const nextItem = currentState.pending_items[nextIndex]
           return {
-            content: `Parfait. C’est créé.\n\nOn continue le bilan : ${nextItem.title} ?`,
+            content: await investigatorSay(
+              "breakdown_committed_continue",
+              { user_message: message, created_step: proposed, next_item: nextItem },
+              meta,
+            ),
             investigationComplete: false,
             newState: nextState,
           }
@@ -935,7 +1035,11 @@ export async function runInvestigator(
           const msg = e instanceof Error ? e.message : String(e)
           console.error("[Investigator] breakdown commit failed:", e)
           return {
-            content: `Ok, j’ai compris, mais j’ai eu un souci pour la créer (${msg}). On continue le bilan et on la crée après si tu veux ?`,
+            content: await investigatorSay(
+              "breakdown_commit_error",
+              { user_message: message, error: msg, proposed_step: proposed, action_title: breakdown?.action_title ?? currentItem.title },
+              meta,
+            ),
             investigationComplete: false,
             newState: currentState,
           }
@@ -948,14 +1052,22 @@ export async function runInvestigator(
           temp_memory: { ...(currentState.temp_memory || {}), breakdown: { ...breakdown, stage: "awaiting_blocker", proposed_action: null } },
         }
         return {
-          content: "Ok. Qu’est-ce que tu veux changer ? (plus simple / plus court / autre moment / autre forme) Dis-moi en 1 phrase.",
+          content: await investigatorSay(
+            "breakdown_decline_ask_adjust",
+            { user_message: message, proposed_step: proposed, action_title: breakdown?.action_title ?? currentItem.title },
+            meta,
+          ),
           investigationComplete: false,
           newState: nextState,
         }
       }
 
       return {
-        content: "Tu veux que je la crée et que je l’ajoute au plan ? (oui / non)",
+        content: await investigatorSay(
+          "breakdown_reprompt_accept",
+          { user_message: message, proposed_step: proposed, action_title: breakdown?.action_title ?? currentItem.title },
+          meta,
+        ),
         investigationComplete: false,
         newState: currentState,
       }
@@ -1043,7 +1155,7 @@ export async function runInvestigator(
     "auto",
     {
       requestId: meta?.requestId,
-      model: "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.0-flash",
       source: "sophia-brain:investigator",
       forceRealAi: meta?.forceRealAi,
     }
@@ -1079,7 +1191,11 @@ export async function runInvestigator(
 
             if (nextIndex >= currentState.pending_items.length) {
               return {
-                content: `Yes. ${winStreak} jours d’affilée sur "${currentItem.title}" — franchement solide. 🔥\nLe bilan est terminé. ✅`,
+                content: await investigatorSay(
+                  "win_streak_end",
+                  { user_message: message, win_streak_days: winStreak, item: currentItem, channel: meta?.channel },
+                  meta,
+                ),
                 investigationComplete: true,
                 newState: null,
               }
@@ -1087,7 +1203,11 @@ export async function runInvestigator(
 
             const nextItem = currentState.pending_items[nextIndex]
             return {
-              content: `Yes. ${winStreak} jours d’affilée sur "${currentItem.title}" — franchement solide. 🔥\n\nEt pour ${nextItem.title} ?`,
+              content: await investigatorSay(
+                "win_streak_continue",
+                { user_message: message, win_streak_days: winStreak, item: currentItem, next_item: nextItem },
+                meta,
+              ),
               investigationComplete: false,
               newState: nextState,
             }
@@ -1116,7 +1236,11 @@ export async function runInvestigator(
               },
             }
             return {
-              content: `Ok. Je vois que "${currentItem.title}" bloque depuis ${streak} jours d’affilée.\nTu veux qu’on la découpe en une micro-étape (2 minutes) pour débloquer ? (oui / non)`,
+              content: await investigatorSay(
+                "missed_streak_offer_breakdown",
+                { user_message: message, streak_days: streak, item: currentItem, last_note: String(argsWithId.note ?? "").trim() },
+                meta,
+              ),
               investigationComplete: false,
               newState: nextState,
             }
@@ -1138,7 +1262,11 @@ export async function runInvestigator(
       if (nextIndex >= currentState.pending_items.length) {
           console.log("[Investigator] All items checked. Closing investigation.")
           return {
-              content: "Merci, c'est noté. Le bilan est terminé ! ✅",
+              content: await investigatorSay(
+                "end_checkup_after_last_log",
+                { user_message: message, channel: meta?.channel, recent_history: history.slice(-3) },
+                meta,
+              ),
               investigationComplete: true,
               newState: null
           }
@@ -1154,17 +1282,22 @@ export async function runInvestigator(
           `
           let transitionText = await generateWithGemini(transitionPrompt, "Transitionne.", 0.7, false, [], "auto", {
             requestId: meta?.requestId,
-            model: "gemini-2.0-flash",
+            model: meta?.model ?? "gemini-2.0-flash",
             source: "sophia-brain:investigator_transition",
             forceRealAi: meta?.forceRealAi,
           })
           
-          if (typeof transitionText === 'string') {
-              transitionText = transitionText.replace(/\*\*/g, '')
-          }
+          const transitionOut =
+            typeof transitionText === "string"
+              ? normalizeChatText(transitionText)
+              : await investigatorSay(
+                "transition_next_item_fallback",
+                { from_item: currentItem, from_status: argsWithId.status, next_item: nextItem, user_message: message },
+                meta,
+              )
           
           return {
-              content: typeof transitionText === 'string' ? transitionText : `C'est noté. Et pour ${nextItem.title} ?`,
+              content: transitionOut,
               investigationComplete: false,
               newState: nextState
           }
@@ -1175,7 +1308,11 @@ export async function runInvestigator(
       try {
         if (currentItem.type !== "action") {
           return {
-            content: "Ok. Là je peux le faire seulement pour une action (pas un signe vital / framework). On continue ?",
+            content: await investigatorSay(
+              "break_down_action_wrong_type",
+              { user_message: message, item: currentItem },
+              meta,
+            ),
             investigationComplete: false,
             newState: currentState,
           }
@@ -1185,7 +1322,11 @@ export async function runInvestigator(
         const applyToPlan = (response as any)?.args?.apply_to_plan !== false
         if (!problem) {
           return {
-            content: "Ok — dis-moi juste en 1 phrase ce qui bloque (temps, énergie, oubli, motivation…), et je te fais une micro-étape. On continue ?",
+            content: await investigatorSay(
+              "break_down_action_missing_problem",
+              { user_message: message, item: currentItem },
+              meta,
+            ),
             investigationComplete: false,
             newState: currentState,
           }
@@ -1229,8 +1370,17 @@ export async function runInvestigator(
         }
 
         return {
-          content:
-            `Ok. Voilà une micro-étape :\n${stepTitle}\n${stepDesc ? `→ ${stepDesc}\n` : ""}${tip ? `Tip : ${tip}\n` : ""}\nTu veux que je te la crée et que je l’ajoute à ton plan ? (oui / non)`,
+          content: await investigatorSay(
+            "break_down_action_propose_step",
+            {
+              user_message: message,
+              action_title: currentItem.title,
+              problem,
+              proposed_step: { title: stepTitle, description: stepDesc, tip },
+              apply_to_plan: applyToPlan,
+            },
+            meta,
+          ),
           investigationComplete: false,
           newState: nextState,
         }
@@ -1238,7 +1388,11 @@ export async function runInvestigator(
         const msg = e instanceof Error ? e.message : String(e)
         console.error("[Investigator] break_down_action failed:", e)
         return {
-          content: `Ok, j’ai essayé de générer une micro-étape mais j’ai eu un souci technique (${msg}). Donne-moi en 1 phrase ce qui bloque, et on fait ça à la main. On continue le bilan ?`,
+          content: await investigatorSay(
+            "break_down_action_error",
+            { user_message: message, error: msg, item: currentItem },
+            meta,
+          ),
           investigationComplete: false,
           newState: currentState,
         }

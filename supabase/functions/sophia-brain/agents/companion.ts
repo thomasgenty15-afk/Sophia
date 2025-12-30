@@ -72,7 +72,7 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
     const searchTerm = target_name.trim()
     const entryStatus = status || 'completed' // Défaut à completed si pas précisé
 
-    // 1. Chercher dans les ACTIONS actives
+    // 1. Chercher dans les ACTIONS (missions/habitudes)
     const { data: actions } = await supabase
         .from('user_actions')
         .select('*')
@@ -80,12 +80,6 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
         .in('status', ['active', 'pending'])
         .ilike('title', `%${searchTerm}%`)
         .limit(1)
-
-    if (!actions || actions.length === 0) {
-        // Aucune action trouvée => On ne tracke PAS. On renvoie un message naturel pour l'agent.
-        // Important : On retourne une chaîne qui explique que l'action n'est pas suivie, pour que l'agent puisse rebondir.
-        return `INFO_POUR_AGENT: L'action "${target_name}" n'est PAS dans le plan actif de l'utilisateur. Ne dis pas "C'est noté". Dis plutôt quelque chose comme "Ah trop bien pour [action], même si ce n'est pas dans ton plan officiel, c'est super !".`
-    }
 
     if (actions && actions.length > 0) {
         const action = actions[0]
@@ -160,7 +154,47 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
         return `Top, c'est noté ! ✅ (Action : ${action.title})`
     }
 
-    // 2. Chercher dans les SIGNES VITAUX
+    // 2. Chercher dans les FRAMEWORKS (exercices)
+    const { data: frameworks } = await supabase
+        .from('user_framework_tracking')
+        .select('*')
+        .eq('user_id', userId)
+        .in('status', ['active', 'pending'])
+        .ilike('title', `%${searchTerm}%`)
+        .limit(1)
+
+    if (frameworks && frameworks.length > 0) {
+        const fw = frameworks[0] as any
+        const nowIso = new Date().toISOString()
+        // Update minimal tracking + write an entry (best effort).
+        if (entryStatus === 'completed' || entryStatus === 'partial') {
+            const curr = Number(fw.current_reps ?? 0)
+            const next = operation === 'set' ? Math.max(curr, 1) : (curr + 1)
+            await supabase.from('user_framework_tracking').update({
+                current_reps: next,
+                last_performed_at: nowIso
+            }).eq('id', fw.id)
+        }
+
+        // Framework entries require action_id (text) + framework_type.
+        await supabase.from('user_framework_entries').insert({
+            user_id: userId,
+            plan_id: fw.plan_id ?? null,
+            action_id: fw.action_id,
+            framework_title: fw.title,
+            framework_type: fw.type ?? 'unknown',
+            content: { status: entryStatus, note: null, from: "whatsapp" },
+            created_at: nowIso,
+            updated_at: nowIso,
+        })
+
+        if (entryStatus === 'missed') {
+            return `Ok, je note (pas fait). 📉 (Exercice : ${fw.title})`
+        }
+        return `Parfait, je note ! ✅ (Exercice : ${fw.title})`
+    }
+
+    // 3. Chercher dans les SIGNES VITAUX
     const { data: vitalSigns } = await supabase
         .from('user_vital_signs')
         .select('*')
@@ -198,8 +232,8 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
         return `C'est enregistré. 📊 (${sign.label} : ${newValue} ${sign.unit || ''})`
     }
 
-    // SI NI ACTION NI VITAL TROUVÉ (Double check de sécurité si on arrive ici)
-    return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions ou Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`
+    // SI RIEN TROUVÉ (Actions / Frameworks / Signes Vitaux)
+    return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions / Frameworks / Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`
 }
 
 export async function runCompanion(
@@ -209,7 +243,7 @@ export async function runCompanion(
   history: any[], 
   userState: any, 
   context: string = "",
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
@@ -229,6 +263,15 @@ export async function runCompanion(
     - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
     - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
     - Ton but est de maintenir la conversation ouverte et engageante.
+    
+    GÉRER L'ABSENCE DE PLAN (CRITIQUE) :
+    - Regarde le CONTEXTE ci-dessous. Si tu vois "AUCUN PLAN DE TRANSFORMATION ACTIF" :
+      - TU N'AS PAS LE DROIT DE CRÉER DES ACTIONS OU DE PROPOSER UN PLAN ICI.
+      - Ne demande pas "On commence par quoi ?".
+      - Dis plutôt : "Je vois que tu n'as pas encore activé de plan sur la plateforme."
+      - Redirige-le vers l'application pour répondre au questionnaire et choisir son plan.
+      - Dis-lui : "Si tu es perdu, tu peux décrire ton problème dans la section 'Besoin d'aide pour choisir' sur le site, et je te ferai un plan sur-mesure là-bas."
+
     - FORMAT (IMPORTANT) : Réponse aérée. Fais 2 à 3 petits paragraphes séparés par une ligne vide.
       Si tu donnes une liste, mets une ligne vide avant la liste et utilise des tirets "- ".
     
@@ -280,7 +323,7 @@ export async function runCompanion(
     "auto",
     {
       requestId: meta?.requestId,
-      model: "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.0-flash",
       source: "sophia-brain:companion",
       forceRealAi: meta?.forceRealAi,
     }
@@ -318,7 +361,7 @@ export async function runCompanion(
       `
       const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
         requestId: meta?.requestId,
-        model: "gemini-2.0-flash",
+        model: meta?.model ?? "gemini-2.0-flash",
         source: "sophia-brain:companion_confirmation",
         forceRealAi: meta?.forceRealAi,
       })

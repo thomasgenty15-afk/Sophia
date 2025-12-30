@@ -138,12 +138,60 @@ async function injectActionIntoPlanJson(supabase: SupabaseClient, planId: string
     return 'success'
 }
 
+function planJsonHasAction(planContent: any, match: { id?: string; title?: string }): boolean {
+    const phases = planContent?.phases
+    if (!Array.isArray(phases)) return false
+    const idNeedle = (match.id ?? "").trim()
+    const titleNeedle = (match.title ?? "").trim().toLowerCase()
+    for (const p of phases) {
+        const actions = p?.actions
+        if (!Array.isArray(actions)) continue
+        for (const a of actions) {
+            if (idNeedle && String(a?.id ?? "") === idNeedle) return true
+            if (titleNeedle && String(a?.title ?? "").trim().toLowerCase() === titleNeedle) return true
+        }
+    }
+    return false
+}
+
+async function verifyActionCreated(
+    supabase: SupabaseClient,
+    userId: string,
+    planId: string,
+    expected: { title: string; actionId: string },
+): Promise<{ db_ok: boolean; json_ok: boolean; db_row_id?: string | null }> {
+    const title = String(expected.title ?? "").trim()
+    const actionId = String(expected.actionId ?? "").trim()
+    if (!title) return { db_ok: false, json_ok: false, db_row_id: null }
+
+    const [{ data: dbRow }, { data: planRow }] = await Promise.all([
+        supabase
+            .from("user_actions")
+            .select("id, title, created_at")
+            .eq("user_id", userId)
+            .eq("plan_id", planId)
+            .ilike("title", title)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle(),
+        supabase
+            .from("user_plans")
+            .select("content")
+            .eq("id", planId)
+            .maybeSingle(),
+    ])
+
+    const dbOk = Boolean(dbRow?.id)
+    const jsonOk = Boolean(planRow?.content && planJsonHasAction((planRow as any).content, { id: actionId, title }))
+    return { db_ok: dbOk, json_ok: jsonOk, db_row_id: (dbRow as any)?.id ?? null }
+}
+
 async function handleTracking(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
     const { target_name, value, operation, status } = args
     const searchTerm = target_name.trim()
     const entryStatus = status || 'completed'
 
-    // 1. Actions
+    // 1. Actions (missions/habitudes)
     const { data: actions } = await supabase
         .from('user_actions')
         .select('*')
@@ -151,12 +199,6 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
         .in('status', ['active', 'pending'])
         .ilike('title', `%${searchTerm}%`)
         .limit(1)
-
-    if (!actions || actions.length === 0) {
-        // Aucune action trouvée => On ne tracke PAS. On renvoie un message naturel pour l'agent.
-        // Important : On retourne une chaîne qui explique que l'action n'est pas suivie, pour que l'agent puisse rebondir.
-        return `INFO_POUR_AGENT: L'action "${target_name}" n'est PAS dans le plan actif de l'utilisateur. Ne dis pas "C'est noté". Dis plutôt quelque chose comme "Ah trop bien pour [action], même si ce n'est pas dans ton plan officiel, c'est super !".`
-    }
 
     if (actions && actions.length > 0) {
         const action = actions[0]
@@ -227,7 +269,44 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
         return `C'est noté ! ✅\nAction : ${action.title}\nTotal : ${newReps}`
     }
 
-    // 2. Signes Vitaux
+    // 2. Frameworks (exercices / journaling) — stockés séparément en DB
+    const { data: frameworks } = await supabase
+        .from('user_framework_tracking')
+        .select('*')
+        .eq('user_id', userId)
+        .in('status', ['active', 'pending'])
+        .ilike('title', `%${searchTerm}%`)
+        .limit(1)
+
+    if (frameworks && frameworks.length > 0) {
+        const fw = frameworks[0] as any
+        const nowIso = new Date().toISOString()
+
+        if (entryStatus === 'completed' || entryStatus === 'partial') {
+            const curr = Number(fw.current_reps ?? 0)
+            const next = operation === 'set' ? Math.max(curr, 1) : (curr + 1)
+            await supabase
+                .from('user_framework_tracking')
+                .update({ current_reps: next, last_performed_at: nowIso })
+                .eq('id', fw.id)
+        }
+
+        await supabase.from('user_framework_entries').insert({
+            user_id: userId,
+            plan_id: fw.plan_id ?? null,
+            action_id: fw.action_id,
+            framework_title: fw.title,
+            framework_type: fw.type ?? 'unknown',
+            content: { status: entryStatus, note: null, from: "chat" },
+            created_at: nowIso,
+            updated_at: nowIso,
+        })
+
+        if (entryStatus === 'missed') return `Je note (pas fait). 📉\nExercice : ${fw.title}`
+        return `C'est noté ! ✅\nExercice : ${fw.title}`
+    }
+
+    // 3. Signes Vitaux
     const { data: vitalSigns } = await supabase
         .from('user_vital_signs')
         .select('*')
@@ -265,8 +344,8 @@ async function handleTracking(supabase: SupabaseClient, userId: string, args: an
         return `C'est enregistré. 📊\n${sign.label} : ${newValue} ${sign.unit || ''}`
     }
 
-        // SI NI ACTION NI VITAL TROUVÉ (Double check de sécurité si on arrive ici)
-    return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions ou Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`
+    // SI RIEN TROUVÉ (Actions / Frameworks / Signes Vitaux)
+    return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions / Frameworks / Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`
 }
 
 async function handleUpdateAction(supabase: SupabaseClient, userId: string, planId: string, args: any): Promise<string> {
@@ -490,7 +569,7 @@ export async function runArchitect(
   history: any[], 
   userState: any,
   context: string = "",
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
@@ -511,8 +590,23 @@ export async function runArchitect(
        - Demande confirmation si le changement est drastique, sinon exécute.
 
     RÈGLE D'OR (CRÉATION/MODIF) :
-    - Pour créer ou modifier la structure, assure-toi d'avoir l'accord de l'utilisateur.
-    - Lors de la création, n'oublie PAS de définir le 'time_of_day' le plus pertinent (Matin, Soir, etc.).
+    - Regarde le CONTEXTE ci-dessous. Si tu vois "AUCUN PLAN DE TRANSFORMATION ACTIF" :
+       - REFUSE TOUTES LES CRÉATIONS D'ACTIONS (Outils create_simple_action, create_framework interdits).
+       - Explique que tu es l'Architecte, mais que tu as besoin de fondations (un plan) pour travailler.
+       - Redirige vers la plateforme pour l'initialisation (Questionnaire).
+       - Mentionne : "Tu peux aussi utiliser l'option 'Besoin d'aide pour choisir' sur le site si tu veux que je te construise une stratégie complète."
+    
+    - Une fois le plan actif :
+       - Tu peux AJOUTER ou MODIFIER des actions sur ce plan EXISTANT.
+       - Pour créer ou modifier la structure d'une action, assure-toi d'avoir l'accord de l'utilisateur.
+       - Lors de la création d'une action, n'oublie PAS de définir le 'time_of_day' le plus pertinent (Matin, Soir, etc.).
+    
+    RÈGLE ANTI-HALLUCINATION (CRITIQUE) :
+    - Ne dis JAMAIS "je l'ai créé / c'est fait / c'est créé" si tu n'as PAS :
+      1) appelé un outil de création ("create_simple_action" ou "create_framework") ET
+      2) reçu une confirmation explicite de succès (dans le flow, le système vérifie la DB).
+    - Si l'utilisateur demande "tu l'as créé ?", et que tu n'as pas cette preuve :
+      - Réponds honnêtement ("je ne le vois pas"), propose de retenter, et renvoie vers le dashboard pour vérifier.
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut uniquement.
     - Utilise 1 smiley (maximum 2) par message pour rendre le ton plus humain et moins "machine", mais reste pro.
     - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
@@ -555,7 +649,7 @@ export async function runArchitect(
     "auto",
     {
       requestId: meta?.requestId,
-      model: "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.0-flash",
       source: "sophia-brain:architect",
       forceRealAi: meta?.forceRealAi,
     }
@@ -590,7 +684,7 @@ export async function runArchitect(
             `
             const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7, false, [], "auto", {
               requestId: meta?.requestId,
-              model: "gemini-2.0-flash",
+              model: meta?.model ?? "gemini-2.0-flash",
               source: "sophia-brain:architect_followup",
               forceRealAi: meta?.forceRealAi,
             })
@@ -619,7 +713,7 @@ export async function runArchitect(
         `
         const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
           requestId: meta?.requestId,
-          model: "gemini-2.0-flash",
+          model: meta?.model ?? "gemini-2.0-flash",
           source: "sophia-brain:architect_confirmation",
           forceRealAi: meta?.forceRealAi,
         })
@@ -650,7 +744,7 @@ export async function runArchitect(
       const actionId = `act_${Date.now()}`
 
       console.log(`[Architect] Attempting to insert into user_actions...`)
-      await supabase.from('user_actions').insert({
+      const { error: insertErr } = await supabase.from('user_actions').insert({
         user_id: userId,
         plan_id: plan.id,
         submission_id: plan.submission_id,
@@ -662,6 +756,10 @@ export async function runArchitect(
         tracking_type: 'boolean',
         time_of_day: time_of_day || 'any_time'
       })
+      if (insertErr) {
+        console.error("[Architect] ❌ user_actions insert failed:", insertErr)
+        return `Oups — j’ai eu un souci technique en créant l’action "${title}".\n\nVa jeter un œil sur le dashboard pour confirmer si elle apparaît. Si tu veux, dis-moi “retente” et je la recrée proprement.`
+      }
 
       const newActionJson = {
           id: actionId,
@@ -680,7 +778,14 @@ export async function runArchitect(
       if (status === 'duplicate') return `Oula ! ✋\n\nL'action "${title}" existe déjà.`
       if (status === 'error') return "Erreur technique lors de la mise à jour du plan visuel."
 
-      return `C'est validé ! ✅\n\nJ'ai ajouté l'action "${title}" à ton plan.\nOn s'y met quand ?`
+      const verify = await verifyActionCreated(supabase, userId, plan.id, { title, actionId })
+      if (!verify.db_ok || !verify.json_ok) {
+        console.warn("[Architect] ⚠️ Post-create verification failed:", verify)
+        // Be honest: do not claim it's created if we can't confirm.
+        return `Je viens de tenter de créer "${title}", mais je ne la vois pas encore clairement dans ton plan (il y a peut-être eu un loupé de synchro).\n\nOuvre le dashboard et dis-moi si tu la vois. Sinon, dis “retente” et je la recrée.`
+      }
+
+      return `C'est validé ! ✅\n\nJe viens de vérifier: l’action "${title}" est bien dans ton plan.\nOn s’y met quand ?`
     }
 
     if (response.tool === 'create_framework') {
@@ -703,7 +808,7 @@ export async function runArchitect(
       if (status === 'duplicate') return `Doucement ! ✋\n\nL'exercice "${title}" est déjà là.`
       if (status === 'error') return "Erreur technique lors de l'intégration du framework."
 
-      await supabase.from('user_actions').insert({
+      const { error: fwInsertErr } = await supabase.from('user_actions').insert({
         user_id: userId,
         plan_id: plan.id,
         submission_id: plan.submission_id,
@@ -714,8 +819,18 @@ export async function runArchitect(
         tracking_type: 'boolean',
         time_of_day: time_of_day || 'any_time'
       })
+      if (fwInsertErr) {
+        console.error("[Architect] ❌ user_actions insert failed (framework):", fwInsertErr)
+        return `Oups — j’ai eu un souci technique en créant l’exercice "${title}".\n\nVa vérifier sur le dashboard si tu le vois. Si tu ne le vois pas, dis “retente” et je le recrée.`
+      }
 
-      return `C'est fait ! 🏗️\n\nJ'ai intégré le framework "${title}" directement dans ton plan interactif.\nTu devrais le voir apparaître dans tes actions du jour.`
+      const verify = await verifyActionCreated(supabase, userId, plan.id, { title, actionId })
+      if (!verify.db_ok || !verify.json_ok) {
+        console.warn("[Architect] ⚠️ Post-create verification failed (framework):", verify)
+        return `Je viens de tenter d’intégrer "${title}", mais je ne le vois pas encore clairement dans ton plan (possible loupé de synchro).\n\nRegarde sur le dashboard et dis-moi si tu le vois. Sinon, dis “retente” et je le recrée.`
+      }
+
+      return `C'est fait ! 🏗️\n\nJe viens de vérifier: "${title}" est bien dans ton plan.\nTu devrais le voir apparaître dans tes actions.`
     }
   }
 

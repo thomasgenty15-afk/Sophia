@@ -1,0 +1,38 @@
+{
+  "key": "onboarding_whatsapp_optin_no",
+  "label": "Onboarding · WhatsApp opt-in = NO (opted out)",
+  "profile": {
+    "full_name": "Fixture · Opt-in WhatsApp NON",
+    "onboarding_completed": true,
+    "phone_number": "+33600000002",
+    "phone_invalid": false,
+    "whatsapp_opted_in": false,
+    "whatsapp_bilan_opted_in": false,
+    "whatsapp_state": "opted_out",
+    "whatsapp_opted_out_at": "2025-01-01T00:00:00.000Z",
+    "whatsapp_optout_reason": "user_declined"
+  },
+  "plan": {
+    "title": "Stabiliser le sommeil",
+    "deep_why": "Je veux arrêter de subir mes soirées et mieux récupérer.",
+    "actions": [
+      {
+        "type": "habit",
+        "title": "Coucher",
+        "description": "Éteindre les écrans 30 min avant de dormir.",
+        "tracking_type": "boolean",
+        "time_of_day": "evening",
+        "target_reps": 1,
+        "status": "active",
+        "last_performed_at": null
+      }
+    ]
+  },
+  "chat_state": {
+    "current_mode": "companion",
+    "risk_level": 0,
+    "investigation_state": null
+  }
+}
+
+

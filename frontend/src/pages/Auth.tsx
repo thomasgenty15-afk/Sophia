@@ -20,6 +20,34 @@ function getErrorMessage(err: unknown, fallback: string) {
   return fallback;
 }
 
+function normalizePhone(input: string): string {
+  let s = (input ?? "").trim();
+  if (!s) return "";
+  // keep digits and '+' only
+  s = s.replace(/[^\d+]/g, "");
+  if (!s) return "";
+
+  // 00... => +...
+  if (s.startsWith("00")) s = `+${s.slice(2)}`;
+
+  // If already E.164-ish, keep it
+  if (s.startsWith("+")) return s;
+
+  // Digits-only: try to normalize common French formats into E.164 (+33XXXXXXXXX)
+  const digits = s.replace(/\D/g, "");
+  if (!digits) return "";
+
+  // 06XXXXXXXX (10 digits) -> +33 6XXXXXXXX
+  if (digits.length === 10 && digits.startsWith("0")) return `+33${digits.slice(1)}`;
+  // 33XXXXXXXXX (11 digits) -> +33XXXXXXXXX
+  if (digits.length === 11 && digits.startsWith("33")) return `+${digits}`;
+  // 9 digits (no leading 0) -> assume FR and prefix +33
+  if (digits.length === 9) return `+33${digits}`;
+
+  // Fallback: prefix '+' (better chance to match WhatsApp normalizeFrom)
+  return `+${digits}`;
+}
+
 const Auth = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -101,13 +129,35 @@ const Auth = () => {
              throw new Error("Le numéro de téléphone est requis pour Sophia.");
         }
 
+        const phoneNorm = normalizePhone(phone);
+        if (!phoneNorm) {
+          throw new Error("Le numéro de téléphone est requis pour Sophia.");
+        }
+
+        // If the phone is already validated by another account, block signup with a friendly message.
+        // Note: Uses an RPC to avoid exposing broad profiles read access to anon users.
+        try {
+          const { data: inUse, error: inUseErr } = await supabase.rpc('is_verified_phone_in_use', {
+            p_phone: phoneNorm,
+          });
+          if (inUseErr) throw inUseErr;
+          if (inUse) {
+            throw new Error(
+              "Ce numéro de téléphone est déjà utilisé. Contactez sophia@sophia-coach.ai pour plus d'information."
+            );
+          }
+        } catch (precheckErr) {
+          // Best-effort: if the precheck fails, don't block signup (DB constraint will still protect verified numbers).
+          console.warn("Phone in-use precheck failed (non-blocking):", precheckErr);
+        }
+
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
           options: {
             data: { 
                 full_name: name,
-                phone: phone // Stocker le téléphone dans les métadonnées
+                phone: phoneNorm // Stocker le téléphone (normalisé) dans les métadonnées
             } 
           }
         });

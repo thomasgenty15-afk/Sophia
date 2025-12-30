@@ -11,7 +11,7 @@ Aucune mise à jour tant que le token n’est pas reçu.
 Si l’email n’existe pas:
 1ère fois: “Je ne trouve pas… est-ce que tu es sûr ?”
 Si il renvoie un email (encore inconnu) ou répond “oui je suis sûr”:
-“Ok — écris à hello@sophia-coach.ai en indiquant ton numéro WhatsApp”.
+“Ok — écris à sophia@sophia-coach.ai en indiquant ton numéro WhatsApp”.
 
 2) Email trouvé mais compte déjà lié à un autre numéro
 WhatsApp: “J’ai trouvé un compte, mais il est associé à un autre numéro.”

@@ -1,0 +1,35 @@
+{
+  "key": "detresse_firefighter",
+  "label": "Détresse · utilisateur anxieux (firefighter triggerable)",
+  "profile": {
+    "full_name": "Fixture · Détresse",
+    "onboarding_completed": true,
+    "phone_number": "+33600000004",
+    "whatsapp_opted_in": true,
+    "whatsapp_bilan_opted_in": true,
+    "whatsapp_state": "opted_in"
+  },
+  "plan": {
+    "title": "Revenir au calme",
+    "deep_why": "Je veux reprendre le contrôle quand ça monte trop vite.",
+    "actions": [
+      {
+        "type": "habit",
+        "title": "Respiration",
+        "description": "2 minutes de respiration (cohérence).",
+        "tracking_type": "boolean",
+        "time_of_day": "any_time",
+        "target_reps": 1,
+        "status": "active",
+        "last_performed_at": null
+      }
+    ]
+  },
+  "chat_state": {
+    "current_mode": "companion",
+    "risk_level": 6,
+    "investigation_state": null
+  }
+}
+
+

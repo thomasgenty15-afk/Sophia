@@ -1,6 +1,7 @@
 {
   "dataset_key": "style",
   "id": "no_mid_conversation_greeting",
+  "scenario_target": "style",
   "description": "Sophia should not say bonjour/salut/hello mid-conversation (common style rule).",
   "tags": ["sophia.companion", "sophia.architect", "sophia.investigator", "sophia.assistant"],
   "persona": {

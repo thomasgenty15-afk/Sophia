@@ -82,7 +82,7 @@ const Legal = () => {
               <h3>2. Contact</h3>
               <p>
                 Pour toute question ou demande, vous pouvez nous contacter à l'adresse suivante :<br/>
-                <a href="mailto:hello@sophia-coach.ai" className="text-violet-600 hover:underline">hello@sophia-coach.ai</a>
+                <a href="mailto:sophia@sophia-coach.ai" className="text-violet-600 hover:underline">sophia@sophia-coach.ai</a>
               </p>
 
               <h3>3. Hébergement</h3>
@@ -222,7 +222,7 @@ const Legal = () => {
                 <div>
                   <h4 className="font-bold text-emerald-900 text-sm mb-1">Exercer vos droits</h4>
                   <p className="text-emerald-800 text-sm">
-                    Pour toute demande concernant vos données, contactez-nous à : <a href="mailto:hello@sophia-coach.ai" className="underline hover:text-emerald-950">hello@sophia-coach.ai</a>
+                    Pour toute demande concernant vos données, contactez-nous à : <a href="mailto:sophia@sophia-coach.ai" className="underline hover:text-emerald-950">sophia@sophia-coach.ai</a>
                   </p>
                 </div>
               </div>

@@ -50,7 +50,36 @@ async function seedChatUser(admin, url, anonKey) {
     .single();
   if (goalErr) throw goalErr;
 
-  const planContent = { phases: [{ id: "phase_1", title: "Phase 1", status: "active", actions: [] }] };
+  const actionId = crypto.randomUUID();
+  const planContent = {
+    grimoireTitle: "Plan de test",
+    strategy: "Plan seedé pour évaluation locale (script).",
+    deepWhy: "Valider les scénarios en local.",
+    estimatedDuration: "1 jour",
+    phases: [
+      {
+        id: 1,
+        title: "Phase 1 : Évaluation",
+        subtitle: "Seed de plan pour tests",
+        status: "active",
+        actions: [
+          {
+            id: actionId,
+            type: "habitude",
+            title: "Sport",
+            description: "Faire du sport",
+            isCompleted: false,
+            status: "active",
+            targetReps: 3,
+            currentReps: 0,
+            tracking_type: "boolean",
+            time_of_day: "any_time",
+            questType: "main",
+          },
+        ],
+      },
+    ],
+  };
   const { data: planRow, error: planErr } = await admin
     .from("user_plans")
     .insert({
@@ -60,6 +89,7 @@ async function seedChatUser(admin, url, anonKey) {
       status: "active",
       current_phase: 1,
       title: "Eval plan",
+      deep_why: "Plan seedé pour tests (script).",
       content: planContent,
     })
     .select("id")
@@ -68,6 +98,7 @@ async function seedChatUser(admin, url, anonKey) {
 
   const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
   const { error: actionErr } = await admin.from("user_actions").insert({
+    id: actionId,
     user_id: userId,
     plan_id: planRow.id,
     submission_id: submissionId,

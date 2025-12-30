@@ -1,0 +1,37 @@
+{
+  "key": "utilisateur_decroche",
+  "label": "Décrochage · utilisateur qui répond peu / a abandonné",
+  "profile": {
+    "full_name": "Fixture · Décrochage",
+    "onboarding_completed": true,
+    "phone_number": "+33600000005",
+    "whatsapp_opted_in": true,
+    "whatsapp_bilan_opted_in": false,
+    "whatsapp_state": "opted_in",
+    "whatsapp_last_inbound_at": "2025-01-01T00:00:00.000Z"
+  },
+  "plan": {
+    "title": "Relancer sans pression",
+    "deep_why": "Je veux arrêter de culpabiliser et reprendre petit.",
+    "actions": [
+      {
+        "type": "habit",
+        "title": "Micro-action",
+        "description": "1 minute: ranger 1 truc / boire un verre d'eau.",
+        "tracking_type": "boolean",
+        "time_of_day": "any_time",
+        "target_reps": 1,
+        "status": "active",
+        "last_performed_at": "2025-01-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "chat_state": {
+    "current_mode": "companion",
+    "risk_level": 1,
+    "investigation_state": null,
+    "short_term_context": "Utilisateur peu réactif, tendance à décrocher."
+  }
+}
+
+

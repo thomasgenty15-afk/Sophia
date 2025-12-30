@@ -5,7 +5,7 @@ export async function runFirefighter(
   message: string,
   history: any[],
   context: string = "",
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
 ): Promise<{ content: string, crisisResolved: boolean }> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
@@ -48,7 +48,7 @@ export async function runFirefighter(
   try {
     const jsonStr = await generateWithGemini(systemPrompt, `Historique:\n${historyText}\n\nUser: ${message}`, 0.3, true, [], "auto", {
       requestId: meta?.requestId,
-      model: "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.0-flash",
       source: "sophia-brain:firefighter",
       forceRealAi: meta?.forceRealAi,
     })

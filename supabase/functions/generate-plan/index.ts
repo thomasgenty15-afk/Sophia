@@ -19,14 +19,18 @@ serve(async (req) => {
   }
 
   try {
+    // Parse once so we can both support MEGA stub and also allow forcing real generation in local.
+    const body = await req.json().catch(() => ({} as any))
+    const forceRealGeneration = Boolean((body as any)?.force_real_generation)
+
     // Deterministic test mode (no network / no GEMINI_API_KEY required).
     // This function historically called Gemini directly; MEGA_TEST_MODE makes it stable for the mega runner.
     const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
     const isLocalSupabase =
       (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
       (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000");
-    if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
-      const { currentAxis, mode } = await req.json().catch(() => ({} as any));
+    if (!forceRealGeneration && (megaRaw === "1" || (megaRaw === "" && isLocalSupabase))) {
+      const { currentAxis, mode } = body as any;
       const axisTitle = currentAxis?.title ?? "Axe";
       const plan = {
         grimoireTitle: `MEGA_TEST_STUB: ${axisTitle}`,
@@ -98,7 +102,7 @@ serve(async (req) => {
     // On ignore totalement l'auth Supabase pour voir si Gemini fonctionne
     
     // 2. Data Retrieval
-    const { inputs, currentAxis, currentPlan, feedback, mode, answers, userProfile, previousPlanContext } = await req.json()
+    const { inputs, currentAxis, currentPlan, feedback, mode, answers, userProfile, previousPlanContext } = body as any
     
     // On utilise les réponses passées par le frontend
     const onboardingResponses = answers || {}

@@ -7,6 +7,7 @@ import {
 
 import { usePlanGeneratorData } from '../hooks/usePlanGeneratorData';
 import { usePlanGeneratorLogic } from '../hooks/usePlanGeneratorLogic';
+import OnboardingProgress from '../components/OnboardingProgress';
 
 const ActionPlanGenerator = () => {
   // 1. DATA HOOK
@@ -58,6 +59,7 @@ const ActionPlanGenerator = () => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-8 px-4 md:py-12 md:px-6">
       <div className="max-w-3xl mx-auto">
+        <OnboardingProgress currentStep={step === 'input' ? 3 : 4} />
         
         {/* HEADER */}
         {currentAxis ? (

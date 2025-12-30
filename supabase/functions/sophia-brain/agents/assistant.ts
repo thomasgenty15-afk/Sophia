@@ -3,7 +3,7 @@ import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-
 
 export async function runAssistant(
   message: string,
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" },
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string },
 ): Promise<string> {
   const basePrompt = `
     Tu es Sophia.
@@ -28,7 +28,7 @@ export async function runAssistant(
   
   const response = await generateWithGemini(systemPrompt, message, 0.7, false, [], "auto", {
     requestId: meta?.requestId,
-    model: "gemini-2.0-flash",
+    model: meta?.model ?? "gemini-2.0-flash",
     source: "sophia-brain:assistant",
     forceRealAi: meta?.forceRealAi,
   })

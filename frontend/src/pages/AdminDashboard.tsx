@@ -15,7 +15,8 @@ import {
   Settings2, 
   Terminal,
   Loader2,
-  Filter
+  Filter,
+  Cpu
 } from "lucide-react";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
@@ -27,6 +28,7 @@ function cn(...inputs: (string | undefined | null | false)[]) {
 type Scenario = {
   dataset_key: string;
   id: string;
+  scenario_target?: string;
   description?: string;
   tags?: string[];
   steps?: { user: string }[];
@@ -51,6 +53,19 @@ const PROMPT_KEYS = [
   "sophia.watcher",
 ] as const;
 
+const SCENARIO_TARGETS = [
+  "(all)",
+  "bilan",
+  "detresse",
+  "decrochage",
+  "onboarding",
+  "whatsapp",
+  "style",
+] as const;
+
+const USER_DIFFICULTIES = ["easy", "mid", "hard"] as const;
+const EVAL_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash"] as const;
+
 export default function AdminDashboard() {
   const { user, loading, isAdmin } = useAuth();
   const [metricsLoading, setMetricsLoading] = useState(false);
@@ -61,13 +76,14 @@ export default function AdminDashboard() {
   const [tokens24h, setTokens24h] = useState(0);
 
   const [promptKey, setPromptKey] = useState<string>("(all)");
-  const [sinceMinutes, setSinceMinutes] = useState<number>(60);
-  const [useSinceFilter, setUseSinceFilter] = useState<boolean>(false);
+  const [scenarioTarget, setScenarioTarget] = useState<string>("(all)");
   const [maxScenarios, setMaxScenarios] = useState<number>(10);
   const [maxTurns, setMaxTurns] = useState<number>(8);
+  const [bilanActionsCount, setBilanActionsCount] = useState<number>(3);
+  const [userDifficulty, setUserDifficulty] = useState<(typeof USER_DIFFICULTIES)[number]>("mid");
+  const [evalModel, setEvalModel] = useState<string>("gemini-2.0-flash");
   const [stopOnFail, setStopOnFail] = useState<boolean>(false);
   const [budgetUsd, setBudgetUsd] = useState<number>(0);
-  const [useRealAi, setUseRealAi] = useState<boolean>(false);
   const [pricingLoaded, setPricingLoaded] = useState<boolean>(false);
   const [pricingFlashIn, setPricingFlashIn] = useState<number>(0);
   const [pricingFlashOut, setPricingFlashOut] = useState<number>(0);
@@ -77,9 +93,15 @@ export default function AdminDashboard() {
 
   const allScenarios = useMemo(() => loadScenarioPack(), []);
   const filteredScenarios = useMemo(() => {
-    if (promptKey === "(all)") return allScenarios;
-    return allScenarios.filter((s) => Array.isArray(s.tags) && s.tags.includes(promptKey));
-  }, [allScenarios, promptKey]);
+    let out = allScenarios;
+    if (scenarioTarget !== "(all)") {
+      out = out.filter((s) => String((s as any)?.scenario_target ?? "").trim() === scenarioTarget);
+    }
+    if (promptKey !== "(all)") {
+      out = out.filter((s) => Array.isArray(s.tags) && s.tags.includes(promptKey));
+    }
+    return out;
+  }, [allScenarios, promptKey, scenarioTarget]);
 
   useEffect(() => {
     async function loadMetrics() {
@@ -119,34 +141,26 @@ export default function AdminDashboard() {
   useEffect(() => {
     async function loadPricing() {
       if (!user || !isAdmin) return;
+      setPricingLoaded(false);
       const { data, error } = await supabase
         .from("llm_pricing")
         .select("provider,model,input_per_1k_tokens_usd,output_per_1k_tokens_usd")
-        .eq("provider", "gemini")
-        .eq("model", "gemini-2.0-flash")
-        .maybeSingle();
+        .eq("provider", "gemini"); // On récupère tout pour voir
+
       if (error) {
         console.error(error);
         return;
       }
-      setPricingFlashIn(Number((data as any)?.input_per_1k_tokens_usd ?? 0) || 0);
-      setPricingFlashOut(Number((data as any)?.output_per_1k_tokens_usd ?? 0) || 0);
+
+      // On filtre nous-même en JS pour trouver le bon modèle et voir si ça match
+      const found = data?.find(row => row.model.trim() === evalModel.trim());
+
+      setPricingFlashIn(Number(found?.input_per_1k_tokens_usd ?? 0) || 0);
+      setPricingFlashOut(Number(found?.output_per_1k_tokens_usd ?? 0) || 0);
       setPricingLoaded(true);
     }
     loadPricing();
-  }, [user, isAdmin]);
-
-  async function savePricing() {
-    const { error } = await supabase.from("llm_pricing").upsert({
-      provider: "gemini",
-      model: "gemini-2.0-flash",
-      input_per_1k_tokens_usd: pricingFlashIn,
-      output_per_1k_tokens_usd: pricingFlashOut,
-      currency: "USD",
-      updated_at: new Date().toISOString(),
-    });
-    if (error) console.error(error);
-  }
+  }, [user, isAdmin, evalModel]);
 
   async function startRun() {
     setRunBusy(true);
@@ -159,9 +173,12 @@ export default function AdminDashboard() {
           limits: {
             max_scenarios: Math.max(1, Math.min(50, maxScenarios)),
             max_turns_per_scenario: Math.max(1, Math.min(50, maxTurns)),
+            bilan_actions_count:
+              scenarioTarget === "bilan" ? Math.max(1, Math.min(20, bilanActionsCount)) : 0,
+            user_difficulty: userDifficulty,
             stop_on_first_failure: stopOnFail,
             budget_usd: Math.max(0, budgetUsd),
-            use_real_ai: useRealAi,
+            model: evalModel,
           },
         },
       });
@@ -312,6 +329,22 @@ export default function AdminDashboard() {
               </div>
               
               <div className="p-5 space-y-5">
+                {/* Eval Model */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider flex items-center gap-1">
+                    <Cpu className="w-3 h-3" /> Modèle d'évaluation
+                  </label>
+                  <select
+                    value={evalModel}
+                    onChange={(e) => setEvalModel(e.target.value)}
+                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  >
+                    {EVAL_MODELS.map((m) => (
+                      <option key={m} value={m}>{m}</option>
+                    ))}
+                  </select>
+                </div>
+
                 {/* Prompt Key */}
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider flex items-center gap-1">
@@ -325,6 +358,43 @@ export default function AdminDashboard() {
                     <option value="(all)">All Personas</option>
                     {PROMPT_KEYS.map((k) => (
                       <option key={k} value={k}>{k}</option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* Scenario Target */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider flex items-center gap-1">
+                    <Filter className="w-3 h-3" /> Scénario cible
+                  </label>
+                  <select
+                    value={scenarioTarget}
+                    onChange={(e) => setScenarioTarget(e.target.value)}
+                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  >
+                    <option value="(all)">Tous</option>
+                    {SCENARIO_TARGETS.filter((t) => t !== "(all)").map((t) => (
+                      <option key={t} value={t}>
+                        {t}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {/* User difficulty */}
+                <div className="space-y-2">
+                  <label className="text-xs font-medium text-neutral-400 uppercase tracking-wider flex items-center gap-1">
+                    <Filter className="w-3 h-3" /> Difficulté user
+                  </label>
+                  <select
+                    value={userDifficulty}
+                    onChange={(e) => setUserDifficulty(e.target.value as any)}
+                    className="w-full bg-neutral-950 border border-neutral-800 rounded-lg px-3 py-2.5 text-sm text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  >
+                    {USER_DIFFICULTIES.map((d) => (
+                      <option key={d} value={d}>
+                        {d}
+                      </option>
                     ))}
                   </select>
                 </div>
@@ -344,14 +414,19 @@ export default function AdminDashboard() {
                   />
                 </div>
 
+                {scenarioTarget === "bilan" ? (
+                  <div className="grid grid-cols-2 gap-4">
+                    <InputGroup
+                      label="Nb actions à confirmer"
+                      value={bilanActionsCount}
+                      onChange={setBilanActionsCount}
+                      min={1}
+                      max={20}
+                    />
+                  </div>
+                ) : null}
+
                 <div className="grid grid-cols-2 gap-4">
-                  <InputGroup 
-                    label="Since (min)"
-                    value={sinceMinutes}
-                    onChange={setSinceMinutes}
-                    min={0}
-                    disabled={!useSinceFilter}
-                  />
                   <InputGroup 
                     label="Budget Limit ($)"
                     value={budgetUsd}
@@ -359,23 +434,6 @@ export default function AdminDashboard() {
                     min={0} step={0.01}
                     icon={DollarSign}
                   />
-                </div>
-
-                <div className="pt-1">
-                  <label className="flex items-start gap-3 p-3 rounded-lg bg-neutral-950 border border-neutral-800 cursor-pointer hover:border-neutral-700 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={useSinceFilter}
-                      onChange={(e) => setUseSinceFilter(e.target.checked)}
-                      className="mt-0.5 w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-indigo-500 focus:ring-offset-neutral-950 focus:ring-indigo-500"
-                    />
-                    <div className="flex flex-col">
-                      <span className="text-sm text-neutral-300">Activer “Since (min)”</span>
-                      <span className="text-xs text-neutral-500">
-                        Filtre temporel optionnel. OFF = aucun filtrage.
-                      </span>
-                    </div>
-                  </label>
                 </div>
 
                 <div className="pt-2">
@@ -390,21 +448,9 @@ export default function AdminDashboard() {
                   </label>
                 </div>
 
-                <div className="pt-2">
-                  <label className="flex items-center gap-3 p-3 rounded-lg bg-neutral-950 border border-neutral-800 cursor-pointer hover:border-neutral-700 transition-colors">
-                    <input
-                      type="checkbox"
-                      checked={useRealAi}
-                      onChange={(e) => setUseRealAi(e.target.checked)}
-                      className="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-indigo-500 focus:ring-offset-neutral-950 focus:ring-indigo-500"
-                    />
-                    <span className="text-sm text-neutral-300">Real AI (Gemini) pour ce run</span>
-                  </label>
-                </div>
-
-                {useRealAi && pricingLoaded && pricingFlashIn + pricingFlashOut <= 0 ? (
+                {pricingLoaded && pricingFlashIn + pricingFlashOut <= 0 ? (
                   <div className="text-xs text-amber-300">
-                    Pricing Gemini non configuré (llm_pricing=0). Les tokens remonteront, mais le coût restera à 0 tant que tu ne mets pas les prix.
+                    Pricing Gemini non configuré (llm_pricing=0). Les tokens remonteront, mais le coût restera à 0.
                   </div>
                 ) : null}
 
@@ -412,38 +458,25 @@ export default function AdminDashboard() {
                   <div className="flex items-center justify-between mb-3">
                     <div className="text-xs font-medium text-neutral-400 uppercase tracking-wider flex items-center gap-2">
                       <CreditCard className="w-3.5 h-3.5" />
-                      Pricing · gemini-2.0-flash (USD / 1K tokens)
+                      Pricing · {evalModel} (USD / 1K tokens)
                     </div>
-                    <button
-                      onClick={savePricing}
-                      className="text-xs px-2.5 py-1.5 rounded-lg bg-neutral-900 border border-neutral-700 hover:border-neutral-600 text-neutral-200"
-                    >
-                      Sauver
-                    </button>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <div className="text-xs text-neutral-500 mb-1">Input</div>
-                      <input
-                        type="number"
-                        min={0}
-                        step={0.0001}
-                        value={pricingFlashIn}
-                        onChange={(e) => setPricingFlashIn(Number(e.target.value))}
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                      />
+                      <div className="w-full bg-neutral-900/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-400">
+                        {pricingLoaded ? pricingFlashIn : "..."}
+                      </div>
                     </div>
                     <div>
                       <div className="text-xs text-neutral-500 mb-1">Output</div>
-                      <input
-                        type="number"
-                        min={0}
-                        step={0.0001}
-                        value={pricingFlashOut}
-                        onChange={(e) => setPricingFlashOut(Number(e.target.value))}
-                        className="w-full bg-neutral-900 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-200 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
-                      />
+                      <div className="w-full bg-neutral-900/50 border border-neutral-800 rounded-lg px-3 py-2 text-sm text-neutral-400">
+                        {pricingLoaded ? pricingFlashOut : "..."}
+                      </div>
                     </div>
+                  </div>
+                  <div className="mt-2 text-[10px] text-neutral-600 italic">
+                    Valeurs définies en base de données (llm_pricing).
                   </div>
                 </div>
 
@@ -490,7 +523,7 @@ export default function AdminDashboard() {
                 {lastRun && (
                   <div className="flex items-center gap-3 text-xs">
                     <span className="px-2 py-1 rounded bg-neutral-800 text-neutral-300 border border-neutral-700">
-                      Mode: {lastRun.use_real_ai ? "REAL" : "STUB"}
+                      Mode: REAL
                     </span>
                     <span className="px-2 py-1 rounded bg-neutral-800 text-neutral-300 border border-neutral-700">
                       Time: {new Date().toLocaleTimeString()}

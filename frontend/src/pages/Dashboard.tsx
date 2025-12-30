@@ -276,10 +276,7 @@ const Dashboard = () => {
               </div>
             </div>
             <button
-              onClick={() => {
-                setProfileInitialTab('subscription');
-                setIsProfileOpen(true);
-              }}
+              onClick={() => navigate('/upgrade')}
               className={`px-4 py-2 rounded-xl font-bold text-xs transition-colors shrink-0 ${
                 softLocked
                   ? (isArchitectMode ? "bg-amber-600/20 hover:bg-amber-600/30 text-amber-200 border border-amber-700/40" : "bg-amber-500 hover:bg-amber-400 text-white shadow-sm")
@@ -451,8 +448,8 @@ const Dashboard = () => {
                         <h2 className="text-xs min-[350px]:text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <Sparkles className="w-4 h-4 text-indigo-600" /> Accélérateurs
                         </h2>
-                        <RitualCard action={{ id: 'h_perso', type: 'ancrage', subType: 'hypnose_perso', title: 'Hypnose Sur-Mesure', description: 'Générée spécifiquement pour tes blocages.', isCompleted: false, price: '5,00 €' }} />
-                        <RitualCard action={{ id: 'h_global', type: 'ancrage', subType: 'hypnose_daily', title: 'Hypnose : Ancrage du Calme', description: 'Session standard.', isCompleted: false, target_days: 21, current_streak: 3, media_duration: '12 min', free_trial_days: 5, current_trial_day: 3 }} />
+                        <RitualCard action={{ id: 'h_perso', type: 'ancrage', subType: 'hypnose_perso', title: 'Hypnose Sur-Mesure', description: 'Générée spécifiquement pour tes blocages.', isCompleted: false, price: '5,00 €', isComingSoon: true }} />
+                        <RitualCard action={{ id: 'h_global', type: 'ancrage', subType: 'hypnose_daily', title: 'Hypnose : Ancrage du Calme', description: 'Session standard.', isCompleted: false, target_days: 21, current_streak: 3, media_duration: '12 min', free_trial_days: 5, current_trial_day: 3, isComingSoon: true }} />
                     </div>
 
                     <div className="flex items-center justify-between mb-6">

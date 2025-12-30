@@ -89,7 +89,7 @@ export async function getDashboardContext(supabase: SupabaseClient, userId: stri
   // 1. ACTIVE PLAN
   const { data: activePlan } = await supabase
     .from('user_plans')
-    .select('title, deep_why, inputs_why, inputs_context, inputs_blockers, recraft_reason, content')
+    .select('id, status, current_phase, title, deep_why, inputs_why, inputs_context, inputs_blockers, recraft_reason, content')
     .eq('user_id', userId)
     .in('status', ['active', 'in_progress', 'pending']) // Accepte tous les statuts "vivants"
     .order('created_at', { ascending: false }) // Prend le plus récent si plusieurs
@@ -99,6 +99,8 @@ export async function getDashboardContext(supabase: SupabaseClient, userId: stri
   if (activePlan) {
     context += `=== PLAN ACTUEL (Tableau de Bord) ===\n`;
     context += `Titre: ${activePlan.title || 'Sans titre'}\n`;
+    context += `Statut: ${activePlan.status || 'unknown'}\n`;
+    if (activePlan.current_phase != null) context += `Phase courante (dashboard): ${activePlan.current_phase}\n`;
     context += `Pourquoi (Deep Why): ${activePlan.deep_why || activePlan.inputs_why}\n`;
     
     if (activePlan.inputs_context) context += `Contexte Initial: ${activePlan.inputs_context}\n`;
@@ -112,23 +114,56 @@ export async function getDashboardContext(supabase: SupabaseClient, userId: stri
         context += JSON.stringify(activePlan.content, null, 2);
     }
     context += `\n`;
+  } else {
+    context += `=== ÉTAT DU COMPTE ===\n`;
+    context += `- AUCUN PLAN DE TRANSFORMATION ACTIF.\n`;
+    context += `- L'utilisateur n'a pas encore fait son questionnaire ou activé un plan.\n\n`;
   }
 
-  // 2. ACTIONS DU JOUR
-  const today = new Date().toISOString().split('T')[0];
-  const { data: actions } = await supabase
-    .from('user_actions')
-    .select('title, status, time_of_day')
-    .eq('user_id', userId)
-    .in('status', ['active', 'pending']); 
+  // 2. ACTIONS / FRAMEWORKS (live DB state)
+  // Important: frameworks are also "actions" in the user experience, but are stored separately in DB.
+  // Also: "active" vs "pending" must be taken from DB (dashboard is the only activation surface).
+  const planId = (activePlan as any)?.id as string | undefined
+  if (planId) {
+    const [{ data: actions }, { data: frameworks }] = await Promise.all([
+      supabase
+        .from('user_actions')
+        .select('title, status, time_of_day, type, tracking_type')
+        .eq('user_id', userId)
+        .eq('plan_id', planId)
+        .in('status', ['active', 'pending']),
+      supabase
+        .from('user_framework_tracking')
+        .select('title, status, type, tracking_type')
+        .eq('user_id', userId)
+        .eq('plan_id', planId)
+        .in('status', ['active', 'pending']),
+    ])
 
-  if (actions && actions.length > 0) {
-    context += `=== ACTIONS ACTIVES DU PLAN ===\n`;
-    actions.forEach(a => {
-        // Simple listing pour contexte global
-        context += `- ${a.title} (${a.time_of_day})\n`;
-    });
-    context += `\n`;
+    const activeA = (actions ?? []).filter((a: any) => a.status === 'active')
+    const pendingA = (actions ?? []).filter((a: any) => a.status === 'pending')
+    const activeF = (frameworks ?? []).filter((f: any) => f.status === 'active')
+    const pendingF = (frameworks ?? []).filter((f: any) => f.status === 'pending')
+
+    if (activeA.length + pendingA.length + activeF.length + pendingF.length > 0) {
+      context += `=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\n`
+      context += `RÈGLES IMPORTANTES:\n`
+      context += `- Les frameworks comptent comme des actions côté utilisateur.\n`
+      context += `- "active" = activée et visible comme active dans l'app. "pending" = pas active.\n`
+      context += `- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\n`
+
+      context += `Actives (${activeA.length + activeF.length}):\n`
+      for (const a of activeA) context += `- [ACTION] ${a.title} (${a.time_of_day})\n`
+      for (const f of activeF) context += `- [FRAMEWORK] ${f.title}\n`
+      context += `\n`
+
+      if (pendingA.length + pendingF.length > 0) {
+        context += `Non actives / pending (${pendingA.length + pendingF.length}):\n`
+        for (const a of pendingA) context += `- [ACTION] ${a.title} (${a.time_of_day})\n`
+        for (const f of pendingF) context += `- [FRAMEWORK] ${f.title}\n`
+        context += `\n`
+      }
+    }
   }
 
   // 3. VITAL SIGNS (Derniers relevés)

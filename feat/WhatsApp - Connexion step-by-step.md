@@ -104,7 +104,7 @@ Cas limites:
   - Si l’utilisateur envoie un **email**: tenter de trouver `profiles.email`, mais **ne jamais relier le numéro uniquement sur l’email** (faille).
     - Si email introuvable: flow en 2 étapes:
       - 1) “Tu es sûr ?” (renvoyer l’email exact ou répondre OUI)
-      - 2) si re-email ou confirmation: rediriger vers support (`hello@sophia-coach.ai`)
+      - 2) si re-email ou confirmation: rediriger vers support (`sophia@sophia-coach.ai`)
     - Si email trouvé:
       - Envoyer un **email de validation** (au titulaire du compte) avec un lien `wa.me` pré-rempli (`LINK:<token>`).
       - Sur WhatsApp, préciser: **garder le texte pré-rempli tel quel** et l’envoyer (sinon impossible d’appliquer la modification).

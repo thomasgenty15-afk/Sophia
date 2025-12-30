@@ -107,6 +107,34 @@ Seed the WhatsApp opt-in templates (service-role privileges required):
 supabase db seed --file supabase/seeds/optin_templates.json
 ```
 
+## Fixtures (profils types reproductibles)
+
+Pour tester des morceaux de flux **en isolation** (onboarding + opt-in WhatsApp, bilan/investigator, détresse, décrochage…), on peut provisionner des **users fixtures** en base à partir d’“archetypes” versionnés.
+
+- Les archetypes sont dans `frontend/eval/archetypes/*.json`
+- Le script de provisioning: `frontend/scripts/provision_fixture_user.mjs`
+
+### Provisionner un profil type
+
+Pré-requis: exporter les variables (local ou cloud):
+
+- `VITE_SUPABASE_URL`
+- `VITE_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
+
+Puis:
+
+```bash
+npm run fixtures:provision -- --key onboarding_whatsapp_optin_yes
+```
+
+Options:
+
+- `--no-reset`: ne supprime pas/recrée pas le user (réutilise si existe)
+- `--grant-admin`: ajoute le user dans `public.internal_admins` (utile si le pré-lancement bloque l’accès)
+
+Le script affiche l’email/mot de passe du user fixture pour te connecter dans l’app et reproduire une conversation.
+
 ## RPC Examples
 
 - Fetch the authenticated profile (token must belong to the current user):

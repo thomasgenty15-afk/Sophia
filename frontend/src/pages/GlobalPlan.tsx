@@ -4,6 +4,7 @@ import { ChevronDown, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { SophiaAssistantModal } from '../components/SophiaAssistantModal';
+import OnboardingProgress from '../components/OnboardingProgress';
 
 import type { Theme } from '../data/onboarding/types';
 import { THEME_SLEEP } from '../data/onboarding/theme_sleep';
@@ -595,6 +596,7 @@ const GlobalPlan = () => {
 
       {/* Main Content */}
       <main className="flex-1 p-6 md:p-12 max-w-4xl mx-auto">
+        <OnboardingProgress currentStep={1} />
         <header className="mb-8">
           {/* Encart Explicatif */}
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 flex items-start gap-3">

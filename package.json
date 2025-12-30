@@ -7,6 +7,7 @@
     "db:stop": "npx supabase stop",
     "db:reset": "npx supabase db reset",
     "db:dump": "npx supabase db dump --local > schema.sql",
+    "fixtures:provision": "node ./frontend/scripts/provision_fixture_user.mjs",
     "test:mega": "node ./scripts/mega-test.mjs"
   },
   "devDependencies": {

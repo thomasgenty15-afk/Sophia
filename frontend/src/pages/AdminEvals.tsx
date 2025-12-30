@@ -29,6 +29,7 @@ type EvalRunRow = {
   dataset_key: string;
   scenario_key: string;
   status: string;
+  config?: any;
   issues: any[];
   suggestions: any[];
   transcript?: any[];
@@ -59,7 +60,7 @@ export default function AdminEvals() {
       if (!user || !isAdmin) return;
       const { data: runRows, error: runErr } = await supabase
         .from("conversation_eval_runs")
-        .select("id,created_at,dataset_key,scenario_key,status,issues,suggestions,transcript,error")
+        .select("id,created_at,dataset_key,scenario_key,status,config,issues,suggestions,transcript,error")
         .order("created_at", { ascending: false })
         .limit(50);
       if (runErr) {
@@ -423,6 +424,64 @@ export default function AdminEvals() {
                       </div>
                     ))
                   )}
+                </div>
+              )}
+            </div>
+
+            {/* Plan Snapshot (Standalone) */}
+            <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden shrink-0">
+              <div className="p-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
+                <h2 className="font-medium text-white flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-neutral-400" />
+                  Plan (snapshot)
+                </h2>
+              </div>
+
+              {!selectedRun ? (
+                <div className="p-8 text-center text-sm text-neutral-500">
+                  Select a run to view the plan snapshot.
+                </div>
+              ) : (
+                <div className="p-4 space-y-3">
+                  {(() => {
+                    const snap = (selectedRun as any)?.config?.plan_snapshot;
+                    const dashboard = (snap?.dashboard_context ?? "") as string;
+                    const plan = snap?.plan ?? null;
+                    const actions = Array.isArray(snap?.actions) ? snap.actions : [];
+
+                    if (!snap) {
+                      return (
+                        <div className="text-sm text-neutral-500 italic">
+                          No plan snapshot available for this run.
+                        </div>
+                      );
+                    }
+
+                    return (
+                      <>
+                        {plan ? (
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                            <div className="rounded-lg bg-neutral-950 border border-neutral-800 p-3">
+                              <div className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Plan title</div>
+                              <div className="text-sm text-neutral-200 break-words">{plan.title ?? "—"}</div>
+                            </div>
+                            <div className="rounded-lg bg-neutral-950 border border-neutral-800 p-3">
+                              <div className="text-xs text-neutral-500 uppercase tracking-wider mb-1">Actions</div>
+                              <div className="text-sm text-neutral-200">{actions.length}</div>
+                            </div>
+                          </div>
+                        ) : null}
+
+                        <div className="bg-black/30 rounded border border-neutral-800/50 p-3 overflow-x-auto">
+                          <pre className="text-xs text-neutral-400 font-mono whitespace-pre-wrap break-words">
+                            {dashboard?.trim()
+                              ? dashboard
+                              : JSON.stringify({ plan, actions }, null, 2)}
+                          </pre>
+                        </div>
+                      </>
+                    );
+                  })()}
                 </div>
               )}
             </div>

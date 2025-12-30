@@ -8,13 +8,27 @@ const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WHATSAPP_PHONE_NUMBER = Deno.env.get("WHATSAPP_PHONE_NUMBER") || "33674637278"; // Format sans '+' pour le lien wa.me
 
 // Adresse expéditeur (à configurer dans Resend)
-const SENDER_EMAIL = "Sophia <hello@sophia-app.com>"; 
+const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? "Sophia <sophia@sophia-coach.ai>"; 
 
 serve(async (req) => {
   const guardRes = ensureInternalRequest(req);
   if (guardRes) return guardRes;
 
   try {
+    if (!RESEND_API_KEY || !String(RESEND_API_KEY).trim()) {
+      console.error("[send-welcome-email] Missing RESEND_API_KEY");
+      return new Response(JSON.stringify({ error: "Server misconfigured: missing RESEND_API_KEY" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+    if (!SENDER_EMAIL || !String(SENDER_EMAIL).trim()) {
+      console.error("[send-welcome-email] Missing SENDER_EMAIL");
+      return new Response(JSON.stringify({ error: "Server misconfigured: missing SENDER_EMAIL" }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
     // 1. Vérification auth (interne ou admin)
     // On s'attend à être appelé par un Trigger DB (Webhook) ou manuellement
     // Le payload Webhook standard de Supabase est { type: 'INSERT', table: 'profiles', record: { ... }, old_record: null }
@@ -43,6 +57,15 @@ serve(async (req) => {
 
     if (!targetEmail) {
       throw new Error("Aucun email destinataire trouvé");
+    }
+
+    // Skip ephemeral test users created by run-evals (avoid sending real emails / noisy logs).
+    const normalizedEmail = String(targetEmail).trim().toLowerCase();
+    if (normalizedEmail.startsWith("run-evals+") && normalizedEmail.endsWith("@example.com")) {
+      console.log(`Skip welcome email for eval user: ${targetEmail} (${userId})`);
+      return new Response(JSON.stringify({ message: "Skipped (run-evals test user)" }), {
+        headers: { "Content-Type": "application/json" },
+      });
     }
 
     console.log(`Préparation envoi email Bienvenue à ${targetEmail} (${userId})`);
@@ -126,8 +149,9 @@ serve(async (req) => {
     });
 
   } catch (error) {
-    console.error("Erreur:", error.message);
-    return new Response(JSON.stringify({ error: error.message }), {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error("[send-welcome-email] Error:", message);
+    return new Response(JSON.stringify({ error: message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },
     });

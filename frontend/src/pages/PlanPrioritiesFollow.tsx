@@ -15,6 +15,7 @@ import {
   RotateCcw,
   Loader2
 } from 'lucide-react';
+import OnboardingProgress from '../components/OnboardingProgress';
 
 interface PriorityItem {
   id: string;
@@ -477,6 +478,7 @@ const PlanPrioritiesFollow = () => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-8 px-4 md:py-12 md:px-6">
       <div className="max-w-3xl mx-auto">
+        <OnboardingProgress currentStep={2} />
         
         {/* HEADER */}
         <div className="text-center mb-8 md:mb-10 animate-fade-in-up">

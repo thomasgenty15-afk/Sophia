@@ -34,6 +34,7 @@ export function ensureInternalRequest(req: Request): Response | null {
   const gotInternalSecret = req.headers.get("x-internal-secret")?.trim();
 
   if (!expectedInternalSecret) {
+    console.error("[internal-auth] Server misconfigured: missing INTERNAL_FUNCTION_SECRET/SECRET_KEY");
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -41,6 +42,11 @@ export function ensureInternalRequest(req: Request): Response | null {
   }
 
   if (!gotInternalSecret || gotInternalSecret !== expectedInternalSecret) {
+    // Keep logs non-sensitive: do not print secrets, only presence + basic request info.
+    console.warn("[internal-auth] Forbidden: invalid or missing X-Internal-Secret", {
+      method: req.method,
+      has_header: Boolean(gotInternalSecret),
+    });
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },

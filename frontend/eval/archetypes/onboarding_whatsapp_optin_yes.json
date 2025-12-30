@@ -1,0 +1,36 @@
+{
+  "key": "onboarding_whatsapp_optin_yes",
+  "label": "Onboarding · WhatsApp opt-in = YES (phone validated)",
+  "profile": {
+    "full_name": "Fixture · Opt-in WhatsApp OUI",
+    "onboarding_completed": true,
+    "phone_number": "+33600000001",
+    "phone_invalid": false,
+    "whatsapp_opted_in": true,
+    "whatsapp_bilan_opted_in": false,
+    "whatsapp_state": "opted_in"
+  },
+  "plan": {
+    "title": "Reprendre de l'énergie",
+    "deep_why": "Je veux retrouver une routine simple et tenir sur la durée.",
+    "actions": [
+      {
+        "type": "habit",
+        "title": "Sport",
+        "description": "Faire 20 minutes de marche ou de sport doux.",
+        "tracking_type": "boolean",
+        "time_of_day": "any_time",
+        "target_reps": 1,
+        "status": "active",
+        "last_performed_at": null
+      }
+    ]
+  },
+  "chat_state": {
+    "current_mode": "companion",
+    "risk_level": 0,
+    "investigation_state": null
+  }
+}
+
+

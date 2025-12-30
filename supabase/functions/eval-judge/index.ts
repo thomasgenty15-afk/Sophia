@@ -5,6 +5,7 @@ import { z, getRequestId, jsonResponse, parseJsonBody, serverError } from "../_s
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { sumUsageByRequestId } from "../_shared/llm-usage.ts";
+import { fetchPromptOverride } from "../_shared/prompt-overrides.ts";
 
 type TranscriptMsg = {
   role: "user" | "assistant";
@@ -134,11 +135,60 @@ function ruleBasedSuggestions(issues: any[]): any[] {
   return suggestions;
 }
 
+function severityRank(sev: unknown): number {
+  const s = String(sev ?? "").toLowerCase();
+  if (s === "high") return 3;
+  if (s === "medium") return 2;
+  if (s === "low") return 1;
+  return 0;
+}
+
+function uniqBy<T>(arr: T[], keyFn: (x: T) => string): T[] {
+  const seen = new Set<string>();
+  const out: T[] = [];
+  for (const x of arr) {
+    const k = keyFn(x);
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(x);
+  }
+  return out;
+}
+
+function buildTranscriptLines(transcript: TranscriptMsg[]): string[] {
+  return (transcript ?? []).map((m, idx) => {
+    const agent = (m as any)?.agent_used ? `(${(m as any).agent_used})` : "";
+    const role = String(m.role ?? "").toUpperCase();
+    const content = String(m.content ?? "").replace(/\s+/g, " ").trim();
+    return `#${idx} ${role}${agent}: ${content}`;
+  });
+}
+
+function pickContextBlock(params: { transcriptLines: string[]; snippet?: string; radius?: number }): string {
+  const lines = params.transcriptLines ?? [];
+  const radius = Math.max(1, Math.min(6, Number(params.radius ?? 3) || 3));
+  const needle = String(params.snippet ?? "").trim();
+  if (!needle) return lines.slice(0, Math.min(10, lines.length)).join("\n");
+  const idx = lines.findIndex((l) => l.includes(needle));
+  if (idx < 0) return lines.slice(0, Math.min(10, lines.length)).join("\n");
+  const start = Math.max(0, idx - radius);
+  const end = Math.min(lines.length, idx + radius + 1);
+  return lines.slice(start, end).join("\n");
+}
+
+function isSuggestionDuplicateAgainstOverride(params: { existingOverride: string; proposed: string }): boolean {
+  const a = (params.existingOverride ?? "").trim();
+  const b = (params.proposed ?? "").trim();
+  if (!a || !b) return false;
+  return a.includes(b);
+}
+
 const BodySchema = z.object({
   dataset_key: z.string().min(1),
   scenario_key: z.string().min(1),
   tags: z.array(z.string()).optional(),
   force_real_ai: z.boolean().optional(),
+  model: z.string().optional(),
   transcript: z.array(
     z.object({
       role: z.enum(["user", "assistant"]),
@@ -150,6 +200,7 @@ const BodySchema = z.object({
   state_before: z.any().optional(),
   state_after: z.any().optional(),
   config: z.any().optional(),
+  system_snapshot: z.any().optional(),
   assertions: z
     .object({
       // Expected sequence constraints (best effort)
@@ -322,6 +373,27 @@ Deno.serve(async (req) => {
     // Optional: LLM judge enrichment (disabled in MEGA_TEST_MODE unless force_real_ai)
     let judgeLlmUsed = false;
     const allowReal = Boolean(body.force_real_ai);
+    const transcriptLines = buildTranscriptLines(body.transcript ?? []);
+
+    // Lightweight system snapshot so the judge can be precise and avoid inventing modules.
+    const promptKeys = [
+      "sophia.dispatcher",
+      "sophia.investigator",
+      "sophia.companion",
+      "sophia.architect",
+      "sophia.firefighter",
+      "sophia.sentry",
+    ];
+    const overrides: Record<string, string> = {};
+    for (const k of promptKeys) overrides[k] = await fetchPromptOverride(k);
+    const systemSnapshot = {
+      ...(typeof (body as any)?.system_snapshot === "object" ? (body as any).system_snapshot : {}),
+      routing_rules: [
+        "Hard guard (router): if investigation_state is active, only investigator answers unless explicit stop (stop/arrête/change topic).",
+        "Safety priority: sentry/firefighter may override during a checkup if risk is detected.",
+      ],
+      prompt_overrides_appended: overrides,
+    };
     if (!isMegaEnabled() || allowReal) {
       try {
         judgeLlmUsed = true;
@@ -335,6 +407,9 @@ Objectifs:
 
 Règles:
 - Propose des addendums courts, actionnables, testables.
+- IMPORTANT: N'invente PAS de modules/flows qui n'existent pas. Utilise UNIQUEMENT SYSTEM_SNAPSHOT + transcript.
+- Si un problème est déjà couvert par le code (ex: stabilité checkup), ne le repropose pas en prompt; à la place, signale un bug potentiel ou un angle manquant.
+- Limites STRICTES: max 3 issues, max 3 suggestions.
 - Cible un prompt_key parmi:
   - sophia.dispatcher
   - sophia.investigator
@@ -342,6 +417,9 @@ Règles:
   - sophia.architect
   - sophia.firefighter
   - sophia.sentry
+
+SYSTEM_SNAPSHOT:
+${JSON.stringify(systemSnapshot, null, 2)}
 
 Format attendu:
 {
@@ -356,9 +434,14 @@ Format attendu:
         const transcriptText = body.transcript
           .map((m) => `${m.role.toUpperCase()}${m.agent_used ? `(${m.agent_used})` : ""}: ${m.content}`)
           .join("\n");
+        const overrideModel =
+          (body as any)?.model ||
+          (body as any)?.config?.model ||
+          (body as any)?.config?.limits?.model ||
+          "gemini-2.0-flash";
         const out = await generateWithGemini(systemPrompt, transcriptText, 0.2, true, [], "auto", {
           requestId,
-          model: "gemini-2.0-flash",
+          model: String(overrideModel),
           source: "eval-judge",
           forceRealAi: allowReal,
         });
@@ -382,7 +465,7 @@ Format attendu:
     }
 
     // Normalize suggestions
-    const normalizedSuggestions = (suggestions ?? [])
+    const normalizedSuggestionsAll = (suggestions ?? [])
       .filter((s: any) => s && typeof s.prompt_key === "string" && typeof s.proposed_addendum === "string")
       .map((s: any) => ({
         prompt_key: String(s.prompt_key),
@@ -392,6 +475,49 @@ Format attendu:
       }))
       .filter((s: any) => s.proposed_addendum.length > 0);
 
+    const normalizedSuggestionsDeduped = uniqBy(
+      normalizedSuggestionsAll,
+      (s: any) => `${s.prompt_key}:${s.action}:${s.proposed_addendum}`,
+    );
+    const normalizedSuggestionsNoDup = normalizedSuggestionsDeduped.filter((s: any) => {
+      const existing = overrides?.[String(s.prompt_key)] ?? "";
+      return !isSuggestionDuplicateAgainstOverride({ existingOverride: existing, proposed: s.proposed_addendum });
+    });
+
+    // Limit noise (requested): max 3 issues, max 3 suggestions.
+    const issuesLimited = uniqBy(
+      issues ?? [],
+      (i: any) => `${String(i?.code ?? "")}:${String(i?.message ?? "")}:${String(i?.evidence?.snippet ?? "")}`,
+    )
+      .sort((a: any, b: any) => severityRank(b?.severity) - severityRank(a?.severity))
+      .slice(0, 3)
+      .map((i: any) => ({
+        code: String(i?.code ?? "unknown"),
+        severity: String(i?.severity ?? "low"),
+        message: String(i?.message ?? ""),
+        evidence: i?.evidence ?? {},
+      }));
+
+    const suggestionsLimited = normalizedSuggestionsNoDup.slice(0, 3).map((s: any, idx: number) => {
+      const related = issuesLimited[idx] ?? issuesLimited[0] ?? null;
+      const snippet = String(related?.evidence?.snippet ?? "");
+      const contextBlock = pickContextBlock({ transcriptLines, snippet, radius: 3 });
+      return {
+        ...s,
+        context_block: [
+          "=== CONTEXT (transcript excerpt) ===",
+          contextBlock,
+          "",
+          "=== APPLY ===",
+          `prompt_key: ${s.prompt_key}`,
+          `action: ${s.action}`,
+          "",
+          "proposed_addendum:",
+          String(s.proposed_addendum ?? "").trim(),
+        ].join("\n").trim(),
+      };
+    });
+
     // Persist eval results
     // Prefer exact usage logged by gemini.ts (usageMetadata). Fallback to 0 if unavailable.
     const summed = await sumUsageByRequestId(requestId);
@@ -400,8 +526,8 @@ Format attendu:
       .from("conversation_eval_runs")
       .update({
         status: "completed",
-        issues,
-        suggestions: normalizedSuggestions,
+        issues: issuesLimited,
+        suggestions: suggestionsLimited,
         metrics: {
           request_id: requestId,
           mega_test_mode: isMegaEnabled(),
@@ -414,26 +540,15 @@ Format attendu:
       })
       .eq("id", runId);
 
-    // Persist suggestions for UI workflow (dedupe-ish: insert as new rows each run)
-    if (normalizedSuggestions.length > 0) {
-      const rows = normalizedSuggestions.map((s: any) => ({
-        created_by: userId,
-        eval_run_id: runId,
-        prompt_key: s.prompt_key,
-        action: s.action,
-        proposed_addendum: s.proposed_addendum,
-        rationale: s.rationale,
-        status: "pending",
-      }));
-      await admin.from("prompt_override_suggestions").insert(rows);
-    }
+    // NOTE: We no longer insert into prompt_override_suggestions here.
+    // The workflow is "copy/paste into Cursor" from returned suggestions.context_block.
 
     return jsonResponse(req, {
       success: true,
       request_id: requestId,
       eval_run_id: runId,
-      issues,
-      suggestions: normalizedSuggestions,
+      issues: issuesLimited,
+      suggestions: suggestionsLimited,
       metrics: {
         mega_test_mode: isMegaEnabled(),
         judge_llm_used: judgeLlmUsed,

@@ -7,6 +7,17 @@ export async function generateWithGemini(
   toolChoice: string = "auto", // 'auto', 'any' or specific tool name (not supported by all models but 'any' forces tool use)
   meta?: { requestId?: string; model?: string; source?: string; forceRealAi?: boolean; userId?: string }
 ): Promise<string | { tool: string, args: any }> {
+  const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+  const backoffMs = (attempt: number) => {
+    // attempt is 1-based
+    const base = 800;
+    const max = 15_000;
+    const exp = Math.min(max, base * Math.pow(2, attempt - 1));
+    const jitter = Math.floor(Math.random() * 400);
+    return Math.min(max, exp + jitter);
+  };
+  const retryableStatuses = new Set([429, 500, 502, 503, 504]);
+
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
     (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
@@ -28,8 +39,8 @@ export async function generateWithGemini(
     throw new Error('Clé API Gemini manquante')
   }
 
-  const model = (meta?.model ?? "gemini-2.0-flash").trim();
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`
+  let model = (meta?.model ?? "gemini-2.0-flash").trim();
+  const fallbackModel = (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim();
 
   const payload: any = {
     contents: [{ 
@@ -60,20 +71,67 @@ export async function generateWithGemini(
     }
   }
 
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(payload)
-    // ... rest of function
-  })
+  const MAX_RETRIES = 6;
+  let response: Response | null = null;
+  let data: any = null;
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    console.error("Gemini Error Payload:", errorData);
-    throw new Error(`Erreur Gemini: ${errorData.error?.message || response.statusText}`);
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`
+      response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (retryableStatuses.has(response.status)) {
+        const errorData = await response.json().catch(() => ({}));
+        const msg = errorData?.error?.message || response.statusText || "Retryable error";
+        console.warn(
+          `[Gemini] status=${response.status} attempt=${attempt}/${MAX_RETRIES} request_id=${meta?.requestId ?? "n/a"} model=${model}: ${msg}`,
+        );
+
+        // Optional model fallback (only if configured) when the chosen model is overloaded.
+        // This keeps production responsive during transient overloads while still preferring the requested model.
+        if (
+          (response.status === 503 || response.status === 429) &&
+          fallbackModel &&
+          fallbackModel !== model &&
+          attempt >= Math.ceil(MAX_RETRIES / 2)
+        ) {
+          console.warn(
+            `[Gemini] Switching model fallback request_id=${meta?.requestId ?? "n/a"} ${model} -> ${fallbackModel}`,
+          );
+          model = fallbackModel;
+        }
+
+        if (attempt < MAX_RETRIES) {
+          await sleep(backoffMs(attempt));
+          continue;
+        }
+        // last attempt falls through to !ok handler
+      }
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        // Log minimal but keep payload for debugging (already was used in your logs).
+        console.error("Gemini Error Payload:", errorData);
+        throw new Error(`Erreur Gemini: ${errorData.error?.message || response.statusText}`);
+      }
+
+      data = await response.json();
+      break;
+    } catch (e) {
+      const isLast = attempt >= MAX_RETRIES;
+      console.error(`[Gemini] request_id=${meta?.requestId ?? "n/a"} attempt=${attempt}/${MAX_RETRIES} error:`, e);
+      if (isLast) throw e;
+      await sleep(backoffMs(attempt));
+    }
   }
 
-  const data = await response.json()
+  if (!data) {
+    throw new Error("Erreur Gemini: no response after retries");
+  }
   // Usage metadata (exact token counts) - best effort logging.
   try {
     const usage = (data as any)?.usageMetadata;

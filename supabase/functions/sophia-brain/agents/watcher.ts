@@ -7,7 +7,7 @@ export async function runWatcher(
   supabase: SupabaseClient, 
   userId: string, 
   lastProcessedAt: string,
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
 ) {
   console.log(`[Veilleur] Triggered for user ${userId}`)
 
@@ -108,7 +108,7 @@ export async function runWatcher(
   try {
     const jsonStr = await generateWithGemini(systemPrompt, transcript, 0.3, true, [], "auto", {
       requestId: meta?.requestId,
-      model: "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.0-flash",
       source: "sophia-brain:watcher",
       forceRealAi: meta?.forceRealAi,
     })

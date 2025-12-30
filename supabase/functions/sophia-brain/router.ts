@@ -13,7 +13,39 @@ import { appendPromptOverride, fetchPromptOverride } from '../_shared/prompt-ove
 function normalizeChatText(text: string): string {
   // Some model outputs include the literal characters "\n" instead of real newlines.
   // Convert them so UI and WhatsApp both display properly.
-  return (text ?? "").toString().replace(/\\n/g, "\n");
+  const raw = (text ?? "").toString().replace(/\\n/g, "\n");
+
+  // Guardrail: strip accidental tool/code leakage (Gemini sometimes outputs pseudo-code like
+  // "print(default_api.track_progress(...))" instead of calling tools).
+  // We never want to show these to users.
+  const lines = raw.split("\n");
+  const cleaned: string[] = [];
+  for (const line of lines) {
+    const l = line.trim();
+    if (!l) {
+      cleaned.push("");
+      continue;
+    }
+    // Drop code fences and obvious tool invocations.
+    if (l.startsWith("```")) continue;
+    if (/^print\s*\(/i.test(l)) continue;
+    if (/default_api\./i.test(l)) continue;
+    if (/(track_progress|create_simple_action|create_framework|log_action_execution|break_down_action)\s*\(/i.test(l)) continue;
+    cleaned.push(line);
+  }
+  // Collapse excessive empty lines after filtering.
+  return cleaned.join("\n").replace(/\n{3,}/g, "\n\n").replace(/\*\*/g, "").trim();
+}
+
+function isExplicitStopCheckup(message: string): boolean {
+  const m = (message ?? "").toString().trim();
+  if (!m) return false;
+  // Explicit stop / change topic signals (keep this conservative: only "clear stop" phrases).
+  // Notes:
+  // - We accept both generic stops ("stop", "arrête") and stop+topic ("stop le bilan", "arrête le check").
+  // - We avoid overly broad tokens like just "laisse" which could appear in normal sentences.
+  return /\b(?:stop|pause|arr[êe]te|arr[êe]tons|annule|annulons|on\s+(?:arr[êe]te|arr[êe]te|arr[êe]tons|stop|annule|annulons)|je\s+veux\s+(?:arr[êe]ter|stopper)|on\s+peut\s+arr[êe]ter|change(?:r)?\s+de\s+sujet|on\s+change\s+de\s+sujet|parl(?:er)?\s+d['’]autre\s+chose|on\s+parle\s+d['’]autre\s+chose|pas\s+maintenant|plus\s+tard|on\s+reprendra\s+plus\s+tard|pas\s+de\s+(?:bilan|check|checkup)|stop\s+(?:le\s+)?(?:bilan|check|checkup)|arr[êe]te\s+(?:le\s+)?(?:bilan|check|checkup)|stop\s+this|stop\s+it|switch\s+topic)\b/i
+    .test(m);
 }
 
 // Classification intelligente par Gemini
@@ -21,7 +53,7 @@ async function analyzeIntentAndRisk(
   message: string,
   currentState: any,
   lastAssistantMessage: string,
-  meta?: { requestId?: string; forceRealAi?: boolean }
+  meta?: { requestId?: string; forceRealAi?: boolean; model?: string }
 ): Promise<{ targetMode: AgentMode, riskScore: number }> {
   // Deterministic test mode: avoid LLM dependency and avoid writing invalid risk levels.
   if ((Deno.env.get("MEGA_TEST_MODE") ?? "").trim() === "1" && !meta?.forceRealAi) {
@@ -76,7 +108,7 @@ async function analyzeIntentAndRisk(
   try {
     const response = await generateWithGemini(systemPrompt, message, 0.0, true, [], "auto", {
       requestId: meta?.requestId,
-      model: "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.0-flash",
       source: "sophia-brain:dispatcher",
     })
     return JSON.parse(response as string)
@@ -92,7 +124,7 @@ export async function processMessage(
   userId: string, 
   userMessage: string,
   history: any[],
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp" },
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string },
   opts?: { 
     logMessages?: boolean;
     forceMode?: AgentMode;
@@ -100,6 +132,36 @@ export async function processMessage(
     messageMetadata?: Record<string, unknown>;
   }
 ) {
+  function looksLikeExplicitCheckupIntent(m: string): boolean {
+    const s = (m ?? "").toString()
+    // Explicit user intent to run a checkup/bilan
+    return /\b(check(?:up)?|bilan)\b/i.test(s)
+  }
+
+  function looksLikeActionProgress(m: string): boolean {
+    const s = (m ?? "").toString()
+    // Signals of progress/completion around actions/habits.
+    // Keep conservative to avoid flipping into investigator on normal small talk.
+    const progress =
+      /\b(j['’]ai|j\s+ai|je\s+(?:n['’]?ai\s+pas|n['’]?ai|ai))\s+(?:fait|pas\s+fait|avanc[ée]e?|progress[ée]e?|termin[ée]e?|r[ée]ussi|tenu|coch[ée]e?|valid[ée]e?|compl[ée]t[ée]e?)\b/i
+        .test(s) ||
+      /\b(c['’]est\s+fait|c['’]est\s+bon|done)\b/i.test(s)
+    const mentionsAction = /\b(action|objectif|habitude|t[âa]che|plan)\b/i.test(s)
+    return progress && mentionsAction
+  }
+
+  function looksLikeDailyBilanAnswer(userMsg: string, lastAssistantMsg: string): boolean {
+    const last = (lastAssistantMsg ?? "").toString().toLowerCase()
+    const u = (userMsg ?? "").toString().trim()
+    if (!u) return false
+    // Our daily bilan prompt includes these two anchors; if the user replies right after it,
+    // we treat it as a checkup kickoff so the Investigator covers vitals + actions + frameworks.
+    const looksLikePrompt =
+      last.includes("un truc dont tu es fier") &&
+      last.includes("un truc à ajuster")
+    return looksLikePrompt
+  }
+
   const logMessages = opts?.logMessages !== false
   // 1. Log le message user
   if (logMessages) {
@@ -114,8 +176,12 @@ export async function processMessage(
   let lastProcessed = state.last_processed_at || new Date().toISOString()
 
   if (msgCount >= 15) {
-      // Trigger watcher analysis
-      await runWatcher(supabase, userId, lastProcessed, meta)
+      // Trigger watcher analysis (best effort: do not block user response on transient LLM errors)
+      try {
+        await runWatcher(supabase, userId, lastProcessed, meta)
+      } catch (e) {
+        console.error("[Router] watcher failed (non-blocking):", e)
+      }
       msgCount = 0
       lastProcessed = new Date().toISOString()
   }
@@ -128,7 +194,28 @@ export async function processMessage(
   const analysis = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage, meta)
   const riskScore = analysis.riskScore
   // If a forceMode is requested (e.g. module conversation), we keep safety priority for sentry.
-  const targetMode: AgentMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
+  let targetMode: AgentMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
+
+  // Start checkup/investigator only when it makes sense:
+  // - If a checkup is already active, the hard guard below keeps investigator stable.
+  // - Otherwise, require explicit intent ("bilan/check") OR a clear progress signal tied to an action/plan.
+  // This prevents accidental "bilan mode" launches from noisy classifier outputs.
+  const checkupActive = Boolean(state?.investigation_state);
+  const stopCheckup = isExplicitStopCheckup(userMessage);
+  const dailyBilanReply = looksLikeDailyBilanAnswer(userMessage, lastAssistantMessage)
+  if (!checkupActive && !stopCheckup && dailyBilanReply) {
+    targetMode = 'investigator'
+  }
+  const shouldStartInvestigator = looksLikeExplicitCheckupIntent(userMessage) || looksLikeActionProgress(userMessage)
+  if (!checkupActive && targetMode === 'investigator' && !shouldStartInvestigator) {
+    targetMode = 'companion'
+  }
+
+  // HARD GUARD: during an active checkup/bilan, only investigator may answer (unless explicit stop).
+  // We still allow safety escalation (sentry/firefighter) to override.
+  if (checkupActive && !stopCheckup && targetMode !== 'sentry' && targetMode !== 'firefighter') {
+    targetMode = 'investigator';
+  }
 
   // 4. Mise à jour du risque si nécessaire
   if (riskScore !== state.risk_level) {
@@ -179,9 +266,15 @@ export async function processMessage(
       responseContent = await runSentry(userMessage)
       break
     case 'firefighter':
-      const ffResult = await runFirefighter(userMessage, history, context, meta)
-      responseContent = ffResult.content
-      if (ffResult.crisisResolved) nextMode = 'companion'
+      try {
+        const ffResult = await runFirefighter(userMessage, history, context, meta)
+        responseContent = ffResult.content
+        if (ffResult.crisisResolved) nextMode = 'companion'
+      } catch (e) {
+        console.error("[Router] firefighter failed:", e)
+        responseContent = "Je suis un peu saturée là. Donne-moi 10 secondes et renvoie ton message, ok ?"
+        nextMode = 'companion'
+      }
       break
     case 'investigator':
       try {
@@ -203,15 +296,33 @@ export async function processMessage(
       }
       break
     case 'architect':
-      responseContent = await runArchitect(supabase, userId, userMessage, history, state, context, meta)
+      try {
+        responseContent = await runArchitect(supabase, userId, userMessage, history, state, context, meta)
+      } catch (e) {
+        console.error("[Router] architect failed:", e)
+        responseContent = "Je suis un peu saturée là. Renvoie ton dernier message dans quelques secondes et on reprend."
+        nextMode = 'companion'
+      }
       break
     case 'assistant':
-      responseContent = await runAssistant(userMessage, meta)
-      nextMode = 'companion' 
+      try {
+        responseContent = await runAssistant(userMessage, meta)
+        nextMode = 'companion'
+      } catch (e) {
+        console.error("[Router] assistant failed:", e)
+        responseContent = "Je suis saturée. Rafraîchis et réessaie dans 10 secondes."
+        nextMode = 'companion'
+      }
       break
     case 'companion':
     default:
-      responseContent = await runCompanion(supabase, userId, userMessage, history, state, context, meta)
+      try {
+        responseContent = await runCompanion(supabase, userId, userMessage, history, state, context, meta)
+      } catch (e) {
+        console.error("[Router] companion failed:", e)
+        responseContent = "Je suis un peu saturée. Réessaie dans quelques secondes."
+        nextMode = 'companion'
+      }
       break
   }
 

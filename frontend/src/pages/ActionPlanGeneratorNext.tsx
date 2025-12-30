@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
+import OnboardingProgress from '../components/OnboardingProgress';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -511,6 +512,7 @@ const ActionPlanGeneratorNext = () => {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 py-8 px-4 md:py-12 md:px-6">
       <div className="max-w-3xl mx-auto">
+        <OnboardingProgress currentStep={step === 'input' ? 3 : 4} />
         
         <div className="mb-6 md:mb-10">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-indigo-100 text-indigo-700 text-[10px] md:text-xs font-bold uppercase tracking-wider mb-2 md:mb-4">

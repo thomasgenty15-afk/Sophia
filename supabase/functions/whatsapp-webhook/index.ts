@@ -19,8 +19,9 @@ const LINK_BLOCK_NOTICE_COOLDOWN_MS = Number.parseInt(
   (Deno.env.get("WHATSAPP_LINK_BLOCK_NOTICE_COOLDOWN_MS") ?? "").trim() || String(24 * 60 * 60 * 1000),
   10,
 )
-const SUPPORT_EMAIL = (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "hello@sophia-coach.ai").trim()
+const SUPPORT_EMAIL = (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim()
 const SITE_URL = (Deno.env.get("WHATSAPP_SITE_URL") ?? "https://sophia-coach.ai").trim()
+const DEFAULT_WHATSAPP_NUMBER = "33674637278" // fallback if WHATSAPP_PHONE_NUMBER is missing (no '+')
 
 type WaInbound = {
   object?: string
@@ -83,8 +84,14 @@ async function createLinkToken(
 
 async function maybeSendEmail(params: { to: string; subject: string; html: string }) {
   const apiKey = Deno.env.get("RESEND_API_KEY")?.trim()
-  if (!apiKey) return { ok: false as const, error: "Missing RESEND_API_KEY" }
-  const from = (Deno.env.get("RESEND_SENDER_EMAIL") ?? "Sophia <hello@sophia-app.com>").trim()
+  if (!apiKey) {
+    console.warn("[whatsapp-webhook] Missing RESEND_API_KEY; cannot send email", { to: params.to })
+    return { ok: false as const, error: "Missing RESEND_API_KEY" }
+  }
+  const from = (Deno.env.get("SENDER_EMAIL") ?? "Sophia <sophia@sophia-coach.ai>").trim()
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), 12_000)
 
   const res = await fetch("https://api.resend.com/emails", {
     method: "POST",
@@ -98,9 +105,25 @@ async function maybeSendEmail(params: { to: string; subject: string; html: strin
       subject: params.subject,
       html: params.html,
     }),
+    signal: controller.signal,
   })
+    .catch((err) => {
+      // Normalize fetch errors (e.g. TLS / timeout)
+      const msg = err instanceof Error ? err.message : String(err)
+      return { __fetch_error: msg } as any
+    })
+    .finally(() => clearTimeout(timeout))
+
+  if ((res as any)?.__fetch_error) {
+    const msg = String((res as any).__fetch_error)
+    console.error("[whatsapp-webhook] Resend fetch failed", { to: params.to, error: msg })
+    return { ok: false as const, error: `Resend fetch failed: ${msg}` }
+  }
   const data = await res.json().catch(() => ({}))
-  if (!res.ok) return { ok: false as const, error: `Resend error ${res.status}: ${JSON.stringify(data)}` }
+  if (!res.ok) {
+    console.error("[whatsapp-webhook] Resend error", { status: res.status, to: params.to, data })
+    return { ok: false as const, error: `Resend error ${res.status}: ${JSON.stringify(data)}` }
+  }
   return { ok: true as const, data }
 }
 
@@ -158,6 +181,23 @@ function normalizeFrom(from: string): string {
   if (s.startsWith("00")) return `+${s.slice(2)}`
   if (/^\d+$/.test(s)) return `+${s}`
   return s
+}
+
+function e164ToFrenchLocal(e164: string): string {
+  const s = (e164 ?? "").trim()
+  if (!s.startsWith("+33")) return ""
+  const digits = s.slice(3)
+  // France: +33 + 9 digits => local 0 + 9 digits (10 digits)
+  if (!/^\d{9}$/.test(digits)) return ""
+  return `0${digits}`
+}
+
+function isPhoneUniqueViolation(err: unknown): boolean {
+  const anyErr = err as any
+  const code = String(anyErr?.code ?? "").trim()
+  const msg = String(anyErr?.message ?? "").toLowerCase()
+  if (code === "23505") return true
+  return msg.includes("profiles_phone_number_verified_unique") || msg.includes("duplicate key")
 }
 
 function extractMessages(payload: WaInbound): Array<{
@@ -235,12 +275,58 @@ function isDonePhrase(raw: string): boolean {
   return /^(c['’]est\s*bon|cest\s*bon|ok|fait|done|termin[eé]|j['’]ai\s*fini|j ai fini)\b/.test(t)
 }
 
+function extractAfterDonePhrase(raw: string): string {
+  const s = (raw ?? "").toString().trim()
+  if (!s) return ""
+  // Remove the leading "done" phrase (in various FR forms) and common separators.
+  const cleaned = s.replace(
+    /^(?:c['’]est\s*bon|cest\s*bon|ok|fait|done|termin[eé]|j['’]ai\s*fini|j ai fini)\b\s*[:\-–—,;.!?\n]*\s*/i,
+    "",
+  )
+  return cleaned.trim()
+}
+
+async function hasWhatsappPersonalFact(admin: ReturnType<typeof createClient>, userId: string): Promise<boolean> {
+  const { data, error } = await admin
+    .from("memories")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("type", "whatsapp_personal_fact")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) return false
+  return Boolean(data?.id)
+}
+
 function parseMotivationScore(raw: string): number | null {
   const t = (raw ?? "").trim()
   const m = t.match(/\b(10|[0-9])\b/)
   if (!m) return null
   const n = Number.parseInt(m[1], 10)
   return Number.isFinite(n) && n >= 0 && n <= 10 ? n : null
+}
+
+function stripFirstMotivationScore(raw: string): { score: number | null; rest: string } {
+  const t = (raw ?? "").toString()
+  const m = t.match(/\b(10|[0-9])\b/)
+  if (!m || typeof m.index !== "number") return { score: null, rest: t.trim() }
+  const n = Number.parseInt(m[1], 10)
+  const score = Number.isFinite(n) && n >= 0 && n <= 10 ? n : null
+  const rest = (t.slice(0, m.index) + t.slice(m.index + m[0].length)).trim()
+  return { score, rest }
+}
+
+function isHelpOrAdviceRequest(raw: string): boolean {
+  const t = normalizeTextForStop(raw)
+  // "conseil", "aide", "comment", "pour réussir", etc.
+  return /\b(conseil|aide|aider|help|astuce|tips|comment|pourquoi|reussir|reussite|plan|objectif)\b/.test(t)
+}
+
+function isConfusionOrRepair(raw: string): boolean {
+  const t = normalizeTextForStop(raw)
+  // User indicates they didn't understand / wants clarification
+  return /\b(pardon|hein|quoi|comment|j'ai pas compris|je ne comprends pas|comprends pas|repete|repetes|hello)\b/.test(t) || raw.includes("?")
 }
 
 async function sendWhatsAppText(toE164: string, body: string) {
@@ -277,6 +363,44 @@ async function loadHistory(admin: ReturnType<typeof createClient>, userId: strin
   if (error) throw error
   const rows = (data ?? []).slice().reverse()
   return rows.map((r) => ({ role: r.role, content: r.content, created_at: r.created_at }))
+}
+
+async function replyWithBrain(params: {
+  admin: ReturnType<typeof createClient>
+  userId: string
+  fromE164: string
+  inboundText: string
+  requestId: string
+  replyToWaMessageId?: string | null
+  contextOverride: string
+  forceMode?: "companion" | "architect" | "assistant" | "investigator" | "firefighter" | "sentry"
+  purpose?: string
+}) {
+  const history = await loadHistory(params.admin, params.userId, 20)
+  const brain = await processMessage(
+    params.admin as any,
+    params.userId,
+    params.inboundText,
+    history,
+    { requestId: params.requestId, channel: "whatsapp" },
+    { logMessages: false, contextOverride: params.contextOverride, forceMode: params.forceMode },
+  )
+  const sendResp = await sendWhatsAppText(params.fromE164, brain.content)
+  const outId = sendResp?.messages?.[0]?.id ?? null
+  await params.admin.from("chat_messages").insert({
+    user_id: params.userId,
+    role: "assistant",
+    content: brain.content,
+    agent_used: brain.mode,
+    metadata: {
+      channel: "whatsapp",
+      wa_outbound_message_id: outId,
+      is_proactive: false,
+      reply_to_wa_message_id: params.replyToWaMessageId ?? null,
+      purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",
+    },
+  })
+  return { brain, outId }
 }
 
 async function fetchLatestPending(admin: ReturnType<typeof createClient>, userId: string, kind: "scheduled_checkin" | "memory_echo") {
@@ -344,13 +468,30 @@ Deno.serve(async (req) => {
       const fromE164 = normalizeFrom(msg.from)
       if (!fromE164) continue
 
-      // Lookup profile by phone_number (unique)
-      const { data: profile, error: profErr } = await admin
+      // Lookup profile by phone_number.
+      // IMPORTANT: phone_number is not globally unique anymore (it becomes unique only once validated).
+      // We therefore:
+      // - Prefer the validated profile (phone_verified_at not null) if present
+      // - Otherwise treat it as "unlinked" to avoid selecting the wrong user.
+      const fromDigits = fromE164.startsWith("+") ? fromE164.slice(1) : fromE164
+      const frLocal = e164ToFrenchLocal(fromE164)
+
+      const { data: candidates, error: profErr } = await admin
         .from("profiles")
-        .select("id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state")
-        .eq("phone_number", fromE164)
-        .maybeSingle()
+        .select("id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at")
+        // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." (legacy/manual input).
+        // We try a small set of safe variants to avoid false "unknown number" prompts.
+        .in("phone_number", [fromE164, fromDigits, frLocal].filter(Boolean))
+        .order("phone_verified_at", { ascending: false, nullsFirst: false })
+        .limit(2)
       if (profErr) throw profErr
+      const { profile, ambiguous } = (() => {
+        const rows = (candidates ?? []) as any[]
+        if (rows.length === 0) return { profile: null as any, ambiguous: false }
+        if (rows.length === 1) return { profile: rows[0], ambiguous: false }
+        const verified = rows.find((r) => Boolean(r?.phone_verified_at))
+        return { profile: verified ?? null, ambiguous: !verified }
+      })()
       if (!profile) {
         // Unknown number: ask for email to link, or link if the user sends an email.
         const tokenCandidate = extractLinkToken(msg.text ?? "")
@@ -428,11 +569,12 @@ Deno.serve(async (req) => {
             continue
           }
 
-          // Ensure phone isn't already linked to another user.
+          // Ensure phone isn't already linked to another user (validated).
           const { data: other, error: oErr } = await admin
             .from("profiles")
             .select("id")
             .eq("phone_number", fromE164)
+            .not("phone_verified_at", "is", null)
             .maybeSingle()
           if (oErr) throw oErr
           if (other?.id) {
@@ -459,6 +601,7 @@ Deno.serve(async (req) => {
             .from("profiles")
             .update({
               phone_number: fromE164,
+              phone_verified_at: nowIso,
               phone_invalid: false,
               whatsapp_opted_in: true,
               whatsapp_opted_out_at: null,
@@ -467,7 +610,17 @@ Deno.serve(async (req) => {
               whatsapp_last_inbound_at: nowIso,
             })
             .eq("id", target.id)
-          if (updErr) throw updErr
+          if (updErr) {
+            // "First validator wins": if another profile already verified this phone, the unique index blocks us.
+            if (isPhoneUniqueViolation(updErr)) {
+              const msgTxt =
+                "Oups — ce numéro WhatsApp est déjà validé par un autre compte.\n\n" +
+                `Si tu penses que c'est une erreur, écris à ${SUPPORT_EMAIL}.`
+              await sendWhatsAppText(fromE164, msgTxt)
+              continue
+            }
+            throw updErr
+          }
 
           await admin.from("whatsapp_link_tokens").update({
             status: "consumed",
@@ -485,11 +638,23 @@ Deno.serve(async (req) => {
             updated_at: nowIso,
           }, { onConflict: "phone_e164" })
 
-          const ok =
-            `Parfait ${target.full_name || ""} — c'est bon, ton WhatsApp est relié à ton compte.\n\n` +
-            `Tu peux te désinscrire à tout moment en répondant STOP.\n\n` +
-            `Pour commencer simple: là tout de suite, c’est quoi le 1 truc que tu veux améliorer (même petit) ?`
-          await sendWhatsAppText(fromE164, ok)
+          const { data: activePlan } = await admin
+            .from("user_plans")
+            .select("content")
+            .eq("user_id", target.id)
+            .eq("status", "active")
+            .maybeSingle()
+
+          let welcomeMsg = `Parfait ${target.full_name || ""} — c'est bon, ton WhatsApp est relié à ton compte.\n\n` +
+            `Tu peux te désinscrire à tout moment en répondant STOP.\n\n`
+
+          if (activePlan && activePlan.content && activePlan.content.grimoireTitle) {
+             welcomeMsg += `J'ai vu que tu avais activé un plan pour "${activePlan.content.grimoireTitle}", c'est bien ça ? :)`
+          } else {
+             welcomeMsg += `J'ai pas vu de plan passer, est-ce que tu l'as bien configuré sur la plateforme ?`
+          }
+
+          await sendWhatsAppText(fromE164, welcomeMsg)
           continue
         }
 
@@ -563,10 +728,8 @@ Deno.serve(async (req) => {
           }
 
           const { token } = await createLinkToken(admin, target.id, 7)
-          const waNum = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? "").trim()
-          const waLink = waNum
-            ? `https://wa.me/${waNum}?text=${encodeURIComponent(`LINK:${token}`)}`
-            : "https://sophia-coach.ai"
+          const waNum = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? DEFAULT_WHATSAPP_NUMBER).trim()
+          const waLink = `https://wa.me/${waNum}?text=${encodeURIComponent(`LINK:${token}`)}`
 
           const prenom = (target.full_name ?? "").split(" ")[0] || ""
           const subject = mismatch
@@ -619,6 +782,19 @@ Deno.serve(async (req) => {
             updated_at: nowIso,
           }, { onConflict: "phone_e164" })
 
+          if (!sendRes.ok) {
+            await sendWhatsAppText(
+              fromE164,
+              "Ok, je retrouve ton compte Sophia ✅\n\n" +
+                "Par contre, je n’arrive pas à t’envoyer l’email de validation pour le moment.\n" +
+                `Écris à ${SUPPORT_EMAIL} avec:\n` +
+                `- ton numéro WhatsApp: ${fromE164}\n` +
+                `- ton email: ${emailNorm}\n\n` +
+                "On te débloque rapidement.",
+            )
+            continue
+          }
+
           await sendWhatsAppText(
             fromE164,
             mismatch
@@ -642,11 +818,19 @@ Deno.serve(async (req) => {
         const shouldPrompt = !last || (Date.now() - last) > LINK_PROMPT_COOLDOWN_MS
         const isTerminal = linkReq?.status === "blocked" || linkReq?.status === "support_required"
         if (shouldPrompt && !isTerminal) {
-          const prompt =
-            "Bonjour ! Je suis Sophia, enchantée.\n" +
-            "Je ne retrouve pas ton numéro dans mon système.\n\n" +
-            "Peux-tu m'envoyer l'email de ton compte Sophia ?\n" +
-            `(Si tu n'as pas encore de compte: ${SITE_URL})`
+          const prompt = ambiguous
+            ? (
+              "Bonjour ! Je suis Sophia, enchantée.\n" +
+              "Je vois plusieurs comptes qui utilisent ce numéro.\n\n" +
+              "Peux-tu m'envoyer l'email de ton compte Sophia pour que je relie le bon ?\n" +
+              `(Si tu n'as pas encore de compte: ${SITE_URL})`
+            )
+            : (
+              "Bonjour ! Je suis Sophia, enchantée.\n" +
+              "Je ne retrouve pas ton numéro dans mon système.\n\n" +
+              "Peux-tu m'envoyer l'email de ton compte Sophia ?\n" +
+              `(Si tu n'as pas encore de compte: ${SITE_URL})`
+            )
           await sendWhatsAppText(fromE164, prompt)
           await admin.from("whatsapp_link_requests").upsert({
             phone_e164: fromE164,
@@ -681,16 +865,67 @@ Deno.serve(async (req) => {
       const isWrongNumber =
         actionId === "OPTIN_WRONG_NUMBER" ||
         /mauvais\s*num[ée]ro|wrong\s*number/i.test(textLower)
+      // IMPORTANT: be strict. A generic "oui" can refer to *anything* and was incorrectly
+      // interpreted as "yes to opt-in", which hijacks the conversation (fast path) and bypasses sophia-brain.
+      // We only treat it as opt-in if:
+      // - We have a stable interactive id, OR
+      // - The user replied with a strict yes token AND we recently sent an opt-in template.
+      const isOptInYesText = /^(oui|yes|absolument)\s*!?$/i.test(textLower)
+      async function hasRecentOptInPrompt(admin: any, userId: string): Promise<boolean> {
+        const since = new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() // 30h window
+        const { data, error } = await admin
+          .from("chat_messages")
+          .select("id, metadata, created_at")
+          .eq("user_id", userId)
+          .eq("role", "assistant")
+          .gte("created_at", since)
+          .filter("metadata->>channel", "eq", "whatsapp")
+          .filter("metadata->>purpose", "eq", "optin")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (error) throw error
+        return Boolean(data)
+      }
       const isOptInYes =
         actionId === "OPTIN_YES" ||
-        /\b(oui|yes|absolument)\b/i.test(textLower)
+        (isOptInYesText ? await hasRecentOptInPrompt(admin, profile.id) : false)
     const isStop = isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)
-      // Daily bilan template buttons (UI doesn't expose stable ids; match by title)
-      const isBilanYes = /carr[ée]ment/i.test(textLower) || /\bok\b|\bgo\b|\boui\b/.test(textLower)
+      // Daily bilan template buttons:
+      // - IMPORTANT: be strict here. A generic "oui"/"ok" can refer to *anything* and was incorrectly
+      //   interpreted as "yes to bilan", which triggers the "Parfait. En 2 lignes..." kickoff.
+      // - Meta UI often doesn't expose stable ids for template buttons, so we match by the specific titles we use.
+      const isBilanYes = /carr[ée]ment/i.test(textLower) || /^(go\s*!?)$/i.test(textLower)
       const isBilanLater =
         /pas\s*tout\s*de\s*suite/i.test(textLower) ||
         /on\s*fera\s*[çc]a\s*demain/i.test(textLower) ||
-        /\bplus\s*tard\b/.test(textLower)
+        /^(plus\s*tard\s*!?)$/i.test(textLower)
+
+      // Guard: only treat the message as a daily bilan accept/decline if we recently sent a daily_bilan prompt/template.
+      // This avoids hijacking normal conversations on a random "oui".
+      async function hasRecentDailyBilanPrompt(admin: any, userId: string): Promise<boolean> {
+        const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6h window
+        const { data, error } = await admin
+          .from("chat_messages")
+          .select("id, content, metadata, created_at")
+          .eq("user_id", userId)
+          .eq("role", "assistant")
+          .gte("created_at", since)
+          .filter("metadata->>channel", "eq", "whatsapp")
+          .filter("metadata->>purpose", "eq", "daily_bilan")
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (error) throw error
+        if (!data) return false
+        // Prefer templates for opt-in; but allow any daily_bilan outbound marker.
+        const content = (data as any)?.content ?? ""
+        return typeof content === "string" && content.length > 0
+      }
+
+      const hasBilanContext = (isBilanYes || isBilanLater)
+        ? await hasRecentDailyBilanPrompt(admin, profile.id)
+        : false
 
       // Scheduled check-in template buttons (V2): "Oui !" / "Plus tard..."
       const isCheckinYes = /^oui\b/.test(textLower)
@@ -707,6 +942,7 @@ Deno.serve(async (req) => {
         // Remove the phone number from the profile so the user can relink from the correct phone.
         await admin.from("profiles").update({
           phone_number: null,
+          phone_verified_at: null,
           phone_invalid: false,
           whatsapp_opted_in: false,
           whatsapp_bilan_opted_in: false,
@@ -722,10 +958,8 @@ Deno.serve(async (req) => {
         if (targetEmail) {
           // Prefer token-based relinking via wa.me prefilled message.
           const { token } = await createLinkToken(admin, profile.id, 30)
-          const waNum = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? "").trim()
-          const waLink = waNum
-            ? `https://wa.me/${waNum}?text=${encodeURIComponent(`LINK:${token}`)}`
-            : "https://sophia-coach.ai"
+          const waNum = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? DEFAULT_WHATSAPP_NUMBER).trim()
+          const waLink = `https://wa.me/${waNum}?text=${encodeURIComponent(`LINK:${token}`)}`
 
           const prenom = (profile.full_name ?? "").split(" ")[0] || ""
           const subject = "On relie ton WhatsApp à Sophia (1 clic)"
@@ -841,7 +1075,7 @@ Deno.serve(async (req) => {
     }
 
       // If user accepts the daily bilan prompt, enable and kick off the bilan conversation.
-      if (isBilanYes && !isOptInYes) {
+      if (isBilanYes && hasBilanContext && !isOptInYes) {
         await admin.from("profiles").update({ whatsapp_bilan_opted_in: true }).eq("id", profile.id)
         const kickoff =
           "Parfait. En 2 lignes :\n" +
@@ -860,7 +1094,7 @@ Deno.serve(async (req) => {
       }
 
       // If user asks "not now", keep the opt-in off and respond gently.
-      if (isBilanLater && !isOptInYes) {
+      if (isBilanLater && hasBilanContext && !isOptInYes) {
         await admin.from("profiles").update({ whatsapp_bilan_opted_in: false }).eq("id", profile.id)
         const okMsg = "Ok, aucun souci. Tu me dis quand tu veux faire le bilan."
         const sendResp = await sendWhatsAppText(fromE164, okMsg)
@@ -988,23 +1222,41 @@ Deno.serve(async (req) => {
 
         if (st === "awaiting_plan_finalization") {
           if (!isDonePhrase(msg.text ?? "")) {
-            const nudge =
-              "Je te laisse finaliser ton plan sur le site, et tu reviens ici quand c'est prêt 🙂\n" +
-              `Quand c'est bon, réponds juste: “C'est bon”.\n` +
-              `(Lien: ${SITE_URL})`
-            const sendResp = await sendWhatsAppText(fromE164, nudge)
-            const outId = sendResp?.messages?.[0]?.id ?? null
-            await admin.from("chat_messages").insert({
-              user_id: profile.id,
-              role: "assistant",
-              content: nudge,
-              agent_used: "companion",
-              metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_finalization_nudge" },
+            const raw = String(msg.text ?? "").trim()
+            // Soft state-machine: answer the user normally, then gently remind the expected next step.
+            await replyWithBrain({
+              admin,
+              userId: profile.id,
+              fromE164,
+              inboundText: raw || "Salut",
+              requestId,
+              replyToWaMessageId: msg.wa_message_id,
+              purpose: "awaiting_plan_finalization_soft_reply",
+              contextOverride:
+                `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
+                `ÉTAT: awaiting_plan_finalization\n` +
+                `L'utilisateur est dans les premiers échanges WhatsApp.\n` +
+                `Objectif: répondre au message de l'utilisateur (même si c'est hors sujet), puis rappeler en 1 phrase qu'il faut finaliser le plan sur le site.\n` +
+                `Ensuite, demander de répondre exactement: "C'est bon" quand c'est finalisé.\n` +
+                `Inclure le lien: ${SITE_URL}\n` +
+                `Ne pose qu'UNE question max, et reste naturel (pas robot).\n`,
             })
             continue
           }
 
           // They say "done": re-check if an active plan exists now.
+          const raw = String(msg.text ?? "").trim()
+          const maybeFact = extractAfterDonePhrase(raw)
+          if (maybeFact.length > 0) {
+            // If user piggybacks a personal fact in the same message as "C'est bon", keep it.
+            await admin.from("memories").insert({
+              user_id: profile.id,
+              content: `Sur WhatsApp, l'utilisateur partage: ${maybeFact}`,
+              type: "whatsapp_personal_fact",
+              metadata: { channel: "whatsapp", wa_from: fromE164, wa_message_id: msg.wa_message_id, captured_from: "awaiting_plan_finalization" },
+              source_type: "whatsapp",
+            } as any)
+          }
           const { data: activePlan, error: planErr } = await admin
             .from("user_plans")
             .select("title, updated_at")
@@ -1017,33 +1269,43 @@ Deno.serve(async (req) => {
 
           const planTitle = (activePlan?.title ?? "").trim()
           if (!planTitle) {
-            const msgTxt =
-              "J'ai bien noté ✅\n" +
-              "Je ne vois toujours pas de plan “actif” de mon côté.\n" +
-              `Tu peux vérifier sur ${SITE_URL}, et quand c'est bon tu me renvoies “C'est bon”.`
-            const sendResp = await sendWhatsAppText(fromE164, msgTxt)
-            const outId = sendResp?.messages?.[0]?.id ?? null
-            await admin.from("chat_messages").insert({
-              user_id: profile.id,
-              role: "assistant",
-              content: msgTxt,
-              agent_used: "companion",
-              metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_finalization_still_missing" },
+            await replyWithBrain({
+              admin,
+              userId: profile.id,
+              fromE164,
+              inboundText: raw || "Ok",
+              requestId,
+              replyToWaMessageId: msg.wa_message_id,
+              purpose: "awaiting_plan_finalization_still_missing_soft",
+              contextOverride:
+                `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
+                `ÉTAT: awaiting_plan_finalization\n` +
+                `Le user dit que c'est bon, mais aucun plan actif n'est visible.\n` +
+                `Objectif: répondre au message du user (et si il a donné une info perso, acknowledge brièvement), puis expliquer qu'il faut finaliser/activer le plan sur ${SITE_URL}.\n` +
+                `Ensuite demander de répondre exactement: "C'est bon" quand c'est finalisé.\n` +
+                `Ne pose qu'UNE question max.\n`,
             })
             continue
           }
 
-          const prompt =
-            `Top ✅ J’ai retrouvé ton plan: “${planTitle}”.\n\n` +
-            "Sur 10, tu te sens à combien motivé(e) là tout de suite ?"
-          const sendResp = await sendWhatsAppText(fromE164, prompt)
-          const outId = sendResp?.messages?.[0]?.id ?? null
-          await admin.from("chat_messages").insert({
-            user_id: profile.id,
-            role: "assistant",
-            content: prompt,
-            agent_used: "companion",
-            metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_motivation_prompt" },
+          // Soft: acknowledge any piggybacked info, then ask motivation as a single coherent message.
+          await replyWithBrain({
+            admin,
+            userId: profile.id,
+            fromE164,
+            inboundText: raw || "Ok",
+            requestId,
+            replyToWaMessageId: msg.wa_message_id,
+            purpose: "awaiting_plan_motivation_prompt_soft",
+            contextOverride:
+              `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
+              `ÉTAT: awaiting_plan_finalization -> plan actif détecté\n` +
+              `Plan actif: "${planTitle}"\n` +
+              `${maybeFact.length > 0 ? `Le user a partagé: "${maybeFact}" (acknowledge en 1 phrase, sans médicaliser).` : ""}\n` +
+              `Objectif: répondre au message du user, puis demander le score de motivation sur 10.\n` +
+              `IMPORTANT: ne promets pas de "modifier/adopter le plan entier" ici. Sur WhatsApp, tu peux aider à exécuter le plan et ajuster UNE action précise si l'utilisateur la mentionne (titre + ce qui bloque). Pour modifier le plan globalement, renvoie vers la plateforme.\n` +
+              `Accepte: "6", "6/10", "6 sur 10". Donne un exemple.\n` +
+              `Ne pose qu'UNE question: le score.\n`,
           })
           await admin.from("profiles").update({
             whatsapp_state: "awaiting_plan_motivation",
@@ -1053,62 +1315,104 @@ Deno.serve(async (req) => {
         }
 
         if (st === "awaiting_plan_motivation") {
-          const score = parseMotivationScore(msg.text ?? "")
+          const raw = String(msg.text ?? "").trim()
+          const { score, rest } = stripFirstMotivationScore(raw)
           if (score == null) {
-            const ask = "Juste un chiffre de 0 à 10 🙂 (0 = pas du tout, 10 = à fond)."
-            const sendResp = await sendWhatsAppText(fromE164, ask)
-            const outId = sendResp?.messages?.[0]?.id ?? null
-            await admin.from("chat_messages").insert({
-              user_id: profile.id,
-              role: "assistant",
-              content: ask,
-              agent_used: "companion",
-              metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_motivation_retry" },
+            // Soft state-machine: let Sophia answer anything, but keep onboarding on track.
+            await replyWithBrain({
+              admin,
+              userId: profile.id,
+              fromE164,
+              inboundText: raw || "Salut",
+              requestId,
+              replyToWaMessageId: msg.wa_message_id,
+              purpose: "awaiting_plan_motivation_soft_retry",
+              contextOverride:
+                `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
+                `ÉTAT: awaiting_plan_motivation\n` +
+                `On attend un score de motivation sur 10 (0 à 10) pour calibrer la suite.\n` +
+                `Règle: répondre d'abord au message de l'utilisateur (même si hors sujet), puis demander le score de motivation.\n` +
+                `IMPORTANT: ne promets pas de "modifier/adopter le plan entier" ici. Sur WhatsApp, tu peux aider à exécuter le plan et ajuster UNE action précise si l'utilisateur la mentionne (titre + ce qui bloque). Pour modifier le plan globalement, renvoie vers la plateforme.\n` +
+                `Accepte: "6", "6/10", "6 sur 10". Donne un exemple.\n` +
+                `Ne sois pas robot: une seule relance, pas de boucle agressive.\n`,
             })
             continue
           }
 
-          const follow = score <= 3
+          // After motivation score: FIRST IMPRESSION matters.
+          // Keep it friend-like: do not talk about the plan beyond the score unless the user asks.
+          const alreadyHasFact = await hasWhatsappPersonalFact(admin, profile.id)
+          const follow = alreadyHasFact
             ? (
-              `Merci 🙏 ${score}/10, c'est honnête.\n` +
-              "C’est quoi le principal truc qui te freine là, tout de suite ? (temps / énergie / peur / autre)"
+              `Merci, ${score}/10 ✅ Je note.\n\n` +
+              "Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?"
             )
-            : (score <= 7
-              ? (
-                `Nice, ${score}/10 ✅\n` +
-                "Qu’est-ce qui ferait passer ça à +1 (juste un cran) ?"
-              )
-              : (
-                `Yes 🔥 ${score}/10.\n` +
-                "On capitalise: c’est quoi la toute première micro-étape que tu peux faire aujourd’hui ?"
-              ))
+            : (
+              `Merci, ${score}/10 ✅ Je note.\n\n` +
+              "J’ai envie de te connaître un peu 🙂\n" +
+              "S’il y a 1 truc que tu aimerais que je sache sur toi (ton rythme, ce qui t’aide / te bloque…), ce serait quoi ?"
+            )
 
-          const sendResp = await sendWhatsAppText(fromE164, follow)
-          const outId = sendResp?.messages?.[0]?.id ?? null
-          await admin.from("chat_messages").insert({
-            user_id: profile.id,
-            role: "assistant",
-            content: follow,
-            agent_used: "companion",
-            metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_motivation_followup", score },
-          })
-
-          // Next: ask the personal fact question.
-          const personal =
-            "D'ailleurs, si il y a une chose que tu aimerais que je sache sur toi, ce serait quoi ?\n" +
-            "(même si tu me l'as déjà dit sur le site)"
-          const send2 = await sendWhatsAppText(fromE164, personal)
-          const out2 = send2?.messages?.[0]?.id ?? null
-          await admin.from("chat_messages").insert({
-            user_id: profile.id,
-            role: "assistant",
-            content: personal,
-            agent_used: "companion",
-            metadata: { channel: "whatsapp", wa_outbound_message_id: out2, is_proactive: false, purpose: "awaiting_personal_fact_prompt" },
-          })
+          // If the user included another request besides the score, answer it too (soft onboarding),
+          // and end with the follow-up question. Do NOT fire multiple onboarding messages at once.
+          if (rest.length > 0) {
+            await replyWithBrain({
+              admin,
+              userId: profile.id,
+              fromE164,
+              inboundText: raw,
+              requestId,
+              replyToWaMessageId: msg.wa_message_id,
+              purpose: "awaiting_plan_motivation_score_plus_request",
+              contextOverride:
+                `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
+                `ÉTAT: awaiting_plan_motivation\n` +
+                `Le score de motivation a déjà été donné: ${score}/10.\n` +
+                `Réponds au sujet de l'utilisateur, puis termine EXACTEMENT par cette question:\n` +
+                `${follow}\n` +
+                `IMPORTANT: ne promets pas de "modifier/adopter le plan entier" ici. Tu peux proposer d'ajuster UNE action si l'utilisateur la mentionne. Sinon: aide à exécuter et renvoie vers la plateforme pour changer le plan.\n` +
+                `N'enchaîne pas d'autres questions (pas de "d'ailleurs...").\n`,
+            })
+          } else {
+            const sendResp = await sendWhatsAppText(fromE164, follow)
+            const outId = sendResp?.messages?.[0]?.id ?? null
+            await admin.from("chat_messages").insert({
+              user_id: profile.id,
+              role: "assistant",
+              content: follow,
+              agent_used: "companion",
+              metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_motivation_followup", score },
+            })
+          }
 
           await admin.from("profiles").update({
-            whatsapp_state: "awaiting_personal_fact",
+            // If we asked for a personal fact, handle that next; otherwise end gating.
+            whatsapp_state: alreadyHasFact ? null : "awaiting_personal_fact",
+            whatsapp_state_updated_at: new Date().toISOString(),
+          }).eq("id", profile.id)
+          continue
+        }
+
+        if (st === "awaiting_plan_motivation_followup") {
+          const raw = String(msg.text ?? "").trim()
+          // Back-compat: older users may still be stuck in this state.
+          // We now end onboarding gating after motivation; respond normally and exit the state.
+          await replyWithBrain({
+            admin,
+            userId: profile.id,
+            fromE164,
+            inboundText: raw || "Ok",
+            requestId,
+            replyToWaMessageId: msg.wa_message_id,
+            purpose: "awaiting_plan_motivation_followup_backcompat_exit",
+            contextOverride:
+              `=== CONTEXTE WHATSAPP ===\n` +
+              `ÉTAT: awaiting_plan_motivation_followup (back-compat)\n` +
+              `Réponds naturellement au message.\n` +
+              `IMPORTANT: tu peux ajuster UNE action précise si l'utilisateur la mentionne (titre + ce qui bloque). Ne promets pas de modifier le plan globalement sur WhatsApp.\n`,
+          })
+          await admin.from("profiles").update({
+            whatsapp_state: null,
             whatsapp_state_updated_at: new Date().toISOString(),
           }).eq("id", profile.id)
           continue
@@ -1128,7 +1432,7 @@ Deno.serve(async (req) => {
 
           const ack =
             "Merci, je note ❤️\n" +
-            "Maintenant, dis-moi: là tout de suite, tu veux que je t’aide sur quoi ?"
+            "Et là, tout de suite: tu as envie qu’on parle de quoi ?"
           const sendResp = await sendWhatsAppText(fromE164, ack)
           const outId = sendResp?.messages?.[0]?.id ?? null
           await admin.from("chat_messages").insert({

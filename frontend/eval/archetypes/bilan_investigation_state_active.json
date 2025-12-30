@@ -1,0 +1,67 @@
+{
+  "key": "bilan_investigation_state_active",
+  "label": "Bilan · investigation_state déjà actif (investigator)",
+  "profile": {
+    "full_name": "Fixture · Bilan en cours",
+    "onboarding_completed": true,
+    "phone_number": "+33600000003",
+    "whatsapp_opted_in": true,
+    "whatsapp_bilan_opted_in": true,
+    "whatsapp_state": "opted_in"
+  },
+  "plan": {
+    "title": "Routine simple",
+    "deep_why": "Je veux une trajectoire stable, pas parfaite.",
+    "actions": [
+      {
+        "type": "habit",
+        "title": "Sport",
+        "description": "10 minutes, même si c'est léger.",
+        "tracking_type": "boolean",
+        "time_of_day": "any_time",
+        "target_reps": 1,
+        "status": "active",
+        "last_performed_at": "2025-01-01T00:00:00.000Z"
+      }
+    ]
+  },
+  "seed_action_entries": [
+    {
+      "action_title": "Sport",
+      "status": "missed",
+      "note": "Fatigue",
+      "performed_at": "2025-01-05T19:00:00.000Z"
+    },
+    {
+      "action_title": "Sport",
+      "status": "missed",
+      "note": "Manque de temps",
+      "performed_at": "2025-01-06T19:00:00.000Z"
+    },
+    {
+      "action_title": "Sport",
+      "status": "missed",
+      "note": "Oublié",
+      "performed_at": "2025-01-07T19:00:00.000Z"
+    },
+    {
+      "action_title": "Sport",
+      "status": "missed",
+      "note": "Fatigue",
+      "performed_at": "2025-01-08T19:00:00.000Z"
+    },
+    {
+      "action_title": "Sport",
+      "status": "missed",
+      "note": "Pas motivé",
+      "performed_at": "2025-01-09T19:00:00.000Z"
+    }
+  ],
+  "chat_state": {
+    "current_mode": "investigator",
+    "risk_level": 0,
+    "seed_investigation_state": true
+  }
+}
+
+

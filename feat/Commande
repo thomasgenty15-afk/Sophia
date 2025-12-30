@@ -211,7 +211,8 @@ git branch
 
 <<<<<<< HEAD
 Pour se mettre sur le bon projet : 
-git checkout main (ou staging )
+git checkout main (ou staging ) ou git switch main
+git switch staging
 git checkout main
 git merge staging
 git push origin main
@@ -222,148 +223,6 @@ Pour pousser (vers staging):
     git add .
     git commit -m " "
     git push origin staging
-
-Commande pour créer le master admin : 
-do $$
-declare
-  master_email text := 'thomasgenty15@gmail.com';
-  -- Mets un mot de passe temporaire ici (tu pourras le changer ensuite via “Mot de passe oublié”).
-  master_password text := '123456';
-  master_id uuid;
-  inst_id uuid;
-begin
-  -- Si l'utilisateur existe déjà, on récupère son id.
-  select id into master_id
-  from auth.users
-  where lower(email) = lower(master_email)
-  limit 1;
-
-  if master_id is null then
-    -- Récupère un instance_id (selon version GoTrue/Supabase Auth)
-    if to_regclass('auth.instances') is not null then
-      select id into inst_id from auth.instances limit 1;
-    end if;
-
-    if inst_id is null then
-      inst_id := '00000000-0000-0000-0000-000000000000'::uuid;
-    end if;
-
-    master_id := gen_random_uuid();
-
-    insert into auth.users (
-      id,
-      instance_id,
-      aud,
-      role,
-      email,
-      encrypted_password,
-      email_confirmed_at,
-      confirmation_token,
-      recovery_token,
-      email_change_token_new,
-      email_change,
-      email_change_token_current,
-      reauthentication_token,
-      raw_app_meta_data,
-      raw_user_meta_data,
-      created_at,
-      updated_at
-    ) values (
-      master_id,
-      inst_id,
-      'authenticated',
-      'authenticated',
-      master_email,
-      crypt(master_password, gen_salt('bf', 10)),
-      now(),
-      '',
-      '',
-      '',
-      '',
-      '',
-      '',
-      '{"provider":"email","providers":["email"]}'::jsonb,
-      jsonb_build_object('full_name','Master Admin','phone','+33600000000'),
-      now(),
-      now()
-    );
-
-    -- Certaines versions nécessitent confirmed_at (en plus de email_confirmed_at)
-    if exists (
-      select 1
-      from information_schema.columns
-      where table_schema = 'auth' and table_name = 'users' and column_name = 'confirmed_at'
-    ) then
-      execute 'update auth.users set confirmed_at = default where id = $1 and confirmed_at is null'
-      using master_id;
-    end if;
-
-    -- Best effort: phone_confirmed_at si la colonne existe
-    if exists (
-      select 1
-      from information_schema.columns
-      where table_schema = 'auth' and table_name = 'users' and column_name = 'phone_confirmed_at'
-    ) then
-      execute 'update auth.users set phone_confirmed_at = now() where id = $1 and phone_confirmed_at is null'
-      using master_id;
-    end if;
-
-    -- Crée une identity email si la table existe
-    if to_regclass('auth.identities') is not null then
-      insert into auth.identities (
-        id,
-        user_id,
-        provider,
-        provider_id,
-        identity_data,
-        created_at,
-        updated_at
-      ) values (
-        gen_random_uuid(),
-        master_id,
-        'email',
-        master_email,
-        jsonb_build_object('sub', master_id::text, 'email', master_email, 'provider', 'email'),
-        now(),
-        now()
-      )
-      on conflict do nothing;
-    end if;
-  end if;
-
-  -- Normalise/force quelques champs (idempotent)
-  update auth.users
-  set
-    instance_id = coalesce(instance_id, '00000000-0000-0000-0000-000000000000'::uuid),
-    encrypted_password = crypt(master_password, gen_salt('bf', 10)),
-    email_confirmed_at = coalesce(email_confirmed_at, now()),
-    confirmation_token = coalesce(confirmation_token, ''),
-    recovery_token = coalesce(recovery_token, ''),
-    email_change_token_new = coalesce(email_change_token_new, ''),
-    email_change = coalesce(email_change, ''),
-    email_change_token_current = coalesce(email_change_token_current, ''),
-    reauthentication_token = coalesce(reauthentication_token, ''),
-    is_sso_user = false,
-    is_anonymous = false,
-    updated_at = now()
-  where id = master_id;
-
-  -- Profile (si ta table a plus de colonnes, adapte si besoin)
-  insert into public.profiles (id, full_name, onboarding_completed)
-  values (master_id, 'Master Admin', true)
-  on conflict (id) do update set
-    full_name = excluded.full_name,
-    onboarding_completed = excluded.onboarding_completed,
-    updated_at = now();
-
-  -- Singleton admin (le trigger supprime/interdit les autres)
-  delete from public.internal_admins where user_id <> master_id;
-
-  insert into public.internal_admins (user_id)
-  values (master_id)
-  on conflict (user_id) do nothing;
-end $$;
-
 
 
 
@@ -387,19 +246,25 @@ begin;
 
 do $$
 declare
-  uid uuid := 'UUID_DE_L_USER';
+  uid uuid := 'UUID';
   r record;
 begin
-  -- 1) Delete partout où il y a une colonne user_id (schema public)
+  -- 1) supprimer l'utilisateur auth (déclenche les cascades)
+  delete from auth.users where id = uid;
+
+  -- 2) nettoyer toutes les tables public qui ont une colonne uid (user_id / profile_id / id)
   for r in
-    select table_schema, table_name
+    select table_schema, table_name, column_name
     from information_schema.columns
     where table_schema = 'public'
-      and column_name = 'user_id'
       and udt_name = 'uuid'
+      and column_name in ('user_id', 'profile_id', 'id')
   loop
-    execute format('delete from %I.%I where user_id = %L', r.table_schema, r.table_name, uid);
+    execute format('delete from %I.%I where %I = %L', r.table_schema, r.table_name, r.column_name, uid);
   end loop;
+end
+$$;
+
 
   -- 2) profiles: la colonne s'appelle id (pas user_id)
   delete from public.profiles where id = uid;
@@ -413,3 +278,81 @@ commit;
 
 
 
+Pour lancer supabase avec le .env : 
+npx supabase functions serve --env-file .env
+
+
+
+Trigger le bilan : 
+./scripts/local_trigger_internal_job.sh trigger-daily-bilan
+
+
+
+
+COMMMANDE POUR TOUT OUVRIR POUR UN UTILISATEUR : 
+
+
+begin;
+
+with
+  params as (
+    select '__USER_ID__'::uuid as uid
+  ),
+
+  -- 1) Semaines + portes d’entrée Forge/Table Ronde
+  weeks as (
+    select generate_series(1, 12) as w
+  ),
+  week_state_ids as (
+    select format('week_%s', w) as module_id from weeks
+    union all select 'forge_access'
+    union all select 'round_table_1'   -- uniquement celle-ci
+  ),
+  upsert_week_states as (
+    insert into public.user_week_states (user_id, module_id, status, available_at, completed_at)
+    select p.uid, ids.module_id, 'available', now(), null
+    from params p
+    cross join week_state_ids ids
+    on conflict (user_id, module_id) do update
+      set
+        status = case when public.user_week_states.status = 'completed' then 'completed' else 'available' end,
+        available_at = least(public.user_week_states.available_at, excluded.available_at),
+        completed_at = case when public.user_week_states.status = 'completed' then public.user_week_states.completed_at else null end,
+        updated_at = now()
+    returning 1
+  ),
+
+  -- 2) Forge: débloquer tous les modules aX_cY_m{2..5} (toutes semaines, toutes cartes)
+  cards as (
+    select
+      w,
+      generate_series(1, case when w = 1 then 4 else 3 end) as c
+    from weeks
+  ),
+  levels as (
+    select generate_series(2, 5) as m  -- niveaux 2 à 5 uniquement
+  ),
+  forge_ids as (
+    select format('a%s_c%s_m%s', cards.w, cards.c, levels.m) as module_id
+    from cards
+    cross join levels
+  ),
+  upsert_forge_entries as (
+    insert into public.user_module_state_entries (user_id, module_id, status, available_at, completed_at, content)
+    select p.uid, f.module_id, 'available', now(), null, '{}'::jsonb
+    from params p
+    cross join forge_ids f
+    on conflict (user_id, module_id) do update
+      set
+        status = case when public.user_module_state_entries.status = 'completed' then 'completed' else 'available' end,
+        available_at = least(public.user_module_state_entries.available_at, excluded.available_at),
+        completed_at = case when public.user_module_state_entries.status = 'completed' then public.user_module_state_entries.completed_at else null end,
+        updated_at = now()
+    returning 1
+  )
+
+select
+  (select count(*) from upsert_week_states)   as week_states_touched,
+  (select count(*) from upsert_forge_entries) as forge_modules_touched;
+
+commit;

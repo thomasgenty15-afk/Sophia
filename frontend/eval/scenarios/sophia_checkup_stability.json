@@ -1,6 +1,7 @@
 {
   "dataset_key": "core",
   "id": "checkup_stability_digression_no_stop",
+  "scenario_target": "bilan",
   "description": "When investigation_state is active, dispatcher should keep investigator unless the user explicitly asks to stop.",
   "tags": ["sophia.dispatcher", "sophia.investigator", "sophia.companion"],
   "persona": {
