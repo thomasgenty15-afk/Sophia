@@ -9,6 +9,7 @@ type Body = {
   user_id: string
   message: string
   channel?: "whatsapp" | "web"
+  scope?: string
   wa?: {
     from?: string
     wa_message_id?: string
@@ -17,11 +18,12 @@ type Body = {
   }
 }
 
-async function loadHistory(admin: ReturnType<typeof createClient>, userId: string, limit = 20) {
+async function loadHistory(admin: ReturnType<typeof createClient>, userId: string, scope: string, limit = 20) {
   const { data, error } = await admin
     .from("chat_messages")
     .select("role, content, created_at")
     .eq("user_id", userId)
+    .eq("scope", scope)
     .order("created_at", { ascending: false })
     .limit(limit)
 
@@ -46,13 +48,15 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     )
 
-    const history = await loadHistory(admin, body.user_id, 20)
+    const channel = body.channel ?? "whatsapp"
+    const scope = (body.scope ?? (channel === "whatsapp" ? "whatsapp" : "web")).toString()
+    const history = await loadHistory(admin, body.user_id, scope, 20)
     const resp = await processMessage(
       admin as any,
       body.user_id,
       body.message,
       history,
-      { requestId, channel: body.channel ?? "whatsapp" },
+      { requestId, channel, scope },
       { logMessages: false },
     )
 

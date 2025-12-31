@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
+import { sendResendEmail } from "../_shared/resend.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WHATSAPP_PHONE_NUMBER = Deno.env.get("WHATSAPP_PHONE_NUMBER") || "33674637278";
@@ -25,6 +25,7 @@ serve(async (req) => {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
     console.log("Démarrage du job de rétention...");
+    // In MEGA_TEST_MODE, Resend is skipped by the shared helper; keep the job safe anyway.
 
     // Configurable links per environment (DB-driven)
     const subscribeLink =
@@ -103,33 +104,26 @@ serve(async (req) => {
       }
 
       // Envoi Resend
-      const res = await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${RESEND_API_KEY}`,
-        },
-        body: JSON.stringify({
-          from: SENDER_EMAIL,
-          to: [targetEmail],
-          subject: step.subject,
-          html: content,
-        }),
+      const out = await sendResendEmail({
+        to: targetEmail,
+        subject: step.subject,
+        html: content,
+        from: SENDER_EMAIL,
+        maxAttempts: 6,
       });
 
-      if (res.ok) {
-        const data = await res.json();
+      if (out.ok) {
         // Log
         await supabase.from("communication_logs").insert({
           user_id: user.id,
           channel: "email",
           type: step.type,
           status: "sent",
-          metadata: { resend_id: data.id, delta_days: diffDays }
+          metadata: { resend_id: (out as any).data?.id ?? null, delta_days: diffDays, skipped: Boolean((out as any).skipped) }
         });
         sentCount++;
       } else {
-        console.error(`Echec envoi Resend pour ${user.id}`);
+        console.error(`Echec envoi Resend pour ${user.id}`, out);
       }
     }
 

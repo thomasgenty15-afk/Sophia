@@ -291,14 +291,6 @@ export async function runCompanion(
     CONTEXTE UTILISATEUR :
     - Risque actuel : ${userState.risk_level}/10
     ${context ? `\nCONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${context}` : ""}
-
-    RÈGLE SPÉCIALE "APRÈS 23H + FATIGUE" (PRIORITAIRE) :
-    - Si les REPÈRES TEMPORELS indiquent qu'il est 23h00 ou plus (heure de Paris) ET que l'utilisateur montre des signes de fatigue / veut dormir / veut terminer vite (ex: "je suis KO", "je suis crevé", "j'ai sommeil", "je vais dormir", "on fait court") :
-      - Réponds très court (max 3-4 phrases).
-      - Valide émotionnellement, et propose explicitement de couper là.
-      - Fais une amorce "bonne nuit" intelligente (2 micro-gestes max: eau, écran off, respiration 10s), SANS être moralisatrice.
-      - Dans ce cas, tu as le droit de dire "bonne nuit" même si l'utilisateur ne l'a pas dit (exception à la règle plus haut).
-      - Ne relance pas avec une grosse question. Au mieux : "On reprend demain ?" (oui/non).
     ${userState?.investigation_state ? `
     ⚠️ ATTENTION : UN CHECKUP EST ACTUELLEMENT EN COURS (investigation_state actif).
     L'utilisateur a fait une digression ou une remarque.

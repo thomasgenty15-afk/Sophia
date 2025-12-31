@@ -4,6 +4,40 @@ import path from "node:path";
 
 const ROOT = process.cwd();
 
+function parseDotEnv(text) {
+  const out = {};
+  const lines = String(text ?? "").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const eq = trimmed.indexOf("=");
+    if (eq <= 0) continue;
+    const key = trimmed.slice(0, eq).trim();
+    let val = trimmed.slice(eq + 1).trim();
+    // Strip simple quotes
+    if ((val.startsWith('"') && val.endsWith('"')) || (val.startsWith("'") && val.endsWith("'"))) {
+      val = val.slice(1, -1);
+    }
+    if (key) out[key] = val;
+  }
+  return out;
+}
+
+function loadEnvFileIfPresent(relPath) {
+  try {
+    const p = path.join(ROOT, relPath);
+    if (!hasFile(p)) return;
+    const text = fs.readFileSync(p, "utf8");
+    const parsed = parseDotEnv(text);
+    // Only fill missing keys to avoid surprising overrides.
+    for (const [k, v] of Object.entries(parsed)) {
+      if (!process.env[k] && typeof v === "string" && v.length > 0) process.env[k] = v;
+    }
+  } catch {
+    // ignore
+  }
+}
+
 function die(msg) {
   console.error(`\nMEGA TEST ERROR: ${msg}\n`);
   process.exit(1);
@@ -191,10 +225,30 @@ console.log("\n=== Sophia mega test ===");
 console.log(`mode: ${FULL ? "FULL" : "SMOKE"}`);
 console.log(`ai: ${USE_REAL_AI ? "REAL" : "STUB"}`);
 
+// Best-effort: load local env files (commonly used for Supabase + Stripe secrets).
+// This makes `npm run test:mega` pick up user's configured local secrets without requiring manual exports.
+loadEnvFileIfPresent("supabase/.env");
+loadEnvFileIfPresent("supabase/.env.local");
+
 // WhatsApp: tests need deterministic secrets for webhook signature + GET handshake.
 // These are safe dummy values for local/offline test execution.
 const waAppSecret = process.env.WHATSAPP_APP_SECRET || "MEGA_TEST_WHATSAPP_APP_SECRET";
 const waVerifyToken = process.env.WHATSAPP_WEBHOOK_VERIFY_TOKEN || "MEGA_TEST_WHATSAPP_VERIFY_TOKEN";
+
+// Stripe: provide safe dummy secrets/IDs for local/offline test execution.
+// - Edge functions require these env vars to exist.
+// - Network calls to Stripe are stubbed when MEGA_TEST_MODE=1 (see supabase/functions/_shared/stripe.ts).
+const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "sk_test_MEGA_TEST";
+const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "whsec_MEGA_TEST";
+const appBaseUrl = (process.env.APP_BASE_URL || "http://127.0.0.1:4173").replace(/\/+$/, "");
+const stripePriceIds = {
+  STRIPE_PRICE_ID_SYSTEM_MONTHLY: process.env.STRIPE_PRICE_ID_SYSTEM_MONTHLY || "price_test_system_monthly",
+  STRIPE_PRICE_ID_SYSTEM_YEARLY: process.env.STRIPE_PRICE_ID_SYSTEM_YEARLY || "price_test_system_yearly",
+  STRIPE_PRICE_ID_ALLIANCE_MONTHLY: process.env.STRIPE_PRICE_ID_ALLIANCE_MONTHLY || "price_test_alliance_monthly",
+  STRIPE_PRICE_ID_ALLIANCE_YEARLY: process.env.STRIPE_PRICE_ID_ALLIANCE_YEARLY || "price_test_alliance_yearly",
+  STRIPE_PRICE_ID_ARCHITECTE_MONTHLY: process.env.STRIPE_PRICE_ID_ARCHITECTE_MONTHLY || "price_test_architecte_monthly",
+  STRIPE_PRICE_ID_ARCHITECTE_YEARLY: process.env.STRIPE_PRICE_ID_ARCHITECTE_YEARLY || "price_test_architecte_yearly",
+};
 
 // Secrets/env needed by local edge runtime are injected via `supabase/config.toml` [edge_runtime.secrets] env(...)
 // so they must exist in the environment when we (re)start Supabase.
@@ -218,6 +272,10 @@ const supabaseEnvForStart = {
   ...(geminiKey ? { GEMINI_API_KEY: geminiKey } : {}),
   WHATSAPP_APP_SECRET: waAppSecret,
   WHATSAPP_WEBHOOK_VERIFY_TOKEN: waVerifyToken,
+  STRIPE_SECRET_KEY: stripeSecretKey,
+  STRIPE_WEBHOOK_SECRET: stripeWebhookSecret,
+  APP_BASE_URL: appBaseUrl,
+  ...stripePriceIds,
 };
 
 if (!NO_START) {
@@ -248,6 +306,16 @@ console.log(
   `\n[3a/6] Setting MEGA_TEST_MODE=${USE_REAL_AI ? "0" : "1"} in Edge Runtime secrets (${USE_REAL_AI ? "real AI" : "deterministic stub"})...`,
 );
 setEdgeSecrets([`MEGA_TEST_MODE=${USE_REAL_AI ? "0" : "1"}`]);
+
+// Stripe: ensure required env vars exist in Edge Runtime even when running with --no-start (no container restart).
+// We set safe dummy values by default (see earlier constants), so checkout/portal/webhook tests can run offline.
+console.log("\n[3a/6] Setting Stripe env in Edge Runtime secrets (for offline billing tests)...");
+setEdgeSecrets([
+  `STRIPE_SECRET_KEY=${stripeSecretKey}`,
+  `STRIPE_WEBHOOK_SECRET=${stripeWebhookSecret}`,
+  `APP_BASE_URL=${appBaseUrl}`,
+  ...Object.entries(stripePriceIds).map(([k, v]) => `${k}=${v}`),
+]);
 
 if (FULL && !SKIP_SECRET_SYNC) {
   console.log("\n[3b/6] Syncing Vault.INTERNAL_FUNCTION_SECRET <-> Edge SECRET_KEY (for triggers/cron)...");
@@ -285,6 +353,10 @@ if (!SKIP_DENO) {
     ...(internalSecret ? { MEGA_INTERNAL_SECRET: internalSecret } : {}),
     WHATSAPP_APP_SECRET: waAppSecret,
     WHATSAPP_WEBHOOK_VERIFY_TOKEN: waVerifyToken,
+    STRIPE_SECRET_KEY: stripeSecretKey,
+    STRIPE_WEBHOOK_SECRET: stripeWebhookSecret,
+    APP_BASE_URL: appBaseUrl,
+    ...stripePriceIds,
   };
   run("deno", ["test", "-A", "--no-lock"], { cwd: path.join(ROOT, "supabase", "functions"), env: denoEnv });
 }
@@ -301,6 +373,10 @@ if (!SKIP_FRONTEND) {
     ...(internalSecret ? { MEGA_INTERNAL_SECRET: internalSecret } : {}),
     WHATSAPP_APP_SECRET: waAppSecret,
     WHATSAPP_WEBHOOK_VERIFY_TOKEN: waVerifyToken,
+    STRIPE_SECRET_KEY: stripeSecretKey,
+    STRIPE_WEBHOOK_SECRET: stripeWebhookSecret,
+    APP_BASE_URL: appBaseUrl,
+    ...stripePriceIds,
   };
   run("npm", ["run", "test:int"], { cwd: path.join(ROOT, "frontend"), env });
 }

@@ -20,6 +20,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { hasArchitecteAccess } from '../lib/entitlements';
 
 // Hooks extraits
 import { useDashboardData } from '../hooks/useDashboardData';
@@ -350,7 +351,12 @@ const Dashboard = () => {
                         return (
                             <div className="grid md:grid-cols-2 gap-6">
                               <div
-                                onClick={() => isRoundTableUnlocked && navigate('/architecte/alignment')}
+                                onClick={() => {
+                                  if (!isRoundTableUnlocked) return;
+                                  // Paywall: Table Ronde is part of full Architecte access.
+                                  if (!hasArchitecteAccess(subscription)) return navigate('/upgrade');
+                                  navigate('/architecte/alignment');
+                                }}
                                 className={`bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden transition-transform group ${isRoundTableUnlocked ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-not-allowed opacity-70'}`}
                               >
                                 <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
@@ -371,7 +377,12 @@ const Dashboard = () => {
                               </div>
 
                               <div
-                                onClick={() => isForgeUnlocked && navigate('/architecte/evolution')}
+                                onClick={() => {
+                                  if (!isForgeUnlocked) return;
+                                  // Paywall: Forge is part of full Architecte access.
+                                  if (!hasArchitecteAccess(subscription)) return navigate('/upgrade');
+                                  navigate('/architecte/evolution');
+                                }}
                                 className={`bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden transition-transform group ${isForgeUnlocked ? 'cursor-pointer hover:scale-[1.02]' : 'cursor-not-allowed opacity-70'}`}
                               >
                                 <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">

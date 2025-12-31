@@ -184,6 +184,13 @@ curl -s -X POST "http://127.0.0.1:54321/functions/v1/trigger-memory-echo" \
   -H "Content-Type: application/json" \
   -H "X-Internal-Secret: $SECRET" \
   -d '{}' | cat
+
+
+4) Déclencher "Trigger daily bilan"
+curl -s -X POST "http://127.0.0.1:54321/functions/v1/trigger-daily-bilan" \
+  -H "Content-Type: application/json" \
+  -H "X-Internal-Secret: $SECRET" \
+  -d '{}' | cat
 ```
 
 <<<<<<< HEAD

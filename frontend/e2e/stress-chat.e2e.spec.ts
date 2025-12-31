@@ -71,7 +71,8 @@ test("Stress chat: send 25 messages, no UI crash, DB grows as expected", async (
     const { count } = await seeded.admin
       .from("chat_messages")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", seeded.userId);
+      .eq("user_id", seeded.userId)
+      .eq("scope", "web");
     return count ?? 0;
   }, { timeout: 60_000, interval: 500 }).toBeGreaterThanOrEqual(N);
 
@@ -80,6 +81,7 @@ test("Stress chat: send 25 messages, no UI crash, DB grows as expected", async (
       .from("user_chat_states")
       .select("updated_at")
       .eq("user_id", seeded.userId)
+      .eq("scope", "web")
       .maybeSingle();
     return !!(data as any)?.updated_at;
   }, { timeout: 30_000, interval: 500 }).toBe(true);

@@ -397,6 +397,7 @@ async function seedActivePlan(
     // Pre-generate an investigation_state matching the seeded items so investigator can be tested in isolation.
     await admin.from("user_chat_states").upsert({
       user_id: userId,
+      scope: "web",
       current_mode: "investigator",
       risk_level: 0,
       investigation_state: {
@@ -405,7 +406,7 @@ async function seedActivePlan(
         current_item_index: 0,
         temp_memory: { opening_done: false },
       },
-    }, { onConflict: "user_id" });
+    }, { onConflict: "user_id,scope" });
   }
 
   return { planRow, insertedActions: insertedActions ?? [] };
@@ -543,7 +544,7 @@ Deno.serve(async (req) => {
           { bilanActionsCount: Number(body.limits.bilan_actions_count ?? 0) || 0 },
         );
 
-        const { data: stBefore } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).maybeSingle();
+        const { data: stBefore } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).eq("scope", "web").maybeSingle();
         const dashboardContext = await getDashboardContext(admin as any, testUserId);
         const planSnapshot = await fetchPlanSnapshot(admin as any, testUserId);
 
@@ -552,7 +553,7 @@ Deno.serve(async (req) => {
         const maxTurns = Number(body.limits.max_turns_per_scenario);
 
         // Always real AI in eval runner.
-        const meta = { requestId: scenarioRequestId, forceRealAi: true, model: evalModel };
+        const meta = { requestId: scenarioRequestId, forceRealAi: true, model: evalModel, channel: "web" as const, scope: "web" };
 
         if (Array.isArray(s.steps) && s.steps.length > 0) {
           for (const step of s.steps.slice(0, maxTurns)) {
@@ -638,6 +639,7 @@ Deno.serve(async (req) => {
           .from("chat_messages")
           .select("role,content,created_at,agent_used")
           .eq("user_id", testUserId)
+          .eq("scope", "web")
           .order("created_at", { ascending: true })
           .limit(200);
 
@@ -648,7 +650,7 @@ Deno.serve(async (req) => {
           agent_used: m.role === "assistant" ? m.agent_used : null,
         }));
 
-        const { data: stAfter } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).maybeSingle();
+        const { data: stAfter } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).eq("scope", "web").maybeSingle();
 
         // Invoke eval-judge (reuse logic + DB writes). Forward caller JWT for admin gate.
         const judgeResp = await fetch(`${url}/functions/v1/eval-judge`, {

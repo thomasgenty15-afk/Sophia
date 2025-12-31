@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
     const logMessages = body?.logMessages ?? body?.log_messages
     const messageMetadata = (body?.messageMetadata ?? body?.message_metadata ?? body?.metadata) as Record<string, unknown> | undefined
     const channel = (body?.channel as ("web" | "whatsapp") | undefined) ?? "web"
+    const scope = (body?.scope ?? body?.conversationScope ?? body?.conversation_scope ?? body?.chat_scope) as string | undefined
     const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
 
     // Backward compatibility: some frontend calls used { mode, context } without { message }.
@@ -63,7 +64,7 @@ Deno.serve(async (req) => {
       user.id,
       message,
       history,
-      { requestId, channel },
+      { requestId, channel, scope },
       {
         logMessages: typeof logMessages === "boolean" ? logMessages : undefined,
         forceMode: (forceMode === 'dispatcher' || forceMode === 'sentry' || forceMode === 'firefighter' || forceMode === 'investigator' || forceMode === 'architect' || forceMode === 'companion' || forceMode === 'assistant')

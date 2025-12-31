@@ -21,16 +21,18 @@ import { WEEKS_CONTENT } from '../data/weeksContent';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { MODULES_REGISTRY } from '../config/modules-registry';
+import { canAccessArchitectWeek } from '../lib/entitlements';
 
 const IdentityArchitect = () => {
   const navigate = useNavigate();
   const { weekId } = useParams();
-  const { user, loading: authLoading } = useAuth();
+  const { user, loading: authLoading, subscription } = useAuth();
   
   // Normalisation de l'ID du module pour correspondre au registre (ex: "1" -> "week_1")
   // Le paramètre URL est souvent juste le numéro (1, 2, 3...) mais le registre utilise 'week_X'
   const weekNumber = weekId || "1";
   const moduleId = `week_${weekNumber}`;
+  const weekNumInt = Number(weekNumber);
   
   // On récupère la semaine spécifique depuis le contenu statique
   const currentWeek = WEEKS_CONTENT[weekNumber] || WEEKS_CONTENT["1"];
@@ -54,6 +56,14 @@ const IdentityArchitect = () => {
             navigate('/auth');
             return;
         }
+
+        // Paywall: weeks 1-2 are preview; weeks 3+ require the Architecte tier.
+        if (!canAccessArchitectWeek(weekNumInt, subscription)) {
+            setIsLoading(false);
+            navigate('/upgrade');
+            return;
+        }
+
         if (!currentWeek) {
             setIsLoading(false);
             return;
@@ -376,6 +386,7 @@ const IdentityArchitect = () => {
           forceMode: 'architect',
           contextOverride,
           channel: 'web',
+          scope: `module:${moduleId}`,
           messageMetadata: {
             source: 'module_conversation',
             ui: 'IdentityArchitect',

@@ -49,6 +49,27 @@ export async function stripeRequest<T = any>(
     stripeVersion?: string;
   },
 ): Promise<T> {
+  // Mega test runner / local deterministic mode:
+  // - Avoids network calls (Stripe API) during offline tests.
+  // - Controlled via MEGA_TEST_MODE=1 (already used elsewhere in Edge functions).
+  try {
+    const mega = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
+    if (mega === "1") {
+      if (opts.method === "POST" && opts.path === "/v1/customers") {
+        return { id: "cus_MEGA_TEST" } as T;
+      }
+      if (opts.method === "POST" && opts.path === "/v1/checkout/sessions") {
+        return { id: "cs_MEGA_TEST", url: "https://checkout.stripe.test/session/cs_MEGA_TEST" } as T;
+      }
+      if (opts.method === "POST" && opts.path === "/v1/billing_portal/sessions") {
+        return { url: "https://billing.stripe.test/portal/session/bps_MEGA_TEST" } as T;
+      }
+      throw new Error(`Stripe stub (MEGA_TEST_MODE) does not support: ${opts.method} ${opts.path}`);
+    }
+  } catch {
+    // If Deno/env isn't available (non-edge usage), just fall through to real network request.
+  }
+
   const url = `https://api.stripe.com${opts.path}`;
   const headers: Record<string, string> = {
     Authorization: `Bearer ${opts.secretKey}`,

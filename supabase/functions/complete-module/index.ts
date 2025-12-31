@@ -4,6 +4,50 @@ import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts";
 import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
 import { processCoreIdentity } from "../_shared/identity-manager.ts";
 
+type PaidTier = "system" | "alliance" | "architecte";
+
+function env(name: string): string | null {
+  const v = Deno.env.get(name);
+  const t = (v ?? "").trim();
+  return t.length > 0 ? t : null;
+}
+
+function isActiveSubscription(row: any): boolean {
+  if (!row) return false;
+  const status = String(row.status ?? "").toLowerCase();
+  if (status !== "active" && status !== "trialing") return false;
+  const endRaw = row.current_period_end ? String(row.current_period_end) : "";
+  if (!endRaw) return true;
+  const end = new Date(endRaw).getTime();
+  return Number.isFinite(end) ? Date.now() < end : true;
+}
+
+function tierFromStripePriceId(priceId: string | null): PaidTier | null {
+  const id = (priceId ?? "").trim();
+  if (!id) return null;
+  const system = new Set([env("STRIPE_PRICE_ID_SYSTEM_MONTHLY"), env("STRIPE_PRICE_ID_SYSTEM_YEARLY")].filter(Boolean) as string[]);
+  const alliance = new Set([env("STRIPE_PRICE_ID_ALLIANCE_MONTHLY"), env("STRIPE_PRICE_ID_ALLIANCE_YEARLY")].filter(Boolean) as string[]);
+  const architecte = new Set([env("STRIPE_PRICE_ID_ARCHITECTE_MONTHLY"), env("STRIPE_PRICE_ID_ARCHITECTE_YEARLY")].filter(Boolean) as string[]);
+  if (architecte.has(id)) return "architecte";
+  if (alliance.has(id)) return "alliance";
+  if (system.has(id)) return "system";
+  return null;
+}
+
+async function getEffectiveTierForUser(supabaseAdmin: any, userId: string): Promise<PaidTier | "none"> {
+  try {
+    const { data } = await supabaseAdmin
+      .from("subscriptions")
+      .select("status,stripe_price_id,current_period_end")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (!isActiveSubscription(data)) return "none";
+    return tierFromStripePriceId((data as any)?.stripe_price_id ?? null) ?? "none";
+  } catch {
+    return "none";
+  }
+}
+
 // --- REGISTRY ---
 type ModuleType = 'week' | 'forge' | 'round_table';
 
@@ -67,6 +111,21 @@ serve(async (req) => {
   if (userError || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
 
   const { moduleId } = await req.json();
+
+  // Entitlements:
+  // - All tiers can access Architecte preview weeks 1 & 2.
+  // - Only Architecte tier can access week_3+ and any post-week-12 content.
+  const tier = await getEffectiveTierForUser(supabaseClient, user.id);
+  const hasFullArchitecte = tier === "architecte";
+  if (typeof moduleId === "string" && moduleId.startsWith("week_")) {
+    const n = Number(String(moduleId).replace("week_", ""));
+    if (Number.isFinite(n) && n > 2 && !hasFullArchitecte) {
+      return new Response(JSON.stringify({ error: "Paywall: requires architecte", required_tier: "architecte" }), {
+        status: 402,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+  }
 
   // Helper to determine table based on module ID
   const getTableForModule = (id: string) => {
@@ -211,11 +270,29 @@ serve(async (req) => {
       .filter(item => getTableForModule(item.targetId) === 'user_module_state_entries')
       .map(item => item.payload);
 
-    if (weekPayloads.length > 0) {
-      await supabaseClient.from('user_week_states').upsert(weekPayloads, { onConflict: 'user_id,module_id' });
+    // Paywall enforcement: prevent unlocking week_3+ and other advanced modules unless Architecte.
+    const allowedWeekPayloads = weekPayloads.filter((p: any) => {
+      const id = String(p.module_id ?? "");
+      if (id.startsWith("week_")) {
+        const n = Number(id.replace("week_", ""));
+        if (Number.isFinite(n) && n > 2 && !hasFullArchitecte) return false;
+      }
+      if ((id.startsWith("forge") || id.startsWith("round_table")) && !hasFullArchitecte) return false;
+      return true;
+    });
+
+    if (allowedWeekPayloads.length > 0) {
+      await supabaseClient.from('user_week_states').upsert(allowedWeekPayloads, { onConflict: 'user_id,module_id' });
     }
     if (modulePayloads.length > 0) {
-      await supabaseClient.from('user_module_state_entries').upsert(modulePayloads, { onConflict: 'user_id,module_id' });
+      const allowedModulePayloads = modulePayloads.filter((p: any) => {
+        const id = String(p.module_id ?? "");
+        if ((id.startsWith("forge") || id.startsWith("round_table")) && !hasFullArchitecte) return false;
+        return true;
+      });
+      if (allowedModulePayloads.length > 0) {
+        await supabaseClient.from('user_module_state_entries').upsert(allowedModulePayloads, { onConflict: 'user_id,module_id' });
+      }
     }
   }
 

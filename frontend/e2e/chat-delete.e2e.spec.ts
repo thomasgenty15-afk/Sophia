@@ -36,8 +36,8 @@ async function seedChatUser() {
 
   // Ensure chat state exists so UI doesn't redirect weirdly
   await admin.from("user_chat_states").upsert(
-    { user_id: userId, current_mode: "companion", risk_level: 0, investigation_state: null, short_term_context: "", unprocessed_msg_count: 0, last_processed_at: new Date().toISOString() },
-    { onConflict: "user_id" },
+    { user_id: userId, scope: "web", current_mode: "companion", risk_level: 0, investigation_state: null, short_term_context: "", unprocessed_msg_count: 0, last_processed_at: new Date().toISOString() },
+    { onConflict: "user_id,scope" },
   );
 
   return { admin, userId, email, password };
@@ -67,6 +67,7 @@ test("Chat: delete message removes DB row (after reload with real DB ids)", asyn
     .from("chat_messages")
     .select("id")
     .eq("user_id", seeded.userId)
+    .eq("scope", "web")
     .eq("role", "user")
     .eq("content", content)
     .order("created_at", { ascending: false })
@@ -75,7 +76,7 @@ test("Chat: delete message removes DB row (after reload with real DB ids)", asyn
   if (msgErr) throw msgErr;
   const msgId = (msg as any).id as string;
 
-  const { count: before } = await seeded.admin.from("chat_messages").select("*", { count: "exact", head: true }).eq("user_id", seeded.userId);
+  const { count: before } = await seeded.admin.from("chat_messages").select("*", { count: "exact", head: true }).eq("user_id", seeded.userId).eq("scope", "web");
 
   // Reload so UI loads messages from DB with real ids.
   await page.reload();
@@ -84,7 +85,7 @@ test("Chat: delete message removes DB row (after reload with real DB ids)", asyn
   await page.locator(`[data-testid="chat-delete-${msgId}"]`).click();
 
   await expect.poll(async () => {
-    const { count } = await seeded.admin.from("chat_messages").select("*", { count: "exact", head: true }).eq("user_id", seeded.userId);
+    const { count } = await seeded.admin.from("chat_messages").select("*", { count: "exact", head: true }).eq("user_id", seeded.userId).eq("scope", "web");
     return count ?? 0;
   }).toBe((before ?? 0) - 1);
 

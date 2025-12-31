@@ -96,7 +96,7 @@ function addDays(day: string, delta: number): string {
   return isoDay(dt)
 }
 
-async function getMissedStreakDays(
+export async function getMissedStreakDays(
   supabase: SupabaseClient,
   userId: string,
   actionId: string,
@@ -136,7 +136,7 @@ async function getMissedStreakDays(
   return streak
 }
 
-async function getCompletedStreakDays(
+export async function getCompletedStreakDays(
   supabase: SupabaseClient,
   userId: string,
   actionId: string,
@@ -388,7 +388,7 @@ async function getItemHistory(supabase: SupabaseClient, userId: string, itemId: 
     return historyText || "Aucun historique disponible.";
 }
 
-async function getYesterdayCheckupSummary(supabase: SupabaseClient, userId: string): Promise<{
+export async function getYesterdayCheckupSummary(supabase: SupabaseClient, userId: string): Promise<{
   completed: number
   missed: number
   lastWinTitle: string | null
@@ -738,6 +738,92 @@ DONNÉES (JSON): ${JSON.stringify(data)}
   )
 
   return normalizeChatText(res)
+}
+
+export async function maybeHandleStreakAfterLog(opts: {
+  supabase: SupabaseClient
+  userId: string
+  message: string
+  currentState: InvestigationState
+  currentItem: CheckupItem
+  argsWithId: { status: string; note?: string | null }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
+}): Promise<null | { content: string; investigationComplete: boolean; newState: any }> {
+  const { supabase, userId, message, currentState, currentItem, argsWithId, meta } = opts
+
+  // If completed and streak>=3: congratulate BEFORE moving on.
+  if (currentItem.type === "action" && argsWithId.status === "completed") {
+    try {
+      const winStreak = await getCompletedStreakDays(supabase, userId, currentItem.id)
+      if (winStreak >= 3) {
+        const nextIndex = currentState.current_item_index + 1
+        const nextState = {
+          ...currentState,
+          current_item_index: nextIndex,
+        }
+
+        if (nextIndex >= currentState.pending_items.length) {
+          return {
+            content: await investigatorSay(
+              "win_streak_end",
+              { user_message: message, win_streak_days: winStreak, item: currentItem, channel: meta?.channel },
+              meta,
+            ),
+            investigationComplete: true,
+            newState: null,
+          }
+        }
+
+        const nextItem = currentState.pending_items[nextIndex]
+        return {
+          content: await investigatorSay(
+            "win_streak_continue",
+            { user_message: message, win_streak_days: winStreak, item: currentItem, next_item: nextItem },
+            meta,
+          ),
+          investigationComplete: false,
+          newState: nextState,
+        }
+      }
+    } catch (e) {
+      console.error("[Investigator] completed streak check failed after completed log:", e)
+    }
+  }
+
+  // If missed and streak>=5: propose breakdown flow BEFORE moving on.
+  if (currentItem.type === "action" && argsWithId.status === "missed") {
+    try {
+      const streak = await getMissedStreakDays(supabase, userId, currentItem.id)
+      if (streak >= 5) {
+        const nextState = {
+          ...currentState,
+          temp_memory: {
+            ...(currentState.temp_memory || {}),
+            breakdown: {
+              stage: "awaiting_consent",
+              action_id: currentItem.id,
+              action_title: currentItem.title,
+              streak_days: streak,
+              last_note: String(argsWithId.note ?? "").trim(),
+            },
+          },
+        }
+        return {
+          content: await investigatorSay(
+            "missed_streak_offer_breakdown",
+            { user_message: message, streak_days: streak, item: currentItem, last_note: String(argsWithId.note ?? "").trim() },
+            meta,
+          ),
+          investigationComplete: false,
+          newState: nextState,
+        }
+      }
+    } catch (e) {
+      console.error("[Investigator] streak check failed after missed log:", e)
+    }
+  }
+
+  return null
 }
 
 export async function runInvestigator(
@@ -1178,77 +1264,16 @@ export async function runInvestigator(
       
       await logItem(supabase, userId, argsWithId)
 
-      // If completed and streak>=3: congratulate BEFORE moving on.
-      if (currentItem.type === "action" && argsWithId.status === "completed") {
-        try {
-          const winStreak = await getCompletedStreakDays(supabase, userId, currentItem.id)
-          if (winStreak >= 3) {
-            const nextIndex = currentState.current_item_index + 1
-            const nextState = {
-              ...currentState,
-              current_item_index: nextIndex,
-            }
-
-            if (nextIndex >= currentState.pending_items.length) {
-              return {
-                content: await investigatorSay(
-                  "win_streak_end",
-                  { user_message: message, win_streak_days: winStreak, item: currentItem, channel: meta?.channel },
-                  meta,
-                ),
-                investigationComplete: true,
-                newState: null,
-              }
-            }
-
-            const nextItem = currentState.pending_items[nextIndex]
-            return {
-              content: await investigatorSay(
-                "win_streak_continue",
-                { user_message: message, win_streak_days: winStreak, item: currentItem, next_item: nextItem },
-                meta,
-              ),
-              investigationComplete: false,
-              newState: nextState,
-            }
-          }
-        } catch (e) {
-          console.error("[Investigator] completed streak check failed after completed log:", e)
-        }
-      }
-
-      // If missed and streak>=5: propose breakdown flow BEFORE moving on.
-      if (currentItem.type === "action" && argsWithId.status === "missed") {
-        try {
-          const streak = await getMissedStreakDays(supabase, userId, currentItem.id)
-          if (streak >= 5) {
-            const nextState = {
-              ...currentState,
-              temp_memory: {
-                ...(currentState.temp_memory || {}),
-                breakdown: {
-                  stage: "awaiting_consent",
-                  action_id: currentItem.id,
-                  action_title: currentItem.title,
-                  streak_days: streak,
-                  last_note: String(argsWithId.note ?? "").trim(),
-                },
-              },
-            }
-            return {
-              content: await investigatorSay(
-                "missed_streak_offer_breakdown",
-                { user_message: message, streak_days: streak, item: currentItem, last_note: String(argsWithId.note ?? "").trim() },
-                meta,
-              ),
-              investigationComplete: false,
-              newState: nextState,
-            }
-          }
-        } catch (e) {
-          console.error("[Investigator] streak check failed after missed log:", e)
-        }
-      }
+      const streakIntercept = await maybeHandleStreakAfterLog({
+        supabase,
+        userId,
+        message,
+        currentState,
+        currentItem,
+        argsWithId: { status: argsWithId.status, note: argsWithId.note },
+        meta,
+      })
+      if (streakIntercept) return streakIntercept
       
       // On passe au suivant
       const nextIndex = currentState.current_item_index + 1

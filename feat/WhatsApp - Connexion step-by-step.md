@@ -246,7 +246,7 @@ Points importants:
 - En “dev test”, commence par tester uniquement l’**envoi sortant** (Edge Function `whatsapp-send-test`) avec ton token.
 
 ### Étape 6 — Relier les check-ins proactifs à WhatsApp
-Aujourd’hui `process-checkins` et `trigger-checkup` insèrent juste dans `chat_messages`.
+Aujourd’hui `process-checkins` gère l’envoi WhatsApp (avec fallback `chat_messages` si nécessaire).
 À faire:
 - Remplacer / compléter par un envoi WhatsApp:
   - construire le message

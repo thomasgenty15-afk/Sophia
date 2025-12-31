@@ -1,5 +1,5 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
-import { getUserState, updateUserState, logMessage, AgentMode, getCoreIdentity, getDashboardContext } from './state-manager.ts'
+import { getUserState, updateUserState, logMessage, AgentMode, getCoreIdentity, getDashboardContext, normalizeScope } from './state-manager.ts'
 import { runSentry } from './agents/sentry.ts'
 import { runFirefighter } from './agents/firefighter.ts'
 import { runInvestigator } from './agents/investigator.ts'
@@ -124,7 +124,7 @@ export async function processMessage(
   userId: string, 
   userMessage: string,
   history: any[],
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string },
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string },
   opts?: { 
     logMessages?: boolean;
     forceMode?: AgentMode;
@@ -162,14 +162,17 @@ export async function processMessage(
     return looksLikePrompt
   }
 
+  const channel = meta?.channel ?? "web"
+  const scope = normalizeScope(meta?.scope, channel === "whatsapp" ? "whatsapp" : "web")
+
   const logMessages = opts?.logMessages !== false
   // 1. Log le message user
   if (logMessages) {
-    await logMessage(supabase, userId, 'user', userMessage, undefined, opts?.messageMetadata)
+    await logMessage(supabase, userId, scope, 'user', userMessage, undefined, opts?.messageMetadata)
   }
 
   // 2. Récupérer l'état actuel (Mémoire)
-  const state = await getUserState(supabase, userId)
+  const state = await getUserState(supabase, userId, scope)
 
   // --- LOGIC VEILLEUR (Watcher) ---
   let msgCount = (state.unprocessed_msg_count || 0) + 1
@@ -178,7 +181,7 @@ export async function processMessage(
   if (msgCount >= 15) {
       // Trigger watcher analysis (best effort: do not block user response on transient LLM errors)
       try {
-        await runWatcher(supabase, userId, lastProcessed, meta)
+        await runWatcher(supabase, userId, scope, lastProcessed, meta)
       } catch (e) {
         console.error("[Router] watcher failed (non-blocking):", e)
       }
@@ -219,7 +222,7 @@ export async function processMessage(
 
   // 4. Mise à jour du risque si nécessaire
   if (riskScore !== state.risk_level) {
-    await updateUserState(supabase, userId, { risk_level: riskScore })
+    await updateUserState(supabase, userId, scope, { risk_level: riskScore })
   }
 
   // 4.5 RAG Retrieval (Forge Memory)
@@ -285,9 +288,9 @@ export async function processMessage(
           responseContent = invResult.content
           if (invResult.investigationComplete) {
               nextMode = 'companion'
-              await updateUserState(supabase, userId, { investigation_state: null })
+              await updateUserState(supabase, userId, scope, { investigation_state: null })
           } else {
-              await updateUserState(supabase, userId, { investigation_state: invResult.newState })
+              await updateUserState(supabase, userId, scope, { investigation_state: invResult.newState })
           }
       } catch (err) {
           console.error("[Router] ❌ CRITICAL ERROR IN INVESTIGATOR:", err)
@@ -329,13 +332,13 @@ export async function processMessage(
   responseContent = normalizeChatText(responseContent)
 
   // 6. Mise à jour du mode final et log réponse
-  await updateUserState(supabase, userId, { 
+  await updateUserState(supabase, userId, scope, { 
     current_mode: nextMode,
     unprocessed_msg_count: msgCount,
     last_processed_at: lastProcessed
   })
   if (logMessages) {
-    await logMessage(supabase, userId, 'assistant', responseContent, targetMode, opts?.messageMetadata)
+    await logMessage(supabase, userId, scope, 'assistant', responseContent, targetMode, opts?.messageMetadata)
   }
 
   return {

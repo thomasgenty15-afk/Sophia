@@ -46,13 +46,14 @@ export async function runFirefighter(
   const historyText = history.slice(-3).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   
   try {
-    const jsonStr = await generateWithGemini(systemPrompt, `Historique:\n${historyText}\n\nUser: ${message}`, 0.3, true, [], "auto", {
+    const out = await generateWithGemini(systemPrompt, `Historique:\n${historyText}\n\nUser: ${message}`, 0.3, true, [], "auto", {
       requestId: meta?.requestId,
       model: meta?.model ?? "gemini-2.0-flash",
       source: "sophia-brain:firefighter",
       forceRealAi: meta?.forceRealAi,
     })
-    const result = JSON.parse(jsonStr)
+    if (typeof out !== "string") throw new Error("Expected JSON string, got tool call")
+    const result = JSON.parse(out)
     return {
       content: result.response.replace(/\*\*/g, ''),
       crisisResolved: result.resolved

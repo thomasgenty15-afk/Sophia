@@ -96,31 +96,9 @@ describe("edge functions: client-facing (stubbed by default)", () => {
     if (IS_STUB) expect(data.feedback).toContain("MEGA_TEST_STUB");
   });
 
-  it("trigger-checkup inserts an assistant message for users with an active plan", async () => {
-    const { error: planErr } = await admin.from("user_plans").insert({
-      user_id: userId,
-      status: "active",
-      title: "Plan Actif",
-      content: { phases: [] },
-    });
-    if (planErr) throw planErr;
-
-    const { data, error } = await client.functions.invoke("trigger-checkup", { body: {} });
-    if (error) throw error;
-    expect(data?.success).toBe(true);
-
-    const { count, error: cntErr } = await admin
-      .from("chat_messages")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", userId)
-      .eq("role", "assistant");
-    if (cntErr) throw cntErr;
-    expect(count).toBeGreaterThan(0);
-  });
-
   it("sophia-brain logs user+assistant messages and initializes chat state", async () => {
     const { data, error } = await client.functions.invoke("sophia-brain", {
-      body: { message: "Salut Sophia", history: [] },
+      body: { message: "Salut Sophia", history: [], channel: "web", scope: "web" },
     });
     if (error) throw error;
     expect(typeof data?.content).toBe("string");
@@ -138,6 +116,7 @@ describe("edge functions: client-facing (stubbed by default)", () => {
       .from("user_chat_states")
       .select("user_id,current_mode,risk_level,updated_at")
       .eq("user_id", userId)
+      .eq("scope", "web")
       .single();
     if (stErr) throw stErr;
     expect(state.user_id).toBe(userId);

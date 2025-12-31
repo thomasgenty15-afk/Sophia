@@ -1,13 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { canAccessArchitectWeek } from '../lib/entitlements';
 
 export const useArchitectLogic = (
   user: any,
   weekNumber: string,
   answers: Record<string, string>,
   setInitialAnswers: (answers: Record<string, string>) => void,
-  setLastSavedAt: (date: Date) => void
+  setLastSavedAt: (date: Date) => void,
+  subscription: { status: string | null; current_period_end: string | null; stripe_price_id: string | null } | null
 ) => {
   const navigate = useNavigate();
   const [isSaving, setIsSaving] = useState(false);
@@ -112,6 +114,12 @@ export const useArchitectLogic = (
       // Si on est à la semaine 12, on retourne au dashboard
       if (nextWeekNum > 12) {
           navigate('/dashboard');
+          return;
+      }
+
+      // Paywall: week 3+ requires Architecte tier.
+      if (!canAccessArchitectWeek(nextWeekNum, subscription)) {
+          navigate('/upgrade');
           return;
       }
 

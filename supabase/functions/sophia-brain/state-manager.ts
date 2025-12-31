@@ -18,11 +18,26 @@ export interface UserChatState {
   last_processed_at: string
 }
 
-export async function getUserState(supabase: SupabaseClient, userId: string): Promise<UserChatState> {
+export function normalizeScope(input: unknown, fallback: string): string {
+  const raw = (typeof input === "string" ? input : "").trim()
+  const s = raw || fallback
+  // Keep scopes short + safe for logs/DB.
+  // Allowed: letters/digits/._:- (covers "module:week_1", etc)
+  const cleaned = s.replace(/[^a-zA-Z0-9._:-]/g, "_").slice(0, 180)
+  return cleaned || fallback
+}
+
+export async function getUserState(
+  supabase: SupabaseClient,
+  userId: string,
+  scopeRaw: unknown = "web",
+): Promise<UserChatState> {
+  const scope = normalizeScope(scopeRaw, "web")
   const { data, error } = await supabase
     .from('user_chat_states')
     .select('*')
     .eq('user_id', userId)
+    .eq('scope', scope)
     .single()
 
   if (error && error.code === 'PGRST116') {
@@ -35,7 +50,7 @@ export async function getUserState(supabase: SupabaseClient, userId: string): Pr
       unprocessed_msg_count: 0,
       last_processed_at: new Date().toISOString()
     }
-    await supabase.from('user_chat_states').insert({ user_id: userId, ...initialState })
+    await supabase.from('user_chat_states').insert({ user_id: userId, scope, ...initialState })
     return initialState
   }
 
@@ -43,11 +58,18 @@ export async function getUserState(supabase: SupabaseClient, userId: string): Pr
   return data as UserChatState
 }
 
-export async function updateUserState(supabase: SupabaseClient, userId: string, updates: Partial<UserChatState>) {
+export async function updateUserState(
+  supabase: SupabaseClient,
+  userId: string,
+  scopeRaw: unknown,
+  updates: Partial<UserChatState>
+) {
+  const scope = normalizeScope(scopeRaw, "web")
   const { error } = await supabase
     .from('user_chat_states')
     .update(updates)
     .eq('user_id', userId)
+    .eq('scope', scope)
 
   if (error) throw error
 }
@@ -55,13 +77,16 @@ export async function updateUserState(supabase: SupabaseClient, userId: string, 
 export async function logMessage(
   supabase: SupabaseClient, 
   userId: string, 
+  scopeRaw: unknown,
   role: 'user' | 'assistant' | 'system', 
   content: string, 
   agentUsed?: AgentMode,
   metadata?: Record<string, unknown>
 ) {
+  const scope = normalizeScope(scopeRaw, "web")
   await supabase.from('chat_messages').insert({
     user_id: userId,
+    scope,
     role,
     content,
     agent_used: agentUsed

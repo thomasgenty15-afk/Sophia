@@ -1,6 +1,6 @@
 ### Objectif de ce document
 Ce fichier sert de **mémo rapide** pour retrouver :
-- **Les fonctionnalités “conversationnelles”** (empathie, félicitations, démarrage doux, fatigue après 23h…)
+- **Les fonctionnalités “conversationnelles”** (empathie, félicitations, démarrage doux, repères temporels…)
 - **Les agents** (qui fait quoi / quand ils répondent)
 - **Les triggers** (cron / WhatsApp / DB-webhooks)
 - **Les tables & attributs** utilisés côté Supabase (et les RPC RAG)
@@ -43,12 +43,6 @@ Repo: `supabase/functions/*` (Edge Functions) + `supabase/functions/sophia-brain
   - **Auth**: `Authorization` (Supabase user)
   - **Rôle**: envoie un template d’opt-in WhatsApp (idempotent 24h), log + update profile
   - **Tables**: `profiles`, `chat_messages`
-
-- **`trigger-checkup`** (`/functions/v1/trigger-checkup`)
-  - **Type**: Automation/cron
-  - **Auth**: service role (dans la function)
-  - **Rôle**: insère une invitation “bilan” (matin/soir) dans `chat_messages` pour users avec plan actif
-  - **Tables**: `user_plans`, `chat_messages`
 
 - **`trigger-daily-bilan`** (`/functions/v1/trigger-daily-bilan`)
   - **Type**: Automation/cron (WhatsApp)
@@ -170,16 +164,6 @@ Repo: `supabase/functions/*` (Edge Functions) + `supabase/functions/sophia-brain
   - **Effet**: intro courte + transition vers la 1ère question du bilan.
   - **Tables**: `user_action_entries`
 
-- **(4) Après 23h + signes de fatigue → couper intelligemment + bonne nuit**
-  - **Où**:
-    - `supabase/functions/sophia-brain/agents/companion.ts`
-    - `supabase/functions/sophia-brain/agents/architect.ts`
-  - **Principe**:
-    - Le `router` injecte déjà un repère temporel “heure Paris” dans le **contexte** (pour `companion/architect/firefighter`).
-    - Les prompts `companion`/`architect` contiennent maintenant une **règle prioritaire**:
-      - si **≥ 23h** ET signaux de fatigue (“KO”, “crevé”, “sommeil”, “on fait court”…),
-      - alors: réponse courte, proposition de couper, micro-gestes simples, et **exception autorisée** pour dire “bonne nuit”.
-  - **Tables**: aucune écriture spécifique (c’est du comportement prompt).
 
 ---
 
@@ -241,7 +225,7 @@ Repo: `supabase/functions/*` (Edge Functions) + `supabase/functions/sophia-brain
   - **Spécificités**:
     - peut “tracker” des actions quand l’utilisateur dit “j’ai fait / j’ai raté” (`track_progress`)
     - si un checkup est en cours, doit ramener vers l’Enquêteur
-    - règle “après 23h + fatigue” → coupe + bonne nuit intelligente
+    - (supprimé) règle “après 23h + fatigue”
   - **Tables**: `user_actions`, `user_action_entries`, `user_vital_signs`, `user_vital_sign_entries`, `chat_messages`
 
 - **`architect`** — création/modif du plan, deep work, outils
@@ -249,7 +233,7 @@ Repo: `supabase/functions/*` (Edge Functions) + `supabase/functions/sophia-brain
   - **Déclenchement**: demandes de création/modif d’action/framework + exercices de fond
   - **Spécificités**:
     - outils: `create_simple_action`, `create_framework`, `update_action_structure`, `track_progress`
-    - règle “après 23h + fatigue” → “minimum utile” + coupe / reprise demain
+    - (supprimé) règle “après 23h + fatigue”
   - **Tables**: `user_plans`, `user_actions`, `user_action_entries`, `user_framework_tracking`, `chat_messages`
 
 - **`firefighter`** — urgence émotionnelle
@@ -308,7 +292,6 @@ Repo: `supabase/functions/*` (Edge Functions) + `supabase/functions/sophia-brain
 ### 5) Triggers / Cron / Automations (Edge Functions)
 
 #### 5.1 “Bilan” (in-app) automatique
-- **`supabase/functions/trigger-checkup/index.ts`**  / Pour les tests normalement 
   - **Appel typique**: cron (pg_cron / scheduler)
   - **Rôle**: insère un message “matin/soir” dans `chat_messages` pour tous les users avec plan actif.
   - **Tables**: `user_plans` (lecture), `chat_messages` (écriture)

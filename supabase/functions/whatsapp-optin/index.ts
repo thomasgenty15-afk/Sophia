@@ -2,6 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2"
 import { corsHeaders } from "../config.ts"
+import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 
 function normalizeToE164(input: string): string {
   const s = (input ?? "").trim().replace(/[()\s-]/g, "")
@@ -73,6 +74,16 @@ Deno.serve(async (req) => {
     }
 
     const userId = authData.user.id
+
+    // Plan gating: WhatsApp opt-in is available only on Alliance + Architecte.
+    const tier = await getEffectiveTierForUser(supabase as any, userId)
+    if (tier !== "alliance" && tier !== "architecte") {
+      return new Response(JSON.stringify({ error: "Paywall: WhatsApp requires alliance or architecte", tier }), {
+        status: 402,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
     const { data: profile, error: profErr } = await supabase
       .from("profiles")
       .select("full_name, phone_number, phone_invalid, whatsapp_optin_sent_at")
@@ -105,6 +116,7 @@ Deno.serve(async (req) => {
     // Log outbound
     await supabase.from("chat_messages").insert({
       user_id: userId,
+      scope: "whatsapp",
       role: "assistant",
       content: `[TEMPLATE:${templateName}]`,
       agent_used: "companion",

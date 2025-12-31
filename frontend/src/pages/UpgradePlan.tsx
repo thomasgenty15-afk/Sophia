@@ -74,22 +74,22 @@ const UpgradePlan = () => {
       </nav>
 
       {/* HEADER */}
-      <div className="pt-32 pb-12 md:pt-40 md:pb-12 px-4 text-center">
-        <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-6 tracking-tight">
+      <div className="pt-28 pb-8 md:pt-40 md:pb-12 px-4 text-center">
+        <h1 className="text-3xl md:text-5xl font-bold text-slate-900 mb-4 md:mb-6 tracking-tight">
           Passe à la vitesse <span className="text-violet-600">supérieure</span>
         </h1>
-        <p className="text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8">
+        <p className="text-base md:text-lg text-slate-600 max-w-2xl mx-auto leading-relaxed mb-8">
           Choisis le plan qui correspond à tes ambitions. Change ou annule à tout moment.
         </p>
 
         {/* TOGGLE MONTHLY/YEARLY */}
-        <div className="flex items-center justify-center gap-4 mb-8">
+        <div className="flex items-center justify-center gap-3 md:gap-4 mb-8 flex-wrap">
           <span className={`text-sm font-bold transition-colors ${billingInterval === 'monthly' ? 'text-slate-900' : 'text-slate-400'}`}>
             Mensuel
           </span>
           <button 
             onClick={() => setBillingInterval(prev => prev === 'monthly' ? 'yearly' : 'monthly')}
-            className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 relative ${
+            className={`w-14 h-8 rounded-full p-1 transition-colors duration-300 relative flex-shrink-0 ${
               billingInterval === 'yearly' ? 'bg-violet-600' : 'bg-slate-200'
             }`}
           >
@@ -114,10 +114,10 @@ const UpgradePlan = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 items-start">
           
           {/* OPTION 1: LE SYSTÈME */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative group">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative group order-1">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-slate-900 mb-2">Le Système</h3>
-              <p className="text-sm text-slate-500 min-h-[40px]">Pour ceux qui veulent juste la structure et l'outil de pilotage.</p>
+              <p className="text-sm text-slate-500 md:min-h-[40px]">Pour ceux qui veulent juste la structure et l'outil de pilotage.</p>
             </div>
             <div className="mb-8">
               <span className="text-4xl font-bold text-slate-900">
@@ -162,14 +162,14 @@ const UpgradePlan = () => {
           </div>
 
           {/* OPTION 2: L'ALLIANCE - HIGHLIGHTED */}
-          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl relative transform md:-translate-y-4 z-10">
+          <div className="bg-slate-900 rounded-3xl p-8 border border-slate-800 shadow-2xl relative transform md:-translate-y-4 z-10 order-2">
             <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-violet-600 text-white px-4 py-1 rounded-full text-xs font-bold uppercase tracking-wide shadow-lg whitespace-nowrap">
               Le plus populaire
             </div>
             
             <div className="mb-6">
               <h3 className="text-xl font-bold text-white mb-2">L'Alliance</h3>
-              <p className="text-sm text-slate-400 min-h-[40px]">Le combo parfait : Le système + Ton coach IA proactif.</p>
+              <p className="text-sm text-slate-400 md:min-h-[40px]">Le combo parfait : Le système + Ton coach IA proactif.</p>
             </div>
             <div className="mb-8">
               <span className="text-5xl font-bold text-white">
@@ -217,10 +217,10 @@ const UpgradePlan = () => {
           </div>
 
           {/* OPTION 3: L'ARCHITECTE */}
-          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative group">
+          <div className="bg-white rounded-3xl p-8 border border-slate-200 shadow-sm hover:shadow-xl transition-all duration-300 relative group order-3">
             <div className="mb-6">
               <h3 className="text-xl font-bold text-slate-900 mb-2">L'Architecte</h3>
-              <p className="text-sm text-slate-500 min-h-[40px]">Pour ceux qui veulent redéfinir leur identité en profondeur.</p>
+              <p className="text-sm text-slate-500 md:min-h-[40px]">Pour ceux qui veulent redéfinir leur identité en profondeur.</p>
             </div>
             <div className="mb-8">
               <span className="text-4xl font-bold text-slate-900">
@@ -269,4 +269,3 @@ const UpgradePlan = () => {
 };
 
 export default UpgradePlan;
-

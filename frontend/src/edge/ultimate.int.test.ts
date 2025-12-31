@@ -593,6 +593,7 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
     const old = new Date(Date.now() - 10_000).toISOString();
     const { error: insErr } = await admin.from("user_chat_states").insert({
       user_id: userId,
+      scope: "web",
       current_mode: "companion",
       risk_level: 0,
       investigation_state: null,
@@ -603,10 +604,10 @@ describe("ultimate: schema triggers (init modules + week progression + forge pro
     if (insErr) throw insErr;
 
     // Update a field; trigger should bump updated_at
-    const { error: updErr } = await admin.from("user_chat_states").update({ risk_level: 1 }).eq("user_id", userId);
+    const { error: updErr } = await admin.from("user_chat_states").update({ risk_level: 1 }).eq("user_id", userId).eq("scope", "web");
     if (updErr) throw updErr;
 
-    const { data, error } = await admin.from("user_chat_states").select("updated_at,risk_level").eq("user_id", userId).single();
+    const { data, error } = await admin.from("user_chat_states").select("updated_at,risk_level").eq("user_id", userId).eq("scope", "web").single();
     if (error) throw error;
     expect(data.risk_level).toBe(1);
     expect(new Date(data.updated_at).getTime()).toBeGreaterThan(new Date(old).getTime());

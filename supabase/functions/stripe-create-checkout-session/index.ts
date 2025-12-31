@@ -59,6 +59,24 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
 
+    // Guardrail: if the user already has an active subscription, do NOT create a second one.
+    // Instead, send them to Stripe Billing Portal to change plans (avoids double billing).
+    const { data: existingSub, error: existingSubErr } = await supabaseAdmin
+      .from("subscriptions")
+      .select("status, current_period_end")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (existingSubErr) {
+      console.error("[stripe-create-checkout-session] subscriptions read error", existingSubErr);
+      return serverError(req, requestId);
+    }
+    const existingStatus = String((existingSub as any)?.status ?? "").toLowerCase();
+    const existingEndRaw = (existingSub as any)?.current_period_end ? String((existingSub as any).current_period_end) : "";
+    const existingEnd = existingEndRaw ? new Date(existingEndRaw).getTime() : null;
+    const existingActive =
+      existingStatus === "active" &&
+      (existingEnd == null || !Number.isFinite(existingEnd) || Date.now() < existingEnd);
+
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
       .select("stripe_customer_id,email")
@@ -92,6 +110,20 @@ Deno.serve(async (req) => {
         console.error("[stripe-create-checkout-session] profile update error", updErr);
         // Don't hard-fail the checkout.
       }
+    }
+
+    if (existingActive) {
+      const returnUrl = `${appBaseUrl}${parsed.data.cancel_path ?? "/dashboard?billing=portal"}`;
+      const portal = await stripeRequest<{ url: string }>({
+        method: "POST",
+        path: "/v1/billing_portal/sessions",
+        secretKey: stripeSecretKey,
+        body: {
+          customer: customerId!,
+          return_url: returnUrl,
+        },
+      });
+      return jsonResponse(req, { url: portal.url, mode: "portal", request_id: requestId });
     }
 
     const successUrl = `${appBaseUrl}${parsed.data.success_path ?? "/dashboard?billing=success"}`;

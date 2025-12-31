@@ -32,6 +32,7 @@ export async function runAssistant(
     source: "sophia-brain:assistant",
     forceRealAi: meta?.forceRealAi,
   })
-  return typeof response === 'string' ? response.replace(/\*\*/g, '') : response
+  if (typeof response !== "string") return JSON.stringify(response)
+  return response.replace(/\*\*/g, "")
 }
 

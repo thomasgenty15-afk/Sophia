@@ -124,7 +124,8 @@ async function seedChatUser(admin, url, anonKey) {
 }
 
 async function runScenario({ admin, authed, userId }, scenario) {
-  const { data: stBefore } = await admin.from("user_chat_states").select("*").eq("user_id", userId).maybeSingle();
+  const scope = "web";
+  const { data: stBefore } = await admin.from("user_chat_states").select("*").eq("user_id", userId).eq("scope", scope).maybeSingle();
 
   const history = [];
 
@@ -134,7 +135,7 @@ async function runScenario({ admin, authed, userId }, scenario) {
   if (Array.isArray(scenario.steps) && scenario.steps.length > 0) {
     for (const step of scenario.steps) {
       const { data, error } = await authed.functions.invoke("sophia-brain", {
-        body: { message: step.user, history: history.slice(-10) },
+        body: { message: step.user, history: history.slice(-10), channel: "web", scope },
       });
       if (error) throw error;
       history.push({ role: "user", content: step.user });
@@ -162,7 +163,7 @@ async function runScenario({ admin, authed, userId }, scenario) {
 
       // Send to Sophia
       const { data, error } = await authed.functions.invoke("sophia-brain", {
-        body: { message: userMsg, history: history.slice(-10) },
+        body: { message: userMsg, history: history.slice(-10), channel: "web", scope },
       });
       if (error) throw error;
       history.push({ role: "user", content: userMsg });
@@ -177,6 +178,7 @@ async function runScenario({ admin, authed, userId }, scenario) {
     .from("chat_messages")
     .select("role,content,created_at,agent_used")
     .eq("user_id", userId)
+    .eq("scope", scope)
     .order("created_at", { ascending: true })
     .limit(200);
   if (msgErr) throw msgErr;
@@ -188,7 +190,7 @@ async function runScenario({ admin, authed, userId }, scenario) {
     agent_used: m.role === "assistant" ? m.agent_used : null,
   }));
 
-  const { data: stAfter } = await admin.from("user_chat_states").select("*").eq("user_id", userId).maybeSingle();
+  const { data: stAfter } = await admin.from("user_chat_states").select("*").eq("user_id", userId).eq("scope", scope).maybeSingle();
 
   const { data: judged, error: judgeErr } = await authed.functions.invoke("eval-judge", {
     body: {

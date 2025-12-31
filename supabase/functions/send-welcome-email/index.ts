@@ -1,8 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
+import { sendResendEmail } from "../_shared/resend.ts";
 
-const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const WHATSAPP_PHONE_NUMBER = Deno.env.get("WHATSAPP_PHONE_NUMBER") || "33674637278"; // Format sans '+' pour le lien wa.me
@@ -15,13 +15,6 @@ serve(async (req) => {
   if (guardRes) return guardRes;
 
   try {
-    if (!RESEND_API_KEY || !String(RESEND_API_KEY).trim()) {
-      console.error("[send-welcome-email] Missing RESEND_API_KEY");
-      return new Response(JSON.stringify({ error: "Server misconfigured: missing RESEND_API_KEY" }), {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      });
-    }
     if (!SENDER_EMAIL || !String(SENDER_EMAIL).trim()) {
       console.error("[send-welcome-email] Missing SENDER_EMAIL");
       return new Response(JSON.stringify({ error: "Server misconfigured: missing SENDER_EMAIL" }), {
@@ -113,25 +106,16 @@ serve(async (req) => {
       </div>
     `;
 
-    // 4. Envoi via Resend
-    const res = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${RESEND_API_KEY}`,
-      },
-      body: JSON.stringify({
-        from: SENDER_EMAIL,
-        to: [targetEmail],
-        subject: `Bienvenue ${prenom} ! (Check ton WhatsApp 👀)`,
-        html: htmlContent,
-      }),
+    // 4. Envoi via Resend (with MEGA_TEST_MODE skip + 429 retry/backoff)
+    const out = await sendResendEmail({
+      to: targetEmail,
+      subject: `Bienvenue ${prenom} ! (Check ton WhatsApp 👀)`,
+      html: htmlContent,
+      from: SENDER_EMAIL,
+      maxAttempts: 6,
     });
-
-    const data = await res.json();
-
-    if (!res.ok) {
-      console.error("Erreur Resend:", data);
+    if (!out.ok) {
+      console.error("Erreur Resend:", out);
       throw new Error("Erreur lors de l'envoi Resend");
     }
 
@@ -141,10 +125,10 @@ serve(async (req) => {
       channel: "email",
       type: "welcome_email",
       status: "sent",
-      metadata: { resend_id: data.id }
+      metadata: { resend_id: (out as any).data?.id ?? null, skipped: Boolean((out as any).skipped) }
     });
 
-    return new Response(JSON.stringify(data), {
+    return new Response(JSON.stringify((out as any).data ?? { ok: true }), {
       headers: { "Content-Type": "application/json" },
     });
 

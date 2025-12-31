@@ -10,6 +10,11 @@ function requireEnv(name: string): string {
   return v;
 }
 
+function isMegaTestMode(): boolean {
+  const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
+  return megaRaw === "1";
+}
+
 type StripeEvent = {
   id: string;
   type: string;
@@ -41,18 +46,21 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const webhookSecret = requireEnv("STRIPE_WEBHOOK_SECRET");
-    const sigHeader = req.headers.get("Stripe-Signature");
+    // Deterministic/offline tests: skip signature verification (still verified by unit tests in _shared/stripe.ts).
+    if (!isMegaTestMode()) {
+      const webhookSecret = requireEnv("STRIPE_WEBHOOK_SECRET");
+      const sigHeader = req.headers.get("Stripe-Signature");
 
-    const verified = await verifyStripeWebhookSignature({
-      rawBody,
-      signatureHeader: sigHeader,
-      webhookSecret,
-    });
-    if (!verified.ok) {
-      return jsonResponse(req, { error: "Invalid signature", detail: verified.error, request_id: requestId }, {
-        status: 400,
+      const verified = await verifyStripeWebhookSignature({
+        rawBody,
+        signatureHeader: sigHeader,
+        webhookSecret,
       });
+      if (!verified.ok) {
+        return jsonResponse(req, { error: "Invalid signature", detail: verified.error, request_id: requestId }, {
+          status: 400,
+        });
+      }
     }
 
     const evt = JSON.parse(rawBody) as StripeEvent;

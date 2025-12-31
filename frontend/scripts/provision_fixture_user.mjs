@@ -87,6 +87,7 @@ async function upsertChatState(admin, userId, chatState) {
   if (!chatState) return;
   const payload = {
     user_id: userId,
+    scope: chatState.scope ?? "web",
     current_mode: chatState.current_mode ?? "companion",
     risk_level: typeof chatState.risk_level === "number" ? chatState.risk_level : 0,
     investigation_state: chatState.investigation_state ?? null,
@@ -94,7 +95,7 @@ async function upsertChatState(admin, userId, chatState) {
     unprocessed_msg_count: typeof chatState.unprocessed_msg_count === "number" ? chatState.unprocessed_msg_count : 0,
     last_processed_at: chatState.last_processed_at ?? new Date().toISOString(),
   };
-  const { error } = await admin.from("user_chat_states").upsert(payload, { onConflict: "user_id" });
+  const { error } = await admin.from("user_chat_states").upsert(payload, { onConflict: "user_id,scope" });
   if (error) throw error;
 }
 

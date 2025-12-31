@@ -74,7 +74,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "sophia-brain-internal",
       "sort-priorities",
       "summarize-context",
-      "trigger-checkup",
       "trigger-daily-bilan",
       "trigger-memory-echo",
       "update-core-identity",

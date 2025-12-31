@@ -8,6 +8,6 @@ if (!supabaseUrl || !supabaseAnonKey) {
 }
 
 export const supabase = createClient(
-  supabaseUrl || 'http://localhost:54321',
+  supabaseUrl || 'http://127.0.0.1:54321',
   supabaseAnonKey || 'placeholder-key'
 );

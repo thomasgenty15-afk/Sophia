@@ -1,18 +1,21 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
-import { getUserState, updateUserState } from '../state-manager.ts' // Need access to state
+import { getUserState, updateUserState, normalizeScope } from '../state-manager.ts' // Need access to state
 import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 export async function runWatcher(
   supabase: SupabaseClient, 
   userId: string, 
+  scopeRaw: unknown,
   lastProcessedAt: string,
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string }
 ) {
-  console.log(`[Veilleur] Triggered for user ${userId}`)
+  const channel = meta?.channel ?? "web"
+  const scope = normalizeScope(scopeRaw ?? meta?.scope, channel === "whatsapp" ? "whatsapp" : "web")
+  console.log(`[Veilleur] Triggered for user ${userId} scope=${scope}`)
 
   // 1. Fetch State (to get current Short Term Context)
-  const state = await getUserState(supabase, userId);
+  const state = await getUserState(supabase, userId, scope);
   const currentContext = state.short_term_context || "Aucun contexte précédent.";
 
   // 2. Fetch messages since last_processed_at
@@ -20,6 +23,7 @@ export async function runWatcher(
     .from('chat_messages')
     .select('role, content, created_at')
     .eq('user_id', userId)
+    .eq('scope', scope)
     .gt('created_at', lastProcessedAt)
     .order('created_at', { ascending: true })
 
@@ -74,7 +78,7 @@ export async function runWatcher(
     } catch (e) { console.error("Error storing history", e) }
 
     try {
-      await updateUserState(supabase, userId, { short_term_context: newContext });
+      await updateUserState(supabase, userId, scope, { short_term_context: newContext });
     } catch (e) { console.error("Error updating short_term_context", e) }
 
     console.log(`[Veilleur] MEGA stub: wrote insights + archive + context.`);
@@ -155,7 +159,7 @@ export async function runWatcher(
 
     // C. Update Short Term Context (Flow)
     if (newContext) {
-        await updateUserState(supabase, userId, { 
+        await updateUserState(supabase, userId, scope, { 
             short_term_context: newContext 
             // Note: unprocessed_msg_count is reset by the router, not here
         })

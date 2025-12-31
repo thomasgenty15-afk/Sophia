@@ -13,6 +13,7 @@ export function useChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const scope = "web";
 
   // Charger l'historique au montage
   useEffect(() => {
@@ -20,6 +21,7 @@ export function useChat() {
       const { data, error } = await supabase
         .from('chat_messages')
         .select('*')
+        .eq('scope', scope)
         .order('created_at', { ascending: false }) // On prend les plus RÉCENTS d'abord
         .limit(50); // Les 50 derniers
 
@@ -59,7 +61,7 @@ export function useChat() {
 
       // 2. Appel à la Edge Function
       const { data, error: fnError } = await supabase.functions.invoke('sophia-brain', {
-        body: { message: content, history: messages.slice(-10) } 
+        body: { message: content, history: messages.slice(-10), channel: "web", scope } 
       });
 
       if (fnError) throw fnError;
@@ -80,6 +82,7 @@ export function useChat() {
          const { data } = await supabase
             .from('chat_messages')
             .select('*')
+            .eq('scope', scope)
             .order('created_at', { ascending: false })
             .limit(2);
          // On pourrait synchroniser ici, mais restons simple pour l'instant.

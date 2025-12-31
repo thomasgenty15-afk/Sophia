@@ -122,7 +122,8 @@ test("Chat: sending a message triggers sophia-brain and writes chat_messages + a
   const { count: beforeCount } = await seeded.admin
     .from("chat_messages")
     .select("*", { count: "exact", head: true })
-    .eq("user_id", seeded.userId);
+    .eq("user_id", seeded.userId)
+    .eq("scope", "web");
 
   await page.goto("/auth");
   await page.getByPlaceholder("vous@exemple.com").fill(seeded.email);
@@ -144,7 +145,8 @@ test("Chat: sending a message triggers sophia-brain and writes chat_messages + a
     const { count } = await seeded.admin
       .from("chat_messages")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", seeded.userId);
+      .eq("user_id", seeded.userId)
+      .eq("scope", "web");
     return (count ?? 0) - (beforeCount ?? 0);
   }).toBeGreaterThanOrEqual(2);
 
@@ -153,7 +155,8 @@ test("Chat: sending a message triggers sophia-brain and writes chat_messages + a
     const { count } = await seeded.admin
       .from("user_chat_states")
       .select("*", { count: "exact", head: true })
-      .eq("user_id", seeded.userId);
+      .eq("user_id", seeded.userId)
+      .eq("scope", "web");
     return count ?? 0;
   }).toBeGreaterThanOrEqual(1);
 });

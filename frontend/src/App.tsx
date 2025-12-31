@@ -30,7 +30,7 @@ import AdminEvals from './pages/AdminEvals';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsageDashboard from './pages/AdminUsageDashboard';
 import AdminProductionLog from './pages/AdminProductionLog';
-import { RequireAdmin, RequireAppAccess, RequirePrelaunchGate } from './security/RouteGuards';
+import { RequireAdmin, RequireAppAccess, RequireArchitecte, RequirePrelaunchGate } from './security/RouteGuards';
 
 function App() {
   return (
@@ -65,8 +65,8 @@ function App() {
             <Route path="/architecte" element={<RequireAppAccess><ModulesPage /></RequireAppAccess>} />
             
             <Route path="/architecte/:weekId" element={<RequireAppAccess><IdentityArchitect /></RequireAppAccess>} />
-            <Route path="/architecte/alignment" element={<RequireAppAccess><WeeklyAlignment /></RequireAppAccess>} />
-            <Route path="/architecte/evolution" element={<RequireAppAccess><IdentityEvolution /></RequireAppAccess>} />
+            <Route path="/architecte/alignment" element={<RequireArchitecte><WeeklyAlignment /></RequireArchitecte>} />
+            <Route path="/architecte/evolution" element={<RequireArchitecte><IdentityEvolution /></RequireArchitecte>} />
             <Route path="/admin/evals" element={<RequireAdmin><AdminEvals /></RequireAdmin>} />
             <Route path="/admin/usage" element={<RequireAdmin><AdminUsageDashboard /></RequireAdmin>} />
             <Route path="/admin/production-log" element={<RequireAdmin><AdminProductionLog /></RequireAdmin>} />

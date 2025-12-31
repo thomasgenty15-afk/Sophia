@@ -908,6 +908,7 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
           forceMode: 'architect',
           contextOverride,
           channel: 'web',
+          scope: `module:${module.id}`,
           messageMetadata: {
             source: 'module_conversation',
             ui: 'IdentityEvolution.EvolutionForge',

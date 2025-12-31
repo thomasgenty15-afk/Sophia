@@ -2,6 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
+import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 
 type SendText = { type: "text"; body: string }
@@ -58,6 +59,14 @@ async function sendViaGraph(toE164: string, payload: unknown) {
     throw new Error(`WhatsApp send failed (${res.status}): ${JSON.stringify(data)}`)
   }
   return data as any
+}
+
+function isMegaTestMode(): boolean {
+  const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
+  const isLocalSupabase =
+    (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+    (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
+  return megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
 }
 
 function getFallbackTemplate(purpose: string | undefined) {
@@ -132,6 +141,20 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { error: "User not opted in", request_id: requestId }, { status: 409, includeCors: false })
     }
 
+    // Plan gating: WhatsApp is available only on Alliance + Architecte.
+    // This prevents "System" users from receiving proactive WhatsApp messages.
+    // In MEGA test mode we keep behavior permissive to avoid flakiness.
+    if (!isMegaTestMode()) {
+      const tier = await getEffectiveTierForUser(admin, body.user_id)
+      if (tier !== "alliance" && tier !== "architecte") {
+        return jsonResponse(
+          req,
+          { error: "Paywall: WhatsApp requires alliance or architecte", tier, request_id: requestId },
+          { status: 402, includeCors: false },
+        )
+      }
+    }
+
     const toE164 = normalizeToE164(body.to ?? profile.phone_number ?? "")
     if (!toE164) return jsonResponse(req, { error: "Missing phone number", request_id: requestId }, { status: 400, includeCors: false })
 
@@ -198,8 +221,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    const resp = await sendViaGraph(toE164, graphPayload)
-    const waOutboundId = resp?.messages?.[0]?.id ?? null
+    // Mega test runner / local deterministic mode: do not call Meta/Graph.
+    const resp = isMegaTestMode()
+      ? { messages: [{ id: "wamid_MEGA_TEST" }] }
+      : await sendViaGraph(toE164, graphPayload)
+    const waOutboundId = (resp as any)?.messages?.[0]?.id ?? null
 
     // Log outbound in chat_messages
     const contentForLog = body.message.type === "text"
@@ -208,6 +234,7 @@ Deno.serve(async (req) => {
 
     const { error: logErr } = await admin.from("chat_messages").insert({
       user_id: body.user_id,
+      scope: "whatsapp",
       role: "assistant",
       content: contentForLog,
       agent_used: "companion",

@@ -1,14 +1,23 @@
 import { useNavigate } from 'react-router-dom';
 import { Lock, Check, Play } from 'lucide-react';
+import { useAuth } from '../../context/AuthContext';
+import { canAccessArchitectWeek } from '../../lib/entitlements';
 
 // Using 'any' for week as in original, but could be typed if ArchitectWeek is available
 export const WeekCard = ({ week }: { week: any }) => {
   const navigate = useNavigate();
+  const { subscription } = useAuth();
   const isLocked = week.status === "locked";
   const isCurrent = week.status === "active";
   const isCompleted = week.status === "completed";
+  const weekNum = Number(week.id);
+  const isPaywalled = Number.isFinite(weekNum) && weekNum > 2 && !canAccessArchitectWeek(weekNum, subscription);
 
   const handleClick = () => {
+    if (isPaywalled) {
+      navigate('/upgrade');
+      return;
+    }
     if (isLocked) return;
     navigate(`/architecte/${week.id}`);
   };
@@ -41,9 +50,9 @@ export const WeekCard = ({ week }: { week: any }) => {
             {week.title}
           </h3>
 
-          {isLocked && (
+      {(isLocked || isPaywalled) && (
             <p className="text-xs md:text-sm text-emerald-800 mt-2 font-medium flex items-center gap-1">
-              <Lock className="w-3 h-3" /> Se débloque bientôt
+              <Lock className="w-3 h-3" /> {isPaywalled ? "Disponible avec L'Architecte" : "Se débloque bientôt"}
             </p>
           )}
         </div>
@@ -54,7 +63,7 @@ export const WeekCard = ({ week }: { week: any }) => {
               ? "bg-emerald-500 text-emerald-950 shadow-md shadow-emerald-900/20"
               : "bg-emerald-900/20 text-emerald-800 border border-emerald-900/50"
           }`}>
-          {isLocked ? <Lock className="w-4 h-4 md:w-5 md:h-5" /> : isCompleted ? <Check className="w-5 h-5 md:w-6 md:h-6" /> : <Play className="w-4 h-4 md:w-5 md:h-5 fill-current ml-0.5" />}
+          {(isLocked || isPaywalled) ? <Lock className="w-4 h-4 md:w-5 md:h-5" /> : isCompleted ? <Check className="w-5 h-5 md:w-6 md:h-6" /> : <Play className="w-4 h-4 md:w-5 md:h-5 fill-current ml-0.5" />}
         </div>
       </div>
     </div>
