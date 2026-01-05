@@ -6,6 +6,8 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts"
 
 console.log("Process Checkins: Function initialized")
 
+const QUIET_WINDOW_MINUTES = Number.parseInt((Deno.env.get("WHATSAPP_QUIET_WINDOW_MINUTES") ?? "").trim() || "20", 10)
+
 function internalSecret(): string {
   return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() || Deno.env.get("SECRET_KEY")?.trim() || "")
 }
@@ -50,6 +52,82 @@ Deno.serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
+    // 0) Flush deferred proactive WhatsApp messages when conversation has been quiet.
+    // This avoids sending memory echos mid-conversation.
+    const nowIso = new Date().toISOString()
+    const quietMs = QUIET_WINDOW_MINUTES * 60 * 1000
+    const { data: deferred, error: defErr } = await supabaseAdmin
+      .from("whatsapp_pending_actions")
+      .select("id, user_id, payload, not_before, expires_at, created_at")
+      .eq("kind", "deferred_send")
+      .eq("status", "pending")
+      .or(`not_before.is.null,not_before.lte.${nowIso}`)
+      .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+      .order("created_at", { ascending: true })
+      .limit(50)
+    if (defErr) throw defErr
+
+    let flushedCount = 0
+    if (deferred && deferred.length > 0) {
+      for (const row of deferred as any[]) {
+        // Ensure quiet window is satisfied before sending.
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+          .eq("id", row.user_id)
+          .maybeSingle()
+        const lastInbound = profile?.whatsapp_last_inbound_at ? new Date(profile.whatsapp_last_inbound_at).getTime() : null
+        const lastOutbound = (profile as any)?.whatsapp_last_outbound_at ? new Date((profile as any).whatsapp_last_outbound_at).getTime() : null
+        const lastActivity = Math.max(lastInbound ?? 0, lastOutbound ?? 0)
+        if (lastActivity > 0 && Date.now() - lastActivity < quietMs) {
+          // Still active: keep pending for next run.
+          continue
+        }
+
+        const p = row.payload ?? {}
+        const purpose = (p as any)?.purpose ?? null
+        const message = (p as any)?.message ?? null
+        const requireOptedIn = (p as any)?.require_opted_in
+        const metadataExtra = (p as any)?.metadata_extra
+        const bodyText = (message && (message as any).type === "text") ? String((message as any).body ?? "") : ""
+
+        try {
+          await callWhatsappSend({
+            user_id: row.user_id,
+            message,
+            purpose,
+            require_opted_in: requireOptedIn,
+            metadata_extra: metadataExtra,
+          })
+
+          await supabaseAdmin
+            .from("whatsapp_pending_actions")
+            .update({ status: "done", processed_at: new Date().toISOString() })
+            .eq("id", row.id)
+          flushedCount++
+        } catch (e) {
+          const status = (e as any)?.status
+          // 429 throttle => keep pending, retry later.
+          if (status === 429) continue
+
+          // If WhatsApp can't be used (not opted in / paywall / missing phone), fall back to in-app log and stop retrying.
+          if (bodyText.trim()) {
+            await supabaseAdmin.from("chat_messages").insert({
+              user_id: row.user_id,
+              role: "assistant",
+              content: bodyText,
+              agent_used: "philosopher",
+              metadata: { source: "deferred_send_fallback", purpose, ...(metadataExtra && typeof metadataExtra === "object" ? metadataExtra : {}) },
+            })
+          }
+          await supabaseAdmin
+            .from("whatsapp_pending_actions")
+            .update({ status: "cancelled", processed_at: new Date().toISOString() })
+            .eq("id", row.id)
+        }
+      }
+    }
+
     // 1. Fetch pending checkins that are due
     const { data: checkins, error: fetchError } = await supabaseAdmin
       .from('scheduled_checkins')
@@ -61,13 +139,39 @@ Deno.serve(async (req) => {
     if (fetchError) throw fetchError
 
     if (!checkins || checkins.length === 0) {
-      return jsonResponse(req, { message: "No checkins to process", request_id: requestId }, { includeCors: false })
+      return jsonResponse(
+        req,
+        { message: "No checkins to process", flushed_deferred: flushedCount, request_id: requestId },
+        { includeCors: false },
+      )
     }
 
     console.log(`[process-checkins] request_id=${requestId} due_checkins=${checkins.length}`)
     let processedCount = 0
 
     for (const checkin of checkins) {
+      // Quiet window: don't interrupt an active WhatsApp conversation.
+      // If the user was active recently, push the checkin a bit later instead of sending now.
+      {
+        const { data: profile } = await supabaseAdmin
+          .from("profiles")
+          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+          .eq("id", checkin.user_id)
+          .maybeSingle()
+        const lastInbound = profile?.whatsapp_last_inbound_at ? new Date(profile.whatsapp_last_inbound_at).getTime() : null
+        const lastOutbound = (profile as any)?.whatsapp_last_outbound_at ? new Date((profile as any).whatsapp_last_outbound_at).getTime() : null
+        const lastActivity = Math.max(lastInbound ?? 0, lastOutbound ?? 0)
+        if (lastActivity > 0 && Date.now() - lastActivity < quietMs) {
+          const waitMs = Math.max(0, quietMs - (Date.now() - lastActivity))
+          const nextIso = new Date(Date.now() + waitMs).toISOString()
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ scheduled_for: nextIso })
+            .eq("id", checkin.id)
+          continue
+        }
+      }
+
       // 2) Prefer WhatsApp send (text if window open, template fallback if closed).
       // If the user isn't opted in / no phone: fall back to logging into chat_messages only.
       let sentViaWhatsapp = false
@@ -174,7 +278,7 @@ Deno.serve(async (req) => {
 
     return jsonResponse(
       req,
-      { success: true, processed: processedCount, request_id: requestId },
+      { success: true, processed: processedCount, flushed_deferred: flushedCount, request_id: requestId },
       { includeCors: false },
     )
 

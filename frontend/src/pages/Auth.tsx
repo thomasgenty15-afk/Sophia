@@ -180,7 +180,10 @@ const Auth = () => {
             // Note: requires an active session/JWT; if email confirmations are enabled, this will be retried on first login.
             try {
               if (data.session) {
-                await supabase.functions.invoke('whatsapp-optin', { body: {} });
+                const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {} });
+                if (waErr) {
+                  console.warn("WhatsApp opt-in send failed (non-blocking):", waErr, waData);
+                }
               }
             } catch (e) {
               console.warn("WhatsApp opt-in send failed (non-blocking):", e);
@@ -250,7 +253,10 @@ const Auth = () => {
         if (data.user) {
             // Retry WhatsApp opt-in template on first login (best-effort)
             try {
-              await supabase.functions.invoke('whatsapp-optin', { body: {} });
+              const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {} });
+              if (waErr) {
+                console.warn("WhatsApp opt-in send failed on login (non-blocking):", waErr, waData);
+              }
             } catch (e) {
               console.warn("WhatsApp opt-in send failed on login (non-blocking):", e);
             }

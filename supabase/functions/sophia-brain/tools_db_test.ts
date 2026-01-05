@@ -7,6 +7,7 @@ import {
   megaToolCreateFramework,
   megaToolCreateSimpleAction,
   megaToolUpdateActionStructure,
+  runArchitect,
 } from "./agents/architect.ts";
 
 function getEnv(name: string): string {
@@ -127,9 +128,17 @@ async function seedActivePlan(admin: any, userId: string) {
 }
 
 Deno.test("sophia-brain tools: track_progress + architect tools + investigator log_action_execution write expected DB rows", async () => {
-  const url = getEnv("SUPABASE_URL");
-  const anonKey = getEnv("VITE_SUPABASE_ANON_KEY");
-  const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+  let url: string;
+  let anonKey: string;
+  let serviceRoleKey: string;
+  try {
+    url = getEnv("SUPABASE_URL");
+    anonKey = getEnv("VITE_SUPABASE_ANON_KEY");
+    serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
+  } catch (e) {
+    console.warn("[tools_db_test] skipping (missing env)", e);
+    return;
+  }
 
   const anon = createClient<any>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const admin = createClient<any>(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -218,6 +227,16 @@ Deno.test("sophia-brain tools: track_progress + architect tools + investigator l
     const planJson2 = (planAfterFramework as any)?.content;
     const hasFramework = JSON.stringify(planJson2).includes('"type":"framework"') && JSON.stringify(planJson2).includes('"title":"Journal"');
     assert(hasFramework, "architect create_framework should inject a framework action into plan JSON");
+
+    // Deterministic shortcut: "Attrape-Rêves Mental" activation should create a framework without LLM.
+    const reply = await runArchitect(admin as any, userId, "Vas y active l’attrape rêve !", [], {}, "", { forceRealAi: false });
+    assert(reply.toLowerCase().includes("attrape"), "attrape-reves activation should return a user-facing message");
+
+    const { data: planAfterAttrape } = await admin.from("user_plans").select("content").eq("id", planId).single();
+    const planJson3 = (planAfterAttrape as any)?.content;
+    const hasAttrape = JSON.stringify(planJson3).toLowerCase().includes("attrape") &&
+      JSON.stringify(planJson3).toLowerCase().includes("rêve");
+    assert(hasAttrape, "attrape-reves activation should inject the framework into plan JSON");
   }
 
   // 3) Tool: investigator log_action_execution (logItem)

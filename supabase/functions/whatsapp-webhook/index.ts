@@ -83,74 +83,75 @@ Deno.serve(async (req) => {
     )
 
     for (const msg of inbound) {
-      const fromE164 = normalizeFrom(msg.from)
-      if (!fromE164) continue
+      try {
+        const fromE164 = normalizeFrom(msg.from)
+        if (!fromE164) continue
 
-      // Lookup profile by phone_number.
-      // IMPORTANT: phone_number is not globally unique anymore (it becomes unique only once validated).
-      // We therefore:
-      // - Prefer the validated profile (phone_verified_at not null) if present
-      // - Otherwise treat it as "unlinked" to avoid selecting the wrong user.
-      const fromDigits = fromE164.startsWith("+") ? fromE164.slice(1) : fromE164
-      const frLocal = e164ToFrenchLocal(fromE164)
+        // Lookup profile by phone_number.
+        // IMPORTANT: phone_number is not globally unique anymore (it becomes unique only once validated).
+        // We therefore:
+        // - Prefer the validated profile (phone_verified_at not null) if present
+        // - Otherwise treat it as "unlinked" to avoid selecting the wrong user.
+        const fromDigits = fromE164.startsWith("+") ? fromE164.slice(1) : fromE164
+        const frLocal = e164ToFrenchLocal(fromE164)
 
-      const { data: candidates, error: profErr } = await admin
-        .from("profiles")
-        .select("id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end")
-        // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." (legacy/manual input).
-        // We try a small set of safe variants to avoid false "unknown number" prompts.
-        .in("phone_number", [fromE164, fromDigits, frLocal].filter(Boolean))
-        .order("phone_verified_at", { ascending: false, nullsFirst: false })
-        .limit(2)
-      if (profErr) throw profErr
+        const { data: candidates, error: profErr } = await admin
+          .from("profiles")
+          .select("id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end")
+          // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." (legacy/manual input).
+          // We try a small set of safe variants to avoid false "unknown number" prompts.
+          .in("phone_number", [fromE164, fromDigits, frLocal].filter(Boolean))
+          .order("phone_verified_at", { ascending: false, nullsFirst: false })
+          .limit(2)
+        if (profErr) throw profErr
 
-      const { profile, ambiguous } = (() => {
-        const rows = (candidates ?? []) as any[]
-        if (rows.length === 0) return { profile: null as any, ambiguous: false }
-        if (rows.length === 1) return { profile: rows[0], ambiguous: false }
-        const verified = rows.find((r) => Boolean(r?.phone_verified_at))
-        return { profile: verified ?? null, ambiguous: !verified }
-      })()
+        const { profile, ambiguous } = (() => {
+          const rows = (candidates ?? []) as any[]
+          if (rows.length === 0) return { profile: null as any, ambiguous: false }
+          if (rows.length === 1) return { profile: rows[0], ambiguous: false }
+          const verified = rows.find((r) => Boolean(r?.phone_verified_at))
+          return { profile: verified ?? null, ambiguous: !verified }
+        })()
 
-      if (!profile) {
-        await handleUnlinkedInbound({
-          admin,
-          msg,
-          fromE164,
-          ambiguous,
-          siteUrl: SITE_URL,
-          supportEmail: SUPPORT_EMAIL,
-          defaultWhatsappNumber: DEFAULT_WHATSAPP_NUMBER,
-          linkPromptCooldownMs: LINK_PROMPT_COOLDOWN_MS,
-          linkBlockNoticeCooldownMs: LINK_BLOCK_NOTICE_COOLDOWN_MS,
-          linkMaxAttempts: LINK_MAX_ATTEMPTS,
-        })
-        continue
-      }
+        if (!profile) {
+          await handleUnlinkedInbound({
+            admin,
+            msg,
+            fromE164,
+            ambiguous,
+            siteUrl: SITE_URL,
+            supportEmail: SUPPORT_EMAIL,
+            defaultWhatsappNumber: DEFAULT_WHATSAPP_NUMBER,
+            linkPromptCooldownMs: LINK_PROMPT_COOLDOWN_MS,
+            linkBlockNoticeCooldownMs: LINK_BLOCK_NOTICE_COOLDOWN_MS,
+            linkMaxAttempts: LINK_MAX_ATTEMPTS,
+          })
+          continue
+        }
 
-      if (profile.phone_invalid) continue
+        if (profile.phone_invalid) continue
 
-      // Idempotency: skip if already logged this wa_message_id
-      const { count: already } = await admin
-        .from("chat_messages")
-        .select("id", { count: "exact", head: true })
-        .eq("user_id", profile.id)
-        .eq("scope", "whatsapp")
-        .eq("role", "user")
-        .filter("metadata->>channel", "eq", "whatsapp")
-        .filter("metadata->>wa_message_id", "eq", msg.wa_message_id)
+        // Idempotency: skip if already logged this wa_message_id
+        const { count: already } = await admin
+          .from("chat_messages")
+          .select("id", { count: "exact", head: true })
+          .eq("user_id", profile.id)
+          .eq("scope", "whatsapp")
+          .eq("role", "user")
+          .filter("metadata->>channel", "eq", "whatsapp")
+          .filter("metadata->>wa_message_id", "eq", msg.wa_message_id)
 
-      if ((already ?? 0) > 0) continue
+        if ((already ?? 0) > 0) continue
 
-      // Prefer stable interactive ids (Quick Replies), fallback to text matching.
-      const actionId = (msg.interactive_id ?? "").trim()
-      const textLower = (msg.text ?? "").trim().toLowerCase()
+        // Prefer stable interactive ids (Quick Replies), fallback to text matching.
+        const actionId = (msg.interactive_id ?? "").trim()
+        const textLower = (msg.text ?? "").trim().toLowerCase()
 
-      const isWrongNumber =
-        actionId === "OPTIN_WRONG_NUMBER" ||
-        /mauvais\s*num[ée]ro|wrong\s*number/i.test(textLower)
+        const isWrongNumber =
+          actionId === "OPTIN_WRONG_NUMBER" ||
+          /mauvais\s*num[ée]ro|wrong\s*number/i.test(textLower)
 
-      const isStop = isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)
+        const isStop = isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)
 
       // Daily bilan template buttons:
       // - IMPORTANT: be strict here. A generic "oui"/"ok" can refer to *anything* and was incorrectly
@@ -172,17 +173,17 @@ Deno.serve(async (req) => {
       const isEchoYes = /m['’]int[ée]resse|vas[-\s]*y|oui\b/i.test(textLower)
       const isEchoLater = /plus\s*tard/i.test(textLower)
 
-      if (isWrongNumber) {
-        await handleWrongNumber({
-          admin,
-          userId: profile.id,
-          fromE164,
-          fullName: String(profile.full_name ?? ""),
-          profileEmail: String(profile.email ?? ""),
-          defaultWhatsappNumber: DEFAULT_WHATSAPP_NUMBER,
-        })
-        continue
-      }
+        if (isWrongNumber) {
+          await handleWrongNumber({
+            admin,
+            userId: profile.id,
+            fromE164,
+            fullName: String(profile.full_name ?? ""),
+            profileEmail: String(profile.email ?? ""),
+            defaultWhatsappNumber: DEFAULT_WHATSAPP_NUMBER,
+          })
+          continue
+        }
 
       const { isOptInYes, hasBilanContext } = await computeOptInAndBilanContext({
         admin,
@@ -239,6 +240,47 @@ Deno.serve(async (req) => {
         },
       })
       if (inErr) throw inErr
+
+      // If user is messaging us but has no active plan, put them in the onboarding state-machine
+      // so we don't spam the same generic "no plan" reply over and over.
+      if (!profile.whatsapp_state) {
+        const { data: activePlan, error: planErr } = await admin
+          .from("user_plans")
+          .select("title, updated_at")
+          .eq("user_id", profile.id)
+          .eq("status", "active")
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        if (planErr) throw planErr
+
+        const planTitle = String((activePlan as any)?.title ?? "").trim()
+        if (!planTitle) {
+          const nowIso2 = new Date().toISOString()
+          await admin.from("profiles").update({
+            whatsapp_state: "awaiting_plan_finalization",
+            whatsapp_state_updated_at: nowIso2,
+          }).eq("id", profile.id)
+
+          const didHandleOnboarding = await handleOnboardingState({
+            admin,
+            userId: profile.id,
+            whatsappState: "awaiting_plan_finalization",
+            fromE164,
+            requestId,
+            waMessageId: msg.wa_message_id,
+            text: msg.text ?? "",
+            siteUrl: SITE_URL,
+            replyWithBrain,
+            sendWhatsAppText,
+            isDonePhrase,
+            extractAfterDonePhrase,
+            stripFirstMotivationScore,
+            hasWhatsappPersonalFact,
+          })
+          if (didHandleOnboarding) continue
+        }
+      }
 
       // Paywall notice: if user messages on WhatsApp but is out of trial and not on Alliance/Architecte,
       // answer with a helpful upgrade message instead of running the coaching flows.
@@ -346,16 +388,22 @@ Deno.serve(async (req) => {
       }
 
       // Default: call Sophia brain (no auto logging) then send reply
-      await replyWithBrain({
-        admin,
-        userId: profile.id,
-        fromE164,
-        inboundText: (msg.text ?? "").trim() || "Salut",
-        requestId,
-        replyToWaMessageId: msg.wa_message_id,
-        purpose: "whatsapp_default_brain_reply",
-        contextOverride: "",
-      })
+        await replyWithBrain({
+          admin,
+          userId: profile.id,
+          fromE164,
+          inboundText: (msg.text ?? "").trim() || "Salut",
+          requestId,
+          replyToWaMessageId: msg.wa_message_id,
+          purpose: "whatsapp_default_brain_reply",
+          contextOverride: "",
+        })
+      } catch (err) {
+        // Never fail the whole webhook batch: Meta expects a fast 200 OK; we log and continue.
+        // This is especially important in Meta test mode when the recipient is not allowlisted (code 131030).
+        console.error(`[whatsapp-webhook] request_id=${requestId} wa_message_id=${msg.wa_message_id}`, err)
+        continue
+      }
     }
 
     return jsonResponse(req, { ok: true, request_id: requestId }, { includeCors: false })

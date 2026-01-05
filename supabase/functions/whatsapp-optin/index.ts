@@ -1,8 +1,27 @@
 /// <reference path="../tsserver-shims.d.ts" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { createClient } from "jsr:@supabase/supabase-js@2"
+import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { corsHeaders } from "../config.ts"
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
+
+function denoEnv(name: string): string | undefined {
+  return (globalThis as any)?.Deno?.env?.get?.(name)
+}
+
+function isMegaTestMode(): boolean {
+  const megaRaw = (denoEnv("MEGA_TEST_MODE") ?? "").trim()
+  const isLocalSupabase =
+    (denoEnv("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+    (denoEnv("SUPABASE_URL") ?? "").includes("http://kong:8000")
+  return megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
+}
+
+function isInTrial(trialEndRaw: unknown): boolean {
+  const t = String(trialEndRaw ?? "").trim()
+  if (!t) return false
+  const ts = new Date(t).getTime()
+  return Number.isFinite(ts) ? Date.now() < ts : false
+}
 
 function normalizeToE164(input: string): string {
   const s = (input ?? "").trim().replace(/[()\s-]/g, "")
@@ -14,43 +33,75 @@ function normalizeToE164(input: string): string {
 }
 
 async function sendTemplate(toE164: string, name: string, language: string, fullName: string) {
-  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")?.trim()
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")?.trim()
+  const token = denoEnv("WHATSAPP_ACCESS_TOKEN")?.trim()
+  const phoneNumberId = denoEnv("WHATSAPP_PHONE_NUMBER_ID")?.trim()
   if (!token || !phoneNumberId) throw new Error("Missing WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID")
 
   const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`
-  const payload: any = {
-    messaging_product: "whatsapp",
-    to: toE164.replace("+", ""),
-    type: "template",
-    template: {
-      name,
-      language: { code: language },
-      components: [
-        {
-          type: "body",
-          parameters: [{ type: "text", text: fullName || "!" }],
-        },
-      ],
-    },
+
+  async function attempt(tplName: string, tplLang: string) {
+    const payload: any = {
+      messaging_product: "whatsapp",
+      to: toE164.replace("+", ""),
+      type: "template",
+      template: {
+        name: tplName,
+        language: { code: tplLang },
+        components: [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: fullName || "!" }],
+          },
+        ],
+      },
+    }
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json().catch(() => ({}))
+    return { ok: res.ok, status: res.status, data, tplName, tplLang }
   }
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(`WhatsApp template send failed (${res.status}): ${JSON.stringify(data)}`)
-  return data as any
+  // 1) Primary attempt (as configured)
+  const first = await attempt(name, language)
+  if (first.ok) return first.data as any
+
+  const metaCode = (first.data as any)?.error?.code
+  const attempts: Array<Pick<typeof first, "status" | "data" | "tplName" | "tplLang">> = [
+    { status: first.status, data: first.data, tplName: first.tplName, tplLang: first.tplLang },
+  ]
+  // Meta error 132001: "Template name does not exist in the translation"
+  // This often means the template exists but not for the requested language.
+  if (metaCode === 132001) {
+    // 2) Retry same template in French (most of our templates are fr-only in early setups)
+    if ((language ?? "").trim().toLowerCase() !== "fr") {
+      const fr = await attempt(name, "fr")
+      if (fr.ok) return fr.data as any
+      attempts.push({ status: fr.status, data: fr.data, tplName: fr.tplName, tplLang: fr.tplLang })
+    }
+    // 3) Last resort: fallback to default opt-in template + fr
+    const fallbackName = (denoEnv("WHATSAPP_OPTIN_TEMPLATE_NAME_FALLBACK") ?? "sophia_optin_v1").trim()
+    const last = await attempt(fallbackName, "fr")
+    if (last.ok) return last.data as any
+    attempts.push({ status: last.status, data: last.data, tplName: last.tplName, tplLang: last.tplLang })
+  }
+
+  throw new Error(
+    `WhatsApp template send failed (meta_code=${metaCode ?? "unknown"}): ${JSON.stringify(attempts)}`,
+  )
 }
 
-Deno.serve(async (req) => {
+const serve = ((globalThis as any)?.Deno?.serve ?? null) as any
+serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders })
   }
 
   try {
+    const requestId = crypto.randomUUID()
     const authHeader = req.headers.get("Authorization")
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
@@ -60,8 +111,8 @@ Deno.serve(async (req) => {
     }
 
     const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_ANON_KEY") ?? "",
+      denoEnv("SUPABASE_URL") ?? "",
+      denoEnv("SUPABASE_ANON_KEY") ?? "",
       { global: { headers: { Authorization: authHeader } } },
     )
 
@@ -75,24 +126,42 @@ Deno.serve(async (req) => {
 
     const userId = authData.user.id
 
-    // Plan gating: WhatsApp opt-in is available only on Alliance + Architecte.
-    const tier = await getEffectiveTierForUser(supabase as any, userId)
-    if (tier !== "alliance" && tier !== "architecte") {
-      return new Response(JSON.stringify({ error: "Paywall: WhatsApp requires alliance or architecte", tier }), {
-        status: 402,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      })
+    // Optional client overrides for template (useful for debugging misconfigured env vars).
+    let overrides: { template_name?: string; template_lang?: string } = {}
+    try {
+      if (req.headers.get("content-type")?.toLowerCase().includes("application/json")) {
+        overrides = (await req.json()) ?? {}
+      }
+    } catch {
+      // ignore invalid JSON
+      overrides = {}
     }
 
     const { data: profile, error: profErr } = await supabase
       .from("profiles")
-      .select("full_name, phone_number, phone_invalid, whatsapp_optin_sent_at")
+      .select("full_name, phone_number, phone_invalid, whatsapp_optin_sent_at, trial_end")
       .eq("id", userId)
       .maybeSingle()
 
     if (profErr) throw profErr
     if (!profile) throw new Error("Profile not found")
     if (profile.phone_invalid) throw new Error("Phone marked invalid")
+
+    // Gating: allow opt-in send during trial (or in MEGA test mode), otherwise require paid tier.
+    const mega = isMegaTestMode()
+    const inTrial = isInTrial((profile as any).trial_end)
+    if (!mega && !inTrial) {
+      const tier = await getEffectiveTierForUser(supabase as any, userId)
+      if (tier !== "alliance" && tier !== "architecte") {
+        return new Response(
+          JSON.stringify({ error: "Paywall: WhatsApp requires alliance or architecte", tier, in_trial: inTrial, request_id: requestId }),
+          {
+            status: 402,
+            headers: { ...corsHeaders, "Content-Type": "application/json" },
+          },
+        )
+      }
+    }
 
     const toE164 = normalizeToE164(profile.phone_number ?? "")
     if (!toE164) throw new Error("Missing phone number")
@@ -107,8 +176,10 @@ Deno.serve(async (req) => {
       }
     }
 
-    const templateName = (Deno.env.get("WHATSAPP_OPTIN_TEMPLATE_NAME") ?? "sophia_optin_v1").trim()
-    const templateLang = (Deno.env.get("WHATSAPP_OPTIN_TEMPLATE_LANG") ?? "fr").trim()
+    const templateName = (String(overrides.template_name ?? "").trim() ||
+      (denoEnv("WHATSAPP_OPTIN_TEMPLATE_NAME") ?? "sophia_optin_v1").trim())
+    const templateLang = (String(overrides.template_lang ?? "").trim() ||
+      (denoEnv("WHATSAPP_OPTIN_TEMPLATE_LANG") ?? "fr").trim())
 
     const resp = await sendTemplate(toE164, templateName, templateLang, profile.full_name ?? "")
     const waOutboundId = resp?.messages?.[0]?.id ?? null
@@ -137,6 +208,7 @@ Deno.serve(async (req) => {
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
+    console.error("[whatsapp-optin] error:", error)
     return new Response(JSON.stringify({ error: message }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },

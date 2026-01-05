@@ -60,6 +60,8 @@ export async function handleOnboardingState(params: {
           `Objectif: répondre au message de l'utilisateur (même si c'est hors sujet), puis rappeler en 1 phrase qu'il faut finaliser le plan sur le site.\n` +
           `Ensuite, demander de répondre exactement: "C'est bon" quand c'est finalisé.\n` +
           `Inclure le lien: ${siteUrl}\n` +
+          `IMPORTANT: tu ne connais pas l'UI exacte du site. N'invente jamais des boutons/positions ("en haut à droite", "clique sur Mes plans"). Reste générique.\n` +
+          `IMPORTANT: tu ne peux pas envoyer d'images/captures d'écran ici. Ne propose pas d'en envoyer.\n` +
           `Ne pose qu'UNE question max, et reste naturel (pas robot).\n`,
       })
       return true
@@ -104,6 +106,8 @@ export async function handleOnboardingState(params: {
           `Le user dit que c'est bon, mais aucun plan actif n'est visible.\n` +
           `Objectif: répondre au message du user (et si il a donné une info perso, acknowledge brièvement), puis expliquer qu'il faut finaliser/activer le plan sur ${siteUrl}.\n` +
           `Ensuite demander de répondre exactement: "C'est bon" quand c'est finalisé.\n` +
+          `IMPORTANT: tu ne connais pas l'UI exacte du site. N'invente jamais des boutons/positions.\n` +
+          `IMPORTANT: tu ne peux pas envoyer d'images/captures d'écran ici.\n` +
           `Ne pose qu'UNE question max.\n`,
       })
       return true

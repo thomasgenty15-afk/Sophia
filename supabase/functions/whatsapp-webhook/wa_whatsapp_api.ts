@@ -17,7 +17,22 @@ export async function sendWhatsAppText(toE164: string, body: string) {
     body: JSON.stringify(payload),
   })
   const data = await res.json().catch(() => ({}))
-  if (!res.ok) throw new Error(`WhatsApp send failed (${res.status}): ${JSON.stringify(data)}`)
+  if (!res.ok) {
+    // In Meta test mode, the Cloud API phone number can only message recipients added to the allowlist
+    // in "WhatsApp -> API Setup -> To". When missing, Meta returns code 131030.
+    const metaCode = (data as any)?.error?.code
+    if (res.status === 400 && metaCode === 131030) {
+      console.warn("[whatsapp] recipient not in allowed list (Meta test mode)", {
+        to: toE164,
+        phone_number_id: phoneNumberId,
+        status: res.status,
+        metaCode,
+        details: (data as any)?.error?.error_data?.details ?? null,
+      })
+      return { skipped: true, reason: "recipient_not_allowed_list", meta: data } as any
+    }
+    throw new Error(`WhatsApp send failed (${res.status}): ${JSON.stringify(data)}`)
+  }
   return data as any
 }
 

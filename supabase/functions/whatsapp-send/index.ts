@@ -56,6 +56,17 @@ async function sendViaGraph(toE164: string, payload: unknown) {
 
   const data = await res.json().catch(() => ({}))
   if (!res.ok) {
+    const metaCode = (data as any)?.error?.code
+    if (res.status === 400 && metaCode === 131030) {
+      console.warn("[whatsapp-send] recipient not in allowed list (Meta test mode)", {
+        to: toE164,
+        phone_number_id: phoneNumberId,
+        status: res.status,
+        metaCode,
+        details: (data as any)?.error?.error_data?.details ?? null,
+      })
+      return { skipped: true, reason: "recipient_not_allowed_list", meta: data } as any
+    }
     throw new Error(`WhatsApp send failed (${res.status}): ${JSON.stringify(data)}`)
   }
   return data as any
@@ -129,7 +140,7 @@ Deno.serve(async (req) => {
 
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("phone_number, full_name, whatsapp_opted_in, whatsapp_opted_out_at, phone_invalid, whatsapp_last_inbound_at")
+      .select("phone_number, full_name, whatsapp_opted_in, whatsapp_opted_out_at, phone_invalid, whatsapp_last_inbound_at, trial_end")
       .eq("id", body.user_id)
       .maybeSingle()
 
@@ -141,10 +152,16 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { error: "User not opted in", request_id: requestId }, { status: 409, includeCors: false })
     }
 
+    // Trial gating: while in trial, WhatsApp access is allowed even without a paid subscription.
+    // (Trial window is stored in profiles.trial_end.)
+    const trialEndRaw = String((profile as any).trial_end ?? "").trim()
+    const trialEndTs = trialEndRaw ? new Date(trialEndRaw).getTime() : NaN
+    const inTrial = Number.isFinite(trialEndTs) ? Date.now() < trialEndTs : false
+
     // Plan gating: WhatsApp is available only on Alliance + Architecte.
     // This prevents "System" users from receiving proactive WhatsApp messages.
     // In MEGA test mode we keep behavior permissive to avoid flakiness.
-    if (!isMegaTestMode()) {
+    if (!isMegaTestMode() && !inTrial) {
       const tier = await getEffectiveTierForUser(admin, body.user_id)
       if (tier !== "alliance" && tier !== "architecte") {
         return jsonResponse(
@@ -222,10 +239,13 @@ Deno.serve(async (req) => {
     }
 
     // Mega test runner / local deterministic mode: do not call Meta/Graph.
-    const resp = isMegaTestMode()
-      ? { messages: [{ id: "wamid_MEGA_TEST" }] }
+    const mega = isMegaTestMode()
+    const resp = mega
+      ? { messages: [{ id: "wamid_MEGA_TEST" }], mega_test_mode: true }
       : await sendViaGraph(toE164, graphPayload)
     const waOutboundId = (resp as any)?.messages?.[0]?.id ?? null
+    const skipped = Boolean((resp as any)?.skipped)
+    const skipReason = ((resp as any)?.reason ?? null) as string | null
 
     // Log outbound in chat_messages
     const contentForLog = body.message.type === "text"
@@ -260,6 +280,10 @@ Deno.serve(async (req) => {
       {
         success: true,
         wa_outbound_message_id: waOutboundId,
+        skipped,
+        skip_reason: skipReason,
+        mega_test_mode: mega,
+        in_trial: inTrial,
         proactive: isProactive,
         used_template: Boolean(mustUseTemplate),
         in_24h_window: Boolean(isIn24h),

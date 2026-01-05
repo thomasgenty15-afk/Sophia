@@ -573,6 +573,71 @@ export async function runArchitect(
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
 
+  // --- Deterministic shortcut: "Attrape-Rêves Mental" activation ---
+  // This is intentionally handled without LLM/tool-calling to avoid "silent" failures on WhatsApp.
+  // It creates the framework in the active plan (if any) and returns the exercise steps right away.
+  const msgLower = (message ?? "").toString().toLowerCase()
+  const looksLikeAttrapeReves =
+    /(attrape)\s*[-–—]?\s*(r[eê]ves?|r[êe]ve)\b/i.test(msgLower) ||
+    /\battrape[-\s]*r[eê]ves?\b/i.test(msgLower)
+  const looksLikeActivation =
+    /\b(active|activez|activer|lance|lancer|on\s+y\s+va|vas[-\s]*y|go)\b/i.test(msgLower)
+
+  if (looksLikeAttrapeReves && looksLikeActivation) {
+    const createdMsg = await megaToolCreateFramework(supabase, userId, {
+      title: "Attrape-Rêves Mental",
+      description: "Un mini exercice d’écriture (2–4 minutes) pour relâcher les pensées intrusives avant de dormir.",
+      targetReps: 7,
+      time_of_day: "night",
+      frameworkDetails: {
+        type: "recurring",
+        intro:
+          "But: vider la tête (pas résoudre).\n\nRègle: écris vite, sans te censurer. 2 à 4 minutes max. Puis tu fermes.",
+        sections: [
+          {
+            id: "s1",
+            label: "Ce qui tourne en boucle (1 phrase).",
+            inputType: "textarea",
+            placeholder: "Ex: J’ai peur de ne pas réussir demain…",
+          },
+          {
+            id: "s2",
+            label: "Le scénario catastrophe (en brut).",
+            inputType: "textarea",
+            placeholder: "Ex: Je vais mal dormir, être nul au boulot, tout s’écroule…",
+          },
+          {
+            id: "s3",
+            label: "La version plus vraie / plus utile (une réponse sobre).",
+            inputType: "textarea",
+            placeholder: "Ex: Même fatigué, je gère. Je fais 1 petit pas demain matin.",
+          },
+          {
+            id: "s4",
+            label: "Je le dépose pour demain à… (heure) + 1 micro-action.",
+            inputType: "textarea",
+            placeholder: "Ex: Demain 10h. Micro-action: noter 3 priorités sur papier.",
+          },
+        ],
+      },
+    })
+
+    const steps =
+      `Ok. Attrape‑Rêves Mental activé.\n\n` +
+      `On le fait maintenant (2–4 min) :\n` +
+      `- 1) Note la pensée qui tourne en boucle (1 phrase)\n` +
+      `- 2) Écris le scénario catastrophe (sans filtre)\n` +
+      `- 3) Écris une version plus vraie / plus utile (sobre)\n` +
+      `- 4) Dépose‑le pour demain à une heure + 1 micro‑action\n\n` +
+      `Envoie-moi juste ta ligne 1 quand tu veux, et je t’aide à faire le 2→3 proprement.`
+
+    // If the framework couldn't be created (no active plan), be honest but still deliver the exercise.
+    if (String(createdMsg || "").toLowerCase().includes("je ne trouve pas de plan actif")) {
+      return `${steps}\n\n(Je peux te le mettre dans ton plan dès que tu as un plan actif.)`
+    }
+    return steps
+  }
+
   const basePrompt = `
     Tu es Sophia. (Casquette : Architecte de Systèmes).
     Ton obsession : L'efficacité, la clarté, l'action.

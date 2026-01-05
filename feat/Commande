@@ -249,7 +249,6 @@ where email = 'EMAIL_DE_L_USER';
 
 2) Purge toutes les lignes qui ont une colonne user_id + suppression du user :
 
-begin;
 
 do $$
 declare
@@ -363,3 +362,13 @@ select
   (select count(*) from upsert_forge_entries) as forge_modules_touched;
 
 commit;
+
+
+
+
+Lancer la fonction trigger memory echo : 
+
+curl -s -X POST "http://127.0.0.1:54321/functions/v1/trigger-memory-echo" \
+  -H "Content-Type: application/json" \
+  -H "X-Internal-Secret: sophia-_on_earth" \
+  -d '{"email":"thomasgenty30@gmail.com","force":true,"debug":true}'

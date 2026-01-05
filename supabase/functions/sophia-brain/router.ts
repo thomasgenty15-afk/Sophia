@@ -132,6 +132,18 @@ export async function processMessage(
     messageMetadata?: Record<string, unknown>;
   }
 ) {
+  function looksLikeAttrapeRevesActivation(m: string): boolean {
+    const s = (m ?? "").toString().toLowerCase()
+    if (!s) return false
+    // "Attrape-Rêves Mental" can be written in many ways; keep the matcher permissive but specific.
+    const mentions =
+      /(attrape)\s*[-–—]?\s*(r[eê]ves?|r[êe]ve)\b/i.test(s) ||
+      /\battrape[-\s]*r[eê]ves?\b/i.test(s)
+    if (!mentions) return false
+    // Activation intent: user explicitly asks to activate/do it now.
+    return /\b(active|activez|activer|lance|lancer|on\s+y\s+va|vas[-\s]*y|go)\b/i.test(s)
+  }
+
   function looksLikeExplicitCheckupIntent(m: string): boolean {
     const s = (m ?? "").toString()
     // Explicit user intent to run a checkup/bilan
@@ -198,6 +210,12 @@ export async function processMessage(
   const riskScore = analysis.riskScore
   // If a forceMode is requested (e.g. module conversation), we keep safety priority for sentry.
   let targetMode: AgentMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
+
+  // Deterministic routing for specific exercise activations (important on WhatsApp).
+  // This avoids the message being treated as small-talk and ensures the framework can be created.
+  if (targetMode !== "sentry" && targetMode !== "firefighter" && looksLikeAttrapeRevesActivation(userMessage)) {
+    targetMode = "architect"
+  }
 
   // Start checkup/investigator only when it makes sense:
   // - If a checkup is already active, the hard guard below keeps investigator stable.

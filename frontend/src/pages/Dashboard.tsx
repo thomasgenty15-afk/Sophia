@@ -263,7 +263,7 @@ const Dashboard = () => {
                 <div className="font-bold text-sm">
                   {softLocked
                     ? "Accès en lecture seule"
-                    : "Passez à la vitesse supérieure"}
+                    : "Passe à la vitesse supérieure"}
                 </div>
                 <div className={`text-xs ${
                   softLocked

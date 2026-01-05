@@ -1368,13 +1368,18 @@ const IdentityEvolution = () => {
         };
         
         if (existing) {
-            await supabase.from('user_module_state_entries').update(updateData).eq('id', existing.id);
+            const { error } = await supabase
+              .from('user_module_state_entries')
+              .update(updateData)
+              .eq('id', existing.id);
+            if (error) throw error;
         } else {
-            await supabase.from('user_module_state_entries').insert({
+            const { error } = await supabase.from('user_module_state_entries').insert({
                 user_id: user.id,
                 module_id: id,
                 ...updateData
             });
+            if (error) throw error;
         }
         
         // Refresh local state
@@ -1390,7 +1395,12 @@ const IdentityEvolution = () => {
         setSelectedModule(null);
     } catch (err) {
         console.error("Error saving:", err);
-        alert("Erreur lors de la sauvegarde.");
+        const msgRaw = err instanceof Error ? err.message : String(err);
+        if (msgRaw.toLowerCase().includes('row-level security') || msgRaw.toLowerCase().includes('rls')) {
+            alert("Sauvegarde bloquée (lecture seule). Vérifie l'essai / abonnement (RLS write gate).");
+        } else {
+            alert("Erreur lors de la sauvegarde.");
+        }
     }
   };
 

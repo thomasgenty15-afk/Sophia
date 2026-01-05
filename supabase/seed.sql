@@ -146,3 +146,13 @@ begin
 end $$;
 
 
+-- Local-only convenience:
+-- Disable write-gating (trial/subscription soft lock) so local development remains writable.
+-- Comment this out if you want to test the read-only behavior locally.
+insert into public.app_config (key, value)
+values ('disable_write_gate', 'true')
+on conflict (key) do update
+  set value = excluded.value,
+      updated_at = now();
+
+

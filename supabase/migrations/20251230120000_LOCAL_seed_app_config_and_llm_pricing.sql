@@ -9,7 +9,7 @@
 insert into public.app_config (key, value)
 values
   ('edge_functions_base_url', 'http://host.docker.internal:54321'),
-  ('edge_functions_anon_key', 'sb_publishable_ACJWI2qHIZjBrEguHvfOxg_3BJgxAaH')
+  ('edge_functions_anon_key', 'sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH')
 on conflict (key) do update
 set
   value = excluded.value,

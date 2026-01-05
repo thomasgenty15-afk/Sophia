@@ -259,7 +259,16 @@ const IdentityArchitect = () => {
             }
         });
 
-        await Promise.all(updates);
+        const results = await Promise.all(updates);
+        const firstError = results.find(r => (r as any)?.error)?.error as any;
+        if (firstError) {
+            // Typical PostgREST RLS error: "new row violates row-level security policy ..."
+            const msg = typeof firstError?.message === 'string' ? firstError.message : String(firstError);
+            if (msg.toLowerCase().includes('row-level security') || msg.toLowerCase().includes('rls')) {
+                throw new Error("Sauvegarde bloquée (lecture seule). Vérifie l'essai / abonnement (RLS write gate).");
+            }
+            throw firstError;
+        }
         
         // Mise à jour de l'état initial pour refléter la nouvelle version "clean"
         // On ne met à jour QUE les clés qui ont changé pour éviter des race conditions bizarres
@@ -273,7 +282,8 @@ const IdentityArchitect = () => {
 
     } catch (err) {
         console.error("Erreur sauvegarde:", err);
-        alert("Erreur lors de la sauvegarde.");
+        const msg = err instanceof Error ? err.message : "Erreur lors de la sauvegarde.";
+        alert(msg);
     } finally {
         setIsSaving(false);
     }

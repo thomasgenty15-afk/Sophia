@@ -381,6 +381,9 @@ verify_jwt = false
 [functions.trigger-memory-echo]
 verify_jwt = false
 
+[functions.send-welcome-email]
+verify_jwt = false
+
 [functions.sort-priorities]
 verify_jwt = false
 
