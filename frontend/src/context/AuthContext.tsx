@@ -165,7 +165,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const { data } = supabase.auth.onAuthStateChange(
       async (event: AuthChangeEvent, nextSession: Session | null) => {
         // If refresh fails (often due to backend offline), clear local tokens to stop retry spam.
-        if (event === 'TOKEN_REFRESH_FAILED') {
+        // Note: some supabase-js versions don't include TOKEN_REFRESH_FAILED in AuthChangeEvent typing.
+        // We still handle it defensively if it occurs at runtime.
+        if ((event as unknown as string) === 'TOKEN_REFRESH_FAILED') {
           await clearLocalSession();
           setLoading(false);
           return;
