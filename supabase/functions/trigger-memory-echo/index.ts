@@ -86,7 +86,7 @@ async function pickBestCandidate(candidates: EchoCandidate[], requestId: string)
   try {
     const raw = await generateWithGemini(selectionPrompt, "Choisis.", 0.0, true, [], "auto", {
       requestId,
-      model: "gemini-2.0-flash",
+      model: "gemini-2.5-flash",
       source: "trigger-memory-echo:picker",
     })
     const parsed = JSON.parse(String(raw)) as any
@@ -312,7 +312,7 @@ Deno.serve(async (req) => {
               try {
                 const raw = await generateWithGemini(selectionPrompt, "Choisis.", 0.0, true, [], "auto", {
                   requestId,
-                  model: "gemini-2.0-flash",
+                  model: "gemini-2.5-flash",
                   source: "trigger-memory-echo:picker_memories",
                 })
                 const parsed = JSON.parse(String(raw)) as any

@@ -189,7 +189,7 @@ ${transcriptText || "(vide)"}
 
     const out = await generateWithGemini(systemPrompt, userMessage, 0.4, true, [], "auto", {
       requestId,
-      model: (body as any).model ?? "gemini-2.0-flash",
+      model: (body as any).model ?? "gemini-2.5-flash",
       source: "simulate-user",
       forceRealAi: allowReal,
     });

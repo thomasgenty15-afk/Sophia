@@ -28,7 +28,7 @@ export async function runAssistant(
   
   const response = await generateWithGemini(systemPrompt, message, 0.7, false, [], "auto", {
     requestId: meta?.requestId,
-    model: meta?.model ?? "gemini-2.0-flash",
+    model: meta?.model ?? "gemini-2.5-flash",
     source: "sophia-brain:assistant",
     forceRealAi: meta?.forceRealAi,
   })

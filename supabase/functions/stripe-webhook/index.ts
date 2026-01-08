@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse, serverError } from "../_shared/http.ts";
 import { verifyStripeWebhookSignature } from "../_shared/stripe.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name)?.trim();
@@ -163,6 +164,17 @@ Deno.serve(async (req) => {
     const msg = err instanceof Error ? err.message : "Internal Server Error";
     // Helpful diagnostics for misconfigured Edge secrets.
     if (msg.startsWith("Missing env var:")) return serverError(req, requestId, msg);
+    await logEdgeFunctionError({
+      functionName: "stripe-webhook",
+      error: err,
+      requestId,
+      userId: null,
+      source: "stripe",
+      metadata: {
+        path: new URL(req.url).pathname,
+        method: req.method,
+      },
+    });
     return serverError(req, requestId);
   }
 });

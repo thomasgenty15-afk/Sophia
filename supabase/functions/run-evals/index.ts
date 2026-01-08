@@ -8,6 +8,13 @@ import { getDashboardContext } from "../sophia-brain/state-manager.ts";
 
 const EVAL_MODEL = "gemini-2.5-flash";
 
+async function sha256Hex(input: string): Promise<string> {
+  const data = new TextEncoder().encode(input);
+  const digest = await crypto.subtle.digest("SHA-256", data);
+  const bytes = new Uint8Array(digest);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 function isMegaEnabled(): boolean {
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
@@ -61,6 +68,32 @@ function pickManyUnique<T>(arr: T[], count: number): T[] {
     copy[j] = tmp;
   }
   return copy.slice(0, n);
+}
+
+function looksAffirmative(text: string): boolean {
+  const t = (text ?? "").toString().trim().toLowerCase();
+  if (!t) return false;
+  return /\b(oui|ouais|ok|okay|d'accord|dac|vas[- ]?y|go|let'?s go|carr[ée]|yep|yes)\b/i.test(t);
+}
+
+function looksLikeCheckupIntent(text: string): boolean {
+  const t = (text ?? "").toString();
+  return /\b(check(?:up)?|bilan)\b/i.test(t);
+}
+
+function isBilanCompletedFromChatState(chatState: any): boolean {
+  const inv = (chatState as any)?.investigation_state;
+  // Investigator marks completion by returning newState=null, which we persist as investigation_state=null.
+  if (!inv) return true;
+  const status = String(inv?.status ?? "").toLowerCase().trim();
+  // Special eval-only: post-checkup finished marker.
+  if (status === "post_checkup_done") return true;
+  if (["done", "completed", "finished", "stopped", "cancelled", "canceled"].includes(status)) return true;
+  const pending = Array.isArray(inv?.pending_items) ? inv.pending_items : null;
+  const idx = Number(inv?.current_item_index ?? 0) || 0;
+  if (pending && idx >= pending.length) return true;
+  if (pending && pending.length === 0) return true;
+  return false;
 }
 
 const AXIS_BANK = [
@@ -165,6 +198,20 @@ function normalizePlanActionIdsToUuid(plan: any) {
   return plan;
 }
 
+function reassignAllPlanActionIds(plan: any) {
+  if (!plan || typeof plan !== "object") return plan;
+  const phases = (plan as any).phases;
+  if (!Array.isArray(phases)) return plan;
+  for (const p of phases) {
+    const actions = p?.actions;
+    if (!Array.isArray(actions)) continue;
+    for (const a of actions) {
+      if (a && typeof a === "object") (a as any).id = crypto.randomUUID();
+    }
+  }
+  return plan;
+}
+
 function applyActivationToPlan(plan: any, activeCount: number) {
   if (!plan || typeof plan !== "object") return plan;
   const phases = (plan as any).phases;
@@ -210,9 +257,15 @@ async function callGeneratePlan(params: {
     });
     const json = await resp.json().catch(() => ({}));
     const msg = String(json?.error ?? "");
-    const is429 = resp.status === 429 || msg.toLowerCase().includes("resource exhausted") || msg.includes("429");
+    const lower = msg.toLowerCase();
+    // generate-plan can surface upstream Gemini overloads as 500 with a 503 message.
+    const isRetryable =
+      resp.status === 429 ||
+      resp.status === 503 ||
+      (resp.status >= 500 && (lower.includes("resource exhausted") || lower.includes("overloaded") || lower.includes("unavailable") ||
+        lower.includes("temporarily") || lower.includes("503") || msg.includes("429")));
     if (resp.ok && json && !json?.error) return json;
-    if (!is429 || attempt >= MAX_RETRIES) {
+    if (!isRetryable || attempt >= MAX_RETRIES) {
       throw new Error(json?.error || `generate-plan failed (${resp.status})`);
     }
     await sleep(backoffMs(attempt));
@@ -220,11 +273,42 @@ async function callGeneratePlan(params: {
   throw new Error("generate-plan failed (retries exhausted)");
 }
 
+type RunPlanTemplate = {
+  fake: ReturnType<typeof buildFakeQuestionnairePayload>;
+  planContentRaw: any;
+  templateFingerprint: string;
+};
+
+async function buildRunPlanTemplate(params: {
+  url: string;
+  anonKey: string;
+  authHeader: string;
+  requestId: string;
+}): Promise<RunPlanTemplate> {
+  const fake = buildFakeQuestionnairePayload();
+  const planContentRaw = await callGeneratePlan({
+    url: params.url,
+    anonKey: params.anonKey,
+    authHeader: params.authHeader,
+    requestId: params.requestId,
+    payload: {
+      force_real_generation: true,
+      mode: "standard",
+      inputs: fake.inputs,
+      currentAxis: fake.currentAxis,
+      answers: fake.answers,
+      userProfile: fake.userProfile,
+    },
+  });
+  const templateFingerprint = (await sha256Hex(JSON.stringify(planContentRaw))).slice(0, 16);
+  return { fake, planContentRaw, templateFingerprint };
+}
+
 async function seedActivePlan(
   admin: any,
   userId: string,
   env: { url: string; anonKey: string; authHeader: string; requestId: string },
-  opts?: { bilanActionsCount?: number },
+  opts?: { bilanActionsCount?: number; planTemplate?: RunPlanTemplate; includeVitalsInBilan?: boolean },
 ) {
   const submissionId = crypto.randomUUID();
 
@@ -247,10 +331,11 @@ async function seedActivePlan(
   if (goalErr) throw goalErr;
 
   const activeCount = clampInt(opts?.bilanActionsCount ?? 0, 0, 20, 0);
-  const fake = buildFakeQuestionnairePayload();
+  const fake = opts?.planTemplate?.fake ?? buildFakeQuestionnairePayload();
 
-  // Call the REAL plan generator (Gemini-backed) and bypass MEGA_TEST_STUB when requested.
-  const planContentRaw = await callGeneratePlan({
+  // Reuse a single "plan template" per run (when provided), so plan content doesn't vary per scenario.
+  // IMPORTANT: IDs must be unique per seeded user, otherwise user_actions PKs collide across scenarios.
+  const baseRaw = opts?.planTemplate?.planContentRaw ?? await callGeneratePlan({
     url: env.url,
     anonKey: env.anonKey,
     authHeader: env.authHeader,
@@ -264,8 +349,8 @@ async function seedActivePlan(
       userProfile: fake.userProfile,
     },
   });
-
-  const planContent = applyActivationToPlan(normalizePlanActionIdsToUuid(planContentRaw), activeCount);
+  const rawClone = structuredClone(baseRaw);
+  const planContent = applyActivationToPlan(reassignAllPlanActionIds(normalizePlanActionIdsToUuid(rawClone)), activeCount);
   const { data: planRow, error: planErr } = await admin
     .from("user_plans")
     .insert({
@@ -286,21 +371,26 @@ async function seedActivePlan(
   // Optional: seed tracking tables only if requested (bilan/investigator tests).
   const insertedActions: any[] = [];
   const pendingItems: any[] = [];
+  const pendingVitalItems: any[] = [];
   if (activeCount > 0) {
     const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
     const phases = ((planContent as any)?.phases ?? []) as any[];
-    const flatActions: any[] = [];
+    const activeItems: any[] = [];
     for (const p of phases) {
       const actions = (p?.actions ?? []) as any[];
-      for (const a of actions) flatActions.push(a);
+      for (const a of actions) {
+        const st = String(a?.status ?? "").toLowerCase();
+        if (st === "active") activeItems.push(a);
+      }
     }
-    const activeItems = flatActions.slice(0, activeCount);
+    const itemsToCheck = activeItems.slice(0, activeCount);
 
     // 1) Habits / missions -> user_actions (id must be uuid)
-    const actionRows = activeItems
-      .filter((a) => ["habitude", "mission"].includes(String(a?.type ?? "").toLowerCase()))
+    const actionRows = itemsToCheck
+      .filter((a) => String(a?.type ?? "").toLowerCase() !== "framework")
       .map((a) => {
-        const t = String(a?.type ?? "").toLowerCase() === "habitude" ? "habit" : "mission";
+        const rawType = String(a?.type ?? "").toLowerCase();
+        const t = rawType === "habitude" ? "habit" : "mission";
         const trackingType = String(a?.tracking_type ?? "boolean") === "counter" ? "counter" : "boolean";
         const timeOfDay = String(a?.time_of_day ?? "any_time");
         const targetReps = t === "habit" ? clampInt(a?.targetReps ?? 1, 1, 14, 1) : 1;
@@ -340,7 +430,7 @@ async function seedActivePlan(
     }
 
     // 2) Frameworks -> user_framework_tracking (row id must be uuid; action_id is text)
-    const frameworkRows = activeItems
+    const frameworkRows = itemsToCheck
       .filter((a) => String(a?.type ?? "").toLowerCase() === "framework")
       .map((a) => {
         const trackingType = String(a?.tracking_type ?? "boolean") === "counter" ? "counter" : "boolean";
@@ -371,27 +461,101 @@ async function seedActivePlan(
       for (const r of frameworkRows) pendingItems.push((r as any)._pending_item);
     }
 
-    // 3) Vital signal -> user_vital_signs (optional but keeps checkup realistic)
-    const vital = (planContent as any)?.vitalSignal;
-    if (vital && typeof vital === "object") {
+    // Ensure we ALWAYS have exactly N items to verify in bilan (no surprises like "0 actions").
+    // If plan content is weirdly missing actives, we fill with synthetic missions.
+    if (pendingItems.length < activeCount) {
+      const missing = activeCount - pendingItems.length;
+      const fillerRows = Array.from({ length: missing }).map((_, idx) => {
+        const id = crypto.randomUUID();
+        return {
+          id,
+          user_id: userId,
+          plan_id: planRow.id,
+          submission_id: planRow.submission_id,
+          type: "mission",
+          title: `Action (bilan) #${idx + 1}`,
+          description: "Action créée pour compléter un bilan de test.",
+          target_reps: 1,
+          current_reps: 0,
+          status: "active",
+          tracking_type: "boolean",
+          time_of_day: "any_time",
+          last_performed_at: twoDaysAgo,
+        };
+      });
+      const { data: ins2, error: fillErr } = await admin.from("user_actions").insert(fillerRows).select("id,title,description,tracking_type,target_reps");
+      if (fillErr) throw fillErr;
+      insertedActions.push(...(ins2 ?? []));
+      for (const a of fillerRows) {
+        pendingItems.push({
+          id: a.id,
+          type: "action",
+          title: a.title,
+          description: a.description,
+          tracking_type: a.tracking_type,
+          target: a.target_reps,
+        });
+      }
+    }
+
+    // 3) Vital signal -> user_vital_signs
+    // If includeVitalsInBilan is set, we FORCE a deterministic vital so the bilan must include it.
+    if (opts?.includeVitalsInBilan) {
       const vitalId = crypto.randomUUID();
-      const label = String(vital?.name ?? vital?.title ?? "Signe Vital");
-      const trackingType = String(vital?.tracking_type ?? "counter") === "boolean" ? "boolean" : "counter";
+      const label = "Sommeil";
+      const unit = "h";
       const { error: vErr } = await admin.from("user_vital_signs").insert({
         id: vitalId,
         user_id: userId,
         plan_id: planRow.id,
         submission_id: planRow.submission_id,
         label,
-        unit: String(vital?.unit ?? ""),
-        current_value: String(vital?.startValue ?? ""),
-        target_value: String(vital?.targetValue ?? ""),
+        unit,
+        current_value: "",
+        target_value: "",
         status: "active",
-        tracking_type: trackingType,
+        tracking_type: "counter",
         last_checked_at: twoDaysAgo,
       });
       if (vErr) throw vErr;
-      pendingItems.push({ id: vitalId, type: "vital", title: label, tracking_type: trackingType, unit: String(vital?.unit ?? "") });
+      pendingVitalItems.push({
+        id: vitalId,
+        type: "vital",
+        title: label,
+        tracking_type: "counter",
+        unit,
+      });
+    } else {
+      // Default behavior: seed from generated plan if present (realistic), and INCLUDE in pending_items.
+      const vital = (planContent as any)?.vitalSignal;
+      if (vital && typeof vital === "object") {
+        const vitalId = crypto.randomUUID();
+        const label = String(vital?.name ?? vital?.title ?? "Signe Vital");
+        const trackingType = String(vital?.tracking_type ?? "counter") === "boolean" ? "boolean" : "counter";
+        const unit = String(vital?.unit ?? "");
+        const { error: vErr } = await admin.from("user_vital_signs").insert({
+          id: vitalId,
+          user_id: userId,
+          plan_id: planRow.id,
+          submission_id: planRow.submission_id,
+          label,
+          unit,
+          current_value: String(vital?.startValue ?? ""),
+          target_value: String(vital?.targetValue ?? ""),
+          status: "active",
+          tracking_type: trackingType,
+          last_checked_at: twoDaysAgo,
+        });
+        if (vErr) throw vErr;
+        
+        pendingVitalItems.push({
+          id: vitalId,
+          type: "vital",
+          title: label,
+          tracking_type: trackingType,
+          unit,
+        });
+      }
     }
 
     // Pre-generate an investigation_state matching the seeded items so investigator can be tested in isolation.
@@ -402,7 +566,8 @@ async function seedActivePlan(
       risk_level: 0,
       investigation_state: {
         status: "checking",
-        pending_items: pendingItems,
+        // Put vitals first (matches production sort), then requested actions/frameworks count.
+        pending_items: [...pendingVitalItems, ...pendingItems.slice(0, activeCount)],
         current_item_index: 0,
         temp_memory: { opening_done: false },
       },
@@ -421,17 +586,42 @@ async function fetchPlanSnapshot(admin: any, userId: string): Promise<any> {
     .limit(1)
     .maybeSingle();
 
-  const { data: actions } = await admin
-    .from("user_actions")
-    .select("id,title,description,status,tracking_type,time_of_day,target_reps,current_reps,last_performed_at,created_at")
-    .eq("user_id", userId)
-    .in("status", ["active", "pending"])
-    .order("created_at", { ascending: true })
-    .limit(50);
+  const [{ data: actions }, { data: frameworks }] = await Promise.all([
+    admin
+      .from("user_actions")
+      .select("id,title,description,status,tracking_type,time_of_day,target_reps,current_reps,last_performed_at,created_at")
+      .eq("user_id", userId)
+      .in("status", ["active", "pending"])
+      .order("created_at", { ascending: true })
+      .limit(50),
+    admin
+      .from("user_framework_tracking")
+      .select("id,title,status,tracking_type,type,target_reps,current_reps,last_performed_at,created_at")
+      .eq("user_id", userId)
+      .in("status", ["active", "pending"])
+      .order("created_at", { ascending: true })
+      .limit(50),
+  ]);
+
+  const mappedFrameworks = (frameworks ?? []).map((f: any) => ({
+    id: f.id,
+    title: f.title,
+    description: "",
+    status: f.status,
+    tracking_type: f.tracking_type,
+    time_of_day: null,
+    target_reps: f.target_reps ?? null,
+    current_reps: f.current_reps ?? null,
+    last_performed_at: f.last_performed_at ?? null,
+    created_at: f.created_at ?? null,
+    _kind: "framework",
+    framework_type: f.type ?? null,
+  }));
 
   return {
     plan: planRow ?? null,
-    actions: actions ?? [],
+    actions: [...(actions ?? []), ...mappedFrameworks],
+    frameworks: frameworks ?? [],
   };
 }
 
@@ -459,6 +649,10 @@ const BodySchema = z.object({
       // When running bilan/investigator scenarios, seed a plan with N active actions,
       // and optionally generate an investigation_state matching them.
       bilan_actions_count: z.number().int().min(0).max(20).default(0),
+      // NEW: Enable testing of post-checkup deferrals.
+      // If true: the user simulator will be instructed to say "on en reparle après" or similar
+      // during the bilan, and the runner will NOT stop at the end of the bilan, but wait for the parking lot to clear.
+      test_post_checkup_deferral: z.boolean().default(false),
       user_difficulty: z.enum(["easy", "mid", "hard"]).default("mid"),
       stop_on_first_failure: z.boolean().default(false),
       // cost control is currently an estimate; default is safe.
@@ -490,7 +684,7 @@ Deno.serve(async (req) => {
 
     const parsed = await parseJsonBody(req, BodySchema, requestId);
     if (!parsed.ok) return parsed.response;
-    const body = parsed.data;
+    const body: z.infer<typeof BodySchema> = parsed.data as any;
 
     const authHeader = req.headers.get("Authorization") ?? "";
     const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
@@ -519,6 +713,10 @@ Deno.serve(async (req) => {
     let totalPromptTokens = 0;
     let totalOutputTokens = 0;
 
+    // Build a single shared plan template for the whole run, reused across scenarios.
+    // This prevents "plan per scenario" drift and reduces cost/time (one generate-plan call per run).
+    const runPlanTemplate = await buildRunPlanTemplate({ url, anonKey, authHeader, requestId });
+
     for (const s of selected) {
       const scenarioRequestId = `${requestId}:${s.dataset_key}:${s.id}:${crypto.randomUUID()}`;
       const nonce = makeNonce();
@@ -541,25 +739,132 @@ Deno.serve(async (req) => {
           admin as any,
           testUserId,
           { url, anonKey, authHeader, requestId: scenarioRequestId },
-          { bilanActionsCount: Number(body.limits.bilan_actions_count ?? 0) || 0 },
+          {
+            bilanActionsCount: Number(body.limits.bilan_actions_count ?? 0) || 0,
+            planTemplate: runPlanTemplate,
+            includeVitalsInBilan:
+              (Array.isArray((s as any)?.tags) && (s as any).tags.includes("bilan.vitals")) ||
+              Boolean((s as any)?.assertions?.include_vitals_in_bilan),
+          },
         );
 
         const { data: stBefore } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).eq("scope", "web").maybeSingle();
+        // Print investigation_state before conversation transcript (much easier to debug bilan flows).
+        if ((stBefore as any)?.investigation_state) {
+          console.log(`[Eval] state_before.investigation_state: ${JSON.stringify((stBefore as any).investigation_state)}`);
+        }
         const dashboardContext = await getDashboardContext(admin as any, testUserId);
         const planSnapshot = await fetchPlanSnapshot(admin as any, testUserId);
 
         const history: any[] = [];
-        // Dashboard limit is the authoritative upper bound; scenario max_turns is informational only.
+        // UI control is the single source of truth for turn count.
+        // (Scenario JSON used to carry max_turns, but it's intentionally ignored to avoid ambiguity.)
         const maxTurns = Number(body.limits.max_turns_per_scenario);
 
         // Always real AI in eval runner.
         const meta = { requestId: scenarioRequestId, forceRealAi: true, model: evalModel, channel: "web" as const, scope: "web" };
 
+        // BILAN kickoff:
+        // When bilan_actions_count > 0, we start the conversation as if the user just accepted the checkup ("oui").
+        // This guarantees investigator opens with the first item immediately and matches expected product behavior.
+        const bilanCount = Number(body.limits.bilan_actions_count ?? 0) || 0;
+        const firstStepUser = Array.isArray(s.steps) && s.steps.length > 0 ? String(s.steps[0]?.user ?? "") : "";
+        const shouldKickoff =
+          bilanCount > 0 &&
+          // If the scenario already starts with "bilan"/an affirmative, don't double-trigger.
+          !(looksAffirmative(firstStepUser) || looksLikeCheckupIntent(firstStepUser));
+
+        if (shouldKickoff) {
+          const kickoffMsg = "Oui";
+          const kickoffResp = await processMessage(admin as any, testUserId, kickoffMsg, history, meta);
+          history.push({ role: "user", content: kickoffMsg });
+          history.push({ role: "assistant", content: kickoffResp.content, agent_used: kickoffResp.mode });
+        }
+
+        const testDeferral = Boolean(body.limits.test_post_checkup_deferral);
+        const sophiaTestOpts = testDeferral
+          ? {
+              // Eval-only: encourage explicit deferral phrases so the parking-lot can be tested.
+              contextOverride:
+                "MODE TEST PARKING LOT: Si l'utilisateur digresse pendant le bilan (stress/bruit/orga), réponds brièvement ET dis explicitement " +
+                "\"on pourra en reparler après / à la fin\" avant de revenir au bilan. Fais-le au moins 2 fois sur le bilan si possible.",
+            }
+          : undefined;
+
         if (Array.isArray(s.steps) && s.steps.length > 0) {
           for (const step of s.steps.slice(0, maxTurns)) {
-            const resp = await processMessage(admin as any, testUserId, step.user, history, meta);
+            const resp = await processMessage(admin as any, testUserId, step.user, history, meta, sophiaTestOpts);
             history.push({ role: "user", content: step.user });
             history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
+
+            // For BILAN runs:
+            // - If test_post_checkup_deferral is OFF: stop immediately once the investigation is complete (normal bilan test).
+            // - If test_post_checkup_deferral is ON: stop ONLY when investigation_state becomes null (meaning post-checkup is also done).
+            if (bilanCount > 0) {
+              const { data: stMid } = await admin
+                .from("user_chat_states")
+                .select("investigation_state")
+                .eq("user_id", testUserId)
+                .eq("scope", "web")
+                .maybeSingle();
+              
+              if (testDeferral) {
+                // Wait until investigation_state is FULLY cleared (meaning parking lot is empty).
+                if (!stMid?.investigation_state) break;
+              } else {
+                // Stop as soon as the main list is done (legacy behavior).
+                if (isBilanCompletedFromChatState(stMid)) break;
+              }
+            }
+          }
+
+          // If steps are exhausted but we're still in post-checkup testing, continue with simulated-user turns
+          // so we can actually clear the parking-lot.
+          if (bilanCount > 0 && testDeferral) {
+            let extraTurn = 0;
+            while (extraTurn < Math.max(0, maxTurns - (s.steps?.length ?? 0))) {
+              const { data: stMid } = await admin
+                .from("user_chat_states")
+                .select("investigation_state")
+                .eq("user_id", testUserId)
+                .eq("scope", "web")
+                .maybeSingle();
+              if (!stMid?.investigation_state) break;
+
+              // Ask simulate-user for the next message (force it to progress the parking lot).
+              const simResp = await fetch(`${url}/functions/v1/simulate-user`, {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": authHeader,
+                  "apikey": anonKey,
+                  "x-request-id": scenarioRequestId,
+                },
+                body: JSON.stringify({
+                  persona: s.persona ?? { label: "default", age_range: "25-50", style: "naturel" },
+                  objectives: s.objectives ?? [],
+                  difficulty: (body.limits.user_difficulty ?? "mid"),
+                  model: evalModel,
+                  force_real_ai: true,
+                  context: [
+                    "=== CONSIGNE TEST PARKING LOT ===",
+                    "Si Sophia te propose de reprendre un sujet après bilan, réponds 'Oui'.",
+                    "Quand elle te demande 'c'est bon pour ce point ?', réponds 'C'est bon, on passe au suivant.'",
+                  ].join("\n"),
+                  transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
+                  turn_index: extraTurn,
+                  max_turns: maxTurns,
+                }),
+              });
+              const simJson = await simResp.json().catch(() => ({}));
+              const userMsg = String(simJson?.next_message ?? "Oui");
+
+              const resp2 = await processMessage(admin as any, testUserId, userMsg, history, meta, sophiaTestOpts);
+              history.push({ role: "user", content: userMsg });
+              history.push({ role: "assistant", content: resp2.content, agent_used: resp2.mode });
+              extraTurn += 1;
+              await sleep(250);
+            }
           }
         } else {
           // Simulated mode:
@@ -596,6 +901,11 @@ Deno.serve(async (req) => {
                       "",
                       "=== ÉTAT CHAT (référence) ===",
                       JSON.stringify(stBefore ?? null, null, 2),
+                      "",
+                      "=== CONSIGNE DE TEST SPÉCIFIQUE (EVAL RUNNER) ===",
+                      body.limits.test_post_checkup_deferral 
+                        ? "IMPORTANT : TU DOIS TESTER LE 'PARKING LOT'. Pendant le bilan, trouve un moment pour dire 'on en reparle après' ou 'on verra ça à la fin' à propos d'un sujet (ex: ton organisation ou ton stress). Le but est de vérifier que Sophia le note et t'en reparle après le bilan."
+                        : ""
                     ].join("\n"),
                     transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
                     turn_index: turn,
@@ -624,10 +934,37 @@ Deno.serve(async (req) => {
               nextDone = Boolean(simJson?.done);
             }
 
-            const resp = await processMessage(admin as any, testUserId, userMsg, history, meta);
+            const resp = await processMessage(admin as any, testUserId, userMsg, history, meta, sophiaTestOpts);
             history.push({ role: "user", content: userMsg });
             history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
+
+            // IMPORTANT:
+            // simulate-user may decide "done" early, but for bilan tests we must keep going until
+            // investigation_state is cleared (or post_checkup_done in special test mode).
             done = nextDone;
+
+            // For BILAN runs (Simulated):
+            // - If test_post_checkup_deferral is OFF: stop immediately once the investigation is complete (normal bilan test).
+            // - If test_post_checkup_deferral is ON: stop ONLY when investigation_state becomes null (meaning post-checkup is also done).
+            if (bilanCount > 0) {
+              const { data: stMid } = await admin
+                .from("user_chat_states")
+                .select("investigation_state")
+                .eq("user_id", testUserId)
+                .eq("scope", "web")
+                .maybeSingle();
+              
+              if (testDeferral) {
+                // Wait until investigation_state is FULLY cleared.
+                // Also ignore simulate-user's early "done" while the session is still active.
+                done = isBilanCompletedFromChatState(stMid);
+              } else {
+                // Stop as soon as the main list is done.
+                if (isBilanCompletedFromChatState(stMid)) {
+                  done = true;
+                }
+              }
+            }
             turn += 1;
 
             // Throttle between turns to avoid 429 bursts (simulate-user + sophia-brain + judge).
@@ -680,6 +1017,7 @@ Deno.serve(async (req) => {
                 model: evalModel,
               },
               plan_snapshot: {
+                template_fingerprint: runPlanTemplate.templateFingerprint,
                 dashboard_context: dashboardContext || "",
                 ...planSnapshot,
               },
@@ -689,7 +1027,8 @@ Deno.serve(async (req) => {
               notes:
                 "Judge context: routing lock during checkup is enforced in code (router hard guard). Do not invent modules not present in snapshot.",
             },
-            assertions: s.assertions ?? null,
+            // eval-judge schema: assertions is optional but NOT nullable.
+            assertions: (s as any)?.assertions ?? undefined,
           }),
         });
         const judgeJson = await judgeResp.json().catch(() => ({}));
@@ -708,10 +1047,20 @@ Deno.serve(async (req) => {
         totalOutputTokens += oTok;
         totalTokens += tTok;
 
+        const turnsExecuted = Array.isArray(transcript) ? transcript.filter((m: any) => m?.role === "user").length : 0;
+        const bilanCompleted = bilanCount > 0 ? isBilanCompletedFromChatState(stAfter) : false;
+
         results.push({
           dataset_key: s.dataset_key,
           scenario_key: s.id,
           eval_run_id: judgeJson.eval_run_id,
+          plan_template_fingerprint: runPlanTemplate.templateFingerprint,
+          turns_executed: turnsExecuted,
+          bilan_completed: bilanCompleted,
+          plan_snapshot_actions_count: Array.isArray((planSnapshot as any)?.actions) ? (planSnapshot as any).actions.length : 0,
+          bilan_pending_items_count: Array.isArray((stBefore as any)?.investigation_state?.pending_items)
+            ? (stBefore as any).investigation_state.pending_items.length
+            : 0,
           issues_count: issuesCount,
           suggestions_count: suggestionsCount,
           cost_usd: costUsd,
@@ -738,13 +1087,27 @@ Deno.serve(async (req) => {
       }
     }
 
+    const bilanActionsCount = Number(body.limits.bilan_actions_count ?? 0) || 0;
+    const testDeferral = Boolean(body.limits.test_post_checkup_deferral);
     return jsonResponse(req, {
       success: true,
       request_id: requestId,
       mega_test_mode: isMegaEnabled(),
       use_real_ai: true,
+      requested_scenarios: (body.scenarios ?? []).length,
+      selected_scenarios: selected.length,
+      limits_applied: {
+        max_scenarios: body.limits.max_scenarios,
+        max_turns_per_scenario: body.limits.max_turns_per_scenario,
+        bilan_actions_count: bilanActionsCount,
+        test_post_checkup_deferral: testDeferral,
+        stop_on_first_failure: body.limits.stop_on_first_failure,
+        budget_usd: body.limits.budget_usd,
+        model: body.limits.model ?? EVAL_MODEL,
+      },
       ran: results.length,
       stopped_reason: stoppedReason,
+      plan_template_fingerprint: runPlanTemplate.templateFingerprint,
       total_cost_usd: totalEstimatedCostUsd,
       total_prompt_tokens: totalPromptTokens,
       total_output_tokens: totalOutputTokens,

@@ -336,7 +336,7 @@ export async function runCompanion(
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:companion",
       forceRealAi: meta?.forceRealAi,
     }
@@ -374,7 +374,7 @@ export async function runCompanion(
       `
       const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
         requestId: meta?.requestId,
-        model: meta?.model ?? "gemini-2.0-flash",
+        model: meta?.model ?? "gemini-2.5-flash",
         source: "sophia-brain:companion_confirmation",
         forceRealAi: meta?.forceRealAi,
       })

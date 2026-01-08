@@ -3,6 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
 
 console.log("Process Checkins: Function initialized")
 
@@ -285,6 +286,17 @@ Deno.serve(async (req) => {
   } catch (error) {
     console.error(`[process-checkins] request_id=${requestId}`, error)
     const message = error instanceof Error ? error.message : String(error)
+    await logEdgeFunctionError({
+      functionName: "process-checkins",
+      error,
+      requestId,
+      userId: null,
+      source: "checkins",
+      metadata: {
+        path: new URL(req.url).pathname,
+        method: req.method,
+      },
+    })
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })

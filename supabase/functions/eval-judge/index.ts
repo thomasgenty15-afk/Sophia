@@ -155,13 +155,26 @@ function uniqBy<T>(arr: T[], keyFn: (x: T) => string): T[] {
   return out;
 }
 
-function buildTranscriptLines(transcript: TranscriptMsg[]): string[] {
-  return (transcript ?? []).map((m, idx) => {
+function buildTranscriptLines(transcript: TranscriptMsg[], stateBefore?: any): string[] {
+  const header: string[] = [];
+  if (stateBefore && typeof stateBefore === "object") {
+    const inv = (stateBefore as any)?.investigation_state ?? null;
+    header.push("=== STATE_BEFORE (user_chat_states) ===");
+    if ((stateBefore as any)?.current_mode != null) header.push(`current_mode: ${(stateBefore as any).current_mode}`);
+    if ((stateBefore as any)?.risk_level != null) header.push(`risk_level: ${(stateBefore as any).risk_level}`);
+    header.push("investigation_state:");
+    header.push(JSON.stringify(inv, null, 2));
+    header.push("=== TRANSCRIPT ===");
+  }
+
+  const lines = (transcript ?? []).map((m, idx) => {
     const agent = (m as any)?.agent_used ? `(${(m as any).agent_used})` : "";
     const role = String(m.role ?? "").toUpperCase();
     const content = String(m.content ?? "").replace(/\s+/g, " ").trim();
     return `#${idx} ${role}${agent}: ${content}`;
   });
+
+  return header.length > 0 ? [...header, ...lines] : lines;
 }
 
 function pickContextBlock(params: { transcriptLines: string[]; snippet?: string; radius?: number }): string {
@@ -373,7 +386,7 @@ Deno.serve(async (req) => {
     // Optional: LLM judge enrichment (disabled in MEGA_TEST_MODE unless force_real_ai)
     let judgeLlmUsed = false;
     const allowReal = Boolean(body.force_real_ai);
-    const transcriptLines = buildTranscriptLines(body.transcript ?? []);
+    const transcriptLines = buildTranscriptLines(body.transcript ?? [], body.state_before);
 
     // Lightweight system snapshot so the judge can be precise and avoid inventing modules.
     const promptKeys = [
@@ -438,7 +451,7 @@ Format attendu:
           (body as any)?.model ||
           (body as any)?.config?.model ||
           (body as any)?.config?.limits?.model ||
-          "gemini-2.0-flash";
+          "gemini-2.5-flash";
         const out = await generateWithGemini(systemPrompt, transcriptText, 0.2, true, [], "auto", {
           requestId,
           model: String(overrideModel),

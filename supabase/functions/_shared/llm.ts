@@ -11,7 +11,7 @@ type GeminiGenerateParams = {
   jsonMode?: boolean;
   tools?: GeminiToolDeclaration[];
   toolChoice?: GeminiToolChoice;
-  model?: string; // ex: "gemini-2.0-flash"
+  model?: string; // ex: "gemini-2.5-flash"
   requestId?: string;
 };
 
@@ -69,7 +69,7 @@ export async function geminiGenerate(
     jsonMode = false,
     tools = [],
     toolChoice = "auto",
-    model = "gemini-2.0-flash",
+    model = "gemini-2.5-flash",
     requestId = crypto.randomUUID(),
   } = params;
 

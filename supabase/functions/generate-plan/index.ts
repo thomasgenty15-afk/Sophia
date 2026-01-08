@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { retryOn429 } from "../_shared/retry429.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -17,6 +17,8 @@ serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+
+  const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
 
   try {
     // Parse once so we can both support MEGA stub and also allow forcing real generation in local.
@@ -511,7 +513,7 @@ serve(async (req) => {
     const response = await retryOn429(
       () =>
         fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
           {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -602,10 +604,20 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Func Error:', error)
+    await logEdgeFunctionError({
+      functionName: "generate-plan",
+      error,
+      requestId,
+      userId: null,
+      metadata: {
+        path: new URL(req.url).pathname,
+        method: req.method,
+      },
+    })
     // On renvoie 200 (OK) même en cas d'erreur pour que le client Supabase puisse lire le JSON de l'erreur
     // au lieu de lancer une exception générique "FunctionsHttpError".
     return new Response(
-      JSON.stringify({ error: error.message }),
+      JSON.stringify({ error: (error as any)?.message ?? String(error) }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
     )
   }

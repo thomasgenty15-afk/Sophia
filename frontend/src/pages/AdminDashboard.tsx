@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import clsx from "clsx";
 import { twMerge } from "tailwind-merge";
+import { buildBilanScenarioPack } from "../eval/bilanScenarioPack";
 
 function cn(...inputs: (string | undefined | null | false)[]) {
   return twMerge(clsx(inputs));
@@ -40,7 +41,10 @@ type Scenario = {
 
 function loadScenarioPack(): Scenario[] {
   const mods = import.meta.glob("../../eval/scenarios/*.json", { eager: true }) as Record<string, any>;
-  return Object.values(mods).map((m: any) => (m?.default ? m.default : m)) as Scenario[];
+  const jsonScenarios = Object.values(mods).map((m: any) => (m?.default ? m.default : m)) as Scenario[];
+  // Programmatic pack: generate many bilan variants without maintaining dozens of JSON files.
+  const bilanVariants = buildBilanScenarioPack();
+  return [...jsonScenarios, ...bilanVariants];
 }
 
 const PROMPT_KEYS = [
@@ -64,7 +68,7 @@ const SCENARIO_TARGETS = [
 ] as const;
 
 const USER_DIFFICULTIES = ["easy", "mid", "hard"] as const;
-const EVAL_MODELS = ["gemini-2.0-flash", "gemini-2.5-flash"] as const;
+const EVAL_MODELS = ["gemini-2.5-flash"] as const;
 
 export default function AdminDashboard() {
   const { user, loading, isAdmin } = useAuth();
@@ -77,11 +81,12 @@ export default function AdminDashboard() {
 
   const [promptKey, setPromptKey] = useState<string>("(all)");
   const [scenarioTarget, setScenarioTarget] = useState<string>("(all)");
-  const [maxScenarios, setMaxScenarios] = useState<number>(10);
-  const [maxTurns, setMaxTurns] = useState<number>(8);
+  const [maxScenarios, setMaxScenarios] = useState<number>(1);
+  const [maxTurns, setMaxTurns] = useState<number>(15);
   const [bilanActionsCount, setBilanActionsCount] = useState<number>(3);
+  const [testPostCheckupDeferral, setTestPostCheckupDeferral] = useState<boolean>(false);
   const [userDifficulty, setUserDifficulty] = useState<(typeof USER_DIFFICULTIES)[number]>("mid");
-  const [evalModel, setEvalModel] = useState<string>("gemini-2.0-flash");
+  const [evalModel, setEvalModel] = useState<string>("gemini-2.5-flash");
   const [stopOnFail, setStopOnFail] = useState<boolean>(false);
   const [budgetUsd, setBudgetUsd] = useState<number>(0);
   const [pricingLoaded, setPricingLoaded] = useState<boolean>(false);
@@ -102,6 +107,45 @@ export default function AdminDashboard() {
     }
     return out;
   }, [allScenarios, promptKey, scenarioTarget]);
+
+  // Special-case for "Test spécial post-bilan":
+  // Avoid bilan variants that are designed to stop early ("pas le temps", "stop", etc.) because they pollute the parking-lot test.
+  const filteredScenariosForRun = useMemo(() => {
+    if (scenarioTarget !== "bilan") return filteredScenarios;
+    if (!testPostCheckupDeferral) return filteredScenarios;
+    return filteredScenarios.filter((s) => {
+      const id = String((s as any)?.id ?? "");
+      // Programmatic pack IDs look like: bilan_${demeanor}__${outcome}__${constraint}
+      // We exclude variants that tend to end the bilan early.
+      if (id.includes("__stop_midway")) return false;
+      if (id.startsWith("bilan_rushed__")) return false;
+      if (id.startsWith("bilan_unavailable__")) return false;
+      if (id.startsWith("bilan_hostile__")) return false;
+      return true;
+    });
+  }, [filteredScenarios, scenarioTarget, testPostCheckupDeferral]);
+
+  // UI semantics: this is an exact requested count (not "max").
+  const desiredScenarioCount = Math.max(1, Math.min(50, maxScenarios));
+  const canRunExactCount = filteredScenariosForRun.length >= desiredScenarioCount;
+  // Special-case: BILAN can be run with random variants and repetitions (templates are finite).
+  const allowRepeatsForRun = scenarioTarget === "bilan" && filteredScenariosForRun.length > 0;
+  const willRepeatScenarios = allowRepeatsForRun && filteredScenariosForRun.length < desiredScenarioCount;
+  const canRunRequestedCount =
+    filteredScenariosForRun.length > 0 && (canRunExactCount || allowRepeatsForRun);
+
+  function shuffleCopy<T>(arr: T[]): T[] {
+    const copy = arr.slice();
+    for (let i = copy.length - 1; i > 0; i--) {
+      const buf = new Uint32Array(1);
+      crypto.getRandomValues(buf);
+      const j = Number(buf[0] % (i + 1));
+      const tmp = copy[i];
+      copy[i] = copy[j];
+      copy[j] = tmp;
+    }
+    return copy;
+  }
 
   useEffect(() => {
     async function loadMetrics() {
@@ -166,15 +210,51 @@ export default function AdminDashboard() {
     setRunBusy(true);
     setLastRun(null);
     try {
-      const selected = filteredScenarios.slice(0, Math.max(1, Math.min(50, maxScenarios)));
+      let selected: Scenario[] = [];
+      if (scenarioTarget === "bilan" && filteredScenariosForRun.length > 0) {
+        // Randomly pick N tests from the available templates (repeat + reshuffle if needed).
+        const pool = shuffleCopy(filteredScenariosForRun);
+        let idx = 0;
+        while (selected.length < desiredScenarioCount) {
+          if (idx >= pool.length) {
+            idx = 0;
+            const reshuffled = shuffleCopy(filteredScenariosForRun);
+            pool.splice(0, pool.length, ...reshuffled);
+          }
+          const base = pool[idx] as Scenario;
+          const testN = selected.length + 1;
+          selected.push({
+            ...base,
+            id: `${String(base.id)}__test_${testN}`,
+            description: base.description ? `${base.description} (test ${testN}/${desiredScenarioCount})` : base.description,
+          });
+          idx += 1;
+        }
+      } else if (canRunExactCount) {
+        selected = filteredScenarios.slice(0, desiredScenarioCount);
+      } else if (allowRepeatsForRun) {
+        selected = Array.from({ length: desiredScenarioCount }, (_, i) => {
+          const base = filteredScenariosForRun[i % filteredScenariosForRun.length] as Scenario;
+          const rep = i + 1;
+          return {
+            ...base,
+            id: `${String(base.id)}__rep_${rep}`,
+            description: base.description ? `${base.description} (repeat ${rep}/${desiredScenarioCount})` : base.description,
+          };
+        });
+      } else {
+        // Shouldn't happen because the UI disables the button, but keep it safe.
+        selected = filteredScenariosForRun.slice(0, desiredScenarioCount);
+      }
       const { data, error } = await supabase.functions.invoke("run-evals", {
         body: {
           scenarios: selected,
           limits: {
-            max_scenarios: Math.max(1, Math.min(50, maxScenarios)),
+            max_scenarios: desiredScenarioCount,
             max_turns_per_scenario: Math.max(1, Math.min(50, maxTurns)),
             bilan_actions_count:
               scenarioTarget === "bilan" ? Math.max(1, Math.min(20, bilanActionsCount)) : 0,
+            test_post_checkup_deferral: scenarioTarget === "bilan" ? Boolean(testPostCheckupDeferral) : false,
             user_difficulty: userDifficulty,
             stop_on_first_failure: stopOnFail,
             budget_usd: Math.max(0, budgetUsd),
@@ -401,7 +481,7 @@ export default function AdminDashboard() {
 
                 <div className="grid grid-cols-2 gap-4">
                   <InputGroup 
-                    label="Max Scenarios"
+                    label="Nombre de tests (exact)"
                     value={maxScenarios}
                     onChange={setMaxScenarios}
                     min={1} max={50}
@@ -415,14 +495,31 @@ export default function AdminDashboard() {
                 </div>
 
                 {scenarioTarget === "bilan" ? (
-                  <div className="grid grid-cols-2 gap-4">
-                    <InputGroup
-                      label="Nb actions à confirmer"
-                      value={bilanActionsCount}
-                      onChange={setBilanActionsCount}
-                      min={1}
-                      max={20}
-                    />
+                  <div className="space-y-4">
+                    <div className="grid grid-cols-2 gap-4">
+                      <InputGroup
+                        label="Nb actions à confirmer"
+                        value={bilanActionsCount}
+                        onChange={setBilanActionsCount}
+                        min={1}
+                        max={20}
+                      />
+                    </div>
+
+                    <label className="flex items-center gap-3 p-3 rounded-lg bg-neutral-950 border border-neutral-800 cursor-pointer hover:border-neutral-700 transition-colors">
+                      <input
+                        type="checkbox"
+                        checked={testPostCheckupDeferral}
+                        onChange={(e) => setTestPostCheckupDeferral(e.target.checked)}
+                        className="w-4 h-4 rounded border-neutral-700 bg-neutral-900 text-indigo-500 focus:ring-offset-neutral-950 focus:ring-indigo-500"
+                      />
+                      <div className="flex-1">
+                        <div className="text-sm text-neutral-300">Test spécial: post-bilan (“on en reparle après”)</div>
+                        <div className="text-xs text-neutral-500 mt-0.5">
+                          Continue après la fin du bilan pour tester la machine à état (parking lot).
+                        </div>
+                      </div>
+                    </label>
                   </div>
                 ) : null}
 
@@ -481,13 +578,41 @@ export default function AdminDashboard() {
                 </div>
 
                 <div className="pt-2 border-t border-neutral-800/50">
+                  <div className="flex justify-between items-center text-xs text-neutral-500 mb-2">
+                    <span>Templates dispo (après filtres):</span>
+                    <span className="text-white font-mono bg-neutral-800 px-1.5 py-0.5 rounded">{filteredScenariosForRun.length}</span>
+                  </div>
                   <div className="flex justify-between items-center text-xs text-neutral-500 mb-4">
-                    <span>Available Scenarios:</span>
-                    <span className="text-white font-mono bg-neutral-800 px-1.5 py-0.5 rounded">{filteredScenarios.length}</span>
+                    <span>Tests à exécuter:</span>
+                    <span className="text-white font-mono bg-neutral-800 px-1.5 py-0.5 rounded">{desiredScenarioCount}</span>
+                  </div>
+
+                  <div className="text-xs text-neutral-500 mb-3">
+                    Ce run va exécuter{" "}
+                    <span className="text-neutral-200 font-mono">{desiredScenarioCount}</span>{" "}
+                    test(s)
+                    {!canRunExactCount && !allowRepeatsForRun && (
+                      <span className="text-rose-300">
+                        {" "}
+                        — pas assez de scénarios avec ces filtres (seulement {filteredScenariosForRun.length})
+                      </span>
+                    )}
+                    {willRepeatScenarios && (
+                      <span className="text-amber-300">
+                        {" "}
+                        — seulement {filteredScenariosForRun.length} template(s) “bilan”, répétition automatique
+                      </span>
+                    )}
+                    {stopOnFail && (
+                      <span className="text-amber-300">
+                        {" "}
+                        — arrêt au 1er échec activé
+                      </span>
+                    )}
                   </div>
                   
                   <button
-                    disabled={runBusy || filteredScenarios.length === 0}
+                    disabled={runBusy || filteredScenariosForRun.length === 0 || !canRunRequestedCount}
                     onClick={startRun}
                     className="group relative w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white font-medium py-3 px-4 rounded-xl transition-all disabled:opacity-50 disabled:hover:bg-indigo-600 active:scale-[0.98]"
                   >
@@ -503,7 +628,7 @@ export default function AdminDashboard() {
                       </>
                     )}
                     {/* Glow effect */}
-                    {!runBusy && filteredScenarios.length > 0 && (
+                    {!runBusy && filteredScenariosForRun.length > 0 && canRunRequestedCount && (
                       <div className="absolute inset-0 rounded-xl bg-indigo-400/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
                     )}
                   </button>
@@ -552,6 +677,13 @@ export default function AdminDashboard() {
                         valueClass={lastRun.stopped_reason ? "text-amber-400" : "text-emerald-400"}
                       />
                     </div>
+                    {"requested_scenarios" in lastRun && "selected_scenarios" in lastRun && (
+                      <div className="px-5 py-3 border-b border-neutral-800 bg-neutral-950/10 text-xs text-neutral-500">
+                        Requested: <span className="text-neutral-200 font-mono">{lastRun.requested_scenarios}</span>{" "}
+                        · Sent: <span className="text-neutral-200 font-mono">{lastRun.selected_scenarios}</span>{" "}
+                        · Ran: <span className="text-neutral-200 font-mono">{lastRun.ran}</span>
+                      </div>
+                    )}
                     <div className="px-5 py-3 border-b border-neutral-800 bg-neutral-950/20 text-xs text-neutral-400 font-mono">
                       tokens_total={Number(lastRun.total_tokens ?? 0)} in={Number(lastRun.total_prompt_tokens ?? 0)} out={Number(lastRun.total_output_tokens ?? 0)}
                     </div>

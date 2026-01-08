@@ -41,6 +41,7 @@ const SOURCE_LABELS: Record<string, string> = {
   stripe: "Stripe",
   evals: "Evals",
   llm: "LLM",
+  edge: "Edge Functions",
 };
 
 function meaningFor(row: ProductionLogRow): string | null {
@@ -76,6 +77,9 @@ function meaningFor(row: ProductionLogRow): string | null {
     if (row.severity === "error") return "Un run d’éval a échoué (utile pour détecter des régressions).";
     return "Run d’éval exécuté.";
   }
+  if (row.event_type === "edge_function_error") {
+    return "Une Edge Function a crash (exception/timeout). Ouvre “Details” pour le message + stack + request_id.";
+  }
   if (row.source === "email") {
     if (row.details?.status === "failed") return "L’email n’a pas pu être envoyé (provider/clé/sender/deliverability).";
     return "Email envoyé (ou délivré) via le provider.";
@@ -94,6 +98,7 @@ export default function AdminProductionLog() {
   const [period, setPeriod] = useState<string>("24h");
   const [onlyErrors, setOnlyErrors] = useState<boolean>(false);
   const [source, setSource] = useState<string>("(all)");
+  const [includeChat, setIncludeChat] = useState<boolean>(false);
 
   const [rows, setRows] = useState<ProductionLogRow[]>([]);
   const [busy, setBusy] = useState(false);
@@ -113,6 +118,7 @@ export default function AdminProductionLog() {
           p_limit: 300,
           p_only_errors: onlyErrors,
           p_source: source === "(all)" ? null : source,
+          p_include_chat: includeChat,
         });
         if (error) throw error;
         setRows((data as any) ?? []);
@@ -124,7 +130,7 @@ export default function AdminProductionLog() {
       }
     }
     load();
-  }, [user, isAdmin, sinceIso, onlyErrors, source]);
+  }, [user, isAdmin, sinceIso, onlyErrors, source, includeChat]);
 
   const stats = useMemo(() => {
     const total = rows.length;
@@ -229,6 +235,7 @@ export default function AdminProductionLog() {
               <option value="stripe">stripe</option>
               <option value="evals">evals</option>
               <option value="llm">llm</option>
+              <option value="edge">edge</option>
             </select>
 
             <button
@@ -241,6 +248,19 @@ export default function AdminProductionLog() {
               )}
             >
               {onlyErrors ? "Errors only" : "All severities"}
+            </button>
+
+            <button
+              onClick={() => setIncludeChat((v) => !v)}
+              className={cn(
+                "px-3 py-2 rounded-lg text-xs font-medium border transition-colors",
+                includeChat
+                  ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-300"
+                  : "bg-neutral-900 border-neutral-800 text-neutral-300 hover:bg-neutral-800"
+              )}
+              title="Inclure les événements chat_messages (bruyant)"
+            >
+              {includeChat ? "Chat: ON" : "Chat: OFF"}
             </button>
           </div>
         </div>

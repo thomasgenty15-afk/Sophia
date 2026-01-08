@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders } from '../config.ts'
 import { processMessage } from './router.ts'
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
 
 console.log("Sophia Brain: Function initialized")
 
@@ -10,6 +11,9 @@ Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
+
+  const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
+  let authedUserId: string | null = null
 
   try {
     const body = await req.json()
@@ -21,8 +25,6 @@ Deno.serve(async (req) => {
     const messageMetadata = (body?.messageMetadata ?? body?.message_metadata ?? body?.metadata) as Record<string, unknown> | undefined
     const channel = (body?.channel as ("web" | "whatsapp") | undefined) ?? "web"
     const scope = (body?.scope ?? body?.conversationScope ?? body?.conversation_scope ?? body?.chat_scope) as string | undefined
-    const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
-
     // Backward compatibility: some frontend calls used { mode, context } without { message }.
     // We synthesize a user message and a textual context override, and force the appropriate agent.
     const legacyMode = (body?.mode ?? "").toString().trim()
@@ -55,6 +57,7 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
     if (authError || !user) throw new Error('Unauthorized')
+    authedUserId = user.id
 
     console.log(`Processing message for user ${user.id}: "${message.substring(0, 50)}..."`)
 
@@ -81,7 +84,19 @@ Deno.serve(async (req) => {
 
   } catch (error) {
     console.error("Error processing message:", error)
-    return new Response(JSON.stringify({ error: error.message }), {
+    // Best-effort: persist a crash record so Admin Production log can show it.
+    // Avoid storing full message/history (PII); keep only small context.
+    await logEdgeFunctionError({
+      functionName: "sophia-brain",
+      error,
+      requestId,
+      userId: authedUserId,
+      metadata: {
+        path: new URL(req.url).pathname,
+        method: req.method,
+      },
+    })
+    return new Response(JSON.stringify({ error: (error as any)?.message ?? String(error) }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     })

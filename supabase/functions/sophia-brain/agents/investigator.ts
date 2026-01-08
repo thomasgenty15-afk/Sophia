@@ -2,6 +2,7 @@ import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { retrieveContext } from './companion.ts' // Import retrieveContext to use RAG
 import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
+import { verifyInvestigatorMessage } from '../verifier.ts'
 
 // --- OUTILS ---
 
@@ -76,6 +77,12 @@ function isNegative(text: string): boolean {
   const t = (text ?? "").toString().trim().toLowerCase()
   if (!t) return false
   return /\b(non|nope|nan|laisse|pas besoin|stop|on laisse|plus tard)\b/i.test(t)
+}
+
+function isExplicitStopBilan(text: string): boolean {
+  const m = (text ?? "").toString().trim()
+  if (!m) return false
+  return /\b(?:stop|pause|arr[êe]te|arr[êe]tons|annule|annulons|on\s+arr[êe]te|on\s+peut\s+arr[êe]ter|je\s+veux\s+arr[êe]ter|pas\s+maintenant|plus\s+tard|on\s+reprendra\s+plus\s+tard|c['’]est\s+trop|c['’]est\s+lourd|arr[êe]te\s+le\s+bilan|stop\s+le\s+bilan)\b/i.test(m)
 }
 
 function functionsBaseUrl(): string {
@@ -451,34 +458,40 @@ export async function getYesterdayCheckupSummary(supabase: SupabaseClient, userI
 }
 
 async function getPendingItems(supabase: SupabaseClient, userId: string): Promise<CheckupItem[]> {
-    const today = new Date().toISOString().split('T')[0]
-    
+    // Bilan = on check les items actifs du PLAN COURANT (pas des anciens plans),
+    // et on applique une logique "dernier check il y a >18h" pour éviter de re-demander.
+    const planRow = await fetchActivePlanRow(supabase, userId).catch(() => null)
+    const planId = planRow?.id as string | undefined
+
     // Règle des 18h : Si last_performed_at / last_checked_at > 18h ago, on doit checker.
     const now = new Date()
     const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
 
     const pending: CheckupItem[] = []
 
-    // 1. Fetch Actions
-    const { data: actions } = await supabase
+    // 1. Fetch Actions (plan courant uniquement)
+    const actionsQ = supabase
         .from('user_actions')
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'active')
+    const { data: actions } = planId ? await actionsQ.eq('plan_id', planId) : await actionsQ
 
-    // 2. Fetch Vital Signs
-    const { data: vitals } = await supabase
+    // 2. Fetch Vital Signs (plan courant si possible)
+    const vitalsQ = supabase
         .from('user_vital_signs')
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'active')
+    const { data: vitals } = planId ? await vitalsQ.eq('plan_id', planId) : await vitalsQ
 
-    // 3. Fetch Frameworks
-    const { data: frameworks } = await supabase
+    // 3. Fetch Frameworks (plan courant uniquement)
+    const fwQ = supabase
         .from('user_framework_tracking')
         .select('*')
         .eq('user_id', userId)
         .eq('status', 'active')
+    const { data: frameworks } = planId ? await fwQ.eq('plan_id', planId) : await fwQ
 
     // Apply 18h Logic
     actions?.forEach(a => {
@@ -707,13 +720,22 @@ Tu es Sophia (Mode : Investigateur / Bilan).
 Tu réponds en français, en tutoyant.
 Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout en gardant le fil du bilan.
 
-RÈGLES DE STYLE (OBLIGATOIRES):
-- Pas de message "en dur" robotique: réagis brièvement au message user si nécessaire, puis enchaîne.
-- Une seule question à la fois.
-- Interdiction absolue de dire "bonjour", "salut", "hello" (sauf historique vide — mais ici, évite).
-- Interdiction formelle d’utiliser du gras (pas d’astérisques **).
-- Maximum 2 emojis (0-1 recommandé).
-- Output: uniquement du texte brut (pas de JSON).
+    RÈGLES DE STYLE (OBLIGATOIRES):
+    - Pas de message "en dur" robotique: réagis brièvement au message user si nécessaire, puis enchaîne.
+    - Une seule question à la fois.
+    - Interdiction absolue de dire "bonjour", "salut", "hello" (sauf historique vide — mais ici, évite).
+    - Interdiction formelle d’utiliser du gras (pas d’astérisques **).
+    - Maximum 2 emojis (0-1 recommandé).
+    - Output: uniquement du texte brut (pas de JSON).
+    - INTERDICTION d'utiliser des termes techniques internes (ex: "logs", "input", "database", "variable", "JSON"). Dis "bilan", "réponses", "notes" à la place.
+
+    ${(scenario.includes("end_checkup") || scenario.endsWith("_end")) ? `
+    INSTRUCTIONS CRITIQUES POUR LA FIN DU BILAN :
+    1. Le bilan est terminé. Ne pose plus AUCUNE question de suivi (pas de "Bilan des réussites", pas de "Récap", rien).
+    2. Valide brièvement la fin de l'exercice (ou la création de la micro-étape si pertinent).
+    3. TA SEULE MISSION est d'ouvrir la discussion vers autre chose.
+    4. TU DOIS POSER CETTE QUESTION (ou une variation proche) : "Est-ce que tu veux qu'on parle de quelque chose en particulier ?" ou "Est-ce que tu veux me parler de quelque chose d'autres ?".
+    ` : ""}
 
 SCÉNARIO: ${scenario}
 DONNÉES (JSON): ${JSON.stringify(data)}
@@ -731,13 +753,20 @@ DONNÉES (JSON): ${JSON.stringify(data)}
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.5-flash",
       source: `sophia-brain:investigator_copy:${scenario}`,
       forceRealAi: meta?.forceRealAi,
     },
   )
 
-  return normalizeChatText(res)
+  const base = normalizeChatText(res)
+  const verified = await verifyInvestigatorMessage({
+    draft: base,
+    scenario,
+    data,
+    meta: { ...meta, userId: undefined }, // no userId here; keep verifier stateless
+  })
+  return verified.text
 }
 
 export async function maybeHandleStreakAfterLog(opts: {
@@ -766,7 +795,7 @@ export async function maybeHandleStreakAfterLog(opts: {
           return {
             content: await investigatorSay(
               "win_streak_end",
-              { user_message: message, win_streak_days: winStreak, item: currentItem, channel: meta?.channel },
+              { user_message: message, win_streak_days: winStreak, item: currentItem, last_item_log: argsWithId, channel: meta?.channel },
               meta,
             ),
             investigationComplete: true,
@@ -778,7 +807,7 @@ export async function maybeHandleStreakAfterLog(opts: {
         return {
           content: await investigatorSay(
             "win_streak_continue",
-            { user_message: message, win_streak_days: winStreak, item: currentItem, next_item: nextItem },
+            { user_message: message, win_streak_days: winStreak, item: currentItem, last_item_log: argsWithId, next_item: nextItem },
             meta,
           ),
           investigationComplete: false,
@@ -843,6 +872,19 @@ export async function runInvestigator(
       temp_memory: {}
   }
 
+  // If the user explicitly wants to stop the bilan, comply immediately (no persuasion).
+  if (currentState?.status === "checking" && isExplicitStopBilan(message)) {
+    return {
+      content: await investigatorSay(
+        "user_stopped_checkup",
+        { user_message: message, channel: meta?.channel, recent_history: history.slice(-3) },
+        meta,
+      ),
+      investigationComplete: true,
+      newState: null,
+    }
+  }
+
   // Si c'est le tout début, on charge les items
   if (currentState.status === 'init') {
       const items = await getPendingItems(supabase, userId)
@@ -853,11 +895,18 @@ export async function runInvestigator(
               newState: null
           }
       }
+      // Déterminer day_scope en fonction de l'heure
+      // Si > 17h, on check probablement la journée en cours ("today").
+      // Sinon (matin), on check probablement la veille ("yesterday").
+      const parisHour = new Date(new Date().getTime() + 1 * 60 * 60 * 1000).getUTCHours();
+      const initialDayScope = parisHour >= 17 ? "today" : "yesterday";
+
       currentState = {
           status: 'checking',
           pending_items: items,
           current_item_index: 0,
-          temp_memory: { opening_done: false }
+          // locked_pending_items avoids pulling extra items mid-checkup (more stable UX).
+          temp_memory: { opening_done: false, locked_pending_items: true, day_scope: initialDayScope }
       }
   }
 
@@ -890,39 +939,54 @@ export async function runInvestigator(
         ...currentState,
         temp_memory: { ...(currentState.temp_memory || {}), opening_done: true },
       }
-      const openingText = await investigatorSay(
-        "opening_first_item_fallback",
-        { user_message: message, channel: meta?.channel, first_item: currentItem0, recent_history: history.slice(-3) },
-        meta,
-      )
+      // Fallback plus engageant
+      const dayScope = String(currentState?.temp_memory?.day_scope ?? "yesterday")
+      const dayRef = dayScope === "today" ? "aujourd’hui" : "hier"
+      const openingText = `Prêt pour le check ${dayRef} ? On regarde ça ensemble. Pour commencer : ${currentItem0.title}.`
+      
       return { content: openingText, investigationComplete: false, newState: nextState }
     }
   }
 
   // 2. CHECK SI FINI
   if (currentState.current_item_index >= currentState.pending_items.length) {
-       // DOUBLE CHECK : Si le temps a passé ou si on a raté des trucs, on refait un scan
+       // If the checkup list is locked, we ALWAYS close cleanly (no "surprise" extra items).
+       if (currentState?.temp_memory?.locked_pending_items === true) {
+         return {
+           content: await investigatorSay(
+             "end_checkup_no_more_items",
+             { user_message: message, channel: meta?.channel, recent_history: history.slice(-3) },
+             meta,
+           ),
+           investigationComplete: true,
+           newState: null,
+         }
+       }
+
+       // Otherwise (legacy behavior): scan for new pending items.
        console.log("[Investigator] End of list reached. Scanning for new pending items...")
        const freshItems = await getPendingItems(supabase, userId)
-       
        if (freshItems.length > 0) {
-           console.log(`[Investigator] Found ${freshItems.length} new items. Extending session.`)
-           currentState.pending_items = [...currentState.pending_items, ...freshItems]
+         console.log(`[Investigator] Found ${freshItems.length} new items. Extending session.`)
+         currentState.pending_items = [...currentState.pending_items, ...freshItems]
        } else {
-           return {
-              content: await investigatorSay(
-                "end_checkup_no_more_items",
-                { user_message: message, channel: meta?.channel, recent_history: history.slice(-3) },
-                meta,
-              ),
-              investigationComplete: true,
-              newState: null
-          }
+         return {
+           content: await investigatorSay(
+             "end_checkup_no_more_items",
+             { user_message: message, channel: meta?.channel, recent_history: history.slice(-3) },
+             meta,
+           ),
+           investigationComplete: true,
+           newState: null,
+         }
        }
   }
 
   // 3. ITEM COURANT
   const currentItem = currentState.pending_items[currentState.current_item_index]
+
+  // NOTE: Parking-lot (post-bilan) state machine lives in router.ts.
+  // Investigator only handles bilan items; it may store potential deferred topics in temp_memory if asked by the router logic.
   
   // --- BREAKDOWN STATE MACHINE (after user said "oui" etc.) ---
   const breakdown = currentState?.temp_memory?.breakdown
@@ -1195,14 +1259,29 @@ export async function runInvestigator(
 
     TA MISSION :
     1. Si on vient de commencer ou si l'utilisateur n'a pas encore donné l'info pour CET item : 
-       -> POSE LA QUESTION. (Ex: "Alors, ce sommeil, combien d'heures ?").
+       -> POSE LA QUESTION DIRECTEMENT ET SIMPLEMENT.
+       -> INTERDICTION DE DEMANDER "Est-ce que tu penses pouvoir le faire ?" ou "As-tu compris ?".
+       -> DEMANDE UNIQUEMENT SI C'EST FAIT OU QUELLE EST LA VALEUR.
+       -> Exemples valides : "Tu l'as fait hier ?", "Combien de minutes ?", "C'est fait ?".
+       -> Contextualise avec l'historique si possible ("Mieux qu'hier ?").
     2. Si l'utilisateur a répondu (même avec un commentaire ou une question rhétorique) :
-       -> APPELLE L'OUTIL "log_action_execution" IMMÉDIATEMENT.
+       -> APPELLE L'OUTIL "log_action_execution" IMMÉDIATEMENT SI C'EST FAIT.
        -> Interprète intelligemment : "Fait", "En entier", "Oui", "C'est bon" => status='completed'.
-       -> Ne repose pas la question si la réponse est dedans ("Je l'ai fait mais..."). Loggue l'action et mets le reste en note.
-       -> Si c'est un échec ("Non j'ai pas fait"), sois empathique et essaie de capter la raison dans le champ "note" de l'outil.
+       
+       -> CAS D'ÉCHEC ("Non pas fait") :
+          - C'EST LE MOMENT CLÉ DU BILAN. INTERDICTION DE PASSER VITE.
+          - Tâche 1 : Si la raison n'est pas claire, demande "Qu'est-ce qui a coincé ?" ou "Raconte-moi un peu."
+          - Tâche 2 : Si la raison est donnée, NE LOGGUE PAS TOUT DE SUITE. Prends un court moment pour discuter, coacher ou valider la difficulté. 
+          - Tâche 3 : N'appelle l'outil "log_action_execution" (avec status='missed') QUE quand cet échange a eu lieu (2-3 messages max) ou si l'utilisateur coupe court.
+          
     3. Si l'utilisateur veut reporter ou ne pas répondre :
        -> Passe à la suite (appelle l'outil avec status='missed' et note='Reporté').
+
+    RÈGLE D'OR (EMPATHIE) :
+    Si l'utilisateur exprime du stress, de la fatigue ou une émotion difficile ("journée stressante", "j'ai couru", "je suis dispersé") :
+    -> VALIDE SON RESSENTI avant de passer à la suite.
+    -> Ne dis pas juste "Je note". Dis "Je comprends que c'est lourd" ou "C'est normal d'être à plat après ça".
+    -> Montre que tu as entendu l'humain derrière la data. Mais reste bref pour garder le rythme.
 
     RÈGLE "BLOCAGE 5 JOURS" (BREAKDOWN) :
     - Si l'item courant est une ACTION et que l'historique contient "MISSED_STREAK_DAYS: N" avec N >= 5 :
@@ -1241,7 +1320,7 @@ export async function runInvestigator(
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:investigator",
       forceRealAi: meta?.forceRealAi,
     }
@@ -1289,7 +1368,14 @@ export async function runInvestigator(
           return {
               content: await investigatorSay(
                 "end_checkup_after_last_log",
-                { user_message: message, channel: meta?.channel, recent_history: history.slice(-3) },
+                {
+                  user_message: message,
+                  channel: meta?.channel,
+                  recent_history: history.slice(-3),
+                  last_item: currentItem,
+                  last_item_log: argsWithId,
+                  day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+                },
                 meta,
               ),
               investigationComplete: true,
@@ -1298,28 +1384,22 @@ export async function runInvestigator(
       } else {
           const nextItem = currentState.pending_items[nextIndex]
           console.log(`[Investigator] Next item: ${nextItem.title}`)
-          const transitionPrompt = `
-            Tu viens de noter "${currentItem.title}" (${argsWithId.status}).
-            Maintenant, enchaîne naturellement pour demander à propos de : "${nextItem.title}".
-            Sois fluide. PAS DE GRAS (**).
-            INTERDICTION ABSOLUE DE DIRE "BONJOUR", "SALUT", "HELLO". Enchaîne direct sur la question suivante.
-            Exemple : "C'est noté. Et pour X ?"
-          `
-          let transitionText = await generateWithGemini(transitionPrompt, "Transitionne.", 0.7, false, [], "auto", {
-            requestId: meta?.requestId,
-            model: meta?.model ?? "gemini-2.0-flash",
-            source: "sophia-brain:investigator_transition",
-            forceRealAi: meta?.forceRealAi,
-          })
-          
-          const transitionOut =
-            typeof transitionText === "string"
-              ? normalizeChatText(transitionText)
-              : await investigatorSay(
-                "transition_next_item_fallback",
-                { from_item: currentItem, from_status: argsWithId.status, next_item: nextItem, user_message: message },
-                meta,
-              )
+          const dayScope = String(currentState?.temp_memory?.day_scope ?? "yesterday")
+          const dayRef = dayScope === "today" ? "aujourd’hui" : "hier"
+          const deferred = Boolean(currentState?.temp_memory?.deferred_topic)
+
+          // Dynamic transition via LLM (avoid hardcoded robotic phrases)
+          const transitionOut = await investigatorSay(
+            "transition_to_next_item",
+            {
+              user_message: message,
+              last_item_log: argsWithId, // Pass status/note so LLM can react ("Ah mince...")
+              next_item: nextItem,
+              day_scope: dayScope,
+              deferred_topic: deferred ? "planning/organisation" : null
+            },
+            meta
+          )
           
           return {
               content: transitionOut,
@@ -1425,9 +1505,29 @@ export async function runInvestigator(
   }
 
   // Sinon, c'est une question ou une réponse texte
+  if (typeof response === "string" && !isMegaTestMode(meta)) {
+    const dayScope = String(currentState?.temp_memory?.day_scope ?? "yesterday")
+    const dayRef = dayScope === "today" ? "aujourd’hui" : "hier"
+    const verified = await verifyInvestigatorMessage({
+      draft: response,
+      scenario: "main_item_turn",
+      data: {
+        day_scope: dayScope,
+        day_ref: dayRef,
+        current_item: currentItem,
+        pending_items: currentState?.pending_items ?? [],
+        current_item_index: currentState?.current_item_index ?? 0,
+        recent_history: history.slice(-3),
+        user_message: message,
+      },
+      meta: { ...meta, userId: undefined },
+    })
+    response = verified.text
+  }
+
   return {
-      content: response as string,
-      investigationComplete: false,
-      newState: currentState
+    content: response as string,
+    investigationComplete: false,
+    newState: currentState
   }
 }

@@ -9,6 +9,7 @@ import { runAssistant } from './agents/assistant.ts'
 import { runWatcher } from './agents/watcher.ts'
 import { generateWithGemini } from '../_shared/gemini.ts'
 import { appendPromptOverride, fetchPromptOverride } from '../_shared/prompt-overrides.ts'
+import { verifyBilanAgentMessage } from './verifier.ts'
 
 function normalizeChatText(text: string): string {
   // Some model outputs include the literal characters "\n" instead of real newlines.
@@ -46,6 +47,14 @@ function isExplicitStopCheckup(message: string): boolean {
   // - We avoid overly broad tokens like just "laisse" which could appear in normal sentences.
   return /\b(?:stop|pause|arr[êe]te|arr[êe]tons|annule|annulons|on\s+(?:arr[êe]te|arr[êe]te|arr[êe]tons|stop|annule|annulons)|je\s+veux\s+(?:arr[êe]ter|stopper)|on\s+peut\s+arr[êe]ter|change(?:r)?\s+de\s+sujet|on\s+change\s+de\s+sujet|parl(?:er)?\s+d['’]autre\s+chose|on\s+parle\s+d['’]autre\s+chose|pas\s+maintenant|plus\s+tard|on\s+reprendra\s+plus\s+tard|pas\s+de\s+(?:bilan|check|checkup)|stop\s+(?:le\s+)?(?:bilan|check|checkup)|arr[êe]te\s+(?:le\s+)?(?:bilan|check|checkup)|stop\s+this|stop\s+it|switch\s+topic)\b/i
     .test(m);
+}
+
+function shouldBypassCheckupLockForDeepWork(message: string, targetMode: AgentMode): boolean {
+  if (targetMode !== "architect") return false;
+  const s = (message ?? "").toString().toLowerCase();
+  // When the user brings a clear planning/organization pain during bilan,
+  // we allow Architect to answer (otherwise the hard guard forces Investigator and feels robotic).
+  return /\b(planning|agenda|organisation|organisatio|priorit[ée]s?|ing[ée]rable|d[ée]bord[ée]|trop\s+de\s+trucs|overbook|surcharg[ée]|charge\s+mentale)\b/i.test(s);
 }
 
 // Classification intelligente par Gemini
@@ -108,7 +117,7 @@ async function analyzeIntentAndRisk(
   try {
     const response = await generateWithGemini(systemPrompt, message, 0.0, true, [], "auto", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:dispatcher",
     })
     return JSON.parse(response as string)
@@ -132,6 +141,7 @@ export async function processMessage(
     messageMetadata?: Record<string, unknown>;
   }
 ) {
+  const isEvalParkingLotTest = Boolean(opts?.contextOverride && String(opts.contextOverride).includes("MODE TEST PARKING LOT"));
   function looksLikeAttrapeRevesActivation(m: string): boolean {
     const s = (m ?? "").toString().toLowerCase()
     if (!s) return false
@@ -185,6 +195,8 @@ export async function processMessage(
 
   // 2. Récupérer l'état actuel (Mémoire)
   const state = await getUserState(supabase, userId, scope)
+  // Context string injected into agent prompts (must be declared before any post-checkup logic uses it).
+  let context = ""
 
   // --- LOGIC VEILLEUR (Watcher) ---
   let msgCount = (state.unprocessed_msg_count || 0) + 1
@@ -232,10 +244,144 @@ export async function processMessage(
     targetMode = 'companion'
   }
 
+  // Capture deferred topics ONLY when Sophia explicitly defers them during an active checkup.
+  // We do this in router (not in investigator) to keep the checkup agent simple.
+  function assistantDeferredTopic(assistantText: string): boolean {
+    const s = (assistantText ?? "").toString().toLowerCase()
+    // Examples to catch:
+    // - "On pourra en reparler après / à la fin du bilan"
+    // - "On garde ça pour la fin"
+    // - "On verra ça après"
+    // - "On en discute après le bilan"
+    const hasLater =
+      /\b(apr[èe]s|plus\s+tard|tout\s+[àa]\s+l['’]?heure|quand\s+on\s+aura\s+fini|fin\s+du\s+bilan|à\s+la\s+fin)\b/i.test(s)
+    const hasDeferralVerb =
+      // include conjugations like "on gardera", "on garde", etc. (use prefix "on gard")
+      /\b(on\s+pourra|on\s+peut|on\s+gard|on\s+verra|on\s+reviendra|on\s+en\s+reparle|on\s+en\s+parle|on\s+en\s+discute)\b/i.test(s)
+    // Accept explicit "on en reparlera / on en discutera" even without a time anchor.
+    const explicitWeWillTalkAgain =
+      /\bon\s+en\s+reparler\w*\b/i.test(s) ||
+      /\bon\s+en\s+discuter\w*\b/i.test(s) ||
+      /\bon\s+pourra\s+en\s+reparler\b/i.test(s) ||
+      /\bon\s+pourra\s+en\s+discuter\b/i.test(s) ||
+      /\bon\s+peut\s+en\s+reparler\b/i.test(s) ||
+      /\bon\s+peut\s+en\s+discuter\b/i.test(s)
+    return (hasLater && hasDeferralVerb) || explicitWeWillTalkAgain
+  }
+
+  function appendDeferredTopicToState(currentState: any, topic: string): any {
+    const prev = currentState?.temp_memory?.deferred_topics ?? []
+    const t = String(topic ?? "").trim()
+    if (!t) return currentState
+    const exists = Array.isArray(prev) && prev.some((x: any) => String(x ?? "").trim() === t)
+    const nextTopics = exists ? prev : [...(Array.isArray(prev) ? prev : []), t]
+    return {
+      ...(currentState ?? {}),
+      temp_memory: { ...((currentState ?? {})?.temp_memory ?? {}), deferred_topics: nextTopics },
+    }
+  }
+
+  const isPostCheckup = state?.investigation_state?.status === "post_checkup"
+
   // HARD GUARD: during an active checkup/bilan, only investigator may answer (unless explicit stop).
   // We still allow safety escalation (sentry/firefighter) to override.
-  if (checkupActive && !stopCheckup && targetMode !== 'sentry' && targetMode !== 'firefighter') {
-    targetMode = 'investigator';
+  if (
+    checkupActive &&
+    !isPostCheckup &&
+    !stopCheckup &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    !shouldBypassCheckupLockForDeepWork(userMessage, targetMode)
+  ) {
+    targetMode = "investigator";
+  }
+
+  // --- POST-CHECKUP PARKING LOT (router-owned state machine) ---
+  // State shape stored in user_chat_states.investigation_state:
+  // { status: "post_checkup", temp_memory: { deferred_topics: string[], current_topic_index: number } }
+  function userSignalsTopicDone(m: string): boolean {
+    const s = (m ?? "").toString().trim().toLowerCase()
+    if (!s) return false
+    return /\b(c['’]est\s+bon|ok|merci|suivant|passons|on\s+avance|continue|on\s+continue|ça\s+va|c['’]est\s+clair)\b/i.test(s)
+  }
+
+  if (isPostCheckup && targetMode !== "sentry") {
+    const deferredTopics = state?.investigation_state?.temp_memory?.deferred_topics ?? []
+    const idx = Number(state?.investigation_state?.temp_memory?.current_topic_index ?? 0) || 0
+
+    // If the user explicitly stops during post-bilan, close the parking lot immediately.
+    if (stopCheckup) {
+      if (isEvalParkingLotTest) {
+        await updateUserState(supabase, userId, scope, {
+          investigation_state: {
+            status: "post_checkup_done",
+            temp_memory: { deferred_topics: deferredTopics, current_topic_index: idx, finished_at: new Date().toISOString(), stopped_by_user: true },
+          },
+        })
+      } else {
+        await updateUserState(supabase, userId, scope, { investigation_state: null })
+      }
+      targetMode = "companion"
+    }
+
+    // If user confirms "ok/next" -> advance to next topic immediately (no agent call for this turn).
+    if (userSignalsTopicDone(userMessage)) {
+      const nextIdx = idx + 1
+      if (nextIdx >= deferredTopics.length) {
+        if (isEvalParkingLotTest) {
+          await updateUserState(supabase, userId, scope, {
+            investigation_state: {
+              status: "post_checkup_done",
+              temp_memory: { deferred_topics: deferredTopics, current_topic_index: nextIdx, finished_at: new Date().toISOString() },
+            },
+          })
+        } else {
+          await updateUserState(supabase, userId, scope, { investigation_state: null })
+        }
+        targetMode = "companion"
+      } else {
+        await updateUserState(supabase, userId, scope, {
+          investigation_state: {
+            ...state.investigation_state,
+            temp_memory: { ...state.investigation_state.temp_memory, current_topic_index: nextIdx },
+          },
+        })
+        targetMode = "companion"
+      }
+    }
+
+    // If still in post-checkup after the potential advance, route to handle current topic.
+    const state2 = await getUserState(supabase, userId, scope)
+    const deferred2 = state2?.investigation_state?.temp_memory?.deferred_topics ?? []
+    const idx2 = Number(state2?.investigation_state?.temp_memory?.current_topic_index ?? 0) || 0
+    const topic = deferred2[idx2]
+
+    if (topic) {
+      // Choose agent
+      if (/\b(planning|agenda|organisation|programme|plan)\b/i.test(topic)) targetMode = "architect"
+      else if (/\b(stress|angoisse|peur|panique)\b/i.test(topic)) targetMode = "firefighter"
+      else targetMode = "companion"
+
+      const topicContext =
+        `=== MODE POST-BILAN (SUJET REPORTÉ ${idx2 + 1}/${deferred2.length}) ===\n` +
+        `SUJET À TRAITER MAINTENANT : "${topic}"\n` +
+        `CONSIGNE : C'est le moment d'en parler. Traite ce point.\n` +
+        `TERMINE par : "C'est bon pour ce point ?"`;
+      context = `${topicContext}\n\n${context}`.trim()
+    } else {
+      // Nothing to do -> close
+      if (isEvalParkingLotTest) {
+        await updateUserState(supabase, userId, scope, {
+          investigation_state: {
+            status: "post_checkup_done",
+            temp_memory: { deferred_topics: deferredTopics, current_topic_index: idx, finished_at: new Date().toISOString() },
+          },
+        })
+      } else {
+        await updateUserState(supabase, userId, scope, { investigation_state: null })
+      }
+      targetMode = "companion"
+    }
   }
 
   // 4. Mise à jour du risque si nécessaire
@@ -245,7 +391,7 @@ export async function processMessage(
 
   // 4.5 RAG Retrieval (Forge Memory)
   // Only for Architect, Companion, Firefighter
-  let context = "";
+  context = ""
   if (['architect', 'companion', 'firefighter'].includes(targetMode)) {
     // A. Vector Memory
     const vectorContext = await retrieveContext(supabase, userMessage);
@@ -305,9 +451,31 @@ export async function processMessage(
           
           responseContent = invResult.content
           if (invResult.investigationComplete) {
-              nextMode = 'companion'
-              await updateUserState(supabase, userId, scope, { investigation_state: null })
+              // If we have deferred topics, transition into router-owned post-checkup mode.
+              const stAfter = await getUserState(supabase, userId, scope)
+              const deferred = stAfter?.investigation_state?.temp_memory?.deferred_topics ?? []
+              if (deferred.length > 0) {
+                await updateUserState(supabase, userId, scope, {
+                  investigation_state: { status: "post_checkup", temp_memory: { deferred_topics: deferred, current_topic_index: 0 } },
+                })
+                responseContent =
+                  `Ok, bilan terminé.\n\n` +
+                  `Tu m'avais parlé d'un truc à reprendre : "${deferred[0]}".\n` +
+                  `Tu veux qu'on commence par ça ?`
+                nextMode = 'companion'
+              } else {
+                nextMode = 'companion'
+                await updateUserState(supabase, userId, scope, { investigation_state: null })
+              }
           } else {
+              // Always preserve existing deferred_topics when Investigator updates state.
+              const prevTopics = state?.investigation_state?.temp_memory?.deferred_topics ?? []
+              if (Array.isArray(prevTopics) && prevTopics.length > 0) {
+                invResult.newState = {
+                  ...(invResult.newState ?? {}),
+                  temp_memory: { ...((invResult.newState ?? {})?.temp_memory ?? {}), deferred_topics: prevTopics },
+                }
+              }
               await updateUserState(supabase, userId, scope, { investigation_state: invResult.newState })
           }
       } catch (err) {
@@ -348,6 +516,55 @@ export async function processMessage(
   }
 
   responseContent = normalizeChatText(responseContent)
+
+  // During an active checkup, if ANY agent explicitly defers ("on pourra en reparler après"),
+  // we store the current user message as a deferred topic in investigation_state.temp_memory.deferred_topics.
+  // This must happen regardless of which agent answered (investigator/firefighter/architect/companion),
+  // otherwise we cannot test or use the parking-lot reliably.
+  if (checkupActive && !stopCheckup && targetMode !== "sentry" && assistantDeferredTopic(responseContent)) {
+    try {
+      const latest = await getUserState(supabase, userId, scope)
+      if (latest?.investigation_state) {
+        const topic = String(userMessage ?? "").trim().slice(0, 240) || "Sujet à reprendre"
+        const updatedInv = appendDeferredTopicToState(latest.investigation_state, topic)
+        await updateUserState(supabase, userId, scope, { investigation_state: updatedInv })
+      }
+    } catch (e) {
+      console.error("[Router] deferred topic store failed (non-blocking):", e)
+    }
+  }
+
+  // --- BILAN VERIFIER (global): if a checkup is active, verify ANY non-investigator response too ---
+  // This keeps Architect/Companion/Firefighter outputs short and coherent while the bilan is ongoing.
+  // We never rewrite Sentry outputs, and we avoid double-verifying Investigator (already gated inside).
+  if (checkupActive && !stopCheckup && targetMode !== "sentry" && targetMode !== "investigator") {
+    try {
+      const verified = await verifyBilanAgentMessage({
+        draft: responseContent,
+        agent: targetMode,
+        data: {
+          user_message: userMessage,
+          agent: targetMode,
+          channel,
+          // Minimal but critical context for coherence during bilan:
+          investigation_state: state?.investigation_state ?? null,
+          // Extra helpful context (already computed for these agents):
+          context_excerpt: (context ?? "").toString().slice(0, 2000),
+        },
+        meta: {
+          requestId: meta?.requestId,
+          forceRealAi: meta?.forceRealAi,
+          channel: meta?.channel,
+          // Use fast model for rewrites, independent from the agent model:
+          model: "gemini-3-flash",
+          userId,
+        },
+      })
+      responseContent = normalizeChatText(verified.text)
+    } catch (e) {
+      console.error("[Router] bilan verifier failed (non-blocking):", e)
+    }
+  }
 
   // 6. Mise à jour du mode final et log réponse
   await updateUserState(supabase, userId, scope, { 

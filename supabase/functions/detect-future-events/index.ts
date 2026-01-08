@@ -137,7 +137,7 @@ Deno.serve(async (req) => {
             true, // JSON mode
             [],
             "auto",
-            { requestId, model: "gemini-2.0-flash", source: "detect-future-events" }
+            { requestId, model: "gemini-2.5-flash", source: "detect-future-events" }
         )
 
         const events = JSON.parse(responseText as string)

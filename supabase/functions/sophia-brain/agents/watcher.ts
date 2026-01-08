@@ -112,7 +112,7 @@ export async function runWatcher(
   try {
     const jsonStr = await generateWithGemini(systemPrompt, transcript, 0.3, true, [], "auto", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:watcher",
       forceRealAi: meta?.forceRealAi,
     })

@@ -39,7 +39,7 @@ export async function generateWithGemini(
     throw new Error('Clé API Gemini manquante')
   }
 
-  let model = (meta?.model ?? "gemini-2.0-flash").trim();
+  let model = (meta?.model ?? "gemini-2.5-flash").trim();
   const fallbackModel = (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim();
 
   const payload: any = {
@@ -160,8 +160,23 @@ export async function generateWithGemini(
   }
   const parts = data.candidates?.[0]?.content?.parts || []
 
+  // Remove provider-specific opaque fields from logs (e.g. Gemini thoughtSignature)
+  // to keep logs readable and avoid storing unnecessary data.
+  const redactForLog = (v: any): any => {
+    if (Array.isArray(v)) return v.map(redactForLog);
+    if (v && typeof v === "object") {
+      const out: Record<string, any> = {};
+      for (const [k, val] of Object.entries(v)) {
+        if (k === "thoughtSignature") continue;
+        out[k] = redactForLog(val);
+      }
+      return out;
+    }
+    return v;
+  };
+
   // LOG DEBUG : Afficher la réponse brute de Gemini pour comprendre pourquoi il ne voit pas l'outil
-  console.log("DEBUG GEMINI RAW PARTS:", JSON.stringify(parts, null, 2))
+  console.log("DEBUG GEMINI RAW PARTS:", JSON.stringify(redactForLog(parts), null, 2))
   
   // 1. Priorité absolue aux outils : On cherche SI n'importe quelle partie est un appel d'outil
   const toolCallPart = parts.find((p: any) => p.functionCall)

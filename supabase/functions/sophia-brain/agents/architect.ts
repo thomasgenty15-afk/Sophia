@@ -641,6 +641,11 @@ export async function runArchitect(
   const basePrompt = `
     Tu es Sophia. (Casquette : Architecte de Systèmes).
     Ton obsession : L'efficacité, la clarté, l'action.
+
+    RÈGLE DE BRIÈVETÉ (CRITIQUE) :
+    - Par défaut, réponds court : 3 à 7 lignes max.
+    - Tu ne développes longuement QUE si l'utilisateur demande explicitement des détails ("explique", "pourquoi", "comment", "plus de détail").
+    - Si tu as plusieurs idées, propose 1 option claire + 1 question (au lieu d'un long exposé).
     
     DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 100)}..."
 
@@ -689,7 +694,7 @@ export async function runArchitect(
     Ton objectif ABSOLU est de ramener l'utilisateur vers le checkup.
     1. Réponds à sa remarque courtoisement mais brièvement.
     2. Termine OBLIGATOIREMENT par une question de relance pour le checkup (ex: "On continue le bilan ?", "On passe à la suite ?").
-    Ne te lance pas dans une conversation longue. La priorité est de finir le checkup.
+    Ne te lance pas dans une conversation longue. La priorité est de finir le checkup. (2-4 lignes max ici.)
     ` : ""}
   `
   const override = await fetchPromptOverride("sophia.architect")
@@ -706,7 +711,7 @@ export async function runArchitect(
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.0-flash",
+      model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:architect",
       forceRealAi: meta?.forceRealAi,
     }
@@ -741,7 +746,7 @@ export async function runArchitect(
             `
             const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7, false, [], "auto", {
               requestId: meta?.requestId,
-              model: meta?.model ?? "gemini-2.0-flash",
+              model: meta?.model ?? "gemini-2.5-flash",
               source: "sophia-brain:architect_followup",
               forceRealAi: meta?.forceRealAi,
             })
@@ -770,7 +775,7 @@ export async function runArchitect(
         `
         const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
           requestId: meta?.requestId,
-          model: meta?.model ?? "gemini-2.0-flash",
+          model: meta?.model ?? "gemini-2.5-flash",
           source: "sophia-brain:architect_confirmation",
           forceRealAi: meta?.forceRealAi,
         })

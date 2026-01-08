@@ -33,6 +33,8 @@ type EvalRunRow = {
   issues: any[];
   suggestions: any[];
   transcript?: any[];
+  state_before?: any;
+  state_after?: any;
   error?: string | null;
 };
 
@@ -60,7 +62,7 @@ export default function AdminEvals() {
       if (!user || !isAdmin) return;
       const { data: runRows, error: runErr } = await supabase
         .from("conversation_eval_runs")
-        .select("id,created_at,dataset_key,scenario_key,status,config,issues,suggestions,transcript,error")
+        .select("id,created_at,dataset_key,scenario_key,status,config,issues,suggestions,transcript,state_before,state_after,error")
         .order("created_at", { ascending: false })
         .limit(50);
       if (runErr) {
@@ -378,6 +380,24 @@ export default function AdminEvals() {
                 </div>
               )}
             </div>
+
+            {/* Investigation State (always from state_after) */}
+            {selectedRun && (
+              <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden shrink-0">
+                <div className="p-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
+                  <h2 className="font-medium text-white flex items-center gap-2">
+                    <Activity className="w-4 h-4 text-emerald-400" />
+                    Investigation State
+                  </h2>
+                  <span className="text-xs text-neutral-500">source: state_after</span>
+                </div>
+                <div className="p-4 bg-black/30 overflow-x-auto">
+                  <pre className="text-xs text-neutral-400 font-mono whitespace-pre-wrap break-words">
+                    {JSON.stringify(selectedRun.state_after?.investigation_state ?? null, null, 2)}
+                  </pre>
+                </div>
+              </div>
+            )}
 
             {/* Run Transcript (Standalone) */}
             <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden shrink-0">

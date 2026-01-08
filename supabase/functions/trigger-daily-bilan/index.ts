@@ -116,7 +116,7 @@ Infos:
 ${history.length > 0 ? history.join("\n") : "(vide)"}
   `.trim()
 
-  const model = (Deno.env.get("DAILY_BILAN_MODEL") ?? "gemini-2.0-flash").trim()
+  const model = (Deno.env.get("DAILY_BILAN_MODEL") ?? "gemini-2.5-flash").trim()
   const res = await generateWithGemini(systemPrompt, "Écris le message.", 0.4, false, [], "auto", {
     requestId,
     model,

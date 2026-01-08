@@ -2,6 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
 
 import { extractMessages, type WaInbound } from "./wa_parse.ts"
 import { verifyXHubSignature } from "./wa_security.ts"
@@ -83,6 +84,7 @@ Deno.serve(async (req) => {
     )
 
     for (const msg of inbound) {
+      let userIdForLog: string | null = null
       try {
         const fromE164 = normalizeFrom(msg.from)
         if (!fromE164) continue
@@ -129,6 +131,7 @@ Deno.serve(async (req) => {
           continue
         }
 
+        userIdForLog = String(profile.id ?? "") || null
         if (profile.phone_invalid) continue
 
         // Idempotency: skip if already logged this wa_message_id
@@ -402,6 +405,17 @@ Deno.serve(async (req) => {
         // Never fail the whole webhook batch: Meta expects a fast 200 OK; we log and continue.
         // This is especially important in Meta test mode when the recipient is not allowlisted (code 131030).
         console.error(`[whatsapp-webhook] request_id=${requestId} wa_message_id=${msg.wa_message_id}`, err)
+        await logEdgeFunctionError({
+          functionName: "whatsapp-webhook",
+          error: err,
+          requestId,
+          userId: userIdForLog,
+          source: "whatsapp",
+          metadata: {
+            wa_message_id: msg.wa_message_id,
+            wa_type: msg.type ?? null,
+          },
+        })
         continue
       }
     }
@@ -410,6 +424,17 @@ Deno.serve(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.error(`[whatsapp-webhook] request_id=${requestId}`, error)
+    await logEdgeFunctionError({
+      functionName: "whatsapp-webhook",
+      error,
+      requestId,
+      userId: null,
+      source: "whatsapp",
+      metadata: {
+        path: new URL(req.url).pathname,
+        method: req.method,
+      },
+    })
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })

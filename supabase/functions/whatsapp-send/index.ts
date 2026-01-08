@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
 
 type SendText = { type: "text"; body: string }
 type SendTemplate = {
@@ -124,6 +125,7 @@ async function countProactiveLast10h(admin: ReturnType<typeof createClient>, use
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
+  let userIdForLog: string | null = null
   try {
     const authResp = ensureInternalRequest(req)
     if (authResp) return authResp
@@ -132,6 +134,7 @@ Deno.serve(async (req) => {
     if (!body?.user_id || !body?.message) {
       return jsonResponse(req, { error: "Missing user_id/message", request_id: requestId }, { status: 400, includeCors: false })
     }
+    userIdForLog = body.user_id
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -294,6 +297,17 @@ Deno.serve(async (req) => {
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
     console.error(`[whatsapp-send] request_id=${requestId}`, error)
+    await logEdgeFunctionError({
+      functionName: "whatsapp-send",
+      error,
+      requestId,
+      userId: userIdForLog,
+      source: "whatsapp",
+      metadata: {
+        path: new URL(req.url).pathname,
+        method: req.method,
+      },
+    })
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })

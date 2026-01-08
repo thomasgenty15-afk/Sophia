@@ -1,0 +1,22 @@
+{
+  "dataset_key": "core",
+  "id": "firefighter_simple_questions_no_poem",
+  "description": "Firefighter should calm with simple, question-led grounding (no 'poem' formatting) unless user explicitly asks for guided text.",
+  "tags": ["sophia.firefighter"],
+  "steps": [
+    { "user": "Franchement là je suis à bout, j'ai l'impression que ça sert à rien. Je suis trop crevé." }
+  ],
+  "assertions": {
+    "must_include_agent": ["firefighter"],
+    "must_not_include_agent": ["sentry"],
+    "assistant_must_match": ["\\?"],
+    "assistant_must_not_match": [
+      "(\\n.*){4,}",
+      "\\n\\n",
+      "[\\s\\S]{450,}",
+      "(?:🌿|🧘|✨|😴|😉|🤔|😔)"
+    ]
+  }
+}
+
+
