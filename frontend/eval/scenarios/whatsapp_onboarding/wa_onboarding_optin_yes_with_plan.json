@@ -1,0 +1,25 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_optin_yes_with_plan",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): user accepts opt-in via button and already has an active plan -> ask motivation /10.",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "mechanical"],
+  "channel": "whatsapp",
+  "seed_plan": true,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": false
+  },
+  "wa_steps": [
+    { "kind": "interactive", "interactive_id": "OPTIN_YES", "interactive_title": "Oui" }
+  ],
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_opted_in": true,
+      "whatsapp_state": "awaiting_plan_motivation"
+    },
+    "assistant_must_match": ["sur 10", "motivation"]
+  }
+}
+
+

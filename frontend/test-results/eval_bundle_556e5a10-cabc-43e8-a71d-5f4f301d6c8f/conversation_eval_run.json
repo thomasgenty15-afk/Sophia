@@ -1,0 +1,568 @@
+{
+  "id": "556e5a10-cabc-43e8-a71d-5f4f301d6c8f",
+  "created_at": "2026-01-08T16:05:33.385599+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__5c9d425d66b148",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:01:58.978685+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super, on y va. Concernant ton temps de focus ininterrompu hier, tu as réussi à tenir combien de minutes au total ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:02:04.28388+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Environ 30 minutes, je crois. C'est pas évident de se concentrer avec tout ce que j'ai en tête en ce moment, on en reparlera de mon organisation générale si tu veux, mais après le bilan.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:02:09.803476+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est entendu, on prendra le temps d'en discuter une fois le bilan terminé. Pour continuer, concernant le grand débarras digital, est-ce que tu as pu désactiver tes notifications et laisser ton téléphone de côté une heure avant de te coucher et une heure après ton réveil hier ? 📱",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:02:25.593066+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai réussi à le mettre de côté avant de dormir, mais le matin, c'est plus compliqué. J'ai eu du mal à ne pas le regarder.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:02:29.351308+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est déjà un bon point pour le soir, même si le réflexe du matin est plus tenace. On continue le bilan : est-ce que tu as réussi à définir tes trois priorités pour la journée ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:02:46.305733+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai essayé. J'en ai défini deux, la troisième était plus floue.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:02:53.314041+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est déjà un bon début d'avoir réussi à en fixer deux. Pour la suite du bilan, est-ce que tu as pris le temps de faire ton audit éclair avec la Carte du Chaos Mental hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:03:13.343894+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai commencé, mais je n'ai pas pu tout vider. J'ai noté quelques trucs mais pas pendant 20 minutes complètes.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:03:19.981953+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok.\n\nTu m'avais parlé d'un truc à reprendre : \"mon organisation générale si tu veux, mais\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:03:36.408086+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, on peut en parler maintenant si tu veux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:03:44.831788+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On va stabiliser tes fondations. Si la troisième priorité est floue, c'est que ton filtre n'est pas encore assez tranchant.\n\nJe te suggère d'affiner ta méthode de sélection pour le Sprint de Planification : on va identifier ensemble ce qui bloque ce troisième pilier pour tes priorités de demain. 🏗️\n\nC’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:03:53.655372+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je veux bien qu'on regarde ça. C'est vrai que c'est souvent là que ça coince pour moi.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:03:58.16041+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Le blocage sur la troisieme priorité vient souvent d'une hésitation entre l'urgent et le constructif. Si c'est flou, c'est que tu cherches encore la perfection au lieu de l'utilité.\n\nJe te suggère de choisir pour ce troisieme pilier la micro-tâche qui génère le plus de bruit mental si elle n'est pas faite, même si elle semble insignifiante. 🏗️\n\nOn teste ce filtre pour ta planification de ce soir ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:04:36.67171+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ça me semble être une bonne idée. Je vais essayer de faire ça ce soir.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:04:40.944356+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est une approche pragmatique : tu élimines la friction mentale pour libérer de la RAM. Dès que tu sens une hésitation ce soir, choisis la tâche qui te fait le plus soupirer intérieurement. 🏗️\n\nApplique ce filtre pour ton Sprint de Planification dans quelques heures. On verra demain si cela a facilité ton passage à l'action.\n\nC’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:04:51.493543+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je vais essayer d'appliquer ce filtre ce soir pour mes priorités.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:04:55.989111+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "L'important est l'exécution immédiate de ce filtre dès que tu ouvriras ton carnet ce soir.\n\nEn éliminant la tâche qui te fait soupirer, tu protèges ton énergie pour le reste de ton architecture. 🏗️\n\nC’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:05:02.765147+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon pour moi. On a fait le tour de tous les points du bilan du coup ?",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:05:15.657283+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ouais, on a fait le tour de l'essentiel. L'idée c'était vraiment de débloquer ton approche pour ce soir pour que tu ne stagnes plus devant ton carnet, et on a un plan solide. 🏗️\n\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T16:05:32.75511+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "e52291f1-8398-4fc4-818d-caf3e03708c6",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T16:01:58.911963+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T16:01:58.911963+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "22078e14-d2d1-4b26-8b90-7a9b1ca6d2b4",
+          "type": "vital",
+          "unit": "minutes",
+          "title": "Temps de Focus Ininterrompu",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "38d1893b-98a9-4af2-891e-1d1a41e71150",
+          "type": "action",
+          "title": "Le Grand Débarras Digital (Zone Rouge)",
+          "target": 1,
+          "description": "Désactive toutes les notifications inutiles sur ton téléphone et place-le hors de portée visuelle et auditive pendant 1 heure avant le coucher et 1 heure après le réveil.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "2e84377e-8add-426d-8a21-73b7b3d9bbea",
+          "type": "action",
+          "title": "Le Sprint de Planification Quotidienne (Les 3 Piliers)",
+          "target": 7,
+          "description": "Chaque soir (ou chaque matin, selon ton rythme) et en moins de 5 minutes, identifie tes 3 priorités absolues pour la journée suivante.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "2e0d3e49-1560-4d2e-a4b2-440dddf72f89",
+          "type": "framework",
+          "title": "La Carte du Chaos Mental (Audit Éclair)",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T16:01:58.911963+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "e52291f1-8398-4fc4-818d-caf3e03708c6",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T16:05:32.750464+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T16:01:58.911963+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "post_checkup_done",
+      "temp_memory": {
+        "finished_at": "2026-01-08T16:05:21.499Z",
+        "deferred_topics": [
+          "mon organisation générale si tu veux, mais"
+        ],
+        "current_topic_index": 0
+      }
+    },
+    "last_interaction_at": "2026-01-08T16:01:58.911963+00:00",
+    "unprocessed_msg_count": 10
+  },
+  "issues": [
+    {
+      "code": "repetitive_closing_loop",
+      "message": "L'instruction de terminer par 'C’est bon pour ce point ?' est appliquée mécaniquement à chaque tour de parole par l'Architecte et le Companion, créant une boucle robotique.",
+      "evidence": {
+        "snippet": "C’est bon pour ce point ?",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "persona_leak_emoji",
+      "message": "Le Companion utilise l'emoji signature de l'Architecte (🏗️) dans sa réponse finale, probablement par contamination du contexte précédent.",
+      "evidence": {
+        "snippet": "on a un plan solide. 🏗️",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "replace",
+      "rationale": "Assouplit la règle de clôture pour éviter la répétition systématique à chaque tour de conversation.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#8 USER: Oui, j'ai commencé, mais je n'ai pas pu tout vider. J'ai noté quelques trucs mais pas pendant 20 minutes complètes.\n#9 ASSISTANT(investigator): Ok. Tu m'avais parlé d'un truc à reprendre : \"mon organisation générale si tu veux, mais\". Tu veux qu'on commence par ça ?\n#10 USER: Oui, on peut en parler maintenant si tu veux.\n#11 ASSISTANT(architect): On va stabiliser tes fondations. Si la troisième priorité est floue, c'est que ton filtre n'est pas encore assez tranchant. Je te suggère d'affiner ta méthode de sélection pour le Sprint de Planification : on va identifier ensemble ce qui bloque ce troisième pilier pour tes priorités de demain. 🏗️ C’est bon pour ce point ?\n#12 USER: Oui, je veux bien qu'on regarde ça. C'est vrai que c'est souvent là que ça coince pour moi.\n#13 ASSISTANT(architect): Le blocage sur la troisieme priorité vient souvent d'une hésitation entre l'urgent et le constructif. Si c'est flou, c'est que tu cherches encore la perfection au lieu de l'utilité. Je te suggère de choisir pour ce troisieme pilier la micro-tâche qui génère le plus de bruit mental si elle n'est pas faite, même si elle semble insignifiante. 🏗️ On teste ce filtre pour ta planification de ce soir ?\n#14 USER: Oui, ça me semble être une bonne idée. Je vais essayer de faire ça ce soir.\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: replace\n\nproposed_addendum:\nMODE POST-BILAN (IMPORTANT)\n- Si le contexte contient \"MODE POST-BILAN\" / \"SUJET REPORTÉ\", le bilan est terminé.\n- Interdiction de poser des questions de bilan.\n- Traite le sujet reporté (organisation, planning, priorités).\n- Termine par \"C’est bon pour ce point ?\" UNIQUEMENT si tu as fini ton explication ou ton conseil. Ne le répète pas à chaque message intermédiaire.",
+      "proposed_addendum": "MODE POST-BILAN (IMPORTANT)\n- Si le contexte contient \"MODE POST-BILAN\" / \"SUJET REPORTÉ\", le bilan est terminé.\n- Interdiction de poser des questions de bilan.\n- Traite le sujet reporté (organisation, planning, priorités).\n- Termine par \"C’est bon pour ce point ?\" UNIQUEMENT si tu as fini ton explication ou ton conseil. Ne le répète pas à chaque message intermédiaire."
+    },
+    {
+      "action": "replace",
+      "rationale": "Corrige la répétition de la phrase de clôture et rappelle implicitement de ne pas utiliser les marqueurs visuels de l'Architecte.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#16 USER: Oui, je vais essayer d'appliquer ce filtre ce soir pour mes priorités.\n#17 ASSISTANT(architect): L'important est l'exécution immédiate de ce filtre dès que tu ouvriras ton carnet ce soir. En éliminant la tâche qui te fait soupirer, tu protèges ton énergie pour le reste de ton architecture. 🏗️ C’est bon pour ce point ?\n#18 USER: Oui, c'est bon pour moi. On a fait le tour de tous les points du bilan du coup ?\n#19 ASSISTANT(companion): Ouais, on a fait le tour de l'essentiel. L'idée c'était vraiment de débloquer ton approche pour ce soir pour que tu ne stagnes plus devant ton carnet, et on a un plan solide. 🏗️ C’est bon pour ce point ?\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: replace\n\nproposed_addendum:\nMODE POST-BILAN (IMPORTANT)\n- Si le contexte contient \"MODE POST-BILAN\" / \"SUJET REPORTÉ\", le bilan est terminé.\n- Interdiction de dire \"après le bilan\".\n- Traite le sujet reporté avec ton style habituel (sans emoji 🏗️).\n- Termine par \"C’est bon pour ce point ?\" uniquement pour valider la fin de l'échange.",
+      "proposed_addendum": "MODE POST-BILAN (IMPORTANT)\n- Si le contexte contient \"MODE POST-BILAN\" / \"SUJET REPORTÉ\", le bilan est terminé.\n- Interdiction de dire \"après le bilan\".\n- Traite le sujet reporté avec ton style habituel (sans emoji 🏗️).\n- Termine par \"C’est bon pour ce point ?\" uniquement pour valider la fin de l'échange."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.018880599999999997,
+    "request_id": "522d155b-6f25-4c3b-9108-7855c39bc082:core:bilan_real_bundle__5c9d425d66b148:da4d05c3-ae29-4227-9299-22f1d74f2307",
+    "total_tokens": 139647,
+    "output_tokens": 2279,
+    "prompt_tokens": 109867,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3,
+      "test_post_checkup_deferral": true
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "ce13a335-6b0a-4ba1-8d7b-172401ce5871",
+        "title": "L'Architecture du Focus Actif",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage Radical - Nettoyage des Fréquences",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "38d1893b-98a9-4af2-891e-1d1a41e71150",
+                  "tips": "Utilise le mode 'Ne pas déranger' ou 'Concentration' pour définir des plages horaires sans interruption. Télécharge un minuteur visuel.",
+                  "type": "mission",
+                  "title": "Le Grand Débarras Digital (Zone Rouge)",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Ton cerveau doit se déconditionner de l'alerte constante. Cette distance forcée réduit l'anxiété numérique et libère de l'espace mental.",
+                  "description": "Désactive toutes les notifications inutiles sur ton téléphone et place-le hors de portée visuelle et auditive pendant 1 heure avant le coucher et 1 heure après le réveil.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "f1e7f5cd-ea4b-435d-b94c-b53d8fb126fe",
+                  "tips": "Fais-le sur papier ou dans une application de prise de notes. L'objectif est de tout externaliser pour ne rien oublier.",
+                  "type": "framework",
+                  "title": "La Carte du Chaos Mental (Audit Éclair)",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Le cerveau est fait pour créer, pas pour stocker. En externalisant, tu libères ta RAM cognitive et tu gagnes en clarté sur ce qui te submerge.",
+                  "targetReps": 1,
+                  "description": "Prends 20 minutes pour vider ton esprit de toutes les pensées, tâches, et préoccupations qui t'envahissent. Ne filtre rien.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Considère ceci comme un 'grand ménage de printemps' pour ton cerveau. Chaque pensée, qu'elle soit une tâche, une idée, une anxiété ou une envie, doit être extraite et notée.",
+                    "sections": [
+                      {
+                        "id": "p1a2s1",
+                        "label": "Toutes les tâches en suspens (pro, perso, micro-tâches)",
+                        "inputType": "list",
+                        "placeholder": "Appeler le service client | Préparer le repas du midi | Répondre à l'email X"
+                      },
+                      {
+                        "id": "p1a2s2",
+                        "label": "Toutes les préoccupations ou sources de stress actuelles",
+                        "inputType": "textarea",
+                        "placeholder": "L'échéance du projet Y me stresse. Je m'inquiète pour..."
+                      },
+                      {
+                        "id": "p1a2s3",
+                        "label": "Idées ou projets que tu as en tête",
+                        "inputType": "list",
+                        "placeholder": "Apprendre nouvelle langue | Organiser le voyage | Lire le livre Z"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "2e84377e-8add-426d-8a21-73b7b3d9bbea",
+                  "tips": "Utilise un carnet physique dédié. Moins de 5 minutes, c'est crucial pour ne pas transformer la planification en procrastination.",
+                  "type": "habitude",
+                  "title": "Le Sprint de Planification Quotidienne (Les 3 Piliers)",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "La clarté réduit le stress décisionnel et te donne un cap précis. En limitant à 3 priorités, tu évites le piège du surmenage et renforces ta capacité d'exécution.",
+                  "targetReps": 7,
+                  "description": "Chaque soir (ou chaque matin, selon ton rythme) et en moins de 5 minutes, identifie tes 3 priorités absolues pour la journée suivante.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 1 • Poser les fondations d'un esprit clair",
+              "rationale": "Avant de construire, nous devons assainir le terrain. Cette phase élimine les distractions immédiates et te donne un aperçu concret de tes blocages."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : L'Architecture du Temps Sacré - Sculpting la Matinée",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "16ad7ff7-ca55-4253-a196-b71f21ae5f80",
+                  "tips": "Active un minuteur. Mets ton téléphone en mode avion, ferme les onglets inutiles, informe ton entourage. Cette période est sacrée.",
+                  "type": "habitude",
+                  "title": "Le Bloc de Concentration Absolue (Règle des 90/20)",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ton cerveau atteint un état de flow après environ 15-20 minutes. Ces blocs profonds maximisent ta productivité et entraînent ton muscle de la concentration.",
+                  "targetReps": 7,
+                  "description": "Dédie un bloc de 90 minutes (minimum 60) à ta priorité la plus importante de la journée, sans aucune interruption. Suivi d'une pause de 20 minutes.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "32e865c1-6ba6-4942-8e13-8eeeb0a6cfc0",
+                  "tips": "Même un coin de table peut suffire. L'important est la distinction spatiale. Un bureau dédié, si possible, sinon un coin de la table de cuisine qui redevient 'propre' après chaque utilisation.",
+                  "type": "mission",
+                  "title": "Le Sanctuaire du Focus (Mini-Aménagement)",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La neurologie spatiale est puissante. Associer un lieu à la concentration aide ton cerveau à 'switcher' plus rapidement en mode travail et à réduire la dispersion.",
+                  "description": "Aménage un petit espace chez toi dédié exclusivement au travail ou aux tâches nécessitant de la concentration. Il doit être ordonné et exempt de distractions.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 2 • Bâtir des blocs de concentration inébranlables",
+              "rationale": "Maintenant que tu as fait le vide, nous allons construire des routines solides pour maximiser ton énergie et ton focus. La matinée est le terrain de jeu idéal."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : Maîtrise de l'Impulsion - Contrer la Procrastination",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "8a914a24-3c55-42ab-8515-83919da537db",
+                  "tips": "Exemples : Répondre à un email court, ranger un objet, jeter une poubelle, faire une mini-vaisselle. L'idée est de briser l'inertie.",
+                  "type": "habitude",
+                  "title": "Le Protocole 'Agir, Pas Penser' (La Règle des 2 Minutes)",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cette micro-habitude brise le cycle de la procrastination en créant une habitude d'action instantanée pour les petites choses, ce qui renforce ta capacité d'exécution globale.",
+                  "targetReps": 7,
+                  "description": "Dès que tu identifies une tâche de moins de 2 minutes, fais-la immédiatement, sans réfléchir ni la noter. Peu importe où tu es ou ce que tu fais.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "counter"
+                },
+                {
+                  "id": "7d540bf6-8989-4ffd-82ed-576b01297b58",
+                  "tips": "Sois réaliste. Une micro-action est un pas si petit qu'il est impossible de le remettre à plus tard. Ex: 'ouvrir le fichier' au lieu de 'rédiger le rapport'.",
+                  "type": "framework",
+                  "title": "La Matrice des Levées de Blocage (Plan d'Évasion)",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Comprendre tes blocages est une chose, savoir comment les désamorcer en est une autre. Ce framework te donne un plan d'action préventif pour ne plus être figée par l'incertitude.",
+                  "targetReps": 1,
+                  "description": "Pour chaque blocage majeur identifié dans la 'Carte du Chaos Mental' (Phase 1) ou rencontré cette semaine, identifie 3 micro-actions concrètes pour le surmonter.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "L'objectif n'est pas d'éliminer les blocages (ils feront toujours partie de la vie), mais de développer une stratégie pour les traverser. Pour chaque blocage, pense à ce qui te ferait faire le premier pas, même minuscule.",
+                    "sections": [
+                      {
+                        "id": "p3a2s1",
+                        "label": "Blocage identifié (Ex: 'Commencer un projet important')",
+                        "inputType": "text",
+                        "placeholder": "Procrastination face à la rédaction de rapports"
+                      },
+                      {
+                        "id": "p3a2s2",
+                        "label": "Micro-action 1 (Le 1er pas)",
+                        "inputType": "text",
+                        "placeholder": "Ouvrir le document de travail et lire le briefing"
+                      },
+                      {
+                        "id": "p3a2s3",
+                        "label": "Micro-action 2 (Le 2ème pas)",
+                        "inputType": "text",
+                        "placeholder": "Écrire les 3 titres principaux des sections"
+                      },
+                      {
+                        "id": "p3a2s4",
+                        "label": "Micro-action 3 (Un pas de plus)",
+                        "inputType": "text",
+                        "placeholder": "Préparer une tasse de thé avant de commencer"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 3 • Transformer l'inertie en élan",
+              "rationale": "Le corps est aligné, l'esprit est plus clair. Il est temps d'attaquer de front la procrastination et de développer la réactivité nécessaire à tes journées irrégulières."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : L'Élan Inarrêtable - Consolidation et Énergie",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "ea20478d-7348-4efa-835b-8d5903664b33",
+                  "tips": "Fais-le dans le même carnet que tes priorités. C'est un rituel puissant pour ancrer la discipline et la gratitude.",
+                  "type": "habitude",
+                  "title": "L'Écho de la Journée (Revue Stratégique)",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cette revue quotidienne renforce le circuit de la récompense, améliore ta conscience de tes progrès et t'aide à t'adapter continuellement, même avec des journées irrégulières.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, prends 5 minutes pour réfléchir à : 1. Ce qui a bien fonctionné aujourd'hui. 2. Une chose que tu peux améliorer demain. 3. Une chose pour laquelle tu es reconnaissante.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b7498296-f759-414f-bf40-c3a48b49fecc",
+                  "tips": "Place-le dans ton Sanctuaire du Focus ou près de toi. L'idée est d'avoir des ressources immédiates quand la fatigue ou le stress montent.",
+                  "type": "mission",
+                  "title": "Le Kit de Récupération Instantanée (Antidote Fatigue)",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Prévenir la fatigue est essentiel pour maintenir le focus et éviter de retomber dans l'usage compensatoire du téléphone. Ce kit t'offre des solutions saines et immédiates.",
+                  "description": "Prépare un 'kit de survie' anti-fatigue à portée de main : une bouteille d'eau, une collation saine (fruits secs, oléagineux), un cahier pour vider ton esprit, et un objet réconfortant (huile essentielle, musique calme).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 4 • Maintenir l'élan et ancrer la stabilité",
+              "rationale": "Tu as bâti les fondations, tu as commencé à maîtriser tes impulsions. Cette dernière phase vise à consolider tes acquis, à te recharger et à pérenniser ta nouvelle discipline."
+            }
+          ],
+          "deepWhy": "Pour sculpter une vie stable, pleine d'énergie et de présence, libre de l'emprise du chaos et des distractions, et pour accomplir ce qui compte vraiment.",
+          "identity": "Je suis une architecte lucide de mon temps et une force d'action inébranlable.",
+          "strategy": "Nous allons désencombrer ta charge mentale et ton environnement digital pour sculpter des blocs de concentration inébranlables, même au cœur de journées irrégulières.",
+          "goldenRules": "1. Chaque jour a ses 3 priorités non négociables.\n2. Le téléphone est un outil, pas une béquille émotionnelle.\n3. L'action est la seule antidot à la procrastination.",
+          "vitalSignal": {
+            "name": "Temps de Focus Ininterrompu",
+            "type": "constat",
+            "unit": "minutes",
+            "startValue": "0",
+            "description": "Temps passé sur une tâche sans aucune interruption (téléphone, notifications, autres onglets).",
+            "targetValue": "90",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Architecture du Focus Actif",
+          "context_problem": "Tu te sens souvent submergée par le manque de clarté et la désorganisation, ce qui t'empêche d'agir et te pousse à reporter tes tâches. L'épuisement et l'usage compensatoire du téléphone aggravent ce cycle, rendant difficile la mise en place d'une routine stable malgré tes journées irrégulières.",
+          "sophiaKnowledge": "Tu es une femme née en 1988, débordée et sous stress élevé, cherchant à améliorer ton focus et ta discipline pour retrouver de l'énergie et de la stabilité. Tu as des journées irrégulières, tu te sens fatiguée et tu compenses souvent avec l'usage du téléphone, ce qui contribue à la désorganisation et à la procrastination. Ta qualité de sommeil est moyenne et ton niveau d'activité est modéré. Tu es prête pour un changement rapide et intense.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu mis en œuvre la 'Règle des 90/20' pour une tâche importante ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "4 semaines"
+        },
+        "goal_id": "caa4a3c6-52b1-4e0e-afad-12a1aeaf287a",
+        "deep_why": "Pour sculpter une vie stable, pleine d'énergie et de présence, libre de l'emprise du chaos et des distractions, et pour accomplir ce qui compte vraiment.",
+        "created_at": "2026-01-08T16:01:58.86752+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "2e27fbaa-58bd-49ad-984d-6bd738d388d5",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "38d1893b-98a9-4af2-891e-1d1a41e71150",
+          "title": "Le Grand Débarras Digital (Zone Rouge)",
+          "status": "active",
+          "created_at": "2026-01-08T16:01:58.883411+00:00",
+          "description": "Désactive toutes les notifications inutiles sur ton téléphone et place-le hors de portée visuelle et auditive pendant 1 heure avant le coucher et 1 heure après le réveil.",
+          "target_reps": 1,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T16:01:58.879+00:00"
+        },
+        {
+          "id": "2e84377e-8add-426d-8a21-73b7b3d9bbea",
+          "title": "Le Sprint de Planification Quotidienne (Les 3 Piliers)",
+          "status": "active",
+          "created_at": "2026-01-08T16:01:58.883411+00:00",
+          "description": "Chaque soir (ou chaque matin, selon ton rythme) et en moins de 5 minutes, identifie tes 3 priorités absolues pour la journée suivante.",
+          "target_reps": 7,
+          "time_of_day": "evening",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T16:01:58.879+00:00"
+        },
+        {
+          "id": "2e0d3e49-1560-4d2e-a4b2-440dddf72f89",
+          "_kind": "framework",
+          "title": "La Carte du Chaos Mental (Audit Éclair)",
+          "status": "active",
+          "created_at": "2026-01-08T16:01:58.892277+00:00",
+          "description": "",
+          "target_reps": 1,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "one_shot",
+          "last_performed_at": "2026-01-06T16:01:58.879+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "2e0d3e49-1560-4d2e-a4b2-440dddf72f89",
+          "type": "one_shot",
+          "title": "La Carte du Chaos Mental (Audit Éclair)",
+          "status": "active",
+          "created_at": "2026-01-08T16:01:58.892277+00:00",
+          "target_reps": 1,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T16:01:58.879+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Architecture du Focus Actif\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour sculpter une vie stable, pleine d'énergie et de présence, libre de l'emprise du chaos et des distractions, et pour accomplir ce qui compte vraiment.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage Radical - Nettoyage des Fréquences\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"38d1893b-98a9-4af2-891e-1d1a41e71150\",\n          \"tips\": \"Utilise le mode 'Ne pas déranger' ou 'Concentration' pour définir des plages horaires sans interruption. Télécharge un minuteur visuel.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Grand Débarras Digital (Zone Rouge)\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ton cerveau doit se déconditionner de l'alerte constante. Cette distance forcée réduit l'anxiété numérique et libère de l'espace mental.\",\n          \"description\": \"Désactive toutes les notifications inutiles sur ton téléphone et place-le hors de portée visuelle et auditive pendant 1 heure avant le coucher et 1 heure après le réveil.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"f1e7f5cd-ea4b-435d-b94c-b53d8fb126fe\",\n          \"tips\": \"Fais-le sur papier ou dans une application de prise de notes. L'objectif est de tout externaliser pour ne rien oublier.\",\n          \"type\": \"framework\",\n          \"title\": \"La Carte du Chaos Mental (Audit Éclair)\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Le cerveau est fait pour créer, pas pour stocker. En externalisant, tu libères ta RAM cognitive et tu gagnes en clarté sur ce qui te submerge.\",\n          \"targetReps\": 1,\n          \"description\": \"Prends 20 minutes pour vider ton esprit de toutes les pensées, tâches, et préoccupations qui t'envahissent. Ne filtre rien.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Considère ceci comme un 'grand ménage de printemps' pour ton cerveau. Chaque pensée, qu'elle soit une tâche, une idée, une anxiété ou une envie, doit être extraite et notée.\",\n            \"sections\": [\n              {\n                \"id\": \"p1a2s1\",\n                \"label\": \"Toutes les tâches en suspens (pro, perso, micro-tâches)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Appeler le service client | Préparer le repas du midi | Répondre à l'email X\"\n              },\n              {\n                \"id\": \"p1a2s2\",\n                \"label\": \"Toutes les préoccupations ou sources de stress actuelles\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"L'échéance du projet Y me stresse. Je m'inquiète pour...\"\n              },\n              {\n                \"id\": \"p1a2s3\",\n                \"label\": \"Idées ou projets que tu as en tête\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Apprendre nouvelle langue | Organiser le voyage | Lire le livre Z\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"2e84377e-8add-426d-8a21-73b7b3d9bbea\",\n          \"tips\": \"Utilise un carnet physique dédié. Moins de 5 minutes, c'est crucial pour ne pas transformer la planification en procrastination.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sprint de Planification Quotidienne (Les 3 Piliers)\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"La clarté réduit le stress décisionnel et te donne un cap précis. En limitant à 3 priorités, tu évites le piège du surmenage et renforces ta capacité d'exécution.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir (ou chaque matin, selon ton rythme) et en moins de 5 minutes, identifie tes 3 priorités absolues pour la journée suivante.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 1 • Poser les fondations d'un esprit clair\",\n      \"rationale\": \"Avant de construire, nous devons assainir le terrain. Cette phase élimine les distractions immédiates et te donne un aperçu concret de tes blocages.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : L'Architecture du Temps Sacré - Sculpting la Matinée\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"16ad7ff7-ca55-4253-a196-b71f21ae5f80\",\n          \"tips\": \"Active un minuteur. Mets ton téléphone en mode avion, ferme les onglets inutiles, informe ton entourage. Cette période est sacrée.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bloc de Concentration Absolue (Règle des 90/20)\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ton cerveau atteint un état de flow après environ 15-20 minutes. Ces blocs profonds maximisent ta productivité et entraînent ton muscle de la concentration.\",\n          \"targetReps\": 7,\n          \"description\": \"Dédie un bloc de 90 minutes (minimum 60) à ta priorité la plus importante de la journée, sans aucune interruption. Suivi d'une pause de 20 minutes.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"32e865c1-6ba6-4942-8e13-8eeeb0a6cfc0\",\n          \"tips\": \"Même un coin de table peut suffire. L'important est la distinction spatiale. Un bureau dédié, si possible, sinon un coin de la table de cuisine qui redevient 'propre' après chaque utilisation.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Sanctuaire du Focus (Mini-Aménagement)\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La neurologie spatiale est puissante. Associer un lieu à la concentration aide ton cerveau à 'switcher' plus rapidement en mode travail et à réduire la dispersion.\",\n          \"description\": \"Aménage un petit espace chez toi dédié exclusivement au travail ou aux tâches nécessitant de la concentration. Il doit être ordonné et exempt de distractions.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 2 • Bâtir des blocs de concentration inébranlables\",\n      \"rationale\": \"Maintenant que tu as fait le vide, nous allons construire des routines solides pour maximiser ton énergie et ton focus. La matinée est le terrain de jeu idéal.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : Maîtrise de l'Impulsion - Contrer la Procrastination\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"8a914a24-3c55-42ab-8515-83919da537db\",\n          \"tips\": \"Exemples : Répondre à un email court, ranger un objet, jeter une poubelle, faire une mini-vaisselle. L'idée est de briser l'inertie.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Protocole 'Agir, Pas Penser' (La Règle des 2 Minutes)\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cette micro-habitude brise le cycle de la procrastination en créant une habitude d'action instantanée pour les petites choses, ce qui renforce ta capacité d'exécution globale.\",\n          \"targetReps\": 7,\n          \"description\": \"Dès que tu identifies une tâche de moins de 2 minutes, fais-la immédiatement, sans réfléchir ni la noter. Peu importe où tu es ou ce que tu fais.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"counter\"\n        },\n        {\n          \"id\": \"7d540bf6-8989-4ffd-82ed-576b01297b58\",\n          \"tips\": \"Sois réaliste. Une micro-action est un pas si petit qu'il est impossible de le remettre à plus tard. Ex: 'ouvrir le fichier' au lieu de 'rédiger le rapport'.\",\n          \"type\": \"framework\",\n          \"title\": \"La Matrice des Levées de Blocage (Plan d'Évasion)\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Comprendre tes blocages est une chose, savoir comment les désamorcer en est une autre. Ce framework te donne un plan d'action préventif pour ne plus être figée par l'incertitude.\",\n          \"targetReps\": 1,\n          \"description\": \"Pour chaque blocage majeur identifié dans la 'Carte du Chaos Mental' (Phase 1) ou rencontré cette semaine, identifie 3 micro-actions concrètes pour le surmonter.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"L'objectif n'est pas d'éliminer les blocages (ils feront toujours partie de la vie), mais de développer une stratégie pour les traverser. Pour chaque blocage, pense à ce qui te ferait faire le premier pas, même minuscule.\",\n            \"sections\": [\n              {\n                \"id\": \"p3a2s1\",\n                \"label\": \"Blocage identifié (Ex: 'Commencer un projet important')\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Procrastination face à la rédaction de rapports\"\n              },\n              {\n                \"id\": \"p3a2s2\",\n                \"label\": \"Micro-action 1 (Le 1er pas)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ouvrir le document de travail et lire le briefing\"\n              },\n              {\n                \"id\": \"p3a2s3\",\n                \"label\": \"Micro-action 2 (Le 2ème pas)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Écrire les 3 titres principaux des sections\"\n              },\n              {\n                \"id\": \"p3a2s4\",\n                \"label\": \"Micro-action 3 (Un pas de plus)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Préparer une tasse de thé avant de commencer\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 3 • Transformer l'inertie en élan\",\n      \"rationale\": \"Le corps est aligné, l'esprit est plus clair. Il est temps d'attaquer de front la procrastination et de développer la réactivité nécessaire à tes journées irrégulières.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : L'Élan Inarrêtable - Consolidation et Énergie\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"ea20478d-7348-4efa-835b-8d5903664b33\",\n          \"tips\": \"Fais-le dans le même carnet que tes priorités. C'est un rituel puissant pour ancrer la discipline et la gratitude.\",\n          \"type\": \"habitude\",\n          \"title\": \"L'Écho de la Journée (Revue Stratégique)\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cette revue quotidienne renforce le circuit de la récompense, améliore ta conscience de tes progrès et t'aide à t'adapter continuellement, même avec des journées irrégulières.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, prends 5 minutes pour réfléchir à : 1. Ce qui a bien fonctionné aujourd'hui. 2. Une chose que tu peux améliorer demain. 3. Une chose pour laquelle tu es reconnaissante.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b7498296-f759-414f-bf40-c3a48b49fecc\",\n          \"tips\": \"Place-le dans ton Sanctuaire du Focus ou près de toi. L'idée est d'avoir des ressources immédiates quand la fatigue ou le stress montent.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Kit de Récupération Instantanée (Antidote Fatigue)\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Prévenir la fatigue est essentiel pour maintenir le focus et éviter de retomber dans l'usage compensatoire du téléphone. Ce kit t'offre des solutions saines et immédiates.\",\n          \"description\": \"Prépare un 'kit de survie' anti-fatigue à portée de main : une bouteille d'eau, une collation saine (fruits secs, oléagineux), un cahier pour vider ton esprit, et un objet réconfortant (huile essentielle, musique calme).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 4 • Maintenir l'élan et ancrer la stabilité\",\n      \"rationale\": \"Tu as bâti les fondations, tu as commencé à maîtriser tes impulsions. Cette dernière phase vise à consolider tes acquis, à te recharger et à pérenniser ta nouvelle discipline.\"\n    }\n  ],\n  \"deepWhy\": \"Pour sculpter une vie stable, pleine d'énergie et de présence, libre de l'emprise du chaos et des distractions, et pour accomplir ce qui compte vraiment.\",\n  \"identity\": \"Je suis une architecte lucide de mon temps et une force d'action inébranlable.\",\n  \"strategy\": \"Nous allons désencombrer ta charge mentale et ton environnement digital pour sculpter des blocs de concentration inébranlables, même au cœur de journées irrégulières.\",\n  \"goldenRules\": \"1. Chaque jour a ses 3 priorités non négociables.\\n2. Le téléphone est un outil, pas une béquille émotionnelle.\\n3. L'action est la seule antidot à la procrastination.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps de Focus Ininterrompu\",\n    \"type\": \"constat\",\n    \"unit\": \"minutes\",\n    \"startValue\": \"0\",\n    \"description\": \"Temps passé sur une tâche sans aucune interruption (téléphone, notifications, autres onglets).\",\n    \"targetValue\": \"90\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Architecture du Focus Actif\",\n  \"context_problem\": \"Tu te sens souvent submergée par le manque de clarté et la désorganisation, ce qui t'empêche d'agir et te pousse à reporter tes tâches. L'épuisement et l'usage compensatoire du téléphone aggravent ce cycle, rendant difficile la mise en place d'une routine stable malgré tes journées irrégulières.\",\n  \"sophiaKnowledge\": \"Tu es une femme née en 1988, débordée et sous stress élevé, cherchant à améliorer ton focus et ta discipline pour retrouver de l'énergie et de la stabilité. Tu as des journées irrégulières, tu te sens fatiguée et tu compenses souvent avec l'usage du téléphone, ce qui contribue à la désorganisation et à la procrastination. Ta qualité de sommeil est moyenne et ton niveau d'activité est modéré. Tu es prête pour un changement rapide et intense.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu mis en œuvre la 'Règle des 90/20' pour une tâche importante ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"4 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Grand Débarras Digital (Zone Rouge) (night)\n- [ACTION] Le Sprint de Planification Quotidienne (Les 3 Piliers) (evening)\n- [FRAMEWORK] La Carte du Chaos Mental (Audit Éclair)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps de Focus Ininterrompu: 0 minutes\n",
+      "template_fingerprint": "20bb085c9bdecaf0"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

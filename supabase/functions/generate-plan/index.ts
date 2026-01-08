@@ -507,36 +507,69 @@ serve(async (req) => {
     
     console.log("Calling Gemini API with key length:", GEMINI_API_KEY.length)
 
-    // Utilisation du modèle spécifié par l'utilisateur (Modèle 2.0 Flash)
-    // RETRY LOGIC for 429
-    const MAX_ATTEMPTS = 20; // Tentatives max (environ 100s d'attente max) pour absorber les pics
-    const response = await retryOn429(
-      () =>
-        fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-              generationConfig: { responseMimeType: "application/json" }
-            })
-          }
-        ),
-      { maxAttempts: MAX_ATTEMPTS, delayMs: 5000 },
-    )
+    // Gemini API call (with retries for overload/quotas).
+    // - Historically we only retried 429, but in practice 503 (model overloaded) is common too.
+    // - We also support a fallback model via GEMINI_FALLBACK_MODEL.
+    // UX-first retries: try to recover from temporary overload without asking the user to manually retry.
+    // Keep it bounded to avoid extremely long requests.
+    const MAX_ATTEMPTS = 12;
+    const primaryModel = (Deno.env.get("GEMINI_PLAN_MODEL") ?? "").trim() || "gemini-2.5-flash";
+    const fallbackModel = (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim();
+    let model = primaryModel;
+    let usedFallback = false;
 
-    const data = await response.json()
-    
-    // LOG DEBUG
-    console.log("Gemini Response Status:", response.status);
+    const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+    let response: Response | null = null;
+    let data: any = null;
+    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      response = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
+            generationConfig: { responseMimeType: "application/json" },
+          }),
+        },
+      );
+
+      data = await response.json().catch(() => ({}));
+      console.log("Gemini Response Status:", response.status);
+
+      // Retry on 429 and 503 (overloaded/unavailable)
+      if (response.status === 429 || response.status === 503) {
+        console.log("Gemini Error Body:", JSON.stringify(data, null, 2));
+        // If overloaded and we have a fallback model, switch once.
+        if (
+          response.status === 503 &&
+          !usedFallback &&
+          fallbackModel &&
+          fallbackModel !== model
+        ) {
+          console.log(`[Gemini] Switching to fallback model: ${fallbackModel}`);
+          model = fallbackModel;
+          usedFallback = true;
+          await sleep(1000);
+          continue;
+        }
+        if (attempt < MAX_ATTEMPTS) {
+          await sleep(2000);
+          continue;
+        }
+      }
+
+      // For any other status (or max retries exhausted), break and handle below.
+      break;
+    }
+
+    if (!response) throw new Error("Gemini request did not execute");
     
     if (!response.ok) {
-        console.log("Gemini Error Body:", JSON.stringify(data, null, 2));
-        
-        // GESTION ERREUR 429 (QUOTA EXCEEDED) - Si on arrive ici c'est que les retries ont échoué
+        // Note: data already parsed/logged in the retry loop for 429/503.
         if (response.status === 429) {
-            throw new Error('Le cerveau de Sophia est en surchauffe (Quota atteint). Veuillez réessayer dans quelques minutes.')
+            throw new Error("Le cerveau de Sophia est en surchauffe (Quota atteint). Veuillez réessayer dans quelques minutes.")
         }
 
         const errorMessage = data.error?.message || 'Erreur inconnue de Gemini';

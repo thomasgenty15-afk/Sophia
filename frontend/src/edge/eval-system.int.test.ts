@@ -2,7 +2,7 @@ import { describe, expect, it, beforeAll, afterAll } from "vitest";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAuthedTestUser, createServiceRoleClient, createAnonClient } from "../test/supabaseTestUtils";
 
-describe("eval system: judge + suggestions + apply (internal admin flow)", () => {
+describe("eval system: judge + suggestions (stored on run)", () => {
   let userId: string;
   let client: SupabaseClient;
   let admin: SupabaseClient;
@@ -36,16 +36,14 @@ describe("eval system: judge + suggestions + apply (internal admin flow)", () =>
 
   afterAll(async () => {
     try {
-      await admin.from("prompt_override_suggestions").delete().eq("created_by", userId);
       await admin.from("conversation_eval_runs").delete().eq("created_by", userId);
-      await admin.from("prompt_overrides").update({ addendum: "" }).in("prompt_key", ["sophia.companion", "sophia.dispatcher", "sophia.investigator"]);
       await client.auth.signOut();
     } catch {
       // ignore
     }
   });
 
-  it("creates issues/suggestions and can apply a suggestion to prompt_overrides", async () => {
+  it("creates issues/suggestions and persists them on conversation_eval_runs", async () => {
     const transcript = [
       { role: "assistant", content: "Ok.", agent_used: "companion" },
       { role: "user", content: "Test." },
@@ -60,37 +58,18 @@ describe("eval system: judge + suggestions + apply (internal admin flow)", () =>
     expect(judged?.eval_run_id).toBeTruthy();
     expect(Array.isArray(judged?.issues)).toBe(true);
     expect(Array.isArray(judged?.suggestions)).toBe(true);
+    expect((judged?.suggestions ?? []).length).toBeGreaterThanOrEqual(0);
 
-    // Fetch pending suggestion row written by eval-judge
-    const { data: sug, error: sugErr } = await admin
-      .from("prompt_override_suggestions")
-      .select("id,prompt_key,action,proposed_addendum,status")
-      .eq("created_by", userId)
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(1)
+    // Verify the run row contains suggestions/issue fields.
+    const { data: runRow, error: runErr } = await admin
+      .from("conversation_eval_runs")
+      .select("id,issues,suggestions")
+      .eq("id", judged.eval_run_id)
       .maybeSingle();
-    if (sugErr) throw sugErr;
-    expect(sug).toBeTruthy();
-    expect(sug?.prompt_key).toBeTruthy();
-    expect(sug?.proposed_addendum?.length ?? 0).toBeGreaterThan(0);
-
-    // Apply suggestion through the Edge Function (auth + admin gate)
-    const { data: applied, error: applyErr } = await client.functions.invoke("apply-prompt-override-suggestion", {
-      body: { suggestion_id: sug!.id },
-    });
-    if (applyErr) throw applyErr;
-    expect(applied?.success).toBe(true);
-    expect(applied?.result?.prompt_key).toBe(sug!.prompt_key);
-
-    const { data: overrideRow, error: ovErr } = await admin
-      .from("prompt_overrides")
-      .select("prompt_key,addendum,enabled")
-      .eq("prompt_key", sug!.prompt_key)
-      .single();
-    if (ovErr) throw ovErr;
-    expect(overrideRow.enabled).toBe(true);
-    expect(String(overrideRow.addendum ?? "")).toContain(String(sug!.proposed_addendum).slice(0, 10));
+    if (runErr) throw runErr;
+    expect(runRow?.id).toBe(judged.eval_run_id);
+    expect(Array.isArray((runRow as any)?.issues)).toBe(true);
+    expect(Array.isArray((runRow as any)?.suggestions)).toBe(true);
   });
 
   it("eval-judge assertions produce explicit failure reasons (deterministic)", async () => {

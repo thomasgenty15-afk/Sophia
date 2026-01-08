@@ -1,6 +1,5 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini } from '../../_shared/gemini.ts'
-import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 // --- OUTILS ---
 const CREATE_ACTION_TOOL = {
@@ -696,9 +695,14 @@ export async function runArchitect(
     2. Termine OBLIGATOIREMENT par une question de relance pour le checkup (ex: "On continue le bilan ?", "On passe à la suite ?").
     Ne te lance pas dans une conversation longue. La priorité est de finir le checkup. (2-4 lignes max ici.)
     ` : ""}
+
+    MODE POST-BILAN (IMPORTANT)
+    - Si le contexte contient "MODE POST-BILAN" / "SUJET REPORTÉ", le bilan est terminé.
+    - Interdiction de poser des questions de bilan.
+    - Traite le sujet reporté (organisation, planning, priorités).
+    - Termine par "C’est bon pour ce point ?" UNIQUEMENT si tu as fini ton explication ou ton conseil. Ne le répète pas à chaque message intermédiaire.
   `
-  const override = await fetchPromptOverride("sophia.architect")
-  const systemPrompt = appendPromptOverride(basePrompt, override)
+  const systemPrompt = basePrompt
   
   const historyText = history.slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   
@@ -711,7 +715,7 @@ export async function runArchitect(
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? "gemini-3-flash-preview",
       source: "sophia-brain:architect",
       forceRealAi: meta?.forceRealAi,
     }
@@ -746,7 +750,7 @@ export async function runArchitect(
             `
             const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7, false, [], "auto", {
               requestId: meta?.requestId,
-              model: meta?.model ?? "gemini-2.5-flash",
+              model: meta?.model ?? "gemini-3-flash-preview",
               source: "sophia-brain:architect_followup",
               forceRealAi: meta?.forceRealAi,
             })
@@ -775,7 +779,7 @@ export async function runArchitect(
         `
         const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
           requestId: meta?.requestId,
-          model: meta?.model ?? "gemini-2.5-flash",
+          model: meta?.model ?? "gemini-3-flash-preview",
           source: "sophia-brain:architect_confirmation",
           forceRealAi: meta?.forceRealAi,
         })

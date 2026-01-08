@@ -2066,6 +2066,155 @@ export const THEME_RELATIONS: Theme = {
           ]
         }
       ]
+    },
+    {
+      id: 'REL_8',
+      title: 'Être un parent plus serein & épanoui',
+      description: 'Je veux vivre ma parentalité avec moins de stress, de culpabilité et d’épuisement, et retrouver du plaisir dans la relation avec mes enfants.',
+      problemsTitle: 'Qu’est-ce qui te parle le plus ?',
+      problems: [
+        {
+          id: 'REL_8_P1',
+          label: 'Je perds souvent patience, je crie et je culpabilise après.',
+          detailQuestions: [
+            {
+              id: 'REL_8_P1_Q1',
+              question: 'Ça arrive surtout :',
+              type: 'multiple',
+              options: [
+                { label: 'Le matin (rush du départ)' },
+                { label: 'Le soir (fatigue, devoirs, coucher)' },
+                { label: 'Quand ils n’écoutent pas / me provoquent' },
+                { label: 'Quand je suis déjà stressé(e) par autre chose' }
+              ]
+            },
+            {
+              id: 'REL_8_P1_Q2',
+              question: 'Après avoir crié, tu te sens :',
+              type: 'single',
+              options: [
+                { label: 'Soulagé(e) sur le coup, puis mal' },
+                { label: 'Terriblement coupable (“je suis un mauvais parent”)' },
+                { label: 'Impuissant(e) (“je ne sais pas faire autrement”)' }
+              ]
+            },
+            {
+              id: 'REL_8_P1_Q3',
+              question: 'Tu aimerais apprendre à :',
+              type: 'multiple',
+              options: [
+                { label: 'Sentir la colère monter avant d’exploser' },
+                { label: 'Avoir des outils pour redescendre en pression' },
+                { label: 'Réparer la relation après une crise' }
+              ]
+            },
+            {
+                id: 'REL_8_P1_Q4',
+                question: 'Ton niveau de fatigue actuel :',
+                type: 'single',
+                options: [
+                  { label: 'Ça va' },
+                  { label: 'Fatigué(e)' },
+                  { label: 'Épuisé(e) / à bout' }
+                ]
+              }
+          ]
+        },
+        {
+          id: 'REL_8_P2',
+          label: 'Je suis épuisé(e) par la charge parentale / mentale.',
+          detailQuestions: [
+            {
+              id: 'REL_8_P2_Q1',
+              question: 'Ce qui te pèse le plus :',
+              type: 'multiple',
+              options: [
+                { label: 'La logistique (repas, linge, trajets…)' },
+                { label: 'La charge mentale (penser à tout, rendez-vous, école…)' },
+                { label: 'Le bruit / les sollicitations constantes' },
+                { label: 'Le manque de relais / soutien' }
+              ]
+            },
+            {
+              id: 'REL_8_P2_Q2',
+              question: 'Tu as du temps pour toi sans les enfants ?',
+              type: 'single',
+              options: [
+                { label: 'Quasiment jamais' },
+                { label: 'Un peu, mais je l’utilise pour faire des corvées' },
+                { label: 'Oui, j’arrive à en prendre un peu' }
+              ]
+            },
+            {
+              id: 'REL_8_P2_Q3',
+              question: 'Tu te sens :',
+              type: 'single',
+              options: [
+                { label: 'Débordé(e) par moments' },
+                { label: 'En mode “survie” permanente' },
+                { label: 'Seul(e) face à tout ça' }
+              ]
+            },
+            {
+                id: 'REL_8_P2_Q4',
+                question: 'Tu aurais besoin de :',
+                type: 'single',
+                options: [
+                  { label: 'Mieux t’organiser / simplifier le quotidien' },
+                  { label: 'Apprendre à lâcher prise sur la perfection' },
+                  { label: 'Trouver du soutien concret' }
+                ]
+              }
+          ]
+        },
+        {
+          id: 'REL_8_P3',
+          label: 'J’ai du mal à gérer l’équilibre vie pro / vie de famille.',
+          detailQuestions: [
+            {
+              id: 'REL_8_P3_Q1',
+              question: 'Ton sentiment dominant :',
+              type: 'single',
+              options: [
+                { label: 'Je ne suis bien nulle part (coupable au boulot, coupable à la maison)' },
+                { label: 'Je sacrifie ma carrière pour ma famille' },
+                { label: 'Je sacrifie ma famille pour ma carrière' }
+              ]
+            },
+            {
+              id: 'REL_8_P3_Q2',
+              question: 'Les moments les plus durs :',
+              type: 'multiple',
+              options: [
+                { label: 'Le tunnel 18h-20h' },
+                { label: 'Les mercredis / week-ends' },
+                { label: 'Les jours d’enfant malade / grève' },
+                { label: 'Le soir quand je retravaille après le coucher' }
+              ]
+            },
+            {
+              id: 'REL_8_P3_Q3',
+              question: 'Tu aimerais réussir à :',
+              type: 'multiple',
+              options: [
+                { label: 'Mettre une barrière mentale claire entre pro et perso' },
+                { label: 'Être vraiment présent(e) quand tu es avec eux' },
+                { label: 'Accepter de ne pas pouvoir être à 100% partout' }
+              ]
+            },
+            {
+                id: 'REL_8_P3_Q4',
+                question: 'Si tu devais choisir une priorité :',
+                type: 'single',
+                options: [
+                  { label: 'Alléger ton emploi du temps' },
+                  { label: 'Alléger ta charge mentale' },
+                  { label: 'Profiter plus des bons moments' }
+                ]
+              }
+          ]
+        }
+      ]
     }
   ]
 };

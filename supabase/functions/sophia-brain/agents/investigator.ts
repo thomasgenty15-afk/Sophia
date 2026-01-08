@@ -1,7 +1,6 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { retrieveContext } from './companion.ts' // Import retrieveContext to use RAG
-import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 import { verifyInvestigatorMessage } from '../verifier.ts'
 
 // --- OUTILS ---
@@ -82,7 +81,10 @@ function isNegative(text: string): boolean {
 function isExplicitStopBilan(text: string): boolean {
   const m = (text ?? "").toString().trim()
   if (!m) return false
-  return /\b(?:stop|pause|arr[êe]te|arr[êe]tons|annule|annulons|on\s+arr[êe]te|on\s+peut\s+arr[êe]ter|je\s+veux\s+arr[êe]ter|pas\s+maintenant|plus\s+tard|on\s+reprendra\s+plus\s+tard|c['’]est\s+trop|c['’]est\s+lourd|arr[êe]te\s+le\s+bilan|stop\s+le\s+bilan)\b/i.test(m)
+  // IMPORTANT: Do NOT treat "plus tard / pas maintenant" as a stop.
+  // Those are deferrals of a topic or an item and should be handled inside the checkup flow (parking-lot),
+  // not as a cancellation of the whole bilan.
+  return /\b(?:stop|pause|arr[êe]te|arr[êe]tons|annule|annulons|on\s+arr[êe]te|on\s+peut\s+arr[êe]ter|je\s+veux\s+arr[êe]ter|c['’]est\s+trop|c['’]est\s+lourd|arr[êe]te\s+le\s+bilan|stop\s+le\s+bilan|pas\s+de\s+bilan|on\s+arr[êe]te\s+le\s+bilan)\b/i.test(m)
 }
 
 function functionsBaseUrl(): string {
@@ -741,8 +743,7 @@ SCÉNARIO: ${scenario}
 DONNÉES (JSON): ${JSON.stringify(data)}
   `.trim()
 
-  const override = await fetchPromptOverride("sophia.investigator.copy")
-  const systemPrompt = appendPromptOverride(basePrompt, override)
+  const systemPrompt = basePrompt
 
   const res = await generateWithGemini(
     systemPrompt,
@@ -753,7 +754,7 @@ DONNÉES (JSON): ${JSON.stringify(data)}
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? "gemini-3-flash-preview",
       source: `sophia-brain:investigator_copy:${scenario}`,
       forceRealAi: meta?.forceRealAi,
     },
@@ -1305,9 +1306,14 @@ export async function runInvestigator(
     - Si l'utilisateur dit "J'ai tout fait", tu peux essayer de logguer l'item courant comme 'completed' mais méfie-toi, vérifie item par item si possible ou demande confirmation. Pour l'instant, check item par item.
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
     - Utilise 1 smiley (maximum 2) par message pour être sympa mais focus.
+
+    RÈGLES BILAN (CRITIQUES)
+    - Ne dis JAMAIS "bilan terminé" (ou équivalent) tant que tu n’as pas traité TOUS les points listés pour ce bilan (vital + actions + frameworks).
+    - Si l’utilisateur mentionne un sujet à reprendre "après/plus tard" pendant le bilan (ex: organisation, stress), confirme brièvement ET continue le bilan.
+    - À la fin du bilan, si un ou plusieurs sujets ont été reportés, tu DOIS IMPÉRATIVEMENT les proposer explicitement AVANT toute autre question. NE POSE AUCUNE question générique si des sujets reportés sont en attente.
+      Exemple: "Tu m’avais parlé de ton organisation générale. On commence par ça ?"
   `
-  const override = await fetchPromptOverride("sophia.investigator")
-  const systemPrompt = appendPromptOverride(basePrompt, override)
+  const systemPrompt = basePrompt
 
   console.log(`[Investigator] Generating response for item: ${currentItem.title}`)
 
@@ -1320,7 +1326,7 @@ export async function runInvestigator(
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? "gemini-3-flash-preview",
       source: "sophia-brain:investigator",
       forceRealAi: meta?.forceRealAi,
     }

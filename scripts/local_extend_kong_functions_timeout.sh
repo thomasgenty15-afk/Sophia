@@ -31,7 +31,8 @@ if ! docker ps --format '{{.Names}}' | grep -q "^${KONG_CONTAINER}\$"; then
 fi
 
 echo "Patching ${KONG_CONTAINER}:${KONG_YML} -> functions-v1 read_timeout=${TIMEOUT_MS}ms"
-docker exec "${KONG_CONTAINER}" sh -lc "perl -pi -e 's/read_timeout:\\s*150000/read_timeout: ${TIMEOUT_MS}/' \"${KONG_YML}\""
+# Supabase local defaults may vary by version (e.g. 120000, 150000). Replace any numeric value.
+docker exec "${KONG_CONTAINER}" sh -lc "perl -pi -e 's/read_timeout:\\s*\\d+/read_timeout: ${TIMEOUT_MS}/g' \"${KONG_YML}\""
 
 echo "Reloading kong..."
 docker exec "${KONG_CONTAINER}" sh -lc "kong reload >/dev/null"

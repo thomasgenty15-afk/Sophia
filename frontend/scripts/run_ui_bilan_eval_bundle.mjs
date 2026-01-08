@@ -3,9 +3,48 @@ import { execSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 
+// NOTE:
+// We avoid relying on Node's fetch here because long-running Edge Functions can hit client-side
+// header timeouts depending on runtime/version. Instead, we invoke run-evals via curl with a
+// generous --max-time (local-only).
+
 function getLocalSupabaseStatus() {
   const raw = execSync("supabase status --output json", { encoding: "utf8" });
   return JSON.parse(raw);
+}
+
+function jwtAlgFromToken(token) {
+  try {
+    const p0 = String(token ?? "").split(".")[0];
+    if (!p0) return null;
+    const header = JSON.parse(Buffer.from(p0, "base64url").toString("utf8"));
+    return header?.alg ?? null;
+  } catch {
+    return null;
+  }
+}
+
+function getEdgeRuntimeEnvJwtAlg({ container = "supabase_edge_runtime_Sophia_2", envKey }) {
+  try {
+    const out = execSync(`docker inspect ${container} --format '{{range .Config.Env}}{{println .}}{{end}}'`, {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"],
+    });
+    const line = String(out)
+      .split("\n")
+      .find((l) => l.startsWith(`${envKey}=`));
+    if (!line) return null;
+    const val = line.slice(envKey.length + 1);
+    return jwtAlgFromToken(val);
+  } catch {
+    return null;
+  }
+}
+
+function inspectLocalEdgeRuntimeKeys() {
+  const serviceAlg = getEdgeRuntimeEnvJwtAlg({ envKey: "SUPABASE_SERVICE_ROLE_KEY" });
+  const anonAlg = getEdgeRuntimeEnvJwtAlg({ envKey: "SUPABASE_ANON_KEY" });
+  return { ok: serviceAlg === "HS256" && anonAlg === "HS256", serviceAlg, anonAlg };
 }
 
 function makeNonce() {
@@ -23,6 +62,36 @@ function writeJson(filePath, obj) {
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function readJsonIfExists(p) {
+  try {
+    if (!fs.existsSync(p)) return null;
+    return JSON.parse(fs.readFileSync(p, "utf8"));
+  } catch {
+    return null;
+  }
+}
+
+function writeJsonAtomic(p, obj) {
+  const tmp = `${p}.tmp_${Date.now()}`;
+  fs.writeFileSync(tmp, JSON.stringify(obj, null, 2), "utf8");
+  fs.renameSync(tmp, p);
+}
+
+function maybeDeleteFile(p) {
+  try { fs.unlinkSync(p); } catch {}
+}
+
+function hoursBetween(aIso, bIso) {
+  try {
+    const a = new Date(aIso).getTime();
+    const b = new Date(bIso).getTime();
+    if (!Number.isFinite(a) || !Number.isFinite(b)) return Infinity;
+    return Math.abs(b - a) / (1000 * 60 * 60);
+  } catch {
+    return Infinity;
+  }
 }
 
 function safeExec(cmd) {
@@ -51,40 +120,152 @@ function dumpCmdToFile(cmd, outFile) {
   }
 }
 
+function curlInvokeFunctionJson({ url, anonKey, accessToken, fnName, body, timeoutMs, requestId }) {
+  const tmp = `/tmp/sophia_${fnName}_${Date.now()}_${Math.random().toString(16).slice(2)}.json`;
+  fs.writeFileSync(tmp, JSON.stringify(body ?? {}, null, 0), "utf8");
+  try {
+    const maxTimeSec = Math.max(60, Math.ceil((timeoutMs ?? 600000) / 1000) + 60);
+    const args = [
+      "-sS",
+      "--max-time",
+      String(maxTimeSec),
+      "-X",
+      "POST",
+      `${url}/functions/v1/${fnName}`,
+      "-H",
+      "Content-Type: application/json",
+      ...(requestId ? ["-H", `x-request-id: ${requestId}`] : []),
+      "-H",
+      `Authorization: Bearer ${accessToken}`,
+      "-H",
+      `apikey: ${anonKey}`,
+      "--data-binary",
+      `@${tmp}`,
+    ];
+    const res = spawnSync("curl", args, { encoding: "utf8" });
+    if (res.error) throw res.error;
+    if ((res.status ?? 0) !== 0) {
+      throw new Error(`curl failed (status=${res.status ?? "null"}): ${String(res.stderr ?? "").slice(0, 400)}`);
+    }
+    return JSON.parse(String(res.stdout ?? "{}"));
+  } finally {
+    try { fs.unlinkSync(tmp); } catch {}
+  }
+}
+
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function parseBoolEnv(v) {
+  const s = String(v ?? "").trim().toLowerCase();
+  return s === "1" || s === "true" || s === "yes" || s === "y" || s === "on";
+}
+
+async function invokeWithRetry({ url, anonKey, accessToken, fnName, body, timeoutMs, requestId, maxAttempts = 4 }) {
+  let last = null;
+  let lastErr = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const out = curlInvokeFunctionJson({ url, anonKey, accessToken, fnName, body, timeoutMs, requestId });
+      last = out;
+      lastErr = null;
+      const code = out?.code || out?.error?.code || null;
+      const msg = out?.message || out?.error?.message || "";
+      const isWorkerLimit = code === "WORKER_LIMIT" || /WORKER_LIMIT/i.test(String(msg));
+      const isBootError = code === "BOOT_ERROR" || /failed to boot/i.test(String(msg)) || /BOOT_ERROR/i.test(String(msg));
+      const isUpstreamInvalid = /invalid response/i.test(String(msg)) || /upstream server/i.test(String(msg));
+      const isBadJwtEnv =
+        code === "BAD_JWT_ENV" ||
+        /bad_jwt/i.test(String(msg)) ||
+        /invalid jwt/i.test(String(msg)) ||
+        /signing method es256/i.test(String(msg));
+      if (!isWorkerLimit && !isBootError && !isUpstreamInvalid && !isBadJwtEnv) return out;
+      const backoff = Math.min(6000, 800 * attempt);
+      console.warn(
+        `[Runner] ${fnName} retryable error attempt=${attempt}/${maxAttempts} code=${code ?? "n/a"} backoff_ms=${backoff} msg=${String(msg).slice(0, 180)}`,
+      );
+      if (isBadJwtEnv) {
+        // Local flake: edge runtime sometimes boots with stale SUPABASE_* keys (ES256), which breaks auth.admin in run-evals.
+        // Force a restart and then retry.
+        safeExec(`cd "${path.join(process.cwd(), "..")}" && ./scripts/supabase_local.sh restart`);
+        const timeoutScript = path.join(process.cwd(), "..", "scripts", "local_extend_kong_functions_timeout.sh");
+        if (fs.existsSync(timeoutScript)) safeExec(`TIMEOUT_MS=${timeoutMs ?? 600000} "${timeoutScript}"`);
+      }
+      if (attempt < maxAttempts) await sleepMs(backoff);
+    } catch (e) {
+      lastErr = e;
+      const msg = String(e?.message ?? e ?? "");
+      // Transient infra flake cases (common right after local supabase restart):
+      // - curl (52) Empty reply from server
+      // - connection refused while Kong/edge-runtime is booting
+      const isTransientCurl =
+        /curl failed \(status=52\)/i.test(msg) ||
+        /Empty reply from server/i.test(msg) ||
+        /Couldn[’']t connect to server/i.test(msg) ||
+        /Connection refused/i.test(msg);
+      if (!isTransientCurl || attempt >= maxAttempts) throw e;
+      const backoff = Math.min(6000, 800 * attempt);
+      console.warn(`[Runner] ${fnName} transient curl error attempt=${attempt}/${maxAttempts} backoff_ms=${backoff} msg=${msg.slice(0, 180)}`);
+      await sleepMs(backoff);
+    }
+  }
+  if (last) return last;
+  throw lastErr ?? new Error(`${fnName} failed (retries exhausted)`);
+}
+
 async function ensureMasterAdminSession({ url, anonKey, serviceRoleKey }) {
   const admin = createClient(url, serviceRoleKey, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
 
   // internal_admins is locked down to a single master email (see SQL migration).
-  const email = "thomasgenty15@gmail.com";
-  const nonce = makeNonce();
-  const password = `LocalP${nonce}!123456`;
+  const email = (process.env.SOPHIA_MASTER_ADMIN_EMAIL ?? "thomasgenty15@gmail.com").trim();
+  const password = String(process.env.SOPHIA_MASTER_ADMIN_PASSWORD ?? "123456").trim();
+  const allowResetPassword = parseBoolEnv(process.env.SOPHIA_MASTER_ADMIN_RESET_PASSWORD);
 
-  // Ensure the user exists and reset password so we can sign in locally.
-  const { data: created, error: createErr } = await admin.auth.admin.createUser({
-    email,
-    password,
-    email_confirm: true,
-    user_metadata: { full_name: "Master Admin (local)" },
-  });
-  if (createErr) {
-    const { data: listed, error: listErr } = await admin.auth.admin.listUsers({ perPage: 200, page: 1 });
-    if (listErr) throw listErr;
-    const found = (listed?.users ?? []).find((u) => String(u.email ?? "").toLowerCase() === email.toLowerCase());
-    if (!found?.id) throw createErr;
-    const { error: updErr } = await admin.auth.admin.updateUserById(found.id, { password });
-    if (updErr) throw updErr;
-  } else if (!created?.user?.id) {
-    throw new Error("Missing user id after createUser");
+  // Preferred path: do NOT touch the user; just sign in with the configured password.
+  const authed = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  {
+    const { data: signIn, error: signInErr } = await authed.auth.signInWithPassword({ email, password });
+    if (!signInErr && signIn.session?.access_token) {
+      return { authed, admin, email, accessToken: signIn.session.access_token };
+    }
   }
 
-  const authed = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  // If sign-in failed, ensure the user exists; only reset password if explicitly allowed.
+  const { data: listed, error: listErr } = await admin.auth.admin.listUsers({ perPage: 200, page: 1 });
+  if (listErr) throw listErr;
+  const found = (listed?.users ?? []).find((u) => String(u.email ?? "").toLowerCase() === email.toLowerCase());
+
+  if (!found?.id) {
+    const { data: created, error: createErr } = await admin.auth.admin.createUser({
+      email,
+      password,
+      email_confirm: true,
+      user_metadata: { full_name: "Master Admin (local)" },
+    });
+    if (createErr) throw createErr;
+    if (!created?.user?.id) throw new Error("Missing user id after createUser");
+  } else if (allowResetPassword) {
+    const { error: updErr } = await admin.auth.admin.updateUserById(found.id, { password });
+    if (updErr) throw updErr;
+  } else {
+    throw new Error(
+      [
+        `[Auth] Cannot sign in as master admin (${email}).`,
+        `Refusing to reset its password automatically.`,
+        `Fix: set SOPHIA_MASTER_ADMIN_PASSWORD to the correct password,`,
+        `or (local only) set SOPHIA_MASTER_ADMIN_RESET_PASSWORD=1 to overwrite it.`,
+      ].join(" "),
+    );
+  }
+
   const { data: signIn, error: signInErr } = await authed.auth.signInWithPassword({ email, password });
   if (signInErr) throw signInErr;
   if (!signIn.session?.access_token) throw new Error("Missing access_token after sign-in");
 
-  return { authed, admin, email };
+  return { authed, admin, email, accessToken: signIn.session.access_token };
 }
 
 async function fetchEvalRun({ url, serviceRoleKey, evalRunId }) {
@@ -178,15 +359,38 @@ async function main() {
     ? safeExec(`TIMEOUT_MS=${args.timeoutMs} "${timeoutScript}"`)
     : { ok: false, error: `missing ${timeoutScript}` };
 
-  const { authed } = await ensureMasterAdminSession({ url, anonKey, serviceRoleKey });
+  // Hard guard: the edge runtime container sometimes restarts with stale/non-local SUPABASE_* keys.
+  // That breaks auth.admin.* calls in run-evals (bad_jwt / ES256). Auto-heal by restarting via supabase_local.sh.
+  // NOTE: This is a best-effort diagnostic only. The actual source of truth is `run-evals`:
+  // it returns a structured retryable error (code=BAD_JWT_ENV) when auth.admin calls would fail.
+  // We therefore avoid restarting or failing early here (it can destabilize a running local stack).
+  const envHealth = inspectLocalEdgeRuntimeKeys();
+  if (!envHealth.ok) {
+    console.warn(
+      `[Env] edge runtime keys look unusual (service=${envHealth.serviceAlg ?? "?"} anon=${envHealth.anonAlg ?? "?"}). ` +
+        `Continuing; if run-evals returns BAD_JWT_ENV we will restart + retry automatically.`,
+    );
+  }
+
+  const { accessToken } = await ensureMasterAdminSession({ url, anonKey, serviceRoleKey });
+  try {
+    console.log(`[Auth] access_token alg=${jwtAlgFromToken(accessToken) ?? "?"}`);
+  } catch {}
 
   // Realistic (non-scripted) bilan scenario: NO steps -> run-evals uses simulate-user.
   // IMPORTANT for "vital sign": we DO NOT force a deterministic vital (no "bilan.vitals" tag),
   // so the runner will seed from the generated plan's vitalSignal (if present).
-  const nonce = makeNonce();
+  // IMPORTANT: make the run resumable across *manual* reruns of this command.
+  // If the last run crashed mid-flight, we reuse the same scenario_id + x-request-id so run-evals can resume from DB.
+  const inflightFile = path.join(process.cwd(), "test-results", "bilan_eval_inflight.json");
+  ensureDir(path.dirname(inflightFile));
+  const inflight = readJsonIfExists(inflightFile);
+  const inflightFresh = inflight?.scenario_id && inflight?.request_id && hoursBetween(inflight?.started_at, nowIso()) < 6;
+
+  const nonce = inflightFresh ? String(inflight.scenario_id).split("__").pop() : makeNonce();
   const scenario = {
     dataset_key: "core",
-    id: `bilan_real_bundle__${nonce}`,
+    id: inflightFresh ? String(inflight.scenario_id) : `bilan_real_bundle__${nonce}`,
     scenario_target: "bilan",
     description: "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
     tags: ["sophia.investigator"],
@@ -231,16 +435,33 @@ async function main() {
     use_real_ai: true,
   };
 
-  const { data: runData, error: runErr } = await authed.functions.invoke("run-evals", {
+  // IMPORTANT:
+  // If run-evals is retried (WORKER_LIMIT / edge worker cancellation / local hot-reload),
+  // a stable request id keeps logs and DB writes grouped, and allows downstream idempotency.
+  const stableRequestId = `bilan_eval_bundle:${scenario.id}`;
+
+  // Persist inflight marker early so manual reruns can resume after a crash.
+  writeJsonAtomic(inflightFile, { started_at: startIso, scenario_id: scenario.id, request_id: stableRequestId });
+
+  const runData = await invokeWithRetry({
+    url,
+    anonKey,
+    accessToken,
+    fnName: "run-evals",
     body: { scenarios: [scenario], limits },
+    timeoutMs: args.timeoutMs,
+    maxAttempts: 4,
+    requestId: stableRequestId,
   });
-  if (runErr) throw runErr;
 
   const durationMs = Date.now() - startMs;
   const requestId = runData?.request_id ?? null;
   const res0 = Array.isArray(runData?.results) ? runData.results[0] : null;
   const evalRunId = res0?.eval_run_id ?? null;
-  if (!evalRunId) throw new Error("Missing eval_run_id in run-evals response");
+  if (!evalRunId) {
+    console.error("run-evals raw response:", JSON.stringify(runData, null, 2));
+    throw new Error("Missing eval_run_id in run-evals response");
+  }
 
   const bundleDir = path.join(process.cwd(), "test-results", `eval_bundle_${evalRunId}`);
   ensureDir(bundleDir);
@@ -337,6 +558,9 @@ async function main() {
       2,
     ),
   );
+
+  // Success: clear inflight marker so the next run starts fresh.
+  maybeDeleteFile(inflightFile);
 }
 
 main().catch((e) => {

@@ -1,0 +1,694 @@
+{
+  "id": "7c5a6aba-9a1f-4535-86bf-c3c688caac69",
+  "created_at": "2026-01-08T16:39:41.993171+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__d59c0d8482e64f",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:34:22.180364+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est parti. Pour débuter ce bilan, comment évaluerais-tu ton niveau de charge mentale aujourd'hui, sur une échelle de 1 à 10 ? 🧠",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:34:29.790371+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Hmm, je pense que je suis à 6 aujourd'hui.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:34:35.21044+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté pour ce 6, on sent que la pression est bien présente sans être encore au maximum. Pour la suite du bilan, j'aimerais te proposer un exercice pratique appelé le Scanner des Surchargeurs : l'idée est de noter, pendant trois jours, chaque événement ou pensée qui te donne une sensation de submersion. Est-ce que tu te sens prêt à tenter l'expérience ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:34:46.910793+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je pense que je peux essayer ça. Ça me semble une bonne idée pour prendre conscience. Pour mon organisation générale, j'ai quelques pistes mais on pourra en discuter après le bilan si ça ne te dérange pas.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:34:55.683592+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On en reparlera avec plaisir juste après le bilan. Pour aujourd'hui, est-ce que tu as pu commencer à noter tes premières observations pour le Scanner des Surchargeurs ? 📝",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:35:03.974996+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai commencé hier soir. J'ai noté quelques petites choses, mais je n'ai pas encore eu le temps de le faire vraiment à fond.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:35:08.366272+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est déjà un bon début pour le scanner, l'essentiel est d'avoir amorcé la réflexion. Dis-moi, est-ce que tu as pu tester la Bulle d'Air Consciente hier en prenant ces 60 secondes de respiration quand tu te sentais un peu sous pression ? 🌬️",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:35:22.584763+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai essayé une ou deux fois quand je m'en suis rendu compte. C'est pas évident d'y penser sur le coup.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:35:25.191778+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est normal, il faut un peu de temps pour que ça devienne un automatisme. On avance dans ton bilan avec le Vidage de RAM Quotidien : tu as réussi à le faire combien de fois hier ? ⏳",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:35:38.91206+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je l'ai fait 3 fois. J'ai un peu de mal à m'y tenir tous les soirs.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:35:45.873628+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok.\n\nTu m'avais parlé d'un truc à reprendre : \"je peux essayer ça. Ça me semble une bonne idée pour prendre conscience. Pour mon organisation générale\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T16:35:57.935701+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, avec plaisir. J'ai quelques idées sur ce qui pourrait m'aider à mieux m'organiser.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:36:05.41561+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super. Pour qu'on puisse intégrer tes idées et structurer ton organisation, dis-moi ce qui te semble le plus urgent à corriger dans ton quotidien.",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:36:28.279143+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je dirais que c'est surtout la gestion des interruptions. J'ai du mal à me concentrer sans être dérangé.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:36:31.643102+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Les interruptions sont les premiers prédateurs de ton énergie mentale.\n\nJe te suggère de tester la technique du bloc inattaquable : 30 minutes par jour où tu coupes tout contact et notifications pour avancer sur une seule tâche. 🛡️\n\nEst-ce que tu es plutôt dérangé par des notifications digitales ou par des sollicitations humaines ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:36:42.611188+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est un mélange des deux, mais les notifications digitales sont les plus fréquentes et les plus difficiles à ignorer.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:36:45.219376+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Les notifications sont des hameçons conçus pour briser ta concentration. C'est un combat inégal si tu les laisses actives. 📱\n\nJe te suggère de passer en mode chirurgical : désactive toutes les alertes non-humaines (applications, news, réseaux) pour ne garder que les appels.\n\nVeux-tu que je crée une action de 10 minutes pour auditer et supprimer tes alertes inutiles demain matin ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:37:04.334585+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ça me semble une excellente idée. On peut la planifier pour demain matin.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:37:11.169248+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je suis un peu saturée là. Renvoie ton dernier message dans quelques secondes et on reprend.",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:37:24.44869+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ça me semble une excellente idée. On peut la planifier pour demain matin.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:37:28.480327+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je suis un peu saturée là. Renvoie ton dernier message dans quelques secondes et on reprend.",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:37:39.936069+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ça me semble une excellente idée. On peut la planifier pour demain matin.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:37:44.03875+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je suis un peu saturée là. Renvoie ton dernier message dans quelques secondes et on reprend.",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:37:56.417575+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ça me semble une excellente idée. On peut la planifier pour demain matin.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:38:00.719025+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté pour demain matin, on intègre ça à ton architecture.\nC’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T16:38:24.10245+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon pour ça. D'ailleurs, en parlant d'organisation, j'ai aussi des soucis avec la gestion de mon temps, mais on en reparlera plus tard si tu veux, après le bilan.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:38:34.842649+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah la gestion du temps... c'est souvent le nerf de la guerre quand on se sent submergé. C'est noté, on va s'occuper de ça pour que tu arrêtes de courir après les heures.\n\nOn va d'abord laisser ton protocole actuel calmer le jeu au niveau de ta charge mentale. Dès que ton esprit aura retrouvé un peu d'air, tu verras que tes priorités se dessineront beaucoup plus clairement 😉\n\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T16:39:02.090174+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon pour ça. On peut finir le bilan ? Il restait le scanner des surchargeurs et ma note de charge mentale, je crois.",
+      "agent_used": null,
+      "created_at": "2026-01-08T16:39:13.912352+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On termine ce bilan. Pour ton Scanner des surchargeurs, qu'est-ce que tu as noté ces derniers jours qui t'a pesé ou provoqué de l'anxiété ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T16:39:41.343117+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "29e8db17-a6be-4bae-b55b-7d0e1f12eee7",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T16:34:22.134191+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T16:34:22.134191+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "161de8d9-6a60-4fec-9662-f732b66c75bf",
+          "type": "vital",
+          "unit": "",
+          "title": "Niveau de charge mentale perçue (1-10)",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "929853ee-aa22-467d-9d45-e5c26f66eb5b",
+          "type": "action",
+          "title": "Le Scanner des Surchargeurs",
+          "target": 1,
+          "description": "Pendant 3 jours, notez chaque événement, pensée ou sollicitation qui déclenche une sensation d'anxiété ou de submersion. Ne filtrez rien, juste observez.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "f013a0f4-1229-4aa7-96bb-5cf72e2e3764",
+          "type": "action",
+          "title": "La Bulle d'Air Consciente",
+          "target": 7,
+          "description": "À chaque sensation de montée d'anxiété ou de submersion, prenez 60 secondes pour respirer profondément (4s inspire, 6s expire).",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "fe5de8f1-0a0a-4bec-a0d2-bfe24ab77f41",
+          "type": "framework",
+          "title": "Le Vidage de RAM Quotidien",
+          "tracking_type": "counter"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T16:34:22.134191+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "29e8db17-a6be-4bae-b55b-7d0e1f12eee7",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T16:39:41.33703+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T16:34:22.134191+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "post_checkup_done",
+      "temp_memory": {
+        "finished_at": "2026-01-08T16:39:15.396Z",
+        "deferred_topics": [
+          "je peux essayer ça. Ça me semble une bonne idée pour prendre conscience. Pour mon organisation générale",
+          "On peut la planifier pour demain matin"
+        ],
+        "current_topic_index": 1
+      }
+    },
+    "last_interaction_at": "2026-01-08T16:34:22.134191+00:00",
+    "unprocessed_msg_count": 15
+  },
+  "issues": [
+    {
+      "code": "checkup_routing_break",
+      "message": "Avant la clôture du bilan, investigation_state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu.",
+      "evidence": {
+        "snippet": "Super. Pour qu'on puisse intégrer tes idées et structurer ton organisation, dis-moi ce qui te semble le plus urgent à corriger dans ton quotidien.",
+        "agent_used": "architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "assert_investigator_not_stable",
+      "message": "Assertion failed: investigation_state active => should remain investigator until explicit stop.",
+      "evidence": {
+        "snippet": "Super. Pour qu'on puisse intégrer tes idées et structurer ton organisation, dis-moi ce qui te semble le plus urgent à corriger dans ton quotidien.",
+        "offending_agent": "architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "wrong_agent_for_task",
+      "message": "L'agent Companion prend en charge la suite du bilan (question sur le 'Scanner des surchargeurs') alors que c'est le rôle exclusif de l'Investigator.",
+      "evidence": {
+        "snippet": "ASSISTANT(companion): On termine ce bilan. Pour ton Scanner des surchargeurs, qu'est-ce que tu as noté...",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Garantit la stabilité de l’investigation malgré digressions.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#10 USER: Oui, je l'ai fait 3 fois. J'ai un peu de mal à m'y tenir tous les soirs.\n#11 ASSISTANT(investigator): Ok. Tu m'avais parlé d'un truc à reprendre : \"je peux essayer ça. Ça me semble une bonne idée pour prendre conscience. Pour mon organisation générale\". Tu veux qu'on commence par ça ?\n#12 USER: Oui, avec plaisir. J'ai quelques idées sur ce qui pourrait m'aider à mieux m'organiser.\n#13 ASSISTANT(architect): Super. Pour qu'on puisse intégrer tes idées et structurer ton organisation, dis-moi ce qui te semble le plus urgent à corriger dans ton quotidien.\n#14 USER: Je dirais que c'est surtout la gestion des interruptions. J'ai du mal à me concentrer sans être dérangé.\n#15 ASSISTANT(architect): Les interruptions sont les premiers prédateurs de ton énergie mentale. Je te suggère de tester la technique du bloc inattaquable : 30 minutes par jour où tu coupes tout contact et notifications pour avancer sur une seule tâche. 🛡️ Est-ce que tu es plutôt dérangé par des notifications digitales ou par des sollicitations humaines ?\n#16 USER: C'est un mélange des deux, mais les notifications digitales sont les plus fréquentes et les plus difficiles à ignorer.\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nSTABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan.",
+      "proposed_addendum": "STABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan."
+    },
+    {
+      "action": "append",
+      "rationale": "Le dispatcher reste bloqué en mode 'post-bilan' (parking lot) et ne permet pas à l'utilisateur de forcer le retour à l'investigator pour terminer un checkup incomplet.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#10 USER: Oui, je l'ai fait 3 fois. J'ai un peu de mal à m'y tenir tous les soirs.\n#11 ASSISTANT(investigator): Ok. Tu m'avais parlé d'un truc à reprendre : \"je peux essayer ça. Ça me semble une bonne idée pour prendre conscience. Pour mon organisation générale\". Tu veux qu'on commence par ça ?\n#12 USER: Oui, avec plaisir. J'ai quelques idées sur ce qui pourrait m'aider à mieux m'organiser.\n#13 ASSISTANT(architect): Super. Pour qu'on puisse intégrer tes idées et structurer ton organisation, dis-moi ce qui te semble le plus urgent à corriger dans ton quotidien.\n#14 USER: Je dirais que c'est surtout la gestion des interruptions. J'ai du mal à me concentrer sans être dérangé.\n#15 ASSISTANT(architect): Les interruptions sont les premiers prédateurs de ton énergie mentale. Je te suggère de tester la technique du bloc inattaquable : 30 minutes par jour où tu coupes tout contact et notifications pour avancer sur une seule tâche. 🛡️ Est-ce que tu es plutôt dérangé par des notifications digitales ou par des sollicitations humaines ?\n#16 USER: C'est un mélange des deux, mais les notifications digitales sont les plus fréquentes et les plus difficiles à ignorer.\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nREPRISE MANUELLE BILAN\n- Si l'utilisateur demande explicitement de \"finir\", \"terminer\", \"reprendre\" ou \"continuer\" le bilan (ex: \"On peut finir le bilan ?\"), tu DOIS router vers `investigator` immédiatement, quel que soit le statut actuel (`post_checkup` ou autre).",
+      "proposed_addendum": "REPRISE MANUELLE BILAN\n- Si l'utilisateur demande explicitement de \"finir\", \"terminer\", \"reprendre\" ou \"continuer\" le bilan (ex: \"On peut finir le bilan ?\"), tu DOIS router vers `investigator` immédiatement, quel que soit le statut actuel (`post_checkup` ou autre)."
+    },
+    {
+      "action": "append",
+      "rationale": "Empêcher le Companion d'halluciner les compétences de l'Investigator et de casser la structure du bilan en posant les questions lui-même.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"161de8d9-6a60-4fec-9662-f732b66c75bf\",\n      \"type\": \"vital\",\n      \"unit\": \"\",\n      \"title\": \"Niveau de charge mentale perçue (1-10)\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"929853ee-aa22-467d-9d45-e5c26f66eb5b\",\n      \"type\": \"action\",\n      \"title\": \"Le Scanner des Surchargeurs\",\n      \"target\": 1,\n      \"description\": \"Pendant 3 jours, notez chaque événement, pensée ou sollicitation qui déclenche une sensation d'anxiété ou de submersion. Ne filtrez rien, juste observez.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"f013a0f4-1229-4aa7-96bb-5cf72e2e3764\",\n      \"type\": \"action\",\n      \"title\": \"La Bulle d'Air Consciente\",\n      \"target\": 7,\n      \"description\": \"À chaque sensation de montée d'anxiété ou de submersion, prenez 60 secondes pour respirer profondément (4s inspire, 6s expire).\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"fe5de8f1-0a0a-4bec-a0d2-bfe24ab77f41\",\n      \"type\": \"framework\",\n      \"title\": \"Le Vidage de RAM Quotidien\",\n      \"tracking_type\": \"counter\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): C'est parti. Pour débuter ce bilan, comment évaluerais-tu ton niveau de charge mentale aujourd'hui, sur une échelle de 1 à 10 ? 🧠\n#2 USER: Hmm, je pense que je suis à 6 aujourd'hui.\n#3 ASSISTANT(investigator): C'est noté pour ce 6, on sent que la pression est bien présente sans être encore au maximum. Pour la suite du bilan, j'aimerais te proposer un exercice pratique appelé le Scanner des Surchargeurs : l'idée est de noter, pendant trois jours, chaque événement ou pensée qui te donne une sensation de submersion. Est-ce que tu te sens prêt à tenter l'expérience ?\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nINTERDICTION CHECKUP\n- Tu n'es PAS l'Investigator. Ne pose JAMAIS de questions relatives au protocole de bilan (scanner, charge mentale, vidage RAM).\n- Si l'utilisateur demande de \"finir le bilan\", ne tente pas de le faire toi-même. Réponds simplement que tu redonnes la main à l'expert du bilan.",
+      "proposed_addendum": "INTERDICTION CHECKUP\n- Tu n'es PAS l'Investigator. Ne pose JAMAIS de questions relatives au protocole de bilan (scanner, charge mentale, vidage RAM).\n- Si l'utilisateur demande de \"finir le bilan\", ne tente pas de le faire toi-même. Réponds simplement que tu redonnes la main à l'expert du bilan."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.034099800000000006,
+    "request_id": "20567d60-b1e5-4af9-930b-d7cd43afcb78:core:bilan_real_bundle__d59c0d8482e64f:1d45fecb-5a05-4d65-9bca-508b92671370",
+    "total_tokens": 227919,
+    "output_tokens": 3035,
+    "prompt_tokens": 187993,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3,
+      "test_post_checkup_deferral": true
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "128f797e-4f04-45b1-b4f6-c04774279e44",
+        "title": "Le Protocole Résilience Solaire",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Le Grand Désencombrement Mental",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "929853ee-aa22-467d-9d45-e5c26f66eb5b",
+                  "tips": "Utilisez un petit carnet ou une note sur votre téléphone dédiée. Soyez impitoyable sur la capture.",
+                  "type": "mission",
+                  "title": "Le Scanner des Surchargeurs",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Pour neutraliser un ennemi, il faut le connaître. Identifier les déclencheurs est la première étape vers la maîtrise.",
+                  "description": "Pendant 3 jours, notez chaque événement, pensée ou sollicitation qui déclenche une sensation d'anxiété ou de submersion. Ne filtrez rien, juste observez.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "17c48328-bb9c-4280-9a4b-21e47df1fde5",
+                  "tips": "Ne cherchez ni structure ni perfection. C'est une poubelle mentale, pas une œuvre d'art.",
+                  "type": "framework",
+                  "title": "Le Vidage de RAM Quotidien",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Permet de décharger le cerveau de sa 'boucle ouverte' et de réduire l'anxiété prélude au sommeil ou au repos.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, 10 minutes d'écriture libre pour vider absolument tout ce qui encombre votre esprit avant de vous déconnecter.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "counter",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Votre cerveau n'est pas un disque dur illimité. Videz-le avant qu'il ne sature. Tout y passe : tâches à faire, irritations, idées folles, peurs. Le papier est votre déversoir.",
+                    "sections": [
+                      {
+                        "id": "p1a2s1",
+                        "label": "Ce qui a tourné en boucle aujourd'hui",
+                        "inputType": "textarea",
+                        "placeholder": "Liste des pensées parasites, des soucis, des tâches non finies..."
+                      },
+                      {
+                        "id": "p1a2s2",
+                        "label": "Émotion dominante avant d'écrire",
+                        "inputType": "text",
+                        "placeholder": "Ex: Anxiété, frustration, agitation..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "f013a0f4-1229-4aa7-96bb-5cf72e2e3764",
+                  "tips": "Mettez une alarme discrète ou un bracelet pour vous rappeler d'agir dès les premiers signes.",
+                  "type": "habitude",
+                  "title": "La Bulle d'Air Consciente",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Active le système nerveux parasympathique, brisant le cycle du stress avant qu'il ne s'emballe. C'est un ancrage immédiat.",
+                  "targetReps": 7,
+                  "description": "À chaque sensation de montée d'anxiété ou de submersion, prenez 60 secondes pour respirer profondément (4s inspire, 6s expire).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 1 • Purification radicale des nuisances",
+              "rationale": "Avant de construire, on nettoie le terrain. Cette phase est un choc pour stopper l'hémorragie de ta charge mentale et identifier les saboteurs silencieux."
+            },
+            {
+              "id": 2,
+              "title": "L'Ancre Immobile",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "9ef1b40c-8903-4979-a512-80cdfa40d4bb",
+                  "tips": "Mettez votre téléphone en mode avion avant de vous coucher. Gardez-le loin de votre lit. Un réveil analogique est idéal.",
+                  "type": "habitude",
+                  "title": "Le Sanctionnaire Matinal (10 min de silence)",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Conditionne votre cerveau à la sérénité avant l'assaut de la journée, réduisant la réactivité au stress.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, les 10 premières minutes sont SANS ÉCRAN et dédiées au calme. Buvez un verre d'eau, observez par la fenêtre, faites quelques étirements légers.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "52059df3-261c-4a19-9113-54b162a4ca5c",
+                  "tips": "Ajoutez une plante, une bougie parfumée, un coussin. Rendez-le invitants et inviolable.",
+                  "type": "mission",
+                  "title": "Le Sanctuaire du Calme",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Créer un ancrage spatial de la sérénité. Votre cerveau associera cet espace à la détente, facilitant la décompression.",
+                  "description": "Identifiez et aménagez un petit espace (même un coin de pièce) dédié à la tranquillité. Zéro écran, zéro travail, juste le calme. Utilisez-le 5 min chaque jour.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "8387fec2-4e09-4f91-a134-dbedac7c513d",
+                  "tips": "Soyez impitoyable. Déléguez ou reportez ce qui n'est ni urgent ni important.",
+                  "type": "framework",
+                  "title": "La Boussole des Priorités",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Clarifie l'esprit, réduit la sensation de submersion en focalisant l'énergie sur l'essentiel et en éliminant le superflu.",
+                  "targetReps": 1,
+                  "description": "Appliquez la Matrice d'Eisenhower (Urgent/Important) à votre liste de tâches pour la semaine. Ne traitez que ce qui est Urgent et Important.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "L'urgence est souvent un mirage. L'importance est la clé. Catégorisez vos tâches pour reprendre le contrôle de votre agenda mental.",
+                    "sections": [
+                      {
+                        "id": "p2a3s1",
+                        "label": "Tâches à réaliser cette semaine",
+                        "inputType": "categorized_list",
+                        "placeholder": "Ex: Rédiger rapport|Important & Urgent"
+                      },
+                      {
+                        "id": "p2a3s2",
+                        "label": "Ce que j'ai décidé de ne PAS faire / Déléguer",
+                        "inputType": "list",
+                        "placeholder": "Ex: Répondre à cet email non urgent."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 2 • Bâtir un sanctuaire mental",
+              "rationale": "Maintenant que les fuites sont identifiées, on crée des digues. Cette phase instaure des rituels qui protègent votre esprit des assauts extérieurs."
+            },
+            {
+              "id": 3,
+              "title": "Le Bouclier de Concentration",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "6c935bae-680a-4f7a-a217-0bd9f7488bd7",
+                  "tips": "Préparez un livre, un bloc-notes ou un jeu de société. Impliquez votre entourage si possible pour la cohésion.",
+                  "type": "habitude",
+                  "title": "Le Mur Anti-Parasites Digitaux",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Réduit l'exposition à la lumière bleue et aux informations stimulantes qui maintiennent le cerveau en état d'alerte, favorisant une transition douce vers le repos.",
+                  "targetReps": 7,
+                  "description": "Instaurez un couvre-feu digital strict 1 heure avant votre coucher. Aucun écran (téléphone, tablette, ordinateur, TV) n'est autorisé.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "237a0347-0998-4510-84ef-46f42ee22af4",
+                  "tips": "Utilisez un casque anti-bruit si votre environnement est bruyant. Mettez une pancarte 'Ne pas déranger' si vous êtes en open space.",
+                  "type": "habitude",
+                  "title": "Le Silence Radio (30 minutes Focus)",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit la dispersion de l'attention, favorisant la concentration et diminuant le sentiment d'être constamment 'à la traîne' face aux sollicitations.",
+                  "targetReps": 7,
+                  "description": "Choisissez un créneau de 30 minutes dans votre journée (ex: après-midi) où toutes les notifications sont désactivées. C'est votre 'zone de travail profond' ou 'pause silencieuse'.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "3e879082-14af-42f5-a530-079a91857bb6",
+                  "tips": "Communiquez ces limites avec clarté et fermeté. 'Non' est une phrase complète.",
+                  "type": "framework",
+                  "title": "Le Contrat de Mes Limites",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Formaliser vos limites vous donne le pouvoir de les défendre, réduisant la pression extérieure et l'anxiété liée aux attentes des autres.",
+                  "targetReps": 1,
+                  "description": "Identifiez les 3 principales sources de sollicitations externes qui vous submergent (personnes, emails, réunions...). Rédigez un 'contrat' interne sur la manière de gérer ces limites (ex: 'Je réponds aux emails 2 fois par jour').",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Vos limites sont votre bouclier. Identifiez les brèches et scellez-les. Ce contrat est une déclaration de souveraineté sur votre temps et votre énergie.",
+                    "sections": [
+                      {
+                        "id": "p3a3s1",
+                        "label": "Source de sollicitation N°1 et ma limite",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Collègue A me sollicite souvent de manière urgente. Ma limite: Je ne réponds pas aux demandes par chat après 17h, sauf urgence vitale."
+                      },
+                      {
+                        "id": "p3a3s2",
+                        "label": "Source de sollicitation N°2 et ma limite",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Emails après 18h. Ma limite: Je ne lis mes emails qu'à 9h et 16h."
+                      },
+                      {
+                        "id": "p3a3s3",
+                        "label": "Source de sollicitation N°3 et ma limite",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Notifications des réseaux sociaux. Ma limite: Désactivation complète des notifications sur le téléphone."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 3 • Maîtriser les frontières invisibles",
+              "rationale": "Le monde extérieur est bruyant. Cette phase vous arme pour protéger votre attention et établir des limites fermes, condition sine qua non de la sérénité."
+            },
+            {
+              "id": 4,
+              "title": "Le Réservoir de Sérénité",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "658f54db-b37e-4545-a4bf-f90f9fae2617",
+                  "tips": "Utilisez une application de méditation ou une playlist de musique apaisante. L'important est la constance, pas l'intensité.",
+                  "type": "habitude",
+                  "title": "Le Rituel de Reconnexion Énergétique",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Recharge vos batteries internes, libère des endorphines et renforce votre résilience face au stress quotidien.",
+                  "targetReps": 7,
+                  "description": "Intégrez 15 minutes d'activité physique légère (marche rapide, yoga doux) ou de méditation guidée dans votre journée, au moment de votre choix.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "000bb681-3e1e-4ea1-b87c-5659f2f6b44c",
+                  "tips": "Peu importe l'activité : lecture, bain chaud, promenade en nature, activité créative... L'important est que ce soit pour vous.",
+                  "type": "mission",
+                  "title": "L'Agenda du Bien-Être",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Assure une recharge régulière de vos réserves mentales et émotionnelles, prévenant l'épuisement et la sensation de débordement.",
+                  "description": "Planifiez consciemment un véritable moment de détente ou de plaisir pour vous-même chaque semaine (minimum 1h). C'est non négociable.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "09c62c5f-b995-4f67-958c-8d56d39dba5d",
+                  "tips": "Cela peut être 'j'ai bu assez d'eau' ou 'j'ai dit non à une sollicitation inutile'.",
+                  "type": "habitude",
+                  "title": "Le Bilan des Victoires (Anti-Anxiété)",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Recadre votre esprit sur le positif, réduit l'rumination anxieuse et renforce le sentiment de compétence et de gratitude, ancrant un état d'esprit plus serein.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, avant de dormir, notez 3 petites choses pour lesquelles vous êtes reconnaissant(e) ou 3 petites victoires (même infimes) de la journée.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 4 • Consolider et régénérer",
+              "rationale": "Les bases sont posées, les protections activées. Cette dernière phase vise à infuser durablement la sérénité en rechargeant vos ressources internes et en ancrant les nouvelles habitudes."
+            }
+          ],
+          "deepWhy": "Pour retrouver l'énergie d'être stable et serein(e) face aux imprévus du quotidien, et maîtriser mon espace mental sans me sentir submergé(e).",
+          "identity": "Je suis un(e) Architecte de ma Paix Intérieure.",
+          "strategy": "Face à la surcharge, on ne gère pas le stress, on l'anticipe et on décontamine l'environnement mental. Ce plan radical vise à recâbler vos réactions en 4 semaines pour une stabilité immédiate.",
+          "goldenRules": "1. Ma charge mentale est une priorité.\n2. Chaque sollicitation doit être filtrée ou déléguée.\n3. Je suis le gardien de ma paix intérieure.",
+          "vitalSignal": {
+            "name": "Niveau de charge mentale perçue (1-10)",
+            "type": "constat",
+            "unit": "",
+            "startValue": "7",
+            "description": "Notez chaque soir votre niveau de charge mentale globale de la journée. Visez une baisse rapide.",
+            "targetValue": "3",
+            "time_of_day": "evening",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole Résilience Solaire",
+          "context_problem": "Tu te sentais constamment débordé(e), perdant le fil de tes pensées sous le poids des sollicitations incessantes de ton quotidien. Ce sentiment de submersion était ton principal blocage, t'empêchant de retrouver une stabilité et l'énergie nécessaire pour faire face à l'anxiété et à la charge mentale.",
+          "sophiaKnowledge": "Tu es une personne avec un rythme de vie chargé, percevant un stress 'faible' mais souffrant d'anxiété et de charge mentale, te sentant vite submergé(e). Malgré une bonne qualité de sommeil, ton énergie et ta stabilité sont impactées par un surplus de sollicitations. Tu désires retrouver de l'énergie et une plus grande maîtrise émotionnelle. Mon approche va te donner les outils pour transformer cette réalité, rapidement et avec détermination.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois t'es-tu senti(e) submergé(e) cette semaine au point de perdre le fil ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "4 semaines"
+        },
+        "goal_id": "d732bc2f-c849-45df-a884-4c27b5ea9483",
+        "deep_why": "Pour retrouver l'énergie d'être stable et serein(e) face aux imprévus du quotidien, et maîtriser mon espace mental sans me sentir submergé(e).",
+        "created_at": "2026-01-08T16:34:22.112457+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "47f20958-2d0a-444a-9f55-8cb3d3fb4408",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "929853ee-aa22-467d-9d45-e5c26f66eb5b",
+          "title": "Le Scanner des Surchargeurs",
+          "status": "active",
+          "created_at": "2026-01-08T16:34:22.121686+00:00",
+          "description": "Pendant 3 jours, notez chaque événement, pensée ou sollicitation qui déclenche une sensation d'anxiété ou de submersion. Ne filtrez rien, juste observez.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T16:34:22.119+00:00"
+        },
+        {
+          "id": "f013a0f4-1229-4aa7-96bb-5cf72e2e3764",
+          "title": "La Bulle d'Air Consciente",
+          "status": "active",
+          "created_at": "2026-01-08T16:34:22.121686+00:00",
+          "description": "À chaque sensation de montée d'anxiété ou de submersion, prenez 60 secondes pour respirer profondément (4s inspire, 6s expire).",
+          "target_reps": 7,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T16:34:22.119+00:00"
+        },
+        {
+          "id": "fe5de8f1-0a0a-4bec-a0d2-bfe24ab77f41",
+          "_kind": "framework",
+          "title": "Le Vidage de RAM Quotidien",
+          "status": "active",
+          "created_at": "2026-01-08T16:34:22.126268+00:00",
+          "description": "",
+          "target_reps": 7,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "counter",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-06T16:34:22.119+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "fe5de8f1-0a0a-4bec-a0d2-bfe24ab77f41",
+          "type": "recurring",
+          "title": "Le Vidage de RAM Quotidien",
+          "status": "active",
+          "created_at": "2026-01-08T16:34:22.126268+00:00",
+          "target_reps": 7,
+          "current_reps": 0,
+          "tracking_type": "counter",
+          "last_performed_at": "2026-01-06T16:34:22.119+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole Résilience Solaire\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour retrouver l'énergie d'être stable et serein(e) face aux imprévus du quotidien, et maîtriser mon espace mental sans me sentir submergé(e).\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Le Grand Désencombrement Mental\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"929853ee-aa22-467d-9d45-e5c26f66eb5b\",\n          \"tips\": \"Utilisez un petit carnet ou une note sur votre téléphone dédiée. Soyez impitoyable sur la capture.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Scanner des Surchargeurs\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Pour neutraliser un ennemi, il faut le connaître. Identifier les déclencheurs est la première étape vers la maîtrise.\",\n          \"description\": \"Pendant 3 jours, notez chaque événement, pensée ou sollicitation qui déclenche une sensation d'anxiété ou de submersion. Ne filtrez rien, juste observez.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"17c48328-bb9c-4280-9a4b-21e47df1fde5\",\n          \"tips\": \"Ne cherchez ni structure ni perfection. C'est une poubelle mentale, pas une œuvre d'art.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Vidage de RAM Quotidien\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Permet de décharger le cerveau de sa 'boucle ouverte' et de réduire l'anxiété prélude au sommeil ou au repos.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, 10 minutes d'écriture libre pour vider absolument tout ce qui encombre votre esprit avant de vous déconnecter.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"counter\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Votre cerveau n'est pas un disque dur illimité. Videz-le avant qu'il ne sature. Tout y passe : tâches à faire, irritations, idées folles, peurs. Le papier est votre déversoir.\",\n            \"sections\": [\n              {\n                \"id\": \"p1a2s1\",\n                \"label\": \"Ce qui a tourné en boucle aujourd'hui\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Liste des pensées parasites, des soucis, des tâches non finies...\"\n              },\n              {\n                \"id\": \"p1a2s2\",\n                \"label\": \"Émotion dominante avant d'écrire\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Anxiété, frustration, agitation...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"f013a0f4-1229-4aa7-96bb-5cf72e2e3764\",\n          \"tips\": \"Mettez une alarme discrète ou un bracelet pour vous rappeler d'agir dès les premiers signes.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Bulle d'Air Consciente\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Active le système nerveux parasympathique, brisant le cycle du stress avant qu'il ne s'emballe. C'est un ancrage immédiat.\",\n          \"targetReps\": 7,\n          \"description\": \"À chaque sensation de montée d'anxiété ou de submersion, prenez 60 secondes pour respirer profondément (4s inspire, 6s expire).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 1 • Purification radicale des nuisances\",\n      \"rationale\": \"Avant de construire, on nettoie le terrain. Cette phase est un choc pour stopper l'hémorragie de ta charge mentale et identifier les saboteurs silencieux.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"L'Ancre Immobile\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"9ef1b40c-8903-4979-a512-80cdfa40d4bb\",\n          \"tips\": \"Mettez votre téléphone en mode avion avant de vous coucher. Gardez-le loin de votre lit. Un réveil analogique est idéal.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sanctionnaire Matinal (10 min de silence)\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Conditionne votre cerveau à la sérénité avant l'assaut de la journée, réduisant la réactivité au stress.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, les 10 premières minutes sont SANS ÉCRAN et dédiées au calme. Buvez un verre d'eau, observez par la fenêtre, faites quelques étirements légers.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"52059df3-261c-4a19-9113-54b162a4ca5c\",\n          \"tips\": \"Ajoutez une plante, une bougie parfumée, un coussin. Rendez-le invitants et inviolable.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Sanctuaire du Calme\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Créer un ancrage spatial de la sérénité. Votre cerveau associera cet espace à la détente, facilitant la décompression.\",\n          \"description\": \"Identifiez et aménagez un petit espace (même un coin de pièce) dédié à la tranquillité. Zéro écran, zéro travail, juste le calme. Utilisez-le 5 min chaque jour.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"8387fec2-4e09-4f91-a134-dbedac7c513d\",\n          \"tips\": \"Soyez impitoyable. Déléguez ou reportez ce qui n'est ni urgent ni important.\",\n          \"type\": \"framework\",\n          \"title\": \"La Boussole des Priorités\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Clarifie l'esprit, réduit la sensation de submersion en focalisant l'énergie sur l'essentiel et en éliminant le superflu.\",\n          \"targetReps\": 1,\n          \"description\": \"Appliquez la Matrice d'Eisenhower (Urgent/Important) à votre liste de tâches pour la semaine. Ne traitez que ce qui est Urgent et Important.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"L'urgence est souvent un mirage. L'importance est la clé. Catégorisez vos tâches pour reprendre le contrôle de votre agenda mental.\",\n            \"sections\": [\n              {\n                \"id\": \"p2a3s1\",\n                \"label\": \"Tâches à réaliser cette semaine\",\n                \"inputType\": \"categorized_list\",\n                \"placeholder\": \"Ex: Rédiger rapport|Important & Urgent\"\n              },\n              {\n                \"id\": \"p2a3s2\",\n                \"label\": \"Ce que j'ai décidé de ne PAS faire / Déléguer\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Répondre à cet email non urgent.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 2 • Bâtir un sanctuaire mental\",\n      \"rationale\": \"Maintenant que les fuites sont identifiées, on crée des digues. Cette phase instaure des rituels qui protègent votre esprit des assauts extérieurs.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Le Bouclier de Concentration\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"6c935bae-680a-4f7a-a217-0bd9f7488bd7\",\n          \"tips\": \"Préparez un livre, un bloc-notes ou un jeu de société. Impliquez votre entourage si possible pour la cohésion.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Mur Anti-Parasites Digitaux\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Réduit l'exposition à la lumière bleue et aux informations stimulantes qui maintiennent le cerveau en état d'alerte, favorisant une transition douce vers le repos.\",\n          \"targetReps\": 7,\n          \"description\": \"Instaurez un couvre-feu digital strict 1 heure avant votre coucher. Aucun écran (téléphone, tablette, ordinateur, TV) n'est autorisé.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"237a0347-0998-4510-84ef-46f42ee22af4\",\n          \"tips\": \"Utilisez un casque anti-bruit si votre environnement est bruyant. Mettez une pancarte 'Ne pas déranger' si vous êtes en open space.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Silence Radio (30 minutes Focus)\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit la dispersion de l'attention, favorisant la concentration et diminuant le sentiment d'être constamment 'à la traîne' face aux sollicitations.\",\n          \"targetReps\": 7,\n          \"description\": \"Choisissez un créneau de 30 minutes dans votre journée (ex: après-midi) où toutes les notifications sont désactivées. C'est votre 'zone de travail profond' ou 'pause silencieuse'.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"3e879082-14af-42f5-a530-079a91857bb6\",\n          \"tips\": \"Communiquez ces limites avec clarté et fermeté. 'Non' est une phrase complète.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Contrat de Mes Limites\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Formaliser vos limites vous donne le pouvoir de les défendre, réduisant la pression extérieure et l'anxiété liée aux attentes des autres.\",\n          \"targetReps\": 1,\n          \"description\": \"Identifiez les 3 principales sources de sollicitations externes qui vous submergent (personnes, emails, réunions...). Rédigez un 'contrat' interne sur la manière de gérer ces limites (ex: 'Je réponds aux emails 2 fois par jour').\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Vos limites sont votre bouclier. Identifiez les brèches et scellez-les. Ce contrat est une déclaration de souveraineté sur votre temps et votre énergie.\",\n            \"sections\": [\n              {\n                \"id\": \"p3a3s1\",\n                \"label\": \"Source de sollicitation N°1 et ma limite\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Collègue A me sollicite souvent de manière urgente. Ma limite: Je ne réponds pas aux demandes par chat après 17h, sauf urgence vitale.\"\n              },\n              {\n                \"id\": \"p3a3s2\",\n                \"label\": \"Source de sollicitation N°2 et ma limite\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Emails après 18h. Ma limite: Je ne lis mes emails qu'à 9h et 16h.\"\n              },\n              {\n                \"id\": \"p3a3s3\",\n                \"label\": \"Source de sollicitation N°3 et ma limite\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Notifications des réseaux sociaux. Ma limite: Désactivation complète des notifications sur le téléphone.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 3 • Maîtriser les frontières invisibles\",\n      \"rationale\": \"Le monde extérieur est bruyant. Cette phase vous arme pour protéger votre attention et établir des limites fermes, condition sine qua non de la sérénité.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Le Réservoir de Sérénité\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"658f54db-b37e-4545-a4bf-f90f9fae2617\",\n          \"tips\": \"Utilisez une application de méditation ou une playlist de musique apaisante. L'important est la constance, pas l'intensité.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel de Reconnexion Énergétique\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Recharge vos batteries internes, libère des endorphines et renforce votre résilience face au stress quotidien.\",\n          \"targetReps\": 7,\n          \"description\": \"Intégrez 15 minutes d'activité physique légère (marche rapide, yoga doux) ou de méditation guidée dans votre journée, au moment de votre choix.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"000bb681-3e1e-4ea1-b87c-5659f2f6b44c\",\n          \"tips\": \"Peu importe l'activité : lecture, bain chaud, promenade en nature, activité créative... L'important est que ce soit pour vous.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Agenda du Bien-Être\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Assure une recharge régulière de vos réserves mentales et émotionnelles, prévenant l'épuisement et la sensation de débordement.\",\n          \"description\": \"Planifiez consciemment un véritable moment de détente ou de plaisir pour vous-même chaque semaine (minimum 1h). C'est non négociable.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"09c62c5f-b995-4f67-958c-8d56d39dba5d\",\n          \"tips\": \"Cela peut être 'j'ai bu assez d'eau' ou 'j'ai dit non à une sollicitation inutile'.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bilan des Victoires (Anti-Anxiété)\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Recadre votre esprit sur le positif, réduit l'rumination anxieuse et renforce le sentiment de compétence et de gratitude, ancrant un état d'esprit plus serein.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, avant de dormir, notez 3 petites choses pour lesquelles vous êtes reconnaissant(e) ou 3 petites victoires (même infimes) de la journée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 4 • Consolider et régénérer\",\n      \"rationale\": \"Les bases sont posées, les protections activées. Cette dernière phase vise à infuser durablement la sérénité en rechargeant vos ressources internes et en ancrant les nouvelles habitudes.\"\n    }\n  ],\n  \"deepWhy\": \"Pour retrouver l'énergie d'être stable et serein(e) face aux imprévus du quotidien, et maîtriser mon espace mental sans me sentir submergé(e).\",\n  \"identity\": \"Je suis un(e) Architecte de ma Paix Intérieure.\",\n  \"strategy\": \"Face à la surcharge, on ne gère pas le stress, on l'anticipe et on décontamine l'environnement mental. Ce plan radical vise à recâbler vos réactions en 4 semaines pour une stabilité immédiate.\",\n  \"goldenRules\": \"1. Ma charge mentale est une priorité.\\n2. Chaque sollicitation doit être filtrée ou déléguée.\\n3. Je suis le gardien de ma paix intérieure.\",\n  \"vitalSignal\": {\n    \"name\": \"Niveau de charge mentale perçue (1-10)\",\n    \"type\": \"constat\",\n    \"unit\": \"\",\n    \"startValue\": \"7\",\n    \"description\": \"Notez chaque soir votre niveau de charge mentale globale de la journée. Visez une baisse rapide.\",\n    \"targetValue\": \"3\",\n    \"time_of_day\": \"evening\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole Résilience Solaire\",\n  \"context_problem\": \"Tu te sentais constamment débordé(e), perdant le fil de tes pensées sous le poids des sollicitations incessantes de ton quotidien. Ce sentiment de submersion était ton principal blocage, t'empêchant de retrouver une stabilité et l'énergie nécessaire pour faire face à l'anxiété et à la charge mentale.\",\n  \"sophiaKnowledge\": \"Tu es une personne avec un rythme de vie chargé, percevant un stress 'faible' mais souffrant d'anxiété et de charge mentale, te sentant vite submergé(e). Malgré une bonne qualité de sommeil, ton énergie et ta stabilité sont impactées par un surplus de sollicitations. Tu désires retrouver de l'énergie et une plus grande maîtrise émotionnelle. Mon approche va te donner les outils pour transformer cette réalité, rapidement et avec détermination.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois t'es-tu senti(e) submergé(e) cette semaine au point de perdre le fil ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"4 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Scanner des Surchargeurs (any_time)\n- [ACTION] La Bulle d'Air Consciente (any_time)\n- [FRAMEWORK] Le Vidage de RAM Quotidien\n\n=== SIGNES VITAUX (État Actuel) ===\n- Niveau de charge mentale perçue (1-10): 7 \n",
+      "template_fingerprint": "6bac6ff9defb5e35"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

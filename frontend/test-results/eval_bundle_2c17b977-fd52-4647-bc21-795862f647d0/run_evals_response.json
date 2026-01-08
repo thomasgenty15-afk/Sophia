@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "request_id": "bilan_eval_bundle:bilan_real_bundle__84a8f64daaf844",
+  "mega_test_mode": false,
+  "use_real_ai": true,
+  "requested_scenarios": 1,
+  "selected_scenarios": 1,
+  "limits_applied": {
+    "max_scenarios": 1,
+    "max_turns_per_scenario": 15,
+    "bilan_actions_count": 3,
+    "test_post_checkup_deferral": true,
+    "stop_on_first_failure": false,
+    "budget_usd": 0,
+    "model": "gemini-2.5-flash"
+  },
+  "ran": 1,
+  "stopped_reason": null,
+  "plan_template_fingerprint": null,
+  "total_cost_usd": 0.0561915,
+  "total_prompt_tokens": 191796,
+  "total_output_tokens": 3450,
+  "total_tokens": 248300,
+  "results": [
+    {
+      "dataset_key": "core",
+      "scenario_key": "bilan_real_bundle__84a8f64daaf844",
+      "eval_run_id": "2c17b977-fd52-4647-bc21-795862f647d0",
+      "plan_template_fingerprint": null,
+      "turns_executed": 15,
+      "bilan_completed": false,
+      "plan_snapshot_actions_count": 3,
+      "bilan_pending_items_count": 0,
+      "issues_count": 3,
+      "suggestions_count": 3,
+      "cost_usd": 0.0561915,
+      "prompt_tokens": 191796,
+      "output_tokens": 3450,
+      "total_tokens": 248300
+    }
+  ]
+}

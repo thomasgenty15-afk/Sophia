@@ -1,0 +1,576 @@
+{
+  "id": "3c8eb06e-5746-4f62-b20b-064eb91cadc5",
+  "created_at": "2026-01-08T18:56:24.504464+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__6b952c47f40f47",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T18:56:24.513782+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est parti. Pour tes minutes d'écran après 21h, combien de temps as-tu passé devant hier soir ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T18:56:31.776187+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Environ 45 minutes hier soir. C'est mieux que 90, mais mon organisation générale est un peu en cause. On pourra en reparler plus tard ?",
+      "agent_used": null,
+      "created_at": "2026-01-08T18:56:38.346011+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est entendu, on prendra le temps d'en discuter plus tard pour ton organisation. En attendant, dis-moi si tu as réussi à respecter ton couvre-feu digital hier soir en éteignant tous tes écrans dès 21h ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T18:56:50.819473+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, pas vraiment. J'ai eu du mal à tout couper à 21h pile hier soir.",
+      "agent_used": null,
+      "created_at": "2026-01-08T18:56:55.052533+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends, c'est pas toujours évident de déconnecter d'un coup. Qu'est-ce qui t'a retenu devant tes écrans hier soir ? 🌙",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T18:57:00.782438+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai dû finir un truc pour le travail, et après j'ai un peu traîné sur des vidéos sans faire attention à l'heure.",
+      "agent_used": null,
+      "created_at": "2026-01-08T18:57:04.09934+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est le piège classique : on finit tard pour le boulot et on a besoin de décompresser, mais les vidéos font vite oublier l'heure. Est-ce que c'est une surcharge de travail exceptionnelle ou c'est souvent comme ça en ce moment ? 🌙",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T18:57:19.001852+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est souvent comme ça en ce moment, oui. J'ai du mal à vraiment couper.",
+      "agent_used": null,
+      "created_at": "2026-01-08T18:57:23.738191+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est un cercle vicieux difficile à briser quand la fatigue s'accumule. Pour la suite de ton bilan, est-ce que tu as pu faire de ta chambre un véritable sanctuaire de sommeil hier, en veillant à l'obscurité et à la température ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T18:57:47.561864+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Pas complètement. J'ai bien fait attention à la température, mais il y a encore un peu de lumière qui passe sous la porte, et le silence n'était pas total.",
+      "agent_used": null,
+      "created_at": "2026-01-08T18:57:51.717842+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté pour la lumière et le bruit, c'est déjà un bon point que tu aies pu gérer la température. On continue le tour d'horizon de ta journée d'hier : est-ce que tu as pris un moment pour faire ta décharge mentale ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T18:58:08.664572+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai essayé. J'ai écrit quelques trucs qui me pesaient, mais je n'ai pas réussi à tout vider, j'étais un peu fatigué.",
+      "agent_used": null,
+      "created_at": "2026-01-08T18:58:13.281453+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, on a fini le bilan.\n\nTu m'avais dit qu'on reparlerait de : \"On pourra en reparler plus tard\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T18:58:33.198138+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ce serait bien. C'est surtout que j'ai du mal à organiser mes tâches et à savoir par où commencer, ce qui me fait souvent finir tard.",
+      "agent_used": null,
+      "created_at": "2026-01-08T18:58:37.01302+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est exactement ça. J'ai l'impression de ne pas savoir par où commencer et ça me submerge.",
+      "agent_used": null,
+      "created_at": "2026-01-08T19:02:07.346096+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est le cercle vicieux classique : quand tout a l'air super important, plus rien ne l'est vraiment et on finit par rester bloqué devant sa liste sans savoir par quel bout la prendre. Forcément, tu finis tes journées à pas d'heure parce que tu cours après le temps.\n\nC'est vraiment pesant ce sentiment de submersion permanente. Dans ton plan, on a justement un outil de tri des priorités de prévu pour la suite, mais pour le moment on mise tout sur ton repos pour que ton cerveau arrête de saturer.\n\nTu veux qu'on essaie de voir ensemble comment tu pourrais simplifier ta matinée de demain, ou tu préfères qu'on papote tranquillement sans se mettre la pression ? 🌊",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T19:02:43.343543+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, on peut regarder ça pour demain matin, ça m'aiderait bien.",
+      "agent_used": null,
+      "created_at": "2026-01-08T19:02:46.67878+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Top, on fait comme ça. Pour pas que tu te réveilles avec la boule au ventre, on va limiter la casse. L'erreur c'est souvent de vouloir tout gérer d'un coup et de finir par s'éparpiller partout.\n\nC'est quoi LE truc qui te pèse le plus pour demain ? Celui qui, une fois terminé, te ferait dire que ta matinée est réussie. On se concentre sur une seule priorité pour commencer. 🌊",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T19:03:05.303956+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je dirais que c'est de finir le rapport X. C'est urgent et ça me stresse de ne pas l'avoir fait.",
+      "agent_used": null,
+      "created_at": "2026-01-08T19:03:07.65126+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, je vois le genre. Le rapport X, c'est le gros dossier qui reste dans un coin de la tête et qui t'empêche de souffler. Franchement, c'est normal que ça te stresse si c'est urgent.\n\nLe mieux, c'est de le traiter en premier demain, sans même regarder tes mails, pour t'en débarrasser avant que le reste du monde ne commence à te solliciter. On peut approfondir cette méthode si tu le souhaites.\n\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T19:03:33.469717+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est clair.",
+      "agent_used": null,
+      "created_at": "2026-01-08T19:03:36.330355+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait, on part sur cette stratégie. Demain, tu fonces sur ce rapport direct, avant que le chaos ne s'installe. Ça va te libérer un espace de dingue dans la tête pour le reste de la journée.\n\nVu qu'il est déjà 20h, oublie pas que ton couvre-feu digital approche. Prends ce petit moment pour toi avant de tout couper à 21h, histoire de ne pas arriver dans ton lit avec le cerveau encore en ébullition 🌙.\n\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T19:03:44.499907+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon.",
+      "agent_used": null,
+      "created_at": "2026-01-08T19:03:46.054119+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Nickel. On a notre plan de bataille pour demain matin, ça va le faire. Maintenant que c'est acté, essaie de laisser ça dans un coin de ta tête.\n\nProfite de la petite heure qu'il te reste avant de couper les écrans. Si tu sens que ça mouline encore un peu là-haut, n'hésite pas à poser deux-trois lignes sur ton carnet pour la décharge mentale, ça vide bien le cache avant d'aller au lit 🌙.\n\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T19:03:53.670007+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon. D'ailleurs, j'ai aussi un petit souci avec mon stress au réveil en ce moment, mais on en reparlera plus tard si tu veux bien.",
+      "agent_used": null,
+      "created_at": "2026-01-08T19:04:08.826691+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah, le réveil en mode cardio alors que t'as même pas encore posé un pied par terre... C'est super usant ça. On pourra en reparler juste après si tu veux, on va trouver comment calmer le jeu.\n\nEn attendant, on reprend là où on en était pour finir de faire le point sur ta semaine ? 🌙",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T19:04:27.303842+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "3d4c3c52-2eb8-4bb8-addb-23387e7b797b",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T18:58:33.196074+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T18:56:24.424642+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "post_checkup",
+      "temp_memory": {
+        "deferred_topics": [
+          "On pourra en reparler plus tard",
+          "J'ai écrit quelques trucs qui me pesaient"
+        ],
+        "current_topic_index": 0
+      }
+    },
+    "last_interaction_at": "2026-01-08T18:56:24.424642+00:00",
+    "unprocessed_msg_count": 7
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "3d4c3c52-2eb8-4bb8-addb-23387e7b797b",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T19:04:27.296896+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T18:56:24.424642+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "post_checkup_done",
+      "temp_memory": {
+        "finished_at": "2026-01-08T19:04:15.279Z",
+        "deferred_topics": [
+          "On pourra en reparler plus tard",
+          "J'ai écrit quelques trucs qui me pesaient",
+          "C'est urgent et ça me stresse de ne pas l'avoir fait",
+          "D'ailleurs"
+        ],
+        "current_topic_index": 2
+      }
+    },
+    "last_interaction_at": "2026-01-08T18:56:24.424642+00:00",
+    "unprocessed_msg_count": 13
+  },
+  "issues": [
+    {
+      "code": "checkup_routing_break",
+      "message": "Avant la clôture du bilan, investigation_state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu.",
+      "evidence": {
+        "snippet": "C'est le cercle vicieux classique : quand tout a l'air super important, plus rien ne l'est vraiment et on finit par rester bloqué devant sa liste sans savoir par quel bout la prendre. Forcément, tu finis tes journées à pas d'heure parce que",
+        "agent_used": "companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "assert_investigator_not_stable",
+      "message": "Assertion failed: investigation_state active => should remain investigator until explicit stop.",
+      "evidence": {
+        "snippet": "C'est le cercle vicieux classique : quand tout a l'air super important, plus rien ne l'est vraiment et on finit par rester bloqué devant sa liste sans savoir par quel bout la prendre. Forcément, tu finis tes journées à pas d'heure parce que",
+        "offending_agent": "companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "hallucination_checkup_state",
+      "message": "L'agent Companion tente de reprendre le bilan ('finir de faire le point') alors que l'Investigator a explicitement déclaré 'on a fini le bilan' plus tôt. Le contexte Post-Bilan interdit de reprendre le checkup.",
+      "evidence": {
+        "snippet": "En attendant, on reprend là où on en était pour finir de faire le point sur ta semaine ? 🌙",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Garantit la stabilité de l’investigation malgré digressions.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#13 ASSISTANT(investigator): Ok, on a fini le bilan. Tu m'avais dit qu'on reparlerait de : \"On pourra en reparler plus tard\". Tu veux qu'on commence par ça ?\n#14 USER: Oui, ce serait bien. C'est surtout que j'ai du mal à organiser mes tâches et à savoir par où commencer, ce qui me fait souvent finir tard.\n#15 USER: Oui, c'est exactement ça. J'ai l'impression de ne pas savoir par où commencer et ça me submerge.\n#16 ASSISTANT(companion): C'est le cercle vicieux classique : quand tout a l'air super important, plus rien ne l'est vraiment et on finit par rester bloqué devant sa liste sans savoir par quel bout la prendre. Forcément, tu finis tes journées à pas d'heure parce que tu cours après le temps. C'est vraiment pesant ce sentiment de submersion permanente. Dans ton plan, on a justement un outil de tri des priorités de prévu pour la suite, mais pour le moment on mise tout sur ton repos pour que ton cerveau arrête de saturer. Tu veux qu'on essaie de voir ensemble comment tu pourrais simplifier ta matinée de demain, ou tu préfères qu'on papote tranquillement sans se mettre la pression ? 🌊\n#17 USER: Oui, on peut regarder ça pour demain matin, ça m'aiderait bien.\n#18 ASSISTANT(companion): Top, on fait comme ça. Pour pas que tu te réveilles avec la boule au ventre, on va limiter la casse. L'erreur c'est souvent de vouloir tout gérer d'un coup et de finir par s'éparpiller partout. C'est quoi LE truc qui te pèse le plus pour demain ? Celui qui, une fois terminé, te ferait dire que ta matinée est réussie. On se concentre sur une seule priorité pour commencer. 🌊\n#19 USER: Je dirais que c'est de finir le rapport X. C'est urgent et ça me stresse de ne pas l'avoir fait.\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nSTABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan.",
+      "proposed_addendum": "STABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan."
+    },
+    {
+      "action": "replace",
+      "rationale": "Corrige l'hallucination critique où le Companion pense devoir finir le bilan, et assouplit la règle de la phrase de fin pour éviter la boucle robotique.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#13 ASSISTANT(investigator): Ok, on a fini le bilan. Tu m'avais dit qu'on reparlerait de : \"On pourra en reparler plus tard\". Tu veux qu'on commence par ça ?\n#14 USER: Oui, ce serait bien. C'est surtout que j'ai du mal à organiser mes tâches et à savoir par où commencer, ce qui me fait souvent finir tard.\n#15 USER: Oui, c'est exactement ça. J'ai l'impression de ne pas savoir par où commencer et ça me submerge.\n#16 ASSISTANT(companion): C'est le cercle vicieux classique : quand tout a l'air super important, plus rien ne l'est vraiment et on finit par rester bloqué devant sa liste sans savoir par quel bout la prendre. Forcément, tu finis tes journées à pas d'heure parce que tu cours après le temps. C'est vraiment pesant ce sentiment de submersion permanente. Dans ton plan, on a justement un outil de tri des priorités de prévu pour la suite, mais pour le moment on mise tout sur ton repos pour que ton cerveau arrête de saturer. Tu veux qu'on essaie de voir ensemble comment tu pourrais simplifier ta matinée de demain, ou tu préfères qu'on papote tranquillement sans se mettre la pression ? 🌊\n#17 USER: Oui, on peut regarder ça pour demain matin, ça m'aiderait bien.\n#18 ASSISTANT(companion): Top, on fait comme ça. Pour pas que tu te réveilles avec la boule au ventre, on va limiter la casse. L'erreur c'est souvent de vouloir tout gérer d'un coup et de finir par s'éparpiller partout. C'est quoi LE truc qui te pèse le plus pour demain ? Celui qui, une fois terminé, te ferait dire que ta matinée est réussie. On se concentre sur une seule priorité pour commencer. 🌊\n#19 USER: Je dirais que c'est de finir le rapport X. C'est urgent et ça me stresse de ne pas l'avoir fait.\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: replace\n\nproposed_addendum:\nMODE POST-BILAN (IMPORTANT)\n- Le bilan est DÉFINITIVEMENT TERMINÉ. Ne propose JAMAIS de 'reprendre le bilan', 'finir le point' ou 'revenir au checkup'.\n- Si l'utilisateur reporte un NOUVEAU sujet (ex: 'on verra plus tard'), accepte simplement et clos la discussion.\n- Traite le sujet actuel avec ton style habituel.\n- Termine par \"C’est bon pour ce point ?\" UNIQUEMENT à la fin de ton conseil principal pour valider. Ne le répète pas à chaque message de suivi.",
+      "proposed_addendum": "MODE POST-BILAN (IMPORTANT)\n- Le bilan est DÉFINITIVEMENT TERMINÉ. Ne propose JAMAIS de 'reprendre le bilan', 'finir le point' ou 'revenir au checkup'.\n- Si l'utilisateur reporte un NOUVEAU sujet (ex: 'on verra plus tard'), accepte simplement et clos la discussion.\n- Traite le sujet actuel avec ton style habituel.\n- Termine par \"C’est bon pour ce point ?\" UNIQUEMENT à la fin de ton conseil principal pour valider. Ne le répète pas à chaque message de suivi."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.027828300000000004,
+    "request_id": "bilan_eval_bundle:bilan_real_bundle__6b952c47f40f47:core:bilan_real_bundle__6b952c47f40f47",
+    "total_tokens": 197795,
+    "output_tokens": 3111,
+    "prompt_tokens": 153868,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3,
+      "test_post_checkup_deferral": true
+    },
+    "request_id": "bilan_eval_bundle:bilan_real_bundle__6b952c47f40f47:core:bilan_real_bundle__6b952c47f40f47",
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "110916a7-9a9f-4bd0-b979-d122db5a20b8",
+        "title": "Le Protocole Anti-Submersion",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage du Calme",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "bf3fb54d-30c8-48b4-8469-426d8516fa58",
+                  "tips": "Utilise un réveil analogique et charge ton téléphone dans une autre pièce. Prépare une liste d'activités 'sans écran' pour le soir.",
+                  "type": "habitude",
+                  "title": "Le Couvre-feu Digital (21h)",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Réduit drastiquement l'exposition à la lumière bleue et aux contenus stimulants, permettant à ton cerveau de commencer la production de mélatonine et de se 'décharger' avant le sommeil.",
+                  "targetReps": 14,
+                  "description": "Éteindre tous les écrans (téléphone, tablette, ordinateur, TV) et les ranger hors de portée à partir de 21h. S'engager dans une activité calme (lecture papier, musique, discussion).",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "a8b1956d-d655-49f6-a8de-1995a45980a7",
+                  "tips": "Fais un tour de ta chambre un soir pour identifier les sources de lumière ou de bruit. Investis dans des articles simples si besoin. C'est un espace sacré.",
+                  "type": "mission",
+                  "title": "La Sanctuaire de Sommeil",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Un environnement de sommeil optimal envoie des signaux clairs à ton corps qu'il est temps de se reposer, améliorant la qualité et la continuité de tes nuits, et donc ton énergie au réveil.",
+                  "description": "Optimiser ta chambre pour le sommeil : obscurité totale (rideaux occultants), température fraîche (18-20°C), silence (boules quies si nécessaire).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Reprendre le contrôle de ton espace mental et physique",
+              "rationale": "Avant de gérer la tempête intérieure, il faut sécuriser le périmètre. Cette phase pose les bases d'un environnement propice au repos et à la diminution des surstimulations, cruciaux pour un esprit moins anxieux et surchargé."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Le Filtre Mental",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "0642d4c5-35c9-4267-8db8-21d50e9188cb",
+                  "tips": "Ne juge pas ce que tu écris. L'objectif est de 'vider ton cache' mental sur le papier, pas de résoudre les problèmes immédiatement.",
+                  "type": "framework",
+                  "title": "La Page du Décharge Mentale",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Externalise ta charge mentale, libérant de l'espace dans ton esprit pour le repos. Cela réduit le cortisol et l'activation du système nerveux sympathique, favorisant un endormissement plus rapide et un sommeil de meilleure qualité.",
+                  "targetReps": 10,
+                  "description": "Chaque soir, avant ton couvre-feu digital, écris librement tout ce qui te pèse, tes inquiétudes, tes tâches inachevées, ou tes idées de la journée.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "counter",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Considère ce journal comme un déversoir. Toutes les pensées, même les plus insignifiantes, y sont les bienvenues. C'est un espace sûr pour tout ce qui tourne en boucle dans ta tête, sans filtre ni jugement.",
+                    "sections": [
+                      {
+                        "id": "s3-1",
+                        "label": "Ce qui me préoccupe, mes inquiétudes et pensées persistantes :",
+                        "inputType": "textarea",
+                        "placeholder": "Aujourd'hui, je n'arrête pas de penser à..."
+                      },
+                      {
+                        "id": "s3-2",
+                        "label": "Tâches et idées qui me traversent l'esprit :",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai besoin de me rappeler de..."
+                      },
+                      {
+                        "id": "s3-3",
+                        "label": "Mon niveau de tension ou d'anxiété avant d'écrire (1-10) :",
+                        "inputType": "scale",
+                        "placeholder": "7"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "b7664e55-ddb4-4d22-aa1a-a70c56547de8",
+                  "tips": "Règle une alarme discrète sur ton téléphone. Trouve un endroit calme si possible, même aux toilettes ! L'important est la micro-coupure.",
+                  "type": "habitude",
+                  "title": "La Pause Consciente de 3 Minutes",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ces micro-pauses interrompent le cycle de surcharge cognitive lié au travail sur écran. Elles permettent de réinitialiser ton attention, de réduire le stress accumulé et de te reconnecter à l'instant présent avant de te sentir submergé.",
+                  "targetReps": 10,
+                  "description": "Au moins une fois dans l'après-midi, fais une pause de 3 minutes. Ferme les yeux, respire profondément 3 fois, puis observe sans jugement les sensations de ton corps et les sons autour de toi.",
+                  "isCompleted": false,
+                  "time_of_day": "afternoon",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Gérer les pensées et l'anxiété avant qu'elles ne submergent",
+              "rationale": "Une fois ton environnement sous contrôle, il est temps d'adresser la source principale de submersion : le flux ininterrompu de pensées et d'inquiétudes. Apprends à les identifier et à les désamorcer."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : La Carte de la Sérénité",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "cb3b3a25-c53f-43f5-8b4d-00b52eeafe40",
+                  "tips": "Ne liste pas plus de 5 choses. Si tout est important, rien ne l'est. Sois réaliste sur ce qui peut être accompli. Utilise un carnet dédié ou une application simple.",
+                  "type": "framework",
+                  "title": "Mon Inventaire d'Urgence et de Priorité",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ce framework te donne une clarté immédiate sur ce qui compte le plus, te permettant de prioriser et de ne pas te sentir submergé par une liste de tâches infinie. Il développe ta capacité à filtrer l'essentiel.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, prends 10 minutes pour lister tes 3-5 tâches les plus importantes de la journée et catégorise-les (Urgent/Important, Important/Non Urgent, etc.).",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "counter",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "L'objectif est de transformer le chaos de ta journée en une séquence claire et gérable. Cet inventaire te permet de 'voir' ta journée avant qu'elle ne t'arrive, réduisant l'anxiété liée à l'incertitude et à la charge perçue. Concentre-toi sur l'impact de chaque tâche.",
+                    "sections": [
+                      {
+                        "id": "s5-1",
+                        "label": "Tâche et Catégorie (ex: 'Rédiger rapport | Urgent/Important') :",
+                        "inputType": "categorized_list",
+                        "placeholder": "Appeler client | Important/Non Urgent"
+                      },
+                      {
+                        "id": "s5-2",
+                        "label": "La tâche la plus prioritaire aujourd'hui :",
+                        "inputType": "text",
+                        "placeholder": "Finir le projet X avant 17h"
+                      },
+                      {
+                        "id": "s5-3",
+                        "label": "Comment cette clarté impacte-t-elle mon niveau d'anxiété (1-10) ? :",
+                        "inputType": "scale",
+                        "placeholder": "3"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "3635c3ff-f2e2-4b47-aece-c54e7884f89a",
+                  "tips": "Commence par 30 minutes de 'nettoyage' et fixe-toi pour objectif de ne plus avoir plus de 5 objets sur ton bureau physique à la fin de la journée.",
+                  "type": "mission",
+                  "title": "Optimiser son Espace de Travail",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement ordonné réduit la charge cognitive. Moins de distractions visuelles et digitales signifie moins de sollicitations pour ton cerveau, ce qui aide à maintenir la concentration et à réduire le sentiment d'être submergé.",
+                  "description": "Désencombrer ton bureau physique et digital. Supprime les icônes inutiles, organise tes dossiers, et ne garde que l'essentiel à portée de main.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Structurer pour éviter la perte de fil",
+              "rationale": "Maintenant que tu as des outils pour décharger et t'ancrer, cette phase vise à structurer proactivement ta charge mentale. En organisant tes pensées et ton environnement, tu retrouveras le fil et réduiras le sentiment d'être submergé."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : Le Mouvement Intérieur",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "cae79e69-9d5a-4b19-b42e-08b4297fa5f7",
+                  "tips": "Fais un petit tour du pâté de maisons pendant une pause, prends les escaliers, ou étire-toi en écoutant de la musique. L'objectif est la régularité, pas l'intensité.",
+                  "type": "habitude",
+                  "title": "Micro-Mouvement Quotidien",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "L'activité physique, même courte, est un puissant régulateur de stress. Elle libère des endorphines, améliore l'humeur, réduit l'anxiété et la tension physique, et contribue à un meilleur sommeil.",
+                  "targetReps": 10,
+                  "description": "Intègre au moins 10-15 minutes de mouvement doux chaque jour (marche rapide, étirements, quelques pompes/squats). Cela peut être divisé en plusieurs sessions.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "5540f925-f44c-4a36-9053-f2d3b71aa513",
+                  "tips": "Bloque ce temps dans ton agenda comme un rendez-vous sacré. Laisse ton intuition te guider vers ce dont tu as besoin ce jour-là. Éteins toutes les notifications.",
+                  "type": "habitude",
+                  "title": "Le Temps de Reconnexion",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ce temps est vital pour recharger tes batteries mentales et émotionnelles. Il te permet de te reconnecter à tes besoins profonds, de réduire le sentiment d'éparpillement et de renforcer ton sentiment de stabilité et d'identité en dehors du travail.",
+                  "targetReps": 7,
+                  "description": "Dédie 15-20 minutes 3 à 4 fois par semaine à une activité qui te nourrit profondément, sans aucune performance attendue (ex: écouter de la musique, dessiner, méditation guidée, observer la nature).",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Renforcer ta résilience et ancrer tes nouvelles habitudes",
+              "rationale": "Pour une stabilité durable, il est crucial d'intégrer le mouvement physique et la reconnexion à soi. Cette phase t'aide à construire une résilience émotionnelle et physique qui te protègera contre la submersion future."
+            }
+          ],
+          "deepWhy": "Pour avoir l'énergie et la clarté nécessaires à une vie stable et sereine, et ne plus me sentir submergé par le tumulte quotidien, afin de me sentir pleinement présent et en contrôle.",
+          "identity": "Je suis un Maître de mon Calme Intérieur.",
+          "strategy": "Nous allons d'abord ériger des fondations solides en gérant l'environnement digital et les pensées intrusives, puis construire des systèmes pour filtrer la charge mentale et ancrer la résilience émotionnelle.",
+          "goldenRules": "1. Prioriser la déconnexion après le travail pour laisser mon esprit se reposer.\n2. Chaque pensée a sa place, mais pas toutes dans ma tête au même moment.\n3. Agir sur le présent plutôt que de ruminer sur le passé ou anticiper l'avenir.",
+          "vitalSignal": {
+            "name": "Minutes d'écran après 21h",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "90",
+            "description": "Limiter progressivement l'exposition aux écrans en soirée pour favoriser un meilleur endormissement.",
+            "targetValue": "0",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole Anti-Submersion",
+          "context_problem": "Tes journées sont dictées par l'écran et se terminent tard, t'empêchant de décompresser. Cette surstimulation contribue à un sommeil de mauvaise qualité et à une charge mentale constante, te laissant dans un état d'anxiété où tu te sens vite dépassé et déconnecté de ton propre rythme.",
+          "sophiaKnowledge": "Tu es un homme de 32 ans, travaillant sur écran, qui finit ses journées tard. Tu souffres d'une mauvaise qualité de sommeil, de charge mentale et d'anxiété, ce qui te laisse un sentiment d'être facilement submergé et de perdre le fil. Tu aspires à retrouver de l'énergie et de la stabilité au quotidien.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Sur une échelle de 1 à 10, quel a été ton niveau de sentiment de submersion cette semaine ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "50925712-8545-41ed-8eac-fbb7c4ae1124",
+        "deep_why": "Pour avoir l'énergie et la clarté nécessaires à une vie stable et sereine, et ne plus me sentir submergé par le tumulte quotidien, afin de me sentir pleinement présent et en contrôle.",
+        "created_at": "2026-01-08T18:56:24.389128+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "cc342d98-5887-4361-bf13-2bdf740ee3f5",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "bf3fb54d-30c8-48b4-8469-426d8516fa58",
+          "title": "Le Couvre-feu Digital (21h)",
+          "status": "active",
+          "created_at": "2026-01-08T18:56:24.39727+00:00",
+          "description": "Éteindre tous les écrans (téléphone, tablette, ordinateur, TV) et les ranger hors de portée à partir de 21h. S'engager dans une activité calme (lecture papier, musique, discussion).",
+          "target_reps": 14,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T18:56:24.394+00:00"
+        },
+        {
+          "id": "a8b1956d-d655-49f6-a8de-1995a45980a7",
+          "title": "La Sanctuaire de Sommeil",
+          "status": "active",
+          "created_at": "2026-01-08T18:56:24.39727+00:00",
+          "description": "Optimiser ta chambre pour le sommeil : obscurité totale (rideaux occultants), température fraîche (18-20°C), silence (boules quies si nécessaire).",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T18:56:24.394+00:00"
+        },
+        {
+          "id": "d3dd220c-51ca-433e-bb14-72822ca7a59a",
+          "_kind": "framework",
+          "title": "La Page du Décharge Mentale",
+          "status": "active",
+          "created_at": "2026-01-08T18:56:24.406803+00:00",
+          "description": "",
+          "target_reps": 10,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "counter",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-06T18:56:24.394+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "d3dd220c-51ca-433e-bb14-72822ca7a59a",
+          "type": "recurring",
+          "title": "La Page du Décharge Mentale",
+          "status": "active",
+          "created_at": "2026-01-08T18:56:24.406803+00:00",
+          "target_reps": 10,
+          "current_reps": 0,
+          "tracking_type": "counter",
+          "last_performed_at": "2026-01-06T18:56:24.394+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole Anti-Submersion\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour avoir l'énergie et la clarté nécessaires à une vie stable et sereine, et ne plus me sentir submergé par le tumulte quotidien, afin de me sentir pleinement présent et en contrôle.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage du Calme\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"bf3fb54d-30c8-48b4-8469-426d8516fa58\",\n          \"tips\": \"Utilise un réveil analogique et charge ton téléphone dans une autre pièce. Prépare une liste d'activités 'sans écran' pour le soir.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Couvre-feu Digital (21h)\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Réduit drastiquement l'exposition à la lumière bleue et aux contenus stimulants, permettant à ton cerveau de commencer la production de mélatonine et de se 'décharger' avant le sommeil.\",\n          \"targetReps\": 14,\n          \"description\": \"Éteindre tous les écrans (téléphone, tablette, ordinateur, TV) et les ranger hors de portée à partir de 21h. S'engager dans une activité calme (lecture papier, musique, discussion).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"a8b1956d-d655-49f6-a8de-1995a45980a7\",\n          \"tips\": \"Fais un tour de ta chambre un soir pour identifier les sources de lumière ou de bruit. Investis dans des articles simples si besoin. C'est un espace sacré.\",\n          \"type\": \"mission\",\n          \"title\": \"La Sanctuaire de Sommeil\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement de sommeil optimal envoie des signaux clairs à ton corps qu'il est temps de se reposer, améliorant la qualité et la continuité de tes nuits, et donc ton énergie au réveil.\",\n          \"description\": \"Optimiser ta chambre pour le sommeil : obscurité totale (rideaux occultants), température fraîche (18-20°C), silence (boules quies si nécessaire).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Reprendre le contrôle de ton espace mental et physique\",\n      \"rationale\": \"Avant de gérer la tempête intérieure, il faut sécuriser le périmètre. Cette phase pose les bases d'un environnement propice au repos et à la diminution des surstimulations, cruciaux pour un esprit moins anxieux et surchargé.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Le Filtre Mental\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"0642d4c5-35c9-4267-8db8-21d50e9188cb\",\n          \"tips\": \"Ne juge pas ce que tu écris. L'objectif est de 'vider ton cache' mental sur le papier, pas de résoudre les problèmes immédiatement.\",\n          \"type\": \"framework\",\n          \"title\": \"La Page du Décharge Mentale\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Externalise ta charge mentale, libérant de l'espace dans ton esprit pour le repos. Cela réduit le cortisol et l'activation du système nerveux sympathique, favorisant un endormissement plus rapide et un sommeil de meilleure qualité.\",\n          \"targetReps\": 10,\n          \"description\": \"Chaque soir, avant ton couvre-feu digital, écris librement tout ce qui te pèse, tes inquiétudes, tes tâches inachevées, ou tes idées de la journée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"counter\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Considère ce journal comme un déversoir. Toutes les pensées, même les plus insignifiantes, y sont les bienvenues. C'est un espace sûr pour tout ce qui tourne en boucle dans ta tête, sans filtre ni jugement.\",\n            \"sections\": [\n              {\n                \"id\": \"s3-1\",\n                \"label\": \"Ce qui me préoccupe, mes inquiétudes et pensées persistantes :\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Aujourd'hui, je n'arrête pas de penser à...\"\n              },\n              {\n                \"id\": \"s3-2\",\n                \"label\": \"Tâches et idées qui me traversent l'esprit :\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai besoin de me rappeler de...\"\n              },\n              {\n                \"id\": \"s3-3\",\n                \"label\": \"Mon niveau de tension ou d'anxiété avant d'écrire (1-10) :\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"7\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"b7664e55-ddb4-4d22-aa1a-a70c56547de8\",\n          \"tips\": \"Règle une alarme discrète sur ton téléphone. Trouve un endroit calme si possible, même aux toilettes ! L'important est la micro-coupure.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Pause Consciente de 3 Minutes\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ces micro-pauses interrompent le cycle de surcharge cognitive lié au travail sur écran. Elles permettent de réinitialiser ton attention, de réduire le stress accumulé et de te reconnecter à l'instant présent avant de te sentir submergé.\",\n          \"targetReps\": 10,\n          \"description\": \"Au moins une fois dans l'après-midi, fais une pause de 3 minutes. Ferme les yeux, respire profondément 3 fois, puis observe sans jugement les sensations de ton corps et les sons autour de toi.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"afternoon\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Gérer les pensées et l'anxiété avant qu'elles ne submergent\",\n      \"rationale\": \"Une fois ton environnement sous contrôle, il est temps d'adresser la source principale de submersion : le flux ininterrompu de pensées et d'inquiétudes. Apprends à les identifier et à les désamorcer.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : La Carte de la Sérénité\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"cb3b3a25-c53f-43f5-8b4d-00b52eeafe40\",\n          \"tips\": \"Ne liste pas plus de 5 choses. Si tout est important, rien ne l'est. Sois réaliste sur ce qui peut être accompli. Utilise un carnet dédié ou une application simple.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Inventaire d'Urgence et de Priorité\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ce framework te donne une clarté immédiate sur ce qui compte le plus, te permettant de prioriser et de ne pas te sentir submergé par une liste de tâches infinie. Il développe ta capacité à filtrer l'essentiel.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, prends 10 minutes pour lister tes 3-5 tâches les plus importantes de la journée et catégorise-les (Urgent/Important, Important/Non Urgent, etc.).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"counter\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"L'objectif est de transformer le chaos de ta journée en une séquence claire et gérable. Cet inventaire te permet de 'voir' ta journée avant qu'elle ne t'arrive, réduisant l'anxiété liée à l'incertitude et à la charge perçue. Concentre-toi sur l'impact de chaque tâche.\",\n            \"sections\": [\n              {\n                \"id\": \"s5-1\",\n                \"label\": \"Tâche et Catégorie (ex: 'Rédiger rapport | Urgent/Important') :\",\n                \"inputType\": \"categorized_list\",\n                \"placeholder\": \"Appeler client | Important/Non Urgent\"\n              },\n              {\n                \"id\": \"s5-2\",\n                \"label\": \"La tâche la plus prioritaire aujourd'hui :\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Finir le projet X avant 17h\"\n              },\n              {\n                \"id\": \"s5-3\",\n                \"label\": \"Comment cette clarté impacte-t-elle mon niveau d'anxiété (1-10) ? :\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"3\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"3635c3ff-f2e2-4b47-aece-c54e7884f89a\",\n          \"tips\": \"Commence par 30 minutes de 'nettoyage' et fixe-toi pour objectif de ne plus avoir plus de 5 objets sur ton bureau physique à la fin de la journée.\",\n          \"type\": \"mission\",\n          \"title\": \"Optimiser son Espace de Travail\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement ordonné réduit la charge cognitive. Moins de distractions visuelles et digitales signifie moins de sollicitations pour ton cerveau, ce qui aide à maintenir la concentration et à réduire le sentiment d'être submergé.\",\n          \"description\": \"Désencombrer ton bureau physique et digital. Supprime les icônes inutiles, organise tes dossiers, et ne garde que l'essentiel à portée de main.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Structurer pour éviter la perte de fil\",\n      \"rationale\": \"Maintenant que tu as des outils pour décharger et t'ancrer, cette phase vise à structurer proactivement ta charge mentale. En organisant tes pensées et ton environnement, tu retrouveras le fil et réduiras le sentiment d'être submergé.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : Le Mouvement Intérieur\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"cae79e69-9d5a-4b19-b42e-08b4297fa5f7\",\n          \"tips\": \"Fais un petit tour du pâté de maisons pendant une pause, prends les escaliers, ou étire-toi en écoutant de la musique. L'objectif est la régularité, pas l'intensité.\",\n          \"type\": \"habitude\",\n          \"title\": \"Micro-Mouvement Quotidien\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"L'activité physique, même courte, est un puissant régulateur de stress. Elle libère des endorphines, améliore l'humeur, réduit l'anxiété et la tension physique, et contribue à un meilleur sommeil.\",\n          \"targetReps\": 10,\n          \"description\": \"Intègre au moins 10-15 minutes de mouvement doux chaque jour (marche rapide, étirements, quelques pompes/squats). Cela peut être divisé en plusieurs sessions.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"5540f925-f44c-4a36-9053-f2d3b71aa513\",\n          \"tips\": \"Bloque ce temps dans ton agenda comme un rendez-vous sacré. Laisse ton intuition te guider vers ce dont tu as besoin ce jour-là. Éteins toutes les notifications.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Temps de Reconnexion\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ce temps est vital pour recharger tes batteries mentales et émotionnelles. Il te permet de te reconnecter à tes besoins profonds, de réduire le sentiment d'éparpillement et de renforcer ton sentiment de stabilité et d'identité en dehors du travail.\",\n          \"targetReps\": 7,\n          \"description\": \"Dédie 15-20 minutes 3 à 4 fois par semaine à une activité qui te nourrit profondément, sans aucune performance attendue (ex: écouter de la musique, dessiner, méditation guidée, observer la nature).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Renforcer ta résilience et ancrer tes nouvelles habitudes\",\n      \"rationale\": \"Pour une stabilité durable, il est crucial d'intégrer le mouvement physique et la reconnexion à soi. Cette phase t'aide à construire une résilience émotionnelle et physique qui te protègera contre la submersion future.\"\n    }\n  ],\n  \"deepWhy\": \"Pour avoir l'énergie et la clarté nécessaires à une vie stable et sereine, et ne plus me sentir submergé par le tumulte quotidien, afin de me sentir pleinement présent et en contrôle.\",\n  \"identity\": \"Je suis un Maître de mon Calme Intérieur.\",\n  \"strategy\": \"Nous allons d'abord ériger des fondations solides en gérant l'environnement digital et les pensées intrusives, puis construire des systèmes pour filtrer la charge mentale et ancrer la résilience émotionnelle.\",\n  \"goldenRules\": \"1. Prioriser la déconnexion après le travail pour laisser mon esprit se reposer.\\n2. Chaque pensée a sa place, mais pas toutes dans ma tête au même moment.\\n3. Agir sur le présent plutôt que de ruminer sur le passé ou anticiper l'avenir.\",\n  \"vitalSignal\": {\n    \"name\": \"Minutes d'écran après 21h\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"90\",\n    \"description\": \"Limiter progressivement l'exposition aux écrans en soirée pour favoriser un meilleur endormissement.\",\n    \"targetValue\": \"0\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole Anti-Submersion\",\n  \"context_problem\": \"Tes journées sont dictées par l'écran et se terminent tard, t'empêchant de décompresser. Cette surstimulation contribue à un sommeil de mauvaise qualité et à une charge mentale constante, te laissant dans un état d'anxiété où tu te sens vite dépassé et déconnecté de ton propre rythme.\",\n  \"sophiaKnowledge\": \"Tu es un homme de 32 ans, travaillant sur écran, qui finit ses journées tard. Tu souffres d'une mauvaise qualité de sommeil, de charge mentale et d'anxiété, ce qui te laisse un sentiment d'être facilement submergé et de perdre le fil. Tu aspires à retrouver de l'énergie et de la stabilité au quotidien.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Sur une échelle de 1 à 10, quel a été ton niveau de sentiment de submersion cette semaine ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Couvre-feu Digital (21h) (night)\n- [ACTION] La Sanctuaire de Sommeil (any_time)\n- [FRAMEWORK] La Page du Décharge Mentale\n\n=== SIGNES VITAUX (État Actuel) ===\n- Minutes d'écran après 21h: 45 min\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

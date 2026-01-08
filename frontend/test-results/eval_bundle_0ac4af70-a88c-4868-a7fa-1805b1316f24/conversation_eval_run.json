@@ -1,0 +1,387 @@
+{
+  "id": "0ac4af70-a88c-4868-a7fa-1805b1316f24",
+  "created_at": "2026-01-08T04:25:00.754019+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__1bb46c8ffda84d",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T04:24:42.89103+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, super. Pour commencer, on va regarder ton Niveau de Surcharge Mentale. Sur une échelle de 1 à 10, où 1 c'est totalement zen et 10 c'est complètement débordé(e), tu te situes où en ce moment ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T04:24:47.987602+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je dirais 7. Mon organisation actuelle est un peu chaotique, mais on en reparlera après le bilan si tu veux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T04:24:50.702414+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "D'accord, un 7 pour la surcharge mentale. Je prends note pour l'organisation, on pourra y revenir si tu veux.\n\nMaintenant, on passe à l'Inventaire Cérébral Complet. Est-ce que tu as déjà eu l'occasion de faire ce genre d'inventaire ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T04:25:00.127798+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "f7c00957-114a-4e93-a466-50c1c177547d",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T04:24:42.622078+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T04:24:42.622078+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "b63b4958-ef2f-4f0c-9b8d-d4d8ce3ee8ac",
+          "type": "vital",
+          "unit": "/10",
+          "title": "Niveau de Surcharge Mentale",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "a545d6fb-e36b-4563-aa6c-b22c3976261e",
+          "type": "framework",
+          "title": "L'Inventaire Cérébral Complet",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T04:24:42.622078+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "f7c00957-114a-4e93-a466-50c1c177547d",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T04:25:00.12537+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T04:24:42.622078+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": true,
+        "deferred_topics": [
+          "Je dirais 7. Mon organisation actuelle est un peu chaotique, mais on en reparlera après le bilan si tu veux."
+        ]
+      },
+      "pending_items": [
+        {
+          "id": "b63b4958-ef2f-4f0c-9b8d-d4d8ce3ee8ac",
+          "type": "vital",
+          "unit": "/10",
+          "title": "Niveau de Surcharge Mentale",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "a545d6fb-e36b-4563-aa6c-b22c3976261e",
+          "type": "framework",
+          "title": "L'Inventaire Cérébral Complet",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 1
+    },
+    "last_interaction_at": "2026-01-08T04:24:42.622078+00:00",
+    "unprocessed_msg_count": 2
+  },
+  "issues": [],
+  "suggestions": [],
+  "metrics": {
+    "cost_usd": 0.004028499999999999,
+    "request_id": "be7a7f7f-c478-49a6-be68-db551833b672:core:bilan_real_bundle__1bb46c8ffda84d:1a73d528-ebc9-47b0-aafb-f581f94679a3",
+    "total_tokens": 15143,
+    "output_tokens": 286,
+    "prompt_tokens": 11045,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-2.5-flash",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 1
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "36862eac-5503-486d-981c-9364eba8d2ed",
+        "title": "Le Sanctuaire Intérieur",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Le Grand Désencombrement Mental",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "8db6e6b2-41b1-4e9c-8d10-11c22318d46e",
+                  "tips": "Ne filtre rien. Si c'est dans ta tête, ça doit être sur le papier. Utilise des listes ou des cartes mentales pour organiser tes pensées.",
+                  "type": "framework",
+                  "title": "L'Inventaire Cérébral Complet",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Externaliser ta charge mentale libère des ressources cognitives précieuses et réduit l'anxiété diffuse en rendant l'intangible concret.",
+                  "targetReps": 2,
+                  "description": "Une fois par semaine, vide tout ce qui encombre ton esprit : tâches, soucis, idées, tout doit être couché sur papier ou digitalement.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Ton cerveau n'est pas fait pour retenir, mais pour créer et analyser. Libère-le de ce poids. Chaque pensée, chaque tâche, chaque anxiété doit trouver sa place ici. C'est un grand nettoyage de printemps pour ton esprit, te permettant de voir clairement ce qui te pèse.",
+                    "sections": [
+                      {
+                        "id": "p1_s1",
+                        "label": "Toutes les tâches en cours ou à faire",
+                        "inputType": "list",
+                        "placeholder": "Appeler le plombier ; Préparer la réunion X ; Acheter des fournitures..."
+                      },
+                      {
+                        "id": "p1_s2",
+                        "label": "Soucis et préoccupations actuelles",
+                        "inputType": "textarea",
+                        "placeholder": "L'échéance du projet Y me stresse ; Je m'inquiète pour la santé de ma mère ; Comment gérer les dépenses imprévues..."
+                      },
+                      {
+                        "id": "p1_s3",
+                        "label": "Idées ou projets latents (même vagues)",
+                        "inputType": "list",
+                        "placeholder": "Apprendre à jouer de la guitare ; Voyager en Islande ; Écrire un blog..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "040204f9-266f-430e-b4b0-ae87529aee17",
+                  "tips": "Communique ces limites clairement à ton entourage professionnel et personnel. Sois ferme et explique ton 'pourquoi' pour qu'ils comprennent l'importance de ton bien-être.",
+                  "type": "mission",
+                  "title": "Définir Mes Trois Boucliers Sacrés",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Les limites sont les remparts de ton énergie et de ta clarté mentale. Sans elles, le monde extérieur t'envahit et la surcharge est inévitable.",
+                  "description": "Identifie et formalise 3 limites non négociables pour protéger ton temps et ton énergie des sollicitations extérieures. Par exemple : 'Pas d'emails pro après 19h', 'Pas de conversations dérangeantes avant le café du matin', 'Une soirée par semaine sans obligation'.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Vider le cache de l'esprit",
+              "rationale": "Pour ne plus se sentir submergé, il faut d'abord identifier et externaliser toutes les sollicitations. Cette phase est dédiée au grand nettoyage de ta charge mentale."
+            },
+            {
+              "id": 2,
+              "title": "L'Ancrage du Calme",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "6516a2e7-53b2-4c7a-8236-f4fd4fcf3055",
+                  "tips": "Pose un rappel discret sur ton téléphone. Concentre-toi sur l'air qui entre par le nez et sort par la bouche. Ces micro-pauses ne durent que 30 secondes et sont très puissantes.",
+                  "type": "habitude",
+                  "title": "La Micro-Pause du Guerrier Zen",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ces micro-pauses régulent instantanément le système nerveux parasympathique, brisant le cycle du stress avant qu'il ne s'emballe et apportant une clarté mentale passagère.",
+                  "targetReps": 7,
+                  "description": "Réalise 3 respirations profondes et conscientes (méthode 4-7-8) trois fois par jour, à des moments clés (avant un appel stressant, après une tâche complexe, en milieu d'après-midi pour recharger).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b5c576d2-a324-4ec8-85a8-2b79ed90e031",
+                  "tips": "Charge ton téléphone dans une autre pièce que la chambre. Utilise une liseuse si tu tiens à lire au lit. L'objectif est de signaler à ton cerveau que la journée active est terminée.",
+                  "type": "habitude",
+                  "title": "Le Rituel du Crépuscule Numérique",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit drastiquement l'exposition à la lumière bleue qui perturbe la production de mélatonine et diminue l'hyper-stimulation cognitive, favorisant un endormissement plus rapide et un sommeil de meilleure qualité.",
+                  "targetReps": 7,
+                  "description": "Éteins tous les écrans (télévision, ordinateur, téléphone) 1 heure avant d'aller te coucher et remplace-les par une activité calme : lecture sur papier, musique douce, conversation tranquille, bain chaud.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Respirer, Ralentir, Réinitialiser",
+              "rationale": "Après avoir identifié les sources de surcharge, il est temps d'intégrer des pratiques qui apportent un calme immédiat et régulier à ton système nerveux."
+            },
+            {
+              "id": 3,
+              "title": "La Stratégie du Focalisé",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "5aa4bb68-0b0e-432f-a9fc-3e2827ecb76a",
+                  "tips": "Consacre 15-20 minutes le dimanche soir ou le lundi matin. Sois impitoyablement réaliste sur ce qui est 'important' et ce qui peut être délégué ou éliminé.",
+                  "type": "framework",
+                  "title": "Le Cadre de Priorisation Anti-Chaos",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La priorisation proactive transforme la réaction en action intentionnelle, réduisant ainsi l'impression de subir les événements et te donnant un sentiment de maîtrise.",
+                  "targetReps": 2,
+                  "description": "Chaque début de semaine, planifie tes tâches en utilisant la matrice d'Eisenhower (Urgent/Important) pour éviter l'urgence constante et reprendre le contrôle de ton temps.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "La Matrice d'Eisenhower est ton arme secrète contre la procrastination et la surcharge. Classe tes tâches en quatre catégories pour une clarté absolue : Urgent/Important (à faire maintenant), Non-urgent/Important (à planifier), Urgent/Non-important (à déléguer), Non-urgent/Non-important (à éliminer). Le but est de réduire le 'Urgent/Important' en planifiant mieux.",
+                    "sections": [
+                      {
+                        "id": "p3_s1",
+                        "label": "Tâches à faire cette semaine (classées)",
+                        "inputType": "categorized_list",
+                        "placeholder": "Rédiger le rapport X|Non-urgent/Important ; Répondre à l'email Y|Urgent/Non-important ; Préparer le repas de dimanche|Non-urgent/Non-important"
+                      },
+                      {
+                        "id": "p3_s2",
+                        "label": "Ce que je délègue ou élimine cette semaine",
+                        "inputType": "list",
+                        "placeholder": "Répondre aux emails non essentiels ; Archiver les anciens documents ; Regarder la série B..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "7847db87-3a45-4c68-be6e-a45efb7719c5",
+                  "tips": "Ces 'grands rochers' ne doivent pas être plus de 3. C'est ce qui, si fait, te donnera le sentiment d'une journée productive et réussie, peu importe le reste.",
+                  "type": "habitude",
+                  "title": "Les Trois 'Grands Rochers' Quotidiennes",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Focaliser ton énergie sur l'essentiel dès le début de journée te donne un sentiment de contrôle, réduit la dispersion et évite l'éparpillement lié à la surcharge.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, identifie et concentre-toi sur 3 tâches essentielles (tes 'Grands Rochers') qui feront avancer tes objectifs, avant toute autre chose et toute consultation d'écran.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Reprendre le contrôle de ton agenda",
+              "rationale": "Une fois l'esprit plus clair et le calme ancré, il est temps de structurer ton approche des tâches pour éviter d'être de nouveau submergé par le flux incessant des sollicitations."
+            },
+            {
+              "id": 4,
+              "title": "Le Maître de son Énergie",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "9871fcc9-89e7-41de-a28f-8e77dad49206",
+                  "tips": "Achète des boules Quies ou un casque anti-bruit de qualité. Range systématiquement ton bureau tous les soirs. Organise tes fichiers numériques. Pense à ce qui te stresse sensoriellement.",
+                  "type": "mission",
+                  "title": "L'Optimisation du Sanctuaire Personnel",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Un environnement calme et ordonné réduit les sollicitations sensorielles et cognitives, agissant comme un prolongement de ton calme intérieur et facilitant la concentration.",
+                  "description": "Identifie et réduis les sources de bruit, de désordre et de distractions visuelles ou auditives dans ton environnement de travail et de vie pour favoriser la concentration et la sérénité.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "553e15ca-8496-48b1-9648-43a07621b5f5",
+                  "tips": "Choisis une activité qui te fait VRAIMENT du bien et que tu attends avec impatience. L'objectif est de te 'remplir' d'énergie et de positivité avant de commencer à 'te vider' pour les autres.",
+                  "type": "habitude",
+                  "title": "Le Rituel d'Activation Matinale",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Démarrer la journée avec intention et énergie positive crée un élan qui protège contre le stress des premières sollicitations et renforce ta stabilité émotionnelle pour la journée.",
+                  "targetReps": 7,
+                  "description": "Débute chaque journée par 15 minutes d'une activité qui t'énergise positivement (étirements doux, marche rapide, lecture inspirante, écoute de musique motivante), avant de consulter les écrans.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Consolidation et Vitalité Durable",
+              "rationale": "Cette dernière phase vise à intégrer les nouvelles habitudes dans un système de vie global, en optimisant l'environnement et les routines pour une énergie et une stabilité accrues et durables."
+            }
+          ],
+          "deepWhy": "Pour retrouver de l'énergie et être plus stable au quotidien.",
+          "identity": "Je suis le Maître de mon Calme Intérieur.",
+          "strategy": "Nous allons transformer ta surcharge mentale et ton anxiété en un calme robuste, en construisant pas à pas des systèmes pour externaliser le chaos et ancrer la sérénité au quotidien.",
+          "goldenRules": "1. Je priorise ce qui nourrit mon calme et ma clarté.\n2. Je définis et je respecte mes limites sans culpabilité.\n3. Je crée des pauses intentionnelles pour réinitialiser mon système.",
+          "vitalSignal": {
+            "name": "Niveau de Surcharge Mentale",
+            "type": "constat",
+            "unit": "/10",
+            "startValue": "8",
+            "description": "Évalue ta charge mentale ressentie chaque soir sur une échelle de 1 à 10.",
+            "targetValue": "4",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Sanctuaire Intérieur",
+          "context_problem": "Tu te sens submergé par une charge mentale constante et une anxiété diffuse, ce qui t'empêche de maintenir ton énergie et ta stabilité au quotidien. Ton principal blocage est de te perdre dans le flot des sollicitations d'un rythme de vie très chargé, sans trouver de temps pour toi.",
+          "sophiaKnowledge": "Tu es un homme né en 1992, confronté à un niveau de stress élevé, une qualité de sommeil moyenne et une activité physique modérée. Tu te sens submergé par une charge mentale importante et de l'anxiété, perdant souvent le fil dans ton rythme de vie chargé. Ta motivation est de retrouver de l'énergie et une stabilité au quotidien en améliorant ta gestion du stress.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine t'es-tu senti(e) complètement submergé(e) ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "8d2c3846-9bdf-4ab0-a361-6488fb93e7bc",
+        "deep_why": "Pour retrouver de l'énergie et être plus stable au quotidien.",
+        "created_at": "2026-01-08T04:24:42.607889+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "3bc47d9d-b057-4e9b-8b1e-f52034073bd2",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "a545d6fb-e36b-4563-aa6c-b22c3976261e",
+          "_kind": "framework",
+          "title": "L'Inventaire Cérébral Complet",
+          "status": "active",
+          "created_at": "2026-01-08T04:24:42.61479+00:00",
+          "description": "",
+          "target_reps": 2,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-06T04:24:42.612+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "a545d6fb-e36b-4563-aa6c-b22c3976261e",
+          "type": "recurring",
+          "title": "L'Inventaire Cérébral Complet",
+          "status": "active",
+          "created_at": "2026-01-08T04:24:42.61479+00:00",
+          "target_reps": 2,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T04:24:42.612+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Sanctuaire Intérieur\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour retrouver de l'énergie et être plus stable au quotidien.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Le Grand Désencombrement Mental\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"8db6e6b2-41b1-4e9c-8d10-11c22318d46e\",\n          \"tips\": \"Ne filtre rien. Si c'est dans ta tête, ça doit être sur le papier. Utilise des listes ou des cartes mentales pour organiser tes pensées.\",\n          \"type\": \"framework\",\n          \"title\": \"L'Inventaire Cérébral Complet\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Externaliser ta charge mentale libère des ressources cognitives précieuses et réduit l'anxiété diffuse en rendant l'intangible concret.\",\n          \"targetReps\": 2,\n          \"description\": \"Une fois par semaine, vide tout ce qui encombre ton esprit : tâches, soucis, idées, tout doit être couché sur papier ou digitalement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Ton cerveau n'est pas fait pour retenir, mais pour créer et analyser. Libère-le de ce poids. Chaque pensée, chaque tâche, chaque anxiété doit trouver sa place ici. C'est un grand nettoyage de printemps pour ton esprit, te permettant de voir clairement ce qui te pèse.\",\n            \"sections\": [\n              {\n                \"id\": \"p1_s1\",\n                \"label\": \"Toutes les tâches en cours ou à faire\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Appeler le plombier ; Préparer la réunion X ; Acheter des fournitures...\"\n              },\n              {\n                \"id\": \"p1_s2\",\n                \"label\": \"Soucis et préoccupations actuelles\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"L'échéance du projet Y me stresse ; Je m'inquiète pour la santé de ma mère ; Comment gérer les dépenses imprévues...\"\n              },\n              {\n                \"id\": \"p1_s3\",\n                \"label\": \"Idées ou projets latents (même vagues)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Apprendre à jouer de la guitare ; Voyager en Islande ; Écrire un blog...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"040204f9-266f-430e-b4b0-ae87529aee17\",\n          \"tips\": \"Communique ces limites clairement à ton entourage professionnel et personnel. Sois ferme et explique ton 'pourquoi' pour qu'ils comprennent l'importance de ton bien-être.\",\n          \"type\": \"mission\",\n          \"title\": \"Définir Mes Trois Boucliers Sacrés\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Les limites sont les remparts de ton énergie et de ta clarté mentale. Sans elles, le monde extérieur t'envahit et la surcharge est inévitable.\",\n          \"description\": \"Identifie et formalise 3 limites non négociables pour protéger ton temps et ton énergie des sollicitations extérieures. Par exemple : 'Pas d'emails pro après 19h', 'Pas de conversations dérangeantes avant le café du matin', 'Une soirée par semaine sans obligation'.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Vider le cache de l'esprit\",\n      \"rationale\": \"Pour ne plus se sentir submergé, il faut d'abord identifier et externaliser toutes les sollicitations. Cette phase est dédiée au grand nettoyage de ta charge mentale.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"L'Ancrage du Calme\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"6516a2e7-53b2-4c7a-8236-f4fd4fcf3055\",\n          \"tips\": \"Pose un rappel discret sur ton téléphone. Concentre-toi sur l'air qui entre par le nez et sort par la bouche. Ces micro-pauses ne durent que 30 secondes et sont très puissantes.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Micro-Pause du Guerrier Zen\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ces micro-pauses régulent instantanément le système nerveux parasympathique, brisant le cycle du stress avant qu'il ne s'emballe et apportant une clarté mentale passagère.\",\n          \"targetReps\": 7,\n          \"description\": \"Réalise 3 respirations profondes et conscientes (méthode 4-7-8) trois fois par jour, à des moments clés (avant un appel stressant, après une tâche complexe, en milieu d'après-midi pour recharger).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b5c576d2-a324-4ec8-85a8-2b79ed90e031\",\n          \"tips\": \"Charge ton téléphone dans une autre pièce que la chambre. Utilise une liseuse si tu tiens à lire au lit. L'objectif est de signaler à ton cerveau que la journée active est terminée.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel du Crépuscule Numérique\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit drastiquement l'exposition à la lumière bleue qui perturbe la production de mélatonine et diminue l'hyper-stimulation cognitive, favorisant un endormissement plus rapide et un sommeil de meilleure qualité.\",\n          \"targetReps\": 7,\n          \"description\": \"Éteins tous les écrans (télévision, ordinateur, téléphone) 1 heure avant d'aller te coucher et remplace-les par une activité calme : lecture sur papier, musique douce, conversation tranquille, bain chaud.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Respirer, Ralentir, Réinitialiser\",\n      \"rationale\": \"Après avoir identifié les sources de surcharge, il est temps d'intégrer des pratiques qui apportent un calme immédiat et régulier à ton système nerveux.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"La Stratégie du Focalisé\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"5aa4bb68-0b0e-432f-a9fc-3e2827ecb76a\",\n          \"tips\": \"Consacre 15-20 minutes le dimanche soir ou le lundi matin. Sois impitoyablement réaliste sur ce qui est 'important' et ce qui peut être délégué ou éliminé.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Cadre de Priorisation Anti-Chaos\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La priorisation proactive transforme la réaction en action intentionnelle, réduisant ainsi l'impression de subir les événements et te donnant un sentiment de maîtrise.\",\n          \"targetReps\": 2,\n          \"description\": \"Chaque début de semaine, planifie tes tâches en utilisant la matrice d'Eisenhower (Urgent/Important) pour éviter l'urgence constante et reprendre le contrôle de ton temps.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"La Matrice d'Eisenhower est ton arme secrète contre la procrastination et la surcharge. Classe tes tâches en quatre catégories pour une clarté absolue : Urgent/Important (à faire maintenant), Non-urgent/Important (à planifier), Urgent/Non-important (à déléguer), Non-urgent/Non-important (à éliminer). Le but est de réduire le 'Urgent/Important' en planifiant mieux.\",\n            \"sections\": [\n              {\n                \"id\": \"p3_s1\",\n                \"label\": \"Tâches à faire cette semaine (classées)\",\n                \"inputType\": \"categorized_list\",\n                \"placeholder\": \"Rédiger le rapport X|Non-urgent/Important ; Répondre à l'email Y|Urgent/Non-important ; Préparer le repas de dimanche|Non-urgent/Non-important\"\n              },\n              {\n                \"id\": \"p3_s2\",\n                \"label\": \"Ce que je délègue ou élimine cette semaine\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Répondre aux emails non essentiels ; Archiver les anciens documents ; Regarder la série B...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"7847db87-3a45-4c68-be6e-a45efb7719c5\",\n          \"tips\": \"Ces 'grands rochers' ne doivent pas être plus de 3. C'est ce qui, si fait, te donnera le sentiment d'une journée productive et réussie, peu importe le reste.\",\n          \"type\": \"habitude\",\n          \"title\": \"Les Trois 'Grands Rochers' Quotidiennes\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Focaliser ton énergie sur l'essentiel dès le début de journée te donne un sentiment de contrôle, réduit la dispersion et évite l'éparpillement lié à la surcharge.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, identifie et concentre-toi sur 3 tâches essentielles (tes 'Grands Rochers') qui feront avancer tes objectifs, avant toute autre chose et toute consultation d'écran.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Reprendre le contrôle de ton agenda\",\n      \"rationale\": \"Une fois l'esprit plus clair et le calme ancré, il est temps de structurer ton approche des tâches pour éviter d'être de nouveau submergé par le flux incessant des sollicitations.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Le Maître de son Énergie\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"9871fcc9-89e7-41de-a28f-8e77dad49206\",\n          \"tips\": \"Achète des boules Quies ou un casque anti-bruit de qualité. Range systématiquement ton bureau tous les soirs. Organise tes fichiers numériques. Pense à ce qui te stresse sensoriellement.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Optimisation du Sanctuaire Personnel\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Un environnement calme et ordonné réduit les sollicitations sensorielles et cognitives, agissant comme un prolongement de ton calme intérieur et facilitant la concentration.\",\n          \"description\": \"Identifie et réduis les sources de bruit, de désordre et de distractions visuelles ou auditives dans ton environnement de travail et de vie pour favoriser la concentration et la sérénité.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"553e15ca-8496-48b1-9648-43a07621b5f5\",\n          \"tips\": \"Choisis une activité qui te fait VRAIMENT du bien et que tu attends avec impatience. L'objectif est de te 'remplir' d'énergie et de positivité avant de commencer à 'te vider' pour les autres.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel d'Activation Matinale\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Démarrer la journée avec intention et énergie positive crée un élan qui protège contre le stress des premières sollicitations et renforce ta stabilité émotionnelle pour la journée.\",\n          \"targetReps\": 7,\n          \"description\": \"Débute chaque journée par 15 minutes d'une activité qui t'énergise positivement (étirements doux, marche rapide, lecture inspirante, écoute de musique motivante), avant de consulter les écrans.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Consolidation et Vitalité Durable\",\n      \"rationale\": \"Cette dernière phase vise à intégrer les nouvelles habitudes dans un système de vie global, en optimisant l'environnement et les routines pour une énergie et une stabilité accrues et durables.\"\n    }\n  ],\n  \"deepWhy\": \"Pour retrouver de l'énergie et être plus stable au quotidien.\",\n  \"identity\": \"Je suis le Maître de mon Calme Intérieur.\",\n  \"strategy\": \"Nous allons transformer ta surcharge mentale et ton anxiété en un calme robuste, en construisant pas à pas des systèmes pour externaliser le chaos et ancrer la sérénité au quotidien.\",\n  \"goldenRules\": \"1. Je priorise ce qui nourrit mon calme et ma clarté.\\n2. Je définis et je respecte mes limites sans culpabilité.\\n3. Je crée des pauses intentionnelles pour réinitialiser mon système.\",\n  \"vitalSignal\": {\n    \"name\": \"Niveau de Surcharge Mentale\",\n    \"type\": \"constat\",\n    \"unit\": \"/10\",\n    \"startValue\": \"8\",\n    \"description\": \"Évalue ta charge mentale ressentie chaque soir sur une échelle de 1 à 10.\",\n    \"targetValue\": \"4\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Sanctuaire Intérieur\",\n  \"context_problem\": \"Tu te sens submergé par une charge mentale constante et une anxiété diffuse, ce qui t'empêche de maintenir ton énergie et ta stabilité au quotidien. Ton principal blocage est de te perdre dans le flot des sollicitations d'un rythme de vie très chargé, sans trouver de temps pour toi.\",\n  \"sophiaKnowledge\": \"Tu es un homme né en 1992, confronté à un niveau de stress élevé, une qualité de sommeil moyenne et une activité physique modérée. Tu te sens submergé par une charge mentale importante et de l'anxiété, perdant souvent le fil dans ton rythme de vie chargé. Ta motivation est de retrouver de l'énergie et une stabilité au quotidien en améliorant ta gestion du stress.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine t'es-tu senti(e) complètement submergé(e) ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (1):\n- [FRAMEWORK] L'Inventaire Cérébral Complet\n\n=== SIGNES VITAUX (État Actuel) ===\n- Niveau de Surcharge Mentale: 8 /10\n",
+      "template_fingerprint": "7f9e0bfefb296c0e"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

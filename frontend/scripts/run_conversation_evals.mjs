@@ -226,16 +226,9 @@ function loadScenarios() {
 }
 
 async function fetchRecentlyChangedPromptKeys(admin, sinceMinutes) {
-  if (!sinceMinutes || sinceMinutes <= 0) return [];
-  const sinceIso = new Date(Date.now() - sinceMinutes * 60 * 1000).toISOString();
-  const { data, error } = await admin
-    .from("prompt_overrides")
-    .select("prompt_key,updated_at")
-    .gte("updated_at", sinceIso)
-    .order("updated_at", { ascending: false })
-    .limit(50);
-  if (error) throw error;
-  return [...new Set((data ?? []).map((r) => r.prompt_key))];
+  // Prompt overrides were removed (prompts are now versioned in code).
+  // Keep the CLI flag for backwards compatibility, but it no longer selects scenarios by "recent prompt changes".
+  return [];
 }
 
 async function main() {

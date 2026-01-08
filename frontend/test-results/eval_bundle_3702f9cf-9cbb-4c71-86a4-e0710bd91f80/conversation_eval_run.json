@@ -1,0 +1,596 @@
+{
+  "id": "3702f9cf-9cbb-4c71-86a4-e0710bd91f80",
+  "created_at": "2026-01-08T14:56:22.9209+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__140120e61fee47",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:51:10.319558+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super, merci. On va regarder le bilan d'hier. On commence avec ton temps de focus ininterrompu. Combien de minutes tu as réussi à avoir hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T14:51:15.835009+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Hier, j'ai réussi à avoir environ 25 minutes de focus ininterrompu. C'est mieux que d'habitude, mais c'est encore un peu difficile de maintenir ça longtemps.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:51:18.528985+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est déjà un bon pas d'avoir atteint 25 minutes de focus, c'est une belle amélioration. Je comprends que le maintenir soit un défi.\n\nJustement, pour t'aider à prolonger ces périodes, on avait noté une action appelée \"Le Bouclier Digital\". Il s'agissait de désactiver les notifications non essentielles et de définir des moments précis pour consulter tes messages. Est-ce que tu as mis en place ce bouclier hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T14:51:37.214086+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai essayé de le mettre en place. J'ai désactivé pas mal de notifications, surtout sur mon téléphone. Pour l'ordi, c'est plus compliqué, j'oublie souvent. Mais globalement, ça aide un peu. Par contre, mon organisation générale est un peu chaotique en ce moment, on en reparlera après si tu veux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:51:40.373543+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Désolée, j'ai eu un petit bug de cerveau pendant le bilan. On reprend ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T14:52:25.520673+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, bien sûr, on reprend.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:52:32.364445+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "D'accord, on reprend. Je vois que le Bouclier Digital t'a aidé un peu, surtout sur téléphone, même si l'ordinateur demande encore un effort.\n\nPour la suite, on a le Nettoyage Numérique. Il s'agit de faire un tri radical dans tes applications, emails et fichiers, et de te désabonner des newsletters inutiles.\n\nAs-tu pu réaliser ce tri ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T14:52:55.913099+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai commencé le nettoyage, oui. J'ai fait un gros tri dans mes mails et je me suis désabonnée de pas mal de newsletters. Pour les fichiers et les applications, j'ai juste fait un petit tour rapide, pas eu le temps de faire un tri radical.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:52:58.730353+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je vois que tu as bien avancé sur le nettoyage numérique, c'est super d'avoir déjà fait un gros tri dans tes mails et tes newsletters ! Pour les fichiers et applications, c'est noté que tu as fait un premier tour rapide.\n\nMaintenant, je te propose de nous pencher sur \"La Matinale Stratégique\". L'idée est de prendre 10-15 minutes chaque matin pour planifier ta journée : définir 3 priorités, noter tes rendez-vous et prévoir un créneau pour les imprévus.\n\nPour hier, as-tu pu mettre en place cette matinale stratégique ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T14:53:16.274758+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai essayé de faire la matinale stratégique, oui. J'ai noté mes 3 priorités pour la journée, mais je n'ai pas toujours pris les 10-15 minutes complètes. C'était plus rapide, juste les priorités.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:53:19.983999+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok.\n\nTu m'avais parlé d'un truc à reprendre : \"Par contre, mon organisation générale est un peu chaotique en ce moment, on en reparlera après si tu veux\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T14:53:30.198106+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, on peut en parler maintenant. C'est vrai que c'est un point important pour moi.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:53:34.344849+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, c'est un excellent point à aborder. Pour structurer cette discussion sur ton organisation générale, je te propose un exercice de réflexion nommé \"Bilan Organisationnel\".\n\nIl consisterait à identifier les domaines de chaos, leurs conséquences, et à esquisser des pistes d'amélioration.\n\nEst-ce que tu souhaiterais que je mette en place cet exercice pour toi ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T14:54:00.084335+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je veux bien. Ça me semble être une bonne idée pour y voir plus clair.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:54:02.256911+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est fait ! 🏗️\n\nJe viens de vérifier: \"Bilan Organisationnel\" est bien dans ton plan.\nTu devrais le voir apparaître dans tes actions.",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T14:54:12.65044+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je vois ça. C'est une bonne chose. Comment on s'y prend pour le faire ?",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:54:18.857035+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Pour le \"Bilan Organisationnel\", il s'agit d'un exercice de réflexion à faire directement dans l'application. Tu y trouveras une introduction et une série de questions pour t'aider à cartographier ton organisation actuelle.\n\nTu peux démarrer l'exercice dès que tu es prêt(e) à y consacrer un moment. C’est bon pour ce point ? 🤔",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T14:54:29.269126+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon pour ce point. Merci.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:54:31.555212+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super, nickel alors ! On avait mis de côté le point sur ton organisation générale qui est un peu chaotique en ce moment. On peut en parler maintenant si tu veux ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T14:55:07.862434+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, on vient d'en parler, tu m'as proposé le 'Bilan Organisationnel', c'est une bonne chose.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:55:13.583402+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, le Bilan Organisationnel est parfait pour remettre de l'ordre dans ton organisation générale, comme tu le souhaitais. On peut commencer ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T14:55:31.99419+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, on peut commencer.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:55:39.03572+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Top ! Alors pour le \"Bilan Organisationnel\", tu le trouveras directement dans ton espace, dans la section \"Mes plans\" ou \"Mon tableau de bord\".\n\nC'est un exercice de réflexion avec des questions pour t'aider à y voir plus clair. Tu veux que je te guide pas à pas pour le trouver, ou tu es sur mobile ou ordinateur pour y aller directement ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T14:56:10.996931+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ok, je vais regarder ça dans l'application alors. Merci.",
+      "agent_used": null,
+      "created_at": "2026-01-08T14:56:14.38734+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super, dis-moi si tu le trouves facilement dans l'appli ! On pourra le regarder ensemble si tu veux. 😉",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T14:56:22.185121+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "a7c6504a-8993-4f9b-8d18-338b841bb51b",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T14:51:10.269577+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T14:51:10.269577+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "d67b8592-c841-4f0f-b84a-51a4797b5387",
+          "type": "vital",
+          "unit": "min",
+          "title": "Temps de focus ininterrompu",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "fcb19771-380e-4c31-92e5-914a1958bd87",
+          "type": "action",
+          "title": "Le Bouclier Digital",
+          "target": 7,
+          "description": "Désactive toutes les notifications non essentielles sur ton téléphone et ton ordinateur. Définis 2-3 moments précis dans la journée pour consulter tes messages/réseaux.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "ce704bf0-6210-4407-8a44-ab9227c23b66",
+          "type": "action",
+          "title": "Nettoyage Numérique",
+          "target": 1,
+          "description": "Fais un tri radical dans tes applications, emails et fichiers numériques. Désabonne-toi des newsletters inutiles. Archive ou supprime tout ce qui ne te sert plus.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "6c15da3e-3bac-4765-af1f-965c8e12430a",
+          "type": "action",
+          "title": "La Matinale Stratégique",
+          "target": 7,
+          "description": "Chaque matin, prends 10-15 minutes pour planifier ta journée : 3 priorités clés, les rendez-vous, et un créneau pour les imprévus.",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T14:51:10.269577+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "a7c6504a-8993-4f9b-8d18-338b841bb51b",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T14:56:22.182312+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T14:51:10.269577+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "post_checkup_done",
+      "temp_memory": {
+        "finished_at": "2026-01-08T14:56:17.499Z",
+        "deferred_topics": [
+          "Par contre, mon organisation générale est un peu chaotique en ce moment, on en reparlera après si tu veux",
+          "C'était plus rapide, juste les priorités"
+        ],
+        "current_topic_index": 1
+      }
+    },
+    "last_interaction_at": "2026-01-08T14:51:10.269577+00:00",
+    "unprocessed_msg_count": 13
+  },
+  "issues": [
+    {
+      "code": "checkup_routing_break",
+      "message": "Avant la clôture du bilan, investigation_state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu.",
+      "evidence": {
+        "snippet": "Oui, c'est un excellent point à aborder. Pour structurer cette discussion sur ton organisation générale, je te propose un exercice de réflexion nommé \"Bilan Organisationnel\".\n\nIl consisterait à identifier les domaines de chaos, leurs conséq",
+        "agent_used": "architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "assert_investigator_not_stable",
+      "message": "Assertion failed: investigation_state active => should remain investigator until explicit stop.",
+      "evidence": {
+        "snippet": "Oui, c'est un excellent point à aborder. Pour structurer cette discussion sur ton organisation générale, je te propose un exercice de réflexion nommé \"Bilan Organisationnel\".\n\nIl consisterait à identifier les domaines de chaos, leurs conséq",
+        "offending_agent": "architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "post_bilan_topic_repetition",
+      "message": "Après que l'architect ait traité le sujet reporté (\"organisation générale\") et que l'utilisateur ait explicitement confirmé que le point était \"bon\", le companion a reproposé le même sujet comme s'il n'avait pas été abordé. Cela crée une redondance et une confusion pour l'utilisateur.",
+      "evidence": {
+        "snippet": "Super, nickel alors ! On avait mis de côté le point sur ton organisation générale qui est un peu chaotique en ce moment. On peut en parler maintenant si tu veux ?",
+        "agent_used": "companion"
+      },
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Uniformise le style et évite les ruptures de persona.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"d67b8592-c841-4f0f-b84a-51a4797b5387\",\n      \"type\": \"vital\",\n      \"unit\": \"min\",\n      \"title\": \"Temps de focus ininterrompu\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"fcb19771-380e-4c31-92e5-914a1958bd87\",\n      \"type\": \"action\",\n      \"title\": \"Le Bouclier Digital\",\n      \"target\": 7,\n      \"description\": \"Désactive toutes les notifications non essentielles sur ton téléphone et ton ordinateur. Définis 2-3 moments précis dans la journée pour consulter tes messages/réseaux.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"ce704bf0-6210-4407-8a44-ab9227c23b66\",\n      \"type\": \"action\",\n      \"title\": \"Nettoyage Numérique\",\n      \"target\": 1,\n      \"description\": \"Fais un tri radical dans tes applications, emails et fichiers numériques. Désabonne-toi des newsletters inutiles. Archive ou supprime tout ce qui ne te sert plus.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"6c15da3e-3bac-4765-af1f-965c8e12430a\",\n      \"type\": \"action\",\n      \"title\": \"La Matinale Stratégique\",\n      \"target\": 7,\n      \"description\": \"Chaque matin, prends 10-15 minutes pour planifier ta journée : 3 priorités clés, les rendez-vous, et un créneau pour les imprévus.\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Super, merci. On va regarder le bilan d'hier. On commence avec ton temps de focus ininterrompu. Combien de minutes tu as réussi à avoir hier ?\n#2 USER: Hier, j'ai réussi à avoir environ 25 minutes de focus ininterrompu. C'est mieux que d'habitude, mais c'est encore un peu difficile de maintenir ça longtemps.\n#3 ASSISTANT(investigator): C'est déjà un bon pas d'avoir atteint 25 minutes de focus, c'est une belle amélioration. Je comprends que le maintenir soit un défi. Justement, pour t'aider à prolonger ces périodes, on avait noté une action appelée \"Le Bouclier Digital\". Il s'agissait de désactiver les notifications non essentielles et de définir des moments précis pour consulter tes messages. Est-ce que tu as mis en place ce bouclier hier ?\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nCONTRAINTE: Tu tutoies toujours. Remplace tout \"vous/votre/vos\" par \"tu/ton/tes\".",
+      "proposed_addendum": "CONTRAINTE: Tu tutoies toujours. Remplace tout \"vous/votre/vos\" par \"tu/ton/tes\"."
+    },
+    {
+      "action": "append",
+      "rationale": "Garantit la stabilité de l’investigation malgré digressions.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"d67b8592-c841-4f0f-b84a-51a4797b5387\",\n      \"type\": \"vital\",\n      \"unit\": \"min\",\n      \"title\": \"Temps de focus ininterrompu\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"fcb19771-380e-4c31-92e5-914a1958bd87\",\n      \"type\": \"action\",\n      \"title\": \"Le Bouclier Digital\",\n      \"target\": 7,\n      \"description\": \"Désactive toutes les notifications non essentielles sur ton téléphone et ton ordinateur. Définis 2-3 moments précis dans la journée pour consulter tes messages/réseaux.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"ce704bf0-6210-4407-8a44-ab9227c23b66\",\n      \"type\": \"action\",\n      \"title\": \"Nettoyage Numérique\",\n      \"target\": 1,\n      \"description\": \"Fais un tri radical dans tes applications, emails et fichiers numériques. Désabonne-toi des newsletters inutiles. Archive ou supprime tout ce qui ne te sert plus.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"6c15da3e-3bac-4765-af1f-965c8e12430a\",\n      \"type\": \"action\",\n      \"title\": \"La Matinale Stratégique\",\n      \"target\": 7,\n      \"description\": \"Chaque matin, prends 10-15 minutes pour planifier ta journée : 3 priorités clés, les rendez-vous, et un créneau pour les imprévus.\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Super, merci. On va regarder le bilan d'hier. On commence avec ton temps de focus ininterrompu. Combien de minutes tu as réussi à avoir hier ?\n#2 USER: Hier, j'ai réussi à avoir environ 25 minutes de focus ininterrompu. C'est mieux que d'habitude, mais c'est encore un peu difficile de maintenir ça longtemps.\n#3 ASSISTANT(investigator): C'est déjà un bon pas d'avoir atteint 25 minutes de focus, c'est une belle amélioration. Je comprends que le maintenir soit un défi. Justement, pour t'aider à prolonger ces périodes, on avait noté une action appelée \"Le Bouclier Digital\". Il s'agissait de désactiver les notifications non essentielles et de définir des moments précis pour consulter tes messages. Est-ce que tu as mis en place ce bouclier hier ?\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nSTABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan.",
+      "proposed_addendum": "STABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan."
+    },
+    {
+      "action": "append",
+      "rationale": "L'interruption par un 'bug de cerveau' est non professionnelle et rompt l'immersion. L'agent devrait être plus résilient et transparent dans la reprise du dialogue sans exposer d'erreurs internes.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#16 USER: Oui, je vois ça. C'est une bonne chose. Comment on s'y prend pour le faire ?\n#17 ASSISTANT(architect): Pour le \"Bilan Organisationnel\", il s'agit d'un exercice de réflexion à faire directement dans l'application. Tu y trouveras une introduction et une série de questions pour t'aider à cartographier ton organisation actuelle. Tu peux démarrer l'exercice dès que tu es prêt(e) à y consacrer un moment. C’est bon pour ce point ? 🤔\n#18 USER: Oui, c'est bon pour ce point. Merci.\n#19 ASSISTANT(companion): Super, nickel alors ! On avait mis de côté le point sur ton organisation générale qui est un peu chaotique en ce moment. On peut en parler maintenant si tu veux ?\n#20 USER: Oui, on vient d'en parler, tu m'as proposé le 'Bilan Organisationnel', c'est une bonne chose.\n#21 ASSISTANT(companion): Oui, le Bilan Organisationnel est parfait pour remettre de l'ordre dans ton organisation générale, comme tu le souhaitais. On peut commencer ?\n#22 USER: Oui, on peut commencer.\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nGESTION DES ERREURS INTERNES\n- En cas d'erreur interne ou de difficulté à poursuivre, ne pas mentionner de 'bug de cerveau' ou d'interruption. Tente de reprendre le fil du bilan de manière fluide ou de demander une clarification sur le dernier point abordé sans exposer l'erreur.",
+      "proposed_addendum": "GESTION DES ERREURS INTERNES\n- En cas d'erreur interne ou de difficulté à poursuivre, ne pas mentionner de 'bug de cerveau' ou d'interruption. Tente de reprendre le fil du bilan de manière fluide ou de demander une clarification sur le dernier point abordé sans exposer l'erreur."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.05305519999999998,
+    "request_id": "5ba71da9-5c01-455f-8415-c6c5eca62754:core:bilan_real_bundle__140120e61fee47:a75cc526-52a2-4f44-9e1f-ad65b74ad52e",
+    "total_tokens": 182585,
+    "output_tokens": 3515,
+    "prompt_tokens": 147559,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-2.5-flash",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3,
+      "test_post_checkup_deferral": true
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "aae0313f-a906-4cce-93d0-ad5a27d19932",
+        "title": "L'Architecture de la Volonté",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage du Calme",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "fcb19771-380e-4c31-92e5-914a1958bd87",
+                  "tips": "Utilise les modes 'Ne pas déranger' ou 'Concentration'. Commence par désactiver celles des réseaux sociaux.",
+                  "type": "habitude",
+                  "title": "Le Bouclier Digital",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Ton cerveau sera moins constamment sollicité, réduisant la charge cognitive et favorisant des périodes de concentration plus longues.",
+                  "targetReps": 7,
+                  "description": "Désactive toutes les notifications non essentielles sur ton téléphone et ton ordinateur. Définis 2-3 moments précis dans la journée pour consulter tes messages/réseaux.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "ce704bf0-6210-4407-8a44-ab9227c23b66",
+                  "tips": "Commence par le dossier 'Téléchargements' ou ta boîte de réception. Fixe-toi 30 minutes et chronomètre-toi.",
+                  "type": "mission",
+                  "title": "Nettoyage Numérique",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Un environnement numérique épuré réduit les distractions potentielles et le sentiment d'être débordé(e) par l'information.",
+                  "description": "Fais un tri radical dans tes applications, emails et fichiers numériques. Désabonne-toi des newsletters inutiles. Archive ou supprime tout ce qui ne te sert plus.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Reprendre le contrôle de l'environnement",
+              "rationale": "Avant de bâtir, nous devons assainir le terrain. Cette phase se concentre sur la réduction des sollicitations externes qui fragmentent ton attention."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : L'Art de la Préparation",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "6c15da3e-3bac-4765-af1f-965c8e12430a",
+                  "tips": "Fais-le avant d'ouvrir tes emails ou ton téléphone. Utilise un carnet physique ou une application dédiée (ex: Todoist, TickTick).",
+                  "type": "habitude",
+                  "title": "La Matinale Stratégique",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Démarrer la journée avec une feuille de route claire réduit l'anxiété, évite de te sentir débordé(e) et dirige ton focus vers l'essentiel.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, prends 10-15 minutes pour planifier ta journée : 3 priorités clés, les rendez-vous, et un créneau pour les imprévus.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b4fec1a5-df79-4d1f-b059-6b5e15df8573",
+                  "tips": "Sois honnête avec toi-même. L'objectif n'est pas de juger, mais d'identifier les leviers d'amélioration.",
+                  "type": "framework",
+                  "title": "L'Inventaire des Siphonseurs",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Identifier tes 'siphonseurs' te donne le pouvoir de mettre en place des stratégies de protection, renforçant ta discipline et ton focus.",
+                  "targetReps": 1,
+                  "description": "Réfléchis et documente les situations, personnes ou activités qui drainent le plus ton énergie et ton attention. Comment les minimiser ou les éviter ?",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Prends un moment pour identifier clairement ce qui draine ton énergie et ton attention au quotidien. La prise de conscience est la première étape de la libération.",
+                    "sections": [
+                      {
+                        "id": "s2f1",
+                        "label": "Mes 3 principales sources de distraction (pensées, objets, personnes)",
+                        "inputType": "list",
+                        "placeholder": "Notifications intempestives, ruminations sur mon passé..."
+                      },
+                      {
+                        "id": "s2f2",
+                        "label": "Ce qui siphonne mon énergie ou me submerge",
+                        "inputType": "list",
+                        "placeholder": "Réunions non productives, sollicitations constantes, désordre..."
+                      },
+                      {
+                        "id": "s2f3",
+                        "label": "Quel impact ont ces 'siphonseurs' sur mon focus et ma stabilité ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ils fragmentent ma concentration, me rendent irritable et me poussent à procrastiner par épuisement."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Structurer pour mieux agir",
+              "rationale": "La désorganisation est un puissant générateur de procrastination. Cette phase met en place des systèmes pour clarifier tes priorités et te protéger des drains d'énergie."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : La Rédemption du Procrastinateur",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "f280bf33-d074-4aa6-bb51-7f430994a86a",
+                  "tips": "Utilise un minuteur physique ou une application. Pendant la pause, lève-toi, étire-toi, bois de l'eau. Évite les écrans.",
+                  "type": "habitude",
+                  "title": "Le Pomodoro Sacré",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cette méthode fractionne le travail en blocs gérables, réduisant le sentiment d'être débordé(e) et renforçant ta capacité à rester focus sur une tâche unique.",
+                  "targetReps": 7,
+                  "description": "Applique la technique Pomodoro : 25 minutes de travail intense et concentré, suivies de 5 minutes de pause. Fais au moins 2 cycles par jour sur tes tâches prioritaires.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "aa0408b6-c914-452f-a78a-6e9643a95f28",
+                  "tips": "Élimine tout ce qui n'est pas directement lié à la tâche en cours. Crée un environnement visuellement apaisant.",
+                  "type": "mission",
+                  "title": "Aménagement du Sanctuaire de Travail",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement de travail ordonné et minimaliste réduit les stimuli visuels et aide ton cerveau à se concentrer sur l'essentiel.",
+                  "description": "Organise ton espace de travail physique pour le rendre propice à la concentration : moins d'objets sur le bureau, rangements clairs, bonne lumière.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Cultiver l'élan et la persévérance",
+              "rationale": "Maintenant que tu as un plan et que les distractions sont sous contrôle, cette phase vise à transformer l'intention en action, brisant les cycles de la procrastination."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : La Maîtrise de l'Invisible",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "79a2f81b-9b08-4592-a3e7-80a789f13fc2",
+                  "tips": "Fais-le sur papier ou dans un journal. Cela aide à 'fermer la boucle' de la journée et à libérer ton esprit avant le sommeil.",
+                  "type": "habitude",
+                  "title": "La Revue Nocturne",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cette habitude renforce ta métacognition, ta capacité à apprendre de tes expériences et à optimiser tes stratégies de focus et de discipline.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, prends 5-10 minutes pour passer en revue ta journée : qu'est-ce qui a bien fonctionné ? Qu'aurais-tu pu améliorer ? Prépare mentalement le point de départ de la Matinale Stratégique de demain.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "8f670975-f4c7-430e-8a5c-f5abcc70b21a",
+                  "tips": "Sois spécifique. Au lieu de 'être moins distrait', dis 'vérifier mes mails seulement à 10h et 16h'.",
+                  "type": "framework",
+                  "title": "Le Bilan de Mon Attention",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Cette introspection quotidienne t'aide à comprendre tes schémas attentionnels et à les ajuster activement, consolidant ta maîtrise de ton focus.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, réfléchis aux moments où ton attention a été optimale et aux déclencheurs de distraction. Note une petite amélioration pour le lendemain.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Chaque soir, prends 5 minutes pour réfléchir à ta journée à travers le prisme de ton attention. Où était-elle ? Où aurait-elle dû être ? Quelles leçons en tirer ?",
+                    "sections": [
+                      {
+                        "id": "s4f1",
+                        "label": "Quand mon focus était-il au top aujourd'hui ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ce matin sur le projet X avant les premières notifications..."
+                      },
+                      {
+                        "id": "s4f2",
+                        "label": "Qu'est-ce qui a le plus déclenché ma distraction aujourd'hui ?",
+                        "inputType": "textarea",
+                        "placeholder": "Une alerte mail, un collègue qui passe, une pensée parasite..."
+                      },
+                      {
+                        "id": "s4f3",
+                        "label": "Note mon niveau d'attention global (1-10)",
+                        "inputType": "scale",
+                        "placeholder": "7"
+                      },
+                      {
+                        "id": "s4f4",
+                        "label": "Une chose concrète à améliorer pour demain",
+                        "inputType": "text",
+                        "placeholder": "Éteindre les notifications avant 10h et mettre des écouteurs."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Ancrer les réflexes et pérenniser",
+              "rationale": "Ces deux dernières semaines sont dédiées à l'intégration profonde des nouvelles habitudes et à l'affinage de ta conscience de ton propre fonctionnement attentionnel, pour une discipline durable."
+            }
+          ],
+          "deepWhy": "Pour cultiver une énergie inépuisable, rester présent(e) et apaisé(e) face aux défis, et construire une vie alignée avec mes aspirations profondes.",
+          "identity": "Je suis un(e) Maître(sse) de mon Attention.",
+          "strategy": "Nous allons bâtir un système robuste de focus et de discipline, en commençant par ancrer les habitudes essentielles et en éliminant les sources de distraction, pour retrouver une stabilité énergétique et mentale durable.",
+          "goldenRules": "1. Chaque tâche a sa place et son temps.\n2. Les distractions ne sont que des invités, jamais des résidents permanents.\n3. L'action précède la motivation.",
+          "vitalSignal": {
+            "name": "Temps de focus ininterrompu",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "15",
+            "description": "Durée maximale que tu as passée sur une tâche sans interruption par un écran ou une autre sollicitation.",
+            "targetValue": "60",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Architecture de la Volonté",
+          "context_problem": "Tu te sentais constamment débordé(e) et tes objectifs de focus et de discipline te semblaient hors de portée à cause des distractions incessantes et d'une tendance à procrastiner. Le manque de stabilité et d'énergie au quotidien, exacerbé par un sommeil de mauvaise qualité, était un frein majeur à ton épanouissement.",
+          "sophiaKnowledge": "Tu es une personne active, née en 1996, qui se sent désorganisée et facilement distraite malgré un niveau d'activité élevé. Ta qualité de sommeil est mauvaise, ce qui impacte probablement ton énergie et ta stabilité quotidienne. Tu es débordée par un rythme de vie chargé et manques de temps pour toi, ce qui te pousse à la procrastination.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu repoussé une tâche importante au lendemain ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "a6cef2f5-8a3e-4f84-bac9-3026e515ed56",
+        "deep_why": "Pour cultiver une énergie inépuisable, rester présent(e) et apaisé(e) face aux défis, et construire une vie alignée avec mes aspirations profondes.",
+        "created_at": "2026-01-08T14:51:10.241037+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "597ec31c-dee8-4593-8779-7b8eba65ed78",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "fcb19771-380e-4c31-92e5-914a1958bd87",
+          "title": "Le Bouclier Digital",
+          "status": "active",
+          "created_at": "2026-01-08T14:51:10.255767+00:00",
+          "description": "Désactive toutes les notifications non essentielles sur ton téléphone et ton ordinateur. Définis 2-3 moments précis dans la journée pour consulter tes messages/réseaux.",
+          "target_reps": 7,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T14:51:10.248+00:00"
+        },
+        {
+          "id": "ce704bf0-6210-4407-8a44-ab9227c23b66",
+          "title": "Nettoyage Numérique",
+          "status": "active",
+          "created_at": "2026-01-08T14:51:10.255767+00:00",
+          "description": "Fais un tri radical dans tes applications, emails et fichiers numériques. Désabonne-toi des newsletters inutiles. Archive ou supprime tout ce qui ne te sert plus.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T14:51:10.248+00:00"
+        },
+        {
+          "id": "6c15da3e-3bac-4765-af1f-965c8e12430a",
+          "title": "La Matinale Stratégique",
+          "status": "active",
+          "created_at": "2026-01-08T14:51:10.255767+00:00",
+          "description": "Chaque matin, prends 10-15 minutes pour planifier ta journée : 3 priorités clés, les rendez-vous, et un créneau pour les imprévus.",
+          "target_reps": 7,
+          "time_of_day": "morning",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T14:51:10.248+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Architecture de la Volonté\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour cultiver une énergie inépuisable, rester présent(e) et apaisé(e) face aux défis, et construire une vie alignée avec mes aspirations profondes.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage du Calme\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"fcb19771-380e-4c31-92e5-914a1958bd87\",\n          \"tips\": \"Utilise les modes 'Ne pas déranger' ou 'Concentration'. Commence par désactiver celles des réseaux sociaux.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bouclier Digital\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ton cerveau sera moins constamment sollicité, réduisant la charge cognitive et favorisant des périodes de concentration plus longues.\",\n          \"targetReps\": 7,\n          \"description\": \"Désactive toutes les notifications non essentielles sur ton téléphone et ton ordinateur. Définis 2-3 moments précis dans la journée pour consulter tes messages/réseaux.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"ce704bf0-6210-4407-8a44-ab9227c23b66\",\n          \"tips\": \"Commence par le dossier 'Téléchargements' ou ta boîte de réception. Fixe-toi 30 minutes et chronomètre-toi.\",\n          \"type\": \"mission\",\n          \"title\": \"Nettoyage Numérique\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement numérique épuré réduit les distractions potentielles et le sentiment d'être débordé(e) par l'information.\",\n          \"description\": \"Fais un tri radical dans tes applications, emails et fichiers numériques. Désabonne-toi des newsletters inutiles. Archive ou supprime tout ce qui ne te sert plus.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Reprendre le contrôle de l'environnement\",\n      \"rationale\": \"Avant de bâtir, nous devons assainir le terrain. Cette phase se concentre sur la réduction des sollicitations externes qui fragmentent ton attention.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : L'Art de la Préparation\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"6c15da3e-3bac-4765-af1f-965c8e12430a\",\n          \"tips\": \"Fais-le avant d'ouvrir tes emails ou ton téléphone. Utilise un carnet physique ou une application dédiée (ex: Todoist, TickTick).\",\n          \"type\": \"habitude\",\n          \"title\": \"La Matinale Stratégique\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Démarrer la journée avec une feuille de route claire réduit l'anxiété, évite de te sentir débordé(e) et dirige ton focus vers l'essentiel.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, prends 10-15 minutes pour planifier ta journée : 3 priorités clés, les rendez-vous, et un créneau pour les imprévus.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b4fec1a5-df79-4d1f-b059-6b5e15df8573\",\n          \"tips\": \"Sois honnête avec toi-même. L'objectif n'est pas de juger, mais d'identifier les leviers d'amélioration.\",\n          \"type\": \"framework\",\n          \"title\": \"L'Inventaire des Siphonseurs\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Identifier tes 'siphonseurs' te donne le pouvoir de mettre en place des stratégies de protection, renforçant ta discipline et ton focus.\",\n          \"targetReps\": 1,\n          \"description\": \"Réfléchis et documente les situations, personnes ou activités qui drainent le plus ton énergie et ton attention. Comment les minimiser ou les éviter ?\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Prends un moment pour identifier clairement ce qui draine ton énergie et ton attention au quotidien. La prise de conscience est la première étape de la libération.\",\n            \"sections\": [\n              {\n                \"id\": \"s2f1\",\n                \"label\": \"Mes 3 principales sources de distraction (pensées, objets, personnes)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Notifications intempestives, ruminations sur mon passé...\"\n              },\n              {\n                \"id\": \"s2f2\",\n                \"label\": \"Ce qui siphonne mon énergie ou me submerge\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Réunions non productives, sollicitations constantes, désordre...\"\n              },\n              {\n                \"id\": \"s2f3\",\n                \"label\": \"Quel impact ont ces 'siphonseurs' sur mon focus et ma stabilité ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ils fragmentent ma concentration, me rendent irritable et me poussent à procrastiner par épuisement.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Structurer pour mieux agir\",\n      \"rationale\": \"La désorganisation est un puissant générateur de procrastination. Cette phase met en place des systèmes pour clarifier tes priorités et te protéger des drains d'énergie.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : La Rédemption du Procrastinateur\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"f280bf33-d074-4aa6-bb51-7f430994a86a\",\n          \"tips\": \"Utilise un minuteur physique ou une application. Pendant la pause, lève-toi, étire-toi, bois de l'eau. Évite les écrans.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Pomodoro Sacré\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cette méthode fractionne le travail en blocs gérables, réduisant le sentiment d'être débordé(e) et renforçant ta capacité à rester focus sur une tâche unique.\",\n          \"targetReps\": 7,\n          \"description\": \"Applique la technique Pomodoro : 25 minutes de travail intense et concentré, suivies de 5 minutes de pause. Fais au moins 2 cycles par jour sur tes tâches prioritaires.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"aa0408b6-c914-452f-a78a-6e9643a95f28\",\n          \"tips\": \"Élimine tout ce qui n'est pas directement lié à la tâche en cours. Crée un environnement visuellement apaisant.\",\n          \"type\": \"mission\",\n          \"title\": \"Aménagement du Sanctuaire de Travail\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement de travail ordonné et minimaliste réduit les stimuli visuels et aide ton cerveau à se concentrer sur l'essentiel.\",\n          \"description\": \"Organise ton espace de travail physique pour le rendre propice à la concentration : moins d'objets sur le bureau, rangements clairs, bonne lumière.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Cultiver l'élan et la persévérance\",\n      \"rationale\": \"Maintenant que tu as un plan et que les distractions sont sous contrôle, cette phase vise à transformer l'intention en action, brisant les cycles de la procrastination.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : La Maîtrise de l'Invisible\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"79a2f81b-9b08-4592-a3e7-80a789f13fc2\",\n          \"tips\": \"Fais-le sur papier ou dans un journal. Cela aide à 'fermer la boucle' de la journée et à libérer ton esprit avant le sommeil.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Revue Nocturne\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cette habitude renforce ta métacognition, ta capacité à apprendre de tes expériences et à optimiser tes stratégies de focus et de discipline.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, prends 5-10 minutes pour passer en revue ta journée : qu'est-ce qui a bien fonctionné ? Qu'aurais-tu pu améliorer ? Prépare mentalement le point de départ de la Matinale Stratégique de demain.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"8f670975-f4c7-430e-8a5c-f5abcc70b21a\",\n          \"tips\": \"Sois spécifique. Au lieu de 'être moins distrait', dis 'vérifier mes mails seulement à 10h et 16h'.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Bilan de Mon Attention\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Cette introspection quotidienne t'aide à comprendre tes schémas attentionnels et à les ajuster activement, consolidant ta maîtrise de ton focus.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, réfléchis aux moments où ton attention a été optimale et aux déclencheurs de distraction. Note une petite amélioration pour le lendemain.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Chaque soir, prends 5 minutes pour réfléchir à ta journée à travers le prisme de ton attention. Où était-elle ? Où aurait-elle dû être ? Quelles leçons en tirer ?\",\n            \"sections\": [\n              {\n                \"id\": \"s4f1\",\n                \"label\": \"Quand mon focus était-il au top aujourd'hui ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ce matin sur le projet X avant les premières notifications...\"\n              },\n              {\n                \"id\": \"s4f2\",\n                \"label\": \"Qu'est-ce qui a le plus déclenché ma distraction aujourd'hui ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Une alerte mail, un collègue qui passe, une pensée parasite...\"\n              },\n              {\n                \"id\": \"s4f3\",\n                \"label\": \"Note mon niveau d'attention global (1-10)\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"7\"\n              },\n              {\n                \"id\": \"s4f4\",\n                \"label\": \"Une chose concrète à améliorer pour demain\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Éteindre les notifications avant 10h et mettre des écouteurs.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Ancrer les réflexes et pérenniser\",\n      \"rationale\": \"Ces deux dernières semaines sont dédiées à l'intégration profonde des nouvelles habitudes et à l'affinage de ta conscience de ton propre fonctionnement attentionnel, pour une discipline durable.\"\n    }\n  ],\n  \"deepWhy\": \"Pour cultiver une énergie inépuisable, rester présent(e) et apaisé(e) face aux défis, et construire une vie alignée avec mes aspirations profondes.\",\n  \"identity\": \"Je suis un(e) Maître(sse) de mon Attention.\",\n  \"strategy\": \"Nous allons bâtir un système robuste de focus et de discipline, en commençant par ancrer les habitudes essentielles et en éliminant les sources de distraction, pour retrouver une stabilité énergétique et mentale durable.\",\n  \"goldenRules\": \"1. Chaque tâche a sa place et son temps.\\n2. Les distractions ne sont que des invités, jamais des résidents permanents.\\n3. L'action précède la motivation.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps de focus ininterrompu\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"15\",\n    \"description\": \"Durée maximale que tu as passée sur une tâche sans interruption par un écran ou une autre sollicitation.\",\n    \"targetValue\": \"60\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Architecture de la Volonté\",\n  \"context_problem\": \"Tu te sentais constamment débordé(e) et tes objectifs de focus et de discipline te semblaient hors de portée à cause des distractions incessantes et d'une tendance à procrastiner. Le manque de stabilité et d'énergie au quotidien, exacerbé par un sommeil de mauvaise qualité, était un frein majeur à ton épanouissement.\",\n  \"sophiaKnowledge\": \"Tu es une personne active, née en 1996, qui se sent désorganisée et facilement distraite malgré un niveau d'activité élevé. Ta qualité de sommeil est mauvaise, ce qui impacte probablement ton énergie et ta stabilité quotidienne. Tu es débordée par un rythme de vie chargé et manques de temps pour toi, ce qui te pousse à la procrastination.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu repoussé une tâche importante au lendemain ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Bouclier Digital (any_time)\n- [ACTION] Nettoyage Numérique (any_time)\n- [ACTION] La Matinale Stratégique (morning)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps de focus ininterrompu: 15 min\n",
+      "template_fingerprint": "25ab79d4074ec971"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

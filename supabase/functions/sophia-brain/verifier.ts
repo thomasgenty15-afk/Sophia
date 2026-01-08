@@ -116,6 +116,9 @@ MESSAGE À RÉÉCRIRE:
 ${base}
   `.trim();
 
+  const defaultModel =
+    (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim() || "gemini-2.5-flash";
+
   const rewritten = await generateWithGemini(
     systemPrompt,
     "Réécris ce message en respectant les règles. Ne rajoute aucun nouvel item.",
@@ -126,7 +129,9 @@ ${base}
     {
       requestId: meta?.requestId,
       userId: meta?.userId,
-      model: meta?.model ?? "gemini-3-flash",
+      // Use a model that is known to exist on the configured Gemini endpoint.
+      // (Some environments don't have "gemini-3-flash", which causes long retry loops.)
+      model: meta?.model ?? defaultModel,
       source: `sophia-brain:investigator_verifier:${scenario}`,
       forceRealAi: meta?.forceRealAi,
     },
@@ -191,6 +196,9 @@ MESSAGE À RÉÉCRIRE:
 ${base}
   `.trim();
 
+  const defaultModel2 =
+    (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim() || "gemini-2.5-flash";
+
   const rewritten = await generateWithGemini(
     systemPrompt,
     "Réécris ce message en respectant les règles. Ne rajoute aucun nouvel item.",
@@ -201,8 +209,107 @@ ${base}
     {
       requestId: meta?.requestId,
       userId: meta?.userId,
-      model: meta?.model ?? "gemini-3-flash",
+      // Use a model that is known to exist on the configured Gemini endpoint.
+      model: meta?.model ?? defaultModel2,
       source: `sophia-brain:bilan_verifier:${agent}`,
+      forceRealAi: meta?.forceRealAi,
+    },
+  );
+
+  return { text: collapseBlankLines(normalizeChatText(rewritten)), rewritten: true, violations };
+}
+
+function buildPostCheckupViolations(text: string): string[] {
+  const v: string[] = [];
+  const s = (text ?? "").toString();
+  if (!s.trim()) v.push("empty_response");
+  if (hasBoldLeak(s)) v.push("bold_not_allowed");
+  if (hasInternalTechLeak(s)) v.push("internal_tech_terms_not_allowed");
+  // Avoid needless "I'm an AI" disclaimers mid-conversation (often indicates misunderstanding).
+  if (/\bje\s+suis\s+une?\s+ia\b/i.test(s)) v.push("post_checkup_unnecessary_ai_disclaimer");
+  // In post-bilan, we must never suggest resuming the bilan/checkup.
+  if (/\b(apr[èe]s\s+le\s+bilan)\b/i.test(s)) v.push("post_checkup_mentions_apres_bilan");
+  if (/\b(continue(?:r)?|reprend(?:re)?|reprenons|on\s+continue|on\s+reprend)\b/i.test(s) && /\b(bilan|check(?:up)?)\b/i.test(s)) {
+    v.push("post_checkup_mentions_continue_bilan");
+  }
+  // Also forbid "we're finishing the bilan" phrasing in post-checkup (we're already after it).
+  if (/\b(termin[ée]e?r?\s+(?:le\s+)?bilan|on\s+termine\s+(?:le\s+)?bilan|finissons\s+(?:le\s+)?bilan)\b/i.test(s)) {
+    v.push("post_checkup_mentions_terminate_bilan");
+  }
+
+  // Companion-not-coach rule: in post-bilan we should NOT push "the plan" or inactive items unless user explicitly asks.
+  // We can't reliably know activation state here, so we conservatively forbid plan-pushing phrasing.
+  if (
+    /\b(suite\s+de\s+ton\s+plan|aborder\s+la\s+suite\s+de\s+ton\s+plan|dans\s+ton\s+plan|prochaines?\s+actions?|frameworks?|phases?|objectifs?)\b/i
+      .test(s)
+  ) {
+    v.push("post_checkup_mentions_plan_push");
+  }
+
+  // Reduce repetition: only require "C’est bon pour ce point ?" when the assistant is actually closing the topic.
+  // If the assistant is asking a follow-up question, we DON'T force the close-question at the same time.
+  const asksQuestion =
+    /[?？]\s*$/.test(s.trim()) ||
+    /\b(est-ce\s+que|qu['’]est-ce\s+que|pourquoi|comment|peux-tu|peux\s+tu|tu\s+peux|tu\s+voudrais|ça\s+te\s+dirait)\b/i.test(s);
+  const closesTopicHint =
+    /\b(on\s+commence|on\s+peut\s+commencer|ok\b|d['’]accord\b|parfait\b|merci\b|en\s+r[ée]sum[ée]|pour\s+r[ée]capituler|l['’]id[ée] c['’]est)\b/i.test(s) &&
+    !asksQuestion;
+
+  if (closesTopicHint && !/\b(c['’]est\s+bon\s+pour\s+ce\s+point)\b/i.test(s)) {
+    v.push("post_checkup_missing_done_question");
+  }
+  return v;
+}
+
+export async function verifyPostCheckupAgentMessage(opts: {
+  draft: string;
+  agent: "architect" | "companion" | "firefighter" | "assistant" | "watcher" | string;
+  data: unknown; // should include topic/context excerpt
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; userId?: string };
+}): Promise<{ text: string; rewritten: boolean; violations: string[] }> {
+  const { draft, agent, data, meta } = opts;
+  const base = collapseBlankLines(normalizeChatText(draft));
+  const violations = buildPostCheckupViolations(base);
+  if (violations.length === 0) return { text: base, rewritten: false, violations: [] };
+
+  const systemPrompt = `
+Tu es "Verifier", un relecteur/correcteur pour Sophia.
+Contexte: le BILAN est TERMINÉ. Nous sommes en MODE POST-BILAN et on traite un SUJET REPORTÉ.
+
+RÈGLES STRICTES POST-BILAN:
+- Français, tutoiement.
+- Texte brut uniquement (pas de JSON, pas de **).
+- Interdiction de dire "après le bilan" (puisqu'on est déjà après).
+- Interdiction de proposer de continuer/reprendre le bilan/checkup.
+- Évite les disclaimers du type "je suis une IA" (sauf si l’utilisateur te le demande explicitement). Si tu as mal compris, clarifie et reviens au sujet.
+- Traite uniquement le sujet reporté (ne pose pas de questions de bilan sur d'autres actions/vitals).
+- N'évoque PAS "ton plan" ni des actions/frameworks non activés si l'utilisateur ne le demande pas. Ne sois pas un coach relou: propose, puis laisse respirer.
+- Si tu conclus/clos ce sujet (ou fais un récap/proposition de clôture), termine par: "C’est bon pour ce point ?"
+- Si tu poses une question de clarification au milieu du sujet, ne rajoute pas "C’est bon pour ce point ?" dans la même phrase (éviter la répétition / double-question).
+
+AGENT SOURCE: ${agent}
+DONNÉES (JSON): ${JSON.stringify(data)}
+VIOLATIONS: ${violations.join(", ")}
+
+MESSAGE À RÉÉCRIRE:
+${base}
+  `.trim();
+
+  const defaultModel =
+    (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim() || "gemini-2.5-flash";
+
+  const rewritten = await generateWithGemini(
+    systemPrompt,
+    "Réécris ce message en respectant les règles. Ne rajoute aucun nouvel item.",
+    0.2,
+    false,
+    [],
+    "auto",
+    {
+      requestId: meta?.requestId,
+      userId: meta?.userId,
+      model: meta?.model ?? defaultModel,
+      source: `sophia-brain:post_checkup_verifier:${agent}`,
       forceRealAi: meta?.forceRealAi,
     },
   );

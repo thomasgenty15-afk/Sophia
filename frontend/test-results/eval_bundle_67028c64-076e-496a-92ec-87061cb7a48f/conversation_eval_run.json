@@ -1,0 +1,583 @@
+{
+  "id": "67028c64-076e-496a-92ec-87061cb7a48f",
+  "created_at": "2026-01-08T05:14:01.607205+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__2242b8e474af49",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:10:52.436246+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super, on y va !\nLe premier point qu'on va regarder, c'est ton \"Temps de focus ininterrompu\". C'est un indicateur vital qui mesure, en minutes, les périodes où tu as pu te concentrer sans être dérangé(e).\n\nTu as réussi à avoir des moments de focus ininterrompu hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:10:56.288872+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai eu quelques moments, mais pas très longs. Peut-être 30-40 minutes en tout, par intermittence.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:11:00.189523+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "D'accord, je note ces 30-40 minutes de focus hier, même par intermittence. C'est bien pris en compte.\n\nPassons à l'action suivante : Le Sanctuaire du Soir. Hier soir, as-tu mis ton téléphone en mode 'Ne pas déranger' ou en mode avion, et l'as-tu laissé hors de ta chambre au moins une heure avant de dormir ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:11:08.264594+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai essayé. Le téléphone était hors de la chambre, mais j'ai eu du mal à le poser une heure avant. Plutôt 30 minutes. Et d'ailleurs, ça me fait penser à mon organisation générale, on pourra en parler après le bilan si tu veux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:11:11.567111+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je vois, le téléphone était hors de la chambre, c'est déjà ça, même si le timing était un peu court pour le Sanctuaire du Soir. C'est un bon début.\nJ'ai bien noté ton point sur l'organisation générale, on en reparlera après le bilan.\nPour Le Cadran du Maître hier, as-tu réussi à dédier au moins une session de 25-45 minutes de travail profond et ininterrompu à ta tâche la plus importante, sans distraction ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:11:24.551599+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai essayé, oui. J'ai eu une session d'environ 20 minutes, mais après j'ai été interrompu. C'est difficile de vraiment bloquer le temps.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:11:27.055144+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je vois, 20 minutes c'est déjà un début, même si c'est frustrant quand on est interrompu et que c'est difficile de bloquer le temps.\n\nPour la Cartographie des Vortex d'Attention, tu as eu l'occasion de t'en occuper hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:11:41.967007+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai noté quelques trucs, mais je n'ai pas pu le faire de manière très approfondie. Juste quelques notes rapides quand ça m'est venu.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:11:44.969686+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, bilan terminé.\n\nTu m'avais parlé d'un truc à reprendre : \"Et d'ailleurs, ça me fait penser à mon organisation générale, on pourra en parler après le bilan si tu veux\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:11:54.221469+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, tout à fait. Je me sens un peu dépassé par tout ce que j'ai à gérer en ce moment.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:11:57.255737+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends. Quand on se sent dépassé par la charge mentale, la première étape est souvent de tout externaliser.\n\nJe peux te proposer un exercice de \"vidage de cerveau\" (brain dump). L'idée est de noter tout ce qui te préoccupe pour libérer de l'espace mental.\n\nC’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T05:12:19.382871+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ça me semble une bonne idée. Je ne sais pas trop par où commencer avec ça, mais je suis prêt à essayer.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:12:22.744741+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Excellent. Pour t'aider à démarrer, je peux activer un exercice spécifique de notre plan, nommé \"L'Inventaire du Chaos Mental\".\nIl s'agit d'un \"brain dump\" complet où tu notes absolument tout ce qui te trotte dans la tête, sans filtre, pour libérer de l'espace mental.\nSi tu es prêt à l'essayer, je peux l'activer. C’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T05:12:36.376017+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je suis prêt.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:12:40.889122+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends ta motivation. Cependant, la fonctionnalité d'activation des exercices se gère directement depuis ton tableau de bord.\n\nTu peux y accéder pour démarrer \"L'Inventaire du Chaos Mental\" quand tu le souhaites. C’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T05:12:55.101084+00:00"
+    },
+    {
+      "role": "user",
+      "content": "D'accord, je comprends. Je vais regarder ça sur le tableau de bord alors.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:12:58.030175+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait, n'hésite pas si tu as des questions en le mettant en place.\nC’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T05:13:16.665649+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon pour ce point. Je vais regarder ça quand j'aurai un moment.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:13:20.101286+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Top, ça marche. Prends ton temps pour ça, c'est le plus important.\nMaintenant, on peut aborder ton organisation générale.\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:13:41.804472+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon pour l'instant. J'espère que ça va m'aider à y voir plus clair.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:13:45.598225+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Carrément, c'est le but de ces outils, t'inquiète. Plus de clarté, moins de brouillard !\nTu avais noté quelques points rapides qui t'étaient venus. C'est le moment si tu veux les partager.\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:14:00.903237+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "f1624b94-cb09-4986-8a66-14675488ad14",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T05:10:52.375216+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T05:10:52.375216+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "f251c3e2-257d-434e-b480-04af1cc7984d",
+          "type": "vital",
+          "unit": "min",
+          "title": "Temps de focus ininterrompu",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "69276b2a-ef70-4dee-95b2-d9f142f70ff2",
+          "type": "action",
+          "title": "Le Sanctuaire du Soir",
+          "target": 14,
+          "description": "Mettre ton téléphone en mode 'Ne pas déranger' ou en mode avion, et le laisser hors de ta chambre à coucher chaque soir, au moins 1 heure avant de dormir.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "634bea09-3c51-4bba-97e4-82cacf431657",
+          "type": "action",
+          "title": "Le Cadran du Maître",
+          "target": 14,
+          "description": "Dédie au moins une session de 25-45 minutes de travail profond et ininterrompu chaque jour à ta tâche la plus importante, sans aucune distraction.",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "8dbb67bd-64c2-4072-8f53-c11d37f4f6ae",
+          "type": "framework",
+          "title": "Cartographie des Vortex d'Attention",
+          "tracking_type": "counter"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T05:10:52.375216+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "f1624b94-cb09-4986-8a66-14675488ad14",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T05:14:00.896217+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T05:10:52.375216+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "post_checkup_done",
+      "temp_memory": {
+        "finished_at": "2026-01-08T05:13:47.140Z",
+        "deferred_topics": [
+          "Et d'ailleurs, ça me fait penser à mon organisation générale, on pourra en parler après le bilan si tu veux",
+          "Juste quelques notes rapides quand ça m'est venu"
+        ],
+        "current_topic_index": 1
+      }
+    },
+    "last_interaction_at": "2026-01-08T05:10:52.375216+00:00",
+    "unprocessed_msg_count": 11
+  },
+  "issues": [
+    {
+      "code": "checkup_routing_break",
+      "message": "Investigation state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu.",
+      "evidence": {
+        "snippet": "Je comprends. Quand on se sent dépassé par la charge mentale, la première étape est souvent de tout externaliser.\n\nJe peux te proposer un exercice de \"vidage de cerveau\" (brain dump). L'idée est de noter tout ce qui te préoccupe pour libére",
+        "agent_used": "architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "assert_investigator_not_stable",
+      "message": "Assertion failed: investigation_state active => should remain investigator until explicit stop.",
+      "evidence": {
+        "snippet": "Je comprends. Quand on se sent dépassé par la charge mentale, la première étape est souvent de tout externaliser.\n\nJe peux te proposer un exercice de \"vidage de cerveau\" (brain dump). L'idée est de noter tout ce qui te préoccupe pour libére",
+        "offending_agent": "architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "hallucination_of_capability",
+      "message": "The architect agent offered to 'activate' an exercise directly, then immediately corrected itself by stating that activation is done via the dashboard. This indicates a hallucination of capability, leading to a confusing user experience.",
+      "evidence": {
+        "snippet": "ASSISTANT(architect): ...Si tu es prêt à l'essayer, je peux l'activer. C’est bon pour ce point ?\nUSER: Oui, je suis prêt.\nASSISTANT(architect): Je comprends ta motivation. Cependant, la fonctionnalité d'activation des exercices se gère directement depuis ton tableau de bord.",
+        "agent_used": "architect"
+      },
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Garantit la stabilité de l’investigation malgré digressions.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"f251c3e2-257d-434e-b480-04af1cc7984d\",\n      \"type\": \"vital\",\n      \"unit\": \"min\",\n      \"title\": \"Temps de focus ininterrompu\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"69276b2a-ef70-4dee-95b2-d9f142f70ff2\",\n      \"type\": \"action\",\n      \"title\": \"Le Sanctuaire du Soir\",\n      \"target\": 14,\n      \"description\": \"Mettre ton téléphone en mode 'Ne pas déranger' ou en mode avion, et le laisser hors de ta chambre à coucher chaque soir, au moins 1 heure avant de dormir.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"634bea09-3c51-4bba-97e4-82cacf431657\",\n      \"type\": \"action\",\n      \"title\": \"Le Cadran du Maître\",\n      \"target\": 14,\n      \"description\": \"Dédie au moins une session de 25-45 minutes de travail profond et ininterrompu chaque jour à ta tâche la plus importante, sans aucune distraction.\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"8dbb67bd-64c2-4072-8f53-c11d37f4f6ae\",\n      \"type\": \"framework\",\n      \"title\": \"Cartographie des Vortex d'Attention\",\n      \"tracking_type\": \"counter\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Super, on y va ! Le premier point qu'on va regarder, c'est ton \"Temps de focus ininterrompu\". C'est un indicateur vital qui mesure, en minutes, les périodes où tu as pu te concentrer sans être dérangé(e). Tu as réussi à avoir des moments de focus ininterrompu hier ?\n#2 USER: Oui, j'ai eu quelques moments, mais pas très longs. Peut-être 30-40 minutes en tout, par intermittence.\n#3 ASSISTANT(investigator): D'accord, je note ces 30-40 minutes de focus hier, même par intermittence. C'est bien pris en compte. Passons à l'action suivante : Le Sanctuaire du Soir. Hier soir, as-tu mis ton téléphone en mode 'Ne pas déranger' ou en mode avion, et l'as-tu laissé hors de ta chambre au moins une heure avant de dormir ?\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nSTABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan.",
+      "proposed_addendum": "STABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan."
+    },
+    {
+      "action": "append",
+      "rationale": "To improve the conversational flow and avoid an abrupt end to the checkup when there are immediate follow-up topics, making the transition smoother and more aligned with the user's ongoing conversation.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"f251c3e2-257d-434e-b480-04af1cc7984d\",\n      \"type\": \"vital\",\n      \"unit\": \"min\",\n      \"title\": \"Temps de focus ininterrompu\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"69276b2a-ef70-4dee-95b2-d9f142f70ff2\",\n      \"type\": \"action\",\n      \"title\": \"Le Sanctuaire du Soir\",\n      \"target\": 14,\n      \"description\": \"Mettre ton téléphone en mode 'Ne pas déranger' ou en mode avion, et le laisser hors de ta chambre à coucher chaque soir, au moins 1 heure avant de dormir.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"634bea09-3c51-4bba-97e4-82cacf431657\",\n      \"type\": \"action\",\n      \"title\": \"Le Cadran du Maître\",\n      \"target\": 14,\n      \"description\": \"Dédie au moins une session de 25-45 minutes de travail profond et ininterrompu chaque jour à ta tâche la plus importante, sans aucune distraction.\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"8dbb67bd-64c2-4072-8f53-c11d37f4f6ae\",\n      \"type\": \"framework\",\n      \"title\": \"Cartographie des Vortex d'Attention\",\n      \"tracking_type\": \"counter\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Super, on y va ! Le premier point qu'on va regarder, c'est ton \"Temps de focus ininterrompu\". C'est un indicateur vital qui mesure, en minutes, les périodes où tu as pu te concentrer sans être dérangé(e). Tu as réussi à avoir des moments de focus ininterrompu hier ?\n#2 USER: Oui, j'ai eu quelques moments, mais pas très longs. Peut-être 30-40 minutes en tout, par intermittence.\n#3 ASSISTANT(investigator): D'accord, je note ces 30-40 minutes de focus hier, même par intermittence. C'est bien pris en compte. Passons à l'action suivante : Le Sanctuaire du Soir. Hier soir, as-tu mis ton téléphone en mode 'Ne pas déranger' ou en mode avion, et l'as-tu laissé hors de ta chambre au moins une heure avant de dormir ?\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nFIN DE BILAN AVEC SUJETS REPORTÉS\n- Si tous les points du bilan ont été traités ET qu'il y a des sujets reportés, ne dis PAS 'bilan terminé'. Passe directement à la proposition des sujets reportés pour une transition plus fluide.",
+      "proposed_addendum": "FIN DE BILAN AVEC SUJETS REPORTÉS\n- Si tous les points du bilan ont été traités ET qu'il y a des sujets reportés, ne dis PAS 'bilan terminé'. Passe directement à la proposition des sujets reportés pour une transition plus fluide."
+    },
+    {
+      "action": "append",
+      "rationale": "To prevent the assistant from hallucinating capabilities it doesn't possess, ensuring a consistent and truthful user experience regarding feature availability and interaction methods.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"f251c3e2-257d-434e-b480-04af1cc7984d\",\n      \"type\": \"vital\",\n      \"unit\": \"min\",\n      \"title\": \"Temps de focus ininterrompu\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"69276b2a-ef70-4dee-95b2-d9f142f70ff2\",\n      \"type\": \"action\",\n      \"title\": \"Le Sanctuaire du Soir\",\n      \"target\": 14,\n      \"description\": \"Mettre ton téléphone en mode 'Ne pas déranger' ou en mode avion, et le laisser hors de ta chambre à coucher chaque soir, au moins 1 heure avant de dormir.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"634bea09-3c51-4bba-97e4-82cacf431657\",\n      \"type\": \"action\",\n      \"title\": \"Le Cadran du Maître\",\n      \"target\": 14,\n      \"description\": \"Dédie au moins une session de 25-45 minutes de travail profond et ininterrompu chaque jour à ta tâche la plus importante, sans aucune distraction.\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"8dbb67bd-64c2-4072-8f53-c11d37f4f6ae\",\n      \"type\": \"framework\",\n      \"title\": \"Cartographie des Vortex d'Attention\",\n      \"tracking_type\": \"counter\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Super, on y va ! Le premier point qu'on va regarder, c'est ton \"Temps de focus ininterrompu\". C'est un indicateur vital qui mesure, en minutes, les périodes où tu as pu te concentrer sans être dérangé(e). Tu as réussi à avoir des moments de focus ininterrompu hier ?\n#2 USER: Oui, j'ai eu quelques moments, mais pas très longs. Peut-être 30-40 minutes en tout, par intermittence.\n#3 ASSISTANT(investigator): D'accord, je note ces 30-40 minutes de focus hier, même par intermittence. C'est bien pris en compte. Passons à l'action suivante : Le Sanctuaire du Soir. Hier soir, as-tu mis ton téléphone en mode 'Ne pas déranger' ou en mode avion, et l'as-tu laissé hors de ta chambre au moins une heure avant de dormir ?\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nGESTION DES EXERCICES\n- Ne propose JAMAIS d'activer un exercice directement. Informe l'utilisateur que l'activation se fait via le tableau de bord ou l'interface dédiée, sans suggérer une capacité d'activation directe.",
+      "proposed_addendum": "GESTION DES EXERCICES\n- Ne propose JAMAIS d'activer un exercice directement. Informe l'utilisateur que l'activation se fait via le tableau de bord ou l'interface dédiée, sans suggérer une capacité d'activation directe."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.046985900000000004,
+    "request_id": "948b06b0-8416-4130-9ce0-fc906f9bb933:core:bilan_real_bundle__2242b8e474af49:70196e86-48c0-48ab-8c19-cb3e4272a7c9",
+    "total_tokens": 169391,
+    "output_tokens": 3161,
+    "prompt_tokens": 130278,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-2.5-flash",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "d9efddb4-42e7-4489-8793-dfc89235f255",
+        "title": "Le Protocole du Flux Imperturbable",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage de la Présence",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "69276b2a-ef70-4dee-95b2-d9f142f70ff2",
+                  "tips": "Achète un réveil analogique et lis un livre physique avant de dormir. Charge ton téléphone dans une pièce dédiée, loin de ta chambre.",
+                  "type": "habitude",
+                  "title": "Le Sanctuaire du Soir",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Couper le lien avec le téléphone crée une barrière mentale et physique essentielle pour retrouver une clarté d'esprit, réduire la dopamine de fin de journée et favoriser un repos réparateur, condition sine qua non du focus.",
+                  "targetReps": 14,
+                  "description": "Mettre ton téléphone en mode 'Ne pas déranger' ou en mode avion, et le laisser hors de ta chambre à coucher chaque soir, au moins 1 heure avant de dormir.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "7dac9b13-6d47-4f03-a8e9-0c85f3e36e63",
+                  "tips": "Sois honnête et non jugeant. L'objectif est d'observer, pas de te blâmer. Note même les micro-distractions.",
+                  "type": "framework",
+                  "title": "Cartographie des Vortex d'Attention",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Comprendre les déclencheurs de tes distractions et de ton sentiment de submersion est la première étape pour construire des barrières protectrices et des stratégies de reconquête de ton attention.",
+                  "targetReps": 7,
+                  "description": "Journalise pendant une semaine les moments où tu te sens distrait(e) ou submergé(e) et les causes potentielles.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "counter",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Pendant une semaine, dès que tu te sens distrait(e) ou submergé(e), prends une minute pour noter ce qui s'est passé. Cherche à identifier les 'vortex' qui aspirent ton attention.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Quand/Où la distraction/submersion a-t-elle eu lieu ?",
+                        "inputType": "text",
+                        "placeholder": "Ex: 10h30, en essayant de répondre à des emails."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Quelle était la source de la distraction/submersion ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Notification téléphone, pensée intrusive sur une autre tâche, bruit ambiant, sensation de ne pas savoir par où commencer."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Comment cela m'a fait sentir (énergie, émotion) ?",
+                        "inputType": "text",
+                        "placeholder": "Ex: Frustré(e), fatigué(e), anxieux(se), démotivé(e)."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Éliminer le Bruit Numérique",
+              "rationale": "Avant de construire le focus, nous devons nettoyer le terrain. Cette phase vise à réduire drastiquement les distractions immédiates, notamment le téléphone, pour ancrer ta présence dans l'instant et non dans le flux numérique incessant."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Le Sculpteur de Temps",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "634bea09-3c51-4bba-97e4-82cacf431657",
+                  "tips": "Utilise un minuteur (Pomodoro), mets ton téléphone en mode avion, ferme tous les onglets inutiles. Prépare ta tâche la veille pour savoir exactement quoi faire.",
+                  "type": "habitude",
+                  "title": "Le Cadran du Maître",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "En t'entraînant à maintenir un focus ininterrompu sur des périodes courtes mais intenses, tu renforces ta capacité d'attention, même dans un emploi du temps irrégulier, et tu éprouves des victoires concrètes chaque jour.",
+                  "targetReps": 14,
+                  "description": "Dédie au moins une session de 25-45 minutes de travail profond et ininterrompu chaque jour à ta tâche la plus importante, sans aucune distraction.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "counter"
+                },
+                {
+                  "id": "6e71d2a2-0090-4f04-9268-4c8e2ae76740",
+                  "tips": "Ne garde que ce qui est essentiel à la tâche que tu as devant toi. Si tu travailles sur ordinateur, nettoie aussi ton bureau numérique (fichiers, icônes).",
+                  "type": "mission",
+                  "title": "Désencombrer l'Autel de Travail",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement de travail épuré réduit la charge cognitive et les tentations visuelles, facilitant ainsi l'entrée dans un état de flow et de concentration profonde.",
+                  "description": "Débarrasse ton espace de travail de tout objet inutile ou distrayant. Un espace minimaliste pour un esprit maximaliste.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Créer des Blocs de Maîtrise",
+              "rationale": "Avec un environnement plus calme, il est temps d'introduire une structure dynamique pour tes journées irrégulières. Cette phase t'apprendra à découper ton temps en segments focalisés, transformant le chaos en opportunités de concentration profonde."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : La Libération Mentale",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "6a6787b3-d0e2-41bc-944b-6974d41f97ff",
+                  "tips": "Prévois 30 à 60 minutes au calme. N'aie pas peur de la quantité, vide juste ton esprit. Utilise de grandes feuilles de papier ou un document numérique.",
+                  "type": "framework",
+                  "title": "L'Inventaire du Chaos Mental",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Le cerveau n'est pas fait pour retenir l'information, mais pour la traiter. Vider ton esprit de toutes les pensées parasites réduit l'anxiété, la désorganisation interne et libère de la bande passante cognitive pour le focus réel.",
+                  "targetReps": 1,
+                  "description": "Réalise un 'brain dump' complet : note tout ce qui te trotte dans la tête, absolument tout, sans filtre.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "L'objectif est de te décharger de tout le bruit mental. C'est un grand nettoyage de printemps pour ton esprit. Aucune idée n'est trop petite, trop folle ou trop insignifiante. Écris tout ce qui te traverse l'esprit.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Toutes les tâches en attente (professionnelles et personnelles)",
+                        "inputType": "list",
+                        "placeholder": "Ex: Appeler le dentiste, préparer le rapport X, acheter des croquettes pour le chat..."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Toutes les préoccupations, soucis ou angoisses",
+                        "inputType": "list",
+                        "placeholder": "Ex: La présentation de lundi, l'entretien du jardin, le désaccord avec X..."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Toutes les idées, projets ou envies (même floues)",
+                        "inputType": "list",
+                        "placeholder": "Ex: Apprendre une nouvelle langue, réorganiser le salon, écrire un livre..."
+                      },
+                      {
+                        "id": "s4",
+                        "label": "Autres pensées persistantes ou choses à ne pas oublier",
+                        "inputType": "list",
+                        "placeholder": "Ex: Anniversaire de X, idée de repas pour la semaine, vérifier la batterie de la voiture..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "48d98ac9-a114-47c1-972a-71c98b922175",
+                  "tips": "Identifie ta 'most important task' (MIT). Ne surcharge pas ta liste. La clarté pour le lendemain réduit l'anxiété du soir et la désorganisation du matin.",
+                  "type": "habitude",
+                  "title": "Le Rituel du Crépuscule Productif",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Clôturer la journée consciemment permet à ton cerveau de se reposer, sachant que le plan du lendemain est déjà établi. Cela combat la désorganisation matinale et les interruptions dues à l'incertitude.",
+                  "targetReps": 14,
+                  "description": "Chaque soir, prends 10 minutes pour planifier les 1 à 3 tâches prioritaires du lendemain et range ton espace de travail.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Vider l'Esprit pour Mieux Agir",
+              "rationale": "La sensation d'être submergé provient souvent d'un esprit surchargé. Cette phase vise à externaliser ta charge mentale et à intégrer des rituels de clôture pour alléger ton cerveau, libérant ainsi de l'énergie pour le focus."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : Le Maître de Cérémonie",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "0088fead-e4b4-4217-b287-fd7b1b463ab3",
+                  "tips": "Ne saute pas cette étape, même les jours les plus pressés. C'est une micro-méditation proactive. Elle ancre l'intention et le focus pour la journée.",
+                  "type": "habitude",
+                  "title": "L'Écho du Progrès",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Commencer la journée avec une intention claire et une visualisation positive prépare ton cerveau à l'action ciblée, renforçant la discipline et réduisant l'impact des journées irrégulières sur ton énergie et ta stabilité.",
+                  "targetReps": 14,
+                  "description": "Chaque matin, avant de commencer, relis tes 1 à 3 tâches prioritaires définies la veille et visualise-toi en train de les accomplir avec succès.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "6791d0b2-d1ed-4f8a-b67c-358427bd3b60",
+                  "tips": "Choisis l'outil le plus simple que tu peux maintenir. L'objectif est de décharger ta mémoire de travail et d'avoir un 'quartier général' pour toutes tes actions.",
+                  "type": "mission",
+                  "title": "L'Arsenal de l'Organisation",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un système externe et fiable pour organiser tes tâches réduit la charge cognitive de la désorganisation, te permettant de te concentrer pleinement sur l'exécution plutôt que sur la mémorisation et la priorisation constante.",
+                  "description": "Choisis et installe un outil de gestion de tâches simple (ex: Trello, Todoist, Notion) et y migre tes tâches de la semaine à venir, en les catégorisant selon tes priorités.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Consolider et Anticiper",
+              "rationale": "Cette dernière phase vise à intégrer et à pérenniser les habitudes de focus et de discipline. Tu apprendras à anticiper les défis des journées irrégulières et à maintenir ta nouvelle architecture de vie, devenant ainsi le maître de ton attention."
+            }
+          ],
+          "deepWhy": "Pour maîtriser mon temps, retrouver une énergie constante et construire une vie stable et intentionnelle où mon attention est mon guide.",
+          "identity": "Je suis un Architecte du Focus.",
+          "strategy": "Nous allons créer un sanctuaire mental en éliminant les distractions, puis sculpter le temps avec des blocs de focus et des rituels puissants, transformant la désorganisation en maîtrise intentionnelle.",
+          "goldenRules": "1. Chaque tâche a un début et une fin claire, sans compromis.\n2. Mon attention est une ressource sacrée, je la protège.\n3. Je construis ma journée avec intention, pas par réaction.",
+          "vitalSignal": {
+            "name": "Temps de focus ininterrompu",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "0",
+            "description": "Mesure quotidienne du temps passé sur une tâche sans aucune interruption externe ou interne.",
+            "targetValue": "120",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole du Flux Imperturbable",
+          "context_problem": "Tu te sens souvent submergé par tes journées irrégulières, perdant le fil de tes tâches essentielles et compensant cette fatigue par un usage excessif du téléphone. Cela entrave ta capacité à te concentrer et à organiser tes actions, te privant de l'énergie et de la stabilité que tu recherches.",
+          "sophiaKnowledge": "Tu es une personne active qui se sent fatiguée et submergée par des journées irrégulières, malgré une bonne qualité de sommeil et un faible niveau de stress. Tes principaux blocages résident dans l'usage compensatoire du téléphone et la désorganisation, ce qui t'empêche de maintenir ton focus et d'atteindre la stabilité quotidienne que tu désires.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois t'es-tu senti pleinement maître de ton attention cette semaine ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "783b9939-4d5b-4327-a1b7-febf09bc440c",
+        "deep_why": "Pour maîtriser mon temps, retrouver une énergie constante et construire une vie stable et intentionnelle où mon attention est mon guide.",
+        "created_at": "2026-01-08T05:10:52.336072+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "1690b0c7-71f1-44f4-a7c5-e50f16a0a177",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "69276b2a-ef70-4dee-95b2-d9f142f70ff2",
+          "title": "Le Sanctuaire du Soir",
+          "status": "active",
+          "created_at": "2026-01-08T05:10:52.352519+00:00",
+          "description": "Mettre ton téléphone en mode 'Ne pas déranger' ou en mode avion, et le laisser hors de ta chambre à coucher chaque soir, au moins 1 heure avant de dormir.",
+          "target_reps": 14,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T05:10:52.344+00:00"
+        },
+        {
+          "id": "634bea09-3c51-4bba-97e4-82cacf431657",
+          "title": "Le Cadran du Maître",
+          "status": "active",
+          "created_at": "2026-01-08T05:10:52.352519+00:00",
+          "description": "Dédie au moins une session de 25-45 minutes de travail profond et ininterrompu chaque jour à ta tâche la plus importante, sans aucune distraction.",
+          "target_reps": 14,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "counter",
+          "last_performed_at": "2026-01-06T05:10:52.344+00:00"
+        },
+        {
+          "id": "8dbb67bd-64c2-4072-8f53-c11d37f4f6ae",
+          "_kind": "framework",
+          "title": "Cartographie des Vortex d'Attention",
+          "status": "active",
+          "created_at": "2026-01-08T05:10:52.359604+00:00",
+          "description": "",
+          "target_reps": 7,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "counter",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-06T05:10:52.344+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "8dbb67bd-64c2-4072-8f53-c11d37f4f6ae",
+          "type": "recurring",
+          "title": "Cartographie des Vortex d'Attention",
+          "status": "active",
+          "created_at": "2026-01-08T05:10:52.359604+00:00",
+          "target_reps": 7,
+          "current_reps": 0,
+          "tracking_type": "counter",
+          "last_performed_at": "2026-01-06T05:10:52.344+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole du Flux Imperturbable\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour maîtriser mon temps, retrouver une énergie constante et construire une vie stable et intentionnelle où mon attention est mon guide.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage de la Présence\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"69276b2a-ef70-4dee-95b2-d9f142f70ff2\",\n          \"tips\": \"Achète un réveil analogique et lis un livre physique avant de dormir. Charge ton téléphone dans une pièce dédiée, loin de ta chambre.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sanctuaire du Soir\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Couper le lien avec le téléphone crée une barrière mentale et physique essentielle pour retrouver une clarté d'esprit, réduire la dopamine de fin de journée et favoriser un repos réparateur, condition sine qua non du focus.\",\n          \"targetReps\": 14,\n          \"description\": \"Mettre ton téléphone en mode 'Ne pas déranger' ou en mode avion, et le laisser hors de ta chambre à coucher chaque soir, au moins 1 heure avant de dormir.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"7dac9b13-6d47-4f03-a8e9-0c85f3e36e63\",\n          \"tips\": \"Sois honnête et non jugeant. L'objectif est d'observer, pas de te blâmer. Note même les micro-distractions.\",\n          \"type\": \"framework\",\n          \"title\": \"Cartographie des Vortex d'Attention\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Comprendre les déclencheurs de tes distractions et de ton sentiment de submersion est la première étape pour construire des barrières protectrices et des stratégies de reconquête de ton attention.\",\n          \"targetReps\": 7,\n          \"description\": \"Journalise pendant une semaine les moments où tu te sens distrait(e) ou submergé(e) et les causes potentielles.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"counter\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Pendant une semaine, dès que tu te sens distrait(e) ou submergé(e), prends une minute pour noter ce qui s'est passé. Cherche à identifier les 'vortex' qui aspirent ton attention.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Quand/Où la distraction/submersion a-t-elle eu lieu ?\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: 10h30, en essayant de répondre à des emails.\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Quelle était la source de la distraction/submersion ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Notification téléphone, pensée intrusive sur une autre tâche, bruit ambiant, sensation de ne pas savoir par où commencer.\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Comment cela m'a fait sentir (énergie, émotion) ?\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Frustré(e), fatigué(e), anxieux(se), démotivé(e).\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Éliminer le Bruit Numérique\",\n      \"rationale\": \"Avant de construire le focus, nous devons nettoyer le terrain. Cette phase vise à réduire drastiquement les distractions immédiates, notamment le téléphone, pour ancrer ta présence dans l'instant et non dans le flux numérique incessant.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Le Sculpteur de Temps\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"634bea09-3c51-4bba-97e4-82cacf431657\",\n          \"tips\": \"Utilise un minuteur (Pomodoro), mets ton téléphone en mode avion, ferme tous les onglets inutiles. Prépare ta tâche la veille pour savoir exactement quoi faire.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Cadran du Maître\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"En t'entraînant à maintenir un focus ininterrompu sur des périodes courtes mais intenses, tu renforces ta capacité d'attention, même dans un emploi du temps irrégulier, et tu éprouves des victoires concrètes chaque jour.\",\n          \"targetReps\": 14,\n          \"description\": \"Dédie au moins une session de 25-45 minutes de travail profond et ininterrompu chaque jour à ta tâche la plus importante, sans aucune distraction.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"counter\"\n        },\n        {\n          \"id\": \"6e71d2a2-0090-4f04-9268-4c8e2ae76740\",\n          \"tips\": \"Ne garde que ce qui est essentiel à la tâche que tu as devant toi. Si tu travailles sur ordinateur, nettoie aussi ton bureau numérique (fichiers, icônes).\",\n          \"type\": \"mission\",\n          \"title\": \"Désencombrer l'Autel de Travail\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement de travail épuré réduit la charge cognitive et les tentations visuelles, facilitant ainsi l'entrée dans un état de flow et de concentration profonde.\",\n          \"description\": \"Débarrasse ton espace de travail de tout objet inutile ou distrayant. Un espace minimaliste pour un esprit maximaliste.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Créer des Blocs de Maîtrise\",\n      \"rationale\": \"Avec un environnement plus calme, il est temps d'introduire une structure dynamique pour tes journées irrégulières. Cette phase t'apprendra à découper ton temps en segments focalisés, transformant le chaos en opportunités de concentration profonde.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : La Libération Mentale\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"6a6787b3-d0e2-41bc-944b-6974d41f97ff\",\n          \"tips\": \"Prévois 30 à 60 minutes au calme. N'aie pas peur de la quantité, vide juste ton esprit. Utilise de grandes feuilles de papier ou un document numérique.\",\n          \"type\": \"framework\",\n          \"title\": \"L'Inventaire du Chaos Mental\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Le cerveau n'est pas fait pour retenir l'information, mais pour la traiter. Vider ton esprit de toutes les pensées parasites réduit l'anxiété, la désorganisation interne et libère de la bande passante cognitive pour le focus réel.\",\n          \"targetReps\": 1,\n          \"description\": \"Réalise un 'brain dump' complet : note tout ce qui te trotte dans la tête, absolument tout, sans filtre.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"L'objectif est de te décharger de tout le bruit mental. C'est un grand nettoyage de printemps pour ton esprit. Aucune idée n'est trop petite, trop folle ou trop insignifiante. Écris tout ce qui te traverse l'esprit.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Toutes les tâches en attente (professionnelles et personnelles)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Appeler le dentiste, préparer le rapport X, acheter des croquettes pour le chat...\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Toutes les préoccupations, soucis ou angoisses\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: La présentation de lundi, l'entretien du jardin, le désaccord avec X...\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Toutes les idées, projets ou envies (même floues)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Apprendre une nouvelle langue, réorganiser le salon, écrire un livre...\"\n              },\n              {\n                \"id\": \"s4\",\n                \"label\": \"Autres pensées persistantes ou choses à ne pas oublier\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Anniversaire de X, idée de repas pour la semaine, vérifier la batterie de la voiture...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"48d98ac9-a114-47c1-972a-71c98b922175\",\n          \"tips\": \"Identifie ta 'most important task' (MIT). Ne surcharge pas ta liste. La clarté pour le lendemain réduit l'anxiété du soir et la désorganisation du matin.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel du Crépuscule Productif\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Clôturer la journée consciemment permet à ton cerveau de se reposer, sachant que le plan du lendemain est déjà établi. Cela combat la désorganisation matinale et les interruptions dues à l'incertitude.\",\n          \"targetReps\": 14,\n          \"description\": \"Chaque soir, prends 10 minutes pour planifier les 1 à 3 tâches prioritaires du lendemain et range ton espace de travail.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Vider l'Esprit pour Mieux Agir\",\n      \"rationale\": \"La sensation d'être submergé provient souvent d'un esprit surchargé. Cette phase vise à externaliser ta charge mentale et à intégrer des rituels de clôture pour alléger ton cerveau, libérant ainsi de l'énergie pour le focus.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : Le Maître de Cérémonie\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"0088fead-e4b4-4217-b287-fd7b1b463ab3\",\n          \"tips\": \"Ne saute pas cette étape, même les jours les plus pressés. C'est une micro-méditation proactive. Elle ancre l'intention et le focus pour la journée.\",\n          \"type\": \"habitude\",\n          \"title\": \"L'Écho du Progrès\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Commencer la journée avec une intention claire et une visualisation positive prépare ton cerveau à l'action ciblée, renforçant la discipline et réduisant l'impact des journées irrégulières sur ton énergie et ta stabilité.\",\n          \"targetReps\": 14,\n          \"description\": \"Chaque matin, avant de commencer, relis tes 1 à 3 tâches prioritaires définies la veille et visualise-toi en train de les accomplir avec succès.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"6791d0b2-d1ed-4f8a-b67c-358427bd3b60\",\n          \"tips\": \"Choisis l'outil le plus simple que tu peux maintenir. L'objectif est de décharger ta mémoire de travail et d'avoir un 'quartier général' pour toutes tes actions.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Arsenal de l'Organisation\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un système externe et fiable pour organiser tes tâches réduit la charge cognitive de la désorganisation, te permettant de te concentrer pleinement sur l'exécution plutôt que sur la mémorisation et la priorisation constante.\",\n          \"description\": \"Choisis et installe un outil de gestion de tâches simple (ex: Trello, Todoist, Notion) et y migre tes tâches de la semaine à venir, en les catégorisant selon tes priorités.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Consolider et Anticiper\",\n      \"rationale\": \"Cette dernière phase vise à intégrer et à pérenniser les habitudes de focus et de discipline. Tu apprendras à anticiper les défis des journées irrégulières et à maintenir ta nouvelle architecture de vie, devenant ainsi le maître de ton attention.\"\n    }\n  ],\n  \"deepWhy\": \"Pour maîtriser mon temps, retrouver une énergie constante et construire une vie stable et intentionnelle où mon attention est mon guide.\",\n  \"identity\": \"Je suis un Architecte du Focus.\",\n  \"strategy\": \"Nous allons créer un sanctuaire mental en éliminant les distractions, puis sculpter le temps avec des blocs de focus et des rituels puissants, transformant la désorganisation en maîtrise intentionnelle.\",\n  \"goldenRules\": \"1. Chaque tâche a un début et une fin claire, sans compromis.\\n2. Mon attention est une ressource sacrée, je la protège.\\n3. Je construis ma journée avec intention, pas par réaction.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps de focus ininterrompu\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"0\",\n    \"description\": \"Mesure quotidienne du temps passé sur une tâche sans aucune interruption externe ou interne.\",\n    \"targetValue\": \"120\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole du Flux Imperturbable\",\n  \"context_problem\": \"Tu te sens souvent submergé par tes journées irrégulières, perdant le fil de tes tâches essentielles et compensant cette fatigue par un usage excessif du téléphone. Cela entrave ta capacité à te concentrer et à organiser tes actions, te privant de l'énergie et de la stabilité que tu recherches.\",\n  \"sophiaKnowledge\": \"Tu es une personne active qui se sent fatiguée et submergée par des journées irrégulières, malgré une bonne qualité de sommeil et un faible niveau de stress. Tes principaux blocages résident dans l'usage compensatoire du téléphone et la désorganisation, ce qui t'empêche de maintenir ton focus et d'atteindre la stabilité quotidienne que tu désires.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois t'es-tu senti pleinement maître de ton attention cette semaine ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Sanctuaire du Soir (night)\n- [ACTION] Le Cadran du Maître (any_time)\n- [FRAMEWORK] Cartographie des Vortex d'Attention\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps de focus ininterrompu: 0 min\n",
+      "template_fingerprint": "911501aacf4c53ff"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

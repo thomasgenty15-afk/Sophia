@@ -1,0 +1,25 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_stop_optout_confirmation",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): STOP should opt-out and send a one-time confirmation message.",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "mechanical"],
+  "channel": "whatsapp",
+  "seed_plan": true,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": true
+  },
+  "wa_steps": [
+    { "kind": "text", "text": "STOP" }
+  ],
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_opted_in": false,
+      "whatsapp_optout_reason": "stop_inbound"
+    },
+    "assistant_must_match": ["ne te contactera plus", "reprendre.*site"]
+  }
+}
+
+

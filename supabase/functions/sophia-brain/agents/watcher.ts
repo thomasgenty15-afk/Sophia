@@ -1,7 +1,6 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { getUserState, updateUserState, normalizeScope } from '../state-manager.ts' // Need access to state
-import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 export async function runWatcher(
   supabase: SupabaseClient, 
@@ -106,8 +105,7 @@ export async function runWatcher(
       "new_short_term_context": "Texte du nouveau fil rouge mis à jour..."
     }
   `
-  const override = await fetchPromptOverride("sophia.watcher")
-  const systemPrompt = appendPromptOverride(basePrompt, override)
+  const systemPrompt = basePrompt
 
   try {
     const jsonStr = await generateWithGemini(systemPrompt, transcript, 0.3, true, [], "auto", {

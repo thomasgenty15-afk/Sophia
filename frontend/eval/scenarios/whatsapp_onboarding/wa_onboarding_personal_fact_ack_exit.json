@@ -1,0 +1,25 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_personal_fact_ack_exit",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): when awaiting_personal_fact, a user message should be stored as memory and state cleared with a friendly ack.",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "mechanical"],
+  "channel": "whatsapp",
+  "seed_plan": true,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": true,
+    "whatsapp_state": "awaiting_personal_fact"
+  },
+  "wa_steps": [
+    { "kind": "text", "text": "Je suis irrégulier quand je suis fatigué." }
+  ],
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_state": null
+    },
+    "assistant_must_match": ["merci, je note", "envie qu’on parle de quoi"]
+  }
+}
+
+

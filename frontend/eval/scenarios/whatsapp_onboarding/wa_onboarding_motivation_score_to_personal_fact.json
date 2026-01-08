@@ -1,0 +1,25 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_motivation_score_to_personal_fact",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): when in awaiting_plan_motivation, a score should advance to awaiting_personal_fact and ask for 1 personal fact.",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "mechanical"],
+  "channel": "whatsapp",
+  "seed_plan": true,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": true,
+    "whatsapp_state": "awaiting_plan_motivation"
+  },
+  "wa_steps": [
+    { "kind": "text", "text": "6/10" }
+  ],
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_state": "awaiting_personal_fact"
+    },
+    "assistant_must_match": ["merci", "6/10", "1 truc"]
+  }
+}
+
+

@@ -8,8 +8,8 @@ supabase_kong_Sophia_2 (access logs HTTP /functions/v1/, /rest/v1/)
 En local, Kong a un timeout read_timeout sur /functions/v1/* à 150s par défaut (limite hosted). Pour le debug, on l’étend via kong reload (infra-only, sans changer la logique applicative).
 1) Lance la commande (à exécuter telle quelle)
 Dans le repo:
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
-node scripts/run_ui_bilan_eval_bundle.mjs --turns 15 --bilan-actions 3 --difficulty mid --model gemini-2.5-flash --timeout-ms 600000 --post-bilan
+Pour run normal bilan 
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend"node scripts/run_ui_bilan_eval_bundle.mjs --turns 15 --bilan-actions 3 --difficulty mid --model gemini-2.5-flash --timeout-ms 600000
 Cette commande:
 étend le timeout Kong (10 min) sans changer la logique
 lance un bilan “réel” (simulate-user, pas de steps préfaits)
@@ -66,9 +66,3 @@ Priorité: robustesse produit + cohérence conversationnelle + bon déclenchemen
 
 
 
-pour inclure parking lot : 
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
-node scripts/run_ui_bilan_eval_bundle.mjs --turns 15 --bilan-actions 3 --difficulty mid --model gemini-2.5-flash --timeout-ms 600000 --post-bilan
-
-Pour run normal bilan 
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend"node scripts/run_ui_bilan_eval_bundle.mjs --turns 15 --bilan-actions 3 --difficulty mid --model gemini-2.5-flash --timeout-ms 600000

@@ -49,7 +49,10 @@ Puis dans ton DNS (registrar):
 
 - Supabase local:
   - copie `supabase/env.example` vers `supabase/.env` (non commité) et remplis
+  - **mets `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY` uniquement dans `supabase/.env` (ou `supabase/.env.local`)**  
+    Ne les mets pas dans le `.env` à la racine: ça finit souvent par “fuiter” des clés cloud/prod dans le runtime local et provoquer des mismatches `ES256/HS256`.
   - démarre: `./scripts/supabase_local.sh start`
+  - restart (si besoin): `./scripts/supabase_local.sh restart`
   - récupère les clés: `supabase status`
 - Frontend local:
   - copie `frontend/env.example` vers `frontend/.env.local` (non commité)
@@ -87,6 +90,7 @@ Notes:
 - La commande active aussi `MEGA_TEST_MODE=1` dans l’Edge Runtime pour **stubber Gemini/embeddings** (pas besoin de `GEMINI_API_KEY` pour exécuter la suite).
 - Avec `--ai`, le runner met `MEGA_TEST_MODE=0` et tes tests utilisent Gemini/embeddings réels (plus lent, dépend du réseau, peut coûter).
 - Si tu ajoutes/modifies des triggers qui appellent des Edge Functions via `pg_net`, pense à mettre `verify_jwt = false` dans `supabase/functions/<fn>/config.toml` si l’appel ne fournit pas de JWT.
+- Scripts UI “bilan eval” (`frontend/scripts/run_ui_bilan_eval*.mjs`) : ils se connectent en **master admin**. Par défaut, ils **ne réinitialisent plus le mot de passe**. Configure une fois `SOPHIA_MASTER_ADMIN_PASSWORD` (et optionnellement `SOPHIA_MASTER_ADMIN_EMAIL`). Pour forcer un reset (local seulement), exporte `SOPHIA_MASTER_ADMIN_RESET_PASSWORD=1`.
 
 ## Installation
 

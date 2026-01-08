@@ -1,0 +1,670 @@
+{
+  "id": "4e3b6112-ddea-468c-ba4c-6f1caedf013d",
+  "created_at": "2026-01-08T20:25:10.645574+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__ca90444917374e",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:25:10.649904+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait. On commence par ton temps d'endormissement effectif : tu l'estimes à combien de minutes pour hier ? 🌙",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T20:25:17.985124+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Hier soir, je dirais que j'ai mis environ 35 minutes à m'endormir. C'était un peu mieux que d'habitude.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:25:20.512908+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est une petite victoire si c'était plus rapide que d'habitude, on progresse. Pour ce qui est de ton sanctuaire digital, est-ce que tu as bien laissé ton téléphone charger en dehors de ta chambre hier soir ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T20:25:30.259604+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je l'ai mis hors de ma chambre. Mais c'est vrai que mon organisation générale est un peu chaotique en ce moment, ça me stresse et ça impacte tout. On en reparle après le bilan ?",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:25:35.484213+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est entendu, on prendra le temps de débriefer sur ton organisation dès qu'on aura terminé ce point. Pour continuer sur ta soirée d'hier, as-tu réussi à t'accorder ce moment pour préparer et boire ta tisane apaisante ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T20:25:52.392719+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, pas hier soir. J'ai un peu oublié avec le reste. C'était une journée un peu chargée.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:25:56.398565+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends tout à fait, c'est souvent ce qui arrive quand le planning déborde. Est-ce que tu as pu faire ta décharge mentale quotidienne malgré ce rythme hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T20:26:28.159382+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai commencé à écrire, mais je n'ai pas tout noté. J'étais trop fatiguée pour aller jusqu'au bout.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:26:30.878982+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, on a fini le bilan.\n\nTu m'avais dit qu'on reparlerait de : \"On en reparle\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T20:26:49.553291+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, bonne idée. On peut en parler maintenant.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:26:51.8722+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, c'est une bonne idée d'en parler maintenant. On avait mis de côté le fait que tu étais trop fatiguée pour aller jusqu'au bout. On sent que la charge mentale est bien là et que les journées chargées peuvent vite devenir chaotiques. Pour retrouver de l'énergie et incarner la sérénité, on pourrait voir comment mieux ancrer tes soirées. Qu'est-ce qui te semble le plus difficile à mettre en place pour protéger tes soirées ?\nC'est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T20:27:27.499711+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est surtout la fin de journée qui est compliquée. Quand la journée a été chaotique, j'ai du mal à me poser et à suivre une routine. Je suis juste épuisée.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:27:30.577586+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends tellement. C'est le cercle vicieux : la journée te vide de toute ton énergie, et le soir t'en as plus assez pour faire ce qui te ferait du bien. Forcément, on finit par s'écrouler sans vraiment déconnecter.\n\nL'idée c'est pas de se rajouter une montagne de corvées quand t'es au bout du rouleau. Si c'est trop dur, on peut se dire que faire juste un micro-truc, comme ta tisane, c'est déjà une victoire. On n'est pas des robots, l'important c'est d'avoir un petit refuge, même minimaliste. ☕\n\nC'est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T20:27:45.268438+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est vrai. C'est juste que même ce petit truc demande un effort quand on est à plat. Mais je vois l'idée.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:27:48.426767+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah c'est clair, quand t'es vidée, même appuyer sur le bouton de la bouilloire ça ressemble à l'ascension de l'Everest. C'est le piège de la fatigue extrême : on est parfois trop fatiguée pour faire ce qui nous reposerait vraiment.\n\nL'idée, c'est vraiment de viser le truc le plus \"fainéant\" possible pour que ça passe, même les soirs de crise. Si la tisane c'est trop, peut-être que juste poser le téléphone dans une autre pièce et t'écrouler, c'est ton seul effort de la soirée. On cherche pas la performance, juste à te donner une petite chance de moins subir le lendemain. 🌙\n\nC'est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T20:28:00.050302+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est vrai que le téléphone hors de la chambre, c'est peut-être ça le plus facile quand je suis vraiment à bout. Je vais essayer de me concentrer là-dessus.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:28:05.902486+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "T'as raison de miser là-dessus. C'est l'action avec le meilleur ratio effort/bénéfice. Une fois que le téléphone est loin, ton cerveau n'a plus d'autre choix que de commencer à ralentir, même si c'est par pur épuisement.\n\nNe te mets pas la pression pour le reste. Si ce soir ton seul exploit c'est d'avoir posé ce truc dans le salon avant de te glisser sous la couette, je signe direct. C'est déjà une sacrée victoire sur le chaos. 🛋️\n\nC'est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T20:28:14.508174+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon. On verra si j'y arrive tous les soirs, mais je vais faire de mon mieux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:28:18.693353+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On verra bien, ouais. L'idée c'est pas de faire un sans-faute direct, c'est juste de tenter le coup. Si tu rates un soir, c'est pas la fin du monde, on reprendra le lendemain sans se prendre la tête.\n\nVu l'heure, c'est bientôt le moment de vérité d'ailleurs. On ne cherche pas la perfection, juste à donner un peu d'air à ton cerveau pour qu'il arrête de mouliner dans le vide. ✨\n\nC'est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T20:28:26.659035+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon. Je vais essayer de m'y tenir.",
+      "agent_used": null,
+      "created_at": "2026-01-08T20:28:34.057655+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ça marche, on reste sur ça. C'est vraiment l'action qui demande le moins d'effort pour le plus gros bénéfice. Une fois qu'il est loin, ton cerveau n'a plus d'autre choix que de commencer à lâcher prise.\n\nVu qu'il est 21h28, on est en plein dedans. T'as déjà un endroit précis en tête pour le laisser dormir ce soir, ou tu vas improviser ? 🌙",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T20:29:09.172934+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "2e5caa1d-4470-4fe6-9bd2-8073777f4bad",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T20:25:10.615104+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T20:25:10.615104+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "440cb8e1-c227-4b23-b90f-781758fbf901",
+          "type": "vital",
+          "unit": "minutes",
+          "title": "Temps d'endormissement effectif",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "492dd9f2-6d25-4615-a76a-6f096cd96a7e",
+          "type": "action",
+          "title": "Le Sanctuaire Digital",
+          "target": 1,
+          "description": "Désigne une zone spécifique et fixe hors de ta chambre où ton téléphone restera après une certaine heure (ex: 21h00). Il y sera chargé et ne sera pas touché jusqu'au lendemain matin. Achète un réveil analogique si tu n'en as pas.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "03ddf766-cf06-44a0-8b51-b073fc99a72b",
+          "type": "action",
+          "title": "La Tisane Rituelle Apaisante",
+          "target": 14,
+          "description": "Chaque soir, 60 minutes avant l'heure de coucher que tu vises, prépare et bois lentement une tisane apaisante (camomille, verveine, tilleul).",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "e4e886c9-4a5a-45b7-8bae-f3d587b8d3e5",
+          "type": "framework",
+          "title": "La Décharge Mentale Quotidienne",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T20:25:10.615104+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "2e5caa1d-4470-4fe6-9bd2-8073777f4bad",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T20:29:09.16615+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T20:25:10.615104+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "post_checkup_done",
+      "temp_memory": {
+        "finished_at": "2026-01-08T20:28:35.701Z",
+        "deferred_topics": [
+          "On en reparle",
+          "J'étais trop fatiguée pour aller jusqu'au bout"
+        ],
+        "current_topic_index": 2
+      }
+    },
+    "last_interaction_at": "2026-01-08T20:25:10.615104+00:00",
+    "unprocessed_msg_count": 11
+  },
+  "issues": [
+    {
+      "code": "repetitive_closing",
+      "message": "L'agent Companion répète la phrase de clôture 'C'est bon pour ce point ?' à la fin de 5 messages consécutifs, rendant la conversation robotique et lourde.",
+      "evidence": {
+        "snippet": "C'est bon pour ce point ? (x5 occurrences)",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "context_extraction_failure",
+      "message": "L'Investigator a échoué à extraire le sujet reporté (organisation). Il a cité la phrase de transition ('On en reparle') comme étant le sujet, ce qui est confus.",
+      "evidence": {
+        "snippet": "Tu m'avais dit qu'on reparlerait de : \"On en reparle\".",
+        "agent_used": "sophia.investigator"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "topic_drift",
+      "message": "Le Companion a traité le dernier sujet du bilan (fatigue/écriture) au lieu du sujet explicitement reporté plus tôt (organisation générale/chaos).",
+      "evidence": {
+        "snippet": "On avait mis de côté le fait que tu étais trop fatiguée pour aller jusqu'au bout.",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Empêcher la boucle robotique où l'agent demande validation à chaque tour de parole.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"440cb8e1-c227-4b23-b90f-781758fbf901\",\n      \"type\": \"vital\",\n      \"unit\": \"minutes\",\n      \"title\": \"Temps d'endormissement effectif\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"492dd9f2-6d25-4615-a76a-6f096cd96a7e\",\n      \"type\": \"action\",\n      \"title\": \"Le Sanctuaire Digital\",\n      \"target\": 1,\n      \"description\": \"Désigne une zone spécifique et fixe hors de ta chambre où ton téléphone restera après une certaine heure (ex: 21h00). Il y sera chargé et ne sera pas touché jusqu'au lendemain matin. Achète un réveil analogique si tu n'en as pas.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"03ddf766-cf06-44a0-8b51-b073fc99a72b\",\n      \"type\": \"action\",\n      \"title\": \"La Tisane Rituelle Apaisante\",\n      \"target\": 14,\n      \"description\": \"Chaque soir, 60 minutes avant l'heure de coucher que tu vises, prépare et bois lentement une tisane apaisante (camomille, verveine, tilleul).\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"e4e886c9-4a5a-45b7-8bae-f3d587b8d3e5\",\n      \"type\": \"framework\",\n      \"title\": \"La Décharge Mentale Quotidienne\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Parfait. On commence par ton temps d'endormissement effectif : tu l'estimes à combien de minutes pour hier ? 🌙\n#2 USER: Hier soir, je dirais que j'ai mis environ 35 minutes à m'endormir. C'était un peu mieux que d'habitude.\n#3 ASSISTANT(investigator): C'est une petite victoire si c'était plus rapide que d'habitude, on progresse. Pour ce qui est de ton sanctuaire digital, est-ce que tu as bien laissé ton téléphone charger en dehors de ta chambre hier soir ?\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nANTI-RÉPÉTITION:\n- Ne termine par \"C'est bon pour ce point ?\" QUE si tu as apporté une solution complète ou si tu sens que l'utilisateur veut clore le sujet.\n- Ne l'utilise JAMAIS deux fois de suite. Si la discussion continue, enchaîne naturellement sans phrase de validation formelle.",
+      "proposed_addendum": "ANTI-RÉPÉTITION:\n- Ne termine par \"C'est bon pour ce point ?\" QUE si tu as apporté une solution complète ou si tu sens que l'utilisateur veut clore le sujet.\n- Ne l'utilise JAMAIS deux fois de suite. Si la discussion continue, enchaîne naturellement sans phrase de validation formelle."
+    },
+    {
+      "action": "append",
+      "rationale": "Corriger l'extraction du sujet pour que la transition vers le post-bilan soit claire et naturelle.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#6 USER: Non, pas hier soir. J'ai un peu oublié avec le reste. C'était une journée un peu chargée.\n#7 ASSISTANT(investigator): Je comprends tout à fait, c'est souvent ce qui arrive quand le planning déborde. Est-ce que tu as pu faire ta décharge mentale quotidienne malgré ce rythme hier ?\n#8 USER: Oui, j'ai commencé à écrire, mais je n'ai pas tout noté. J'étais trop fatiguée pour aller jusqu'au bout.\n#9 ASSISTANT(investigator): Ok, on a fini le bilan. Tu m'avais dit qu'on reparlerait de : \"On en reparle\". Tu veux qu'on commence par ça ?\n#10 USER: Oui, bonne idée. On peut en parler maintenant.\n#11 ASSISTANT(companion): Oui, c'est une bonne idée d'en parler maintenant. On avait mis de côté le fait que tu étais trop fatiguée pour aller jusqu'au bout. On sent que la charge mentale est bien là et que les journées chargées peuvent vite devenir chaotiques. Pour retrouver de l'énergie et incarner la sérénité, on pourrait voir comment mieux ancrer tes soirées. Qu'est-ce qui te semble le plus difficile à mettre en place pour protéger tes soirées ? C'est bon pour ce point ?\n#12 USER: C'est surtout la fin de journée qui est compliquée. Quand la journée a été chaotique, j'ai du mal à me poser et à suivre une routine. Je suis juste épuisée.\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nTRANSITION SUJETS REPORTÉS:\n- Quand tu rappelles un sujet reporté, nomme le THÈME (ex: \"ton organisation\", \"le stress\") et non la phrase de l'utilisateur.\n- Mauvais: \"Tu voulais parler de : on en reparle après\".\n- Bon: \"Tu voulais parler de : ton organisation générale\".",
+      "proposed_addendum": "TRANSITION SUJETS REPORTÉS:\n- Quand tu rappelles un sujet reporté, nomme le THÈME (ex: \"ton organisation\", \"le stress\") et non la phrase de l'utilisateur.\n- Mauvais: \"Tu voulais parler de : on en reparle après\".\n- Bon: \"Tu voulais parler de : ton organisation générale\"."
+    },
+    {
+      "action": "append",
+      "rationale": "Forcer l'agent à traiter le sujet 'parking lot' plutôt que de subir un biais de récence sur la dernière phrase du user.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#8 USER: Oui, j'ai commencé à écrire, mais je n'ai pas tout noté. J'étais trop fatiguée pour aller jusqu'au bout.\n#9 ASSISTANT(investigator): Ok, on a fini le bilan. Tu m'avais dit qu'on reparlerait de : \"On en reparle\". Tu veux qu'on commence par ça ?\n#10 USER: Oui, bonne idée. On peut en parler maintenant.\n#11 ASSISTANT(companion): Oui, c'est une bonne idée d'en parler maintenant. On avait mis de côté le fait que tu étais trop fatiguée pour aller jusqu'au bout. On sent que la charge mentale est bien là et que les journées chargées peuvent vite devenir chaotiques. Pour retrouver de l'énergie et incarner la sérénité, on pourrait voir comment mieux ancrer tes soirées. Qu'est-ce qui te semble le plus difficile à mettre en place pour protéger tes soirées ? C'est bon pour ce point ?\n#12 USER: C'est surtout la fin de journée qui est compliquée. Quand la journée a été chaotique, j'ai du mal à me poser et à suivre une routine. Je suis juste épuisée.\n#13 ASSISTANT(companion): Je comprends tellement. C'est le cercle vicieux : la journée te vide de toute ton énergie, et le soir t'en as plus assez pour faire ce qui te ferait du bien. Forcément, on finit par s'écrouler sans vraiment déconnecter. L'idée c'est pas de se rajouter une montagne de corvées quand t'es au bout du rouleau. Si c'est trop dur, on peut se dire que faire juste un micro-truc, comme ta tisane, c'est déjà une victoire. On n'est pas des robots, l'important c'est d'avoir un petit refuge, même minimaliste. ☕ C'est bon pour ce point ?\n#14 USER: Oui, c'est vrai. C'est juste que même ce petit truc demande un effort quand on est à plat. Mais je vois l'idée.\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nPRIORITÉ SUJET REPORTÉ:\n- En début de post-bilan, ton focus DOIT être le sujet qui a été mis de côté (ex: organisation) et NON la toute dernière réponse du bilan (ex: fatigue du moment).\n- Remonte l'historique pour trouver le vrai sujet reporté.",
+      "proposed_addendum": "PRIORITÉ SUJET REPORTÉ:\n- En début de post-bilan, ton focus DOIT être le sujet qui a été mis de côté (ex: organisation) et NON la toute dernière réponse du bilan (ex: fatigue du moment).\n- Remonte l'historique pour trouver le vrai sujet reporté."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.029582699999999993,
+    "request_id": "bilan_eval_bundle:bilan_real_bundle__ca90444917374e:core:bilan_real_bundle__ca90444917374e",
+    "total_tokens": 191874,
+    "output_tokens": 3023,
+    "prompt_tokens": 154422,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3,
+      "test_post_checkup_deferral": true
+    },
+    "request_id": "bilan_eval_bundle:bilan_real_bundle__ca90444917374e:core:bilan_real_bundle__ca90444917374e",
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "8f08962d-7457-4202-a5fa-b4cbeaf2ff93",
+        "title": "L'Architecture du Réveil Serein",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage du Soir",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "492dd9f2-6d25-4615-a76a-6f096cd96a7e",
+                  "tips": "Fais de cette zone un lieu de 'repos' pour tes appareils. Le but est de rompre le lien psychologique avec le téléphone au moment du coucher.",
+                  "type": "mission",
+                  "title": "Le Sanctuaire Digital",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Éloigner le téléphone de ta vue et de ta portée brise l'association entre le lit et la stimulation numérique, signalant à ton cerveau que l'heure est au repos. C'est une étape fondamentale pour réduire les difficultés d'endormissement et les réveils liés aux notifications.",
+                  "description": "Désigne une zone spécifique et fixe hors de ta chambre où ton téléphone restera après une certaine heure (ex: 21h00). Il y sera chargé et ne sera pas touché jusqu'au lendemain matin. Achète un réveil analogique si tu n'en as pas.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "03ddf766-cf06-44a0-8b51-b073fc99a72b",
+                  "tips": "Fais de ce moment un mini-rituel : sans écran, dans une lumière douce, en te concentrant sur les sensations et la chaleur. C'est un signal clair de 'décélération' pour ton corps.",
+                  "type": "habitude",
+                  "title": "La Tisane Rituelle Apaisante",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Ce rituel chaleureux et calme envoie des signaux physiologiques et psychologiques à ton corps pour initier la transition vers le sommeil. Il favorise un abaissement doux de la température corporelle centrale et apaise le système nerveux, préparant le terrain pour un endormissement plus facile.",
+                  "targetReps": 14,
+                  "description": "Chaque soir, 60 minutes avant l'heure de coucher que tu vises, prépare et bois lentement une tisane apaisante (camomille, verveine, tilleul).",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Débrancher pour mieux se recharger",
+              "rationale": "Nous commençons par établir des frontières claires avec les sources de stimulation le soir, pour préparer ton cerveau à la transition vers le repos et briser l'association négative avec le téléphone."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Le Silence Intérieur",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "652af38e-e87d-4a85-a6f0-33450ff05204",
+                  "tips": "Ne filtre rien. Le but est de 'vider ton cache mental' sur papier. Tu peux le laisser près de ton lit, mais pas dans ton lit.",
+                  "type": "framework",
+                  "title": "La Décharge Mentale Quotidienne",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Cette pratique réduit l'activité du cortex préfrontal, diminuant les ruminations et l'anxiété qui maintiennent l'esprit en éveil. En externalisant tes préoccupations, tu signales à ton cerveau qu'elles peuvent être traitées plus tard, facilitant l'endormissement.",
+                  "targetReps": 14,
+                  "description": "Consacre 5 à 10 minutes à écrire librement dans un carnet toutes les pensées, les soucis, les listes de tâches ou les idées qui encombrent ton esprit avant de te préparer à dormir.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "L'objectif est de te décharger de tout ce qui tourne en boucle. Pense à ce carnet comme à un lieu sûr où déposer tes préoccupations, pour les reprendre le lendemain matin, si nécessaire.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Ce qui me préoccupe ou tourne en boucle",
+                        "inputType": "textarea",
+                        "placeholder": "Je pense à... Ce qui me stresse c'est..."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Une chose positive de ma journée",
+                        "inputType": "text",
+                        "placeholder": "Aujourd'hui, j'ai apprécié..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "3c973bda-66ba-45bf-a2a4-21e6f1bb217a",
+                  "tips": "Pose une main sur ton ventre pour mieux sentir le mouvement. L'objectif n'est pas de 'dormir', mais de t'ancrer dans le calme. Si une pensée arrive, ramène doucement ton attention à ta respiration.",
+                  "type": "habitude",
+                  "title": "Ancrage Respiratoire : 5 minutes de Calme",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La respiration diaphragmatique active le système nerveux parasympathique, le mode 'repos et digestion' de ton corps. Cela ralentit le rythme cardiaque, diminue la tension musculaire et apaise l'esprit, créant un état physiologique propice à un endormissement rapide et profond.",
+                  "targetReps": 14,
+                  "description": "Allonge-toi dans ton lit et pratique 5 minutes de respiration diaphragmatique (ventrale) juste avant de tenter de dormir. Inspire par le nez en gonflant le ventre, expire lentement par la bouche en le dégonflant.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Apaiser le tumulte mental",
+              "rationale": "Pour mieux dormir, il faut d'abord calmer l'esprit. Cette phase se concentre sur la libération des pensées envahissantes et l'ancrage dans le présent par la respiration, réduisant l'anxiété pré-sommeil."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : Le Rituel Immuable",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "2e40d7d0-9f4c-45b3-b65c-3c66118b4a71",
+                  "tips": "Installe des ampoules de faible intensité ou des bougies dans les pièces que tu fréquentes le soir. Fais de cette période un 'sas de décompression' pour tes yeux et ton cerveau.",
+                  "type": "habitude",
+                  "title": "Le Bain de Lumière Douce",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "L'exposition à la lumière bleue, même faible, inhibe la production de mélatonine, l'hormone du sommeil. En créant un environnement de faible luminosité, tu permets à ton corps de commencer à produire naturellement cette hormone, signalant que le cycle de sommeil est imminent.",
+                  "targetReps": 14,
+                  "description": "Diminue drastiquement l'intensité lumineuse de ton environnement et éteins toute source de lumière bleue (écrans, LED vives) au moins 90 minutes avant l'heure de coucher. Privilégie des lumières chaudes et tamisées, et des activités calmes (lecture papier, musique douce, discussion apaisante).",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "761bca59-3556-456a-8820-a2bfdb3d64cb",
+                  "tips": "Même une petite fente de lumière peut perturber ton sommeil. Teste différentes températures pour trouver celle qui te convient le mieux. Un ventilateur peut aider à la fois pour la température et pour créer un bruit de fond apaisant.",
+                  "type": "mission",
+                  "title": "Le Fort du Sommeil : Optimiser ton Espace",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement de sommeil optimal est crucial pour la qualité et la continuité de ton repos. L'obscurité favorise la production de mélatonine, une température fraîche améliore le sommeil profond, et le silence minimise les réveils nocturnes liés aux perturbations sonores.",
+                  "description": "Fais un audit de ta chambre pour t'assurer qu'elle est un véritable sanctuaire du sommeil : obscurité totale (rideaux occultants, masque de sommeil), température fraîche (idéalement 18-20°C), et silence (boules Quies ou machine à bruit blanc si nécessaire).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Cultiver le cocon du sommeil",
+              "rationale": "Il est temps de consolider tes acquis en construisant un rituel du soir cohérent et en optimisant ton environnement de sommeil, pour un signal encore plus clair à ton corps que l'heure est au repos."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : La Reconquête du Silence Nocturne",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "0bb6b7b5-dc72-4c42-b6c3-a28de513562d",
+                  "tips": "L'objectif n'est pas de rester éveillée, mais d'éviter l'association lit-éveil-frustration. Sois patiente avec toi-même, c'est une compétence qui se développe.",
+                  "type": "habitude",
+                  "title": "Le Protocole Anti-Réveil Nocturne",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Regarder l'heure en pleine nuit augmente l'anxiété et le sentiment de 'perdre son sommeil'. Se lever du lit si l'on ne dort pas en 20 minutes rompt l'association négative entre le lit et l'insomnie, renforçant l'idée que le lit est uniquement pour dormir, et non pour se soucier.",
+                  "targetReps": 14,
+                  "description": "Si tu te réveilles la nuit, résiste à l'envie de regarder l'heure. Si tu ne te rendors pas en 20 minutes, lève-toi tranquillement et va dans une autre pièce faire une activité calme et non stimulante (lecture très douce, sans lumière vive, pas d'écran) jusqu'à ce que tu ressentes de nouveau l'envie de dormir. Retourne alors au lit.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b66a9e98-589c-428c-b231-bbbc9ecebdd4",
+                  "tips": "Même les petites réussites comptent (un bon café, un sourire échangé). Pour l'anticipation, c'est pour 'déposer' les idées, pas pour résoudre les problèmes.",
+                  "type": "framework",
+                  "title": "Le Bilan Sérénité du Soir",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Orienter ton esprit vers la gratitude et une planification minimale réduit le stress et l'anxiété pré-sommeil. Cela te permet de clore la journée sur une note positive et d'externaliser les préoccupations futures, évitant ainsi qu'elles ne ruminent pendant la nuit.",
+                  "targetReps": 14,
+                  "description": "Chaque soir, avant ta décharge mentale, prends 5 minutes pour noter 3 réussites ou moments positifs de ta journée et une chose que tu anticipes (sans stress) ou planifies pour demain. Ce n'est pas une liste de tâches détaillée, mais une brève mise en perspective.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Cet exercice est une ancre de gratitude et de clarté pour terminer ta journée. Il s'agit de cultiver un état d'esprit positif et de libérer ton esprit des anticipations stressantes, pour laisser place au calme.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "3 moments positifs de ma journée",
+                        "inputType": "list",
+                        "placeholder": "Moment 1...|Moment 2...|Moment 3..."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Une chose que j'anticipe ou prévois pour demain",
+                        "inputType": "textarea",
+                        "placeholder": "Pour demain, je pense à..."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Gérer les réveils et l'anticipation",
+              "rationale": "Cette phase aborde spécifiquement les réveils nocturnes et l'anxiété liée au lendemain. Nous allons développer des stratégies pour minimiser l'impact de ces interruptions et prévenir les ruminations."
+            },
+            {
+              "id": 5,
+              "title": "Phase 5 : L'Harmonie du Jour et de la Nuit",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "e9fa4b4f-9cc7-4e56-b287-acfc33b242be",
+                  "tips": "La régularité de l'heure de lever est le signal le plus puissant pour ton horloge biologique. Même si tu as eu une mauvaise nuit, lève-toi à la même heure pour aider à resynchroniser ton rythme circadien.",
+                  "type": "habitude",
+                  "title": "Le Réveil Constant : Ancre de Ton Rythme",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Maintenir une heure de réveil fixe, même après une nuit agitée, est la pierre angulaire de la resynchronisation de ton rythme circadien. Cela régule tes cycles veille-sommeil, rendant l'endormissement plus facile et le sommeil plus profond les nuits suivantes.",
+                  "targetReps": 14,
+                  "description": "Fixe-toi une heure de réveil constante et essaie de t'y tenir tous les jours, y compris les week-ends, avec une variation maximale de 30 minutes. Utilise un réveil doux ou un simulateur d'aube.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "83673ac8-2b82-4b68-80ad-dfe1a0e4fb2d",
+                  "tips": "Recherche des informations sur l'ergonomie du sommeil et les types de soutien adaptés à ta morphologie. Un petit investissement peut faire une grande différence pour la qualité de ton repos.",
+                  "type": "mission",
+                  "title": "Optimisation du Repos : Matelas & Oreiller",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un bon alignement de la colonne vertébrale et un soutien adéquat sont essentiels pour prévenir les douleurs et les inconforts qui peuvent fragmenter le sommeil. Des équipements adaptés permettent une relaxation musculaire profonde et favorisent un sommeil réparateur.",
+                  "description": "Évalue le confort et le soutien de ton matelas et de ton oreiller. Si nécessaire, envisage des ajustements ou des remplacements pour améliorer l'ergonomie de ton sommeil.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 9-10 • Synchroniser ton biorythme",
+              "rationale": "Le sommeil n'est pas qu'une affaire de nuit. Cette phase t'aide à synchroniser tes rythmes biologiques en optimisant tes habitudes diurnes et ton environnement, pour un sommeil nocturne encore plus régulier et réparateur."
+            },
+            {
+              "id": 6,
+              "title": "Phase 6 : L'Autonomie Sommeil",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "9718bde9-96bf-4e9f-b487-6c82e6a32731",
+                  "tips": "C'est ton guide personnel et évolutif. Sois spécifique et réaliste. Comment vas-tu maintenir ces acquis et t'adapter aux défis futurs ?",
+                  "type": "framework",
+                  "title": "Mon Manuel du Sommeil Personnalisé",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Formaliser ton apprentissage ancre les nouvelles habitudes dans ta conscience et te donne un outil concret pour gérer les variations futures ou les périodes de stress. Ce manuel sera ta référence pour assurer une autonomie durable de ton sommeil et de ton énergie.",
+                  "targetReps": 1,
+                  "description": "Récapitule toutes les habitudes, missions et frameworks qui ont le mieux fonctionné pour toi. Crée ton propre 'manuel' de maintenance du sommeil, incluant tes piliers, tes signaux d'alarme et tes stratégies de 'réparation rapide' en cas de besoin.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Tu as parcouru un chemin significatif. Il est temps de cristalliser tes apprentissages. Ce manuel sera ton compagnon pour les années à venir, une ressource inestimable pour maintenir ton rythme et ta sérénité.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Mes 3 piliers du sommeil (habitudes les plus efficaces pour moi)",
+                        "inputType": "list",
+                        "placeholder": "Pillier 1...|Pillier 2...|Pillier 3..."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Mes signaux d'alarme (ce qui indique que mon sommeil se dégrade)",
+                        "inputType": "list",
+                        "placeholder": "Signe 1...|Signe 2..."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Mes stratégies de 'réparation rapide' (en cas de coup dur)",
+                        "inputType": "list",
+                        "placeholder": "Stratégie 1...|Stratégie 2..."
+                      },
+                      {
+                        "id": "s4",
+                        "label": "Mon engagement à long terme envers mon sommeil",
+                        "inputType": "textarea",
+                        "placeholder": "Je m'engage à..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "509d7143-16f5-4010-8c16-040930a32a75",
+                  "tips": "Cela peut être une pause café sans téléphone, regarder par la fenêtre, ou simplement fermer les yeux quelques instants. Le but est de 'débrancher' mentalement et émotionnellement, même brièvement.",
+                  "type": "habitude",
+                  "title": "La Micro-Pause Consciente en Journée",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ces micro-pauses aident à réguler ton niveau de stress tout au long de la journée, évitant l'accumulation qui peut perturber le sommeil nocturne. Elles renforcent ta capacité à te recentrer, à gérer l'irrégularité de tes journées et à briser le cycle de la compensation par le téléphone.",
+                  "targetReps": 14,
+                  "description": "Intègre au moins deux courtes pauses (5 minutes) sans écran dans ta journée. Pendant ces pauses, concentre-toi sur ta respiration, observe ton environnement ou fais un scan corporel rapide.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 11-12 • Intégration et maintien à long terme",
+              "rationale": "Cette dernière phase est dédiée à l'intégration complète des nouvelles habitudes et à la création d'un plan de maintenance personnel. Tu deviens l'architecte autonome de ton propre équilibre sommeil-énergie."
+            }
+          ],
+          "deepWhy": "Pour incarner la sérénité et la présence dans ma vie, chaque jour, et faire face aux défis avec une énergie renouvelée.",
+          "identity": "Je suis l'Architecte de mon Rythme Intérieur.",
+          "strategy": "Reconstruire pas à pas les fondations d'un sommeil réparateur en apaisant le système nerveux et en installant un rythme doux et constant, pour retrouver énergie et stabilité.",
+          "goldenRules": "1. Mon téléphone quitte ma vue 60 minutes avant de dormir.\n2. Je respecte mon rituel de sommeil, même les jours 'irréguliers'.\n3. Chaque soir est une opportunité de réinitialiser ma journée.",
+          "vitalSignal": {
+            "name": "Temps d'endormissement effectif",
+            "type": "constat",
+            "unit": "minutes",
+            "startValue": "45",
+            "description": "Le temps que tu mets pour t'endormir une fois dans ton lit, sans distractions. L'objectif est de réduire ce délai.",
+            "targetValue": "15",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Architecture du Réveil Serein",
+          "context_problem": "Épuisée par des nuits fragmentées et un endormissement difficile, tu te retrouves piégée dans un cycle où des journées irrégulières mènent à une fatigue intense, que tu tentes d'apaiser par un usage compensatoire du téléphone. Ce cercle vicieux maintient ton stress élevé et t'empêche de retrouver l'énergie et la stabilité que tu désires.",
+          "sophiaKnowledge": "Tu es une femme née en 1992, confrontée à des journées irrégulières, ce qui rend difficile l'établissement d'une routine de sommeil. Tu souffres de difficultés d'endormissement et de réveils nocturnes, et tu as tendance à compenser la fatigue et le stress par l'usage du téléphone, notamment le soir. Tes blocages principaux sont le sentiment d'être débordée, l'oubli et la procrastination. Ton niveau de stress est élevé.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de nuits cette semaine as-tu laissé ton téléphone hors de la chambre OU silencieux avant de te coucher ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "12 semaines"
+        },
+        "goal_id": "18662117-c4ca-4487-be4f-31dd12d290d7",
+        "deep_why": "Pour incarner la sérénité et la présence dans ma vie, chaque jour, et faire face aux défis avec une énergie renouvelée.",
+        "created_at": "2026-01-08T20:25:10.598758+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "24709e5a-455b-4937-8db7-fe65eb4da6c0",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "492dd9f2-6d25-4615-a76a-6f096cd96a7e",
+          "title": "Le Sanctuaire Digital",
+          "status": "active",
+          "created_at": "2026-01-08T20:25:10.604247+00:00",
+          "description": "Désigne une zone spécifique et fixe hors de ta chambre où ton téléphone restera après une certaine heure (ex: 21h00). Il y sera chargé et ne sera pas touché jusqu'au lendemain matin. Achète un réveil analogique si tu n'en as pas.",
+          "target_reps": 1,
+          "time_of_day": "evening",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T20:25:10.602+00:00"
+        },
+        {
+          "id": "03ddf766-cf06-44a0-8b51-b073fc99a72b",
+          "title": "La Tisane Rituelle Apaisante",
+          "status": "active",
+          "created_at": "2026-01-08T20:25:10.604247+00:00",
+          "description": "Chaque soir, 60 minutes avant l'heure de coucher que tu vises, prépare et bois lentement une tisane apaisante (camomille, verveine, tilleul).",
+          "target_reps": 14,
+          "time_of_day": "evening",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T20:25:10.602+00:00"
+        },
+        {
+          "id": "e4e886c9-4a5a-45b7-8bae-f3d587b8d3e5",
+          "_kind": "framework",
+          "title": "La Décharge Mentale Quotidienne",
+          "status": "active",
+          "created_at": "2026-01-08T20:25:10.608208+00:00",
+          "description": "",
+          "target_reps": 14,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-06T20:25:10.602+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "e4e886c9-4a5a-45b7-8bae-f3d587b8d3e5",
+          "type": "recurring",
+          "title": "La Décharge Mentale Quotidienne",
+          "status": "active",
+          "created_at": "2026-01-08T20:25:10.608208+00:00",
+          "target_reps": 14,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T20:25:10.602+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Architecture du Réveil Serein\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour incarner la sérénité et la présence dans ma vie, chaque jour, et faire face aux défis avec une énergie renouvelée.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage du Soir\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"492dd9f2-6d25-4615-a76a-6f096cd96a7e\",\n          \"tips\": \"Fais de cette zone un lieu de 'repos' pour tes appareils. Le but est de rompre le lien psychologique avec le téléphone au moment du coucher.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Sanctuaire Digital\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Éloigner le téléphone de ta vue et de ta portée brise l'association entre le lit et la stimulation numérique, signalant à ton cerveau que l'heure est au repos. C'est une étape fondamentale pour réduire les difficultés d'endormissement et les réveils liés aux notifications.\",\n          \"description\": \"Désigne une zone spécifique et fixe hors de ta chambre où ton téléphone restera après une certaine heure (ex: 21h00). Il y sera chargé et ne sera pas touché jusqu'au lendemain matin. Achète un réveil analogique si tu n'en as pas.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"03ddf766-cf06-44a0-8b51-b073fc99a72b\",\n          \"tips\": \"Fais de ce moment un mini-rituel : sans écran, dans une lumière douce, en te concentrant sur les sensations et la chaleur. C'est un signal clair de 'décélération' pour ton corps.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Tisane Rituelle Apaisante\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ce rituel chaleureux et calme envoie des signaux physiologiques et psychologiques à ton corps pour initier la transition vers le sommeil. Il favorise un abaissement doux de la température corporelle centrale et apaise le système nerveux, préparant le terrain pour un endormissement plus facile.\",\n          \"targetReps\": 14,\n          \"description\": \"Chaque soir, 60 minutes avant l'heure de coucher que tu vises, prépare et bois lentement une tisane apaisante (camomille, verveine, tilleul).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Débrancher pour mieux se recharger\",\n      \"rationale\": \"Nous commençons par établir des frontières claires avec les sources de stimulation le soir, pour préparer ton cerveau à la transition vers le repos et briser l'association négative avec le téléphone.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Le Silence Intérieur\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"652af38e-e87d-4a85-a6f0-33450ff05204\",\n          \"tips\": \"Ne filtre rien. Le but est de 'vider ton cache mental' sur papier. Tu peux le laisser près de ton lit, mais pas dans ton lit.\",\n          \"type\": \"framework\",\n          \"title\": \"La Décharge Mentale Quotidienne\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cette pratique réduit l'activité du cortex préfrontal, diminuant les ruminations et l'anxiété qui maintiennent l'esprit en éveil. En externalisant tes préoccupations, tu signales à ton cerveau qu'elles peuvent être traitées plus tard, facilitant l'endormissement.\",\n          \"targetReps\": 14,\n          \"description\": \"Consacre 5 à 10 minutes à écrire librement dans un carnet toutes les pensées, les soucis, les listes de tâches ou les idées qui encombrent ton esprit avant de te préparer à dormir.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"L'objectif est de te décharger de tout ce qui tourne en boucle. Pense à ce carnet comme à un lieu sûr où déposer tes préoccupations, pour les reprendre le lendemain matin, si nécessaire.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Ce qui me préoccupe ou tourne en boucle\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je pense à... Ce qui me stresse c'est...\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Une chose positive de ma journée\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Aujourd'hui, j'ai apprécié...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"3c973bda-66ba-45bf-a2a4-21e6f1bb217a\",\n          \"tips\": \"Pose une main sur ton ventre pour mieux sentir le mouvement. L'objectif n'est pas de 'dormir', mais de t'ancrer dans le calme. Si une pensée arrive, ramène doucement ton attention à ta respiration.\",\n          \"type\": \"habitude\",\n          \"title\": \"Ancrage Respiratoire : 5 minutes de Calme\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La respiration diaphragmatique active le système nerveux parasympathique, le mode 'repos et digestion' de ton corps. Cela ralentit le rythme cardiaque, diminue la tension musculaire et apaise l'esprit, créant un état physiologique propice à un endormissement rapide et profond.\",\n          \"targetReps\": 14,\n          \"description\": \"Allonge-toi dans ton lit et pratique 5 minutes de respiration diaphragmatique (ventrale) juste avant de tenter de dormir. Inspire par le nez en gonflant le ventre, expire lentement par la bouche en le dégonflant.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Apaiser le tumulte mental\",\n      \"rationale\": \"Pour mieux dormir, il faut d'abord calmer l'esprit. Cette phase se concentre sur la libération des pensées envahissantes et l'ancrage dans le présent par la respiration, réduisant l'anxiété pré-sommeil.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : Le Rituel Immuable\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"2e40d7d0-9f4c-45b3-b65c-3c66118b4a71\",\n          \"tips\": \"Installe des ampoules de faible intensité ou des bougies dans les pièces que tu fréquentes le soir. Fais de cette période un 'sas de décompression' pour tes yeux et ton cerveau.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bain de Lumière Douce\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"L'exposition à la lumière bleue, même faible, inhibe la production de mélatonine, l'hormone du sommeil. En créant un environnement de faible luminosité, tu permets à ton corps de commencer à produire naturellement cette hormone, signalant que le cycle de sommeil est imminent.\",\n          \"targetReps\": 14,\n          \"description\": \"Diminue drastiquement l'intensité lumineuse de ton environnement et éteins toute source de lumière bleue (écrans, LED vives) au moins 90 minutes avant l'heure de coucher. Privilégie des lumières chaudes et tamisées, et des activités calmes (lecture papier, musique douce, discussion apaisante).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"761bca59-3556-456a-8820-a2bfdb3d64cb\",\n          \"tips\": \"Même une petite fente de lumière peut perturber ton sommeil. Teste différentes températures pour trouver celle qui te convient le mieux. Un ventilateur peut aider à la fois pour la température et pour créer un bruit de fond apaisant.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Fort du Sommeil : Optimiser ton Espace\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement de sommeil optimal est crucial pour la qualité et la continuité de ton repos. L'obscurité favorise la production de mélatonine, une température fraîche améliore le sommeil profond, et le silence minimise les réveils nocturnes liés aux perturbations sonores.\",\n          \"description\": \"Fais un audit de ta chambre pour t'assurer qu'elle est un véritable sanctuaire du sommeil : obscurité totale (rideaux occultants, masque de sommeil), température fraîche (idéalement 18-20°C), et silence (boules Quies ou machine à bruit blanc si nécessaire).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Cultiver le cocon du sommeil\",\n      \"rationale\": \"Il est temps de consolider tes acquis en construisant un rituel du soir cohérent et en optimisant ton environnement de sommeil, pour un signal encore plus clair à ton corps que l'heure est au repos.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : La Reconquête du Silence Nocturne\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"0bb6b7b5-dc72-4c42-b6c3-a28de513562d\",\n          \"tips\": \"L'objectif n'est pas de rester éveillée, mais d'éviter l'association lit-éveil-frustration. Sois patiente avec toi-même, c'est une compétence qui se développe.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Protocole Anti-Réveil Nocturne\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Regarder l'heure en pleine nuit augmente l'anxiété et le sentiment de 'perdre son sommeil'. Se lever du lit si l'on ne dort pas en 20 minutes rompt l'association négative entre le lit et l'insomnie, renforçant l'idée que le lit est uniquement pour dormir, et non pour se soucier.\",\n          \"targetReps\": 14,\n          \"description\": \"Si tu te réveilles la nuit, résiste à l'envie de regarder l'heure. Si tu ne te rendors pas en 20 minutes, lève-toi tranquillement et va dans une autre pièce faire une activité calme et non stimulante (lecture très douce, sans lumière vive, pas d'écran) jusqu'à ce que tu ressentes de nouveau l'envie de dormir. Retourne alors au lit.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b66a9e98-589c-428c-b231-bbbc9ecebdd4\",\n          \"tips\": \"Même les petites réussites comptent (un bon café, un sourire échangé). Pour l'anticipation, c'est pour 'déposer' les idées, pas pour résoudre les problèmes.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Bilan Sérénité du Soir\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Orienter ton esprit vers la gratitude et une planification minimale réduit le stress et l'anxiété pré-sommeil. Cela te permet de clore la journée sur une note positive et d'externaliser les préoccupations futures, évitant ainsi qu'elles ne ruminent pendant la nuit.\",\n          \"targetReps\": 14,\n          \"description\": \"Chaque soir, avant ta décharge mentale, prends 5 minutes pour noter 3 réussites ou moments positifs de ta journée et une chose que tu anticipes (sans stress) ou planifies pour demain. Ce n'est pas une liste de tâches détaillée, mais une brève mise en perspective.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Cet exercice est une ancre de gratitude et de clarté pour terminer ta journée. Il s'agit de cultiver un état d'esprit positif et de libérer ton esprit des anticipations stressantes, pour laisser place au calme.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"3 moments positifs de ma journée\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Moment 1...|Moment 2...|Moment 3...\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Une chose que j'anticipe ou prévois pour demain\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Pour demain, je pense à...\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Gérer les réveils et l'anticipation\",\n      \"rationale\": \"Cette phase aborde spécifiquement les réveils nocturnes et l'anxiété liée au lendemain. Nous allons développer des stratégies pour minimiser l'impact de ces interruptions et prévenir les ruminations.\"\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Phase 5 : L'Harmonie du Jour et de la Nuit\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"e9fa4b4f-9cc7-4e56-b287-acfc33b242be\",\n          \"tips\": \"La régularité de l'heure de lever est le signal le plus puissant pour ton horloge biologique. Même si tu as eu une mauvaise nuit, lève-toi à la même heure pour aider à resynchroniser ton rythme circadien.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Réveil Constant : Ancre de Ton Rythme\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Maintenir une heure de réveil fixe, même après une nuit agitée, est la pierre angulaire de la resynchronisation de ton rythme circadien. Cela régule tes cycles veille-sommeil, rendant l'endormissement plus facile et le sommeil plus profond les nuits suivantes.\",\n          \"targetReps\": 14,\n          \"description\": \"Fixe-toi une heure de réveil constante et essaie de t'y tenir tous les jours, y compris les week-ends, avec une variation maximale de 30 minutes. Utilise un réveil doux ou un simulateur d'aube.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"83673ac8-2b82-4b68-80ad-dfe1a0e4fb2d\",\n          \"tips\": \"Recherche des informations sur l'ergonomie du sommeil et les types de soutien adaptés à ta morphologie. Un petit investissement peut faire une grande différence pour la qualité de ton repos.\",\n          \"type\": \"mission\",\n          \"title\": \"Optimisation du Repos : Matelas & Oreiller\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un bon alignement de la colonne vertébrale et un soutien adéquat sont essentiels pour prévenir les douleurs et les inconforts qui peuvent fragmenter le sommeil. Des équipements adaptés permettent une relaxation musculaire profonde et favorisent un sommeil réparateur.\",\n          \"description\": \"Évalue le confort et le soutien de ton matelas et de ton oreiller. Si nécessaire, envisage des ajustements ou des remplacements pour améliorer l'ergonomie de ton sommeil.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 9-10 • Synchroniser ton biorythme\",\n      \"rationale\": \"Le sommeil n'est pas qu'une affaire de nuit. Cette phase t'aide à synchroniser tes rythmes biologiques en optimisant tes habitudes diurnes et ton environnement, pour un sommeil nocturne encore plus régulier et réparateur.\"\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Phase 6 : L'Autonomie Sommeil\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"9718bde9-96bf-4e9f-b487-6c82e6a32731\",\n          \"tips\": \"C'est ton guide personnel et évolutif. Sois spécifique et réaliste. Comment vas-tu maintenir ces acquis et t'adapter aux défis futurs ?\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Manuel du Sommeil Personnalisé\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Formaliser ton apprentissage ancre les nouvelles habitudes dans ta conscience et te donne un outil concret pour gérer les variations futures ou les périodes de stress. Ce manuel sera ta référence pour assurer une autonomie durable de ton sommeil et de ton énergie.\",\n          \"targetReps\": 1,\n          \"description\": \"Récapitule toutes les habitudes, missions et frameworks qui ont le mieux fonctionné pour toi. Crée ton propre 'manuel' de maintenance du sommeil, incluant tes piliers, tes signaux d'alarme et tes stratégies de 'réparation rapide' en cas de besoin.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Tu as parcouru un chemin significatif. Il est temps de cristalliser tes apprentissages. Ce manuel sera ton compagnon pour les années à venir, une ressource inestimable pour maintenir ton rythme et ta sérénité.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Mes 3 piliers du sommeil (habitudes les plus efficaces pour moi)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Pillier 1...|Pillier 2...|Pillier 3...\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Mes signaux d'alarme (ce qui indique que mon sommeil se dégrade)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Signe 1...|Signe 2...\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Mes stratégies de 'réparation rapide' (en cas de coup dur)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Stratégie 1...|Stratégie 2...\"\n              },\n              {\n                \"id\": \"s4\",\n                \"label\": \"Mon engagement à long terme envers mon sommeil\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je m'engage à...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"509d7143-16f5-4010-8c16-040930a32a75\",\n          \"tips\": \"Cela peut être une pause café sans téléphone, regarder par la fenêtre, ou simplement fermer les yeux quelques instants. Le but est de 'débrancher' mentalement et émotionnellement, même brièvement.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Micro-Pause Consciente en Journée\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ces micro-pauses aident à réguler ton niveau de stress tout au long de la journée, évitant l'accumulation qui peut perturber le sommeil nocturne. Elles renforcent ta capacité à te recentrer, à gérer l'irrégularité de tes journées et à briser le cycle de la compensation par le téléphone.\",\n          \"targetReps\": 14,\n          \"description\": \"Intègre au moins deux courtes pauses (5 minutes) sans écran dans ta journée. Pendant ces pauses, concentre-toi sur ta respiration, observe ton environnement ou fais un scan corporel rapide.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 11-12 • Intégration et maintien à long terme\",\n      \"rationale\": \"Cette dernière phase est dédiée à l'intégration complète des nouvelles habitudes et à la création d'un plan de maintenance personnel. Tu deviens l'architecte autonome de ton propre équilibre sommeil-énergie.\"\n    }\n  ],\n  \"deepWhy\": \"Pour incarner la sérénité et la présence dans ma vie, chaque jour, et faire face aux défis avec une énergie renouvelée.\",\n  \"identity\": \"Je suis l'Architecte de mon Rythme Intérieur.\",\n  \"strategy\": \"Reconstruire pas à pas les fondations d'un sommeil réparateur en apaisant le système nerveux et en installant un rythme doux et constant, pour retrouver énergie et stabilité.\",\n  \"goldenRules\": \"1. Mon téléphone quitte ma vue 60 minutes avant de dormir.\\n2. Je respecte mon rituel de sommeil, même les jours 'irréguliers'.\\n3. Chaque soir est une opportunité de réinitialiser ma journée.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps d'endormissement effectif\",\n    \"type\": \"constat\",\n    \"unit\": \"minutes\",\n    \"startValue\": \"45\",\n    \"description\": \"Le temps que tu mets pour t'endormir une fois dans ton lit, sans distractions. L'objectif est de réduire ce délai.\",\n    \"targetValue\": \"15\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Architecture du Réveil Serein\",\n  \"context_problem\": \"Épuisée par des nuits fragmentées et un endormissement difficile, tu te retrouves piégée dans un cycle où des journées irrégulières mènent à une fatigue intense, que tu tentes d'apaiser par un usage compensatoire du téléphone. Ce cercle vicieux maintient ton stress élevé et t'empêche de retrouver l'énergie et la stabilité que tu désires.\",\n  \"sophiaKnowledge\": \"Tu es une femme née en 1992, confrontée à des journées irrégulières, ce qui rend difficile l'établissement d'une routine de sommeil. Tu souffres de difficultés d'endormissement et de réveils nocturnes, et tu as tendance à compenser la fatigue et le stress par l'usage du téléphone, notamment le soir. Tes blocages principaux sont le sentiment d'être débordée, l'oubli et la procrastination. Ton niveau de stress est élevé.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de nuits cette semaine as-tu laissé ton téléphone hors de la chambre OU silencieux avant de te coucher ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"12 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Sanctuaire Digital (evening)\n- [ACTION] La Tisane Rituelle Apaisante (evening)\n- [FRAMEWORK] La Décharge Mentale Quotidienne\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps d'endormissement effectif: 45 minutes\n",
+      "template_fingerprint": "914691482d2bc77e"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

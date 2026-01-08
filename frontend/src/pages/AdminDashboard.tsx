@@ -75,7 +75,6 @@ export default function AdminDashboard() {
   const [metricsLoading, setMetricsLoading] = useState(false);
 
   const [runs24h, setRuns24h] = useState(0);
-  const [pendingSuggestions, setPendingSuggestions] = useState(0);
   const [cost24h, setCost24h] = useState(0);
   const [tokens24h, setTokens24h] = useState(0);
 
@@ -158,12 +157,6 @@ export default function AdminDashboard() {
           .select("*", { count: "exact", head: true })
           .gte("created_at", sinceIso);
         setRuns24h(cntRuns ?? 0);
-
-        const { count: cntSug } = await supabase
-          .from("prompt_override_suggestions")
-          .select("*", { count: "exact", head: true })
-          .eq("status", "pending");
-        setPendingSuggestions(cntSug ?? 0);
 
         const { data: lastRuns } = await supabase
           .from("conversation_eval_runs")
@@ -371,20 +364,13 @@ export default function AdminDashboard() {
 
       <main className="max-w-7xl mx-auto px-6 py-8">
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <MetricCard
             title="Runs (24h)"
             value={runs24h}
             loading={metricsLoading}
             icon={Play}
             trend="active"
-          />
-          <MetricCard
-            title="Suggestions Pending"
-            value={pendingSuggestions}
-            loading={metricsLoading}
-            icon={AlertCircle}
-            trend={pendingSuggestions > 0 ? "warning" : "neutral"}
           />
           <MetricCard
             title="Est. Cost (24h)"

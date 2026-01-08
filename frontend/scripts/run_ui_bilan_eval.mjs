@@ -13,6 +13,11 @@ function makeNonce() {
   return String(rand).replace(/[^a-zA-Z0-9]/g, "").slice(0, 14);
 }
 
+function parseBoolEnv(v) {
+  const s = String(v ?? "").trim().toLowerCase();
+  return s === "1" || s === "true" || s === "yes" || s === "y" || s === "on";
+}
+
 async function main() {
   const st = getLocalSupabaseStatus();
   const url = st.API_URL;
@@ -29,38 +34,46 @@ async function main() {
 
   // IMPORTANT: internal_admins is locked down to a single master admin email.
   // See migration: 20251216123000_master_admin_email_lockdown.sql
-  const email = "thomasgenty15@gmail.com";
-  const nonce = makeNonce();
-  const password = `LocalP${nonce}!123456`;
+  const email = (process.env.SOPHIA_MASTER_ADMIN_EMAIL ?? "thomasgenty15@gmail.com").trim();
+  const password = String(process.env.SOPHIA_MASTER_ADMIN_PASSWORD ?? "123456").trim();
+  const allowResetPassword = parseBoolEnv(process.env.SOPHIA_MASTER_ADMIN_RESET_PASSWORD);
 
-  // Ensure the master admin user exists and we control its password (local only).
-  let callerId = null;
+  const authed = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
   {
-    const { data: created, error: createErr } = await admin.auth.admin.createUser({
-      email,
-      password,
-      email_confirm: true,
-      user_metadata: { full_name: "Master Admin (local)" },
-    });
-    if (createErr) {
-      // If the user already exists, reset password so we can sign in.
+    const { data: signIn, error: signInErr } = await authed.auth.signInWithPassword({ email, password });
+    if (signInErr || !signIn.session?.access_token) {
+      // If sign-in failed, ensure the user exists; only reset password if explicitly allowed.
       const { data: listed, error: listErr } = await admin.auth.admin.listUsers({ perPage: 200, page: 1 });
       if (listErr) throw listErr;
       const found = (listed?.users ?? []).find((u) => String(u.email ?? "").toLowerCase() === email.toLowerCase());
-      if (!found?.id) throw createErr;
-      callerId = found.id;
-      const { error: updErr } = await admin.auth.admin.updateUserById(callerId, { password });
-      if (updErr) throw updErr;
-    } else {
-      callerId = created.user?.id ?? null;
+      if (!found?.id) {
+        const { data: created, error: createErr } = await admin.auth.admin.createUser({
+          email,
+          password,
+          email_confirm: true,
+          user_metadata: { full_name: "Master Admin (local)" },
+        });
+        if (createErr) throw createErr;
+        if (!created?.user?.id) throw new Error("Missing user id after createUser");
+      } else if (allowResetPassword) {
+        const { error: updErr } = await admin.auth.admin.updateUserById(found.id, { password });
+        if (updErr) throw updErr;
+      } else {
+        throw new Error(
+          [
+            `[Auth] Cannot sign in as master admin (${email}).`,
+            `Refusing to reset its password automatically.`,
+            `Fix: set SOPHIA_MASTER_ADMIN_PASSWORD to the correct password,`,
+            `or (local only) set SOPHIA_MASTER_ADMIN_RESET_PASSWORD=1 to overwrite it.`,
+          ].join(" "),
+        );
+      }
+
+      const { data: signIn2, error: signInErr2 } = await authed.auth.signInWithPassword({ email, password });
+      if (signInErr2) throw signInErr2;
+      if (!signIn2.session?.access_token) throw new Error("Missing access_token after sign-in");
     }
   }
-  if (!callerId) throw new Error("Missing master admin user id");
-
-  const authed = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
-  const { data: signIn, error: signInErr } = await authed.auth.signInWithPassword({ email, password });
-  if (signInErr) throw signInErr;
-  if (!signIn.session?.access_token) throw new Error("Missing access_token after sign-in");
 
   const scenarioPath = path.join(process.cwd(), "eval", "scenarios", "sophia_bilan_includes_vitals.json");
   const scenario = JSON.parse(fs.readFileSync(scenarioPath, "utf8"));

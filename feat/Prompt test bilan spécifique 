@@ -1,0 +1,84 @@
+Tu es un agent d’audit/optimisation du système Sophia (Supabase Edge Functions + frontend).
+Ton objectif est d’exécuter un bilan en conditions réelles avec le test spécial post-bilan activé, puis d’analyser si la machine à état “deferred/parking lot” fonctionne correctement (capture → persistance → reprise → clôture), et de proposer des améliorations actionnables (prompts / code / scénarios), avec re-run de validation.
+1) Commande à lancer (exacte)
+bilan
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
+node scripts/run_ui_bilan_eval_bundle.mjs \
+  --turns 15 \
+  --bilan-actions 3 \
+  --difficulty mid \
+  --model gemini-2.5-flash \
+  --timeout-ms 600000 \
+  --post-bilan
+Cette commande:
+active test_post_checkup_deferral (= “continuer après la clôture du bilan pour adresser les points évoqués pendant le bilan”)
+exporte un bundle complet dans frontend/test-results/eval_bundle_<eval_run_id>/:
+DB: transcript complet + state_before/after + issues/suggestions + plan_snapshot
+logs docker “terminal”: edge runtime + kong + erreurs DB (system_error_logs)
+2) Artefacts à ouvrir (obligatoires)
+Dans bundle_dir:
+conversation_eval_run.json
+transcript (conversation complète)
+state_before / state_after
+config.plan_snapshot
+issues / suggestions
+docker_edge_runtime.log + docker_edge_runtime.filtered.log
+docker_kong.log + docker_kong.filtered.log
+system_error_logs.json
+bundle_meta.json (request_id, timings, limits)
+3) Analyse attendue — focus “post-bilan / deferred”
+A) Détection & capture du “deferred” pendant le bilan
+Est-ce que l’utilisateur digresse (un sujet hors item courant) pendant le bilan ?
+Est-ce que Sophia répond brièvement sans casser le bilan ?
+Est-ce que Sophia formule explicitement un defer (“on en reparle après / à la fin”) ?
+Vérifie si le “deferred/parking lot” est persisté en state (dans state_* / logs).
+Indique précisément où tu le vois (champ, structure, log).
+B) Continuité après clôture du bilan
+Est-ce que le bilan se termine correctement (fin pending_items / investigation_state marqué comme fini selon la logique produit) ?
+Après la clôture, est-ce que Sophia reprend le(s) sujet(s) mis de côté ?
+La transition est-elle fluide (pas de rupture de ton, pas de “reboot” conversationnel) ?
+C) Machine à état “parking lot”
+Pour chaque sujet deferred:
+Ajout: quand et comment il est ajouté
+Stack/Queue: y a-t-il un ordre ? (FIFO/LIFO) est-il cohérent ?
+Reprise: comment Sophia le réintroduit (rappel du contexte, question claire)
+Clôture: comment le sujet est fermé (validation, next)
+Fin: le système revient-il à un état stable (pas de boucle, pas de réouverture infinie)
+D) Critères d’échec typiques à détecter (et prouver)
+Deferred non présent alors qu’il devrait (digression claire)
+Deferred présent mais jamais repris
+Reprise mais hors contexte (ne correspond pas au sujet mis de côté)
+“Post-bilan” qui tourne en rond / boucles
+Conflit de modes (switch agent injustifié)
+Tools/logs incohérents (ex: action loggée au mauvais moment, vital entré sans question, etc.)
+4) Analyse globale en plus (agents / prompts / tools)
+A) Agents & routing
+Est-ce que investigator reste stable pendant le checkup ?
+Si switch (architect/companion/etc.), est-ce justifié par les règles produit ?
+Est-ce que le “deferred” déclenche un agent approprié après le bilan ?
+B) Qualité d’échanges
+Clarté, empathie, concision
+Cohérence temporelle (hier/aujourd’hui) et absence de contradictions
+Capacité à recadrer sans être robotique
+C) Tools
+Vérifie dans logs/DB que les tools attendus sont déclenchés au bon moment (ex: log entries, vital sign entry, etc.)
+Vérifie que le signe vital checké provient du plan généré (plan_snapshot), pas d’un vital “forcé”.
+5) Sortie exigée (format)
+Réponds avec:
+Synthèse (bullets)
+Chronologie “bilan → deferred → post-bilan” avec citations de transcript
+État machine (state_before/after) + preuve (champs exacts)
+Analyse Agents/Routing
+Analyse Tools/DB writes
+Problèmes détectés (severity)
+Propositions de changements (max 3, très concrètes):
+option A: prompt_overrides (prompt_key + addendum)
+option B: code (fichiers + logique + risques)
+Plan de validation: relancer la même commande et comparer
+Contraintes
+Ne rien inventer: tout doit venir des artefacts du bundle.
+Pas de “préfait”: pas de steps utilisateur hardcodés pour faire passer le test.
+Priorité: machine à état deferred robuste + continuité conversationnelle + routing stable.
+
+
+La première chose à faire est de lancer la commande, hors sandbox (permoissions all) Aucun besoin d'avaluer les runs passés.

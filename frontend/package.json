@@ -10,6 +10,7 @@
     "test:int": "vitest --config vitest.config.ts run",
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps",
+    "eval:wa:onboarding:bundle": "node scripts/run_ui_whatsapp_onboarding_eval_bundle.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

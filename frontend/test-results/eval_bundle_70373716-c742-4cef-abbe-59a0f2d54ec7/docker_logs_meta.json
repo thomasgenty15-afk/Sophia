@@ -1,0 +1,13 @@
+{
+  "edgeDump": {
+    "ok": true,
+    "status": 0,
+    "error": null
+  },
+  "kongDump": {
+    "ok": true,
+    "status": 0,
+    "error": null
+  },
+  "since_epoch_sec": 1767842221
+}

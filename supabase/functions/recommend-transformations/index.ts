@@ -47,8 +47,10 @@ serve(async (req) => {
 
       RÈGLES DE SÉLECTION :
       1. Tu dois choisir entre 1 et 3 Axes (Transformations) maximum au total.
-      2. Pour chaque Axe choisi, tu dois sélectionner les Problèmes (checkboxes) qui semblent correspondre à la situation de l'utilisateur.
-      3. Tes choix doivent être justifiés par la situation décrite par l'utilisateur.
+      2. RÈGLE D'OR : Ne sélectionne QUE ce qui est vraiment prioritaire ("le cœur du sujet"). Mieux vaut choisir 1 ou 2 axes pertinents et impactants que de remplir les 3 slots pour rien. La qualité prime sur la quantité.
+      3. CONTRAINTE TECHNIQUE : Maximum 1 Axe par Thème (ThemeId). Tu ne peux pas choisir deux axes appartenant au même thème (ex: deux axes 'REL_...').
+      4. Pour chaque Axe choisi, tu dois sélectionner les Problèmes (checkboxes) qui semblent correspondre à la situation de l'utilisateur.
+      5. Tes choix doivent être justifiés par la situation décrite par l'utilisateur.
 
       FORMAT DE SORTIE (JSON STRICT) :
       {

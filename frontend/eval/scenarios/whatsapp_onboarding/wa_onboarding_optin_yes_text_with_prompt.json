@@ -1,0 +1,26 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_optin_yes_text_with_prompt",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): plain text 'oui' should be treated as OPTIN_YES only if an opt-in prompt was sent recently.",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "mechanical"],
+  "channel": "whatsapp",
+  "seed_plan": true,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": false,
+    "seed_optin_prompt": true
+  },
+  "wa_steps": [
+    { "kind": "text", "text": "Oui" }
+  ],
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_opted_in": true,
+      "whatsapp_state": "awaiting_plan_motivation"
+    },
+    "assistant_must_match": ["sur 10", "motivation"]
+  }
+}
+
+

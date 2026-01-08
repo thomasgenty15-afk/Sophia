@@ -1,0 +1,451 @@
+{
+  "id": "eb609d21-5194-45ce-8dc2-7035835194c1",
+  "created_at": "2026-01-08T04:58:42.823766+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__42528ad8edc446",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T04:57:37.686888+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super, on va commencer avec le premier point de ton bilan.\n\nC'est le \"Temps de déconnexion écran après travail\". L'idée, c'est de voir combien de temps tu arrives à te couper des écrans une fois ta journée terminée.\n\nPour commencer, combien de minutes as-tu réussi à te déconnecter hier soir, après le travail ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T04:57:42.569617+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Une trentaine de minutes je dirais. C'est pas toujours facile, j'ai l'impression que mon organisation est un peu chaotique en ce moment, on pourra en parler plus tard si tu veux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T04:57:46.014896+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Trente minutes, c'est noté. Je prends bonne note aussi pour l'organisation chaotique, on y reviendra sans problème. Pour l'instant, parlons du Sanctuaire du Soir : est-ce que tu as réussi à éteindre tous tes écrans une heure avant de te coucher hier soir ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T04:57:54.543864+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, hier soir j'ai bien réussi à éteindre les écrans une heure avant. J'ai lu un peu.",
+      "agent_used": null,
+      "created_at": "2026-01-08T04:57:57.1108+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est super que tu aies réussi à éteindre les écrans et à lire un peu hier soir ! Ça fait une belle coupure.\n\nMaintenant, on a \"Le Kit de la Sérénité\" pour la suite. L'idée est de te préparer un peu de matériel pour ces moments sans écran. Pour cela, as-tu déjà une liseuse ou un carnet ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T04:58:18.506108+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai un carnet et un stylo, oui, mais je n'ai pas encore eu le temps de faire la playlist ou d'acheter une liseuse.",
+      "agent_used": null,
+      "created_at": "2026-01-08T04:58:21.697951+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, c'est noté pour le carnet et le stylo, et pour la playlist et la liseuse qui attendent encore un peu.\n\nMaintenant, on va regarder la Respiration du Guerrier. C'est le fait de prendre 3-5 minutes, deux fois par jour, pour une respiration profonde et consciente, en laissant passer tes pensées.\n\nEst-ce que tu as pu la pratiquer hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T04:58:29.547987+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai réussi à la faire une fois hier, le matin. Mais j'ai oublié la deuxième fois dans la journée.",
+      "agent_used": null,
+      "created_at": "2026-01-08T04:58:33.370491+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est déjà super d'avoir réussi à la faire une fois le matin, c'est un bon début.\n\nOn a fait le tour pour ce bilan. Est-ce que tu veux qu'on parle de quelque chose en particulier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T04:58:42.148393+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "61ba1987-947a-43a4-b693-87a8f6390f1b",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T04:57:37.641525+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T04:57:37.641525+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "b20ae333-953b-4a71-9e0f-dce76ae3285f",
+          "type": "vital",
+          "unit": "min",
+          "title": "Temps de déconnexion écran après travail",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "ac995b2f-8026-4c74-bdb7-44d77b2d992e",
+          "type": "action",
+          "title": "Le Sanctuaire du Soir",
+          "target": 7,
+          "description": "Éteindre tous les écrans (téléphone, tablette, ordinateur, TV) 1 heure avant le coucher. Lecture ou écriture uniquement.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "dba70ecc-ad3d-4391-ac31-c33dc119ea2e",
+          "type": "action",
+          "title": "Le Kit de la Sérénité",
+          "target": 1,
+          "description": "Acheter une liseuse ou un carnet + stylo dédié à la soirée sans écran. Créer une playlist de musiques douces et relaxantes.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "96bc36ff-ca74-401c-8867-989125382a30",
+          "type": "action",
+          "title": "La Respiration du Guerrier",
+          "target": 14,
+          "description": "Prendre 3-5 minutes, 2 fois par jour, pour une respiration profonde et consciente. Laisse tes pensées passer sans t'y accrocher.",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T04:57:37.641525+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "61ba1987-947a-43a4-b693-87a8f6390f1b",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T04:58:42.144032+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T04:57:37.641525+00:00",
+    "short_term_context": null,
+    "investigation_state": null,
+    "last_interaction_at": "2026-01-08T04:57:37.641525+00:00",
+    "unprocessed_msg_count": 5
+  },
+  "issues": [
+    {
+      "code": "investigator.post_bilan_subject_proposal_failure",
+      "message": "L'agent investigator n'a pas explicitement proposé le sujet reporté par l'utilisateur (\"organisation chaotique\") à la fin du bilan, posant à la place une question générique. Ceci est une violation directe de la règle 'À la fin du bilan, propose explicitement le(s) sujet(s) reporté(s) avant toute question générique.'",
+      "evidence": {
+        "snippet": "On a fait le tour pour ce bilan. Est-ce que tu veux qu'on parle de quelque chose en particulier ?",
+        "agent_used": "investigator"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "replace",
+      "rationale": "L'agent investigator n'a pas respecté la règle de proposition explicite des sujets reportés à la fin du bilan, posant une question générique à la place. L'addendum renforce la priorité et l'impératif de proposer les sujets reportés avant toute question générique, pour éviter toute ambiguïté et assurer une meilleure transition post-bilan.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#6 USER: J'ai un carnet et un stylo, oui, mais je n'ai pas encore eu le temps de faire la playlist ou d'acheter une liseuse.\n#7 ASSISTANT(investigator): Ok, c'est noté pour le carnet et le stylo, et pour la playlist et la liseuse qui attendent encore un peu. Maintenant, on va regarder la Respiration du Guerrier. C'est le fait de prendre 3-5 minutes, deux fois par jour, pour une respiration profonde et consciente, en laissant passer tes pensées. Est-ce que tu as pu la pratiquer hier ?\n#8 USER: Oui, j'ai réussi à la faire une fois hier, le matin. Mais j'ai oublié la deuxième fois dans la journée.\n#9 ASSISTANT(investigator): C'est déjà super d'avoir réussi à la faire une fois le matin, c'est un bon début. On a fait le tour pour ce bilan. Est-ce que tu veux qu'on parle de quelque chose en particulier ?\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: replace\n\nproposed_addendum:\nRÈGLES BILAN (CRITIQUES)\n- Ne dis JAMAIS \"bilan terminé\" (ou équivalent) tant que tu n’as pas traité TOUS les points listés pour ce bilan (vital + actions + frameworks).\n- Si l’utilisateur mentionne un sujet à reprendre \"après/plus tard\" pendant le bilan (ex: organisation, stress), confirme brièvement ET continue le bilan.\n- À la fin du bilan, si un ou plusieurs sujets ont été reportés, tu DOIS IMPÉRATIVEMENT les proposer explicitement AVANT toute autre question. NE POSE AUCUNE question générique si des sujets reportés sont en attente.\n  Exemple: \"Tu m’avais parlé de ton organisation générale. On commence par ça ?\"",
+      "proposed_addendum": "RÈGLES BILAN (CRITIQUES)\n- Ne dis JAMAIS \"bilan terminé\" (ou équivalent) tant que tu n’as pas traité TOUS les points listés pour ce bilan (vital + actions + frameworks).\n- Si l’utilisateur mentionne un sujet à reprendre \"après/plus tard\" pendant le bilan (ex: organisation, stress), confirme brièvement ET continue le bilan.\n- À la fin du bilan, si un ou plusieurs sujets ont été reportés, tu DOIS IMPÉRATIVEMENT les proposer explicitement AVANT toute autre question. NE POSE AUCUNE question générique si des sujets reportés sont en attente.\n  Exemple: \"Tu m’avais parlé de ton organisation générale. On commence par ça ?\""
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0160114,
+    "request_id": "89a5512d-64c0-46f2-99db-d7dbecb27011:core:bilan_real_bundle__42528ad8edc446:7547a34f-5b4c-4ded-b53e-9a58f9a850c8",
+    "total_tokens": 54787,
+    "output_tokens": 1528,
+    "prompt_tokens": 40638,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-2.5-flash",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "9a54f9aa-f16a-4c6e-bcad-ed626461bd59",
+        "title": "Le Protocole de la Clarté Éclair",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Le Grand Détachement",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "ac995b2f-8026-4c74-bdb7-44d77b2d992e",
+                  "tips": "Utilise une minuterie pour marquer le début du couvre-feu. Mets tes appareils dans une autre pièce ou un tiroir fermé.",
+                  "type": "habitude",
+                  "title": "Le Sanctuaire du Soir",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Réduit la lumière bleue perturbant la mélatonine et envoie un signal clair à ton cerveau que la journée active est terminée, favorisant un endormissement plus rapide et un sommeil de meilleure qualité.",
+                  "targetReps": 7,
+                  "description": "Éteindre tous les écrans (téléphone, tablette, ordinateur, TV) 1 heure avant le coucher. Lecture ou écriture uniquement.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "dba70ecc-ad3d-4391-ac31-c33dc119ea2e",
+                  "tips": "Choisis des objets que tu aimes et qui t'inspirent le calme, pour ancrer positivement ce nouveau rituel.",
+                  "type": "mission",
+                  "title": "Le Kit de la Sérénité",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Préparer l'environnement réduit la friction et rend la nouvelle habitude de déconnexion plus attrayante et facile à maintenir, créant une nouvelle routine apaisante.",
+                  "description": "Acheter une liseuse ou un carnet + stylo dédié à la soirée sans écran. Créer une playlist de musiques douces et relaxantes.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 1 • Désamorcer l'urgence numérique",
+              "rationale": "Cette phase est cruciale pour briser le cycle infernal des écrans et créer un espace mental pour la récupération, jetant les bases d'une meilleure gestion du stress."
+            },
+            {
+              "id": 2,
+              "title": "L'Ancre de la Présence",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "96bc36ff-ca74-401c-8867-989125382a30",
+                  "tips": "Utilise la technique du 4-7-8 (inspire 4s, retiens 7s, expire 8s). Mets un rappel discret sur ton téléphone pour ne pas oublier ces micro-pauses.",
+                  "type": "habitude",
+                  "title": "La Respiration du Guerrier",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Active le système nerveux parasympathique, réduisant instantanément le niveau de stress, améliorant la concentration et la capacité à gérer les moments de pression.",
+                  "targetReps": 14,
+                  "description": "Prendre 3-5 minutes, 2 fois par jour, pour une respiration profonde et consciente. Laisse tes pensées passer sans t'y accrocher.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "44a7f40c-5a0b-47c0-b8ad-a5d1f6634039",
+                  "tips": "Fais-le rapidement, sans jugement ni perfectionnisme. L'objectif est de 'fermer la boucle' mentale avant de te coucher.",
+                  "type": "framework",
+                  "title": "Le Bilan Rapide de Journée",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit la rumination nocturne et renforce les boucles de récompense positives, améliorant ainsi la qualité du sommeil et la perception de tes progrès quotidiens.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, consigner les succès, les défis et les apprentissages de la journée dans ton carnet.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "C'est ton moment pour digérer la journée, identifier ce qui a bien fonctionné, ce qui a été un défi, et en tirer des leçons. Ne laisse rien en suspens dans ta tête, vide ta 'RAM' mentale.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "3 réussites du jour (même petites)",
+                        "inputType": "list",
+                        "placeholder": "Avoir fini ce rapport|Avoir souri à un collègue|Avoir bu mes 2 litres d'eau"
+                      },
+                      {
+                        "id": "s2",
+                        "label": "1 défi ou préoccupation principale",
+                        "inputType": "textarea",
+                        "placeholder": "La présentation de demain me stresse encore un peu."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Une leçon apprise ou une action concrète pour demain",
+                        "inputType": "text",
+                        "placeholder": "Je vais préparer mes notes de présentation ce soir pour être plus serein(e)."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 2 • Reprendre pied dans l'instant présent",
+              "rationale": "Pour contrer l'anxiété qui te projette dans le futur ou le passé, et ancrer ton esprit ici et maintenant, construisant une base de calme et de focus."
+            },
+            {
+              "id": 3,
+              "title": "La Carte Mentale",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "b8e2feb4-206f-4f31-9556-157e3f913f0a",
+                  "tips": "Utilise ton carnet dédié ou une petite ardoise. Sois réaliste sur le temps nécessaire pour chaque tâche et accepte qu'elles soient parfois imparfaites.",
+                  "type": "habitude",
+                  "title": "Les 3 Briques du Jour",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Évite la surcharge décisionnelle et donne un focus clair à ton cerveau, réduisant l'anxiété liée à l'incertitude et au sentiment d'être débordé par une longue liste.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, identifier 3 tâches cruciales (tes 'briques') qui, une fois faites, rendront ta journée réussie. Concentre-toi sur elles en premier.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "786db5a2-ee4a-4583-8850-bb0c292fd279",
+                  "tips": "Commence par les plus bruyantes et invasives. Rappelle-toi : chaque notification est une micro-interruption de ton focus et une source d'anxiété.",
+                  "type": "mission",
+                  "title": "L'Assainissement Digital",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit drastiquement la charge cognitive et les interruptions constantes qui alimentent le sentiment d'être débordé, te permettant de reprendre le contrôle de ton attention.",
+                  "description": "Désactiver toutes les notifications non-essentielles (apps, emails, réseaux sociaux). Faire un tri radical de tes abonnements emails/newsletters.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 3 • Organiser l'invisible pour agir",
+              "rationale": "Pour transformer la charge mentale diffuse en tâches claires et gérables, réduisant ainsi le sentiment d'être débordé(e) et l'anxiété liée au chaos mental."
+            },
+            {
+              "id": 4,
+              "title": "Le Cadran du Sommeil",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "3baf039f-7cea-4b23-9732-110d7bc0fee0",
+                  "tips": "La régularité est clé pour conditionner ton corps. Crée des associations positives avec le sommeil (odeurs douces, musiques apaisantes).",
+                  "type": "habitude",
+                  "title": "Le Rituel de Morphée",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Conditionne ton corps et ton esprit à se préparer au sommeil, améliorant l'endormissement, la qualité des cycles de sommeil et ta récupération globale.",
+                  "targetReps": 7,
+                  "description": "Établir et suivre une routine de 30-45 minutes avant le couvre-feu digital : bain chaud, lecture, méditation légère, tisane. Fais-le *chaque* soir, même le weekend.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "cc5003df-9a14-47fd-9803-aab0b5783ac1",
+                  "tips": "Pense à toutes les sphères de ta vie : travail, loisirs, relations, tâches domestiques. Sois honnête avec toi-même.",
+                  "type": "framework",
+                  "title": "Mon Inventaire Énergétique",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Prendre conscience des drainages et des sources énergétiques permet de faire des choix conscients pour protéger ta vitalité et réorienter ton temps vers ce qui te nourrit, réduisant ainsi le stress et l'épuisement.",
+                  "targetReps": 1,
+                  "description": "Analyser les activités qui te donnent de l'énergie et celles qui t'en volent. Identifier les 'fuites' d'énergie et les 'sources' de vitalité.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Pour reprendre le contrôle de ton énergie, il faut d'abord comprendre où elle va. Liste tout ce qui te donne de l'énergie et tout ce qui t'en prend, puis identifie comment amplifier les sources et minimiser les fuites. C'est un état des lieux crucial.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Activités/Situations qui me donnent de l'énergie (mes carburants)",
+                        "inputType": "list",
+                        "placeholder": "Sport le matin|Lecture d'un bon livre|Parler à un ami|Cuisiner"
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Activités/Situations qui me drainent de l'énergie (mes fuites)",
+                        "inputType": "list",
+                        "placeholder": "Les réunions trop longues et inutiles|Le scroll infini sur les réseaux sociaux|Le désordre chez moi|Les conversations difficiles"
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Actions concrètes pour augmenter mes carburants et réduire mes fuites",
+                        "inputType": "textarea",
+                        "placeholder": "Bloquer 1h par jour pour le sport. Fixer une limite de temps pour les réseaux. Déléguer certaines tâches domestiques."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 4 • Réarchitecturer la nuit pour revitaliser le jour",
+              "rationale": "Pour consolider ton énergie et ta stabilité en optimisant le sommeil, socle de toute performance mentale, émotionnelle et de ta capacité à gérer le stress."
+            }
+          ],
+          "deepWhy": "Pour retrouver une énergie inépuisable, être un pilier de stabilité pour moi-même, et vivre chaque jour avec une sérénité profonde et une clarté d'esprit.",
+          "identity": "Je suis l'Architecte de ma Paix Intérieure.",
+          "strategy": "Sophia va déconstruire la charge mentale et l'anxiété par une série d'actions ciblées et rapides, en stabilisant d'abord ton énergie pour retrouver une clarté d'esprit et une présence accrue.",
+          "goldenRules": "1. Priorité à la déconnexion après le travail.\n2. Chaque tâche a sa place, chaque chose à son temps.\n3. Le mouvement conscient est mon ancre anti-stress.",
+          "vitalSignal": {
+            "name": "Temps de déconnexion écran après travail",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "0",
+            "description": "Mesure le temps passé sans écran après ta journée de travail et avant le dîner.",
+            "targetValue": "60",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole de la Clarté Éclair",
+          "context_problem": "Tu te sens piégé(e) par un cycle de stress, d'oubli et de procrastination, exacerbé par un travail sur écran tardif et un sommeil perturbé. Cette spirale t'empêche de retrouver l'énergie et la stabilité que tu désires au quotidien.",
+          "sophiaKnowledge": "Tu es une personne active, travaillant sur écran, qui se sent submergée par la charge mentale et l'anxiété. Malgré une activité physique élevée, ta qualité de sommeil est moyenne, aggravée par des fins de journée tardives et l'exposition aux écrans. Tu aspires à plus de stabilité et d'énergie, mais le sentiment d'être débordé te pousse à la procrastination.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine t'es-tu senti(e) complètement débordé(e) et incapable d'agir ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "4 semaines"
+        },
+        "goal_id": "5399507f-2584-4842-b54b-0cf78ee2d62c",
+        "deep_why": "Pour retrouver une énergie inépuisable, être un pilier de stabilité pour moi-même, et vivre chaque jour avec une sérénité profonde et une clarté d'esprit.",
+        "created_at": "2026-01-08T04:57:37.618563+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "75166953-9f5c-4aa0-91f1-c410a3f344cb",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "ac995b2f-8026-4c74-bdb7-44d77b2d992e",
+          "title": "Le Sanctuaire du Soir",
+          "status": "active",
+          "created_at": "2026-01-08T04:57:37.628982+00:00",
+          "description": "Éteindre tous les écrans (téléphone, tablette, ordinateur, TV) 1 heure avant le coucher. Lecture ou écriture uniquement.",
+          "target_reps": 7,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T04:57:37.626+00:00"
+        },
+        {
+          "id": "dba70ecc-ad3d-4391-ac31-c33dc119ea2e",
+          "title": "Le Kit de la Sérénité",
+          "status": "active",
+          "created_at": "2026-01-08T04:57:37.628982+00:00",
+          "description": "Acheter une liseuse ou un carnet + stylo dédié à la soirée sans écran. Créer une playlist de musiques douces et relaxantes.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T04:57:37.626+00:00"
+        },
+        {
+          "id": "96bc36ff-ca74-401c-8867-989125382a30",
+          "title": "La Respiration du Guerrier",
+          "status": "active",
+          "created_at": "2026-01-08T04:57:37.628982+00:00",
+          "description": "Prendre 3-5 minutes, 2 fois par jour, pour une respiration profonde et consciente. Laisse tes pensées passer sans t'y accrocher.",
+          "target_reps": 14,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T04:57:37.626+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole de la Clarté Éclair\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour retrouver une énergie inépuisable, être un pilier de stabilité pour moi-même, et vivre chaque jour avec une sérénité profonde et une clarté d'esprit.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Le Grand Détachement\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"ac995b2f-8026-4c74-bdb7-44d77b2d992e\",\n          \"tips\": \"Utilise une minuterie pour marquer le début du couvre-feu. Mets tes appareils dans une autre pièce ou un tiroir fermé.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sanctuaire du Soir\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Réduit la lumière bleue perturbant la mélatonine et envoie un signal clair à ton cerveau que la journée active est terminée, favorisant un endormissement plus rapide et un sommeil de meilleure qualité.\",\n          \"targetReps\": 7,\n          \"description\": \"Éteindre tous les écrans (téléphone, tablette, ordinateur, TV) 1 heure avant le coucher. Lecture ou écriture uniquement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"dba70ecc-ad3d-4391-ac31-c33dc119ea2e\",\n          \"tips\": \"Choisis des objets que tu aimes et qui t'inspirent le calme, pour ancrer positivement ce nouveau rituel.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Kit de la Sérénité\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Préparer l'environnement réduit la friction et rend la nouvelle habitude de déconnexion plus attrayante et facile à maintenir, créant une nouvelle routine apaisante.\",\n          \"description\": \"Acheter une liseuse ou un carnet + stylo dédié à la soirée sans écran. Créer une playlist de musiques douces et relaxantes.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 1 • Désamorcer l'urgence numérique\",\n      \"rationale\": \"Cette phase est cruciale pour briser le cycle infernal des écrans et créer un espace mental pour la récupération, jetant les bases d'une meilleure gestion du stress.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"L'Ancre de la Présence\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"96bc36ff-ca74-401c-8867-989125382a30\",\n          \"tips\": \"Utilise la technique du 4-7-8 (inspire 4s, retiens 7s, expire 8s). Mets un rappel discret sur ton téléphone pour ne pas oublier ces micro-pauses.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Respiration du Guerrier\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Active le système nerveux parasympathique, réduisant instantanément le niveau de stress, améliorant la concentration et la capacité à gérer les moments de pression.\",\n          \"targetReps\": 14,\n          \"description\": \"Prendre 3-5 minutes, 2 fois par jour, pour une respiration profonde et consciente. Laisse tes pensées passer sans t'y accrocher.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"44a7f40c-5a0b-47c0-b8ad-a5d1f6634039\",\n          \"tips\": \"Fais-le rapidement, sans jugement ni perfectionnisme. L'objectif est de 'fermer la boucle' mentale avant de te coucher.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Bilan Rapide de Journée\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit la rumination nocturne et renforce les boucles de récompense positives, améliorant ainsi la qualité du sommeil et la perception de tes progrès quotidiens.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, consigner les succès, les défis et les apprentissages de la journée dans ton carnet.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"C'est ton moment pour digérer la journée, identifier ce qui a bien fonctionné, ce qui a été un défi, et en tirer des leçons. Ne laisse rien en suspens dans ta tête, vide ta 'RAM' mentale.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"3 réussites du jour (même petites)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Avoir fini ce rapport|Avoir souri à un collègue|Avoir bu mes 2 litres d'eau\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"1 défi ou préoccupation principale\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"La présentation de demain me stresse encore un peu.\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Une leçon apprise ou une action concrète pour demain\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Je vais préparer mes notes de présentation ce soir pour être plus serein(e).\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 2 • Reprendre pied dans l'instant présent\",\n      \"rationale\": \"Pour contrer l'anxiété qui te projette dans le futur ou le passé, et ancrer ton esprit ici et maintenant, construisant une base de calme et de focus.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"La Carte Mentale\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"b8e2feb4-206f-4f31-9556-157e3f913f0a\",\n          \"tips\": \"Utilise ton carnet dédié ou une petite ardoise. Sois réaliste sur le temps nécessaire pour chaque tâche et accepte qu'elles soient parfois imparfaites.\",\n          \"type\": \"habitude\",\n          \"title\": \"Les 3 Briques du Jour\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Évite la surcharge décisionnelle et donne un focus clair à ton cerveau, réduisant l'anxiété liée à l'incertitude et au sentiment d'être débordé par une longue liste.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, identifier 3 tâches cruciales (tes 'briques') qui, une fois faites, rendront ta journée réussie. Concentre-toi sur elles en premier.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"786db5a2-ee4a-4583-8850-bb0c292fd279\",\n          \"tips\": \"Commence par les plus bruyantes et invasives. Rappelle-toi : chaque notification est une micro-interruption de ton focus et une source d'anxiété.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Assainissement Digital\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit drastiquement la charge cognitive et les interruptions constantes qui alimentent le sentiment d'être débordé, te permettant de reprendre le contrôle de ton attention.\",\n          \"description\": \"Désactiver toutes les notifications non-essentielles (apps, emails, réseaux sociaux). Faire un tri radical de tes abonnements emails/newsletters.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 3 • Organiser l'invisible pour agir\",\n      \"rationale\": \"Pour transformer la charge mentale diffuse en tâches claires et gérables, réduisant ainsi le sentiment d'être débordé(e) et l'anxiété liée au chaos mental.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Le Cadran du Sommeil\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"3baf039f-7cea-4b23-9732-110d7bc0fee0\",\n          \"tips\": \"La régularité est clé pour conditionner ton corps. Crée des associations positives avec le sommeil (odeurs douces, musiques apaisantes).\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel de Morphée\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Conditionne ton corps et ton esprit à se préparer au sommeil, améliorant l'endormissement, la qualité des cycles de sommeil et ta récupération globale.\",\n          \"targetReps\": 7,\n          \"description\": \"Établir et suivre une routine de 30-45 minutes avant le couvre-feu digital : bain chaud, lecture, méditation légère, tisane. Fais-le *chaque* soir, même le weekend.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"cc5003df-9a14-47fd-9803-aab0b5783ac1\",\n          \"tips\": \"Pense à toutes les sphères de ta vie : travail, loisirs, relations, tâches domestiques. Sois honnête avec toi-même.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Inventaire Énergétique\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Prendre conscience des drainages et des sources énergétiques permet de faire des choix conscients pour protéger ta vitalité et réorienter ton temps vers ce qui te nourrit, réduisant ainsi le stress et l'épuisement.\",\n          \"targetReps\": 1,\n          \"description\": \"Analyser les activités qui te donnent de l'énergie et celles qui t'en volent. Identifier les 'fuites' d'énergie et les 'sources' de vitalité.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Pour reprendre le contrôle de ton énergie, il faut d'abord comprendre où elle va. Liste tout ce qui te donne de l'énergie et tout ce qui t'en prend, puis identifie comment amplifier les sources et minimiser les fuites. C'est un état des lieux crucial.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Activités/Situations qui me donnent de l'énergie (mes carburants)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Sport le matin|Lecture d'un bon livre|Parler à un ami|Cuisiner\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Activités/Situations qui me drainent de l'énergie (mes fuites)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Les réunions trop longues et inutiles|Le scroll infini sur les réseaux sociaux|Le désordre chez moi|Les conversations difficiles\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Actions concrètes pour augmenter mes carburants et réduire mes fuites\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Bloquer 1h par jour pour le sport. Fixer une limite de temps pour les réseaux. Déléguer certaines tâches domestiques.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 4 • Réarchitecturer la nuit pour revitaliser le jour\",\n      \"rationale\": \"Pour consolider ton énergie et ta stabilité en optimisant le sommeil, socle de toute performance mentale, émotionnelle et de ta capacité à gérer le stress.\"\n    }\n  ],\n  \"deepWhy\": \"Pour retrouver une énergie inépuisable, être un pilier de stabilité pour moi-même, et vivre chaque jour avec une sérénité profonde et une clarté d'esprit.\",\n  \"identity\": \"Je suis l'Architecte de ma Paix Intérieure.\",\n  \"strategy\": \"Sophia va déconstruire la charge mentale et l'anxiété par une série d'actions ciblées et rapides, en stabilisant d'abord ton énergie pour retrouver une clarté d'esprit et une présence accrue.\",\n  \"goldenRules\": \"1. Priorité à la déconnexion après le travail.\\n2. Chaque tâche a sa place, chaque chose à son temps.\\n3. Le mouvement conscient est mon ancre anti-stress.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps de déconnexion écran après travail\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"0\",\n    \"description\": \"Mesure le temps passé sans écran après ta journée de travail et avant le dîner.\",\n    \"targetValue\": \"60\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole de la Clarté Éclair\",\n  \"context_problem\": \"Tu te sens piégé(e) par un cycle de stress, d'oubli et de procrastination, exacerbé par un travail sur écran tardif et un sommeil perturbé. Cette spirale t'empêche de retrouver l'énergie et la stabilité que tu désires au quotidien.\",\n  \"sophiaKnowledge\": \"Tu es une personne active, travaillant sur écran, qui se sent submergée par la charge mentale et l'anxiété. Malgré une activité physique élevée, ta qualité de sommeil est moyenne, aggravée par des fins de journée tardives et l'exposition aux écrans. Tu aspires à plus de stabilité et d'énergie, mais le sentiment d'être débordé te pousse à la procrastination.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine t'es-tu senti(e) complètement débordé(e) et incapable d'agir ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"4 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Sanctuaire du Soir (night)\n- [ACTION] Le Kit de la Sérénité (any_time)\n- [ACTION] La Respiration du Guerrier (any_time)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps de déconnexion écran après travail: 0 min\n",
+      "template_fingerprint": "ce7f1363c64ea762"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

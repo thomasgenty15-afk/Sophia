@@ -4,7 +4,6 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { generateWithGemini } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
-import { appendPromptOverride, fetchPromptOverride } from "../_shared/prompt-overrides.ts"
 
 console.log("Detect Events: Function initialized")
 
@@ -126,8 +125,7 @@ Deno.serve(async (req) => {
         - Assure-toi que "scheduled_for" est dans le FUTUR par rapport à "Maintenant" (${now}).
         - Le message doit être chaleureux, comme un ami qui prend des nouvelles.
       `
-      const override = await fetchPromptOverride("sophia.detect_future_events")
-      const systemPrompt = appendPromptOverride(basePrompt, override)
+      const systemPrompt = basePrompt
 
       try {
         const responseText = await generateWithGemini(

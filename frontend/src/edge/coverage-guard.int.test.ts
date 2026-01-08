@@ -56,7 +56,6 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
 
     // Keep this list intentional: if a new function is added, update this list AND add at least one integration test.
     const expected = [
-      "apply-prompt-override-suggestion",
       "archive-plan",
       "break-down-action",
       "complete-module",

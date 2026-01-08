@@ -33,6 +33,11 @@ function normalizeToE164(input: string): string {
 }
 
 async function sendTemplate(toE164: string, name: string, language: string, fullName: string) {
+  // In tests/local deterministic runs we never want to call Meta/Graph.
+  if (isMegaTestMode()) {
+    return { messages: [{ id: "wamid_MEGA_TEST" }], mega_test_mode: true, template: { name, language }, to: toE164 } as any
+  }
+
   const token = denoEnv("WHATSAPP_ACCESS_TOKEN")?.trim()
   const phoneNumberId = denoEnv("WHATSAPP_PHONE_NUMBER_ID")?.trim()
   if (!token || !phoneNumberId) throw new Error("Missing WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID")

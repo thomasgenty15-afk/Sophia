@@ -285,7 +285,7 @@ commit;
 
 
 Pour lancer supabase avec le .env : 
-npx supabase functions serve --env-file .env
+npx supabase functions serve --env-file supabase/.env
 
 
 
@@ -372,3 +372,14 @@ curl -s -X POST "http://127.0.0.1:54321/functions/v1/trigger-memory-echo" \
   -H "Content-Type: application/json" \
   -H "X-Internal-Secret: sophia-_on_earth" \
   -d '{"email":"thomasgenty30@gmail.com","force":true,"debug":true}'
+
+
+  Pour lancer bilan spécifique : 
+  cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
+node scripts/run_ui_bilan_eval_bundle.mjs \
+  --turns 15 \
+  --bilan-actions 3 \
+  --difficulty mid \
+  --model gemini-2.5-flash \
+  --timeout-ms 600000 \
+  --post-bilan

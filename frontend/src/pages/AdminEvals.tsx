@@ -38,22 +38,10 @@ type EvalRunRow = {
   error?: string | null;
 };
 
-type SuggestionRow = {
-  id: string;
-  created_at: string;
-  prompt_key: string;
-  action: "append" | "replace";
-  proposed_addendum: string;
-  rationale?: string | null;
-  status: "pending" | "approved" | "rejected";
-  eval_run_id?: string | null;
-};
-
 export default function AdminEvals() {
   const { user, loading, isAdmin } = useAuth();
   const [runs, setRuns] = useState<EvalRunRow[]>([]);
   const [selectedRunId, setSelectedRunId] = useState<string | null>(null);
-  const [pendingSuggestions, setPendingSuggestions] = useState<SuggestionRow[]>([]);
   const [busy, setBusy] = useState(false);
   const selectedRun = useMemo(() => runs.find((r) => r.id === selectedRunId) ?? null, [runs, selectedRunId]);
 
@@ -71,68 +59,9 @@ export default function AdminEvals() {
         setRuns((runRows as any) ?? []);
         setSelectedRunId((prev) => prev ?? (runRows as any)?.[0]?.id ?? null);
       }
-
-      const { data: sugRows, error: sugErr } = await supabase
-        .from("prompt_override_suggestions")
-        .select("id,created_at,prompt_key,action,proposed_addendum,rationale,status,eval_run_id")
-        .eq("status", "pending")
-        .order("created_at", { ascending: false })
-        .limit(50);
-      if (sugErr) {
-        console.error(sugErr);
-      } else {
-        setPendingSuggestions((sugRows as any) ?? []);
-      }
     }
     load();
   }, [user, isAdmin]);
-
-  async function applySuggestion(id: string) {
-    setBusy(true);
-    try {
-      const { data, error } = await supabase.functions.invoke("apply-prompt-override-suggestion", {
-        body: { suggestion_id: id },
-      });
-      if (error) throw error;
-      
-      // Refresh suggestions list
-      await refreshSuggestions();
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function rejectSuggestion(id: string) {
-    setBusy(true);
-    try {
-      const { error } = await supabase
-        .from("prompt_override_suggestions")
-        .update({ 
-          status: "rejected",
-          // applied_by/approved_by are null, maybe add rejected_by if schema supported it, but it doesn't seem to explicitly.
-          // Wait, the schema has approved_by and applied_by. It doesn't have rejected_by but RLS allows updating row.
-          // Let's just update status for now.
-        })
-        .eq("id", id);
-
-      if (error) throw error;
-      
-      // Refresh suggestions list
-      await refreshSuggestions();
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function refreshSuggestions() {
-    const { data: sugRows } = await supabase
-      .from("prompt_override_suggestions")
-      .select("id,created_at,prompt_key,action,proposed_addendum,rationale,status,eval_run_id")
-      .eq("status", "pending")
-      .order("created_at", { ascending: false })
-      .limit(50);
-    setPendingSuggestions((sugRows as any) ?? []);
-  }
 
   if (loading || isAdmin === null) {
     return (
@@ -181,7 +110,6 @@ export default function AdminEvals() {
             </a>
           <div className="flex items-center gap-3 text-xs text-neutral-500">
             <span>Runs: {runs.length}</span>
-            <span>Pending Suggestions: {pendingSuggestions.length}</span>
             </div>
           </div>
         </div>
@@ -346,37 +274,6 @@ export default function AdminEvals() {
                     </div>
 
                   </div>
-                </div>
-              )}
-            </div>
-
-            {/* Pending Suggestions Queue */}
-            <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden shrink-0">
-              <div className="p-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
-                <h2 className="font-medium text-white flex items-center gap-2">
-                  <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                  Approval Queue
-                </h2>
-                <span className="px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-400 text-xs font-medium border border-indigo-500/20">
-                  {pendingSuggestions.length} Pending
-                </span>
-              </div>
-              
-              {pendingSuggestions.length === 0 ? (
-                <div className="p-8 text-center text-sm text-neutral-500">
-                  All caught up! No suggestions waiting for approval.
-                </div>
-              ) : (
-                <div className="p-4 space-y-4">
-                  {pendingSuggestions.map((s) => (
-                    <SuggestionCard 
-                      key={s.id} 
-                      suggestion={s} 
-                      onApply={() => applySuggestion(s.id)}
-                      onReject={() => rejectSuggestion(s.id)}
-                      busy={busy}
-                    />
-                  ))}
                 </div>
               )}
             </div>

@@ -1,0 +1,26 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_wrong_number_button",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): user clicks 'Mauvais numéro' -> unlink phone from profile and opt-out with reason wrong_number.",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "mechanical"],
+  "channel": "whatsapp",
+  "seed_plan": true,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": false
+  },
+  "wa_steps": [
+    { "kind": "interactive", "interactive_id": "OPTIN_WRONG_NUMBER", "interactive_title": "Mauvais numéro" }
+  ],
+  "mechanical_assertions": {
+    "profile_equals": {
+      "phone_number": null,
+      "phone_verified_at": null,
+      "whatsapp_opted_in": false,
+      "whatsapp_optout_reason": "wrong_number"
+    }
+  }
+}
+
+

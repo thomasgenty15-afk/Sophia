@@ -1,6 +1,26 @@
+/// <reference path="../tsserver-shims.d.ts" />
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+
+function denoEnv(name: string): string | undefined {
+  return (globalThis as any)?.Deno?.env?.get?.(name)
+}
+
+function isMegaTestMode(): boolean {
+  const megaRaw = (denoEnv("MEGA_TEST_MODE") ?? "").trim()
+  const isLocalSupabase =
+    (denoEnv("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+    (denoEnv("SUPABASE_URL") ?? "").includes("http://kong:8000")
+  return megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
+}
+
 export async function sendWhatsAppText(toE164: string, body: string) {
-  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")?.trim()
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")?.trim()
+  // In tests/local deterministic runs we never want to call Meta/Graph.
+  if (isMegaTestMode()) {
+    return { messages: [{ id: "wamid_MEGA_TEST" }], mega_test_mode: true, to: toE164, body } as any
+  }
+
+  const token = denoEnv("WHATSAPP_ACCESS_TOKEN")?.trim()
+  const phoneNumberId = denoEnv("WHATSAPP_PHONE_NUMBER_ID")?.trim()
   if (!token || !phoneNumberId) throw new Error("Missing WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID")
 
   const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`

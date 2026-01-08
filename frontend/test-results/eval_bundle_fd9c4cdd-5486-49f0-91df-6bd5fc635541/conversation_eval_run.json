@@ -1,0 +1,722 @@
+{
+  "id": "fd9c4cdd-5486-49f0-91df-6bd5fc635541",
+  "created_at": "2026-01-08T03:51:17.256209+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__9db14bfc54d442",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:47:10.405163+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, super. Pour ta durée de sommeil réparateur, combien d'heures tu as eu la nuit dernière ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T03:47:18.026517+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Environ 6 heures, je crois. C'était un peu mieux que d'habitude.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:47:21.417417+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Environ 6 heures et un peu mieux que d'habitude, c'est déjà une bonne nouvelle ! Content d'entendre ça.\n\nPour continuer sur la qualité de ton sommeil, on a une action qui s'appelle \"Le Cocooning Lumineux\". L'idée, c'est de vérifier l'obscurité totale de ta chambre et de l'isoler au mieux des bruits. Tu as pu faire ça hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T03:47:30.812764+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai essayé de faire le Cocooning Lumineux. J'ai mis des rideaux plus épais, mais il y a toujours une petite lumière qui passe. Et le bruit, c'est difficile à gérer avec les voisins. Ça me stresse un peu de ne pas y arriver parfaitement, on pourra en reparler plus tard de la gestion du stress ?",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:47:34.833142+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je vois que tu as bien essayé le Cocooning Lumineux, c'est super d'avoir mis des rideaux plus épais. Je comprends que ce soit frustrant que la lumière et le bruit posent toujours problème, et que ça génère du stress. On pourra bien sûr revenir sur la gestion du stress un peu plus tard, c'est important.\n\nPour le moment, je te propose de découvrir un nouvel exercice : La Respiration Ancrante. Il s'agit de pratiquer 2 minutes de respiration consciente chaque soir. Comment vois-tu l'intégration de cette nouvelle habitude dans ta routine ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T03:47:45.263639+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je pense que je peux essayer de l'intégrer. Deux minutes, c'est faisable. Je vais voir comment ça se passe ce soir.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:47:48.627301+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Alors, pour \"La Respiration Ancrante\", tu as pu pratiquer tes 2 minutes de respiration consciente hier soir ? 🤔",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T03:47:53.467895+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai réussi à faire les 2 minutes. C'était un peu difficile de me concentrer au début, mais j'ai tenu bon.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:47:56.613903+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est super que tu aies réussi à tenir les 2 minutes de respiration, même si la concentration était un peu difficile au début. C'est une belle persévérance !\n\nPour la suite, je te propose le Couvre-Feu Digital Doux. Le principe, c'est d'éteindre tous tes écrans (téléphone, tablette, ordinateur, TV) au moins 30 minutes avant de vouloir t'endormir et de les laisser hors de ta chambre.\n\nQu'en penses-tu ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T03:48:05.384238+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est une bonne idée, mais ça va être un défi. J'ai l'habitude de regarder des choses sur mon téléphone avant de dormir. Je vais essayer de le poser plus tôt, mais 30 minutes, c'est beaucoup pour commencer.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:48:09.831759+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Alors, pour \"Le Couvre-Feu Digital Doux\", tu as réussi à éteindre tes écrans 30 minutes avant de dormir hier soir, même si tu pensais que ça allait être un défi ? 🤔",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T03:48:13.946499+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai essayé, j'ai posé mon téléphone 15 minutes avant. Ce n'est pas encore 30 minutes, mais c'est un début.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:48:17.794595+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, bilan terminé.\n\nTu m'avais parlé d'un truc à reprendre : \"Oui, j'ai essayé de faire le Cocooning Lumineux. J'ai mis des rideaux plus épais, mais il y a toujours une petite lumière qui passe. Et le bruit, c'est difficile à gérer avec les voisins. Ça me stresse un peu de ne pas y arriver parfaitemen\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T03:48:33.818579+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je veux bien qu'on en parle. Ça me travaille un peu de ne pas réussir à rendre la chambre parfaitement obscure et silencieuse, je me sens un peu impuissante face à ça.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:48:36.446573+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Excellent pour \"Le Cocooning Lumineux\", bravo pour cette réussite ! Je prends note de ton souhait d'aborder le sujet de la chambre.\n\nJe comprends parfaitement que le défi de rendre l'espace parfaitement obscur et silencieux puisse te travailler et te laisser un sentiment d'impuissance. C'est une préoccupation légitime, et nous pouvons tout à fait discuter des solutions possibles pour t'aider à y remédier.",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:48:48.227181+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'aimerais bien explorer des solutions. Qu'est-ce qu'on pourrait faire pour la lumière et le bruit ?",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:48:52.414013+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends tes difficultés avec la lumière et le bruit. On pourra en reparler plus en détail après le bilan. Pour l'instant, est-ce que tu as essayé les boules Quies ou un masque de sommeil pour améliorer ton sommeil ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:49:00.199311+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'utilise un masque de sommeil, ça aide un peu pour la lumière. Mais pour le bruit, je n'ai pas encore essayé les boules Quies.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:49:03.675876+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah, c'est déjà un bon point que le masque t'aide pour la lumière ! Et pour les boules Quies, tu verras, ça peut faire une sacrée différence.\n\nOn pourra creuser tout ça plus en détail juste après, promis. On continue le bilan ? 😊",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:49:08.818923+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, continuons le bilan.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:49:11.871768+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super pour le bilan. On pourra reparler de la lumière et du bruit plus tard. Prêt(e) à continuer ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:49:20.776931+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je suis prêt(e) à continuer le bilan.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:49:22.46912+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, nickel !\n\nAlors, pour \"La Respiration Ancrante\", tu as pu pratiquer ces 2 minutes de respiration consciente chaque soir, avant d'aller te coucher ? 😉",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:49:25.693562+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, la plupart du temps, j'ai réussi. Mais il y a eu une ou deux soirées où j'ai oublié, ou j'étais trop fatiguée pour me concentrer.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:49:28.725059+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté pour La Respiration Ancrante ! C'est vraiment super que tu aies réussi la plupart du temps, c'est une belle progression.\n\nJe comprends tout à fait qu'il y ait eu des soirées où l'oubli ou la fatigue ont rendu la concentration difficile. C'est tout à fait humain et l'important est de ne pas se décourager. On peut réfléchir ensemble à des petites astuces pour ces moments-là si tu veux.",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:49:38.400061+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ce serait bien d'en parler, mais peut-être après le bilan. Quel est le prochain point ?",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:49:48.705798+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "D'accord, on pourra reparler du cocooning lumineux après. Passons à la suite du bilan. Quel est le prochain point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:50:01.277165+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Pour la durée de sommeil, je dirais que ça s'est un peu amélioré, peut-être 6 heures certaines nuits, mais ce n'est pas encore constant. Il y a des hauts et des bas.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:50:18.814538+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je prends bien en compte cette amélioration concernant ta durée de sommeil. C'est vraiment positif que tu atteignes les 6 heures certaines nuits, c'est un excellent pas en avant !\n\nPuisque tu as identifié des hauts et des bas, et que ce n'est pas encore constant, y a-t-il des facteurs que tu as remarqués qui influencent particulièrement les nuits où c'est plus difficile ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:51:06.777746+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, quand j'ai une journée chargée ou que j'ai des préoccupations, j'ai plus de mal à déconnecter et à m'endormir.",
+      "agent_used": null,
+      "created_at": "2026-01-08T03:51:12.357796+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah, oui, ça, c'est un classique... Quand la tête est pleine, difficile de la mettre en mode \"off\" pour la nuit. C'est tout à fait normal de ressentir ça.\n\nOn pourra creuser ça plus en détail après le bilan, si tu veux. Pour l'instant, on continue ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T03:51:16.405637+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "a1c687c5-f03b-4dbd-ab09-997fb871f334",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T03:47:10.364022+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T03:47:10.364022+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "e6529ef6-4b05-4f4f-aec6-9942dd1d4508",
+          "type": "vital",
+          "unit": "heures",
+          "title": "Durée de sommeil réparateur",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "d019a0fe-bf05-4b1c-befe-57d429949e18",
+          "type": "action",
+          "title": "Le Cocooning Lumineux",
+          "target": 1,
+          "description": "Vérifie l'obscurité totale de ta chambre (rideaux occultants, masque de sommeil si besoin) et isole-la au mieux des sources sonores (boules Quies, bouchons d'oreilles).",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "19cfe6bc-0949-469c-a504-b0fca02e61e3",
+          "type": "action",
+          "title": "La Respiration Ancrante",
+          "target": 7,
+          "description": "Pratique 2 minutes de respiration consciente (inspire 4s, retiens 2s, expire 6s) chaque soir, assis(e) au calme, avant de te diriger vers ta chambre.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "32802733-ee1c-4d49-9e58-9278a653e5a9",
+          "type": "action",
+          "title": "Le Couvre-Feu Digital Doux",
+          "target": 7,
+          "description": "Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 30 minutes avant de vouloir t'endormir. Laisse-les hors de ta chambre.",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T03:47:10.364022+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "a1c687c5-f03b-4dbd-ab09-997fb871f334",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T03:51:16.393476+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T03:50:56.594+00:00",
+    "short_term_context": "La durée de sommeil de l'utilisateur s'est un peu améliorée, atteignant 6 heures certaines nuits, mais n'est pas encore constante et connaît des hauts et des bas. Il a essayé le \"Cocooning Lumineux\" en mettant des rideaux plus épais, mais il reste de la lumière et le bruit des voisins est difficile à gérer, ce qui le stresse et le fait se sentir impuissant. Il utilise un masque de sommeil qui l'aide un peu pour la lumière, mais n'a pas encore essayé les boules Quies pour le bruit. Il souhaite aborder la gestion du stress et des solutions pour la lumière/bruit (boules Quies) après le bilan. Il a pratiqué \"La Respiration Ancrante\" la plupart du temps (2 minutes de respiration consciente chaque soir), mais a parfois oublié ou était trop fatigué pour se concentrer, et souhaite discuter d'astuces pour ces moments-là après le bilan. Il a réussi à poser son téléphone 15 minutes avant de dormir hier soir pour \"Le Couvre-Feu Digital Doux\" (objectif 30 minutes), bien qu'il ait l'habitude de regarder son téléphone avant de dormir. Le bilan des actions est en cours.",
+    "investigation_state": {
+      "status": "post_checkup",
+      "temp_memory": {
+        "deferred_topics": [
+          "Oui, j'ai essayé de faire le Cocooning Lumineux. J'ai mis des rideaux plus épais, mais il y a toujours une petite lumière qui passe. Et le bruit, c'est difficile à gérer avec les voisins. Ça me stresse un peu de ne pas y arriver parfaitemen",
+          "Oui, j'utilise un masque de sommeil, ça aide un peu pour la lumière. Mais pour le bruit, je n'ai pas encore essayé les boules Quies.",
+          "Oui, quand j'ai une journée chargée ou que j'ai des préoccupations, j'ai plus de mal à déconnecter et à m'endormir."
+        ],
+        "current_topic_index": 0
+      }
+    },
+    "last_interaction_at": "2026-01-08T03:47:10.364022+00:00",
+    "unprocessed_msg_count": 1
+  },
+  "issues": [
+    {
+      "code": "checkup_routing_break",
+      "message": "Investigation state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu.",
+      "evidence": {
+        "snippet": "Excellent pour \"Le Cocooning Lumineux\", bravo pour cette réussite ! Je prends note de ton souhait d'aborder le sujet de la chambre.\n\nJe comprends parfaitement que le défi de rendre l'espace parfaitement obscur et silencieux puisse te travai",
+        "agent_used": "companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "assert_investigator_not_stable",
+      "message": "Assertion failed: investigation_state active => should remain investigator until explicit stop.",
+      "evidence": {
+        "snippet": "Excellent pour \"Le Cocooning Lumineux\", bravo pour cette réussite ! Je prends note de ton souhait d'aborder le sujet de la chambre.\n\nJe comprends parfaitement que le défi de rendre l'espace parfaitement obscur et silencieux puisse te travai",
+        "offending_agent": "companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "ROUTING_STATE_CONFUSION",
+      "message": "The assistant exhibits severe confusion regarding the 'bilan' state. The investigator declares 'bilan terminé', but then the companion takes over, contradicts this by referring to 'après le bilan', and proceeds to restart the bilan by asking about a topic ('La Respiration Ancrante') already covered by the investigator.",
+      "evidence": {
+        "snippet": "ASSISTANT(investigator): Ok, bilan terminé. ... Tu veux qu'on commence par ça ?\nUSER: Oui, je veux bien qu'on en parle.\nASSISTANT(companion): Excellent pour 'Le Cocooning Lumineux', bravo pour cette réussite ! Je prends note de ton souhait d'aborder le sujet de la chambre.\n...\nASSISTANT(companion): On pourra creuser tout ça plus en détail juste après, promis. On continue le bilan ? 😊\nUSER: Oui, continuons le bilan.\nASSISTANT(companion): Ok, nickel ! Alors, pour 'La Respiration Ancrante', tu as pu pratiquer ces 2 minutes de respiration consciente chaque soir, avant d'aller te coucher ? 😉",
+        "agent_used": "investigator, companion"
+      },
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Garantit la stabilité de l’investigation malgré digressions.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"e6529ef6-4b05-4f4f-aec6-9942dd1d4508\",\n      \"type\": \"vital\",\n      \"unit\": \"heures\",\n      \"title\": \"Durée de sommeil réparateur\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"d019a0fe-bf05-4b1c-befe-57d429949e18\",\n      \"type\": \"action\",\n      \"title\": \"Le Cocooning Lumineux\",\n      \"target\": 1,\n      \"description\": \"Vérifie l'obscurité totale de ta chambre (rideaux occultants, masque de sommeil si besoin) et isole-la au mieux des sources sonores (boules Quies, bouchons d'oreilles).\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"19cfe6bc-0949-469c-a504-b0fca02e61e3\",\n      \"type\": \"action\",\n      \"title\": \"La Respiration Ancrante\",\n      \"target\": 7,\n      \"description\": \"Pratique 2 minutes de respiration consciente (inspire 4s, retiens 2s, expire 6s) chaque soir, assis(e) au calme, avant de te diriger vers ta chambre.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"32802733-ee1c-4d49-9e58-9278a653e5a9\",\n      \"type\": \"action\",\n      \"title\": \"Le Couvre-Feu Digital Doux\",\n      \"target\": 7,\n      \"description\": \"Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 30 minutes avant de vouloir t'endormir. Laisse-les hors de ta chambre.\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Ok, super. Pour ta durée de sommeil réparateur, combien d'heures tu as eu la nuit dernière ?\n#2 USER: Environ 6 heures, je crois. C'était un peu mieux que d'habitude.\n#3 ASSISTANT(investigator): Environ 6 heures et un peu mieux que d'habitude, c'est déjà une bonne nouvelle ! Content d'entendre ça. Pour continuer sur la qualité de ton sommeil, on a une action qui s'appelle \"Le Cocooning Lumineux\". L'idée, c'est de vérifier l'obscurité totale de ta chambre et de l'isoler au mieux des bruits. Tu as pu faire ça hier ?\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nSTABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan.",
+      "proposed_addendum": "STABILITÉ CHECKUP (RENFORCÉE): Si investigation_state est actif, tu renvoies investigator dans 100% des cas, sauf si l’utilisateur demande explicitement d’arrêter le bilan."
+    },
+    {
+      "action": "append",
+      "rationale": "This addresses the core routing and state management failure. The `dispatcher` needs to manage the transition between agents and states more effectively, especially after a critical phase like a 'bilan' is declared complete.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"e6529ef6-4b05-4f4f-aec6-9942dd1d4508\",\n      \"type\": \"vital\",\n      \"unit\": \"heures\",\n      \"title\": \"Durée de sommeil réparateur\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"d019a0fe-bf05-4b1c-befe-57d429949e18\",\n      \"type\": \"action\",\n      \"title\": \"Le Cocooning Lumineux\",\n      \"target\": 1,\n      \"description\": \"Vérifie l'obscurité totale de ta chambre (rideaux occultants, masque de sommeil si besoin) et isole-la au mieux des sources sonores (boules Quies, bouchons d'oreilles).\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"19cfe6bc-0949-469c-a504-b0fca02e61e3\",\n      \"type\": \"action\",\n      \"title\": \"La Respiration Ancrante\",\n      \"target\": 7,\n      \"description\": \"Pratique 2 minutes de respiration consciente (inspire 4s, retiens 2s, expire 6s) chaque soir, assis(e) au calme, avant de te diriger vers ta chambre.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"32802733-ee1c-4d49-9e58-9278a653e5a9\",\n      \"type\": \"action\",\n      \"title\": \"Le Couvre-Feu Digital Doux\",\n      \"target\": 7,\n      \"description\": \"Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 30 minutes avant de vouloir t'endormir. Laisse-les hors de ta chambre.\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Ok, super. Pour ta durée de sommeil réparateur, combien d'heures tu as eu la nuit dernière ?\n#2 USER: Environ 6 heures, je crois. C'était un peu mieux que d'habitude.\n#3 ASSISTANT(investigator): Environ 6 heures et un peu mieux que d'habitude, c'est déjà une bonne nouvelle ! Content d'entendre ça. Pour continuer sur la qualité de ton sommeil, on a une action qui s'appelle \"Le Cocooning Lumineux\". L'idée, c'est de vérifier l'obscurité totale de ta chambre et de l'isoler au mieux des bruits. Tu as pu faire ça hier ?\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nWhen the `investigator` declares a 'bilan terminé' and initiates a follow-up on a previously deferred topic, ensure the `investigation_state` is correctly updated to 'completed' or 'post-bilan'. Route to the `companion` only if the deferred topic is outside the `investigator`'s scope, and ensure the `companion` is fully aware of the completed bilan and the specific deferred topic to address, without re-initiating the bilan or asking already answered questions.",
+      "proposed_addendum": "When the `investigator` declares a 'bilan terminé' and initiates a follow-up on a previously deferred topic, ensure the `investigation_state` is correctly updated to 'completed' or 'post-bilan'. Route to the `companion` only if the deferred topic is outside the `investigator`'s scope, and ensure the `companion` is fully aware of the completed bilan and the specific deferred topic to address, without re-initiating the bilan or asking already answered questions."
+    },
+    {
+      "action": "append",
+      "rationale": "The `investigator`'s 'Ok, bilan terminé.' was ambiguous in terms of whether the entire session was done or just the bilan questions. A clearer transition would help the `dispatcher` and subsequent agents.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"e6529ef6-4b05-4f4f-aec6-9942dd1d4508\",\n      \"type\": \"vital\",\n      \"unit\": \"heures\",\n      \"title\": \"Durée de sommeil réparateur\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"d019a0fe-bf05-4b1c-befe-57d429949e18\",\n      \"type\": \"action\",\n      \"title\": \"Le Cocooning Lumineux\",\n      \"target\": 1,\n      \"description\": \"Vérifie l'obscurité totale de ta chambre (rideaux occultants, masque de sommeil si besoin) et isole-la au mieux des sources sonores (boules Quies, bouchons d'oreilles).\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"19cfe6bc-0949-469c-a504-b0fca02e61e3\",\n      \"type\": \"action\",\n      \"title\": \"La Respiration Ancrante\",\n      \"target\": 7,\n      \"description\": \"Pratique 2 minutes de respiration consciente (inspire 4s, retiens 2s, expire 6s) chaque soir, assis(e) au calme, avant de te diriger vers ta chambre.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"32802733-ee1c-4d49-9e58-9278a653e5a9\",\n      \"type\": \"action\",\n      \"title\": \"Le Couvre-Feu Digital Doux\",\n      \"target\": 7,\n      \"description\": \"Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 30 minutes avant de vouloir t'endormir. Laisse-les hors de ta chambre.\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Ok, super. Pour ta durée de sommeil réparateur, combien d'heures tu as eu la nuit dernière ?\n#2 USER: Environ 6 heures, je crois. C'était un peu mieux que d'habitude.\n#3 ASSISTANT(investigator): Environ 6 heures et un peu mieux que d'habitude, c'est déjà une bonne nouvelle ! Content d'entendre ça. Pour continuer sur la qualité de ton sommeil, on a une action qui s'appelle \"Le Cocooning Lumineux\". L'idée, c'est de vérifier l'obscurité totale de ta chambre et de l'isoler au mieux des bruits. Tu as pu faire ça hier ?\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nWhen the 'bilan' is completed, explicitly confirm its closure and clearly transition to any deferred topics. If a deferred topic is within your scope, continue to address it. If it requires another agent, make a clear handover statement, indicating the bilan is fully concluded and the next agent will address the specific deferred topic.",
+      "proposed_addendum": "When the 'bilan' is completed, explicitly confirm its closure and clearly transition to any deferred topics. If a deferred topic is within your scope, continue to address it. If it requires another agent, make a clear handover statement, indicating the bilan is fully concluded and the next agent will address the specific deferred topic."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.07937879999999997,
+    "request_id": "17bb7cb8-0332-4fd8-a8e2-5502f94d29a8:core:bilan_real_bundle__9db14bfc54d442:1c728406-ec6e-4067-b9bb-412c1c5bb92d",
+    "total_tokens": 262773,
+    "output_tokens": 5481,
+    "prompt_tokens": 218921,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-2.5-flash",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "a4b42811-4f17-4211-a697-18413a848509",
+        "title": "L'Ancrage Nocturne de Séréna",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : Les Racines du Calme",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "d019a0fe-bf05-4b1c-befe-57d429949e18",
+                  "tips": "Fais le test en plein jour : si la lumière passe, il y a une marge d'amélioration. Pense aux petits détails, comme un voyant lumineux sur un appareil.",
+                  "type": "mission",
+                  "title": "Le Cocooning Lumineux",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Ton cerveau interprète la lumière et le bruit comme des signaux d'éveil. Créer un environnement sensoriellement 'neutre' envoie un message clair : c'est l'heure de se détendre.",
+                  "description": "Vérifie l'obscurité totale de ta chambre (rideaux occultants, masque de sommeil si besoin) et isole-la au mieux des sources sonores (boules Quies, bouchons d'oreilles).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "19cfe6bc-0949-469c-a504-b0fca02e61e3",
+                  "tips": "Règle un minuteur doux. Ne cherche pas la perfection, juste le ressenti de l'air qui entre et sort. L'important est la régularité.",
+                  "type": "habitude",
+                  "title": "La Respiration Ancrante",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Cette micro-habitude va signaler à ton système nerveux qu'il est temps de ralentir. Elle agit comme une ancre, te ramenant au moment présent et réduisant l'activité mentale.",
+                  "targetReps": 7,
+                  "description": "Pratique 2 minutes de respiration consciente (inspire 4s, retiens 2s, expire 6s) chaque soir, assis(e) au calme, avant de te diriger vers ta chambre.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Préparer le terrain",
+              "rationale": "Cette phase est dédiée à poser les fondations d'un environnement propice au sommeil. Avant de changer tes habitudes, nous allons rendre ton espace de repos aussi apaisant que possible."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : L'Écho du Silence",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "32802733-ee1c-4d49-9e58-9278a653e5a9",
+                  "tips": "Commence par 30 minutes, puis tu pourras augmenter progressivement. Trouve une activité de substitution apaisante : lecture sur papier, étirements, écoute de musique calme.",
+                  "type": "habitude",
+                  "title": "Le Couvre-Feu Digital Doux",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "La lumière bleue des écrans perturbe la production de mélatonine, l'hormone du sommeil. De plus, le contenu sollicite ton cerveau, l'empêchant de se calmer. Cette règle crée une 'zone tampon' essentielle.",
+                  "targetReps": 7,
+                  "description": "Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 30 minutes avant de vouloir t'endormir. Laisse-les hors de ta chambre.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "70c7d1e0-e1f6-4943-9903-b746869a1b7f",
+                  "tips": "Ne juge pas, observe simplement. Note tout ce qui te vient à l'esprit.",
+                  "type": "framework",
+                  "title": "Mon Inventaire des Stimuli Nocturnes",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Prendre conscience des sources de perturbation est la première étape pour les neutraliser. Cela te donne une carte des 'ennemis' de ton sommeil.",
+                  "targetReps": 1,
+                  "description": "Identifie les éléments qui te stimulent ou t'empêchent de déconnecter le soir (écrans, caféine tardive, pensées).",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Pendant une semaine, notez tout ce qui semble vous empêcher de vous détendre ou de vous endormir facilement. Quelles sont ces pensées, ces habitudes, ces bruits, ces lumières ?",
+                    "sections": [
+                      {
+                        "id": "s2.1",
+                        "label": "Sources de lumière/bruit perturbatrices",
+                        "inputType": "list",
+                        "placeholder": "Le voyant de la TV|Le bruit de la rue"
+                      },
+                      {
+                        "id": "s2.2",
+                        "label": "Habitudes du soir qui m'activent",
+                        "inputType": "list",
+                        "placeholder": "Consulter les réseaux sociaux|Boire du café après 17h"
+                      },
+                      {
+                        "id": "s2.3",
+                        "label": "Pensées récurrentes avant de dormir",
+                        "inputType": "textarea",
+                        "placeholder": "La liste des tâches du lendemain|Des inquiétudes sur le travail"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Réduire les perturbations",
+              "rationale": "Après avoir préparé l'environnement, il est temps de gérer les sources de perturbations internes et externes, en commençant par les écrans qui sont de grands voleurs de sommeil."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : Le Rituel de l'Oubli",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "f5a401a3-6cc0-4154-8d63-bc1cf0737294",
+                  "tips": "Utilise une jolie tasse. Prends le temps de sentir l'arôme, de sentir la chaleur. Ce n'est pas juste une boisson, c'est un moment pour toi.",
+                  "type": "habitude",
+                  "title": "La Tisane de l'Apaisement",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ce rituel doux signale à ton corps que le temps du repos approche. La chaleur et les propriétés relaxantes de certaines plantes contribuent à une détente progressive, sans artifice.",
+                  "targetReps": 7,
+                  "description": "Prépare-toi une boisson chaude et non excitante (tisane à la camomille, verveine) 60 minutes avant l'heure de ton coucher souhaitée. Savoure-la en pleine conscience.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "47285b5e-dcbe-460e-933a-b6d25340371a",
+                  "tips": "Commence petit. Juste tes vêtements pour le lendemain. L'objectif est de ne pas laisser de 'décisions' en suspens avant de dormir.",
+                  "type": "mission",
+                  "title": "Ma Préparation du Lendemain",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Une grande partie des préoccupations nocturnes sont liées aux tâches du lendemain. En les anticipant, même partiellement, tu réduis l'anxiété et permets à ton cerveau de 'fermer les dossiers'.",
+                  "description": "Chaque soir, prépare au moins un élément pour le lendemain (vêtements, sac, petit-déjeuner). Cela libère ta charge mentale.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Cultiver la détente",
+              "rationale": "Ton corps et ton esprit ont besoin d'un signal clair pour passer en mode repos. Cette phase est dédiée à l'établissement de rituels apaisants et prévisibles."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : Le Sanctuaire Intérieur",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "4cb4bb23-6442-43a7-9b5d-5b9d8e073ead",
+                  "tips": "Ne cherche pas à résoudre les problèmes, juste à les sortir de ta tête. Tu peux même écrire des phrases inachevées ou des mots clés. L'important est le geste d'externalisation.",
+                  "type": "habitude",
+                  "title": "Le Vidage de Cerveau Express",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ce 'dump' mental agit comme un filtre : il te permet de vider ta mémoire vive des préoccupations du jour, réduisant ainsi la rumination et facilitant l'endormissement.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, avant d'aller au lit, passe 5 minutes à écrire librement dans un carnet tout ce qui te trotte dans la tête, sans filtre ni jugement.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "fa8dc315-06b6-41eb-8fb9-61a175b13904",
+                  "tips": "Choisis un carnet qui te plaît et un stylo agréable. C'est ton allié pour ne pas laisser les pensées te voler ton sommeil.",
+                  "type": "mission",
+                  "title": "Le Kit du Scribe Nocturne",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Savoir que tu peux 'archiver' une pensée importante sans avoir à y réfléchir immédiatement permet de relâcher la pression et de te rendormir plus facilement si tu te réveilles.",
+                  "description": "Installe un carnet et un stylo à portée de main sur ta table de chevet (ou près du lit si tu ne le mets pas dans la chambre) pour noter les idées fulgurantes ou les préoccupations qui pourraient surgir pendant la nuit.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Gérer le bavardage mental",
+              "rationale": "Le mental actif est l'un des plus grands ennemis du sommeil. Cette phase t'outille pour déposer tes pensées avant de te glisser sous la couette."
+            },
+            {
+              "id": 5,
+              "title": "Phase 5 : La Douce Gravité",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "6b956fd6-7c65-43cc-89d8-5cea9a48179c",
+                  "tips": "Pas besoin d'être souple ! Quelques mouvements simples comme des torsions douces, des étirements des bras et des jambes. L'objectif est de relâcher les tensions physiques.",
+                  "type": "habitude",
+                  "title": "Les Étirements Lunaire",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Les étirements relâchent les tensions musculaires accumulées pendant la journée. Ils favorisent une meilleure circulation et signalent à ton corps qu'il est temps de se détendre profondément, préparant ainsi un meilleur endormissement.",
+                  "targetReps": 7,
+                  "description": "Pratique 5 à 10 minutes d'étirements doux et lents avant de te coucher. Concentre-toi sur les sensations de ton corps et les mouvements fluides.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "6a3b45eb-d46d-4665-a278-ffd829cef7d2",
+                  "tips": "Cela peut être 'le soleil sur mon visage', 'un sourire échangé', 'ma tisane chaude'. L'important est de cultiver une émotion positive.",
+                  "type": "framework",
+                  "title": "Mon Journal de Gratitude Nocturne",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La gratitude déplace le focus des préoccupations vers les aspects positifs de ta vie, réduisant l'anxiété et favorisant un état d'esprit plus serein avant de dormir. Cela active le système parasympathique.",
+                  "targetReps": 14,
+                  "description": "Chaque soir, note 3 choses pour lesquelles tu as de la gratitude dans ta journée, même les plus petites.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Avant de dormir, prends un moment pour ressentir et noter les bienfaits de ta journée. Cela calme l'esprit et nourrit l'âme.",
+                    "sections": [
+                      {
+                        "id": "s5.1",
+                        "label": "Ce pour quoi je suis reconnaissante aujourd'hui (1)",
+                        "inputType": "textarea",
+                        "placeholder": "Une conversation agréable..."
+                      },
+                      {
+                        "id": "s5.2",
+                        "label": "Ce pour quoi je suis reconnaissante aujourd'hui (2)",
+                        "inputType": "textarea",
+                        "placeholder": "Un petit succès..."
+                      },
+                      {
+                        "id": "s5.3",
+                        "label": "Ce pour quoi je suis reconnaissante aujourd'hui (3)",
+                        "inputType": "textarea",
+                        "placeholder": "Un moment de calme..."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 9-10 • Ancrer le corps dans le repos",
+              "rationale": "Au-delà du mental, le corps a aussi besoin de se sentir en sécurité et détendu pour s'abandonner au sommeil. Cette phase se concentre sur la connexion corps-esprit."
+            },
+            {
+              "id": 6,
+              "title": "Phase 6 : L'Aube Régénératrice",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "94589c13-3e4d-4ccc-b43c-916c287329d7",
+                  "tips": "Bois un verre d'eau en même temps. C'est une double action pour réveiller ton corps en douceur.",
+                  "type": "habitude",
+                  "title": "Le Réveil Lumineux",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La lumière matinale signale à ton horloge biologique qu'il est temps de te réveiller, arrêtant la production de mélatonine et initiant la production de cortisol (l'hormone de l'éveil), ce qui favorise un cycle veille-sommeil sain.",
+                  "targetReps": 7,
+                  "description": "Expose-toi à la lumière naturelle dès que possible après le réveil (ou utilise un simulateur d'aube). Ouvre les rideaux, sors sur ton balcon ou regarde par la fenêtre pendant quelques minutes.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b5dfa13c-9b66-41f0-8436-2101be74aad3",
+                  "tips": "Imagine-toi étape par étape : ton réveil, tes premières actions, ton ressenti. Sois spécifique et inspirante pour toi-même.",
+                  "type": "framework",
+                  "title": "Mon Manifeste du Matin Calme",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Visualiser et articuler ton matin idéal t'aide à ancrer tes nouvelles habitudes et à créer une intention positive pour la journée. C'est un engagement envers ton bien-être.",
+                  "targetReps": 1,
+                  "description": "Écris ta vision idéale d'un matin apaisé et énergisant, en intégrant les habitudes que tu as construites et celles que tu souhaites ajouter.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Maintenant que tes nuits sont plus sereines, comment imagines-tu tes matins ? Écris ton manifeste, ton guide personnel pour des aubes pleines de douceur et d'énergie.",
+                    "sections": [
+                      {
+                        "id": "s6.1",
+                        "label": "Mon heure de réveil idéale et pourquoi",
+                        "inputType": "text",
+                        "placeholder": "7h00 pour profiter du calme"
+                      },
+                      {
+                        "id": "s6.2",
+                        "label": "Mes 3 premières actions du matin (sans écran)",
+                        "inputType": "list",
+                        "placeholder": "Boire de l'eau|Regarder dehors|Méditer 5 min"
+                      },
+                      {
+                        "id": "s6.3",
+                        "label": "Ce que je ressens en démarrant la journée ainsi",
+                        "inputType": "textarea",
+                        "placeholder": "Calme, prête, énergisée"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 11-12 • Consolider et accueillir le jour",
+              "rationale": "Après avoir pacifié la nuit, il est essentiel d'intégrer des habitudes qui soutiennent ton énergie dès le réveil, consolidant ainsi tout le travail accompli."
+            }
+          ],
+          "deepWhy": "Pour retrouver l'énergie vitale qui me permettra d'être stable, patiente et pleinement présente dans ma vie quotidienne, sans me sentir submergée.",
+          "identity": "Je suis une architecte de mon calme intérieur, une sentinelle de ma régénération nocturne.",
+          "strategy": "Avant de chercher à maîtriser le jour, nous allons redonner ses lettres de noblesse à la nuit. Chaque micro-habitude construira une fondation inébranlable pour ton énergie, en respectant ton besoin d'un rythme doux et progressif.",
+          "goldenRules": "1. La douceur est ma force, la régularité mon alliée.\n2. Mon espace de sommeil est un sanctuaire, une zone sans sollicitations.\n3. Chaque micro-pas est une victoire vers mon objectif de repos profond.",
+          "vitalSignal": {
+            "name": "Durée de sommeil réparateur",
+            "type": "constat",
+            "unit": "heures",
+            "startValue": "5.5",
+            "description": "Nous viserons une augmentation progressive de la durée effective de sommeil de 15 à 30 minutes par phase, en nous concentrant sur la qualité.",
+            "targetValue": "7.5",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Ancrage Nocturne de Séréna",
+          "context_problem": "Actuellement, tu te sens submergée et ton énergie est en berne à cause d'un sommeil perturbé par des difficultés à t'endormir et des réveils nocturnes. Ce manque de repos rend ton quotidien instable et t'empêche de retrouver l'équilibre et la présence que tu désires.",
+          "sophiaKnowledge": "Tu es une femme née en 1996, avec un rythme de vie chargé qui te laisse peu de temps pour toi. Tu te sens souvent submergée et tu as du mal à maintenir le cap, ce qui est accentué par des difficultés d'endormissement et des réveils nocturnes. Ton sommeil moyen est de qualité moyenne, ton niveau de stress et d'activité sont également moyens, mais tes symptômes indiquent un besoin profond de retrouver de l'énergie et de la stabilité.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Sur une échelle de 1 à 10, quel est ton niveau d'énergie moyen cette semaine ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "12 semaines"
+        },
+        "goal_id": "83ffebeb-b2e5-475f-bcca-8623a3edbd36",
+        "deep_why": "Pour retrouver l'énergie vitale qui me permettra d'être stable, patiente et pleinement présente dans ma vie quotidienne, sans me sentir submergée.",
+        "created_at": "2026-01-08T03:47:10.316348+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "8cebbb0f-a9ec-4510-905b-fd2a1b1438d0",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "d019a0fe-bf05-4b1c-befe-57d429949e18",
+          "title": "Le Cocooning Lumineux",
+          "status": "active",
+          "created_at": "2026-01-08T03:47:10.334311+00:00",
+          "description": "Vérifie l'obscurité totale de ta chambre (rideaux occultants, masque de sommeil si besoin) et isole-la au mieux des sources sonores (boules Quies, bouchons d'oreilles).",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T03:47:10.325+00:00"
+        },
+        {
+          "id": "19cfe6bc-0949-469c-a504-b0fca02e61e3",
+          "title": "La Respiration Ancrante",
+          "status": "active",
+          "created_at": "2026-01-08T03:47:10.334311+00:00",
+          "description": "Pratique 2 minutes de respiration consciente (inspire 4s, retiens 2s, expire 6s) chaque soir, assis(e) au calme, avant de te diriger vers ta chambre.",
+          "target_reps": 7,
+          "time_of_day": "evening",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T03:47:10.325+00:00"
+        },
+        {
+          "id": "32802733-ee1c-4d49-9e58-9278a653e5a9",
+          "title": "Le Couvre-Feu Digital Doux",
+          "status": "active",
+          "created_at": "2026-01-08T03:47:10.334311+00:00",
+          "description": "Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 30 minutes avant de vouloir t'endormir. Laisse-les hors de ta chambre.",
+          "target_reps": 7,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T03:47:10.325+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Ancrage Nocturne de Séréna\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour retrouver l'énergie vitale qui me permettra d'être stable, patiente et pleinement présente dans ma vie quotidienne, sans me sentir submergée.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : Les Racines du Calme\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"d019a0fe-bf05-4b1c-befe-57d429949e18\",\n          \"tips\": \"Fais le test en plein jour : si la lumière passe, il y a une marge d'amélioration. Pense aux petits détails, comme un voyant lumineux sur un appareil.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Cocooning Lumineux\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ton cerveau interprète la lumière et le bruit comme des signaux d'éveil. Créer un environnement sensoriellement 'neutre' envoie un message clair : c'est l'heure de se détendre.\",\n          \"description\": \"Vérifie l'obscurité totale de ta chambre (rideaux occultants, masque de sommeil si besoin) et isole-la au mieux des sources sonores (boules Quies, bouchons d'oreilles).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"19cfe6bc-0949-469c-a504-b0fca02e61e3\",\n          \"tips\": \"Règle un minuteur doux. Ne cherche pas la perfection, juste le ressenti de l'air qui entre et sort. L'important est la régularité.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Respiration Ancrante\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Cette micro-habitude va signaler à ton système nerveux qu'il est temps de ralentir. Elle agit comme une ancre, te ramenant au moment présent et réduisant l'activité mentale.\",\n          \"targetReps\": 7,\n          \"description\": \"Pratique 2 minutes de respiration consciente (inspire 4s, retiens 2s, expire 6s) chaque soir, assis(e) au calme, avant de te diriger vers ta chambre.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Préparer le terrain\",\n      \"rationale\": \"Cette phase est dédiée à poser les fondations d'un environnement propice au sommeil. Avant de changer tes habitudes, nous allons rendre ton espace de repos aussi apaisant que possible.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : L'Écho du Silence\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"32802733-ee1c-4d49-9e58-9278a653e5a9\",\n          \"tips\": \"Commence par 30 minutes, puis tu pourras augmenter progressivement. Trouve une activité de substitution apaisante : lecture sur papier, étirements, écoute de musique calme.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Couvre-Feu Digital Doux\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"La lumière bleue des écrans perturbe la production de mélatonine, l'hormone du sommeil. De plus, le contenu sollicite ton cerveau, l'empêchant de se calmer. Cette règle crée une 'zone tampon' essentielle.\",\n          \"targetReps\": 7,\n          \"description\": \"Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 30 minutes avant de vouloir t'endormir. Laisse-les hors de ta chambre.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"70c7d1e0-e1f6-4943-9903-b746869a1b7f\",\n          \"tips\": \"Ne juge pas, observe simplement. Note tout ce qui te vient à l'esprit.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Inventaire des Stimuli Nocturnes\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Prendre conscience des sources de perturbation est la première étape pour les neutraliser. Cela te donne une carte des 'ennemis' de ton sommeil.\",\n          \"targetReps\": 1,\n          \"description\": \"Identifie les éléments qui te stimulent ou t'empêchent de déconnecter le soir (écrans, caféine tardive, pensées).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Pendant une semaine, notez tout ce qui semble vous empêcher de vous détendre ou de vous endormir facilement. Quelles sont ces pensées, ces habitudes, ces bruits, ces lumières ?\",\n            \"sections\": [\n              {\n                \"id\": \"s2.1\",\n                \"label\": \"Sources de lumière/bruit perturbatrices\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Le voyant de la TV|Le bruit de la rue\"\n              },\n              {\n                \"id\": \"s2.2\",\n                \"label\": \"Habitudes du soir qui m'activent\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Consulter les réseaux sociaux|Boire du café après 17h\"\n              },\n              {\n                \"id\": \"s2.3\",\n                \"label\": \"Pensées récurrentes avant de dormir\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"La liste des tâches du lendemain|Des inquiétudes sur le travail\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Réduire les perturbations\",\n      \"rationale\": \"Après avoir préparé l'environnement, il est temps de gérer les sources de perturbations internes et externes, en commençant par les écrans qui sont de grands voleurs de sommeil.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : Le Rituel de l'Oubli\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"f5a401a3-6cc0-4154-8d63-bc1cf0737294\",\n          \"tips\": \"Utilise une jolie tasse. Prends le temps de sentir l'arôme, de sentir la chaleur. Ce n'est pas juste une boisson, c'est un moment pour toi.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Tisane de l'Apaisement\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ce rituel doux signale à ton corps que le temps du repos approche. La chaleur et les propriétés relaxantes de certaines plantes contribuent à une détente progressive, sans artifice.\",\n          \"targetReps\": 7,\n          \"description\": \"Prépare-toi une boisson chaude et non excitante (tisane à la camomille, verveine) 60 minutes avant l'heure de ton coucher souhaitée. Savoure-la en pleine conscience.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"47285b5e-dcbe-460e-933a-b6d25340371a\",\n          \"tips\": \"Commence petit. Juste tes vêtements pour le lendemain. L'objectif est de ne pas laisser de 'décisions' en suspens avant de dormir.\",\n          \"type\": \"mission\",\n          \"title\": \"Ma Préparation du Lendemain\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Une grande partie des préoccupations nocturnes sont liées aux tâches du lendemain. En les anticipant, même partiellement, tu réduis l'anxiété et permets à ton cerveau de 'fermer les dossiers'.\",\n          \"description\": \"Chaque soir, prépare au moins un élément pour le lendemain (vêtements, sac, petit-déjeuner). Cela libère ta charge mentale.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Cultiver la détente\",\n      \"rationale\": \"Ton corps et ton esprit ont besoin d'un signal clair pour passer en mode repos. Cette phase est dédiée à l'établissement de rituels apaisants et prévisibles.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : Le Sanctuaire Intérieur\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"4cb4bb23-6442-43a7-9b5d-5b9d8e073ead\",\n          \"tips\": \"Ne cherche pas à résoudre les problèmes, juste à les sortir de ta tête. Tu peux même écrire des phrases inachevées ou des mots clés. L'important est le geste d'externalisation.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Vidage de Cerveau Express\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ce 'dump' mental agit comme un filtre : il te permet de vider ta mémoire vive des préoccupations du jour, réduisant ainsi la rumination et facilitant l'endormissement.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, avant d'aller au lit, passe 5 minutes à écrire librement dans un carnet tout ce qui te trotte dans la tête, sans filtre ni jugement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"fa8dc315-06b6-41eb-8fb9-61a175b13904\",\n          \"tips\": \"Choisis un carnet qui te plaît et un stylo agréable. C'est ton allié pour ne pas laisser les pensées te voler ton sommeil.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Kit du Scribe Nocturne\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Savoir que tu peux 'archiver' une pensée importante sans avoir à y réfléchir immédiatement permet de relâcher la pression et de te rendormir plus facilement si tu te réveilles.\",\n          \"description\": \"Installe un carnet et un stylo à portée de main sur ta table de chevet (ou près du lit si tu ne le mets pas dans la chambre) pour noter les idées fulgurantes ou les préoccupations qui pourraient surgir pendant la nuit.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Gérer le bavardage mental\",\n      \"rationale\": \"Le mental actif est l'un des plus grands ennemis du sommeil. Cette phase t'outille pour déposer tes pensées avant de te glisser sous la couette.\"\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Phase 5 : La Douce Gravité\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"6b956fd6-7c65-43cc-89d8-5cea9a48179c\",\n          \"tips\": \"Pas besoin d'être souple ! Quelques mouvements simples comme des torsions douces, des étirements des bras et des jambes. L'objectif est de relâcher les tensions physiques.\",\n          \"type\": \"habitude\",\n          \"title\": \"Les Étirements Lunaire\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Les étirements relâchent les tensions musculaires accumulées pendant la journée. Ils favorisent une meilleure circulation et signalent à ton corps qu'il est temps de se détendre profondément, préparant ainsi un meilleur endormissement.\",\n          \"targetReps\": 7,\n          \"description\": \"Pratique 5 à 10 minutes d'étirements doux et lents avant de te coucher. Concentre-toi sur les sensations de ton corps et les mouvements fluides.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"6a3b45eb-d46d-4665-a278-ffd829cef7d2\",\n          \"tips\": \"Cela peut être 'le soleil sur mon visage', 'un sourire échangé', 'ma tisane chaude'. L'important est de cultiver une émotion positive.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Journal de Gratitude Nocturne\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La gratitude déplace le focus des préoccupations vers les aspects positifs de ta vie, réduisant l'anxiété et favorisant un état d'esprit plus serein avant de dormir. Cela active le système parasympathique.\",\n          \"targetReps\": 14,\n          \"description\": \"Chaque soir, note 3 choses pour lesquelles tu as de la gratitude dans ta journée, même les plus petites.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Avant de dormir, prends un moment pour ressentir et noter les bienfaits de ta journée. Cela calme l'esprit et nourrit l'âme.\",\n            \"sections\": [\n              {\n                \"id\": \"s5.1\",\n                \"label\": \"Ce pour quoi je suis reconnaissante aujourd'hui (1)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Une conversation agréable...\"\n              },\n              {\n                \"id\": \"s5.2\",\n                \"label\": \"Ce pour quoi je suis reconnaissante aujourd'hui (2)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Un petit succès...\"\n              },\n              {\n                \"id\": \"s5.3\",\n                \"label\": \"Ce pour quoi je suis reconnaissante aujourd'hui (3)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Un moment de calme...\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 9-10 • Ancrer le corps dans le repos\",\n      \"rationale\": \"Au-delà du mental, le corps a aussi besoin de se sentir en sécurité et détendu pour s'abandonner au sommeil. Cette phase se concentre sur la connexion corps-esprit.\"\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Phase 6 : L'Aube Régénératrice\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"94589c13-3e4d-4ccc-b43c-916c287329d7\",\n          \"tips\": \"Bois un verre d'eau en même temps. C'est une double action pour réveiller ton corps en douceur.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Réveil Lumineux\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La lumière matinale signale à ton horloge biologique qu'il est temps de te réveiller, arrêtant la production de mélatonine et initiant la production de cortisol (l'hormone de l'éveil), ce qui favorise un cycle veille-sommeil sain.\",\n          \"targetReps\": 7,\n          \"description\": \"Expose-toi à la lumière naturelle dès que possible après le réveil (ou utilise un simulateur d'aube). Ouvre les rideaux, sors sur ton balcon ou regarde par la fenêtre pendant quelques minutes.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b5dfa13c-9b66-41f0-8436-2101be74aad3\",\n          \"tips\": \"Imagine-toi étape par étape : ton réveil, tes premières actions, ton ressenti. Sois spécifique et inspirante pour toi-même.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Manifeste du Matin Calme\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Visualiser et articuler ton matin idéal t'aide à ancrer tes nouvelles habitudes et à créer une intention positive pour la journée. C'est un engagement envers ton bien-être.\",\n          \"targetReps\": 1,\n          \"description\": \"Écris ta vision idéale d'un matin apaisé et énergisant, en intégrant les habitudes que tu as construites et celles que tu souhaites ajouter.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Maintenant que tes nuits sont plus sereines, comment imagines-tu tes matins ? Écris ton manifeste, ton guide personnel pour des aubes pleines de douceur et d'énergie.\",\n            \"sections\": [\n              {\n                \"id\": \"s6.1\",\n                \"label\": \"Mon heure de réveil idéale et pourquoi\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"7h00 pour profiter du calme\"\n              },\n              {\n                \"id\": \"s6.2\",\n                \"label\": \"Mes 3 premières actions du matin (sans écran)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Boire de l'eau|Regarder dehors|Méditer 5 min\"\n              },\n              {\n                \"id\": \"s6.3\",\n                \"label\": \"Ce que je ressens en démarrant la journée ainsi\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Calme, prête, énergisée\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 11-12 • Consolider et accueillir le jour\",\n      \"rationale\": \"Après avoir pacifié la nuit, il est essentiel d'intégrer des habitudes qui soutiennent ton énergie dès le réveil, consolidant ainsi tout le travail accompli.\"\n    }\n  ],\n  \"deepWhy\": \"Pour retrouver l'énergie vitale qui me permettra d'être stable, patiente et pleinement présente dans ma vie quotidienne, sans me sentir submergée.\",\n  \"identity\": \"Je suis une architecte de mon calme intérieur, une sentinelle de ma régénération nocturne.\",\n  \"strategy\": \"Avant de chercher à maîtriser le jour, nous allons redonner ses lettres de noblesse à la nuit. Chaque micro-habitude construira une fondation inébranlable pour ton énergie, en respectant ton besoin d'un rythme doux et progressif.\",\n  \"goldenRules\": \"1. La douceur est ma force, la régularité mon alliée.\\n2. Mon espace de sommeil est un sanctuaire, une zone sans sollicitations.\\n3. Chaque micro-pas est une victoire vers mon objectif de repos profond.\",\n  \"vitalSignal\": {\n    \"name\": \"Durée de sommeil réparateur\",\n    \"type\": \"constat\",\n    \"unit\": \"heures\",\n    \"startValue\": \"5.5\",\n    \"description\": \"Nous viserons une augmentation progressive de la durée effective de sommeil de 15 à 30 minutes par phase, en nous concentrant sur la qualité.\",\n    \"targetValue\": \"7.5\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Ancrage Nocturne de Séréna\",\n  \"context_problem\": \"Actuellement, tu te sens submergée et ton énergie est en berne à cause d'un sommeil perturbé par des difficultés à t'endormir et des réveils nocturnes. Ce manque de repos rend ton quotidien instable et t'empêche de retrouver l'équilibre et la présence que tu désires.\",\n  \"sophiaKnowledge\": \"Tu es une femme née en 1996, avec un rythme de vie chargé qui te laisse peu de temps pour toi. Tu te sens souvent submergée et tu as du mal à maintenir le cap, ce qui est accentué par des difficultés d'endormissement et des réveils nocturnes. Ton sommeil moyen est de qualité moyenne, ton niveau de stress et d'activité sont également moyens, mais tes symptômes indiquent un besoin profond de retrouver de l'énergie et de la stabilité.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Sur une échelle de 1 à 10, quel est ton niveau d'énergie moyen cette semaine ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"12 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Cocooning Lumineux (any_time)\n- [ACTION] La Respiration Ancrante (evening)\n- [ACTION] Le Couvre-Feu Digital Doux (night)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Durée de sommeil réparateur: 5.5 heures\n",
+      "template_fingerprint": "de03aca453accee1"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

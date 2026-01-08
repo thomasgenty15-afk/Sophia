@@ -1,6 +1,5 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
-import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 // RAG Helper EXPORTÉ (Utilisé par le router)
 export async function retrieveContext(supabase: SupabaseClient, message: string): Promise<string> {
@@ -320,9 +319,14 @@ export async function runCompanion(
     2. Termine OBLIGATOIREMENT par une question de relance pour le checkup (ex: "Bref, on continue le bilan ?", "Prêt pour la suite ?").
     Ne te lance pas dans une conversation longue. La priorité est de finir le checkup.
     ` : ""}
+
+    MODE POST-BILAN (IMPORTANT)
+    - Si le contexte contient "MODE POST-BILAN" / "SUJET REPORTÉ", le bilan est terminé.
+    - Interdiction de dire "après le bilan".
+    - Traite le sujet reporté avec ton style habituel (sans emoji 🏗️).
+    - Termine par "C’est bon pour ce point ?" uniquement pour valider la fin de l'échange.
   `
-  const override = await fetchPromptOverride("sophia.companion")
-  const systemPrompt = appendPromptOverride(basePrompt, override)
+  const systemPrompt = basePrompt
 
   const historyText = history.slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   
@@ -336,7 +340,7 @@ export async function runCompanion(
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? "gemini-3-flash-preview",
       source: "sophia-brain:companion",
       forceRealAi: meta?.forceRealAi,
     }
@@ -374,7 +378,7 @@ export async function runCompanion(
       `
       const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
         requestId: meta?.requestId,
-        model: meta?.model ?? "gemini-2.5-flash",
+        model: meta?.model ?? "gemini-3-flash-preview",
         source: "sophia-brain:companion_confirmation",
         forceRealAi: meta?.forceRealAi,
       })

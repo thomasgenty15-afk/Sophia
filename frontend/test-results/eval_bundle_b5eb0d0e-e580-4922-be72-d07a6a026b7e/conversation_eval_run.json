@@ -1,0 +1,632 @@
+{
+  "id": "b5eb0d0e-e580-4922-be72-d07a6a026b7e",
+  "created_at": "2026-01-08T05:31:11.473249+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__b5102ad5e98441",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:25:40.662923+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super. Pour commencer, on va regarder tes pauses actives. Combien en as-tu prises aujourd'hui ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:25:45.134685+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'en ai fait une aujourd'hui. J'ai eu du mal à m'y tenir avec le rythme, on pourra reparler de l'organisation de ma journée plus tard, si tu veux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:25:47.617919+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends que le rythme a été un défi pour tes pauses actives aujourd'hui. On peut tout à fait revenir sur l'organisation de ta journée un peu plus tard, si tu veux.\n\nPour le bilan, parlons des Micro-Pauses Énergisantes. L'objectif était d'en faire 10, en prenant 2 à 5 minutes toutes les 90 minutes de travail sur écran pour bouger un peu.\n\nCombien de ces micro-pauses as-tu réussi à faire ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:25:57.240163+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'en ai fait 3. C'est mieux que rien, mais loin de l'objectif.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:26:00.118546+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est déjà un bon début pour tes micro-pauses, même si tu visais plus haut. Chaque pas compte.\n\nPassons maintenant au Couvre-feu Digital Sacré. Il s'agit d'arrêter tous les écrans au moins 60 minutes avant de te coucher. Est-ce que tu as réussi à le tenir hier soir ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:26:08.547142+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, pas vraiment. J'ai regardé une série jusqu'à assez tard, donc ça n'a pas été possible.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:26:11.079518+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends. Regarder une série, ça peut vite nous emporter et faire passer le temps sans qu'on s'en rende compte. C'est souvent difficile de décrocher quand on est pris dans l'histoire.\n\nQu'est-ce qui t'a donné envie de regarder cette série hier soir, même en sachant que tu avais ton couvre-feu digital ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:26:17.030447+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'étais fatiguée après ma journée et j'avais juste envie de me vider la tête un peu.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:26:20.725227+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je vois, c'est compréhensible de vouloir juste décompresser après une longue journée. Donc, pour le Couvre-feu Digital Sacré, je note que tu l'as manqué hier.\n\nAprès ça, on a Le Scan Corporel Rapide. Tu as pu le faire, ce scan ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:26:28.900469+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je l'ai fait. J'ai noté quelques tensions dans les épaules.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:26:38.382908+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, bilan terminé.\n\nTu m'avais parlé d'un truc à reprendre : \"J'ai eu du mal à m'y tenir avec le rythme, on pourra reparler de l'organisation de ma journée plus tard, si tu veux\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T05:26:46.722419+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, avec plaisir. J'ai vraiment du mal à trouver des créneaux pour ces pauses, ma journée est très dense.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:26:50.30442+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends que ta journée soit dense. Pour les Micro-Pauses Énergisantes, l'objectif est actuellement de 10 fois par semaine. Pour t'aider à mieux les intégrer, on pourrait commencer par 7 fois par semaine, soit une fois par jour. C’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T05:27:25.929414+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ça me semble plus réaliste pour le moment.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:27:29.109261+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est modifié.\nL'action Les Micro-Pauses Énergisantes a été mise à jour.\nC’est bon pour ce point ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-08T05:27:44.493431+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon pour ce point. Mais on parlait de l'organisation de ma journée en général, pas seulement pour les pauses.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:27:47.235058+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Oui, tu as raison. On parlait bien de l'organisation de ta journée. Qu'est-ce qui te pèse le plus à ce niveau ? C’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:28:15.770551+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est surtout le fait d'avoir des réunions qui s'enchaînent et des tâches urgentes qui arrivent sans arrêt. J'ai l'impression de courir tout le temps.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:28:18.413264+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends, c'est épuisant de courir tout le temps.\nParlons de l'organisation de tes journées.\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:28:42.533178+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est ça. Je me sens vraiment prise au piège par cet enchaînement.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:28:44.372855+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends que tu te sentes prise au piège par cet enchaînement. Pour avancer, est-ce que le plus grand défi est de trouver des moments pour toi ou de gérer les sollicitations ? C’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:29:15.204214+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est un peu des deux, mais je dirais que la gestion des sollicitations est la cause principale. Si je pouvais mieux gérer ça, je trouverais plus facilement du temps pour moi.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:29:18.106152+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends que la gestion des sollicitations est la cause principale et que ça t'aiderait à trouver plus facilement du temps pour toi. C’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:29:41.11072+00:00"
+    },
+    {
+      "role": "user",
+      "content": "D'accord. Peux-tu me donner un exemple concret de sollicitation qui te met le plus en difficulté ou qui te fait perdre le plus de temps ?",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:29:43.871109+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je ne peux pas te donner d'exemple personnel, je suis une IA.\nPour mieux t'aider avec les tensions que tu as notées dans tes épaules, peux-tu me donner un exemple concret de situation où tu les ressens le plus ?\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:30:15.875483+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ah, je voulais dire que tu me demandes un exemple de ma part, pas que tu en donnes un toi-même. Pour les épaules, c'est souvent pendant les longues réunions en visio, où je suis très concentrée et tendue.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:30:27.713033+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends mieux maintenant. Les longues réunions en visio, avec une forte concentration, peuvent effectivement provoquer des tensions dans les épaules. Le manque de mouvement dans ces situations est souvent la cause.\n\nC’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:30:39.051328+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon pour ce point.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:30:42.748554+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super. Tu avais aussi mentionné avoir noté quelques tensions dans les épaules. C’est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:31:00.31213+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est ça. Les réunions en visio sont un bon exemple de sollicitation qui me met sous tension et me fait perdre du temps, car je ne peux pas bouger.",
+      "agent_used": null,
+      "created_at": "2026-01-08T05:31:03.989956+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah oui, je vois bien le tableau. Rester figée devant un écran, surtout quand c'est intense... ça pompe l'énergie et ça noue les épaules, c'est clair. Et le temps perdu à cause de ça, c'est frustrant.\n\nC'est bon pour ce point ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-08T05:31:10.83436+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "f53479c8-06dc-480d-b511-a895338f7424",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T05:25:40.620919+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T05:25:40.620919+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "bfcee856-9082-45b8-b2c2-eb6c080951b5",
+          "type": "vital",
+          "unit": "pauses",
+          "title": "Nombre de pauses actives",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "4cf590f2-1485-4e68-900a-c08646891252",
+          "type": "action",
+          "title": "Les Micro-Pauses Énergisantes",
+          "target": 10,
+          "description": "Prends 2 à 5 minutes toutes les 90 minutes de travail sur écran pour bouger (étirements doux, marche rapide sur place, quelques flexions).",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "b9b42ce3-48cc-4686-879a-a7a5604e4208",
+          "type": "action",
+          "title": "Le Couvre-feu Digital Sacré",
+          "target": 7,
+          "description": "Arrête tous les écrans (téléphone, tablette, ordinateur, TV) au moins 60 minutes avant l'heure de ton coucher.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "ff3e40e2-329b-4380-9dac-773e82438a5d",
+          "type": "framework",
+          "title": "Le Scan Corporel Rapide",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T05:25:40.620919+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "f53479c8-06dc-480d-b511-a895338f7424",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T05:31:10.830704+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T05:30:42.758+00:00",
+    "short_term_context": "Le bilan des habitudes quotidiennes (pauses actives, micro-pauses, couvre-feu digital, scan corporel) est terminé. L'utilisateur a pris 1 pause active, 3 micro-pauses (objectif ajusté à 7/semaine), a manqué le couvre-feu digital hier soir pour décompresser devant une série, et a noté des tensions aux épaules. La conversation se concentre maintenant sur l'organisation de la journée de l'utilisateur, qui se sent piégé par l'enchaînement des réunions et des tâches urgentes. La gestion des sollicitations est identifiée comme le défi principal, et les tensions aux épaules sont liées aux longues réunions en visio.",
+    "investigation_state": {
+      "status": "post_checkup",
+      "temp_memory": {
+        "deferred_topics": [
+          "J'ai eu du mal à m'y tenir avec le rythme, on pourra reparler de l'organisation de ma journée plus tard, si tu veux",
+          "J'ai noté quelques tensions dans les épaules",
+          "J'ai l'impression de courir tout le temps"
+        ],
+        "current_topic_index": 2
+      }
+    },
+    "last_interaction_at": "2026-01-08T05:25:40.620919+00:00",
+    "unprocessed_msg_count": 1
+  },
+  "issues": [
+    {
+      "code": "assert_investigator_not_stable",
+      "message": "Assertion failed: investigation_state active => should remain investigator until explicit stop.",
+      "evidence": {
+        "snippet": "Je comprends que ta journée soit dense. Pour les Micro-Pauses Énergisantes, l'objectif est actuellement de 10 fois par semaine. Pour t'aider à mieux les intégrer, on pourrait commencer par 7 fois par semaine, soit une fois par jour. C’est b",
+        "offending_agent": "architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "ROUTING_ERROR_ARCHITECT_TO_COMPANION",
+      "message": "Après que l'utilisateur ait recadré la discussion sur l'organisation générale de sa journée (un sujet relevant de l'architecte), le système a routé vers l'agent companion au lieu de maintenir l'architecte. Cela contrevient aux règles de routage qui assignent l'organisation/planning/priorités à l'architecte.",
+      "evidence": {
+        "snippet": "USER: Oui, c'est bon pour ce point. Mais on parlait de l'organisation de ma journée en général, pas seulement pour les pauses.\nASSISTANT(companion): Oui, tu as raison. On parlait bien de l'organisation de ta journée. Qu'est-ce qui te pèse le plus à ce niveau ? C’est bon pour ce point ?",
+        "agent_used": "companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "COMPANION_CONTEXT_LOSS_HALLUCINATION",
+      "message": "L'agent companion a perdu le fil de la conversation en cours (gestion des sollicitations et organisation générale) et a réintroduit de manière inattendue un sujet passé du bilan (tensions dans les épaules), violant la règle de traiter le sujet reporté uniquement.",
+      "evidence": {
+        "snippet": "ASSISTANT(companion): Je ne peux pas te donner d'exemple personnel, je suis une IA. Pour mieux t'aider avec les tensions que tu as notées dans tes épaules, peux-tu me donner un exemple concret de situation où tu les ressens le plus ? C’est bon pour ce point ?",
+        "agent_used": "companion"
+      },
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "L'architecte a ignoré la demande de l'utilisateur de discuter de l'organisation générale pour se concentrer sur l'ajustement d'une action spécifique du bilan, nécessitant une correction de l'utilisateur. Cet addendum vise à s'assurer que l'architecte aborde d'abord la portée globale du sujet reporté.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#10 USER: Oui, je l'ai fait. J'ai noté quelques tensions dans les épaules.\n#11 ASSISTANT(investigator): Ok, bilan terminé. Tu m'avais parlé d'un truc à reprendre : \"J'ai eu du mal à m'y tenir avec le rythme, on pourra reparler de l'organisation de ma journée plus tard, si tu veux\". Tu veux qu'on commence par ça ?\n#12 USER: Oui, avec plaisir. J'ai vraiment du mal à trouver des créneaux pour ces pauses, ma journée est très dense.\n#13 ASSISTANT(architect): Je comprends que ta journée soit dense. Pour les Micro-Pauses Énergisantes, l'objectif est actuellement de 10 fois par semaine. Pour t'aider à mieux les intégrer, on pourrait commencer par 7 fois par semaine, soit une fois par jour. C’est bon pour ce point ?\n#14 USER: Oui, ça me semble plus réaliste pour le moment.\n#15 ASSISTANT(architect): C'est modifié. L'action Les Micro-Pauses Énergisantes a été mise à jour. C’est bon pour ce point ?\n#16 USER: Oui, c'est bon pour ce point. Mais on parlait de l'organisation de ma journée en général, pas seulement pour les pauses.\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nSi le sujet reporté est une thématique large (ex: 'organisation générale', 'gestion du temps'), commence par explorer les défis et besoins de l'utilisateur liés à cette thématique avant de proposer des ajustements sur des actions spécifiques du bilan.",
+      "proposed_addendum": "Si le sujet reporté est une thématique large (ex: 'organisation générale', 'gestion du temps'), commence par explorer les défis et besoins de l'utilisateur liés à cette thématique avant de proposer des ajustements sur des actions spécifiques du bilan."
+    },
+    {
+      "action": "append",
+      "rationale": "Le dispatcher a routé vers `companion` alors que le sujet 'organisation de ma journée' était toujours en cours et relevait de `architect`, même après une clarification de l'utilisateur. Cet addendum renforce la persistance du routage vers l'architecte pour les sujets d'organisation.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"bfcee856-9082-45b8-b2c2-eb6c080951b5\",\n      \"type\": \"vital\",\n      \"unit\": \"pauses\",\n      \"title\": \"Nombre de pauses actives\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"4cf590f2-1485-4e68-900a-c08646891252\",\n      \"type\": \"action\",\n      \"title\": \"Les Micro-Pauses Énergisantes\",\n      \"target\": 10,\n      \"description\": \"Prends 2 à 5 minutes toutes les 90 minutes de travail sur écran pour bouger (étirements doux, marche rapide sur place, quelques flexions).\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"b9b42ce3-48cc-4686-879a-a7a5604e4208\",\n      \"type\": \"action\",\n      \"title\": \"Le Couvre-feu Digital Sacré\",\n      \"target\": 7,\n      \"description\": \"Arrête tous les écrans (téléphone, tablette, ordinateur, TV) au moins 60 minutes avant l'heure de ton coucher.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"ff3e40e2-329b-4380-9dac-773e82438a5d\",\n      \"type\": \"framework\",\n      \"title\": \"Le Scan Corporel Rapide\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Super. Pour commencer, on va regarder tes pauses actives. Combien en as-tu prises aujourd'hui ?\n#2 USER: J'en ai fait une aujourd'hui. J'ai eu du mal à m'y tenir avec le rythme, on pourra reparler de l'organisation de ma journée plus tard, si tu veux.\n#3 ASSISTANT(investigator): Je comprends que le rythme a été un défi pour tes pauses actives aujourd'hui. On peut tout à fait revenir sur l'organisation de ta journée un peu plus tard, si tu veux. Pour le bilan, parlons des Micro-Pauses Énergisantes. L'objectif était d'en faire 10, en prenant 2 à 5 minutes toutes les 90 minutes de travail sur écran pour bouger un peu. Combien de ces micro-pauses as-tu réussi à faire ?\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nSi le sujet reporté est 'organisation/planning/priorités' et que l'utilisateur recadre la discussion sur l'aspect général de ce sujet, maintiens le routage vers `architect`.",
+      "proposed_addendum": "Si le sujet reporté est 'organisation/planning/priorités' et que l'utilisateur recadre la discussion sur l'aspect général de ce sujet, maintiens le routage vers `architect`."
+    },
+    {
+      "action": "append",
+      "rationale": "Le companion a halluciné en réintroduisant le sujet des 'tensions dans les épaules' alors que la discussion portait sur la 'gestion des sollicitations' et l'organisation générale, violant la règle de traiter le sujet reporté uniquement. Cet addendum vise à prévenir la perte de contexte et la réintroduction de sujets non pertinents.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#22 USER: C'est un peu des deux, mais je dirais que la gestion des sollicitations est la cause principale. Si je pouvais mieux gérer ça, je trouverais plus facilement du temps pour moi.\n#23 ASSISTANT(companion): Je comprends que la gestion des sollicitations est la cause principale et que ça t'aiderait à trouver plus facilement du temps pour toi. C’est bon pour ce point ?\n#24 USER: D'accord. Peux-tu me donner un exemple concret de sollicitation qui te met le plus en difficulté ou qui te fait perdre le plus de temps ?\n#25 ASSISTANT(companion): Je ne peux pas te donner d'exemple personnel, je suis une IA. Pour mieux t'aider avec les tensions que tu as notées dans tes épaules, peux-tu me donner un exemple concret de situation où tu les ressens le plus ? C’est bon pour ce point ?\n#26 USER: Ah, je voulais dire que tu me demandes un exemple de ma part, pas que tu en donnes un toi-même. Pour les épaules, c'est souvent pendant les longues réunions en visio, où je suis très concentrée et tendue.\n#27 ASSISTANT(companion): Je comprends mieux maintenant. Les longues réunions en visio, avec une forte concentration, peuvent effectivement provoquer des tensions dans les épaules. Le manque de mouvement dans ces situations est souvent la cause. C’est bon pour ce point ?\n#28 USER: Oui, c'est bon pour ce point.\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nPendant le traitement d'un sujet reporté, ne réintroduis JAMAIS un point du bilan précédent (ex: tensions physiques) à moins que l'utilisateur ne le relie explicitement au sujet en cours.",
+      "proposed_addendum": "Pendant le traitement d'un sujet reporté, ne réintroduis JAMAIS un point du bilan précédent (ex: tensions physiques) à moins que l'utilisateur ne le relie explicitement au sujet en cours."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0718967,
+    "request_id": "baa7c0d6-0ee5-4bc6-b546-e7a74efb0cc2:core:bilan_real_bundle__b5102ad5e98441:471ac2a5-0676-44dc-9425-6220c1c55ec4",
+    "total_tokens": 264422,
+    "output_tokens": 5024,
+    "prompt_tokens": 197789,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-2.5-flash",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3,
+      "test_post_checkup_deferral": true
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "44638904-a402-422e-8ce0-245022838279",
+        "title": "L'Éveil du Mouvement Originel",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage Doux - Briser l'Inertie",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "4cf590f2-1485-4e68-900a-c08646891252",
+                  "tips": "Utilise un minuteur simple ou une application de pomodoro. L'objectif est de rompre le cycle prolongé de sédentarité.",
+                  "type": "habitude",
+                  "title": "Les Micro-Pauses Énergisantes",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Ces micro-pauses revitalisent la circulation sanguine, réduisent la fatigue oculaire et mentale, et signalent à ton cerveau qu'il est temps de se réinitialiser.",
+                  "targetReps": 10,
+                  "description": "Prends 2 à 5 minutes toutes les 90 minutes de travail sur écran pour bouger (étirements doux, marche rapide sur place, quelques flexions).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "counter"
+                },
+                {
+                  "id": "4262ad5a-927d-4b57-983a-c9acf548a661",
+                  "tips": "Fais-le assis(e) ou debout. Commence par tes pieds et remonte jusqu'à ta tête, en notant ce que tu ressens sans jugement.",
+                  "type": "framework",
+                  "title": "Le Scan Corporel Rapide",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Aide à développer une conscience corporelle, à identifier les signaux de stress et de fatigue avant qu'ils ne deviennent accablants, et à te recentrer.",
+                  "targetReps": 7,
+                  "description": "Réalise un scan rapide de ton corps en milieu de journée pour identifier les tensions et la fatigue.",
+                  "isCompleted": false,
+                  "time_of_day": "afternoon",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Prends 2 minutes pour te connecter à ton corps. Remarque les sensations, les tensions, les zones de détente. C'est un exercice de non-jugement.",
+                    "sections": [
+                      {
+                        "id": "p1s1_1",
+                        "label": "Zone de tension principale identifiée",
+                        "inputType": "text",
+                        "placeholder": "Nuque, épaules, bas du dos..."
+                      },
+                      {
+                        "id": "p1s1_2",
+                        "label": "Niveau d'énergie ressenti (1-10)",
+                        "inputType": "scale",
+                        "placeholder": "5"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Reprendre contact avec le corps",
+              "rationale": "Cette phase établit les premières fondations de mouvement et de présence, essentielles pour contrecarrer la sédentarité et le sentiment de surcharge. On vise à introduire la fluidité sans pression."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Le Rituel du Repos - Réparer la Nuit",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "b9b42ce3-48cc-4686-879a-a7a5604e4208",
+                  "tips": "Charge ton téléphone hors de la chambre. Lis un livre papier, écoute de la musique douce ou médite pendant ce temps.",
+                  "type": "habitude",
+                  "title": "Le Couvre-feu Digital Sacré",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "L'exposition à la lumière bleue des écrans perturbe la production de mélatonine, l'hormone du sommeil. Cette habitude prépare ton cerveau au repos.",
+                  "targetReps": 7,
+                  "description": "Arrête tous les écrans (téléphone, tablette, ordinateur, TV) au moins 60 minutes avant l'heure de ton coucher.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "56e40f22-7071-41a4-9fde-d557ed7b8df5",
+                  "tips": "Même la petite veilleuse d'un appareil électronique peut perturber. Pense à un environnement le plus noir et le plus calme possible.",
+                  "type": "mission",
+                  "title": "L'Audit de l'Environnement Nocturne",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement de sommeil optimisé est crucial pour un repos profond et ininterrompu, permettant une meilleure récupération physique et mentale.",
+                  "description": "Identifie et réduis les sources de lumière et de bruit dans ta chambre. Investis dans des rideaux occultants, des boules quies ou un masque de sommeil si nécessaire.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Optimiser la récupération essentielle",
+              "rationale": "Un sommeil de qualité est la pierre angulaire de l'énergie. Cette phase vise à réparer le cycle de repos en instaurant des frontières claires et des pratiques apaisantes pour contrer les 'finis tard et dors mal'."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : L'Élan Progressif - Cultiver le Mouvement",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "f8605c66-acac-47b5-87f6-53ca851b7722",
+                  "tips": "Profite de ta pause déjeuner ou d'un moment après le travail. L'objectif n'est pas l'intensité, mais la régularité et la pleine présence.",
+                  "type": "habitude",
+                  "title": "La Marche Consciente Quotidienne",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La marche est un puissant régulateur d'humeur, réduit le stress et améliore la circulation. La conscience enracine le corps et l'esprit, combattant le sentiment de surcharge.",
+                  "targetReps": 7,
+                  "description": "Dédie 20 minutes par jour à une marche consciente à l'extérieur, sans distraction (pas de téléphone, pas d'écouteurs). Concentre-toi sur tes pas, ta respiration et l'environnement.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "d4205d84-e140-4cc1-85af-ac9c28414dfc",
+                  "tips": "Pense à ce que tu mangeais, tes niveaux d'hydratation, tes interactions sociales, tes tâches professionnelles. Il s'agit de trouver des schémas.",
+                  "type": "framework",
+                  "title": "Le Cadran de l'Énergie",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Comprendre tes fluctuations d'énergie te permet d'optimiser ton planning, de placer les tâches exigeantes pendant tes pics et de prévoir du repos pendant tes creux, réduisant ainsi le risque de te sentir submergée.",
+                  "targetReps": 7,
+                  "description": "En fin de journée, évalue tes pics et creux d'énergie au cours de la journée et les activités associées.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "L'énergie n'est pas constante. En la cartographiant, tu deviens l'architecte de ton propre rythme. Identifie tes moments de force et de vulnérabilité.",
+                    "sections": [
+                      {
+                        "id": "p3s2_1",
+                        "label": "Mon pic d'énergie : Quand ? Qu'est-ce que je faisais ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: 10h-12h, travail créatif, après ma marche."
+                      },
+                      {
+                        "id": "p3s2_2",
+                        "label": "Mon creux d'énergie : Quand ? Qu'est-ce que je faisais ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: 14h-16h, après un repas lourd, réunion longue."
+                      },
+                      {
+                        "id": "p3s2_3",
+                        "label": "Comment j'ai répondu à ce creux ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: J'ai bu un verre d'eau, je me suis levée, j'ai scrollé..."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Intégrer la vitalité au quotidien",
+              "rationale": "Après avoir ancré le mouvement et le repos, cette phase se concentre sur l'intégration d'activités physiques plus intentionnelles, tout en affinant ta conscience énergétique pour une gestion proactive de ton état."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : La Symphonie Quotidienne - Intégrer l'Harmonie",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "398bdf1d-772d-49bd-9ac3-73b8fb05376d",
+                  "tips": "C'est ton moment, loin des écrans. Tu peux écouter une musique relaxante, ou simplement profiter du silence. Sois constante, même les weekends.",
+                  "type": "habitude",
+                  "title": "La Routine Matinale Énergisante",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Une routine matinale intentionnelle prépare ton corps et ton esprit à la journée, réduit le stress et te donne un sentiment de contrôle dès le réveil, prévenant la surcharge.",
+                  "targetReps": 7,
+                  "description": "Crée une routine matinale de 10 à 15 minutes incluant des étirements doux, quelques respirations profondes et une intention positive pour la journée.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "a1de1b7b-2fe4-42f1-ad66-c024a1db7b04",
+                  "tips": "Ne sois pas trop ambitieuse. Deux ou trois sessions de 30 minutes de marche rapide, yoga ou autre activité qui te plaît suffisent pour commencer.",
+                  "type": "mission",
+                  "title": "La Planification Intentionnelle de l'Activité",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La planification transforme l'intention en action. En bloquant ces moments, tu t'assures que le mouvement ne soit pas une option, mais une priorité non négociable pour ta vitalité.",
+                  "description": "Chaque dimanche, prends 15 minutes pour planifier tes activités physiques de la semaine à venir, en les intégrant comme des rendez-vous incompressibles dans ton agenda.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Ancrer la vitalité durablement",
+              "rationale": "Cette dernière phase consolide toutes les habitudes en une routine fluide et personnalisée, renforçant la clarté mentale et physique pour que la vitalité devienne ton état naturel, et non une lutte."
+            }
+          ],
+          "deepWhy": "Pour retrouver la vitalité, la patience et la présence qui me permettent de vivre chaque jour avec stabilité et joie, sans me sentir submergée.",
+          "identity": "Je suis une Femme en Mouvement, Énergique et Ancrée.",
+          "strategy": "Avant de chercher l'intensité, nous allons bâtir une fondation solide d'énergie et de rythme, en harmonisant ton corps et ton esprit pour dissiper la surcharge et ancrer un mouvement durable. La régénération et la fluidité seront nos guides.",
+          "goldenRules": "1. Chaque mouvement, même le plus petit, nourrit mon énergie.\n2. Prioriser ma régénération nocturne est la source de ma vitalité.\n3. Je respire et je me recentre avant que le sentiment de surcharge ne prenne le dessus.",
+          "vitalSignal": {
+            "name": "Nombre de pauses actives",
+            "type": "constat",
+            "unit": "pauses",
+            "startValue": "0",
+            "description": "Compter le nombre de fois où tu interromps ton travail sur écran pour une courte pause de mouvement (2-5 minutes).",
+            "targetValue": "3",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Éveil du Mouvement Originel",
+          "context_problem": "Épuisée par de longues heures devant l'écran et un sommeil de mauvaise qualité, tu te retrouves dans un cycle de sédentarité et de manque d'énergie. Le sentiment d'être vite submergée t'empêche de retrouver la vitalité et la stabilité que tu désires ardemment.",
+          "sophiaKnowledge": "Tu es une femme née en 1988, travaillant sur écran, ce qui entraîne sédentarité et un sommeil perturbé. Tu te sens souvent submergée et tu manques d'énergie, mais tu es profondément motivée à retrouver stabilité et vitalité au quotidien. Ton rythme préféré est \"balanced\", signalant une préférence pour des progrès durables et équilibrés.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "À quel point te sens-tu submergée cette semaine (échelle de 1 à 10) ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "21211e5a-d928-4751-bf82-6e5d1f29156f",
+        "deep_why": "Pour retrouver la vitalité, la patience et la présence qui me permettent de vivre chaque jour avec stabilité et joie, sans me sentir submergée.",
+        "created_at": "2026-01-08T05:25:40.59362+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "d79c5774-4160-400e-85a3-ba28dbcc80b9",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "4cf590f2-1485-4e68-900a-c08646891252",
+          "title": "Les Micro-Pauses Énergisantes",
+          "status": "active",
+          "created_at": "2026-01-08T05:25:40.599811+00:00",
+          "description": "Prends 2 à 5 minutes toutes les 90 minutes de travail sur écran pour bouger (étirements doux, marche rapide sur place, quelques flexions).",
+          "target_reps": 10,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "counter",
+          "last_performed_at": "2026-01-06T05:25:40.596+00:00"
+        },
+        {
+          "id": "b9b42ce3-48cc-4686-879a-a7a5604e4208",
+          "title": "Le Couvre-feu Digital Sacré",
+          "status": "active",
+          "created_at": "2026-01-08T05:25:40.599811+00:00",
+          "description": "Arrête tous les écrans (téléphone, tablette, ordinateur, TV) au moins 60 minutes avant l'heure de ton coucher.",
+          "target_reps": 7,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T05:25:40.596+00:00"
+        },
+        {
+          "id": "ff3e40e2-329b-4380-9dac-773e82438a5d",
+          "_kind": "framework",
+          "title": "Le Scan Corporel Rapide",
+          "status": "active",
+          "created_at": "2026-01-08T05:25:40.611909+00:00",
+          "description": "",
+          "target_reps": 7,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-06T05:25:40.596+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "ff3e40e2-329b-4380-9dac-773e82438a5d",
+          "type": "recurring",
+          "title": "Le Scan Corporel Rapide",
+          "status": "active",
+          "created_at": "2026-01-08T05:25:40.611909+00:00",
+          "target_reps": 7,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T05:25:40.596+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Éveil du Mouvement Originel\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour retrouver la vitalité, la patience et la présence qui me permettent de vivre chaque jour avec stabilité et joie, sans me sentir submergée.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage Doux - Briser l'Inertie\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"4cf590f2-1485-4e68-900a-c08646891252\",\n          \"tips\": \"Utilise un minuteur simple ou une application de pomodoro. L'objectif est de rompre le cycle prolongé de sédentarité.\",\n          \"type\": \"habitude\",\n          \"title\": \"Les Micro-Pauses Énergisantes\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ces micro-pauses revitalisent la circulation sanguine, réduisent la fatigue oculaire et mentale, et signalent à ton cerveau qu'il est temps de se réinitialiser.\",\n          \"targetReps\": 10,\n          \"description\": \"Prends 2 à 5 minutes toutes les 90 minutes de travail sur écran pour bouger (étirements doux, marche rapide sur place, quelques flexions).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"counter\"\n        },\n        {\n          \"id\": \"4262ad5a-927d-4b57-983a-c9acf548a661\",\n          \"tips\": \"Fais-le assis(e) ou debout. Commence par tes pieds et remonte jusqu'à ta tête, en notant ce que tu ressens sans jugement.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Scan Corporel Rapide\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Aide à développer une conscience corporelle, à identifier les signaux de stress et de fatigue avant qu'ils ne deviennent accablants, et à te recentrer.\",\n          \"targetReps\": 7,\n          \"description\": \"Réalise un scan rapide de ton corps en milieu de journée pour identifier les tensions et la fatigue.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"afternoon\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Prends 2 minutes pour te connecter à ton corps. Remarque les sensations, les tensions, les zones de détente. C'est un exercice de non-jugement.\",\n            \"sections\": [\n              {\n                \"id\": \"p1s1_1\",\n                \"label\": \"Zone de tension principale identifiée\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Nuque, épaules, bas du dos...\"\n              },\n              {\n                \"id\": \"p1s1_2\",\n                \"label\": \"Niveau d'énergie ressenti (1-10)\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"5\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Reprendre contact avec le corps\",\n      \"rationale\": \"Cette phase établit les premières fondations de mouvement et de présence, essentielles pour contrecarrer la sédentarité et le sentiment de surcharge. On vise à introduire la fluidité sans pression.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Le Rituel du Repos - Réparer la Nuit\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"b9b42ce3-48cc-4686-879a-a7a5604e4208\",\n          \"tips\": \"Charge ton téléphone hors de la chambre. Lis un livre papier, écoute de la musique douce ou médite pendant ce temps.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Couvre-feu Digital Sacré\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"L'exposition à la lumière bleue des écrans perturbe la production de mélatonine, l'hormone du sommeil. Cette habitude prépare ton cerveau au repos.\",\n          \"targetReps\": 7,\n          \"description\": \"Arrête tous les écrans (téléphone, tablette, ordinateur, TV) au moins 60 minutes avant l'heure de ton coucher.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"56e40f22-7071-41a4-9fde-d557ed7b8df5\",\n          \"tips\": \"Même la petite veilleuse d'un appareil électronique peut perturber. Pense à un environnement le plus noir et le plus calme possible.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Audit de l'Environnement Nocturne\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement de sommeil optimisé est crucial pour un repos profond et ininterrompu, permettant une meilleure récupération physique et mentale.\",\n          \"description\": \"Identifie et réduis les sources de lumière et de bruit dans ta chambre. Investis dans des rideaux occultants, des boules quies ou un masque de sommeil si nécessaire.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Optimiser la récupération essentielle\",\n      \"rationale\": \"Un sommeil de qualité est la pierre angulaire de l'énergie. Cette phase vise à réparer le cycle de repos en instaurant des frontières claires et des pratiques apaisantes pour contrer les 'finis tard et dors mal'.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : L'Élan Progressif - Cultiver le Mouvement\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"f8605c66-acac-47b5-87f6-53ca851b7722\",\n          \"tips\": \"Profite de ta pause déjeuner ou d'un moment après le travail. L'objectif n'est pas l'intensité, mais la régularité et la pleine présence.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Marche Consciente Quotidienne\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La marche est un puissant régulateur d'humeur, réduit le stress et améliore la circulation. La conscience enracine le corps et l'esprit, combattant le sentiment de surcharge.\",\n          \"targetReps\": 7,\n          \"description\": \"Dédie 20 minutes par jour à une marche consciente à l'extérieur, sans distraction (pas de téléphone, pas d'écouteurs). Concentre-toi sur tes pas, ta respiration et l'environnement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"d4205d84-e140-4cc1-85af-ac9c28414dfc\",\n          \"tips\": \"Pense à ce que tu mangeais, tes niveaux d'hydratation, tes interactions sociales, tes tâches professionnelles. Il s'agit de trouver des schémas.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Cadran de l'Énergie\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Comprendre tes fluctuations d'énergie te permet d'optimiser ton planning, de placer les tâches exigeantes pendant tes pics et de prévoir du repos pendant tes creux, réduisant ainsi le risque de te sentir submergée.\",\n          \"targetReps\": 7,\n          \"description\": \"En fin de journée, évalue tes pics et creux d'énergie au cours de la journée et les activités associées.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"L'énergie n'est pas constante. En la cartographiant, tu deviens l'architecte de ton propre rythme. Identifie tes moments de force et de vulnérabilité.\",\n            \"sections\": [\n              {\n                \"id\": \"p3s2_1\",\n                \"label\": \"Mon pic d'énergie : Quand ? Qu'est-ce que je faisais ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: 10h-12h, travail créatif, après ma marche.\"\n              },\n              {\n                \"id\": \"p3s2_2\",\n                \"label\": \"Mon creux d'énergie : Quand ? Qu'est-ce que je faisais ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: 14h-16h, après un repas lourd, réunion longue.\"\n              },\n              {\n                \"id\": \"p3s2_3\",\n                \"label\": \"Comment j'ai répondu à ce creux ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: J'ai bu un verre d'eau, je me suis levée, j'ai scrollé...\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Intégrer la vitalité au quotidien\",\n      \"rationale\": \"Après avoir ancré le mouvement et le repos, cette phase se concentre sur l'intégration d'activités physiques plus intentionnelles, tout en affinant ta conscience énergétique pour une gestion proactive de ton état.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : La Symphonie Quotidienne - Intégrer l'Harmonie\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"398bdf1d-772d-49bd-9ac3-73b8fb05376d\",\n          \"tips\": \"C'est ton moment, loin des écrans. Tu peux écouter une musique relaxante, ou simplement profiter du silence. Sois constante, même les weekends.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Routine Matinale Énergisante\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Une routine matinale intentionnelle prépare ton corps et ton esprit à la journée, réduit le stress et te donne un sentiment de contrôle dès le réveil, prévenant la surcharge.\",\n          \"targetReps\": 7,\n          \"description\": \"Crée une routine matinale de 10 à 15 minutes incluant des étirements doux, quelques respirations profondes et une intention positive pour la journée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"a1de1b7b-2fe4-42f1-ad66-c024a1db7b04\",\n          \"tips\": \"Ne sois pas trop ambitieuse. Deux ou trois sessions de 30 minutes de marche rapide, yoga ou autre activité qui te plaît suffisent pour commencer.\",\n          \"type\": \"mission\",\n          \"title\": \"La Planification Intentionnelle de l'Activité\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La planification transforme l'intention en action. En bloquant ces moments, tu t'assures que le mouvement ne soit pas une option, mais une priorité non négociable pour ta vitalité.\",\n          \"description\": \"Chaque dimanche, prends 15 minutes pour planifier tes activités physiques de la semaine à venir, en les intégrant comme des rendez-vous incompressibles dans ton agenda.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Ancrer la vitalité durablement\",\n      \"rationale\": \"Cette dernière phase consolide toutes les habitudes en une routine fluide et personnalisée, renforçant la clarté mentale et physique pour que la vitalité devienne ton état naturel, et non une lutte.\"\n    }\n  ],\n  \"deepWhy\": \"Pour retrouver la vitalité, la patience et la présence qui me permettent de vivre chaque jour avec stabilité et joie, sans me sentir submergée.\",\n  \"identity\": \"Je suis une Femme en Mouvement, Énergique et Ancrée.\",\n  \"strategy\": \"Avant de chercher l'intensité, nous allons bâtir une fondation solide d'énergie et de rythme, en harmonisant ton corps et ton esprit pour dissiper la surcharge et ancrer un mouvement durable. La régénération et la fluidité seront nos guides.\",\n  \"goldenRules\": \"1. Chaque mouvement, même le plus petit, nourrit mon énergie.\\n2. Prioriser ma régénération nocturne est la source de ma vitalité.\\n3. Je respire et je me recentre avant que le sentiment de surcharge ne prenne le dessus.\",\n  \"vitalSignal\": {\n    \"name\": \"Nombre de pauses actives\",\n    \"type\": \"constat\",\n    \"unit\": \"pauses\",\n    \"startValue\": \"0\",\n    \"description\": \"Compter le nombre de fois où tu interromps ton travail sur écran pour une courte pause de mouvement (2-5 minutes).\",\n    \"targetValue\": \"3\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Éveil du Mouvement Originel\",\n  \"context_problem\": \"Épuisée par de longues heures devant l'écran et un sommeil de mauvaise qualité, tu te retrouves dans un cycle de sédentarité et de manque d'énergie. Le sentiment d'être vite submergée t'empêche de retrouver la vitalité et la stabilité que tu désires ardemment.\",\n  \"sophiaKnowledge\": \"Tu es une femme née en 1988, travaillant sur écran, ce qui entraîne sédentarité et un sommeil perturbé. Tu te sens souvent submergée et tu manques d'énergie, mais tu es profondément motivée à retrouver stabilité et vitalité au quotidien. Ton rythme préféré est \\\"balanced\\\", signalant une préférence pour des progrès durables et équilibrés.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"À quel point te sens-tu submergée cette semaine (échelle de 1 à 10) ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Les Micro-Pauses Énergisantes (any_time)\n- [ACTION] Le Couvre-feu Digital Sacré (night)\n- [FRAMEWORK] Le Scan Corporel Rapide\n\n=== SIGNES VITAUX (État Actuel) ===\n- Nombre de pauses actives: 0 pauses\n",
+      "template_fingerprint": "5c3cc6b41662552b"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

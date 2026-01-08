@@ -1,5 +1,4 @@
 import { generateWithGemini } from '../../_shared/gemini.ts'
-import { appendPromptOverride, fetchPromptOverride } from '../../_shared/prompt-overrides.ts'
 
 function looksLikeGuidedTextRequest(message: string): boolean {
   const m = (message ?? "").toString().toLowerCase()
@@ -81,8 +80,7 @@ export async function runFirefighter(
       "resolved": true/false
     }
   `
-  const override = await fetchPromptOverride("sophia.firefighter")
-  const systemPrompt = appendPromptOverride(basePrompt, override)
+  const systemPrompt = basePrompt
 
   const historyText = history.slice(-3).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   

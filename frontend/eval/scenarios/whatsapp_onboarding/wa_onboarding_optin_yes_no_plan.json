@@ -1,0 +1,25 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_optin_yes_no_plan",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): user accepts opt-in via button but has no active plan -> ask to finalize plan on site, then reply 'C'est bon'.",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "mechanical"],
+  "channel": "whatsapp",
+  "seed_plan": false,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": false
+  },
+  "wa_steps": [
+    { "kind": "interactive", "interactive_id": "OPTIN_YES", "interactive_title": "Oui" }
+  ],
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_opted_in": true,
+      "whatsapp_state": "awaiting_plan_finalization"
+    },
+    "assistant_must_match": ["pas encore de plan", "c'est bon"]
+  }
+}
+
+

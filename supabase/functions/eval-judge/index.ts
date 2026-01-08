@@ -5,7 +5,6 @@ import { z, getRequestId, jsonResponse, parseJsonBody, serverError } from "../_s
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { sumUsageByRequestId } from "../_shared/llm-usage.ts";
-import { fetchPromptOverride } from "../_shared/prompt-overrides.ts";
 
 type TranscriptMsg = {
   role: "user" | "assistant";
@@ -31,9 +30,36 @@ function tokenEstimateFromText(text: string): number {
 function ruleBasedIssues(params: {
   transcript: TranscriptMsg[];
   state_before?: any;
+  state_after?: any;
+  config?: any;
 }): any[] {
-  const { transcript, state_before } = params;
+  const { transcript, state_before, state_after, config } = params;
   const issues: any[] = [];
+
+  // Special mode: post-bilan "parking lot" (we intentionally route to companion/architect/firefighter after bilan completion).
+  const isPostBilanTest = Boolean(config?.limits?.test_post_checkup_deferral);
+  const afterInvStatus = (state_after as any)?.investigation_state?.status ?? null;
+  const isPostCheckupState = String(afterInvStatus ?? "").startsWith("post_checkup");
+
+  function findBilanClosureIndex(ts: TranscriptMsg[]): number {
+    for (let i = 0; i < (ts ?? []).length; i++) {
+      const m = ts[i];
+      if (m.role !== "assistant") continue;
+      const s = (m.content ?? "").toString().toLowerCase();
+      // Router-generated marker (preferred).
+      if (/\bok,\s*bilan\s+termin[ée]?\b/i.test(s)) return i;
+      // Router transition marker (common in current router): "Ok, on a fini le bilan."
+      if (/\b(ok[, ]+)?on\s+a\s+fini\s+le\s+bilan\b/i.test(s)) return i;
+      if (/\b(on\s+a\s+termin[ée]\s+le\s+bilan)\b/i.test(s)) return i;
+      // Common investigator phrasing.
+      if (/\b(bilan\s+termin[ée]?|on\s+a\s+fait\s+le\s+tour\s+(?:des\s+points|pour\s+ce\s+bilan))\b/i.test(s)) return i;
+    }
+    return -1;
+  }
+
+  const bilanClosureIdx = findBilanClosureIndex(transcript);
+  const allowNonInvestigatorAfterClosure = isPostBilanTest || isPostCheckupState;
+  const preBilan = bilanClosureIdx >= 0 ? transcript.slice(0, bilanClosureIdx + 1) : transcript;
 
   // 1) Forbidden bold markdown
   for (const m of transcript) {
@@ -88,13 +114,17 @@ function ruleBasedIssues(params: {
       m.role === "user" && /\b(stop|arr[êe]te|on arr[êe]te|pause)\b/i.test(m.content ?? "")
     );
     if (!hasStop) {
-      const bad = transcript.find((m) => m.role === "assistant" && m.agent_used && m.agent_used !== "investigator");
+      // In post-bilan test mode, we only enforce "investigator-only" BEFORE bilan closure.
+      const scan = allowNonInvestigatorAfterClosure ? preBilan : transcript;
+      const bad = scan.find((m) => m.role === "assistant" && m.agent_used && m.agent_used !== "investigator");
       if (bad) {
         issues.push({
           code: "checkup_routing_break",
           severity: "high",
           message:
-            "Investigation state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu.",
+            allowNonInvestigatorAfterClosure
+              ? "Avant la clôture du bilan, investigation_state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu."
+              : "Investigation state actif: l’agent devrait rester sur investigator (sauf stop explicite). Un autre mode a répondu.",
           evidence: { agent_used: bad.agent_used, snippet: (bad.content ?? "").slice(0, 240) },
         });
       }
@@ -245,7 +275,7 @@ Deno.serve(async (req) => {
 
     const parsed = await parseJsonBody(req, BodySchema, requestId);
     if (!parsed.ok) return parsed.response;
-    const body = parsed.data;
+    const body: z.infer<typeof BodySchema> = parsed.data as any;
 
     const authHeader = req.headers.get("Authorization") ?? "";
     const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
@@ -267,7 +297,24 @@ Deno.serve(async (req) => {
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
     // Create or update run row
+    // NOTE: We always inject request_id into config so the run is idempotent across retries.
+    const configWithRequestId = { ...(body.config ?? {}), request_id: requestId };
     let runId = body.eval_run_id ?? null;
+    if (!runId) {
+      // Idempotency: if the caller retries with the same x-request-id, reuse the existing run row.
+      // This prevents creating two "tests" for a single command when the edge worker is cancelled/restarted.
+      const { data: existing, error: existingErr } = await admin
+        .from("conversation_eval_runs")
+        .select("id")
+        .eq("dataset_key", body.dataset_key)
+        .eq("scenario_key", body.scenario_key)
+        .eq("created_by", userId)
+        // PostgREST JSON filter (jsonb ->> text). We keep it in config for early availability.
+        .eq("config->>request_id", requestId)
+        .maybeSingle();
+      if (existingErr) throw existingErr;
+      if (existing?.id) runId = existing.id as string;
+    }
     if (!runId) {
       const { data: inserted, error: insErr } = await admin
         .from("conversation_eval_runs")
@@ -276,7 +323,7 @@ Deno.serve(async (req) => {
           scenario_key: body.scenario_key,
           status: "running",
           created_by: userId,
-          config: body.config ?? {},
+          config: configWithRequestId,
           transcript: body.transcript,
           state_before: body.state_before ?? null,
           state_after: body.state_after ?? null,
@@ -292,7 +339,7 @@ Deno.serve(async (req) => {
           dataset_key: body.dataset_key,
           scenario_key: body.scenario_key,
           status: "running",
-          config: body.config ?? {},
+          config: configWithRequestId,
           transcript: body.transcript,
           state_before: body.state_before ?? null,
           state_after: body.state_after ?? null,
@@ -302,7 +349,12 @@ Deno.serve(async (req) => {
     }
 
     // Compute issues/suggestions
-    const issues = ruleBasedIssues({ transcript: body.transcript, state_before: body.state_before });
+    const issues = ruleBasedIssues({
+      transcript: body.transcript,
+      state_before: body.state_before,
+      state_after: body.state_after,
+      config: body.config,
+    });
 
     // Deterministic assertions: machine-checkable success/failure with explicit reasons.
     const assertions = body.assertions ?? {};
@@ -363,7 +415,40 @@ Deno.serve(async (req) => {
         const stopRe = new RegExp(assertions.stop_regex ?? "\\b(stop|arr[êe]te|on arr[êe]te|pause)\\b", "i");
         const userHasStop = (body.transcript ?? []).some((m) => m.role === "user" && stopRe.test(m.content ?? ""));
         if (!userHasStop) {
-          const nonInv = assistantMsgs.find((m) => (m as any).agent_used && (m as any).agent_used !== "investigator");
+          // In post-bilan parking-lot tests, allow non-investigator AFTER bilan closure.
+          const isPostBilanTest = Boolean((body as any)?.config?.limits?.test_post_checkup_deferral);
+          const afterInvStatus = (body.state_after as any)?.investigation_state?.status ?? null;
+          const isPostCheckupState = String(afterInvStatus ?? "").startsWith("post_checkup");
+          const allowAfterClosure = isPostBilanTest || isPostCheckupState;
+
+          const closureIdx = (() => {
+            const ts = (body.transcript ?? []) as TranscriptMsg[];
+            for (let i = 0; i < ts.length; i++) {
+              const m = ts[i];
+              if (m.role !== "assistant") continue;
+              const s = (m.content ?? "").toString().toLowerCase();
+              if (/\bok,\s*bilan\s+termin[ée]?\b/i.test(s)) return i;
+              if (/\b(ok[, ]+)?on\s+a\s+fini\s+le\s+bilan\b/i.test(s)) return i;
+              if (/\b(on\s+a\s+termin[ée]\s+le\s+bilan)\b/i.test(s)) return i;
+              if (/\b(bilan\s+termin[ée]?|on\s+a\s+fait\s+le\s+tour\s+(?:des\s+points|pour\s+ce\s+bilan))\b/i.test(s)) return i;
+            }
+            return -1;
+          })();
+
+          // Map assistantMsgs index -> transcript index so we can compare against closureIdx correctly.
+          const assistantTranscriptIdxs = ((body.transcript ?? []) as TranscriptMsg[])
+            .map((m, i) => ({ m, i }))
+            .filter((x) => x.m.role === "assistant")
+            .map((x) => x.i);
+
+          const nonInv = assistantMsgs.find((m, assistantIdx) => {
+            const used = (m as any).agent_used;
+            if (!used || used === "investigator") return false;
+            if (!allowAfterClosure) return true;
+            const tIdx = assistantTranscriptIdxs[assistantIdx] ?? -1;
+            if (closureIdx >= 0 && tIdx > closureIdx) return false;
+            return true;
+          });
           if (nonInv) {
             fail(
               "assert_investigator_not_stable",
@@ -389,23 +474,12 @@ Deno.serve(async (req) => {
     const transcriptLines = buildTranscriptLines(body.transcript ?? [], body.state_before);
 
     // Lightweight system snapshot so the judge can be precise and avoid inventing modules.
-    const promptKeys = [
-      "sophia.dispatcher",
-      "sophia.investigator",
-      "sophia.companion",
-      "sophia.architect",
-      "sophia.firefighter",
-      "sophia.sentry",
-    ];
-    const overrides: Record<string, string> = {};
-    for (const k of promptKeys) overrides[k] = await fetchPromptOverride(k);
     const systemSnapshot = {
       ...(typeof (body as any)?.system_snapshot === "object" ? (body as any).system_snapshot : {}),
       routing_rules: [
         "Hard guard (router): if investigation_state is active, only investigator answers unless explicit stop (stop/arrête/change topic).",
         "Safety priority: sentry/firefighter may override during a checkup if risk is detected.",
       ],
-      prompt_overrides_appended: overrides,
     };
     if (!isMegaEnabled() || allowReal) {
       try {
@@ -416,7 +490,7 @@ Tu analyses un transcript de conversation et tu renvoies UNIQUEMENT du JSON.
 
 Objectifs:
 - Repérer incohérences, violations de règles, erreurs de routing (investigation_state), ton, hallucinations.
-- Proposer des améliorations sous forme d'ADDENDUM à APPENDRE/REMPLACER dans les prompt_overrides.
+- Proposer des améliorations sous forme d'ADDENDUM (texte) à copier/coller dans le code (prompts en dur).
 
 Règles:
 - Propose des addendums courts, actionnables, testables.
@@ -447,11 +521,13 @@ Format attendu:
         const transcriptText = body.transcript
           .map((m) => `${m.role.toUpperCase()}${m.agent_used ? `(${m.agent_used})` : ""}: ${m.content}`)
           .join("\n");
+        const JUDGE_DEFAULT_MODEL =
+          (Deno.env.get("GEMINI_JUDGE_MODEL") ?? "").trim() || "gemini-3-pro-preview";
         const overrideModel =
           (body as any)?.model ||
           (body as any)?.config?.model ||
           (body as any)?.config?.limits?.model ||
-          "gemini-2.5-flash";
+          JUDGE_DEFAULT_MODEL;
         const out = await generateWithGemini(systemPrompt, transcriptText, 0.2, true, [], "auto", {
           requestId,
           model: String(overrideModel),
@@ -492,9 +568,9 @@ Format attendu:
       normalizedSuggestionsAll,
       (s: any) => `${s.prompt_key}:${s.action}:${s.proposed_addendum}`,
     );
+    // We no longer support DB-backed prompt overrides; treat "existing override" as empty.
     const normalizedSuggestionsNoDup = normalizedSuggestionsDeduped.filter((s: any) => {
-      const existing = overrides?.[String(s.prompt_key)] ?? "";
-      return !isSuggestionDuplicateAgainstOverride({ existingOverride: existing, proposed: s.proposed_addendum });
+      return !isSuggestionDuplicateAgainstOverride({ existingOverride: "", proposed: s.proposed_addendum });
     });
 
     // Limit noise (requested): max 3 issues, max 3 suggestions.

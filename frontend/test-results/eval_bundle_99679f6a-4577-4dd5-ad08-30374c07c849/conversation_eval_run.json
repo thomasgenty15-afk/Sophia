@@ -1,0 +1,530 @@
+{
+  "id": "99679f6a-4577-4dd5-ad08-30374c07c849",
+  "created_at": "2026-01-08T02:46:29.702633+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__e8792bd89cad41",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T02:45:55.289973+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait ! Pour ton heure de coucher hier, tu t'es couché(e) à quelle heure ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T02:46:00.806207+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je me suis couché vers 0h30.",
+      "agent_used": null,
+      "created_at": "2026-01-08T02:46:03.032294+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "D'accord, 0h30 hier pour le coucher.\n\nPassons au Mur Invisible maintenant. Il s'agit d'établir un couvre-feu digital strict : plus d'écrans (téléphone, tablette, ordinateur, TV) une heure avant l'heure à laquelle tu comptes te coucher.\n\nEst-ce que tu as réussi à mettre ça en place hier soir ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T02:46:13.503097+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai essayé, mais pas tout à fait une heure. Plutôt 30-40 minutes. C'est lié à mon organisation générale, je crois. On pourra en reparler plus tard si tu veux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T02:46:18.414979+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "D'accord, 30-40 minutes, c'est déjà un pas dans la bonne direction. On garde en tête ta remarque sur l'organisation générale pour en discuter plus tard, aucun problème.\n\nPour ton sommeil, tu te sens comment ce matin ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T02:46:29.221509+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "065c0b88-90a4-417a-8ad2-a7bb9cce9a0b",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T02:45:55.262202+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T02:45:55.262202+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "78834f18-0d7b-448f-87b6-e62bc36d4095",
+          "type": "vital",
+          "unit": "h",
+          "title": "Heure de coucher",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "8b0013f3-5c3c-468e-a7eb-76817c218a6d",
+          "type": "action",
+          "title": "Le Mur Invisible",
+          "target": 7,
+          "description": "Établir un couvre-feu digital strict : plus d'écrans (téléphone, tablette, ordinateur, TV) 1 heure avant l'heure de coucher définie.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "3570a3a2-0a09-4632-9db5-9e914090c54f",
+          "type": "action",
+          "title": "Le Mikado Corporel",
+          "target": 7,
+          "description": "Intégrer 5 minutes de micro-mouvements doux (étirements légers, respiration diaphragmatique) au réveil ou après une période sédentaire prolongée.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "7e4fa043-7d89-49ac-b8a5-10fe267a2fb2",
+          "type": "framework",
+          "title": "Cartographie des Énergies",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T02:45:55.262202+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "065c0b88-90a4-417a-8ad2-a7bb9cce9a0b",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T02:46:29.208795+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T02:45:55.262202+00:00",
+    "short_term_context": null,
+    "investigation_state": null,
+    "last_interaction_at": "2026-01-08T02:45:55.262202+00:00",
+    "unprocessed_msg_count": 3
+  },
+  "issues": [
+    {
+      "code": "investigator_flow_transition",
+      "message": "The investigator transitions abruptly between sub-topics within the checkup without a clear closing statement for the previous point, even after acknowledging user input and a deferral request. This can make the conversation feel less fluid.",
+      "evidence": {
+        "snippet": "On garde en tête ta remarque sur l'organisation générale pour en discuter plus tard, aucun problème. Pour ton sommeil, tu te sens comment ce matin ?",
+        "agent_used": "investigator"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "To enhance conversational flow and provide clearer structure during a checkup, making transitions between different topics smoother and more explicit for the user.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#2 USER: Je me suis couché vers 0h30.\n#3 ASSISTANT(investigator): D'accord, 0h30 hier pour le coucher. Passons au Mur Invisible maintenant. Il s'agit d'établir un couvre-feu digital strict : plus d'écrans (téléphone, tablette, ordinateur, TV) une heure avant l'heure à laquelle tu comptes te coucher. Est-ce que tu as réussi à mettre ça en place hier soir ?\n#4 USER: J'ai essayé, mais pas tout à fait une heure. Plutôt 30-40 minutes. C'est lié à mon organisation générale, je crois. On pourra en reparler plus tard si tu veux.\n#5 ASSISTANT(investigator): D'accord, 30-40 minutes, c'est déjà un pas dans la bonne direction. On garde en tête ta remarque sur l'organisation générale pour en discuter plus tard, aucun problème. Pour ton sommeil, tu te sens comment ce matin ?\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nAprès avoir traité un point du bilan ou une question spécifique, et avant de passer au point suivant, utilise une phrase de transition claire pour marquer la fin du sujet précédent. Par exemple : 'Parfait pour ce point, passons maintenant à...' ou 'Nous avons couvert X, abordons Y.'",
+      "proposed_addendum": "Après avoir traité un point du bilan ou une question spécifique, et avant de passer au point suivant, utilise une phrase de transition claire pour marquer la fin du sujet précédent. Par exemple : 'Parfait pour ce point, passons maintenant à...' ou 'Nous avons couvert X, abordons Y.'"
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0075308,
+    "request_id": "55018973-3dc2-4561-82c7-2d26105cf331:core:bilan_real_bundle__e8792bd89cad41:b3668c49-849f-4180-9bd8-940219d70b93",
+    "total_tokens": 27089,
+    "output_tokens": 668,
+    "prompt_tokens": 19536,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-2.5-flash",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3
+    },
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "5ad989e5-0996-46d5-a17c-661bda1fce35",
+        "title": "L'Éveil du Flux Vital",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage du Calme",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "8b0013f3-5c3c-468e-a7eb-76817c218a6d",
+                  "tips": "Charge ton téléphone dans une autre pièce. Utilise un réveil non-connecté pour ne pas être tenté.",
+                  "type": "habitude",
+                  "title": "Le Mur Invisible",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Réduit l'exposition à la lumière bleue qui perturbe la production de mélatonine et freine la rumination mentale liée à l'information, préparant ainsi ton cerveau au repos.",
+                  "targetReps": 7,
+                  "description": "Établir un couvre-feu digital strict : plus d'écrans (téléphone, tablette, ordinateur, TV) 1 heure avant l'heure de coucher définie.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "93544cae-1f46-4987-90ae-c5e8c92fd813",
+                  "tips": "Fais ce bilan rapide 3 fois par jour : matin, midi, soir. Sois honnête avec toi-même.",
+                  "type": "framework",
+                  "title": "Cartographie des Énergies",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Comprendre ton chronotype et tes fluctuations énergétiques te permettra de planifier tes activités de manière plus intelligente et de ne plus te battre contre ton corps, optimisant ainsi ta constance.",
+                  "targetReps": 7,
+                  "description": "Observer et noter tes pics et creux d'énergie au fil de la journée pendant une semaine pour identifier tes rythmes naturels et les activités associées.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Surveille ton corps comme un scientifique. Quand te sens-tu au top ? Quand est-ce que ça plonge ? Ne filtre rien, juste observe.",
+                    "sections": [
+                      {
+                        "id": "p1",
+                        "label": "Moment de la journée",
+                        "inputType": "text",
+                        "placeholder": "Matin (7h-12h) / Après-midi (12h-18h) / Soir (18h-22h)"
+                      },
+                      {
+                        "id": "p2",
+                        "label": "Niveau d'énergie (1-10)",
+                        "inputType": "scale",
+                        "placeholder": "5"
+                      },
+                      {
+                        "id": "p3",
+                        "label": "Activité en cours / Sentiment",
+                        "inputType": "textarea",
+                        "placeholder": "Je me sens fatigué après le déjeuner / Je suis très concentré au matin"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Ralentir pour mieux repartir",
+              "rationale": "Avant de construire l'énergie, il faut stabiliser les fuites. Cette phase vise à réduire les stimulations qui sapent ta récupération et à prendre conscience de tes rythmes internes."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Le Souffle Régulier",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "3570a3a2-0a09-4632-9db5-9e914090c54f",
+                  "tips": "Cherche des routines courtes sur YouTube (yoga doux, étirements pour le dos). L'important est la régularité et la douceur, pas l'intensité.",
+                  "type": "habitude",
+                  "title": "Le Mikado Corporel",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Relance la circulation sanguine et lymphatique, oxygène le cerveau et brise la sédentarité, même avec peu de temps, prévenant ainsi la fatigue cumulée et les douleurs.",
+                  "targetReps": 7,
+                  "description": "Intégrer 5 minutes de micro-mouvements doux (étirements légers, respiration diaphragmatique) au réveil ou après une période sédentaire prolongée.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "072de220-664c-40e2-b36f-1eca23cae1d2",
+                  "tips": "Même la lumière d'un chargeur ou d'une veilleuse peut perturber la qualité de ton sommeil. Pense 'grotte' pour ta chambre.",
+                  "type": "mission",
+                  "title": "L'Abri Réparateur",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ton environnement influence directement la qualité de ton sommeil et donc ta récupération énergétique. Moins de stress sensoriel signifie un sommeil plus profond et plus réparateur.",
+                  "description": "Optimiser ton environnement de sommeil : assure-toi d'avoir une obscurité totale, le moins de bruit possible, et une température fraîche. Achète des boules Quiès, un masque de sommeil ou des rideaux occultants si besoin.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Préparer le terrain pour l'action",
+              "rationale": "Avec une meilleure conscience de tes rythmes, cette phase se concentre sur l'amélioration de ton environnement de repos et l'introduction d'un mouvement minimal pour oxygéner corps et esprit."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : La Reconnexion Somatique",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "cdf09929-971d-43e5-94cf-560730cf2844",
+                  "tips": "Garde une gourde à portée de main. Hydrate-toi par petites gorgées tout au long de la journée plutôt que de tout boire d'un coup.",
+                  "type": "habitude",
+                  "title": "L'Élixir de Vie",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La déshydratation est une cause fréquente de fatigue, de maux de tête et de brouillard mental. Une bonne hydratation soutient toutes les fonctions corporelles, y compris la production d'énergie cellulaire.",
+                  "targetReps": 7,
+                  "description": "Boire un grand verre d'eau dès le réveil et s'assurer de boire au moins 1,5L d'eau pure par jour de manière régulière.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "d53f7c57-4e07-479d-bffc-ece71e1e95dc",
+                  "tips": "Ne cherche pas à analyser ou juger, juste à observer. Où ressens-tu des tensions ? De la détente ? De la fatigue ?",
+                  "type": "framework",
+                  "title": "Scan Corporel Éclair",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Développe ta proprioception, te permet de détecter les signaux de fatigue ou de stress avant qu'ils ne s'installent, et ancre ton esprit dans le présent pour faciliter l'endormissement.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, avant de te coucher, prends 2 minutes pour faire un rapide état des lieux de tes sensations corporelles, de la tête aux pieds.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Ferme les yeux, respire calmement. Scanne ton corps mentalement, de ton cuir chevelu à la pointe de tes pieds. Où se loge la tension ? Où te sens-tu détendu ? Note ce qui t'interpelle.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Zones de tension / Sensation dominante",
+                        "inputType": "textarea",
+                        "placeholder": "Tension dans les épaules, léger mal de tête, sensation de lourdeur dans les jambes."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Besoin immédiat ressenti (ex: étirer, respirer, relâcher)",
+                        "inputType": "text",
+                        "placeholder": "Besoin d'étirer la nuque, de relâcher les mâchoires."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Écouter le corps, nourrir l'énergie",
+              "rationale": "Cette phase t'aide à te réhydrater en profondeur, source d'énergie souvent sous-estimée, et à écouter les signaux subtils de ton corps pour anticiper et mieux gérer la fatigue."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : L'Élan Progressif",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "9e948215-74e7-4cfc-89b0-923da665cbf6",
+                  "tips": "Même un trajet pour faire des courses ou se rendre au parc compte. L'objectif est de bouger à un rythme qui te fait sentir 'vivant' sans t'épuiser.",
+                  "type": "habitude",
+                  "title": "La Balade Énergisante",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "L'activité physique modérée est un puissant régulateur d'humeur, un booster d'énergie et un facilitateur de sommeil. La lumière naturelle en journée régule également ton cycle circadien, améliorant la qualité de ton repos.",
+                  "targetReps": 7,
+                  "description": "Intégrer une marche active de 20 minutes par jour, idéalement en extérieur, pendant une pause ou après le travail.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "43807a7e-d330-4ac3-8a06-a671e3304881",
+                  "tips": "Pense aux musiques qui te donnent envie de danser ou de chanter. Il s'agit de dopamine musicale et de bonnes vibrations !",
+                  "type": "mission",
+                  "title": "La Bande Son de la Vitalité",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La musique est un puissant levier émotionnel et physiologique. Elle peut améliorer la performance physique, réduire la perception de l'effort et stimuler la motivation, te permettant de maintenir la constance malgré la fatigue.",
+                  "description": "Créer une playlist de 15-20 minutes de musiques dynamiques qui te donnent instantanément de l'énergie et de la bonne humeur. Utilise-la avant ta marche, pour te remotiver ou en début de journée.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Le mouvement, source de dynamisme",
+              "rationale": "Les fondations étant posées, il est temps d'intégrer un mouvement plus consistant pour dynamiser ton corps et ton esprit, en douceur, mais avec régularité."
+            },
+            {
+              "id": 5,
+              "title": "Phase 5 : L'Architecture du Temps",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "27d0508f-8839-477a-960a-a1afd669a59e",
+                  "tips": "Ne lutte plus contre tes rythmes naturels, utilise-les à ton avantage. Si tu es du matin, bloque les tâches complexes le matin. Réfléchis à ta semaine à venir chaque dimanche soir.",
+                  "type": "framework",
+                  "title": "La Matrice des Énergies",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Optimise ta productivité et réduit la fatigue en alignant ton effort avec tes capacités physiologiques et cognitives. Moins de friction, plus de constance et moins de décrochage.",
+                  "targetReps": 14,
+                  "description": "Apprendre à planifier tes tâches en fonction de tes niveaux d'énergie identifiés précédemment. Les tâches exigeantes pendant tes pics, les tâches routinières pendant tes creux.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Chaque jour, avant de commencer, jette un œil à ta to-do list. Quand penses-tu avoir l'énergie la plus adaptée pour chaque tâche ? Sois stratégique, pas juste réactif.",
+                    "sections": [
+                      {
+                        "id": "t1",
+                        "label": "Tâche à réaliser",
+                        "inputType": "text",
+                        "placeholder": "Préparer rapport X"
+                      },
+                      {
+                        "id": "t2",
+                        "label": "Niveau d'énergie requis (Faible/Moyen/Élevé)",
+                        "inputType": "text",
+                        "placeholder": "Élevé"
+                      },
+                      {
+                        "id": "t3",
+                        "label": "Moment idéal pour cette tâche",
+                        "inputType": "text",
+                        "placeholder": "Matin (pic d'énergie)"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "fb8e9d2b-3565-46c2-9ed7-96d27cc48e92",
+                  "tips": "Utilise un minuteur Pomodoro ou une alarme discrète pour te rappeler de ces pauses. L'idée est de 'reset' ton cerveau et ton corps avant que la fatigue ne s'installe.",
+                  "type": "habitude",
+                  "title": "La Micro-Régénération",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Évite la surcharge cognitive et physique, maintient un niveau d'énergie stable tout au long de la journée et améliore la concentration sur le long terme, luttant contre le décrochage.",
+                  "targetReps": 7,
+                  "description": "Prendre une pause active de 5 minutes toutes les 90 minutes si tu es assis, ou une pause relaxante si tu es debout (ex: étirement, verre d'eau, regarder au loin).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 9-10 • Gérer les journées irrégulières avec intelligence",
+              "rationale": "Cette phase t'apprend à planifier tes journées en tenant compte de tes pics et creux d'énergie, transformant ainsi tes journées irrégulières en une force plutôt qu'un obstacle."
+            },
+            {
+              "id": 6,
+              "title": "Phase 6 : Le Maître de la Vitalité",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "5be9a963-c5cf-47f2-9000-a05d48117e46",
+                  "tips": "Combine les habitudes que tu as déjà ancrées. L'ordre et la synergie sont clés. Ce rituel est ton carburant mental et physique pour la journée.",
+                  "type": "habitude",
+                  "title": "Le Rituel de l'Aurore",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Instaurer une routine positive et intentionnelle dès le matin donne le ton pour la journée, réduit le stress et renforce le sentiment de contrôle et d'énergie durable, indépendamment des irrégularités futures.",
+                  "targetReps": 7,
+                  "description": "Développer un court rituel matinal de 10-15 minutes qui t'apporte énergie et clarté (ex: micro-mouvements, hydratation, courte méditation, planification de la journée).",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "dfdc2a6c-f589-4bf8-a76b-d1ccf423bee0",
+                  "tips": "Sois précis, mesurable, atteignable, réaliste, temporellement défini (objectifs SMART). Pense à ce qui t'apporterait encore plus d'énergie et de stabilité.",
+                  "type": "mission",
+                  "title": "Cap sur la Prochaine Aventure",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ancre la transformation dans le temps long. La progression est un chemin continu, et définir des horizons clairs maintient la motivation et l'engagement, évitant le retour des anciens blocages.",
+                  "description": "Réfléchir et définir tes 2-3 prochains objectifs 'Vitalité' pour les 3 mois à venir, basés sur tes progrès et ce que tu as appris sur ton corps et ton énergie.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 11-12 • Intégration et vision à long terme",
+              "rationale": "Cette phase vise à cimenter toutes les habitudes acquises dans un rituel matinal puissant et à te projeter dans le futur, en définissant tes prochaines étapes pour maintenir cette vitalité sur le long terme."
+            }
+          ],
+          "deepWhy": "Pour avoir une énergie constante, être présent et stable face aux défis du quotidien.",
+          "identity": "Je suis un Gardien de mon Énergie.",
+          "strategy": "Nous allons progressivement reconstruire ta vitalité en ancrant des micro-habitudes. L'objectif est de réparer les fondations de ton énergie (sommeil, mouvement doux, gestion de la fatigue) avant d'accélérer, pour une constance durable.",
+          "goldenRules": "1. Priorité au repos quand la fatigue monte.\n2. Écrans hors de vue au moins 1h avant le coucher.\n3. Chaque petit pas compte, la constance est reine.",
+          "vitalSignal": {
+            "name": "Heure de coucher",
+            "type": "constat",
+            "unit": "h",
+            "startValue": "00:00",
+            "description": "On avancera progressivement l'heure du coucher de 15 minutes chaque semaine si l'objectif précédent est atteint, pour une récupération optimale.",
+            "targetValue": "22:30",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Éveil du Flux Vital",
+          "context_problem": "Épuisé par des journées irrégulières et un manque d'activité, tu te sentais piégé dans un cycle de fatigue et d'inconstance. L'usage du téléphone devenait une échappatoire qui sapait encore plus ton énergie, t'éloignant de la stabilité et de la vitalité que tu désires.",
+          "sophiaKnowledge": "Tu es un homme d'environ 35 ans qui, malgré des journées irrégulières, cherche à retrouver une vitalité et une stabilité quotidiennes. Ton manque d'énergie et de constance est souvent exacerbé par la fatigue et un usage compensatoire du téléphone, entraînant un niveau de stress élevé et une activité physique faible.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de jours cette semaine as-tu mis ton téléphone de côté 1h avant de dormir ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "12 semaines"
+        },
+        "goal_id": "c837a11e-629d-4d7c-98a6-25e7c31be147",
+        "deep_why": "Pour avoir une énergie constante, être présent et stable face aux défis du quotidien.",
+        "created_at": "2026-01-08T02:45:55.218561+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "e69a96be-e666-4c9c-a623-82f7d193e93b",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "8b0013f3-5c3c-468e-a7eb-76817c218a6d",
+          "title": "Le Mur Invisible",
+          "status": "active",
+          "created_at": "2026-01-08T02:45:55.230889+00:00",
+          "description": "Établir un couvre-feu digital strict : plus d'écrans (téléphone, tablette, ordinateur, TV) 1 heure avant l'heure de coucher définie.",
+          "target_reps": 7,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T02:45:55.222+00:00"
+        },
+        {
+          "id": "3570a3a2-0a09-4632-9db5-9e914090c54f",
+          "title": "Le Mikado Corporel",
+          "status": "active",
+          "created_at": "2026-01-08T02:45:55.230889+00:00",
+          "description": "Intégrer 5 minutes de micro-mouvements doux (étirements légers, respiration diaphragmatique) au réveil ou après une période sédentaire prolongée.",
+          "target_reps": 7,
+          "time_of_day": "morning",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T02:45:55.222+00:00"
+        },
+        {
+          "id": "7e4fa043-7d89-49ac-b8a5-10fe267a2fb2",
+          "_kind": "framework",
+          "title": "Cartographie des Énergies",
+          "status": "active",
+          "created_at": "2026-01-08T02:45:55.245115+00:00",
+          "description": "",
+          "target_reps": 7,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-06T02:45:55.222+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "7e4fa043-7d89-49ac-b8a5-10fe267a2fb2",
+          "type": "recurring",
+          "title": "Cartographie des Énergies",
+          "status": "active",
+          "created_at": "2026-01-08T02:45:55.245115+00:00",
+          "target_reps": 7,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T02:45:55.222+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Éveil du Flux Vital\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour avoir une énergie constante, être présent et stable face aux défis du quotidien.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage du Calme\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"8b0013f3-5c3c-468e-a7eb-76817c218a6d\",\n          \"tips\": \"Charge ton téléphone dans une autre pièce. Utilise un réveil non-connecté pour ne pas être tenté.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Mur Invisible\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Réduit l'exposition à la lumière bleue qui perturbe la production de mélatonine et freine la rumination mentale liée à l'information, préparant ainsi ton cerveau au repos.\",\n          \"targetReps\": 7,\n          \"description\": \"Établir un couvre-feu digital strict : plus d'écrans (téléphone, tablette, ordinateur, TV) 1 heure avant l'heure de coucher définie.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"93544cae-1f46-4987-90ae-c5e8c92fd813\",\n          \"tips\": \"Fais ce bilan rapide 3 fois par jour : matin, midi, soir. Sois honnête avec toi-même.\",\n          \"type\": \"framework\",\n          \"title\": \"Cartographie des Énergies\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Comprendre ton chronotype et tes fluctuations énergétiques te permettra de planifier tes activités de manière plus intelligente et de ne plus te battre contre ton corps, optimisant ainsi ta constance.\",\n          \"targetReps\": 7,\n          \"description\": \"Observer et noter tes pics et creux d'énergie au fil de la journée pendant une semaine pour identifier tes rythmes naturels et les activités associées.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Surveille ton corps comme un scientifique. Quand te sens-tu au top ? Quand est-ce que ça plonge ? Ne filtre rien, juste observe.\",\n            \"sections\": [\n              {\n                \"id\": \"p1\",\n                \"label\": \"Moment de la journée\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Matin (7h-12h) / Après-midi (12h-18h) / Soir (18h-22h)\"\n              },\n              {\n                \"id\": \"p2\",\n                \"label\": \"Niveau d'énergie (1-10)\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"5\"\n              },\n              {\n                \"id\": \"p3\",\n                \"label\": \"Activité en cours / Sentiment\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je me sens fatigué après le déjeuner / Je suis très concentré au matin\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Ralentir pour mieux repartir\",\n      \"rationale\": \"Avant de construire l'énergie, il faut stabiliser les fuites. Cette phase vise à réduire les stimulations qui sapent ta récupération et à prendre conscience de tes rythmes internes.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Le Souffle Régulier\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"3570a3a2-0a09-4632-9db5-9e914090c54f\",\n          \"tips\": \"Cherche des routines courtes sur YouTube (yoga doux, étirements pour le dos). L'important est la régularité et la douceur, pas l'intensité.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Mikado Corporel\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Relance la circulation sanguine et lymphatique, oxygène le cerveau et brise la sédentarité, même avec peu de temps, prévenant ainsi la fatigue cumulée et les douleurs.\",\n          \"targetReps\": 7,\n          \"description\": \"Intégrer 5 minutes de micro-mouvements doux (étirements légers, respiration diaphragmatique) au réveil ou après une période sédentaire prolongée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"072de220-664c-40e2-b36f-1eca23cae1d2\",\n          \"tips\": \"Même la lumière d'un chargeur ou d'une veilleuse peut perturber la qualité de ton sommeil. Pense 'grotte' pour ta chambre.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Abri Réparateur\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ton environnement influence directement la qualité de ton sommeil et donc ta récupération énergétique. Moins de stress sensoriel signifie un sommeil plus profond et plus réparateur.\",\n          \"description\": \"Optimiser ton environnement de sommeil : assure-toi d'avoir une obscurité totale, le moins de bruit possible, et une température fraîche. Achète des boules Quiès, un masque de sommeil ou des rideaux occultants si besoin.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Préparer le terrain pour l'action\",\n      \"rationale\": \"Avec une meilleure conscience de tes rythmes, cette phase se concentre sur l'amélioration de ton environnement de repos et l'introduction d'un mouvement minimal pour oxygéner corps et esprit.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : La Reconnexion Somatique\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"cdf09929-971d-43e5-94cf-560730cf2844\",\n          \"tips\": \"Garde une gourde à portée de main. Hydrate-toi par petites gorgées tout au long de la journée plutôt que de tout boire d'un coup.\",\n          \"type\": \"habitude\",\n          \"title\": \"L'Élixir de Vie\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La déshydratation est une cause fréquente de fatigue, de maux de tête et de brouillard mental. Une bonne hydratation soutient toutes les fonctions corporelles, y compris la production d'énergie cellulaire.\",\n          \"targetReps\": 7,\n          \"description\": \"Boire un grand verre d'eau dès le réveil et s'assurer de boire au moins 1,5L d'eau pure par jour de manière régulière.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"d53f7c57-4e07-479d-bffc-ece71e1e95dc\",\n          \"tips\": \"Ne cherche pas à analyser ou juger, juste à observer. Où ressens-tu des tensions ? De la détente ? De la fatigue ?\",\n          \"type\": \"framework\",\n          \"title\": \"Scan Corporel Éclair\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Développe ta proprioception, te permet de détecter les signaux de fatigue ou de stress avant qu'ils ne s'installent, et ancre ton esprit dans le présent pour faciliter l'endormissement.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, avant de te coucher, prends 2 minutes pour faire un rapide état des lieux de tes sensations corporelles, de la tête aux pieds.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Ferme les yeux, respire calmement. Scanne ton corps mentalement, de ton cuir chevelu à la pointe de tes pieds. Où se loge la tension ? Où te sens-tu détendu ? Note ce qui t'interpelle.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Zones de tension / Sensation dominante\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Tension dans les épaules, léger mal de tête, sensation de lourdeur dans les jambes.\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Besoin immédiat ressenti (ex: étirer, respirer, relâcher)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Besoin d'étirer la nuque, de relâcher les mâchoires.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Écouter le corps, nourrir l'énergie\",\n      \"rationale\": \"Cette phase t'aide à te réhydrater en profondeur, source d'énergie souvent sous-estimée, et à écouter les signaux subtils de ton corps pour anticiper et mieux gérer la fatigue.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : L'Élan Progressif\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"9e948215-74e7-4cfc-89b0-923da665cbf6\",\n          \"tips\": \"Même un trajet pour faire des courses ou se rendre au parc compte. L'objectif est de bouger à un rythme qui te fait sentir 'vivant' sans t'épuiser.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Balade Énergisante\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"L'activité physique modérée est un puissant régulateur d'humeur, un booster d'énergie et un facilitateur de sommeil. La lumière naturelle en journée régule également ton cycle circadien, améliorant la qualité de ton repos.\",\n          \"targetReps\": 7,\n          \"description\": \"Intégrer une marche active de 20 minutes par jour, idéalement en extérieur, pendant une pause ou après le travail.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"43807a7e-d330-4ac3-8a06-a671e3304881\",\n          \"tips\": \"Pense aux musiques qui te donnent envie de danser ou de chanter. Il s'agit de dopamine musicale et de bonnes vibrations !\",\n          \"type\": \"mission\",\n          \"title\": \"La Bande Son de la Vitalité\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La musique est un puissant levier émotionnel et physiologique. Elle peut améliorer la performance physique, réduire la perception de l'effort et stimuler la motivation, te permettant de maintenir la constance malgré la fatigue.\",\n          \"description\": \"Créer une playlist de 15-20 minutes de musiques dynamiques qui te donnent instantanément de l'énergie et de la bonne humeur. Utilise-la avant ta marche, pour te remotiver ou en début de journée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Le mouvement, source de dynamisme\",\n      \"rationale\": \"Les fondations étant posées, il est temps d'intégrer un mouvement plus consistant pour dynamiser ton corps et ton esprit, en douceur, mais avec régularité.\"\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Phase 5 : L'Architecture du Temps\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"27d0508f-8839-477a-960a-a1afd669a59e\",\n          \"tips\": \"Ne lutte plus contre tes rythmes naturels, utilise-les à ton avantage. Si tu es du matin, bloque les tâches complexes le matin. Réfléchis à ta semaine à venir chaque dimanche soir.\",\n          \"type\": \"framework\",\n          \"title\": \"La Matrice des Énergies\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Optimise ta productivité et réduit la fatigue en alignant ton effort avec tes capacités physiologiques et cognitives. Moins de friction, plus de constance et moins de décrochage.\",\n          \"targetReps\": 14,\n          \"description\": \"Apprendre à planifier tes tâches en fonction de tes niveaux d'énergie identifiés précédemment. Les tâches exigeantes pendant tes pics, les tâches routinières pendant tes creux.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Chaque jour, avant de commencer, jette un œil à ta to-do list. Quand penses-tu avoir l'énergie la plus adaptée pour chaque tâche ? Sois stratégique, pas juste réactif.\",\n            \"sections\": [\n              {\n                \"id\": \"t1\",\n                \"label\": \"Tâche à réaliser\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Préparer rapport X\"\n              },\n              {\n                \"id\": \"t2\",\n                \"label\": \"Niveau d'énergie requis (Faible/Moyen/Élevé)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Élevé\"\n              },\n              {\n                \"id\": \"t3\",\n                \"label\": \"Moment idéal pour cette tâche\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Matin (pic d'énergie)\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"fb8e9d2b-3565-46c2-9ed7-96d27cc48e92\",\n          \"tips\": \"Utilise un minuteur Pomodoro ou une alarme discrète pour te rappeler de ces pauses. L'idée est de 'reset' ton cerveau et ton corps avant que la fatigue ne s'installe.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Micro-Régénération\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Évite la surcharge cognitive et physique, maintient un niveau d'énergie stable tout au long de la journée et améliore la concentration sur le long terme, luttant contre le décrochage.\",\n          \"targetReps\": 7,\n          \"description\": \"Prendre une pause active de 5 minutes toutes les 90 minutes si tu es assis, ou une pause relaxante si tu es debout (ex: étirement, verre d'eau, regarder au loin).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 9-10 • Gérer les journées irrégulières avec intelligence\",\n      \"rationale\": \"Cette phase t'apprend à planifier tes journées en tenant compte de tes pics et creux d'énergie, transformant ainsi tes journées irrégulières en une force plutôt qu'un obstacle.\"\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Phase 6 : Le Maître de la Vitalité\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"5be9a963-c5cf-47f2-9000-a05d48117e46\",\n          \"tips\": \"Combine les habitudes que tu as déjà ancrées. L'ordre et la synergie sont clés. Ce rituel est ton carburant mental et physique pour la journée.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel de l'Aurore\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Instaurer une routine positive et intentionnelle dès le matin donne le ton pour la journée, réduit le stress et renforce le sentiment de contrôle et d'énergie durable, indépendamment des irrégularités futures.\",\n          \"targetReps\": 7,\n          \"description\": \"Développer un court rituel matinal de 10-15 minutes qui t'apporte énergie et clarté (ex: micro-mouvements, hydratation, courte méditation, planification de la journée).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"dfdc2a6c-f589-4bf8-a76b-d1ccf423bee0\",\n          \"tips\": \"Sois précis, mesurable, atteignable, réaliste, temporellement défini (objectifs SMART). Pense à ce qui t'apporterait encore plus d'énergie et de stabilité.\",\n          \"type\": \"mission\",\n          \"title\": \"Cap sur la Prochaine Aventure\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ancre la transformation dans le temps long. La progression est un chemin continu, et définir des horizons clairs maintient la motivation et l'engagement, évitant le retour des anciens blocages.\",\n          \"description\": \"Réfléchir et définir tes 2-3 prochains objectifs 'Vitalité' pour les 3 mois à venir, basés sur tes progrès et ce que tu as appris sur ton corps et ton énergie.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 11-12 • Intégration et vision à long terme\",\n      \"rationale\": \"Cette phase vise à cimenter toutes les habitudes acquises dans un rituel matinal puissant et à te projeter dans le futur, en définissant tes prochaines étapes pour maintenir cette vitalité sur le long terme.\"\n    }\n  ],\n  \"deepWhy\": \"Pour avoir une énergie constante, être présent et stable face aux défis du quotidien.\",\n  \"identity\": \"Je suis un Gardien de mon Énergie.\",\n  \"strategy\": \"Nous allons progressivement reconstruire ta vitalité en ancrant des micro-habitudes. L'objectif est de réparer les fondations de ton énergie (sommeil, mouvement doux, gestion de la fatigue) avant d'accélérer, pour une constance durable.\",\n  \"goldenRules\": \"1. Priorité au repos quand la fatigue monte.\\n2. Écrans hors de vue au moins 1h avant le coucher.\\n3. Chaque petit pas compte, la constance est reine.\",\n  \"vitalSignal\": {\n    \"name\": \"Heure de coucher\",\n    \"type\": \"constat\",\n    \"unit\": \"h\",\n    \"startValue\": \"00:00\",\n    \"description\": \"On avancera progressivement l'heure du coucher de 15 minutes chaque semaine si l'objectif précédent est atteint, pour une récupération optimale.\",\n    \"targetValue\": \"22:30\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Éveil du Flux Vital\",\n  \"context_problem\": \"Épuisé par des journées irrégulières et un manque d'activité, tu te sentais piégé dans un cycle de fatigue et d'inconstance. L'usage du téléphone devenait une échappatoire qui sapait encore plus ton énergie, t'éloignant de la stabilité et de la vitalité que tu désires.\",\n  \"sophiaKnowledge\": \"Tu es un homme d'environ 35 ans qui, malgré des journées irrégulières, cherche à retrouver une vitalité et une stabilité quotidiennes. Ton manque d'énergie et de constance est souvent exacerbé par la fatigue et un usage compensatoire du téléphone, entraînant un niveau de stress élevé et une activité physique faible.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de jours cette semaine as-tu mis ton téléphone de côté 1h avant de dormir ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"12 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] Le Mur Invisible (night)\n- [ACTION] Le Mikado Corporel (morning)\n- [FRAMEWORK] Cartographie des Énergies\n\n=== SIGNES VITAUX (État Actuel) ===\n- Heure de coucher: 00:00 h\n",
+      "template_fingerprint": "9c30558ac92203ce"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

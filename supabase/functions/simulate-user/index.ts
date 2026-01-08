@@ -97,6 +97,8 @@ console.log("simulate-user: Function initialized");
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
+  // Keep last parsed body accessible for the catch block (to support graceful fallback).
+  let body: z.infer<typeof BodySchema> | null = null;
   try {
     if (req.method === "OPTIONS") return handleCorsOptions(req);
     const corsErr = enforceCors(req);
@@ -105,7 +107,7 @@ Deno.serve(async (req) => {
 
     const parsed = await parseJsonBody(req, BodySchema, requestId);
     if (!parsed.ok) return parsed.response;
-    const body = parsed.data;
+    body = parsed.data;
 
     const authHeader = req.headers.get("Authorization") ?? "";
     const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
@@ -204,8 +206,8 @@ ${transcriptText || "(vide)"}
     return jsonResponse(req, { success: true, request_id: requestId, next_message: next, done, satisfied });
   } catch (error) {
     console.error(`[simulate-user] request_id=${requestId}`, error);
-    // If the model is temporarily unavailable (429/503), degrade gracefully to deterministic stub
-    // so eval runs don't crash. (simulate-user is admin-only, so this is safe.)
+    // Prod-faithful behavior: do NOT fake a user message when Gemini is overloaded.
+    // Surface a failure so the caller can retry (or switch model) explicitly.
     const msg = error instanceof Error ? error.message : String(error);
     const lowered = msg.toLowerCase();
     const transient =
@@ -215,8 +217,7 @@ ${transcriptText || "(vide)"}
       lowered.includes("429") ||
       lowered.includes("503");
     if (transient) {
-      const out = stubNextMessage(body.objectives, body.turn_index, body.difficulty as Difficulty);
-      return jsonResponse(req, { success: true, request_id: requestId, degraded: true, ...out, done: out.done || body.turn_index + 1 >= body.max_turns });
+      return jsonResponse(req, { error: "simulate-user failed: model unavailable", detail: msg, request_id: requestId }, { status: 503 });
     }
     return serverError(req, requestId);
   }

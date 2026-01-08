@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Sparkles, Brain, ArrowRight, MessageSquare, CheckCircle2 } from 'lucide-react';
+import { X, Sparkles, Brain, ArrowRight, MessageSquare, CheckCircle2, Target } from 'lucide-react';
 
 interface SophiaAssistantModalProps {
   onClose: () => void;
@@ -8,6 +8,7 @@ interface SophiaAssistantModalProps {
 
 export const SophiaAssistantModal: React.FC<SophiaAssistantModalProps> = ({ onClose, onApply }) => {
   const [step, setStep] = useState<'intro' | 'questions' | 'loading' | 'result'>('intro');
+  const [mode, setMode] = useState<'specific' | 'general'>('general');
   const [answers, setAnswers] = useState({
     improvement: '',
     obstacles: '',
@@ -65,22 +66,51 @@ export const SophiaAssistantModal: React.FC<SophiaAssistantModalProps> = ({ onCl
             <div className="flex-1 overflow-y-auto p-6 md:p-8 bg-slate-50">
                 
                 {step === 'intro' && (
-                    <div className="flex flex-col h-full justify-center items-center text-center space-y-8">
-                        <div className="w-24 h-24 bg-violet-100 rounded-full flex items-center justify-center text-violet-600 animate-pulse">
-                            <Brain className="w-12 h-12" />
+                    <div className="flex flex-col h-full justify-center items-center text-center space-y-8 animate-fade-in-up">
+                        <div className="space-y-2">
+                             <h3 className="text-xl font-bold text-slate-900">Comment puis-je t'aider aujourd'hui ?</h3>
+                             <p className="text-slate-500">Choisis l'option qui te correspond le mieux</p>
                         </div>
-                        <div className="space-y-4 max-w-sm">
-                            <h3 className="text-xl font-bold text-slate-900">Tu hésites sur le choix des transformations ?</h3>
-                            <p className="text-slate-600 leading-relaxed">
-                                Pas de panique. Raconte-moi simplement ce qui te préoccupe, et je sélectionnerai pour toi les axes et les actions les plus pertinents.
-                            </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 w-full max-w-2xl">
+                            {/* Option 1: Objectif précis */}
+                            <button 
+                                onClick={() => {
+                                    setMode('specific');
+                                    setStep('questions');
+                                }}
+                                className="group flex flex-col items-center p-6 bg-white border-2 border-slate-100 hover:border-violet-500 hover:bg-violet-50 rounded-2xl transition-all duration-300 text-center space-y-4 shadow-sm hover:shadow-md"
+                            >
+                                <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 group-hover:bg-blue-200 group-hover:scale-110 transition-all">
+                                    <Target className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-slate-900 text-lg mb-2">J'ai un objectif précis</h4>
+                                    <p className="text-sm text-slate-500 leading-relaxed">
+                                        Je veux améliorer quelque chose en particulier (ex: augmentation, sommeil, gestion du stress...)
+                                    </p>
+                                </div>
+                            </button>
+
+                            {/* Option 2: Pas d'idée précise */}
+                            <button 
+                                onClick={() => {
+                                    setMode('general');
+                                    setStep('questions');
+                                }}
+                                className="group flex flex-col items-center p-6 bg-white border-2 border-slate-100 hover:border-violet-500 hover:bg-violet-50 rounded-2xl transition-all duration-300 text-center space-y-4 shadow-sm hover:shadow-md"
+                            >
+                                <div className="w-16 h-16 bg-fuchsia-100 rounded-full flex items-center justify-center text-fuchsia-600 group-hover:bg-fuchsia-200 group-hover:scale-110 transition-all">
+                                    <Brain className="w-8 h-8" />
+                                </div>
+                                <div>
+                                    <h4 className="font-bold text-slate-900 text-lg mb-2">Je ne sais pas par où commencer</h4>
+                                    <p className="text-sm text-slate-500 leading-relaxed">
+                                        Je veux faire le point sur ma situation globale et laisser Sophia identifier les priorités.
+                                    </p>
+                                </div>
+                            </button>
                         </div>
-                        <button 
-                            onClick={() => setStep('questions')}
-                            className="w-full max-w-xs bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-violet-600 transition-all shadow-lg shadow-violet-200 flex items-center justify-center gap-2"
-                        >
-                            Commencer <ArrowRight className="w-5 h-5" />
-                        </button>
                     </div>
                 )}
 
@@ -89,20 +119,26 @@ export const SophiaAssistantModal: React.FC<SophiaAssistantModalProps> = ({ onCl
                         <div className="space-y-4">
                             <label className="block">
                                 <span className="text-base font-bold text-slate-900 block mb-2">
-                                    1. D'après toi, quels sont les points à améliorer pour que tu te dises "je suis heureux et je me sens bien à 100%" ?
+                                    1. {mode === 'specific' 
+                                        ? "Quel est l'objectif précis ou le point que tu souhaites améliorer ?" 
+                                        : "D'après toi, quels sont les points à améliorer pour que tu te dises \"je suis heureux et je me sens bien à 100%\" ?"}
                                 </span>
                                 <textarea 
                                     value={answers.improvement}
                                     onChange={e => setAnswers({...answers, improvement: e.target.value})}
                                     className="w-full p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none h-32 text-slate-700 placeholder-slate-400 resize-none"
-                                    placeholder="Ex: J'aimerais avoir plus d'énergie le matin, et arrêter de culpabiliser quand je ne travaille pas..."
+                                    placeholder={mode === 'specific' 
+                                        ? "Ex: Je veux négocier une augmentation, je veux améliorer mon sommeil, je veux apprendre à dire non..." 
+                                        : "Ex: J'aimerais avoir plus d'énergie le matin, et arrêter de culpabiliser quand je ne travaille pas..."}
                                     autoFocus
                                 />
                             </label>
 
                             <label className="block">
                                 <span className="text-base font-bold text-slate-900 block mb-2">
-                                    2. Quels sont les obstacles que tu as identifiés pour devenir la meilleure version de toi-même ?
+                                    2. {mode === 'specific'
+                                        ? "Quels sont les obstacles que tu as identifiés ?"
+                                        : "Quels sont les obstacles que tu as identifiés pour devenir la meilleure version de toi-même ?"}
                                 </span>
                                 <textarea 
                                     value={answers.obstacles}
@@ -114,7 +150,9 @@ export const SophiaAssistantModal: React.FC<SophiaAssistantModalProps> = ({ onCl
 
                             <label className="block">
                                 <span className="text-base font-bold text-slate-900 block mb-2">
-                                    3. D'autres informations importantes qui pourraient aider Sophia à mieux comprendre où tu en es ?
+                                    3. {mode === 'specific'
+                                        ? "D'autres informations importantes qui pourraient aider Sophia à mieux comprendre ?"
+                                        : "D'autres informations importantes qui pourraient aider Sophia à mieux comprendre où tu en es ?"}
                                 </span>
                                 <textarea 
                                     value={answers.other}
