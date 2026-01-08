@@ -97,7 +97,12 @@ const Auth = () => {
 
       if (error) throw error;
 
-      alert("Email de réinitialisation envoyé !");
+      const supabaseUrl = (import.meta as any)?.env?.VITE_SUPABASE_URL as string | undefined;
+      const isLocalSupabase =
+        !!supabaseUrl &&
+        (supabaseUrl.includes('127.0.0.1:54321') || supabaseUrl.includes('localhost:54321'));
+      const localHint = isLocalSupabase ? " (en local: ouvre http://127.0.0.1:54324 pour voir l’email)" : "";
+      alert(`Si un compte existe pour ${email}, un email de réinitialisation va être envoyé${localHint}.`);
       setIsResettingPassword(false);
     } catch (err: unknown) {
       console.error("Reset error:", err);

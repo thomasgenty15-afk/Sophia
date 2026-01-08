@@ -1,0 +1,23 @@
+{
+  "started_at": "2026-01-08T02:12:46.155Z",
+  "finished_at": "2026-01-08T02:15:25.585Z",
+  "duration_ms": 159428,
+  "request_id": "2b8db0a7-bf58-4ba2-bc60-dffc00900111",
+  "eval_run_id": "637b107a-ebee-4bd1-80db-55be9362f194",
+  "scenario_id": "bilan_real_bundle__decda9556ca24d",
+  "limits": {
+    "max_scenarios": 1,
+    "max_turns_per_scenario": 15,
+    "bilan_actions_count": 3,
+    "test_post_checkup_deferral": false,
+    "user_difficulty": "mid",
+    "stop_on_first_failure": false,
+    "budget_usd": 0,
+    "model": "gemini-2.5-flash",
+    "use_real_ai": true
+  },
+  "kong_timeout_apply": {
+    "ok": true,
+    "stdout": "Patching supabase_kong_Sophia_2:/home/kong/kong.yml -> functions-v1 read_timeout=600000ms\nReloading kong...\nOK. Current read_timeout line:\n173:    read_timeout: 600000\n"
+  }
+}
