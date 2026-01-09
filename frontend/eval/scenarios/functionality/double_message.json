@@ -1,0 +1,26 @@
+{
+  "dataset_key": "features",
+  "id": "feature_double_message_burst",
+  "scenario_target": "feature_test",
+  "tags": ["feature", "double_message", "router"],
+  "description": "Test de la robustesse face aux doubles messages (burst). L'utilisateur envoie 2 messages à <1s d'intervalle. Le système doit répondre UNE SEULE FOIS en prenant en compte les deux contenus.",
+  "setup": {
+    "active_actions_count": 2,
+    "seed_plan": true
+  },
+  "steps": [
+    {
+      "user": "Salut Sophia, j'ai une question sur mon plan."
+    },
+    {
+      "user": "En fait non, je voulais juste savoir comment activer la respiration 4-7-8.",
+      "burst_delay_ms": 100 
+    }
+  ],
+  "assertions": {
+    "response_count": 1,
+    "response_contains": ["respiration", "4-7-8"],
+    "response_not_contains": ["En fait non", "question sur mon plan"] 
+  }
+}
+

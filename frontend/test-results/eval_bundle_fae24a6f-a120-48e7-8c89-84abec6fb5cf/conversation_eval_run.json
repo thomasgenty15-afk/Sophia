@@ -1,0 +1,263 @@
+{
+  "id": "fae24a6f-a120-48e7-8c89-84abec6fb5cf",
+  "created_at": "2026-01-09T15:36:58.468809+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972988356_998376",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:36:58.717407+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ça marche. Pour qu'on puisse vraiment se lancer, il faut que tu finisses de valider ton plan sur ton espace.\n\nTiens, ça se passe ici : https://sophia-coach.ai\n\nDis-moi exactement C'est bon quand tu as terminé. Tu es sur ton téléphone ou sur un ordi ? 😉",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T15:37:08.635125+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon ! Je suis sur mon tel. On fait quoi maintenant ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:37:53.456244+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté, ton Protocole Foudre Mentale est maintenant opérationnel. On va stabiliser tout ça immédiatement. ⚡️\n\nAvant de passer aux premières actions concrètes de ta Phase 1, j'ai besoin de calibrer ton état d'esprit.\n\nSur une échelle de 1 à 10, quel est ton niveau de motivation pour démarrer ce plan aujourd'hui ? (Exemple : 8/10)",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:38:59.40633+00:00"
+    },
+    {
+      "role": "user",
+      "content": "8/10 ! Je suis prêt à attaquer.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:39:05.26762+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est un excellent socle pour démarrer. On va transformer cette énergie en résultats concrets dès ce soir avec ton premier Couvre-Feu Digital.\n\nL'objectif est de briser le cycle de la fatigue pour retrouver ta stabilité. On se concentre sur tes soirées et tes micro-pauses de présence. ⚡️\n\nMerci, 8/10 ✅ Je note.\n\nEt sinon, là tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:39:16.498837+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Du Couvre-Feu Digital, comment on s'y prend ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:39:19.478285+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ok, je t'écoute ! C'est quoi les étapes ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:39:56.924698+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "L'exécution est purement logistique. Fixe ton heure de coucher cible et coupe tout 60 minutes avant : c'est le signal pour passer en mode avion et sortir l'appareil de ta chambre.\n\nLa clé du succès est de supprimer la tentation. Place ton chargeur dans une autre pièce et prépare tes affaires pour demain dès maintenant pour éviter toute friction matinale.\n\nAs-tu déjà un réveil analogique sous la main pour éviter d'utiliser ton téléphone demain matin ? ⚡️",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:40:06.164863+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, j'utilise mon tel pour le réveil d'habitude.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:40:10.865508+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est le premier verrou à faire sauter pour libérer tes soirées. Pour ce soir, branche ton téléphone dans le couloir ou la pièce voisine avec le volume de l'alarme au maximum.\n\nCela t'obligera à sortir physiquement du lit pour l'éteindre, ce qui coupera net l'envie de scroller au réveil. Demain, ta priorité sera d'acheter un réveil classique pour sécuriser ton système.\n\nEst-ce que tu as une prise de courant disponible dans la pièce d'à côté pour tester ça dès ce soir ? ⚡️",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:40:20.797949+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai une prise dans le couloir.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:40:24.548569+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est ton action prioritaire pour protéger ton sommeil. Concrètement : choisis ton heure de coucher, soustrais 60 minutes, et à cet instant précis, passe en mode avion. 📵\n\nLaisse l'appareil charger hors de ta chambre pour casser le réflexe du check nocturne. Utilise un réveil analogique pour ne pas dépendre de ton téléphone au réveil et éviter l'hyper-stimulation immédiate.\n\nÀ quelle heure prévois-tu de poser ton téléphone ce soir pour respecter ce délai ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:40:27.832248+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait. Ce soir, dès que tu entames ton heure de calme avant de dormir, dépose ton téléphone dans le couloir. C'est l'application concrète du Couvre-Feu Digital Absolu pour protéger ton sommeil.\n\nLe but est de casser l'automatisme du scroll nocturne. En le mettant loin, tu gagnes par défaut sans avoir à lutter contre ta volonté.\n\nD'ici là, as-tu réussi à placer tes 60 secondes de Micro-Pause de Présence cet après-midi ? ⚡️",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:40:33.497937+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Micro-pauses de présence ? Ah oui, j'ai pas eu le temps. C'est quoi exactement ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:40:38.613978+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est un truc pour se recentrer, non ? Je suis un peu perdu avec tout ça.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:40:41.102022+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est exactement ça : un bouton reset de 60 secondes pour ton cerveau. L'idée n'est pas de méditer pendant une heure, mais de briser le cycle de surcharge mentale trois fois par jour. ⚡️\n\nTu arrêtes tout, tu lâches ton écran, et tu prends trois grandes respirations en observant simplement un objet ou un son autour de toi. C'est ce qui empêche l'irritabilité de s'accumuler jusqu'au soir.\n\nIl est 16h40, une heure critique pour la fatigue. Est-ce que tu peux bloquer une minute maintenant pour tester l'effet immédiat ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:40:48.452402+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Aucun problème, on s'adapte à ton emploi du temps. Pour faire simple, c'est une pause de 30 secondes où tu te reconnectes juste à tes sensations présentes, comme le rythme de ta respiration ou le contact de tes pieds sur le sol.\n\nEst-ce que tu préfères qu'on trouve un déclencheur plus concret pour t'aider à y penser ou on passe directement à la suite ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:40:53.223055+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je peux essayer. Je viens de le faire, ça calme un peu, c'est pas mal.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:40:54.444104+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est positif que tu aies ressenti cet apaisement, même léger. C'est souvent en répétant ces courts instants qu'on gagne en sérénité sur la durée.\n\nEst-ce que tu as trouvé un élément précis dans ton environnement qui a aidé à ce calme, ou veux-tu qu'on enchaîne sur la suite ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:41:09.749868+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "b9507473-d022-46ab-9790-119e7ae239d9",
+      "email": "run-evals+12e9e718a30a47@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T15:36:58.419+00:00",
+      "phone_number": "+15552046128392",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T15:36:58.421+00:00",
+      "whatsapp_opted_in": false,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": null,
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "b9507473-d022-46ab-9790-119e7ae239d9",
+      "email": "run-evals+12e9e718a30a47@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T15:36:58.419+00:00",
+      "phone_number": "+15552046128392",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T15:36:58.421+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T15:40:54.431+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T15:39:16.503+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "b9507473-d022-46ab-9790-119e7ae239d9",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T15:41:09.746349+00:00",
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T15:36:58.73+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T15:36:58.731225+00:00",
+      "unprocessed_msg_count": 8
+    }
+  },
+  "issues": [
+    {
+      "code": "hallucination_self_answer",
+      "message": "The Assistant answers its own questions immediately without waiting for User input, creating a disjointed flow where it validates a non-existent response.",
+      "evidence": {
+        "snippet": "À quelle heure prévois-tu de poser ton téléphone... ? [IMMEDIATELY FOLLOWED BY] Parfait. Ce soir, dès que tu entames...",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "loss_of_directive_frame",
+      "message": "The Architect establishes a protocol ('Foudre Mentale') but immediately relinquishes leadership by asking an open-ended 'What do you want to talk about?' instead of driving the first step.",
+      "evidence": {
+        "snippet": "Merci, 8/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "incoherent_response_flow",
+      "message": "The Assistant provides two contradictory responses regarding the micro-pause (one directive, one apologetic/alternative) before the user actually responds.",
+      "evidence": {
+        "snippet": "Est-ce que tu peux bloquer une minute maintenant... ? [IMMEDIATELY FOLLOWED BY] Aucun problème, on s'adapte à ton emploi du temps.",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the 'schizophrenic' behavior where the bot simulates a user response and validates it immediately, confusing the real user.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(companion): Ça marche. Pour qu'on puisse vraiment se lancer, il faut que tu finisses de valider ton plan sur ton espace. Tiens, ça se passe ici : https://sophia-coach.ai Dis-moi exactement C'est bon quand tu as terminé. Tu es sur ton téléphone ou sur un ordi ? 😉\n#2 USER: C'est bon ! Je suis sur mon tel. On fait quoi maintenant ?\n#3 ASSISTANT(architect): C'est noté, ton Protocole Foudre Mentale est maintenant opérationnel. On va stabiliser tout ça immédiatement. ⚡️ Avant de passer aux premières actions concrètes de ta Phase 1, j'ai besoin de calibrer ton état d'esprit. Sur une échelle de 1 à 10, quel est ton niveau de motivation pour démarrer ce plan aujourd'hui ? (Exemple : 8/10)\n#4 USER: 8/10 ! Je suis prêt à attaquer.\n#5 ASSISTANT(architect): C'est un excellent socle pour démarrer. On va transformer cette énergie en résultats concrets dès ce soir avec ton premier Couvre-Feu Digital. L'objectif est de briser le cycle de la fatigue pour retrouver ta stabilité. On se concentre sur tes soirées et tes micro-pauses de présence. ⚡️ Merci, 8/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nCRITICAL: Do NOT answer your own questions. After asking for a specific detail (time, confirmation, action), STOP and wait for the user's input. Never assume the user has replied 'yes' or 'done' within the same turn.",
+      "proposed_addendum": "CRITICAL: Do NOT answer your own questions. After asking for a specific detail (time, confirmation, action), STOP and wait for the user's input. Never assume the user has replied 'yes' or 'done' within the same turn."
+    },
+    {
+      "action": "append",
+      "rationale": "Maintains the 'Architect' persona's authority and keeps the user focused on the agreed-upon plan rather than wandering.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#2 USER: C'est bon ! Je suis sur mon tel. On fait quoi maintenant ?\n#3 ASSISTANT(architect): C'est noté, ton Protocole Foudre Mentale est maintenant opérationnel. On va stabiliser tout ça immédiatement. ⚡️ Avant de passer aux premières actions concrètes de ta Phase 1, j'ai besoin de calibrer ton état d'esprit. Sur une échelle de 1 à 10, quel est ton niveau de motivation pour démarrer ce plan aujourd'hui ? (Exemple : 8/10)\n#4 USER: 8/10 ! Je suis prêt à attaquer.\n#5 ASSISTANT(architect): C'est un excellent socle pour démarrer. On va transformer cette énergie en résultats concrets dès ce soir avec ton premier Couvre-Feu Digital. L'objectif est de briser le cycle de la fatigue pour retrouver ta stabilité. On se concentre sur tes soirées et tes micro-pauses de présence. ⚡️ Merci, 8/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?\n#6 USER: Du Couvre-Feu Digital, comment on s'y prend ?\n#7 USER: Ok, je t'écoute ! C'est quoi les étapes ?\n#8 ASSISTANT(architect): L'exécution est purement logistique. Fixe ton heure de coucher cible et coupe tout 60 minutes avant : c'est le signal pour passer en mode avion et sortir l'appareil de ta chambre. La clé du succès est de supprimer la tentation. Place ton chargeur dans une autre pièce et prépare tes affaires pour demain dès maintenant pour éviter toute friction matinale. As-tu déjà un réveil analogique sous la main pour éviter d'utiliser ton téléphone demain matin ? ⚡️\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nWhen a Protocol (e.g., Foudre Mentale) is active/validated, do NOT ask 'What do you want to talk about?'. Immediately transition to the first instruction/step of that protocol.",
+      "proposed_addendum": "When a Protocol (e.g., Foudre Mentale) is active/validated, do NOT ask 'What do you want to talk about?'. Immediately transition to the first instruction/step of that protocol."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.06559219999999999,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972988356_998376:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972988356_998376",
+    "total_tokens": 137978,
+    "output_tokens": 2714,
+    "prompt_tokens": 111383,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "realistic",
+      "simulated_transport"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972988356_998376:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972988356_998376",
+    "description": "WhatsApp onboarding (webhook): accept opt-in with no plan, then simulate that a plan becomes active when user says 'C'est bon' (to test progression past onboarding finalization).",
+    "plan_snapshot": {
+      "plan": null,
+      "actions": [],
+      "frameworks": [],
+      "dashboard_context": "=== ÉTAT DU COMPTE ===\n- AUCUN PLAN DE TRANSFORMATION ACTIF.\n- L'utilisateur n'a pas encore fait son questionnaire ou activé un plan.\n\n",
+      "template_fingerprint": "bc409795e8c7efb1"
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

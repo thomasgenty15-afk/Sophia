@@ -742,7 +742,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
           <div className={`p-4 text-center text-[10px] border-t ${
             isArchitect ? "border-emerald-900 text-emerald-700" : "border-slate-100 text-slate-400"
           }`}>
-            Sophia v2.4.0 • Build 2025
+            Sophia v2.4.0 • Powered by IKIZEN
           </div>
 
         </div>

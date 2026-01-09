@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-01-09T17:15:48.918Z",
+  "finished_at": "2026-01-09T17:22:21.812Z",
+  "duration_ms": 392891,
+  "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978948918_314ee3:i0:s1916298011",
+  "eval_run_id": "8ee2b452-d5ce-423b-8587-f16d926e9a9c",
+  "scenario_id": "wa_onboarding_open_chat_offtopic_after_prompt__run_1767978948918_314ee3",
+  "base_scenario_id": "wa_onboarding_open_chat_offtopic_after_prompt",
+  "scenario_file": "/Users/ahmedamara/Dev/Sophia 2/frontend/eval/scenarios/whatsapp_onboarding/wa_onboarding_open_chat_offtopic_after_prompt.json",
+  "random_seed": "123",
+  "random_seed_int": 1916298011,
+  "iteration": 0,
+  "limits": {
+    "max_scenarios": 1,
+    "max_turns_per_scenario": 6,
+    "bilan_actions_count": 0,
+    "test_post_checkup_deferral": false,
+    "user_difficulty": "mid",
+    "stop_on_first_failure": false,
+    "budget_usd": 0,
+    "model": "gemini-2.5-flash",
+    "use_real_ai": true,
+    "judge_force_real_ai": true
+  }
+}

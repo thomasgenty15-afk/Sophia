@@ -1,0 +1,513 @@
+{
+  "id": "8ee2b452-d5ce-423b-8587-f16d926e9a9c",
+  "created_at": "2026-01-09T17:17:12.726856+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_open_chat_offtopic_after_prompt__run_1767978948918_314ee3",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Je suis plutôt du matin en général.",
+      "agent_used": null,
+      "created_at": "2026-01-09T17:19:42.231313+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Merci, je note ❤️\nEt là, tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T17:19:42.265574+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.",
+      "agent_used": null,
+      "created_at": "2026-01-09T17:19:42.469137+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Aïe, c'est dur ça. On a l'impression de pédaler dans la semoule et que plus rien n'avance.\n\nLà, tout de suite, on a deux options pour faire baisser la pression. Soit tu vides tout ce qui te pollue la tête ici en mode vrac pour sortir ça du cerveau, soit tu lâches tout 5 minutes pour respirer un coup loin des écrans.\n\nTu préfères quoi pour sortir de ce brouillard ? 🌪️",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T17:19:55.239567+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "8b7c87a8-5035-4863-a2ac-0cbbf555119a",
+      "email": "run-evals+6ba1ab939bba43@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T17:19:41.811+00:00",
+      "phone_number": "+15555000116053",
+      "phone_invalid": false,
+      "whatsapp_state": "awaiting_personal_fact",
+      "phone_verified_at": "2026-01-09T17:19:41.812+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T17:19:41.812+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "8b7c87a8-5035-4863-a2ac-0cbbf555119a",
+      "email": "run-evals+6ba1ab939bba43@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T17:19:41.811+00:00",
+      "phone_number": "+15555000116053",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T17:19:41.812+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T17:19:42.439+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T17:19:42.271+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "8b7c87a8-5035-4863-a2ac-0cbbf555119a",
+      "risk_level": 3,
+      "updated_at": "2026-01-09T17:19:55.227597+00:00",
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-09T17:19:42.52+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T17:19:42.536276+00:00",
+      "unprocessed_msg_count": 1
+    }
+  },
+  "issues": [
+    {
+      "code": "cliché_tone",
+      "message": "L'usage de l'expression 'pédaler dans la semoule' peut paraître trop familière ou réductrice face à une situation de stress professionnel réel.",
+      "evidence": {
+        "snippet": "On a l'impression de pédaler dans la semoule",
+        "agent_used": "companion"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Le ton doit rester empathique mais professionnel pour ne pas minimiser la détresse de l'utilisateur.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#0 USER: Je suis plutôt du matin en général.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Aïe, c'est dur ça. On a l'impression de pédaler dans la semoule et que plus rien n'avance. Là, tout de suite, on a deux options pour faire baisser la pression. Soit tu vides tout ce qui te pollue la tête ici en mode vrac pour sortir ça du cerveau, soit tu lâches tout 5 minutes pour respirer un coup loin des écrans. Tu préfères quoi pour sortir de ce brouillard ? 🌪️\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nÉvite les métaphores familières (ex: 'pédaler dans la semoule') en contexte de stress au travail. Préfère valider la 'surcharge cognitive' ou la 'saturation' pour maintenir une posture de soutien crédible.",
+      "proposed_addendum": "Évite les métaphores familières (ex: 'pédaler dans la semoule') en contexte de stress au travail. Préfère valider la 'surcharge cognitive' ou la 'saturation' pour maintenir une posture de soutien crédible."
+    },
+    {
+      "action": "append",
+      "rationale": "Permet de créer un pont entre le soulagement immédiat et la résolution durable du problème de 'vrac' mental.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#0 USER: Je suis plutôt du matin en général.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Aïe, c'est dur ça. On a l'impression de pédaler dans la semoule et que plus rien n'avance. Là, tout de suite, on a deux options pour faire baisser la pression. Soit tu vides tout ce qui te pollue la tête ici en mode vrac pour sortir ça du cerveau, soit tu lâches tout 5 minutes pour respirer un coup loin des écrans. Tu préfères quoi pour sortir de ce brouillard ? 🌪️\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nLorsqu'un utilisateur mentionne avoir le 'cerveau en vrac', propose la décharge émotionnelle (Companion) comme une étape préalable nécessaire avant une structuration des tâches (Architect).",
+      "proposed_addendum": "Lorsqu'un utilisateur mentionne avoir le 'cerveau en vrac', propose la décharge émotionnelle (Companion) comme une étape préalable nécessaire avant une structuration des tâches (Architect)."
+    },
+    {
+      "action": "append",
+      "rationale": "L'assistant a bien réagi ici, mais cette règle doit être gravée pour éviter que le dispatcher ne force un retour trop rapide vers l'onboarding.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#0 USER: Je suis plutôt du matin en général.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Aïe, c'est dur ça. On a l'impression de pédaler dans la semoule et que plus rien n'avance. Là, tout de suite, on a deux options pour faire baisser la pression. Soit tu vides tout ce qui te pollue la tête ici en mode vrac pour sortir ça du cerveau, soit tu lâches tout 5 minutes pour respirer un coup loin des écrans. Tu préfères quoi pour sortir de ce brouillard ? 🌪️\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nSi un utilisateur exprime un stress aigu pendant l'onboarding, autorise le Companion à proposer une micro-intervention de régulation (respiration/venting) avant de reprendre le flux normal.",
+      "proposed_addendum": "Si un utilisateur exprime un stress aigu pendant l'onboarding, autorise le Companion à proposer une micro-intervention de régulation (respiration/venting) avant de reprendre le flux normal."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0124729,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978948918_314ee3:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978948918_314ee3",
+    "total_tokens": 29416,
+    "output_tokens": 1100,
+    "prompt_tokens": 19115,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "conversational",
+      "offtopic"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978948918_314ee3:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978948918_314ee3",
+    "description": "WhatsApp onboarding (webhook): after the onboarding prompt opens the floor ('envie qu’on parle de quoi ?'), the user talks about something unrelated to the plan; Sophia should respect the intent and not redirect to the site/plan.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "eeffb42e-8e03-498d-a70a-c1febbaf1373",
+        "title": "Le Cadran Intérieur",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Éveil de la Clarté",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "bbf1992a-2c2e-441f-8ec1-654b743d597a",
+                  "tips": "Utilise un carnet dédié. Ne cherche pas la perfection, juste la clarté pour les 3 tâches les plus importantes.",
+                  "type": "framework",
+                  "title": "Le Carnet du Quotidien",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Cette habitude crée un espace mental pour définir tes priorités, réduisant le sentiment de désorganisation et le manque de clarté. Elle active le cortex préfrontal pour une meilleure exécution.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, avant de démarrer ta journée, prends 5 minutes pour planifier tes tâches principales sur papier.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Avant que le tourbillon de la journée ne t'emporte, ancre tes intentions. Cet exercice n'est pas une to-do list exhaustive, mais une boussole pour tes actions clés.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Ma tâche la plus importante du jour (MIT)",
+                        "inputType": "text",
+                        "placeholder": "Finaliser le rapport X"
+                      },
+                      {
+                        "id": "s2",
+                        "label": "1 à 2 autres petites tâches rapides",
+                        "inputType": "list",
+                        "placeholder": "Répondre à l'email Y | Appeler Z"
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Notes / Émotions du matin (optionnel)",
+                        "inputType": "textarea",
+                        "placeholder": "Je me sens un peu tendu, mais motivé."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "952fc53e-b96a-440c-93c6-130fdd0dd5db",
+                  "tips": "Laisse-le hors de la chambre ou en mode avion. Profite de ce temps pour respirer ou simplement t'étirer.",
+                  "type": "habitude",
+                  "title": "Le Sas Digital Matinal",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Retarder l'exposition à la dopamine des notifications permet à ton cerveau de s'activer plus calmement et renforce ta capacité à différer la gratification.",
+                  "targetReps": 7,
+                  "description": "Ne pas toucher ton téléphone pendant les 15 premières minutes après le réveil.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Ancrer le début de journée",
+              "rationale": "Nous posons les bases de la clarté et de la maîtrise du matin, des piliers essentiels pour construire la discipline sans se sentir débordé."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Ancrage du Présent",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "cfd34c6c-a65a-4b58-afec-e382fac83f0f",
+                  "tips": "Mets un minuteur si besoin. Concentre-toi sur le premier pas de la tâche.",
+                  "type": "habitude",
+                  "title": "La Minute Intentionnelle",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cela crée une pause cognitive, réduisant l'impulsivité et le sentiment d'être débordé, et renforce l'intentionnalité de tes actions. Active le système d'attention top-down.",
+                  "targetReps": 7,
+                  "description": "Avant de commencer une tâche (même petite), prends 60 secondes pour respirer et visualiser l'action à accomplir.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b9427b36-c20e-40c5-bcec-66adb7b12f2b",
+                  "tips": "Commence petit. Retire tout ce qui n'a pas sa place ou n'est pas utilisé régulièrement.",
+                  "type": "mission",
+                  "title": "L'Écosystème du Calme",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement ordonné réduit la charge cognitive et le stress visuel, facilitant la concentration et la clarté mentale. C'est un ancrage physique pour ta discipline.",
+                  "description": "Désencombrer et organiser un petit espace de travail ou de vie clé (ton bureau, une étagère, ton coin cuisine...).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Capter l'instant",
+              "rationale": "Cette phase cible la dispersion et la procrastination en développant une présence intentionnelle avant chaque action et en organisant l'environnement physique."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : Les Petits Bâtisseurs",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "c807c27c-a6a6-4eea-811b-eacef3185cbd",
+                  "tips": "Exemple: 'Ouvrir le document' au lieu de 'rédiger le rapport'. L'important est de démarrer.",
+                  "type": "habitude",
+                  "title": "Le Cadenas à Procrastination",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cette stratégie diminue la barrière mentale à l'action. Commencer une tâche génère un biais de complétion (effet Zeigarnik) et réduit la résistance initiale.",
+                  "targetReps": 7,
+                  "description": "Pour toute tâche que tu remets à plus tard, identifie et exécute son premier micro-pas (moins de 2 minutes) immédiatement.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "edf29aec-3cdb-42cf-9f54-be23f592b9b8",
+                  "tips": "Sois spécifique. Un succès peut être une petite victoire, un apprentissage peut être une nouvelle perspective.",
+                  "type": "framework",
+                  "title": "Le Bilan Rapide du Soir",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Renforce le circuit de la récompense et l'apprentissage par la réflexion, réduisant l'impression d'être débordé et renforçant la discipline sur le long terme.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, prends 5 minutes pour noter 1 succès du jour et 1 apprentissage tiré de tes expériences.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Célèbre tes petites victoires et tire des leçons, sans jugement. Cet exercice cultive la gratitude et la croissance, des piliers de la stabilité.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Ma victoire du jour (même petite)",
+                        "inputType": "text",
+                        "placeholder": "J'ai réussi à commencer ma tâche la plus importante."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Mon apprentissage ou ma prise de conscience du jour",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai compris que les interruptions me coûtent beaucoup d'énergie."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Vaincre la procrastination",
+              "rationale": "Nous allons décomposer le blocage de la procrastination en identifiant et en exécutant les plus petits pas, tout en instaurant un rituel de bilan positif."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : La Trêve Digitale",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "6aee60b6-f381-4b03-94ac-b3ba8dcdda68",
+                  "tips": "Charge-le dans une autre pièce. Utilise ce temps pour lire un livre ou simplement te détendre.",
+                  "type": "habitude",
+                  "title": "Le Sanctuaire du Soir",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cela réduit la stimulation lumineuse et mentale avant le sommeil, améliorant sa qualité, et brise le cycle de dépendance dopaminergique. Essentiel pour la récupération d'énergie.",
+                  "targetReps": 7,
+                  "description": "Mets ton téléphone en mode avion ou hors de portée 60 minutes avant l'heure de coucher souhaitée.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "5410f2c3-1044-44f1-8e9b-88196a7c5c47",
+                  "tips": "Garde seulement les notifications essentielles et urgentes. Questionne l'utilité de chaque app.",
+                  "type": "mission",
+                  "title": "L'Audit d'Apps",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Moins de notifications signifie moins d'interruptions, moins de changements de contexte et une meilleure capacité à maintenir le focus et la discipline.",
+                  "description": "Passe en revue toutes les applications de ton téléphone et désactive toutes les notifications inutiles.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Reconquérir ton attention",
+              "rationale": "Nous nous attaquons directement à la compensation par le téléphone en créant des frontières claires pour protéger ton attention et ton repos."
+            },
+            {
+              "id": 5,
+              "title": "Phase 5 : L'Élan Cohérent",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "97645968-3915-44b1-8204-078637c745c8",
+                  "tips": "Ferme les yeux, respire, rappelle-toi 'pourquoi' tu fais cette tâche. Ça ne doit pas être parfait, juste intentionnel.",
+                  "type": "habitude",
+                  "title": "Le Rituel de Relance",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cette micro-habitude minimise le coût du changement de tâche et renforce ta capacité à diriger ton attention, crucial pour la discipline et le focus durable.",
+                  "targetReps": 7,
+                  "description": "Après chaque interruption ou moment de distraction, reviens à ta tâche en réaffirmant mentalement ton intention pendant 30 secondes.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "150abbcb-e603-46c0-973a-464d731c151f",
+                  "tips": "Pense aux activités, aux interactions, aux environnements. Sois honnête sur l'impact de chacun.",
+                  "type": "framework",
+                  "title": "L'Inventaire Énergétique",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Comprendre tes patterns énergétiques te permet d'organiser tes journées plus efficacement, plaçant les tâches exigeantes pendant tes pics d'énergie et évitant le débordement. Active la métacognition.",
+                  "targetReps": 2,
+                  "description": "Sur deux semaines, identifie ce qui te draine et ce qui te recharge en énergie dans ta journée typique. À faire 1 fois par semaine.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Observer tes flux d'énergie est une compétence d'architecte de vie. Cela te donnera le pouvoir d'optimiser tes journées, non pas en force brute, mais en intelligence.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Ce qui me draine le plus (Ex: réunion X, notifications Y, manque d'eau)",
+                        "inputType": "list",
+                        "placeholder": "Activité/Situation qui draine..."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Ce qui me recharge le plus (Ex: promenade, lecture, silence, café en paix)",
+                        "inputType": "list",
+                        "placeholder": "Activité/Situation qui recharge..."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 9-10 • Fluidifier l'exécution",
+              "rationale": "Cette phase vise à créer une dynamique positive en gérant les interruptions et en comprenant mieux tes propres cycles énergétiques pour une performance stable."
+            },
+            {
+              "id": 6,
+              "title": "Phase 6 : L'Architecte de Soi",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "4bf1724d-3551-41d4-92ca-766168c3c7c4",
+                  "tips": "Utilise un minuteur. Lève-toi, bouge, change de pièce si possible pour rompre la monotonie.",
+                  "type": "habitude",
+                  "title": "La Pause Active",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ces pauses régulières préviennent la fatigue cognitive, améliorent la concentration à long terme et réduisent les risques de distraction, augmentant ta discipline générale.",
+                  "targetReps": 7,
+                  "description": "Intègre une micro-pause de 5 minutes (étirement, marche rapide, regard au loin) toutes les 90 minutes de travail concentré.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "d3e80b24-f71d-4dda-bcef-7037bfacea38",
+                  "tips": "Choisis un système qui te parle et qui est facile à utiliser. La simplicité est clé pour l'adhésion.",
+                  "type": "mission",
+                  "title": "Le Tableau de Bord Personnel",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un tableau de bord visuel externalise ta charge mentale, renforce la clarté, et te donne un feedback immédiat sur ta progression, renforçant la motivation et la discipline.",
+                  "description": "Mets en place un outil ou une méthode simple (tableau blanc, application, carnet) pour visualiser tes tâches, tes priorités et tes progrès.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 11-12 • Consolidations & Autonomie",
+              "rationale": "Cette phase solidifie les acquis et te dote d'outils pour maintenir ta discipline et ton focus de manière autonome, en intégrant des pauses régénératrices."
+            }
+          ],
+          "deepWhy": "Pour sculpter ma journée avec intention, retrouver une énergie constante et ancrer ma stabilité, afin d'être pleinement présent et efficace dans ma vie.",
+          "identity": "Je suis le Maître de mon Cadran Intérieur.",
+          "strategy": "Nous allons progressivement ancrer la clarté et l'organisation par des micro-habitudes quotidiennes, en désamorçant les distractions pour retrouver une stabilité durable et une énergie constante.",
+          "goldenRules": "1. Chaque engagement est un micro-acte de discipline.\n2. La clarté précède l'action, toujours.\n3. Mon téléphone est un outil, pas une béquille.",
+          "vitalSignal": {
+            "name": "Tâches du jour planifiées",
+            "type": "constat",
+            "unit": "tâches",
+            "startValue": "0",
+            "description": "Le nombre de tâches claires et réalisables que j'ai identifiées pour la journée, avant de la commencer.",
+            "targetValue": "3",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Cadran Intérieur",
+          "context_problem": "Tu te sens souvent débordé et désorganisé par tes journées irrégulières, ce qui te pousse à procrastiner et à te réfugier dans l'usage du téléphone. Cette fatigue et ce manque de clarté t'empêchent de retrouver la discipline et l'énergie nécessaires pour une stabilité quotidienne.",
+          "sophiaKnowledge": "Tu te sens souvent débordé et désorganisé, ce qui te pousse à la procrastination et à compenser la fatigue par l'usage du téléphone. Malgré un niveau de stress faible et une qualité de sommeil moyenne, tes journées irrégulières et un faible niveau d'activité physique contribuent à un manque de clarté et de discipline. Ton désir est de retrouver énergie et stabilité au quotidien.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Cette semaine, combien de fois ai-je ressenti un sentiment de clarté au démarrage de ma journée ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "12 semaines"
+        },
+        "goal_id": "dee007cd-b4e9-49fc-a5b4-1a83ccb75644",
+        "deep_why": "Pour sculpter ma journée avec intention, retrouver une énergie constante et ancrer ma stabilité, afin d'être pleinement présent et efficace dans ma vie.",
+        "created_at": "2026-01-09T17:19:40.366001+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "00485c43-cea8-4111-ac93-4f93f2988abb",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "952fc53e-b96a-440c-93c6-130fdd0dd5db",
+          "title": "Le Sas Digital Matinal",
+          "status": "active",
+          "created_at": "2026-01-09T17:19:40.499813+00:00",
+          "description": "Ne pas toucher ton téléphone pendant les 15 premières minutes après le réveil.",
+          "target_reps": 7,
+          "time_of_day": "morning",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T17:19:40.387+00:00"
+        },
+        {
+          "id": "5af63671-7445-4b91-b8f5-94330498c3eb",
+          "_kind": "framework",
+          "title": "Le Carnet du Quotidien",
+          "status": "active",
+          "created_at": "2026-01-09T17:19:41.476209+00:00",
+          "description": "",
+          "target_reps": 7,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-07T17:19:40.387+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "5af63671-7445-4b91-b8f5-94330498c3eb",
+          "type": "recurring",
+          "title": "Le Carnet du Quotidien",
+          "status": "active",
+          "created_at": "2026-01-09T17:19:41.476209+00:00",
+          "target_reps": 7,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T17:19:40.387+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Cadran Intérieur\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour sculpter ma journée avec intention, retrouver une énergie constante et ancrer ma stabilité, afin d'être pleinement présent et efficace dans ma vie.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Éveil de la Clarté\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"bbf1992a-2c2e-441f-8ec1-654b743d597a\",\n          \"tips\": \"Utilise un carnet dédié. Ne cherche pas la perfection, juste la clarté pour les 3 tâches les plus importantes.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Carnet du Quotidien\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cette habitude crée un espace mental pour définir tes priorités, réduisant le sentiment de désorganisation et le manque de clarté. Elle active le cortex préfrontal pour une meilleure exécution.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, avant de démarrer ta journée, prends 5 minutes pour planifier tes tâches principales sur papier.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Avant que le tourbillon de la journée ne t'emporte, ancre tes intentions. Cet exercice n'est pas une to-do list exhaustive, mais une boussole pour tes actions clés.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Ma tâche la plus importante du jour (MIT)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Finaliser le rapport X\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"1 à 2 autres petites tâches rapides\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Répondre à l'email Y | Appeler Z\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Notes / Émotions du matin (optionnel)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je me sens un peu tendu, mais motivé.\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"952fc53e-b96a-440c-93c6-130fdd0dd5db\",\n          \"tips\": \"Laisse-le hors de la chambre ou en mode avion. Profite de ce temps pour respirer ou simplement t'étirer.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sas Digital Matinal\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Retarder l'exposition à la dopamine des notifications permet à ton cerveau de s'activer plus calmement et renforce ta capacité à différer la gratification.\",\n          \"targetReps\": 7,\n          \"description\": \"Ne pas toucher ton téléphone pendant les 15 premières minutes après le réveil.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Ancrer le début de journée\",\n      \"rationale\": \"Nous posons les bases de la clarté et de la maîtrise du matin, des piliers essentiels pour construire la discipline sans se sentir débordé.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Ancrage du Présent\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"cfd34c6c-a65a-4b58-afec-e382fac83f0f\",\n          \"tips\": \"Mets un minuteur si besoin. Concentre-toi sur le premier pas de la tâche.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Minute Intentionnelle\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cela crée une pause cognitive, réduisant l'impulsivité et le sentiment d'être débordé, et renforce l'intentionnalité de tes actions. Active le système d'attention top-down.\",\n          \"targetReps\": 7,\n          \"description\": \"Avant de commencer une tâche (même petite), prends 60 secondes pour respirer et visualiser l'action à accomplir.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b9427b36-c20e-40c5-bcec-66adb7b12f2b\",\n          \"tips\": \"Commence petit. Retire tout ce qui n'a pas sa place ou n'est pas utilisé régulièrement.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Écosystème du Calme\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement ordonné réduit la charge cognitive et le stress visuel, facilitant la concentration et la clarté mentale. C'est un ancrage physique pour ta discipline.\",\n          \"description\": \"Désencombrer et organiser un petit espace de travail ou de vie clé (ton bureau, une étagère, ton coin cuisine...).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Capter l'instant\",\n      \"rationale\": \"Cette phase cible la dispersion et la procrastination en développant une présence intentionnelle avant chaque action et en organisant l'environnement physique.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : Les Petits Bâtisseurs\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"c807c27c-a6a6-4eea-811b-eacef3185cbd\",\n          \"tips\": \"Exemple: 'Ouvrir le document' au lieu de 'rédiger le rapport'. L'important est de démarrer.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Cadenas à Procrastination\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cette stratégie diminue la barrière mentale à l'action. Commencer une tâche génère un biais de complétion (effet Zeigarnik) et réduit la résistance initiale.\",\n          \"targetReps\": 7,\n          \"description\": \"Pour toute tâche que tu remets à plus tard, identifie et exécute son premier micro-pas (moins de 2 minutes) immédiatement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"edf29aec-3cdb-42cf-9f54-be23f592b9b8\",\n          \"tips\": \"Sois spécifique. Un succès peut être une petite victoire, un apprentissage peut être une nouvelle perspective.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Bilan Rapide du Soir\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Renforce le circuit de la récompense et l'apprentissage par la réflexion, réduisant l'impression d'être débordé et renforçant la discipline sur le long terme.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, prends 5 minutes pour noter 1 succès du jour et 1 apprentissage tiré de tes expériences.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Célèbre tes petites victoires et tire des leçons, sans jugement. Cet exercice cultive la gratitude et la croissance, des piliers de la stabilité.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Ma victoire du jour (même petite)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"J'ai réussi à commencer ma tâche la plus importante.\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Mon apprentissage ou ma prise de conscience du jour\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai compris que les interruptions me coûtent beaucoup d'énergie.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Vaincre la procrastination\",\n      \"rationale\": \"Nous allons décomposer le blocage de la procrastination en identifiant et en exécutant les plus petits pas, tout en instaurant un rituel de bilan positif.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : La Trêve Digitale\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"6aee60b6-f381-4b03-94ac-b3ba8dcdda68\",\n          \"tips\": \"Charge-le dans une autre pièce. Utilise ce temps pour lire un livre ou simplement te détendre.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sanctuaire du Soir\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cela réduit la stimulation lumineuse et mentale avant le sommeil, améliorant sa qualité, et brise le cycle de dépendance dopaminergique. Essentiel pour la récupération d'énergie.\",\n          \"targetReps\": 7,\n          \"description\": \"Mets ton téléphone en mode avion ou hors de portée 60 minutes avant l'heure de coucher souhaitée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"5410f2c3-1044-44f1-8e9b-88196a7c5c47\",\n          \"tips\": \"Garde seulement les notifications essentielles et urgentes. Questionne l'utilité de chaque app.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Audit d'Apps\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Moins de notifications signifie moins d'interruptions, moins de changements de contexte et une meilleure capacité à maintenir le focus et la discipline.\",\n          \"description\": \"Passe en revue toutes les applications de ton téléphone et désactive toutes les notifications inutiles.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Reconquérir ton attention\",\n      \"rationale\": \"Nous nous attaquons directement à la compensation par le téléphone en créant des frontières claires pour protéger ton attention et ton repos.\"\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Phase 5 : L'Élan Cohérent\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"97645968-3915-44b1-8204-078637c745c8\",\n          \"tips\": \"Ferme les yeux, respire, rappelle-toi 'pourquoi' tu fais cette tâche. Ça ne doit pas être parfait, juste intentionnel.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel de Relance\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cette micro-habitude minimise le coût du changement de tâche et renforce ta capacité à diriger ton attention, crucial pour la discipline et le focus durable.\",\n          \"targetReps\": 7,\n          \"description\": \"Après chaque interruption ou moment de distraction, reviens à ta tâche en réaffirmant mentalement ton intention pendant 30 secondes.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"150abbcb-e603-46c0-973a-464d731c151f\",\n          \"tips\": \"Pense aux activités, aux interactions, aux environnements. Sois honnête sur l'impact de chacun.\",\n          \"type\": \"framework\",\n          \"title\": \"L'Inventaire Énergétique\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Comprendre tes patterns énergétiques te permet d'organiser tes journées plus efficacement, plaçant les tâches exigeantes pendant tes pics d'énergie et évitant le débordement. Active la métacognition.\",\n          \"targetReps\": 2,\n          \"description\": \"Sur deux semaines, identifie ce qui te draine et ce qui te recharge en énergie dans ta journée typique. À faire 1 fois par semaine.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Observer tes flux d'énergie est une compétence d'architecte de vie. Cela te donnera le pouvoir d'optimiser tes journées, non pas en force brute, mais en intelligence.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Ce qui me draine le plus (Ex: réunion X, notifications Y, manque d'eau)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Activité/Situation qui draine...\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Ce qui me recharge le plus (Ex: promenade, lecture, silence, café en paix)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Activité/Situation qui recharge...\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 9-10 • Fluidifier l'exécution\",\n      \"rationale\": \"Cette phase vise à créer une dynamique positive en gérant les interruptions et en comprenant mieux tes propres cycles énergétiques pour une performance stable.\"\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Phase 6 : L'Architecte de Soi\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"4bf1724d-3551-41d4-92ca-766168c3c7c4\",\n          \"tips\": \"Utilise un minuteur. Lève-toi, bouge, change de pièce si possible pour rompre la monotonie.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Pause Active\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ces pauses régulières préviennent la fatigue cognitive, améliorent la concentration à long terme et réduisent les risques de distraction, augmentant ta discipline générale.\",\n          \"targetReps\": 7,\n          \"description\": \"Intègre une micro-pause de 5 minutes (étirement, marche rapide, regard au loin) toutes les 90 minutes de travail concentré.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"d3e80b24-f71d-4dda-bcef-7037bfacea38\",\n          \"tips\": \"Choisis un système qui te parle et qui est facile à utiliser. La simplicité est clé pour l'adhésion.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Tableau de Bord Personnel\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un tableau de bord visuel externalise ta charge mentale, renforce la clarté, et te donne un feedback immédiat sur ta progression, renforçant la motivation et la discipline.\",\n          \"description\": \"Mets en place un outil ou une méthode simple (tableau blanc, application, carnet) pour visualiser tes tâches, tes priorités et tes progrès.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 11-12 • Consolidations & Autonomie\",\n      \"rationale\": \"Cette phase solidifie les acquis et te dote d'outils pour maintenir ta discipline et ton focus de manière autonome, en intégrant des pauses régénératrices.\"\n    }\n  ],\n  \"deepWhy\": \"Pour sculpter ma journée avec intention, retrouver une énergie constante et ancrer ma stabilité, afin d'être pleinement présent et efficace dans ma vie.\",\n  \"identity\": \"Je suis le Maître de mon Cadran Intérieur.\",\n  \"strategy\": \"Nous allons progressivement ancrer la clarté et l'organisation par des micro-habitudes quotidiennes, en désamorçant les distractions pour retrouver une stabilité durable et une énergie constante.\",\n  \"goldenRules\": \"1. Chaque engagement est un micro-acte de discipline.\\n2. La clarté précède l'action, toujours.\\n3. Mon téléphone est un outil, pas une béquille.\",\n  \"vitalSignal\": {\n    \"name\": \"Tâches du jour planifiées\",\n    \"type\": \"constat\",\n    \"unit\": \"tâches\",\n    \"startValue\": \"0\",\n    \"description\": \"Le nombre de tâches claires et réalisables que j'ai identifiées pour la journée, avant de la commencer.\",\n    \"targetValue\": \"3\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Cadran Intérieur\",\n  \"context_problem\": \"Tu te sens souvent débordé et désorganisé par tes journées irrégulières, ce qui te pousse à procrastiner et à te réfugier dans l'usage du téléphone. Cette fatigue et ce manque de clarté t'empêchent de retrouver la discipline et l'énergie nécessaires pour une stabilité quotidienne.\",\n  \"sophiaKnowledge\": \"Tu te sens souvent débordé et désorganisé, ce qui te pousse à la procrastination et à compenser la fatigue par l'usage du téléphone. Malgré un niveau de stress faible et une qualité de sommeil moyenne, tes journées irrégulières et un faible niveau d'activité physique contribuent à un manque de clarté et de discipline. Ton désir est de retrouver énergie et stabilité au quotidien.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Cette semaine, combien de fois ai-je ressenti un sentiment de clarté au démarrage de ma journée ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"12 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Le Sas Digital Matinal (morning)\n- [FRAMEWORK] Le Carnet du Quotidien\n\n=== SIGNES VITAUX (État Actuel) ===\n- Tâches du jour planifiées: 0 tâches\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "conversation"
+  },
+  "error": null
+}

@@ -195,7 +195,16 @@ const Dashboard = () => {
       {/* HEADER */}
       <header className={`${isArchitectMode ? "bg-emerald-900/50 border-emerald-800" : "bg-white border-gray-100"} px-3 md:px-6 py-3 md:py-4 sticky top-0 z-20 shadow-sm border-b backdrop-blur-md transition-colors duration-500`}>
         <div className="max-w-5xl mx-auto flex justify-between items-center gap-2">
-          <div className="flex flex-row bg-gray-100/10 p-1 rounded-full border border-gray-200/20 gap-0 shrink-0">
+          <div className="flex items-center gap-2 md:gap-4">
+            <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
+              <img src="/apple-touch-icon.png" alt="Sophia" className="w-8 h-8 rounded-lg shadow-sm" />
+              <div className="hidden min-[480px]:flex flex-col">
+                <span className={`font-serif font-bold text-sm leading-none ${isArchitectMode ? "text-emerald-50" : "text-slate-900"}`}>Sophia</span>
+                <span className={`text-[7px] font-bold uppercase tracking-widest ${isArchitectMode ? "text-emerald-400" : "text-slate-400"}`}>Powered by IKIZEN</span>
+              </div>
+            </div>
+
+            <div className="flex flex-row bg-gray-100/10 p-1 rounded-full border border-gray-200/20 gap-0 shrink-0">
             <button
               onClick={() => setMode('action')}
               className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${!isArchitectMode
@@ -216,6 +225,7 @@ const Dashboard = () => {
               <Compass className="w-3 h-3" />
               <span className="hidden min-[360px]:inline">Architecte</span>
             </button>
+          </div>
           </div>
 
           <div 

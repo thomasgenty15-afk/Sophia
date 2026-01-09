@@ -208,7 +208,14 @@ export async function seedActivePlan(
   admin: any,
   userId: string,
   env: { url: string; anonKey: string; authHeader: string; requestId: string },
-  opts?: { bilanActionsCount?: number; planTemplate?: RunPlanTemplate; includeVitalsInBilan?: boolean },
+  opts?: {
+    // Back-compat: bilan uses this to request N active items to verify.
+    bilanActionsCount?: number;
+    // WhatsApp/onboarding can request an activation count independent of bilan.
+    activeActionsCount?: number;
+    planTemplate?: RunPlanTemplate;
+    includeVitalsInBilan?: boolean;
+  },
 ) {
   const submissionId = crypto.randomUUID();
 
@@ -230,7 +237,12 @@ export async function seedActivePlan(
     .single();
   if (goalErr) throw goalErr;
 
-  const activeCount = clampInt(opts?.bilanActionsCount ?? 0, 0, 20, 0);
+  const activeCount = clampInt(
+    (opts?.activeActionsCount ?? opts?.bilanActionsCount ?? 0),
+    0,
+    20,
+    0,
+  );
   const fake = opts?.planTemplate?.fake ?? buildFakeQuestionnairePayload();
 
   // Reuse a single "plan template" per run (when provided), so plan content doesn't vary per scenario.

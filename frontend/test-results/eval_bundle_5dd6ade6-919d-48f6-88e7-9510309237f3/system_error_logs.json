@@ -1,0 +1,33 @@
+{
+  "ok": true,
+  "since_iso": "2026-01-09T15:28:36.721Z",
+  "request_id_prefix": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972546697_e65197:i0:s1916298011",
+  "rows": [
+    {
+      "id": "5f30cced-e9a7-4704-b6bc-35a3a7b6eba1",
+      "created_at": "2026-01-09T15:32:55.228114+00:00",
+      "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972546697_e65197:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972546697_e65197",
+      "function_name": "whatsapp-webhook",
+      "source": "whatsapp",
+      "message": "WhatsApp send failed (401): {\"error\":{\"message\":\"Error validating access token: Session has expired on Monday, 05-Jan-26 15:00:00 PST. The current time is Friday, 09-Jan-26 07:32:55 PST.\",\"type\":\"OAuthException\",\"code\":190,\"error_subcode\":463,\"fbtrace_id\":\"AYgkLxjtcWBkKqZdkvokiYE\"}}",
+      "metadata": {
+        "wa_type": "text",
+        "error_name": "Error",
+        "wa_message_id": "wamid_waonboardingbundlewaonboardi_sim_5"
+      }
+    },
+    {
+      "id": "aabb2fd9-f93b-482b-9a7b-d3815f62e76b",
+      "created_at": "2026-01-09T15:33:42.373627+00:00",
+      "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972546697_e65197:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972546697_e65197",
+      "function_name": "whatsapp-webhook",
+      "source": "whatsapp",
+      "message": "WhatsApp send failed (401): {\"error\":{\"message\":\"Error validating access token: Session has expired on Monday, 05-Jan-26 15:00:00 PST. The current time is Friday, 09-Jan-26 07:33:42 PST.\",\"type\":\"OAuthException\",\"code\":190,\"error_subcode\":463,\"fbtrace_id\":\"Adn9MjVQ4nEbxQ1oaGYpcph\"}}",
+      "metadata": {
+        "wa_type": "text",
+        "error_name": "Error",
+        "wa_message_id": "wamid_waonboardingbundlewaonboardi_sim_9"
+      }
+    }
+  ]
+}

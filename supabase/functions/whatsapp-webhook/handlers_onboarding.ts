@@ -164,56 +164,32 @@ export async function handleOnboardingState(params: {
       return true
     }
 
-    // After motivation score: FIRST IMPRESSION matters.
-    // Keep it friend-like: do not talk about the plan beyond the score unless the user asks.
-    const alreadyHasFact = await params.hasWhatsappPersonalFact(admin, userId)
-    const follow = alreadyHasFact
-      ? (
-        `Merci, ${score}/10 ✅ Je note.\n\n` +
-        "Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?"
-      )
-      : (
-        `Merci, ${score}/10 ✅ Je note.\n\n` +
-        "J’ai envie de te connaître un peu 🙂\n" +
-        "S’il y a 1 truc que tu aimerais que je sache sur toi (ton rythme, ce qui t’aide / te bloque…), ce serait quoi ?"
-      )
-
-    // If the user included another request besides the score, answer it too (soft onboarding),
-    // and end with the follow-up question. Do NOT fire multiple onboarding messages at once.
-    if (rest.length > 0) {
-      await replyWithBrain({
-        admin,
-        userId,
-        fromE164,
-        inboundText: raw,
-        requestId,
-        replyToWaMessageId: waMessageId,
-        purpose: "awaiting_plan_motivation_score_plus_request",
-        contextOverride:
-          `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
-          `ÉTAT: awaiting_plan_motivation\n` +
-          `Le score de motivation a déjà été donné: ${score}/10.\n` +
-          `Réponds au sujet de l'utilisateur, puis termine EXACTEMENT par cette question:\n` +
-          `${follow}\n` +
-          `IMPORTANT: ne promets pas de "modifier/adopter le plan entier" ici. Tu peux proposer d'ajuster UNE action si l'utilisateur la mentionne. Sinon: aide à exécuter et renvoie vers la plateforme pour changer le plan.\n` +
-          `N'enchaîne pas d'autres questions (pas de "d'ailleurs...").\n`,
-      })
-    } else {
-      const sendResp = await sendWhatsAppText(fromE164, follow)
-      const outId = (sendResp as any)?.messages?.[0]?.id ?? null
-      await admin.from("chat_messages").insert({
-        user_id: userId,
-        scope: "whatsapp",
-        role: "assistant",
-        content: follow,
-        agent_used: "companion",
-        metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_motivation_followup", score },
-      })
-    }
+    // After motivation score: immediately kick off the FIRST active action.
+    // This avoids an onboarding loop of generic open questions and creates momentum.
+    await replyWithBrain({
+      admin,
+      userId,
+      fromE164,
+      inboundText: raw || `${score}/10`,
+      requestId,
+      replyToWaMessageId: waMessageId,
+      purpose: rest.length > 0 ? "awaiting_plan_motivation_score_plus_request" : "awaiting_plan_motivation_score_kickoff",
+      forceMode: "architect",
+      contextOverride:
+        `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
+        `ÉTAT: awaiting_plan_motivation\n` +
+        `Le user a donné un score de motivation: ${score}/10.\n` +
+        `Objectif: Accuser réception du score en 1 phrase, puis lancer IMMÉDIATEMENT la première action "active" du plan (dashboard_context ci-dessous).\n` +
+        `IMPORTANT: ne pose PAS de question générique ("tu as envie qu’on parle de quoi ?").\n` +
+        `Tu dois:\n` +
+        `- proposer 1 prochaine étape concrète (un petit pas faisable maintenant)\n` +
+        `- terminer par UNE question courte et actionnable liée à cette étape.\n` +
+        `Rappel: distingue "active" (maintenant) vs "pending" (plus tard). Priorise "active".\n`,
+    })
 
     await admin.from("profiles").update({
-      // If we asked for a personal fact, handle that next; otherwise end gating.
-      whatsapp_state: alreadyHasFact ? null : "awaiting_personal_fact",
+      // End onboarding gating once motivation is captured; continue normally.
+      whatsapp_state: null,
       whatsapp_state_updated_at: new Date().toISOString(),
     }).eq("id", userId)
     return true
@@ -256,9 +232,14 @@ export async function handleOnboardingState(params: {
       } as any)
     }
 
-    const ack =
-      "Merci, je note ❤️\n" +
-      "Et là, tout de suite: tu as envie qu’on parle de quoi ?"
+    const factLower = fact.toLowerCase()
+    const mention =
+      fact &&
+      /fatigu/.test(factLower) &&
+      /(irr[ée]guli|inconstant|pas\s+regulier|instable)/i.test(fact)
+        ? "Ok, je note: quand tu es fatigué, ça te rend irrégulier ❤️\n"
+        : "Merci, je note ❤️\n"
+    const ack = `${mention}Et là, tout de suite: tu as envie qu’on parle de quoi ?`
     const sendResp = await sendWhatsAppText(fromE164, ack)
     const outId = (sendResp as any)?.messages?.[0]?.id ?? null
     await admin.from("chat_messages").insert({

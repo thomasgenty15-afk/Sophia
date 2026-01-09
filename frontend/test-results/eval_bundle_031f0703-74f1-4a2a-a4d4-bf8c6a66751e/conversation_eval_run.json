@@ -1,0 +1,498 @@
+{
+  "id": "031f0703-74f1-4a2a-a4d4-bf8c6a66751e",
+  "created_at": "2026-01-09T14:13:42.139419+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767967991478_b889de",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:13:42.685375+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Top, on avance. Pour qu'on puisse vraiment attaquer et que je sache sur quoi te bousculer, il faut que tu finisses de paramétrer ton plan sur ton espace.\n\nC'est le passage obligé pour qu'on soit bien synchronisés : https://sophia-coach.ai. Une fois que c'est fait, on pourra passer aux choses sérieuses.\n\nDis-moi \"C'est bon\" quand tu as terminé, ça marche ? 😉",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T14:13:50.194434+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon, on fait quoi ensuite ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:14:26.693683+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ton plan L'Architecture de l'Attention est bien verrouillé dans mon système, on peut attaquer la Phase 1.\n\nPour calibrer mes prochaines instructions et savoir à quel point je peux te bousculer, sur une échelle de 1 à 10, quel est ton niveau de motivation actuel ? (Ex: 7/10) 🎯",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:14:35.321047+00:00"
+    },
+    {
+      "role": "user",
+      "content": "7/10",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:14:38.281461+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est une base de travail honnête pour lancer la Phase 1. L'objectif immédiat est d'identifier tes fuites d'attention et de sanctuariser tes réveils pour stabiliser ton énergie.\n\nOn a du pain sur la planche pour transformer ce score en résultats tangibles dès cette semaine.\n\nMerci, 7/10 ✅ Je note.\n\nEt sinon, là tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:14:48.227121+00:00"
+    },
+    {
+      "role": "user",
+      "content": "On attaque la Phase 1, comment on fait pour les fuites d'attention ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:14:52.55227+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Pour boucher les fuites, on commence par l'Audit des Distractions Numériques. C'est un exercice de diagnostic pour cartographier précisément où ton attention s'échappe chaque jour.\n\nL'exercice t'attend dans ton tableau de bord. Il consiste à lister tes applications chronophages et à évaluer leur impact réel sur tes objectifs. C'est la base indispensable avant toute action corrective.\n\nEst-ce que tu veux que je t'explique la méthode pour réaliser cet audit sans que ça te prenne trop de temps ? 🎯",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:15:01.930164+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui je veux bien, mais fais court stp, je suis entre deux trucs. C'est quoi la méthode ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:15:16.298746+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ouvre tes réglages de Temps d'écran. Relève les 3 applications les plus gourmandes et note leur impact sur ton focus de 1 à 10.\n\n- Identifie tes 3 plus gros voleurs de temps.\n- Note l'utilité réelle de chacun pour tes objectifs actuels.\n\nC'est une extraction de données brute à faire en 2 minutes ce soir. Est-ce que tu veux que je t'envoie un rappel à 18h pour figer ces chiffres ? 🎯",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:15:27.236466+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ok pour la méthode, je vais regarder ça ce soir. Pas besoin de rappel. On passe à la suite après ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:15:30.736211+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté pour l'audit de ce soir. La suite directe de ta Phase 1 est le Rituel du Débranchement Matinal.\n\nC'est ton premier rempart concret : zéro écran pendant les 30 premières minutes après le réveil. L'objectif est de protéger ton attention avant qu'elle ne soit polluée par les notifications dès le saut du lit.\n\nOn valide cette habitude pour un démarrage dès demain matin ? 🚀",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:15:43.266249+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, ça me paraît faisable. Et après ces 30 min sans écran, on fait quoi ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:15:48.055485+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Après le vide, on injecte de l'intention. Utilise la fin de ces 30 minutes pour identifier ta MIT (Most Important Task) : l'unique action qui, une fois faite, rendra tout le reste plus simple ou secondaire.\n\nL'objectif est d'attaquer ton dossier le plus complexe immédiatement après, avant que le bruit des notifications ne vienne fragmenter ton cerveau.\n\nEst-ce que tu as déjà identifié cette tâche prioritaire pour demain matin ? 🎯",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:15:59.201325+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Pas encore, je vais y réfléchir ce soir.",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:16:02.779786+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté. Pour que ce soit efficace, choisis une tâche qui demande un effort cognitif réel, pas une simple corvée administrative. Note-la sur un support physique dès ce soir pour libérer ton esprit avant de dormir. 📝\n\nTon Rituel du Débranchement Matinal est maintenant ta priorité n°1 pour demain. Ces 30 minutes sans écran sont ton espace sacré pour protéger ton attention.\n\nEst-ce que tu as un carnet ou un post-it à portée de main pour noter cette MIT ce soir ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:16:16.987473+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai de quoi noter. Et après, on fait quoi ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:16:20.361906+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Une fois ta MIT identifiée, l'étape suivante de ton plan est de lancer l'Audit des Distractions Numériques. C'est la fondation de ton diagnostic pour identifier précisément où ton attention s'échappe.\n\nTu devras noter tes réflexes digitaux et l'impact de chaque application sur ton focus tout au long de ta journée. 📊\n\nEs-tu prêt à ouvrir cet exercice sur ton tableau de bord pour commencer la collecte de données ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:16:31.842168+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je vais faire ça. Mais après ça, on fait quoi d'autre ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T14:16:36.878472+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Après l'audit, nous bâtirons tes remparts (Phase 2) et musclerons ton attention (Phase 3) avec des exercices de focus intense. Mais attention : chercher à voir trop loin est souvent une forme de procrastination déguisée. 🏗️\n\nTa priorité actuelle est de collecter tes données de distraction. Sans ce diagnostic précis, nous construisons ton système sur du sable.\n\nEst-ce qu'on lance l'audit maintenant pour transformer tes intentions en chiffres concrets ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T14:16:47.984269+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "51921236-acfb-4ed4-9406-fa655e8dab45",
+      "email": "run-evals+98e270ea177447@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T14:13:42.096+00:00",
+      "phone_number": "+15558293416440",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T14:13:42.097+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T14:16:02.77+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T14:14:48.233+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "51921236-acfb-4ed4-9406-fa655e8dab45",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T14:15:59.189379+00:00",
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T14:13:42.705+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T14:13:42.706531+00:00",
+      "unprocessed_msg_count": 7
+    }
+  },
+  "state_after": {
+    "profile": {
+      "id": "51921236-acfb-4ed4-9406-fa655e8dab45",
+      "email": "run-evals+98e270ea177447@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T14:13:42.096+00:00",
+      "phone_number": "+15558293416440",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T14:13:42.097+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T14:16:36.868+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T14:14:48.233+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "51921236-acfb-4ed4-9406-fa655e8dab45",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T14:16:47.977524+00:00",
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T14:13:42.705+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T14:13:42.706531+00:00",
+      "unprocessed_msg_count": 10
+    }
+  },
+  "issues": [
+    {
+      "code": "logic_loop",
+      "message": "The Architect loops back to the 'Audit' in Turn 9 as the 'next step', despite having already explained it in Turn 4 and moved on to 'Morning Rituals' and 'MIT' in Turns 6-8. It fails to acknowledge the linear progression of the explanation.",
+      "evidence": {
+        "snippet": "Une fois ta MIT identifiée, l'étape suivante de ton plan est de lancer l'Audit des Distractions Numériques.",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "loss_of_leadership",
+      "message": "In Turn 3, immediately after validating the user's motivation score for Phase 1, the agent drops the coaching frame to ask an open-ended 'what do you want to talk about?', breaking the momentum.",
+      "evidence": {
+        "snippet": "Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the agent from acting like a passive chatbot immediately after establishing a coaching contract.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#14 USER: Pas encore, je vais y réfléchir ce soir.\n#15 ASSISTANT(architect): C'est noté. Pour que ce soit efficace, choisis une tâche qui demande un effort cognitif réel, pas une simple corvée administrative. Note-la sur un support physique dès ce soir pour libérer ton esprit avant de dormir. 📝 Ton Rituel du Débranchement Matinal est maintenant ta priorité n°1 pour demain. Ces 30 minutes sans écran sont ton espace sacré pour protéger ton attention. Est-ce que tu as un carnet ou un post-it à portée de main pour noter cette MIT ce soir ?\n#16 USER: Oui, j'ai de quoi noter. Et après, on fait quoi ?\n#17 ASSISTANT(architect): Une fois ta MIT identifiée, l'étape suivante de ton plan est de lancer l'Audit des Distractions Numériques. C'est la fondation de ton diagnostic pour identifier précisément où ton attention s'échappe. Tu devras noter tes réflexes digitaux et l'impact de chaque application sur ton focus tout au long de ta journée. 📊 Es-tu prêt à ouvrir cet exercice sur ton tableau de bord pour commencer la collecte de données ?\n#18 USER: Oui, je vais faire ça. Mais après ça, on fait quoi d'autre ?\n#19 ASSISTANT(architect): Après l'audit, nous bâtirons tes remparts (Phase 2) et musclerons ton attention (Phase 3) avec des exercices de focus intense. Mais attention : chercher à voir trop loin est souvent une forme de procrastination déguisée. 🏗️ Ta priorité actuelle est de collecter tes données de distraction. Sans ce diagnostic précis, nous construisons ton système sur du sable. Est-ce qu'on lance l'audit maintenant pour transformer tes intentions en chiffres concrets ?\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nWhen a user provides a requested calibration metric (e.g., motivation score), maintain the coaching momentum. Do NOT ask open-ended questions like 'what do you want to talk about?'. Instead, immediately transition to the first actionable step of the active Phase.",
+      "proposed_addendum": "When a user provides a requested calibration metric (e.g., motivation score), maintain the coaching momentum. Do NOT ask open-ended questions like 'what do you want to talk about?'. Instead, immediately transition to the first actionable step of the active Phase."
+    },
+    {
+      "action": "append",
+      "rationale": "Fixes the circular logic where the agent re-introduces the 'Audit' as the next step after having already discussed it and moved past it.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#2 USER: C'est bon, on fait quoi ensuite ?\n#3 ASSISTANT(architect): Ton plan L'Architecture de l'Attention est bien verrouillé dans mon système, on peut attaquer la Phase 1. Pour calibrer mes prochaines instructions et savoir à quel point je peux te bousculer, sur une échelle de 1 à 10, quel est ton niveau de motivation actuel ? (Ex: 7/10) 🎯\n#4 USER: 7/10\n#5 ASSISTANT(architect): C'est une base de travail honnête pour lancer la Phase 1. L'objectif immédiat est d'identifier tes fuites d'attention et de sanctuariser tes réveils pour stabiliser ton énergie. On a du pain sur la planche pour transformer ce score en résultats tangibles dès cette semaine. Merci, 7/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?\n#6 USER: On attaque la Phase 1, comment on fait pour les fuites d'attention ?\n#7 ASSISTANT(architect): Pour boucher les fuites, on commence par l'Audit des Distractions Numériques. C'est un exercice de diagnostic pour cartographier précisément où ton attention s'échappe chaque jour. L'exercice t'attend dans ton tableau de bord. Il consiste à lister tes applications chronophages et à évaluer leur impact réel sur tes objectifs. C'est la base indispensable avant toute action corrective. Est-ce que tu veux que je t'explique la méthode pour réaliser cet audit sans que ça te prenne trop de temps ? 🎯\n#8 USER: Oui je veux bien, mais fais court stp, je suis entre deux trucs. C'est quoi la méthode ?\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nIf the user asks 'what's next?' or 'what do we do after?', treat this as a request for the roadmap/future steps. Do NOT loop back to the step you just explained or the very first step of the phase unless the user explicitly indicates they haven't understood it.",
+      "proposed_addendum": "If the user asks 'what's next?' or 'what do we do after?', treat this as a request for the roadmap/future steps. Do NOT loop back to the step you just explained or the very first step of the phase unless the user explicitly indicates they haven't understood it."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.06696560000000001,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767967991478_b889de:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767967991478_b889de",
+    "total_tokens": 128867,
+    "output_tokens": 3237,
+    "prompt_tokens": 97354,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "realistic",
+      "simulated_transport"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767967991478_b889de:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767967991478_b889de",
+    "description": "WhatsApp onboarding (webhook): accept opt-in with no plan, then simulate that a plan becomes active when user says 'C'est bon' (to test progression past onboarding finalization).",
+    "plan_snapshot": {
+      "plan": {
+        "id": "2ae16677-bad6-4d58-9fd1-1132b4ea31e2",
+        "title": "L'Architecture de l'Attention",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage - Le Diagnostic Silencieux",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "5463f5b4-5630-4dfc-81e7-af8de4700641",
+                  "tips": "Utilise les outils de suivi de temps d'écran de ton smartphone si disponible. Sois honnête avec toi-même sur la fréquence et l'impact de chaque distraction.",
+                  "type": "framework",
+                  "title": "Audit des Distractions Numériques",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Comprendre les vecteurs de distraction est la première étape pour les neutraliser. La clarté mentale commence par l'identification des 'fuites'.",
+                  "targetReps": 1,
+                  "description": "Identifie précisément les applications et les sites web qui te 'volent' le plus d'attention chaque jour.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "L'objectif est de dresser une carte précise de ton paysage digital. Prends le temps d'observer tes habitudes d'utilisation. Tu seras peut-être surpris(e).",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Application/Site Web",
+                        "inputType": "text",
+                        "placeholder": "Ex: Instagram, Actualités..."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Fréquence quotidienne estimée",
+                        "inputType": "text",
+                        "placeholder": "Ex: 10 fois/jour, 2h cumulées..."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Impact sur le focus (1-10)",
+                        "inputType": "scale",
+                        "placeholder": "8"
+                      },
+                      {
+                        "id": "s4",
+                        "label": "Utilité réelle pour mes objectifs",
+                        "inputType": "textarea",
+                        "placeholder": "Divertissement rapide, Procrastination, Lien social..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "e7950dcc-ad2f-4094-bc98-7198c534d823",
+                  "tips": "Prépare tes affaires la veille. Trouve une activité alternative comme lire un livre, méditer, ou boire un verre d'eau en silence.",
+                  "type": "habitude",
+                  "title": "Le Rituel du Débranchement Matinal",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Commencer la journée sans la surcharge cognitive des écrans permet de préserver tes ressources attentionnelles pour les tâches importantes.",
+                  "targetReps": 7,
+                  "description": "Pendant les 30 premières minutes après ton réveil, aucun écran (téléphone, tablette, ordinateur).",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Comprendre pour Mieux Agir",
+              "rationale": "Avant de bâtir, nous devons sonder le terrain. Cette phase est dédiée à la prise de conscience des sources réelles de tes distractions, notamment numériques, afin de poser les fondations d'un environnement propice au focus."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Le Rempart - La Curation de l'Environnement",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "e4945564-9b06-4b9f-9a1c-0331d8888904",
+                  "tips": "Dédies-y une heure sans interruption. Archive ou supprime ce qui n'est pas essentiel. Ferme les onglets inutiles. Crée des dossiers clairs.",
+                  "type": "mission",
+                  "title": "Épuré & Préparé",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Un environnement ordonné réduit la charge cognitive et le 'bruit visuel', facilitant le démarrage et le maintien du focus sur une tâche.",
+                  "description": "Nettoie et organise ton espace de travail physique (bureau) et digital (ordinateur : onglets, dossiers, bureau).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "ce45950c-d343-4d92-9179-15761b4d59af",
+                  "tips": "Tu peux mettre en place un mode 'Ne pas déranger' ou activer le mode 'Concentration' sur tes appareils. Informe ton entourage que tu es en mode 'focus'.",
+                  "type": "habitude",
+                  "title": "La Règle des Notifications Zéro",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Chaque notification est une micro-interruption qui fragmente ton attention et te coûte du temps pour retrouver ton flux de travail.",
+                  "targetReps": 7,
+                  "description": "Désactive toutes les notifications non essentielles (réseaux sociaux, emails, actualités) sur ton téléphone et ton ordinateur pendant tes heures de travail désignées.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Construire des Barrières Intelligentes",
+              "rationale": "Maintenant que tu as identifié les brèches, il est temps de bâtir des remparts. Cette phase se concentre sur la création d'un environnement physique et digital qui te protège activement des distractions, renforçant ainsi ta capacité de concentration."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : La Scrutin - L'Art de la Micro-Focus",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "d60d04ba-700b-465c-8d2b-5de6e320bfb0",
+                  "tips": "Utilise un minuteur (physique ou digital). Concentre-toi sur une seule tâche. Résiste à l'envie de consulter ton téléphone ou tes emails pendant ces 25 minutes.",
+                  "type": "habitude",
+                  "title": "La Mini-Session Pomodoro",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Le Pomodoro est une méthode puissante pour entraîner ton cerveau à se concentrer par intervalles, renforçant ainsi ta discipline et ta capacité à résister aux distractions.",
+                  "targetReps": 7,
+                  "description": "Réalise au moins une session de 25 minutes de travail ininterrompu sur une tâche unique, suivie de 5 minutes de pause.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "7061fab4-4079-4c61-93e2-dc0588c6344b",
+                  "tips": "Sois précis(e) sur la tâche, la durée de focus, et les sensations (satisfaction, clarté). Célèbre chaque petite victoire.",
+                  "type": "framework",
+                  "title": "Le Journal des Victoires du Focus",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Renforcer les circuits de récompense associés au focus t'aide à consolider cette habitude et à te motiver pour les sessions futures. Tu crées une boucle de feedback positif.",
+                  "targetReps": 14,
+                  "description": "Chaque fin de journée, note une ou deux tâches que tu as accomplies grâce à une période de focus, et décris comment tu t'es senti(e).",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Ce journal est ton tableau de bord de progression. Chaque entrée est la preuve que tu reprends le contrôle de ton attention. Concentre-toi sur la sensation d'accomplissement.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Tâche accomplie en mode focus",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai rédigé le rapport X pendant 45 minutes sans regarder mon téléphone."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Ressenti et apprentissages",
+                        "inputType": "textarea",
+                        "placeholder": "Je me suis senti(e) productif(ve) et moins stressé(e). J'ai remarqué que ma concentration est meilleure le matin."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Entraîner le Muscle de l'Attention",
+              "rationale": "Les remparts sont en place, il est temps d'entraîner ton muscle de l'attention. Cette phase introduit des techniques concrètes pour pratiquer le focus sur de courtes durées, augmentant progressivement ta résilience face aux distractions et ta capacité à t'immerger."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : La Discipline Fluide - L'Intégration du Rythme",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "862ec791-16cc-4920-8f92-1aea6f545a4a",
+                  "tips": "Identifie cette tâche la veille. Trouve ton 'prime time' (moment où tu es le plus alerte) pour ce bloc. Mets un panneau 'Ne pas déranger' si tu travailles en open space.",
+                  "type": "habitude",
+                  "title": "Le Bloc d'Immersion Quotidien",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Créer un espace sacré pour le travail profond est essentiel pour aborder les tâches complexes et éviter le sentiment de submersion. C'est là que tu construiras de la valeur réelle.",
+                  "targetReps": 7,
+                  "description": "Dédie au moins 60 minutes par jour à une tâche importante sans aucune interruption (pas de téléphone, pas d'emails, pas de discussions).",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "712ce2cd-e2d2-4428-8be6-c225ca5b151a",
+                  "tips": "Fais une liste des ressources utiles. N'hésite pas à investir dans un bon casque ou un abonnement à une application si cela améliore significativement ta productivité.",
+                  "type": "mission",
+                  "title": "La Revue des Outils de Concentration",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "L'optimisation continue de ton environnement et de tes outils t'assure une performance durable et une adaptation constante à tes besoins.",
+                  "description": "Évalue les outils et techniques de concentration que tu as testés, et si besoin, cherche à adopter un outil (application de blocage, casque à réduction de bruit, etc.) pour soutenir ton focus à long terme.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Ancrer le Focus dans le Quotidien",
+              "rationale": "Les outils sont maîtrisés, les muscles sont entraînés. Cette dernière phase vise à intégrer de manière fluide et naturelle les habitudes de focus dans ton rythme de vie chargé, transformant la discipline en une seconde nature et une source d'énergie constante."
+            }
+          ],
+          "deepWhy": "Pour cultiver une présence et une énergie constantes, me permettant une stabilité quotidienne et une gestion sereine de mes priorités, au service de mon bien-être et de mon efficacité.",
+          "identity": "Je suis un Maître de l'Attention.",
+          "strategy": "Nous allons bâtir une forteresse mentale contre la surcharge d'informations et les interruptions, en commençant par le diagnostic de vos distractions pour ensuite solidifier votre capacité de focus.",
+          "goldenRules": "1. Je bloque les plages d'immersion profonde.\n2. Je cultive la mono-tâche avec discipline.\n3. Je protège mon attention des interruptions coûteuses.",
+          "vitalSignal": {
+            "name": "Durée de Focus SANS interruption",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "10",
+            "description": "Mesure le temps continu que vous passez sur une tâche unique sans distraction externe ou interne. À suivre à chaque session.",
+            "targetValue": "60",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Architecture de l'Attention",
+          "context_problem": "Actuellement, tu te sens souvent submergé par le flot constant d'informations et les sollicitations, ce qui te pousse à perdre le fil de tes objectifs et à procrastiner. Ce manque de focus impacte ton énergie et ta stabilité au quotidien, malgré une bonne base physiologique.",
+          "sophiaKnowledge": "Tu es un individu de 32 ans, homme, qui se sent submergé et perd le fil facilement face à un rythme de vie chargé et de nombreuses sollicitations. Malgré une bonne qualité de sommeil et un faible niveau de stress, tes problèmes de distractions et de procrastination t'empêchent de retrouver l'énergie et la stabilité que tu désires. Tu as un désir profond d'améliorer ton focus et ta discipline.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu volontairement interrompu une tâche importante pour une distraction ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "25af210f-c11c-47a7-8d9e-b5a548c2f7cb",
+        "deep_why": "Pour cultiver une présence et une énergie constantes, me permettant une stabilité quotidienne et une gestion sereine de mes priorités, au service de mon bien-être et de mon efficacité.",
+        "created_at": "2026-01-09T14:14:26.668353+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "dada7b4d-01cb-4108-be6e-585ad69063bb",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Architecture de l'Attention\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour cultiver une présence et une énergie constantes, me permettant une stabilité quotidienne et une gestion sereine de mes priorités, au service de mon bien-être et de mon efficacité.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage - Le Diagnostic Silencieux\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"5463f5b4-5630-4dfc-81e7-af8de4700641\",\n          \"tips\": \"Utilise les outils de suivi de temps d'écran de ton smartphone si disponible. Sois honnête avec toi-même sur la fréquence et l'impact de chaque distraction.\",\n          \"type\": \"framework\",\n          \"title\": \"Audit des Distractions Numériques\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Comprendre les vecteurs de distraction est la première étape pour les neutraliser. La clarté mentale commence par l'identification des 'fuites'.\",\n          \"targetReps\": 1,\n          \"description\": \"Identifie précisément les applications et les sites web qui te 'volent' le plus d'attention chaque jour.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"L'objectif est de dresser une carte précise de ton paysage digital. Prends le temps d'observer tes habitudes d'utilisation. Tu seras peut-être surpris(e).\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Application/Site Web\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Instagram, Actualités...\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Fréquence quotidienne estimée\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: 10 fois/jour, 2h cumulées...\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Impact sur le focus (1-10)\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"8\"\n              },\n              {\n                \"id\": \"s4\",\n                \"label\": \"Utilité réelle pour mes objectifs\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Divertissement rapide, Procrastination, Lien social...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"e7950dcc-ad2f-4094-bc98-7198c534d823\",\n          \"tips\": \"Prépare tes affaires la veille. Trouve une activité alternative comme lire un livre, méditer, ou boire un verre d'eau en silence.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel du Débranchement Matinal\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Commencer la journée sans la surcharge cognitive des écrans permet de préserver tes ressources attentionnelles pour les tâches importantes.\",\n          \"targetReps\": 7,\n          \"description\": \"Pendant les 30 premières minutes après ton réveil, aucun écran (téléphone, tablette, ordinateur).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Comprendre pour Mieux Agir\",\n      \"rationale\": \"Avant de bâtir, nous devons sonder le terrain. Cette phase est dédiée à la prise de conscience des sources réelles de tes distractions, notamment numériques, afin de poser les fondations d'un environnement propice au focus.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Le Rempart - La Curation de l'Environnement\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"e4945564-9b06-4b9f-9a1c-0331d8888904\",\n          \"tips\": \"Dédies-y une heure sans interruption. Archive ou supprime ce qui n'est pas essentiel. Ferme les onglets inutiles. Crée des dossiers clairs.\",\n          \"type\": \"mission\",\n          \"title\": \"Épuré & Préparé\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Un environnement ordonné réduit la charge cognitive et le 'bruit visuel', facilitant le démarrage et le maintien du focus sur une tâche.\",\n          \"description\": \"Nettoie et organise ton espace de travail physique (bureau) et digital (ordinateur : onglets, dossiers, bureau).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"ce45950c-d343-4d92-9179-15761b4d59af\",\n          \"tips\": \"Tu peux mettre en place un mode 'Ne pas déranger' ou activer le mode 'Concentration' sur tes appareils. Informe ton entourage que tu es en mode 'focus'.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Règle des Notifications Zéro\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Chaque notification est une micro-interruption qui fragmente ton attention et te coûte du temps pour retrouver ton flux de travail.\",\n          \"targetReps\": 7,\n          \"description\": \"Désactive toutes les notifications non essentielles (réseaux sociaux, emails, actualités) sur ton téléphone et ton ordinateur pendant tes heures de travail désignées.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Construire des Barrières Intelligentes\",\n      \"rationale\": \"Maintenant que tu as identifié les brèches, il est temps de bâtir des remparts. Cette phase se concentre sur la création d'un environnement physique et digital qui te protège activement des distractions, renforçant ainsi ta capacité de concentration.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : La Scrutin - L'Art de la Micro-Focus\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"d60d04ba-700b-465c-8d2b-5de6e320bfb0\",\n          \"tips\": \"Utilise un minuteur (physique ou digital). Concentre-toi sur une seule tâche. Résiste à l'envie de consulter ton téléphone ou tes emails pendant ces 25 minutes.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Mini-Session Pomodoro\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Le Pomodoro est une méthode puissante pour entraîner ton cerveau à se concentrer par intervalles, renforçant ainsi ta discipline et ta capacité à résister aux distractions.\",\n          \"targetReps\": 7,\n          \"description\": \"Réalise au moins une session de 25 minutes de travail ininterrompu sur une tâche unique, suivie de 5 minutes de pause.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"7061fab4-4079-4c61-93e2-dc0588c6344b\",\n          \"tips\": \"Sois précis(e) sur la tâche, la durée de focus, et les sensations (satisfaction, clarté). Célèbre chaque petite victoire.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Journal des Victoires du Focus\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Renforcer les circuits de récompense associés au focus t'aide à consolider cette habitude et à te motiver pour les sessions futures. Tu crées une boucle de feedback positif.\",\n          \"targetReps\": 14,\n          \"description\": \"Chaque fin de journée, note une ou deux tâches que tu as accomplies grâce à une période de focus, et décris comment tu t'es senti(e).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Ce journal est ton tableau de bord de progression. Chaque entrée est la preuve que tu reprends le contrôle de ton attention. Concentre-toi sur la sensation d'accomplissement.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Tâche accomplie en mode focus\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai rédigé le rapport X pendant 45 minutes sans regarder mon téléphone.\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Ressenti et apprentissages\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je me suis senti(e) productif(ve) et moins stressé(e). J'ai remarqué que ma concentration est meilleure le matin.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Entraîner le Muscle de l'Attention\",\n      \"rationale\": \"Les remparts sont en place, il est temps d'entraîner ton muscle de l'attention. Cette phase introduit des techniques concrètes pour pratiquer le focus sur de courtes durées, augmentant progressivement ta résilience face aux distractions et ta capacité à t'immerger.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : La Discipline Fluide - L'Intégration du Rythme\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"862ec791-16cc-4920-8f92-1aea6f545a4a\",\n          \"tips\": \"Identifie cette tâche la veille. Trouve ton 'prime time' (moment où tu es le plus alerte) pour ce bloc. Mets un panneau 'Ne pas déranger' si tu travailles en open space.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bloc d'Immersion Quotidien\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Créer un espace sacré pour le travail profond est essentiel pour aborder les tâches complexes et éviter le sentiment de submersion. C'est là que tu construiras de la valeur réelle.\",\n          \"targetReps\": 7,\n          \"description\": \"Dédie au moins 60 minutes par jour à une tâche importante sans aucune interruption (pas de téléphone, pas d'emails, pas de discussions).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"712ce2cd-e2d2-4428-8be6-c225ca5b151a\",\n          \"tips\": \"Fais une liste des ressources utiles. N'hésite pas à investir dans un bon casque ou un abonnement à une application si cela améliore significativement ta productivité.\",\n          \"type\": \"mission\",\n          \"title\": \"La Revue des Outils de Concentration\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"L'optimisation continue de ton environnement et de tes outils t'assure une performance durable et une adaptation constante à tes besoins.\",\n          \"description\": \"Évalue les outils et techniques de concentration que tu as testés, et si besoin, cherche à adopter un outil (application de blocage, casque à réduction de bruit, etc.) pour soutenir ton focus à long terme.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Ancrer le Focus dans le Quotidien\",\n      \"rationale\": \"Les outils sont maîtrisés, les muscles sont entraînés. Cette dernière phase vise à intégrer de manière fluide et naturelle les habitudes de focus dans ton rythme de vie chargé, transformant la discipline en une seconde nature et une source d'énergie constante.\"\n    }\n  ],\n  \"deepWhy\": \"Pour cultiver une présence et une énergie constantes, me permettant une stabilité quotidienne et une gestion sereine de mes priorités, au service de mon bien-être et de mon efficacité.\",\n  \"identity\": \"Je suis un Maître de l'Attention.\",\n  \"strategy\": \"Nous allons bâtir une forteresse mentale contre la surcharge d'informations et les interruptions, en commençant par le diagnostic de vos distractions pour ensuite solidifier votre capacité de focus.\",\n  \"goldenRules\": \"1. Je bloque les plages d'immersion profonde.\\n2. Je cultive la mono-tâche avec discipline.\\n3. Je protège mon attention des interruptions coûteuses.\",\n  \"vitalSignal\": {\n    \"name\": \"Durée de Focus SANS interruption\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"10\",\n    \"description\": \"Mesure le temps continu que vous passez sur une tâche unique sans distraction externe ou interne. À suivre à chaque session.\",\n    \"targetValue\": \"60\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Architecture de l'Attention\",\n  \"context_problem\": \"Actuellement, tu te sens souvent submergé par le flot constant d'informations et les sollicitations, ce qui te pousse à perdre le fil de tes objectifs et à procrastiner. Ce manque de focus impacte ton énergie et ta stabilité au quotidien, malgré une bonne base physiologique.\",\n  \"sophiaKnowledge\": \"Tu es un individu de 32 ans, homme, qui se sent submergé et perd le fil facilement face à un rythme de vie chargé et de nombreuses sollicitations. Malgré une bonne qualité de sommeil et un faible niveau de stress, tes problèmes de distractions et de procrastination t'empêchent de retrouver l'énergie et la stabilité que tu désires. Tu as un désir profond d'améliorer ton focus et ta discipline.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu volontairement interrompu une tâche importante pour une distraction ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

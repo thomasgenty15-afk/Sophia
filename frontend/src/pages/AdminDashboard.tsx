@@ -39,9 +39,15 @@ type Scenario = {
   assertions?: any;
 };
 
-function loadScenarioPack(): Scenario[] {
+  function loadScenarioPack(): Scenario[] {
   const mods = import.meta.glob("../../eval/scenarios/*.json", { eager: true }) as Record<string, any>;
-  const jsonScenarios = Object.values(mods).map((m: any) => (m?.default ? m.default : m)) as Scenario[];
+  const featMods = import.meta.glob("../../eval/scenarios/functionality/*.json", { eager: true }) as Record<string, any>;
+  
+  const jsonScenarios = [
+    ...Object.values(mods), 
+    ...Object.values(featMods)
+  ].map((m: any) => (m?.default ? m.default : m)) as Scenario[];
+  
   // Programmatic pack: generate many bilan variants without maintaining dozens of JSON files.
   const bilanVariants = buildBilanScenarioPack();
   return [...jsonScenarios, ...bilanVariants];
@@ -65,6 +71,7 @@ const SCENARIO_TARGETS = [
   "onboarding",
   "whatsapp",
   "style",
+  "feature_test",
 ] as const;
 
 const USER_DIFFICULTIES = ["easy", "mid", "hard"] as const;

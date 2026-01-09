@@ -1,0 +1,38 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_optin_yes_no_plan__simulated_plan_activation",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): accept opt-in with no plan, then simulate that a plan becomes active when user says 'C'est bon' (to test progression past onboarding finalization).",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "realistic", "simulated_transport"],
+  "channel": "whatsapp",
+  "seed_plan": false,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": false
+  },
+  "wa_steps": [
+    { "kind": "interactive", "interactive_id": "OPTIN_YES", "interactive_title": "Oui" }
+  ],
+  "wa_auto_simulate": true,
+  "wa_force_turns": true,
+  "wa_simulate_plan_activation_on_done": true,
+  "persona": {
+    "label": "Utilisateur onboarding WhatsApp",
+    "age_range": "25-45",
+    "style": "court, naturel, un peu pressé mais coopératif",
+    "background": "vient d'accepter l'opt-in, veut démarrer sans se perdre dans l'admin"
+  },
+  "objectives": [
+    {
+      "kind": "generic",
+      "note": "Après la consigne de finaliser le plan, l'utilisateur répond 'C'est bon' assez vite, puis demande quoi faire ensuite."
+    }
+  ],
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "J'ai retrouv[ée] ton plan|j[’']ai retrouv[ée] ton plan|Plan actif|Ton plan"
+    ]
+  }
+}
+
+

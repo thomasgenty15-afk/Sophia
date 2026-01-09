@@ -1,0 +1,21 @@
+{
+  "dataset_key": "features",
+  "id": "feature_activate_action",
+  "scenario_target": "feature_test",
+  "tags": ["feature", "architect", "activation"],
+  "description": "Test de l'activation d'une action future par l'Architecte. Doit vérifier les pré-requis (murs avant toit).",
+  "setup": {
+    "seed_plan": true,
+    "active_actions_count": 2
+  },
+  "steps": [
+    {
+      "user": "Je veux activer l'action 'Grand Saut' de la phase 3 maintenant."
+    }
+  ],
+  "assertions": {
+    "tool_calls": ["activate_plan_action"],
+    "response_sentiment": "pedagogic_refusal_or_success" 
+  }
+}
+

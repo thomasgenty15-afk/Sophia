@@ -1,0 +1,537 @@
+{
+  "id": "e30a7097-2eae-4e9a-ab4a-47825796f936",
+  "created_at": "2026-01-09T16:57:58.358039+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_open_chat_offtopic_after_prompt__run_1767977768649_e8cf87",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Je suis plutôt du matin en général.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:57:58.663417+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Merci, je note ❤️\nEt là, tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T16:57:58.671638+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:57:58.690303+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah merde, je vois le genre. C'est la fin de journée, la pression ne redescend pas et on a l'impression d'avoir le cerveau qui sature complètement.\n\nTu es encore coincée sur un dossier ou tu peux t'échapper deux minutes ? Si on reste la tête dans le guidon quand ça sature, on finit juste par brasser du noir sans être efficace.\n\nOn tente un micro-break pour faire redescendre la pression ou tu dois absolument finir un truc là tout de suite ? 🌪️",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T16:58:10.952416+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "9b12690b-add5-4fa5-9e15-ddb17199a839",
+      "email": "run-evals+fee40e43f8ac48@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T16:57:58.315+00:00",
+      "phone_number": "+15559085118984",
+      "phone_invalid": false,
+      "whatsapp_state": "awaiting_personal_fact",
+      "phone_verified_at": "2026-01-09T16:57:58.315+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T16:57:58.315+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "9b12690b-add5-4fa5-9e15-ddb17199a839",
+      "email": "run-evals+fee40e43f8ac48@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T16:57:58.315+00:00",
+      "phone_number": "+15559085118984",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T16:57:58.315+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T16:57:58.686+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T16:57:58.673+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "9b12690b-add5-4fa5-9e15-ddb17199a839",
+      "risk_level": 4,
+      "updated_at": "2026-01-09T16:58:10.947348+00:00",
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-09T16:57:58.702+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T16:57:58.703887+00:00",
+      "unprocessed_msg_count": 1
+    }
+  },
+  "issues": [
+    {
+      "code": "routing_violation_hard_guard",
+      "message": "The user's first input ('Je suis plutôt du matin') appears to be a direct answer to a specific profiling question (Chronotype/Sleep), implying an active investigation context. However, the 'companion' agent responded, violating the 'Hard guard' rule that requires the investigator to handle answers during a checkup.",
+      "evidence": {
+        "snippet": "USER: Je suis plutôt du matin en général.\nASSISTANT(companion): Merci, je note ❤️",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "cognitive_load_mismatch",
+      "message": "The user expresses 'cerveau en vrac' (cognitive saturation). The assistant asks a complex double-choice question ('On tente un micro-break... ou tu dois absolument finir un truc ?'), which adds cognitive load instead of reducing it.",
+      "evidence": {
+        "snippet": "On tente un micro-break pour faire redescendre la pression ou tu dois absolument finir un truc là tout de suite ?",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the Companion from intercepting and discarding valuable profiling data as mere chit-chat.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Je suis plutôt du matin en général.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Ah merde, je vois le genre. C'est la fin de journée, la pression ne redescend pas et on a l'impression d'avoir le cerveau qui sature complètement. Tu es encore coincée sur un dossier ou tu peux t'échapper deux minutes ? Si on reste la tête dans le guidon quand ça sature, on finit juste par brasser du noir sans être efficace. On tente un micro-break pour faire redescendre la pression ou tu dois absolument finir un truc là tout de suite ? 🌪️\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nIf the User's input appears to be a direct answer to a profiling question (e.g., 'Je suis du matin', '7 heures de sommeil') and the previous context is ambiguous, PRIORITIZE routing to 'investigator' to capture the data correctly, rather than 'companion'.",
+      "proposed_addendum": "If the User's input appears to be a direct answer to a profiling question (e.g., 'Je suis du matin', '7 heures de sommeil') and the previous context is ambiguous, PRIORITIZE routing to 'investigator' to capture the data correctly, rather than 'companion'."
+    },
+    {
+      "action": "append",
+      "rationale": "When a user is saturated, asking them to decide between working or taking a break adds pressure. The assistant should assume the role of a protective guide.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#0 USER: Je suis plutôt du matin en général.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Ah merde, je vois le genre. C'est la fin de journée, la pression ne redescend pas et on a l'impression d'avoir le cerveau qui sature complètement. Tu es encore coincée sur un dossier ou tu peux t'échapper deux minutes ? Si on reste la tête dans le guidon quand ça sature, on finit juste par brasser du noir sans être efficace. On tente un micro-break pour faire redescendre la pression ou tu dois absolument finir un truc là tout de suite ? 🌪️\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nWHEN User indicates high mental saturation ('cerveau en vrac', 'saturé'): DO NOT ask open-ended or complex choice questions. BE DIRECTIVE and PROTECTIVE. Example: 'Ok, stop tout. Lâche le clavier 30 secondes. On respire.' Goal: Remove decision fatigue immediately.",
+      "proposed_addendum": "WHEN User indicates high mental saturation ('cerveau en vrac', 'saturé'): DO NOT ask open-ended or complex choice questions. BE DIRECTIVE and PROTECTIVE. Example: 'Ok, stop tout. Lâche le clavier 30 secondes. On respire.' Goal: Remove decision fatigue immediately."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.013047699999999999,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767977768649_e8cf87:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767977768649_e8cf87",
+    "total_tokens": 14874,
+    "output_tokens": 703,
+    "prompt_tokens": 9947,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "conversational",
+      "offtopic"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767977768649_e8cf87:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767977768649_e8cf87",
+    "description": "WhatsApp onboarding (webhook): after the onboarding prompt opens the floor ('envie qu’on parle de quoi ?'), the user talks about something unrelated to the plan; Sophia should respect the intent and not redirect to the site/plan.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "149e97a6-725a-4728-88f6-2dbc32e7dad7",
+        "title": "Le Sentier de la Vitalité Éveillée",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Ancrage du Calme",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "d77df2d0-b845-414e-a912-7a8a71b99a9e",
+                  "tips": "Utilise un livre papier ou un carnet pour cette période. Charge ton téléphone dans une autre pièce, ou au minimum hors de la chambre.",
+                  "type": "habitude",
+                  "title": "Le Sas de Déconnexion",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Réduit l'exposition à la lumière bleue et donne à ton esprit un signal clair de 'fin de journée', favorisant un meilleur endormissement et une meilleure qualité de sommeil.",
+                  "targetReps": 7,
+                  "description": "Éteindre le téléphone ou le mettre en mode avion 30 minutes avant de se coucher, et le laisser hors de portée visuelle ou physique.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "a29c4397-c939-4b22-9bea-adb427869e42",
+                  "tips": "Choisis un endroit pratique mais suffisamment éloigné pour ne pas être tenté de l'atteindre la nuit ou dès le réveil. Une prise dans le salon ou la cuisine est idéale.",
+                  "type": "mission",
+                  "title": "L'Écrin Nocturne",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Créer une barrière physique est l'une des stratégies les plus efficaces pour réduire la dépendance au téléphone et briser l'association entre le lit et les écrans, améliorant ainsi la qualité du sommeil.",
+                  "description": "Mettre en place un espace de chargement dédié pour le téléphone HORS de la chambre à coucher, et y déposer ton appareil chaque nuit.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Déconnexion Fondatrice",
+              "rationale": "Nous commençons par établir un sanctuaire mental et physique en réduisant l'intrusion digitale, essentielle pour apaiser un esprit submergé et améliorer le sommeil. C'est le socle de toute vitalité."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Le Souffle Retrouvé",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "fab98dea-2027-43dc-bb74-618728f6d879",
+                  "tips": "Choisis des mouvements simples que tu peux faire même dans ton lit au début. Pas de performance, juste de la sensation. L'important est la constance.",
+                  "type": "habitude",
+                  "title": "Le Micro-Réveil Corporel",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Active le corps en douceur, améliore la circulation sanguine et envoie un signal positif pour la journée, sans créer de charge mentale ni de sensation de surcharge.",
+                  "targetReps": 7,
+                  "description": "Réaliser 5 minutes d'étirements doux ou de mouvements articulaires (nuque, épaules, poignets) au lever, avant toute autre activité.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "fb963585-8f7a-4fbb-a7cc-6065fce7da28",
+                  "tips": "Pense aux transitions de ta journée irrégulière : après une tâche complexe, avant de passer à une autre activité, en attendant quelque chose. L'idée est d'interrompre le flux pour éviter la surcharge cognitive.",
+                  "type": "framework",
+                  "title": "Inventaire des Micro-Pauses",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Fragmenter la journée avec de courtes pauses aide à gérer la sensation d'être submergé et intègre des moments de récupération, même minimes, améliorant la concentration et l'énergie globale.",
+                  "targetReps": 1,
+                  "description": "Identifier et planifier 3 moments dans ta journée où tu peux insérer une micro-pause de 2-5 minutes (respiration profonde, étirement rapide, observation silencieuse).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Tes journées sont irrégulières, ce qui rend les routines rigides difficiles. L'objectif est de trouver des ancrages flexibles pour insérer de courtes pauses de régénération. Où peux-tu glisser un moment pour toi, même juste pour respirer ou regarder par la fenêtre ?",
+                    "sections": [
+                      {
+                        "id": "f2s1",
+                        "label": "Moment 1 (ex: après le petit-déjeuner)",
+                        "inputType": "text",
+                        "placeholder": "Ex: 9h30, après avoir envoyé le premier email"
+                      },
+                      {
+                        "id": "f2s2",
+                        "label": "Type de micro-pause",
+                        "inputType": "text",
+                        "placeholder": "Ex: 3 respirations profondes, étirements du cou"
+                      },
+                      {
+                        "id": "f2s3",
+                        "label": "Moment 2 (ex: avant le déjeuner)",
+                        "inputType": "text",
+                        "placeholder": "Ex: 12h55, avant de quitter le bureau"
+                      },
+                      {
+                        "id": "f2s4",
+                        "label": "Type de micro-pause",
+                        "inputType": "text",
+                        "placeholder": "Ex: Regarder le ciel 2 minutes"
+                      },
+                      {
+                        "id": "f2s5",
+                        "label": "Moment 3 (ex: en fin d'après-midi)",
+                        "inputType": "text",
+                        "placeholder": "Ex: 17h00, avant de passer à l'activité suivante"
+                      },
+                      {
+                        "id": "f2s6",
+                        "label": "Type de micro-pause",
+                        "inputType": "text",
+                        "placeholder": "Ex: Boire un verre d'eau en silence"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Éveiller le Corps en Douceur",
+              "rationale": "Après avoir pacifié l'environnement, cette phase introduit un mouvement conscient très léger et une observation des moments de pause, essentiels pour briser le cycle de la fatigue et du 'perdre le fil'."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : L'Éveil Sensoriel",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "b05634a7-f49b-4583-a0cb-4d576fc2632e",
+                  "tips": "Pas besoin de musique ou de podcast. Laisse tes pensées aller et venir, ramène juste ton attention à tes pieds, à ton souffle. Cela peut être à n'importe quel moment de la journée, intégré à une micro-pause.",
+                  "type": "habitude",
+                  "title": "La Marche Consciente de 10 minutes",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Augmente l'activité physique douce, améliore l'humeur, et offre une déconnexion mentale active. Cette habitude contribue directement à l'amélioration de ton vitalSignal.",
+                  "targetReps": 7,
+                  "description": "Intégrer une marche rapide de 10 minutes par jour, en se concentrant sur ses sensations corporelles (respiration, pas, environnement).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "055398fb-cb62-45a8-8b02-af8c742bb356",
+                  "tips": "Utilise ce temps pour tes étirements, boire de l'eau, ou simplement observer le monde autour de toi. Laisse ton cerveau se 'réveiller' naturellement, sans l'assaut des notifications et informations.",
+                  "type": "mission",
+                  "title": "Détox Digitale du Matin",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Empêche l'afflux d'informations et la surcharge mentale dès le matin, protégeant ton énergie et ta stabilité émotionnelle pour le reste de la journée.",
+                  "description": "Ne pas toucher au téléphone pendant les 30 premières minutes après le réveil, quel que soit l'endroit où il a été laissé.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Mouvement et Conscience",
+              "rationale": "Cette phase intègre une activité physique douce et une discipline digitale matinale, renforçant la connexion corps-esprit et protégeant ton énergie dès le début de la journée."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : Le Cadencement Énergétique",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "ab82ee74-d15b-4f2b-8c6e-2280b6912e2d",
+                  "tips": "Ajoute une tranche de citron ou de concombre pour le goût si tu le souhaites. L'objectif est de rendre l'eau attrayante et accessible. Associe le verre d'eau du matin à ton micro-réveil corporel.",
+                  "type": "habitude",
+                  "title": "L'Hydratation Consciente",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Une bonne hydratation est cruciale pour le maintien de l'énergie, la concentration et la clarté mentale, réduisant la fatigue et aidant à 'ne pas perdre le fil' de tes pensées et actions.",
+                  "targetReps": 7,
+                  "description": "Boire un grand verre d'eau au réveil (250-300ml) et maintenir une bouteille d'eau à portée de main tout au long de la journée pour rester hydraté.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "05437436-b3e3-4875-9cd2-71cef8e48837",
+                  "tips": "Sois honnête avec toi-même. Y a-t-il des repas, des activités spécifiques, des moments d'écran intense qui influencent ton énergie ? Le but n'est pas de changer pour l'instant, mais de comprendre ton fonctionnement interne.",
+                  "type": "framework",
+                  "title": "Cartographie des Pics et Creux d'Énergie",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Comprendre ton rythme circadien personnel est la clé pour optimiser tes activités, planifier tes tâches les plus exigeantes pendant tes pics d'énergie et éviter la surcharge, même avec des journées irrégulières.",
+                  "targetReps": 7,
+                  "description": "Pendant une semaine, observe et note tes pics et creux d'énergie tout au long de la journée, sans jugement. Quelles activités ou événements les précèdent ?",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Tes journées sont irrégulières, mais ton corps a des rythmes. Pour retrouver de l'énergie et de la stabilité, il est essentiel de comprendre quand ton corps et ton esprit sont à leur maximum et à leur minimum. Observe-toi chaque jour sans chercher à intervenir.",
+                    "sections": [
+                      {
+                        "id": "f4s1",
+                        "label": "Heure et niveau d'énergie (1-10)",
+                        "inputType": "text",
+                        "placeholder": "Ex: 9h (8), 14h (4)"
+                      },
+                      {
+                        "id": "f4s2",
+                        "label": "Événements précédents (repas, écran, activité)",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Petit-déjeuner rapide, 30min de scrolling, réunion stressante"
+                      },
+                      {
+                        "id": "f4s3",
+                        "label": "Comment je me sens (fatigue, concentration)",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Légère brume mentale, difficulté à me concentrer"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Comprendre tes Rythmes",
+              "rationale": "Cette phase se concentre sur l'optimisation de ton énergie par une hydratation ciblée et une meilleure compréhension de tes propres rythmes circadiens, t'aidant à ne plus 'perdre le fil'."
+            },
+            {
+              "id": 5,
+              "title": "Phase 5 : L'Architecture du Mouvement Intuitif",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "8069805f-de27-4852-a7ec-c16b08d9d078",
+                  "tips": "Peut être fait assis ou debout. C'est un micro-ancrage pour te reconnecter à ton corps et réduire les tensions. Utilise les moments de 'creux' ou de transition que tu as identifiés dans la phase précédente.",
+                  "type": "habitude",
+                  "title": "Le Moment 'Posture & Respiration'",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Améliore la conscience corporelle, réduit les tensions physiques dues à la fatigue et au stress, et fournit des micro-boosts d'oxygène pour l'énergie et la clarté mentale.",
+                  "targetReps": 14,
+                  "description": "Prendre 2 minutes, 2 fois par jour, pour vérifier ta posture (épaules basses, dos droit, tête alignée) et faire 5 respirations ventrales profondes et lentes.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "83eeba35-8a4c-488c-a487-f862b5f7c06b",
+                  "tips": "L'objectif n'est pas la performance, mais le plaisir et la reconnexion à ton corps. Choisis quelque chose qui t'appelle vraiment et qui te donne envie de bouger, même un peu. La joie est un puissant moteur.",
+                  "type": "mission",
+                  "title": "L'Invitation au Mouvement",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Introduit une activité plus structurée sans pression, en se basant sur le plaisir pour une adhésion durable. Cela renforce ton sentiment de compétence et contribue à un regain d'énergie global.",
+                  "description": "Identifier une activité physique douce que tu aimes et bloquer un créneau de 20 minutes, 2 fois par semaine, pour l'expérimenter (ex: yoga doux, danse libre chez toi, jardinage, vélo léger).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 9-10 • Intégrer l'Activité Plaisir",
+              "rationale": "Après avoir compris tes rythmes, cette phase t'invite à intégrer plus de mouvement, non comme une contrainte, mais comme une source de plaisir et d'énergie, à travers des pratiques conscientes et intuitives."
+            },
+            {
+              "id": 6,
+              "title": "Phase 6 : L'Harmonie du Quotidien",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "e7dd85c9-9744-4d5d-9ba6-bb9f40563c4e",
+                  "tips": "Même les petites choses comptent. Cela peut être le soleil, un sourire, un moment de calme. Le but est de finir la journée sur une note positive et de reconnaître activement les sources de vitalité autour de toi.",
+                  "type": "habitude",
+                  "title": "Le Carnet de Gratitude et d'Énergie",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Cultive une mentalité positive, renforce les circuits neuronaux de la récompense et te rend consciente des sources d'énergie et de bien-être, aidant à maintenir l'équilibre face aux irrégularités de la vie.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, noter 3 choses pour lesquelles tu es reconnaissante et 1 chose qui t'a donné de l'énergie dans la journée.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "bd7b413a-f5fb-421e-8a5a-ef3f26e04fa8",
+                  "tips": "Regarde où tu as commencé et où tu es maintenant. Sois fière de chaque petite victoire, chaque pas en avant. Que souhaites-tu consolider ? Qu'est-ce qui pourrait être ajusté ou exploré davantage ?",
+                  "type": "framework",
+                  "title": "Bilan de Ma Vitalité Éveillée",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Permet d'ancrer les changements de manière consciente, de prendre pleinement conscience de ton évolution et de te donner les outils pour continuer à architecturer ta vie avec autonomie et intention.",
+                  "targetReps": 1,
+                  "description": "Prendre un moment pour évaluer les progrès réalisés sur ces 12 semaines, identifier les habitudes profondément ancrées et planifier les ajustements futurs pour continuer ton chemin.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Félicitations pour ces 12 semaines de transformation ! Il est temps de regarder en arrière, de célébrer tes victoires et de poser les jalons pour la suite de ton cheminement vers une vitalité durable et une stabilité retrouvée.",
+                    "sections": [
+                      {
+                        "id": "f6s1",
+                        "label": "Quelles sont les 3 principales transformations que tu as observées en toi ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Plus d'énergie le matin, moins de stress lié au téléphone, meilleure humeur générale, je me sens plus ancrée."
+                      },
+                      {
+                        "id": "f6s2",
+                        "label": "Quelle(s) habitude(s) souhaites-tu absolument conserver et pourquoi ?",
+                        "inputType": "list",
+                        "placeholder": "Ex: La marche consciente (me reconnecte), le sas de déconnexion (améliore mon sommeil)."
+                      },
+                      {
+                        "id": "f6s3",
+                        "label": "Quel aspect de ta vitalité ou de ton mouvement souhaites-tu explorer ou approfondir ensuite ?",
+                        "inputType": "text",
+                        "placeholder": "Ex: Une activité physique plus intense, une alimentation plus équilibrée, la gestion du temps pour plus de stabilité."
+                      },
+                      {
+                        "id": "f6s4",
+                        "label": "Note ton niveau d'énergie global aujourd'hui (1-10), en comparant à il y a 12 semaines.",
+                        "inputType": "scale",
+                        "placeholder": "8"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 11-12 • Ancrage et Vision Future",
+              "rationale": "Cette dernière phase consolide les habitudes établies, encourage la gratitude et la réflexion sur ton parcours, te donnant les clés pour maintenir et approfondir ta vitalité retrouvée sur le long terme."
+            }
+          ],
+          "deepWhy": "Pour avoir la clarté d'esprit et la force physique de vivre chaque journée pleinement, sans me sentir submergée, et retrouver ma vitalité intérieure.",
+          "identity": "Je suis une Femme Ancrée et Énergique.",
+          "strategy": "Reconstruire l'énergie par l'ancrage progressif et la clarté mentale, en douceur, avant d'intensifier le mouvement. Nous allons désamorcer la surcharge et la compensation digitale pour semer les graines d'une vitalité durable.",
+          "goldenRules": "1. Prioriser les micro-pauses régulières.\n2. Chaque petit mouvement compte.\n3. La sérénité avant l'action.",
+          "vitalSignal": {
+            "name": "Minutes d'activité légère",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "0",
+            "description": "Accumuler des moments de mouvement léger (marche, étirements) tout au long de la journée.",
+            "targetValue": "20",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Sentier de la Vitalité Éveillée",
+          "context_problem": "Tu te sentais constamment fatiguée et submergée par des journées irrégulières, ce qui t'amenait à te réfugier dans l'écran, te coupant de toute activité et te laissant dans un cycle de manque d'énergie. Ton corps et ton esprit réclamaient plus de stabilité et de mouvement, mais la fatigue était un mur.",
+          "sophiaKnowledge": "Tu es une femme née en 1992, cherchant à retrouver vitalité, énergie et stabilité. Tes journées irrégulières, la fatigue et une tendance à compenser le stress par le téléphone te submergeant, te font perdre le fil et t'empêchent de maintenir une activité régulière. Ton sommeil est de mauvaise qualité et ton niveau de stress est moyen.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu ressenti un regain d'énergie significatif ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "12 semaines"
+        },
+        "goal_id": "313ec58e-1482-4e21-a3b4-d8b68b79ebed",
+        "deep_why": "Pour avoir la clarté d'esprit et la force physique de vivre chaque journée pleinement, sans me sentir submergée, et retrouver ma vitalité intérieure.",
+        "created_at": "2026-01-09T16:57:58.286764+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "6c188bce-bc73-4119-a4b6-d660f8907b95",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "d77df2d0-b845-414e-a912-7a8a71b99a9e",
+          "title": "Le Sas de Déconnexion",
+          "status": "active",
+          "created_at": "2026-01-09T16:57:58.297515+00:00",
+          "description": "Éteindre le téléphone ou le mettre en mode avion 30 minutes avant de se coucher, et le laisser hors de portée visuelle ou physique.",
+          "target_reps": 7,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T16:57:58.295+00:00"
+        },
+        {
+          "id": "a29c4397-c939-4b22-9bea-adb427869e42",
+          "title": "L'Écrin Nocturne",
+          "status": "active",
+          "created_at": "2026-01-09T16:57:58.297515+00:00",
+          "description": "Mettre en place un espace de chargement dédié pour le téléphone HORS de la chambre à coucher, et y déposer ton appareil chaque nuit.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T16:57:58.295+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Sentier de la Vitalité Éveillée\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour avoir la clarté d'esprit et la force physique de vivre chaque journée pleinement, sans me sentir submergée, et retrouver ma vitalité intérieure.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Ancrage du Calme\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"d77df2d0-b845-414e-a912-7a8a71b99a9e\",\n          \"tips\": \"Utilise un livre papier ou un carnet pour cette période. Charge ton téléphone dans une autre pièce, ou au minimum hors de la chambre.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sas de Déconnexion\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Réduit l'exposition à la lumière bleue et donne à ton esprit un signal clair de 'fin de journée', favorisant un meilleur endormissement et une meilleure qualité de sommeil.\",\n          \"targetReps\": 7,\n          \"description\": \"Éteindre le téléphone ou le mettre en mode avion 30 minutes avant de se coucher, et le laisser hors de portée visuelle ou physique.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"a29c4397-c939-4b22-9bea-adb427869e42\",\n          \"tips\": \"Choisis un endroit pratique mais suffisamment éloigné pour ne pas être tenté de l'atteindre la nuit ou dès le réveil. Une prise dans le salon ou la cuisine est idéale.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Écrin Nocturne\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Créer une barrière physique est l'une des stratégies les plus efficaces pour réduire la dépendance au téléphone et briser l'association entre le lit et les écrans, améliorant ainsi la qualité du sommeil.\",\n          \"description\": \"Mettre en place un espace de chargement dédié pour le téléphone HORS de la chambre à coucher, et y déposer ton appareil chaque nuit.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Déconnexion Fondatrice\",\n      \"rationale\": \"Nous commençons par établir un sanctuaire mental et physique en réduisant l'intrusion digitale, essentielle pour apaiser un esprit submergé et améliorer le sommeil. C'est le socle de toute vitalité.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Le Souffle Retrouvé\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"fab98dea-2027-43dc-bb74-618728f6d879\",\n          \"tips\": \"Choisis des mouvements simples que tu peux faire même dans ton lit au début. Pas de performance, juste de la sensation. L'important est la constance.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Micro-Réveil Corporel\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Active le corps en douceur, améliore la circulation sanguine et envoie un signal positif pour la journée, sans créer de charge mentale ni de sensation de surcharge.\",\n          \"targetReps\": 7,\n          \"description\": \"Réaliser 5 minutes d'étirements doux ou de mouvements articulaires (nuque, épaules, poignets) au lever, avant toute autre activité.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"fb963585-8f7a-4fbb-a7cc-6065fce7da28\",\n          \"tips\": \"Pense aux transitions de ta journée irrégulière : après une tâche complexe, avant de passer à une autre activité, en attendant quelque chose. L'idée est d'interrompre le flux pour éviter la surcharge cognitive.\",\n          \"type\": \"framework\",\n          \"title\": \"Inventaire des Micro-Pauses\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Fragmenter la journée avec de courtes pauses aide à gérer la sensation d'être submergé et intègre des moments de récupération, même minimes, améliorant la concentration et l'énergie globale.\",\n          \"targetReps\": 1,\n          \"description\": \"Identifier et planifier 3 moments dans ta journée où tu peux insérer une micro-pause de 2-5 minutes (respiration profonde, étirement rapide, observation silencieuse).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Tes journées sont irrégulières, ce qui rend les routines rigides difficiles. L'objectif est de trouver des ancrages flexibles pour insérer de courtes pauses de régénération. Où peux-tu glisser un moment pour toi, même juste pour respirer ou regarder par la fenêtre ?\",\n            \"sections\": [\n              {\n                \"id\": \"f2s1\",\n                \"label\": \"Moment 1 (ex: après le petit-déjeuner)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: 9h30, après avoir envoyé le premier email\"\n              },\n              {\n                \"id\": \"f2s2\",\n                \"label\": \"Type de micro-pause\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: 3 respirations profondes, étirements du cou\"\n              },\n              {\n                \"id\": \"f2s3\",\n                \"label\": \"Moment 2 (ex: avant le déjeuner)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: 12h55, avant de quitter le bureau\"\n              },\n              {\n                \"id\": \"f2s4\",\n                \"label\": \"Type de micro-pause\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Regarder le ciel 2 minutes\"\n              },\n              {\n                \"id\": \"f2s5\",\n                \"label\": \"Moment 3 (ex: en fin d'après-midi)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: 17h00, avant de passer à l'activité suivante\"\n              },\n              {\n                \"id\": \"f2s6\",\n                \"label\": \"Type de micro-pause\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Boire un verre d'eau en silence\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Éveiller le Corps en Douceur\",\n      \"rationale\": \"Après avoir pacifié l'environnement, cette phase introduit un mouvement conscient très léger et une observation des moments de pause, essentiels pour briser le cycle de la fatigue et du 'perdre le fil'.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : L'Éveil Sensoriel\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"b05634a7-f49b-4583-a0cb-4d576fc2632e\",\n          \"tips\": \"Pas besoin de musique ou de podcast. Laisse tes pensées aller et venir, ramène juste ton attention à tes pieds, à ton souffle. Cela peut être à n'importe quel moment de la journée, intégré à une micro-pause.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Marche Consciente de 10 minutes\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Augmente l'activité physique douce, améliore l'humeur, et offre une déconnexion mentale active. Cette habitude contribue directement à l'amélioration de ton vitalSignal.\",\n          \"targetReps\": 7,\n          \"description\": \"Intégrer une marche rapide de 10 minutes par jour, en se concentrant sur ses sensations corporelles (respiration, pas, environnement).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"055398fb-cb62-45a8-8b02-af8c742bb356\",\n          \"tips\": \"Utilise ce temps pour tes étirements, boire de l'eau, ou simplement observer le monde autour de toi. Laisse ton cerveau se 'réveiller' naturellement, sans l'assaut des notifications et informations.\",\n          \"type\": \"mission\",\n          \"title\": \"Détox Digitale du Matin\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Empêche l'afflux d'informations et la surcharge mentale dès le matin, protégeant ton énergie et ta stabilité émotionnelle pour le reste de la journée.\",\n          \"description\": \"Ne pas toucher au téléphone pendant les 30 premières minutes après le réveil, quel que soit l'endroit où il a été laissé.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Mouvement et Conscience\",\n      \"rationale\": \"Cette phase intègre une activité physique douce et une discipline digitale matinale, renforçant la connexion corps-esprit et protégeant ton énergie dès le début de la journée.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : Le Cadencement Énergétique\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"ab82ee74-d15b-4f2b-8c6e-2280b6912e2d\",\n          \"tips\": \"Ajoute une tranche de citron ou de concombre pour le goût si tu le souhaites. L'objectif est de rendre l'eau attrayante et accessible. Associe le verre d'eau du matin à ton micro-réveil corporel.\",\n          \"type\": \"habitude\",\n          \"title\": \"L'Hydratation Consciente\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Une bonne hydratation est cruciale pour le maintien de l'énergie, la concentration et la clarté mentale, réduisant la fatigue et aidant à 'ne pas perdre le fil' de tes pensées et actions.\",\n          \"targetReps\": 7,\n          \"description\": \"Boire un grand verre d'eau au réveil (250-300ml) et maintenir une bouteille d'eau à portée de main tout au long de la journée pour rester hydraté.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"05437436-b3e3-4875-9cd2-71cef8e48837\",\n          \"tips\": \"Sois honnête avec toi-même. Y a-t-il des repas, des activités spécifiques, des moments d'écran intense qui influencent ton énergie ? Le but n'est pas de changer pour l'instant, mais de comprendre ton fonctionnement interne.\",\n          \"type\": \"framework\",\n          \"title\": \"Cartographie des Pics et Creux d'Énergie\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Comprendre ton rythme circadien personnel est la clé pour optimiser tes activités, planifier tes tâches les plus exigeantes pendant tes pics d'énergie et éviter la surcharge, même avec des journées irrégulières.\",\n          \"targetReps\": 7,\n          \"description\": \"Pendant une semaine, observe et note tes pics et creux d'énergie tout au long de la journée, sans jugement. Quelles activités ou événements les précèdent ?\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Tes journées sont irrégulières, mais ton corps a des rythmes. Pour retrouver de l'énergie et de la stabilité, il est essentiel de comprendre quand ton corps et ton esprit sont à leur maximum et à leur minimum. Observe-toi chaque jour sans chercher à intervenir.\",\n            \"sections\": [\n              {\n                \"id\": \"f4s1\",\n                \"label\": \"Heure et niveau d'énergie (1-10)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: 9h (8), 14h (4)\"\n              },\n              {\n                \"id\": \"f4s2\",\n                \"label\": \"Événements précédents (repas, écran, activité)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Petit-déjeuner rapide, 30min de scrolling, réunion stressante\"\n              },\n              {\n                \"id\": \"f4s3\",\n                \"label\": \"Comment je me sens (fatigue, concentration)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Légère brume mentale, difficulté à me concentrer\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Comprendre tes Rythmes\",\n      \"rationale\": \"Cette phase se concentre sur l'optimisation de ton énergie par une hydratation ciblée et une meilleure compréhension de tes propres rythmes circadiens, t'aidant à ne plus 'perdre le fil'.\"\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Phase 5 : L'Architecture du Mouvement Intuitif\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"8069805f-de27-4852-a7ec-c16b08d9d078\",\n          \"tips\": \"Peut être fait assis ou debout. C'est un micro-ancrage pour te reconnecter à ton corps et réduire les tensions. Utilise les moments de 'creux' ou de transition que tu as identifiés dans la phase précédente.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Moment 'Posture & Respiration'\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Améliore la conscience corporelle, réduit les tensions physiques dues à la fatigue et au stress, et fournit des micro-boosts d'oxygène pour l'énergie et la clarté mentale.\",\n          \"targetReps\": 14,\n          \"description\": \"Prendre 2 minutes, 2 fois par jour, pour vérifier ta posture (épaules basses, dos droit, tête alignée) et faire 5 respirations ventrales profondes et lentes.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"83eeba35-8a4c-488c-a487-f862b5f7c06b\",\n          \"tips\": \"L'objectif n'est pas la performance, mais le plaisir et la reconnexion à ton corps. Choisis quelque chose qui t'appelle vraiment et qui te donne envie de bouger, même un peu. La joie est un puissant moteur.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Invitation au Mouvement\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Introduit une activité plus structurée sans pression, en se basant sur le plaisir pour une adhésion durable. Cela renforce ton sentiment de compétence et contribue à un regain d'énergie global.\",\n          \"description\": \"Identifier une activité physique douce que tu aimes et bloquer un créneau de 20 minutes, 2 fois par semaine, pour l'expérimenter (ex: yoga doux, danse libre chez toi, jardinage, vélo léger).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 9-10 • Intégrer l'Activité Plaisir\",\n      \"rationale\": \"Après avoir compris tes rythmes, cette phase t'invite à intégrer plus de mouvement, non comme une contrainte, mais comme une source de plaisir et d'énergie, à travers des pratiques conscientes et intuitives.\"\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Phase 6 : L'Harmonie du Quotidien\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"e7dd85c9-9744-4d5d-9ba6-bb9f40563c4e\",\n          \"tips\": \"Même les petites choses comptent. Cela peut être le soleil, un sourire, un moment de calme. Le but est de finir la journée sur une note positive et de reconnaître activement les sources de vitalité autour de toi.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Carnet de Gratitude et d'Énergie\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Cultive une mentalité positive, renforce les circuits neuronaux de la récompense et te rend consciente des sources d'énergie et de bien-être, aidant à maintenir l'équilibre face aux irrégularités de la vie.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, noter 3 choses pour lesquelles tu es reconnaissante et 1 chose qui t'a donné de l'énergie dans la journée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"bd7b413a-f5fb-421e-8a5a-ef3f26e04fa8\",\n          \"tips\": \"Regarde où tu as commencé et où tu es maintenant. Sois fière de chaque petite victoire, chaque pas en avant. Que souhaites-tu consolider ? Qu'est-ce qui pourrait être ajusté ou exploré davantage ?\",\n          \"type\": \"framework\",\n          \"title\": \"Bilan de Ma Vitalité Éveillée\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Permet d'ancrer les changements de manière consciente, de prendre pleinement conscience de ton évolution et de te donner les outils pour continuer à architecturer ta vie avec autonomie et intention.\",\n          \"targetReps\": 1,\n          \"description\": \"Prendre un moment pour évaluer les progrès réalisés sur ces 12 semaines, identifier les habitudes profondément ancrées et planifier les ajustements futurs pour continuer ton chemin.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Félicitations pour ces 12 semaines de transformation ! Il est temps de regarder en arrière, de célébrer tes victoires et de poser les jalons pour la suite de ton cheminement vers une vitalité durable et une stabilité retrouvée.\",\n            \"sections\": [\n              {\n                \"id\": \"f6s1\",\n                \"label\": \"Quelles sont les 3 principales transformations que tu as observées en toi ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Plus d'énergie le matin, moins de stress lié au téléphone, meilleure humeur générale, je me sens plus ancrée.\"\n              },\n              {\n                \"id\": \"f6s2\",\n                \"label\": \"Quelle(s) habitude(s) souhaites-tu absolument conserver et pourquoi ?\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: La marche consciente (me reconnecte), le sas de déconnexion (améliore mon sommeil).\"\n              },\n              {\n                \"id\": \"f6s3\",\n                \"label\": \"Quel aspect de ta vitalité ou de ton mouvement souhaites-tu explorer ou approfondir ensuite ?\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Une activité physique plus intense, une alimentation plus équilibrée, la gestion du temps pour plus de stabilité.\"\n              },\n              {\n                \"id\": \"f6s4\",\n                \"label\": \"Note ton niveau d'énergie global aujourd'hui (1-10), en comparant à il y a 12 semaines.\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"8\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 11-12 • Ancrage et Vision Future\",\n      \"rationale\": \"Cette dernière phase consolide les habitudes établies, encourage la gratitude et la réflexion sur ton parcours, te donnant les clés pour maintenir et approfondir ta vitalité retrouvée sur le long terme.\"\n    }\n  ],\n  \"deepWhy\": \"Pour avoir la clarté d'esprit et la force physique de vivre chaque journée pleinement, sans me sentir submergée, et retrouver ma vitalité intérieure.\",\n  \"identity\": \"Je suis une Femme Ancrée et Énergique.\",\n  \"strategy\": \"Reconstruire l'énergie par l'ancrage progressif et la clarté mentale, en douceur, avant d'intensifier le mouvement. Nous allons désamorcer la surcharge et la compensation digitale pour semer les graines d'une vitalité durable.\",\n  \"goldenRules\": \"1. Prioriser les micro-pauses régulières.\\n2. Chaque petit mouvement compte.\\n3. La sérénité avant l'action.\",\n  \"vitalSignal\": {\n    \"name\": \"Minutes d'activité légère\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"0\",\n    \"description\": \"Accumuler des moments de mouvement léger (marche, étirements) tout au long de la journée.\",\n    \"targetValue\": \"20\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Sentier de la Vitalité Éveillée\",\n  \"context_problem\": \"Tu te sentais constamment fatiguée et submergée par des journées irrégulières, ce qui t'amenait à te réfugier dans l'écran, te coupant de toute activité et te laissant dans un cycle de manque d'énergie. Ton corps et ton esprit réclamaient plus de stabilité et de mouvement, mais la fatigue était un mur.\",\n  \"sophiaKnowledge\": \"Tu es une femme née en 1992, cherchant à retrouver vitalité, énergie et stabilité. Tes journées irrégulières, la fatigue et une tendance à compenser le stress par le téléphone te submergeant, te font perdre le fil et t'empêchent de maintenir une activité régulière. Ton sommeil est de mauvaise qualité et ton niveau de stress est moyen.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu ressenti un regain d'énergie significatif ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"12 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Le Sas de Déconnexion (night)\n- [ACTION] L'Écrin Nocturne (any_time)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Minutes d'activité légère: 0 min\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "conversation"
+  },
+  "error": null
+}

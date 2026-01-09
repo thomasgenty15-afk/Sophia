@@ -86,6 +86,31 @@ const UPDATE_ACTION_TOOL = {
   }
 }
 
+const ACTIVATE_ACTION_TOOL = {
+  name: "activate_plan_action",
+  description: "Active une action spécifique du plan qui était en attente (future). Vérifie d'abord si les phases précédentes sont complétées.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_title_or_id: { type: "STRING", description: "Titre ou ID de l'action à activer." }
+    },
+    required: ["action_title_or_id"]
+  }
+}
+
+const ARCHIVE_ACTION_TOOL = {
+  name: "archive_plan_action",
+  description: "Archive (désactive/supprime) une action du plan. À utiliser si l'utilisateur dit 'j'arrête le sport', 'supprime cette tâche', 'je ne veux plus faire ça'.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_title_or_id: { type: "STRING", description: "Titre ou ID de l'action à archiver." },
+      reason: { type: "STRING", description: "Raison de l'arrêt (ex: 'trop difficile', 'plus pertinent', 'n'aime pas'). Utile pour l'analyse future." }
+    },
+    required: ["action_title_or_id"]
+  }
+}
+
 // --- HELPERS ---
 
 async function injectActionIntoPlanJson(supabase: SupabaseClient, planId: string, newAction: any): Promise<'success' | 'duplicate' | 'error'> {
@@ -461,7 +486,7 @@ async function handleUpdateAction(supabase: SupabaseClient, userId: string, plan
     return `C'est modifié ! ✏️\nL'action "${new_title || oldTitle}" a été mise à jour.`
 }
 
-// ---- Exports for deterministic tool testing (DB writes + plan JSON sync) ----
+// Exposed for deterministic tool testing (DB writes + plan JSON sync) ----
 // These wrappers keep production behavior unchanged, but let Deno tests call tool handlers directly.
 
 async function getActivePlanForUser(supabase: SupabaseClient, userId: string): Promise<{ id: string; submission_id: string } | null> {
@@ -475,6 +500,194 @@ async function getActivePlanForUser(supabase: SupabaseClient, userId: string): P
     if (planError || !plan) return null
     return plan as any
 }
+
+// --- NEW TOOL: ACTIVATE ACTION (PHASE LOGIC) ---
+
+async function handleActivateAction(
+    supabase: SupabaseClient, 
+    userId: string, 
+    args: any
+): Promise<string> {
+    const { action_title_or_id } = args
+    const searchTerm = (action_title_or_id || "").trim().toLowerCase()
+
+    // 1. Get Plan & JSON
+    const { data: plan, error: planError } = await supabase
+      .from('user_plans')
+      .select('id, content, current_phase')
+      .eq('user_id', userId)
+      .eq('status', 'active')
+      .single()
+
+    if (planError || !plan || !plan.content) {
+        return "Je ne trouve pas de plan actif pour activer cette action."
+    }
+
+    const phases = plan.content.phases || []
+    
+    // 2. Find target action & its phase
+    let targetAction: any = null
+    let targetPhaseIndex = -1
+    let targetActionIndex = -1
+
+    for (let pIdx = 0; pIdx < phases.length; pIdx++) {
+        const p = phases[pIdx]
+        if (!p.actions) continue
+        for (let aIdx = 0; aIdx < p.actions.length; aIdx++) {
+            const a = p.actions[aIdx]
+            const title = String(a.title || "").toLowerCase()
+            const id = String(a.id || "").toLowerCase()
+            
+            if (title.includes(searchTerm) || id === searchTerm) {
+                targetAction = a
+                targetPhaseIndex = pIdx
+                targetActionIndex = aIdx
+                break
+            }
+        }
+        if (targetAction) break
+    }
+
+    if (!targetAction) {
+        return `Je ne trouve pas l'action "${action_title_or_id}" dans ton plan.`
+    }
+
+    // 3. Check "Walls before Roof" Logic
+    // Logic: To activate an action in Phase N, ALL actions in Phase N-1 must be ACTIVE or COMPLETED.
+    // (We check user_actions status for actions of previous phase).
+
+    if (targetPhaseIndex > 0) {
+        const prevPhaseIndex = targetPhaseIndex - 1
+        const prevPhase = phases[prevPhaseIndex]
+        
+        // Check status of all actions in prevPhase
+        // We need to query user_actions for these IDs/titles to know their real status.
+        // Or we assume that if they are in "active" status in DB, it's good.
+        // Actually, the requirement is "activees" (activated).
+        // So we just need to check if they have a row in user_actions with status 'active' or 'completed'.
+        
+        // Let's get all actions of prevPhase from DB
+        const prevPhaseActionTitles = prevPhase.actions.map((a: any) => a.title)
+        
+        const { data: dbActions } = await supabase
+            .from('user_actions')
+            .select('title, status')
+            .eq('plan_id', plan.id)
+            .in('title', prevPhaseActionTitles)
+        
+        // We need to count how many are active/completed
+        // Note: user_actions only contains ACTIVATED actions. If an action is not in user_actions, it's not active.
+        const activatedCount = dbActions?.length || 0
+        const totalInPrevPhase = prevPhase.actions.length
+
+        // Strict rule: "Si les deux de la phase précédente n'ont pas été activées"
+        // So we expect ALL actions of prev phase to be present in DB (status active/completed).
+        if (activatedCount < totalInPrevPhase) {
+             const missingCount = totalInPrevPhase - activatedCount
+             return `REFUS_ACTIVATION_RAISON: "Murs avant toit".\n` +
+                    `Explique à l'utilisateur qu'il reste ${missingCount} action(s) à activer dans la phase précédente ("${prevPhase.title}") avant de pouvoir lancer celle-ci.\n` +
+                    `Sois pédagogue : "On construit solide, finissons les fondations d'abord."`
+        }
+    }
+
+    // 4. Activate the action
+    // Check if already active
+    const { data: existing } = await supabase
+        .from('user_actions')
+        .select('id, status')
+        .eq('plan_id', plan.id)
+        .ilike('title', targetAction.title)
+        .maybeSingle()
+        
+    if (existing) {
+        return `ACTION_DEJA_ACTIVE: "${targetAction.title}" est déjà active. Dis-lui qu'il peut s'y mettre !`
+    }
+
+    // Insert into DB based on type
+    const isFramework = targetAction.type === 'framework'
+    
+    if (isFramework) {
+        const fwType = String(targetAction.frameworkDetails?.type ?? "one_shot")
+        await supabase.from('user_framework_tracking').insert({
+            user_id: userId,
+            plan_id: plan.id,
+            submission_id: plan.submission_id,
+            action_id: String(targetAction.id ?? `act_${Date.now()}`),
+            title: String(targetAction.title),
+            type: fwType,
+            target_reps: Number(targetAction.targetReps ?? 1),
+            current_reps: 0,
+            status: "active",
+            tracking_type: String(targetAction.tracking_type ?? "boolean"),
+            last_performed_at: null,
+        })
+    } else {
+        await supabase.from('user_actions').insert({
+            user_id: userId,
+            plan_id: plan.id,
+            submission_id: plan.submission_id,
+            title: targetAction.title,
+            description: targetAction.description,
+            type: targetAction.type || 'mission',
+            target_reps: targetAction.targetReps || 1,
+            status: 'active',
+            tracking_type: targetAction.tracking_type || 'boolean',
+            time_of_day: targetAction.time_of_day || 'any_time'
+        })
+    }
+
+    // Update plan current_phase if we just stepped into a new phase
+    const newPhaseNumber = targetPhaseIndex + 1
+    if (newPhaseNumber > (plan.current_phase || 1)) {
+        await supabase.from('user_plans').update({ current_phase: newPhaseNumber }).eq('id', plan.id)
+    }
+
+    return `SUCCES_ACTIVATION: J'ai activé "${targetAction.title}".\n` +
+           `Confirme-le à l'utilisateur et encourage-le.`
+}
+
+async function handleArchiveAction(
+    supabase: SupabaseClient, 
+    userId: string, 
+    args: any
+): Promise<string> {
+    const { action_title_or_id, reason } = args
+    const searchTerm = (action_title_or_id || "").trim().toLowerCase()
+
+    const plan = await getActivePlanForUser(supabase, userId)
+    if (!plan) return "Je ne trouve pas de plan actif pour effectuer cette suppression."
+
+    // 1. Try finding in user_actions
+    const { data: action } = await supabase
+        .from('user_actions')
+        .select('id, title, status')
+        .eq('plan_id', plan.id)
+        .ilike('title', searchTerm)
+        .maybeSingle()
+
+    if (action) {
+        await supabase.from('user_actions').update({ status: 'archived' }).eq('id', action.id)
+        // Optionally update JSON to reflect archived status? 
+        // For now, SQL is the source of truth for execution.
+        return `C'est fait. J'ai retiré l'action "${action.title}" de ton plan actif.`
+    }
+
+    // 2. Try framework
+    const { data: fw } = await supabase
+        .from('user_framework_tracking')
+        .select('id, title, status')
+        .eq('plan_id', plan.id)
+        .ilike('title', searchTerm)
+        .maybeSingle()
+    
+    if (fw) {
+        await supabase.from('user_framework_tracking').update({ status: 'archived' }).eq('id', fw.id)
+        return `C'est fait. J'ai retiré l'exercice "${fw.title}" de ton plan actif.`
+    }
+
+    return `Je ne trouve pas l'action "${action_title_or_id}" dans ton plan.`
+}
+
 
 export async function megaToolUpdateActionStructure(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
     const plan = await getActivePlanForUser(supabase, userId)
@@ -657,6 +870,10 @@ export async function runArchitect(
     4. "update_action_structure" : MODIFIER une action existante (Nom, Description, Fréquence).
        - Utilise cet outil si l'utilisateur dit "Change le nom en...", "Mets la fréquence à 3".
        - Demande confirmation si le changement est drastique, sinon exécute.
+    5. "activate_plan_action" : ACTIVER une action du futur (Plan).
+       - À utiliser si l'utilisateur veut avancer plus vite et lancer une action d'une phase suivante.
+       - L'outil vérifiera AUTOMATIQUEMENT si les fondations (phase précédente) sont posées. Tu n'as pas à faire le check toi-même.
+       - Si l'outil refuse (message "murs avant le toit"), transmets ce message pédagogique à l'utilisateur.
 
     RÈGLE D'OR (CRÉATION/MODIF) :
     - Regarde le CONTEXTE ci-dessous. Si tu vois "AUCUN PLAN DE TRANSFORMATION ACTIF" :
@@ -669,7 +886,68 @@ export async function runArchitect(
        - Tu peux AJOUTER ou MODIFIER des actions sur ce plan EXISTANT.
        - Pour créer ou modifier la structure d'une action, assure-toi d'avoir l'accord de l'utilisateur.
        - Lors de la création d'une action, n'oublie PAS de définir le 'time_of_day' le plus pertinent (Matin, Soir, etc.).
+
+    STATUTS D'ACTIONS (IMPORTANT, WHATSAPP) :
+    - Quand tu parles d'actions/exercices du plan, distingue toujours :
+      - "active" = à faire maintenant (priorité)
+      - "pending" = plus tard / pas encore lancé
+    - Si l'utilisateur demande "quoi faire" ou "par quoi commencer" : répond d'abord avec les actions "active".
+    - Tu peux mentionner une action "pending" UNIQUEMENT en la présentant explicitement comme "plus tard".
+    - Ne fais jamais croire qu'une action est active si elle est pending.
+
+    DIRECTIVE FLOW (IMPORTANT) :
+    - INTERDICTION: après avoir lancé un protocole/phase OU validé un score (motivation), ne pose JAMAIS une question générique
+      ("Et sinon…", "Tu veux parler de quoi ?", "Tu as envie qu'on parle de quoi ?", etc.).
+      À la place, enchaîne directement sur la 1ère étape CONCRÈTE de l'action active (1 question courte et spécifique).
+    - FORMAT: termine toujours par UNE question, et elle doit être actionnable (pas une ouverture générale).
+    - Évite les doublons: ne produis pas 2 messages d'affilée qui répètent la même consigne avec des mots différents.
+
+    RIGUEUR (DIAGNOSTIC / SCORES) :
+    - Si tu demandes un score (1–10) pour un item, tu DOIS demander un score (1–10) pour TOUS les items du même inventaire.
+    - Interdiction d'attribuer un score toi-même ("score élevé", "8/10") à partir d'une description qualitative.
+      Tu peux qualifier ("souvent ça pèse"), mais si tu veux un chiffre, tu le demandes explicitement.
+
+    DOMAIN GUARDRAIL (CRITIQUE) :
+    - Tu es un coach/architecte d'actions (plan, habitudes, exercices).
+    - INTERDICTION de parler de "texte", "rédaction", "sujet", "brouillon", "document", "copie", "orthographe"
+      sauf si l'utilisateur a explicitement demandé de l'aide sur un texte/document.
+
+    TEMPS (CRITIQUE) :
+    - N'invente jamais une heure ("il est 17h", "il est 16h55"). Si tu cites l'heure, utilise UNIQUEMENT celle du bloc
+      "=== REPÈRES TEMPORELS ===" dans le contexte, et ne la change pas ensuite.
+
+    ANTI-BOUCLE (CRITIQUE) :
+    - Évite les méta-questions répétées ("on continue ?", "on ajuste ?") qui font tourner la conversation en rond.
+      À chaque tour, propose UNE étape suivante concrète OU pose UNE question concrète. Pas de question "de flow".
+
+    EXÉCUTION IMMÉDIATE (CRITIQUE) :
+    - Si l'utilisateur choisit une option ("un truc complet", "on enchaîne", "ok vas-y", "continue", "next"),
+      tu DOIS exécuter le contenu immédiatement dans CE message (donner les étapes/exercice), puis poser 1 question concrète.
+    - INTERDICTION de re-demander "on passe à la suite ?" juste après qu'il a dit oui.
+
+    CONTEXT CHECK (CRITIQUE) :
+    - Avant de poser une question de diagnostic ("ta distraction principale ?", "ce qui te pompe le plus ?"),
+      vérifie si l'utilisateur a déjà répondu dans les 5 derniers tours.
+      - Si OUI: acknowledge la réponse et avance (next step / assignation / micro-action), ne repose pas la question.
+
+    COHÉRENCE DE PROCESS (CRITIQUE) :
+    - Si tu dis "on commence maintenant", alors tu fais l'étape maintenant (dans le chat) et tu ne la repousses pas à demain.
+    - Si tu planifies "demain", alors tu présentes l'étape comme "à faire demain" (dashboard) et tu ne dis pas "on commence immédiatement".
+
+    ANTI-REPROPOSITION (CRITIQUE) :
+    - Si l'utilisateur vient de valider/faire une action ("ok c'est fait", "oui je l'ai déplacé", "c'est bon"),
+      ne repropose JAMAIS la même action dans les 5 tours suivants.
+      Passe à une action STRICTEMENT différente (next step).
+
+    ANTI-RÉPÉTITION (STYLE) :
+    - Évite de répéter exactement la même phrase de validation ("C'est parfait...") sur 2 tours consécutifs.
+      Si tu dois valider deux fois, varie fortement (ou valide en 2-3 mots).
     
+    FILTRE QUALITÉ (RADICALITÉ BIENVEILLANTE) :
+    - Si l'utilisateur propose une action "faible" ou d'évitement (ex: ranger son bureau alors qu'il doit lancer sa boite, ou une habitude triviale), DIS-LUI.
+    - Exemple : "Je peux le noter. Mais honnêtement, est-ce que c'est VRAIMENT ça qui va changer ta semaine ? Ou c'est pour te rassurer ?"
+    - Tu es le gardien de son ambition. Ne sois pas un simple scribe.
+
     RÈGLE ANTI-HALLUCINATION (CRITIQUE) :
     - Ne dis JAMAIS "je l'ai créé / c'est fait / c'est créé" si tu n'as PAS :
       1) appelé un outil de création ("create_simple_action" ou "create_framework") ET
@@ -711,7 +989,7 @@ export async function runArchitect(
     `Historique:\n${historyText}\n\nUser: ${message}`,
     0.7,
     false,
-    [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL],
+    [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL, ACTIVATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL],
     "auto",
     {
       requestId: meta?.requestId,
@@ -803,6 +1081,37 @@ export async function runArchitect(
 
     if (response.tool === 'update_action_structure') {
         return await handleUpdateAction(supabase, userId, plan.id, response.args)
+    }
+
+    if (response.tool === 'activate_plan_action') {
+        const activationResult = await handleActivateAction(supabase, userId, response.args)
+        
+        // The result is a raw instruction string (e.g. "REFUS_ACTIVATION..." or "SUCCES...").
+        // We feed it back to LLM to generate the final natural response.
+        const followUpPrompt = `
+          RÉSULTAT DE L'ACTIVATION :
+          "${activationResult}"
+          
+          TA MISSION :
+          - Traduis ce résultat technique en une réponse naturelle et conversationnelle.
+          - Si c'est un REFUS ("Murs avant toit"), sois bienveillant mais ferme sur la méthode.
+          - Si c'est un SUCCÈS, sois encourageant.
+          
+          FORMAT :
+          - Réponse aérée en 2-3 lignes.
+          - Pas de gras.
+        `
+        const activationResponse = await generateWithGemini(followUpPrompt, "Génère la réponse.", 0.7, false, [], "auto", {
+          requestId: meta?.requestId,
+          model: meta?.model ?? "gemini-3-flash-preview",
+          source: "sophia-brain:architect_activation_response",
+          forceRealAi: meta?.forceRealAi,
+        })
+        return typeof activationResponse === 'string' ? activationResponse.replace(/\*\*/g, '') : activationResult
+    }
+
+    if (response.tool === 'archive_plan_action') {
+        return await handleArchiveAction(supabase, userId, response.args)
     }
 
     if (response.tool === 'create_simple_action') {

@@ -1,0 +1,26 @@
+{
+  "dataset_key": "features",
+  "id": "feature_break_down_action",
+  "scenario_target": "feature_test",
+  "tags": ["feature", "investigator", "breakdown"],
+  "description": "Test de la proposition de découpage (breakdown) par l'Enquêteur après des échecs répétés.",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 1,
+    "mock_history": {
+        "missed_streak": 5
+    }
+  },
+  "steps": [
+    { "user": "Non, pas fait." },
+    { "user": "J'ai pas eu le temps, trop de boulot." },
+    { "user": "Oui, vas-y découpe." },
+    { "user": "C'est la fatigue le soir." },
+    { "user": "Ok pour la micro-étape." }
+  ],
+  "assertions": {
+    "tool_calls": ["break_down_action"],
+    "response_contains": ["micro-étape"]
+  }
+}
+

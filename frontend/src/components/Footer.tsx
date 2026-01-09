@@ -10,9 +10,7 @@ const Footer = () => {
       <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
         <div className="flex flex-col gap-2">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-violet-600 rounded-md flex items-center justify-center text-white text-xs font-bold font-serif">
-              S
-            </div>
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-8 h-8 rounded-lg" />
             <span className="font-bold text-slate-900">Sophia Coach</span>
           </div>
           <span className="text-xs text-slate-400 font-medium">Powered by IKIZEN</span>

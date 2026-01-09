@@ -1,7 +1,13 @@
-import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
+/// <reference path="../../tsserver-shims.d.ts" />
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { retrieveContext } from './companion.ts' // Import retrieveContext to use RAG
 import { verifyInvestigatorMessage } from '../verifier.ts'
+
+function denoEnv(name: string): string | undefined {
+  return (globalThis as any)?.Deno?.env?.get?.(name)
+}
 
 // --- OUTILS ---
 
@@ -19,6 +25,31 @@ const LOG_ACTION_TOOL = {
       share_insight: { type: "BOOLEAN", description: "True si l'utilisateur a partagé une info intéressante pour le coaching." }
     },
     required: ["item_id", "item_type", "status"]
+  }
+}
+
+const ACTIVATE_ACTION_TOOL = {
+  name: "activate_plan_action",
+  description: "Active une action spécifique du plan qui était en attente (future). Vérifie d'abord si les phases précédentes sont complétées.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_title_or_id: { type: "STRING", description: "Titre ou ID de l'action à activer." }
+    },
+    required: ["action_title_or_id"]
+  }
+}
+
+const ARCHIVE_ACTION_TOOL = {
+  name: "archive_plan_action",
+  description: "Archive (désactive/supprime) une action du plan. À utiliser si l'utilisateur dit 'j'arrête le sport', 'supprime cette tâche', 'je ne veux plus faire ça'.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_title_or_id: { type: "STRING", description: "Titre ou ID de l'action à archiver." },
+      reason: { type: "STRING", description: "Raison de l'arrêt (ex: 'trop difficile', 'plus pertinent', 'n'aime pas'). Utile pour l'analyse future." }
+    },
+    required: ["action_title_or_id"]
   }
 }
 
@@ -88,7 +119,7 @@ function isExplicitStopBilan(text: string): boolean {
 }
 
 function functionsBaseUrl(): string {
-  const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim()
+  const supabaseUrl = (denoEnv("SUPABASE_URL") ?? "").trim()
   if (!supabaseUrl) return "http://kong:8000"
   if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000"
   return supabaseUrl.replace(/\/+$/, "")
@@ -695,6 +726,104 @@ export async function megaTestLogItem(supabase: SupabaseClient, userId: string, 
     return await logItem(supabase, userId, args)
 }
 
+// --- HELPER WRAPPER ---
+async function handleArchiveAction(
+    supabase: SupabaseClient, 
+    userId: string, 
+    args: any
+): Promise<string> {
+    const planRow = await fetchActivePlanRow(supabase, userId)
+    if (!planRow) return "Je ne trouve pas de plan actif."
+    
+    const { action_title_or_id, reason } = args
+    const searchTerm = (action_title_or_id || "").trim()
+    
+    const { data: action } = await supabase
+        .from('user_actions')
+        .select('id, title')
+        .eq('plan_id', planRow.id)
+        .ilike('title', searchTerm)
+        .maybeSingle()
+    
+    if (action) {
+        await supabase.from('user_actions').update({ status: 'archived' }).eq('id', action.id)
+        return `C'est fait. J'ai retiré l'action "${action.title}" du plan.`
+    }
+    
+    const { data: fw } = await supabase
+        .from('user_framework_tracking')
+        .select('id, title')
+        .eq('plan_id', planRow.id)
+        .ilike('title', searchTerm)
+        .maybeSingle()
+        
+    if (fw) {
+        await supabase.from('user_framework_tracking').update({ status: 'archived' }).eq('id', fw.id)
+        return `C'est fait. J'ai retiré l'exercice "${fw.title}" du plan.`
+    }
+    
+    return `Je ne trouve pas "${action_title_or_id}" dans ton plan.`
+}
+
+// --- LEVEL UP LOGIC ---
+
+async function checkAndHandleLevelUp(
+  supabase: SupabaseClient, 
+  userId: string, 
+  actionId: string
+): Promise<{ leveledUp: boolean; oldAction?: any; newAction?: any }> {
+  // 1. Get current action details
+  const { data: action, error } = await supabase
+    .from('user_actions')
+    .select('id, plan_id, title, current_reps, target_reps, status')
+    .eq('id', actionId)
+    .single()
+
+  if (error || !action) return { leveledUp: false }
+
+  // 2. Check if target reached
+  const current = action.current_reps || 0
+  const target = action.target_reps || 1
+
+  // On trigger SEULEMENT si on vient de dépasser ou atteindre la cible (et qu'on était pas déjà completed avant le log, 
+  // mais ici status est probablement encore 'active' car logItem n'a pas changé le status table user_actions, juste les reps).
+  // logItem ne change pas le status 'active' -> 'completed' dans user_actions (il change user_action_entries).
+  // Donc si current >= target, c'est qu'on vient de le finir.
+  
+  if (current >= target) {
+    console.log(`[Investigator] 🚀 LEVEL UP DETECTED for action ${actionId} (${current}/${target})`)
+
+    // 3. Mark current as completed (so it stops appearing in daily check)
+    // We update status to 'completed'
+    await supabase.from('user_actions').update({ status: 'completed' }).eq('id', actionId)
+
+    // 4. Find next pending action in the same plan
+    // On suppose l'ordre de création (ou on pourrait avoir un champ 'rank', mais created_at est un bon proxy pour l'instant)
+    const { data: nextActions } = await supabase
+      .from('user_actions')
+      .select('id, title, description')
+      .eq('plan_id', action.plan_id)
+      .eq('status', 'pending')
+      .order('created_at', { ascending: true }) 
+      .limit(1)
+
+    if (nextActions && nextActions.length > 0) {
+      const nextAction = nextActions[0]
+      // 5. Activate it
+      await supabase.from('user_actions').update({ status: 'active' }).eq('id', nextAction.id)
+      console.log(`[Investigator] 🔓 Unlocked next action: ${nextAction.title}`)
+      
+      return { leveledUp: true, oldAction: action, newAction: nextAction }
+    } else {
+      // No next action? Just mark completed.
+      console.log(`[Investigator] 🏁 No next action found. Plan completed?`)
+      return { leveledUp: true, oldAction: action, newAction: null }
+    }
+  }
+
+  return { leveledUp: false }
+}
+
 // --- MAIN FUNCTION ---
 
 function normalizeChatText(text: unknown): string {
@@ -703,7 +832,7 @@ function normalizeChatText(text: unknown): string {
 }
 
 function isMegaTestMode(meta?: { forceRealAi?: boolean }): boolean {
-  return (Deno.env.get("MEGA_TEST_MODE") ?? "").trim() === "1" && !meta?.forceRealAi
+  return (denoEnv("MEGA_TEST_MODE") ?? "").trim() === "1" && !meta?.forceRealAi
 }
 
 async function investigatorSay(
@@ -736,8 +865,25 @@ Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout e
     1. Le bilan est terminé. Ne pose plus AUCUNE question de suivi (pas de "Bilan des réussites", pas de "Récap", rien).
     2. Valide brièvement la fin de l'exercice (ou la création de la micro-étape si pertinent).
     3. TA SEULE MISSION est d'ouvrir la discussion vers autre chose.
-    4. TU DOIS POSER CETTE QUESTION (ou une variation proche) : "Est-ce que tu veux qu'on parle de quelque chose en particulier ?" ou "Est-ce que tu veux me parler de quelque chose d'autres ?".
+    4.     TU DOIS POSER CETTE QUESTION (ou une variation proche) : "Est-ce que tu veux qu'on parle de quelque chose en particulier ?" ou "Est-ce que tu veux me parler de quelque chose d'autres ?".
     ` : ""}
+
+    ${scenario === "level_up" ? `
+    SCÉNARIO SPÉCIAL : LEVEL UP (OBJECTIF ATTEINT)
+    L'utilisateur vient de valider son action et a atteint le nombre de répétitions visé.
+    1. FÉLICITE-LE chaleureusement (mais reste authentique, pas 'commercial').
+    2. ANNONCE que cette action est validée/acquise ("On valide ça, c'est dans la poche").
+    3. ANNONCE la prochaine action qui se débloque (si 'new_action' est présent dans les données).
+       Exemple : "Du coup, ça débloque la suite du plan : [Titre de la nouvelle action]. Prêt à l'attaquer dès demain ?"
+    4. Si pas de nouvelle action, célèbre juste la victoire.
+    ` : ""}
+
+    RÈGLE DU MIROIR (RADICALITÉ BIENVEILLANTE) :
+    - Tu n'es pas là pour être gentil, tu es là pour être lucide.
+    - Si l'utilisateur te donne une excuse générique ("pas le temps", "fatigué") pour la 3ème fois de suite : NE VALIDE PAS AVEUGLÉMENT.
+    - Fais-lui remarquer le pattern gentiment mais fermement.
+    - Exemple : "Ça fait 3 jours que c'est la course. C'est vraiment le temps qui manque, ou c'est juste que cette action t'ennuie ?"
+    - Ton but est de percer l'abcès, pas de mettre un pansement.
 
 SCÉNARIO: ${scenario}
 DONNÉES (JSON): ${JSON.stringify(data)}
@@ -1322,7 +1468,7 @@ export async function runInvestigator(
     `Gère l'item "${currentItem.title}"`,
     0.3, 
     false,
-    [LOG_ACTION_TOOL, BREAK_DOWN_ACTION_TOOL],
+    [LOG_ACTION_TOOL, BREAK_DOWN_ACTION_TOOL, ACTIVATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL],
     "auto",
     {
       requestId: meta?.requestId,
@@ -1348,6 +1494,59 @@ export async function runInvestigator(
       }
       
       await logItem(supabase, userId, argsWithId)
+
+      // --- NEW: LEVEL UP CHECK ---
+      if (currentItem.type === "action" && argsWithId.status === "completed") {
+        try {
+            const levelUpResult = await checkAndHandleLevelUp(supabase, userId, currentItem.id)
+            if (levelUpResult.leveledUp) {
+                // Level Up detected! Priority over everything.
+                const nextIndex = currentState.current_item_index + 1
+                const nextState = {
+                    ...currentState,
+                    current_item_index: nextIndex
+                }
+                
+                const levelUpMsg = await investigatorSay(
+                    "level_up",
+                    { 
+                        user_message: message, 
+                        old_action: levelUpResult.oldAction, 
+                        new_action: levelUpResult.newAction,
+                        last_item_log: argsWithId
+                    },
+                    meta
+                )
+
+                if (nextIndex >= currentState.pending_items.length) {
+                    // C'était le dernier item
+                     return {
+                        content: levelUpMsg, // Le message de Level Up sert de transition/conclusion pour cet item
+                        investigationComplete: true, // On pourrait continuer sur un "end_checkup" mais le msg Level Up est fort. 
+                        // Mieux : on envoie le msg Level Up, et on laisse le router gérer la suite ?
+                        // Non, si investigationComplete=true, on sort. 
+                        // Mais le message Level Up ne pose pas forcément la question "On parle d'autre chose ?".
+                        // On devrait peut-être concaténer ou laisser l'utilisateur répondre au Level Up.
+                        // Si on met investigationComplete=false, on va boucler sur un index hors bornes au prochain tour ?
+                        // Non, check l'index au début de runInvestigator (étape 2).
+                        // Si on renvoie un newState avec index++, au prochain tour on tombera dans "CHECK SI FINI".
+                        // Donc il faut investigationComplete=false pour laisser le user répondre au Level Up, 
+                        // PUIS au prochain tour on détecte la fin.
+                        newState: nextState
+                    }
+                }
+
+                return {
+                    content: levelUpMsg,
+                    investigationComplete: false,
+                    newState: nextState
+                }
+            }
+        } catch (e) {
+            console.error("[Investigator] Level Up check failed:", e)
+        }
+      }
+      // ---------------------------
 
       const streakIntercept = await maybeHandleStreakAfterLog({
         supabase,
@@ -1507,6 +1706,26 @@ export async function runInvestigator(
           investigationComplete: false,
           newState: currentState,
         }
+      }
+  }
+
+  if (typeof response === "object" && response.tool === "archive_plan_action") {
+      const result = await handleArchiveAction(supabase, userId, response.args)
+      return {
+          content: result,
+          investigationComplete: false,
+          newState: currentState
+      }
+  }
+
+  if (typeof response === "object" && response.tool === "activate_plan_action") {
+      // Pour l'activation, on garde le message "Murs avant toit" ou on délègue à l'Architecte.
+      // Pour faire simple ici, l'Investigateur ne fait QUE l'activation si c'est simple, sinon il renvoie vers l'Architecte.
+      // Mais comme on n'a pas copié tout le code d'activation complexe ici, on fait une réponse statique pour l'instant.
+      return {
+          content: "Je note ton envie d'activer ça. Pour être sûr de respecter le plan (les murs avant le toit !), je laisse l'Architecte valider et l'activer tout de suite. (Transition vers Architecte...)",
+          investigationComplete: true, // Ceci forcera le routeur à passer la main au prochain message (ou on pourrait forcer le mode dans le return, mais investigator return signature is fixed)
+          newState: null 
       }
   }
 

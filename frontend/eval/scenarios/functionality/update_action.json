@@ -1,0 +1,19 @@
+{
+  "dataset_key": "features",
+  "id": "feature_update_action",
+  "scenario_target": "feature_test",
+  "tags": ["feature", "architect", "update"],
+  "description": "Test de la modification d'une action existante par l'Architecte.",
+  "setup": {
+    "seed_plan": true,
+    "active_actions_count": 3
+  },
+  "steps": [
+    { "user": "Change le nom de l'action 1 en 'Mission Alpha'." }
+  ],
+  "assertions": {
+    "tool_calls": ["update_action_structure"],
+    "response_contains": ["modifié", "mise à jour"]
+  }
+}
+

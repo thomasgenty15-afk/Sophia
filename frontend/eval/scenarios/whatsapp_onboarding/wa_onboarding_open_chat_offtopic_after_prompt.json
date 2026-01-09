@@ -1,0 +1,36 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_open_chat_offtopic_after_prompt",
+  "scenario_target": "conversation",
+  "description": "WhatsApp onboarding (webhook): after the onboarding prompt opens the floor ('envie qu’on parle de quoi ?'), the user talks about something unrelated to the plan; Sophia should respect the intent and not redirect to the site/plan.",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "conversational", "offtopic"],
+  "channel": "whatsapp",
+  "seed_plan": true,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": true,
+    "whatsapp_state": "awaiting_personal_fact"
+  },
+  "wa_steps": [
+    { "kind": "text", "text": "Je suis plutôt du matin en général." },
+    { "kind": "text", "text": "Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac." }
+  ],
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_state": null
+    },
+    "assistant_must_match": [
+      "(merci,\\s*je\\s*note|ok,\\s*je\\s*note)",
+      "envie\\s+qu[’']?on\\s+parle\\s+de\\s+quoi",
+      "(pression|stress|boulot|travail|bureau|cerveau|vrac|satur)"
+    ],
+    "assistant_must_not_match": [
+      "sophia-coach\\.ai",
+      "finalis(e|er)\\s+ton\\s+plan",
+      "plan\\s+n['’]?est\\s+pas\\s+encore\\s+activ",
+      "ton\\s+plan"
+    ]
+  }
+}
+
+

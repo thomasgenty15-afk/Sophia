@@ -22,10 +22,11 @@ const Formules = () => {
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-7 h-7 md:w-8 md:h-8 bg-violet-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-violet-200 font-serif">
-              S
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-7 h-7 md:w-8 md:h-8 rounded-lg" />
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
+              <span className="text-[10px] md:text-xs text-slate-400 font-medium tracking-wide uppercase">Powered by IKIZEN</span>
             </div>
-            <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900">Sophia</span>
           </div>
           <div className="flex items-center gap-4 md:gap-8">
              <button
@@ -220,13 +221,11 @@ const Formules = () => {
       <footer className="bg-slate-50 border-t border-slate-200 py-12">
         <div className="max-w-6xl mx-auto px-6 text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-6 h-6 bg-violet-600 rounded-md flex items-center justify-center text-white text-xs font-bold font-serif">
-              S
-            </div>
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-6 h-6 rounded-md" />
             <span className="font-bold text-slate-900">Sophia</span>
           </div>
           <div className="text-sm text-slate-500">
-            © 2024 MySophia Inc.
+            © {new Date().getFullYear()} IKIZEN. All rights reserved.
           </div>
         </div>
       </footer>

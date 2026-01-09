@@ -1,0 +1,489 @@
+{
+  "id": "10c50df9-489b-4555-b000-6cfbcea840f9",
+  "created_at": "2026-01-09T17:08:54.448781+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_open_chat_offtopic_after_prompt__run_1767978438539_73b41a",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Je suis plutôt du matin en général.",
+      "agent_used": null,
+      "created_at": "2026-01-09T17:08:54.863506+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Merci, je note ❤️\nEt là, tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T17:08:54.874482+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.",
+      "agent_used": null,
+      "created_at": "2026-01-09T17:08:54.923778+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah merde, je vois le genre. C'est lourd quand le cerveau sature et que tout se mélange comme ça. On ne va pas te laisser couler sous la paperasse mentale ce soir.\n\nOn fait quoi pour sortir la tête de l'eau ? Tu veux vider ton sac ici pour évacuer la pression, ou on tente un micro-truc de deux minutes pour débrancher les circuits ? 🧠",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T17:09:06.869158+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "8b1f37a2-630f-413a-b59d-de185745d381",
+      "email": "run-evals+0e07d96a3fcc41@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T17:08:54.301+00:00",
+      "phone_number": "+15557586409995",
+      "phone_invalid": false,
+      "whatsapp_state": "awaiting_personal_fact",
+      "phone_verified_at": "2026-01-09T17:08:54.302+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T17:08:54.302+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "8b1f37a2-630f-413a-b59d-de185745d381",
+      "email": "run-evals+0e07d96a3fcc41@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T17:08:54.301+00:00",
+      "phone_number": "+15557586409995",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T17:08:54.302+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T17:08:54.918+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T17:08:54.877+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "8b1f37a2-630f-413a-b59d-de185745d381",
+      "risk_level": 4,
+      "updated_at": "2026-01-09T17:09:06.860833+00:00",
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-09T17:08:54.938+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T17:08:54.940221+00:00",
+      "unprocessed_msg_count": 1
+    }
+  },
+  "issues": [
+    {
+      "code": "tone_consistency",
+      "message": "The use of 'Ah merde' is overly colloquial/familiar for a user who has just completed the initial onboarding (indicated by the transition from 'awaiting_personal_fact'). This risks alienating users who expect a more professional or neutral start.",
+      "evidence": {
+        "snippet": "Ah merde, je vois le genre.",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "low"
+    },
+    {
+      "code": "temporal_hallucination_risk",
+      "message": "The assistant assumes it is evening ('ce soir') without evidence in the transcript. If the conversation is taking place in the morning (which the user's previous message 'Je suis plutôt du matin' might imply as context), this is a hallucination.",
+      "evidence": {
+        "snippet": "On ne va pas te laisser couler sous la paperasse mentale ce soir.",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Ensures the persona remains accessible and polite for new users, preventing potential friction from unexpected familiarity.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#0 USER: Je suis plutôt du matin en général.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Ah merde, je vois le genre. C'est lourd quand le cerveau sature et que tout se mélange comme ça. On ne va pas te laisser couler sous la paperasse mentale ce soir. On fait quoi pour sortir la tête de l'eau ? Tu veux vider ton sac ici pour évacuer la pression, ou on tente un micro-truc de deux minutes pour débrancher les circuits ? 🧠\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nDuring early interactions or onboarding phases, avoid mild profanity (like 'merde') and overly familiar slang. Prioritize warmth and professional empathy until rapport is established.",
+      "proposed_addendum": "During early interactions or onboarding phases, avoid mild profanity (like 'merde') and overly familiar slang. Prioritize warmth and professional empathy until rapport is established."
+    },
+    {
+      "action": "append",
+      "rationale": "Prevents temporal hallucinations that break immersion if the user is chatting at a different time than the assistant guesses.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#0 USER: Je suis plutôt du matin en général.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Ah merde, je vois le genre. C'est lourd quand le cerveau sature et que tout se mélange comme ça. On ne va pas te laisser couler sous la paperasse mentale ce soir. On fait quoi pour sortir la tête de l'eau ? Tu veux vider ton sac ici pour évacuer la pression, ou on tente un micro-truc de deux minutes pour débrancher les circuits ? 🧠\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nDo not assume the time of day (e.g., 'ce soir', 'ce matin') unless explicitly grounded in the current context variables. Use neutral temporal markers like 'maintenant' or 'là tout de suite'.",
+      "proposed_addendum": "Do not assume the time of day (e.g., 'ce soir', 'ce matin') unless explicitly grounded in the current context variables. Use neutral temporal markers like 'maintenant' or 'là tout de suite'."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.011998700000000001,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978438539_73b41a:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978438539_73b41a",
+    "total_tokens": 15756,
+    "output_tokens": 584,
+    "prompt_tokens": 9925,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "conversational",
+      "offtopic"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978438539_73b41a:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767978438539_73b41a",
+    "description": "WhatsApp onboarding (webhook): after the onboarding prompt opens the floor ('envie qu’on parle de quoi ?'), the user talks about something unrelated to the plan; Sophia should respect the intent and not redirect to the site/plan.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "d6e92529-e29d-4b6b-bd28-785aa00babca",
+        "title": "Le Protocole Nocturne Alpha",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : Le Silence Opératoire",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "82775b9b-2ef1-4281-a11b-df86b2033d40",
+                  "tips": "Fais-en une cérémonie. Crée une 'zone de charge' hors de la chambre. L'objectif est de briser l'association neuronale entre la chambre et la stimulation.",
+                  "type": "mission",
+                  "title": "Protocole 'Digital Lockdown'",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Le corps ne peut pas se détendre si l'esprit anticipe la dopamine du scroll. C'est le premier pas pour recoder ton environnement de sommeil.",
+                  "description": "Déplacer TOUS les écrans (téléphone, tablette, ordinateur, TV) de la chambre à coucher définitivement, dès ce soir. Achète un réveil analogique si nécessaire.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "4717ac6d-eb40-4cca-b848-e50456bcc53c",
+                  "tips": "Teste différents types de bouchons ou de sons blancs pour trouver ce qui te convient le mieux. La régularité est clé pour habituer ton système nerveux.",
+                  "type": "habitude",
+                  "title": "Le Mur du Son",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Les bruits, même subtils, activent le système nerveux et peuvent fragmenter le sommeil. Créer un 'mur' auditif protège ton cerveau des micro-réveils.",
+                  "targetReps": 7,
+                  "description": "Utiliser des bouchons d'oreille ou un générateur de bruit blanc (sans écran) chaque nuit avant de dormir pour bloquer les bruits extérieurs ou intérieurs.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b9e195af-e51c-4eed-b787-3b3f6915007b",
+                  "tips": "Ne juge pas le contenu. L'acte d'écrire est plus important que le contenu. C'est une décharge. Range le carnet après l'avoir rempli. Le cerveau se sent en sécurité quand les pensées sont 'stockées'.",
+                  "type": "framework",
+                  "title": "L'Inventaire des Pensées Fugaces",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Les ruminations sont une forme d'hyperactivité mentale. Ce 'brain dump' permet de transposer ces boucles dans le monde physique, libérant ainsi ton esprit pour le sommeil.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, 30 minutes avant l'heure de coucher, prendre 10-15 minutes pour vider toute pensée, préoccupation, ou liste de tâches sur papier, hors de la chambre.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "counter",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Ton esprit est un disque dur. Avant de le mettre en veille, il faut sauvegarder ce qui tourne en boucle. Ne filtre rien, écris tout ce qui te passe par la tête, sans ordre ni jugement. L'objectif est de vider ton 'cache mental'.",
+                    "sections": [
+                      {
+                        "id": "s1_p1a3",
+                        "label": "Toutes les pensées et préoccupations du jour",
+                        "inputType": "textarea",
+                        "placeholder": "Je dois appeler X, la réunion de demain, j'ai oublié de faire Y..."
+                      },
+                      {
+                        "id": "s2_p1a3",
+                        "label": "Sentiment dominant après l'écriture (1-10, 1=soulagé)",
+                        "inputType": "scale",
+                        "placeholder": "3"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 1 • Éliminer les perturbations immédiates",
+              "rationale": "Cette phase est conçue pour créer un environnement de sommeil radicalement apaisant. En éliminant les sources majeures de stimulation et de bruit, nous envoyons un signal clair à ton cerveau : l'espace de sommeil est sacré, sans place pour l'agitation mentale ou digitale."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : L'Ancrage du Calme",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "e758f1ea-87c2-4c49-9e95-ee30ea1252e6",
+                  "tips": "Choisis 2-3 activités apaisantes et garde-les les mêmes chaque soir. La constance crée une ancre prédictive pour ton cerveau. Évite toute activité stimulante (informations, débats, travail).",
+                  "type": "habitude",
+                  "title": "Protocole Apaisement Profond (PAP)",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Créer une transition claire entre l'éveil et le sommeil permet à ton cerveau de ralentir progressivement, réduisant les pics de cortisol et préparant le terrain pour un sommeil réparateur.",
+                  "targetReps": 7,
+                  "description": "Mettre en place une routine de 30-45 minutes avant l'heure de coucher, incluant lecture papier, étirements doux, ou méditation guidée. Débuter cette routine chaque soir à heure fixe.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "3000d50c-d41f-4f60-aa07-2ef46b020f7d",
+                  "tips": "Ne regarde pas l'horloge. Lis un livre ennuyeux à faible lumière dans une autre pièce. Reviens au lit seulement quand tu te sens somnolent. C'est difficile au début mais puissant.",
+                  "type": "habitude",
+                  "title": "La Règle d'Or du Lit",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Recoder l'association entre ton lit et le sommeil est crucial. Si ton cerveau associe le lit à l'insomnie ou à la rumination, il aura du mal à s'y détendre. Cette règle brise cette association.",
+                  "targetReps": 7,
+                  "description": "Utiliser le lit UNIQUEMENT pour dormir et l'intimité. Si tu ne t'endors pas en 20 minutes, sors du lit et fais une activité calme jusqu'à ce que la somnolence revienne.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "068008fa-8522-4561-b021-c8610924c567",
+                  "tips": "Même la petite lumière d'un chargeur peut perturber. Pense à des masques de sommeil. Un environnement épuré réduit la stimulation visuelle et mentale.",
+                  "type": "mission",
+                  "title": "La Sanctuarisation de la Chambre",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ton corps est très sensible aux signaux environnementaux. Une chambre optimisée signale un espace de sécurité et de repos profond, favorisant la production de mélatonine et la continuité du sommeil.",
+                  "description": "Optimiser l'environnement de ta chambre : Obscurité totale (rideaux occultants), température fraîche (18-20°C), et réduction maximale du désordre visuel.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 2 • Ritualiser la descente vers le sommeil",
+              "rationale": "Après avoir nettoyé l'environnement, cette phase vise à sculpter une routine pré-sommeil inébranlable. En ancrant des comportements calmes, nous signalons à ton corps qu'il est temps de ralentir, facilitant l'endormissement et réduisant les réveils nocturnes liés à l'agitation résiduelle."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : La Maîtrise Mentale",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "acc1f09b-6e6b-4005-b90a-dc09259a212b",
+                  "tips": "Ce n'est pas forcément spectaculaire. 'J'ai bu mon café en silence', 'J'ai aidé un collègue'. L'important est de rediriger l'attention vers le positif et le calme, pas vers ce qui n'a pas été fait ou ce qui préoccupe.",
+                  "type": "framework",
+                  "title": "Le Journal des Victoires Silencieuses",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Le cerveau a un biais de négativité. En forçant la reconnaissance de moments positifs et calmes, nous entraînons activement ton cerveau à chercher et valoriser la tranquillité, contrant ainsi les ruminations.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, écrire 3 micro-victoires (petits moments de calme, réussite, gratitude) de la journée. Avant de dormir, relire les victoires de la semaine.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "counter",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Ton esprit est programmé pour identifier les 'dangers' (les problèmes, les choses à faire). Il est temps de le reprogrammer pour qu'il reconnaisse aussi les moments de paix et de succès, aussi petits soient-ils. Cela crée un sentiment de compétence et de gratitude.",
+                    "sections": [
+                      {
+                        "id": "s1_p3a1",
+                        "label": "Ma 1ère victoire silencieuse / Moment de calme du jour",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai pris 5 minutes pour juste observer les nuages."
+                      },
+                      {
+                        "id": "s2_p3a1",
+                        "label": "Ma 2ème victoire silencieuse / Moment de calme du jour",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai réussi à déléguer une tâche qui me pesait."
+                      },
+                      {
+                        "id": "s3_p3a1",
+                        "label": "Ma 3ème victoire silencieuse / Moment de calme du jour",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai apprécié mon repas sans écran."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "405497e9-84be-40f5-a6ff-a4afd232c52a",
+                  "tips": "C'est un entraînement. Quand une pensée surgit en dehors de la fenêtre, dis-toi 'j'y penserai à ma fenêtre de préoccupation'. Ne la refoule pas, reporte-la. Cela te donne le contrôle sur tes pensées.",
+                  "type": "habitude",
+                  "title": "La Fenêtre de Préoccupation",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "En conférant une 'permission' et un cadre temporel aux ruminations, nous les empêchons d'envahir tout ton espace mental et, surtout, ton temps de sommeil. Tu reprends le contrôle de ton attention.",
+                  "targetReps": 7,
+                  "description": "Désigner une période de 15 minutes chaque après-midi (ex: 17h) pour 't'inquiéter activement'. Noter toutes tes préoccupations et planifier des solutions si possible. Hors de cette fenêtre, reporte toute préoccupation à la prochaine session.",
+                  "isCompleted": false,
+                  "time_of_day": "afternoon",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "c8a129f4-3eae-44ab-8ee3-a034be581cac",
+                  "tips": "Remplace par des tisanes relaxantes (camomille, verveine) ou de l'eau. Tiens un petit journal pour noter les sensations. Sois honnête avec toi-même sur les quantités.",
+                  "type": "mission",
+                  "title": "L'Audit de Caféine & Alcool",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La caféine et l'alcool, même en petites quantités ou consommés des heures avant, peuvent perturber l'architecture du sommeil et exacerber les réveils nocturnes. Cet audit révèle leur impact réel sur toi.",
+                  "description": "Réduire ou éliminer toute consommation de caféine après 14h et d'alcool après 19h pour la semaine. Observer l'impact sur l'endormissement et les réveils.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 3 • Apprivoiser les ruminations diurnes et nocturnes",
+              "rationale": "Cette phase adresse directement les racines de tes ruminations. En instaurant des temps dédiés à la gestion des préoccupations et en développant des outils mentaux, nous visons à réduire l'impact de ces pensées sur ton sommeil et ta stabilité émotionnelle, même face à ton rythme de vie chargé."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : L'Architecture de la Résilience",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "eec6c915-f519-49b5-8275-5ee8ccd05b79",
+                  "tips": "Utilise une alarme lumineuse si possible. Levez-vous dès que l'alarme sonne. Si tu as du mal, un verre d'eau frais ou une petite marche rapide dehors peut aider.",
+                  "type": "habitude",
+                  "title": "Le Micro-Réveil Énergisant",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La régularité du cycle circadien est le fondement d'un sommeil de qualité. Un réveil constant stabilise ton horloge interne, améliorant la qualité et la quantité de ton sommeil global.",
+                  "targetReps": 7,
+                  "description": "Se réveiller à la même heure chaque jour, y compris le week-end, avec une tolérance de +/- 15 minutes. Expose-toi à la lumière naturelle dans les 30 minutes suivant le réveil.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "79d1dd5c-f948-42c2-a368-83a77d163f61",
+                  "tips": "Utilise un minuteur silencieux. Cela peut être avant une réunion, pendant une pause café, ou juste avant de passer à une nouvelle tâche. L'objectif est de briser le cycle d'agitation continue.",
+                  "type": "habitude",
+                  "title": "La Pause Consciente de 2 Minutes",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Dans un rythme de vie chargé, ces micro-pauses agissent comme des soupapes de décharge. Elles réduisent l'accumulation du stress diurne, prévenant l'hypervigilance mentale qui nourrit les ruminations nocturnes.",
+                  "targetReps": 7,
+                  "description": "Intégrer 3 à 5 courtes pauses de 2 minutes par jour pour te recentrer : respirer profondément, scanner ton corps, ou observer ton environnement sans jugement.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "ef6d5e2f-412d-4b82-8ced-c494b375519f",
+                  "tips": "Sois fier de ce que tu as accompli. C'est le moment d'internaliser les victoires et de les transformer en une nouvelle identité durable. Ton 'Deep Why' est toujours ta boussole.",
+                  "type": "framework",
+                  "title": "Le Bilan du Gardien de Nuit",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ce bilan permet d'ancrer les apprentissages, de renforcer ton sentiment de compétence et de te préparer à maintenir cette nouvelle architecture de vie de manière autonome.",
+                  "targetReps": 1,
+                  "description": "Réfléchir à tes progrès, identifier les habitudes les plus efficaces, et définir ton plan de maintenance post-programme. Quelles sont tes règles d'or pour le futur ?",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Tu as construit une nouvelle architecture pour ton sommeil et ton énergie. Il est temps de l'inspecter, de la célébrer, et de planifier sa maintenance. Quels sont tes piliers inébranlables pour les mois à venir ?",
+                    "sections": [
+                      {
+                        "id": "s1_p4a3",
+                        "label": "Les 3 habitudes qui ont eu le plus grand impact sur mon sommeil et mon énergie :",
+                        "inputType": "list",
+                        "placeholder": "Le Digital Lockdown | Le Journal des Pensées | La Règle d'Or du Lit"
+                      },
+                      {
+                        "id": "s2_p4a3",
+                        "label": "Comment je compte maintenir ces acquis face à un rythme de vie chargé :",
+                        "inputType": "textarea",
+                        "placeholder": "Je bloquerai 30min chaque soir pour ma routine sommeil et je refuserai les sollicitations après 21h."
+                      },
+                      {
+                        "id": "s3_p4a3",
+                        "label": "Mon score d'énergie globale actuelle (1-10) et mon ressenti sur ma stabilité :",
+                        "inputType": "scale",
+                        "placeholder": "8"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 4 • Consolider et pérenniser tes acquis",
+              "rationale": "Cette dernière phase vise à consolider toutes les habitudes acquises, transformant les actions ponctuelles en piliers de ton énergie. En intégrant la constance du réveil et des pauses conscientes, nous ancrons un rythme physiologique sain et une capacité à gérer le stress, essentiels pour maintenir la stabilité à long terme."
+            }
+          ],
+          "deepWhy": "Pour cultiver une énergie inépuisable, être un pilier de stabilité pour mon entourage et enfin reprendre les rênes de mon quotidien effréné.",
+          "identity": "Je suis le Maître de mon Calme Intérieur.",
+          "strategy": "Nous allons implémenter des systèmes radicaux pour cloisonner l'agitation diurne de ton espace de repos. La priorité est de désamorcer les ruminations et solidifier ton ancrage nocturne pour une énergie retrouvée.",
+          "goldenRules": "1. Mon téléphone reste hors de la chambre, après 21h.\n2. Le lit est un sanctuaire : il ne sert qu'au sommeil et à l'intimité.\n3. Toute pensée intrusive est notée, puis laissée à la porte de ma chambre.",
+          "vitalSignal": {
+            "name": "Temps d'éveil nocturne total",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "45",
+            "description": "Nous allons réduire progressivement le temps passé éveillé(e) pendant la nuit.",
+            "targetValue": "10",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole Nocturne Alpha",
+          "context_problem": "Tu te sens piégé entre un rythme de vie effréné et des nuits perturbées par des ruminations et des réveils. Cela affecte ta capacité à être constant et à maintenir ton énergie, te laissant vulnérable aux distractions et au décrochage. Ton objectif est de briser ce cycle pour retrouver ta stabilité et ton potentiel énergétique.",
+          "sophiaKnowledge": "Tu es un homme né en 1992, confronté à un rythme de vie exigeant et de nombreuses sollicitations. Malgré une qualité de sommeil que tu juges 'bonne' parfois, tu es souvent victime de ruminations et de réveils nocturnes, te menant à un manque de constance et un sentiment d'épuisement. Ton défi est de maintenir une discipline quand la fatigue s'installe, afin de retrouver de l'énergie et de la stabilité.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "As-tu respecté tes trois règles d'or du soir cette semaine ? (Oui/Non)",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "4 semaines"
+        },
+        "goal_id": "c1766e97-e5e9-4c79-9c63-ab55e635e576",
+        "deep_why": "Pour cultiver une énergie inépuisable, être un pilier de stabilité pour mon entourage et enfin reprendre les rênes de mon quotidien effréné.",
+        "created_at": "2026-01-09T17:08:54.2323+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "8f3a300c-b6bb-4d45-9f13-6faba3f52c9b",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "82775b9b-2ef1-4281-a11b-df86b2033d40",
+          "title": "Protocole 'Digital Lockdown'",
+          "status": "active",
+          "created_at": "2026-01-09T17:08:54.269096+00:00",
+          "description": "Déplacer TOUS les écrans (téléphone, tablette, ordinateur, TV) de la chambre à coucher définitivement, dès ce soir. Achète un réveil analogique si nécessaire.",
+          "target_reps": 1,
+          "time_of_day": "evening",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T17:08:54.262+00:00"
+        },
+        {
+          "id": "4717ac6d-eb40-4cca-b848-e50456bcc53c",
+          "title": "Le Mur du Son",
+          "status": "active",
+          "created_at": "2026-01-09T17:08:54.269096+00:00",
+          "description": "Utiliser des bouchons d'oreille ou un générateur de bruit blanc (sans écran) chaque nuit avant de dormir pour bloquer les bruits extérieurs ou intérieurs.",
+          "target_reps": 7,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T17:08:54.262+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole Nocturne Alpha\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour cultiver une énergie inépuisable, être un pilier de stabilité pour mon entourage et enfin reprendre les rênes de mon quotidien effréné.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : Le Silence Opératoire\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"82775b9b-2ef1-4281-a11b-df86b2033d40\",\n          \"tips\": \"Fais-en une cérémonie. Crée une 'zone de charge' hors de la chambre. L'objectif est de briser l'association neuronale entre la chambre et la stimulation.\",\n          \"type\": \"mission\",\n          \"title\": \"Protocole 'Digital Lockdown'\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Le corps ne peut pas se détendre si l'esprit anticipe la dopamine du scroll. C'est le premier pas pour recoder ton environnement de sommeil.\",\n          \"description\": \"Déplacer TOUS les écrans (téléphone, tablette, ordinateur, TV) de la chambre à coucher définitivement, dès ce soir. Achète un réveil analogique si nécessaire.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"4717ac6d-eb40-4cca-b848-e50456bcc53c\",\n          \"tips\": \"Teste différents types de bouchons ou de sons blancs pour trouver ce qui te convient le mieux. La régularité est clé pour habituer ton système nerveux.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Mur du Son\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Les bruits, même subtils, activent le système nerveux et peuvent fragmenter le sommeil. Créer un 'mur' auditif protège ton cerveau des micro-réveils.\",\n          \"targetReps\": 7,\n          \"description\": \"Utiliser des bouchons d'oreille ou un générateur de bruit blanc (sans écran) chaque nuit avant de dormir pour bloquer les bruits extérieurs ou intérieurs.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b9e195af-e51c-4eed-b787-3b3f6915007b\",\n          \"tips\": \"Ne juge pas le contenu. L'acte d'écrire est plus important que le contenu. C'est une décharge. Range le carnet après l'avoir rempli. Le cerveau se sent en sécurité quand les pensées sont 'stockées'.\",\n          \"type\": \"framework\",\n          \"title\": \"L'Inventaire des Pensées Fugaces\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Les ruminations sont une forme d'hyperactivité mentale. Ce 'brain dump' permet de transposer ces boucles dans le monde physique, libérant ainsi ton esprit pour le sommeil.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, 30 minutes avant l'heure de coucher, prendre 10-15 minutes pour vider toute pensée, préoccupation, ou liste de tâches sur papier, hors de la chambre.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"counter\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Ton esprit est un disque dur. Avant de le mettre en veille, il faut sauvegarder ce qui tourne en boucle. Ne filtre rien, écris tout ce qui te passe par la tête, sans ordre ni jugement. L'objectif est de vider ton 'cache mental'.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p1a3\",\n                \"label\": \"Toutes les pensées et préoccupations du jour\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je dois appeler X, la réunion de demain, j'ai oublié de faire Y...\"\n              },\n              {\n                \"id\": \"s2_p1a3\",\n                \"label\": \"Sentiment dominant après l'écriture (1-10, 1=soulagé)\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"3\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 1 • Éliminer les perturbations immédiates\",\n      \"rationale\": \"Cette phase est conçue pour créer un environnement de sommeil radicalement apaisant. En éliminant les sources majeures de stimulation et de bruit, nous envoyons un signal clair à ton cerveau : l'espace de sommeil est sacré, sans place pour l'agitation mentale ou digitale.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : L'Ancrage du Calme\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"e758f1ea-87c2-4c49-9e95-ee30ea1252e6\",\n          \"tips\": \"Choisis 2-3 activités apaisantes et garde-les les mêmes chaque soir. La constance crée une ancre prédictive pour ton cerveau. Évite toute activité stimulante (informations, débats, travail).\",\n          \"type\": \"habitude\",\n          \"title\": \"Protocole Apaisement Profond (PAP)\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Créer une transition claire entre l'éveil et le sommeil permet à ton cerveau de ralentir progressivement, réduisant les pics de cortisol et préparant le terrain pour un sommeil réparateur.\",\n          \"targetReps\": 7,\n          \"description\": \"Mettre en place une routine de 30-45 minutes avant l'heure de coucher, incluant lecture papier, étirements doux, ou méditation guidée. Débuter cette routine chaque soir à heure fixe.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"3000d50c-d41f-4f60-aa07-2ef46b020f7d\",\n          \"tips\": \"Ne regarde pas l'horloge. Lis un livre ennuyeux à faible lumière dans une autre pièce. Reviens au lit seulement quand tu te sens somnolent. C'est difficile au début mais puissant.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Règle d'Or du Lit\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Recoder l'association entre ton lit et le sommeil est crucial. Si ton cerveau associe le lit à l'insomnie ou à la rumination, il aura du mal à s'y détendre. Cette règle brise cette association.\",\n          \"targetReps\": 7,\n          \"description\": \"Utiliser le lit UNIQUEMENT pour dormir et l'intimité. Si tu ne t'endors pas en 20 minutes, sors du lit et fais une activité calme jusqu'à ce que la somnolence revienne.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"068008fa-8522-4561-b021-c8610924c567\",\n          \"tips\": \"Même la petite lumière d'un chargeur peut perturber. Pense à des masques de sommeil. Un environnement épuré réduit la stimulation visuelle et mentale.\",\n          \"type\": \"mission\",\n          \"title\": \"La Sanctuarisation de la Chambre\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ton corps est très sensible aux signaux environnementaux. Une chambre optimisée signale un espace de sécurité et de repos profond, favorisant la production de mélatonine et la continuité du sommeil.\",\n          \"description\": \"Optimiser l'environnement de ta chambre : Obscurité totale (rideaux occultants), température fraîche (18-20°C), et réduction maximale du désordre visuel.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 2 • Ritualiser la descente vers le sommeil\",\n      \"rationale\": \"Après avoir nettoyé l'environnement, cette phase vise à sculpter une routine pré-sommeil inébranlable. En ancrant des comportements calmes, nous signalons à ton corps qu'il est temps de ralentir, facilitant l'endormissement et réduisant les réveils nocturnes liés à l'agitation résiduelle.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : La Maîtrise Mentale\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"acc1f09b-6e6b-4005-b90a-dc09259a212b\",\n          \"tips\": \"Ce n'est pas forcément spectaculaire. 'J'ai bu mon café en silence', 'J'ai aidé un collègue'. L'important est de rediriger l'attention vers le positif et le calme, pas vers ce qui n'a pas été fait ou ce qui préoccupe.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Journal des Victoires Silencieuses\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Le cerveau a un biais de négativité. En forçant la reconnaissance de moments positifs et calmes, nous entraînons activement ton cerveau à chercher et valoriser la tranquillité, contrant ainsi les ruminations.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, écrire 3 micro-victoires (petits moments de calme, réussite, gratitude) de la journée. Avant de dormir, relire les victoires de la semaine.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"counter\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Ton esprit est programmé pour identifier les 'dangers' (les problèmes, les choses à faire). Il est temps de le reprogrammer pour qu'il reconnaisse aussi les moments de paix et de succès, aussi petits soient-ils. Cela crée un sentiment de compétence et de gratitude.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p3a1\",\n                \"label\": \"Ma 1ère victoire silencieuse / Moment de calme du jour\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai pris 5 minutes pour juste observer les nuages.\"\n              },\n              {\n                \"id\": \"s2_p3a1\",\n                \"label\": \"Ma 2ème victoire silencieuse / Moment de calme du jour\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai réussi à déléguer une tâche qui me pesait.\"\n              },\n              {\n                \"id\": \"s3_p3a1\",\n                \"label\": \"Ma 3ème victoire silencieuse / Moment de calme du jour\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai apprécié mon repas sans écran.\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"405497e9-84be-40f5-a6ff-a4afd232c52a\",\n          \"tips\": \"C'est un entraînement. Quand une pensée surgit en dehors de la fenêtre, dis-toi 'j'y penserai à ma fenêtre de préoccupation'. Ne la refoule pas, reporte-la. Cela te donne le contrôle sur tes pensées.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Fenêtre de Préoccupation\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"En conférant une 'permission' et un cadre temporel aux ruminations, nous les empêchons d'envahir tout ton espace mental et, surtout, ton temps de sommeil. Tu reprends le contrôle de ton attention.\",\n          \"targetReps\": 7,\n          \"description\": \"Désigner une période de 15 minutes chaque après-midi (ex: 17h) pour 't'inquiéter activement'. Noter toutes tes préoccupations et planifier des solutions si possible. Hors de cette fenêtre, reporte toute préoccupation à la prochaine session.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"afternoon\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"c8a129f4-3eae-44ab-8ee3-a034be581cac\",\n          \"tips\": \"Remplace par des tisanes relaxantes (camomille, verveine) ou de l'eau. Tiens un petit journal pour noter les sensations. Sois honnête avec toi-même sur les quantités.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Audit de Caféine & Alcool\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La caféine et l'alcool, même en petites quantités ou consommés des heures avant, peuvent perturber l'architecture du sommeil et exacerber les réveils nocturnes. Cet audit révèle leur impact réel sur toi.\",\n          \"description\": \"Réduire ou éliminer toute consommation de caféine après 14h et d'alcool après 19h pour la semaine. Observer l'impact sur l'endormissement et les réveils.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 3 • Apprivoiser les ruminations diurnes et nocturnes\",\n      \"rationale\": \"Cette phase adresse directement les racines de tes ruminations. En instaurant des temps dédiés à la gestion des préoccupations et en développant des outils mentaux, nous visons à réduire l'impact de ces pensées sur ton sommeil et ta stabilité émotionnelle, même face à ton rythme de vie chargé.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : L'Architecture de la Résilience\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"eec6c915-f519-49b5-8275-5ee8ccd05b79\",\n          \"tips\": \"Utilise une alarme lumineuse si possible. Levez-vous dès que l'alarme sonne. Si tu as du mal, un verre d'eau frais ou une petite marche rapide dehors peut aider.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Micro-Réveil Énergisant\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La régularité du cycle circadien est le fondement d'un sommeil de qualité. Un réveil constant stabilise ton horloge interne, améliorant la qualité et la quantité de ton sommeil global.\",\n          \"targetReps\": 7,\n          \"description\": \"Se réveiller à la même heure chaque jour, y compris le week-end, avec une tolérance de +/- 15 minutes. Expose-toi à la lumière naturelle dans les 30 minutes suivant le réveil.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"79d1dd5c-f948-42c2-a368-83a77d163f61\",\n          \"tips\": \"Utilise un minuteur silencieux. Cela peut être avant une réunion, pendant une pause café, ou juste avant de passer à une nouvelle tâche. L'objectif est de briser le cycle d'agitation continue.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Pause Consciente de 2 Minutes\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Dans un rythme de vie chargé, ces micro-pauses agissent comme des soupapes de décharge. Elles réduisent l'accumulation du stress diurne, prévenant l'hypervigilance mentale qui nourrit les ruminations nocturnes.\",\n          \"targetReps\": 7,\n          \"description\": \"Intégrer 3 à 5 courtes pauses de 2 minutes par jour pour te recentrer : respirer profondément, scanner ton corps, ou observer ton environnement sans jugement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"ef6d5e2f-412d-4b82-8ced-c494b375519f\",\n          \"tips\": \"Sois fier de ce que tu as accompli. C'est le moment d'internaliser les victoires et de les transformer en une nouvelle identité durable. Ton 'Deep Why' est toujours ta boussole.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Bilan du Gardien de Nuit\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ce bilan permet d'ancrer les apprentissages, de renforcer ton sentiment de compétence et de te préparer à maintenir cette nouvelle architecture de vie de manière autonome.\",\n          \"targetReps\": 1,\n          \"description\": \"Réfléchir à tes progrès, identifier les habitudes les plus efficaces, et définir ton plan de maintenance post-programme. Quelles sont tes règles d'or pour le futur ?\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Tu as construit une nouvelle architecture pour ton sommeil et ton énergie. Il est temps de l'inspecter, de la célébrer, et de planifier sa maintenance. Quels sont tes piliers inébranlables pour les mois à venir ?\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p4a3\",\n                \"label\": \"Les 3 habitudes qui ont eu le plus grand impact sur mon sommeil et mon énergie :\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Le Digital Lockdown | Le Journal des Pensées | La Règle d'Or du Lit\"\n              },\n              {\n                \"id\": \"s2_p4a3\",\n                \"label\": \"Comment je compte maintenir ces acquis face à un rythme de vie chargé :\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je bloquerai 30min chaque soir pour ma routine sommeil et je refuserai les sollicitations après 21h.\"\n              },\n              {\n                \"id\": \"s3_p4a3\",\n                \"label\": \"Mon score d'énergie globale actuelle (1-10) et mon ressenti sur ma stabilité :\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"8\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 4 • Consolider et pérenniser tes acquis\",\n      \"rationale\": \"Cette dernière phase vise à consolider toutes les habitudes acquises, transformant les actions ponctuelles en piliers de ton énergie. En intégrant la constance du réveil et des pauses conscientes, nous ancrons un rythme physiologique sain et une capacité à gérer le stress, essentiels pour maintenir la stabilité à long terme.\"\n    }\n  ],\n  \"deepWhy\": \"Pour cultiver une énergie inépuisable, être un pilier de stabilité pour mon entourage et enfin reprendre les rênes de mon quotidien effréné.\",\n  \"identity\": \"Je suis le Maître de mon Calme Intérieur.\",\n  \"strategy\": \"Nous allons implémenter des systèmes radicaux pour cloisonner l'agitation diurne de ton espace de repos. La priorité est de désamorcer les ruminations et solidifier ton ancrage nocturne pour une énergie retrouvée.\",\n  \"goldenRules\": \"1. Mon téléphone reste hors de la chambre, après 21h.\\n2. Le lit est un sanctuaire : il ne sert qu'au sommeil et à l'intimité.\\n3. Toute pensée intrusive est notée, puis laissée à la porte de ma chambre.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps d'éveil nocturne total\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"45\",\n    \"description\": \"Nous allons réduire progressivement le temps passé éveillé(e) pendant la nuit.\",\n    \"targetValue\": \"10\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole Nocturne Alpha\",\n  \"context_problem\": \"Tu te sens piégé entre un rythme de vie effréné et des nuits perturbées par des ruminations et des réveils. Cela affecte ta capacité à être constant et à maintenir ton énergie, te laissant vulnérable aux distractions et au décrochage. Ton objectif est de briser ce cycle pour retrouver ta stabilité et ton potentiel énergétique.\",\n  \"sophiaKnowledge\": \"Tu es un homme né en 1992, confronté à un rythme de vie exigeant et de nombreuses sollicitations. Malgré une qualité de sommeil que tu juges 'bonne' parfois, tu es souvent victime de ruminations et de réveils nocturnes, te menant à un manque de constance et un sentiment d'épuisement. Ton défi est de maintenir une discipline quand la fatigue s'installe, afin de retrouver de l'énergie et de la stabilité.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"As-tu respecté tes trois règles d'or du soir cette semaine ? (Oui/Non)\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"4 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Protocole 'Digital Lockdown' (evening)\n- [ACTION] Le Mur du Son (night)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps d'éveil nocturne total: 45 min\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "conversation"
+  },
+  "error": null
+}

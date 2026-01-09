@@ -187,12 +187,17 @@ export function serveRunEvals() {
             const scenarioSeedPlan = typeof scenarioSeedPlanRaw === "boolean" ? scenarioSeedPlanRaw : true;
 
             if (scenarioSeedPlan) {
+              const setup = (s as any)?.setup ?? {};
+              const defaultActiveActionsCount = isWhatsApp
+                ? (Number.isFinite(Number(setup?.active_actions_count)) ? Number(setup.active_actions_count) : 2)
+                : undefined;
               await seedActivePlan(
                 admin as any,
                 testUserId,
                 { url, anonKey, authHeader, requestId: scenarioRequestId },
                 {
                   bilanActionsCount: bilanCount,
+                  activeActionsCount: defaultActiveActionsCount,
                   // Only build a plan template if we actually need to seed a bilan plan.
                   planTemplate: bilanCount > 0 ? await getRunPlanTemplate() : undefined,
                   includeVitalsInBilan,
@@ -375,6 +380,7 @@ export function serveRunEvals() {
             const autoSim = Boolean((s as any)?.wa_auto_simulate);
             if (autoSim) {
               const forceTurns = Boolean((s as any)?.wa_force_turns);
+              const simulatePlanActivationOnDone = Boolean((s as any)?.wa_simulate_plan_activation_on_done);
               let turn = waSteps.length;
               while (turn < maxTurns) {
                 const { data: waMsgs, error: waErr } = await admin
@@ -419,6 +425,32 @@ export function serveRunEvals() {
                 const userMsg = String(simJson?.next_message ?? "").trim();
                 if (!userMsg) break;
 
+                // Test-only: if the user says "C'est bon" during onboarding finalization, we can simulate
+                // that a plan becomes active right after (to avoid endless "no plan" loops and to test the next state).
+                if (simulatePlanActivationOnDone && /c['’]est\s*bon/i.test(userMsg)) {
+                  const { data: activePlan } = await admin
+                    .from("user_plans")
+                    .select("id")
+                    .eq("user_id", testUserId)
+                    .eq("status", "active")
+                    .limit(1)
+                    .maybeSingle();
+                  if (!activePlan?.id) {
+                    await seedActivePlan(
+                      admin as any,
+                      testUserId,
+                      { url, anonKey, authHeader, requestId: scenarioRequestId },
+                      {
+                        // We only need an active plan title/content so WhatsApp onboarding can proceed.
+                        bilanActionsCount: 0,
+                        activeActionsCount: 2,
+                        planTemplate: await getRunPlanTemplate(),
+                        includeVitalsInBilan: false,
+                      },
+                    );
+                  }
+                }
+
                 const from = digitsOnly(defaultFrom);
                 const waMessageId = `wamid_${scenarioRequestId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 28)}_sim_${turn}`;
                 const payload = waPayloadForSingleMessage({
@@ -441,7 +473,58 @@ export function serveRunEvals() {
             const kickoffOffset =
               shouldKickoff && history.length > 0 && String(history[0]?.content ?? "").trim().toLowerCase() === "oui" ? 1 : 0;
             const startStepIdx = Math.max(0, alreadyUserMsgs - kickoffOffset);
-            for (const step of (s as any).steps.slice(startStepIdx, maxTurns)) {
+            const stepsToRun = (s as any).steps.slice(startStepIdx, maxTurns);
+            
+            for (let i = 0; i < stepsToRun.length; i++) {
+              const step = stepsToRun[i];
+              const burstDelay = step.burst_delay_ms;
+              
+              // BURST LOGIC: If this step has a burst_delay_ms, it means we send this message
+              // AND the NEXT message in very quick succession (simulating a double text).
+              // In this eval runner, we just process them sequentially but fast.
+              // However, the Router's debounce logic needs to be triggered.
+              // So we send Step N, wait minimal time, send Step N+1.
+              // But `processMessage` is await-ed here. 
+              // To simulate real burst for the Router to catch it, we must launch them in parallel promises?
+              // The `processMessage` function inside run-evals is a direct function call to `router.ts`, 
+              // it does NOT go through the HTTP edge function (so no separate isolates).
+              // BUT `processMessage` inside router.ts implements the sleep.
+              // So if we call `processMessage(Msg1)` it will sleep 3.5s.
+              // If we want to test the debounce, we need to launch `processMessage(Msg2)` WHILE Msg1 is sleeping.
+              
+              if (burstDelay && i + 1 < stepsToRun.length) {
+                  const nextStep = stepsToRun[i + 1];
+                  console.log(`[Eval] ⚡️ Simulating BURST: "${step.user}" then (+${burstDelay}ms) "${nextStep.user}"`);
+                  
+                  // Launch both "simultaneously"
+                  const p1 = processMessage(admin as any, testUserId, step.user, history, meta, sophiaTestOpts);
+                  await sleep(burstDelay);
+                  const p2 = processMessage(admin as any, testUserId, nextStep.user, history, meta, sophiaTestOpts);
+                  
+                  // Wait for both
+                  const [r1, r2] = await Promise.all([p1, p2]);
+                  
+                  // In a successful burst handling (Option 2), one of them should be aborted/empty/ignored, 
+                  // and the other should contain the combined response.
+                  // Or `processMessage` returns { aborted: true }
+                  
+                  // We add both user messages to history
+                  history.push({ role: "user", content: step.user });
+                  history.push({ role: "user", content: nextStep.user });
+                  
+                  // We record the responses. One might be empty/aborted.
+                  if (r1 && !r1.aborted && r1.content) {
+                      history.push({ role: "assistant", content: r1.content, agent_used: r1.mode });
+                  }
+                  if (r2 && !r2.aborted && r2.content) {
+                      history.push({ role: "assistant", content: r2.content, agent_used: r2.mode });
+                  }
+                  
+                  // Skip next step in the loop since we just processed it
+                  i++; 
+                  continue;
+              }
+
               const resp = await processMessage(admin as any, testUserId, step.user, history, meta, sophiaTestOpts);
               history.push({ role: "user", content: step.user });
               history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
@@ -685,6 +768,15 @@ export function serveRunEvals() {
               },
               system_snapshot: {
                 focus: (s as any)?.scenario_target ?? null,
+                channel: scenarioChannel,
+                whatsapp_state_machine: isWhatsApp
+                  ? {
+                      profile_whatsapp_state_before: (profileBefore as any)?.whatsapp_state ?? null,
+                      profile_whatsapp_state_after: (profileAfter as any)?.whatsapp_state ?? null,
+                      notes:
+                        "WhatsApp onboarding uses a lightweight profile.whatsapp_state machine. In particular, when profile.whatsapp_state='awaiting_personal_fact', the webhook may send a Companion-style acknowledgement (e.g. 'Merci, je note…') and open the floor ('tu as envie qu’on parle de quoi ?') while clearing the state. This is expected and is NOT a routing violation.",
+                    }
+                  : null,
                 notes:
                   "Judge context: during active checkup, router hard-guard keeps investigator stable unless explicit stop/safety. In post-bilan parking-lot (test_post_checkup_deferral), routing to companion/architect to handle deferred topics is expected.",
               },

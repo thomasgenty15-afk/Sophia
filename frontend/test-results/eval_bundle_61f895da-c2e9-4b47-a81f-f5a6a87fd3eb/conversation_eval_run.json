@@ -1,0 +1,507 @@
+{
+  "id": "61f895da-c2e9-4b47-a81f-f5a6a87fd3eb",
+  "created_at": "2026-01-09T16:43:02.249525+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_open_chat_offtopic_after_prompt__run_1767976912108_7e1d64",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Je suis irrégulier quand je suis fatigué.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:43:02.538229+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Merci, je note ❤️\nEt là, tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T16:43:02.545284+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:43:02.563147+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah merde... C'est l'enfer cette sensation de surchauffe. On encaisse, mais on ne va pas te laisser finir la journée en miettes.\n\nEst-ce que tu peux décrocher deux minutes là, ou tu es encore coincé devant ton écran ? On a ta micro-pause respiratoire dans le plan qui est pile là pour ce genre de moment.\n\nTu veux qu'on essaie de faire redescendre la pression ensemble ou tu préfères vider ton sac sur ce qui se passe au bureau ? 🌪️",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T16:43:12.106252+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "9c7c5be4-b29e-46a4-97c4-1fda91f99540",
+      "email": "run-evals+154dd74e03b74f@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T16:43:02.207+00:00",
+      "phone_number": "+15554432221057",
+      "phone_invalid": false,
+      "whatsapp_state": "awaiting_personal_fact",
+      "phone_verified_at": "2026-01-09T16:43:02.207+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T16:43:02.207+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "9c7c5be4-b29e-46a4-97c4-1fda91f99540",
+      "email": "run-evals+154dd74e03b74f@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T16:43:02.207+00:00",
+      "phone_number": "+15554432221057",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T16:43:02.207+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T16:43:02.559+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T16:43:02.546+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "9c7c5be4-b29e-46a4-97c4-1fda91f99540",
+      "risk_level": 3,
+      "updated_at": "2026-01-09T16:43:12.103007+00:00",
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-09T16:43:02.58+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T16:43:02.58131+00:00",
+      "unprocessed_msg_count": 1
+    }
+  },
+  "issues": [
+    {
+      "code": "hallucination_context",
+      "message": "The Assistant references 'ta micro-pause respiratoire dans le plan' while the system focus is 'onboarding'. During onboarding, a personalized plan is typically not yet established or populated with specific assets like 'ta micro-pause'.",
+      "evidence": {
+        "snippet": "On a ta micro-pause respiratoire dans le plan qui est pile là pour ce genre de moment.",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "dismissive_transition",
+      "message": "User provided a specific health correlation (irregularity linked to fatigue). The Assistant acknowledged it generically ('Merci, je note') and immediately switched topics, missing a profiling opportunity or a more natural transition.",
+      "evidence": {
+        "snippet": "Merci, je note ❤️\nEt là, tout de suite: tu as envie qu’on parle de quoi ?",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents hallucinations about the user's account state (plan existence) during the onboarding phase.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#0 USER: Je suis irrégulier quand je suis fatigué.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Ah merde... C'est l'enfer cette sensation de surchauffe. On encaisse, mais on ne va pas te laisser finir la journée en miettes. Est-ce que tu peux décrocher deux minutes là, ou tu es encore coincé devant ton écran ? On a ta micro-pause respiratoire dans le plan qui est pile là pour ce genre de moment. Tu veux qu'on essaie de faire redescendre la pression ensemble ou tu préfères vider ton sac sur ce qui se passe au bureau ? 🌪️\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nCONSTRAINT: During 'onboarding' or early discovery, do not imply the user has an established 'plan' or 'library' of exercises. Offer techniques as immediate, spontaneous suggestions (e.g., 'On peut essayer une technique...') rather than referencing non-existent stored items.",
+      "proposed_addendum": "CONSTRAINT: During 'onboarding' or early discovery, do not imply the user has an established 'plan' or 'library' of exercises. Offer techniques as immediate, spontaneous suggestions (e.g., 'On peut essayer une technique...') rather than referencing non-existent stored items."
+    },
+    {
+      "action": "append",
+      "rationale": "Ensures the user feels heard regarding health data points, even if the agent is in companion mode and not active investigation.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Je suis irrégulier quand je suis fatigué.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Ah merde... C'est l'enfer cette sensation de surchauffe. On encaisse, mais on ne va pas te laisser finir la journée en miettes. Est-ce que tu peux décrocher deux minutes là, ou tu es encore coincé devant ton écran ? On a ta micro-pause respiratoire dans le plan qui est pile là pour ce genre de moment. Tu veux qu'on essaie de faire redescendre la pression ensemble ou tu préfères vider ton sac sur ce qui se passe au bureau ? 🌪️\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nRULE: When the user shares a specific health pattern or trigger (e.g., 'I get X when Y'), validate the specific correlation explicitly (e.g., 'Noted the link between fatigue and irregularity') before asking to change the subject.",
+      "proposed_addendum": "RULE: When the user shares a specific health pattern or trigger (e.g., 'I get X when Y'), validate the specific correlation explicitly (e.g., 'Noted the link between fatigue and irregularity') before asking to change the subject."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0117432,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767976912108_7e1d64:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767976912108_7e1d64",
+    "total_tokens": 12331,
+    "output_tokens": 644,
+    "prompt_tokens": 8757,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "conversational",
+      "offtopic"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767976912108_7e1d64:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767976912108_7e1d64",
+    "description": "WhatsApp onboarding (webhook): after the onboarding prompt opens the floor ('envie qu’on parle de quoi ?'), the user talks about something unrelated to the plan; Sophia should respect the intent and not redirect to the site/plan.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "99fc1fd3-7a10-4900-83d7-41da0b132bab",
+        "title": "L'Architecture de la Sérénité",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "L'Ancrage Silencieux",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "55bc776d-29b2-422c-b344-692f7a2ee1bd",
+                  "tips": "Utilise des lumières tamisées, ajoute un plaid douillet, un carnet. L'objectif est de créer un refuge pour ton esprit.",
+                  "type": "mission",
+                  "title": "Le Sanctuaire du Soir",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Dédier un espace sans stimulation digitale aide à dissocier le repos des sources de stress et de sur-stimulation.",
+                  "description": "Aménager un espace (chambre, coin lecture) dédié à la détente, sans aucun écran, où tu peux te retirer chaque soir.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "94daae89-ea4e-4467-9e2a-124bb923efd2",
+                  "tips": "Mets un rappel discret sur ton téléphone. Ne juge pas la qualité, fais-le juste. C'est un mini-reset pour ton système nerveux.",
+                  "type": "habitude",
+                  "title": "La Micro-Pause Respiratoire",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Ralentit le rythme cardiaque, active le système parasympathique et interrompt les spirales de pensée, réduisant le stress accumulé.",
+                  "targetReps": 7,
+                  "description": "Pratiquer 3 respirations profondes et lentes (inspiration ventre, pause, expiration longue) toutes les 2 heures.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Établir des fondations calmes",
+              "rationale": "Nous débutons par l'environnement et le corps pour couper le cycle infernal du stress et des écrans, créant un espace propice à la détente."
+            },
+            {
+              "id": 2,
+              "title": "L'Éveil de l'Attention",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "a3a15607-d6ae-41bd-a7b9-cf96a48516db",
+                  "tips": "Un rayon de soleil, un bon café, un mot gentil. L'objectif est de réorienter ton cerveau vers la gratitude.",
+                  "type": "habitude",
+                  "title": "Le Récit du Jour Positif",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Déplace l'attention des problèmes vers les ressources positives, réduisant la rumination et améliorant l'humeur.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, avant de te coucher, note 3 choses positives qui se sont passées dans ta journée, même les plus petites.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "75f76d4a-6964-4ba2-893e-aa5ac4362445",
+                  "tips": "Utilise une roue des émotions si besoin. Il n'y a pas de 'bonne' ou 'mauvaise' émotion, juste des informations.",
+                  "type": "framework",
+                  "title": "L'Inventaire des Émotions",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Nommer les émotions réduit leur intensité (effet 'affect labeling'), permettant une meilleure régulation et prévention de la rumination.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, identifie et nomme au moins 3 émotions ressenties dans la journée, en essayant de les décrire et de les situer.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "L'objectif n'est pas d'analyser, mais de reconnaître et nommer ce que tu ressens. Cela diminue l'emprise des émotions intenses.",
+                    "sections": [
+                      {
+                        "id": "e1",
+                        "label": "Émotion 1 ressentie",
+                        "inputType": "text",
+                        "placeholder": "Ex: Frustration"
+                      },
+                      {
+                        "id": "s1",
+                        "label": "Quand/où l'ai-je ressentie ?",
+                        "inputType": "textarea",
+                        "placeholder": "En réunion..."
+                      },
+                      {
+                        "id": "i1",
+                        "label": "Intensité (1-10)",
+                        "inputType": "scale",
+                        "placeholder": "7"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Ramener le focus au présent",
+              "rationale": "Après avoir posé les bases physiques, nous cultivons la reconnaissance des moments positifs et la conscience émotionnelle pour contrer l'anxiété et la rumination."
+            },
+            {
+              "id": 3,
+              "title": "Le Rempart Digital",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "efe61747-42fd-4b31-8f58-7b98645078e2",
+                  "tips": "Communique cette règle à ton entourage proche. Laisse uniquement les appels d'urgence passer si nécessaire.",
+                  "type": "mission",
+                  "title": "Le Couvre-feu Connecté",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Crée une barrière mentale et physique contre les interruptions et la tentation de consulter, favorisant une descente en énergie naturelle.",
+                  "description": "Configurer un mode 'Ne pas déranger' automatique sur tes appareils (téléphone, tablette) à partir de 21h jusqu'à 7h le matin.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "7c74d041-f5ba-48cc-a4de-7b37a151e6e6",
+                  "tips": "Utilise ce temps pour lire un livre physique, écouter de la musique douce, ou discuter avec un proche (en personne).",
+                  "type": "habitude",
+                  "title": "La Transition Déconnectée",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit l'exposition à la lumière bleue et aux contenus stimulants, permettant à ton cerveau de produire de la mélatonine et de se préparer au sommeil.",
+                  "targetReps": 7,
+                  "description": "Désactive tous les écrans (téléphone, ordinateur, télé) au moins 30 minutes avant l'heure prévue du coucher.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Maîtriser l'environnement numérique",
+              "rationale": "Face à l'impact des écrans sur ton sommeil et ton anxiété, nous érigeons des limites claires pour protéger ton cerveau des stimulations excessives, surtout en soirée."
+            },
+            {
+              "id": 4,
+              "title": "Le Jardin Intérieur",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "1d837930-7052-4f87-b9dc-42d7c4bcc4ff",
+                  "tips": "Place ton réveil loin de ton lit pour te forcer à te lever. Prépare ton espace la veille.",
+                  "type": "habitude",
+                  "title": "Le Rituel Matinal Calme",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Commencer la journée par un moment de calme prépare ton cerveau à une meilleure régulation émotionnelle, réduisant la réactivité au stress.",
+                  "targetReps": 7,
+                  "description": "Dédié 5 à 10 minutes chaque matin à une activité calme (méditation guidée courte, étirements doux, ou juste boire ton café en silence et pleine conscience).",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "69e42a66-c929-4aa5-b763-408bd5d88457",
+                  "tips": "Ne cherche pas la perfection, juste la consistance. Une phrase suffit si tu es fatiguée.",
+                  "type": "framework",
+                  "title": "Le Journal de Gratitude et d'Apprentissage",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Renforce les circuits neuronaux associés au bien-être et à la résilience, et permet d'intégrer les expériences pour une meilleure gestion de l'incertitude.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, écris sur un moment de gratitude et une leçon, même petite, apprise dans la journée.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Cultiver la gratitude et la réflexion sur les apprentissages quotidiens permet de recadrer les défis et de renforcer ton sentiment d'efficacité personnelle.",
+                    "sections": [
+                      {
+                        "id": "g1",
+                        "label": "Un moment de gratitude aujourd'hui",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai apprécié..."
+                      },
+                      {
+                        "id": "l1",
+                        "label": "Une leçon apprise ou une prise de conscience",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai réalisé que..."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Cultiver la sérénité",
+              "rationale": "Avec une meilleure gestion des écrans, nous introduisons des rituels qui nourrissent directement ton calme et ta clarté mentale, t'aidant à te sentir moins submergée."
+            },
+            {
+              "id": 5,
+              "title": "L'Écran de Protection",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "ab9b0014-e695-4883-92ff-4a3f3bd99bb5",
+                  "tips": "Note-les sur un post-it visible. Le but est de créer un réflexe rapide avant que la vague ne te submerge.",
+                  "type": "mission",
+                  "title": "La Balise d'Interruption",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Développe une intelligence émotionnelle proactive, permettant d'interrompre le cycle du stress avant qu'il ne s'amplifie.",
+                  "description": "Identifie 3 signes précurseurs de submersion (ex: cœur qui s'accélère, pensée en boucle) et 3 actions immédiates pour y répondre (ex: marcher 5 min, écouter une musique, boire un verre d'eau).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "c2252ffc-5177-4aea-aeed-7da579cc74f4",
+                  "tips": "Fais-le sur papier ou sur une application simple. L'idée est de 'décharger' ton cerveau avant de te reposer.",
+                  "type": "habitude",
+                  "title": "Le Débrief de Fin de Journée",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit la charge mentale, minimise la rumination des tâches non accomplies et libère de l'espace mental pour le repos.",
+                  "targetReps": 7,
+                  "description": "Consacre 5 minutes chaque soir à noter rapidement ce qui a été fait et ce qui reste à faire le lendemain.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 9-10 • Gérer les débordements",
+              "rationale": "Nous nous concentrons sur la prévention et la réponse aux sensations de submersion et de perte de fil, en développant des outils proactifs et réactifs."
+            },
+            {
+              "id": 6,
+              "title": "L'Écho de la Sagesse",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "e819e829-10f9-4581-a97b-3fcd7b83bc66",
+                  "tips": "C'est un moment de dialogue avec toi-même, sans jugement. L'honnêteté renforce l'engagement.",
+                  "type": "habitude",
+                  "title": "Le Point d'Ancrage Quotidien",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Renforce l'identité que tu construis et consolide l'intégration de ces comportements comme une partie naturelle de ton être.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, relis tes 3 règles d'or et pose-toi la question : 'Ai-je honoré ma quête de calme et de présence aujourd'hui ?'.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "6ce5fa0c-e990-4240-a0a9-7b0e6a9215e9",
+                  "tips": "Imagine-toi dans 6 mois. Quels sont les acquis que tu ne veux absolument pas perdre ?",
+                  "type": "framework",
+                  "title": "La Boussole du Futur",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Permet de conscientiser tes réussites et de formuler un plan de maintien personnalisé, essentiel pour la pérennisation des changements.",
+                  "targetReps": 1,
+                  "description": "Prends un temps de réflexion pour lister les 3 outils ou habitudes qui t'ont le plus aidée, et comment tu envisages de les maintenir activement dans ton quotidien futur.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Tu es l'architecte de ta vie. Fais le point sur ce que tu as construit et comment tu vas protéger cette œuvre pour l'avenir.",
+                    "sections": [
+                      {
+                        "id": "m1",
+                        "label": "Mes 3 meilleurs outils/habitudes",
+                        "inputType": "list",
+                        "placeholder": "Ex: La micro-pause respiratoire"
+                      },
+                      {
+                        "id": "p1",
+                        "label": "Mon plan pour les maintenir sur le long terme",
+                        "inputType": "textarea",
+                        "placeholder": "Je vais les intégrer à..."
+                      },
+                      {
+                        "id": "i2",
+                        "label": "Comment mon identité a évolué (en 1 phrase)",
+                        "inputType": "text",
+                        "placeholder": "Je suis devenue..."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 11-12 • Intégrer et pérenniser",
+              "rationale": "Cette dernière phase est dédiée à l'ancrage profond de ces nouvelles architectures comportementales, afin qu'elles deviennent une partie intrinsèque de ton quotidien serein."
+            }
+          ],
+          "deepWhy": "Pour cultiver une présence stable et sereine au quotidien, capable de faire face aux défis avec clarté et énergie renouvelée.",
+          "identity": "Je suis l'Architecte de ma Paix Intérieure.",
+          "strategy": "Nous allons reconstruire votre équilibre en ancrant des micro-habitudes de calme et de conscience, phase par phase, pour transformer l'anxiété en une force tranquille et durable.",
+          "goldenRules": "1. Chaque fin de journée est une transition sacrée loin des écrans.\n2. Je m'offre des micro-pauses pour respirer et me recentrer.\n3. Mon bien-être est une boussole, pas une destination.",
+          "vitalSignal": {
+            "name": "Durée de la période de déconnexion avant le coucher",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "0",
+            "description": "On visera à augmenter progressivement ce temps de 5 à 10 minutes toutes les deux semaines.",
+            "targetValue": "60",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Architecture de la Sérénité",
+          "context_problem": "Actuellement, tu te sens prise dans un cycle où le stress et les écrans tardifs nuisent à ton sommeil et alimentent ton anxiété, laissant peu de place à l'énergie et la stabilité que tu recherches. Ton blocage principal est cette sensation de submersion qui t'empêche de structurer ton quotidien et de gérer tes ruminations.",
+          "sophiaKnowledge": "Tu es une femme dynamique née en 1992, confrontée à l'anxiété et à la rumination. Ton travail sur écran et tes journées tardives perturbent ton sommeil, t'épuisent et te donnent le sentiment d'être submergée, te faisant perdre le fil de tes priorités malgré un niveau d'activité élevé. Tu souhaites retrouver énergie et stabilité.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu volontairement ralenti ou interrompu une tâche pour éviter la submersion ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "12 semaines"
+        },
+        "goal_id": "3144a7e4-43d8-4228-a10d-a79858f1097a",
+        "deep_why": "Pour cultiver une présence stable et sereine au quotidien, capable de faire face aux défis avec clarté et énergie renouvelée.",
+        "created_at": "2026-01-09T16:43:02.180662+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "6c4c006d-52dc-431d-9536-04522128d010",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "55bc776d-29b2-422c-b344-692f7a2ee1bd",
+          "title": "Le Sanctuaire du Soir",
+          "status": "active",
+          "created_at": "2026-01-09T16:43:02.193002+00:00",
+          "description": "Aménager un espace (chambre, coin lecture) dédié à la détente, sans aucun écran, où tu peux te retirer chaque soir.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T16:43:02.189+00:00"
+        },
+        {
+          "id": "94daae89-ea4e-4467-9e2a-124bb923efd2",
+          "title": "La Micro-Pause Respiratoire",
+          "status": "active",
+          "created_at": "2026-01-09T16:43:02.193002+00:00",
+          "description": "Pratiquer 3 respirations profondes et lentes (inspiration ventre, pause, expiration longue) toutes les 2 heures.",
+          "target_reps": 7,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T16:43:02.189+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Architecture de la Sérénité\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour cultiver une présence stable et sereine au quotidien, capable de faire face aux défis avec clarté et énergie renouvelée.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"L'Ancrage Silencieux\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"55bc776d-29b2-422c-b344-692f7a2ee1bd\",\n          \"tips\": \"Utilise des lumières tamisées, ajoute un plaid douillet, un carnet. L'objectif est de créer un refuge pour ton esprit.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Sanctuaire du Soir\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Dédier un espace sans stimulation digitale aide à dissocier le repos des sources de stress et de sur-stimulation.\",\n          \"description\": \"Aménager un espace (chambre, coin lecture) dédié à la détente, sans aucun écran, où tu peux te retirer chaque soir.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"94daae89-ea4e-4467-9e2a-124bb923efd2\",\n          \"tips\": \"Mets un rappel discret sur ton téléphone. Ne juge pas la qualité, fais-le juste. C'est un mini-reset pour ton système nerveux.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Micro-Pause Respiratoire\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ralentit le rythme cardiaque, active le système parasympathique et interrompt les spirales de pensée, réduisant le stress accumulé.\",\n          \"targetReps\": 7,\n          \"description\": \"Pratiquer 3 respirations profondes et lentes (inspiration ventre, pause, expiration longue) toutes les 2 heures.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Établir des fondations calmes\",\n      \"rationale\": \"Nous débutons par l'environnement et le corps pour couper le cycle infernal du stress et des écrans, créant un espace propice à la détente.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"L'Éveil de l'Attention\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"a3a15607-d6ae-41bd-a7b9-cf96a48516db\",\n          \"tips\": \"Un rayon de soleil, un bon café, un mot gentil. L'objectif est de réorienter ton cerveau vers la gratitude.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Récit du Jour Positif\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Déplace l'attention des problèmes vers les ressources positives, réduisant la rumination et améliorant l'humeur.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, avant de te coucher, note 3 choses positives qui se sont passées dans ta journée, même les plus petites.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"75f76d4a-6964-4ba2-893e-aa5ac4362445\",\n          \"tips\": \"Utilise une roue des émotions si besoin. Il n'y a pas de 'bonne' ou 'mauvaise' émotion, juste des informations.\",\n          \"type\": \"framework\",\n          \"title\": \"L'Inventaire des Émotions\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Nommer les émotions réduit leur intensité (effet 'affect labeling'), permettant une meilleure régulation et prévention de la rumination.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, identifie et nomme au moins 3 émotions ressenties dans la journée, en essayant de les décrire et de les situer.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"L'objectif n'est pas d'analyser, mais de reconnaître et nommer ce que tu ressens. Cela diminue l'emprise des émotions intenses.\",\n            \"sections\": [\n              {\n                \"id\": \"e1\",\n                \"label\": \"Émotion 1 ressentie\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Frustration\"\n              },\n              {\n                \"id\": \"s1\",\n                \"label\": \"Quand/où l'ai-je ressentie ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"En réunion...\"\n              },\n              {\n                \"id\": \"i1\",\n                \"label\": \"Intensité (1-10)\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"7\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Ramener le focus au présent\",\n      \"rationale\": \"Après avoir posé les bases physiques, nous cultivons la reconnaissance des moments positifs et la conscience émotionnelle pour contrer l'anxiété et la rumination.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Le Rempart Digital\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"efe61747-42fd-4b31-8f58-7b98645078e2\",\n          \"tips\": \"Communique cette règle à ton entourage proche. Laisse uniquement les appels d'urgence passer si nécessaire.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Couvre-feu Connecté\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Crée une barrière mentale et physique contre les interruptions et la tentation de consulter, favorisant une descente en énergie naturelle.\",\n          \"description\": \"Configurer un mode 'Ne pas déranger' automatique sur tes appareils (téléphone, tablette) à partir de 21h jusqu'à 7h le matin.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"7c74d041-f5ba-48cc-a4de-7b37a151e6e6\",\n          \"tips\": \"Utilise ce temps pour lire un livre physique, écouter de la musique douce, ou discuter avec un proche (en personne).\",\n          \"type\": \"habitude\",\n          \"title\": \"La Transition Déconnectée\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit l'exposition à la lumière bleue et aux contenus stimulants, permettant à ton cerveau de produire de la mélatonine et de se préparer au sommeil.\",\n          \"targetReps\": 7,\n          \"description\": \"Désactive tous les écrans (téléphone, ordinateur, télé) au moins 30 minutes avant l'heure prévue du coucher.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Maîtriser l'environnement numérique\",\n      \"rationale\": \"Face à l'impact des écrans sur ton sommeil et ton anxiété, nous érigeons des limites claires pour protéger ton cerveau des stimulations excessives, surtout en soirée.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Le Jardin Intérieur\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"1d837930-7052-4f87-b9dc-42d7c4bcc4ff\",\n          \"tips\": \"Place ton réveil loin de ton lit pour te forcer à te lever. Prépare ton espace la veille.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel Matinal Calme\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Commencer la journée par un moment de calme prépare ton cerveau à une meilleure régulation émotionnelle, réduisant la réactivité au stress.\",\n          \"targetReps\": 7,\n          \"description\": \"Dédié 5 à 10 minutes chaque matin à une activité calme (méditation guidée courte, étirements doux, ou juste boire ton café en silence et pleine conscience).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"69e42a66-c929-4aa5-b763-408bd5d88457\",\n          \"tips\": \"Ne cherche pas la perfection, juste la consistance. Une phrase suffit si tu es fatiguée.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Journal de Gratitude et d'Apprentissage\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Renforce les circuits neuronaux associés au bien-être et à la résilience, et permet d'intégrer les expériences pour une meilleure gestion de l'incertitude.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, écris sur un moment de gratitude et une leçon, même petite, apprise dans la journée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Cultiver la gratitude et la réflexion sur les apprentissages quotidiens permet de recadrer les défis et de renforcer ton sentiment d'efficacité personnelle.\",\n            \"sections\": [\n              {\n                \"id\": \"g1\",\n                \"label\": \"Un moment de gratitude aujourd'hui\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai apprécié...\"\n              },\n              {\n                \"id\": \"l1\",\n                \"label\": \"Une leçon apprise ou une prise de conscience\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai réalisé que...\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Cultiver la sérénité\",\n      \"rationale\": \"Avec une meilleure gestion des écrans, nous introduisons des rituels qui nourrissent directement ton calme et ta clarté mentale, t'aidant à te sentir moins submergée.\"\n    },\n    {\n      \"id\": 5,\n      \"title\": \"L'Écran de Protection\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"ab9b0014-e695-4883-92ff-4a3f3bd99bb5\",\n          \"tips\": \"Note-les sur un post-it visible. Le but est de créer un réflexe rapide avant que la vague ne te submerge.\",\n          \"type\": \"mission\",\n          \"title\": \"La Balise d'Interruption\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Développe une intelligence émotionnelle proactive, permettant d'interrompre le cycle du stress avant qu'il ne s'amplifie.\",\n          \"description\": \"Identifie 3 signes précurseurs de submersion (ex: cœur qui s'accélère, pensée en boucle) et 3 actions immédiates pour y répondre (ex: marcher 5 min, écouter une musique, boire un verre d'eau).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"c2252ffc-5177-4aea-aeed-7da579cc74f4\",\n          \"tips\": \"Fais-le sur papier ou sur une application simple. L'idée est de 'décharger' ton cerveau avant de te reposer.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Débrief de Fin de Journée\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit la charge mentale, minimise la rumination des tâches non accomplies et libère de l'espace mental pour le repos.\",\n          \"targetReps\": 7,\n          \"description\": \"Consacre 5 minutes chaque soir à noter rapidement ce qui a été fait et ce qui reste à faire le lendemain.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 9-10 • Gérer les débordements\",\n      \"rationale\": \"Nous nous concentrons sur la prévention et la réponse aux sensations de submersion et de perte de fil, en développant des outils proactifs et réactifs.\"\n    },\n    {\n      \"id\": 6,\n      \"title\": \"L'Écho de la Sagesse\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"e819e829-10f9-4581-a97b-3fcd7b83bc66\",\n          \"tips\": \"C'est un moment de dialogue avec toi-même, sans jugement. L'honnêteté renforce l'engagement.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Point d'Ancrage Quotidien\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Renforce l'identité que tu construis et consolide l'intégration de ces comportements comme une partie naturelle de ton être.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, relis tes 3 règles d'or et pose-toi la question : 'Ai-je honoré ma quête de calme et de présence aujourd'hui ?'.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"6ce5fa0c-e990-4240-a0a9-7b0e6a9215e9\",\n          \"tips\": \"Imagine-toi dans 6 mois. Quels sont les acquis que tu ne veux absolument pas perdre ?\",\n          \"type\": \"framework\",\n          \"title\": \"La Boussole du Futur\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Permet de conscientiser tes réussites et de formuler un plan de maintien personnalisé, essentiel pour la pérennisation des changements.\",\n          \"targetReps\": 1,\n          \"description\": \"Prends un temps de réflexion pour lister les 3 outils ou habitudes qui t'ont le plus aidée, et comment tu envisages de les maintenir activement dans ton quotidien futur.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Tu es l'architecte de ta vie. Fais le point sur ce que tu as construit et comment tu vas protéger cette œuvre pour l'avenir.\",\n            \"sections\": [\n              {\n                \"id\": \"m1\",\n                \"label\": \"Mes 3 meilleurs outils/habitudes\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: La micro-pause respiratoire\"\n              },\n              {\n                \"id\": \"p1\",\n                \"label\": \"Mon plan pour les maintenir sur le long terme\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je vais les intégrer à...\"\n              },\n              {\n                \"id\": \"i2\",\n                \"label\": \"Comment mon identité a évolué (en 1 phrase)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Je suis devenue...\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 11-12 • Intégrer et pérenniser\",\n      \"rationale\": \"Cette dernière phase est dédiée à l'ancrage profond de ces nouvelles architectures comportementales, afin qu'elles deviennent une partie intrinsèque de ton quotidien serein.\"\n    }\n  ],\n  \"deepWhy\": \"Pour cultiver une présence stable et sereine au quotidien, capable de faire face aux défis avec clarté et énergie renouvelée.\",\n  \"identity\": \"Je suis l'Architecte de ma Paix Intérieure.\",\n  \"strategy\": \"Nous allons reconstruire votre équilibre en ancrant des micro-habitudes de calme et de conscience, phase par phase, pour transformer l'anxiété en une force tranquille et durable.\",\n  \"goldenRules\": \"1. Chaque fin de journée est une transition sacrée loin des écrans.\\n2. Je m'offre des micro-pauses pour respirer et me recentrer.\\n3. Mon bien-être est une boussole, pas une destination.\",\n  \"vitalSignal\": {\n    \"name\": \"Durée de la période de déconnexion avant le coucher\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"0\",\n    \"description\": \"On visera à augmenter progressivement ce temps de 5 à 10 minutes toutes les deux semaines.\",\n    \"targetValue\": \"60\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Architecture de la Sérénité\",\n  \"context_problem\": \"Actuellement, tu te sens prise dans un cycle où le stress et les écrans tardifs nuisent à ton sommeil et alimentent ton anxiété, laissant peu de place à l'énergie et la stabilité que tu recherches. Ton blocage principal est cette sensation de submersion qui t'empêche de structurer ton quotidien et de gérer tes ruminations.\",\n  \"sophiaKnowledge\": \"Tu es une femme dynamique née en 1992, confrontée à l'anxiété et à la rumination. Ton travail sur écran et tes journées tardives perturbent ton sommeil, t'épuisent et te donnent le sentiment d'être submergée, te faisant perdre le fil de tes priorités malgré un niveau d'activité élevé. Tu souhaites retrouver énergie et stabilité.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu volontairement ralenti ou interrompu une tâche pour éviter la submersion ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"12 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Le Sanctuaire du Soir (any_time)\n- [ACTION] La Micro-Pause Respiratoire (any_time)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Durée de la période de déconnexion avant le coucher: 0 min\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

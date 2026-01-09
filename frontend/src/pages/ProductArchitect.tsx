@@ -21,10 +21,11 @@ const ProductArchitect = () => {
       <nav className="fixed top-0 w-full bg-slate-950/90 backdrop-blur-md z-50 border-b border-emerald-900/30">
         <div className="max-w-6xl mx-auto px-6 h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
-            <div className="w-8 h-8 bg-emerald-600 rounded-lg flex items-center justify-center text-slate-950 font-bold shadow-lg shadow-emerald-900/20 font-serif">
-              S
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-8 h-8 rounded-lg" />
+            <div className="flex items-baseline gap-1.5">
+              <span className="font-bold text-xl tracking-tight text-emerald-500 leading-none">Sophia</span>
+              <span className="text-[10px] md:text-xs text-emerald-400/80 font-medium tracking-wide uppercase">Powered by IKIZEN</span>
             </div>
-            <span className="font-bold text-xl tracking-tight text-emerald-50">Sophia</span>
           </div>
           <div className="flex items-center gap-8">
             <div className="hidden md:flex gap-6 text-sm font-medium text-emerald-200/60">
@@ -241,13 +242,11 @@ const ProductArchitect = () => {
       <footer className="bg-slate-950 border-t border-emerald-900/30 py-12">
         <div className="max-w-6xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center gap-6">
           <div className="flex items-center gap-2">
-            <div className="w-6 h-6 bg-emerald-600 rounded-md flex items-center justify-center text-slate-950 text-xs font-bold font-serif">
-              S
-            </div>
-            <span className="font-bold text-emerald-50">Sophia</span>
+            <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-6 h-6 rounded-md" />
+            <span className="font-bold text-emerald-500">Sophia</span>
           </div>
           <div className="text-sm text-emerald-500/40">
-            © 2024 MySophia Inc.
+            © {new Date().getFullYear()} IKIZEN. All rights reserved.
           </div>
         </div>
       </footer>

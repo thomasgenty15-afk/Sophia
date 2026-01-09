@@ -1,0 +1,515 @@
+{
+  "id": "fd46588a-59c3-4e14-9b3f-df7f8883033b",
+  "created_at": "2026-01-09T16:53:16.178002+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_open_chat_offtopic_after_prompt__run_1767977554636_8ffc6b",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Je suis plutôt du matin en général.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:53:16.214372+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Merci, je note ❤️\nEt là, tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T16:53:16.220789+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:53:16.243472+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah merde, je sens la tension d'ici. C'est l'enfer quand tout s'accumule et que le cerveau sature. On encaisse le coup, mais on ne va pas te laisser couler sous la pression.\n\nJuste là, maintenant, tu as deux minutes pour une petite bulle de respiration ? Ça ne réglera pas tes dossiers, mais ça va faire redescendre la pression dans la machine.\n\nSinon, on peut lancer le grand inventaire mental pour sortir tout ce bordel de ta tête. Tu veux tenter quoi ? 🌪️",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T16:53:26.619901+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "20598fa5-5296-49a7-ac30-f59250acf086",
+      "email": "run-evals+ab120cdd3e694e@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T16:53:16.138+00:00",
+      "phone_number": "+15559484119805",
+      "phone_invalid": false,
+      "whatsapp_state": "awaiting_personal_fact",
+      "phone_verified_at": "2026-01-09T16:53:16.138+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T16:53:16.138+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "20598fa5-5296-49a7-ac30-f59250acf086",
+      "email": "run-evals+ab120cdd3e694e@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T16:53:16.138+00:00",
+      "phone_number": "+15559484119805",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T16:53:16.138+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T16:53:16.236+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T16:53:16.222+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "20598fa5-5296-49a7-ac30-f59250acf086",
+      "risk_level": 3,
+      "updated_at": "2026-01-09T16:53:26.614985+00:00",
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-09T16:53:16.252+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T16:53:16.253284+00:00",
+      "unprocessed_msg_count": 1
+    }
+  },
+  "issues": [
+    {
+      "code": "router_bypass",
+      "message": "Violation of Hard Guard: SYSTEM_SNAPSHOT indicates 'focus: onboarding' (active investigation), yet 'companion' answered instead of 'investigator'.",
+      "evidence": {
+        "snippet": "ASSISTANT(companion): Merci, je note ❤️",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "feature_encroachment",
+      "message": "The Companion proposes 'lancer le grand inventaire mental', which is a structured flow belonging to the Investigator. This risks hallucinating the process without the proper state machine.",
+      "evidence": {
+        "snippet": "Sinon, on peut lancer le grand inventaire mental pour sortir tout ce bordel de ta tête.",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the Companion from promising complex functional flows it cannot execute, ensuring the user is correctly routed to the Investigator for structured tasks.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\nnull\n=== TRANSCRIPT ===\n#0 USER: Je suis plutôt du matin en général.\n#1 ASSISTANT(companion): Merci, je note ❤️ Et là, tout de suite: tu as envie qu’on parle de quoi ?\n#2 USER: Franchement là je suis sous pression au boulot… j’ai le cerveau en vrac.\n#3 ASSISTANT(companion): Ah merde, je sens la tension d'ici. C'est l'enfer quand tout s'accumule et que le cerveau sature. On encaisse le coup, mais on ne va pas te laisser couler sous la pression. Juste là, maintenant, tu as deux minutes pour une petite bulle de respiration ? Ça ne réglera pas tes dossiers, mais ça va faire redescendre la pression dans la machine. Sinon, on peut lancer le grand inventaire mental pour sortir tout ce bordel de ta tête. Tu veux tenter quoi ? 🌪️\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nCONSTRAINT: Do not offer to launch structured processes like 'Grand Inventaire', 'Checkup', or 'Audit' yourself. If the user needs deep structural analysis, suggest they 'faire le point' (which allows the system to route to the Investigator), but limit your direct offers to immediate emotional support (venting, breathing).",
+      "proposed_addendum": "CONSTRAINT: Do not offer to launch structured processes like 'Grand Inventaire', 'Checkup', or 'Audit' yourself. If the user needs deep structural analysis, suggest they 'faire le point' (which allows the system to route to the Investigator), but limit your direct offers to immediate emotional support (venting, breathing)."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0105937,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767977554636_8ffc6b:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767977554636_8ffc6b",
+    "total_tokens": 14720,
+    "output_tokens": 515,
+    "prompt_tokens": 9653,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "conversational",
+      "offtopic"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_open_chat_offtopic_after_prompt__run_1767977554636_8ffc6b:i0:s1916298011:core:wa_onboarding_open_chat_offtopic_after_prompt__run_1767977554636_8ffc6b",
+    "description": "WhatsApp onboarding (webhook): after the onboarding prompt opens the floor ('envie qu’on parle de quoi ?'), the user talks about something unrelated to the plan; Sophia should respect the intent and not redirect to the site/plan.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "98628bad-b534-4fe4-aef0-b2e7ad2fb628",
+        "title": "L'Architecture de la Sérénité",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Le Silence du Chaos",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "8e2f6451-c818-43b2-8480-adc6ca8379a9",
+                  "tips": "Ne juge rien, ne filtre rien. L'objectif est de vider ton esprit, pas de résoudre tout de suite. Fais-le quand tu as un moment de calme.",
+                  "type": "framework",
+                  "title": "Le Grand Inventaire Mental",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Extérioriser ta charge mentale réduit l'activité neuronale liée au stress et libère de l'espace pour la clarté.",
+                  "targetReps": 1,
+                  "description": "Consigne toutes tes préoccupations, pensées incessantes, et tâches non accomplies sur papier ou dans un document dédié.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "L'esprit est un muscle qui se fatigue à force de jongler. Offre-lui le repos en posant sur le papier tout ce qui l'encombre. Comme un grand ménage de printemps, tu vas libérer ton espace mental.",
+                    "sections": [
+                      {
+                        "id": "s1_p1a1",
+                        "label": "Toutes mes préoccupations actuelles (personnelles, pro, etc.)",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: La facture à payer, le projet X au travail, la discussion avec Y..."
+                      },
+                      {
+                        "id": "s2_p1a1",
+                        "label": "Toutes les tâches en attente qui me pèsent",
+                        "inputType": "list",
+                        "placeholder": "Ex: Appeler le garage, ranger le placard, répondre à Z..."
+                      },
+                      {
+                        "id": "s3_p1a1",
+                        "label": "Les pensées récurrentes qui me fatiguent",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: 'Je n'y arriverai jamais', 'Si seulement j'avais plus de temps'..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "e09c6c30-27f9-42a9-aff5-bb0b36952d7d",
+                  "tips": "Utilise une application simple ou juste le compte de 4 secondes à l'inspiration, 6 secondes à l'expiration. Fais-le discrètement, n'importe où.",
+                  "type": "habitude",
+                  "title": "La Bulle de Respiration",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Active le système nerveux parasympathique, réduisant instantanément le niveau de cortisol et d'adrénaline. C'est un micro-ancrage anti-stress.",
+                  "targetReps": 7,
+                  "description": "Lorsque tu te sens submergée ou irritée, arrête-toi 2 minutes pour pratiquer une respiration diaphragmatique profonde (inspiration par le nez, expiration lente par la bouche).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Vider pour mieux respirer",
+              "rationale": "Nous commençons par alléger ta charge mentale pour créer l'espace nécessaire à l'installation de nouvelles habitudes de calme. Il est crucial de décharger le passé et le présent pour anticiper un futur plus serein."
+            },
+            {
+              "id": 2,
+              "title": "Ancrage Doux",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "9e6e546a-f914-49d0-89ab-97143d2f442b",
+                  "tips": "Observe les détails : les odeurs, les sons, les sensations. Fais-le au moins une fois par jour de manière intentionnelle.",
+                  "type": "habitude",
+                  "title": "Le Micro-Moment Pleine Conscience",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Entraîne ton cerveau à se focaliser, renforce le cortex préfrontal et réduit la réactivité de l'amygdale face au stress, augmentant ta capacité à rester ancrée.",
+                  "targetReps": 7,
+                  "description": "Choisis un moment banal de ta journée (boire ton café, marcher 2 min, laver la vaisselle) et sois pleinement présente à cette seule activité pendant au moins 60 secondes.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "6dc47469-e536-4de8-ad9c-064cfd0d9ff7",
+                  "tips": "Pas besoin de grands aménagements. Quelques plantes, une lumière douce, un coussin. Le désordre visuel crée du désordre mental.",
+                  "type": "mission",
+                  "title": "Organiser Mon Espace Zen",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Créer un environnement physique apaisant signale à ton cerveau qu'il peut se détendre. Cela facilite l'accès à un état de calme et de concentration.",
+                  "description": "Identifie un petit coin chez toi (même une chaise ou un rebord de fenêtre) et transforme-le en un espace minimaliste, ordonné et agréable, dédié à tes micro-pauses.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Reconquérir le moment présent",
+              "rationale": "Après avoir déchargé le mental, nous allons réintroduire de petits moments de présence. L'objectif est de te reconnecter au réel, une micro-pause à la fois, pour contrer la tendance à te perdre dans le flux des sollicitations."
+            },
+            {
+              "id": 3,
+              "title": "Les Sentinelles du Temps",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "7d1e419f-0b78-4d1e-8746-e03472adca21",
+                  "tips": "Commence petit. 'Je ne réponds pas aux mails pro après 19h'. 'Je ne prends pas de café avec X si je n'ai pas le temps'. Prépare des phrases types.",
+                  "type": "framework",
+                  "title": "Ma Charte des Non",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Définir des limites réduit l'épuisement décisionnel et protège ta capacité à gérer ton énergie, évitant ainsi la surcharge et l'irritabilité qui en découlent.",
+                  "targetReps": 1,
+                  "description": "Réfléchis aux situations où tu te sens submergée ou irritée parce que tu n'as pas su dire non. Établis une liste claire des types de sollicitations auxquelles tu vas apprendre à refuser poliment ou à déléguer.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Apprendre à dire 'non' est un acte d'auto-préservation puissant. Ce n'est pas un rejet de l'autre, mais une affirmation de tes besoins. Identifie tes 'zones rouges' et construis ta défense.",
+                    "sections": [
+                      {
+                        "id": "s1_p3a1",
+                        "label": "Types de sollicitations qui me submergent / épuisent",
+                        "inputType": "list",
+                        "placeholder": "Ex: Demandes de service imprévues, réunions sans ordre du jour clair, invitations sociales non essentielles..."
+                      },
+                      {
+                        "id": "s2_p3a1",
+                        "label": "Mes phrases types pour dire 'non' poliment ou déléguer",
+                        "inputType": "list",
+                        "placeholder": "Ex: 'Je ne pourrai pas cette fois, mais merci d'avoir pensé à moi.', 'Je suis sur une tâche urgente, je peux regarder après midi.', 'As-tu déjà pensé à demander à [collègue] ?'"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "734bbda5-34ae-4c15-9516-a40128449f40",
+                  "tips": "Mets ton téléphone en mode 'Ne pas déranger' ou même hors de vue. Remplace par la lecture, la musique, ou une conversation réelle.",
+                  "type": "habitude",
+                  "title": "Le Cut-Off Digital Doux",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit la sur-stimulation cognitive et émotionnelle avant le repos, favorisant un état de calme propice à une meilleure récupération et réduisant l'irritabilité liée à la fatigue.",
+                  "targetReps": 10,
+                  "description": "Établis une heure fixe (ex: 20h30) après laquelle tu arrêtes toute consommation d'écrans non essentiels (réseaux sociaux, actualités anxiogènes, travail).",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Poser des frontières invisibles",
+              "rationale": "Pour une stabilité durable, il est vital de protéger ton énergie et ton temps. Cette phase te donnera les outils pour identifier et établir des limites claires face aux sollicitations extérieures, et ainsi réduire les sources d'épuisement."
+            },
+            {
+              "id": 4,
+              "title": "L'Énergie Retrouvée",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "a0d7f6fe-9036-468c-8684-f8f0b297a4e8",
+                  "tips": "Ce n'est PAS du sport intense ni de la planification. C'est un moment pour te centrer. Résiste à la tentation de consulter ton téléphone.",
+                  "type": "habitude",
+                  "title": "Le Rituel Recharge Matinal",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Commencer la journée avec un moment pour soi réduit l'urgence perçue, active le cortex préfrontal pour une meilleure régulation émotionnelle et crée une base de calme avant l'assaut des sollicitations.",
+                  "targetReps": 7,
+                  "description": "Dédie 10-15 minutes chaque matin à une activité calme et nourrissante pour toi AVANT de commencer ta journée (ex: étirements doux, quelques pages de lecture inspirante, écoute de musique relaxante).",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b1aff868-75e2-4a89-9fc0-0932ef100d10",
+                  "tips": "Que ce soit une balade en nature, un film, un bain moussant, ou un après-midi à flâner. L'important est que ce soit pour toi, sans culpabilité.",
+                  "type": "mission",
+                  "title": "Planifier Mes Évasions",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Anticiper des moments de plaisir et de déconnexion active le système de récompense du cerveau, réduisant le stress et augmentant la sensation de contrôle sur ton temps et ton bien-être.",
+                  "description": "Identifie et bloque proactivement dans ton agenda 1 à 2 activités de pure détente ou de loisir que tu aimes, sans aucune contrainte de productivité ou d'obligation.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Nourrir le corps et l'esprit",
+              "rationale": "Maintenant que tu as créé de l'espace mental et posé des limites, il est temps de réinvestir dans ton bien-être physique et mental. Cette phase se concentre sur des activités qui régénèrent et augmentent ton niveau d'énergie, te rendant plus résiliente face au stress."
+            },
+            {
+              "id": 5,
+              "title": "La Voix Intérieure",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "582f38c2-c4bf-4214-bbc5-5417774d2eff",
+                  "tips": "Ne cherche pas la perfection. Juste quelques mots. 'Colère, après la remarque de X, j'ai crié.' 'Anxiété, avant la réunion, je me suis rongé les ongles.'",
+                  "type": "framework",
+                  "title": "Le Journal des Émotions",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La tenue d'un journal des émotions augmente l'intelligence émotionnelle, aide à identifier les déclencheurs et les schémas comportementaux, permettant une réévaluation cognitive et une réduction des réactions impulsives, comme l'irritabilité.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, prends 5 minutes pour noter 1 à 2 émotions fortes que tu as ressenties dans la journée, ce qui les a déclenchées et ta réaction habituelle. Ne juge pas, observe.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "L'écriture est un miroir pour l'âme. En mettant tes émotions sur papier, tu crées une distance, un espace d'observation. C'est là que réside le pouvoir de la transformation.",
+                    "sections": [
+                      {
+                        "id": "s1_p5a1",
+                        "label": "L'émotion principale ressentie aujourd'hui (et son intensité 1-10)",
+                        "inputType": "text",
+                        "placeholder": "Ex: Frustration (8/10), Joie (7/10)"
+                      },
+                      {
+                        "id": "s2_p5a1",
+                        "label": "Qu'est-ce qui l'a déclenchée ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Une sollicitation de dernière minute, un commentaire..."
+                      },
+                      {
+                        "id": "s3_p5a1",
+                        "label": "Comment ai-je réagi physiquement ou mentalement ?",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: J'ai soupiré, j'ai ressenti une chaleur, j'ai eu envie de fuir..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "fa74f42e-ac82-4cfb-b6c5-fe5041c95692",
+                  "tips": "Ne cherche pas à supprimer l'émotion, juste à la comprendre. Cela peut être la faim, la fatigue, le manque de reconnaissance, une limite dépassée. Une fois identifié, tu peux agir.",
+                  "type": "habitude",
+                  "title": "Pause Réflexion : Mon Irritabilité",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Cette pause réflexive active le cortex préfrontal dorsolatéral, contournant la réactivité automatique de l'amygdale. En identifiant la cause, tu transformes une réaction émotionnelle en une opportunité de résolution de problème, diminuant l'intensité de l'irritabilité.",
+                  "targetReps": 7,
+                  "description": "Lorsque tu sens l'irritabilité monter, fais une pause consciente de 30 secondes. Respire profondément et pose-toi la question : 'Quelle est la cause réelle de cette irritation ? Quel besoin n'est pas satisfait ?'",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 9-10 • Observer et transformer",
+              "rationale": "Cette phase te guide vers une meilleure compréhension de tes schémas émotionnels, en particulier l'irritabilité. En observant tes émotions plutôt que de les subir, tu développes une distance et une capacité à y répondre de manière plus consciente et apaisée."
+            },
+            {
+              "id": 6,
+              "title": "L'Harmonie Durable",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "3c85ad6b-89a1-4945-950e-cb0f16c3a684",
+                  "tips": "Fais-le le dimanche soir pour préparer une semaine sereine, ou le vendredi pour clôturer. C'est un rituel de clôture et de gratitude.",
+                  "type": "habitude",
+                  "title": "L'Heure Sacrée du Bilan et de la Gratitude",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La gratitude modifie la structure neuronale, renforce les voies de la récompense et du bien-être, réduisant les niveaux de stress. Le bilan aide à l'intégration des nouvelles habitudes par renforcement positif.",
+                  "targetReps": 7,
+                  "description": "Une fois par semaine, bloque 20 minutes pour passer en revue tes réussites et défis, et pour écrire au moins trois choses pour lesquelles tu es reconnaissante. Concentre-toi sur tes progrès, même les plus petits.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "9333732b-3622-4ec3-b618-f4b572adfe84",
+                  "tips": "Cela peut être une journée de spa, un week-end tranquille, un repas avec tes proches, l'achat d'un livre qui t'inspire. L'important est que ce soit une célébration consciente de ton succès.",
+                  "type": "mission",
+                  "title": "Célébrer Ma Nouvelle Architecture",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Célébrer les réussites active le système de récompense dopaminergique, renforçant les comportements positifs et ancrant la nouvelle identité, garantissant une motivation durable pour maintenir ces changements.",
+                  "description": "Planifie une récompense significative pour la fin de ce parcours de 12 semaines. Quelque chose qui symbolise ta nouvelle sérénité et ton énergie retrouvée.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 11-12 • Intégrer et célébrer la transformation",
+              "rationale": "C'est la phase de consolidation. Nous allons ancrer tes nouvelles habitudes pour qu'elles deviennent une seconde nature et que le calme devienne ton état par défaut. C'est aussi le moment de reconnaître le chemin parcouru et de célébrer ta nouvelle architecture intérieure."
+            }
+          ],
+          "deepWhy": "Pour retrouver ma stabilité émotionnelle, être plus présente et disponible pour moi-même et mon entourage, et vivre avec une énergie sereine.",
+          "identity": "Je suis une Architecte de ma Paix Intérieure.",
+          "strategy": "Nous allons transformer ton approche du stress en construisant des fondations de calme, brique par brique, pour créer un espace mental où la surcharge et l'irritabilité ne pourront plus s'installer.",
+          "goldenRules": "1. Je m'accorde des micro-pauses régulières, même courtes.\n2. Je dis 'non' aux sollicitations qui ne servent pas mes priorités.\n3. Je traite mon stress comme un signal, pas une fatalité.",
+          "vitalSignal": {
+            "name": "Niveau de perception du stress",
+            "type": "constat",
+            "unit": "/10",
+            "startValue": "8",
+            "description": "Évalue chaque soir ton niveau de stress ressenti sur la journée, de 1 (très calme) à 10 (totalement submergé).",
+            "targetValue": "3",
+            "time_of_day": "evening",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Architecture de la Sérénité",
+          "context_problem": "Tu te sentais constamment débordée par ta charge mentale et l'irritabilité t'éloignait de ton désir de stabilité et d'énergie. Le peu de temps pour toi et le flot de sollicitations te submergeaient, te faisant perdre le fil de tes priorités et de ton bien-être intérieur.",
+          "sophiaKnowledge": "Tu es une femme de 35-36 ans avec un rythme de vie chargé et un niveau de stress élevé. Tu te sens facilement submergée, ce qui conduit à de l'irritabilité. Malgré une bonne qualité de sommeil, ta charge mentale t'empêche de retrouver l'énergie et la stabilité souhaitées. Tu as peu de temps pour toi et perds facilement le fil face aux nombreuses sollicitations.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu ressenti une vague d'irritabilité intense et incontrôlable ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "12 semaines"
+        },
+        "goal_id": "a9a6b0e9-44ec-46fb-bc43-ec4f01858fa8",
+        "deep_why": "Pour retrouver ma stabilité émotionnelle, être plus présente et disponible pour moi-même et mon entourage, et vivre avec une énergie sereine.",
+        "created_at": "2026-01-09T16:53:16.100705+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "38cb6edc-644a-48f3-8324-9b182e2fcd78",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "e09c6c30-27f9-42a9-aff5-bb0b36952d7d",
+          "title": "La Bulle de Respiration",
+          "status": "active",
+          "created_at": "2026-01-09T16:53:16.117596+00:00",
+          "description": "Lorsque tu te sens submergée ou irritée, arrête-toi 2 minutes pour pratiquer une respiration diaphragmatique profonde (inspiration par le nez, expiration lente par la bouche).",
+          "target_reps": 7,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T16:53:16.114+00:00"
+        },
+        {
+          "id": "2fe8aaf1-eadc-4282-bd0f-2744cb238b0b",
+          "_kind": "framework",
+          "title": "Le Grand Inventaire Mental",
+          "status": "active",
+          "created_at": "2026-01-09T16:53:16.123642+00:00",
+          "description": "",
+          "target_reps": 1,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "one_shot",
+          "last_performed_at": "2026-01-07T16:53:16.114+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "2fe8aaf1-eadc-4282-bd0f-2744cb238b0b",
+          "type": "one_shot",
+          "title": "Le Grand Inventaire Mental",
+          "status": "active",
+          "created_at": "2026-01-09T16:53:16.123642+00:00",
+          "target_reps": 1,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T16:53:16.114+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Architecture de la Sérénité\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour retrouver ma stabilité émotionnelle, être plus présente et disponible pour moi-même et mon entourage, et vivre avec une énergie sereine.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Le Silence du Chaos\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"8e2f6451-c818-43b2-8480-adc6ca8379a9\",\n          \"tips\": \"Ne juge rien, ne filtre rien. L'objectif est de vider ton esprit, pas de résoudre tout de suite. Fais-le quand tu as un moment de calme.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Grand Inventaire Mental\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Extérioriser ta charge mentale réduit l'activité neuronale liée au stress et libère de l'espace pour la clarté.\",\n          \"targetReps\": 1,\n          \"description\": \"Consigne toutes tes préoccupations, pensées incessantes, et tâches non accomplies sur papier ou dans un document dédié.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"L'esprit est un muscle qui se fatigue à force de jongler. Offre-lui le repos en posant sur le papier tout ce qui l'encombre. Comme un grand ménage de printemps, tu vas libérer ton espace mental.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p1a1\",\n                \"label\": \"Toutes mes préoccupations actuelles (personnelles, pro, etc.)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: La facture à payer, le projet X au travail, la discussion avec Y...\"\n              },\n              {\n                \"id\": \"s2_p1a1\",\n                \"label\": \"Toutes les tâches en attente qui me pèsent\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Appeler le garage, ranger le placard, répondre à Z...\"\n              },\n              {\n                \"id\": \"s3_p1a1\",\n                \"label\": \"Les pensées récurrentes qui me fatiguent\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: 'Je n'y arriverai jamais', 'Si seulement j'avais plus de temps'...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"e09c6c30-27f9-42a9-aff5-bb0b36952d7d\",\n          \"tips\": \"Utilise une application simple ou juste le compte de 4 secondes à l'inspiration, 6 secondes à l'expiration. Fais-le discrètement, n'importe où.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Bulle de Respiration\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Active le système nerveux parasympathique, réduisant instantanément le niveau de cortisol et d'adrénaline. C'est un micro-ancrage anti-stress.\",\n          \"targetReps\": 7,\n          \"description\": \"Lorsque tu te sens submergée ou irritée, arrête-toi 2 minutes pour pratiquer une respiration diaphragmatique profonde (inspiration par le nez, expiration lente par la bouche).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Vider pour mieux respirer\",\n      \"rationale\": \"Nous commençons par alléger ta charge mentale pour créer l'espace nécessaire à l'installation de nouvelles habitudes de calme. Il est crucial de décharger le passé et le présent pour anticiper un futur plus serein.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Ancrage Doux\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"9e6e546a-f914-49d0-89ab-97143d2f442b\",\n          \"tips\": \"Observe les détails : les odeurs, les sons, les sensations. Fais-le au moins une fois par jour de manière intentionnelle.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Micro-Moment Pleine Conscience\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Entraîne ton cerveau à se focaliser, renforce le cortex préfrontal et réduit la réactivité de l'amygdale face au stress, augmentant ta capacité à rester ancrée.\",\n          \"targetReps\": 7,\n          \"description\": \"Choisis un moment banal de ta journée (boire ton café, marcher 2 min, laver la vaisselle) et sois pleinement présente à cette seule activité pendant au moins 60 secondes.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"6dc47469-e536-4de8-ad9c-064cfd0d9ff7\",\n          \"tips\": \"Pas besoin de grands aménagements. Quelques plantes, une lumière douce, un coussin. Le désordre visuel crée du désordre mental.\",\n          \"type\": \"mission\",\n          \"title\": \"Organiser Mon Espace Zen\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Créer un environnement physique apaisant signale à ton cerveau qu'il peut se détendre. Cela facilite l'accès à un état de calme et de concentration.\",\n          \"description\": \"Identifie un petit coin chez toi (même une chaise ou un rebord de fenêtre) et transforme-le en un espace minimaliste, ordonné et agréable, dédié à tes micro-pauses.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Reconquérir le moment présent\",\n      \"rationale\": \"Après avoir déchargé le mental, nous allons réintroduire de petits moments de présence. L'objectif est de te reconnecter au réel, une micro-pause à la fois, pour contrer la tendance à te perdre dans le flux des sollicitations.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Les Sentinelles du Temps\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"7d1e419f-0b78-4d1e-8746-e03472adca21\",\n          \"tips\": \"Commence petit. 'Je ne réponds pas aux mails pro après 19h'. 'Je ne prends pas de café avec X si je n'ai pas le temps'. Prépare des phrases types.\",\n          \"type\": \"framework\",\n          \"title\": \"Ma Charte des Non\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Définir des limites réduit l'épuisement décisionnel et protège ta capacité à gérer ton énergie, évitant ainsi la surcharge et l'irritabilité qui en découlent.\",\n          \"targetReps\": 1,\n          \"description\": \"Réfléchis aux situations où tu te sens submergée ou irritée parce que tu n'as pas su dire non. Établis une liste claire des types de sollicitations auxquelles tu vas apprendre à refuser poliment ou à déléguer.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Apprendre à dire 'non' est un acte d'auto-préservation puissant. Ce n'est pas un rejet de l'autre, mais une affirmation de tes besoins. Identifie tes 'zones rouges' et construis ta défense.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p3a1\",\n                \"label\": \"Types de sollicitations qui me submergent / épuisent\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Demandes de service imprévues, réunions sans ordre du jour clair, invitations sociales non essentielles...\"\n              },\n              {\n                \"id\": \"s2_p3a1\",\n                \"label\": \"Mes phrases types pour dire 'non' poliment ou déléguer\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: 'Je ne pourrai pas cette fois, mais merci d'avoir pensé à moi.', 'Je suis sur une tâche urgente, je peux regarder après midi.', 'As-tu déjà pensé à demander à [collègue] ?'\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"734bbda5-34ae-4c15-9516-a40128449f40\",\n          \"tips\": \"Mets ton téléphone en mode 'Ne pas déranger' ou même hors de vue. Remplace par la lecture, la musique, ou une conversation réelle.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Cut-Off Digital Doux\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit la sur-stimulation cognitive et émotionnelle avant le repos, favorisant un état de calme propice à une meilleure récupération et réduisant l'irritabilité liée à la fatigue.\",\n          \"targetReps\": 10,\n          \"description\": \"Établis une heure fixe (ex: 20h30) après laquelle tu arrêtes toute consommation d'écrans non essentiels (réseaux sociaux, actualités anxiogènes, travail).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Poser des frontières invisibles\",\n      \"rationale\": \"Pour une stabilité durable, il est vital de protéger ton énergie et ton temps. Cette phase te donnera les outils pour identifier et établir des limites claires face aux sollicitations extérieures, et ainsi réduire les sources d'épuisement.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"L'Énergie Retrouvée\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"a0d7f6fe-9036-468c-8684-f8f0b297a4e8\",\n          \"tips\": \"Ce n'est PAS du sport intense ni de la planification. C'est un moment pour te centrer. Résiste à la tentation de consulter ton téléphone.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel Recharge Matinal\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Commencer la journée avec un moment pour soi réduit l'urgence perçue, active le cortex préfrontal pour une meilleure régulation émotionnelle et crée une base de calme avant l'assaut des sollicitations.\",\n          \"targetReps\": 7,\n          \"description\": \"Dédie 10-15 minutes chaque matin à une activité calme et nourrissante pour toi AVANT de commencer ta journée (ex: étirements doux, quelques pages de lecture inspirante, écoute de musique relaxante).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b1aff868-75e2-4a89-9fc0-0932ef100d10\",\n          \"tips\": \"Que ce soit une balade en nature, un film, un bain moussant, ou un après-midi à flâner. L'important est que ce soit pour toi, sans culpabilité.\",\n          \"type\": \"mission\",\n          \"title\": \"Planifier Mes Évasions\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Anticiper des moments de plaisir et de déconnexion active le système de récompense du cerveau, réduisant le stress et augmentant la sensation de contrôle sur ton temps et ton bien-être.\",\n          \"description\": \"Identifie et bloque proactivement dans ton agenda 1 à 2 activités de pure détente ou de loisir que tu aimes, sans aucune contrainte de productivité ou d'obligation.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Nourrir le corps et l'esprit\",\n      \"rationale\": \"Maintenant que tu as créé de l'espace mental et posé des limites, il est temps de réinvestir dans ton bien-être physique et mental. Cette phase se concentre sur des activités qui régénèrent et augmentent ton niveau d'énergie, te rendant plus résiliente face au stress.\"\n    },\n    {\n      \"id\": 5,\n      \"title\": \"La Voix Intérieure\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"582f38c2-c4bf-4214-bbc5-5417774d2eff\",\n          \"tips\": \"Ne cherche pas la perfection. Juste quelques mots. 'Colère, après la remarque de X, j'ai crié.' 'Anxiété, avant la réunion, je me suis rongé les ongles.'\",\n          \"type\": \"framework\",\n          \"title\": \"Le Journal des Émotions\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La tenue d'un journal des émotions augmente l'intelligence émotionnelle, aide à identifier les déclencheurs et les schémas comportementaux, permettant une réévaluation cognitive et une réduction des réactions impulsives, comme l'irritabilité.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, prends 5 minutes pour noter 1 à 2 émotions fortes que tu as ressenties dans la journée, ce qui les a déclenchées et ta réaction habituelle. Ne juge pas, observe.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"L'écriture est un miroir pour l'âme. En mettant tes émotions sur papier, tu crées une distance, un espace d'observation. C'est là que réside le pouvoir de la transformation.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p5a1\",\n                \"label\": \"L'émotion principale ressentie aujourd'hui (et son intensité 1-10)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Frustration (8/10), Joie (7/10)\"\n              },\n              {\n                \"id\": \"s2_p5a1\",\n                \"label\": \"Qu'est-ce qui l'a déclenchée ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Une sollicitation de dernière minute, un commentaire...\"\n              },\n              {\n                \"id\": \"s3_p5a1\",\n                \"label\": \"Comment ai-je réagi physiquement ou mentalement ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: J'ai soupiré, j'ai ressenti une chaleur, j'ai eu envie de fuir...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"fa74f42e-ac82-4cfb-b6c5-fe5041c95692\",\n          \"tips\": \"Ne cherche pas à supprimer l'émotion, juste à la comprendre. Cela peut être la faim, la fatigue, le manque de reconnaissance, une limite dépassée. Une fois identifié, tu peux agir.\",\n          \"type\": \"habitude\",\n          \"title\": \"Pause Réflexion : Mon Irritabilité\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Cette pause réflexive active le cortex préfrontal dorsolatéral, contournant la réactivité automatique de l'amygdale. En identifiant la cause, tu transformes une réaction émotionnelle en une opportunité de résolution de problème, diminuant l'intensité de l'irritabilité.\",\n          \"targetReps\": 7,\n          \"description\": \"Lorsque tu sens l'irritabilité monter, fais une pause consciente de 30 secondes. Respire profondément et pose-toi la question : 'Quelle est la cause réelle de cette irritation ? Quel besoin n'est pas satisfait ?'\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 9-10 • Observer et transformer\",\n      \"rationale\": \"Cette phase te guide vers une meilleure compréhension de tes schémas émotionnels, en particulier l'irritabilité. En observant tes émotions plutôt que de les subir, tu développes une distance et une capacité à y répondre de manière plus consciente et apaisée.\"\n    },\n    {\n      \"id\": 6,\n      \"title\": \"L'Harmonie Durable\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"3c85ad6b-89a1-4945-950e-cb0f16c3a684\",\n          \"tips\": \"Fais-le le dimanche soir pour préparer une semaine sereine, ou le vendredi pour clôturer. C'est un rituel de clôture et de gratitude.\",\n          \"type\": \"habitude\",\n          \"title\": \"L'Heure Sacrée du Bilan et de la Gratitude\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La gratitude modifie la structure neuronale, renforce les voies de la récompense et du bien-être, réduisant les niveaux de stress. Le bilan aide à l'intégration des nouvelles habitudes par renforcement positif.\",\n          \"targetReps\": 7,\n          \"description\": \"Une fois par semaine, bloque 20 minutes pour passer en revue tes réussites et défis, et pour écrire au moins trois choses pour lesquelles tu es reconnaissante. Concentre-toi sur tes progrès, même les plus petits.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"9333732b-3622-4ec3-b618-f4b572adfe84\",\n          \"tips\": \"Cela peut être une journée de spa, un week-end tranquille, un repas avec tes proches, l'achat d'un livre qui t'inspire. L'important est que ce soit une célébration consciente de ton succès.\",\n          \"type\": \"mission\",\n          \"title\": \"Célébrer Ma Nouvelle Architecture\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Célébrer les réussites active le système de récompense dopaminergique, renforçant les comportements positifs et ancrant la nouvelle identité, garantissant une motivation durable pour maintenir ces changements.\",\n          \"description\": \"Planifie une récompense significative pour la fin de ce parcours de 12 semaines. Quelque chose qui symbolise ta nouvelle sérénité et ton énergie retrouvée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 11-12 • Intégrer et célébrer la transformation\",\n      \"rationale\": \"C'est la phase de consolidation. Nous allons ancrer tes nouvelles habitudes pour qu'elles deviennent une seconde nature et que le calme devienne ton état par défaut. C'est aussi le moment de reconnaître le chemin parcouru et de célébrer ta nouvelle architecture intérieure.\"\n    }\n  ],\n  \"deepWhy\": \"Pour retrouver ma stabilité émotionnelle, être plus présente et disponible pour moi-même et mon entourage, et vivre avec une énergie sereine.\",\n  \"identity\": \"Je suis une Architecte de ma Paix Intérieure.\",\n  \"strategy\": \"Nous allons transformer ton approche du stress en construisant des fondations de calme, brique par brique, pour créer un espace mental où la surcharge et l'irritabilité ne pourront plus s'installer.\",\n  \"goldenRules\": \"1. Je m'accorde des micro-pauses régulières, même courtes.\\n2. Je dis 'non' aux sollicitations qui ne servent pas mes priorités.\\n3. Je traite mon stress comme un signal, pas une fatalité.\",\n  \"vitalSignal\": {\n    \"name\": \"Niveau de perception du stress\",\n    \"type\": \"constat\",\n    \"unit\": \"/10\",\n    \"startValue\": \"8\",\n    \"description\": \"Évalue chaque soir ton niveau de stress ressenti sur la journée, de 1 (très calme) à 10 (totalement submergé).\",\n    \"targetValue\": \"3\",\n    \"time_of_day\": \"evening\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Architecture de la Sérénité\",\n  \"context_problem\": \"Tu te sentais constamment débordée par ta charge mentale et l'irritabilité t'éloignait de ton désir de stabilité et d'énergie. Le peu de temps pour toi et le flot de sollicitations te submergeaient, te faisant perdre le fil de tes priorités et de ton bien-être intérieur.\",\n  \"sophiaKnowledge\": \"Tu es une femme de 35-36 ans avec un rythme de vie chargé et un niveau de stress élevé. Tu te sens facilement submergée, ce qui conduit à de l'irritabilité. Malgré une bonne qualité de sommeil, ta charge mentale t'empêche de retrouver l'énergie et la stabilité souhaitées. Tu as peu de temps pour toi et perds facilement le fil face aux nombreuses sollicitations.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu ressenti une vague d'irritabilité intense et incontrôlable ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"12 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] La Bulle de Respiration (any_time)\n- [FRAMEWORK] Le Grand Inventaire Mental\n\n=== SIGNES VITAUX (État Actuel) ===\n- Niveau de perception du stress: 8 /10\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

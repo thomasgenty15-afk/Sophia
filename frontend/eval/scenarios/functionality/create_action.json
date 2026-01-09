@@ -1,0 +1,18 @@
+{
+  "dataset_key": "features",
+  "id": "feature_create_action",
+  "scenario_target": "feature_test",
+  "tags": ["feature", "architect", "create"],
+  "description": "Test de la création d'une nouvelle action par l'Architecte.",
+  "setup": {
+    "seed_plan": true
+  },
+  "steps": [
+    { "user": "Ajoute une habitude : 'Boire de l'eau' 3 fois par jour." }
+  ],
+  "assertions": {
+    "tool_calls": ["create_simple_action"],
+    "response_contains": ["validé", "ajouté"]
+  }
+}
+

@@ -1,0 +1,615 @@
+{
+  "id": "df88c9df-8331-43eb-9489-0e421884357b",
+  "created_at": "2026-01-09T16:08:50.55882+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767974927727_69ca2b",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:08:50.938463+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté.\n\nMaintenant, il faut que tu ailles finaliser ton plan sur ton espace pour qu'on puisse vraiment passer à l'action : https://sophia-coach.ai\n\nRéponds-moi juste \"C'est bon\" dès que c'est validé de ton côté 😉.",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T16:08:59.870818+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon. Et ensuite ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:09:48.834008+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ton plan La Forge de la Clarté est désormais actif. On passe d'un état de surcharge à une structure de précision. 🚀\n\nAvant de lancer les premières actions, je dois calibrer ton engagement pour ajuster la pression du système.\n\nSur une échelle de 1 à 10, quel est ton niveau de motivation pour attaquer ce grand débroussaillage aujourd'hui ? (Ex: 8/10)",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:09:57.122482+00:00"
+    },
+    {
+      "role": "user",
+      "content": "8/10. Prêt à démarrer.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:10:00.006833+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Un 8/10 est un excellent score pour poser les premières briques de ta structure. On commence immédiatement par ton Audit des Voleurs de Temps et d'Énergie pour boucher les fuites.\n\nPour lancer le scan, quelle est la distraction précise (appli, notification, pensée) qui t'a le plus fait perdre le fil aujourd'hui ? 🚀",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:10:07.866536+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Les emails pro, sans hésiter.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:10:11.073435+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Les emails pro sont des voleurs d'attention redoutables car ils fragmentent ton focus sous couvert d'urgence. C'est une fuite d'énergie majeure identifiée. 📧\n\nPour finaliser ton audit, quel impact concret ressens-tu sur tes projets les plus importants quand tu te laisses aspirer par ta boîte de réception toute la journée ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:10:23.647055+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ça retarde tout le reste et je me sens sous l'eau.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:10:28.585537+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "L'audit est maintenant intégré pour t'aider à sortir de cette sensation d'apnée. Mettre des mots sur ce qui te ralentit est essentiel pour commencer à alléger ta charge mentale dès maintenant.\n\nParmi les éléments que tu as identifiés, lequel pèse le plus lourd sur tes journées en ce moment ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:10:55.0804+00:00"
+    },
+    {
+      "role": "user",
+      "content": "La sensation d'être sous l'eau à cause de tout ça.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:10:59.262215+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Cette sensation d'asphyxie est le signal que ton système sature sous le poids des urgences subies. Pour reprendre le contrôle, nous devons d'abord sécuriser tes zones de repos pour éviter que le pro n'envahisse ton mental 24h/24. 🌊\n\nOn commence par protéger ta soirée. Es-tu prête à appliquer ton Couvre-feu Digital dès 21h00 ce soir, sans aucune exception pour consulter tes emails ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:11:26.884939+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je peux essayer ce soir.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:11:30.228745+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "L'engagement est pris. À 21h00 pile, tes écrans quittent ton champ de vision pour une autre pièce. C'est le premier verrou de sécurité indispensable pour protéger ton énergie du lendemain. 🔒\n\nEn attendant, concernant ton Audit des Voleurs de Temps, quelle est la distraction principale qui te fait perdre le fil quand tu es devant ton bureau ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:11:40.028126+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Les notifications du téléphone, je pense.",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:11:44.544049+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Le telephone est le premier levier de deconcentration. S'il est visible, ton cerveau traite l'information meme sans notification, ce qui fragmente ton attention. 📱\n\nLa solution est radicale : pendant tes phases de focus, ton telephone doit changer de piece ou etre mis hors de vue.\n\nEs-tu prete a tester le mode Avion et le rangement dans un tiroir des ta prochaine session de travail demain ? 🎯",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:11:52.934136+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ok, je note pour demain. Quoi d'autre ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:11:56.724805+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "L'étape suivante est ton Audit des Voleurs de Temps. C'est un scan impitoyable de tes journées pour identifier précisément où ton énergie s'évapore. Sans ce diagnostic, on avance à l'aveugle. 📝\n\nUne fois cet audit complété, nous passerons à la préparation de ton Espace de Travail Sacré pour sanctuariser ton focus.\n\nAs-tu 5 minutes demain matin pour remplir les premières sections de cet audit sur ton tableau de bord ? ☕",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:12:05.983464+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, 5 min c'est bon. C'est quoi cet audit exactement ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T16:12:08.585747+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est un diagnostic pour cartographier tes fuites d'énergie. On analyse tes distractions (notifications), ton désordre logistique (emails, priorités floues) et l'impact concret sur ton stress. L'objectif est de rendre visible l'invisible pour mieux le neutraliser. 📝\n\nL'exercice comporte trois sections simples à remplir sur ton tableau de bord pour identifier tes saboteurs.\n\nQuelle est la distraction qui revient le plus souvent quand tu essaies de te concentrer ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T16:12:15.800202+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "14c1fe63-3846-4e8b-ba0e-2cec9d523998",
+      "email": "run-evals+d2713c0507a14a@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T16:08:50.323+00:00",
+      "phone_number": "+15552004814951",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T16:08:50.334+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T16:10:59.255+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T16:10:07.87+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "14c1fe63-3846-4e8b-ba0e-2cec9d523998",
+      "risk_level": 5,
+      "updated_at": "2026-01-09T16:10:55.071143+00:00",
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T16:08:50.953+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T16:08:50.955186+00:00",
+      "unprocessed_msg_count": 5
+    }
+  },
+  "state_after": {
+    "profile": {
+      "id": "14c1fe63-3846-4e8b-ba0e-2cec9d523998",
+      "email": "run-evals+d2713c0507a14a@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T16:08:50.323+00:00",
+      "phone_number": "+15552004814951",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T16:08:50.334+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T16:12:08.58+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T16:10:07.87+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "14c1fe63-3846-4e8b-ba0e-2cec9d523998",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T16:12:15.794204+00:00",
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T16:08:50.953+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T16:08:50.955186+00:00",
+      "unprocessed_msg_count": 10
+    }
+  },
+  "issues": [
+    {
+      "code": "looping_context_amnesia",
+      "message": "The Architect repeatedly asks for the 'main distraction' (3 times) despite the user having already answered 'emails' and 'phone notifications' in the immediate context.",
+      "evidence": {
+        "snippet": "Quelle est la distraction qui revient le plus souvent quand tu essaies de te concentrer ?",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "incoherent_process_flow",
+      "message": "Contradiction in flow progression: states the Audit starts 'immediately', conducts parts of it conversationally, then later claims the Audit is the 'next step' to be done tomorrow.",
+      "evidence": {
+        "snippet": "L'étape suivante est ton Audit des Voleurs de Temps. [...] On commence immédiatement par ton Audit",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the agent from entering a loop where it restarts the questionnaire after explaining a concept, ignoring previously collected data.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#16 USER: Ok, je note pour demain. Quoi d'autre ?\n#17 ASSISTANT(architect): L'étape suivante est ton Audit des Voleurs de Temps. C'est un scan impitoyable de tes journées pour identifier précisément où ton énergie s'évapore. Sans ce diagnostic, on avance à l'aveugle. 📝 Une fois cet audit complété, nous passerons à la préparation de ton Espace de Travail Sacré pour sanctuariser ton focus. As-tu 5 minutes demain matin pour remplir les premières sections de cet audit sur ton tableau de bord ? ☕\n#18 USER: Oui, 5 min c'est bon. C'est quoi cet audit exactement ?\n#19 ASSISTANT(architect): C'est un diagnostic pour cartographier tes fuites d'énergie. On analyse tes distractions (notifications), ton désordre logistique (emails, priorités floues) et l'impact concret sur ton stress. L'objectif est de rendre visible l'invisible pour mieux le neutraliser. 📝 L'exercice comporte trois sections simples à remplir sur ton tableau de bord pour identifier tes saboteurs. Quelle est la distraction qui revient le plus souvent quand tu essaies de te concentrer ?\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nCONTEXT CHECK: Before asking a diagnostic question (e.g., 'what is your main distraction'), verify if the user has already provided this information in the recent conversation history. If yes, acknowledge the previous answer and proceed to the next step (solution or dashboard assignment) instead of repeating the question.",
+      "proposed_addendum": "CONTEXT CHECK: Before asking a diagnostic question (e.g., 'what is your main distraction'), verify if the user has already provided this information in the recent conversation history. If yes, acknowledge the previous answer and proceed to the next step (solution or dashboard assignment) instead of repeating the question."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0713306,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767974927727_69ca2b:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767974927727_69ca2b",
+    "total_tokens": 150879,
+    "output_tokens": 2692,
+    "prompt_tokens": 115604,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "realistic",
+      "simulated_transport"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767974927727_69ca2b:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767974927727_69ca2b",
+    "description": "WhatsApp onboarding (webhook): accept opt-in with no plan, then simulate that a plan becomes active when user says 'C'est bon' (to test progression past onboarding finalization).",
+    "plan_snapshot": {
+      "plan": {
+        "id": "a56afc6f-7db8-4302-a81d-06bb0b73fade",
+        "title": "La Forge de la Clarté",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : Le Grand Débroussaillage - L'Éveil de la Clarté",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "e822737e-fa94-4aed-9592-e1b3ae1a0eba",
+                  "tips": "Sois honnête avec toi-même. Observe sans juger, puis agis. Fais-le sur une journée typique.",
+                  "type": "framework",
+                  "title": "Audit des Voleurs de Temps et d'Énergie",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Tu ne peux pas vaincre un ennemi que tu ne connais pas. Cet audit révèle tes points de fuite d'énergie.",
+                  "targetReps": 1,
+                  "description": "Identifie précisément ce qui te submerge et te déconcentre. Un scan impitoyable de tes habitudes et de ton environnement.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "L'objectif est de cartographier tes principales sources de distraction et de désorganisation. Pense à tes journées, aux moments où tu te sens submergée ou que tu perds le fil. Qu'est-ce qui en est la cause ? Note tout, sans filtre.",
+                    "sections": [
+                      {
+                        "id": "s1_distraction",
+                        "label": "Distractions fréquentes (ex: réseaux sociaux, notifications)",
+                        "inputType": "list",
+                        "placeholder": "Smartphone/Instagram"
+                      },
+                      {
+                        "id": "s1_desorganisation",
+                        "label": "Sources de désorganisation (ex: email en désordre, priorités floues)",
+                        "inputType": "list",
+                        "placeholder": "Boîte mail non traitée"
+                      },
+                      {
+                        "id": "s1_impact",
+                        "label": "Impact ressenti (court/long terme)",
+                        "inputType": "textarea",
+                        "placeholder": "Perte de 30 min, frustration, moins bonne qualité de sommeil."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "a75664eb-a02d-472b-9b33-058d5b155f34",
+                  "tips": "Charge ton téléphone loin de ton lit. Trouve une activité relaxante alternative : lire, écouter de la musique, discuter.",
+                  "type": "habitude",
+                  "title": "Le Couvre-feu Digital Solide (21h)",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Le cerveau a besoin de déconnecter de la lumière bleue et de la stimulation cognitive intense pour préparer un sommeil réparateur, essentiel à ton énergie et ton focus du lendemain.",
+                  "targetReps": 7,
+                  "description": "Éteins tous les écrans personnels (téléphone, tablette, TV) après 21h. Replace-les hors de ta vue, idéalement dans une autre pièce.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "76fc9dc7-f118-4972-9246-5c5b024ee614",
+                  "tips": "Commence petit : un tiroir, puis ton bureau. Fais-en un rituel de fin de journée.",
+                  "type": "mission",
+                  "title": "Préparer ton Espace de Travail Sacré",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement ordonné se traduit par un esprit ordonné. Moins de stimuli visuels, moins de distractions, plus de focus.",
+                  "description": "Désencombre et organise ton espace de travail principal. Une place pour chaque chose, chaque chose à sa place. Élimine tout ce qui n'est pas lié à la tâche en cours.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 1 • Poser les fondations d'un esprit net",
+              "rationale": "Avant de construire, il faut déblayer. Cette phase vise à identifier et neutraliser les plus grands saboteurs de ton focus pour créer un terrain propice à la concentration."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : L'Architecture du Focus - Les Piliers du Profond",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "1e189d53-0a27-42ce-be0e-73c9edc71f29",
+                  "tips": "Utilise la technique Pomodoro (ex: 25 min de travail, 5 min de pause) ou une minuterie. Informe ton entourage de ton indisponibilité.",
+                  "type": "habitude",
+                  "title": "Le Bloc de Concentration Profonde (90 min)",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La capacité à se concentrer intensément sur une seule tâche est la clé de la productivité. Ce bloc entraîne ton cerveau à l'effort soutenu, réduisant la sensation d'être submergée.",
+                  "targetReps": 7,
+                  "description": "Dédie un bloc de 90 minutes, sans aucune interruption (téléphone en mode avion, notifications coupées), à ta tâche la plus importante de la journée.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b97366cc-8861-4a7b-a02b-20487415c6d5",
+                  "tips": "Sois réaliste. Ces tâches doivent être SMART (Spécifiques, Mesurables, Atteignables, Réalistes, Temporellement définies).",
+                  "type": "framework",
+                  "title": "Le Manifeste des 3 Priorités Quotidiennes",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La clarté des priorités élimine la désorganisation et le sentiment d'être submergé. Elle dirige ton énergie vers ce qui compte vraiment, créant un impact maximal.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, avant de commencer, identifie et écris les 3 tâches les plus critiques à accomplir dans la journée pour avancer vers tes objectifs majeurs.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Chaque jour est une page blanche. Quelles sont les 3 actions qui auront le plus grand impact sur tes objectifs et ton bien-être ? Ne te laisse pas distraire par le superflu. Choisis sagement.",
+                    "sections": [
+                      {
+                        "id": "s2_prio1",
+                        "label": "Priorité 1 (Majeure)",
+                        "inputType": "text",
+                        "placeholder": "Finaliser le rapport X"
+                      },
+                      {
+                        "id": "s2_prio2",
+                        "label": "Priorité 2 (Impact important)",
+                        "inputType": "text",
+                        "placeholder": "Répondre aux emails critiques"
+                      },
+                      {
+                        "id": "s2_prio3",
+                        "label": "Priorité 3 (Contribue au progrès)",
+                        "inputType": "text",
+                        "placeholder": "Planifier la semaine prochaine"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "adea1951-c3b1-4871-a450-649756a957d7",
+                  "tips": "Utilise une alarme discrète. L'objectif est de 'décharger' mentalement, pas de te divertir.",
+                  "type": "habitude",
+                  "title": "La Micro-Pause Active",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ces pauses régénèrent ta capacité d'attention, préviennent la fatigue mentale et maintiennent un niveau d'énergie stable tout au long de la journée, réduisant le risque de perdre le fil.",
+                  "targetReps": 14,
+                  "description": "Toutes les 60-90 minutes de travail, lève-toi, étire-toi, bois de l'eau ou regarde par la fenêtre pendant 5 minutes. Pas d'écrans supplémentaires.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 2 • Bâtir des systèmes de concentration inébranlables",
+              "rationale": "Maintenant que le terrain est dégagé, nous allons installer les systèmes qui te permettront de plonger dans des états de concentration profonde et de gérer tes priorités avec une clarté absolue."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : Le Maître du Temps et de l'Énergie - Le Flow Ininterrompu",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "5549efb3-0de8-421e-a6e5-edefb36b081b",
+                  "tips": "Crée une liste 'À faire demain'. Ne te préoccupe pas de leur réalisation, juste de les capturer.",
+                  "type": "habitude",
+                  "title": "Le Check-in du Soir Anti-Surcharge",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ce rituel permet de libérer ton esprit des préoccupations pour la nuit, améliore la qualité de ton sommeil et te prépare pour une journée claire et productive, réduisant le 'perdre le fil'.",
+                  "targetReps": 7,
+                  "description": "Avant de quitter ton bureau ou de te déconnecter, prends 10 minutes pour noter les 3 priorités du lendemain et vider ta tête de toutes les pensées résiduelles. Transfère-les sur papier ou dans ton système.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "357fbbb2-b707-4b39-bcd0-23878f444f70",
+                  "tips": "L'objectif est de te donner un sentiment de contrôle et d'ancrage dès le réveil. Choisis des actions simples et gratifiantes.",
+                  "type": "mission",
+                  "title": "Définir tes Non-Négociables du Matin",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Commencer la journée avec intention et des actions positives renforce ta stabilité émotionnelle, ton énergie et ta discipline, te préparant mentalement pour le focus.",
+                  "description": "Identifie 2-3 activités courtes mais puissantes (ex: méditation de 5 min, verre d'eau, étirements) que tu réaliseras chaque matin avant de consulter tout écran ou email.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "05fa199a-7c27-42d3-a509-fe4ddbd567e0",
+                  "tips": "Ne juge pas la pensée, capture-la et passe à autre chose. L'important est de ne pas 'suivre le fil'.",
+                  "type": "habitude",
+                  "title": "Le Bloc de Résistance à la Distraction",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Cette technique entraîne ton cerveau à reconnaître les distractions sans leur donner du pouvoir. Elle renforce ta capacité à maintenir le focus et à éviter de te sentir submergée.",
+                  "targetReps": 7,
+                  "description": "Pendant ton bloc de concentration, si une pensée non pertinente ou une envie de consulter ton téléphone survient, note-la rapidement sur un carnet 'parking' sans interrompre ta tâche principale, puis reviens immédiatement à ton travail.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 3 • Optimiser tes ressources internes pour une performance fluide",
+              "rationale": "Avec des fondations solides, nous allons affiner ta gestion de l'énergie et du temps pour cultiver un état de 'flow' où la discipline devient naturelle et le focus, inébranlable."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : L'Ancrage de l'Excellence - Le Sillage de la Maîtrise",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "001a302c-aad2-46a3-a1da-697e5d6b1eba",
+                  "tips": "Compare ton état actuel à celui d'il y a 4 semaines. Quelles sont les différences les plus frappantes ?",
+                  "type": "framework",
+                  "title": "La Rétrospective de Maître : Un mois de Transformation",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La réflexion est un pilier de l'apprentissage et de l'ancrage comportemental. Elle solidifie les nouvelles connexions neuronales et prépare le terrain pour une croissance continue.",
+                  "targetReps": 1,
+                  "description": "Prends le temps de réfléchir à tes progrès, aux défis rencontrés et aux systèmes qui ont eu le plus grand impact sur ton focus et ta discipline. Célèbre tes victoires.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Tu as parcouru un chemin intense en 4 semaines. Il est temps de te poser et de mesurer la distance parcourue. Qu'as-tu appris sur toi-même et sur ta capacité à architecturer ta vie ? Sois fière de chaque pas.",
+                    "sections": [
+                      {
+                        "id": "s4_victoires",
+                        "label": "Mes 3 plus grandes victoires ce mois-ci",
+                        "inputType": "list",
+                        "placeholder": "J'ai réussi mon premier bloc de 90 min sans interruption."
+                      },
+                      {
+                        "id": "s4_defis",
+                        "label": "Les défis que j'ai surmontés et comment",
+                        "inputType": "textarea",
+                        "placeholder": "L'envie de scroller le soir était forte, mais j'ai remplacé par la lecture."
+                      },
+                      {
+                        "id": "s4_ancrage",
+                        "label": "Une habitude que je veux ancrer définitivement",
+                        "inputType": "text",
+                        "placeholder": "Le Check-in du Soir Anti-Surcharge."
+                      },
+                      {
+                        "id": "s4_next",
+                        "label": "Mon prochain objectif focus/discipline pour le mois à venir",
+                        "inputType": "text",
+                        "placeholder": "Intégrer 2 blocs de concentration par jour."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "430d201c-13af-4ad3-a09b-a7c46f930e63",
+                  "tips": "La répétition est la mère de la maîtrise. Ne change rien à cette routine pendant 7 jours.",
+                  "type": "habitude",
+                  "title": "La Routine de Fin de Journée Immuable",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Cette routine crée un signal fort pour ton cerveau qu'il est temps de ralentir et de se préparer au repos, optimisant la qualité de ton sommeil et consolidant ta discipline quotidienne.",
+                  "targetReps": 7,
+                  "description": "Crée une séquence fixe de 3-4 actions apaisantes (ex: lecture, musique douce, préparation des vêtements du lendemain) que tu réalises chaque soir après ton couvre-feu digital et avant de te coucher.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "c59c9269-900c-4505-9ce1-327e2fb63a88",
+                  "tips": "Pense aux prochaines étapes de ta croissance personnelle ou professionnelle. Qu'est-ce qui te passionne ?",
+                  "type": "mission",
+                  "title": "Planifier ta Prochaine Quête",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "L'architecte ne s'arrête jamais de construire. Cette planification assure la continuité de ta transformation et maintient ta motivation à cultiver ta clarté et ta discipline.",
+                  "description": "Utilise les enseignements de ta rétrospective pour définir un ou deux objectifs clairs et une stratégie pour le mois suivant, en appliquant les principes de clarté et de discipline que tu as appris.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 4 • Consolider les acquis et projeter ta nouvelle réalité",
+              "rationale": "Cette dernière phase est dédiée à l'intégration profonde de tes nouvelles habitudes, à la célébration de tes progrès et à la planification de la continuité, pour que cette transformation soit durable."
+            }
+          ],
+          "deepWhy": "Pour canaliser mon énergie avec précision, accomplir mes ambitions avec sérénité et vivre chaque jour avec une clarté inébranlable, sans me sentir submergée.",
+          "identity": "Je suis une Architecte de ma Concentration.",
+          "strategy": "Nous allons transformer la désorganisation et le manque de clarté en systèmes robustes de focus, en commençant par des routines énergisantes et en éliminant les distractions, pour que chaque action compte.",
+          "goldenRules": "1. Chaque tâche a sa place et son temps défini, sans exception.\n2. Mon énergie est sacrée, je la protège farouchement des distractions.\n3. La clarté précède l'action : je définis avant d'exécuter.",
+          "vitalSignal": {
+            "name": "Tâches prioritaires accomplies",
+            "type": "constat",
+            "unit": "tâches",
+            "startValue": "0",
+            "description": "Nombre de tâches à haute valeur ajoutée, définies au préalable, et terminées chaque jour. C'est ton indicateur de productivité ciblée.",
+            "targetValue": "3",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "La Forge de la Clarté",
+          "context_problem": "Tu te sentais constamment submergée par tes tâches, perdant le fil de tes journées et manquant de clarté sur tes priorités. Tes longues heures devant l'écran le soir impactaient ton sommeil, te privant de l'énergie nécessaire pour maintenir ta discipline et ta concentration. Tu étais prisonnière d'un cycle de désorganisation et de fatigue qui freinait ton potentiel.",
+          "sophiaKnowledge": "Tu es une jeune femme dynamique et ambitieuse, soucieuse d'optimiser sa productivité. Tu te sens désorganisée et submergée, perdant le fil de tes tâches, notamment à cause d'un travail sur écran tardif et un sommeil moyen. Malgré un niveau d'activité élevé, tu cherches à retrouver clarté, discipline et énergie pour plus de stabilité au quotidien.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Quelle a été la principale source de distraction qui a menacé ton focus cette semaine et quelles micro-actions as-tu mises en place pour la contrer ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "4 semaines"
+        },
+        "goal_id": "ce3ad32b-26ba-4f79-a632-3a753fd45408",
+        "deep_why": "Pour canaliser mon énergie avec précision, accomplir mes ambitions avec sérénité et vivre chaque jour avec une clarté inébranlable, sans me sentir submergée.",
+        "created_at": "2026-01-09T16:09:48.645392+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "9d8f8ab4-2d17-4489-a172-20c77cdb5fd5",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "a75664eb-a02d-472b-9b33-058d5b155f34",
+          "title": "Le Couvre-feu Digital Solide (21h)",
+          "status": "active",
+          "created_at": "2026-01-09T16:09:48.675152+00:00",
+          "description": "Éteins tous les écrans personnels (téléphone, tablette, TV) après 21h. Replace-les hors de ta vue, idéalement dans une autre pièce.",
+          "target_reps": 7,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T16:09:48.666+00:00"
+        },
+        {
+          "id": "9bbf1c4c-2452-4f39-9069-9dfe63f727da",
+          "_kind": "framework",
+          "title": "Audit des Voleurs de Temps et d'Énergie",
+          "status": "active",
+          "created_at": "2026-01-09T16:09:48.714554+00:00",
+          "description": "",
+          "target_reps": 1,
+          "time_of_day": null,
+          "current_reps": 1,
+          "tracking_type": "boolean",
+          "framework_type": "one_shot",
+          "last_performed_at": "2026-01-09T16:10:51.029+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "9bbf1c4c-2452-4f39-9069-9dfe63f727da",
+          "type": "one_shot",
+          "title": "Audit des Voleurs de Temps et d'Énergie",
+          "status": "active",
+          "created_at": "2026-01-09T16:09:48.714554+00:00",
+          "target_reps": 1,
+          "current_reps": 1,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-09T16:10:51.029+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: La Forge de la Clarté\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour canaliser mon énergie avec précision, accomplir mes ambitions avec sérénité et vivre chaque jour avec une clarté inébranlable, sans me sentir submergée.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : Le Grand Débroussaillage - L'Éveil de la Clarté\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"e822737e-fa94-4aed-9592-e1b3ae1a0eba\",\n          \"tips\": \"Sois honnête avec toi-même. Observe sans juger, puis agis. Fais-le sur une journée typique.\",\n          \"type\": \"framework\",\n          \"title\": \"Audit des Voleurs de Temps et d'Énergie\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Tu ne peux pas vaincre un ennemi que tu ne connais pas. Cet audit révèle tes points de fuite d'énergie.\",\n          \"targetReps\": 1,\n          \"description\": \"Identifie précisément ce qui te submerge et te déconcentre. Un scan impitoyable de tes habitudes et de ton environnement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"L'objectif est de cartographier tes principales sources de distraction et de désorganisation. Pense à tes journées, aux moments où tu te sens submergée ou que tu perds le fil. Qu'est-ce qui en est la cause ? Note tout, sans filtre.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_distraction\",\n                \"label\": \"Distractions fréquentes (ex: réseaux sociaux, notifications)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Smartphone/Instagram\"\n              },\n              {\n                \"id\": \"s1_desorganisation\",\n                \"label\": \"Sources de désorganisation (ex: email en désordre, priorités floues)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Boîte mail non traitée\"\n              },\n              {\n                \"id\": \"s1_impact\",\n                \"label\": \"Impact ressenti (court/long terme)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Perte de 30 min, frustration, moins bonne qualité de sommeil.\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"a75664eb-a02d-472b-9b33-058d5b155f34\",\n          \"tips\": \"Charge ton téléphone loin de ton lit. Trouve une activité relaxante alternative : lire, écouter de la musique, discuter.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Couvre-feu Digital Solide (21h)\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Le cerveau a besoin de déconnecter de la lumière bleue et de la stimulation cognitive intense pour préparer un sommeil réparateur, essentiel à ton énergie et ton focus du lendemain.\",\n          \"targetReps\": 7,\n          \"description\": \"Éteins tous les écrans personnels (téléphone, tablette, TV) après 21h. Replace-les hors de ta vue, idéalement dans une autre pièce.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"76fc9dc7-f118-4972-9246-5c5b024ee614\",\n          \"tips\": \"Commence petit : un tiroir, puis ton bureau. Fais-en un rituel de fin de journée.\",\n          \"type\": \"mission\",\n          \"title\": \"Préparer ton Espace de Travail Sacré\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement ordonné se traduit par un esprit ordonné. Moins de stimuli visuels, moins de distractions, plus de focus.\",\n          \"description\": \"Désencombre et organise ton espace de travail principal. Une place pour chaque chose, chaque chose à sa place. Élimine tout ce qui n'est pas lié à la tâche en cours.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 1 • Poser les fondations d'un esprit net\",\n      \"rationale\": \"Avant de construire, il faut déblayer. Cette phase vise à identifier et neutraliser les plus grands saboteurs de ton focus pour créer un terrain propice à la concentration.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : L'Architecture du Focus - Les Piliers du Profond\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"1e189d53-0a27-42ce-be0e-73c9edc71f29\",\n          \"tips\": \"Utilise la technique Pomodoro (ex: 25 min de travail, 5 min de pause) ou une minuterie. Informe ton entourage de ton indisponibilité.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bloc de Concentration Profonde (90 min)\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La capacité à se concentrer intensément sur une seule tâche est la clé de la productivité. Ce bloc entraîne ton cerveau à l'effort soutenu, réduisant la sensation d'être submergée.\",\n          \"targetReps\": 7,\n          \"description\": \"Dédie un bloc de 90 minutes, sans aucune interruption (téléphone en mode avion, notifications coupées), à ta tâche la plus importante de la journée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b97366cc-8861-4a7b-a02b-20487415c6d5\",\n          \"tips\": \"Sois réaliste. Ces tâches doivent être SMART (Spécifiques, Mesurables, Atteignables, Réalistes, Temporellement définies).\",\n          \"type\": \"framework\",\n          \"title\": \"Le Manifeste des 3 Priorités Quotidiennes\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La clarté des priorités élimine la désorganisation et le sentiment d'être submergé. Elle dirige ton énergie vers ce qui compte vraiment, créant un impact maximal.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, avant de commencer, identifie et écris les 3 tâches les plus critiques à accomplir dans la journée pour avancer vers tes objectifs majeurs.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Chaque jour est une page blanche. Quelles sont les 3 actions qui auront le plus grand impact sur tes objectifs et ton bien-être ? Ne te laisse pas distraire par le superflu. Choisis sagement.\",\n            \"sections\": [\n              {\n                \"id\": \"s2_prio1\",\n                \"label\": \"Priorité 1 (Majeure)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Finaliser le rapport X\"\n              },\n              {\n                \"id\": \"s2_prio2\",\n                \"label\": \"Priorité 2 (Impact important)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Répondre aux emails critiques\"\n              },\n              {\n                \"id\": \"s2_prio3\",\n                \"label\": \"Priorité 3 (Contribue au progrès)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Planifier la semaine prochaine\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"adea1951-c3b1-4871-a450-649756a957d7\",\n          \"tips\": \"Utilise une alarme discrète. L'objectif est de 'décharger' mentalement, pas de te divertir.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Micro-Pause Active\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ces pauses régénèrent ta capacité d'attention, préviennent la fatigue mentale et maintiennent un niveau d'énergie stable tout au long de la journée, réduisant le risque de perdre le fil.\",\n          \"targetReps\": 14,\n          \"description\": \"Toutes les 60-90 minutes de travail, lève-toi, étire-toi, bois de l'eau ou regarde par la fenêtre pendant 5 minutes. Pas d'écrans supplémentaires.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 2 • Bâtir des systèmes de concentration inébranlables\",\n      \"rationale\": \"Maintenant que le terrain est dégagé, nous allons installer les systèmes qui te permettront de plonger dans des états de concentration profonde et de gérer tes priorités avec une clarté absolue.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : Le Maître du Temps et de l'Énergie - Le Flow Ininterrompu\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"5549efb3-0de8-421e-a6e5-edefb36b081b\",\n          \"tips\": \"Crée une liste 'À faire demain'. Ne te préoccupe pas de leur réalisation, juste de les capturer.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Check-in du Soir Anti-Surcharge\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ce rituel permet de libérer ton esprit des préoccupations pour la nuit, améliore la qualité de ton sommeil et te prépare pour une journée claire et productive, réduisant le 'perdre le fil'.\",\n          \"targetReps\": 7,\n          \"description\": \"Avant de quitter ton bureau ou de te déconnecter, prends 10 minutes pour noter les 3 priorités du lendemain et vider ta tête de toutes les pensées résiduelles. Transfère-les sur papier ou dans ton système.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"357fbbb2-b707-4b39-bcd0-23878f444f70\",\n          \"tips\": \"L'objectif est de te donner un sentiment de contrôle et d'ancrage dès le réveil. Choisis des actions simples et gratifiantes.\",\n          \"type\": \"mission\",\n          \"title\": \"Définir tes Non-Négociables du Matin\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Commencer la journée avec intention et des actions positives renforce ta stabilité émotionnelle, ton énergie et ta discipline, te préparant mentalement pour le focus.\",\n          \"description\": \"Identifie 2-3 activités courtes mais puissantes (ex: méditation de 5 min, verre d'eau, étirements) que tu réaliseras chaque matin avant de consulter tout écran ou email.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"05fa199a-7c27-42d3-a509-fe4ddbd567e0\",\n          \"tips\": \"Ne juge pas la pensée, capture-la et passe à autre chose. L'important est de ne pas 'suivre le fil'.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bloc de Résistance à la Distraction\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Cette technique entraîne ton cerveau à reconnaître les distractions sans leur donner du pouvoir. Elle renforce ta capacité à maintenir le focus et à éviter de te sentir submergée.\",\n          \"targetReps\": 7,\n          \"description\": \"Pendant ton bloc de concentration, si une pensée non pertinente ou une envie de consulter ton téléphone survient, note-la rapidement sur un carnet 'parking' sans interrompre ta tâche principale, puis reviens immédiatement à ton travail.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 3 • Optimiser tes ressources internes pour une performance fluide\",\n      \"rationale\": \"Avec des fondations solides, nous allons affiner ta gestion de l'énergie et du temps pour cultiver un état de 'flow' où la discipline devient naturelle et le focus, inébranlable.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : L'Ancrage de l'Excellence - Le Sillage de la Maîtrise\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"001a302c-aad2-46a3-a1da-697e5d6b1eba\",\n          \"tips\": \"Compare ton état actuel à celui d'il y a 4 semaines. Quelles sont les différences les plus frappantes ?\",\n          \"type\": \"framework\",\n          \"title\": \"La Rétrospective de Maître : Un mois de Transformation\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La réflexion est un pilier de l'apprentissage et de l'ancrage comportemental. Elle solidifie les nouvelles connexions neuronales et prépare le terrain pour une croissance continue.\",\n          \"targetReps\": 1,\n          \"description\": \"Prends le temps de réfléchir à tes progrès, aux défis rencontrés et aux systèmes qui ont eu le plus grand impact sur ton focus et ta discipline. Célèbre tes victoires.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Tu as parcouru un chemin intense en 4 semaines. Il est temps de te poser et de mesurer la distance parcourue. Qu'as-tu appris sur toi-même et sur ta capacité à architecturer ta vie ? Sois fière de chaque pas.\",\n            \"sections\": [\n              {\n                \"id\": \"s4_victoires\",\n                \"label\": \"Mes 3 plus grandes victoires ce mois-ci\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"J'ai réussi mon premier bloc de 90 min sans interruption.\"\n              },\n              {\n                \"id\": \"s4_defis\",\n                \"label\": \"Les défis que j'ai surmontés et comment\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"L'envie de scroller le soir était forte, mais j'ai remplacé par la lecture.\"\n              },\n              {\n                \"id\": \"s4_ancrage\",\n                \"label\": \"Une habitude que je veux ancrer définitivement\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Le Check-in du Soir Anti-Surcharge.\"\n              },\n              {\n                \"id\": \"s4_next\",\n                \"label\": \"Mon prochain objectif focus/discipline pour le mois à venir\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Intégrer 2 blocs de concentration par jour.\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"430d201c-13af-4ad3-a09b-a7c46f930e63\",\n          \"tips\": \"La répétition est la mère de la maîtrise. Ne change rien à cette routine pendant 7 jours.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Routine de Fin de Journée Immuable\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Cette routine crée un signal fort pour ton cerveau qu'il est temps de ralentir et de se préparer au repos, optimisant la qualité de ton sommeil et consolidant ta discipline quotidienne.\",\n          \"targetReps\": 7,\n          \"description\": \"Crée une séquence fixe de 3-4 actions apaisantes (ex: lecture, musique douce, préparation des vêtements du lendemain) que tu réalises chaque soir après ton couvre-feu digital et avant de te coucher.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"c59c9269-900c-4505-9ce1-327e2fb63a88\",\n          \"tips\": \"Pense aux prochaines étapes de ta croissance personnelle ou professionnelle. Qu'est-ce qui te passionne ?\",\n          \"type\": \"mission\",\n          \"title\": \"Planifier ta Prochaine Quête\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"L'architecte ne s'arrête jamais de construire. Cette planification assure la continuité de ta transformation et maintient ta motivation à cultiver ta clarté et ta discipline.\",\n          \"description\": \"Utilise les enseignements de ta rétrospective pour définir un ou deux objectifs clairs et une stratégie pour le mois suivant, en appliquant les principes de clarté et de discipline que tu as appris.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 4 • Consolider les acquis et projeter ta nouvelle réalité\",\n      \"rationale\": \"Cette dernière phase est dédiée à l'intégration profonde de tes nouvelles habitudes, à la célébration de tes progrès et à la planification de la continuité, pour que cette transformation soit durable.\"\n    }\n  ],\n  \"deepWhy\": \"Pour canaliser mon énergie avec précision, accomplir mes ambitions avec sérénité et vivre chaque jour avec une clarté inébranlable, sans me sentir submergée.\",\n  \"identity\": \"Je suis une Architecte de ma Concentration.\",\n  \"strategy\": \"Nous allons transformer la désorganisation et le manque de clarté en systèmes robustes de focus, en commençant par des routines énergisantes et en éliminant les distractions, pour que chaque action compte.\",\n  \"goldenRules\": \"1. Chaque tâche a sa place et son temps défini, sans exception.\\n2. Mon énergie est sacrée, je la protège farouchement des distractions.\\n3. La clarté précède l'action : je définis avant d'exécuter.\",\n  \"vitalSignal\": {\n    \"name\": \"Tâches prioritaires accomplies\",\n    \"type\": \"constat\",\n    \"unit\": \"tâches\",\n    \"startValue\": \"0\",\n    \"description\": \"Nombre de tâches à haute valeur ajoutée, définies au préalable, et terminées chaque jour. C'est ton indicateur de productivité ciblée.\",\n    \"targetValue\": \"3\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"La Forge de la Clarté\",\n  \"context_problem\": \"Tu te sentais constamment submergée par tes tâches, perdant le fil de tes journées et manquant de clarté sur tes priorités. Tes longues heures devant l'écran le soir impactaient ton sommeil, te privant de l'énergie nécessaire pour maintenir ta discipline et ta concentration. Tu étais prisonnière d'un cycle de désorganisation et de fatigue qui freinait ton potentiel.\",\n  \"sophiaKnowledge\": \"Tu es une jeune femme dynamique et ambitieuse, soucieuse d'optimiser sa productivité. Tu te sens désorganisée et submergée, perdant le fil de tes tâches, notamment à cause d'un travail sur écran tardif et un sommeil moyen. Malgré un niveau d'activité élevé, tu cherches à retrouver clarté, discipline et énergie pour plus de stabilité au quotidien.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Quelle a été la principale source de distraction qui a menacé ton focus cette semaine et quelles micro-actions as-tu mises en place pour la contrer ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"4 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Le Couvre-feu Digital Solide (21h) (night)\n- [FRAMEWORK] Audit des Voleurs de Temps et d'Énergie\n\n=== SIGNES VITAUX (État Actuel) ===\n- Tâches prioritaires accomplies: 0 tâches\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

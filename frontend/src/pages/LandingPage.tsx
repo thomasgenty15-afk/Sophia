@@ -30,7 +30,7 @@ const LandingPage = () => {
             <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-7 h-7 md:w-8 md:h-8 rounded-lg" />
             <div className="flex items-baseline gap-1.5">
               <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
-              <span className="text-[10px] md:text-xs text-slate-400 font-medium tracking-wide uppercase">by IKIZEN</span>
+              <span className="text-[10px] md:text-xs text-slate-400 font-medium tracking-wide uppercase">Powered by IKIZEN</span>
             </div>
           </div>
           <div className="flex items-center gap-4 md:gap-8">

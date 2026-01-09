@@ -1,0 +1,518 @@
+{
+  "id": "20fb9e7c-706a-4559-b11d-37068c8ed896",
+  "created_at": "2026-01-09T15:22:17.488752+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972109203_604df9",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:22:17.72809+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On avance, c'est cool. Maintenant, l'étape cruciale c'est de finaliser ton plan sur ton espace pour qu'on ait une base solide.\n\nFile ici pour valider tout ça : https://sophia-coach.ai\n\nDis-moi exactement \"C'est bon\" dès que c'est validé de ton côté. Tu es sur ton téléphone là ou sur un ordi ? 😉",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T15:22:24.874287+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon ! Je suis sur mon tel. On fait quoi maintenant ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:23:07.958021+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est parfait, Le Protocole Sérénité est maintenant officiellement lancé. On va transformer cette sensation d'être submergée en une stabilité solide.\n\nPour commencer, sur une échelle de 1 à 10, quel est ton niveau de motivation aujourd'hui ?\n\nPar exemple, tu peux répondre 8 ou 8/10. 🚀",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:23:15.444436+00:00"
+    },
+    {
+      "role": "user",
+      "content": "8/10, je suis à fond !",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:23:21.348795+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est une excellente base pour attaquer la Phase 1. Avec cette énergie, on va pouvoir sécuriser ton sanctuaire de repos dès ce soir.\n\nOn va transformer cette intention en actions concrètes pour que tu retrouves enfin ta stabilité.\n\nMerci, 8/10 ✅ Je note.\n\nEt sinon, là tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:23:33.684459+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Comment on sécurise mon sanctuaire de repos alors ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:23:37.490916+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Pour sécuriser ton sanctuaire, on applique la mission Le Débranchement Sacré : sors physiquement tous tes écrans de ta chambre dès maintenant. Ton téléphone doit charger dans une autre pièce pour briser le réflexe du scrolling. 🛡️\n\nC'est une barrière physique indispensable pour que ton cerveau associe à nouveau ton lit au repos et non à la stimulation.\n\nEst-ce que tu as un réveil classique ou une autre solution pour te réveiller demain matin sans ton téléphone à portée de main ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:23:46.310548+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai un vieux réveil qui traîne, je peux le ressortir.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:23:51.122874+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est l'outil parfait pour reprendre le contrôle. Ressors-le et vérifie les piles immédiatement pour ne pas avoir d'excuse au moment de te coucher.\n\nUne fois le réveil en place, déplace ton chargeur de téléphone dans une autre pièce. Ce geste physique scelle ton engagement pour la nuit. ⏰\n\nEst-ce que tu as déjà identifié l'endroit précis où ton téléphone va passer ses nuits désormais ? 🔋",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:24:00.004114+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je vais le mettre dans le salon, loin de ma chambre.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:24:03.998243+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Le salon est l'emplacement stratégique idéal. En créant cette distance physique, tu neutralises la tentation du scrolling nocturne avant même qu'elle ne surgisse. 🔋\n\nMaintenant que le périmètre est défini, passons à l'exécution du Couvre-Feu Digital. Ce soir, tu dois éteindre tout écran 60 minutes avant de glisser sous les draps pour protéger ta mélatonine.\n\nQuelle activité hors-écran as-tu prévue pour occuper cette heure de transition ce soir ? 📖",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:24:14.651641+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je pense que je vais lire un livre, ça fait longtemps.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:24:17.325357+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "La lecture est l'alternative parfaite pour saturer ton esprit de calme plutôt que de dopamine. C'est un signal puissant pour amorcer la transition vers un sommeil profond.\n\nPrépare ton livre sur ta table de nuit dès maintenant pour ne pas avoir à le chercher quand le couvre-feu sonnera. 📚\n\nQuel titre as-tu choisi pour cette première soirée de déconnexion ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:24:28.790303+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Un roman que j'avais commencé il y a longtemps.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:24:31.995026+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est souvent le meilleur plan de reprendre une histoire déjà entamée. Ça demande moins d'effort au cerveau pour se replonger dedans que de découvrir un tout nouvel univers, surtout quand on est un peu fatiguée.\n\nCe soir, quand tu couperas les écrans pour ton heure de calme, ce bouquin sera ton meilleur allié contre le réflexe de choper ton téléphone. C'est ton vrai sas de décompression avant d'éteindre la lumière.\n\nTu te souviens à peu près où tu en étais dans l'intrigue, ou tu vas devoir relire quelques pages pour te remettre dans le bain ? 🌙",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T15:24:44.25576+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je pense que je vais relire quelques pages pour me remettre dedans. Ça fait un moment !",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:24:47.776196+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est pas plus mal de reprendre les bases, ça permet de se remettre dans l'ambiance sans forcer le cerveau. C'est exactement le genre de sas qu'il te faut pour calmer le jeu ce soir et laisser la pression redescendre doucement.\n\nPar contre, fais-moi une faveur : pose-le physiquement sur ton oreiller ou ta table de nuit dès maintenant. Si tu dois le chercher au moment où tu éteins ton téléphone, le piège du scrolling va se refermer sur toi direct. On ne laisse aucune chance à la tentation 📖.\n\nOn reste sur cette lecture pour ce soir, ou tu veux qu'on parle de l'autre étape, celle d'exiler ton téléphone hors de la chambre ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T15:24:58.888311+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon pour le téléphone, c'est clair. On fait quoi d'autre ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:25:04.373327+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Top pour le téléphone, c'est déjà une grosse victoire de décidée. Maintenant, pour que ton cerveau décroche vraiment, on s'attaque au timing : le couvre-feu digital.\n\nL'objectif est simple mais radical : tu coupes absolument tous les écrans, télé comprise, 60 minutes avant de te glisser sous la couette. C'est là que ton bouquin prend tout son sens. C'est ton bouclier contre la lumière bleue qui te tient éveillée sans que tu t'en rendes compte.\n\nTu penses pouvoir tenir cette heure complète sans craquer pour un dernier coup d'œil sur une vidéo ou tes messages ce soir ? 🌙",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T15:25:16.183888+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "a070bc26-3b4c-4f10-83d7-958a564d404a",
+      "email": "run-evals+09d3556e7bab41@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T15:22:17.452+00:00",
+      "phone_number": "+15558347643713",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T15:22:17.452+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T15:24:47.771+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T15:23:33.688+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "a070bc26-3b4c-4f10-83d7-958a564d404a",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T15:24:44.249365+00:00",
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-09T15:22:17.738+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T15:22:17.739778+00:00",
+      "unprocessed_msg_count": 8
+    }
+  },
+  "state_after": {
+    "profile": {
+      "id": "a070bc26-3b4c-4f10-83d7-958a564d404a",
+      "email": "run-evals+09d3556e7bab41@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T15:22:17.452+00:00",
+      "phone_number": "+15558347643713",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T15:22:17.452+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T15:25:04.368+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T15:23:33.688+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "a070bc26-3b4c-4f10-83d7-958a564d404a",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T15:25:16.180762+00:00",
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-09T15:22:17.738+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T15:22:17.739778+00:00",
+      "unprocessed_msg_count": 10
+    }
+  },
+  "issues": [
+    {
+      "code": "context_amnesia_loop",
+      "message": "The Companion fails to read the immediate history where the Architect already validated the phone location and explained the digital curfew. It proposes discussing the phone exile again and re-explains the curfew from scratch.",
+      "evidence": {
+        "snippet": "tu veux qu'on parle de l'autre étape, celle d'exiler ton téléphone hors de la chambre ? [...] L'objectif est simple mais radical : tu coupes absolument tous les écrans...",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "flow_break_after_setup",
+      "message": "The Architect establishes a specific goal (Phase 1, securing sanctuary) and validates motivation, but immediately breaks the flow by asking a generic open question instead of leading the next step.",
+      "evidence": {
+        "snippet": "Merci, 8/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the bot from dropping the initiative immediately after setting high expectations for a structured plan.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(companion): On avance, c'est cool. Maintenant, l'étape cruciale c'est de finaliser ton plan sur ton espace pour qu'on ait une base solide. File ici pour valider tout ça : https://sophia-coach.ai Dis-moi exactement \"C'est bon\" dès que c'est validé de ton côté. Tu es sur ton téléphone là ou sur un ordi ? 😉\n#2 USER: C'est bon ! Je suis sur mon tel. On fait quoi maintenant ?\n#3 ASSISTANT(architect): C'est parfait, Le Protocole Sérénité est maintenant officiellement lancé. On va transformer cette sensation d'être submergée en une stabilité solide. Pour commencer, sur une échelle de 1 à 10, quel est ton niveau de motivation aujourd'hui ? Par exemple, tu peux répondre 8 ou 8/10. 🚀\n#4 USER: 8/10, je suis à fond !\n#5 ASSISTANT(architect): C'est une excellente base pour attaquer la Phase 1. Avec cette énergie, on va pouvoir sécuriser ton sanctuaire de repos dès ce soir. On va transformer cette intention en actions concrètes pour que tu retrouves enfin ta stabilité. Merci, 8/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nCRITICAL: If you have just launched a Protocol or Phase and received user validation (e.g., motivation score), DO NOT ask 'What do you want to talk about?'. IMMEDIATELY proceed to the first concrete instruction of that Phase.",
+      "proposed_addendum": "CRITICAL: If you have just launched a Protocol or Phase and received user validation (e.g., motivation score), DO NOT ask 'What do you want to talk about?'. IMMEDIATELY proceed to the first concrete instruction of that Phase."
+    },
+    {
+      "action": "append",
+      "rationale": "Fixes the amnesia loop where the Companion ignores progress made by the Architect, causing redundant loops.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#2 USER: C'est bon ! Je suis sur mon tel. On fait quoi maintenant ?\n#3 ASSISTANT(architect): C'est parfait, Le Protocole Sérénité est maintenant officiellement lancé. On va transformer cette sensation d'être submergée en une stabilité solide. Pour commencer, sur une échelle de 1 à 10, quel est ton niveau de motivation aujourd'hui ? Par exemple, tu peux répondre 8 ou 8/10. 🚀\n#4 USER: 8/10, je suis à fond !\n#5 ASSISTANT(architect): C'est une excellente base pour attaquer la Phase 1. Avec cette énergie, on va pouvoir sécuriser ton sanctuaire de repos dès ce soir. On va transformer cette intention en actions concrètes pour que tu retrouves enfin ta stabilité. Merci, 8/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?\n#6 USER: Comment on sécurise mon sanctuaire de repos alors ?\n#7 ASSISTANT(architect): Pour sécuriser ton sanctuaire, on applique la mission Le Débranchement Sacré : sors physiquement tous tes écrans de ta chambre dès maintenant. Ton téléphone doit charger dans une autre pièce pour briser le réflexe du scrolling. 🛡️ C'est une barrière physique indispensable pour que ton cerveau associe à nouveau ton lit au repos et non à la stimulation. Est-ce que tu as un réveil classique ou une autre solution pour te réveiller demain matin sans ton téléphone à portée de main ?\n#8 USER: J'ai un vieux réveil qui traîne, je peux le ressortir.\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nBefore proposing a practical step or explaining a concept, CHECK the conversation history (last 5 turns). If the Architect has already validated that step (e.g., phone location) or explained that concept (e.g., curfew), DO NOT repeat it. Acknowledge the progress and move to the emotional support of that specific action.",
+      "proposed_addendum": "Before proposing a practical step or explaining a concept, CHECK the conversation history (last 5 turns). If the Architect has already validated that step (e.g., phone location) or explained that concept (e.g., curfew), DO NOT repeat it. Acknowledge the progress and move to the emotional support of that specific action."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.068201,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972109203_604df9:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972109203_604df9",
+    "total_tokens": 131245,
+    "output_tokens": 3276,
+    "prompt_tokens": 100617,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "realistic",
+      "simulated_transport"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972109203_604df9:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767972109203_604df9",
+    "description": "WhatsApp onboarding (webhook): accept opt-in with no plan, then simulate that a plan becomes active when user says 'C'est bon' (to test progression past onboarding finalization).",
+    "plan_snapshot": {
+      "plan": {
+        "id": "4385b9ca-b32f-4ede-8658-f9ee5818b6fb",
+        "title": "Le Protocole Sérénité",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "L'Ancrage du Sanctuaire",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "79d4213c-a0c0-4108-a53d-4ff3af8e0795",
+                  "tips": "Achète un réveil matin analogique à la place de ton téléphone. Charge tous tes appareils dans une autre pièce, loin du lit.",
+                  "type": "mission",
+                  "title": "Le Débranchement Sacré",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Rompre l'association neurologique 'lit = écran' est la première étape cruciale pour réapprendre à ton cerveau que le lit est un lieu de repos exclusif.",
+                  "description": "Exiler définitivement tous les écrans (téléphone, tablette, ordinateur) de la chambre à coucher. Leur place est hors de ton sanctuaire de repos.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "c08904d5-9584-4baf-8a45-120fb3793a28",
+                  "tips": "Règle un rappel 1h avant ton heure de coucher idéale. Utilise ce temps pour lire un livre papier, écouter un podcast calme ou discuter avec un proche.",
+                  "type": "habitude",
+                  "title": "Le Couvre-Feu Digital",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "La lumière bleue des écrans perturbe la production de mélatonine. Créer ce sas permet à ton cerveau de se préparer naturellement au sommeil, réduisant les signaux de stimulation.",
+                  "targetReps": 7,
+                  "description": "Cesser toute activité sur écran (TV incluse) 60 minutes avant l'heure de coucher souhaitée. Cette heure est un sas de déconnexion.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Créer un espace propice au repos",
+              "rationale": "Pour briser le lien psychologique entre la chambre et l'activité mentale stimulante, notamment l'usage du téléphone, nous commençons par redéfinir cet espace sacré."
+            },
+            {
+              "id": 2,
+              "title": "Le Silence Intérieur",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "a3f7663f-cae5-4a22-a549-2cf8aa1b1646",
+                  "tips": "Ne te juge pas, écris tout ce qui te passe par la tête sans filtre. L'important est de vider ta mémoire vive pour ne pas la laisser tourner en boucle.",
+                  "type": "framework",
+                  "title": "Le Grand Vide de Cerveau",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Libérer ton esprit de ses charges mentales avant le coucher réduit l'activation du système nerveux sympathique et favorise un endormissement plus serein en évitant la rumination.",
+                  "targetReps": 14,
+                  "description": "Pratiquer 15 minutes d'écriture libre sur tes préoccupations du jour, tes pensées ou tes listes de choses à faire, chaque soir. Ce n'est pas un journal intime, c'est une décharge.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Imagine que ton cerveau est un ordinateur avec trop d'onglets ouverts. Cet exercice est ton bouton 'Fermer tout'. Vide tout ce qui te stresse, te préoccupe ou t'enthousiasme, pour ne pas laisser ton esprit le faire à ta place pendant la nuit.",
+                    "sections": [
+                      {
+                        "id": "s1_p2",
+                        "label": "Mes pensées et préoccupations du jour",
+                        "inputType": "textarea",
+                        "placeholder": "Aujourd'hui, je suis préoccupée par..."
+                      },
+                      {
+                        "id": "s2_p2",
+                        "label": "Une chose positive de ma journée",
+                        "inputType": "text",
+                        "placeholder": "J'ai apprécié..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "b7a97313-f1aa-414e-a4d1-fca75d8b096c",
+                  "tips": "Choisis des activités qui te calment et évite toute stimulation. La constance est la clé pour que ton corps associe ce rituel au sommeil.",
+                  "type": "habitude",
+                  "title": "Le Rituel de Sérénité",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un rituel pré-sommeil signale à ton corps qu'il est temps de se détendre, renforçant l'architecture de ton repos et facilitant la transition vers le sommeil.",
+                  "targetReps": 7,
+                  "description": "Mettre en place une routine apaisante de 20 minutes avant le coucher (lecture calme, musique douce, tisane, étirements légers) APRÈS le couvre-feu digital.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Apaiser le mental avant le sommeil",
+              "rationale": "Ton esprit, qui se sent 'submergé', a besoin d'un exutoire structuré pour ne pas déborder dans ton sommeil. Ces actions visent à réduire activement le bruit mental."
+            },
+            {
+              "id": 3,
+              "title": "La Ritmia Corporelle",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "014cecb8-f8ca-4512-824a-767dfcc2a0b3",
+                  "tips": "Expose-toi à la lumière naturelle dès le réveil. Utilise un réveil lumineux si tu en as un pour un réveil doux.",
+                  "type": "habitude",
+                  "title": "L'Aube Régulière",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La régularité du réveil est le signal le plus puissant pour synchroniser ton horloge biologique, stabilisant ton rythme circadien et améliorant la qualité de ton sommeil nocturne et ton énergie diurne.",
+                  "targetReps": 7,
+                  "description": "Te lever à la même heure chaque jour, y compris le week-end, avec une variation maximale de 30 minutes. La régularité est reine.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "f5122e7e-dd71-44d2-b05f-ae7e8106efa3",
+                  "tips": "Profite de ta pause déjeuner pour faire une courte marche. Pas besoin d'être intense, juste bouger pour stimuler ton corps.",
+                  "type": "habitude",
+                  "title": "La Minute Active",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "L'activité physique modérée en journée aide à réguler le sommeil et à réduire le stress accumulé, contribuant à une fatigue saine en fin de journée et facilitant l'endormissement.",
+                  "targetReps": 7,
+                  "description": "Intégrer 10-15 minutes d'activité physique légère (marche, étirements) en journée, idéalement en extérieur. Même une courte pause est bénéfique.",
+                  "isCompleted": false,
+                  "time_of_day": "afternoon",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Synchroniser corps et esprit avec les cycles naturels",
+              "rationale": "Des journées irrégulières peuvent dérégler ton horloge interne. Nous allons créer des ancrages stables pour ton rythme circadien, essentiels à un sommeil profond et continu."
+            },
+            {
+              "id": 4,
+              "title": "Le Flux de l'Énergie Rétablie",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "c88bf9dc-d56d-45d7-b7d9-b8ac33ac7b81",
+                  "tips": "Note l'heure, la durée approximative, et ce qui te traversait l'esprit. Ne te force pas à te rendormir, mais observe sans jugement.",
+                  "type": "framework",
+                  "title": "La Cartographie des Réveils Nocturnes",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Comprendre les schémas de tes réveils nocturnes est essentiel pour identifier et adresser les causes sous-jacentes, et ainsi consolider la profondeur et la continuité de ton sommeil.",
+                  "targetReps": 7,
+                  "description": "Analyser les déclencheurs potentiels de tes réveils nocturnes en remplissant un court journal si cela se produit. L'observation est la clé de la compréhension.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "L'objectif n'est pas de juger ta capacité à dormir, mais d'observer les phénomènes. Si tu te réveilles, prends quelques minutes pour noter sans te lever ni allumer de lumière. Tu cherches des motifs et des corrélations.",
+                    "sections": [
+                      {
+                        "id": "s1_p4",
+                        "label": "Heure du réveil",
+                        "inputType": "text",
+                        "placeholder": "Ex: 03h15"
+                      },
+                      {
+                        "id": "s2_p4",
+                        "label": "Ce qui me préoccupait / Cause probable (si connue)",
+                        "inputType": "textarea",
+                        "placeholder": "Ex: Stress lié au travail / Envie d'aller aux toilettes / Bruit extérieur"
+                      },
+                      {
+                        "id": "s3_p4",
+                        "label": "Sentiment au réveil (1-10)",
+                        "inputType": "scale",
+                        "placeholder": "Ex: 6 (Anxieux), 3 (Détendu), 8 (Frustré)"
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "6eddef3e-a9b5-41aa-87fc-4dd3c10bdab2",
+                  "tips": "La température idéale est entre 18-19°C. Utilise des bouchons d'oreille et un masque de sommeil si des bruits ou lumières parasites subsistent. Vérifie l'étanchéité à la lumière de tes rideaux.",
+                  "type": "mission",
+                  "title": "L'Audit du Sommeil Profond",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement optimisé maximise l'efficacité de tes nouvelles habitudes et minimise les perturbations sensorielles qui peuvent affecter la profondeur de ton sommeil et tes réveils nocturnes.",
+                  "description": "Évaluer et optimiser les derniers détails de ton environnement de sommeil (température de la chambre, insonorisation, obscurité). Chaque détail compte.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Optimisation et ancrage des nouvelles fondations",
+              "rationale": "Maintenant que les bases sont posées, il est temps d'affiner, de comprendre les résistances résiduelles et de solidifier tes acquis pour une énergie et une stabilité durables."
+            }
+          ],
+          "deepWhy": "Pour retrouver l'énergie d'être stable et présente au quotidien, sans me sentir submergée, et ainsi vivre pleinement mes journées.",
+          "identity": "Je suis une Architecte de mon Repos, maîtresse de mon énergie et de mon calme intérieur.",
+          "strategy": "Nous allons progressivement désamorcer les sources de perturbation du sommeil en réorganisant ton environnement et tes rituels, pour ancrer un repos profond et stable. Le but est de te donner les outils pour gérer ton énergie sur le long terme.",
+          "goldenRules": "1. Ma chambre est un sanctuaire sans écran.\n2. Chaque soir, je me décharge mentalement avant de dormir.\n3. Je respecte les signaux de mon corps pour un repos réparateur.",
+          "vitalSignal": {
+            "name": "Temps d'écran avant coucher",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "60",
+            "description": "Nous allons réduire progressivement le temps passé sur écran dans l'heure précédant le coucher, visant zéro minute au moment d'aller au lit.",
+            "targetValue": "0",
+            "time_of_day": "night",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole Sérénité",
+          "context_problem": "Tu te sens submergée par des journées irrégulières, ce qui te pousse à compenser ta fatigue par un usage excessif du téléphone, particulièrement le soir. Cette dépendance aux écrans impacte ton sommeil, causant des réveils nocturnes et une énergie fluctuante, t'empêchant d'être pleinement stable au quotidien.",
+          "sophiaKnowledge": "Tu es une femme née en 1992, confrontée à des journées irrégulières et un niveau de stress moyen. Bien que ta qualité de sommeil soit globalement bonne, tu souffres de scrolling tard le soir et de réveils nocturnes. Ces habitudes épuisent ton énergie et te submergent. Ton niveau d'activité physique est faible, et tu compenses la fatigue par l'usage du téléphone. Tu es motivée à retrouver stabilité et énergie au quotidien.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois as-tu utilisé un écran (téléphone, tablette) dans ta chambre au lit cette semaine ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "80bea2c3-f698-4e28-9a99-845e3e68ce9e",
+        "deep_why": "Pour retrouver l'énergie d'être stable et présente au quotidien, sans me sentir submergée, et ainsi vivre pleinement mes journées.",
+        "created_at": "2026-01-09T15:23:07.910408+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "8386a4ef-1439-476e-a554-c948bc036b07",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "79d4213c-a0c0-4108-a53d-4ff3af8e0795",
+          "title": "Le Débranchement Sacré",
+          "status": "active",
+          "created_at": "2026-01-09T15:23:07.917201+00:00",
+          "description": "Exiler définitivement tous les écrans (téléphone, tablette, ordinateur) de la chambre à coucher. Leur place est hors de ton sanctuaire de repos.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T15:23:07.915+00:00"
+        },
+        {
+          "id": "c08904d5-9584-4baf-8a45-120fb3793a28",
+          "title": "Le Couvre-Feu Digital",
+          "status": "active",
+          "created_at": "2026-01-09T15:23:07.917201+00:00",
+          "description": "Cesser toute activité sur écran (TV incluse) 60 minutes avant l'heure de coucher souhaitée. Cette heure est un sas de déconnexion.",
+          "target_reps": 7,
+          "time_of_day": "night",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T15:23:07.915+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole Sérénité\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour retrouver l'énergie d'être stable et présente au quotidien, sans me sentir submergée, et ainsi vivre pleinement mes journées.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"L'Ancrage du Sanctuaire\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"79d4213c-a0c0-4108-a53d-4ff3af8e0795\",\n          \"tips\": \"Achète un réveil matin analogique à la place de ton téléphone. Charge tous tes appareils dans une autre pièce, loin du lit.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Débranchement Sacré\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Rompre l'association neurologique 'lit = écran' est la première étape cruciale pour réapprendre à ton cerveau que le lit est un lieu de repos exclusif.\",\n          \"description\": \"Exiler définitivement tous les écrans (téléphone, tablette, ordinateur) de la chambre à coucher. Leur place est hors de ton sanctuaire de repos.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"c08904d5-9584-4baf-8a45-120fb3793a28\",\n          \"tips\": \"Règle un rappel 1h avant ton heure de coucher idéale. Utilise ce temps pour lire un livre papier, écouter un podcast calme ou discuter avec un proche.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Couvre-Feu Digital\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"La lumière bleue des écrans perturbe la production de mélatonine. Créer ce sas permet à ton cerveau de se préparer naturellement au sommeil, réduisant les signaux de stimulation.\",\n          \"targetReps\": 7,\n          \"description\": \"Cesser toute activité sur écran (TV incluse) 60 minutes avant l'heure de coucher souhaitée. Cette heure est un sas de déconnexion.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Créer un espace propice au repos\",\n      \"rationale\": \"Pour briser le lien psychologique entre la chambre et l'activité mentale stimulante, notamment l'usage du téléphone, nous commençons par redéfinir cet espace sacré.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Le Silence Intérieur\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"a3f7663f-cae5-4a22-a549-2cf8aa1b1646\",\n          \"tips\": \"Ne te juge pas, écris tout ce qui te passe par la tête sans filtre. L'important est de vider ta mémoire vive pour ne pas la laisser tourner en boucle.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Grand Vide de Cerveau\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Libérer ton esprit de ses charges mentales avant le coucher réduit l'activation du système nerveux sympathique et favorise un endormissement plus serein en évitant la rumination.\",\n          \"targetReps\": 14,\n          \"description\": \"Pratiquer 15 minutes d'écriture libre sur tes préoccupations du jour, tes pensées ou tes listes de choses à faire, chaque soir. Ce n'est pas un journal intime, c'est une décharge.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Imagine que ton cerveau est un ordinateur avec trop d'onglets ouverts. Cet exercice est ton bouton 'Fermer tout'. Vide tout ce qui te stresse, te préoccupe ou t'enthousiasme, pour ne pas laisser ton esprit le faire à ta place pendant la nuit.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p2\",\n                \"label\": \"Mes pensées et préoccupations du jour\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Aujourd'hui, je suis préoccupée par...\"\n              },\n              {\n                \"id\": \"s2_p2\",\n                \"label\": \"Une chose positive de ma journée\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"J'ai apprécié...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"b7a97313-f1aa-414e-a4d1-fca75d8b096c\",\n          \"tips\": \"Choisis des activités qui te calment et évite toute stimulation. La constance est la clé pour que ton corps associe ce rituel au sommeil.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel de Sérénité\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un rituel pré-sommeil signale à ton corps qu'il est temps de se détendre, renforçant l'architecture de ton repos et facilitant la transition vers le sommeil.\",\n          \"targetReps\": 7,\n          \"description\": \"Mettre en place une routine apaisante de 20 minutes avant le coucher (lecture calme, musique douce, tisane, étirements légers) APRÈS le couvre-feu digital.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Apaiser le mental avant le sommeil\",\n      \"rationale\": \"Ton esprit, qui se sent 'submergé', a besoin d'un exutoire structuré pour ne pas déborder dans ton sommeil. Ces actions visent à réduire activement le bruit mental.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"La Ritmia Corporelle\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"014cecb8-f8ca-4512-824a-767dfcc2a0b3\",\n          \"tips\": \"Expose-toi à la lumière naturelle dès le réveil. Utilise un réveil lumineux si tu en as un pour un réveil doux.\",\n          \"type\": \"habitude\",\n          \"title\": \"L'Aube Régulière\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La régularité du réveil est le signal le plus puissant pour synchroniser ton horloge biologique, stabilisant ton rythme circadien et améliorant la qualité de ton sommeil nocturne et ton énergie diurne.\",\n          \"targetReps\": 7,\n          \"description\": \"Te lever à la même heure chaque jour, y compris le week-end, avec une variation maximale de 30 minutes. La régularité est reine.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"f5122e7e-dd71-44d2-b05f-ae7e8106efa3\",\n          \"tips\": \"Profite de ta pause déjeuner pour faire une courte marche. Pas besoin d'être intense, juste bouger pour stimuler ton corps.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Minute Active\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"L'activité physique modérée en journée aide à réguler le sommeil et à réduire le stress accumulé, contribuant à une fatigue saine en fin de journée et facilitant l'endormissement.\",\n          \"targetReps\": 7,\n          \"description\": \"Intégrer 10-15 minutes d'activité physique légère (marche, étirements) en journée, idéalement en extérieur. Même une courte pause est bénéfique.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"afternoon\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Synchroniser corps et esprit avec les cycles naturels\",\n      \"rationale\": \"Des journées irrégulières peuvent dérégler ton horloge interne. Nous allons créer des ancrages stables pour ton rythme circadien, essentiels à un sommeil profond et continu.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Le Flux de l'Énergie Rétablie\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"c88bf9dc-d56d-45d7-b7d9-b8ac33ac7b81\",\n          \"tips\": \"Note l'heure, la durée approximative, et ce qui te traversait l'esprit. Ne te force pas à te rendormir, mais observe sans jugement.\",\n          \"type\": \"framework\",\n          \"title\": \"La Cartographie des Réveils Nocturnes\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Comprendre les schémas de tes réveils nocturnes est essentiel pour identifier et adresser les causes sous-jacentes, et ainsi consolider la profondeur et la continuité de ton sommeil.\",\n          \"targetReps\": 7,\n          \"description\": \"Analyser les déclencheurs potentiels de tes réveils nocturnes en remplissant un court journal si cela se produit. L'observation est la clé de la compréhension.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"L'objectif n'est pas de juger ta capacité à dormir, mais d'observer les phénomènes. Si tu te réveilles, prends quelques minutes pour noter sans te lever ni allumer de lumière. Tu cherches des motifs et des corrélations.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p4\",\n                \"label\": \"Heure du réveil\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: 03h15\"\n              },\n              {\n                \"id\": \"s2_p4\",\n                \"label\": \"Ce qui me préoccupait / Cause probable (si connue)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ex: Stress lié au travail / Envie d'aller aux toilettes / Bruit extérieur\"\n              },\n              {\n                \"id\": \"s3_p4\",\n                \"label\": \"Sentiment au réveil (1-10)\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"Ex: 6 (Anxieux), 3 (Détendu), 8 (Frustré)\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"6eddef3e-a9b5-41aa-87fc-4dd3c10bdab2\",\n          \"tips\": \"La température idéale est entre 18-19°C. Utilise des bouchons d'oreille et un masque de sommeil si des bruits ou lumières parasites subsistent. Vérifie l'étanchéité à la lumière de tes rideaux.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Audit du Sommeil Profond\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement optimisé maximise l'efficacité de tes nouvelles habitudes et minimise les perturbations sensorielles qui peuvent affecter la profondeur de ton sommeil et tes réveils nocturnes.\",\n          \"description\": \"Évaluer et optimiser les derniers détails de ton environnement de sommeil (température de la chambre, insonorisation, obscurité). Chaque détail compte.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Optimisation et ancrage des nouvelles fondations\",\n      \"rationale\": \"Maintenant que les bases sont posées, il est temps d'affiner, de comprendre les résistances résiduelles et de solidifier tes acquis pour une énergie et une stabilité durables.\"\n    }\n  ],\n  \"deepWhy\": \"Pour retrouver l'énergie d'être stable et présente au quotidien, sans me sentir submergée, et ainsi vivre pleinement mes journées.\",\n  \"identity\": \"Je suis une Architecte de mon Repos, maîtresse de mon énergie et de mon calme intérieur.\",\n  \"strategy\": \"Nous allons progressivement désamorcer les sources de perturbation du sommeil en réorganisant ton environnement et tes rituels, pour ancrer un repos profond et stable. Le but est de te donner les outils pour gérer ton énergie sur le long terme.\",\n  \"goldenRules\": \"1. Ma chambre est un sanctuaire sans écran.\\n2. Chaque soir, je me décharge mentalement avant de dormir.\\n3. Je respecte les signaux de mon corps pour un repos réparateur.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps d'écran avant coucher\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"60\",\n    \"description\": \"Nous allons réduire progressivement le temps passé sur écran dans l'heure précédant le coucher, visant zéro minute au moment d'aller au lit.\",\n    \"targetValue\": \"0\",\n    \"time_of_day\": \"night\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole Sérénité\",\n  \"context_problem\": \"Tu te sens submergée par des journées irrégulières, ce qui te pousse à compenser ta fatigue par un usage excessif du téléphone, particulièrement le soir. Cette dépendance aux écrans impacte ton sommeil, causant des réveils nocturnes et une énergie fluctuante, t'empêchant d'être pleinement stable au quotidien.\",\n  \"sophiaKnowledge\": \"Tu es une femme née en 1992, confrontée à des journées irrégulières et un niveau de stress moyen. Bien que ta qualité de sommeil soit globalement bonne, tu souffres de scrolling tard le soir et de réveils nocturnes. Ces habitudes épuisent ton énergie et te submergent. Ton niveau d'activité physique est faible, et tu compenses la fatigue par l'usage du téléphone. Tu es motivée à retrouver stabilité et énergie au quotidien.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois as-tu utilisé un écran (téléphone, tablette) dans ta chambre au lit cette semaine ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Le Débranchement Sacré (any_time)\n- [ACTION] Le Couvre-Feu Digital (night)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps d'écran avant coucher: 60 min\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

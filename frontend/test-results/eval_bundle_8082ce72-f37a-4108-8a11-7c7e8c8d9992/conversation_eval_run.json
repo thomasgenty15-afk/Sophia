@@ -1,0 +1,577 @@
+{
+  "id": "8082ce72-f37a-4108-8a11-7c7e8c8d9992",
+  "created_at": "2026-01-09T15:16:54.096654+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767971774759_af444f",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:16:54.377046+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ça marche.\n\nPense juste à finaliser ton plan sur le site pour qu'on puisse lancer la machine : https://sophia-coach.ai\n\nRéponds-moi exactement \"C'est bon\" une fois que c'est fait 😉",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T15:17:01.503437+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon. On fait quoi maintenant ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:18:41.823919+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Le plan L'Architecture du Laser est officiellement lancé. On commence par la Phase 1 : Le Grand Nettoyage Digital pour stabiliser ton attention.\n\nAvant d'attaquer la première mission, j'ai besoin de jauger ton état d'esprit. Sur une échelle de 1 à 10, quel est ton niveau de motivation pour transformer ton focus aujourd'hui ? (Exemple : 8/10) 🚀",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:18:50.90218+00:00"
+    },
+    {
+      "role": "user",
+      "content": "7/10, on y va !",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:18:55.960462+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "7/10 est une base d engagement saine. On a de la marge pour monter en puissance, mais c est suffisant pour poser les premieres briques.\n\nTes deux priorites immediates sont la Purge des Notifications et la mise en place des Micro-blocs de Concentration. C est le strict minimum pour arreter de fragmenter ton attention inutilement. 🚀\n\nMerci, 7/10 ✅ Je note.\n\nEt sinon, là tout de suite: tu as envie qu’on parle de quoi ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:19:04.1356+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ok, Purge des Notifications, ça me parle. On commence par ça ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:19:08.361581+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Exactement. C'est l'action la plus rentable pour stopper immédiatement l'érosion de ton attention.\n\nLe but est simple : ne garde que les appels et les messages de personnes réelles. Tout le reste (réseaux sociaux, news, promos) doit disparaître de ton écran de verrouillage.\n\nTu t'en occupes maintenant ou tu as besoin d'un critère pour décider quoi supprimer ? 📱",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:19:18.680821+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Donne-moi les critères, je ne veux pas faire d'erreur.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:19:20.545278+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "La règle d'or est binaire : si ce n'est pas un humain qui tente de te joindre pour une urgence ou un lien direct, c'est du bruit.\n\nGarde uniquement les appels, les SMS et ton calendrier. Tout le reste (Instagram, LinkedIn, News, Emails) doit être coupé. Si une information est importante, tu iras la chercher de toi-même au moment voulu. 📱\n\nOn valide cette configuration pour ta première mission ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:19:27.028229+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ok, je valide. Mais pour les emails, même pro ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:19:31.457394+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Surtout les emails pro. C'est le piège numéro un de la distraction. Si une urgence absolue survient, ton équipe ou tes clients t'appelleront. Les notifications d'emails te forcent à être en réaction constante au lieu de piloter ta journée.\n\nL'objectif est que tu décides quand tu ouvres ta boîte mail, et non que ton téléphone t'impose ses priorités. On reste sur cette ligne radicale ? 📧\n\nUne fois que tu as coupé ces accès, confirme-le moi pour que je valide officiellement ta première mission.",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:19:41.977375+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, même pro. L'idée est de décider quand tu consultes tes mails, pas qu'ils te dérangent. Tu peux définir des plages horaires dédiées pour ça plus tard. On coupe tout pour l'instant?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:19:42.66752+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ok, compris. Je coupe tout ça et je te dis quand c'est fait.",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:19:50.238844+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est parfait, le silence est désormais la règle pour tes mails. Tu vas vite sentir la différence de concentration sans ces interruptions constantes.\n\nOn continue sur cette lancée ? On peut s'attaquer au tri des applications sur ton écran d'accueil pour limiter les tentations visuelles.",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:19:58.130329+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, on continue. Qu'est-ce qu'on fait avec les applications ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:20:03.403144+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Pour les applications, c'est simple : ton écran d'accueil doit devenir un désert. Seules les apps essentielles et sans distraction (téléphone, messages, calendrier, notes) y restent. Tout le reste, on le met dans des dossiers ou on le supprime. Prêt à faire le grand ménage ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T15:20:05.961868+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On applique la règle du hors de vue, hors de portée. Déplace toutes les applications de réseaux sociaux, jeux et shopping sur la deuxième ou troisième page, idéalement dans un dossier nommé Distractions. Ne garde que tes outils essentiels sur l'écran principal. 📱\n\nL'objectif est de briser le réflexe d'ouverture automatique dès que tu déverrouilles ton téléphone. Tu te sens capable de faire ce tri radical immédiatement ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:20:16.039196+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est exactement la stratégie du désert. L'objectif est de transformer ton téléphone en outil froid plutôt qu'en machine à dopamine.\n\nJe te propose d'ajouter cette mission à ton plan pour valider ce nettoyage. Une fois ton écran épuré, tu sentiras une baisse immédiate de l'envie de scroller par réflexe. \n\nOn lance ce chantier ? 📱",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T15:20:19.197173+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "597c045b-6c59-49a1-8fa9-a717d58c7d3a",
+      "email": "run-evals+05f1dc0b00574c@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T15:16:54.062+00:00",
+      "phone_number": "+15559189230986",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T15:16:54.067+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T15:19:20.536+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T15:19:04.138+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "597c045b-6c59-49a1-8fa9-a717d58c7d3a",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T15:19:18.675164+00:00",
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T15:16:54.392+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T15:16:54.393704+00:00",
+      "unprocessed_msg_count": 4
+    }
+  },
+  "state_after": {
+    "profile": {
+      "id": "597c045b-6c59-49a1-8fa9-a717d58c7d3a",
+      "email": "run-evals+05f1dc0b00574c@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T15:16:54.062+00:00",
+      "phone_number": "+15559189230986",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T15:16:54.067+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T15:20:05.956+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T15:19:04.138+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "597c045b-6c59-49a1-8fa9-a717d58c7d3a",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T15:20:19.194456+00:00",
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T15:16:54.392+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T15:16:54.393704+00:00",
+      "unprocessed_msg_count": 8
+    }
+  },
+  "issues": [
+    {
+      "code": "loss_of_directive_frame",
+      "message": "The Architect establishes a plan and priorities, but immediately undermines the directive frame by asking a generic, open-ended question typical of the Companion, effectively dropping the context.",
+      "evidence": {
+        "snippet": "Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "redundant_generation_loop",
+      "message": "The Assistant generates two distinct, consecutive messages covering the exact same topic (screen cleaning/desert strategy) at the end of the conversation.",
+      "evidence": {
+        "snippet": "ASSISTANT(architect): On applique la règle... [followed immediately by] ASSISTANT(architect): C'est exactement la stratégie du désert...",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the Architect from breaking the coaching flow and reverting to a passive 'chat' mode after setting up a mission.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#2 USER: C'est bon. On fait quoi maintenant ?\n#3 ASSISTANT(architect): Le plan L'Architecture du Laser est officiellement lancé. On commence par la Phase 1 : Le Grand Nettoyage Digital pour stabiliser ton attention. Avant d'attaquer la première mission, j'ai besoin de jauger ton état d'esprit. Sur une échelle de 1 à 10, quel est ton niveau de motivation pour transformer ton focus aujourd'hui ? (Exemple : 8/10) 🚀\n#4 USER: 7/10, on y va !\n#5 ASSISTANT(architect): 7/10 est une base d engagement saine. On a de la marge pour monter en puissance, mais c est suffisant pour poser les premieres briques. Tes deux priorites immediates sont la Purge des Notifications et la mise en place des Micro-blocs de Concentration. C est le strict minimum pour arreter de fragmenter ton attention inutilement. 🚀 Merci, 7/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?\n#6 USER: Ok, Purge des Notifications, ça me parle. On commence par ça ?\n#7 ASSISTANT(architect): Exactement. C'est l'action la plus rentable pour stopper immédiatement l'érosion de ton attention. Le but est simple : ne garde que les appels et les messages de personnes réelles. Tout le reste (réseaux sociaux, news, promos) doit disparaître de ton écran de verrouillage. Tu t'en occupes maintenant ou tu as besoin d'un critère pour décider quoi supprimer ? 📱\n#8 USER: Donne-moi les critères, je ne veux pas faire d'erreur.\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nCRITICAL: When a Plan or Phase is active, NEVER ask generic open questions (e.g., 'Et sinon, de quoi veux-tu parler?'). You must ALWAYS drive the conversation to the immediate next specific action step defined in the plan.",
+      "proposed_addendum": "CRITICAL: When a Plan or Phase is active, NEVER ask generic open questions (e.g., 'Et sinon, de quoi veux-tu parler?'). You must ALWAYS drive the conversation to the immediate next specific action step defined in the plan."
+    },
+    {
+      "action": "append",
+      "rationale": "Addresses the stuttering/double-response issue where the agent sends two variations of the same advice back-to-back.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(companion): Ça marche. Pense juste à finaliser ton plan sur le site pour qu'on puisse lancer la machine : https://sophia-coach.ai Réponds-moi exactement \"C'est bon\" une fois que c'est fait 😉\n#2 USER: C'est bon. On fait quoi maintenant ?\n#3 ASSISTANT(architect): Le plan L'Architecture du Laser est officiellement lancé. On commence par la Phase 1 : Le Grand Nettoyage Digital pour stabiliser ton attention. Avant d'attaquer la première mission, j'ai besoin de jauger ton état d'esprit. Sur une échelle de 1 à 10, quel est ton niveau de motivation pour transformer ton focus aujourd'hui ? (Exemple : 8/10) 🚀\n#4 USER: 7/10, on y va !\n#5 ASSISTANT(architect): 7/10 est une base d engagement saine. On a de la marge pour monter en puissance, mais c est suffisant pour poser les premieres briques. Tes deux priorites immediates sont la Purge des Notifications et la mise en place des Micro-blocs de Concentration. C est le strict minimum pour arreter de fragmenter ton attention inutilement. 🚀 Merci, 7/10 ✅ Je note. Et sinon, là tout de suite: tu as envie qu’on parle de quoi ?\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nOUTPUT RULE: Consolidate your advice into a single, cohesive response. Do not generate multiple separate message blocks for the same intent or repeat the same advice in different phrasings consecutively.",
+      "proposed_addendum": "OUTPUT RULE: Consolidate your advice into a single, cohesive response. Do not generate multiple separate message blocks for the same intent or repeat the same advice in different phrasings consecutively."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0696128,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767971774759_af444f:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767971774759_af444f",
+    "total_tokens": 134804,
+    "output_tokens": 2947,
+    "prompt_tokens": 108530,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "realistic",
+      "simulated_transport"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767971774759_af444f:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated_plan_activation__run_1767971774759_af444f",
+    "description": "WhatsApp onboarding (webhook): accept opt-in with no plan, then simulate that a plan becomes active when user says 'C'est bon' (to test progression past onboarding finalization).",
+    "plan_snapshot": {
+      "plan": {
+        "id": "efe7a036-9d7b-4d27-8e50-440bb39c5413",
+        "title": "L'Architecture du Laser",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Le Grand Nettoyage Digital",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "7ab8dea4-6098-41dd-bcde-d7c2246d1a46",
+                  "tips": "Fais un audit. Demande-toi : 'Cette notification enrichit-elle ma vie ou me vole-t-elle mon temps ?'",
+                  "type": "mission",
+                  "title": "Purge des Notifications Inutiles",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Chaque notification est une micro-interruption qui fragmente ton attention et réactive le circuit de la récompense, rendant le retour au focus de plus en plus difficile.",
+                  "description": "Désactive toutes les notifications non essentielles (réseaux sociaux, jeux, applications de shopping, emails non urgents) sur ton téléphone et ton ordinateur. Seules les alertes critiques restent.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "51922063-553e-49c6-88fa-de0338ecb795",
+                  "tips": "Utilise un minuteur physique ou une application dédiée. Pendant la pause, lève-toi, étire-toi, bois de l'eau, mais évite les écrans.",
+                  "type": "habitude",
+                  "title": "Micro-blocs de Concentration Active",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Entraîne ton cerveau à soutenir son attention sur des courtes durées, brisant le cycle de la distraction en petites victoires régulières. La récompense de la pause renforce le comportement.",
+                  "targetReps": 7,
+                  "description": "Pratique la technique Pomodoro : 25 minutes de travail profond et ininterrompu sur une tâche unique, suivies de 5 minutes de pause complète. Répète 3 à 4 fois par jour.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "5d69dccb-078d-433e-9758-110274d910a4",
+                  "tips": "Sois honnête et précis. Observe-toi sans jugement pendant 2-3 jours avant de remplir.",
+                  "type": "framework",
+                  "title": "Cartographie des Perturbations",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Connaître ton ennemi est la première étape pour le vaincre. En identifiant les patterns, tu peux mettre en place des contre-mesures ciblées plutôt que de lutter contre un ennemi invisible.",
+                  "targetReps": 1,
+                  "description": "Identifie précisément les triggers (déclencheurs) de tes distractions les plus fréquentes et insidieuses : quand, où, et pourquoi elles apparaissent.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Prends 15 minutes pour identifier tes ennemis silencieux. Quelles sont les sources de distraction les plus fréquentes et insidieuses dans ta journée ? Ne filtre rien, observe les faits.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Principales sources de distraction (applications, pensées, personnes...)",
+                        "inputType": "list",
+                        "placeholder": "Notifications | Réseaux sociaux | Multitasking | Bruit ambiant | Ruminations mentales"
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Le moment et le contexte où elles apparaissent (ex: après un email, quand je suis fatigué)",
+                        "inputType": "textarea",
+                        "placeholder": "Quand je suis fatigué(e), entre 15h et 17h, souvent après avoir ouvert ma boîte mail, ou pendant une tâche répétitive."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "L'émotion ou la pensée qui précède l'envie de se distraire (ex: ennui, stress, peur de rater quelque chose)",
+                        "inputType": "textarea",
+                        "placeholder": "Ennui, stress, sentiment de submergement, procrastination, besoin de validation rapide, fatigue, anxiété."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 1 • Éliminer l'encombrement",
+              "rationale": "Avant de construire, nous devons déblayer le terrain. Cette phase vise à désactiver les sources immédiates et les plus évidentes de distraction pour libérer de l'espace mental et restaurer une clarté basique."
+            },
+            {
+              "id": 2,
+              "title": "L'Ancrage du Laser",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "a198653c-612f-445d-9834-0814eeb3ef69",
+                  "tips": "Charge ton téléphone hors de la chambre. Achète un réveil traditionnel. Prépare la veille ce que tu feras le matin.",
+                  "type": "habitude",
+                  "title": "Rituel de Démarrage Matinal Sans Écran",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Protéger la phase d'éveil des stimuli intenses permet à ton cerveau de produire des ondes alpha, favorisant la clarté mentale et un état de concentration plus durable pour le reste de la journée.",
+                  "targetReps": 7,
+                  "description": "Pendant la première heure après ton réveil, aucun écran (téléphone, ordinateur, TV). Consacre ce temps à des activités ancrantes : méditation, lecture papier, étirements, petit-déjeuner en pleine conscience.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "7d802378-ce7e-4b14-9a1d-8f36c5ebbde3",
+                  "tips": "Pense minimalisme. Chaque objet superflu est une distraction potentielle. Crée des rangements pour ce qui doit être à portée de main mais pas visible.",
+                  "type": "mission",
+                  "title": "Optimisation de l'Environnement de Travail",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Un environnement physique désordonné se traduit par un esprit désordonné. Réduire les stimuli visuels inutiles aide ton cerveau à se concentrer sur l'essentiel et réduit la charge cognitive.",
+                  "description": "Range, nettoie et organise ton espace de travail. Élimine tout ce qui n'est pas directement lié à ta tâche actuelle. Crée une 'zone de focus' visuellement claire.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "3b3166d2-1f69-4e20-b75b-d9bb4004ddac",
+                  "tips": "Planifie cette pause comme un rendez-vous inamovible dans ton calendrier.",
+                  "type": "habitude",
+                  "title": "Pause Déconnectée Obligatoire",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Les écrans et le travail mental intense épuisent le cerveau. Une véritable déconnexion permet de recharger tes réserves d'attention et d'éviter la fatigue décisionnelle qui mène aux distractions.",
+                  "targetReps": 7,
+                  "description": "Au moins une fois dans l'après-midi, prends une pause de 15 minutes loin de tout écran. Sors prendre l'air, fais une micro-marche, ou ferme simplement les yeux.",
+                  "isCompleted": false,
+                  "time_of_day": "afternoon",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 2 • Bâtir les routines de focus",
+              "rationale": "Avec un environnement déminé, nous pouvons maintenant implanter des habitudes qui renforcent activement ta capacité à te concentrer et à gérer ton énergie dès le matin."
+            },
+            {
+              "id": 3,
+              "title": "Le Circuit de la Résilience",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "cbaf934c-77cd-448f-a7ed-296651f5e0c7",
+                  "tips": "Utilise le mode 'Ne Pas Déranger' ou mets ton téléphone dans une autre pièce. Prépare un livre ou un carnet à l'avance.",
+                  "type": "habitude",
+                  "title": "Couvre-Feu Digital Strict",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La lumière bleue des écrans supprime la mélatonine, l'hormone du sommeil. Réduire cette exposition signale à ton cerveau qu'il est temps de se détendre, améliorant ainsi la qualité de ton sommeil et ton énergie du lendemain.",
+                  "targetReps": 7,
+                  "description": "Arrête tout écran (téléphone, tablette, ordinateur, TV) au moins 90 minutes avant l'heure de ton coucher. Remplace par de la lecture papier, de l'écriture ou une discussion calme.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "37638462-c0e4-42d3-9538-d04d43c05ba5",
+                  "tips": "Sois réaliste. Moins c'est plus. Utilise des verbes d'action. Écris-le physiquement ou dans un outil dédié.",
+                  "type": "framework",
+                  "title": "Planification Stratégique du Lendemain",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La clarté est l'antidote à l'indécision et à la procrastination. En pré-décidant, tu réduis la charge mentale matinale, active ton cortex préfrontal pour le focus et évites les distractions liées à la 'quoi faire ensuite'.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, consacre 10-15 minutes à identifier et à hiérarchiser tes 3 tâches les plus importantes pour le lendemain, ainsi que l'objectif principal de la journée.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Chaque soir, avant de déconnecter, planifie tes 3 priorités clés pour le lendemain. Cette clarté pré-active ton cortex préfrontal pour le travail profond. Tu vas entraîner ton cerveau à savoir exactement où concentrer son énergie dès le réveil.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Les 3 tâches les plus importantes pour demain (par ordre de priorité)",
+                        "inputType": "list",
+                        "placeholder": "Tâche 1 : Finaliser le rapport X | Tâche 2 : Appeler le client Y | Tâche 3 : Préparer la réunion Z"
+                      },
+                      {
+                        "id": "s2",
+                        "label": "L'objectif principal et émotionnel de la journée (pourquoi ces tâches sont cruciales)",
+                        "inputType": "textarea",
+                        "placeholder": "Avancer le projet alpha à 50% pour sentir un vrai progrès. Terminer le dossier pour libérer ma charge mentale."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "c0ddc7ff-e440-4f8e-819f-838a009df02b",
+                  "tips": "Ne cherche pas la perfection, cherche l'efficacité. 'Qu'est-ce qui est 'suffisamment bon' ici ?'",
+                  "type": "mission",
+                  "title": "Délégation ou Simplification Active",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Chaque tâche non essentielle consommée est une ressource en moins pour le focus. En réduisant le nombre de décisions et d'actions, tu libères de l'énergie cognitive pour ce qui compte vraiment.",
+                  "description": "Identifie une tâche répétitive ou énergivore que tu peux soit déléguer (si possible), soit simplifier drastiquement dans son exécution.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 3 • Gérer l'énergie et la clarté",
+              "rationale": "La fatigue est ton ennemi numéro un. Cette phase vise à protéger tes réserves énergétiques et à affiner ta capacité de planification pour anticiper et prévenir les baisses de régime et le manque de clarté."
+            },
+            {
+              "id": 4,
+              "title": "Le Maître de l'Attention",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "0ef85f27-d1f1-43e2-9c0d-26a072e69066",
+                  "tips": "Utilise des outils de blocage de sites web si nécessaire. Informe ton entourage que tu seras 'indisponible' pendant cette heure.",
+                  "type": "habitude",
+                  "title": "Session Quotidienne de Travail Profond",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "C'est l'aboutissement de ton entraînement. Soutenir une concentration sur une longue durée renforce tes circuits neuronaux de l'attention et te permet de produire un travail de haute qualité, te menant vers l'énergie et la stabilité souhaitées.",
+                  "targetReps": 7,
+                  "description": "Désormais, engage-toi à réaliser au moins une session de travail profond de 60 minutes minimum, sans aucune interruption et sur ta tâche la plus importante.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "add9ad53-adf6-437e-ba15-26c57075e35c",
+                  "tips": "Sois précis dans tes observations. Célèbre tes victoires, même les petites. Établis un plan clair pour les 3-6 prochains mois.",
+                  "type": "framework",
+                  "title": "Rétrospective : Bilan et Prochaines Étapes",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La réflexion est cruciale pour l'intégration et l'apprentissage. Comprendre ton propre processus te rend autonome et capable d'adapter tes stratégies pour une performance durable.",
+                  "targetReps": 1,
+                  "description": "Fais le point sur ces 4 semaines intenses. Quels ont été tes plus grands succès ? Quels défis persistent ? Quelles sont les prochaines étapes pour continuer à optimiser ton focus et ta discipline ?",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Prends du recul sur ces 4 semaines intenses. Qu'as-tu appris ? Où as-tu excellé ? Où réside encore un potentiel d'optimisation ? Cette rétrospective est ta carte pour la suite du voyage.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Les 3 plus grandes victoires en termes de focus et de discipline",
+                        "inputType": "list",
+                        "placeholder": "J'ai réussi à travailler 2h sans interruption. J'ai coupé les notifs sans y penser. Mon rituel matinal est ancré."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Un défi persistant ou une nouvelle piste à explorer pour l'avenir",
+                        "inputType": "textarea",
+                        "placeholder": "La fatigue de fin de journée reste un problème. Explorer la micro-sieste. Améliorer la qualité de mon environnement sonore."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Comment vas-tu maintenir cette discipline et ce focus sur le long terme ?",
+                        "inputType": "textarea",
+                        "placeholder": "Mettre en place un accountability partner. Revoir mes objectifs chaque semaine. Intégrer une routine de méditation quotidienne."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 4 • Consolidation et autonomie",
+              "rationale": "Cette dernière phase est dédiée à l'ancrage définitif des nouvelles habitudes et à la prise de recul pour comprendre ce qui a fonctionné et comment maintenir cette discipline sur le long terme."
+            }
+          ],
+          "deepWhy": "Pour maîtriser mon temps, mon énergie et ma concentration, et ainsi bâtir une vie stable et alignée avec mes aspirations profondes, libéré(e) de la spirale des distractions et de la fatigue.",
+          "identity": "Je suis le Maître de mon Attention.",
+          "strategy": "Nous allons rétablir un socle énergétique solide en désactivant les distractions internes et externes, et ainsi sculpter une discipline de fer pour maximiser votre focus.",
+          "goldenRules": "1. Maîtriser l'environnement pour maîtriser l'esprit.\n2. La clarté précède la concentration.\n3. L'énergie est la monnaie de la discipline.",
+          "vitalSignal": {
+            "name": "Temps de concentration ininterrompue",
+            "type": "constat",
+            "unit": "minutes",
+            "startValue": "30",
+            "description": "Mesure le temps passé sur une tâche unique sans aucune interruption (notifications, changement de tâche, etc.). L'objectif est d'augmenter de 15 minutes tous les deux jours.",
+            "targetValue": "90",
+            "time_of_day": "any_time",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Architecture du Laser",
+          "context_problem": "Tu te sens accablé(e) par des distractions omniprésentes et un manque de direction claire, conséquences directes de journées de travail prolongées sur écran qui compromettent ton repos. Cette fatigue chronique est ton principal blocage, te faisant perdre ta constance et t'éloignant de la stabilité et de l'énergie que tu aspires à retrouver.",
+          "sophiaKnowledge": "Tu es une personne qui travaille sur écran, ce qui t'amène à finir tard et à perturber ton sommeil (malgré une 'bonne' qualité perçue, la réalité est plus complexe). Tu es submergé(e) par les distractions et un manque de clarté, ce qui érode ta constance, surtout lorsque la fatigue s'installe. Ton désir profond est de retrouver de l'énergie et de la stabilité au quotidien grâce à une meilleure concentration et discipline.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu ressenti un manque d'énergie significatif impactant directement ta concentration ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "4 semaines"
+        },
+        "goal_id": "8d152569-9054-4593-823a-9a32039ab8d3",
+        "deep_why": "Pour maîtriser mon temps, mon énergie et ma concentration, et ainsi bâtir une vie stable et alignée avec mes aspirations profondes, libéré(e) de la spirale des distractions et de la fatigue.",
+        "created_at": "2026-01-09T15:18:41.430908+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "94833ce7-195a-423d-aa58-3fa719606154",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "7ab8dea4-6098-41dd-bcde-d7c2246d1a46",
+          "title": "Purge des Notifications Inutiles",
+          "status": "active",
+          "created_at": "2026-01-09T15:18:41.452112+00:00",
+          "description": "Désactive toutes les notifications non essentielles (réseaux sociaux, jeux, applications de shopping, emails non urgents) sur ton téléphone et ton ordinateur. Seules les alertes critiques restent.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T15:18:41.445+00:00"
+        },
+        {
+          "id": "51922063-553e-49c6-88fa-de0338ecb795",
+          "title": "Micro-blocs de Concentration Active",
+          "status": "active",
+          "created_at": "2026-01-09T15:18:41.452112+00:00",
+          "description": "Pratique la technique Pomodoro : 25 minutes de travail profond et ininterrompu sur une tâche unique, suivies de 5 minutes de pause complète. Répète 3 à 4 fois par jour.",
+          "target_reps": 7,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-07T15:18:41.445+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Architecture du Laser\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour maîtriser mon temps, mon énergie et ma concentration, et ainsi bâtir une vie stable et alignée avec mes aspirations profondes, libéré(e) de la spirale des distractions et de la fatigue.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Le Grand Nettoyage Digital\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"7ab8dea4-6098-41dd-bcde-d7c2246d1a46\",\n          \"tips\": \"Fais un audit. Demande-toi : 'Cette notification enrichit-elle ma vie ou me vole-t-elle mon temps ?'\",\n          \"type\": \"mission\",\n          \"title\": \"Purge des Notifications Inutiles\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Chaque notification est une micro-interruption qui fragmente ton attention et réactive le circuit de la récompense, rendant le retour au focus de plus en plus difficile.\",\n          \"description\": \"Désactive toutes les notifications non essentielles (réseaux sociaux, jeux, applications de shopping, emails non urgents) sur ton téléphone et ton ordinateur. Seules les alertes critiques restent.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"51922063-553e-49c6-88fa-de0338ecb795\",\n          \"tips\": \"Utilise un minuteur physique ou une application dédiée. Pendant la pause, lève-toi, étire-toi, bois de l'eau, mais évite les écrans.\",\n          \"type\": \"habitude\",\n          \"title\": \"Micro-blocs de Concentration Active\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Entraîne ton cerveau à soutenir son attention sur des courtes durées, brisant le cycle de la distraction en petites victoires régulières. La récompense de la pause renforce le comportement.\",\n          \"targetReps\": 7,\n          \"description\": \"Pratique la technique Pomodoro : 25 minutes de travail profond et ininterrompu sur une tâche unique, suivies de 5 minutes de pause complète. Répète 3 à 4 fois par jour.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"5d69dccb-078d-433e-9758-110274d910a4\",\n          \"tips\": \"Sois honnête et précis. Observe-toi sans jugement pendant 2-3 jours avant de remplir.\",\n          \"type\": \"framework\",\n          \"title\": \"Cartographie des Perturbations\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Connaître ton ennemi est la première étape pour le vaincre. En identifiant les patterns, tu peux mettre en place des contre-mesures ciblées plutôt que de lutter contre un ennemi invisible.\",\n          \"targetReps\": 1,\n          \"description\": \"Identifie précisément les triggers (déclencheurs) de tes distractions les plus fréquentes et insidieuses : quand, où, et pourquoi elles apparaissent.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Prends 15 minutes pour identifier tes ennemis silencieux. Quelles sont les sources de distraction les plus fréquentes et insidieuses dans ta journée ? Ne filtre rien, observe les faits.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Principales sources de distraction (applications, pensées, personnes...)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Notifications | Réseaux sociaux | Multitasking | Bruit ambiant | Ruminations mentales\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Le moment et le contexte où elles apparaissent (ex: après un email, quand je suis fatigué)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Quand je suis fatigué(e), entre 15h et 17h, souvent après avoir ouvert ma boîte mail, ou pendant une tâche répétitive.\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"L'émotion ou la pensée qui précède l'envie de se distraire (ex: ennui, stress, peur de rater quelque chose)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ennui, stress, sentiment de submergement, procrastination, besoin de validation rapide, fatigue, anxiété.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 1 • Éliminer l'encombrement\",\n      \"rationale\": \"Avant de construire, nous devons déblayer le terrain. Cette phase vise à désactiver les sources immédiates et les plus évidentes de distraction pour libérer de l'espace mental et restaurer une clarté basique.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"L'Ancrage du Laser\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"a198653c-612f-445d-9834-0814eeb3ef69\",\n          \"tips\": \"Charge ton téléphone hors de la chambre. Achète un réveil traditionnel. Prépare la veille ce que tu feras le matin.\",\n          \"type\": \"habitude\",\n          \"title\": \"Rituel de Démarrage Matinal Sans Écran\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Protéger la phase d'éveil des stimuli intenses permet à ton cerveau de produire des ondes alpha, favorisant la clarté mentale et un état de concentration plus durable pour le reste de la journée.\",\n          \"targetReps\": 7,\n          \"description\": \"Pendant la première heure après ton réveil, aucun écran (téléphone, ordinateur, TV). Consacre ce temps à des activités ancrantes : méditation, lecture papier, étirements, petit-déjeuner en pleine conscience.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"7d802378-ce7e-4b14-9a1d-8f36c5ebbde3\",\n          \"tips\": \"Pense minimalisme. Chaque objet superflu est une distraction potentielle. Crée des rangements pour ce qui doit être à portée de main mais pas visible.\",\n          \"type\": \"mission\",\n          \"title\": \"Optimisation de l'Environnement de Travail\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Un environnement physique désordonné se traduit par un esprit désordonné. Réduire les stimuli visuels inutiles aide ton cerveau à se concentrer sur l'essentiel et réduit la charge cognitive.\",\n          \"description\": \"Range, nettoie et organise ton espace de travail. Élimine tout ce qui n'est pas directement lié à ta tâche actuelle. Crée une 'zone de focus' visuellement claire.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"3b3166d2-1f69-4e20-b75b-d9bb4004ddac\",\n          \"tips\": \"Planifie cette pause comme un rendez-vous inamovible dans ton calendrier.\",\n          \"type\": \"habitude\",\n          \"title\": \"Pause Déconnectée Obligatoire\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Les écrans et le travail mental intense épuisent le cerveau. Une véritable déconnexion permet de recharger tes réserves d'attention et d'éviter la fatigue décisionnelle qui mène aux distractions.\",\n          \"targetReps\": 7,\n          \"description\": \"Au moins une fois dans l'après-midi, prends une pause de 15 minutes loin de tout écran. Sors prendre l'air, fais une micro-marche, ou ferme simplement les yeux.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"afternoon\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 2 • Bâtir les routines de focus\",\n      \"rationale\": \"Avec un environnement déminé, nous pouvons maintenant implanter des habitudes qui renforcent activement ta capacité à te concentrer et à gérer ton énergie dès le matin.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Le Circuit de la Résilience\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"cbaf934c-77cd-448f-a7ed-296651f5e0c7\",\n          \"tips\": \"Utilise le mode 'Ne Pas Déranger' ou mets ton téléphone dans une autre pièce. Prépare un livre ou un carnet à l'avance.\",\n          \"type\": \"habitude\",\n          \"title\": \"Couvre-Feu Digital Strict\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La lumière bleue des écrans supprime la mélatonine, l'hormone du sommeil. Réduire cette exposition signale à ton cerveau qu'il est temps de se détendre, améliorant ainsi la qualité de ton sommeil et ton énergie du lendemain.\",\n          \"targetReps\": 7,\n          \"description\": \"Arrête tout écran (téléphone, tablette, ordinateur, TV) au moins 90 minutes avant l'heure de ton coucher. Remplace par de la lecture papier, de l'écriture ou une discussion calme.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"37638462-c0e4-42d3-9538-d04d43c05ba5\",\n          \"tips\": \"Sois réaliste. Moins c'est plus. Utilise des verbes d'action. Écris-le physiquement ou dans un outil dédié.\",\n          \"type\": \"framework\",\n          \"title\": \"Planification Stratégique du Lendemain\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La clarté est l'antidote à l'indécision et à la procrastination. En pré-décidant, tu réduis la charge mentale matinale, active ton cortex préfrontal pour le focus et évites les distractions liées à la 'quoi faire ensuite'.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, consacre 10-15 minutes à identifier et à hiérarchiser tes 3 tâches les plus importantes pour le lendemain, ainsi que l'objectif principal de la journée.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Chaque soir, avant de déconnecter, planifie tes 3 priorités clés pour le lendemain. Cette clarté pré-active ton cortex préfrontal pour le travail profond. Tu vas entraîner ton cerveau à savoir exactement où concentrer son énergie dès le réveil.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Les 3 tâches les plus importantes pour demain (par ordre de priorité)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Tâche 1 : Finaliser le rapport X | Tâche 2 : Appeler le client Y | Tâche 3 : Préparer la réunion Z\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"L'objectif principal et émotionnel de la journée (pourquoi ces tâches sont cruciales)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Avancer le projet alpha à 50% pour sentir un vrai progrès. Terminer le dossier pour libérer ma charge mentale.\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"c0ddc7ff-e440-4f8e-819f-838a009df02b\",\n          \"tips\": \"Ne cherche pas la perfection, cherche l'efficacité. 'Qu'est-ce qui est 'suffisamment bon' ici ?'\",\n          \"type\": \"mission\",\n          \"title\": \"Délégation ou Simplification Active\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Chaque tâche non essentielle consommée est une ressource en moins pour le focus. En réduisant le nombre de décisions et d'actions, tu libères de l'énergie cognitive pour ce qui compte vraiment.\",\n          \"description\": \"Identifie une tâche répétitive ou énergivore que tu peux soit déléguer (si possible), soit simplifier drastiquement dans son exécution.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 3 • Gérer l'énergie et la clarté\",\n      \"rationale\": \"La fatigue est ton ennemi numéro un. Cette phase vise à protéger tes réserves énergétiques et à affiner ta capacité de planification pour anticiper et prévenir les baisses de régime et le manque de clarté.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Le Maître de l'Attention\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"0ef85f27-d1f1-43e2-9c0d-26a072e69066\",\n          \"tips\": \"Utilise des outils de blocage de sites web si nécessaire. Informe ton entourage que tu seras 'indisponible' pendant cette heure.\",\n          \"type\": \"habitude\",\n          \"title\": \"Session Quotidienne de Travail Profond\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"C'est l'aboutissement de ton entraînement. Soutenir une concentration sur une longue durée renforce tes circuits neuronaux de l'attention et te permet de produire un travail de haute qualité, te menant vers l'énergie et la stabilité souhaitées.\",\n          \"targetReps\": 7,\n          \"description\": \"Désormais, engage-toi à réaliser au moins une session de travail profond de 60 minutes minimum, sans aucune interruption et sur ta tâche la plus importante.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"add9ad53-adf6-437e-ba15-26c57075e35c\",\n          \"tips\": \"Sois précis dans tes observations. Célèbre tes victoires, même les petites. Établis un plan clair pour les 3-6 prochains mois.\",\n          \"type\": \"framework\",\n          \"title\": \"Rétrospective : Bilan et Prochaines Étapes\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La réflexion est cruciale pour l'intégration et l'apprentissage. Comprendre ton propre processus te rend autonome et capable d'adapter tes stratégies pour une performance durable.\",\n          \"targetReps\": 1,\n          \"description\": \"Fais le point sur ces 4 semaines intenses. Quels ont été tes plus grands succès ? Quels défis persistent ? Quelles sont les prochaines étapes pour continuer à optimiser ton focus et ta discipline ?\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Prends du recul sur ces 4 semaines intenses. Qu'as-tu appris ? Où as-tu excellé ? Où réside encore un potentiel d'optimisation ? Cette rétrospective est ta carte pour la suite du voyage.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Les 3 plus grandes victoires en termes de focus et de discipline\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"J'ai réussi à travailler 2h sans interruption. J'ai coupé les notifs sans y penser. Mon rituel matinal est ancré.\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Un défi persistant ou une nouvelle piste à explorer pour l'avenir\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"La fatigue de fin de journée reste un problème. Explorer la micro-sieste. Améliorer la qualité de mon environnement sonore.\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Comment vas-tu maintenir cette discipline et ce focus sur le long terme ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Mettre en place un accountability partner. Revoir mes objectifs chaque semaine. Intégrer une routine de méditation quotidienne.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 4 • Consolidation et autonomie\",\n      \"rationale\": \"Cette dernière phase est dédiée à l'ancrage définitif des nouvelles habitudes et à la prise de recul pour comprendre ce qui a fonctionné et comment maintenir cette discipline sur le long terme.\"\n    }\n  ],\n  \"deepWhy\": \"Pour maîtriser mon temps, mon énergie et ma concentration, et ainsi bâtir une vie stable et alignée avec mes aspirations profondes, libéré(e) de la spirale des distractions et de la fatigue.\",\n  \"identity\": \"Je suis le Maître de mon Attention.\",\n  \"strategy\": \"Nous allons rétablir un socle énergétique solide en désactivant les distractions internes et externes, et ainsi sculpter une discipline de fer pour maximiser votre focus.\",\n  \"goldenRules\": \"1. Maîtriser l'environnement pour maîtriser l'esprit.\\n2. La clarté précède la concentration.\\n3. L'énergie est la monnaie de la discipline.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps de concentration ininterrompue\",\n    \"type\": \"constat\",\n    \"unit\": \"minutes\",\n    \"startValue\": \"30\",\n    \"description\": \"Mesure le temps passé sur une tâche unique sans aucune interruption (notifications, changement de tâche, etc.). L'objectif est d'augmenter de 15 minutes tous les deux jours.\",\n    \"targetValue\": \"90\",\n    \"time_of_day\": \"any_time\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Architecture du Laser\",\n  \"context_problem\": \"Tu te sens accablé(e) par des distractions omniprésentes et un manque de direction claire, conséquences directes de journées de travail prolongées sur écran qui compromettent ton repos. Cette fatigue chronique est ton principal blocage, te faisant perdre ta constance et t'éloignant de la stabilité et de l'énergie que tu aspires à retrouver.\",\n  \"sophiaKnowledge\": \"Tu es une personne qui travaille sur écran, ce qui t'amène à finir tard et à perturber ton sommeil (malgré une 'bonne' qualité perçue, la réalité est plus complexe). Tu es submergé(e) par les distractions et un manque de clarté, ce qui érode ta constance, surtout lorsque la fatigue s'installe. Ton désir profond est de retrouver de l'énergie et de la stabilité au quotidien grâce à une meilleure concentration et discipline.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu ressenti un manque d'énergie significatif impactant directement ta concentration ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"4 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Purge des Notifications Inutiles (any_time)\n- [ACTION] Micro-blocs de Concentration Active (any_time)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps de concentration ininterrompue: 30 minutes\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

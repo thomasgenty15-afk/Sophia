@@ -68,6 +68,42 @@ function looksLikeExplicitResumeCheckupIntent(m: string): boolean {
   );
 }
 
+function looksLikeMotivationScoreAnswer(message: string): boolean {
+  const s = (message ?? "").toString().trim();
+  // Accept "8", "8/10", "8 / 10", "10", "10/10"
+  return /^(?:10|[0-9])(?:\s*\/\s*10)?$/.test(s);
+}
+
+function lastAssistantAskedForMotivation(lastAssistantMessage: string): boolean {
+  const s = (lastAssistantMessage ?? "").toString().toLowerCase();
+  return (
+    s.includes("niveau de motivation") ||
+    s.includes("sur une échelle") ||
+    s.includes("sur une echelle") ||
+    s.includes("échelle de 1 à 10") ||
+    s.includes("echelle de 1 a 10")
+  );
+}
+
+function looksLikeHowToExerciseQuestion(message: string): boolean {
+  const s = (message ?? "").toString().toLowerCase();
+  if (!s) return false;
+  // "comment je fais", "comment je m'y prends", etc., about concrete exercises
+  if (!/\b(comment|comment\s+faire|comment\s+je|je\s+m['’]y\s+prends|mode\s+d['’]emploi|proc[ée]dure)\b/i.test(s)) return false;
+  return /\b(respir|cycle|journal|carnet|exercice|rituel|micro[-\s]?pause)\b/i.test(s);
+}
+
+function looksLikeWorkPressureVenting(message: string): boolean {
+  const s = (message ?? "").toString().toLowerCase();
+  if (!s) return false;
+  // Typical WhatsApp venting language: not necessarily an emotional emergency.
+  if (!/\b(boulot|travail|job|boss|client|réunion|reunion|deadline)\b/i.test(s)) return false;
+  if (!/\b(pression|stress|sous\s+pression|débord[ée]|deborde|cerveau\s+en\s+vrac|surcharg[ée]|charge\s+mentale|j'en\s+peux\s+plus)\b/i.test(s)) return false;
+  // Do NOT match explicit panic/crisis keywords (handled elsewhere).
+  if (/\b(panique|crise|attaque|je\s+craque|d[ée]tresse|urgence)\b/i.test(s)) return false;
+  return true;
+}
+
 // Classification intelligente par Gemini
 async function analyzeIntentAndRisk(
   message: string,
@@ -219,8 +255,124 @@ export async function processMessage(
 
   const logMessages = opts?.logMessages !== false
   // 1. Log le message user
+  let loggedMessageId: string | null = null
   if (logMessages) {
-    await logMessage(supabase, userId, scope, 'user', userMessage, undefined, opts?.messageMetadata)
+    const { data: inserted } = await supabase.from('chat_messages').insert({
+      user_id: userId,
+      scope,
+      role: 'user',
+      content: userMessage,
+      metadata: opts?.messageMetadata ?? {}
+    }).select('id').single()
+    loggedMessageId = inserted?.id
+  }
+
+  // --- DEBOUNCE / ANTI-RACE CONDITION (Option 2) ---
+  // On attend un court instant pour laisser arriver d'autres messages en rafale.
+  // Ensuite, on vérifie si notre message est toujours le "dernier" en date.
+  // Si un message plus récent existe, on abandonne ce thread (le thread du message suivant traitera le tout).
+  
+  const DEBOUNCE_WAIT_MS = 3500 // 3.5s : Le bon compromis réactivité / sécurité
+  
+  if (loggedMessageId) {
+      await new Promise(resolve => setTimeout(resolve, DEBOUNCE_WAIT_MS))
+
+      // Vérification : Suis-je toujours le dernier message user ?
+      const { data: latestMsg } = await supabase
+          .from('chat_messages')
+          .select('id, created_at')
+          .eq('user_id', userId)
+          .eq('scope', scope)
+          .eq('role', 'user')
+          .order('created_at', { ascending: false })
+          .limit(1)
+          .single()
+
+      if (latestMsg && latestMsg.id !== loggedMessageId) {
+          console.log(`[Router] 🛑 Race condition avoided. Current msg ${loggedMessageId} is older than latest ${latestMsg.id}. Aborting.`)
+          // On renvoie une réponse vide ou un signal spécial pour dire "j'ai rien fait"
+          // Le webhook appelant doit gérer ça (ignorer le retour).
+          return { content: "", mode: "companion", aborted: true }
+      }
+      
+      // Si on est le dernier, on continue.
+      // Note : On doit re-récupérer l'historique complet pour inclure les messages arrivés pendant le sleep.
+      // (La fonction processMessage reçoit `history` en argument, mais il est peut-être périmé maintenant).
+      // Dans l'architecture actuelle, `history` est passé par l'appelant (run-evals/serve ou whatsapp-webhook).
+      // Idéalement, on devrait refetcher l'historique ICI.
+      
+      // On va patcher `history` avec les messages manqués si besoin, ou on fait confiance au context retrieval.
+      // Pour faire simple et robuste : on recharge les derniers messages user depuis la DB et on les ajoute à `history`.
+      
+      const { data: recentMessages } = await supabase
+          .from('chat_messages')
+          .select('role, content, created_at')
+          .eq('user_id', userId)
+          .eq('scope', scope)
+          .order('created_at', { ascending: false })
+          .limit(5) // On regarde juste les tout derniers
+      
+      // On reconstruit un petit historique frais
+      if (recentMessages) {
+          // L'historique passé en arg est peut-être [A], alors qu'en base on a [B, A].
+          // On veut s'assurer que `history` contient bien A et B.
+          // Le plus simple est de remplacer les derniers items de history par la vérité terrain, 
+          // ou de concaténer ce qui manque.
+          // Vu que `processMessage` est stateless, on peut juste utiliser recentMessages inversé pour la fin de l'historique ?
+          // Non, `history` contient aussi tout le contexte précédent.
+          
+          // Hack propre : On concatène le message actuel (déjà dans history normalement ?) 
+          // Attends, `userMessage` est passé en arg. Il n'est PAS dans `history` (history = passé).
+          // Donc si B arrive après A :
+          // Thread A : userMessage = A. Sleep. Check DB -> B existe. Abort.
+          // Thread B : userMessage = B. Sleep. Check DB -> B est last. Continue.
+          // MAIS : Thread B a reçu `history` qui ne contient QUE le passé avant B... c'est à dire A !
+          // Donc Thread B va traiter B, avec A dans son historique. C'est EXACTEMENT ce qu'on veut.
+          // Le seul risque, c'est si A n'était pas encore commité en base quand B a fetché son history.
+          // Mais Thread A a fait son insert AVANT le sleep de B (en théorie, ou presque).
+          
+          // Pour être SÛR à 100% que le message A est pris en compte dans le contexte de B :
+          // On va re-fetcher les messages récents de l'utilisateur (rôle user) qui sont arrivés
+          // entre le début du thread B et maintenant.
+          
+          // En fait, le `history` passé à processMessage vient du client ou d'un fetch pré-process.
+          // Si on est dans le cas WhatsApp, le webhook fetch l'historique AVANT d'appeler processMessage.
+          // Donc si A et B arrivent très vite :
+          // 1. Webhook A fetch history (vide). Appelle process(A). Log A. Sleep.
+          // 2. Webhook B fetch history (vide, car A pas encore commité ou race). Appelle process(B). Log B. Sleep.
+          // 3. A wake up. B est là. A abort.
+          // 4. B wake up. B est last. B continue.
+          // PROBLÈME : B a été appelé avec un history VIDE (il a raté A).
+          // SOLUTION : B doit, après son sleep, aller chercher les messages "orphelins" (comme A) qui sont en base 
+          // mais pas dans son `history` local, et les concaténer à `userMessage` ou à `history`.
+          
+          // Stratégie "Agglomération" :
+          // On prend tous les messages USER récents (depuis 10s) qui sont en base.
+          // On les concatène dans l'ordre chrono.
+          // Le "userMessage" effectif devient "Message A. Message B."
+          
+          const now = new Date()
+          const tenSecondsAgo = new Date(now.getTime() - 10000).toISOString()
+          
+          const { data: burstMessages } = await supabase
+              .from('chat_messages')
+              .select('content, created_at')
+              .eq('user_id', userId)
+              .eq('scope', scope)
+              .eq('role', 'user')
+              .gte('created_at', tenSecondsAgo)
+              .order('created_at', { ascending: true })
+              
+          if (burstMessages && burstMessages.length > 1) {
+              // On a détecté une rafale (A, B...)
+              // On remplace `userMessage` par la concaténation de tout ça.
+              const combinedContent = burstMessages.map(m => m.content).join(" \n\n")
+              console.log(`[Router] 🔗 Burst detected. Merging ${burstMessages.length} messages into one prompt.`)
+              userMessage = combinedContent
+              // On ne touche pas à history, car history c'est le passé lointain.
+              // Les messages récents de la rafale sont maintenant dans `userMessage`.
+          }
+      }
   }
 
   // 2. Récupérer l'état actuel (Mémoire)
@@ -317,11 +469,33 @@ CONTEXTE:
   // 3. Analyse du Chef de Gare (Dispatcher)
   // On récupère le dernier message de l'assistant pour le contexte
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
+  const lastAssistantAgent = history.filter((m: any) => m.role === 'assistant').pop()?.agent_used || null;
   
   const analysis = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage, meta)
   const riskScore = analysis.riskScore
   // If a forceMode is requested (e.g. module conversation), we keep safety priority for sentry.
   let targetMode: AgentMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
+
+  // WhatsApp routing guardrails:
+  // When Architect is running an onboarding "micro-sequence" (motivation score -> first concrete step),
+  // do not let the dispatcher fall back to Companion on short numeric replies.
+  if ((meta?.channel ?? "web") === "whatsapp") {
+    if (
+      looksLikeMotivationScoreAnswer(userMessage) &&
+      lastAssistantAskedForMotivation(lastAssistantMessage) &&
+      lastAssistantAgent === "architect"
+    ) {
+      targetMode = "architect";
+    }
+    if (looksLikeHowToExerciseQuestion(userMessage)) {
+      // Prefer Architect for "how-to" instructions about concrete exercises/actions.
+      targetMode = "architect";
+    }
+    // Avoid over-triggering Firefighter for normal work pressure venting on WhatsApp.
+    if (targetMode === "firefighter" && looksLikeWorkPressureVenting(userMessage) && !looksLikeAcuteDistress(userMessage)) {
+      targetMode = "companion";
+    }
+  }
 
   // Guardrail: during an active checkup, do NOT route to firefighter for "stress" talk unless
   // risk is elevated or the message clearly signals acute distress.
