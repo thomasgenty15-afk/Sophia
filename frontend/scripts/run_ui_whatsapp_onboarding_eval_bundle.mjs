@@ -35,6 +35,23 @@ function dumpCmdToFile(cmd, outFile) {
   }
 }
 
+function sleepMs(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function safeExec(cmd) {
+  try {
+    return { ok: true, stdout: execSync(cmd, { encoding: "utf8", stdio: ["ignore", "pipe", "pipe"] }) };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e?.message ?? String(e),
+      stdout: e?.stdout?.toString?.() ?? "",
+      stderr: e?.stderr?.toString?.() ?? "",
+    };
+  }
+}
+
 function parseBoolEnv(v) {
   const s = String(v ?? "").trim().toLowerCase();
   return s === "1" || s === "true" || s === "yes" || s === "y" || s === "on";
@@ -47,6 +64,7 @@ function parseArgs(argv) {
     turns: 8,
     model: "gemini-2.5-flash",
     timeoutMs: 600000,
+    scenario: null,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -55,6 +73,7 @@ function parseArgs(argv) {
     else if (a === "--turns") out.turns = Number(argv[++i] ?? "8") || 8;
     else if (a === "--model") out.model = String(argv[++i] ?? out.model);
     else if (a === "--timeout-ms") out.timeoutMs = Number(argv[++i] ?? "600000") || 600000;
+    else if (a === "--scenario") out.scenario = String(argv[++i] ?? "").trim() || null;
   }
   out.tests = Math.max(1, Math.min(50, Math.floor(out.tests)));
   out.turns = Math.max(1, Math.min(50, Math.floor(out.turns)));
@@ -162,6 +181,42 @@ function curlInvokeFunctionJson({ url, anonKey, accessToken, fnName, body, timeo
   }
 }
 
+async function invokeWithRetry({ url, anonKey, accessToken, fnName, body, timeoutMs, requestId, maxAttempts = 4 }) {
+  let last = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const out = curlInvokeFunctionJson({ url, anonKey, accessToken, fnName, body, timeoutMs, requestId });
+    last = out;
+    const code = out?.code || out?.error?.code || null;
+    const msg = out?.message || out?.error?.message || out?.error || "";
+    const isBadJwtEnv =
+      code === "BAD_JWT_ENV" ||
+      /bad_jwt/i.test(String(msg)) ||
+      /invalid jwt/i.test(String(msg)) ||
+      /signing method es256/i.test(String(msg));
+    const isWorkerLimit = code === "WORKER_LIMIT" || /WORKER_LIMIT/i.test(String(msg));
+    const isBootError = code === "BOOT_ERROR" || /failed to boot/i.test(String(msg)) || /BOOT_ERROR/i.test(String(msg));
+    const isUpstreamTimeout =
+      /upstream server is timing out/i.test(String(msg)) ||
+      /timing out/i.test(String(msg));
+    const isInternalError = String(msg).trim() === "Internal Server Error";
+    if (!isBadJwtEnv && !isWorkerLimit && !isBootError && !isUpstreamTimeout && !isInternalError && !out?.error) return out;
+
+    const backoff = Math.min(6000, 800 * attempt);
+    console.warn(`[Runner] ${fnName} retryable attempt=${attempt}/${maxAttempts} code=${code ?? "n/a"} backoff_ms=${backoff} msg=${String(msg).slice(0, 180)}`);
+    if (isBadJwtEnv) {
+      // Local flake: edge runtime sometimes boots with stale SUPABASE_* keys (ES256), which breaks auth.admin.
+      safeExec(`cd "${path.join(process.cwd(), "..")}" && ./scripts/supabase_local.sh restart`);
+    } else if (isUpstreamTimeout || isBootError) {
+      // Give Kong/edge-runtime time to come back after restarts.
+      // Also best-effort increase function timeout to match the CLI runner.
+      const timeoutScript = path.join(process.cwd(), "..", "scripts", "local_extend_kong_functions_timeout.sh");
+      if (fs.existsSync(timeoutScript)) safeExec(`TIMEOUT_MS=${timeoutMs ?? 600000} "${timeoutScript}"`);
+    }
+    if (attempt < maxAttempts) await sleepMs(backoff);
+  }
+  return last;
+}
+
 async function fetchEvalRun({ url, serviceRoleKey, evalRunId }) {
   const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const { data, error } = await admin
@@ -220,14 +275,23 @@ async function main() {
   const { accessToken } = await ensureMasterAdminSession({ url, anonKey, serviceRoleKey });
 
   const files = listScenarioFiles();
-  if (files.length === 0) throw new Error("No WhatsApp onboarding scenarios found");
+  const selectedFiles = args.scenario
+    ? files.filter((p) => path.basename(p, ".json") === args.scenario || path.basename(p).includes(args.scenario))
+    : files;
+  if (selectedFiles.length === 0) throw new Error("No WhatsApp onboarding scenarios found (after --scenario filter)");
 
   const seedInt = seedToInt(args.seed ?? "");
   const rand = mulberry32(seedInt);
 
   for (let i = 0; i < args.tests; i++) {
-    const pick = files[Math.floor(rand() * files.length)];
-    const scenario = loadScenario(pick);
+    const pick = selectedFiles[Math.floor(rand() * selectedFiles.length)];
+    const baseScenario = loadScenario(pick);
+    const runSuffix = `run_${Date.now()}_${Math.random().toString(16).slice(2, 8)}`;
+    const scenario = {
+      ...baseScenario,
+      id: `${baseScenario.id}__${runSuffix}`,
+      base_scenario_id: baseScenario.id,
+    };
 
     const startIso = nowIso();
     const startMs = Date.now();
@@ -247,7 +311,7 @@ async function main() {
     };
 
     const stableRequestId = `wa_onboarding_bundle:${scenario.id}:i${i}:s${seedInt}`;
-    const runData = curlInvokeFunctionJson({
+    const runData = await invokeWithRetry({
       url,
       anonKey,
       accessToken,
@@ -255,6 +319,7 @@ async function main() {
       body: { scenarios: [scenario], limits },
       timeoutMs: args.timeoutMs,
       requestId: stableRequestId,
+      maxAttempts: 4,
     });
 
     const durationMs = Date.now() - startMs;
@@ -278,6 +343,7 @@ async function main() {
       request_id: requestId,
       eval_run_id: evalRunId,
       scenario_id: scenario.id,
+      base_scenario_id: baseScenario.id,
       scenario_file: pick,
       random_seed: args.seed ?? null,
       random_seed_int: seedInt,

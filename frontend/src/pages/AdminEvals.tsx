@@ -46,8 +46,12 @@ export default function AdminEvals() {
   const selectedRun = useMemo(() => runs.find((r) => r.id === selectedRunId) ?? null, [runs, selectedRunId]);
 
   useEffect(() => {
+    let cancelled = false;
     async function load() {
       if (!user || !isAdmin) return;
+      const params = new URLSearchParams(window.location.search);
+      const requestedRunId = params.get("run");
+
       const { data: runRows, error: runErr } = await supabase
         .from("conversation_eval_runs")
         .select("id,created_at,dataset_key,scenario_key,status,config,issues,suggestions,transcript,state_before,state_after,error")
@@ -56,11 +60,44 @@ export default function AdminEvals() {
       if (runErr) {
         console.error(runErr);
       } else {
-        setRuns((runRows as any) ?? []);
-        setSelectedRunId((prev) => prev ?? (runRows as any)?.[0]?.id ?? null);
+        let nextRuns = ((runRows as any) ?? []) as EvalRunRow[];
+
+        // If a specific run was requested (ex: from AdminDashboard), ensure it's loaded and selected.
+        if (requestedRunId) {
+          const already = nextRuns.some((r) => r.id === requestedRunId);
+          if (!already) {
+            const { data: one, error: oneErr } = await supabase
+              .from("conversation_eval_runs")
+              .select("id,created_at,dataset_key,scenario_key,status,config,issues,suggestions,transcript,state_before,state_after,error")
+              .eq("id", requestedRunId)
+              .maybeSingle();
+            if (!oneErr && one) {
+              nextRuns = [one as any, ...nextRuns];
+            }
+          }
+          if (cancelled) return;
+          setRuns(nextRuns);
+          setSelectedRunId(requestedRunId);
+          return;
+        }
+
+        if (cancelled) return;
+        setRuns(nextRuns);
+        setSelectedRunId((prev) => prev ?? (nextRuns as any)?.[0]?.id ?? null);
       }
     }
     load();
+
+    // Auto-refresh: when a run completes, transcript/issues are populated after eval-judge.
+    // Admin users often keep this page open while running tests, so we poll lightly.
+    const interval = window.setInterval(() => {
+      load();
+    }, 3000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, [user, isAdmin]);
 
   if (loading || isAdmin === null) {

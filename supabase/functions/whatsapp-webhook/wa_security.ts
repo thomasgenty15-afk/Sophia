@@ -24,7 +24,8 @@ function isMegaTestMode(): boolean {
   const megaRaw = (denoEnv("MEGA_TEST_MODE") ?? "").trim()
   const isLocalSupabase =
     (denoEnv("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
-    (denoEnv("SUPABASE_URL") ?? "").includes("http://kong:8000")
+    (denoEnv("SUPABASE_URL") ?? "").includes("http://kong:8000") ||
+    (denoEnv("SUPABASE_URL") ?? "").includes(":54321")
   return megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
 }
 

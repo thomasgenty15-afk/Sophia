@@ -1,0 +1,110 @@
+Tu es un agent d’audit/optimisation du système Sophia (frontend + supabase edge functions).
+
+Ton objectif: lancer un eval “WhatsApp onboarding” en conditions réelles (LLM réel + webhook WhatsApp + DB réelle), récupérer un bundle complet (DB + logs docker + production log), puis analyser la conversation/les agents/tools et proposer des améliorations actionnables (prompts / code / scénarios), avec un plan de rollout + re-run pour valider.
+
+Contexte important (à garder en tête)
+- Le run “WhatsApp onboarding” se fait via l’edge function `run-evals`, mais la conversation passe par `whatsapp-webhook`.
+- Pour pouvoir tester sans dépendre de Meta/WhatsApp Cloud API, le runner active un transport “loopback” (pas d’envoi Meta) **uniquement pour le test**: le webhook se comporte comme en prod (state machine, routing, DB writes, LLM), mais l’envoi WhatsApp est simulé.
+- Le transcript final (tours user/assistant) est écrit dans `public.conversation_eval_runs.transcript` et affiché dans l’UI admin (`/admin/evals`).
+
+1) Lance la commande (à exécuter telle quelle)
+
+Dans le repo:
+
+### A) Run simple (1 test mécanique, début onboarding)
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
+npm run eval:wa:onboarding:bundle -- --tests 1 --seed 123 --turns 8 --model gemini-2.5-flash --timeout-ms 600000
+
+### B) Run “conversationnel” (simulate-user ↔ webhook) avec 10 tours imposés
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
+npm run eval:wa:onboarding:bundle -- --tests 1 --seed 123 --turns 10 --model gemini-2.5-flash --timeout-ms 600000 --scenario wa_onboarding_optin_yes_no_plan__simulated
+
+Cette commande:
+- lance `run-evals` qui appelle `whatsapp-webhook` (transport loopback activé par le runner)
+- (si scénario `__simulated`) boucle ensuite `simulate-user` ↔ `whatsapp-webhook` pour obtenir une conversation multi-tours
+- exporte un bundle complet dans `frontend/test-results/eval_bundle_<eval_run_id>/`
+
+2) Ce que tu dois ouvrir/collecter après exécution
+
+À partir du bundle_dir affiché:
+- conversation_eval_run.json
+  - transcript complet (WhatsApp)
+  - state_before / state_after (incluant profil WhatsApp + user_chat_states scope=whatsapp)
+  - issues / suggestions (sorties de eval-judge + assertions mécaniques)
+  - metrics (tokens/cost, request_id)
+- docker_edge_runtime.log + docker_edge_runtime.tail.log
+- docker_kong.log + docker_kong.tail.log
+- system_error_logs.json
+- run_evals_response.json
+- bundle_meta.json (durées, request_id, limites, scenario_id)
+- production_log.json (si disponible)
+
+3) Analyse attendue (structurée, exhaustive, orientée actions)
+
+A) Qualité de l’échange (onboarding WhatsApp)
+- Clarté: 1 intention à la fois, instructions simples, pas de pavés inutiles
+- Ton: chaleureux mais pro (éviter slang “caler”, “fais un saut”, “mains liées”), cohérence “moment spécial”
+- Continuité: pas de reboot conversationnel entre tours
+- Robustesse: si user dit “C’est bon”, Sophia ne doit pas contredire agressivement; elle doit vérifier / expliquer la latence / proposer un next step clair
+- Pas d’hallucinations UI: ne pas inventer de boutons/positions dans le site (“en haut à droite”, etc.)
+- Pas de markdown gênant (**)
+
+B) Machine à état onboarding WhatsApp (à prouver dans state_before/state_after)
+- Opt-in:
+  - Acceptation via bouton (`OPTIN_YES`) vs texte (“oui” avec contexte opt-in récent)
+  - Mise à jour `profiles.whatsapp_opted_in`, timestamps, et `profiles.whatsapp_state`
+- No plan vs plan actif:
+  - No plan → `whatsapp_state="awaiting_plan_finalization"` + consigne “réponds C’est bon”
+  - Plan actif → `whatsapp_state="awaiting_plan_motivation"` + demande score /10
+- Motivation → Personal fact:
+  - Score (0–10) → `whatsapp_state="awaiting_personal_fact"` (si pas déjà un fact)
+  - Fact → insertion `memories(type="whatsapp_personal_fact")` + sortie de state
+- Sortie propre:
+  - L’état doit revenir à `null` quand consommé (pas de boucle)
+
+C) Cas “mauvais numéro” (si scénario correspondant)
+- Déclenchement (bouton `OPTIN_WRONG_NUMBER` ou texte “mauvais numéro”)
+- Effets attendus:
+  - `profiles.phone_number=null`, `phone_verified_at=null`
+  - opt-out reason `wrong_number`
+  - lien de relinking (token) envoyé au bon owner (email), sans fuite d’infos
+
+D) STOP / opt-out (si scénario correspondant)
+- `STOP` doit opt-out proprement, envoyer une confirmation une seule fois, et ne pas ré-opt-in automatiquement
+
+E) Analyse par agents (routing)
+- Qui répond et pourquoi:
+  - Companion vs Architect: transitions justifiées, pas de switch “sec” qui casse l’expérience
+  - Si l’architecte intervient, il doit rester cohérent (pas bloquant inutilement)
+- Stabilité: pas de switch agent injustifié sur onboarding
+
+F) Tools / DB writes: “bon write, bon moment”
+- Vérifier dans DB:
+  - `chat_messages` scope=whatsapp (inbound/outbound)
+  - `profiles.*` champs WhatsApp (opted_in/state/timestamps)
+  - `user_chat_states` scope=whatsapp (current_mode)
+  - `memories` si personal fact
+- Vérifier dans logs:
+  - erreurs silencieuses / retries / timeouts / 429
+
+4) Format de sortie exigé
+
+Donne un rapport avec ces sections:
+- Synthèse (3–8 bullets)
+- Transcript: points clés (avec citations de passages)
+- Analyse Machine à état (preuves: champs exacts dans state_before/state_after)
+- Analyse Agents/Routing
+- Analyse Tools/DB writes
+- Issues & Suggestions du judge (triées par sévérité)
+- Recommandations (1–3 actions max, très concrètes):
+  - option A: prompt (prompt_key + addendum)
+  - option B: code (fichiers + logique + risques)
+  - option C: scénario (nouveau JSON / assertion)
+- Plan de changements + re-run (étapes exactes)
+
+Contraintes
+- Ne pas “inventer” des messages/logs: tout doit être justifié par `conversation_eval_run.json` ou les logs docker/DB.
+- Pas de “préfait” / pas de steps hardcodés pour faire passer le test: le comportement doit rester product-like.
+- Priorité: robustesse onboarding + continuité conversationnelle + routing stable + DB writes cohérents.
+
+

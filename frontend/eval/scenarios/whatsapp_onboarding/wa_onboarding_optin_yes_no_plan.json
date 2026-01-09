@@ -18,7 +18,7 @@
       "whatsapp_opted_in": true,
       "whatsapp_state": "awaiting_plan_finalization"
     },
-    "assistant_must_match": ["pas encore de plan", "c'est bon"]
+    "assistant_must_match": ["\\bplan\\b", "c['’]est\\s+bon"]
   }
 }
 

@@ -699,6 +699,16 @@ export default function AdminDashboard() {
                               <div className="text-xs text-neutral-500 font-mono">
                                 ID: {r.eval_run_id}
                               </div>
+                              <div className="mt-2">
+                                <a
+                                  href={`/admin/evals?run=${encodeURIComponent(String(r.eval_run_id))}`}
+                                  className="inline-flex items-center gap-2 text-xs px-2 py-1 rounded bg-neutral-900 border border-neutral-800 text-neutral-300 hover:text-white hover:border-neutral-700 transition-colors"
+                                >
+                                  <FileText className="w-3.5 h-3.5" />
+                                  View transcript
+                                  <ChevronRight className="w-3.5 h-3.5 opacity-70" />
+                                </a>
+                              </div>
                             </div>
                             <div className="flex items-center gap-4 text-xs">
                               <div className={cn("flex items-center gap-1.5", r.issues_count > 0 ? "text-red-400" : "text-neutral-500")}>

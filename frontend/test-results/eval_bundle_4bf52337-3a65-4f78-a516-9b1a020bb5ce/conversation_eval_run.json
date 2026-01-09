@@ -1,0 +1,620 @@
+{
+  "id": "4bf52337-3a65-4f78-a516-9b1a020bb5ce",
+  "created_at": "2026-01-08T22:31:50.186743+00:00",
+  "status": "completed",
+  "dataset_key": "core",
+  "scenario_key": "bilan_real_bundle__40dd7a93483f48",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:31:50.190826+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est parti. Dis-moi, combien de minutes as-tu consacrées à ton mouvement conscient hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:31:55.682434+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je dirais 5 minutes hier.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:32:00.945096+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est bien noté pour tes cinq minutes de mouvement hier. Est-ce que tu as aussi pris un instant au réveil pour faire la douce ondulation matinale ? ☀️",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:32:12.50022+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je l'ai faite, mais j'ai du mal à m'organiser le matin en général, on en reparlera après le bilan si tu veux.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:32:15.731136+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est entendu, on en rediscutera tranquillement après le bilan. Pour hier, as-tu réussi à faire tes deux pauses hydratantes et mobiles ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:32:29.264231+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'en ai fait une, oui. La deuxième, j'ai oublié.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:32:34.584656+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est déjà un bon réflexe d'en avoir fait une, ça va finir par devenir automatique. Pour hier, as-tu réussi à faire ta cartographie des tensions ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:32:51.250614+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, je n'ai pas eu le temps de m'y pencher hier.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:32:54.483995+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends, les journées filent parfois à toute allure. Qu'est-ce qui a pris le dessus hier pour que tu ne puisses pas t'y pencher ? ⏳",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:33:03.213293+00:00"
+    },
+    {
+      "role": "user",
+      "content": "J'ai eu une journée chargée au travail, et le soir j'étais trop fatiguée pour me concentrer dessus.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:33:06.312158+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est tout à fait compréhensible. Quand le travail pompe toute l'énergie, c'est normal de ne plus avoir la force de se concentrer le soir. L'important c'est de ne pas forcer quand la batterie est à plat. 🔋\n\nOn passe à la suite du bilan ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:33:31.093978+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, bien sûr.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:33:36.97561+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Tu as pu faire la Cartographie de mes Tensions ? 📝",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:33:41.819262+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, pas encore. Je n'ai pas trouvé le bon moment pour m'y mettre.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:33:50.726262+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je comprends, c'est un exercice qui demande une certaine disponibilité d'esprit pour être efficace. Est-ce que c'est le fait de devoir te poser pour réfléchir qui te paraissait trop lourd après ta journée de boulot ? 🧠",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:34:00.989619+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est un peu ça. J'ai du mal à me poser pour réfléchir quand je suis fatiguée, j'ai plutôt envie de déconnecter.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:34:04.972009+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est tout à fait compréhensible, il est normal de vouloir déconnecter quand la fatigue est là. Est-ce que tu confirmes que tu n'as pas fait ta Cartographie de mes Tensions hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:34:30.962538+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, je n'ai pas pu la faire hier.",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:34:33.367187+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est entendu, je comprends tout à fait que tu aies eu besoin de souffler hier soir. J'ai terminé de noter tout ça pour ton suivi. Est-ce que tu veux qu'on parle de quelque chose en particulier ? 🌿",
+      "agent_used": "investigator",
+      "created_at": "2026-01-08T22:34:52.862911+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "8a5db80b-6918-4c8a-a931-8585a1d78f23",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T22:31:50.153921+00:00",
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-08T22:31:50.153921+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "9cfdf0fd-1724-4c99-9d16-1b5491c7f710",
+          "type": "vital",
+          "unit": "min",
+          "title": "Minutes de Mouvement Conscient",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "e865b58c-5414-471e-91a1-46d3e89cc8b1",
+          "type": "action",
+          "title": "La Douce Ondulation Matinale",
+          "target": 7,
+          "description": "Au réveil, consacrez 2 minutes à des étirements très doux ou des mobilisations articulaires (nuque, épaules, bassin). Juste pour sentir.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "b19c6c58-66df-4b92-9914-e8abbfb74c95",
+          "type": "action",
+          "title": "La Pause Hydratante & Mobile",
+          "target": 14,
+          "description": "Deux fois par jour, en buvant un verre d'eau, levez-vous, étirez-vous un instant ou faites quelques pas sur place. Fixez-vous un rappel discret.",
+          "tracking_type": "boolean"
+        },
+        {
+          "id": "26648291-2704-4a26-a2f3-7f1d995da549",
+          "type": "framework",
+          "title": "Cartographie de mes Tensions",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-08T22:31:50.153921+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "8a5db80b-6918-4c8a-a931-8585a1d78f23",
+    "risk_level": 0,
+    "updated_at": "2026-01-08T22:34:52.855226+00:00",
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-08T22:31:50.153921+00:00",
+    "short_term_context": null,
+    "investigation_state": null,
+    "last_interaction_at": "2026-01-08T22:31:50.153921+00:00",
+    "unprocessed_msg_count": 10
+  },
+  "issues": [
+    {
+      "code": "context_loop_repetition",
+      "message": "The investigator repeated the exact same checkup question ('Cartographie des tensions') immediately after the user had already answered it and discussed the reasons for not doing it.",
+      "evidence": {
+        "snippet": "ASSISTANT: ...as-tu réussi à faire ta cartographie des tensions ? -> USER: Non... -> ASSISTANT: ...Tu as pu faire la Cartographie de mes Tensions ?",
+        "agent_used": "sophia.investigator"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "redundant_confirmation",
+      "message": "The agent asks for explicit confirmation ('Est-ce que tu confirmes...') after the user has already stated 'Non' twice and explained the context.",
+      "evidence": {
+        "snippet": "USER: Non, je n'ai pas pu la faire hier. -> ASSISTANT: ...Est-ce que tu confirmes que tu n'as pas fait ta Cartographie de mes Tensions hier ?",
+        "agent_used": "sophia.investigator"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the agent from losing track of the current item's status when a discussion (digging into reasons) occurs in the middle of the flow.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"9cfdf0fd-1724-4c99-9d16-1b5491c7f710\",\n      \"type\": \"vital\",\n      \"unit\": \"min\",\n      \"title\": \"Minutes de Mouvement Conscient\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"e865b58c-5414-471e-91a1-46d3e89cc8b1\",\n      \"type\": \"action\",\n      \"title\": \"La Douce Ondulation Matinale\",\n      \"target\": 7,\n      \"description\": \"Au réveil, consacrez 2 minutes à des étirements très doux ou des mobilisations articulaires (nuque, épaules, bassin). Juste pour sentir.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"b19c6c58-66df-4b92-9914-e8abbfb74c95\",\n      \"type\": \"action\",\n      \"title\": \"La Pause Hydratante & Mobile\",\n      \"target\": 14,\n      \"description\": \"Deux fois par jour, en buvant un verre d'eau, levez-vous, étirez-vous un instant ou faites quelques pas sur place. Fixez-vous un rappel discret.\",\n      \"tracking_type\": \"boolean\"\n    },\n    {\n      \"id\": \"26648291-2704-4a26-a2f3-7f1d995da549\",\n      \"type\": \"framework\",\n      \"title\": \"Cartographie de mes Tensions\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): C'est parti. Dis-moi, combien de minutes as-tu consacrées à ton mouvement conscient hier ?\n#2 USER: Je dirais 5 minutes hier.\n#3 ASSISTANT(investigator): C'est bien noté pour tes cinq minutes de mouvement hier. Est-ce que tu as aussi pris un instant au réveil pour faire la douce ondulation matinale ? ☀️\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nANTI-LOOP CHECK: Before asking a checkup question, verify the last 5 turns. If the user has already indicated the status (done/not done) of the current item, DO NOT ask the question again. Acknowledge the previous answer and move immediately to the next item.",
+      "proposed_addendum": "ANTI-LOOP CHECK: Before asking a checkup question, verify the last 5 turns. If the user has already indicated the status (done/not done) of the current item, DO NOT ask the question again. Acknowledge the previous answer and move immediately to the next item."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.022595200000000003,
+    "request_id": "bilan_eval_bundle:bilan_real_bundle__40dd7a93483f48:core:bilan_real_bundle__40dd7a93483f48",
+    "total_tokens": 123283,
+    "output_tokens": 1804,
+    "prompt_tokens": 94005,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 3,
+      "test_post_checkup_deferral": true
+    },
+    "channel": "web",
+    "request_id": "bilan_eval_bundle:bilan_real_bundle__40dd7a93483f48:core:bilan_real_bundle__40dd7a93483f48",
+    "description": "Bilan real (simulate-user) bundle run: capture full logs + full transcript.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "aa02fbaf-ec1e-407a-989a-d2198b54cc05",
+        "title": "La Symphonie du Mouvement Retrouvé",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Éveil des Sensations",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "e865b58c-5414-471e-91a1-46d3e89cc8b1",
+                  "tips": "Ne cherchez pas la performance, juste le confort. Imaginez votre corps comme une plante qui s'étire au soleil.",
+                  "type": "habitude",
+                  "title": "La Douce Ondulation Matinale",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Active doucement le système nerveux parasympathique et lubrifie les articulations, préparant le corps à la journée sans stress.",
+                  "targetReps": 7,
+                  "description": "Au réveil, consacrez 2 minutes à des étirements très doux ou des mobilisations articulaires (nuque, épaules, bassin). Juste pour sentir.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "9f387e21-bf87-40a7-93d2-3a8bfe7d1785",
+                  "tips": "Ne jugez pas, juste observez. Est-ce une sensation de tiraillement, de lourdeur, de picotement ?",
+                  "type": "framework",
+                  "title": "Cartographie de mes Tensions",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Développe la conscience corporelle (proprioception et intéroception), première étape pour adresser les problèmes physiques de manière ciblée.",
+                  "targetReps": 3,
+                  "description": "Prenez un moment pour identifier et nommer les 3 principales zones de votre corps où vous ressentez raideur ou douleur. Répétez 3 fois sur la phase.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "L'objectif est de devenir l'architecte de votre propre corps. Pour cela, il faut d'abord connaître le terrain. Prenez quelques minutes, scannez votre corps de la tête aux pieds et notez ce que vous ressentez.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Quelle est la zone la plus tendue/raide ?",
+                        "inputType": "text",
+                        "placeholder": "Nuque, bas du dos, hanches..."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Quelle est la sensation précise ?",
+                        "inputType": "textarea",
+                        "placeholder": "Sensation de blocage, tiraillement, lourdeur..."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Quelle est l'intensité (1-10) ?",
+                        "inputType": "scale",
+                        "placeholder": "6"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Reconnecter et Observer",
+              "rationale": "Nous commençons par redécouvrir le langage de votre corps, identifier les zones d'attention et intégrer les premiers mouvements imperceptibles pour créer un nouveau dialogue."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : L'Ancrage Léger",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "b19c6c58-66df-4b92-9914-e8abbfb74c95",
+                  "tips": "Associez-le à une action existante (ex: aller aux toilettes, pause café). L'eau est votre signal.",
+                  "type": "habitude",
+                  "title": "La Pause Hydratante & Mobile",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Combine l'hydratation (essentielle pour la souplesse tissulaire) avec de courtes ruptures de sédentarité, réactivant la circulation et la conscience corporelle.",
+                  "targetReps": 14,
+                  "description": "Deux fois par jour, en buvant un verre d'eau, levez-vous, étirez-vous un instant ou faites quelques pas sur place. Fixez-vous un rappel discret.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "84107cc0-7e50-4880-93bc-b52a94a8bca2",
+                  "tips": "Rendez le mouvement facile, évident. Un espace accueillant invite à l'action.",
+                  "type": "mission",
+                  "title": "L'Environnement Facilitant",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit la friction environnementale, rendant le passage à l'action plus probable en éliminant les obstacles physiques ou visuels.",
+                  "description": "Réorganisez un petit espace de votre domicile ou bureau pour faciliter un mouvement spontané (ex: libérer 1m² devant votre chaise, avoir un tapis à portée de main).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Intégrer la Micro-Pause",
+              "rationale": "Nous allons rompre les longues périodes d'immobilité en insérant des micro-pauses régénératrices qui revitalisent le corps et l'esprit, sans créer de charge mentale."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : Le Souffle et l'Énergie",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "0a6a6f3e-7b59-4a6a-b8da-9d365abfe0ec",
+                  "tips": "Vous pouvez le faire avant un repas, en attendant un bus, ou avant de commencer une tâche. C'est votre micro-ancrage.",
+                  "type": "habitude",
+                  "title": "La Respiration Ancrée",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Active le nerf vague, réduit la réponse au stress et apporte une bouffée d'oxygène aux tissus, améliorant la clarté mentale et la vitalité physique.",
+                  "targetReps": 7,
+                  "description": "Une fois par jour, prenez 1 minute pour vous concentrer sur 3 respirations profondes et complètes, en sentant votre ventre se gonfler et se dégonfler.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "ef31b118-aea2-4fc4-8279-f34c52ff7de3",
+                  "tips": "Les petits détails comptent : '10 minutes de marche m'ont aidé', 'rester assise trop longtemps m'a vidé'.",
+                  "type": "framework",
+                  "title": "Mon Inventaire Énergétique",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Crée une carte cognitive des déclencheurs d'énergie et de fatigue, permettant d'optimiser consciemment les activités futures pour plus de vitalité.",
+                  "targetReps": 5,
+                  "description": "Pendant 5 jours non consécutifs, notez brièvement à la fin de la journée : qu'est-ce qui vous a donné de l'énergie et qu'est-ce qui vous en a retiré ? Soyez attentif aux sensations corporelles.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Votre corps est un système complexe. Apprenez à décoder les signaux qu'il vous envoie pour mieux comprendre ce qui le nourrit et ce qui l'épuise.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "3 choses qui m'ont donné de l'énergie aujourd'hui :",
+                        "inputType": "list",
+                        "placeholder": "Court étirement | Manger un fruit frais | Rire avec un collègue"
+                      },
+                      {
+                        "id": "s2",
+                        "label": "3 choses qui m'ont vidé de mon énergie aujourd'hui :",
+                        "inputType": "list",
+                        "placeholder": "Longue réunion | Position assise prolongée | Tâche répétitive"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Oxygéner et Revitaliser",
+              "rationale": "En se concentrant sur le souffle, nous libérons les tensions invisibles, améliorons l'oxygénation et créons des micro-pics d'énergie tout au long de la journée."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : Le Mouvement Intuitif",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "04771277-2d47-4171-9551-e9499b23723a",
+                  "tips": "Laissez-vous guider par ce que votre corps réclame. Cela peut être aussi simple qu'un bâillement étiré ou un changement de poids.",
+                  "type": "habitude",
+                  "title": "La Danse des Impulsions",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Renforce la connexion cerveau-corps, réintroduit le mouvement comme une réponse naturelle et intuitive, et réduit les blocages liés à la 'performance'.",
+                  "targetReps": 7,
+                  "description": "Chaque fois que vous ressentez une impulsion à bouger (étirer, marcher, changer de posture), suivez-la pendant 30 secondes. Minimum une fois par jour.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "5f18ecf0-0fca-4121-b78e-ad1751c37ca3",
+                  "tips": "Ne vous encombrez pas. L'objectif est d'avoir des 'invitations' au mouvement sous la main.",
+                  "type": "mission",
+                  "title": "Le Kit de Mouvement Minimaliste",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Crée des ancres physiques et des stimuli visuels qui rappellent et facilitent l'engagement dans des mouvements ciblés pour soulager les tensions.",
+                  "description": "Identifiez et acquérez un ou deux petits outils qui vous incitent au mouvement doux (ex: une balle de massage, une bande élastique légère, un coussin de méditation).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Libérer la Fluidité Naturelle",
+              "rationale": "Nous allons encourager le corps à exprimer son besoin naturel de mouvement, en brisant les chaînes de l'immobilité et en cultivant une écoute profonde de ses signaux."
+            },
+            {
+              "id": 5,
+              "title": "Phase 5 : L'Exploration Douce",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "f86998a3-cde1-4a29-baa7-53e6dd32934a",
+                  "tips": "Ce n'est pas une question de distance, mais de présence. Ralentissez, observez, ressentez.",
+                  "type": "habitude",
+                  "title": "La Balade Sensorielle",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Améliore la pleine conscience, réduit le stress et associe le mouvement à des sensations positives, renforçant l'habitude par la gratification interne.",
+                  "targetReps": 7,
+                  "description": "Une fois par jour, faites une micro-marche de 5 minutes en vous concentrant sur une sensation (le vent sur votre peau, le bruit des feuilles, l'appui de vos pieds).",
+                  "isCompleted": false,
+                  "time_of_day": "afternoon",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "b3e007a8-4cdc-42b9-a83a-62356edefda2",
+                  "tips": "Ce peut être le plaisir d'un étirement, la légèreté d'un pas, ou la sensation d'énergie après une petite activité.",
+                  "type": "framework",
+                  "title": "Mon Carnet de Joies Corporelles",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Reconditionne le cerveau à associer le mouvement à des émotions positives, créant un cercle vertueux de motivation et de bien-être, crucial pour la durabilité des habitudes.",
+                  "targetReps": 7,
+                  "description": "Chaque jour de cette phase, notez une expérience où votre corps s'est senti bien ou fort, même un court instant. Répétez 7 fois sur la phase.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Le cerveau est une machine à histoires. Changeons l'histoire que vous vous racontez sur votre corps et le mouvement. Cherchez activement les moments de joie et d'aisance.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Quelle expérience positive liée au mouvement avez-vous vécue aujourd'hui ?",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai ressenti une grande souplesse en me penchant pour ramasser quelque chose. | La marche m'a libéré l'esprit et soulagé mes épaules."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Quel sentiment cela a-t-il provoqué ?",
+                        "inputType": "text",
+                        "placeholder": "Joie, légèreté, force, apaisement..."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 9-10 • Découvrir la Joie du Mouvement",
+              "rationale": "Cette phase est dédiée à l'exploration de nouvelles formes de mouvement qui vous procurent du plaisir, renforçant la motivation intrinsèque et la perception positive de l'activité physique."
+            },
+            {
+              "id": 6,
+              "title": "Phase 6 : L'Intégration Fluide",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "2103b694-7b03-48d2-bd70-9a5cb5408a4f",
+                  "tips": "C'est votre sas de décompression. Laissez la journée 'glisser' de votre corps avant de passer à autre chose.",
+                  "type": "habitude",
+                  "title": "Le Rituel Post-Activités",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Crée une transition saine entre les activités, prévient l'accumulation des tensions liées à la posture et ancre le mouvement comme un élément essentiel de l'équilibre quotidien.",
+                  "targetReps": 7,
+                  "description": "Après toute activité prolongée (travail, écrans), prenez 5 minutes pour un mouvement de 'décompression' (étirement ciblé, balade rapide, quelques postures de yoga douces).",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "159665ac-1afe-4f3f-b770-4781d5467f1e",
+                  "tips": "Soyez réaliste, simple et ludique. Le but est la pérennité, pas la performance.",
+                  "type": "mission",
+                  "title": "Mon Plan de Continuité Mouvement",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Prépare la transition au-delà du programme structuré, favorise l'autonomie et assure la durabilité des comportements positifs adoptés.",
+                  "description": "Élaborez un mini-plan pour les 3 prochains mois, incluant 3 micro-habitudes de mouvement que vous souhaitez maintenir et 1 nouvelle activité que vous aimeriez explorer.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 11-12 • Devenir une Architecte de son Mouvement",
+              "rationale": "Nous consolidons les acquis pour que le mouvement devienne une extension naturelle de votre être, une partie intégrante de votre identité et de votre quotidien, sans effort conscient excessif."
+            }
+          ],
+          "deepWhy": "Pour cultiver une énergie stable, une présence sereine et une force intérieure qui rayonne au quotidien, me permettant de vivre pleinement et sans entraves.",
+          "identity": "Je suis une Architecte de mon mouvement, à l'écoute de mon corps et de ses besoins.",
+          "strategy": "Nous allons réveiller en douceur la capacité naturelle de votre corps à bouger et à se sentir bien, en construisant des micro-habitudes indétectables pour contourner la surcharge.",
+          "goldenRules": "1. Chaque mouvement compte, même le plus petit.\n2. L'écoute de mon corps prime sur la performance.\n3. La régularité douce est ma super-puissance.",
+          "vitalSignal": {
+            "name": "Minutes de Mouvement Conscient",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "0",
+            "description": "Nombre de minutes dédiées à un mouvement doux et intentionnel (étirements, marche consciente, mobilité).",
+            "targetValue": "30",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "La Symphonie du Mouvement Retrouvé",
+          "context_problem": "Actuellement, tu te sens freinée par la sédentarité et des douleurs persistantes, impactant ton énergie et ta stabilité. Ton principal blocage est la tendance à l'accablement face aux changements, rendant difficile l'intégration de nouvelles routines dans ton quotidien déjà dense.",
+          "sophiaKnowledge": "Tu es une femme de 35 ans qui se sent souvent sédentaire, souffrant de douleurs et de raideurs, ce qui t'enlève de l'énergie et de la stabilité. Ton rythme de vie est chargé, et tu as tendance à te sentir submergée, ce qui te fait perdre le fil. Malgré cela, ton niveau de stress est faible, mais ton activité physique est également faible et ta qualité de sommeil moyenne. Tu aspires à plus de vitalité et préfères une approche douce et progressive.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu ressenti des tensions persistantes dans le dos ou le cou ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "12 semaines"
+        },
+        "goal_id": "90d3d307-953a-48ce-8f5a-e25fd59417ad",
+        "deep_why": "Pour cultiver une énergie stable, une présence sereine et une force intérieure qui rayonne au quotidien, me permettant de vivre pleinement et sans entraves.",
+        "created_at": "2026-01-08T22:31:50.126042+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "15a6cfd3-535c-4424-ab64-7b3a08542e86",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "e865b58c-5414-471e-91a1-46d3e89cc8b1",
+          "title": "La Douce Ondulation Matinale",
+          "status": "active",
+          "created_at": "2026-01-08T22:31:50.136054+00:00",
+          "description": "Au réveil, consacrez 2 minutes à des étirements très doux ou des mobilisations articulaires (nuque, épaules, bassin). Juste pour sentir.",
+          "target_reps": 7,
+          "time_of_day": "morning",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T22:31:50.133+00:00"
+        },
+        {
+          "id": "b19c6c58-66df-4b92-9914-e8abbfb74c95",
+          "title": "La Pause Hydratante & Mobile",
+          "status": "active",
+          "created_at": "2026-01-08T22:31:50.136054+00:00",
+          "description": "Deux fois par jour, en buvant un verre d'eau, levez-vous, étirez-vous un instant ou faites quelques pas sur place. Fixez-vous un rappel discret.",
+          "target_reps": 14,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T22:31:50.133+00:00"
+        },
+        {
+          "id": "26648291-2704-4a26-a2f3-7f1d995da549",
+          "_kind": "framework",
+          "title": "Cartographie de mes Tensions",
+          "status": "active",
+          "created_at": "2026-01-08T22:31:50.140331+00:00",
+          "description": "",
+          "target_reps": 3,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-06T22:31:50.133+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "26648291-2704-4a26-a2f3-7f1d995da549",
+          "type": "recurring",
+          "title": "Cartographie de mes Tensions",
+          "status": "active",
+          "created_at": "2026-01-08T22:31:50.140331+00:00",
+          "target_reps": 3,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-06T22:31:50.133+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: La Symphonie du Mouvement Retrouvé\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour cultiver une énergie stable, une présence sereine et une force intérieure qui rayonne au quotidien, me permettant de vivre pleinement et sans entraves.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Éveil des Sensations\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"e865b58c-5414-471e-91a1-46d3e89cc8b1\",\n          \"tips\": \"Ne cherchez pas la performance, juste le confort. Imaginez votre corps comme une plante qui s'étire au soleil.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Douce Ondulation Matinale\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Active doucement le système nerveux parasympathique et lubrifie les articulations, préparant le corps à la journée sans stress.\",\n          \"targetReps\": 7,\n          \"description\": \"Au réveil, consacrez 2 minutes à des étirements très doux ou des mobilisations articulaires (nuque, épaules, bassin). Juste pour sentir.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"9f387e21-bf87-40a7-93d2-3a8bfe7d1785\",\n          \"tips\": \"Ne jugez pas, juste observez. Est-ce une sensation de tiraillement, de lourdeur, de picotement ?\",\n          \"type\": \"framework\",\n          \"title\": \"Cartographie de mes Tensions\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Développe la conscience corporelle (proprioception et intéroception), première étape pour adresser les problèmes physiques de manière ciblée.\",\n          \"targetReps\": 3,\n          \"description\": \"Prenez un moment pour identifier et nommer les 3 principales zones de votre corps où vous ressentez raideur ou douleur. Répétez 3 fois sur la phase.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"L'objectif est de devenir l'architecte de votre propre corps. Pour cela, il faut d'abord connaître le terrain. Prenez quelques minutes, scannez votre corps de la tête aux pieds et notez ce que vous ressentez.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Quelle est la zone la plus tendue/raide ?\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Nuque, bas du dos, hanches...\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Quelle est la sensation précise ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Sensation de blocage, tiraillement, lourdeur...\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Quelle est l'intensité (1-10) ?\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"6\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Reconnecter et Observer\",\n      \"rationale\": \"Nous commençons par redécouvrir le langage de votre corps, identifier les zones d'attention et intégrer les premiers mouvements imperceptibles pour créer un nouveau dialogue.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : L'Ancrage Léger\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"b19c6c58-66df-4b92-9914-e8abbfb74c95\",\n          \"tips\": \"Associez-le à une action existante (ex: aller aux toilettes, pause café). L'eau est votre signal.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Pause Hydratante & Mobile\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Combine l'hydratation (essentielle pour la souplesse tissulaire) avec de courtes ruptures de sédentarité, réactivant la circulation et la conscience corporelle.\",\n          \"targetReps\": 14,\n          \"description\": \"Deux fois par jour, en buvant un verre d'eau, levez-vous, étirez-vous un instant ou faites quelques pas sur place. Fixez-vous un rappel discret.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"84107cc0-7e50-4880-93bc-b52a94a8bca2\",\n          \"tips\": \"Rendez le mouvement facile, évident. Un espace accueillant invite à l'action.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Environnement Facilitant\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit la friction environnementale, rendant le passage à l'action plus probable en éliminant les obstacles physiques ou visuels.\",\n          \"description\": \"Réorganisez un petit espace de votre domicile ou bureau pour faciliter un mouvement spontané (ex: libérer 1m² devant votre chaise, avoir un tapis à portée de main).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Intégrer la Micro-Pause\",\n      \"rationale\": \"Nous allons rompre les longues périodes d'immobilité en insérant des micro-pauses régénératrices qui revitalisent le corps et l'esprit, sans créer de charge mentale.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : Le Souffle et l'Énergie\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"0a6a6f3e-7b59-4a6a-b8da-9d365abfe0ec\",\n          \"tips\": \"Vous pouvez le faire avant un repas, en attendant un bus, ou avant de commencer une tâche. C'est votre micro-ancrage.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Respiration Ancrée\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Active le nerf vague, réduit la réponse au stress et apporte une bouffée d'oxygène aux tissus, améliorant la clarté mentale et la vitalité physique.\",\n          \"targetReps\": 7,\n          \"description\": \"Une fois par jour, prenez 1 minute pour vous concentrer sur 3 respirations profondes et complètes, en sentant votre ventre se gonfler et se dégonfler.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"ef31b118-aea2-4fc4-8279-f34c52ff7de3\",\n          \"tips\": \"Les petits détails comptent : '10 minutes de marche m'ont aidé', 'rester assise trop longtemps m'a vidé'.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Inventaire Énergétique\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Crée une carte cognitive des déclencheurs d'énergie et de fatigue, permettant d'optimiser consciemment les activités futures pour plus de vitalité.\",\n          \"targetReps\": 5,\n          \"description\": \"Pendant 5 jours non consécutifs, notez brièvement à la fin de la journée : qu'est-ce qui vous a donné de l'énergie et qu'est-ce qui vous en a retiré ? Soyez attentif aux sensations corporelles.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Votre corps est un système complexe. Apprenez à décoder les signaux qu'il vous envoie pour mieux comprendre ce qui le nourrit et ce qui l'épuise.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"3 choses qui m'ont donné de l'énergie aujourd'hui :\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Court étirement | Manger un fruit frais | Rire avec un collègue\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"3 choses qui m'ont vidé de mon énergie aujourd'hui :\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Longue réunion | Position assise prolongée | Tâche répétitive\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Oxygéner et Revitaliser\",\n      \"rationale\": \"En se concentrant sur le souffle, nous libérons les tensions invisibles, améliorons l'oxygénation et créons des micro-pics d'énergie tout au long de la journée.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : Le Mouvement Intuitif\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"04771277-2d47-4171-9551-e9499b23723a\",\n          \"tips\": \"Laissez-vous guider par ce que votre corps réclame. Cela peut être aussi simple qu'un bâillement étiré ou un changement de poids.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Danse des Impulsions\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Renforce la connexion cerveau-corps, réintroduit le mouvement comme une réponse naturelle et intuitive, et réduit les blocages liés à la 'performance'.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque fois que vous ressentez une impulsion à bouger (étirer, marcher, changer de posture), suivez-la pendant 30 secondes. Minimum une fois par jour.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"5f18ecf0-0fca-4121-b78e-ad1751c37ca3\",\n          \"tips\": \"Ne vous encombrez pas. L'objectif est d'avoir des 'invitations' au mouvement sous la main.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Kit de Mouvement Minimaliste\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Crée des ancres physiques et des stimuli visuels qui rappellent et facilitent l'engagement dans des mouvements ciblés pour soulager les tensions.\",\n          \"description\": \"Identifiez et acquérez un ou deux petits outils qui vous incitent au mouvement doux (ex: une balle de massage, une bande élastique légère, un coussin de méditation).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Libérer la Fluidité Naturelle\",\n      \"rationale\": \"Nous allons encourager le corps à exprimer son besoin naturel de mouvement, en brisant les chaînes de l'immobilité et en cultivant une écoute profonde de ses signaux.\"\n    },\n    {\n      \"id\": 5,\n      \"title\": \"Phase 5 : L'Exploration Douce\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"f86998a3-cde1-4a29-baa7-53e6dd32934a\",\n          \"tips\": \"Ce n'est pas une question de distance, mais de présence. Ralentissez, observez, ressentez.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Balade Sensorielle\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Améliore la pleine conscience, réduit le stress et associe le mouvement à des sensations positives, renforçant l'habitude par la gratification interne.\",\n          \"targetReps\": 7,\n          \"description\": \"Une fois par jour, faites une micro-marche de 5 minutes en vous concentrant sur une sensation (le vent sur votre peau, le bruit des feuilles, l'appui de vos pieds).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"afternoon\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"b3e007a8-4cdc-42b9-a83a-62356edefda2\",\n          \"tips\": \"Ce peut être le plaisir d'un étirement, la légèreté d'un pas, ou la sensation d'énergie après une petite activité.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Carnet de Joies Corporelles\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Reconditionne le cerveau à associer le mouvement à des émotions positives, créant un cercle vertueux de motivation et de bien-être, crucial pour la durabilité des habitudes.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque jour de cette phase, notez une expérience où votre corps s'est senti bien ou fort, même un court instant. Répétez 7 fois sur la phase.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Le cerveau est une machine à histoires. Changeons l'histoire que vous vous racontez sur votre corps et le mouvement. Cherchez activement les moments de joie et d'aisance.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Quelle expérience positive liée au mouvement avez-vous vécue aujourd'hui ?\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai ressenti une grande souplesse en me penchant pour ramasser quelque chose. | La marche m'a libéré l'esprit et soulagé mes épaules.\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Quel sentiment cela a-t-il provoqué ?\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Joie, légèreté, force, apaisement...\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 9-10 • Découvrir la Joie du Mouvement\",\n      \"rationale\": \"Cette phase est dédiée à l'exploration de nouvelles formes de mouvement qui vous procurent du plaisir, renforçant la motivation intrinsèque et la perception positive de l'activité physique.\"\n    },\n    {\n      \"id\": 6,\n      \"title\": \"Phase 6 : L'Intégration Fluide\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"2103b694-7b03-48d2-bd70-9a5cb5408a4f\",\n          \"tips\": \"C'est votre sas de décompression. Laissez la journée 'glisser' de votre corps avant de passer à autre chose.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel Post-Activités\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Crée une transition saine entre les activités, prévient l'accumulation des tensions liées à la posture et ancre le mouvement comme un élément essentiel de l'équilibre quotidien.\",\n          \"targetReps\": 7,\n          \"description\": \"Après toute activité prolongée (travail, écrans), prenez 5 minutes pour un mouvement de 'décompression' (étirement ciblé, balade rapide, quelques postures de yoga douces).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"159665ac-1afe-4f3f-b770-4781d5467f1e\",\n          \"tips\": \"Soyez réaliste, simple et ludique. Le but est la pérennité, pas la performance.\",\n          \"type\": \"mission\",\n          \"title\": \"Mon Plan de Continuité Mouvement\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Prépare la transition au-delà du programme structuré, favorise l'autonomie et assure la durabilité des comportements positifs adoptés.\",\n          \"description\": \"Élaborez un mini-plan pour les 3 prochains mois, incluant 3 micro-habitudes de mouvement que vous souhaitez maintenir et 1 nouvelle activité que vous aimeriez explorer.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 11-12 • Devenir une Architecte de son Mouvement\",\n      \"rationale\": \"Nous consolidons les acquis pour que le mouvement devienne une extension naturelle de votre être, une partie intégrante de votre identité et de votre quotidien, sans effort conscient excessif.\"\n    }\n  ],\n  \"deepWhy\": \"Pour cultiver une énergie stable, une présence sereine et une force intérieure qui rayonne au quotidien, me permettant de vivre pleinement et sans entraves.\",\n  \"identity\": \"Je suis une Architecte de mon mouvement, à l'écoute de mon corps et de ses besoins.\",\n  \"strategy\": \"Nous allons réveiller en douceur la capacité naturelle de votre corps à bouger et à se sentir bien, en construisant des micro-habitudes indétectables pour contourner la surcharge.\",\n  \"goldenRules\": \"1. Chaque mouvement compte, même le plus petit.\\n2. L'écoute de mon corps prime sur la performance.\\n3. La régularité douce est ma super-puissance.\",\n  \"vitalSignal\": {\n    \"name\": \"Minutes de Mouvement Conscient\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"0\",\n    \"description\": \"Nombre de minutes dédiées à un mouvement doux et intentionnel (étirements, marche consciente, mobilité).\",\n    \"targetValue\": \"30\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"La Symphonie du Mouvement Retrouvé\",\n  \"context_problem\": \"Actuellement, tu te sens freinée par la sédentarité et des douleurs persistantes, impactant ton énergie et ta stabilité. Ton principal blocage est la tendance à l'accablement face aux changements, rendant difficile l'intégration de nouvelles routines dans ton quotidien déjà dense.\",\n  \"sophiaKnowledge\": \"Tu es une femme de 35 ans qui se sent souvent sédentaire, souffrant de douleurs et de raideurs, ce qui t'enlève de l'énergie et de la stabilité. Ton rythme de vie est chargé, et tu as tendance à te sentir submergée, ce qui te fait perdre le fil. Malgré cela, ton niveau de stress est faible, mais ton activité physique est également faible et ta qualité de sommeil moyenne. Tu aspires à plus de vitalité et préfères une approche douce et progressive.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu ressenti des tensions persistantes dans le dos ou le cou ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"12 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (3):\n- [ACTION] La Douce Ondulation Matinale (morning)\n- [ACTION] La Pause Hydratante & Mobile (any_time)\n- [FRAMEWORK] Cartographie de mes Tensions\n\n=== SIGNES VITAUX (État Actuel) ===\n- Minutes de Mouvement Conscient: 0 min\n",
+      "template_fingerprint": "067357b6dff30854"
+    },
+    "scenario_target": "bilan"
+  },
+  "error": null
+}

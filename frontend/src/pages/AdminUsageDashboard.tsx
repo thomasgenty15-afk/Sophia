@@ -5,6 +5,8 @@ import {
   Activity, 
   BarChart3, 
   Calendar, 
+  ChevronDown,
+  ChevronUp,
   DollarSign, 
   LayoutDashboard, 
   Loader2, 
@@ -32,6 +34,7 @@ type UserStat = {
 
 type SourceStat = {
   source: string;
+  model?: string;
   total_cost_usd: number;
   total_tokens: number;
   call_count: number;
@@ -48,12 +51,14 @@ export default function AdminUsageDashboard() {
   const { user, loading, isAdmin } = useAuth();
   const [stats, setStats] = useState<UserStat[]>([]);
   const [sourceStats, setSourceStats] = useState<SourceStat[]>([]);
+  const [modelStats, setModelStats] = useState<SourceStat[]>([]);
   const [totalCost, setTotalCost] = useState<number>(0);
   const [totalRevenue, setTotalRevenue] = useState<number>(0);
   const [totalMargin, setTotalMargin] = useState<number>(0);
   const [dataLoading, setDataLoading] = useState(false);
   const [period, setPeriod] = useState<string>("7d");
   const [search, setSearch] = useState("");
+  const [expandedSources, setExpandedSources] = useState(false);
 
   useEffect(() => {
     async function loadData() {
@@ -76,6 +81,13 @@ export default function AdminUsageDashboard() {
         
         if (sourceError) console.error("Error loading source stats:", sourceError);
         setSourceStats((sourceData as any) ?? []);
+
+        // Load Model Stats
+        const { data: modelData, error: modelError } = await supabase
+          .rpc("get_usage_by_model", { period_start: since });
+
+        if (modelError) console.error("Error loading model stats:", modelError);
+        setModelStats((modelData as any) ?? []);
 
         // Load User Stats
         const { data: userData, error: userError } = await supabase
@@ -203,12 +215,12 @@ export default function AdminUsageDashboard() {
         </div>
 
         {/* System / Public API Usage */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8 items-start">
           <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden">
             <div className="px-5 py-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Server className="w-4 h-4 text-indigo-400" />
-                <h3 className="font-medium text-white">System Functions (Anonymous)</h3>
+                <h3 className="font-medium text-white">System Functions</h3>
               </div>
             </div>
             <div className="p-0">
@@ -234,22 +246,61 @@ export default function AdminUsageDashboard() {
             </div>
           </div>
 
-          <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden">
-             <div className="px-5 py-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
+          <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden transition-all duration-300">
+             <div 
+               className="px-5 py-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between cursor-pointer hover:bg-neutral-800/50 transition-colors group"
+               onClick={() => setExpandedSources(!expandedSources)}
+             >
               <div className="flex items-center gap-2">
                 <Activity className="w-4 h-4 text-indigo-400" />
-                <h3 className="font-medium text-white">Top Sources Breakdown</h3>
+                <h3 className="font-medium text-white group-hover:text-indigo-400 transition-colors">Top Sources Breakdown</h3>
+              </div>
+              <div className="flex items-center gap-2 text-xs text-neutral-500">
+                {expandedSources ? "Collapse" : "Expand"}
+                {expandedSources ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
               </div>
             </div>
-            <div className="p-0">
+            <div className={cn(
+              "p-0 transition-all",
+              expandedSources ? "max-h-[600px] overflow-y-auto" : ""
+            )}>
                {sourceStats.length === 0 ? (
                 <div className="p-6 text-center text-sm text-neutral-500">No usage recorded.</div>
               ) : (
                 <div className="divide-y divide-neutral-800">
-                  {sourceStats.slice(0, 5).map((s) => (
+                  {(expandedSources ? sourceStats : sourceStats.slice(0, 5)).map((s) => (
                     <div key={s.source} className="flex items-center justify-between p-4 hover:bg-neutral-800/30 transition-colors">
                       <div>
                         <div className="font-medium text-neutral-200 text-sm mb-1">{s.source}</div>
+                        <div className="text-xs text-neutral-500 font-mono">{s.call_count} calls</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="text-emerald-400 font-mono text-sm">${Number(s.total_cost_usd).toFixed(4)}</div>
+                        <div className="text-xs text-neutral-500 font-mono">{((s.total_cost_usd / (totalCost || 1)) * 100).toFixed(1)}% of total</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-neutral-900/30 border border-neutral-800 rounded-xl overflow-hidden">
+             <div className="px-5 py-4 border-b border-neutral-800 bg-neutral-900/50 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-4 h-4 text-indigo-400" />
+                <h3 className="font-medium text-white">Model Breakdown</h3>
+              </div>
+            </div>
+            <div className="p-0">
+               {modelStats.length === 0 ? (
+                <div className="p-6 text-center text-sm text-neutral-500">No usage recorded.</div>
+              ) : (
+                <div className="divide-y divide-neutral-800">
+                  {modelStats.map((s) => (
+                    <div key={s.model} className="flex items-center justify-between p-4 hover:bg-neutral-800/30 transition-colors">
+                      <div>
+                        <div className="font-medium text-neutral-200 text-sm mb-1">{s.model}</div>
                         <div className="text-xs text-neutral-500 font-mono">{s.call_count} calls</div>
                       </div>
                       <div className="text-right">

@@ -383,3 +383,7 @@ node scripts/run_ui_bilan_eval_bundle.mjs \
   --model gemini-2.5-flash \
   --timeout-ms 600000 \
   --post-bilan
+
+  Poour lanceer test onboarding whatsapp : 
+  cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
+npm run eval:wa:onboarding:bundle -- --tests 10 --seed 123 --turns 8 --model gemini-2.5-flash --timeout-ms 600000

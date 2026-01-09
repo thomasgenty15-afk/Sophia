@@ -1,0 +1,134 @@
+{
+  "id": "34c0674c-9000-487c-b69b-992fd3b22a98",
+  "created_at": "2026-01-08T22:45:15.880839+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-08T22:56:53.240245+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "14753b7e-099c-463a-bcac-8307a008d2ab",
+      "email": "run-evals+439f00ff60934f@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-15T22:56:52.899+00:00",
+      "phone_number": "+15550341438674",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-08T22:56:52.903+00:00",
+      "whatsapp_opted_in": false,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": null,
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "14753b7e-099c-463a-bcac-8307a008d2ab",
+      "email": "run-evals+439f00ff60934f@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-15T22:56:52.899+00:00",
+      "phone_number": "+15550341438674",
+      "phone_invalid": false,
+      "whatsapp_state": "awaiting_plan_finalization",
+      "phone_verified_at": "2026-01-08T22:56:52.903+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-08T22:56:53.234+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-08T22:56:53.245+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "14753b7e-099c-463a-bcac-8307a008d2ab",
+      "risk_level": 0,
+      "updated_at": "2026-01-08T22:57:06.55385+00:00",
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-08T22:56:53.255+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-08T22:56:53.256125+00:00",
+      "unprocessed_msg_count": 1
+    }
+  },
+  "issues": [
+    {
+      "code": "ambiguous_short_input",
+      "message": "User input is a single word ('Oui'). While valid, short confirmations during checkups risk stalling the flow if the model interprets them as a completed turn rather than a signal to advance.",
+      "evidence": {
+        "snippet": "USER: Oui",
+        "agent_used": "sophia.investigator"
+      },
+      "severity": "low"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "assistant_must_match failed: /pas encore de plan/i",
+      "severity": "high"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "assistant_must_match failed: /c'est bon/i",
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the investigator from lingering or asking 'What do you mean?' on standard confirmations, maintaining the onboarding momentum.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nFLOW_CONTROL: If the user responds with a short confirmation (e.g., 'Oui', 'C'est ça', 'Ok'), do not ask for clarification. Interpret it as full agreement and IMMEDIATELY proceed to the next diagnostic question.",
+      "proposed_addendum": "FLOW_CONTROL: If the user responds with a short confirmation (e.g., 'Oui', 'C'est ça', 'Ok'), do not ask for clarification. Interpret it as full agreement and IMMEDIATELY proceed to the next diagnostic question."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.0125203,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan",
+    "total_tokens": 22611,
+    "output_tokens": 1402,
+    "prompt_tokens": 4981,
+    "judge_llm_used": true,
+    "mega_test_mode": false,
+    "mechanical_issues_count": 2
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "mechanical"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan",
+    "description": "WhatsApp onboarding (webhook): user accepts opt-in via button but has no active plan -> ask to finalize plan on site, then reply 'C'est bon'.",
+    "plan_snapshot": {
+      "plan": null,
+      "actions": [],
+      "frameworks": [],
+      "dashboard_context": "=== ÉTAT DU COMPTE ===\n- AUCUN PLAN DE TRANSFORMATION ACTIF.\n- L'utilisateur n'a pas encore fait son questionnaire ou activé un plan.\n\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": "eval-judge failed (504)"
+}

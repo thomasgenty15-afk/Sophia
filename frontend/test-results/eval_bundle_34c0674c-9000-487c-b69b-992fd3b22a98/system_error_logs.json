@@ -1,0 +1,20 @@
+{
+  "ok": true,
+  "since_iso": "2026-01-08T22:55:52.756Z",
+  "request_id_prefix": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan:i0:s1916298011",
+  "rows": [
+    {
+      "id": "6138604e-f346-4472-bb5e-29ee0d83ff9c",
+      "created_at": "2026-01-08T22:57:08.348299+00:00",
+      "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan",
+      "function_name": "whatsapp-webhook",
+      "source": "whatsapp",
+      "message": "WhatsApp send failed (401): {\"error\":{\"message\":\"Error validating access token: Session has expired on Monday, 05-Jan-26 15:00:00 PST. The current time is Thursday, 08-Jan-26 14:57:08 PST.\",\"type\":\"OAuthException\",\"code\":190,\"error_subcode\":463,\"fbtrace_id\":\"AaFtookRnsyBzjfluGw9ppo\"}}",
+      "metadata": {
+        "wa_type": "interactive",
+        "error_name": "Error",
+        "wa_message_id": "wamid_waonboardingbundlewaonboardi_0"
+      }
+    }
+  ]
+}

@@ -742,8 +742,12 @@ CONTEXTE:
           responseContent = invResult.content
           if (invResult.investigationComplete) {
               // If we have deferred topics, transition into router-owned post-checkup mode.
+              // Edge case: Investigator completion can clear investigation_state immediately.
+              // We must also consider the pre-existing deferred topics from the in-memory state,
+              // otherwise we lose the parking-lot and end with a generic close.
+              const prevDeferred = state?.investigation_state?.temp_memory?.deferred_topics ?? []
               const stAfter = await getUserState(supabase, userId, scope)
-              const deferred = stAfter?.investigation_state?.temp_memory?.deferred_topics ?? []
+              const deferred = stAfter?.investigation_state?.temp_memory?.deferred_topics ?? prevDeferred
               if (deferred.length > 0) {
                 await updateUserState(supabase, userId, scope, {
                   investigation_state: { status: "post_checkup", temp_memory: { deferred_topics: deferred, current_topic_index: 0 } },

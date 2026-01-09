@@ -158,9 +158,17 @@ export function serveRunEvals() {
             (Array.isArray((s as any)?.tags) && (s as any).tags.includes("bilan.vitals")) ||
             Boolean((s as any)?.assertions?.include_vitals_in_bilan);
 
-          if (!resumeFromDb || !testUserId) {
+        if (!resumeFromDb || !testUserId) {
             // Fresh run: create ephemeral auth user (FKs require auth.users) + seed a plan/state.
             const nonce = makeNonce();
+          const makeDigitsNonce = (len = 10) => {
+            const n = Math.max(1, Math.min(18, Math.floor(len)));
+            const buf = new Uint8Array(n);
+            crypto.getRandomValues(buf);
+            let s = "";
+            for (let i = 0; i < n; i++) s += String(buf[i] % 10);
+            return s;
+          };
             const email = `run-evals+${nonce}@example.com`;
             const password = `T${nonce}!123456`;
             const { data: created, error: createErr } = await (admin as any).auth.admin.createUser({
@@ -197,7 +205,7 @@ export function serveRunEvals() {
 
             if (isWhatsApp) {
               const setup = (s as any)?.setup ?? {};
-              const phone = String(setup?.phone_number ?? `+1555${nonce}`).trim();
+            const phone = String(setup?.phone_number ?? `+1555${makeDigitsNonce(10)}`).trim();
               const phoneVerified = Boolean(setup?.phone_verified);
               const trialEnd = String(
                 setup?.trial_end ?? new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
@@ -359,6 +367,72 @@ export function serveRunEvals() {
               const wh = await invokeWhatsAppWebhook({ url, requestId: scenarioRequestId, payload });
               if (!wh.ok) {
                 throw new Error(`whatsapp-webhook failed (status=${wh.status}): ${JSON.stringify(wh.body)}`);
+              }
+            }
+
+            // Optional: loop "assistant -> simulate-user -> next inbound" without Meta transport.
+            // Enabled per scenario via `wa_auto_simulate: true`.
+            const autoSim = Boolean((s as any)?.wa_auto_simulate);
+            if (autoSim) {
+              const forceTurns = Boolean((s as any)?.wa_force_turns);
+              let turn = waSteps.length;
+              while (turn < maxTurns) {
+                const { data: waMsgs, error: waErr } = await admin
+                  .from("chat_messages")
+                  .select("role,content,created_at,agent_used")
+                  .eq("user_id", testUserId)
+                  .eq("scope", "whatsapp")
+                  .order("created_at", { ascending: true })
+                  .limit(120);
+                if (waErr) throw waErr;
+                const waTranscript = (waMsgs ?? []).map((m: any) => ({
+                  role: m.role,
+                  content: m.content,
+                  agent_used: m.role === "assistant" ? (m.agent_used ?? null) : null,
+                }));
+
+                const simResp = await fetch(`${url}/functions/v1/simulate-user`, {
+                  method: "POST",
+                  headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": authHeader,
+                    "apikey": anonKey,
+                    "x-request-id": scenarioRequestId,
+                  },
+                  body: JSON.stringify({
+                    persona: (s as any)?.persona ?? { label: "Utilisateur WhatsApp", age_range: "25-50", style: "naturel" },
+                    objectives: (s as any)?.objectives ?? [],
+                    transcript: waTranscript,
+                    turn_index: turn,
+                    max_turns: maxTurns,
+                    difficulty: (body.limits.user_difficulty ?? "mid"),
+                    force_real_ai: true,
+                    context:
+                      "Canal: WhatsApp. Tu réponds comme un humain sur WhatsApp (messages courts). " +
+                      (forceTurns
+                        ? "IMPORTANT: ne termine pas la conversation trop tôt. Même si tu penses que c'est bon, continue de répondre naturellement jusqu'à la fin du test."
+                        : "Tu peux répondre 'C'est bon' si tu as finalisé le plan, ou poser une question si tu ne comprends pas."),
+                  }),
+                });
+                const simJson = await simResp.json().catch(() => ({}));
+                if (!simResp.ok || simJson?.error) throw new Error(simJson?.error || `simulate-user failed (${simResp.status})`);
+                const userMsg = String(simJson?.next_message ?? "").trim();
+                if (!userMsg) break;
+
+                const from = digitsOnly(defaultFrom);
+                const waMessageId = `wamid_${scenarioRequestId.replace(/[^a-zA-Z0-9]/g, "").slice(0, 28)}_sim_${turn}`;
+                const payload = waPayloadForSingleMessage({
+                  from,
+                  wa_message_id: waMessageId,
+                  type: "text",
+                  text: userMsg,
+                  profile_name: "Eval Runner",
+                });
+                const wh = await invokeWhatsAppWebhook({ url, requestId: scenarioRequestId, payload });
+                if (!wh.ok) throw new Error(`whatsapp-webhook failed (status=${wh.status}): ${JSON.stringify(wh.body)}`);
+
+                if (!forceTurns && Boolean(simJson?.done)) break;
+                turn += 1;
               }
             }
           } else if (Array.isArray((s as any).steps) && (s as any).steps.length > 0) {

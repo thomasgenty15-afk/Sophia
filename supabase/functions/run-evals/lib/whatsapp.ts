@@ -1,5 +1,18 @@
 import { denoEnv } from "./utils.ts";
 
+async function signWhatsAppWebhookBodyHex(bodyJson: string, appSecret: string): Promise<string> {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(appSecret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  );
+  const sigBuf = await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(bodyJson));
+  const bytes = new Uint8Array(sigBuf);
+  return Array.from(bytes).map((b) => b.toString(16).padStart(2, "0")).join("");
+}
+
 export async function seedOptInPromptForWhatsApp(admin: any, userId: string) {
   // Used by whatsapp-webhook to disambiguate a plain "oui" as an opt-in acceptance.
   await admin.from("chat_messages").insert({
@@ -66,12 +79,17 @@ export async function invokeWhatsAppWebhook(params: {
   const endpoint = `${params.url}/functions/v1/whatsapp-webhook`;
   const raw = JSON.stringify(params.payload ?? {});
   const anonKey = (denoEnv("SUPABASE_ANON_KEY") ?? "").trim();
+  const appSecret = (denoEnv("WHATSAPP_APP_SECRET") ?? "").trim();
+  const sigHex = appSecret ? await signWhatsAppWebhookBodyHex(raw, appSecret) : "";
   const resp = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
       ...(anonKey ? { "apikey": anonKey } : {}),
       "x-request-id": params.requestId,
+      // Eval-only: do NOT call Meta/Graph. Keep the webhook/state-machine behavior, but use loopback transport.
+      "x-sophia-wa-transport": "loopback",
+      ...(sigHex ? { "x-hub-signature-256": `sha256=${sigHex}` } : {}),
     },
     body: raw,
   });

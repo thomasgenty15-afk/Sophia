@@ -1,0 +1,42 @@
+{
+  "success": true,
+  "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1767913753283_b1f318:i0:s1916298011",
+  "mega_test_mode": false,
+  "use_real_ai": true,
+  "requested_scenarios": 1,
+  "selected_scenarios": 1,
+  "limits_applied": {
+    "max_scenarios": 1,
+    "max_turns_per_scenario": 8,
+    "bilan_actions_count": 0,
+    "test_post_checkup_deferral": false,
+    "stop_on_first_failure": false,
+    "budget_usd": 0,
+    "model": "gemini-2.5-flash"
+  },
+  "ran": 1,
+  "stopped_reason": null,
+  "plan_template_fingerprint": null,
+  "total_cost_usd": 0.0070523,
+  "total_prompt_tokens": 3561,
+  "total_output_tokens": 475,
+  "total_tokens": 6638,
+  "results": [
+    {
+      "dataset_key": "core",
+      "scenario_key": "wa_onboarding_optin_yes_no_plan__run_1767913753283_b1f318",
+      "eval_run_id": "aef16d11-81de-4c63-892b-2a6d68ca6c08",
+      "plan_template_fingerprint": null,
+      "turns_executed": 1,
+      "bilan_completed": false,
+      "plan_snapshot_actions_count": 0,
+      "bilan_pending_items_count": 0,
+      "issues_count": 3,
+      "suggestions_count": 1,
+      "cost_usd": 0.0070523,
+      "prompt_tokens": 3561,
+      "output_tokens": 475,
+      "total_tokens": 6638
+    }
+  ]
+}

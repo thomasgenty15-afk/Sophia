@@ -44,6 +44,10 @@ const PAYWALL_NOTICE_COOLDOWN_MS = Number.parseInt(
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
+  const prevLoopback = (globalThis as any).__SOPHIA_WA_LOOPBACK
+  const transport = String(req.headers.get("x-sophia-wa-transport") ?? "").trim().toLowerCase()
+  const loopback = transport === "loopback" || transport === "simulate" || transport === "simulator"
+  ;(globalThis as any).__SOPHIA_WA_LOOPBACK = loopback
   try {
     // 1) Verification handshake (Meta)
     if (req.method === "GET") {
@@ -436,6 +440,8 @@ Deno.serve(async (req) => {
       },
     })
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
+  } finally {
+    ;(globalThis as any).__SOPHIA_WA_LOOPBACK = prevLoopback
   }
 })
 

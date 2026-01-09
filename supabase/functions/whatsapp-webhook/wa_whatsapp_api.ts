@@ -9,11 +9,18 @@ function isMegaTestMode(): boolean {
   const megaRaw = (denoEnv("MEGA_TEST_MODE") ?? "").trim()
   const isLocalSupabase =
     (denoEnv("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
-    (denoEnv("SUPABASE_URL") ?? "").includes("http://kong:8000")
+    (denoEnv("SUPABASE_URL") ?? "").includes("http://kong:8000") ||
+    (denoEnv("SUPABASE_URL") ?? "").includes(":54321")
   return megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
 }
 
 export async function sendWhatsAppText(toE164: string, body: string) {
+  // Eval-only transport: loopback means "pretend we sent it to WhatsApp",
+  // but do not call Meta/Graph. The webhook will still log the assistant message in DB.
+  if (Boolean((globalThis as any).__SOPHIA_WA_LOOPBACK)) {
+    return { messages: [{ id: "wamid_LOOPBACK" }], loopback: true, to: toE164, body } as any
+  }
+
   // In tests/local deterministic runs we never want to call Meta/Graph.
   if (isMegaTestMode()) {
     return { messages: [{ id: "wamid_MEGA_TEST" }], mega_test_mode: true, to: toE164, body } as any

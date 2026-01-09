@@ -1,0 +1,32 @@
+{
+  "dataset_key": "core",
+  "id": "wa_onboarding_optin_yes_no_plan__simulated",
+  "scenario_target": "onboarding",
+  "description": "WhatsApp onboarding (webhook): accept opt-in then continue conversation with simulate-user loopback (no Meta).",
+  "tags": ["whatsapp.onboarding", "whatsapp.webhook", "realistic", "simulated_transport"],
+  "channel": "whatsapp",
+  "seed_plan": false,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": false
+  },
+  "wa_steps": [
+    { "kind": "interactive", "interactive_id": "OPTIN_YES", "interactive_title": "Oui" }
+  ],
+  "wa_auto_simulate": true,
+  "wa_force_turns": true,
+  "persona": {
+    "label": "Utilisateur onboarding WhatsApp",
+    "age_range": "25-45",
+    "style": "court, naturel, parfois pressé",
+    "background": "vient d'accepter l'opt-in, veut comprendre quoi faire ensuite"
+  },
+  "objectives": [
+    {
+      "kind": "generic",
+      "note": "Après la demande de finaliser le plan, l'utilisateur répond 'C'est bon' dans les prochains tours, puis pose une question simple pour démarrer."
+    }
+  ]
+}
+
+
