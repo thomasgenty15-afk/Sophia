@@ -1,4 +1,5 @@
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import SEO from '../components/SEO';
 import { 
   ArrowRight, 
   Brain, 
@@ -22,6 +23,11 @@ const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
+      <SEO 
+        title="Ta Coach IA 24/7"
+        description="Transforme ta vie avec Sophia. Un système complet pour arrêter de procrastiner, bâtir ton identité 2.0 et atteindre tes objectifs. Powered by IKIZEN."
+        canonical="https://sophia-coach.ai/"
+      />
       
       {/* NAVBAR */}
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">
@@ -35,12 +41,12 @@ const LandingPage = () => {
           </div>
           <div className="flex items-center gap-4 md:gap-8">
             <div className="hidden md:flex gap-6 text-sm font-medium text-slate-600">
-              <button onClick={() => navigate('/le-plan')} className="hover:text-violet-600 transition-colors">Le Plan</button>
-              <button onClick={() => navigate('/l-architecte')} className="hover:text-violet-600 transition-colors flex items-center gap-1">
+              <Link to="/le-plan" className="hover:text-violet-600 transition-colors">Le Plan</Link>
+              <Link to="/l-architecte" className="hover:text-violet-600 transition-colors flex items-center gap-1">
                 L'Architecte <span className="bg-amber-100 text-amber-700 text-[10px] px-1.5 py-0.5 rounded-full font-bold">PRO</span>
-              </button>
-              <button onClick={() => navigate('/formules')} className="hover:text-violet-600 transition-colors">Offres</button>
-              <button onClick={() => navigate('/legal')} className="hover:text-violet-600 transition-colors">Légal</button>
+              </Link>
+              <Link to="/formules" className="hover:text-violet-600 transition-colors">Offres</Link>
+              <Link to="/legal" className="hover:text-violet-600 transition-colors">Légal</Link>
             </div>
             <button 
               onClick={() => navigate('/auth')}

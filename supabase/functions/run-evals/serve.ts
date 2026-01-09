@@ -71,6 +71,8 @@ export function serveRunEvals() {
       } catch {
         console.log(`[run-evals] request_id=${requestId} key_alg=parse_failed`);
       }
+      // Supabase local auth expects HS256 for anon/service keys.
+      // If keys are ES256 (can happen if the env is out-of-sync after a restart), auth.admin.* will fail.
       if (serviceAlg !== "HS256" || anonAlg !== "HS256") {
         return jsonResponse(
           req,

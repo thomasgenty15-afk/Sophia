@@ -1,4 +1,5 @@
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 import { 
   Check,
   X,
@@ -17,6 +18,11 @@ const Formules = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
+      <SEO 
+        title="Offres & Tarifs"
+        description="Commence gratuitement pendant 14 jours. Accède au Plan, au coach WhatsApp et à l'Architecte sans engagement."
+        canonical="https://sophia-coach.ai/formules"
+      />
       
       {/* NAVBAR */}
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">

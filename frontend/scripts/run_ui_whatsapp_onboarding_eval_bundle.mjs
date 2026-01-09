@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 import { execSync, spawnSync } from "node:child_process";
+import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
 
@@ -9,8 +10,61 @@ import path from "node:path";
 // - Exports a bundle per eval_run_id (same structure as bilan bundle)
 
 function getLocalSupabaseStatus() {
-  const raw = execSync("supabase status --output json", { encoding: "utf8" });
-  return JSON.parse(raw);
+  // NOTE: We prefer a recent Supabase CLI because older global installs can reject newer config
+  // fields (e.g. db.major_version = 17) and make the eval runner fail before it starts.
+  //
+  // You can override the CLI command used here:
+  //   SOPHIA_SUPABASE_CLI="supabase" npm run eval:wa:onboarding:bundle -- ...
+  const repoRoot = path.resolve(process.cwd(), "..");
+  const supabaseCli = String(process.env.SOPHIA_SUPABASE_CLI ?? "npx --yes supabase@latest").trim();
+  const raw = execSync(`${supabaseCli} status --output json`, { encoding: "utf8", cwd: repoRoot });
+  const st = JSON.parse(raw);
+  return normalizeSupabaseStatusKeys(st);
+}
+
+function decodeJwtAlg(jwt) {
+  const t = String(jwt ?? "").trim();
+  const p0 = t.split(".")[0] ?? "";
+  if (!p0) return "missing";
+  try {
+    const header = JSON.parse(Buffer.from(p0, "base64url").toString("utf8"));
+    return String(header?.alg ?? "unknown");
+  } catch {
+    return "parse_failed";
+  }
+}
+
+function signJwtHs256({ secret, payload }) {
+  const header = { alg: "HS256", typ: "JWT" };
+  const enc = (obj) => Buffer.from(JSON.stringify(obj), "utf8").toString("base64url");
+  const headerB64 = enc(header);
+  const payloadB64 = enc(payload);
+  const toSign = `${headerB64}.${payloadB64}`;
+  const sig = crypto.createHmac("sha256", secret).update(toSign).digest("base64url");
+  return `${toSign}.${sig}`;
+}
+
+function normalizeSupabaseStatusKeys(st) {
+  // Newer supabase CLI can output ES256 anon/service keys, but local GoTrue (auth) in our setup
+  // only accepts HS256 ("JWT_SECRET"). When that happens, auth.admin.* fails with:
+  //   signing method ES256 is invalid
+  //
+  // To make the eval runner robust, if keys aren't HS256 and JWT_SECRET is present, we mint
+  // compatible HS256 keys on-the-fly and use those for the run.
+  const anonAlg = decodeJwtAlg(st?.ANON_KEY);
+  const serviceAlg = decodeJwtAlg(st?.SERVICE_ROLE_KEY);
+  if (anonAlg === "HS256" && serviceAlg === "HS256") return st;
+
+  const jwtSecret = String(st?.JWT_SECRET ?? "").trim();
+  if (!jwtSecret) return st;
+
+  const now = Math.floor(Date.now() / 1000);
+  const exp = now + 60 * 60 * 24 * 365 * 10; // 10 years
+  const iss = "supabase-demo";
+
+  const anonKey = signJwtHs256({ secret: jwtSecret, payload: { iss, role: "anon", exp } });
+  const serviceRoleKey = signJwtHs256({ secret: jwtSecret, payload: { iss, role: "service_role", exp } });
+  return { ...st, ANON_KEY: anonKey, SERVICE_ROLE_KEY: serviceRoleKey };
 }
 
 function ensureDir(p) {

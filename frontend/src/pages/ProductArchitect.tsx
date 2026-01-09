@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 import {
   ArrowRight,
   ArrowLeft,
@@ -16,6 +17,11 @@ const ProductArchitect = () => {
 
   return (
     <div className="min-h-screen bg-slate-950 text-emerald-50 font-sans selection:bg-emerald-900 selection:text-emerald-50">
+      <SEO 
+        title="L'Architecte - Bâtis ton Identité 2.0"
+        description="Changer ses actions ne suffit pas. Déconstruis tes blocages, forge ton caractère et deviens la personne qui réussit naturellement."
+        canonical="https://sophia-coach.ai/l-architecte"
+      />
 
       {/* NAVBAR (Dark Mode Variant) */}
       <nav className="fixed top-0 w-full bg-slate-950/90 backdrop-blur-md z-50 border-b border-emerald-900/30">

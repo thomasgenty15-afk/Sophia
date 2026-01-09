@@ -307,9 +307,13 @@ const Auth = () => {
       <div className="sm:mx-auto sm:w-full sm:max-w-md text-center">
         {/* LOGO */}
         <div className="flex flex-col items-center gap-3 mb-8">
-          <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-16 h-16 rounded-2xl shadow-lg" />
+          <img
+            src="/apple-touch-icon.png"
+            alt="Sophia Logo"
+            className="w-16 h-16"
+          />
           <div className="flex flex-col items-center">
-            <h1 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">Sophia</h1>
+            <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Sophia</h1>
             <span className="text-[10px] font-bold tracking-[0.2em] text-slate-400 uppercase mt-1">
               Powered by IKIZEN
             </span>

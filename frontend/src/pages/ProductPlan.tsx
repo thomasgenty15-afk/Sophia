@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import SEO from '../components/SEO';
 import { 
   ArrowRight, 
   Target, 
@@ -19,6 +20,11 @@ const ProductPlan = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
+      <SEO 
+        title="Le Plan - Structure ton Chaos"
+        description="Fini le brouillard. Sophia génère une feuille de route tactique adaptée à ton niveau de chaos et t'accompagne chaque jour sur WhatsApp."
+        canonical="https://sophia-coach.ai/le-plan"
+      />
       
       {/* NAVBAR */}
       <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-md z-50 border-b border-slate-100">

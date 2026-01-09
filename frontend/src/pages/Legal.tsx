@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react';
 import { ArrowLeft, Shield, FileText, Lock, Scale, Mail, Eye, Briefcase } from 'lucide-react';
 import { useNavigate, useLocation } from 'react-router-dom';
+import SEO from '../components/SEO';
 
 const Legal = () => {
   const navigate = useNavigate();
@@ -20,6 +21,11 @@ const Legal = () => {
 
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
+      <SEO 
+        title="Mentions Légales & CGU"
+        description="Consultez nos mentions légales, conditions générales d'utilisation (CGU), politique de confidentialité et conditions générales de vente (CGV)."
+        canonical="https://sophia-coach.ai/legal"
+      />
       {/* Header */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">
         <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
