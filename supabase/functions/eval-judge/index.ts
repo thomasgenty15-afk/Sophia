@@ -13,6 +13,67 @@ type TranscriptMsg = {
   created_at?: string | null;
 };
 
+function decodeJwtAlg(jwt: string): string {
+  const t = (jwt ?? "").trim();
+  const p0 = t.split(".")[0] ?? "";
+  if (!p0) return "missing";
+  try {
+    const header = JSON.parse(
+      new TextDecoder().decode(
+        Uint8Array.from(
+          atob(p0.replace(/-/g, "+").replace(/_/g, "/")),
+          (c) => c.charCodeAt(0),
+        ),
+      ),
+    );
+    return String(header?.alg ?? "unknown");
+  } catch {
+    return "parse_failed";
+  }
+}
+
+function base64Url(bytes: Uint8Array) {
+  const s = btoa(String.fromCharCode(...bytes));
+  return s.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+async function signJwtHs256(secret: string, payload: Record<string, unknown>) {
+  const header = { alg: "HS256", typ: "JWT" };
+  const enc = (obj: unknown) => base64Url(new TextEncoder().encode(JSON.stringify(obj)));
+  const h = enc(header);
+  const p = enc(payload);
+  const toSign = `${h}.${p}`;
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(secret), { name: "HMAC", hash: "SHA-256" }, false, [
+    "sign",
+  ]);
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(toSign)));
+  return `${toSign}.${base64Url(sig)}`;
+}
+
+async function getServiceRoleKeyForRequest(req: Request, envServiceKey: string): Promise<string> {
+  const alg = decodeJwtAlg(envServiceKey);
+  if (alg === "HS256") return envServiceKey;
+
+  const host = (() => {
+    try {
+      return new URL(req.url).hostname.toLowerCase();
+    } catch {
+      return "";
+    }
+  })();
+  const isLocal = host === "127.0.0.1" || host === "localhost" || host.startsWith("supabase_");
+  if (!isLocal) return envServiceKey;
+
+  // Prefer non-SUPABASE_ secrets (some setups skip SUPABASE_* from env-file loads).
+  const jwtSecret =
+    (Deno.env.get("GOTRUE_JWT_SECRET") ?? Deno.env.get("JWT_SECRET") ?? Deno.env.get("SUPABASE_JWT_SECRET") ?? "").trim() ||
+    "super-secret-jwt-token-with-at-least-32-characters-long";
+  const now = Math.floor(Date.now() / 1000);
+  const exp = now + 60 * 60 * 24 * 365 * 10;
+  const iss = "supabase-demo";
+  return await signJwtHs256(jwtSecret, { iss, role: "service_role", exp });
+}
+
 function isMegaEnabled(): boolean {
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
@@ -280,7 +341,8 @@ Deno.serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
     const anonKey = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
-    const serviceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    const envServiceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+    const serviceKey = await getServiceRoleKeyForRequest(req, envServiceKey);
     if (!url || !anonKey || !serviceKey) return serverError(req, requestId, "Server misconfigured");
 
     // Authenticate caller
@@ -333,7 +395,7 @@ Deno.serve(async (req) => {
       if (insErr) throw insErr;
       runId = inserted.id as string;
     } else {
-      await admin
+      const { error: updErr } = await admin
         .from("conversation_eval_runs")
         .update({
           dataset_key: body.dataset_key,
@@ -346,6 +408,7 @@ Deno.serve(async (req) => {
           created_by: userId,
         })
         .eq("id", runId);
+      if (updErr) throw updErr;
     }
 
     // Compute issues/suggestions
@@ -611,7 +674,7 @@ Format attendu:
     // Prefer exact usage logged by gemini.ts (usageMetadata). Fallback to 0 if unavailable.
     const summed = await sumUsageByRequestId(requestId);
 
-    await admin
+    const { error: persistErr } = await admin
       .from("conversation_eval_runs")
       .update({
         status: "completed",
@@ -628,6 +691,7 @@ Format attendu:
         },
       })
       .eq("id", runId);
+    if (persistErr) throw persistErr;
 
     // NOTE: We no longer insert into prompt_override_suggestions here.
     // The workflow is "copy/paste into Cursor" from returned suggestions.context_block.

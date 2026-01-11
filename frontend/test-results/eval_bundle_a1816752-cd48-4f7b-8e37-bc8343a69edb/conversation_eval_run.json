@@ -1,0 +1,43 @@
+{
+  "id": "a1816752-cd48-4f7b-8e37-bc8343a69edb",
+  "created_at": "2026-01-09T18:10:37.206125+00:00",
+  "created_by": "13d76cb1-8db6-490b-aba6-b2bcdf1a734d",
+  "dataset_key": "core",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__simulated__run_1767982236602_830192",
+  "status": "running",
+  "config": {
+    "channel": "whatsapp",
+    "resumed": false,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated__run_1767982236602_830192:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__simulated__run_1767982236602_830192",
+    "eval_runner": true,
+    "test_user_id": "c02be7a8-5a85-44dd-abfc-c1e92c9cc27a"
+  },
+  "transcript": [],
+  "state_before": {
+    "profile": {
+      "id": "c02be7a8-5a85-44dd-abfc-c1e92c9cc27a",
+      "email": "run-evals+4394ab99493a47@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T18:10:37.151+00:00",
+      "phone_number": "+15558905477311",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T18:10:37.152+00:00",
+      "whatsapp_opted_in": false,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": null,
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": null,
+  "issues": [],
+  "suggestions": [],
+  "metrics": {},
+  "error": null
+}

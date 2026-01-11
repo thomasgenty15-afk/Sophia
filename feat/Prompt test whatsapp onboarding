@@ -7,26 +7,25 @@ Contexte important (à garder en tête)
 - Pour pouvoir tester sans dépendre de Meta/WhatsApp Cloud API, le runner active un transport “loopback” (pas d’envoi Meta) **uniquement pour le test**: le webhook se comporte comme en prod (state machine, routing, DB writes, LLM), mais l’envoi WhatsApp est simulé.
 - Le transcript final (tours user/assistant) est écrit dans `public.conversation_eval_runs.transcript` et affiché dans l’UI admin (`/admin/evals`).
 
+Note importante (comme pour `feat/Prompt test bilan`)
+- **Ne pas “deviner” depuis la DB**: pour l’audit, tu dois te baser sur **les fichiers exportés dans `frontend/test-results/`** (bundle) + les logs docker inclus dans ce bundle.
+- Après exécution, **va chercher le bundle dans `frontend/test-results/eval_bundle_<eval_run_id>/`** (ou récupère l’ID via la sortie console).  
+  Astuce: `frontend/test-results/.last-run.json` aide à retrouver le dernier `eval_run_id` / bundle.
+
 1) Lance la commande (à exécuter telle quelle)
 
-Dans le repo:
+Dans le repo (en full permisssions, pas en dans sandbox)
 
-### A) Run simple (1 test mécanique, début onboarding)
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
-npm run eval:wa:onboarding:bundle -- --tests 1 --seed 123 --turns 8 --model gemini-2.5-flash --timeout-ms 600000
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && npm run eval:wa:onboarding:bundle -- --tests 1 --seed 123 --turns 10 --suite all --exclude wa_onboarding_open_chat_offtopic_after_prompt --model gemini-2.5-flash --timeout-ms 600000
 
-### B) Run “conversationnel” (simulate-user ↔ webhook) avec 10 tours imposés
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
-npm run eval:wa:onboarding:bundle -- --tests 1 --seed 123 --turns 10 --model gemini-2.5-flash --timeout-ms 600000 --scenario wa_onboarding_optin_yes_no_plan__simulated
 
 Cette commande:
 - lance `run-evals` qui appelle `whatsapp-webhook` (transport loopback activé par le runner)
 - (si scénario `__simulated`) boucle ensuite `simulate-user` ↔ `whatsapp-webhook` pour obtenir une conversation multi-tours
 - exporte un bundle complet dans `frontend/test-results/eval_bundle_<eval_run_id>/`
 
-2) Ce que tu dois ouvrir/collecter après exécution
-
-À partir du bundle_dir affiché:
+2) Ce que tu dois ouvrir/collecter après exécution  (seulement après la fin de l'execution, tu ne dois pas faire run la commande en background, tu attends que la commande soit terminée pour continuer)
+- **À partir du `bundle_dir` affiché OU en allant dans `frontend/test-results/`** (comme le flow “bilan”), ouvre/collecte:
 - conversation_eval_run.json
   - transcript complet (WhatsApp)
   - state_before / state_after (incluant profil WhatsApp + user_chat_states scope=whatsapp)
@@ -108,3 +107,15 @@ Contraintes
 - Priorité: robustesse onboarding + continuité conversationnelle + routing stable + DB writes cohérents.
 
 
+
+
+
+
+complément : 
+### A) Run simple (1 test mécanique, début onboarding)
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
+npm run eval:wa:onboarding:bundle -- --tests 1 --seed 123 --turns 8 --model gemini-2.5-flash --timeout-ms 600000
+
+### B) Run “conversationnel” (simulate-user ↔ webhook) avec 10 tours imposés
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
+npm run eval:wa:onboarding:bundle -- --tests 1 --seed 123 --turns 10 --model gemini-2.5-flash --timeout-ms 600000 --scenario wa_onboarding_optin_yes_no_plan__simulated

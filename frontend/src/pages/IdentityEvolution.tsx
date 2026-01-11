@@ -1212,11 +1212,83 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
   );
 };
 
+// --- COMPOSANT TIMER DEBLOQUAGE ---
+const UnlockTimer = ({ targetDate, context = 'global' }: { targetDate: Date, context?: 'global' | 'local' }) => {
+  const [timeLeft, setTimeLeft] = useState(targetDate.getTime() - new Date().getTime());
+  const [isOpen, setIsOpen] = useState(false);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const diff = targetDate.getTime() - new Date().getTime();
+      setTimeLeft(diff);
+      if (diff <= 0) clearInterval(interval);
+    }, 60000); // Update every minute
+    
+    // Initial calc
+    setTimeLeft(targetDate.getTime() - new Date().getTime());
+
+    return () => clearInterval(interval);
+  }, [targetDate]);
+
+  if (timeLeft <= 0) return null;
+
+  const days = Math.floor(timeLeft / (1000 * 60 * 60 * 24));
+  const hours = Math.floor((timeLeft % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutes = Math.floor((timeLeft % (1000 * 60 * 60)) / (1000 * 60));
+
+  return (
+    <div className={`
+      relative overflow-hidden rounded-xl border border-orange-500/30 bg-orange-950/20 
+      ${context === 'global' ? 'mx-auto max-w-lg mb-8 p-4' : 'mx-4 mb-6 p-3'}
+      animate-fade-in transition-all duration-500
+    `}>
+        <div className="absolute inset-0 bg-orange-500/5" />
+        <div className="relative flex flex-col items-center justify-center gap-3 text-orange-200">
+            <div className="flex items-center gap-3 md:gap-4">
+                <Clock className="w-5 h-5 md:w-6 md:h-6 text-orange-500 animate-pulse" />
+                <div className="text-center">
+                    <p className="text-[10px] md:text-xs uppercase tracking-widest font-bold text-orange-400 mb-0.5">
+                        Prochain module disponible dans
+                    </p>
+                    <p className="font-serif text-lg md:text-xl font-bold tabular-nums tracking-wide">
+                        {days}j {hours}h {minutes}min
+                    </p>
+                </div>
+            </div>
+            
+            <button 
+                onClick={() => setIsOpen(!isOpen)}
+                className="text-[10px] md:text-xs text-orange-400/80 hover:text-orange-300 underline underline-offset-2 decoration-orange-500/30 hover:decoration-orange-400 transition-all mt-1"
+            >
+                {isOpen ? "Masquer l'explication" : "Pourquoi ce délai est-il nécessaire ?"}
+            </button>
+
+            <div className={`grid transition-all duration-500 ease-in-out ${isOpen ? 'grid-rows-[1fr] opacity-100 mt-4' : 'grid-rows-[0fr] opacity-0 mt-0'}`}>
+                <div className="overflow-hidden">
+                    <div className="bg-orange-950/40 rounded-lg p-4 border border-orange-900/50 text-orange-100/90 text-sm md:text-base font-serif leading-relaxed italic max-w-md mx-auto text-center space-y-4">
+                        <p>
+                            "On ne forge pas une lame solide en la frappant sans arrêt, il faut la laisser refroidir pour qu'elle durcisse.
+                        </p>
+                        <p>
+                            Une identité solide ne se fabrique pas à la chaîne. Ce temps n'est pas une attente passive, c'est un espace de maturation. Ne cherche pas à "finir", mais à laisser la réflexion infuser en toi.
+                        </p>
+                        <p>
+                            Réfléchis aux modules déjà renseignés, dors dessus, et reviens-y mentalement jour après jour jusqu'au déblocage. C'est cette lenteur itérative qui rendra ton ancrage indestructible."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+  );
+};
+
 // --- MAIN COMPONENT ---
 const IdentityEvolution = () => {
   const navigate = useNavigate();
   const [selectedBranch, setSelectedBranch] = useState<number | null>(null);
   const [selectedModule, setSelectedModule] = useState<SystemModule | null>(null);
+  const [nextGlobalUnlock, setNextGlobalUnlock] = useState<Date | null>(null);
   
   // State for module data
   const [moduleData, setModuleData] = useState<Record<string, any>>({});
@@ -1266,26 +1338,26 @@ const IdentityEvolution = () => {
       checkAccess();
   }, [user, navigate]);
 
-  // Fetch data when branch changes
+  // Fetch ALL Forge data (Optimized for Global Unlock)
   useEffect(() => {
-      if (!user || selectedBranch === null || !hasAccess) return;
+      if (!user || !hasAccess) return;
       
       const fetchModules = async () => {
-          // 1. Fetch Entries (Content)
+          // 1. Fetch Entries (Content) - ALL Forge Modules
           const { data: entriesData, error: entriesError } = await supabase
             .from('user_module_state_entries')
             .select('*')
             .eq('user_id', user.id)
-            .like('module_id', `a${selectedBranch}_%`);
+            .like('module_id', 'a%');
             
           if (entriesError) console.error("Error fetching entries:", entriesError);
           
-          // 2. Fetch States (Unlock Schedule)
+          // 2. Fetch States (Unlock Schedule) - ALL Forge Modules
           const { data: statesData, error: statesError } = await supabase
             .from('user_week_states')
             .select('*')
             .eq('user_id', user.id)
-            .like('module_id', `a${selectedBranch}_%`);
+            .like('module_id', 'a%');
 
           if (statesError) console.error("Error fetching states:", statesError);
           
@@ -1297,9 +1369,6 @@ const IdentityEvolution = () => {
               // Extraction du contenu : soit entry.content est une string (legacy), soit un objet { content: "..." }
               let actualContent = "";
               
-              // DEBUG: Log pour voir ce qu'on reçoit vraiment
-              // console.log(`[DEBUG] Entry ${entry.module_id} content type:`, typeof entry.content, entry.content);
-
               if (typeof entry.content === 'string') {
                   actualContent = entry.content;
               } else if (entry.content && typeof entry.content === 'object') {
@@ -1328,10 +1397,26 @@ const IdentityEvolution = () => {
           });
 
           setModuleData(map);
+
+          // Calculate Next Global Unlock
+          const now = new Date();
+          let closestUnlock: Date | null = null;
+
+          Object.values(map).forEach((m: any) => {
+             if (m.availableAt) {
+                 const d = new Date(m.availableAt);
+                 if (d > now) {
+                     if (!closestUnlock || d < closestUnlock) {
+                         closestUnlock = d;
+                     }
+                 }
+             }
+          });
+          setNextGlobalUnlock(closestUnlock);
       };
       
       fetchModules();
-  }, [user, selectedBranch]);
+  }, [user, hasAccess]); // Removed selectedBranch dependency to fetch all at once
   
   const handleBranchClick = (id: number) => {
     setSelectedBranch(id);
@@ -1412,6 +1497,30 @@ const IdentityEvolution = () => {
     }
   };
 
+  const nextUnlockDate = useMemo(() => {
+    const now = new Date();
+    
+    // If in a branch, look for next unlock SPECIFIC to this branch
+    if (selectedBranch !== null) {
+        let closest: Date | null = null;
+        Object.keys(moduleData).forEach(key => {
+            if (key.startsWith(`a${selectedBranch}_`)) {
+                 const m = moduleData[key];
+                 if (m.availableAt) {
+                     const d = new Date(m.availableAt);
+                     if (d > now) {
+                         if (!closest || d < closest) closest = d;
+                     }
+                 }
+            }
+        });
+        if (closest) return closest;
+    }
+    
+    // Fallback to global unlock (Homepage or if nothing specific in branch)
+    return nextGlobalUnlock;
+  }, [selectedBranch, nextGlobalUnlock, moduleData]);
+
   return (
     <div className="min-h-screen bg-emerald-950 text-emerald-50 font-sans flex flex-col relative overflow-x-hidden">
       
@@ -1438,6 +1547,13 @@ const IdentityEvolution = () => {
                 : "Maintenant que ton temple est construit, utilise la forge pour améliorer chaque élément."}
           </p>
         </div>
+
+        {nextUnlockDate && (
+            <UnlockTimer 
+                targetDate={nextUnlockDate} 
+                context={selectedBranch ? 'local' : 'global'} 
+            />
+        )}
 
         {selectedBranch === null ? (
             <ArsenalView onSelect={handleBranchClick} />

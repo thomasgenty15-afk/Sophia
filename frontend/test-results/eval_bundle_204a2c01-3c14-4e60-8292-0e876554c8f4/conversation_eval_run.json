@@ -1,0 +1,615 @@
+{
+  "id": "204a2c01-3c14-4e60-8292-0e876554c8f4",
+  "created_at": "2026-01-10T16:43:34.350139+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__run_1768063413731_887f45",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:43:34.609723+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, parfait, on va pouvoir avancer. 🚀\n\nIl faut juste que tu ailles sur le site pour finaliser et activer ton plan pour que je puisse voir ce qu'on a à faire : https://sophia-coach.ai\n\nRéponds exactement : C'est bon quand c'est fait.",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T16:43:42.836609+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:44:20.271778+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Nickel, c'est tout bon, je vois que Le Protocole Cinétique est bien en place. On va pouvoir passer aux choses sérieuses. 🚀\n\nTu veux qu'on parle du plan pour que je te guide sur la prochaine action, ou tu veux parler d'autre chose d'abord ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T16:44:27.937323+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, le plan, on démarre.",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:44:30.583501+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On attaque la Phase 1 : L'Impulsion Radicale. Ta priorité n°1, ce sont les Micro-Éclairs d'Énergie.\n\nL'objectif est de bouger 5 minutes pour casser l'inertie. Comme il est 17h44, c'est le moment idéal pour ton premier éclair de la journée. ⚡\n\nQu'est-ce que tu peux faire comme mouvement simple là où tu es tout de suite ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T16:44:39.618979+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Marcher un peu dans la pièce.",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:44:44.246615+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Rien de tel que quelques pas pour se dégourdir les jambes et relancer la machine.\n\nOn continue sur cette lancée avec une autre micro-action ou tu souhaites passer à ton bloc de travail principal ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T16:44:56.353232+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Plutôt le bloc principal, oui.",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:44:59.699618+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Compris. Pour que ton environnement soutienne cet élan sans friction, on va sécuriser ton Kit de l'Athlète Imprévue. 👟\n\nL'objectif est de préparer une tenue et des chaussures de sport et de les laisser bien en vue. Moins de décisions à prendre égale plus d'action.\n\nEst-ce que tu as un endroit stratégique, comme l'entrée ou ton bureau, pour poser ce kit tout de suite ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T16:45:09.886735+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, près de la porte d'entrée, c'est pas mal.",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:45:13.309554+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est l'emplacement idéal : impossible de l'ignorer en passant devant. 👟\n\nPose ton kit là-bas maintenant. C'est la micro-action qui sécurise ton intention avant que tu ne plonges dans ton travail.\n\nC'est fait ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T16:45:25.159147+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon.",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:45:28.862471+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est parfait, le Kit de l'Athlète Imprévue est bien validé. Bravo pour ton assiduité, c'est une excellente étape de franchie !\n\nAlors, comment tu te sens maintenant que tu as tout en main ? Est-ce qu'il y a un élément du kit qui t'a particulièrement surprise ou que tu as hâte de tester ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T16:45:43.995691+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ça va, je me sens bien. Hâte de voir la suite.",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:45:48.076891+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C’est bien pris en compte pour la validation de ton Kit de l’Athlète Imprévue. Bravo pour ce premier pas concret, c’est exactement l'élan qu'il fallait pour bien lancer la machine.\n\nC’est un plaisir de voir que tu te sens déjà en forme et que tu as hâte de découvrir la suite. On enchaîne donc sans attendre pour profiter de cette belle énergie et passer au prochain défi.",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T16:46:03.045928+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Super, j'attends la suite !",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:46:06.247563+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "J'adore cette gnaque. On ne va pas laisser retomber le soufflé !\n\nMaintenant que ton kit est prêt, on a une action déjà active dans ton plan : les Micro-Éclairs d'Énergie. L'idée est super simple, c'est de caler trois petits moments de 5 minutes dans ta journée pour bouger, juste pour dire à ton corps qu'on a fini de stagner.\n\nVu qu'il est bientôt 18h, tu penses pouvoir te faire un petit shoot d'énergie de 5 minutes là maintenant, ou c'est plus simple de prévoir ça pour demain ? ⚡️",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T16:46:16.843823+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je peux faire ça maintenant.",
+      "agent_used": null,
+      "created_at": "2026-01-10T16:46:18.974963+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est l'esprit. On ne réfléchit pas, on exécute. 5 minutes chrono pour réveiller ton système et casser la sédentarité de la journée.\n\nTu as le choix : escaliers, marche rapide ou quelques étirements dynamiques. Qu'est-ce que tu lances là tout de suite ? ⚡️",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T16:46:32.697468+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "9a8c7e54-7d06-42d9-9d97-d418b5bc8bc2",
+      "email": "run-evals+3f33592cab1347@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-17T16:43:34.304+00:00",
+      "phone_number": "+15552433624323",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-10T16:43:34.305+00:00",
+      "whatsapp_opted_in": false,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": null,
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "9a8c7e54-7d06-42d9-9d97-d418b5bc8bc2",
+      "email": "run-evals+3f33592cab1347@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-17T16:43:34.304+00:00",
+      "phone_number": "+15552433624323",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-10T16:43:34.305+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-10T16:46:18.969+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-10T16:44:30.591+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "9a8c7e54-7d06-42d9-9d97-d418b5bc8bc2",
+      "risk_level": 0,
+      "updated_at": "2026-01-10T16:46:32.690707+00:00",
+      "temp_memory": {
+        "architect": {
+          "last_q_fps": [
+            "tu veux qu on parle du plan pour que je te guide sur la prochaine action ou tu veux parler d autre chose d abord?",
+            "qu est ce que tu peux faire comme mouvement simple la ou tu es tout de suite?",
+            "on continue sur cette lancee avec une autre micro action ou tu souhaites passer a ton bloc de travail principal?",
+            "est ce que tu as un endroit strategique comme l entree ou ton bureau pour poser ce kit tout de suite?",
+            "c est fait?",
+            "est ce qu il y a un element du kit qui t a particulierement surprise ou que tu as hate de tester?",
+            "vu qu il est bientot 18h tu penses pouvoir te faire un petit shoot d energie de 5 minutes la maintenant ou c est plus si"
+          ],
+          "loop_count": 4,
+          "plan_focus": true,
+          "last_updated_at": "2026-01-10T16:46:22.326Z",
+          "current_objective": null
+        }
+      },
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-10T16:43:34.627+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-10T16:43:34.628659+00:00",
+      "unprocessed_msg_count": 10
+    }
+  },
+  "issues": [
+    {
+      "code": "logic_loop",
+      "message": "The system re-introduces a task ('Micro-Éclairs d'Énergie') that was already completed earlier in the same session.",
+      "evidence": {
+        "snippet": "Turn 3 (Architect): 'L'objectif est de bouger 5 minutes...' -> Turn 16 (Companion): 'On a une action déjà active... les Micro-Éclairs d'Énergie.'",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "routing_instability",
+      "message": "Unnecessary routing switch from Architect to Companion for a simple task confirmation, causing the subsequent logic loop.",
+      "evidence": {
+        "snippet": "Turn 10 (Architect): 'C'est fait ?' -> Turn 11 (User): 'Oui, c'est bon.' -> Turn 12 (Assistant): Companion takes over.",
+        "agent_used": "sophia.dispatcher"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "repetitive_validation",
+      "message": "The Companion validates the 'Kit de l'Athlète' twice in two consecutive turns.",
+      "evidence": {
+        "snippet": "Turn 12: 'le Kit... est bien validé.' -> Turn 14: 'C’est bien pris en compte pour la validation de ton Kit...'",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the Companion from interrupting the execution flow, which caused the context loss and the logic loop regarding the 'Micro-Éclairs'.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(companion): Ok, parfait, on va pouvoir avancer. 🚀 Il faut juste que tu ailles sur le site pour finaliser et activer ton plan pour que je puisse voir ce qu'on a à faire : https://sophia-coach.ai Réponds exactement : C'est bon quand c'est fait.\n#2 USER: C'est bon\n#3 ASSISTANT(companion): Nickel, c'est tout bon, je vois que Le Protocole Cinétique est bien en place. On va pouvoir passer aux choses sérieuses. 🚀 Tu veux qu'on parle du plan pour que je te guide sur la prochaine action, ou tu veux parler d'autre chose d'abord ?\n#4 USER: Oui, le plan, on démarre.\n#5 ASSISTANT(architect): On attaque la Phase 1 : L'Impulsion Radicale. Ta priorité n°1, ce sont les Micro-Éclairs d'Énergie. L'objectif est de bouger 5 minutes pour casser l'inertie. Comme il est 17h44, c'est le moment idéal pour ton premier éclair de la journée. ⚡ Qu'est-ce que tu peux faire comme mouvement simple là où tu es tout de suite ?\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nCRITICAL: If the previous message was the Architect asking for confirmation of a task execution (e.g., 'C'est fait ?', 'Tu l'as posé ?') and the user confirms, route back to ARCHITECT to conclude the step, not Companion.",
+      "proposed_addendum": "CRITICAL: If the previous message was the Architect asking for confirmation of a task execution (e.g., 'C'est fait ?', 'Tu l'as posé ?') and the user confirms, route back to ARCHITECT to conclude the step, not Companion."
+    },
+    {
+      "action": "append",
+      "rationale": "Acts as a safety net to prevent the Companion from hallucinating that a task is 'new' when it was just completed moments ago by another agent.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(companion): Ok, parfait, on va pouvoir avancer. 🚀 Il faut juste que tu ailles sur le site pour finaliser et activer ton plan pour que je puisse voir ce qu'on a à faire : https://sophia-coach.ai Réponds exactement : C'est bon quand c'est fait.\n#2 USER: C'est bon\n#3 ASSISTANT(companion): Nickel, c'est tout bon, je vois que Le Protocole Cinétique est bien en place. On va pouvoir passer aux choses sérieuses. 🚀 Tu veux qu'on parle du plan pour que je te guide sur la prochaine action, ou tu veux parler d'autre chose d'abord ?\n#4 USER: Oui, le plan, on démarre.\n#5 ASSISTANT(architect): On attaque la Phase 1 : L'Impulsion Radicale. Ta priorité n°1, ce sont les Micro-Éclairs d'Énergie. L'objectif est de bouger 5 minutes pour casser l'inertie. Comme il est 17h44, c'est le moment idéal pour ton premier éclair de la journée. ⚡ Qu'est-ce que tu peux faire comme mouvement simple là où tu es tout de suite ?\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nHISTORY CHECK: Before suggesting an 'active action' from the user's plan, scan the last 10 messages. If the Architect has already guided the user through that specific action in this session, do NOT re-introduce it.",
+      "proposed_addendum": "HISTORY CHECK: Before suggesting an 'active action' from the user's plan, scan the last 10 messages. If the Architect has already guided the user through that specific action in this session, do NOT re-introduce it."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1768063413731_887f45:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__run_1768063413731_887f45",
+    "total_tokens": 0,
+    "output_tokens": 0,
+    "prompt_tokens": 0,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "mechanical"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1768063413731_887f45:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__run_1768063413731_887f45",
+    "description": "WhatsApp onboarding (webhook): user accepts opt-in via button but has no active plan -> ask to finalize plan on site, then reply 'C'est bon'.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "90b7c63f-362f-4cd4-a676-9019afd4e835",
+        "title": "Le Protocole Cinétique",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Phase 1 : L'Impulsion Radicale",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "9e8ee87b-c811-401e-bab8-80bb469900e5",
+                  "tips": "Utilise une alarme pour ne pas oublier. Le but est de rompre l'assise prolongée, même si tu es débordée.",
+                  "type": "habitude",
+                  "title": "Micro-Éclairs d'Énergie",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Active ton corps à intervalles réguliers, stimulant la circulation et l'énergie sans exiger un effort 'sportif'. Cela reprogramme ton cerveau à penser au mouvement.",
+                  "targetReps": 10,
+                  "description": "Désigne 3 moments dans ta journée pour te lever et bouger pendant 5 minutes. Une marche rapide, quelques étirements, monter/descendre les escaliers. Chronomètre-toi.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "ac2fd3c9-2965-4fff-96f1-b1e8ee35a4aa",
+                  "tips": "Fais-le dès le premier jour. La visibilité réduit l'effort mental de décision. 'Voir c'est faire'.",
+                  "type": "mission",
+                  "title": "Le Kit de l'Athlète Imprévue",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Diminue la friction et l'excuse du 'je n'ai rien pour ça'. L'environnement doit faciliter l'action spontanée.",
+                  "description": "Prépare une tenue de sport complète et des chaussures d'extérieur, et laisse-les visibles dans un endroit facile d'accès (pas dans l'armoire). Ajoute une bouteille d'eau réutilisable à ce kit.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "6247b1ad-0a12-4b43-920a-214dd21d314d",
+                  "tips": "Sois brutale de sincérité. Imagine la version de toi pleine de vitalité et écris comme elle.",
+                  "type": "framework",
+                  "title": "Le Manifeste de l'Élan Vital",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ancre profondément ta motivation intrinsèque, transformant une tâche en quête personnelle. Le 'pourquoi' est ton carburant face aux blocages.",
+                  "targetReps": 1,
+                  "description": "Écris ton engagement personnel envers ce nouveau chapitre de mouvement et d'énergie. Clarifie 'Pourquoi maintenant ?' et 'Qu'est-ce que je gagne réellement ?'.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "L'élan ne vient pas toujours de l'extérieur. Il naît d'une décision interne, d'un engagement profond envers soi-même. Ce manifeste est ton serment, ta boussole interne.",
+                    "sections": [
+                      {
+                        "id": "p1f1s1",
+                        "label": "Mon 'Pourquoi' Ultime pour le mouvement et l'énergie : (minimum 3 raisons profondes)",
+                        "inputType": "textarea",
+                        "placeholder": "Je veux pouvoir jouer sans limite avec mes enfants... Pour me sentir alignée et puissante..."
+                      },
+                      {
+                        "id": "p1f1s2",
+                        "label": "Les sensations que je veux retrouver ou découvrir : (1 à 3 mots-clés)",
+                        "inputType": "list",
+                        "placeholder": "Légèreté, Force, Joie Pure"
+                      },
+                      {
+                        "id": "p1f1s3",
+                        "label": "Un engagement radical envers moi-même pour les 4 prochaines semaines : (1 phrase)",
+                        "inputType": "text",
+                        "placeholder": "Chaque jour, j'honore mon corps par le mouvement, peu importe les obstacles."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 1 • Briser l'Inertie",
+              "rationale": "Nous allons créer un choc positif pour briser immédiatement le cycle de sédentarité et d'oubli. L'objectif est de te faire sentir le mouvement, même minime, et de préparer ton environnement."
+            },
+            {
+              "id": 2,
+              "title": "Phase 2 : Le Souffle Reconquis",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "5e41f457-4a42-443b-ac3c-e12b6b4a50cf",
+                  "tips": "Choisis un moment fixe au début (ex: après le réveil, avant le dîner) pour faciliter l'intégration. Pense à ton Kit de l'Athlète Imprévue!",
+                  "type": "habitude",
+                  "title": "La Balise de Mouvement Quotidienne",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Construit la régularité, essentielle pour des bénéfices physiologiques et mentaux durables. La régularité crée de nouvelles voies neuronales.",
+                  "targetReps": 7,
+                  "description": "Engage-toi dans 15 minutes d'activité physique délibérée chaque jour. Marche rapide, petit circuit à la maison, danse... L'important est la constance.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "6d82f7f4-81c0-4460-8a2d-d472deb935e8",
+                  "tips": "Trouve une activité relaxante alternative: lecture papier, écriture, méditation. Le sommeil est la fondation de l'énergie.",
+                  "type": "habitude",
+                  "title": "Le Sanctuaire Sans Écran",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Réduit l'exposition à la lumière bleue et au flux d'informations, améliorant la qualité de ton sommeil et réduisant l'agitation mentale. Moins de fatigue = plus d'énergie pour bouger.",
+                  "targetReps": 7,
+                  "description": "Éteins ou mets en mode avion ton téléphone au moins 1 heure avant de te coucher et ne le touche pas jusqu'au matin. Pas d'écrans dans la chambre.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "e17d7d21-ce7c-4046-9a1c-3b6d057ec172",
+                  "tips": "Choisis des morceaux qui te donnent un coup de boost immédiat, peu importe le genre. Fais plusieurs essais si nécessaire.",
+                  "type": "mission",
+                  "title": "Ma Playlist d'Élan",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La musique est un puissant déclencheur émotionnel et un modulateur de l'humeur. Elle peut transformer l'effort en plaisir et renforcer la nouvelle habitude.",
+                  "description": "Crée une playlist d'environ 15-20 minutes de musique entraînante et motivante qui te donne envie de bouger. Elle sera ton signal pour l'action.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaine 2 • Ancrage et Conscience",
+              "rationale": "Maintenant que tu as l'élan, cette phase consolide l'habitude du mouvement et commence à gérer la fatigue et la distraction digitale qui t'empêchent de persévérer."
+            },
+            {
+              "id": 3,
+              "title": "Phase 3 : L'Architecture du Rythme",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "170086b6-776f-4b78-9c85-1015b045dcd0",
+                  "tips": "Fais-le avant de consulter ton téléphone. C'est un engagement avec toi-même avant le monde extérieur.",
+                  "type": "habitude",
+                  "title": "Le Rituel du Levant Actif",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Crée un signal fort pour ton cerveau que la journée commence par le mouvement et l'attention à soi. Améliore la flexibilité et la circulation dès le début de la journée, préparant le corps à l'action.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, dès le réveil, consacre 10 minutes à des étirements doux, de la respiration profonde ou un petit enchaînement de yoga simple pour réveiller ton corps.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "39f0fe06-b469-4dbb-8b70-c0b181ef922c",
+                  "tips": "Sois honnête avec toi-même. Le but n'est pas de juger, mais de comprendre pour mieux agir.",
+                  "type": "framework",
+                  "title": "Mon Bilan Énergétique Quotidien",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Développe une métacognition sur tes sources d'énergie et tes 'voleurs' d'énergie. Cette conscience est clé pour ajuster tes actions et devenir plus proactive dans ta vitalité.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, prends 5 minutes pour évaluer ton niveau d'énergie de la journée et ce qui l'a influencé (positivement/négativement).",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Ton corps et ton esprit te parlent constamment. Apprends à écouter ces signaux pour devenir l'architecte consciente de ton énergie.",
+                    "sections": [
+                      {
+                        "id": "p3f2s1",
+                        "label": "Mon niveau d'énergie général aujourd'hui (1=épuisée, 10=débordante)",
+                        "inputType": "scale",
+                        "placeholder": "7"
+                      },
+                      {
+                        "id": "p3f2s2",
+                        "label": "Ce qui a le plus drainé mon énergie : (événements, pensées, habitudes)",
+                        "inputType": "textarea",
+                        "placeholder": "La surcharge de travail, le scroll sur les réseaux, les discussions stressantes..."
+                      },
+                      {
+                        "id": "p3f2s3",
+                        "label": "Ce qui a nourri mon énergie : (actions, interactions, moments)",
+                        "inputType": "textarea",
+                        "placeholder": "Ma Balise de Mouvement, un moment de calme, un rire avec un proche..."
+                      },
+                      {
+                        "id": "p3f2s4",
+                        "label": "Une action concrète pour améliorer mon énergie demain :",
+                        "inputType": "text",
+                        "placeholder": "Me coucher 30 minutes plus tôt."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 3 • Intégration Profonde",
+              "rationale": "Nous allons intégrer le mouvement dans ton quotidien avec fluidité et affiner ta conscience de ton niveau d'énergie. L'objectif est de ne plus 'oublier' mais d'anticiper."
+            },
+            {
+              "id": 4,
+              "title": "Phase 4 : La Flamme Perpétuelle",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "742e2e40-c80d-4cc9-b677-44c4d46e2a79",
+                  "tips": "Utilise ce temps pour ta Balise de Mouvement ou ton Rituel du Levant sans interruption. La clé est la déconnexion volontaire.",
+                  "type": "habitude",
+                  "title": "Le Défi du Silence Mobile",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Renforce ta capacité à te déconnecter des distractions externes pour te connecter à tes besoins internes. Libère de l'espace mental et temporel pour le mouvement intentionnel, brisant le cycle de 'débordée' et 'oubli'.",
+                  "targetReps": 7,
+                  "description": "Définis un créneau d'au moins 1 heure dans la journée où ton téléphone est complètement éteint ou inaccessible. C'est ton 'Heure Sacrée' pour toi et ton mouvement.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "0fbe6fce-d78b-4330-ac53-9f829f25b6df",
+                  "tips": "Ne te contente pas d'y penser. Note les dates, les lieux, les contacts. Rend-le réel et engageant.",
+                  "type": "mission",
+                  "title": "Ton Ancre Post-Programme",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Assure la continuité et l'évolution de tes nouvelles habitudes. Avoir une vision claire de la suite réduit le risque de retomber dans l'inertie.",
+                  "description": "Planifie concrètement 3 activités physiques que tu pourrais intégrer après ce mois. Cela peut être l'inscription à un cours, l'exploration d'un nouveau sentier de randonnée, ou un programme d'entraînement en ligne.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "7e7d3214-53be-4bf8-b749-6f3324525da4",
+                  "tips": "Pense aux stratégies que tu as utilisées pour surmonter les moments où tu 'oubliais' ou 'remettais à plus tard'.",
+                  "type": "framework",
+                  "title": "Ma Boussole de Vitalité Durable",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ce bilan final te permet d'internaliser les apprentissages, de solidifier ta nouvelle identité de 'Flamme en Mouvement' et de créer une feuille de route personnalisée pour l'avenir.",
+                  "targetReps": 1,
+                  "description": "Réfléchis à ce que tu as appris sur toi-même, tes blocages, tes forces, et comment tu vas maintenir cette flamme de vitalité sur le long terme.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Tu as prouvé ta capacité à transformer l'inertie en élan. Cette boussole est ta carte pour naviguer les défis futurs et maintenir ta vitalité comme une flamme éternelle.",
+                    "sections": [
+                      {
+                        "id": "p4f3s1",
+                        "label": "Ma plus grande réussite de ces 4 semaines :",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai réussi à bouger même les jours où j'étais épuisée, prouvant ma force intérieure."
+                      },
+                      {
+                        "id": "p4f3s2",
+                        "label": "Les 3 stratégies que j'utiliserai pour contrer la procrastination à l'avenir :",
+                        "inputType": "list",
+                        "placeholder": "Mettre ma tenue de sport à l'avance, lancer ma playlist d'élan, me dire 'juste 5 minutes'"
+                      },
+                      {
+                        "id": "p4f3s3",
+                        "label": "Mon prochain objectif de mouvement à moyen terme (3-6 mois) :",
+                        "inputType": "text",
+                        "placeholder": "Faire une randonnée de 10km chaque mois."
+                      },
+                      {
+                        "id": "p4f3s4",
+                        "label": "La principale leçon que je retiens pour ma vitalité durable :",
+                        "inputType": "textarea",
+                        "placeholder": "La constance et l'écoute de mon corps sont plus importantes que l'intensité."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 4 • Autonomie et Pérennité",
+              "rationale": "Cette dernière phase consolide tes acquis et t'équipe pour maintenir cet élan bien au-delà des 4 semaines. Tu es désormais l'architecte de ta propre vitalité."
+            }
+          ],
+          "deepWhy": "Pour sentir la force, la joie et la stabilité circuler en moi chaque jour, être capable d'embrasser toutes les facettes de ma vie avec une énergie débordante, et créer un héritage de vitalité.",
+          "identity": "Je suis une Flamme en Mouvement, inarrêtable et pleine d'élan.",
+          "strategy": "Ce plan radical et rapide vise à réactiver ton énergie vitale en brisant la sédentarité et l'inertie par des explosions de mouvement. On reprogramme ton rythme interne pour transformer la fatigue en élan, en seulement 4 semaines.",
+          "goldenRules": "1. Le premier mouvement compte plus que l'intensité.\n2. Mon téléphone est un outil, pas un maître; il reste hors de ma zone de mouvement.\n3. La discipline est la liberté : même 5 minutes comptent chaque jour.",
+          "vitalSignal": {
+            "name": "Minutes d'activité physique intentionnelle",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "0",
+            "description": "Le temps total passé dans une activité physique structurée et volontaire chaque jour.",
+            "targetValue": "30",
+            "time_of_day": "any_time",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole Cinétique",
+          "context_problem": "Tu te sens piégée dans un cycle de sédentarité et de manque d'activité, ce qui sape ton énergie et ta stabilité. Tes journées sont chaotiques et la procrastination est ton principal blocage, souvent alimentée par la fatigue et la tentation du téléphone. Tu as soif de vitalité et de mouvement.",
+          "sophiaKnowledge": "Tu es une femme née en 1992, en quête de plus d'énergie et de stabilité. Tes journées sont irrégulières, tu es souvent débordée et la fatigue te pousse à compenser avec l'usage du téléphone, ce qui te fait remettre à plus tard l'activité physique pourtant essentielle. Ton niveau d'activité, de stress et de sommeil sont actuellement moyens.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de jours cette semaine as-tu ressenti un élan d'énergie naturel au réveil ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "4 semaines"
+        },
+        "goal_id": "33ee0f4d-11b7-4682-bc7c-1262faf6ad8f",
+        "deep_why": "Pour sentir la force, la joie et la stabilité circuler en moi chaque jour, être capable d'embrasser toutes les facettes de ma vie avec une énergie débordante, et créer un héritage de vitalité.",
+        "created_at": "2026-01-10T16:44:20.213133+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "008505b6-da0e-440b-8374-50f8733e9b54",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "9e8ee87b-c811-401e-bab8-80bb469900e5",
+          "title": "Micro-Éclairs d'Énergie",
+          "status": "active",
+          "created_at": "2026-01-10T16:44:20.226496+00:00",
+          "description": "Désigne 3 moments dans ta journée pour te lever et bouger pendant 5 minutes. Une marche rapide, quelques étirements, monter/descendre les escaliers. Chronomètre-toi.",
+          "target_reps": 10,
+          "time_of_day": "any_time",
+          "current_reps": 1,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-10T16:44:52.178+00:00"
+        },
+        {
+          "id": "ac2fd3c9-2965-4fff-96f1-b1e8ee35a4aa",
+          "title": "Le Kit de l'Athlète Imprévue",
+          "status": "active",
+          "created_at": "2026-01-10T16:44:20.226496+00:00",
+          "description": "Prépare une tenue de sport complète et des chaussures d'extérieur, et laisse-les visibles dans un endroit facile d'accès (pas dans l'armoire). Ajoute une bouteille d'eau réutilisable à ce kit.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 2,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-10T16:45:58.725+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole Cinétique\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour sentir la force, la joie et la stabilité circuler en moi chaque jour, être capable d'embrasser toutes les facettes de ma vie avec une énergie débordante, et créer un héritage de vitalité.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Phase 1 : L'Impulsion Radicale\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"9e8ee87b-c811-401e-bab8-80bb469900e5\",\n          \"tips\": \"Utilise une alarme pour ne pas oublier. Le but est de rompre l'assise prolongée, même si tu es débordée.\",\n          \"type\": \"habitude\",\n          \"title\": \"Micro-Éclairs d'Énergie\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Active ton corps à intervalles réguliers, stimulant la circulation et l'énergie sans exiger un effort 'sportif'. Cela reprogramme ton cerveau à penser au mouvement.\",\n          \"targetReps\": 10,\n          \"description\": \"Désigne 3 moments dans ta journée pour te lever et bouger pendant 5 minutes. Une marche rapide, quelques étirements, monter/descendre les escaliers. Chronomètre-toi.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"ac2fd3c9-2965-4fff-96f1-b1e8ee35a4aa\",\n          \"tips\": \"Fais-le dès le premier jour. La visibilité réduit l'effort mental de décision. 'Voir c'est faire'.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Kit de l'Athlète Imprévue\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Diminue la friction et l'excuse du 'je n'ai rien pour ça'. L'environnement doit faciliter l'action spontanée.\",\n          \"description\": \"Prépare une tenue de sport complète et des chaussures d'extérieur, et laisse-les visibles dans un endroit facile d'accès (pas dans l'armoire). Ajoute une bouteille d'eau réutilisable à ce kit.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"6247b1ad-0a12-4b43-920a-214dd21d314d\",\n          \"tips\": \"Sois brutale de sincérité. Imagine la version de toi pleine de vitalité et écris comme elle.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Manifeste de l'Élan Vital\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ancre profondément ta motivation intrinsèque, transformant une tâche en quête personnelle. Le 'pourquoi' est ton carburant face aux blocages.\",\n          \"targetReps\": 1,\n          \"description\": \"Écris ton engagement personnel envers ce nouveau chapitre de mouvement et d'énergie. Clarifie 'Pourquoi maintenant ?' et 'Qu'est-ce que je gagne réellement ?'.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"L'élan ne vient pas toujours de l'extérieur. Il naît d'une décision interne, d'un engagement profond envers soi-même. Ce manifeste est ton serment, ta boussole interne.\",\n            \"sections\": [\n              {\n                \"id\": \"p1f1s1\",\n                \"label\": \"Mon 'Pourquoi' Ultime pour le mouvement et l'énergie : (minimum 3 raisons profondes)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je veux pouvoir jouer sans limite avec mes enfants... Pour me sentir alignée et puissante...\"\n              },\n              {\n                \"id\": \"p1f1s2\",\n                \"label\": \"Les sensations que je veux retrouver ou découvrir : (1 à 3 mots-clés)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Légèreté, Force, Joie Pure\"\n              },\n              {\n                \"id\": \"p1f1s3\",\n                \"label\": \"Un engagement radical envers moi-même pour les 4 prochaines semaines : (1 phrase)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Chaque jour, j'honore mon corps par le mouvement, peu importe les obstacles.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 1 • Briser l'Inertie\",\n      \"rationale\": \"Nous allons créer un choc positif pour briser immédiatement le cycle de sédentarité et d'oubli. L'objectif est de te faire sentir le mouvement, même minime, et de préparer ton environnement.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Phase 2 : Le Souffle Reconquis\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"5e41f457-4a42-443b-ac3c-e12b6b4a50cf\",\n          \"tips\": \"Choisis un moment fixe au début (ex: après le réveil, avant le dîner) pour faciliter l'intégration. Pense à ton Kit de l'Athlète Imprévue!\",\n          \"type\": \"habitude\",\n          \"title\": \"La Balise de Mouvement Quotidienne\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Construit la régularité, essentielle pour des bénéfices physiologiques et mentaux durables. La régularité crée de nouvelles voies neuronales.\",\n          \"targetReps\": 7,\n          \"description\": \"Engage-toi dans 15 minutes d'activité physique délibérée chaque jour. Marche rapide, petit circuit à la maison, danse... L'important est la constance.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"6d82f7f4-81c0-4460-8a2d-d472deb935e8\",\n          \"tips\": \"Trouve une activité relaxante alternative: lecture papier, écriture, méditation. Le sommeil est la fondation de l'énergie.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sanctuaire Sans Écran\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Réduit l'exposition à la lumière bleue et au flux d'informations, améliorant la qualité de ton sommeil et réduisant l'agitation mentale. Moins de fatigue = plus d'énergie pour bouger.\",\n          \"targetReps\": 7,\n          \"description\": \"Éteins ou mets en mode avion ton téléphone au moins 1 heure avant de te coucher et ne le touche pas jusqu'au matin. Pas d'écrans dans la chambre.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"e17d7d21-ce7c-4046-9a1c-3b6d057ec172\",\n          \"tips\": \"Choisis des morceaux qui te donnent un coup de boost immédiat, peu importe le genre. Fais plusieurs essais si nécessaire.\",\n          \"type\": \"mission\",\n          \"title\": \"Ma Playlist d'Élan\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La musique est un puissant déclencheur émotionnel et un modulateur de l'humeur. Elle peut transformer l'effort en plaisir et renforcer la nouvelle habitude.\",\n          \"description\": \"Crée une playlist d'environ 15-20 minutes de musique entraînante et motivante qui te donne envie de bouger. Elle sera ton signal pour l'action.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaine 2 • Ancrage et Conscience\",\n      \"rationale\": \"Maintenant que tu as l'élan, cette phase consolide l'habitude du mouvement et commence à gérer la fatigue et la distraction digitale qui t'empêchent de persévérer.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Phase 3 : L'Architecture du Rythme\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"170086b6-776f-4b78-9c85-1015b045dcd0\",\n          \"tips\": \"Fais-le avant de consulter ton téléphone. C'est un engagement avec toi-même avant le monde extérieur.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rituel du Levant Actif\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Crée un signal fort pour ton cerveau que la journée commence par le mouvement et l'attention à soi. Améliore la flexibilité et la circulation dès le début de la journée, préparant le corps à l'action.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, dès le réveil, consacre 10 minutes à des étirements doux, de la respiration profonde ou un petit enchaînement de yoga simple pour réveiller ton corps.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"39f0fe06-b469-4dbb-8b70-c0b181ef922c\",\n          \"tips\": \"Sois honnête avec toi-même. Le but n'est pas de juger, mais de comprendre pour mieux agir.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Bilan Énergétique Quotidien\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Développe une métacognition sur tes sources d'énergie et tes 'voleurs' d'énergie. Cette conscience est clé pour ajuster tes actions et devenir plus proactive dans ta vitalité.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, prends 5 minutes pour évaluer ton niveau d'énergie de la journée et ce qui l'a influencé (positivement/négativement).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Ton corps et ton esprit te parlent constamment. Apprends à écouter ces signaux pour devenir l'architecte consciente de ton énergie.\",\n            \"sections\": [\n              {\n                \"id\": \"p3f2s1\",\n                \"label\": \"Mon niveau d'énergie général aujourd'hui (1=épuisée, 10=débordante)\",\n                \"inputType\": \"scale\",\n                \"placeholder\": \"7\"\n              },\n              {\n                \"id\": \"p3f2s2\",\n                \"label\": \"Ce qui a le plus drainé mon énergie : (événements, pensées, habitudes)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"La surcharge de travail, le scroll sur les réseaux, les discussions stressantes...\"\n              },\n              {\n                \"id\": \"p3f2s3\",\n                \"label\": \"Ce qui a nourri mon énergie : (actions, interactions, moments)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Ma Balise de Mouvement, un moment de calme, un rire avec un proche...\"\n              },\n              {\n                \"id\": \"p3f2s4\",\n                \"label\": \"Une action concrète pour améliorer mon énergie demain :\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Me coucher 30 minutes plus tôt.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 3 • Intégration Profonde\",\n      \"rationale\": \"Nous allons intégrer le mouvement dans ton quotidien avec fluidité et affiner ta conscience de ton niveau d'énergie. L'objectif est de ne plus 'oublier' mais d'anticiper.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Phase 4 : La Flamme Perpétuelle\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"742e2e40-c80d-4cc9-b677-44c4d46e2a79\",\n          \"tips\": \"Utilise ce temps pour ta Balise de Mouvement ou ton Rituel du Levant sans interruption. La clé est la déconnexion volontaire.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Défi du Silence Mobile\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Renforce ta capacité à te déconnecter des distractions externes pour te connecter à tes besoins internes. Libère de l'espace mental et temporel pour le mouvement intentionnel, brisant le cycle de 'débordée' et 'oubli'.\",\n          \"targetReps\": 7,\n          \"description\": \"Définis un créneau d'au moins 1 heure dans la journée où ton téléphone est complètement éteint ou inaccessible. C'est ton 'Heure Sacrée' pour toi et ton mouvement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"0fbe6fce-d78b-4330-ac53-9f829f25b6df\",\n          \"tips\": \"Ne te contente pas d'y penser. Note les dates, les lieux, les contacts. Rend-le réel et engageant.\",\n          \"type\": \"mission\",\n          \"title\": \"Ton Ancre Post-Programme\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Assure la continuité et l'évolution de tes nouvelles habitudes. Avoir une vision claire de la suite réduit le risque de retomber dans l'inertie.\",\n          \"description\": \"Planifie concrètement 3 activités physiques que tu pourrais intégrer après ce mois. Cela peut être l'inscription à un cours, l'exploration d'un nouveau sentier de randonnée, ou un programme d'entraînement en ligne.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"7e7d3214-53be-4bf8-b749-6f3324525da4\",\n          \"tips\": \"Pense aux stratégies que tu as utilisées pour surmonter les moments où tu 'oubliais' ou 'remettais à plus tard'.\",\n          \"type\": \"framework\",\n          \"title\": \"Ma Boussole de Vitalité Durable\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ce bilan final te permet d'internaliser les apprentissages, de solidifier ta nouvelle identité de 'Flamme en Mouvement' et de créer une feuille de route personnalisée pour l'avenir.\",\n          \"targetReps\": 1,\n          \"description\": \"Réfléchis à ce que tu as appris sur toi-même, tes blocages, tes forces, et comment tu vas maintenir cette flamme de vitalité sur le long terme.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Tu as prouvé ta capacité à transformer l'inertie en élan. Cette boussole est ta carte pour naviguer les défis futurs et maintenir ta vitalité comme une flamme éternelle.\",\n            \"sections\": [\n              {\n                \"id\": \"p4f3s1\",\n                \"label\": \"Ma plus grande réussite de ces 4 semaines :\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai réussi à bouger même les jours où j'étais épuisée, prouvant ma force intérieure.\"\n              },\n              {\n                \"id\": \"p4f3s2\",\n                \"label\": \"Les 3 stratégies que j'utiliserai pour contrer la procrastination à l'avenir :\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Mettre ma tenue de sport à l'avance, lancer ma playlist d'élan, me dire 'juste 5 minutes'\"\n              },\n              {\n                \"id\": \"p4f3s3\",\n                \"label\": \"Mon prochain objectif de mouvement à moyen terme (3-6 mois) :\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Faire une randonnée de 10km chaque mois.\"\n              },\n              {\n                \"id\": \"p4f3s4\",\n                \"label\": \"La principale leçon que je retiens pour ma vitalité durable :\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"La constance et l'écoute de mon corps sont plus importantes que l'intensité.\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 4 • Autonomie et Pérennité\",\n      \"rationale\": \"Cette dernière phase consolide tes acquis et t'équipe pour maintenir cet élan bien au-delà des 4 semaines. Tu es désormais l'architecte de ta propre vitalité.\"\n    }\n  ],\n  \"deepWhy\": \"Pour sentir la force, la joie et la stabilité circuler en moi chaque jour, être capable d'embrasser toutes les facettes de ma vie avec une énergie débordante, et créer un héritage de vitalité.\",\n  \"identity\": \"Je suis une Flamme en Mouvement, inarrêtable et pleine d'élan.\",\n  \"strategy\": \"Ce plan radical et rapide vise à réactiver ton énergie vitale en brisant la sédentarité et l'inertie par des explosions de mouvement. On reprogramme ton rythme interne pour transformer la fatigue en élan, en seulement 4 semaines.\",\n  \"goldenRules\": \"1. Le premier mouvement compte plus que l'intensité.\\n2. Mon téléphone est un outil, pas un maître; il reste hors de ma zone de mouvement.\\n3. La discipline est la liberté : même 5 minutes comptent chaque jour.\",\n  \"vitalSignal\": {\n    \"name\": \"Minutes d'activité physique intentionnelle\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"0\",\n    \"description\": \"Le temps total passé dans une activité physique structurée et volontaire chaque jour.\",\n    \"targetValue\": \"30\",\n    \"time_of_day\": \"any_time\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole Cinétique\",\n  \"context_problem\": \"Tu te sens piégée dans un cycle de sédentarité et de manque d'activité, ce qui sape ton énergie et ta stabilité. Tes journées sont chaotiques et la procrastination est ton principal blocage, souvent alimentée par la fatigue et la tentation du téléphone. Tu as soif de vitalité et de mouvement.\",\n  \"sophiaKnowledge\": \"Tu es une femme née en 1992, en quête de plus d'énergie et de stabilité. Tes journées sont irrégulières, tu es souvent débordée et la fatigue te pousse à compenser avec l'usage du téléphone, ce qui te fait remettre à plus tard l'activité physique pourtant essentielle. Ton niveau d'activité, de stress et de sommeil sont actuellement moyens.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de jours cette semaine as-tu ressenti un élan d'énergie naturel au réveil ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"4 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Micro-Éclairs d'Énergie (any_time)\n- [ACTION] Le Kit de l'Athlète Imprévue (any_time)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Minutes d'activité physique intentionnelle: 0 min\n",
+      "template_fingerprint": "c86a1086afa0f794"
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

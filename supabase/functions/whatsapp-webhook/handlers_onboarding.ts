@@ -1,4 +1,23 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
+import { buildWhatsAppOnboardingContext } from "./onboarding_context.ts"
+
+async function countRecentAssistantPurpose(params: {
+  admin: SupabaseClient
+  userId: string
+  purpose: string
+  withinMs: number
+}): Promise<number> {
+  const sinceIso = new Date(Date.now() - params.withinMs).toISOString()
+  const { count } = await params.admin
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", params.userId)
+    .eq("scope", "whatsapp")
+    .eq("role", "assistant")
+    .gte("created_at", sinceIso)
+    .filter("metadata->>purpose", "eq", params.purpose)
+  return Number(count ?? 0) || 0
+}
 
 export async function handleOnboardingState(params: {
   admin: SupabaseClient
@@ -17,6 +36,7 @@ export async function handleOnboardingState(params: {
     requestId: string
     replyToWaMessageId?: string | null
     contextOverride: string
+    whatsappMode?: "onboarding" | "normal"
     forceMode?: "companion" | "architect" | "assistant" | "investigator" | "firefighter" | "sentry"
     purpose?: string
   }) => Promise<any>
@@ -53,16 +73,19 @@ export async function handleOnboardingState(params: {
         requestId,
         replyToWaMessageId: waMessageId,
         purpose: "awaiting_plan_finalization_soft_reply",
+        whatsappMode: "onboarding",
         contextOverride:
-          `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
-          `ÉTAT: awaiting_plan_finalization\n` +
-          `L'utilisateur est dans les premiers échanges WhatsApp.\n` +
-          `Objectif: répondre au message de l'utilisateur (même si c'est hors sujet), puis rappeler en 1 phrase qu'il faut finaliser le plan sur le site.\n` +
-          `Ensuite, demander de répondre exactement: "C'est bon" quand c'est finalisé.\n` +
-          `Inclure le lien: ${siteUrl}\n` +
-          `IMPORTANT: tu ne connais pas l'UI exacte du site. N'invente jamais des boutons/positions ("en haut à droite", "clique sur Mes plans"). Reste générique.\n` +
-          `IMPORTANT: tu ne peux pas envoyer d'images/captures d'écran ici. Ne propose pas d'en envoyer.\n` +
-          `Ne pose qu'UNE question max, et reste naturel (pas robot).\n`,
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_plan_finalization",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "no_plan",
+            phase: "onboarding",
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Réponds au message de l'utilisateur.\n` +
+          `- Puis rappelle en 1 phrase: finaliser/activer le plan sur le site.\n` +
+          `- Termine par: "Réponds exactement: C'est bon" quand c'est fait.\n`,
       })
       return true
     }
@@ -92,6 +115,77 @@ export async function handleOnboardingState(params: {
 
     const planTitle = String((activePlan as any)?.title ?? "").trim()
     if (!planTitle) {
+      // Anti-boucle: if the user says "C'est bon" again but we still don't see a plan, escalate to support.
+      const priorStillMissing = await countRecentAssistantPurpose({
+        admin,
+        userId,
+        purpose: "awaiting_plan_finalization_still_missing_soft",
+        withinMs: 6 * 60 * 60 * 1000,
+      })
+      if (priorStillMissing >= 1) {
+        // Anti-spam: do not send the explicit support escalation more than once per 24h.
+        const SUPPORT_ESCALATION_COOLDOWN_MS = 24 * 60 * 60 * 1000
+        const alreadyEscalatedRecently = await countRecentAssistantPurpose({
+          admin,
+          userId,
+          purpose: "awaiting_plan_finalization_support_escalation",
+          withinMs: SUPPORT_ESCALATION_COOLDOWN_MS,
+        })
+
+        const supportEmail = (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim()
+
+        if (alreadyEscalatedRecently === 0) {
+          const txt =
+            "Ok, je te crois — là ça ressemble à un souci de synchro/bug.\n\n" +
+            `Pour ne pas tourner en rond: écris à ${supportEmail} avec:\n` +
+            "- l’email de ton compte\n" +
+            "- une capture de ton dashboard\n" +
+            "- ton téléphone + navigateur (ex: iPhone/Safari)\n\n" +
+            "En attendant: dis-moi ton objectif #1 en 1 phrase et je te propose un premier pas simple aujourd’hui."
+          const sendResp = await sendWhatsAppText(fromE164, txt)
+          const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+          await admin.from("chat_messages").insert({
+            user_id: userId,
+            scope: "whatsapp",
+            role: "assistant",
+            content: txt,
+            agent_used: "companion",
+            metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_finalization_support_escalation" },
+          })
+        }
+
+        await admin.from("profiles").update({
+          whatsapp_state: "awaiting_plan_finalization_support",
+          whatsapp_state_updated_at: new Date().toISOString(),
+        }).eq("id", userId)
+
+        // If we already escalated recently, continue the conversation normally (don't repeat the support script).
+        if (alreadyEscalatedRecently > 0) {
+          await replyWithBrain({
+            admin,
+            userId,
+            fromE164,
+            inboundText: raw || "Ok",
+            requestId,
+            replyToWaMessageId: waMessageId,
+            purpose: "awaiting_plan_support_coach_off_app",
+            whatsappMode: "onboarding",
+            contextOverride:
+              buildWhatsAppOnboardingContext({
+                state: "awaiting_plan_finalization_support",
+                siteUrl,
+                supportEmail,
+                planPolicy: "no_plan",
+                phase: "support_fallback",
+              }) +
+              `\n\nCONSIGNE DE TOUR:\n` +
+              `- L'utilisateur est bloqué. Ne répète pas le support/email/capture (déjà envoyé récemment).\n` +
+              `- Avance hors-app: propose 1 petit pas aujourd'hui, basé sur son objectif/problème.\n` +
+              `- 1 question max.\n`,
+          })
+        }
+        return true
+      }
       await replyWithBrain({
         admin,
         userId,
@@ -100,20 +194,27 @@ export async function handleOnboardingState(params: {
         requestId,
         replyToWaMessageId: waMessageId,
         purpose: "awaiting_plan_finalization_still_missing_soft",
+        whatsappMode: "onboarding",
         contextOverride:
-          `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
-          `ÉTAT: awaiting_plan_finalization\n` +
-          `Le user dit que c'est bon, mais aucun plan actif n'est visible.\n` +
-          `Objectif: répondre au message du user (et si il a donné une info perso, acknowledge brièvement), puis expliquer qu'il faut finaliser/activer le plan sur ${siteUrl}.\n` +
-          `Ensuite demander de répondre exactement: "C'est bon" quand c'est finalisé.\n` +
-          `IMPORTANT: tu ne connais pas l'UI exacte du site. N'invente jamais des boutons/positions.\n` +
-          `IMPORTANT: tu ne peux pas envoyer d'images/captures d'écran ici.\n` +
-          `Ne pose qu'UNE question max.\n`,
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_plan_finalization",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "no_plan",
+            phase: "onboarding",
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Le user dit "c'est bon" mais aucun plan n'est visible.\n` +
+          `- Réponds gentiment (sans contredire agressivement).\n` +
+          `- Propose 1 explication simple: délai de synchro.\n` +
+          `- Propose 1 seul essai (recharger/attendre 2 min).\n` +
+          `- Termine en demandant de répondre "C'est bon" après cet essai.\n`,
       })
       return true
     }
 
-    // Soft: acknowledge any piggybacked info, then ask motivation as a single coherent message.
+    // New explicit choice: after plan activation, ask whether the user wants to focus on the plan
+    // (execute actions) or talk about something else first. This is part of the onboarding state machine.
     await replyWithBrain({
       admin,
       userId,
@@ -121,21 +222,126 @@ export async function handleOnboardingState(params: {
       inboundText: raw || "Ok",
       requestId,
       replyToWaMessageId: waMessageId,
-      purpose: "awaiting_plan_motivation_prompt_soft",
+      purpose: "awaiting_onboarding_focus_choice_prompt",
+      whatsappMode: "onboarding",
+      forceMode: "companion",
       contextOverride:
-        `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
-        `ÉTAT: awaiting_plan_finalization -> plan actif détecté\n` +
-        `Plan actif: "${planTitle}"\n` +
-        `${maybeFact.length > 0 ? `Le user a partagé: "${maybeFact}" (acknowledge en 1 phrase, sans médicaliser).` : ""}\n` +
-        `Objectif: répondre au message du user, puis demander le score de motivation sur 10.\n` +
-        `IMPORTANT: ne promets pas de "modifier/adopter le plan entier" ici. Sur WhatsApp, tu peux aider à exécuter le plan et ajuster UNE action précise si l'utilisateur la mentionne (titre + ce qui bloque). Pour modifier le plan globalement, renvoie vers la plateforme.\n` +
-        `Accepte: "6", "6/10", "6 sur 10". Donne un exemple.\n` +
-        `Ne pose qu'UNE question: le score.\n`,
+        buildWhatsAppOnboardingContext({
+          state: "awaiting_onboarding_focus_choice",
+          siteUrl,
+          supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+          planPolicy: "plan_active",
+          phase: "onboarding",
+        }) +
+        `\n\nCONSIGNE DE TOUR:\n` +
+        `- Plan actif détecté: "${planTitle}".\n` +
+        `${maybeFact.length > 0 ? `- Le user a partagé: "${maybeFact}" (acknowledge en 1 phrase).` : ""}\n` +
+        `- Pose UNE question explicite de choix (pas de motivation ici):\n` +
+        `  "Tu veux qu’on parle du plan (je te guide sur la prochaine action) ou tu veux parler d’autre chose d’abord ?"\n` +
+        `- Ne commence pas l'exécution du plan tant que le user n'a pas choisi.\n`,
     })
     await admin.from("profiles").update({
-      whatsapp_state: "awaiting_plan_motivation",
+      whatsapp_state: "awaiting_onboarding_focus_choice",
       whatsapp_state_updated_at: new Date().toISOString(),
     }).eq("id", userId)
+    return true
+  }
+
+  if (st === "awaiting_onboarding_focus_choice") {
+    const raw = String(text ?? "").trim()
+    const textLower = raw.toLowerCase()
+    const wantsPlan =
+      /\b(plan|actions?|action|go|on\s*commence|on\s*y\s*va|vas[-\s]*y|oui)\b/i.test(raw) &&
+      !/\b(autre|autre\s*chose|pas\s*le\s*plan|plus\s*tard)\b/i.test(textLower)
+    const wantsOther =
+      /\b(autre|autre\s*chose|parler\s*d['’]autre|question|sujet|probl[eè]me)\b/i.test(textLower) ||
+      /\b(pas\s*le\s*plan|plus\s*tard)\b/i.test(textLower)
+
+    if (!wantsPlan && !wantsOther) {
+      await replyWithBrain({
+        admin,
+        userId,
+        fromE164,
+        inboundText: raw || "Ok",
+        requestId,
+        replyToWaMessageId: waMessageId,
+        purpose: "awaiting_onboarding_focus_choice_retry",
+        whatsappMode: "onboarding",
+        forceMode: "companion",
+        contextOverride:
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_onboarding_focus_choice",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "plan_active",
+            phase: "onboarding",
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Le user n'a pas répondu clairement.\n` +
+          `- Redemande le choix en proposant 2 options très simples.\n` +
+          `- 1 question max.\n`,
+      })
+      return true
+    }
+
+    // End onboarding gating AFTER handling the choice.
+    await admin.from("profiles").update({
+      whatsapp_state: null,
+      whatsapp_state_updated_at: new Date().toISOString(),
+    }).eq("id", userId)
+
+    if (wantsOther) {
+      await replyWithBrain({
+        admin,
+        userId,
+        fromE164,
+        inboundText: raw || "Ok",
+        requestId,
+        replyToWaMessageId: waMessageId,
+        purpose: "onboarding_focus_other_exit",
+        whatsappMode: "normal",
+        forceMode: "companion",
+        contextOverride:
+          buildWhatsAppOnboardingContext({
+            state: "onboarding_focus_other_exit",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "plan_active",
+            phase: "onboarding",
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Le user a choisi: AUTRE CHOSE (pas le plan maintenant).\n` +
+          `- Ouvre sur son sujet en 1 question claire ("Qu’est-ce qui t’occupe là tout de suite ?").\n` +
+          `- Mentionne en 1 phrase qu’on pourra revenir au plan quand il veut.\n`,
+      })
+      return true
+    }
+
+    // wantsPlan: start executing the plan (first active action) without adding new actions.
+    await replyWithBrain({
+      admin,
+      userId,
+      fromE164,
+      inboundText: raw || "Ok",
+      requestId,
+      replyToWaMessageId: waMessageId,
+      purpose: "onboarding_focus_plan_kickoff_exit",
+      whatsappMode: "normal",
+      forceMode: "architect",
+      contextOverride:
+        buildWhatsAppOnboardingContext({
+          state: "onboarding_focus_plan_kickoff_exit",
+          siteUrl,
+          supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+          planPolicy: "plan_active",
+          phase: "onboarding",
+        }) +
+        `\n\nCONSIGNE DE TOUR:\n` +
+        `- Le user a choisi: PLAN.\n` +
+        `- Démarre immédiatement sur la 1ère action active du plan (petit pas concret).\n` +
+        `- Interdiction d'inventer des rituels/étapes hors-plan.\n` +
+        `- 1 question courte liée à cette première étape.\n`,
+    })
     return true
   }
 
@@ -152,14 +358,18 @@ export async function handleOnboardingState(params: {
         requestId,
         replyToWaMessageId: waMessageId,
         purpose: "awaiting_plan_motivation_soft_retry",
+        whatsappMode: "onboarding",
         contextOverride:
-          `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
-          `ÉTAT: awaiting_plan_motivation\n` +
-          `On attend un score de motivation sur 10 (0 à 10) pour calibrer la suite.\n` +
-          `Règle: répondre d'abord au message de l'utilisateur (même si hors sujet), puis demander le score de motivation.\n` +
-          `IMPORTANT: ne promets pas de "modifier/adopter le plan entier" ici. Sur WhatsApp, tu peux aider à exécuter le plan et ajuster UNE action précise si l'utilisateur la mentionne (titre + ce qui bloque). Pour modifier le plan globalement, renvoie vers la plateforme.\n` +
-          `Accepte: "6", "6/10", "6 sur 10". Donne un exemple.\n` +
-          `Ne sois pas robot: une seule relance, pas de boucle agressive.\n`,
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_plan_motivation",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "plan_active",
+            phase: "onboarding",
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Réponds au message.\n` +
+          `- Puis demande un score 0–10 (une seule question). Donne un exemple.\n`,
       })
       return true
     }
@@ -175,16 +385,20 @@ export async function handleOnboardingState(params: {
       replyToWaMessageId: waMessageId,
       purpose: rest.length > 0 ? "awaiting_plan_motivation_score_plus_request" : "awaiting_plan_motivation_score_kickoff",
       forceMode: "architect",
+      whatsappMode: "onboarding",
       contextOverride:
-        `=== CONTEXTE WHATSAPP (ONBOARDING) ===\n` +
-        `ÉTAT: awaiting_plan_motivation\n` +
-        `Le user a donné un score de motivation: ${score}/10.\n` +
-        `Objectif: Accuser réception du score en 1 phrase, puis lancer IMMÉDIATEMENT la première action "active" du plan (dashboard_context ci-dessous).\n` +
-        `IMPORTANT: ne pose PAS de question générique ("tu as envie qu’on parle de quoi ?").\n` +
-        `Tu dois:\n` +
-        `- proposer 1 prochaine étape concrète (un petit pas faisable maintenant)\n` +
-        `- terminer par UNE question courte et actionnable liée à cette étape.\n` +
-        `Rappel: distingue "active" (maintenant) vs "pending" (plus tard). Priorise "active".\n`,
+        buildWhatsAppOnboardingContext({
+          state: "awaiting_plan_motivation",
+          siteUrl,
+          supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+          planPolicy: "plan_active",
+          phase: "onboarding",
+        }) +
+        `\n\nCONSIGNE DE TOUR:\n` +
+        `- Le user a donné ${score}/10.\n` +
+        `- Accuse réception en 1 phrase.\n` +
+        `- Lance tout de suite la prochaine étape concrète (petit pas) sur une action active.\n` +
+        `- Termine par 1 question courte liée à cette étape.\n`,
     })
 
     await admin.from("profiles").update({
@@ -207,6 +421,7 @@ export async function handleOnboardingState(params: {
       requestId,
       replyToWaMessageId: waMessageId,
       purpose: "awaiting_plan_motivation_followup_backcompat_exit",
+      whatsappMode: "onboarding",
       contextOverride:
         `=== CONTEXTE WHATSAPP ===\n` +
         `ÉTAT: awaiting_plan_motivation_followup (back-compat)\n` +
@@ -232,29 +447,115 @@ export async function handleOnboardingState(params: {
       } as any)
     }
 
-    const factLower = fact.toLowerCase()
-    const mention =
-      fact &&
-      /fatigu/.test(factLower) &&
-      /(irr[ée]guli|inconstant|pas\s+regulier|instable)/i.test(fact)
-        ? "Ok, je note: quand tu es fatigué, ça te rend irrégulier ❤️\n"
-        : "Merci, je note ❤️\n"
-    const ack = `${mention}Et là, tout de suite: tu as envie qu’on parle de quoi ?`
-    const sendResp = await sendWhatsAppText(fromE164, ack)
-    const outId = (sendResp as any)?.messages?.[0]?.id ?? null
-    await admin.from("chat_messages").insert({
-      user_id: userId,
-      scope: "whatsapp",
-      role: "assistant",
-      content: ack,
-      agent_used: "companion",
-      metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "personal_fact_ack" },
+    // AI everywhere: generate the acknowledgement with the brain (instead of a hardcoded template),
+    // but keep a stable structure so mechanical tests remain meaningful.
+    await replyWithBrain({
+      admin,
+      userId,
+      fromE164,
+      inboundText: fact || "Ok",
+      requestId,
+      replyToWaMessageId: waMessageId,
+      purpose: "personal_fact_ack_ai",
+      whatsappMode: "onboarding",
+      forceMode: "companion",
+      contextOverride:
+        buildWhatsAppOnboardingContext({
+          state: "awaiting_personal_fact",
+          siteUrl,
+          supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+          planPolicy: "unknown",
+          phase: "onboarding",
+        }) +
+        `\n\nCONSIGNE DE TOUR:\n` +
+        `- Réponds en WhatsApp (court).\n` +
+        `- Accuse réception avec une phrase contenant EXACTEMENT "Merci, je note".\n` +
+        `- Puis termine par EXACTEMENT: "Et là, tout de suite: tu as envie qu’on parle de quoi ?"\n` +
+        (fact ? `- Le fait partagé est: "${fact}".` : "") +
+        `\n`,
     })
 
     await admin.from("profiles").update({
       whatsapp_state: null,
       whatsapp_state_updated_at: new Date().toISOString(),
     }).eq("id", userId)
+    return true
+  }
+
+  if (st === "awaiting_plan_finalization_support") {
+    // Support fallback: user is blocked. Do NOT loop on "finalise ton plan".
+    // But if a plan becomes active, resume onboarding normally.
+    const raw = String(text ?? "").trim()
+    const supportEmail = (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim()
+    const escalatedRecently = await countRecentAssistantPurpose({
+      admin,
+      userId,
+      purpose: "awaiting_plan_finalization_support_escalation",
+      withinMs: 24 * 60 * 60 * 1000,
+    })
+    const { data: activePlan, error: planErr } = await admin
+      .from("user_plans")
+      .select("title, updated_at")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    if (planErr) throw planErr
+
+    const planTitle = String((activePlan as any)?.title ?? "").trim()
+    if (planTitle) {
+      await replyWithBrain({
+        admin,
+        userId,
+        fromE164,
+        inboundText: raw || "Ok",
+        requestId,
+        replyToWaMessageId: waMessageId,
+        purpose: "awaiting_plan_support_plan_detected_resume",
+        whatsappMode: "onboarding",
+        contextOverride:
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_plan_motivation",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "plan_active",
+            phase: "onboarding",
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Plan actif détecté: "${planTitle}".\n` +
+          `- Demande un score de motivation sur 10 (une seule question).\n`,
+      })
+      await admin.from("profiles").update({
+        whatsapp_state: "awaiting_plan_motivation",
+        whatsapp_state_updated_at: new Date().toISOString(),
+      }).eq("id", userId)
+      return true
+    }
+
+    await replyWithBrain({
+      admin,
+      userId,
+      fromE164,
+      inboundText: raw || "Ok",
+      requestId,
+      replyToWaMessageId: waMessageId,
+      purpose: "awaiting_plan_support_coach_off_app",
+      whatsappMode: "onboarding",
+      contextOverride:
+        buildWhatsAppOnboardingContext({
+          state: "awaiting_plan_finalization_support",
+          siteUrl,
+          supportEmail,
+          planPolicy: "no_plan",
+          phase: "support_fallback",
+        }) +
+        `\n\nCONSIGNE DE TOUR:\n` +
+        `- L'utilisateur est bloqué. Ne répète pas "finalise ton plan" en boucle.\n` +
+        `${escalatedRecently > 0 ? `- Ne répète pas le support/email/capture (déjà envoyé récemment).\n` : `- Si nécessaire, donne le contact support: ${supportEmail} (1 fois).\n`}` +
+        `- Avance hors-app: propose 1 petit pas aujourd'hui, basé sur son objectif/problème.\n` +
+        `- 1 question max.\n`,
+    })
     return true
   }
 

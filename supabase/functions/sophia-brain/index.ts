@@ -70,7 +70,7 @@ Deno.serve(async (req) => {
       { requestId, channel, scope },
       {
         logMessages: typeof logMessages === "boolean" ? logMessages : undefined,
-        forceMode: (forceMode === 'dispatcher' || forceMode === 'sentry' || forceMode === 'firefighter' || forceMode === 'investigator' || forceMode === 'architect' || forceMode === 'companion' || forceMode === 'assistant')
+        forceMode: (forceMode === 'dispatcher' || forceMode === 'sentry' || forceMode === 'firefighter' || forceMode === 'investigator' || forceMode === 'architect' || forceMode === 'librarian' || forceMode === 'companion' || forceMode === 'assistant')
           ? forceMode
           : undefined,
         contextOverride: contextOverride ? contextOverride.toString() : undefined,

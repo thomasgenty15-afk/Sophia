@@ -39,6 +39,7 @@ import { PlanSettingsModal } from '../components/dashboard/PlanSettingsModal';
 import ResumeOnboardingView from '../components/ResumeOnboardingView';
 import UserProfile from '../components/UserProfile';
 import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
+import { FeedbackModal, type FeedbackData } from '../components/dashboard/FeedbackModal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -98,6 +99,75 @@ const Dashboard = () => {
       setIsProfileOpen(true);
     }
   });
+
+  // --- Feedback Logic ---
+  const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
+  const [feedbackNextAction, setFeedbackNextAction] = useState<(() => void) | null>(null);
+  const [isFeedbackSubmitting, setIsFeedbackSubmitting] = useState(false);
+
+  const onPlanCompletion = (nextAction: () => void) => {
+    setFeedbackNextAction(() => nextAction);
+    setIsFeedbackOpen(true);
+  };
+
+  const handleFeedbackSubmit = async (data: FeedbackData) => {
+    if (!user) return;
+    setIsFeedbackSubmitting(true);
+    try {
+      // Préparer le payload contextuel
+      const isTrial = trialEnd && new Date(trialEnd) > new Date();
+      const context = {
+        is_trial: isTrial,
+        subscription_status: subscription?.status,
+        plan_id: activePlanId,
+        source: 'dashboard_completion'
+      };
+
+      await supabase.from('user_feedback_entries').insert({
+        user_id: user.id,
+        plan_id: activePlanId || null,
+        submission_id: activeSubmissionId || null,
+        
+        system_rating: data.system?.rating,
+        sophia_rating: data.sophia?.rating,
+        architect_rating: data.architect?.rating,
+        
+        context
+      });
+
+      setIsFeedbackOpen(false);
+      if (feedbackNextAction) feedbackNextAction();
+    } catch (err) {
+      console.error("Error saving feedback:", err);
+      // On continue quand même
+      setIsFeedbackOpen(false);
+      if (feedbackNextAction) feedbackNextAction();
+    } finally {
+      setIsFeedbackSubmitting(false);
+    }
+  };
+
+  const handleFeedbackClose = () => {
+    setIsFeedbackOpen(false);
+    if (feedbackNextAction) feedbackNextAction();
+  };
+
+  // Déterminer quels modules afficher dans le feedback
+  const getFeedbackModules = () => {
+    const isTrial = trialEnd && new Date(trialEnd) > new Date();
+    const isArchitect = hasArchitecteAccess(user, subscription); 
+    const isActiveSub = subscription?.status === 'active' || subscription?.status === 'trialing';
+
+    if (isTrial || isArchitect) {
+      return { system: true, sophia: true, architect: true };
+    }
+    if (isActiveSub) {
+      // Alliance (Hypothèse: tout sub payant a Sophia)
+      return { system: true, sophia: true, architect: false };
+    }
+    // Default / Free / System only
+    return { system: true, sophia: false, architect: false };
+  };
 
   const isArchitectMode = mode === 'architecte';
   const hasActivePlan = activePlan !== null;
@@ -197,10 +267,17 @@ const Dashboard = () => {
         <div className="max-w-5xl mx-auto flex justify-between items-center gap-2">
           <div className="flex items-center gap-2 md:gap-4">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
-              <img src="/apple-touch-icon.png" alt="Sophia" className="w-8 h-8 rounded-lg shadow-sm" />
+              <img
+                src="/apple-touch-icon.png"
+                alt="Sophia"
+                className="w-8 h-8 rounded-full drop-shadow-sm"
+              />
               <div className="hidden min-[480px]:flex flex-col">
-                <span className={`font-serif font-bold text-sm leading-none ${isArchitectMode ? "text-emerald-50" : "text-slate-900"}`}>Sophia</span>
-                <span className={`text-[7px] font-bold uppercase tracking-widest ${isArchitectMode ? "text-emerald-400" : "text-slate-400"}`}>Powered by IKIZEN</span>
+                <span
+                  className={`font-bold text-sm tracking-tight leading-none ${isArchitectMode ? "text-emerald-50" : "text-slate-900"}`}
+                >
+                  Sophia
+                </span>
               </div>
             </div>
 
@@ -528,7 +605,7 @@ const Dashboard = () => {
                     <div className="flex justify-center pb-8">
                         {hasPendingAxes ? (
                             <button
-                                onClick={logic.handleManualSkip}
+                                onClick={() => onPlanCompletion(logic.handleManualSkip)}
                                 className="group bg-slate-900 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-emerald-200 transition-all flex items-center gap-3"
                             >
                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -542,7 +619,7 @@ const Dashboard = () => {
                             </button>
                         ) : (
                             <button
-                                onClick={logic.handleCreateNextGlobalPlan}
+                                onClick={() => onPlanCompletion(logic.handleCreateNextGlobalPlan)}
                                 className="group bg-indigo-900 hover:bg-indigo-800 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center gap-3"
                             >
                                 <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
@@ -596,6 +673,14 @@ const Dashboard = () => {
             )}
           </div>
         )}
+
+        <FeedbackModal
+          isOpen={isFeedbackOpen}
+          onClose={handleFeedbackClose}
+          onSubmit={handleFeedbackSubmit}
+          modules={getFeedbackModules()}
+          isSubmitting={isFeedbackSubmitting}
+        />
       </main>
     </div>
   );

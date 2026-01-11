@@ -3,6 +3,8 @@ import { cleanupSubmissionData } from '../lib/planActions';
 import { useNavigate } from 'react-router-dom';
 import type { GeneratedPlan, Action } from '../types/dashboard';
 
+const PLAN_COMPLETION_THRESHOLD_PERCENT = 60;
+
 interface DashboardLogicProps {
   user: any;
   activePlan: GeneratedPlan | null;
@@ -159,7 +161,7 @@ export const useDashboardLogic = ({
     
     const percentage = Math.round((completed / total) * 100);
     return { 
-        status: percentage >= 80 ? 'completed' : 'archived',
+        status: percentage >= PLAN_COMPLETION_THRESHOLD_PERCENT ? 'completed' : 'archived',
         percentage
     };
   };

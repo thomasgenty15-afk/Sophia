@@ -1,0 +1,25 @@
+{
+  "started_at": "2026-01-09T18:05:48.291Z",
+  "finished_at": "2026-01-09T18:07:15.019Z",
+  "duration_ms": 86726,
+  "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated__run_1767981948291_837917:i0:s1916298011",
+  "eval_run_id": "2d7df771-43de-420e-93f9-f36f507c9d38",
+  "scenario_id": "wa_onboarding_optin_yes_no_plan__simulated__run_1767981948291_837917",
+  "base_scenario_id": "wa_onboarding_optin_yes_no_plan__simulated",
+  "scenario_file": "/Users/ahmedamara/Dev/Sophia 2/frontend/eval/scenarios/whatsapp_onboarding/wa_onboarding_optin_yes_no_plan__simulated.json",
+  "random_seed": "123",
+  "random_seed_int": 1916298011,
+  "iteration": 0,
+  "limits": {
+    "max_scenarios": 1,
+    "max_turns_per_scenario": 10,
+    "bilan_actions_count": 0,
+    "test_post_checkup_deferral": false,
+    "user_difficulty": "mid",
+    "stop_on_first_failure": false,
+    "budget_usd": 0,
+    "model": "gemini-2.5-flash",
+    "use_real_ai": true,
+    "judge_force_real_ai": true
+  }
+}

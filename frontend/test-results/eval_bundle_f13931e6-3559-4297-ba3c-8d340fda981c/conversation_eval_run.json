@@ -1,0 +1,521 @@
+{
+  "id": "f13931e6-3559-4297-ba3c-8d340fda981c",
+  "created_at": "2026-01-10T17:12:28.396651+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__run_1768065147635_551a39",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:12:28.917232+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Top, on avance. Va sur https://sophia-coach.ai pour finaliser et activer ton plan maintenant. 🚀\n\nRéponds exactement : C'est bon",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T17:12:36.0246+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:13:14.118877+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté, on est officiellement lancés.\n\nTu veux qu'on regarde ensemble la première action du plan ou tu préfères papoter d'autre chose pour l'instant ? 🚀",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T17:13:20.35287+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Le plan, on démarre.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:13:28.08003+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On attaque avec le Protocole Écran Noir : couper tout écran 30 minutes avant de dormir pour protéger ton énergie. 🌑\n\nÀ quelle heure prévois-tu de te coucher ce soir ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:13:37.196762+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Vers 23h",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:13:39.880481+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait. On vise donc 22h30 pour l'extinction des feux. 📵\n\nOù est-ce que tu vas poser ton téléphone pour qu'il reste hors de ta vue ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:13:47.745765+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Dans le salon.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:13:49.800275+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est l'emplacement idéal pour protéger ta soirée. 🛋️\n\nTu as déjà un carnet et un stylo prêts pour ton Vide-Tête de ce soir ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:13:59.982884+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, pas encore.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:14:04.477246+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Trouve un carnet et un stylo maintenant pour être prête ce soir. ✍️\n\nEst-ce que tu peux les poser sur ta table de nuit tout de suite ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:14:17.146899+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je dois d'abord les trouver.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:14:22.557717+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Fouille tes tiroirs maintenant pour sécuriser ton rituel de ce soir. 🔍\n\nTu me confirmes quand tu les as en main ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:14:34.673516+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je cherche encore.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:14:37.711473+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Regarde dans tes sacs ou le tiroir de l'entrée. C'est la base de ton architecture de ce soir. 🏗️\n\nTu me fais signe dès que tu as mis la main dessus ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:14:46.81358+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Pas facile à trouver, je cherche toujours.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:14:48.052453+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Si tu ne trouves pas de carnet, une simple feuille volante fera l'affaire pour ne pas bloquer ton système ce soir. L'objectif est l'externalisation, peu importe le support. 📝\n\nTu as au moins une feuille de papier à disposition ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:14:54.799289+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai une feuille.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:14:57.383804+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait, ça suffit largement. On va vider tout ce qui te trotte dans la tête pour libérer de la place.\n\nTu veux le faire maintenant ou juste avant de dormir ? ✍️",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T17:15:06.695417+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "7912db06-8df6-4a81-abfd-0d6137047c8d",
+      "email": "run-evals+c8c8f6f929ed47@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-17T17:12:28.339+00:00",
+      "phone_number": "+15551105864659",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-10T17:12:28.34+00:00",
+      "whatsapp_opted_in": false,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": null,
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "7912db06-8df6-4a81-abfd-0d6137047c8d",
+      "email": "run-evals+c8c8f6f929ed47@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-17T17:12:28.339+00:00",
+      "phone_number": "+15551105864659",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-10T17:12:28.34+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-10T17:14:57.376+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-10T17:13:28.087+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "7912db06-8df6-4a81-abfd-0d6137047c8d",
+      "risk_level": 0,
+      "updated_at": "2026-01-10T17:15:06.691304+00:00",
+      "temp_memory": {
+        "architect": {
+          "last_q_fps": [
+            "tu veux qu on regarde ensemble la premiere action du plan ou tu preferes papoter d autre chose pour l instant?",
+            "a quelle heure prevois tu de te coucher ce soir?",
+            "ou est ce que tu vas poser ton telephone pour qu il reste hors de ta vue?",
+            "tu as deja un carnet et un stylo prets pour ton vide tete de ce soir?",
+            "est ce que tu peux les poser sur ta table de nuit tout de suite?",
+            "tu me confirmes quand tu les as en main?",
+            "tu me fais signe des que tu as mis la main dessus?"
+          ],
+          "loop_count": 0,
+          "plan_focus": true,
+          "last_updated_at": "2026-01-10T17:14:49.921Z",
+          "current_objective": null
+        }
+      },
+      "current_mode": "companion",
+      "last_processed_at": "2026-01-10T17:12:28.941+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-10T17:12:28.941944+00:00",
+      "unprocessed_msg_count": 10
+    }
+  },
+  "issues": [
+    {
+      "code": "routing_consistency_break",
+      "message": "Unwarranted agent switch from Architect to Companion during the active logistical setup of a protocol (Vide-Tête). The Architect was driving the tool acquisition (finding a paper) and should logically conclude the setup phase.",
+      "evidence": {
+        "snippet": "ASSISTANT(companion): Parfait, ça suffit largement. On va vider tout ce qui te trotte dans la tête pour libérer de la place.",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "medium"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Ensures the Architect completes the habit implementation phase without a jarring persona switch to Companion mid-process.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#16 USER: Pas facile à trouver, je cherche toujours.\n#17 ASSISTANT(architect): Si tu ne trouves pas de carnet, une simple feuille volante fera l'affaire pour ne pas bloquer ton système ce soir. L'objectif est l'externalisation, peu importe le support. 📝 Tu as au moins une feuille de papier à disposition ?\n#18 USER: Oui, j'ai une feuille.\n#19 ASSISTANT(companion): Parfait, ça suffit largement. On va vider tout ce qui te trotte dans la tête pour libérer de la place. Tu veux le faire maintenant ou juste avant de dormir ? ✍️\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nROUTING RULE: If the conversation history shows the Architect actively requesting physical tools or logistics (e.g., finding a notebook, choosing a location), route the user's confirmation (e.g., 'I found it', 'Yes') back to the Architect to finalize the protocol setup.",
+      "proposed_addendum": "ROUTING RULE: If the conversation history shows the Architect actively requesting physical tools or logistics (e.g., finding a notebook, choosing a location), route the user's confirmation (e.g., 'I found it', 'Yes') back to the Architect to finalize the protocol setup."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1768065147635_551a39:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__run_1768065147635_551a39",
+    "total_tokens": 0,
+    "output_tokens": 0,
+    "prompt_tokens": 0,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "mechanical"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1768065147635_551a39:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__run_1768065147635_551a39",
+    "description": "WhatsApp onboarding (webhook): user accepts opt-in via button but has no active plan -> ask to finalize plan on site, then reply 'C'est bon'.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "588a38a6-20a1-495c-a25a-854834ead2c2",
+        "title": "Le Protocole du Flux Indomptable",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "L'Ancrage Nocturne",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "b0d17d10-c9da-4238-87fd-05508e1a8050",
+                  "tips": "Utilise un réveil analogique et lis un livre papier ou écoute un podcast calme. Prépare tes vêtements du lendemain pour éviter de toucher au téléphone le matin.",
+                  "type": "habitude",
+                  "title": "Protocole Écran Noir",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "La lumière bleue et la stimulation cognitive des écrans inhibent la production de mélatonine, l'hormone du sommeil. Créer un 'couvre-feu digital' signale à ton cerveau qu'il est temps de se détendre.",
+                  "targetReps": 7,
+                  "description": "Éteins tous les écrans (téléphone, tablette, ordinateur) et quitte toutes les plateformes numériques au moins 30 minutes avant l'heure de coucher souhaitée. Range-les hors de vue de ta chambre.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "89b586d8-9a45-418a-8adf-2ade4951c7b8",
+                  "tips": "Ne juge pas ce que tu écris. L'objectif est de vider ton esprit, pas de créer un chef-d'œuvre. Garde le carnet et un stylo à portée de main, loin des écrans.",
+                  "type": "framework",
+                  "title": "Le Vide-Tête du Soir",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Le cerveau adore boucler. En écrivant tes préoccupations, tu externalises cette charge cognitive, réduisant ainsi l'anxiété et le 'bruit mental' qui empêchent l'endormissement et un sommeil profond.",
+                  "targetReps": 7,
+                  "description": "Pendant 5 à 10 minutes chaque soir, écris librement tout ce qui te préoccupe, tes tâches non finies ou tes pensées récurrentes sur un carnet dédié. C'est un exercice de 'décharge mentale'.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Libère ton esprit de la charge mentale accumulée. Ne filtre pas, écris tout ce qui te pèse ou te préoccupe pour alléger ton cerveau avant le sommeil. C'est ton cache cérébral que tu vides.",
+                    "sections": [
+                      {
+                        "id": "s1_p1",
+                        "label": "Ce qui m'a préoccupé aujourd'hui (pensées, tâches en suspens, émotions)",
+                        "inputType": "textarea",
+                        "placeholder": "Je pense à ma réunion de demain, j'ai oublié d'appeler X, je suis frustrée par Y..."
+                      },
+                      {
+                        "id": "s2_p1",
+                        "label": "Actions à prendre demain (si applicable) - à mettre sur ma liste du matin",
+                        "inputType": "list",
+                        "placeholder": "1. Préparer le dossier Z pour la réunion. | Tâche\n2. Envoyer le mail à X. | Tâche"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Reconstruire la base énergétique",
+              "rationale": "La fondation de ton focus et de ta discipline réside dans ton énergie. En stabilisant ton sommeil et en réduisant la surcharge cognitive du soir, tu prépares ton cerveau à une clarté mentale optimale pour les journées à venir."
+            },
+            {
+              "id": 2,
+              "title": "L'Ordonnancement du Jour",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "c4c81afd-d969-4240-88f7-0a5437045f68",
+                  "tips": "Garde un petit carnet ou une application dédiée pour ces 3 MITs. Priorise ce qui fera avancer tes objectifs, pas seulement ce qui est urgent. Fais-le avant de consulter ton téléphone.",
+                  "type": "habitude",
+                  "title": "Rituel du Démarrage Intentionnel",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ce rituel matinal ancre ton intention pour la journée, réduit la surcharge décisionnelle et t'aide à diriger ton focus vers ce qui compte vraiment, évitant la réactivité et la procrastination.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, avant de te plonger dans tes emails ou tes tâches, prends 5 minutes pour identifier et écrire les 3 tâches les plus importantes ('MITs' - Most Important Tasks) que tu dois accomplir aujourd'hui.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "9a778f9e-938b-4c37-95be-5b7a7626ee28",
+                  "tips": "Commence par le plus facile. Applique la règle : 'si je ne l'ai pas utilisé depuis 6 mois, je le supprime ou l'archive'. Une fois terminé, maintient-le quotidiennement avec 5 minutes de rangement.",
+                  "type": "mission",
+                  "title": "L'Écosystème de Travail Minimaliste",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Un environnement ordonné réduit la charge cognitive et le stress. Moins de distractions physiques ou numériques signifient plus d'espace mental pour la concentration et moins de déclencheurs de procrastination.",
+                  "description": "Dédie une session (1 à 2h) à nettoyer et organiser ton espace de travail, tant physique que digital. Supprime les fichiers inutiles, désencombre ton bureau, organise tes dossiers sur l'ordinateur. Le but est de réduire les distractions visuelles et numériques.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Structurer l'intention et l'environnement",
+              "rationale": "Maintenant que ta base énergétique se solidifie, il est temps d'introduire des structures légères qui combattent la désorganisation et la procrastination. Commencer la journée avec intention est une clé pour le focus."
+            },
+            {
+              "id": 3,
+              "title": "Le Filament de Concentration",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "3da760c7-c4de-470e-9c2d-b8812dcaaeb1",
+                  "tips": "Utilise un minuteur (physique ou sur ton ordinateur, mais sans notification intrusive) pour marquer la fin de chaque période de travail. Pense à marcher quelques pas ou faire quelques étirements légers.",
+                  "type": "habitude",
+                  "title": "La Pause Active Programmée",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Les recherches montrent que le cerveau ne peut maintenir un focus intense que sur des périodes limitées. Ces micro-pauses aident à recharger ton énergie mentale, à prévenir la fatigue et à améliorer ta performance globale.",
+                  "targetReps": 7,
+                  "description": "Après chaque tranche de 45 à 60 minutes de travail concentré sur une tâche, prends une pause de 5 minutes pour te lever, t'étirer, boire de l'eau ou simplement regarder au loin. Évite les écrans pendant cette micro-pause.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "5170af57-fc70-45c3-aa98-1d5b1e4056cf",
+                  "tips": "Sois honnête avec toi-même. Quels sont les moments où tu te sens la plus distraite ou la plus vidée ? Il peut s'agir du scroll compulsif, des réunions inutiles ou de ruminations mentales.",
+                  "type": "framework",
+                  "title": "L'Analyse des Siphons d'Énergie",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Comprendre tes 'siphons d'énergie' est la première étape pour construire des barrières efficaces. En les identifiant, tu peux développer des stratégies proactives pour les éviter, plutôt que de réagir constamment à leur impact négatif.",
+                  "targetReps": 1,
+                  "description": "Prends le temps d'identifier les activités, les habitudes ou même les pensées qui drainent le plus ton énergie, ton temps et ton focus durant ta journée. Réfléchis à comment les minimiser ou les neutraliser.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Tes 'siphons d'énergie' sont ces activités ou comportements qui te vident, augmentent ta procrastination et diminuent ton focus. Identifie-les clairement pour construire des remparts efficaces et préserver ton énergie mentale.",
+                    "sections": [
+                      {
+                        "id": "s1_p3",
+                        "label": "Mes principaux siphons d'énergie et de focus (activités, habitudes, pensées)",
+                        "inputType": "list",
+                        "placeholder": "Ex: Scroll infini sur les réseaux sociaux, micro-distractions constantes, ruminations sur des problèmes passés, emails incessants..."
+                      },
+                      {
+                        "id": "s2_p3",
+                        "label": "Impacts de ces siphons sur ma journée, mon bien-être et ma productivité",
+                        "inputType": "textarea",
+                        "placeholder": "Comment cela me freine-t-il ? (Ex: retards, stress, sensation de ne pas avancer, fatigue accrue...)"
+                      },
+                      {
+                        "id": "s3_p3",
+                        "label": "Stratégies concrètes pour minimiser ou éliminer ces siphons",
+                        "inputType": "list",
+                        "placeholder": "Ex: Bloqueur de sites, couper les notifications, planifier des 'slots' de réponse aux emails, méditation courte pour les ruminations..."
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Cultiver le focus durablement",
+              "rationale": "Avec une meilleure énergie et un cadre structuré, tu es prête à développer activement ta capacité à maintenir le focus et à contrer les distractions. C'est l'heure de renforcer ton muscle attentionnel."
+            },
+            {
+              "id": 4,
+              "title": "La Persévérance Fluide",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "2d2e6711-dc35-4d65-82c5-303c8534c5e0",
+                  "tips": "Ne te juge pas si tout n'est pas fait. C'est un exercice de conscience pour apprendre de tes journées. Concentre-toi sur ce que tu as appris, pas sur ce que tu n'as pas fait.",
+                  "type": "habitude",
+                  "title": "Le Bilan Quotidien Express",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Ce micro-bilan renforce le circuit de récompense du cerveau pour les tâches accomplies et fournit des données précieuses pour ajuster ta planification du lendemain. Il développe ta capacité à t'auto-réguler et à maintenir la constance.",
+                  "targetReps": 7,
+                  "description": "Chaque soir, prends 2 à 3 minutes pour passer en revue tes 3 tâches prioritaires ('MITs') du matin : qu'est-ce qui a été accompli, qu'est-ce qui reste, et pourquoi ? L'objectif est l'observation sans jugement.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "a0b1e308-73f2-430d-84de-6226a9a3bdc5",
+                  "tips": "Choisis une activité qui te repose sans t'activer davantage (pas de travail, pas d'écrans intenses). L'idée est d'avoir une alternative saine à portée de main quand la discipline faiblit.",
+                  "type": "mission",
+                  "title": "Le Bouclier Anti-Décrochage",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La constance n'est pas l'absence de difficulté, mais la capacité à s'adapter. Avoir un plan de secours préétabli pour les moments de faiblesse crée une 'porte de sortie' positive, évitant ainsi le cycle du 'décrochage' et renforçant ta résilience.",
+                  "description": "Identifie et prépare un 'plan B' ou une 'activité refuge' saine et rapide à utiliser spécifiquement les jours de grande fatigue, de stress ou de manque de motivation, pour éviter de retomber dans la procrastination ou le scroll. Prépare le matériel nécessaire (livre, kit de dessin, playlist méditative...).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Ancrer et adapter la discipline",
+              "rationale": "Cette phase vise à solidifier les acquis et à intégrer la flexibilité et la résilience face aux inévitables moments de fatigue. La discipline n'est pas rigide, elle est fluide et s'adapte pour durer."
+            }
+          ],
+          "deepWhy": "Pour canaliser mon énergie, maîtriser ma journée, et ressentir une stabilité sereine, me permettant d'être plus présente et efficace dans ma vie professionnelle et personnelle.",
+          "identity": "Je suis une Architecte de mon Temps, maîtresse de mon focus et de ma constance.",
+          "strategy": "Notre stratégie consiste à reconstruire ta résilience énergétique en priorisant un sommeil réparateur et une gestion saine des écrans, avant de solidifier ton architecture quotidienne par des habitudes de focus et de discipline. L'objectif est de te rendre actrice de ton temps, pas sa victime.",
+          "goldenRules": "1. Je protège ma 'Fenêtre de Calme Nocturne' chaque soir.\n2. Chaque journée commence avec une intention claire et 3 priorités.\n3. L'imperfection est permise, la constance est reine : je me relève toujours.",
+          "vitalSignal": {
+            "name": "Fenêtre de Calme Nocturne",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "0",
+            "description": "Temps total sans écran avant le coucher. L'objectif est d'atteindre 60 minutes de déconnexion avant de dormir. On augmentera progressivement par paliers de 10-15 minutes tous les 3-4 jours.",
+            "targetValue": "60",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole du Flux Indomptable",
+          "context_problem": "Tu te sens bloquée par la procrastination et la désorganisation, cherchant une stabilité quotidienne et plus d'énergie. Le manque de constance et la fatigue due aux longues heures devant les écrans la nuit sont tes principaux freins, impactant directement ta capacité à maintenir le cap.",
+          "sophiaKnowledge": "Tu es une femme née en 1992 qui cherche à améliorer son focus et sa discipline. La procrastination et la désorganisation sont tes principaux défis. Tu manques de constance et la fatigue est un déclencheur de décrochage. Ton travail sur écran se prolonge tard, affectant ton sommeil, qui est de qualité moyenne.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois as-tu repoussé une tâche importante cette semaine ?",
+            "frequency": "hebdomadaire",
+            "tracking_type": "counter"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "e58ba809-8b8d-4589-8568-8b8b4f543a1a",
+        "deep_why": "Pour canaliser mon énergie, maîtriser ma journée, et ressentir une stabilité sereine, me permettant d'être plus présente et efficace dans ma vie professionnelle et personnelle.",
+        "created_at": "2026-01-10T17:13:14.052041+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "bb0fd4c3-32db-4074-ae4a-7885cb06c496",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "b0d17d10-c9da-4238-87fd-05508e1a8050",
+          "title": "Protocole Écran Noir",
+          "status": "active",
+          "created_at": "2026-01-10T17:13:14.06059+00:00",
+          "description": "Éteins tous les écrans (téléphone, tablette, ordinateur) et quitte toutes les plateformes numériques au moins 30 minutes avant l'heure de coucher souhaitée. Range-les hors de vue de ta chambre.",
+          "target_reps": 7,
+          "time_of_day": "evening",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-08T17:13:14.058+00:00"
+        },
+        {
+          "id": "a14041b8-00ae-47f0-923f-6b4657c3decf",
+          "_kind": "framework",
+          "title": "Le Vide-Tête du Soir",
+          "status": "active",
+          "created_at": "2026-01-10T17:13:14.063973+00:00",
+          "description": "",
+          "target_reps": 7,
+          "time_of_day": null,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "framework_type": "recurring",
+          "last_performed_at": "2026-01-08T17:13:14.058+00:00"
+        }
+      ],
+      "frameworks": [
+        {
+          "id": "a14041b8-00ae-47f0-923f-6b4657c3decf",
+          "type": "recurring",
+          "title": "Le Vide-Tête du Soir",
+          "status": "active",
+          "created_at": "2026-01-10T17:13:14.063973+00:00",
+          "target_reps": 7,
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-08T17:13:14.058+00:00"
+        }
+      ],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole du Flux Indomptable\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour canaliser mon énergie, maîtriser ma journée, et ressentir une stabilité sereine, me permettant d'être plus présente et efficace dans ma vie professionnelle et personnelle.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"L'Ancrage Nocturne\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"b0d17d10-c9da-4238-87fd-05508e1a8050\",\n          \"tips\": \"Utilise un réveil analogique et lis un livre papier ou écoute un podcast calme. Prépare tes vêtements du lendemain pour éviter de toucher au téléphone le matin.\",\n          \"type\": \"habitude\",\n          \"title\": \"Protocole Écran Noir\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"La lumière bleue et la stimulation cognitive des écrans inhibent la production de mélatonine, l'hormone du sommeil. Créer un 'couvre-feu digital' signale à ton cerveau qu'il est temps de se détendre.\",\n          \"targetReps\": 7,\n          \"description\": \"Éteins tous les écrans (téléphone, tablette, ordinateur) et quitte toutes les plateformes numériques au moins 30 minutes avant l'heure de coucher souhaitée. Range-les hors de vue de ta chambre.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"89b586d8-9a45-418a-8adf-2ade4951c7b8\",\n          \"tips\": \"Ne juge pas ce que tu écris. L'objectif est de vider ton esprit, pas de créer un chef-d'œuvre. Garde le carnet et un stylo à portée de main, loin des écrans.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Vide-Tête du Soir\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Le cerveau adore boucler. En écrivant tes préoccupations, tu externalises cette charge cognitive, réduisant ainsi l'anxiété et le 'bruit mental' qui empêchent l'endormissement et un sommeil profond.\",\n          \"targetReps\": 7,\n          \"description\": \"Pendant 5 à 10 minutes chaque soir, écris librement tout ce qui te préoccupe, tes tâches non finies ou tes pensées récurrentes sur un carnet dédié. C'est un exercice de 'décharge mentale'.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Libère ton esprit de la charge mentale accumulée. Ne filtre pas, écris tout ce qui te pèse ou te préoccupe pour alléger ton cerveau avant le sommeil. C'est ton cache cérébral que tu vides.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p1\",\n                \"label\": \"Ce qui m'a préoccupé aujourd'hui (pensées, tâches en suspens, émotions)\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Je pense à ma réunion de demain, j'ai oublié d'appeler X, je suis frustrée par Y...\"\n              },\n              {\n                \"id\": \"s2_p1\",\n                \"label\": \"Actions à prendre demain (si applicable) - à mettre sur ma liste du matin\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"1. Préparer le dossier Z pour la réunion. | Tâche\\n2. Envoyer le mail à X. | Tâche\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Reconstruire la base énergétique\",\n      \"rationale\": \"La fondation de ton focus et de ta discipline réside dans ton énergie. En stabilisant ton sommeil et en réduisant la surcharge cognitive du soir, tu prépares ton cerveau à une clarté mentale optimale pour les journées à venir.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"L'Ordonnancement du Jour\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"c4c81afd-d969-4240-88f7-0a5437045f68\",\n          \"tips\": \"Garde un petit carnet ou une application dédiée pour ces 3 MITs. Priorise ce qui fera avancer tes objectifs, pas seulement ce qui est urgent. Fais-le avant de consulter ton téléphone.\",\n          \"type\": \"habitude\",\n          \"title\": \"Rituel du Démarrage Intentionnel\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ce rituel matinal ancre ton intention pour la journée, réduit la surcharge décisionnelle et t'aide à diriger ton focus vers ce qui compte vraiment, évitant la réactivité et la procrastination.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, avant de te plonger dans tes emails ou tes tâches, prends 5 minutes pour identifier et écrire les 3 tâches les plus importantes ('MITs' - Most Important Tasks) que tu dois accomplir aujourd'hui.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"9a778f9e-938b-4c37-95be-5b7a7626ee28\",\n          \"tips\": \"Commence par le plus facile. Applique la règle : 'si je ne l'ai pas utilisé depuis 6 mois, je le supprime ou l'archive'. Une fois terminé, maintient-le quotidiennement avec 5 minutes de rangement.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Écosystème de Travail Minimaliste\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Un environnement ordonné réduit la charge cognitive et le stress. Moins de distractions physiques ou numériques signifient plus d'espace mental pour la concentration et moins de déclencheurs de procrastination.\",\n          \"description\": \"Dédie une session (1 à 2h) à nettoyer et organiser ton espace de travail, tant physique que digital. Supprime les fichiers inutiles, désencombre ton bureau, organise tes dossiers sur l'ordinateur. Le but est de réduire les distractions visuelles et numériques.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Structurer l'intention et l'environnement\",\n      \"rationale\": \"Maintenant que ta base énergétique se solidifie, il est temps d'introduire des structures légères qui combattent la désorganisation et la procrastination. Commencer la journée avec intention est une clé pour le focus.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"Le Filament de Concentration\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"3da760c7-c4de-470e-9c2d-b8812dcaaeb1\",\n          \"tips\": \"Utilise un minuteur (physique ou sur ton ordinateur, mais sans notification intrusive) pour marquer la fin de chaque période de travail. Pense à marcher quelques pas ou faire quelques étirements légers.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Pause Active Programmée\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Les recherches montrent que le cerveau ne peut maintenir un focus intense que sur des périodes limitées. Ces micro-pauses aident à recharger ton énergie mentale, à prévenir la fatigue et à améliorer ta performance globale.\",\n          \"targetReps\": 7,\n          \"description\": \"Après chaque tranche de 45 à 60 minutes de travail concentré sur une tâche, prends une pause de 5 minutes pour te lever, t'étirer, boire de l'eau ou simplement regarder au loin. Évite les écrans pendant cette micro-pause.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"5170af57-fc70-45c3-aa98-1d5b1e4056cf\",\n          \"tips\": \"Sois honnête avec toi-même. Quels sont les moments où tu te sens la plus distraite ou la plus vidée ? Il peut s'agir du scroll compulsif, des réunions inutiles ou de ruminations mentales.\",\n          \"type\": \"framework\",\n          \"title\": \"L'Analyse des Siphons d'Énergie\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Comprendre tes 'siphons d'énergie' est la première étape pour construire des barrières efficaces. En les identifiant, tu peux développer des stratégies proactives pour les éviter, plutôt que de réagir constamment à leur impact négatif.\",\n          \"targetReps\": 1,\n          \"description\": \"Prends le temps d'identifier les activités, les habitudes ou même les pensées qui drainent le plus ton énergie, ton temps et ton focus durant ta journée. Réfléchis à comment les minimiser ou les neutraliser.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Tes 'siphons d'énergie' sont ces activités ou comportements qui te vident, augmentent ta procrastination et diminuent ton focus. Identifie-les clairement pour construire des remparts efficaces et préserver ton énergie mentale.\",\n            \"sections\": [\n              {\n                \"id\": \"s1_p3\",\n                \"label\": \"Mes principaux siphons d'énergie et de focus (activités, habitudes, pensées)\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Scroll infini sur les réseaux sociaux, micro-distractions constantes, ruminations sur des problèmes passés, emails incessants...\"\n              },\n              {\n                \"id\": \"s2_p3\",\n                \"label\": \"Impacts de ces siphons sur ma journée, mon bien-être et ma productivité\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Comment cela me freine-t-il ? (Ex: retards, stress, sensation de ne pas avancer, fatigue accrue...)\"\n              },\n              {\n                \"id\": \"s3_p3\",\n                \"label\": \"Stratégies concrètes pour minimiser ou éliminer ces siphons\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Bloqueur de sites, couper les notifications, planifier des 'slots' de réponse aux emails, méditation courte pour les ruminations...\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Cultiver le focus durablement\",\n      \"rationale\": \"Avec une meilleure énergie et un cadre structuré, tu es prête à développer activement ta capacité à maintenir le focus et à contrer les distractions. C'est l'heure de renforcer ton muscle attentionnel.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"La Persévérance Fluide\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"2d2e6711-dc35-4d65-82c5-303c8534c5e0\",\n          \"tips\": \"Ne te juge pas si tout n'est pas fait. C'est un exercice de conscience pour apprendre de tes journées. Concentre-toi sur ce que tu as appris, pas sur ce que tu n'as pas fait.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bilan Quotidien Express\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Ce micro-bilan renforce le circuit de récompense du cerveau pour les tâches accomplies et fournit des données précieuses pour ajuster ta planification du lendemain. Il développe ta capacité à t'auto-réguler et à maintenir la constance.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir, prends 2 à 3 minutes pour passer en revue tes 3 tâches prioritaires ('MITs') du matin : qu'est-ce qui a été accompli, qu'est-ce qui reste, et pourquoi ? L'objectif est l'observation sans jugement.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"a0b1e308-73f2-430d-84de-6226a9a3bdc5\",\n          \"tips\": \"Choisis une activité qui te repose sans t'activer davantage (pas de travail, pas d'écrans intenses). L'idée est d'avoir une alternative saine à portée de main quand la discipline faiblit.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Bouclier Anti-Décrochage\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La constance n'est pas l'absence de difficulté, mais la capacité à s'adapter. Avoir un plan de secours préétabli pour les moments de faiblesse crée une 'porte de sortie' positive, évitant ainsi le cycle du 'décrochage' et renforçant ta résilience.\",\n          \"description\": \"Identifie et prépare un 'plan B' ou une 'activité refuge' saine et rapide à utiliser spécifiquement les jours de grande fatigue, de stress ou de manque de motivation, pour éviter de retomber dans la procrastination ou le scroll. Prépare le matériel nécessaire (livre, kit de dessin, playlist méditative...).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Ancrer et adapter la discipline\",\n      \"rationale\": \"Cette phase vise à solidifier les acquis et à intégrer la flexibilité et la résilience face aux inévitables moments de fatigue. La discipline n'est pas rigide, elle est fluide et s'adapte pour durer.\"\n    }\n  ],\n  \"deepWhy\": \"Pour canaliser mon énergie, maîtriser ma journée, et ressentir une stabilité sereine, me permettant d'être plus présente et efficace dans ma vie professionnelle et personnelle.\",\n  \"identity\": \"Je suis une Architecte de mon Temps, maîtresse de mon focus et de ma constance.\",\n  \"strategy\": \"Notre stratégie consiste à reconstruire ta résilience énergétique en priorisant un sommeil réparateur et une gestion saine des écrans, avant de solidifier ton architecture quotidienne par des habitudes de focus et de discipline. L'objectif est de te rendre actrice de ton temps, pas sa victime.\",\n  \"goldenRules\": \"1. Je protège ma 'Fenêtre de Calme Nocturne' chaque soir.\\n2. Chaque journée commence avec une intention claire et 3 priorités.\\n3. L'imperfection est permise, la constance est reine : je me relève toujours.\",\n  \"vitalSignal\": {\n    \"name\": \"Fenêtre de Calme Nocturne\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"0\",\n    \"description\": \"Temps total sans écran avant le coucher. L'objectif est d'atteindre 60 minutes de déconnexion avant de dormir. On augmentera progressivement par paliers de 10-15 minutes tous les 3-4 jours.\",\n    \"targetValue\": \"60\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole du Flux Indomptable\",\n  \"context_problem\": \"Tu te sens bloquée par la procrastination et la désorganisation, cherchant une stabilité quotidienne et plus d'énergie. Le manque de constance et la fatigue due aux longues heures devant les écrans la nuit sont tes principaux freins, impactant directement ta capacité à maintenir le cap.\",\n  \"sophiaKnowledge\": \"Tu es une femme née en 1992 qui cherche à améliorer son focus et sa discipline. La procrastination et la désorganisation sont tes principaux défis. Tu manques de constance et la fatigue est un déclencheur de décrochage. Ton travail sur écran se prolonge tard, affectant ton sommeil, qui est de qualité moyenne.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois as-tu repoussé une tâche importante cette semaine ?\",\n    \"frequency\": \"hebdomadaire\",\n    \"tracking_type\": \"counter\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Protocole Écran Noir (evening)\n- [FRAMEWORK] Le Vide-Tête du Soir\n\n=== SIGNES VITAUX (État Actuel) ===\n- Fenêtre de Calme Nocturne: 0 min\n",
+      "template_fingerprint": "2de0aadb1135c311"
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

@@ -108,13 +108,19 @@ export async function generateWithGemini(
   };
 
   const payload: any = {
-    contents: [{ 
+    contents: [{
       role: "user",
-      parts: [{ text: systemPrompt + "\n\nMessage Utilisateur:\n" + userMessage }] 
+      parts: [{ text: userMessage }],
     }],
     generationConfig: {
       temperature: temperature,
-    }
+    },
+  }
+
+  // Prefer separating system instructions from user content (more stable behavior).
+  const sys = (systemPrompt ?? "").toString().trim()
+  if (sys) {
+    payload.systemInstruction = { parts: [{ text: sys }] }
   }
 
   if (jsonMode) {
@@ -258,13 +264,38 @@ export async function generateWithGemini(
   };
 
   // LOG DEBUG : Afficher la réponse brute de Gemini pour comprendre pourquoi il ne voit pas l'outil
-  console.log("DEBUG GEMINI RAW PARTS:", JSON.stringify(redactForLog(parts), null, 2))
+  const debugRaw =
+    (Deno.env.get("GEMINI_DEBUG_RAW") ?? "").trim() === "1" ||
+    (Deno.env.get("GEMINI_DEBUG") ?? "").trim() === "1";
+  if (debugRaw) {
+    console.log(
+      JSON.stringify({
+        tag: "gemini_raw_parts",
+        request_id: meta?.requestId ?? null,
+        source: meta?.source ?? null,
+        model,
+        parts: redactForLog(parts),
+      }),
+    );
+  }
   
   // 1. Priorité absolue aux outils : On cherche SI n'importe quelle partie est un appel d'outil
   const toolCallPart = parts.find((p: any) => p.functionCall)
   
   if (toolCallPart) {
-    console.log("Gemini Tool Call Found:", toolCallPart.functionCall.name)
+    console.log(
+      JSON.stringify({
+        tag: "gemini_result",
+        request_id: meta?.requestId ?? null,
+        source: meta?.source ?? null,
+        model,
+        json_mode: Boolean(jsonMode),
+        tool_choice: toolChoice,
+        has_tools: Array.isArray(tools) && tools.length > 0,
+        outcome: "tool_call",
+        tool: toolCallPart.functionCall.name ?? null,
+      }),
+    );
     return {
       tool: toolCallPart.functionCall.name,
       args: toolCallPart.functionCall.args
@@ -276,6 +307,19 @@ export async function generateWithGemini(
   const text = textPart?.text
   
   if (!text) throw new Error('Réponse vide de Gemini')
+
+  console.log(
+    JSON.stringify({
+      tag: "gemini_result",
+      request_id: meta?.requestId ?? null,
+      source: meta?.source ?? null,
+      model,
+      json_mode: Boolean(jsonMode),
+      tool_choice: toolChoice,
+      has_tools: Array.isArray(tools) && tools.length > 0,
+      outcome: "text",
+    }),
+  );
 
   return jsonMode ? text.replace(/```json\n?|```/g, '').trim() : text
 }

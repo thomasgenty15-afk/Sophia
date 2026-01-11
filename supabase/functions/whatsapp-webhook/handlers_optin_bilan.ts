@@ -70,24 +70,41 @@ export async function handleOptInAndDailyBilanActions(params: {
   isBilanLater: boolean
   hasBilanContext: boolean
   siteUrl: string
-  sendWhatsAppText: (toE164: string, body: string) => Promise<any>
+  replyWithBrain: (p: {
+    admin: SupabaseClient
+    userId: string
+    fromE164: string
+    inboundText: string
+    requestId: string
+    replyToWaMessageId?: string | null
+    contextOverride: string
+    whatsappMode?: "onboarding" | "normal"
+    forceMode?: "companion" | "architect" | "assistant" | "investigator" | "firefighter" | "sentry"
+    purpose?: string
+  }) => Promise<any>
+  requestId: string
+  waMessageId: string
 }): Promise<boolean> {
   // If user accepts the daily bilan prompt, enable and kick off the bilan conversation.
   if (params.isBilanYes && params.hasBilanContext && !params.isOptInYes) {
     await params.admin.from("profiles").update({ whatsapp_bilan_opted_in: true }).eq("id", params.userId)
-    const kickoff =
-      "Parfait. En 2 lignes :\n" +
-      "1) Une victoire aujourd’hui ?\n" +
-      "2) Un truc à ajuster pour demain ?"
-    const sendResp = await params.sendWhatsAppText(params.fromE164, kickoff)
-    const outId = (sendResp as any)?.messages?.[0]?.id ?? null
-    await params.admin.from("chat_messages").insert({
-      user_id: params.userId,
-      scope: "whatsapp",
-      role: "assistant",
-      content: kickoff,
-      agent_used: "investigator",
-      metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false },
+    await params.replyWithBrain({
+      admin: params.admin,
+      userId: params.userId,
+      fromE164: params.fromE164,
+      inboundText: "OK",
+      requestId: params.requestId,
+      replyToWaMessageId: params.waMessageId,
+      purpose: "daily_bilan_kickoff_ai",
+      whatsappMode: "normal",
+      forceMode: "investigator",
+      contextOverride:
+        `=== CONTEXTE WHATSAPP ===\n` +
+        `L'utilisateur accepte de faire le bilan (daily bilan).\n\n` +
+        `CONSIGNE DE TOUR:\n` +
+        `- Pose exactement 2 questions courtes (format WhatsApp):\n` +
+        `  1) Une victoire aujourd'hui ?\n` +
+        `  2) Un truc à ajuster pour demain ?\n`,
     })
     return true
   }
@@ -95,16 +112,22 @@ export async function handleOptInAndDailyBilanActions(params: {
   // If user asks "not now", keep the opt-in off and respond gently.
   if (params.isBilanLater && params.hasBilanContext && !params.isOptInYes) {
     await params.admin.from("profiles").update({ whatsapp_bilan_opted_in: false }).eq("id", params.userId)
-    const okMsg = "Ok, aucun souci. Tu me dis quand tu veux faire le bilan."
-    const sendResp = await params.sendWhatsAppText(params.fromE164, okMsg)
-    const outId = (sendResp as any)?.messages?.[0]?.id ?? null
-    await params.admin.from("chat_messages").insert({
-      user_id: params.userId,
-      scope: "whatsapp",
-      role: "assistant",
-      content: okMsg,
-      agent_used: "companion",
-      metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false },
+    await params.replyWithBrain({
+      admin: params.admin,
+      userId: params.userId,
+      fromE164: params.fromE164,
+      inboundText: "Plus tard",
+      requestId: params.requestId,
+      replyToWaMessageId: params.waMessageId,
+      purpose: "daily_bilan_later_ai",
+      whatsappMode: "normal",
+      forceMode: "companion",
+      contextOverride:
+        `=== CONTEXTE WHATSAPP ===\n` +
+        `L'utilisateur dit "plus tard" pour le bilan.\n\n` +
+        `CONSIGNE DE TOUR:\n` +
+        `- Réponds gentiment, sans insister.\n` +
+        `- Une seule phrase.\n`,
     })
     return true
   }
@@ -112,7 +135,11 @@ export async function handleOptInAndDailyBilanActions(params: {
   // If this is the opt-in “Oui”, answer with a welcome message (fast path)
   if (params.isOptInYes) {
     // User explicitly accepted the opt-in template: enable daily bilan reminders too.
-    await params.admin.from("profiles").update({ whatsapp_bilan_opted_in: true }).eq("id", params.userId)
+    const nowIso = new Date().toISOString()
+    await params.admin.from("profiles").update({
+      whatsapp_bilan_opted_in: true,
+      whatsapp_onboarding_started_at: nowIso,
+    }).eq("id", params.userId)
 
     const prenom = (params.fullName ?? "").trim().split(" ")[0] || ""
 
@@ -127,29 +154,30 @@ export async function handleOptInAndDailyBilanActions(params: {
     if (planErr) throw planErr
 
     const planTitle = String((activePlan as any)?.title ?? "").trim()
-    const welcome = planTitle
-      ? (
-        `Trop bien${prenom ? ` ${prenom}` : ""} ✅\n` +
-        `J’ai retrouvé ton plan: “${planTitle}”.\n\n` +
-        `On le lance doucement ? Sur 10, tu te sens à combien motivé(e) là tout de suite ?`
-      )
-      : (
-        `Trop bien${prenom ? ` ${prenom}` : ""} ✅\n` +
-        `Je suis contente de te retrouver ici.\n\n` +
-        `Petit détail: je ne vois pas encore de plan “actif” sur ton compte.\n` +
-        `Va le finaliser sur ${params.siteUrl} (2 minutes), puis reviens ici et réponds:\n` +
-        `1) “C’est bon”\n` +
-        `2) Et d’ailleurs: s’il y a 1 chose que tu aimerais que je sache sur toi, ce serait quoi ?`
-      )
-    const sendResp = await params.sendWhatsAppText(params.fromE164, welcome)
-    const outId = (sendResp as any)?.messages?.[0]?.id ?? null
-    await params.admin.from("chat_messages").insert({
-      user_id: params.userId,
-      scope: "whatsapp",
-      role: "assistant",
-      content: welcome,
-      agent_used: "companion",
-      metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false },
+    await params.replyWithBrain({
+      admin: params.admin,
+      userId: params.userId,
+      fromE164: params.fromE164,
+      inboundText: "Oui",
+      requestId: params.requestId,
+      replyToWaMessageId: params.waMessageId,
+      purpose: "optin_yes_welcome_ai",
+      whatsappMode: "onboarding",
+      forceMode: "companion",
+      contextOverride:
+        `=== CONTEXTE WHATSAPP ===\n` +
+        `L'utilisateur vient d'accepter l'opt-in WhatsApp (OPTIN_V2).\n` +
+        `Prénom: "${prenom}".\n` +
+        `Plan actif détecté ? ${planTitle ? "OUI" : "NON"}.\n` +
+        (planTitle ? `Titre plan: "${planTitle}".\n` : `URL site: ${params.siteUrl}\n`) +
+        `\nCONSIGNE DE TOUR:\n` +
+        `- Message court, chaleureux, pro (WhatsApp).\n` +
+        (planTitle
+          ? `- Demande un score de motivation SUR 10 (inclure les mots "sur 10" et "motivation").\n`
+          : `- Explique que tu ne vois pas encore de plan actif.\n` +
+            `- Demande de finaliser sur le site.\n` +
+            `- Termine en demandant de répondre exactement: "C'est bon".\n` +
+            `- N'ajoute pas de markdown.\n`) ,
     })
 
     await params.admin.from("profiles").update({

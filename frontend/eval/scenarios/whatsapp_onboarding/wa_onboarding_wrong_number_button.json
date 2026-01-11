@@ -13,6 +13,17 @@
   "wa_steps": [
     { "kind": "interactive", "interactive_id": "OPTIN_WRONG_NUMBER", "interactive_title": "Mauvais numéro" }
   ],
+  "wa_auto_simulate": true,
+  "wa_force_turns": true,
+  "persona": {
+    "label": "Utilisateur onboarding WhatsApp",
+    "age_range": "25-55",
+    "style": "court, ferme, veut corriger vite",
+    "background": "a cliqué 'Mauvais numéro' et veut comprendre quoi faire"
+  },
+  "objectives": [
+    { "kind": "generic", "note": "Après avoir indiqué mauvais numéro, demander quoi faire ensuite (sans divulguer d'infos sensibles)." }
+  ],
   "mechanical_assertions": {
     "profile_equals": {
       "phone_number": null,

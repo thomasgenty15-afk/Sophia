@@ -82,10 +82,13 @@ export async function geminiGenerate(
   const payload: any = {
     contents: [{
       role: "user",
-      parts: [{ text: systemPrompt + "\n\nMessage Utilisateur:\n" + userMessage }],
+      parts: [{ text: userMessage }],
     }],
     generationConfig: { temperature },
   };
+
+  const sys = (systemPrompt ?? "").toString().trim();
+  if (sys) payload.systemInstruction = { parts: [{ text: sys }] };
 
   if (jsonMode) payload.generationConfig.responseMimeType = "application/json";
 

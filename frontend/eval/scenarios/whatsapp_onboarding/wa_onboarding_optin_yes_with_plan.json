@@ -13,6 +13,17 @@
   "wa_steps": [
     { "kind": "interactive", "interactive_id": "OPTIN_YES", "interactive_title": "Oui" }
   ],
+  "wa_auto_simulate": true,
+  "wa_force_turns": true,
+  "persona": {
+    "label": "Utilisateur onboarding WhatsApp",
+    "age_range": "25-45",
+    "style": "court, naturel",
+    "background": "vient d'accepter l'opt-in, a déjà un plan actif"
+  },
+  "objectives": [
+    { "kind": "generic", "note": "Donner un score de motivation (ex: 6/10), puis partager 1 fait perso simple, puis poser 1 question pratique." }
+  ],
   "mechanical_assertions": {
     "profile_equals": {
       "whatsapp_opted_in": true,

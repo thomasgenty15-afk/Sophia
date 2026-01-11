@@ -42,6 +42,78 @@ const PAYWALL_NOTICE_COOLDOWN_MS = Number.parseInt(
   10,
 )
 
+function decodeJwtAlg(jwt: string) {
+  const t = (jwt ?? "").trim()
+  const p0 = t.split(".")[0] ?? ""
+  if (!p0) return "missing"
+  try {
+    const header = JSON.parse(
+      new TextDecoder().decode(
+        Uint8Array.from(
+          atob(p0.replace(/-/g, "+").replace(/_/g, "/")),
+          (c) => c.charCodeAt(0),
+        ),
+      ),
+    )
+    return String(header?.alg ?? "unknown")
+  } catch {
+    return "parse_failed"
+  }
+}
+
+function base64Url(bytes: Uint8Array) {
+  const s = btoa(String.fromCharCode(...bytes))
+  return s.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "")
+}
+
+async function signJwtHs256(secret: string, payload: Record<string, unknown>) {
+  const header = { alg: "HS256", typ: "JWT" }
+  const enc = (obj: unknown) => base64Url(new TextEncoder().encode(JSON.stringify(obj)))
+  const h = enc(header)
+  const p = enc(payload)
+  const toSign = `${h}.${p}`
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"],
+  )
+  const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, new TextEncoder().encode(toSign)))
+  return `${toSign}.${base64Url(sig)}`
+}
+
+async function getAdminClientForRequest(req: Request) {
+  const url = Deno.env.get("SUPABASE_URL") ?? ""
+  const envServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+
+  // Local-only compatibility: some local setups surface ES256 keys, but PostgREST/GoTrue local expects HS256
+  // (JWT_SECRET) and rejects ES256 with PGRST301 / bad_jwt.
+  const host = (() => {
+    try {
+      return new URL(req.url).hostname.toLowerCase()
+    } catch {
+      return ""
+    }
+  })()
+  const isLocal = host === "127.0.0.1" || host === "localhost" || host.startsWith("supabase_")
+
+  const alg = decodeJwtAlg(envServiceKey)
+  if (alg === "HS256") return createClient(url, envServiceKey)
+
+  if (isLocal) {
+    // Default local Supabase JWT secret (matches what `supabase status` reports in local dev).
+    const jwtSecret = "super-secret-jwt-token-with-at-least-32-characters-long"
+    const now = Math.floor(Date.now() / 1000)
+    const exp = now + 60 * 60 * 24 * 365 * 10
+    const iss = "supabase-demo"
+    const hsService = await signJwtHs256(jwtSecret, { iss, role: "service_role", exp })
+    return createClient(url, hsService)
+  }
+
+  return createClient(url, envServiceKey)
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
   const prevLoopback = (globalThis as any).__SOPHIA_WA_LOOPBACK
@@ -82,10 +154,7 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { ok: true, request_id: requestId }, { includeCors: false })
     }
 
-    const admin = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-    )
+    const admin = await getAdminClientForRequest(req)
 
     for (const msg of inbound) {
       let userIdForLog: string | null = null
@@ -341,7 +410,17 @@ Deno.serve(async (req) => {
       if (isStop) {
         const enabled = (Deno.env.get("WHATSAPP_STOP_CONFIRMATION_ENABLED") ?? "true").trim().toLowerCase() !== "false"
         const alreadyConfirmed = Boolean(profile.whatsapp_optout_confirmed_at)
-        await handleStopOptOut({ admin, userId: profile.id, fromE164, alreadyConfirmed, enabled, nowIso })
+        await handleStopOptOut({
+          admin,
+          userId: profile.id,
+          fromE164,
+          alreadyConfirmed,
+          enabled,
+          nowIso,
+          replyWithBrain,
+          requestId,
+          replyToWaMessageId: msg.wa_message_id,
+        })
         continue
       }
 
@@ -356,7 +435,9 @@ Deno.serve(async (req) => {
         isBilanLater,
         hasBilanContext,
         siteUrl: SITE_URL,
-        sendWhatsAppText,
+        replyWithBrain,
+        requestId,
+        waMessageId: msg.wa_message_id,
       })
       if (didHandleOptInOrBilan) continue
 

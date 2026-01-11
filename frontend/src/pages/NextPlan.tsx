@@ -12,6 +12,7 @@ import { THEME_DISCIPLINE } from '../data/onboarding/theme_discipline';
 import { THEME_RELATIONS } from '../data/onboarding/theme_relations';
 import { THEME_SENSE } from '../data/onboarding/theme_sense';
 import { THEME_TRANSVERSE } from '../data/onboarding/theme_transverse';
+import { THEME_PROFESSIONAL } from '../data/onboarding/theme_professional';
 
 // --- DONNÉES COMPLÈTES ---
 const DATA: Theme[] = [
@@ -21,7 +22,8 @@ const DATA: Theme[] = [
   THEME_DISCIPLINE,
   THEME_RELATIONS,
   THEME_SENSE,
-  THEME_TRANSVERSE
+  THEME_TRANSVERSE,
+  THEME_PROFESSIONAL
 ];
 
 // --- COMPOSANT ---
@@ -169,6 +171,29 @@ const NextPlan = () => {
     }
   }, [responses, submissionId, targetAxisId]);
 
+  const handleStartNewCycle = async () => {
+    if (!user) return;
+    if (!confirm("Voulez-vous vraiment démarrer un tout nouveau cycle de transformation ?")) return;
+
+    try {
+        const newSubmissionId = crypto.randomUUID();
+        await supabase.from('user_answers').insert({
+            user_id: user.id,
+            questionnaire_type: 'global_plan',
+            status: 'in_progress',
+            submission_id: newSubmissionId,
+            content: {},
+            created_at: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+        });
+
+        navigate('/global-plan-follow?mode=new', { state: { submissionId: newSubmissionId } });
+
+    } catch (err) {
+        console.error("Erreur start new cycle:", err);
+        alert("Erreur lors de la création du nouveau cycle.");
+    }
+  };
 
   // --- UI : PAS D'AXE DISPO ---
   if (noMoreAxes) {
@@ -182,7 +207,7 @@ const NextPlan = () => {
                   Vous avez traité tous les axes prioritaires de votre plan global. C'est un accomplissement majeur.
               </p>
               <button 
-                  onClick={() => navigate('/global-plan')}
+                  onClick={handleStartNewCycle}
                   className="bg-slate-900 text-white px-8 py-4 rounded-xl font-bold hover:bg-indigo-600 transition-colors flex items-center gap-2"
               >
                   <RefreshCw className="w-5 h-5" />

@@ -119,6 +119,8 @@ function parseArgs(argv) {
     model: "gemini-2.5-flash",
     timeoutMs: 600000,
     scenario: null,
+    suite: "post_optin_v2",
+    exclude: [],
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -128,9 +130,16 @@ function parseArgs(argv) {
     else if (a === "--model") out.model = String(argv[++i] ?? out.model);
     else if (a === "--timeout-ms") out.timeoutMs = Number(argv[++i] ?? "600000") || 600000;
     else if (a === "--scenario") out.scenario = String(argv[++i] ?? "").trim() || null;
+    else if (a === "--suite") out.suite = String(argv[++i] ?? "").trim() || out.suite;
+    else if (a === "--exclude") {
+      const raw = String(argv[++i] ?? "").trim();
+      if (raw) out.exclude.push(...raw.split(",").map((s) => s.trim()).filter(Boolean));
+    }
   }
   out.tests = Math.max(1, Math.min(50, Math.floor(out.tests)));
   out.turns = Math.max(1, Math.min(50, Math.floor(out.turns)));
+  out.suite = String(out.suite || "post_optin_v2").trim() || "post_optin_v2";
+  out.exclude = Array.from(new Set((out.exclude ?? []).map((s) => String(s).trim()).filter(Boolean)));
   return out;
 }
 
@@ -318,6 +327,38 @@ function loadScenario(filePath) {
   return JSON.parse(fs.readFileSync(filePath, "utf8"));
 }
 
+function scenarioEligible({ scenario, filePath, suite }) {
+  const sc = scenario ?? {};
+  const target = String(sc.scenario_target ?? "").trim().toLowerCase();
+  const id = String(sc.id ?? path.basename(filePath, ".json"));
+  const setup = sc.setup ?? {};
+  const optedIn = setup?.whatsapp_opted_in;
+  const waSteps = Array.isArray(sc.wa_steps) ? sc.wa_steps : [];
+
+  // Default suite: only scenarios that start right after OPTIN_V2 ("c'est bien moi" / OPTIN_YES / wrong number),
+  // i.e. setup.whatsapp_opted_in is explicitly false (pre-optin). This avoids mid-state unit tests
+  // like awaiting_personal_fact / open_chat, unless explicitly requested via --scenario or --suite all.
+  if (String(suite).toLowerCase() === "post_optin_v2") {
+    if (target !== "onboarding") return false;
+    if (optedIn !== false) return false;
+    if (waSteps.length < 1) return false;
+    return true;
+  }
+
+  // All scenarios (legacy behavior)
+  return true;
+}
+
+function isExcluded({ scenario, filePath, exclude }) {
+  const sc = scenario ?? {};
+  const id = String(sc.id ?? path.basename(filePath, ".json"));
+  const fileBase = path.basename(filePath);
+  const hay = `${id} ${fileBase} ${filePath}`.toLowerCase();
+  const patterns = Array.isArray(exclude) ? exclude : [];
+  if (patterns.length === 0) return false;
+  return patterns.some((p) => hay.includes(String(p).toLowerCase()));
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   const st = getLocalSupabaseStatus();
@@ -329,9 +370,23 @@ async function main() {
   const { accessToken } = await ensureMasterAdminSession({ url, anonKey, serviceRoleKey });
 
   const files = listScenarioFiles();
-  const selectedFiles = args.scenario
-    ? files.filter((p) => path.basename(p, ".json") === args.scenario || path.basename(p).includes(args.scenario))
-    : files;
+  const selectedFiles = (() => {
+    if (args.scenario) {
+      // Explicit scenario: no suite filtering (user knows what they want).
+      return files
+        .filter((p) => path.basename(p, ".json") === args.scenario || path.basename(p).includes(args.scenario))
+        .filter((p) => !isExcluded({ scenario: loadScenario(p), filePath: p, exclude: args.exclude }));
+    }
+
+    // Default: curated suite to match the “post OPTIN_V2” onboarding flow.
+    const filtered = files
+      .filter((p) => scenarioEligible({ scenario: loadScenario(p), filePath: p, suite: args.suite }))
+      .filter((p) => !isExcluded({ scenario: loadScenario(p), filePath: p, exclude: args.exclude }));
+    if (filtered.length > 0) return filtered;
+
+    // Fallback: legacy behavior (all), still respecting excludes
+    return files.filter((p) => !isExcluded({ scenario: loadScenario(p), filePath: p, exclude: args.exclude }));
+  })();
   if (selectedFiles.length === 0) throw new Error("No WhatsApp onboarding scenarios found (after --scenario filter)");
 
   const seedInt = seedToInt(args.seed ?? "");
@@ -346,6 +401,19 @@ async function main() {
       id: `${baseScenario.id}__${runSuffix}`,
       base_scenario_id: baseScenario.id,
     };
+
+    // Ensure --turns behaves like an actual target length for WhatsApp runs:
+    // If a scenario has fewer wa_steps than max turns, automatically enable simulate-user loopback
+    // unless the scenario explicitly opted out (wa_auto_simulate=false).
+    if (String(scenario.channel ?? "").toLowerCase() === "whatsapp") {
+      const waStepsLen = Array.isArray(scenario.wa_steps) ? scenario.wa_steps.length : 0;
+      const wantsLongRun = Number(args.turns ?? 0) > waStepsLen;
+      const explicitNoAuto = scenario.wa_auto_simulate === false;
+      if (wantsLongRun && !explicitNoAuto) {
+        scenario.wa_auto_simulate = true;
+        scenario.wa_force_turns = true;
+      }
+    }
 
     const startIso = nowIso();
     const startMs = Date.now();

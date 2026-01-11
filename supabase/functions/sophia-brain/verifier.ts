@@ -1,5 +1,198 @@
 import { generateWithGemini } from "../_shared/gemini.ts";
 
+function isMegaTestMode(meta?: { forceRealAi?: boolean }): boolean {
+  const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
+  const isLocalSupabase =
+    (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+    (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000");
+  const megaEnabled = megaRaw === "1" || (megaRaw === "" && isLocalSupabase);
+  return megaEnabled && !meta?.forceRealAi;
+}
+
+function getAgentJudgeModel(): string {
+  // Dedicated env var to avoid confusion with `eval-judge`.
+  // Default requested: gemini-3-flash-preview
+  return (Deno.env.get("GEMINI_AGENT_JUDGE_MODEL") ?? "").trim() || "gemini-3-flash-preview";
+}
+
+function getRewriteModel(): string {
+  return (Deno.env.get("GEMINI_REWRITE_MODEL") ?? "").trim() ||
+    (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim() ||
+    "gemini-2.5-flash";
+}
+
+type OneShotJudgeResult = {
+  ok: boolean;
+  rewritten: boolean;
+  issues: string[];
+  final_text: string;
+  rewrite_brief?: string;
+};
+
+function parseOneShotJudgeJson(raw: unknown): OneShotJudgeResult | null {
+  try {
+    const obj = typeof raw === "string" ? JSON.parse(raw) : raw;
+    if (!obj || typeof obj !== "object") return null;
+    const ok = Boolean((obj as any).ok);
+    const rewritten = Boolean((obj as any).rewritten);
+    const issues = Array.isArray((obj as any).issues)
+      ? (obj as any).issues.map((x: any) => String(x)).filter(Boolean)
+      : [];
+    const final_text = String((obj as any).final_text ?? "");
+    const rewrite_brief = (obj as any).rewrite_brief != null ? String((obj as any).rewrite_brief) : undefined;
+    return { ok, rewritten, issues, final_text, rewrite_brief };
+  } catch {
+    return null;
+  }
+}
+
+async function oneShotJudgeAndRewrite(args: {
+  kind: string;
+  agent: string;
+  channel: "web" | "whatsapp";
+  draft: string;
+  mechanical_violations: string[];
+  context_used?: string;
+  recent_history?: any[];
+  now_iso?: string;
+  data_json?: unknown;
+  tools_available?: ToolDescriptor[];
+  meta?: { requestId?: string; forceRealAi?: boolean; userId?: string };
+}): Promise<OneShotJudgeResult> {
+  const draft = collapseBlankLines(normalizeChatText(args.draft));
+  const mech = Array.isArray(args.mechanical_violations) ? args.mechanical_violations : [];
+  if (isMegaTestMode(args.meta)) {
+    return { ok: true, rewritten: false, issues: [], final_text: draft };
+  }
+
+  const addendum = agentJudgeAddendum(args.agent, args.channel);
+  const includeDataJson = (() => {
+    const raw = (Deno.env.get("SOPHIA_AGENT_JUDGE_INCLUDE_DATA_JSON") ?? "").trim().toLowerCase();
+    return raw === "1" || raw === "true" || raw === "on";
+  })();
+  const systemPrompt = `
+Tu es "Judge+Rewriter", un contrôleur qualité pour Sophia.
+Tu dois 1) juger si le draft est OK, 2) si besoin, proposer une version corrigée.
+
+IMPORTANT:
+- Sortie JSON STRICTE uniquement.
+- Si ok=true, final_text doit être EXACTEMENT identique au draft (caractère pour caractère).
+- Si ok=false, tu DOIS corriger les problèmes dans final_text sans changer le fond.
+- Ne révèle pas le contexte, n'invente pas de faits.
+
+RÈGLES GLOBALES:
+- Français, tutoiement.
+- Texte brut uniquement (pas de **, pas de JSON hors sortie).
+- Pas de termes techniques internes (logs/database/json/api/etc).
+- 1 question max (sauf safety où 2 max si nécessaire).
+
+CONTEXTE:
+- kind=${args.kind}
+- channel=${args.channel}
+- agent=${args.agent}
+- now_iso=${JSON.stringify(args.now_iso ?? null)}
+- mechanical_violations=${JSON.stringify(mech)}
+- context_used=${JSON.stringify(String(args.context_used ?? "").slice(0, 6000))}
+- recent_history=${JSON.stringify((args.recent_history ?? []).slice(-15))}
+${includeDataJson ? `- data_json=${JSON.stringify(args.data_json ?? null)}` : `- data_json=(omitted)`}
+
+TOOLS DISPONIBLES (si applicable):
+${JSON.stringify(args.tools_available ?? [])}
+
+DÉRIVES SPÉCIFIQUES:
+${addendum}
+
+DRAFT:
+${draft}
+
+SORTIE JSON:
+{
+  "ok": true/false,
+  "issues": ["..."],
+  "rewritten": true/false,
+  "rewrite_brief": "instructions courtes",
+  "final_text": "..."
+}
+  `.trim();
+
+  const raw = await generateWithGemini(systemPrompt, "Analyse et corrige si nécessaire.", 0.0, true, [], "auto", {
+    requestId: args.meta?.requestId,
+    userId: args.meta?.userId,
+    model: getAgentJudgeModel(),
+    source: `sophia-brain:${args.kind}_judge:${args.agent}:${args.channel}`,
+    forceRealAi: args.meta?.forceRealAi,
+  });
+
+  const parsed = parseOneShotJudgeJson(raw);
+  if (!parsed) {
+    // Fallback: if mechanical issues exist, mark not ok, but keep original (no rewrite available).
+    const ok = mech.length === 0;
+    return { ok, rewritten: false, issues: mech.map((x) => `mech:${x}`), final_text: draft };
+  }
+
+  // Hard safety: if ok=true but model modified final_text, ignore it.
+  if (parsed.ok === true) {
+    return { ok: true, rewritten: false, issues: parsed.issues, final_text: draft, rewrite_brief: parsed.rewrite_brief };
+  }
+
+  const finalText = parsed.final_text && parsed.final_text.trim() ? parsed.final_text : draft;
+  return {
+    ok: false,
+    rewritten: true,
+    issues: parsed.issues,
+    final_text: collapseBlankLines(normalizeChatText(finalText)),
+    rewrite_brief: parsed.rewrite_brief,
+  };
+}
+
+function agentJudgeAddendum(agent: string, channel: "web" | "whatsapp"): string {
+  const a = String(agent ?? "").trim().toLowerCase();
+  const isWa = channel === "whatsapp";
+  if (a === "architect") {
+    return `
+RÈGLES SPÉCIFIQUES ARCHITECT:
+- Ne promets jamais un changement effectué (créé/activé/modifié) sans preuve tool+succès.
+- Évite les explications longues sur WhatsApp; donne 1 prochaine étape concrète.
+- Termine par 1 question actionnable (oui/non ou A/B), pas une question vague ("tu veux parler de quoi ?").
+${isWa ? "- WhatsApp: 1–2 phrases si le user est pressé.\n" : ""}
+    `.trim();
+  }
+  if (a === "companion") {
+    return `
+RÈGLES SPÉCIFIQUES COMPANION:
+- Ton match: ton/rythme du user. Si user court → toi court.
+- Ne “ramène” pas au plan sans permission explicite.
+- Pas de coaching structuré non demandé; propose max 2 options.
+    `.trim();
+  }
+  if (a === "firefighter") {
+    return `
+RÈGLES SPÉCIFIQUES FIREFIGHTER:
+- Style sobre, concret, somatique. Pas de poésie.
+- Priorité sécurité: si danger immédiat → question sécurité + appel secours.
+- 0–1 question (2 max uniquement si sécurité).
+- Pas de diagnostic médical, pas de posologie.
+    `.trim();
+  }
+  if (a === "assistant") {
+    return `
+RÈGLES SPÉCIFIQUES ASSISTANT (TECH):
+- Donne des étapes courtes et vérifiables.
+- Ne pas inventer l'UI; préférer chemins/URLs.
+- Si bloqué: sortie claire support (email) sans boucle.
+    `.trim();
+  }
+  if (a === "librarian") {
+    return `
+RÈGLES SPÉCIFIQUES LIBRARIAN:
+- Réponse plus longue autorisée MAIS structurée (mini-titres, listes).
+- 2–4 sections max, puis mini-résumé (3 lignes max).
+- 0–1 question max à la fin.
+    `.trim();
+  }
+  return "";
+}
+
 function normalizeChatText(text: unknown): string {
   return (text ?? "")
     .toString()
@@ -30,6 +223,210 @@ function looksLikeUserAskedForDetail(userMessage: unknown): boolean {
   if (!s) return false;
   return /\b(d[ée]tails?|d[ée]taille|explique|pourquoi|comment|d[ée]veloppe|plus\s+en\s+d[ée]tail|tu\s+peux\s+pr[ée]ciser|pr[ée]cise)\b/i
     .test(s);
+}
+
+function normalizeLoose(s: unknown): string {
+  return String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s?]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function startsWithGreeting(text: string): boolean {
+  const s = (text ?? "").trim().toLowerCase();
+  return /^(salut|bonjour|hello|coucou|hey)\b/.test(s);
+}
+
+function looksLikeShortUserMessage(userMessage: unknown): boolean {
+  const raw = (userMessage ?? "").toString().trim();
+  if (!raw) return false;
+  const s = normalizeLoose(raw);
+  if (raw.length <= 30) return true;
+  return /\b(ok|oui|vas y|go|suite|next|continue|on y va|daccord|ça marche)\b/i.test(s);
+}
+
+export function buildConversationAgentViolations(text: string, ctx: {
+  agent: string;
+  channel: "web" | "whatsapp";
+  user_message?: unknown;
+  last_assistant_message?: unknown;
+  history_len?: number;
+}): string[] {
+  const v: string[] = [];
+  const cleaned = (text ?? "").toString();
+  const agent = (ctx?.agent ?? "").toString();
+  const channel = (ctx?.channel ?? "web") as "web" | "whatsapp";
+  const askedDetail = looksLikeUserAskedForDetail(ctx?.user_message);
+  const shortUser = looksLikeShortUserMessage(ctx?.user_message);
+
+  if (!cleaned.trim()) v.push("empty_response");
+  if (hasBoldLeak(cleaned)) v.push("bold_not_allowed");
+  if (hasInternalTechLeak(cleaned)) v.push("internal_tech_terms_not_allowed");
+  if (cleaned.includes("\n\n\n")) v.push("too_many_blank_lines");
+
+  const maxQuestions = channel === "whatsapp" ? 1 : 2;
+  if (countQuestionMarks(cleaned) > maxQuestions) v.push("too_many_questions");
+
+  // Greeting discipline: don't say "bonjour/salut" mid-thread.
+  const histLen = Number(ctx?.history_len ?? 0) || 0;
+  if (histLen > 0 && startsWithGreeting(cleaned)) v.push("greeting_not_allowed_mid_conversation");
+
+  // Keep it short on WhatsApp unless user explicitly asked for details.
+  const maxChars =
+    channel === "whatsapp"
+      ? (
+          agent === "architect" ? (askedDetail ? 1100 : 520) :
+          agent === "librarian" ? (askedDetail ? 2200 : 1400) :
+          agent === "companion" ? (askedDetail ? 950 : 420) :
+          agent === "firefighter" ? 450 :
+          agent === "assistant" ? (askedDetail ? 1200 : 650) :
+          (askedDetail ? 1100 : 520)
+        )
+      : (
+          agent === "architect" ? (askedDetail ? 2200 : 1400) :
+          agent === "librarian" ? (askedDetail ? 3200 : 2400) :
+          agent === "firefighter" ? 800 :
+          agent === "assistant" ? 1400 :
+          1600
+        );
+  if (cleaned.length > maxChars) v.push("too_long");
+
+  // If user is short/pressé on WhatsApp, enforce ultra short response.
+  if (channel === "whatsapp" && shortUser && !askedDetail) {
+    if (cleaned.length > 380) v.push("too_verbose_for_short_user");
+    const paras = cleaned.split(/\n{2,}/).filter((p) => p.trim().length > 0);
+    if (paras.length > 2) v.push("too_many_paragraphs_for_short_user");
+  }
+
+  // Avoid repeating the previous assistant response.
+  const last = (ctx?.last_assistant_message ?? "").toString();
+  if (last.trim()) {
+    const a = normalizeLoose(last).slice(0, 140);
+    const b = normalizeLoose(cleaned).slice(0, 140);
+    if (a && b && a === b) v.push("repeats_previous_message");
+  }
+
+  return v;
+}
+
+export type ToolDescriptor = {
+  name: string
+  description: string
+  usage_when: string
+}
+
+export async function judgeOfThree(opts: {
+  agent: string
+  channel: "web" | "whatsapp"
+  user_message: string
+  context_used?: string
+  recent_history?: any[]
+  tools_available?: ToolDescriptor[]
+  candidates: Array<{ label: string; text: string; mechanical_violations: string[] }>
+  meta?: { requestId?: string; forceRealAi?: boolean; userId?: string }
+}): Promise<{ best_index: number; reasons: string[] }> {
+  const candidates = (opts.candidates ?? []).slice(0, 3)
+  const systemPrompt = `
+Tu es "judge-of-3" (sélecteur).
+Tu reçois 3 propositions de réponse (candidates) pour Sophia et tu DOIS choisir la meilleure.
+
+OBJECTIF:
+- choisir la réponse la plus utile, naturelle, et conforme aux règles (WhatsApp-first).
+- si un candidate est non conforme mécaniquement, pénalise-le fortement.
+- si un candidate propose un usage d'outil, vérifie que c'est le bon moment et que c'est cohérent avec la demande.
+
+RÈGLES GLOBALES:
+- Français, tutoiement, texte brut.
+- WhatsApp: concis, 1 question max.
+- Pas de termes internes.
+
+CONTEXTE:
+- agent=${opts.agent}
+- channel=${opts.channel}
+- user_message=${JSON.stringify(String(opts.user_message ?? "").slice(0, 1200))}
+- context_used=${JSON.stringify(String(opts.context_used ?? "").slice(0, 4000))}
+- recent_history=${JSON.stringify((opts.recent_history ?? []).slice(-15))}
+
+TOOLS DISPONIBLES (si applicable):
+${JSON.stringify(opts.tools_available ?? [])}
+
+CANDIDATES (avec violations mécaniques):
+${JSON.stringify(candidates)}
+
+SORTIE JSON STRICTE:
+{
+  "best_index": 0|1|2,
+  "reasons": ["..."]
+}
+  `.trim()
+
+  const raw = await generateWithGemini(systemPrompt, "Choisis le meilleur candidate.", 0.0, true, [], "auto", {
+    requestId: opts.meta?.requestId,
+    userId: opts.meta?.userId,
+    model: getAgentJudgeModel(),
+    source: `sophia-brain:judge_of_3:${opts.agent}:${opts.channel}`,
+    forceRealAi: opts.meta?.forceRealAi,
+  })
+
+  try {
+    const obj = JSON.parse(String(raw ?? "{}")) as any
+    const idx = Number(obj?.best_index ?? 0)
+    const best_index = idx === 1 || idx === 2 ? idx : 0
+    const reasons = Array.isArray(obj?.reasons) ? obj.reasons.map((x: any) => String(x)).filter(Boolean).slice(0, 8) : []
+    return { best_index, reasons }
+  } catch {
+    return { best_index: 0, reasons: ["parse_failed"] }
+  }
+}
+
+export async function verifyConversationAgentMessage(opts: {
+  draft: string;
+  agent: "architect" | "companion" | "firefighter" | "assistant" | string;
+  data: {
+    user_message?: unknown;
+    last_assistant_message?: unknown;
+    history_len?: number;
+    channel?: "web" | "whatsapp";
+    now_iso?: string;
+    context_excerpt?: string;
+    recent_history?: any[];
+    tools_available?: ToolDescriptor[];
+  };
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; userId?: string };
+}): Promise<{ text: string; rewritten: boolean; violations: string[] }> {
+  const { draft, agent, data, meta } = opts;
+  const base = collapseBlankLines(normalizeChatText(draft));
+  const channel = ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp";
+  if (isMegaTestMode(meta)) return { text: base, rewritten: false, violations: [] };
+  const violations = buildConversationAgentViolations(base, {
+    agent,
+    channel,
+    user_message: (data as any)?.user_message,
+    last_assistant_message: (data as any)?.last_assistant_message,
+    history_len: (data as any)?.history_len,
+  });
+
+  const one = await oneShotJudgeAndRewrite({
+    kind: "conversation",
+    agent,
+    channel,
+    draft: base,
+    mechanical_violations: violations,
+    context_used: String((data as any)?.context_used ?? (data as any)?.context_excerpt ?? ""),
+    recent_history: (data as any)?.recent_history ?? [],
+    now_iso: String((data as any)?.now_iso ?? ""),
+    data_json: data,
+    tools_available: ((data as any)?.tools_available ?? []) as ToolDescriptor[],
+    meta: { requestId: meta?.requestId, forceRealAi: meta?.forceRealAi, userId: meta?.userId },
+  });
+  const all = [
+    ...violations.map((x) => `mech:${x}`),
+    ...one.issues.map((x) => `judge:${x}`),
+  ];
+  return { text: one.final_text, rewritten: one.rewritten, violations: all };
 }
 
 function buildInvestigatorCopyViolations(text: string, ctx: { scenario: string }): string[] {
@@ -90,54 +487,26 @@ export async function verifyInvestigatorMessage(opts: {
   const violations = buildInvestigatorCopyViolations(base, { scenario });
   if (violations.length === 0) return { text: base, rewritten: false, violations: [] };
 
-  // Rewrite only when needed (cost/latency control). Use a fast model by default.
-  const systemPrompt = `
-Tu es "Verifier", un relecteur/correcteur pour Sophia (Mode : Investigateur / Bilan).
-Tu dois RÉÉCRIRE le message ci-dessous pour qu'il respecte strictement les règles et qu'il soit plus pertinent.
+  // One-shot Judge+Rewrite, but only when we already detected mechanical copy violations (cost control).
+  const one = await oneShotJudgeAndRewrite({
+    kind: `investigator:${scenario}`,
+    agent: "investigator",
+    channel: ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp",
+    draft: base,
+    mechanical_violations: violations,
+    context_used: String((data as any)?.context_used ?? (data as any)?.context_excerpt ?? ""),
+    recent_history: (data as any)?.recent_history ?? [],
+    now_iso: String((data as any)?.now_iso ?? ""),
+    data_json: data,
+    tools_available: ((data as any)?.tools_available ?? []) as ToolDescriptor[],
+    meta: { requestId: meta?.requestId, forceRealAi: meta?.forceRealAi, userId: meta?.userId },
+  });
 
-RÈGLES STRICTES:
-- Français, tutoiement.
-- Texte brut uniquement (pas de JSON, pas de listes en gras, pas d'astérisques **).
-- Une seule question max (SAUF fin de bilan: une question ouverte obligatoire).
-- Pas de termes techniques internes (logs/input/database/JSON/etc).
-- Ne JAMAIS inventer une action/framework/vital qui n'existe pas dans les DONNÉES.
-- Rester très concis et naturel.
-- Si l'utilisateur exprime une émotion (fatigue/stress/ras-le-bol), valide brièvement avant la question.
-- FOCUS EXÉCUTION (CRITIQUE) : Si on parle d'une action/framework, demande uniquement SI C'EST FAIT (passé/présent).
-  Interdiction de demander "Est-ce que tu penses le faire ?" ou "Tu as un endroit en tête ?". On veut le résultat.
-- COHÉRENCE TRACKING (CRITIQUE): si DONNÉES contient "last_item_log" (status/value/note) ou un indicateur qu'un item a été loggué,
-  tu DOIS être cohérent avec ce qui vient d'être enregistré. Ne repose pas la question du même item, ne contredis pas ("tu as fait" vs "non fait").
-
-SCÉNARIO: ${scenario}
-DONNÉES (JSON): ${JSON.stringify(data)}
-VIOLATIONS À CORRIGER: ${violations.join(", ")}
-
-MESSAGE À RÉÉCRIRE:
-${base}
-  `.trim();
-
-  const defaultModel =
-    (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim() || "gemini-2.5-flash";
-
-  const rewritten = await generateWithGemini(
-    systemPrompt,
-    "Réécris ce message en respectant les règles. Ne rajoute aucun nouvel item.",
-    0.2,
-    false,
-    [],
-    "auto",
-    {
-      requestId: meta?.requestId,
-      userId: meta?.userId,
-      // Use a model that is known to exist on the configured Gemini endpoint.
-      // (Some environments don't have "gemini-3-flash", which causes long retry loops.)
-      model: meta?.model ?? defaultModel,
-      source: `sophia-brain:investigator_verifier:${scenario}`,
-      forceRealAi: meta?.forceRealAi,
-    },
-  );
-
-  return { text: collapseBlankLines(normalizeChatText(rewritten)), rewritten: true, violations };
+  const all = [
+    ...violations.map((x) => `mech:${x}`),
+    ...one.issues.map((x) => `judge:${x}`),
+  ];
+  return { text: one.final_text, rewritten: one.rewritten, violations: all };
 }
 
 function buildBilanAgentViolations(text: string, ctx: { agent: string; user_message?: unknown }): string[] {
@@ -162,61 +531,61 @@ function buildBilanAgentViolations(text: string, ctx: { agent: string; user_mess
     750;
   if (cleaned.length > maxChars) v.push("too_long");
 
+  // CRITICAL: during an active bilan, ONLY the Investigator should log/write/activate/create.
+  // If another agent is answering (rare exceptions), it must NOT claim or promise any DB/tool operation.
+  if (agent !== "investigator") {
+    if (
+      /\b(j['’]ai|je\s+viens\s+de|je\s+vais|je\s+peux)\s+(?:l['’]?)?(?:activer|active|cr[ée]er|cr[ée]e|ajouter|mettre\s+a\s+jour|modifier|update|updater|archiver|supprimer|enregistrer|logguer|logger|noter)\b/i
+        .test(cleaned) ||
+      /\b(c['’]est\s+(?:fait|valid[ée]|enregistr[ée]))\b/i.test(cleaned) ||
+      /\b(j['’]ai\s+not[ée]|je\s+note)\s+(?:dans\s+ton\s+plan|dans\s+le\s+plan|dans\s+le\s+dashboard)\b/i.test(cleaned) ||
+      /\b(outil|tool)\b/i.test(cleaned)
+    ) {
+      v.push("bilan_tool_claim_not_allowed_for_non_investigator");
+    }
+  }
+
+  // During bilan, non-investigator agents should end by returning to the bilan flow (1 short question).
+  if (agent !== "investigator") {
+    const asksBilanResume =
+      /\b(on\s+continue|on\s+passe\s+a\s+la\s+suite|pr[êe]t\s+pour\s+la\s+suite|on\s+continue\s+le\s+bilan|on\s+fait\s+la\s+suite)\b/i
+        .test(cleaned) ||
+      /\b(on\s+continue\s*\?)\b/i.test(cleaned);
+    if (!asksBilanResume) v.push("bilan_missing_resume_question_for_non_investigator");
+  }
+
   return v;
 }
 
 export async function verifyBilanAgentMessage(opts: {
   draft: string;
-  agent: "architect" | "companion" | "firefighter" | "assistant" | "watcher" | string;
+  agent: "architect" | "companion" | "firefighter" | "assistant" | string;
   data: unknown;
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; userId?: string };
 }): Promise<{ text: string; rewritten: boolean; violations: string[] }> {
   const { draft, agent, data, meta } = opts;
   const base = collapseBlankLines(normalizeChatText(draft));
+  if (isMegaTestMode(meta)) return { text: base, rewritten: false, violations: [] };
   const violations = buildBilanAgentViolations(base, { agent, user_message: (data as any)?.user_message });
-  if (violations.length === 0) return { text: base, rewritten: false, violations: [] };
+  const one = await oneShotJudgeAndRewrite({
+    kind: "bilan",
+    agent,
+    channel: ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp",
+    draft: base,
+    mechanical_violations: violations,
+    context_used: String((data as any)?.context_used ?? (data as any)?.context_excerpt ?? ""),
+    recent_history: (data as any)?.recent_history ?? [],
+    now_iso: String((data as any)?.now_iso ?? ""),
+    data_json: data,
+    tools_available: ((data as any)?.tools_available ?? []) as ToolDescriptor[],
+    meta: { requestId: meta?.requestId, forceRealAi: meta?.forceRealAi, userId: meta?.userId },
+  });
 
-  const systemPrompt = `
-Tu es "Verifier", un relecteur/correcteur pour Sophia.
-Contexte: UN BILAN (checkup) est en cours. Tu dois réécrire le message pour qu'il soit cohérent, utile et court.
-
-RÈGLES STRICTES:
-- Français, tutoiement.
-- Texte brut uniquement (pas de JSON, pas de **).
-- Pas de termes techniques internes (logs/input/database/JSON/etc).
-- Ne jamais inventer un élément qui n'existe pas dans les DONNÉES.
-- Rester concis. 1 question max.
-- COHÉRENCE TRACKING: si DONNÉES contient un log (ex: last_item_log), ne contredis pas et ne reposes pas la même question.
-
-AGENT SOURCE: ${agent}
-DONNÉES (JSON): ${JSON.stringify(data)}
-VIOLATIONS: ${violations.join(", ")}
-
-MESSAGE À RÉÉCRIRE:
-${base}
-  `.trim();
-
-  const defaultModel2 =
-    (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim() || "gemini-2.5-flash";
-
-  const rewritten = await generateWithGemini(
-    systemPrompt,
-    "Réécris ce message en respectant les règles. Ne rajoute aucun nouvel item.",
-    0.2,
-    false,
-    [],
-    "auto",
-    {
-      requestId: meta?.requestId,
-      userId: meta?.userId,
-      // Use a model that is known to exist on the configured Gemini endpoint.
-      model: meta?.model ?? defaultModel2,
-      source: `sophia-brain:bilan_verifier:${agent}`,
-      forceRealAi: meta?.forceRealAi,
-    },
-  );
-
-  return { text: collapseBlankLines(normalizeChatText(rewritten)), rewritten: true, violations };
+  const all = [
+    ...violations.map((x) => `mech:${x}`),
+    ...one.issues.map((x) => `judge:${x}`),
+  ];
+  return { text: one.final_text, rewritten: one.rewritten, violations: all };
 }
 
 function buildPostCheckupViolations(text: string): string[] {
@@ -263,7 +632,7 @@ function buildPostCheckupViolations(text: string): string[] {
 
 export async function verifyPostCheckupAgentMessage(opts: {
   draft: string;
-  agent: "architect" | "companion" | "firefighter" | "assistant" | "watcher" | string;
+  agent: "architect" | "companion" | "firefighter" | "assistant" | string;
   data: unknown; // should include topic/context excerpt
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; userId?: string };
 }): Promise<{ text: string; rewritten: boolean; violations: string[] }> {
@@ -272,49 +641,26 @@ export async function verifyPostCheckupAgentMessage(opts: {
   const violations = buildPostCheckupViolations(base);
   if (violations.length === 0) return { text: base, rewritten: false, violations: [] };
 
-  const systemPrompt = `
-Tu es "Verifier", un relecteur/correcteur pour Sophia.
-Contexte: le BILAN est TERMINÉ. Nous sommes en MODE POST-BILAN et on traite un SUJET REPORTÉ.
+  // One-shot Judge+Rewrite, but only when we already detected mechanical violations (cost control).
+  const one = await oneShotJudgeAndRewrite({
+    kind: "post_checkup",
+    agent,
+    channel: ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp",
+    draft: base,
+    mechanical_violations: violations,
+    context_used: String((data as any)?.context_used ?? (data as any)?.context_excerpt ?? ""),
+    recent_history: (data as any)?.recent_history ?? [],
+    now_iso: String((data as any)?.now_iso ?? ""),
+    data_json: data,
+    tools_available: ((data as any)?.tools_available ?? []) as ToolDescriptor[],
+    meta: { requestId: meta?.requestId, forceRealAi: meta?.forceRealAi, userId: meta?.userId },
+  });
 
-RÈGLES STRICTES POST-BILAN:
-- Français, tutoiement.
-- Texte brut uniquement (pas de JSON, pas de **).
-- Interdiction de dire "après le bilan" (puisqu'on est déjà après).
-- Interdiction de proposer de continuer/reprendre le bilan/checkup.
-- Évite les disclaimers du type "je suis une IA" (sauf si l’utilisateur te le demande explicitement). Si tu as mal compris, clarifie et reviens au sujet.
-- Traite uniquement le sujet reporté (ne pose pas de questions de bilan sur d'autres actions/vitals).
-- N'évoque PAS "ton plan" ni des actions/frameworks non activés si l'utilisateur ne le demande pas. Ne sois pas un coach relou: propose, puis laisse respirer.
-- Si tu conclus/clos ce sujet (ou fais un récap/proposition de clôture), termine par: "C’est bon pour ce point ?"
-- Si tu poses une question de clarification au milieu du sujet, ne rajoute pas "C’est bon pour ce point ?" dans la même phrase (éviter la répétition / double-question).
-
-AGENT SOURCE: ${agent}
-DONNÉES (JSON): ${JSON.stringify(data)}
-VIOLATIONS: ${violations.join(", ")}
-
-MESSAGE À RÉÉCRIRE:
-${base}
-  `.trim();
-
-  const defaultModel =
-    (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim() || "gemini-2.5-flash";
-
-  const rewritten = await generateWithGemini(
-    systemPrompt,
-    "Réécris ce message en respectant les règles. Ne rajoute aucun nouvel item.",
-    0.2,
-    false,
-    [],
-    "auto",
-    {
-      requestId: meta?.requestId,
-      userId: meta?.userId,
-      model: meta?.model ?? defaultModel,
-      source: `sophia-brain:post_checkup_verifier:${agent}`,
-      forceRealAi: meta?.forceRealAi,
-    },
-  );
-
-  return { text: collapseBlankLines(normalizeChatText(rewritten)), rewritten: true, violations };
+  const all = [
+    ...violations.map((x) => `mech:${x}`),
+    ...one.issues.map((x) => `judge:${x}`),
+  ];
+  return { text: one.final_text, rewritten: one.rewritten, violations: all };
 }
 
 

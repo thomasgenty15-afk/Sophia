@@ -9,11 +9,18 @@ type TrackProgressArgs = {
   date?: string; // YYYY-MM-DD (optional)
 };
 
+type TrackProgressOpts = {
+  // Where the tracking signal originated (helps for debugging downstream).
+  // Examples: "chat" | "whatsapp" | "web".
+  source?: string;
+};
+
 /**
  * Shared tracking handler used by multiple agents.
  *
  * Writes:
  * - `user_action_entries` (+ updates `user_actions` aggregate when relevant)
+ * - `user_framework_entries` (+ updates `user_framework_tracking` aggregate when relevant)
  * - `user_vital_sign_entries` (+ updates `user_vital_signs` aggregate)
  *
  * Returns:
@@ -24,11 +31,13 @@ export async function handleTracking(
   supabase: SupabaseClient,
   userId: string,
   args: TrackProgressArgs,
+  opts?: TrackProgressOpts,
 ): Promise<string> {
   const { target_name, value, operation, status, date } = args;
   const searchTerm = target_name.trim();
   const entryStatus = status || "completed";
   const day = (date && date.trim()) || new Date().toISOString().split("T")[0];
+  const src = (opts?.source ?? "").trim() || "chat";
 
   // 1) Actions (plan)
   const { data: actions, error: actionsError } = await supabase
@@ -111,7 +120,56 @@ export async function handleTracking(
     return `C'est noté ! ✅\nAction : ${action.title}`;
   }
 
-  // 2) Vital signs
+  // 2) Frameworks (exercices / journaling) — stored separately in DB
+  const { data: frameworks, error: frameworksError } = await supabase
+    .from("user_framework_tracking")
+    .select("*")
+    .eq("user_id", userId)
+    .in("status", ["active", "pending"])
+    .ilike("title", `%${searchTerm}%`)
+    .limit(1);
+
+  if (frameworksError) console.error("[Tracking] Error fetching frameworks:", frameworksError);
+
+  if (frameworks && frameworks.length > 0) {
+    const fw = frameworks[0] as any;
+    const lastPerformedDay = fw.last_performed_at ? String(fw.last_performed_at).split("T")[0] : null;
+    const nowIso = new Date().toISOString();
+
+    // Avoid double-counting "completed" when already logged today (best effort).
+    if ((entryStatus === "completed" || entryStatus === "partial") && lastPerformedDay === day && operation === "add") {
+      return `C'est noté, mais je vois que tu avais déjà validé "${fw.title}" aujourd'hui. Je laisse validé ! ✅`;
+    }
+
+    // Update aggregate (best effort)
+    if (entryStatus === "completed" || entryStatus === "partial") {
+      const curr = Number(fw.current_reps ?? 0);
+      const next = operation === "set" ? Math.max(curr, 1) : (curr + 1);
+      const { error: updateFwErr } = await supabase
+        .from("user_framework_tracking")
+        .update({ current_reps: next, last_performed_at: nowIso })
+        .eq("id", fw.id);
+      if (updateFwErr) console.error("[Tracking] Error updating framework aggregate:", updateFwErr);
+    }
+
+    // Insert entry (best effort)
+    const { error: fwEntryErr } = await supabase.from("user_framework_entries").insert({
+      user_id: userId,
+      plan_id: fw.plan_id ?? null,
+      action_id: fw.action_id,
+      framework_title: fw.title,
+      framework_type: fw.type ?? "unknown",
+      content: { status: entryStatus, note: null, from: src },
+      created_at: nowIso,
+      updated_at: nowIso,
+    });
+    if (fwEntryErr) console.error("[Tracking] Error inserting framework entry:", fwEntryErr);
+
+    if (entryStatus === "missed") return `Je note (pas fait). 📉\nExercice : ${fw.title}`;
+    return `C'est noté ! ✅\nExercice : ${fw.title}`;
+  }
+
+  // 3) Vital signs
   const { data: vitalSigns, error: vitalsError } = await supabase
     .from("user_vital_signs")
     .select("*")
@@ -150,7 +208,7 @@ export async function handleTracking(
     return `C'est enregistré. 📊 (${sign.label} : ${newValue} ${sign.unit || ""})`;
   }
 
-  return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions ou Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`;
+  return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions / Frameworks / Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`;
 }
 
 

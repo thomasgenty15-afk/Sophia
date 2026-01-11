@@ -1,0 +1,253 @@
+{
+  "id": "7e43025b-8a6c-4330-804a-e0384f490ebf",
+  "created_at": "2026-01-09T21:56:19.825514+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__run_1767995779282_47bf76",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:56:20.084524+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super, on avance. On va pouvoir passer aux choses sérieuses dès que tout sera prêt de ton côté.\n\nFile sur https://sophia-coach.ai pour finaliser et activer ton plan sur ton tableau de bord.\n\nRéponds exactement: C'est bon quand c'est fait. 🚀",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T21:56:25.519863+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:56:27.880651+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Écoute, ça n'apparaît pas encore de mon côté. Il y a souvent un petit délai de synchronisation d'une minute ou deux entre le site et ici.\n\nEssaie de rafraîchir ta page sur https://sophia-coach.ai ou attends juste un court instant pour que l'info remonte bien.\n\nReposte un petit C'est bon quand tu as fait ça ? ⏳",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T21:56:37.24949+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:56:39.48594+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, je te crois — là ça ressemble à un souci de synchro/bug.\n\nPour ne pas tourner en rond: écris à sophia@sophia-coach.ai avec:\n- l’email de ton compte\n- une capture de ton dashboard\n- ton téléphone + navigateur (ex: iPhone/Safari)\n\nEn attendant: dis-moi ton objectif #1 en 1 phrase et je te propose un premier pas simple aujourd’hui.",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T21:56:39.49465+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Mon objectif c'est de perdre du poids. On fait quoi du coup ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:56:44.273516+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On avance sans attendre la technique. Pour le poids, la fondation #1 c'est la gestion de l'insuline dès le réveil.\n\nDemain matin, ton premier pas est simple : un petit-déjeuner 100% salé ou protéiné (oeufs, avocat, noix) sans aucun sucre. Ça stabilise ton énergie et coupe les fringales pour le reste de la journée.\n\nQu'est-ce que tu as prévu de manger demain au réveil ? 🍳",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T21:56:51.89131+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ok, je vais faire des œufs. Et après ça, on fait quoi ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:56:56.415268+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Excellent pour les oeufs. La deuxième brique, c'est de casser le pic de glucose après ton repas le plus riche.\n\nDemain, prévois une marche de 10 minutes juste après ton déjeuner ou ton dîner. Cela force tes muscles à brûler le sucre au lieu de le stocker en gras. 🚶\n\nLequel de tes repas est généralement le plus lourd ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T21:57:03.658+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Le dîner.",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:57:06.908103+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté pour le dîner. Demain soir, ta mission est donc de sortir marcher 10 minutes chrono dès que tu as fini de manger.\n\nC'est le moment où ton corps est le plus susceptible de stocker, donc cette marche est ton bouclier le plus puissant pour lisser ta glycémie. 🚶\n\nEst-ce que tu as un itinéraire simple de 5 minutes aller-retour déjà en tête autour de chez toi ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T21:57:13.870402+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai ça. Et après, on fait quoi ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:57:15.965947+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait pour l'itinéraire. Demain, on valide donc les oeufs et la marche. \n\nPour la suite, j'ai besoin de tes fondations. Je ne vois pas encore de plan actif sur ton compte. Finalise ton questionnaire sur le site ou utilise l'option - Besoin d'aide pour choisir - pour que je te construise une stratégie complète. 🛠️\n\nQuel est l'objectif prioritaire qui te pousse à agir maintenant ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T21:57:32.437743+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:57:35.282524+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Entendu. Il y a parfois un petit délai de synchronisation. Si rien n'apparaît d'ici demain, contacte sophia@sophia-coach.ai avec ton email pour qu'on vérifie. 🛠️\n\nOn avance quand même : puisque tu as ton itinéraire, quel est l'obstacle principal qui pourrait t'empêcher de sortir marcher demain soir juste après ton repas ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T21:57:45.050305+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Pas d'obstacle. Et après, on fait quoi ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:57:47.862396+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Impeccable. On continue de construire tes réflexes en attendant que la technique suive.\n\nOption : Identifier ta priorité absolue pour demain matin afin d'éviter de t'éparpiller dès le réveil.\n\nQuelle est la tâche unique et non négociable que tu dois avoir terminée demain avant midi pour considérer ta journée comme un succès ? 🎯",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T21:57:57.662845+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Mon petit-déjeuner salé. Et après ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T21:58:03.871104+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est un excellent ancrage physiologique pour stabiliser ton énergie. 🍳\n\nL'étape suivante est la transition vers l'action pure. Pour éviter de gaspiller ce pic de forme, tu dois enchaîner sur ta tâche la plus exigeante avant que les distractions ne s'installent.\n\nQuel est l'objectif précis que tu attaques dès que tu quittes la table ? 🎯",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T21:58:14.034641+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "9f48907c-a57b-4b3f-bbb6-aebec03caefe",
+      "email": "run-evals+ee4213081c7149@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T21:56:19.783+00:00",
+      "phone_number": "+15553025855564",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T21:56:19.785+00:00",
+      "whatsapp_opted_in": false,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": null,
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "9f48907c-a57b-4b3f-bbb6-aebec03caefe",
+      "email": "run-evals+ee4213081c7149@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T21:56:19.783+00:00",
+      "phone_number": "+15553025855564",
+      "phone_invalid": false,
+      "whatsapp_state": "awaiting_plan_finalization_support",
+      "phone_verified_at": "2026-01-09T21:56:19.785+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T21:58:03.861+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T21:56:39.496+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "9f48907c-a57b-4b3f-bbb6-aebec03caefe",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T21:58:14.029177+00:00",
+      "temp_memory": {},
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T21:56:20.095+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T21:56:20.096582+00:00",
+      "unprocessed_msg_count": 9
+    }
+  },
+  "issues": [
+    {
+      "code": "inconsistent_fallback_logic",
+      "message": "The Architect reverts to a 'hard block' regarding the missing plan (Turn 11) after the Companion explicitly established a 'Let's advance without waiting for tech' fallback strategy (Turn 3). This creates friction when the user is engaged in the proposed coaching flow.",
+      "evidence": {
+        "snippet": "Pour la suite, j'ai besoin de tes fondations. Je ne vois pas encore de plan actif... Finalise ton questionnaire",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "infinite_advice_loop",
+      "message": "The user repeatedly asks 'Et après ?' (4 times). The Architect keeps generating new micro-tasks indefinitely (Breakfast -> Walk -> Priority Task -> Next Task) without setting a boundary or summarizing the day's plan, risking user overwhelm.",
+      "evidence": {
+        "snippet": "User: Et après, on fait quoi ? (Repeated in turns 6, 10, 14, 16)",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "low"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "profiles.whatsapp_state expected=\"awaiting_plan_finalization\" actual=\"awaiting_plan_finalization_support\"",
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the agent from hallucinating an infinite to-do list when the user is stuck in a loop of asking for the next step, ensuring the advice remains actionable and focused.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(companion): Super, on avance. On va pouvoir passer aux choses sérieuses dès que tout sera prêt de ton côté. File sur https://sophia-coach.ai pour finaliser et activer ton plan sur ton tableau de bord. Réponds exactement: C'est bon quand c'est fait. 🚀\n#2 USER: C'est bon\n#3 ASSISTANT(companion): Écoute, ça n'apparaît pas encore de mon côté. Il y a souvent un petit délai de synchronisation d'une minute ou deux entre le site et ici. Essaie de rafraîchir ta page sur https://sophia-coach.ai ou attends juste un court instant pour que l'info remonte bien. Reposte un petit C'est bon quand tu as fait ça ? ⏳\n#4 USER: C'est bon\n#5 ASSISTANT(companion): Ok, je te crois — là ça ressemble à un souci de synchro/bug. Pour ne pas tourner en rond: écris à sophia@sophia-coach.ai avec: - l’email de ton compte - une capture de ton dashboard - ton téléphone + navigateur (ex: iPhone/Safari) En attendant: dis-moi ton objectif #1 en 1 phrase et je te propose un premier pas simple aujourd’hui.\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nIf the user repeatedly asks 'Et après ?' (What next?) or pushes for more steps during an initial onboarding or fallback chat, STOP adding new tasks after 2 or 3 items. Instead, summarize the agreed actions (e.g., 'Let's just nail X and Y for tomorrow') and enforce a 'less is more' philosophy to prevent overwhelm.",
+      "proposed_addendum": "If the user repeatedly asks 'Et après ?' (What next?) or pushes for more steps during an initial onboarding or fallback chat, STOP adding new tasks after 2 or 3 items. Instead, summarize the agreed actions (e.g., 'Let's just nail X and Y for tomorrow') and enforce a 'less is more' philosophy to prevent overwhelm."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1767995779282_47bf76:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__run_1767995779282_47bf76",
+    "total_tokens": 0,
+    "output_tokens": 0,
+    "prompt_tokens": 0,
+    "judge_llm_used": true,
+    "mega_test_mode": false,
+    "mechanical_issues_count": 1
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "mechanical"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1767995779282_47bf76:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__run_1767995779282_47bf76",
+    "description": "WhatsApp onboarding (webhook): user accepts opt-in via button but has no active plan -> ask to finalize plan on site, then reply 'C'est bon'.",
+    "plan_snapshot": {
+      "plan": null,
+      "actions": [],
+      "frameworks": [],
+      "dashboard_context": "=== ÉTAT DU COMPTE ===\n- AUCUN PLAN DE TRANSFORMATION ACTIF.\n- L'utilisateur n'a pas encore fait son questionnaire ou activé un plan.\n\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

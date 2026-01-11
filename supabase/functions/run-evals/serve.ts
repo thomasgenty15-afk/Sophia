@@ -41,9 +41,9 @@ export function serveRunEvals() {
 
       const authHeader = req.headers.get("Authorization") ?? "";
       const url = (denoEnv("SUPABASE_URL") ?? "").trim();
-      const anonKey = (denoEnv("SUPABASE_ANON_KEY") ?? "").trim();
-      const serviceKey = (denoEnv("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
-      if (!url || !anonKey || !serviceKey) return serverError(req, requestId, "Server misconfigured");
+      const envAnonKey = (denoEnv("SUPABASE_ANON_KEY") ?? "").trim();
+      const envServiceKey = (denoEnv("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim();
+      if (!url || !envAnonKey || !envServiceKey) return serverError(req, requestId, "Server misconfigured");
 
       // Debug (non-sensitive): log JWT alg for env keys (helps diagnose misconfigured local secrets).
       // ALSO: hard-guard. If keys are ES256 (common local flake after restart), auth.admin.* will fail with bad_jwt.
@@ -65,22 +65,83 @@ export function serveRunEvals() {
       let serviceAlg = "parse_failed";
       let anonAlg = "parse_failed";
       try {
-        serviceAlg = decodeAlg(serviceKey);
-        anonAlg = decodeAlg(anonKey);
+        serviceAlg = decodeAlg(envServiceKey);
+        anonAlg = decodeAlg(envAnonKey);
         console.log(`[run-evals] request_id=${requestId} service_role_alg=${serviceAlg} anon_alg=${anonAlg}`);
       } catch {
         console.log(`[run-evals] request_id=${requestId} key_alg=parse_failed`);
       }
-      // Supabase local auth expects HS256 for anon/service keys.
-      // If keys are ES256 (can happen if the env is out-of-sync after a restart), auth.admin.* will fail.
-      if (serviceAlg !== "HS256" || anonAlg !== "HS256") {
+
+      // --- Key normalization (HS256 <-> ES256 robustness) ---
+      // We historically rely on HS256 anon/service keys for local auth. Some environments may surface ES256 keys
+      // (e.g. CLI/stack mismatch). In that case, GoTrue local may reject ES256 ("signing method ES256 is invalid").
+      // To "accept both", we attempt a local-only fallback: mint HS256 keys from the JWT secret and use them
+      // internally for Supabase clients.
+      const reqHost = (() => {
+        try {
+          return new URL(req.url).hostname;
+        } catch {
+          return "";
+        }
+      })();
+      // Detect "local" by the actual edge function request host (safer than SUPABASE_URL, which can be overridden).
+      const reqHostLower = reqHost.toLowerCase();
+      // In local docker networking, internal hostnames often look like "supabase_edge_runtime_<projectId>".
+      // Treat those as local too.
+      const isLocal =
+        reqHostLower === "127.0.0.1" ||
+        reqHostLower === "localhost" ||
+        reqHostLower.startsWith("supabase_");
+      const jwtSecret =
+        // IMPORTANT: Edge runtime may skip env names starting with SUPABASE_ in some setups.
+        // Prefer GOTRUE_JWT_SECRET / JWT_SECRET.
+        (denoEnv("GOTRUE_JWT_SECRET") ?? denoEnv("JWT_SECRET") ?? denoEnv("SUPABASE_JWT_SECRET") ?? "").trim() ||
+        (isLocal ? "super-secret-jwt-token-with-at-least-32-characters-long" : "");
+
+      const base64Url = (bytes: Uint8Array) => {
+        const s = btoa(String.fromCharCode(...bytes));
+        return s.replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+      };
+      const utf8 = (s: string) => new TextEncoder().encode(s);
+
+      const signHs256 = async (payload: Record<string, unknown>) => {
+        const header = { alg: "HS256", typ: "JWT" };
+        const h = base64Url(utf8(JSON.stringify(header)));
+        const p = base64Url(utf8(JSON.stringify(payload)));
+        const toSign = `${h}.${p}`;
+        const key = await crypto.subtle.importKey("raw", utf8(jwtSecret), { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+        const sig = new Uint8Array(await crypto.subtle.sign("HMAC", key, utf8(toSign)));
+        return `${toSign}.${base64Url(sig)}`;
+      };
+
+      let anonKey = envAnonKey;
+      let serviceKey = envServiceKey;
+      if ((serviceAlg !== "HS256" || anonAlg !== "HS256") && jwtSecret) {
+        // Mint long-lived keys (local only). We keep issuer consistent with local default.
+        const now = Math.floor(Date.now() / 1000);
+        const exp = now + 60 * 60 * 24 * 365 * 10;
+        const iss = "supabase-demo";
+        try {
+          anonKey = await signHs256({ iss, role: "anon", exp });
+          serviceKey = await signHs256({ iss, role: "service_role", exp });
+          console.log(
+            `[run-evals] request_id=${requestId} key_override=hs256_minted local=${isLocal} (env_service_alg=${serviceAlg} env_anon_alg=${anonAlg})`,
+          );
+        } catch {
+          // Fall through to BAD_JWT_ENV below
+        }
+      }
+
+      // If we still don't have HS256, return a retryable structured error.
+      if (decodeAlg(serviceKey) !== "HS256" || decodeAlg(anonKey) !== "HS256") {
         return jsonResponse(
           req,
           {
-            error: "Edge runtime env keys look unhealthy (expected HS256). Retry after local restart.",
+            error:
+              "Edge runtime env keys look unhealthy (expected HS256, or provide SUPABASE_JWT_SECRET for local fallback). Retry after local restart.",
             code: "BAD_JWT_ENV",
             request_id: requestId,
-            details: { service_role_alg: serviceAlg, anon_alg: anonAlg },
+            details: { service_role_alg: serviceAlg, anon_alg: anonAlg, local: isLocal, req_host: reqHost },
           },
           { status: 503 },
         );
@@ -727,6 +788,12 @@ export function serveRunEvals() {
 
           const { data: stAfter } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).eq("scope", scope).maybeSingle();
           const profileAfter = await fetchProfileSnapshot(admin as any, testUserId);
+          // Refresh plan/dashboard AFTER the conversation because WhatsApp onboarding evals may
+          // simulate plan activation mid-run (e.g. when the user says "C'est bon").
+          // Without this, the bundled/judge plan_snapshot can incorrectly show "no plan"
+          // even though a plan was seeded during the run.
+          const dashboardContextAfter = await getDashboardContext(admin as any, testUserId);
+          const planSnapshotAfter = await fetchPlanSnapshot(admin as any, testUserId);
           const mechanicalIssues = buildMechanicalIssues({ scenario: s, profileAfter, transcript });
 
           // Invoke eval-judge (reuse logic + DB writes). Forward caller JWT for admin gate.
@@ -764,8 +831,8 @@ export function serveRunEvals() {
                 },
                 plan_snapshot: {
                   template_fingerprint: runPlanTemplateFingerprint ?? null,
-                  dashboard_context: dashboardContext || "",
-                  ...planSnapshot,
+                  dashboard_context: dashboardContextAfter || dashboardContext || "",
+                  ...(planSnapshotAfter ?? planSnapshot),
                 },
               },
               system_snapshot: {

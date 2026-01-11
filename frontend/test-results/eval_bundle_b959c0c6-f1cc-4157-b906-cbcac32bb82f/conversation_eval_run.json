@@ -1,0 +1,279 @@
+{
+  "id": "b959c0c6-f1cc-4157-b906-cbcac32bb82f",
+  "created_at": "2026-01-09T22:31:55.420451+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__simulated__run_1767997914847_ed285d",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:31:55.687562+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super, on y va tout de suite.\n\nPense bien à finaliser l'activation de ton plan sur le site https://sophia-coach.ai pour qu'on puisse vraiment attaquer. 🚀\n\nRéponds exactement : C'est bon",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T22:32:06.968984+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:32:09.306091+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, je vois. Par contre, ça n'apparaît pas encore de mon côté. Il y a souvent un petit délai de synchronisation, ça peut prendre une ou deux minutes.\n\nEssaie de rafraîchir la page sur https://sophia-coach.ai ou attends juste un petit instant. Dis-moi à nouveau \"C'est bon\" quand c'est fait ? ⏳",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T22:32:17.380435+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Ah ok. J'ai rafraîchi. C'est bon. On commence par quoi du coup ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:32:27.144857+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Bon, ça fait de la résistance dans les tuyaux, je ne reçois toujours rien de mon côté. C'est frustrant quand on est chauffé pour démarrer.\n\nSur ton espace sur https://sophia-coach.ai, regarde si tu as bien validé l'étape finale pour lancer le plan. Parfois il y a un dernier clic de confirmation à faire après avoir choisi tes options.\n\nTu consultes le site sur ton mobile ou sur un ordinateur ? 📱",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T22:32:41.790813+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Sur mobile. J'ai bien cliqué sur tout ce qu'il fallait. C'est bon, on peut y aller ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:32:48.158756+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je te crois, mais de mon côté c'est toujours le calme plat. On va pas tourner en rond : essaie de te déconnecter et de revenir sur https://sophia-coach.ai pour être sûr que ta session est bien à jour.\n\nPense bien à finaliser l'activation de ton plan sur le site pour qu'on puisse enfin attaquer le vif du sujet.\n\nRéponds exactement : C'est bon quand c'est fait. ⏳",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T22:33:03.074528+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon. On peut commencer maintenant ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:33:11.668204+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, je te crois — là ça ressemble à un souci de synchro/bug.\n\nPour ne pas tourner en rond: écris à sophia@sophia-coach.ai avec:\n- l’email de ton compte\n- une capture de ton dashboard\n- ton téléphone + navigateur (ex: iPhone/Safari)\n\nEn attendant: dis-moi ton objectif #1 en 1 phrase et je te propose un premier pas simple aujourd’hui.",
+      "agent_used": "companion",
+      "created_at": "2026-01-09T22:33:11.809512+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Mon objectif c'est de me sentir moins stressé au quotidien. On peut voir ça ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:33:19.990507+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On attaque directement sans attendre la technique. Vu l'heure, le stress se gère d'abord en vidant la tête avant de fermer les yeux.\n\nPrends une feuille ou ton bloc-notes et liste toutes les tâches ou pensées qui te trottent dans l'esprit pour demain, sans exception. Une fois que c'est sur papier, ton cerveau peut enfin lâcher prise.\n\nEst-ce que tu as de quoi noter à côté de toi pour faire ce vide maintenant ? 🌙",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T22:33:27.767217+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai de quoi noter. Je fais ça.",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:33:30.651609+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait. Prends 2 minutes pour tout sortir, même les petits détails qui semblent insignifiants.\n\nUne fois la liste terminée, entoure l'unique priorité de demain. Celle qui, une fois bouclée, te donnera le sentiment d'avoir vraiment avancé.\n\nEst-ce que tu as identifié cette priorité numéro 1 ? 🌙",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T22:33:36.256624+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est bon. Je l'ai identifiée.",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:33:39.059665+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Excellent. Pour que ton cerveau décroche totalement, note juste à côté de ta priorité le tout premier petit pas concret à faire demain matin (ex: ouvrir tel dossier).\n\nCela t'évitera de chercher par quoi commencer au réveil et calmera l'anticipation. Une fois que c'est fait, pose ton stylo et ferme ton carnet.\n\nEst-ce que c'est noté ? 🌙",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T22:33:46.281331+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est noté.",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:33:50.488136+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est parfait. Pose maintenant ton carnet dans un endroit précis pour demain matin, puis éloigne-toi physiquement de ton espace de travail.\n\nTon cerveau sait désormais exactement quoi faire au réveil, ce qui libère ton espace mental pour la nuit.\n\nEst-ce que tu te sens prêt à couper pour de bon ? 🌙",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T22:33:57.422156+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je pense. On fait quoi demain ?",
+      "agent_used": null,
+      "created_at": "2026-01-09T22:34:01.526117+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Demain, ta mission est simple : exécute ce premier petit pas dès ton réveil, avant toute autre tâche ou consultation de ton téléphone. C'est ce qui validera ta reprise de contrôle sur le stress.\n\nPour maximiser tes chances, on va sanctuariser tes 15 premières minutes de la journée sans aucun écran.\n\nOn part sur ce micro-défi pour demain matin ? 🌅",
+      "agent_used": "architect",
+      "created_at": "2026-01-09T22:34:11.868482+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "9212a8fe-e75b-4c45-8cda-a1182c6cdfa2",
+      "email": "run-evals+ebd03c53032747@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T22:31:55.384+00:00",
+      "phone_number": "+15559145373999",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-09T22:31:55.385+00:00",
+      "whatsapp_opted_in": false,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": null,
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "9212a8fe-e75b-4c45-8cda-a1182c6cdfa2",
+      "email": "run-evals+ebd03c53032747@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-16T22:31:55.384+00:00",
+      "phone_number": "+15559145373999",
+      "phone_invalid": false,
+      "whatsapp_state": "awaiting_plan_finalization_support",
+      "phone_verified_at": "2026-01-09T22:31:55.385+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-09T22:34:01.521+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-09T22:33:11.829+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "9212a8fe-e75b-4c45-8cda-a1182c6cdfa2",
+      "risk_level": 0,
+      "updated_at": "2026-01-09T22:34:11.860742+00:00",
+      "temp_memory": {
+        "architect": {
+          "last_q_fps": [
+            "dis moi a nouveau c est bon quand c est fait?",
+            "tu consultes le site sur ton mobile ou sur un ordinateur?",
+            "est ce que tu as de quoi noter a cote de toi pour faire ce vide maintenant?",
+            "est ce que tu as identifie cette priorite numero 1?",
+            "est ce que c est note?",
+            "est ce que tu te sens pret a couper pour de bon?"
+          ],
+          "loop_count": 5,
+          "plan_focus": true,
+          "last_updated_at": "2026-01-09T22:34:03.360Z",
+          "current_objective": "de me sentir moins stressé au quotidien. On peut voir ça ?"
+        }
+      },
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-09T22:31:55.699+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-09T22:31:55.700256+00:00",
+      "unprocessed_msg_count": 9
+    }
+  },
+  "issues": [
+    {
+      "code": "state_context_mismatch",
+      "message": "The system state remains 'awaiting_plan_finalization_support' (Support) even though the conversation has successfully pivoted to active coaching (Architect). This creates a high risk that the next user message will trigger the Plan Finalization logic/check instead of continuing the coaching flow.",
+      "evidence": {
+        "snippet": "profile_whatsapp_state_after: awaiting_plan_finalization_support",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "high"
+    },
+    {
+      "code": "temporal_hallucination",
+      "message": "The Architect assumes it is late evening ('Vu l'heure', 'fermer les yeux', '🌙') without any timestamp evidence in the transcript. If the user is chatting in the morning, this advice is contextually wrong.",
+      "evidence": {
+        "snippet": "Vu l'heure, le stress se gère d'abord en vidant la tête avant de fermer les yeux.",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "robotic_tone_violation",
+      "message": "The Companion uses rigid, robotic phrasing ('Réponds exactement : C'est bon') which breaks the empathetic persona, especially during a frustrating technical issue.",
+      "evidence": {
+        "snippet": "Réponds exactement : C'est bon quand c'est fait. ⏳",
+        "agent_used": "sophia.companion"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the agent from hallucinating that it is night-time, ensuring advice is temporally relevant.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(companion): Super, on y va tout de suite. Pense bien à finaliser l'activation de ton plan sur le site https://sophia-coach.ai pour qu'on puisse vraiment attaquer. 🚀 Réponds exactement : C'est bon\n#2 USER: C'est bon\n#3 ASSISTANT(companion): Ok, je vois. Par contre, ça n'apparaît pas encore de mon côté. Il y a souvent un petit délai de synchronisation, ça peut prendre une ou deux minutes. Essaie de rafraîchir la page sur https://sophia-coach.ai ou attends juste un petit instant. Dis-moi à nouveau \"C'est bon\" quand c'est fait ? ⏳\n#4 USER: Ah ok. J'ai rafraîchi. C'est bon. On commence par quoi du coup ?\n#5 ASSISTANT(companion): Bon, ça fait de la résistance dans les tuyaux, je ne reçois toujours rien de mon côté. C'est frustrant quand on est chauffé pour démarrer. Sur ton espace sur https://sophia-coach.ai, regarde si tu as bien validé l'étape finale pour lancer le plan. Parfois il y a un dernier clic de confirmation à faire après avoir choisi tes options. Tu consultes le site sur ton mobile ou sur un ordinateur ? 📱\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nBefore suggesting 'end of day' or 'sleep' routines (like brain dumps for tomorrow), explicitly check the current user time. If it is morning or afternoon, adapt the exercise to focus on 'planning the rest of the day' rather than 'clearing the mind for sleep'.",
+      "proposed_addendum": "Before suggesting 'end of day' or 'sleep' routines (like brain dumps for tomorrow), explicitly check the current user time. If it is morning or afternoon, adapt the exercise to focus on 'planning the rest of the day' rather than 'clearing the mind for sleep'."
+    },
+    {
+      "action": "append",
+      "rationale": "Reduces robotic friction during technical troubleshooting, keeping the user engaged despite the bug.",
+      "prompt_key": "sophia.companion",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n#8 USER: C'est bon. On peut commencer maintenant ?\n#9 ASSISTANT(companion): Ok, je te crois — là ça ressemble à un souci de synchro/bug. Pour ne pas tourner en rond: écris à sophia@sophia-coach.ai avec: - l’email de ton compte - une capture de ton dashboard - ton téléphone + navigateur (ex: iPhone/Safari) En attendant: dis-moi ton objectif #1 en 1 phrase et je te propose un premier pas simple aujourd’hui.\n#10 USER: Mon objectif c'est de me sentir moins stressé au quotidien. On peut voir ça ?\n#11 ASSISTANT(architect): On attaque directement sans attendre la technique. Vu l'heure, le stress se gère d'abord en vidant la tête avant de fermer les yeux. Prends une feuille ou ton bloc-notes et liste toutes les tâches ou pensées qui te trottent dans l'esprit pour demain, sans exception. Une fois que c'est sur papier, ton cerveau peut enfin lâcher prise. Est-ce que tu as de quoi noter à côté de toi pour faire ce vide maintenant ? 🌙\n#12 USER: Oui, j'ai de quoi noter. Je fais ça.\n#13 ASSISTANT(architect): Parfait. Prends 2 minutes pour tout sortir, même les petits détails qui semblent insignifiants. Une fois la liste terminée, entoure l'unique priorité de demain. Celle qui, une fois bouclée, te donnera le sentiment d'avoir vraiment avancé. Est-ce que tu as identifié cette priorité numéro 1 ? 🌙\n#14 USER: Oui, c'est bon. Je l'ai identifiée.\n\n=== APPLY ===\nprompt_key: sophia.companion\naction: append\n\nproposed_addendum:\nWhen guiding a user through technical steps, avoid rigid commands like 'Réponds exactement : [Phrase]'. Instead, use natural conversational markers like 'Dis-moi quand c'est fait' or 'Fais-moi signe une fois validé' to maintain a supportive tone.",
+      "proposed_addendum": "When guiding a user through technical steps, avoid rigid commands like 'Réponds exactement : [Phrase]'. Instead, use natural conversational markers like 'Dis-moi quand c'est fait' or 'Fais-moi signe une fois validé' to maintain a supportive tone."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated__run_1767997914847_ed285d:i0:s2000186106:core:wa_onboarding_optin_yes_no_plan__simulated__run_1767997914847_ed285d",
+    "total_tokens": 0,
+    "output_tokens": 0,
+    "prompt_tokens": 0,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "realistic",
+      "simulated_transport"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__simulated__run_1767997914847_ed285d:i0:s2000186106:core:wa_onboarding_optin_yes_no_plan__simulated__run_1767997914847_ed285d",
+    "description": "WhatsApp onboarding (webhook): accept opt-in then continue conversation with simulate-user loopback (no Meta).",
+    "plan_snapshot": {
+      "plan": null,
+      "actions": [],
+      "frameworks": [],
+      "dashboard_context": "=== ÉTAT DU COMPTE ===\n- AUCUN PLAN DE TRANSFORMATION ACTIF.\n- L'utilisateur n'a pas encore fait son questionnaire ou activé un plan.\n\n",
+      "template_fingerprint": null
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

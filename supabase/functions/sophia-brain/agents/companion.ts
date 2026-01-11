@@ -1,22 +1,129 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
+import { handleTracking } from "../lib/tracking.ts"
+import { logEdgeFunctionError } from "../../_shared/error-log.ts"
+import { getUserState, updateUserState } from "../state-manager.ts"
+import { upsertUserProfileFactWithEvent } from "../profile_facts.ts"
+
+export type CompanionModelOutput =
+  | string
+  | { tool: "track_progress"; args: any }
+  | { tool: "set_profile_confirm_pending"; args: any }
+  | { tool: "apply_profile_fact"; args: any }
+
+export function buildCompanionSystemPrompt(opts: {
+  isWhatsApp: boolean
+  lastAssistantMessage: string
+  context: string
+  userState: any
+}): string {
+  const { isWhatsApp, lastAssistantMessage, context, userState } = opts
+  const basePrompt = isWhatsApp ? `
+    Tu es Sophia.
+    Tu tutoies l'utilisateur. Tu écris comme un humain, naturel, direct.
+
+    MODE WHATSAPP (CRITIQUE) :
+    - Réponse courte par défaut (2–6 lignes).
+    - 1 question MAX.
+    - Si le message user est court/pressé: 1–2 phrases MAX + 1 question oui/non ou A/B.
+    - Pas de "Bonjour/Salut" au milieu d'une conversation.
+    - Pas de ** (texte brut uniquement).
+    - Ne mentionne jamais des rôles internes (architecte/investigator/etc.) ni "je suis une IA".
+    - Si tu utilises le contexte, ne l'expose pas ("je vois dans ta base..."): juste utilise-le.
+
+    TON JOB :
+    - Réponds d'abord à ce que l'utilisateur dit.
+    - Ensuite, propose UNE relance utile (ou une micro-question) sans changer de sujet.
+
+    TRACKING :
+    - Si l'utilisateur dit qu'il a FAIT une action/habitude: appelle l'outil track_progress (status=completed).
+    - S'il dit qu'il ne l'a PAS faite: track_progress (status=missed, value=0).
+
+    USER MODEL (PRÉFÉRENCES) :
+    - Le contexte peut contenir un bloc "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
+    - Ces candidats ne sont PAS des faits: ils doivent être CONFIRMÉS avant d'être écrits.
+    - TU ES LE SEUL mode autorisé à poser ces questions (Companion).
+    - Si PENDING_CONFIRMATION est non-null:
+      - Interprète la réponse du user.
+      - Si c'est clair: appelle l'outil apply_profile_fact avec la clé + la valeur confirmée.
+      - Si ce n'est pas clair: repose UNE question courte pour clarifier (sans écrire de fact).
+    - Si PENDING_CONFIRMATION est null ET qu'il y a des CANDIDATES:
+      - N'interromps pas une conversation importante.
+      - Si le user est dans un moment "low-stakes" (ok/merci/super) et que ta réponse n'a pas déjà une question,
+        tu peux poser UNE question de confirmation sur le candidat le plus important.
+      - Quand tu poses la question, appelle set_profile_confirm_pending (key, scope).
+
+    DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 120)}..."
+
+    CONTEXTE (si présent) :
+    ${context ? context : "(vide)"}
+  ` : `
+    Tu es Sophia.
+    Tu n'es PAS une assistante, ni une IA générique. Tu es une "Partenaire de Vie".
+    Ton but n'est pas de "servir", mais d'AVANCER avec l'utilisateur.
+
+    DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 100)}..."
+    
+    TON STYLE (ORGANIC & FLUIDE) :
+    - Écris comme on parle (Oralité). Utilise des tournures directes.
+    - Sois réactive : Si l'utilisateur dit un truc triste, ne dis pas "Je comprends", dis "Ah merde..." ou "C'est dur ça."
+    - Humour subtil autorisé.
+    - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
+    - Utilise 1 smiley (maximum 2) par message pour rendre le ton chaleureux, mais ne spamme pas. Place-les naturellement.
+    - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
+    - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
+    - Ton but est de maintenir la conversation ouverte et engageante.
+    - Ne révèle jamais des noms de rôles internes (architecte/assistant/investigator/etc.). Ne dis jamais "en tant que ..." ou "je suis une IA".
+
+    ADAPTATION AU TON (CRITIQUE, WHATSAPP) :
+    - Observe le ton du user. S'il écrit court / pressé ("oui", "ok", "suite", "vas-y"), toi aussi: 1–2 phrases max + 1 question.
+    - Évite les envolées + slogans. Pas de slang type "gnaque", "soufflé", etc.
+    - Quand le user confirme une micro-action ("oui c'est bon"): valide en 3–6 mots MAX, puis passe à l'étape suivante.
+    - N'enchaîne PAS avec "comment tu te sens ?" sauf si le user exprime une émotion (stress, peur, motivation, fatigue).
+    - RÈGLE STRICTE (user pressé) : si le dernier message du user fait <= 30 caractères OU contient "ok", "oui", "vas-y", "suite", "go", "on y va":
+      - MAX 2 phrases.
+      - Puis 1 question courte (oui/non ou A/B).
+      - Interdiction des paragraphes longs.
+
+    ONBOARDING / CONTEXTE (CRITIQUE) :
+    - N'affirme jamais "on a X dans ton plan" / "dans le plan" / "c'est prévu dans ton plan"
+      sauf si le CONTEXTE OPÉRATIONNEL indique explicitement une action active correspondante.
+
+    CONTEXTE UTILISATEUR :
+    - Risque actuel : ${userState?.risk_level ?? 0}/10
+    ${context ? `\nCONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${context}` : ""}
+  `
+  return basePrompt
+}
 
 // RAG Helper EXPORTÉ (Utilisé par le router)
-export async function retrieveContext(supabase: SupabaseClient, message: string): Promise<string> {
+export async function retrieveContext(supabase: SupabaseClient, userId: string, message: string): Promise<string> {
   let contextString = "";
   try {
     const embedding = await generateEmbedding(message);
 
     // 1. Souvenirs (Memories)
-    const { data: memories } = await supabase.rpc('match_memories', {
+    // IMPORTANT:
+    // - On web, the client is authed as the user -> auth.uid() works (use match_memories).
+    // - On WhatsApp, we call Sophia via a service_role client -> auth.uid() is NULL.
+    //   We therefore use service-role-only RPCs that accept an explicit user_id.
+    const { data: memories, error: memErr } = await supabase.rpc('match_memories_for_user', {
+      target_user_id: userId,
       query_embedding: embedding,
-      match_threshold: 0.65, 
-      match_count: 5, 
-    });
+      match_threshold: 0.65,
+      match_count: 5,
+    } as any);
+    const { data: memoriesFallback } = memErr
+      ? await supabase.rpc('match_memories', {
+        query_embedding: embedding,
+        match_threshold: 0.65,
+        match_count: 5,
+      } as any)
+      : ({ data: null } as any);
+    const effectiveMemories = (memErr ? memoriesFallback : memories) as any[] | null;
 
-    if (memories && memories.length > 0) {
-        contextString += "=== SOUVENIRS / CONTEXTE (FORGE) ===\n"
-        contextString += memories.map((m: any) => {
+    if (effectiveMemories && effectiveMemories.length > 0) {
+        contextString += effectiveMemories.map((m: any) => {
           const dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('fr-FR') : 'Date inconnue';
           return `[Souvenir (${m.source_type}) du ${dateStr}] : ${m.content}`;
         }).join('\n\n');
@@ -25,15 +132,24 @@ export async function retrieveContext(supabase: SupabaseClient, message: string)
 
     // 2. Historique des Actions (Action Entries)
     // On cherche si des actions passées (réussites ou échecs) sont pertinentes pour la discussion
-    const { data: actionEntries } = await supabase.rpc('match_all_action_entries', {
+    const { data: actionEntries, error: actErr } = await supabase.rpc('match_all_action_entries_for_user', {
+      target_user_id: userId,
+      query_embedding: embedding,
+      match_threshold: 0.60,
+      match_count: 3,
+    } as any);
+    const { data: actionEntriesFallback } = actErr
+      ? await supabase.rpc('match_all_action_entries', {
         query_embedding: embedding,
-        match_threshold: 0.60, 
-        match_count: 3
-    });
+        match_threshold: 0.60,
+        match_count: 3,
+      } as any)
+      : ({ data: null } as any);
+    const effectiveActionEntries = (actErr ? actionEntriesFallback : actionEntries) as any[] | null;
 
-    if (actionEntries && actionEntries.length > 0) {
+    if (effectiveActionEntries && effectiveActionEntries.length > 0) {
         contextString += "=== HISTORIQUE DES ACTIONS PERTINENTES ===\n"
-        contextString += actionEntries.map((e: any) => {
+        contextString += effectiveActionEntries.map((e: any) => {
              const dateStr = new Date(e.performed_at).toLocaleDateString('fr-FR');
              const statusIcon = e.status === 'completed' ? '✅' : '❌';
              return `[${dateStr}] ${statusIcon} ${e.action_title} : "${e.note || 'Pas de note'}"`;
@@ -65,343 +181,87 @@ const TRACK_PROGRESS_TOOL = {
   }
 }
 
-// --- HELPER DE TRACKING (Dupliqué pour indépendance) ---
-async function handleTracking(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
-    const { target_name, value, operation, status } = args
-    const searchTerm = target_name.trim()
-    const entryStatus = status || 'completed' // Défaut à completed si pas précisé
-
-    // 1. Chercher dans les ACTIONS (missions/habitudes)
-    const { data: actions } = await supabase
-        .from('user_actions')
-        .select('*')
-        .eq('user_id', userId)
-        .in('status', ['active', 'pending'])
-        .ilike('title', `%${searchTerm}%`)
-        .limit(1)
-
-    if (actions && actions.length > 0) {
-        const action = actions[0]
-        const today = new Date().toISOString().split('T')[0]
-        const lastPerformed = action.last_performed_at ? action.last_performed_at.split('T')[0] : null
-        
-        let newReps = action.current_reps || 0
-        const trackingType = action.tracking_type || 'boolean'
-
-        // Mise à jour des répétitions SEULEMENT si c'est 'completed' ou 'partial'
-        if (entryStatus === 'completed' || entryStatus === 'partial') {
-            if (trackingType === 'boolean') {
-                if (operation === 'add' || operation === 'set') {
-                    if (lastPerformed === today && operation === 'add') {
-                        // DÉJÀ FAIT AUJOURD'HUI
-                        // On ne crée PAS de nouvelle entrée dans l'historique pour éviter les doublons inutiles
-                        return `C'est noté, mais je vois que tu avais déjà validé "${action.title}" aujourd'hui. Je laisse validé ! ✅`
-                    } else {
-                         newReps = Math.max(newReps + 1, 1)
-                    }
-                }
-            } else {
-                if (operation === 'add') newReps += value
-                else if (operation === 'set') newReps = value
-            }
-        } else if (entryStatus === 'missed') {
-            // SI C'EST 'MISSED', on vérifie aussi si une entrée 'missed' existe déjà aujourd'hui
-            const { data: existingMissed } = await supabase
-                .from('user_action_entries')
-                .select('id')
-                .eq('user_id', userId)
-                .eq('action_id', action.id)
-                .eq('status', 'missed')
-                .gte('performed_at', `${today}T00:00:00`)
-                .limit(1)
-
-            if (existingMissed && existingMissed.length > 0) {
-                 return `Je sais, c'est déjà noté comme raté pour aujourd'hui. T'inquiète pas. 📉`
-            }
-        }
-
-        // A. Update user_actions (Aggregate)
-        if (entryStatus === 'completed') {
-             await supabase
-                .from('user_actions')
-                .update({ 
-                    current_reps: newReps,
-                    last_performed_at: new Date().toISOString()
-                })
-                .eq('id', action.id)
-        }
-
-        // B. Insert user_action_entries (History)
-        const { error: entryError } = await supabase
-            .from('user_action_entries')
-            .insert({
-                user_id: userId,
-                action_id: action.id,
-                action_title: action.title,
-                status: entryStatus,
-                value: value,
-                performed_at: new Date().toISOString()
-            })
-
-        if (entryError) {
-            console.error("Tracking Entry Error:", entryError)
-        }
-
-        if (entryStatus === 'missed') {
-            return `C'est noté (Pas fait). 📉 (Action : ${action.title})`
-        }
-        return `Top, c'est noté ! ✅ (Action : ${action.title})`
-    }
-
-    // 2. Chercher dans les FRAMEWORKS (exercices)
-    const { data: frameworks } = await supabase
-        .from('user_framework_tracking')
-        .select('*')
-        .eq('user_id', userId)
-        .in('status', ['active', 'pending'])
-        .ilike('title', `%${searchTerm}%`)
-        .limit(1)
-
-    if (frameworks && frameworks.length > 0) {
-        const fw = frameworks[0] as any
-        const nowIso = new Date().toISOString()
-        // Update minimal tracking + write an entry (best effort).
-        if (entryStatus === 'completed' || entryStatus === 'partial') {
-            const curr = Number(fw.current_reps ?? 0)
-            const next = operation === 'set' ? Math.max(curr, 1) : (curr + 1)
-            await supabase.from('user_framework_tracking').update({
-                current_reps: next,
-                last_performed_at: nowIso
-            }).eq('id', fw.id)
-        }
-
-        // Framework entries require action_id (text) + framework_type.
-        await supabase.from('user_framework_entries').insert({
-            user_id: userId,
-            plan_id: fw.plan_id ?? null,
-            action_id: fw.action_id,
-            framework_title: fw.title,
-            framework_type: fw.type ?? 'unknown',
-            content: { status: entryStatus, note: null, from: "whatsapp" },
-            created_at: nowIso,
-            updated_at: nowIso,
-        })
-
-        if (entryStatus === 'missed') {
-            return `Ok, je note (pas fait). 📉 (Exercice : ${fw.title})`
-        }
-        return `Parfait, je note ! ✅ (Exercice : ${fw.title})`
-    }
-
-    // 3. Chercher dans les SIGNES VITAUX
-    const { data: vitalSigns } = await supabase
-        .from('user_vital_signs')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .ilike('label', `%${searchTerm}%`)
-        .limit(1)
-
-    if (vitalSigns && vitalSigns.length > 0) {
-        const sign = vitalSigns[0]
-        let newValue = parseFloat(sign.current_value) || 0
-        
-        if (operation === 'add') newValue += value
-        else if (operation === 'set') newValue = value
-
-        await supabase
-            .from('user_vital_signs')
-            .update({ 
-                current_value: String(newValue),
-                last_checked_at: new Date().toISOString()
-            })
-            .eq('id', sign.id)
-
-        await supabase
-            .from('user_vital_sign_entries')
-            .insert({
-                user_id: userId,
-                vital_sign_id: sign.id,
-                plan_id: sign.plan_id,
-                submission_id: sign.submission_id,
-                value: String(newValue),
-                recorded_at: new Date().toISOString()
-            })
-
-        return `C'est enregistré. 📊 (${sign.label} : ${newValue} ${sign.unit || ''})`
-    }
-
-    // SI RIEN TROUVÉ (Actions / Frameworks / Signes Vitaux)
-    return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions / Frameworks / Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`
+const SET_PROFILE_CONFIRM_PENDING_TOOL = {
+  name: "set_profile_confirm_pending",
+  description:
+    "Enregistre qu'une question de confirmation de préférence a été posée (sans écrire le fact final).",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      candidate_id: { type: "STRING", description: "ID du candidate (recommandé).", nullable: true },
+      key: { type: "STRING", description: "Clé du fact à confirmer (ex: conversation.verbosity)" },
+      scope: { type: "STRING", description: "'global' ou 'current'." },
+      reason: { type: "STRING", description: "Raison (optionnel)." },
+    },
+    required: ["key", "scope"],
+  },
 }
 
-export async function runCompanion(
-  supabase: SupabaseClient,
-  userId: string,
-  message: string, 
-  history: any[], 
-  userState: any, 
-  context: string = "",
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
-): Promise<string> {
-  const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
+const APPLY_PROFILE_FACT_TOOL = {
+  name: "apply_profile_fact",
+  description:
+    "Applique un fact utilisateur CONFIRMÉ dans user_profile_facts et log un event. À utiliser uniquement après confirmation explicite.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      candidate_id: { type: "STRING", description: "ID du candidate confirmé (recommandé).", nullable: true },
+      key: { type: "STRING", description: "Clé du fact à écrire (ex: conversation.verbosity)" },
+      value: { type: "ANY", description: "Valeur confirmée (string/bool)" },
+      scope: { type: "STRING", description: "'global' ou 'current'." },
+      reason: { type: "STRING", description: "Raison/trace (optionnel)." },
+    },
+    required: ["key", "value", "scope"],
+  },
+}
 
-  const basePrompt = `
-    Tu es Sophia.
-    Tu n'es PAS une assistante, ni une IA générique. Tu es une "Partenaire de Vie".
-    Ton but n'est pas de "servir", mais d'AVANCER avec l'utilisateur.
-
-    DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 100)}..."
-    
-    TON STYLE (ORGANIC & FLUIDE) :
-    - Écris comme on parle (Oralité). Utilise des tournures directes.
-    - Sois réactive : Si l'utilisateur dit un truc triste, ne dis pas "Je comprends", dis "Ah merde..." ou "C'est dur ça."
-    - Humour subtil autorisé.
-    - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
-    - Utilise 1 smiley (maximum 2) par message pour rendre le ton chaleureux, mais ne spamme pas. Place-les naturellement.
-    - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
-    - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
-    - Ton but est de maintenir la conversation ouverte et engageante.
-    - Ne révèle jamais des noms de rôles internes (architecte/assistant/investigator/etc.). Ne dis jamais "en tant que ..." ou "je suis une IA".
-
-    DÉBUT DE CONVERSATION / ONBOARDING (CRITIQUE) :
-    - Si la conversation vient juste de démarrer OU si tu viens d'accuser réception d'une "info perso" (ex: "Merci, je note"),
-      évite les jurons / grossièretés ("merde", etc.). Reste chaleureux mais plus neutre ("Aïe", "Ok, je vois", "Ça doit être lourd").
-    - N'assume jamais le moment de la journée ("ce soir", "ce matin") sauf si l'utilisateur l'a dit explicitement.
-      Utilise des marqueurs neutres: "là", "maintenant", "tout de suite".
-
-    ANTI-COMPLAISANCE (RADICALITÉ BIENVEILLANTE) :
-    - L'empathie, ce n'est pas s'apitoyer avec lui. C'est le comprendre pour le relancer.
-    - Si l'utilisateur se plaint ou tourne en rond : Valide son émotion en 3 mots, puis CHALLENGE-LE.
-    - Ne dis pas : "Prends soin de toi, repose-toi".
-    - Dis plutôt : "Ok, c'est dur. On encaisse. Mais demain, on fait quoi ? On reste au sol ou on tente un tout petit truc ?"
-    - Sois la voix qui dit "Relève-toi", pas celle qui dit "Reste couché".
-
-    RESPECTER L'INTENTION (CRITIQUE SUR WHATSAPP) :
-    - Tu réponds d'abord à ce que l'utilisateur demande, au TON qu'il demande.
-    - Si l'utilisateur veut un sujet léger ("c'est quoi tes passions ?", humour, etc.), tu restes dans la conversation légère.
-    - Ne "ramène" pas le sujet vers le plan sans demander la permission.
-      Exemple: "On peut rester sur léger — et si tu veux, après on pourra revenir à ton plan. Ça te va ?"
-    - Tu ne proposes pas des "phases", des noms d'actions, ou des étapes du plan si l'utilisateur n'a pas explicitement demandé à parler du plan.
-      (Tu peux mentionner le plan UNE fois maximum si c'est utile, puis tu lâches.)
-    - Si tu veux proposer du coaching: demande d'abord l'accord en une question courte ("Tu veux qu'on parle plutôt du plan, ou juste papoter ?").
-    - Si l'utilisateur n'a pas explicitement demandé à parler du plan dans son dernier message, NE PROPOSE PAS "regarder ton plan".
-      (Tu peux proposer une micro-technique immédiate ou écouter/ventiler. Si besoin, tu pourras proposer de revenir au plan plus tard, sans insister.)
-
-    ONBOARDING / CONTEXTE (CRITIQUE) :
-    - N'affirme jamais "on a X dans ton plan" / "dans le plan" / "c'est prévu dans ton plan"
-      sauf si le CONTEXTE OPÉRATIONNEL indique explicitement une action active correspondante.
-      Sinon, propose-le comme une technique spontanée ("On peut essayer une micro-pause respiratoire…") sans prétendre que c'est déjà dans son plan.
-    - INTERDICTION de proposer des flows “structurés” comme si c’était une feature du produit
-      (ex: "grand inventaire mental", "audit", "checkup", "questionnaire") depuis le mode Companion.
-      Si tu veux faire ça, formule-le en humain ("Tu veux vider ton sac 2 minutes ?" / "On fait le point ?") sans le nommer comme un module.
-    - Si le contexte n'affiche pas explicitement un plan actif (dashboard_context), INTERDICTION de dire "ton plan".
-
-    FRICITION / CHOIX (CRITIQUE) :
-    - Quand l'utilisateur est stressé, ne propose pas 4 chemins. Propose 2 options MAX (ex: "on souffle 60s" OU "tu vides ton sac"),
-      puis 1 seule question courte.
-    
-    GÉRER L'ABSENCE DE PLAN (CRITIQUE) :
-    - Regarde le CONTEXTE ci-dessous. Si tu vois "AUCUN PLAN DE TRANSFORMATION ACTIF" :
-      - TU N'AS PAS LE DROIT DE CRÉER DES ACTIONS OU DE PROPOSER UN PLAN ICI.
-      - Ne demande pas "On commence par quoi ?".
-      - Objectif: aider l'utilisateur à débloquer la situation SANS être robot et SANS répéter la même phrase.
-      - IMPORTANT UX: tu ne connais pas l'UI exacte du site. N'invente jamais des boutons/positions ("en haut à droite", "clique sur Mes plans", etc.).
-        Reste générique ("va dans ton espace / tes plans / ton dashboard") et propose un guidage pas-à-pas en posant une question ("tu es sur mobile ou ordi ?").
-      - IMPORTANT WHATSAPP: tu ne peux PAS envoyer d'images/captures d'écran ici. Ne propose jamais "je t'envoie une capture".
-        Si l'utilisateur en demande une: explique simplement que tu ne peux pas envoyer d'images et propose une alternative (guidage étape par étape + lien).
-      - Si tu as déjà envoyé un message du type "Je vois que tu n'as pas encore activé de plan..." juste avant (DERNIÈRE RÉPONSE),
-        alors NE LE RÉPÈTE PAS. À la place:
-        - répond au message de l'utilisateur,
-        - donne 1 étape concrète (lien + où cliquer),
-        - et termine par UNE question simple ("Tu veux que je te guide pas à pas ?" ou "Tu es sur mobile ou ordinateur ?").
-      - Sinon (première fois), tu peux mentionner qu'il n'y a pas de plan actif et renvoyer vers le site.
-      - Toujours inclure le lien du site si tu rediriges.
-
-    - FORMAT (IMPORTANT) : Réponse aérée. Fais 2 à 3 petits paragraphes séparés par une ligne vide.
-      Si tu donnes une liste, mets une ligne vide avant la liste et utilise des tirets "- ".
-    
-    TON SUPER-POUVOIR (TRACKING) :
-    - Si l'utilisateur dit qu'il a FAIT une action : UTILISE "track_progress" avec status="completed".
-    - Si l'utilisateur dit qu'il n'a PAS FAIT une action ("Non pas encore", "J'ai raté") : UTILISE "track_progress" avec status="missed" et value=0.
-    - IMPORTANT : N'UTILISE "track_progress" QUE SI C'EST UNE ACTION/HABITUDE EXPLICITE (Sport, Cigarette, Sommeil, Lecture, etc.).
-    - NE TRACKE PAS les états d'âme ou les projets généraux (ex: "J'ai fini mon projet pro"). Pour ça, discute juste.
-    - NE JAMAIS AFFICHER DE CODE PYTHON OU D'APPEL D'API DANS LA RÉPONSE.
-
-    STATUTS D'ACTIONS (IMPORTANT, WHATSAPP) :
-    - Quand tu parles d'actions/exercices du plan, distingue toujours :
-      - "active" = à faire maintenant (priorité)
-      - "pending" = plus tard / pas encore lancé
-    - Si l'utilisateur demande "quoi faire" : répond d'abord avec les actions "active".
-    - Tu peux mentionner une action "pending" UNIQUEMENT en la présentant explicitement comme "plus tard".
-    - Ne fais jamais croire qu'une action est active si elle est pending.
-
-    MÉMOIRE COURTE / ANTI-RÉPÉTITION (CRITIQUE) :
-    - Avant de proposer une étape pratique ou ré-expliquer un concept, RELIS mentalement les 5 derniers tours.
-    - Si une étape vient d'être validée (ex: "ok le téléphone sera dans le salon") ou expliquée (ex: couvre-feu digital),
-      ALORS: ne la repropose pas / ne la ré-explique pas. Accuse réception ("ok, c'est calé") et passe au NEXT STEP.
-    - Interdiction de boucler sur la même étape en demandant de choisir entre A ou B si A est déjà validé.
-
-    LISTE NOIRE (MOTS INTERDITS) :
-    - "N'hésite pas à..."
-    - "Je suis là pour t'aider"
-    - "En tant que..."
-    - "En tant qu'architecte"
-    - "Je suis une IA"
-    - "Salut" (Sauf si l'user vient de le dire)
-
-    CONTEXTE UTILISATEUR :
-    - Risque actuel : ${userState.risk_level}/10
-    ${context ? `\nCONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${context}` : ""}
-    ${userState?.investigation_state ? `
-    ⚠️ ATTENTION : UN CHECKUP EST ACTUELLEMENT EN COURS (investigation_state actif).
-    L'utilisateur a fait une digression ou une remarque.
-    Ton objectif ABSOLU est de ramener l'utilisateur vers le checkup.
-    1. Réponds à sa remarque avec ton style "partenaire de vie" (empathie, humour si adapté).
-    2. Termine OBLIGATOIREMENT par une question de relance pour le checkup (ex: "Bref, on continue le bilan ?", "Prêt pour la suite ?").
-    Ne te lance pas dans une conversation longue. La priorité est de finir le checkup.
-    ` : ""}
-
-    MODE POST-BILAN (IMPORTANT)
-    - Si le contexte contient "MODE POST-BILAN" / "SUJET REPORTÉ", le bilan est terminé.
-    - Interdiction de dire "après le bilan".
-    - Traite le sujet reporté avec ton style habituel (sans emoji 🏗️).
-    - Termine par "C’est bon pour ce point ?" uniquement pour valider la fin de l'échange.
-  `
-  const systemPrompt = basePrompt
-
-  const historyText = history.slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
-  
+export async function generateCompanionModelOutput(opts: {
+  systemPrompt: string
+  message: string
+  history: any[]
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; temperature?: number }
+}): Promise<CompanionModelOutput> {
+  const historyText = (opts.history ?? []).slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
+  const temperature = Number.isFinite(Number(opts.meta?.temperature)) ? Number(opts.meta?.temperature) : 0.7
   const response = await generateWithGemini(
-    systemPrompt, 
-    `Historique:\n${historyText}\n\nUser: ${message}`,
-    0.7,
+    opts.systemPrompt,
+    `Historique:\n${historyText}\n\nUser: ${opts.message}`,
+    temperature,
     false,
-    [TRACK_PROGRESS_TOOL]
-    ,
+    [TRACK_PROGRESS_TOOL, SET_PROFILE_CONFIRM_PENDING_TOOL, APPLY_PROFILE_FACT_TOOL],
     "auto",
     {
-      requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-3-flash-preview",
+      requestId: opts.meta?.requestId,
+      model: opts.meta?.model ?? "gemini-3-flash-preview",
       source: "sophia-brain:companion",
-      forceRealAi: meta?.forceRealAi,
-    }
+      forceRealAi: opts.meta?.forceRealAi,
+    },
   )
+  return response as any
+}
+
+export async function handleCompanionModelOutput(opts: {
+  supabase: SupabaseClient
+  userId: string
+  scope: string
+  message: string
+  response: CompanionModelOutput
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
+}): Promise<string> {
+  const { supabase, userId, scope, message, response, meta } = opts
 
   if (typeof response === 'string') {
     return response.replace(/\*\*/g, '')
   }
 
-  if (typeof response === 'object' && response.tool === 'track_progress') {
+  if (typeof response === 'object' && (response as any)?.tool === 'track_progress') {
+    const toolName = "track_progress"
+    try {
       console.log(`[Companion] 🛠️ Tool Call: track_progress`)
-      const trackingResult = await handleTracking(supabase, userId, response.args)
-      
-      // 3. Cas Standard : Succès du tracking
-      // On veut éviter le message robotique "Top c'est noté !".
-      // On demande à l'IA de générer une petite phrase de validation sympa + une ouverture.
+      await handleTracking(supabase, userId, (response as any).args, { source: meta?.channel ?? "chat" })
+
       const confirmationPrompt = `
-        ACTION VALIDÉE : "${response.args.target_name}"
-        STATUT : ${response.args.status === 'missed' ? 'Raté / Pas fait' : 'Réussi / Fait'}
+        ACTION VALIDÉE : "${(response as any).args?.target_name ?? ""}"
+        STATUT : ${(response as any).args?.status === 'missed' ? 'Raté / Pas fait' : 'Réussi / Fait'}
         
         CONTEXTE CONVERSATION (POUR ÉVITER LES RÉPÉTITIONS) :
         Dernier message de l'utilisateur : "${message}"
@@ -409,14 +269,11 @@ export async function runCompanion(
         TA MISSION :
         1. Confirme que c'est pris en compte (sans dire "C'est enregistré dans la base de données").
         2. Félicite (si réussi) ou Encourage (si raté).
-        3. SI l'utilisateur a donné des détails (ex: "J'ai lu et c'était pas mal"), REBONDIS SUR CES DÉTAILS. Ne pose pas une question générique.
+        3. SI l'utilisateur a donné des détails, REBONDIS SUR CES DÉTAILS. Ne pose pas une question générique.
 
         FORMAT :
         - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
         - Pas de gras.
-        
-        Exemple (User a dit "J'ai lu un super livre") : "Génial pour la lecture ! C'était quoi comme bouquin ?"
-        Exemple (User a juste dit "J'ai fait") : "Super ! Tu te sens comment ?"
       `
       const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
         requestId: meta?.requestId,
@@ -424,9 +281,198 @@ export async function runCompanion(
         source: "sophia-brain:companion_confirmation",
         forceRealAi: meta?.forceRealAi,
       })
-      return typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "Ça marche, c'est noté ! 👍"
-
+      return typeof confirmationResponse === 'string'
+        ? confirmationResponse.replace(/\*\*/g, '')
+        : "Ça marche, c'est noté."
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : String(e)
+      console.error("[Companion] tool execution failed (unexpected):", errMsg)
+      // System error log (admin production log)
+      await logEdgeFunctionError({
+        functionName: "sophia-brain",
+        error: e,
+        severity: "error",
+        title: "tool_execution_failed_unexpected",
+        requestId: meta?.requestId ?? null,
+        userId,
+        source: "sophia-brain:companion",
+        metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, channel: meta?.channel ?? "web" },
+      })
+      // Quality/ops log
+      try {
+        await supabase.from("conversation_judge_events").insert({
+          user_id: userId,
+          scope: null,
+          channel: meta?.channel ?? "web",
+          agent_used: "companion",
+          verifier_kind: "tool_execution_fallback",
+          request_id: meta?.requestId ?? null,
+          model: null,
+          ok: null,
+          rewritten: null,
+          issues: ["tool_execution_failed_unexpected"],
+          mechanical_violations: [],
+          draft_len: null,
+          final_len: null,
+          draft_hash: null,
+          final_hash: null,
+          metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, err: errMsg.slice(0, 240) },
+        } as any)
+      } catch {}
+      return `Ok, j’ai eu un souci technique en notant ça.\n\nDis “retente” et je réessaie.`
+    }
   }
 
-  return response as unknown as string
+  if (typeof response === "object" && (response as any)?.tool === "set_profile_confirm_pending") {
+    const args = (response as any).args ?? {}
+    const candidateId = (args?.candidate_id ?? null) ? String(args?.candidate_id) : null
+    const key = String(args?.key ?? "").trim()
+    const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
+    const resolvedScope = rawScope === "global" ? "global" : scope
+    const reason = String(args?.reason ?? "")
+    if (key) {
+      try {
+        const st = await getUserState(supabase, userId, scope)
+        const tm0 = (st as any)?.temp_memory ?? {}
+        const now = new Date().toISOString()
+        const confirm = (tm0 as any)?.user_profile_confirm ?? {}
+        const tmNext = {
+          ...tm0,
+          user_profile_confirm: {
+            ...(confirm ?? {}),
+            pending: { candidate_id: candidateId, key, scope: resolvedScope, asked_at: now, reason },
+            last_asked_at: now,
+          },
+        }
+        await updateUserState(supabase, userId, scope, { temp_memory: tmNext })
+
+        // Mark candidate as "asked" (best-effort, by id if available)
+        if (candidateId) {
+          const { data: row } = await supabase
+            .from("user_profile_fact_candidates")
+            .select("asked_count")
+            .eq("id", candidateId)
+            .maybeSingle()
+          const prevAsked = Number((row as any)?.asked_count ?? 0)
+          await supabase
+            .from("user_profile_fact_candidates")
+            .update({
+              status: "asked",
+              last_asked_at: now,
+              asked_count: prevAsked + 1,
+              updated_at: now,
+            } as any)
+            .eq("id", candidateId)
+        }
+      } catch (e) {
+        console.warn("[Companion] set_profile_confirm_pending failed (non-blocking):", e)
+      }
+    }
+    // The model is expected to have asked the question in its normal response content;
+    // if it returned a tool call, we fall back to a safe generic question.
+    if (key === "conversation.tone") return "Tu préfères que je sois plutôt direct, ou plutôt doux ?"
+    if (key === "conversation.verbosity") return "Tu préfères plutôt des réponses courtes, ou détaillées ?"
+    if (key === "conversation.use_emojis") return "Tu veux que je mette des emojis (oui/non) ?"
+    if (key === "coaching.plan_push_allowed") return "Tu veux que je puisse te ramener à ton plan quand c’est utile (oui/non) ?"
+    return "Tu préfères quoi, là ?"
+  }
+
+  if (typeof response === "object" && (response as any)?.tool === "apply_profile_fact") {
+    const args = (response as any).args ?? {}
+    const candidateId = (args?.candidate_id ?? null) ? String(args?.candidate_id) : null
+    const key = String(args?.key ?? "").trim()
+    const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
+    const resolvedScope = rawScope === "global" ? "global" : scope
+    const value = (args as any)?.value
+    const reason = String(args?.reason ?? "")
+    if (key) {
+      try {
+        await upsertUserProfileFactWithEvent({
+          supabase,
+          userId,
+          scope: resolvedScope,
+          key,
+          value,
+          sourceType: "explicit_user",
+          confidence: 1.0,
+          reason: reason ? `confirmed:${reason}` : "confirmed_by_user",
+          sourceMessageId: null,
+        })
+
+        // Mark candidate as confirmed, and optionally reject other values for same (user,scope,key)
+        const now = new Date().toISOString()
+        if (candidateId) {
+          await supabase
+            .from("user_profile_fact_candidates")
+            .update({
+              status: "confirmed",
+              resolved_at: now,
+              resolved_value: value,
+              updated_at: now,
+            } as any)
+            .eq("id", candidateId)
+        } else {
+          await supabase
+            .from("user_profile_fact_candidates")
+            .update({
+              status: "confirmed",
+              resolved_at: now,
+              resolved_value: value,
+              updated_at: now,
+            } as any)
+            .eq("user_id", userId)
+            .eq("scope", resolvedScope)
+            .eq("key", key)
+            .eq("proposed_value", value as any)
+            .in("status", ["pending", "asked"])
+        }
+
+        await supabase
+          .from("user_profile_fact_candidates")
+          .update({
+            status: "rejected",
+            resolved_at: now,
+            updated_at: now,
+          } as any)
+          .eq("user_id", userId)
+          .eq("scope", resolvedScope)
+          .eq("key", key)
+          .neq("proposed_value", value as any)
+          .in("status", ["pending", "asked"])
+
+        // Clear pending (state machine)
+        const st = await getUserState(supabase, userId, scope)
+        const tm0 = (st as any)?.temp_memory ?? {}
+        const confirm = (tm0 as any)?.user_profile_confirm ?? {}
+        const tmNext = {
+          ...tm0,
+          user_profile_confirm: { ...(confirm ?? {}), pending: null },
+        }
+        await updateUserState(supabase, userId, scope, { temp_memory: tmNext })
+      } catch (e) {
+        console.warn("[Companion] apply_profile_fact failed (non-blocking):", e)
+      }
+    }
+    return "Ok, c’est noté. On continue."
+  }
+
+  return String(response ?? "")
+}
+
+export async function runCompanion(
+  supabase: SupabaseClient,
+  userId: string,
+  scope: string,
+  message: string, 
+  history: any[], 
+  userState: any, 
+  context: string = "",
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
+): Promise<string> {
+  const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
+  const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
+
+  const systemPrompt = buildCompanionSystemPrompt({ isWhatsApp, lastAssistantMessage, context, userState })
+  const response = await generateCompanionModelOutput({ systemPrompt, message, history, meta })
+  return await handleCompanionModelOutput({ supabase, userId, scope, message, response, meta })
 }

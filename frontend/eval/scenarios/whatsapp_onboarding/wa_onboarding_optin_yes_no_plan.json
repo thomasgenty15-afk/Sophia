@@ -13,10 +13,21 @@
   "wa_steps": [
     { "kind": "interactive", "interactive_id": "OPTIN_YES", "interactive_title": "Oui" }
   ],
+  "wa_auto_simulate": true,
+  "wa_force_turns": true,
+  "wa_simulate_plan_activation_on_done": true,
+  "persona": {
+    "label": "Utilisateur onboarding WhatsApp",
+    "age_range": "25-45",
+    "style": "court, naturel, parfois pressé",
+    "background": "vient de confirmer l'opt-in WhatsApp, veut démarrer sans se perdre"
+  },
+  "objectives": [
+    { "kind": "generic", "note": "Quand Sophia demande de finaliser le plan sur le site, répondre 'C'est bon' dans les prochains tours. Si Sophia te demande si tu veux parler du plan ou d'autre chose, répond que tu veux parler du plan et démarrer." }
+  ],
   "mechanical_assertions": {
     "profile_equals": {
-      "whatsapp_opted_in": true,
-      "whatsapp_state": "awaiting_plan_finalization"
+      "whatsapp_opted_in": true
     },
     "assistant_must_match": ["\\bplan\\b", "c['’]est\\s+bon"]
   }

@@ -19,4 +19,10 @@ declare module "jsr:@supabase/supabase-js@2.87.3" {
   export const createClient: any;
 }
 
+// Some files still import the floating major version "@2".
+declare module "jsr:@supabase/supabase-js@2" {
+  export type SupabaseClient = any;
+  export const createClient: any;
+}
+
 

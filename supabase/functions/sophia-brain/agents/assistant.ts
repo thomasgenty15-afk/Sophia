@@ -1,4 +1,5 @@
 import { generateWithGemini } from '../../_shared/gemini.ts'
+import { FRONTEND_SITE_MAP_V1 } from '../knowledge/frontend-site-map.ts'
 
 export async function runAssistant(
   message: string,
@@ -16,11 +17,20 @@ export async function runAssistant(
     INFOS CLÉS :
     - Les données sont privées.
     - En cas de bug : rafraîchir ou support.
+    - Tu as accès à une structure factuelle du site (routes). Ne l’invente pas : si ce n’est pas dans la liste, dis que tu n’es pas sûr.
+
+    STRUCTURE DU SITE (FACTUEL) :
+    ${FRONTEND_SITE_MAP_V1}
 
     STYLE :
     - Court, efficace, solution. Pas de blabla "Bonjour je suis...".
     - RÈGLE SALUTATIONS (STRICTE) : Ne dis JAMAIS "Salut" ou "Bonjour". Rentre directement dans la solution technique.
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
+    - Navigation UI: ne décris pas des positions exactes ("en haut à droite") sauf si l’utilisateur l’a dit. Préfère donner un chemin (URL) ou le nom de la page.
+
+    RÈGLE ANTI-BOUCLE SUPPORT :
+    - Si l’utilisateur est bloqué (bug persistant) et que les actions simples (refresh, relog, autre navigateur) ont déjà été proposées,
+      donne une sortie claire: "contacte sophia@sophia-coach.ai" + demande une capture (et, si possible, le texte exact de l’erreur).
   `
   const systemPrompt = basePrompt
   

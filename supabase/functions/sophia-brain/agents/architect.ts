@@ -1,5 +1,11 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini } from '../../_shared/gemini.ts'
+import { handleTracking } from "../lib/tracking.ts"
+import { logEdgeFunctionError } from "../../_shared/error-log.ts"
+
+export type ArchitectModelOutput =
+  | string
+  | { tool: string; args: any }
 
 // --- OUTILS ---
 const CREATE_ACTION_TOOL = {
@@ -111,6 +117,41 @@ const ARCHIVE_ACTION_TOOL = {
   }
 }
 
+export function getArchitectTools(opts: { inWhatsAppGuard24h: boolean }) {
+  return opts.inWhatsAppGuard24h
+    ? [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
+    : [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL, ACTIVATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
+}
+
+export function buildArchitectSystemPromptLite(opts: {
+  channel: "web" | "whatsapp"
+  lastAssistantMessage: string
+  context: string
+}): string {
+  const isWa = opts.channel === "whatsapp"
+  return `
+Tu es Sophia (casquette: Architecte).
+Objectif: aider l'utilisateur à avancer avec une prochaine étape concrète.
+
+RÈGLES:
+- Français, tutoiement.
+- Texte brut (pas de **).
+- WhatsApp: réponse courte + 1 question max (oui/non ou A/B).
+- Ne mentionne pas les rôles internes ni "je suis une IA".
+- Ne promets jamais un changement fait ("j'ai créé/activé") si ce n'est pas réellement exécuté via un outil.
+
+OUTILS (si proposés):
+- "track_progress": uniquement si l'utilisateur dit explicitement qu'il a fait/pas fait une action.
+- "create_simple_action"/"create_framework"/"update_action_structure"/"archive_plan_action"/"activate_plan_action": uniquement si le contexte indique un plan actif et si l'utilisateur demande clairement ce changement.
+${isWa ? `- IMPORTANT WhatsApp: éviter les opérations "activation" pendant onboarding si le contexte le bloque.\n` : ""}
+
+Dernière réponse de Sophia: "${String(opts.lastAssistantMessage ?? "").slice(0, 160)}..."
+
+=== CONTEXTE OPÉRATIONNEL ===
+${String(opts.context ?? "").slice(0, 7000)}
+  `.trim()
+}
+
 // --- HELPERS ---
 
 async function injectActionIntoPlanJson(supabase: SupabaseClient, planId: string, newAction: any): Promise<'success' | 'duplicate' | 'error'> {
@@ -208,168 +249,6 @@ async function verifyActionCreated(
     const dbOk = Boolean(dbRow?.id)
     const jsonOk = Boolean(planRow?.content && planJsonHasAction((planRow as any).content, { id: actionId, title }))
     return { db_ok: dbOk, json_ok: jsonOk, db_row_id: (dbRow as any)?.id ?? null }
-}
-
-async function handleTracking(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
-    const { target_name, value, operation, status } = args
-    const searchTerm = target_name.trim()
-    const entryStatus = status || 'completed'
-
-    // 1. Actions (missions/habitudes)
-    const { data: actions } = await supabase
-        .from('user_actions')
-        .select('*')
-        .eq('user_id', userId)
-        .in('status', ['active', 'pending'])
-        .ilike('title', `%${searchTerm}%`)
-        .limit(1)
-
-    if (actions && actions.length > 0) {
-        const action = actions[0]
-        const today = new Date().toISOString().split('T')[0]
-        const lastPerformed = action.last_performed_at ? action.last_performed_at.split('T')[0] : null
-        
-        let newReps = action.current_reps || 0
-        const trackingType = action.tracking_type || 'boolean'
-
-        // Mise à jour des répétitions SEULEMENT si c'est 'completed' ou 'partial'
-        if (entryStatus === 'completed' || entryStatus === 'partial') {
-            if (trackingType === 'boolean') {
-                if (operation === 'add' || operation === 'set') {
-                    if (lastPerformed === today && operation === 'add') {
-                        // Already done today, don't increment reps but log history
-                        return `C'est noté, mais je vois que tu avais déjà validé "${action.title}" aujourd'hui. Je laisse validé ! ✅`
-                    } else {
-                        newReps = Math.max(newReps + 1, 1)
-                    }
-                }
-            } else {
-                if (operation === 'add') newReps += value
-                else if (operation === 'set') newReps = value
-            }
-        } else if (entryStatus === 'missed') {
-            // SI C'EST 'MISSED', on vérifie aussi si une entrée 'missed' existe déjà aujourd'hui
-            const { data: existingMissed } = await supabase
-                .from('user_action_entries')
-                .select('id')
-                .eq('user_id', userId)
-                .eq('action_id', action.id)
-                .eq('status', 'missed')
-                .gte('performed_at', `${today}T00:00:00`)
-                .limit(1)
-
-            if (existingMissed && existingMissed.length > 0) {
-                 return `Je sais, c'est déjà noté comme raté pour aujourd'hui. T'inquiète pas. 📉`
-            }
-        }
-
-        if (entryStatus === 'completed') {
-            const { error } = await supabase
-                .from('user_actions')
-                .update({ 
-                    current_reps: newReps,
-                    last_performed_at: new Date().toISOString()
-                })
-                .eq('id', action.id)
-            if (error) console.error("Tracking Update Error:", error)
-        }
-        
-        // Insert History Entry
-        await supabase
-            .from('user_action_entries')
-            .insert({
-                user_id: userId,
-                action_id: action.id,
-                action_title: action.title,
-                status: entryStatus,
-                value: value,
-                performed_at: new Date().toISOString()
-            })
-
-        if (entryStatus === 'missed') {
-             return `C'est noté (Pas fait). 📉\nAction : ${action.title}`
-        }
-
-        return `C'est noté ! ✅\nAction : ${action.title}\nTotal : ${newReps}`
-    }
-
-    // 2. Frameworks (exercices / journaling) — stockés séparément en DB
-    const { data: frameworks } = await supabase
-        .from('user_framework_tracking')
-        .select('*')
-        .eq('user_id', userId)
-        .in('status', ['active', 'pending'])
-        .ilike('title', `%${searchTerm}%`)
-        .limit(1)
-
-    if (frameworks && frameworks.length > 0) {
-        const fw = frameworks[0] as any
-        const nowIso = new Date().toISOString()
-
-        if (entryStatus === 'completed' || entryStatus === 'partial') {
-            const curr = Number(fw.current_reps ?? 0)
-            const next = operation === 'set' ? Math.max(curr, 1) : (curr + 1)
-            await supabase
-                .from('user_framework_tracking')
-                .update({ current_reps: next, last_performed_at: nowIso })
-                .eq('id', fw.id)
-        }
-
-        await supabase.from('user_framework_entries').insert({
-            user_id: userId,
-            plan_id: fw.plan_id ?? null,
-            action_id: fw.action_id,
-            framework_title: fw.title,
-            framework_type: fw.type ?? 'unknown',
-            content: { status: entryStatus, note: null, from: "chat" },
-            created_at: nowIso,
-            updated_at: nowIso,
-        })
-
-        if (entryStatus === 'missed') return `Je note (pas fait). 📉\nExercice : ${fw.title}`
-        return `C'est noté ! ✅\nExercice : ${fw.title}`
-    }
-
-    // 3. Signes Vitaux
-    const { data: vitalSigns } = await supabase
-        .from('user_vital_signs')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('status', 'active')
-        .ilike('label', `%${searchTerm}%`)
-        .limit(1)
-
-    if (vitalSigns && vitalSigns.length > 0) {
-        const sign = vitalSigns[0]
-        let newValue = parseFloat(sign.current_value) || 0
-        
-        if (operation === 'add') newValue += value
-        else if (operation === 'set') newValue = value
-
-        await supabase
-            .from('user_vital_signs')
-            .update({ 
-                current_value: String(newValue),
-                last_checked_at: new Date().toISOString()
-            })
-            .eq('id', sign.id)
-
-        await supabase
-            .from('user_vital_sign_entries')
-            .insert({
-                user_id: userId,
-                vital_sign_id: sign.id,
-                plan_id: sign.plan_id,
-                submission_id: sign.submission_id,
-                value: String(newValue),
-                recorded_at: new Date().toISOString()
-            })
-
-        return `C'est enregistré. 📊\n${sign.label} : ${newValue} ${sign.unit || ''}`
-    }
-
-    // SI RIEN TROUVÉ (Actions / Frameworks / Signes Vitaux)
-    return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions / Frameworks / Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`
 }
 
 async function handleUpdateAction(supabase: SupabaseClient, userId: string, planId: string, args: any): Promise<string> {
@@ -774,6 +653,295 @@ export async function megaToolCreateFramework(supabase: SupabaseClient, userId: 
 
 // --- FONCTION PRINCIPALE ---
 
+export async function generateArchitectModelOutput(opts: {
+  systemPrompt: string
+  message: string
+  history: any[]
+  tools: any[]
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; temperature?: number }
+}): Promise<ArchitectModelOutput> {
+  const historyText = (opts.history ?? []).slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
+  const temperature = Number.isFinite(Number(opts.meta?.temperature)) ? Number(opts.meta?.temperature) : 0.7
+  const response = await generateWithGemini(
+    opts.systemPrompt,
+    `Historique:\n${historyText}\n\nUser: ${opts.message}`,
+    temperature,
+    false,
+    opts.tools,
+    "auto",
+    {
+      requestId: opts.meta?.requestId,
+      model: opts.meta?.model ?? "gemini-3-flash-preview",
+      source: "sophia-brain:architect",
+      forceRealAi: opts.meta?.forceRealAi,
+    },
+  )
+  return response as any
+}
+
+export async function handleArchitectModelOutput(opts: {
+  supabase: SupabaseClient
+  userId: string
+  message: string
+  response: ArchitectModelOutput
+  inWhatsAppGuard24h: boolean
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
+}): Promise<string> {
+  const { supabase, userId, message, response, inWhatsAppGuard24h, meta } = opts
+
+  if (typeof response === 'string') {
+    // Nettoyage de sécurité pour virer les ** si l'IA a désobéi
+    return response.replace(/\*\*/g, '')
+  }
+
+  if (typeof response === 'object') {
+    const toolName = String((response as any).tool ?? "").trim()
+    try {
+      console.log(`[Architect] 🛠️ Tool Call: ${toolName}`)
+      console.log(`[Architect] Args:`, JSON.stringify((response as any).args))
+
+      // HARD GUARD (WhatsApp onboarding 24h): never activate via WhatsApp.
+      if (inWhatsAppGuard24h && toolName === "activate_plan_action") {
+        return "Je peux te guider, mais pendant l’onboarding WhatsApp je ne peux pas activer d’actions depuis ici.\n\nVa sur le dashboard pour l’activer, et dis-moi quand c’est fait."
+      }
+
+      // TRACKING (Pas besoin de plan)
+      if (toolName === 'track_progress') {
+        const trackingResult = await handleTracking(supabase, userId, (response as any).args, { source: meta?.channel ?? "chat" })
+
+        // Cas : Non trouvé dans le plan => Info pour agent
+        if (trackingResult.startsWith("INFO_POUR_AGENT")) {
+          const followUpPrompt = `
+          Tu as voulu noter une action ("${(response as any).args?.target_name ?? ""}") mais le système te dit :
+          "${trackingResult}"
+          
+          RÉAGIS MAINTENANT :
+          - Félicite ou discute normalement de ce sujet.
+          - NE DIS PAS "C'est noté" ou "J'ai enregistré".
+          - Sois naturel, efficace et concis.
+          
+          FORMAT :
+          - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
+        `
+          const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7, false, [], "auto", {
+            requestId: meta?.requestId,
+            model: meta?.model ?? "gemini-3-flash-preview",
+            source: "sophia-brain:architect_followup",
+            forceRealAi: meta?.forceRealAi,
+          })
+          return typeof followUpResponse === 'string' ? followUpResponse.replace(/\*\*/g, '') : "Ok."
+        }
+
+        // Cas : Succès => On génère une confirmation naturelle
+        const confirmationPrompt = `
+        ACTION VALIDÉE : "${(response as any).args?.target_name ?? ""}"
+        STATUT : ${(response as any).args?.status === 'missed' ? 'Raté / Pas fait' : 'Réussi / Fait'}
+        
+        CONTEXTE CONVERSATION (POUR ÉVITER LES RÉPÉTITIONS) :
+        Dernier message de l'utilisateur : "${message}"
+        
+        TA MISSION :
+        1. Confirme que c'est pris en compte (sans dire "C'est enregistré").
+        2. Enchaîne sur une question pour optimiser ou passer à la suite.
+        3. SI l'utilisateur a donné des détails, REBONDIS SUR CES DÉTAILS.
+        
+        FORMAT :
+        - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
+        - Pas de gras.
+      `
+        const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
+          requestId: meta?.requestId,
+          model: meta?.model ?? "gemini-3-flash-preview",
+          source: "sophia-brain:architect_confirmation",
+          forceRealAi: meta?.forceRealAi,
+        })
+        return typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "Ok."
+      }
+
+      // OPERATIONS SUR LE PLAN (Besoin du plan actif)
+      const { data: plan, error: planError } = await supabase
+        .from('user_plans')
+        .select('id, submission_id') 
+        .eq('user_id', userId)
+        .eq('status', 'active')
+        .single()
+
+      if (planError || !plan) {
+        console.warn(`[Architect] ⚠️ No active plan found for user ${userId}`)
+        return "Je ne trouve pas de plan actif pour faire cette modification."
+      }
+    
+      console.log(`[Architect] ✅ Active Plan found: ${plan.id}`)
+
+      if (toolName === 'update_action_structure') {
+        return await handleUpdateAction(supabase, userId, plan.id, (response as any).args)
+      }
+
+      if (toolName === 'activate_plan_action') {
+        const activationResult = await handleActivateAction(supabase, userId, (response as any).args)
+        const followUpPrompt = `
+        RÉSULTAT DE L'ACTIVATION :
+        "${activationResult}"
+        
+        TA MISSION :
+        - Traduis ce résultat technique en une réponse naturelle et conversationnelle.
+        - Si c'est un REFUS ("Murs avant toit"), sois bienveillant mais ferme sur la méthode.
+        - Si c'est un SUCCÈS, sois encourageant.
+        
+        FORMAT :
+        - Réponse aérée en 2-3 lignes.
+        - Pas de gras.
+      `
+        const activationResponse = await generateWithGemini(followUpPrompt, "Génère la réponse.", 0.7, false, [], "auto", {
+          requestId: meta?.requestId,
+          model: meta?.model ?? "gemini-3-flash-preview",
+          source: "sophia-brain:architect_activation_response",
+          forceRealAi: meta?.forceRealAi,
+        })
+        return typeof activationResponse === 'string' ? activationResponse.replace(/\*\*/g, '') : activationResult
+      }
+
+      if (toolName === 'archive_plan_action') {
+        return await handleArchiveAction(supabase, userId, (response as any).args)
+      }
+
+      if (toolName === 'create_simple_action') {
+        const { title, description, type, targetReps, tips, time_of_day } = (response as any).args
+        const actionId = `act_${Date.now()}`
+
+      console.log(`[Architect] Attempting to insert into user_actions...`)
+      const { error: insertErr } = await supabase.from('user_actions').insert({
+        user_id: userId,
+        plan_id: plan.id,
+        submission_id: plan.submission_id,
+        title,
+        description,
+        type: type || 'habit',
+        target_reps: targetReps || 1,
+        status: 'active',
+        tracking_type: 'boolean',
+        time_of_day: time_of_day || 'any_time'
+      })
+      if (insertErr) {
+        console.error("[Architect] ❌ user_actions insert failed:", insertErr)
+        return `Oups — j’ai eu un souci technique en créant l’action "${title}".\n\nVa jeter un œil sur le dashboard pour confirmer si elle apparaît. Si tu veux, dis-moi “retente” et je la recrée proprement.`
+      }
+
+      const newActionJson = {
+        id: actionId,
+        type: type || 'habit',
+        title: title,
+        description: description,
+        questType: "side",
+        targetReps: targetReps || 1,
+        tips: tips || "",
+        rationale: "Ajouté via discussion avec Sophia.",
+        tracking_type: 'boolean',
+        time_of_day: time_of_day || 'any_time'
+      }
+      
+      const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
+      if (status === 'duplicate') return `Oula ! ✋\n\nL'action "${title}" existe déjà.`
+      if (status === 'error') return "Erreur technique lors de la mise à jour du plan visuel."
+
+      const verify = await verifyActionCreated(supabase, userId, plan.id, { title, actionId })
+      if (!verify.db_ok || !verify.json_ok) {
+        console.warn("[Architect] ⚠️ Post-create verification failed:", verify)
+        return `Je viens de tenter de créer "${title}", mais je ne la vois pas encore clairement dans ton plan (il y a peut-être eu un loupé de synchro).\n\nOuvre le dashboard et dis-moi si tu la vois. Sinon, dis “retente” et je la recrée.`
+      }
+
+        return `C'est validé ! ✅\n\nJe viens de vérifier: l’action "${title}" est bien dans ton plan.\nOn s’y met quand ?`
+      }
+
+      if (toolName === 'create_framework') {
+        const { title, description, targetReps, frameworkDetails, time_of_day } = (response as any).args
+        const actionId = `act_${Date.now()}`
+
+      const newActionJson = {
+        id: actionId,
+        type: "framework",
+        title: title,
+        description: description,
+        questType: "side",
+        targetReps: targetReps || 1,
+        frameworkDetails: frameworkDetails,
+        tracking_type: 'boolean',
+        time_of_day: time_of_day || 'any_time'
+      }
+
+      const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
+      if (status === 'duplicate') return `Doucement ! ✋\n\nL'exercice "${title}" est déjà là.`
+      if (status === 'error') return "Erreur technique lors de l'intégration du framework."
+
+      const { error: fwInsertErr } = await supabase.from('user_actions').insert({
+        user_id: userId,
+        plan_id: plan.id,
+        submission_id: plan.submission_id,
+        title: title,
+        description: description,
+        type: 'mission', 
+        status: 'active',
+        tracking_type: 'boolean',
+        time_of_day: time_of_day || 'any_time'
+      })
+      if (fwInsertErr) {
+        console.error("[Architect] ❌ user_actions insert failed (framework):", fwInsertErr)
+        return `Oups — j’ai eu un souci technique en créant l’exercice "${title}".\n\nVa vérifier sur le dashboard si tu le vois. Si tu ne le vois pas, dis “retente” et je le recrée.`
+      }
+
+      const verify = await verifyActionCreated(supabase, userId, plan.id, { title, actionId })
+      if (!verify.db_ok || !verify.json_ok) {
+        console.warn("[Architect] ⚠️ Post-create verification failed (framework):", verify)
+        return `Je viens de tenter d’intégrer "${title}", mais je ne le vois pas encore clairement dans ton plan (possible loupé de synchro).\n\nRegarde sur le dashboard et dis-moi si tu le vois. Sinon, dis “retente” et je le recrée.`
+      }
+
+        return `C'est fait ! 🏗️\n\nJe viens de vérifier: "${title}" est bien dans ton plan.\nTu veux le faire quand ?`
+      }
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : String(e)
+      console.error("[Architect] tool execution failed (unexpected):", toolName, errMsg)
+      // System error log (admin production log)
+      await logEdgeFunctionError({
+        functionName: "sophia-brain",
+        error: e,
+        severity: "error",
+        title: "tool_execution_failed_unexpected",
+        requestId: meta?.requestId ?? null,
+        userId,
+        source: "sophia-brain:architect",
+        metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, channel: meta?.channel ?? "web" },
+      })
+      // Quality/ops log
+      try {
+        await supabase.from("conversation_judge_events").insert({
+          user_id: userId,
+          scope: null,
+          channel: meta?.channel ?? "web",
+          agent_used: "architect",
+          verifier_kind: "tool_execution_fallback",
+          request_id: meta?.requestId ?? null,
+          model: null,
+          ok: null,
+          rewritten: null,
+          issues: ["tool_execution_failed_unexpected"],
+          mechanical_violations: [],
+          draft_len: null,
+          final_len: null,
+          draft_hash: null,
+          final_hash: null,
+          metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, err: errMsg.slice(0, 240) },
+        } as any)
+      } catch {}
+      return (
+        "Ok, j’ai eu un souci technique en faisant ça.\n\n" +
+        "Va voir sur le dashboard pour confirmer, et dis-moi si tu vois le changement. Sinon, dis “retente”."
+      )
+    }
+  }
+
+  return String(response ?? "")
+}
+
 export async function runArchitect(
   supabase: SupabaseClient,
   userId: string,
@@ -784,6 +952,8 @@ export async function runArchitect(
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
 ): Promise<string> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
+  const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
+  const inWhatsAppGuard24h = isWhatsApp && /WHATSAPP_ONBOARDING_GUARD_24H=true/i.test(context ?? "")
 
   // --- Deterministic shortcut: "Attrape-Rêves Mental" activation ---
   // This is intentionally handled without LLM/tool-calling to avoid "silent" failures on WhatsApp.
@@ -795,7 +965,7 @@ export async function runArchitect(
   const looksLikeActivation =
     /\b(active|activez|activer|lance|lancer|on\s+y\s+va|vas[-\s]*y|go)\b/i.test(msgLower)
 
-  if (looksLikeAttrapeReves && looksLikeActivation) {
+  if (!isWhatsApp && looksLikeAttrapeReves && looksLikeActivation) {
     const createdMsg = await megaToolCreateFramework(supabase, userId, {
       title: "Attrape-Rêves Mental",
       description: "Un mini exercice d’écriture (2–4 minutes) pour relâcher les pensées intrusives avant de dormir.",
@@ -850,9 +1020,47 @@ export async function runArchitect(
     return steps
   }
 
-  const basePrompt = `
+  const basePrompt = isWhatsApp ? `
+    Tu es Sophia. (Casquette : Architecte).
+    Objectif: aider à exécuter le plan avec des micro-étapes concrètes.
+
+    MODE WHATSAPP (CRITIQUE) :
+    - Réponse courte par défaut (3–7 lignes).
+    - 1 question MAX (oui/non ou A/B de préférence).
+    - Si message user court/pressé: 1–2 phrases MAX + 1 question.
+    - Pas de "Bonjour/Salut" au milieu d'une conversation.
+    - Pas de ** (texte brut uniquement).
+    - Ne mentionne jamais des rôles internes ni "je suis une IA".
+
+    OUTILS :
+    - track_progress: quand l'utilisateur dit qu'il a fait / pas fait une action.
+    - update_action_structure: si l'utilisateur demande un changement sur une action existante.
+    - create_simple_action / create_framework: uniquement si un plan actif existe (sinon refuse).
+    - activate_plan_action: pour activer une action future (sauf si guard onboarding 24h).
+
+    RÈGLES CRITIQUES :
+    - N'invente jamais un changement ("j'ai activé/créé") sans preuve (outil + succès).
+    - Distingue active vs pending quand tu parles d'actions.
+    - Si le contexte contient ARCHITECT_LOOP_GUARD, tu obéis.
+
+    DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 120)}..."
+
+    CONTEXTE OPÉRATIONNEL :
+    ${context ? context : "(vide)"}
+  ` : `
     Tu es Sophia. (Casquette : Architecte de Systèmes).
     Ton obsession : L'efficacité, la clarté, l'action.
+
+    MODE WHATSAPP (CRITIQUE) :
+    - Si le canal est WhatsApp, tu optimises pour des messages très courts et actionnables.
+    - Si le dernier message du user est court/pressé (<= 30 caractères OU contient "ok", "oui", "vas-y", "suite", "on démarre", "go", "on enchaîne"):
+      - MAX 2 phrases au total.
+      - Puis 1 question courte (oui/non OU choix A/B).
+      - Zéro explication longue. Zéro storytelling. Zéro “cours”.
+      - Objectif: faire faire une micro-action maintenant.
+
+    PRIORITÉ CONTEXTE (CRITIQUE) :
+    - Si le contexte contient "ARCHITECT_LOOP_GUARD", tu DOIS suivre ses règles avant tout.
 
     RÈGLE DE BRIÈVETÉ (CRITIQUE) :
     - Par défaut, réponds court : 3 à 7 lignes max.
@@ -920,6 +1128,17 @@ export async function runArchitect(
     - Évite les méta-questions répétées ("on continue ?", "on ajuste ?") qui font tourner la conversation en rond.
       À chaque tour, propose UNE étape suivante concrète OU pose UNE question concrète. Pas de question "de flow".
 
+    WHATSAPP + PLAN-ADHERENCE (CRITIQUE) :
+    - Sur WhatsApp, l'utilisateur a déjà un ensemble d'actions organisé par le plan. Ton job n'est PAS d'en rajouter.
+    - Si le contexte contient un plan (actions/phase/plan_title), tu dois :
+      1) Prioriser uniquement les actions déjà dans le plan (surtout celles actives).
+      2) INTERDICTION d'inventer des étapes/rituels/phases non présentes dans le plan (ex: "phase d'ancrage", "pause respiratoire")
+         sauf si l'utilisateur demande explicitement un exercice de respiration OU si c'est nécessaire pour sécurité (panic/anxiété).
+      3) Si l'utilisateur demande "Et après ?" de façon répétée :
+         - Donne UNE fois la vision courte (1 phrase), puis stop.
+         - Répète le focus du jour (1 seule action) et passe en exécution (1 question concrète).
+         - Ne boucle pas en répétant "la suite du plan..." à l'infini.
+
     EXÉCUTION IMMÉDIATE (CRITIQUE) :
     - Si l'utilisateur choisit une option ("un truc complet", "on enchaîne", "ok vas-y", "continue", "next"),
       tu DOIS exécuter le contenu immédiatement dans CE message (donner les étapes/exercice), puis poser 1 question concrète.
@@ -929,6 +1148,12 @@ export async function runArchitect(
     - Avant de poser une question de diagnostic ("ta distraction principale ?", "ce qui te pompe le plus ?"),
       vérifie si l'utilisateur a déjà répondu dans les 5 derniers tours.
       - Si OUI: acknowledge la réponse et avance (next step / assignation / micro-action), ne repose pas la question.
+
+    MÉMO COURTE DURÉE (CRITIQUE, WHATSAPP) :
+    - Avant de poser une question de configuration (heure, lieu, outil) du type:
+      "à quelle heure ?", "où ?", "tu as un réveil ?", "tu charges où ?", etc.
+      SCAN les 5 derniers tours. Si la réponse est déjà donnée (ex: "salon", "19h"),
+      INTERDICTION de redemander. Valide ("ok, salon") et passe à l'étape suivante.
 
     COHÉRENCE DE PROCESS (CRITIQUE) :
     - Si tu dis "on commence maintenant", alors tu fais l'étape maintenant (dans le chat) et tu ne la repousses pas à demain.
@@ -942,6 +1167,11 @@ export async function runArchitect(
     ANTI-RÉPÉTITION (STYLE) :
     - Évite de répéter exactement la même phrase de validation ("C'est parfait...") sur 2 tours consécutifs.
       Si tu dois valider deux fois, varie fortement (ou valide en 2-3 mots).
+
+    TON WHATSAPP (CRITIQUE) :
+    - Si le user écrit court/pressé, toi aussi: 1–2 phrases max + 1 question.
+    - Interdiction des formulations administratives type "c'est bien pris en compte".
+      Préfère: "Ok." / "Parfait." puis next step.
     
     FILTRE QUALITÉ (RADICALITÉ BIENVEILLANTE) :
     - Si l'utilisateur propose une action "faible" ou d'évitement (ex: ranger son bureau alors qu'il doit lancer sa boite, ou une habitude triviale), DIS-LUI.
@@ -962,6 +1192,14 @@ export async function runArchitect(
     - GESTION DU BONJOUR : Regarde l'historique. Si la conversation a déjà commencé ou si l'utilisateur ne dit pas bonjour, NE DIS PAS BONJOUR. Attaque direct.
     - FORMAT (IMPORTANT) : Réponse aérée. Fais 2 à 3 petits paragraphes séparés par une ligne vide.
       Si tu proposes un mini-plan, utilise une liste avec des tirets "- " et laisse une ligne vide avant la liste.
+
+    ANTI-BOUCLE "PLAN NON DÉTECTÉ" (CRITIQUE, ONBOARDING/TECH) :
+    - Si tu as déjà dit au moins 1 fois dans les 5 derniers tours que tu ne vois pas / ne détectes pas de plan actif,
+      et que l'utilisateur insiste ("c'est bon", "j'ai validé", "ça ne marche pas", "je tourne en rond") :
+      1) ARRÊTE de renvoyer vers le site et d'inventer une UI ("bouton de validation finale", "en haut à droite", etc.).
+      2) Explique qu'il peut s'agir d'un délai de synchro ou d'un bug.
+      3) Donne une sortie claire: "écris à sophia@sophia-coach.ai" + demande une capture du dashboard + l’email du compte + téléphone/navigateur.
+      4) Ne bloque pas la conversation: propose de démarrer "hors-app" avec une question simple sur son objectif #1 du moment.
     
     CONTEXTE OPÉRATIONNEL :
     ${context ? `${context}\n(Utilise ces infos intelligemment)` : ""}
@@ -981,229 +1219,12 @@ export async function runArchitect(
     - Termine par "C’est bon pour ce point ?" UNIQUEMENT si tu as fini ton explication ou ton conseil. Ne le répète pas à chaque message intermédiaire.
   `
   const systemPrompt = basePrompt
-  
-  const historyText = history.slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
-  
-  const response = await generateWithGemini(
-    systemPrompt, 
-    `Historique:\n${historyText}\n\nUser: ${message}`,
-    0.7,
-    false,
-    [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL, ACTIVATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL],
-    "auto",
-    {
-      requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-3-flash-preview",
-      source: "sophia-brain:architect",
-      forceRealAi: meta?.forceRealAi,
-    }
-  )
+  const tools = inWhatsAppGuard24h
+    ? [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
+    : [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL, ACTIVATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
 
-  if (typeof response === 'string') {
-      // Nettoyage de sécurité pour virer les ** si l'IA a désobéi
-      return response.replace(/\*\*/g, '')
-  }
-
-  if (typeof response === 'object') {
-    console.log(`[Architect] 🛠️ Tool Call: ${response.tool}`)
-    console.log(`[Architect] Args:`, JSON.stringify(response.args))
-
-    // TRACKING (Pas besoin de plan)
-    if (response.tool === 'track_progress') {
-        const trackingResult = await handleTracking(supabase, userId, response.args)
-
-        // Cas : Non trouvé dans le plan => Info pour agent
-        if (trackingResult.startsWith("INFO_POUR_AGENT")) {
-            const followUpPrompt = `
-              Tu as voulu noter une action ("${response.args.target_name}") mais le système te dit :
-              "${trackingResult}"
-              
-              RÉAGIS MAINTENANT :
-              - Félicite ou discute normalement de ce sujet.
-              - NE DIS PAS "C'est noté" ou "J'ai enregistré".
-              - Sois naturel, efficace et concis.
-              
-              FORMAT :
-              - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
-            `
-            const followUpResponse = await generateWithGemini(followUpPrompt, "Réagis à l'info.", 0.7, false, [], "auto", {
-              requestId: meta?.requestId,
-              model: meta?.model ?? "gemini-3-flash-preview",
-              source: "sophia-brain:architect_followup",
-              forceRealAi: meta?.forceRealAi,
-            })
-            return typeof followUpResponse === 'string' ? followUpResponse.replace(/\*\*/g, '') : "Ok, c'est noté !"
-        }
-
-        // Cas : Succès => On génère une confirmation naturelle
-        const confirmationPrompt = `
-          ACTION VALIDÉE : "${response.args.target_name}"
-          STATUT : ${response.args.status === 'missed' ? 'Raté / Pas fait' : 'Réussi / Fait'}
-          
-          CONTEXTE CONVERSATION (POUR ÉVITER LES RÉPÉTITIONS) :
-          Dernier message de l'utilisateur : "${message}"
-          
-          TA MISSION :
-          1. Confirme que c'est pris en compte (sans dire "C'est enregistré").
-          2. Enchaîne sur une question pour optimiser ou passer à la suite.
-          3. SI l'utilisateur a donné des détails (ex: "J'ai lu et c'était pas mal"), REBONDIS SUR CES DÉTAILS.
-          
-          FORMAT :
-          - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
-          - Pas de gras.
-          
-          Exemple (User dit "J'ai lu un super livre") : "Top pour la lecture ! C'était quoi le titre ?"
-          Exemple (User dit juste "Fait") : "C'est noté. On passe à la suite ?"
-        `
-        const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
-          requestId: meta?.requestId,
-          model: meta?.model ?? "gemini-3-flash-preview",
-          source: "sophia-brain:architect_confirmation",
-          forceRealAi: meta?.forceRealAi,
-        })
-        return typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "C'est noté."
-    }
-
-    // OPERATIONS SUR LE PLAN (Besoin du plan actif)
-    const { data: plan, error: planError } = await supabase
-      .from('user_plans')
-      .select('id, submission_id') 
-      .eq('user_id', userId)
-      .eq('status', 'active')
-      .single()
-
-    if (planError || !plan) {
-      console.warn(`[Architect] ⚠️ No active plan found for user ${userId}`)
-      return "Je ne trouve pas de plan actif pour faire cette modification."
-    }
-    
-    console.log(`[Architect] ✅ Active Plan found: ${plan.id}`)
-
-    if (response.tool === 'update_action_structure') {
-        return await handleUpdateAction(supabase, userId, plan.id, response.args)
-    }
-
-    if (response.tool === 'activate_plan_action') {
-        const activationResult = await handleActivateAction(supabase, userId, response.args)
-        
-        // The result is a raw instruction string (e.g. "REFUS_ACTIVATION..." or "SUCCES...").
-        // We feed it back to LLM to generate the final natural response.
-        const followUpPrompt = `
-          RÉSULTAT DE L'ACTIVATION :
-          "${activationResult}"
-          
-          TA MISSION :
-          - Traduis ce résultat technique en une réponse naturelle et conversationnelle.
-          - Si c'est un REFUS ("Murs avant toit"), sois bienveillant mais ferme sur la méthode.
-          - Si c'est un SUCCÈS, sois encourageant.
-          
-          FORMAT :
-          - Réponse aérée en 2-3 lignes.
-          - Pas de gras.
-        `
-        const activationResponse = await generateWithGemini(followUpPrompt, "Génère la réponse.", 0.7, false, [], "auto", {
-          requestId: meta?.requestId,
-          model: meta?.model ?? "gemini-3-flash-preview",
-          source: "sophia-brain:architect_activation_response",
-          forceRealAi: meta?.forceRealAi,
-        })
-        return typeof activationResponse === 'string' ? activationResponse.replace(/\*\*/g, '') : activationResult
-    }
-
-    if (response.tool === 'archive_plan_action') {
-        return await handleArchiveAction(supabase, userId, response.args)
-    }
-
-    if (response.tool === 'create_simple_action') {
-      const { title, description, type, targetReps, tips, time_of_day } = response.args
-      const actionId = `act_${Date.now()}`
-
-      console.log(`[Architect] Attempting to insert into user_actions...`)
-      const { error: insertErr } = await supabase.from('user_actions').insert({
-        user_id: userId,
-        plan_id: plan.id,
-        submission_id: plan.submission_id,
-        title,
-        description,
-        type: type || 'habit',
-        target_reps: targetReps || 1,
-        status: 'active',
-        tracking_type: 'boolean',
-        time_of_day: time_of_day || 'any_time'
-      })
-      if (insertErr) {
-        console.error("[Architect] ❌ user_actions insert failed:", insertErr)
-        return `Oups — j’ai eu un souci technique en créant l’action "${title}".\n\nVa jeter un œil sur le dashboard pour confirmer si elle apparaît. Si tu veux, dis-moi “retente” et je la recrée proprement.`
-      }
-
-      const newActionJson = {
-          id: actionId,
-          type: type || 'habit',
-          title: title,
-          description: description,
-          questType: "side",
-          targetReps: targetReps || 1,
-          tips: tips || "",
-          rationale: "Ajouté via discussion avec Sophia.",
-          tracking_type: 'boolean',
-          time_of_day: time_of_day || 'any_time'
-      }
-      
-      const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
-      if (status === 'duplicate') return `Oula ! ✋\n\nL'action "${title}" existe déjà.`
-      if (status === 'error') return "Erreur technique lors de la mise à jour du plan visuel."
-
-      const verify = await verifyActionCreated(supabase, userId, plan.id, { title, actionId })
-      if (!verify.db_ok || !verify.json_ok) {
-        console.warn("[Architect] ⚠️ Post-create verification failed:", verify)
-        // Be honest: do not claim it's created if we can't confirm.
-        return `Je viens de tenter de créer "${title}", mais je ne la vois pas encore clairement dans ton plan (il y a peut-être eu un loupé de synchro).\n\nOuvre le dashboard et dis-moi si tu la vois. Sinon, dis “retente” et je la recrée.`
-      }
-
-      return `C'est validé ! ✅\n\nJe viens de vérifier: l’action "${title}" est bien dans ton plan.\nOn s’y met quand ?`
-    }
-
-    if (response.tool === 'create_framework') {
-      const { title, description, targetReps, frameworkDetails, time_of_day } = response.args
-      const actionId = `act_${Date.now()}`
-
-      const newActionJson = {
-          id: actionId,
-          type: "framework",
-          title: title,
-          description: description,
-          questType: "side",
-          targetReps: targetReps || 1,
-          frameworkDetails: frameworkDetails,
-          tracking_type: 'boolean',
-          time_of_day: time_of_day || 'any_time'
-      }
-
-      const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
-      if (status === 'duplicate') return `Doucement ! ✋\n\nL'exercice "${title}" est déjà là.`
-      if (status === 'error') return "Erreur technique lors de l'intégration du framework."
-
-      const { error: fwInsertErr } = await supabase.from('user_actions').insert({
-        user_id: userId,
-        plan_id: plan.id,
-        submission_id: plan.submission_id,
-        title: title,
-        description: description,
-        type: 'mission', 
-        status: 'active',
-        tracking_type: 'boolean',
-        time_of_day: time_of_day || 'any_time'
-      })
-      if (fwInsertErr) {
-        console.error("[Architect] ❌ user_actions insert failed (framework):", fwInsertErr)
-        return `Oups — j’ai eu un souci technique en créant l’exercice "${title}".\n\nVa vérifier sur le dashboard si tu le vois. Si tu ne le vois pas, dis “retente” et je le recrée.`
-      }
-
-      const verify = await verifyActionCreated(supabase, userId, plan.id, { title, actionId })
-      if (!verify.db_ok || !verify.json_ok) {
-        console.warn("[Architect] ⚠️ Post-create verification failed (framework):", verify)
-        return `Je viens de tenter d’intégrer "${title}", mais je ne le vois pas encore clairement dans ton plan (possible loupé de synchro).\n\nRegarde sur le dashboard et dis-moi si tu le vois. Sinon, dis “retente” et je le recrée.`
-      }
+  const response = await generateArchitectModelOutput({ systemPrompt, message, history, tools, meta })
+  return await handleArchitectModelOutput({ supabase, userId, message, response, inWhatsAppGuard24h, meta })
 
       return `C'est fait ! 🏗️\n\nJe viens de vérifier: "${title}" est bien dans ton plan.\nTu devrais le voir apparaître dans tes actions.`
     }

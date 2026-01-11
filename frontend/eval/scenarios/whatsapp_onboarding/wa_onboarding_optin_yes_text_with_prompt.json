@@ -14,6 +14,17 @@
   "wa_steps": [
     { "kind": "text", "text": "Oui" }
   ],
+  "wa_auto_simulate": true,
+  "wa_force_turns": true,
+  "persona": {
+    "label": "Utilisateur onboarding WhatsApp",
+    "age_range": "25-45",
+    "style": "court, naturel",
+    "background": "vient de répondre 'Oui' après un prompt d'opt-in récent"
+  },
+  "objectives": [
+    { "kind": "generic", "note": "Après la question de motivation, répondre avec un score (ex: 7/10) puis continuer la conversation normalement." }
+  ],
   "mechanical_assertions": {
     "profile_equals": {
       "whatsapp_opted_in": true,

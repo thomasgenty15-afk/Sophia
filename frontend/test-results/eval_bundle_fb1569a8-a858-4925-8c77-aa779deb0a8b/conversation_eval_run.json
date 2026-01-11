@@ -1,0 +1,589 @@
+{
+  "id": "fb1569a8-a858-4925-8c77-aa779deb0a8b",
+  "created_at": "2026-01-10T17:01:43.034556+00:00",
+  "status": "completed",
+  "scenario_key": "wa_onboarding_optin_yes_no_plan__run_1768064502458_be2dd1",
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:01:43.294552+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ça marche. Pour qu'on puisse avancer, il faut que tu actives ton plan sur le site là tout de suite.\n\nC'est par ici : https://sophia-coach.ai\n\nRéponds exactement : C'est bon quand c'est fait. 🚀",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T17:01:48.922562+00:00"
+    },
+    {
+      "role": "user",
+      "content": "C'est bon",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:02:36.545297+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Top, on est lancés.\n\nTu veux qu’on parle du plan pour que je te guide sur la suite, ou tu veux parler d’autre chose d’abord ? ⚡",
+      "agent_used": "companion",
+      "created_at": "2026-01-10T17:02:45.353353+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, parlons du plan.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:02:47.419452+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "On démarre avec Le Protocole Lynx. L'objectif de cette première phase est de reprendre le contrôle sur tes réflexes numériques pour protéger ton attention.\n\nTa première mission concrète est Le Silence Doré : il s'agit de désactiver toutes les notifications non essentielles sur tes appareils pour stopper les micro-interruptions.\n\nEst-ce que tu as 2 minutes pour faire ce tri dans tes réglages maintenant ? ⚡",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:02:54.67703+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je peux regarder ça. C'est quoi la suite après ?",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:03:00.957561+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Parfait. La suite, c'est Le Gardien du Matin et du Soir : sanctuariser la première et la dernière heure de ta journée sans aucun écran pour stabiliser ton énergie. 🛡️\n\nMais d'abord, on sécurise ton attention immédiate avec Le Silence Doré pour éliminer les micro-interruptions.\n\nParmi tes applications, laquelle est la plus bavarde et te coupe le plus souvent dans ton élan ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:03:12.363241+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Instagram, je dirais. Une fois que j'ai fait ça, on passe au Gardien du Matin ?",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:03:17.480307+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est noté pour Instagram. Une fois ces alertes coupées, tu ne subiras plus l'appel du scroll. 📵\n\nLe Gardien du Matin et du Soir est déjà actif dans ton plan. C'est ton rempart contre la fatigue mentale et le pilier de ta structure.\n\nÀ quelle heure prévois-tu de poser ton téléphone ce soir pour respecter ta dernière heure sans écran avant le coucher ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:03:30.31984+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Je vais essayer 22h.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:03:33.094165+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "22h, c'est noté. C'est une cible claire pour protéger ton sommeil et ton énergie de demain. 🌙\n\nPour éviter de craquer par réflexe, où vas-tu brancher ton téléphone ce soir pour qu'il soit physiquement hors de portée de ton lit ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:03:41.475009+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Dans le salon, je pense.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:03:44.040617+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Le salon est parfait. Isoler physiquement l'appareil est la stratégie la plus efficace pour briser le cycle du scroll nocturne et protéger ton attention. 🛋️\n\nPour demain matin, as-tu un réveil classique chez toi pour éviter d'utiliser ton téléphone dès l'ouverture des yeux ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:03:58.883202+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, j'ai un réveil classique.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:04:00.942591+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Excellent. Ton environnement est maintenant sécurisé pour ce soir et demain matin. 🛡️\n\nConcernant ta deuxième action active, Le Silence Doré : as-tu déjà pris 2 minutes pour désactiver toutes les notifications non-essentielles sur ton téléphone ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:04:10.636266+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Pas encore, je suis en train de regarder ça. C'est beaucoup d'apps!",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:04:14.425592+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est le piège classique du bruit numérique. Pour être efficace, ne traite pas les apps une par une : utilise la méthode radicale. 🔇\n\nCoupe absolument tout par défaut dans tes réglages. Ne garde que les appels et les SMS pour les urgences réelles.\n\nEs-tu prêt à tenter cette déconnexion totale pour voir la différence demain matin ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:04:22.279386+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, je vais essayer de faire ça. Ça va être bizarre au début je pense.",
+      "agent_used": null,
+      "created_at": "2026-01-10T17:04:25.852338+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "C'est le signe que le sevrage commence. Ce vide est nécessaire pour laisser place à ta propre pensée plutôt qu'aux sollicitations externes. 🧘\n\nFais-le maintenant, sans réfléchir. C'est l'action la plus rentable de ta soirée pour protéger ton focus et ton sommeil.\n\nC'est bon pour toi, toutes les notifications inutiles sont officiellement coupées ?",
+      "agent_used": "architect",
+      "created_at": "2026-01-10T17:04:38.270987+00:00"
+    }
+  ],
+  "state_before": {
+    "profile": {
+      "id": "7feed785-63f5-4d0c-ad63-c97836103cc1",
+      "email": "run-evals+9cfc4dc8dcc24f@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-17T17:01:42.994+00:00",
+      "phone_number": "+15551506682849",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-10T17:01:42.995+00:00",
+      "whatsapp_opted_in": false,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": null,
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": null,
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": null
+  },
+  "state_after": {
+    "profile": {
+      "id": "7feed785-63f5-4d0c-ad63-c97836103cc1",
+      "email": "run-evals+9cfc4dc8dcc24f@example.com",
+      "full_name": "Eval Runner",
+      "trial_end": "2026-01-17T17:01:42.994+00:00",
+      "phone_number": "+15551506682849",
+      "phone_invalid": false,
+      "whatsapp_state": null,
+      "phone_verified_at": "2026-01-10T17:01:42.995+00:00",
+      "whatsapp_opted_in": true,
+      "whatsapp_opted_out_at": null,
+      "whatsapp_optin_sent_at": null,
+      "whatsapp_optout_reason": null,
+      "whatsapp_bilan_opted_in": false,
+      "whatsapp_last_inbound_at": "2026-01-10T17:04:25.844+00:00",
+      "whatsapp_last_outbound_at": null,
+      "whatsapp_state_updated_at": "2026-01-10T17:02:47.427+00:00",
+      "whatsapp_optout_confirmed_at": null
+    },
+    "chat_state": {
+      "scope": "whatsapp",
+      "user_id": "7feed785-63f5-4d0c-ad63-c97836103cc1",
+      "risk_level": 0,
+      "updated_at": "2026-01-10T17:04:38.265562+00:00",
+      "temp_memory": {
+        "architect": {
+          "last_q_fps": [
+            "tu veux qu on parle du plan pour que je te guide sur la suite ou tu veux parler d autre chose d abord?",
+            "est ce que tu as 2 minutes pour faire ce tri dans tes reglages maintenant?",
+            "parmi tes applications laquelle est la plus bavarde et te coupe le plus souvent dans ton elan?",
+            "a quelle heure prevois tu de poser ton telephone ce soir pour respecter ta derniere heure sans ecran avant le coucher?",
+            "pour eviter de craquer par reflexe ou vas tu brancher ton telephone ce soir pour qu il soit physiquement hors de portee ",
+            "pour demain matin as tu un reveil classique chez toi pour eviter d utiliser ton telephone des l ouverture des yeux?",
+            "concernant ta deuxieme action active le silence dore as tu deja pris 2 minutes pour desactiver toutes les notifications ",
+            "es tu pret a tenter cette deconnexion totale pour voir la difference demain matin?"
+          ],
+          "loop_count": 4,
+          "plan_focus": true,
+          "last_updated_at": "2026-01-10T17:04:27.387Z",
+          "current_objective": null
+        }
+      },
+      "current_mode": "architect",
+      "last_processed_at": "2026-01-10T17:01:43.304+00:00",
+      "short_term_context": "",
+      "investigation_state": null,
+      "last_interaction_at": "2026-01-10T17:01:43.304788+00:00",
+      "unprocessed_msg_count": 10
+    }
+  },
+  "issues": [
+    {
+      "code": "flow_discontinuity",
+      "message": "The Architect allows the user to switch topics from Mission 1 (Silence Doré) to Mission 2 (Gardien) before Mission 1 is resolved, completes the setup for Mission 2, and then abruptly loops back to Mission 1. This creates a disjointed, non-linear experience.",
+      "evidence": {
+        "snippet": "Concernant ta deuxième action active, Le Silence Doré : as-tu déjà pris 2 minutes pour désactiver toutes les notifications...",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "medium"
+    },
+    {
+      "code": "inconsistent_state_reference",
+      "message": "The assistant initially introduces 'Le Silence Doré' as the 'première mission', but later refers to it as the 'deuxième action active' without context justifying the change.",
+      "evidence": {
+        "snippet": "Ta première mission concrète est Le Silence Doré [...] Concernant ta deuxième action active, Le Silence Doré",
+        "agent_used": "sophia.architect"
+      },
+      "severity": "low"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Prevents the assistant from leaving tasks 'open' and awkwardly backtracking later, ensuring a structured and authoritative coaching flow.",
+      "prompt_key": "sophia.architect",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ninvestigation_state:\nnull\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(companion): Ça marche. Pour qu'on puisse avancer, il faut que tu actives ton plan sur le site là tout de suite. C'est par ici : https://sophia-coach.ai Réponds exactement : C'est bon quand c'est fait. 🚀\n#2 USER: C'est bon\n#3 ASSISTANT(companion): Top, on est lancés. Tu veux qu’on parle du plan pour que je te guide sur la suite, ou tu veux parler d’autre chose d’abord ? ⚡\n#4 USER: Oui, parlons du plan.\n#5 ASSISTANT(architect): On démarre avec Le Protocole Lynx. L'objectif de cette première phase est de reprendre le contrôle sur tes réflexes numériques pour protéger ton attention. Ta première mission concrète est Le Silence Doré : il s'agit de désactiver toutes les notifications non essentielles sur tes appareils pour stopper les micro-interruptions. Est-ce que tu as 2 minutes pour faire ce tri dans tes réglages maintenant ? ⚡\n\n=== APPLY ===\nprompt_key: sophia.architect\naction: append\n\nproposed_addendum:\nWhen guiding the user through a plan, strictly maintain focus on the current step until it is validated or explicitly postponed. If the user asks about a future step, answer briefly but immediately redirect the conversation back to completing the current action to ensure linear progression.",
+      "proposed_addendum": "When guiding the user through a plan, strictly maintain focus on the current step until it is validated or explicitly postponed. If the user asks about a future step, answer briefly but immediately redirect the conversation back to completing the current action to ensure linear progression."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0,
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1768064502458_be2dd1:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__run_1768064502458_be2dd1",
+    "total_tokens": 0,
+    "output_tokens": 0,
+    "prompt_tokens": 0,
+    "judge_llm_used": true,
+    "mega_test_mode": false
+  },
+  "config": {
+    "tags": [
+      "whatsapp.onboarding",
+      "whatsapp.webhook",
+      "mechanical"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "user_difficulty": "mid",
+      "bilan_actions_count": 0,
+      "test_post_checkup_deferral": false
+    },
+    "channel": "whatsapp",
+    "request_id": "wa_onboarding_bundle:wa_onboarding_optin_yes_no_plan__run_1768064502458_be2dd1:i0:s1916298011:core:wa_onboarding_optin_yes_no_plan__run_1768064502458_be2dd1",
+    "description": "WhatsApp onboarding (webhook): user accepts opt-in via button but has no active plan -> ask to finalize plan on site, then reply 'C'est bon'.",
+    "plan_snapshot": {
+      "plan": {
+        "id": "c9f75ec5-2292-4f1e-a36e-5448132f85d0",
+        "title": "Le Protocole Lynx",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "Le Grand Réveil Numérique",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "22a7055c-b7c1-4a93-803e-13ffdcccb672",
+                  "tips": "Utilise un réveil non-connecté. Prépare tes activités du matin la veille. Trouve une alternative au scroll (lecture, méditation).",
+                  "type": "habitude",
+                  "title": "Le Gardien du Matin & du Soir",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Crée des bulles de tranquillité pour le cerveau, réduisant l'activation du système de récompense et permettant une meilleure transition entre les états de conscience.",
+                  "targetReps": 14,
+                  "description": "Pas d'écran (téléphone, tablette, ordinateur) durant la première heure après le réveil et la dernière heure avant le coucher.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "35a75427-8c78-44d4-9e08-4a072469891c",
+                  "tips": "Fais-le pour le téléphone et l'ordinateur. Réfléchis à ce qui est VRAIMENT urgent. Utilise des modes 'Ne pas déranger'.",
+                  "type": "mission",
+                  "title": "Le Silence Doré",
+                  "status": "active",
+                  "questType": "side",
+                  "rationale": "Chaque notification est une micro-interruption qui fragmente l'attention et coûte de l'énergie mentale à chaque fois que tu dois revenir à ta tâche.",
+                  "description": "Désactiver toutes les notifications non essentielles (visuelles, sonores, vibrations) sur tes appareils. Ne garde que celles qui demandent une action immédiate et critique.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "7f14d00e-6956-4d1a-b1f9-d4c238348b1d",
+                  "tips": "La TJI est la seule chose qui COMPTE. Si tu ne fais que ça, ta journée est réussie. Sois réaliste.",
+                  "type": "framework",
+                  "title": "Ma Boussole Quotidienne",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Combat le sentiment d'être submergé par une clarté radicale sur ce qui est essentiel, évitant la surcharge cognitive et la paralysie de la décision.",
+                  "targetReps": 7,
+                  "description": "Chaque matin, identifier la 'Tâche du Jour Incontournable' (TJI) et 2-3 'Tâches Secondaires'.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "counter",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "Chaque matin, avant de commencer ta journée, prends quelques minutes pour identifier clairement tes objectifs. Ne te laisse pas noyer par la liste interminable. Concentre-toi sur l'impact.",
+                    "sections": [
+                      {
+                        "id": "tji",
+                        "label": "La Tâche du Jour Incontournable (TJI)",
+                        "inputType": "text",
+                        "placeholder": "Ex: Finaliser le rapport X"
+                      },
+                      {
+                        "id": "secondary_tasks",
+                        "label": "Mes 2-3 Tâches Secondaires",
+                        "inputType": "list",
+                        "placeholder": "Ex: Répondre aux emails importants"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 1 • Reprendre le contrôle du cerveau reptilien",
+              "rationale": "Le premier pas vers le focus est de désactiver les interrupteurs de la distraction pour calmer l'esprit et restaurer la clarté initiale. C'est l'assaut frontal contre tes blocages."
+            },
+            {
+              "id": 2,
+              "title": "L'Ancrage de l'Attention",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "54e42904-78d8-4245-944b-0a8b7baf9d14",
+                  "tips": "Commence par 30 minutes si 60-90 est trop. Utilise un minuteur. Choisis la tâche la plus complexe ou importante pour ce bloc.",
+                  "type": "habitude",
+                  "title": "La Bulle de Concentration Profonde",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Développe ta capacité à maintenir l'attention sur la durée, renforçant les circuits neuronaux du focus et la production d'acétylcholine.",
+                  "targetReps": 7,
+                  "description": "Dédier au moins 60-90 minutes par jour à une seule tâche, sans aucune interruption (téléphone en mode avion/silencieux, porte fermée).",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "8c93e455-2fb6-4031-ba28-365dfb875f84",
+                  "tips": "Achète un chargeur supplémentaire pour ce lieu. Visualise ce lieu comme une 'zone de silence'.",
+                  "type": "habitude",
+                  "title": "Le Sas Digital",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Crée une barrière physique et psychologique pour limiter l'accès impulsif, réduisant l'impact de la lumière bleue et favorisant une transition plus sereine vers le sommeil.",
+                  "targetReps": 7,
+                  "description": "Désigne un lieu spécifique dans ta maison (hors chambre) où ton téléphone 'dort' pendant la nuit et au moins 1 heure avant le coucher.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "52371497-84b6-4907-b461-7fd81fc16008",
+                  "tips": "Pas besoin d'être un artiste. L'objectif est de visualiser les liens et de sortir tout de ta tête. Utilise du papier et des feutres.",
+                  "type": "framework",
+                  "title": "La Carte de mon Chaos Mental",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Externaliser le 'bruit' interne réduit la charge cognitive, libérant de l'espace mental pour le focus et la résolution de problèmes. Aide à voir les interconnexions et les priorités.",
+                  "targetReps": 1,
+                  "description": "Une fois par semaine, faire une 'décharge mentale' visuelle sous forme de carte mentale pour organiser tes pensées, projets et préoccupations.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Prends une grande feuille et un stylo. Au centre, écris 'Mon Esprit'. Ensuite, rayonne avec tes principaux domaines de vie (Travail, Famille, Perso, Problèmes, Idées...). Pour chaque branche, ajoute des sous-branches. Ne filtre rien, vide tout.",
+                    "sections": [
+                      {
+                        "id": "mind_map_notes",
+                        "label": "Mes observations clés de cette carte mentale",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai réalisé que..."
+                      },
+                      {
+                        "id": "main_distractions",
+                        "label": "Les 3 principales sources de 'bruit' identifiées",
+                        "inputType": "list",
+                        "placeholder": "Ex: Projet X, Email Y, Notification Z"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 2 • Bâtir des blocs de concentration",
+              "rationale": "Maintenant que les distractions externes sont réduites, il est temps de créer activement des espaces mentaux pour un focus profond et ininterrompu. C'est là que l'endurance mentale se forge."
+            },
+            {
+              "id": 3,
+              "title": "La Forge de la Discipline",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "9b312a2d-bf5b-4fb8-9ca0-c83b587d3aad",
+                  "tips": "Commence petit. Choisis 2-3 activités simples que tu peux tenir. Évite les informations négatives ou stressantes.",
+                  "type": "habitude",
+                  "title": "Mon Rituel d'Éveil Stratégique",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Conditionne ton cerveau à démarrer la journée avec intention et calme, augmentant la stabilité émotionnelle et la capacité de concentration pour les heures à venir.",
+                  "targetReps": 7,
+                  "description": "Mettre en place un court rituel matinal (15-20 minutes) sans écran qui stimule la clarté et l'énergie : Ex: Hydratation, Mouvement léger, Lecture inspirante.",
+                  "isCompleted": false,
+                  "time_of_day": "morning",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "faaa43b5-f94e-477c-859a-1a216ded2468",
+                  "tips": "C'est un investissement pour ton cerveau. Pense aux écouteurs à réduction de bruit ou même des bouchons d'oreilles. Désencombre visuellement ton bureau.",
+                  "type": "mission",
+                  "title": "Le Sanctuaire de l'Attention",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Les stimuli externes constants sont des 'voleurs d'attention'. Minimiser les interruptions permet au cerveau de rester en mode 'flow' plus longtemps, réduisant la fatigue mentale.",
+                  "description": "Identifier et mettre en place des solutions pour réduire le bruit et les interruptions visuelles dans ton espace de travail principal (casque anti-bruit, réaménagement).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "ef9729e0-7599-4100-b890-c0522b18f243",
+                  "tips": "Évite les écrans pendant ces pauses. Lève-toi, étire-toi. Utilise une alarme discrète.",
+                  "type": "habitude",
+                  "title": "L'Art de la Pause Régénératrice",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Les pauses régulières préviennent la fatigue de l'attention et rechargent les ressources cognitives, améliorant la concentration et la productivité sur le long terme.",
+                  "targetReps": 14,
+                  "description": "Prendre une micro-pause de 5 minutes toutes les heures de travail intense. Le but est de te déconnecter totalement : regarde par la fenêtre, bois un verre d'eau, respire.",
+                  "isCompleted": false,
+                  "time_of_day": "afternoon",
+                  "tracking_type": "counter"
+                }
+              ],
+              "subtitle": "Semaine 3 • Optimiser l'énergie et la résilience",
+              "rationale": "Le focus n'est pas qu'une question de volonté, mais aussi d'énergie physique et mentale. Cette phase vise à soutenir ta résilience interne et ta vitalité."
+            },
+            {
+              "id": 4,
+              "title": "Le Maître du Temps",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "606fdcfe-7d5f-454c-a537-1d0ab1d35331",
+                  "tips": "Sois honnête avec toi-même. Le but est d'apprendre, pas de te juger. C'est un processus d'amélioration continue.",
+                  "type": "habitude",
+                  "title": "Le Bilan de l'Architecte",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La méta-cognition permet d'ancrer les apprentissages, d'identifier les blocages résiduels et d'ajuster ta stratégie en temps réel, renforçant ton sens de l'autonomie et de la discipline.",
+                  "targetReps": 7,
+                  "description": "Chaque soir (5-10 minutes), faire le point sur la journée : Qu'est-ce qui a bien fonctionné ? Qu'est-ce qui a été difficile ? Préparer la TJI du lendemain.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "fcce027b-e625-446f-8f80-121465ae8ad0",
+                  "tips": "Ne t'éparpille pas. Choisis-en un que tu testeras pendant quelques jours avant d'envisager un autre. La simplicité est clé.",
+                  "type": "mission",
+                  "title": "L'Arsenal du Focus",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Une fois les bases comportementales établies, les bons outils peuvent amplifier ton efficacité sans créer de dépendance ni de distraction supplémentaire.",
+                  "description": "Rechercher et expérimenter un ou deux outils/applications qui peuvent soutenir ton focus et ta gestion du temps (ex: bloqueur de site, pomodoro app, gestionnaire de tâches léger).",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "199a00dd-5a80-4514-866c-7c3e65a25c9e",
+                  "tips": "Relis tes notes. Reconnais tes progrès. Imagine ta vie dans 3 mois avec ces habitudes ancrées.",
+                  "type": "framework",
+                  "title": "Mon Manifeste du Maître du Flux",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "La rétrospection est cruciale pour consolider les acquis et projeter une vision à long terme, transformant les comportements en une identité solide.",
+                  "targetReps": 1,
+                  "description": "Faire un bilan complet des 4 semaines : Qu'est-ce que j'ai appris ? Où suis-je plus fort ? Quelles sont mes prochaines étapes pour maintenir cette discipline ?",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Tu as traversé 4 semaines intenses de transformation. Prends le temps de célébrer tes victoires et d'ancrer ce nouveau toi. Ce manifeste est la preuve de ton parcours et le plan pour ton avenir.",
+                    "sections": [
+                      {
+                        "id": "achievements",
+                        "label": "Mes 3 plus grandes victoires de ces 4 semaines",
+                        "inputType": "list",
+                        "placeholder": "Ex: Moins de scrolling, plus de travail profond"
+                      },
+                      {
+                        "id": "challenges_overcome",
+                        "label": "Comment j'ai surmonté les défis majeurs",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai appris à..."
+                      },
+                      {
+                        "id": "next_steps",
+                        "label": "Mes 2 prochaines habitudes à consolider/intégrer",
+                        "inputType": "list",
+                        "placeholder": "Ex: Méditation quotidienne, sport régulier"
+                      }
+                    ]
+                  }
+                }
+              ],
+              "subtitle": "Semaine 4 • Intégration et vision à long terme",
+              "rationale": "Après avoir construit les fondations, cette phase te permet d'intégrer pleinement ces systèmes et de développer une approche proactive de ta productivité. C'est l'ascension finale vers la maîtrise."
+            }
+          ],
+          "deepWhy": "Pour retrouver une énergie constante, une paix mentale et être inébranlable face aux défis quotidiens, me permettant d'être stable et performant.",
+          "identity": "Je suis un Maître du Flux.",
+          "strategy": "Nous allons désamorcer les distractions numériques et les surcharges cognitives pour forger une concentration inébranlable et une énergie constante. Le chemin sera radical, les résultats immédiats.",
+          "goldenRules": "1. Mon téléphone est un outil, pas un maître.\n2. Une tâche à la fois, un focus total.\n3. Je protège ma clarté mentale comme un trésor.",
+          "vitalSignal": {
+            "name": "Temps d'écran apps de distraction",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "180",
+            "description": "Réduire drastiquement le temps passé sur les applications jugées distrayantes ou chronophages.",
+            "targetValue": "60",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "Le Protocole Lynx",
+          "context_problem": "Épuisé par des journées sans structure et des distractions constantes, tu perds le fil de tes tâches, te sentant submergé. L'usage compensatoire du téléphone aggrave ta fatigue et t'empêche d'atteindre la clarté et la discipline souhaitées.",
+          "sophiaKnowledge": "Tu es un homme d'environ 35 ans qui lutte contre le manque de focus et les distractions numériques, surtout à cause de journées irrégulières et de la fatigue. Tu te sens submergé et tu compenses le stress par l'usage excessif du téléphone, ce qui te prive d'énergie et de stabilité.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine me suis-je retrouvé 'perdu' dans mon téléphone sans intention claire ?",
+            "frequency": "hebdomadaire"
+          },
+          "estimatedDuration": "4 semaines"
+        },
+        "goal_id": "c67af286-8cbb-4902-83ae-1994142b9a19",
+        "deep_why": "Pour retrouver une énergie constante, une paix mentale et être inébranlable face aux défis quotidiens, me permettant d'être stable et performant.",
+        "created_at": "2026-01-10T17:02:36.503122+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "e0d73f19-969e-4e3c-9bdc-47c73ca515c5",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "22a7055c-b7c1-4a93-803e-13ffdcccb672",
+          "title": "Le Gardien du Matin & du Soir",
+          "status": "active",
+          "created_at": "2026-01-10T17:02:36.512971+00:00",
+          "description": "Pas d'écran (téléphone, tablette, ordinateur) durant la première heure après le réveil et la dernière heure avant le coucher.",
+          "target_reps": 14,
+          "time_of_day": "morning",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-08T17:02:36.51+00:00"
+        },
+        {
+          "id": "35a75427-8c78-44d4-9e08-4a072469891c",
+          "title": "Le Silence Doré",
+          "status": "active",
+          "created_at": "2026-01-10T17:02:36.512971+00:00",
+          "description": "Désactiver toutes les notifications non essentielles (visuelles, sonores, vibrations) sur tes appareils. Ne garde que celles qui demandent une action immédiate et critique.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "last_performed_at": "2026-01-08T17:02:36.51+00:00"
+        }
+      ],
+      "frameworks": [],
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: Le Protocole Lynx\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour retrouver une énergie constante, une paix mentale et être inébranlable face aux défis quotidiens, me permettant d'être stable et performant.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"Le Grand Réveil Numérique\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"22a7055c-b7c1-4a93-803e-13ffdcccb672\",\n          \"tips\": \"Utilise un réveil non-connecté. Prépare tes activités du matin la veille. Trouve une alternative au scroll (lecture, méditation).\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Gardien du Matin & du Soir\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Crée des bulles de tranquillité pour le cerveau, réduisant l'activation du système de récompense et permettant une meilleure transition entre les états de conscience.\",\n          \"targetReps\": 14,\n          \"description\": \"Pas d'écran (téléphone, tablette, ordinateur) durant la première heure après le réveil et la dernière heure avant le coucher.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"35a75427-8c78-44d4-9e08-4a072469891c\",\n          \"tips\": \"Fais-le pour le téléphone et l'ordinateur. Réfléchis à ce qui est VRAIMENT urgent. Utilise des modes 'Ne pas déranger'.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Silence Doré\",\n          \"status\": \"active\",\n          \"questType\": \"side\",\n          \"rationale\": \"Chaque notification est une micro-interruption qui fragmente l'attention et coûte de l'énergie mentale à chaque fois que tu dois revenir à ta tâche.\",\n          \"description\": \"Désactiver toutes les notifications non essentielles (visuelles, sonores, vibrations) sur tes appareils. Ne garde que celles qui demandent une action immédiate et critique.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"7f14d00e-6956-4d1a-b1f9-d4c238348b1d\",\n          \"tips\": \"La TJI est la seule chose qui COMPTE. Si tu ne fais que ça, ta journée est réussie. Sois réaliste.\",\n          \"type\": \"framework\",\n          \"title\": \"Ma Boussole Quotidienne\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Combat le sentiment d'être submergé par une clarté radicale sur ce qui est essentiel, évitant la surcharge cognitive et la paralysie de la décision.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque matin, identifier la 'Tâche du Jour Incontournable' (TJI) et 2-3 'Tâches Secondaires'.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"counter\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"Chaque matin, avant de commencer ta journée, prends quelques minutes pour identifier clairement tes objectifs. Ne te laisse pas noyer par la liste interminable. Concentre-toi sur l'impact.\",\n            \"sections\": [\n              {\n                \"id\": \"tji\",\n                \"label\": \"La Tâche du Jour Incontournable (TJI)\",\n                \"inputType\": \"text\",\n                \"placeholder\": \"Ex: Finaliser le rapport X\"\n              },\n              {\n                \"id\": \"secondary_tasks\",\n                \"label\": \"Mes 2-3 Tâches Secondaires\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Répondre aux emails importants\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 1 • Reprendre le contrôle du cerveau reptilien\",\n      \"rationale\": \"Le premier pas vers le focus est de désactiver les interrupteurs de la distraction pour calmer l'esprit et restaurer la clarté initiale. C'est l'assaut frontal contre tes blocages.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"L'Ancrage de l'Attention\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"54e42904-78d8-4245-944b-0a8b7baf9d14\",\n          \"tips\": \"Commence par 30 minutes si 60-90 est trop. Utilise un minuteur. Choisis la tâche la plus complexe ou importante pour ce bloc.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Bulle de Concentration Profonde\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Développe ta capacité à maintenir l'attention sur la durée, renforçant les circuits neuronaux du focus et la production d'acétylcholine.\",\n          \"targetReps\": 7,\n          \"description\": \"Dédier au moins 60-90 minutes par jour à une seule tâche, sans aucune interruption (téléphone en mode avion/silencieux, porte fermée).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"8c93e455-2fb6-4031-ba28-365dfb875f84\",\n          \"tips\": \"Achète un chargeur supplémentaire pour ce lieu. Visualise ce lieu comme une 'zone de silence'.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Sas Digital\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Crée une barrière physique et psychologique pour limiter l'accès impulsif, réduisant l'impact de la lumière bleue et favorisant une transition plus sereine vers le sommeil.\",\n          \"targetReps\": 7,\n          \"description\": \"Désigne un lieu spécifique dans ta maison (hors chambre) où ton téléphone 'dort' pendant la nuit et au moins 1 heure avant le coucher.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"52371497-84b6-4907-b461-7fd81fc16008\",\n          \"tips\": \"Pas besoin d'être un artiste. L'objectif est de visualiser les liens et de sortir tout de ta tête. Utilise du papier et des feutres.\",\n          \"type\": \"framework\",\n          \"title\": \"La Carte de mon Chaos Mental\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Externaliser le 'bruit' interne réduit la charge cognitive, libérant de l'espace mental pour le focus et la résolution de problèmes. Aide à voir les interconnexions et les priorités.\",\n          \"targetReps\": 1,\n          \"description\": \"Une fois par semaine, faire une 'décharge mentale' visuelle sous forme de carte mentale pour organiser tes pensées, projets et préoccupations.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Prends une grande feuille et un stylo. Au centre, écris 'Mon Esprit'. Ensuite, rayonne avec tes principaux domaines de vie (Travail, Famille, Perso, Problèmes, Idées...). Pour chaque branche, ajoute des sous-branches. Ne filtre rien, vide tout.\",\n            \"sections\": [\n              {\n                \"id\": \"mind_map_notes\",\n                \"label\": \"Mes observations clés de cette carte mentale\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai réalisé que...\"\n              },\n              {\n                \"id\": \"main_distractions\",\n                \"label\": \"Les 3 principales sources de 'bruit' identifiées\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Projet X, Email Y, Notification Z\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 2 • Bâtir des blocs de concentration\",\n      \"rationale\": \"Maintenant que les distractions externes sont réduites, il est temps de créer activement des espaces mentaux pour un focus profond et ininterrompu. C'est là que l'endurance mentale se forge.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"La Forge de la Discipline\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"9b312a2d-bf5b-4fb8-9ca0-c83b587d3aad\",\n          \"tips\": \"Commence petit. Choisis 2-3 activités simples que tu peux tenir. Évite les informations négatives ou stressantes.\",\n          \"type\": \"habitude\",\n          \"title\": \"Mon Rituel d'Éveil Stratégique\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Conditionne ton cerveau à démarrer la journée avec intention et calme, augmentant la stabilité émotionnelle et la capacité de concentration pour les heures à venir.\",\n          \"targetReps\": 7,\n          \"description\": \"Mettre en place un court rituel matinal (15-20 minutes) sans écran qui stimule la clarté et l'énergie : Ex: Hydratation, Mouvement léger, Lecture inspirante.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"morning\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"faaa43b5-f94e-477c-859a-1a216ded2468\",\n          \"tips\": \"C'est un investissement pour ton cerveau. Pense aux écouteurs à réduction de bruit ou même des bouchons d'oreilles. Désencombre visuellement ton bureau.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Sanctuaire de l'Attention\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Les stimuli externes constants sont des 'voleurs d'attention'. Minimiser les interruptions permet au cerveau de rester en mode 'flow' plus longtemps, réduisant la fatigue mentale.\",\n          \"description\": \"Identifier et mettre en place des solutions pour réduire le bruit et les interruptions visuelles dans ton espace de travail principal (casque anti-bruit, réaménagement).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"ef9729e0-7599-4100-b890-c0522b18f243\",\n          \"tips\": \"Évite les écrans pendant ces pauses. Lève-toi, étire-toi. Utilise une alarme discrète.\",\n          \"type\": \"habitude\",\n          \"title\": \"L'Art de la Pause Régénératrice\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Les pauses régulières préviennent la fatigue de l'attention et rechargent les ressources cognitives, améliorant la concentration et la productivité sur le long terme.\",\n          \"targetReps\": 14,\n          \"description\": \"Prendre une micro-pause de 5 minutes toutes les heures de travail intense. Le but est de te déconnecter totalement : regarde par la fenêtre, bois un verre d'eau, respire.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"afternoon\",\n          \"tracking_type\": \"counter\"\n        }\n      ],\n      \"subtitle\": \"Semaine 3 • Optimiser l'énergie et la résilience\",\n      \"rationale\": \"Le focus n'est pas qu'une question de volonté, mais aussi d'énergie physique et mentale. Cette phase vise à soutenir ta résilience interne et ta vitalité.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Le Maître du Temps\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"606fdcfe-7d5f-454c-a537-1d0ab1d35331\",\n          \"tips\": \"Sois honnête avec toi-même. Le but est d'apprendre, pas de te juger. C'est un processus d'amélioration continue.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Bilan de l'Architecte\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La méta-cognition permet d'ancrer les apprentissages, d'identifier les blocages résiduels et d'ajuster ta stratégie en temps réel, renforçant ton sens de l'autonomie et de la discipline.\",\n          \"targetReps\": 7,\n          \"description\": \"Chaque soir (5-10 minutes), faire le point sur la journée : Qu'est-ce qui a bien fonctionné ? Qu'est-ce qui a été difficile ? Préparer la TJI du lendemain.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"fcce027b-e625-446f-8f80-121465ae8ad0\",\n          \"tips\": \"Ne t'éparpille pas. Choisis-en un que tu testeras pendant quelques jours avant d'envisager un autre. La simplicité est clé.\",\n          \"type\": \"mission\",\n          \"title\": \"L'Arsenal du Focus\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Une fois les bases comportementales établies, les bons outils peuvent amplifier ton efficacité sans créer de dépendance ni de distraction supplémentaire.\",\n          \"description\": \"Rechercher et expérimenter un ou deux outils/applications qui peuvent soutenir ton focus et ta gestion du temps (ex: bloqueur de site, pomodoro app, gestionnaire de tâches léger).\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"199a00dd-5a80-4514-866c-7c3e65a25c9e\",\n          \"tips\": \"Relis tes notes. Reconnais tes progrès. Imagine ta vie dans 3 mois avec ces habitudes ancrées.\",\n          \"type\": \"framework\",\n          \"title\": \"Mon Manifeste du Maître du Flux\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"La rétrospection est cruciale pour consolider les acquis et projeter une vision à long terme, transformant les comportements en une identité solide.\",\n          \"targetReps\": 1,\n          \"description\": \"Faire un bilan complet des 4 semaines : Qu'est-ce que j'ai appris ? Où suis-je plus fort ? Quelles sont mes prochaines étapes pour maintenir cette discipline ?\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Tu as traversé 4 semaines intenses de transformation. Prends le temps de célébrer tes victoires et d'ancrer ce nouveau toi. Ce manifeste est la preuve de ton parcours et le plan pour ton avenir.\",\n            \"sections\": [\n              {\n                \"id\": \"achievements\",\n                \"label\": \"Mes 3 plus grandes victoires de ces 4 semaines\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Moins de scrolling, plus de travail profond\"\n              },\n              {\n                \"id\": \"challenges_overcome\",\n                \"label\": \"Comment j'ai surmonté les défis majeurs\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai appris à...\"\n              },\n              {\n                \"id\": \"next_steps\",\n                \"label\": \"Mes 2 prochaines habitudes à consolider/intégrer\",\n                \"inputType\": \"list\",\n                \"placeholder\": \"Ex: Méditation quotidienne, sport régulier\"\n              }\n            ]\n          }\n        }\n      ],\n      \"subtitle\": \"Semaine 4 • Intégration et vision à long terme\",\n      \"rationale\": \"Après avoir construit les fondations, cette phase te permet d'intégrer pleinement ces systèmes et de développer une approche proactive de ta productivité. C'est l'ascension finale vers la maîtrise.\"\n    }\n  ],\n  \"deepWhy\": \"Pour retrouver une énergie constante, une paix mentale et être inébranlable face aux défis quotidiens, me permettant d'être stable et performant.\",\n  \"identity\": \"Je suis un Maître du Flux.\",\n  \"strategy\": \"Nous allons désamorcer les distractions numériques et les surcharges cognitives pour forger une concentration inébranlable et une énergie constante. Le chemin sera radical, les résultats immédiats.\",\n  \"goldenRules\": \"1. Mon téléphone est un outil, pas un maître.\\n2. Une tâche à la fois, un focus total.\\n3. Je protège ma clarté mentale comme un trésor.\",\n  \"vitalSignal\": {\n    \"name\": \"Temps d'écran apps de distraction\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"180\",\n    \"description\": \"Réduire drastiquement le temps passé sur les applications jugées distrayantes ou chronophages.\",\n    \"targetValue\": \"60\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"Le Protocole Lynx\",\n  \"context_problem\": \"Épuisé par des journées sans structure et des distractions constantes, tu perds le fil de tes tâches, te sentant submergé. L'usage compensatoire du téléphone aggrave ta fatigue et t'empêche d'atteindre la clarté et la discipline souhaitées.\",\n  \"sophiaKnowledge\": \"Tu es un homme d'environ 35 ans qui lutte contre le manque de focus et les distractions numériques, surtout à cause de journées irrégulières et de la fatigue. Tu te sens submergé et tu compenses le stress par l'usage excessif du téléphone, ce qui te prive d'énergie et de stabilité.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine me suis-je retrouvé 'perdu' dans mon téléphone sans intention claire ?\",\n    \"frequency\": \"hebdomadaire\"\n  },\n  \"estimatedDuration\": \"4 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (2):\n- [ACTION] Le Gardien du Matin & du Soir (morning)\n- [ACTION] Le Silence Doré (any_time)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Temps d'écran apps de distraction: 180 min\n",
+      "template_fingerprint": "d81d0925093d7499"
+    },
+    "scenario_target": "onboarding"
+  },
+  "error": null
+}

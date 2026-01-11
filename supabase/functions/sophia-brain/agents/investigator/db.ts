@@ -1,0 +1,453 @@
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
+import { generateEmbedding } from "../../../_shared/gemini.ts"
+import type { CheckupItem } from "./types.ts"
+import { addDays, isoDay } from "./utils.ts"
+import { getMissedStreakDays } from "./streaks.ts"
+
+export async function fetchActivePlanRow(supabase: SupabaseClient, userId: string) {
+  const { data: planRow, error } = await supabase
+    .from("user_plans")
+    .select("id, submission_id, content")
+    .eq("user_id", userId)
+    .in("status", ["active", "in_progress", "pending"])
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  if (error) throw error
+  return planRow as any
+}
+
+export async function fetchActionRowById(supabase: SupabaseClient, userId: string, actionId: string) {
+  const { data: actionRow, error } = await supabase
+    .from("user_actions")
+    .select("id, plan_id, submission_id, title, description, tracking_type, time_of_day, target_reps")
+    .eq("id", actionId)
+    .eq("user_id", userId)
+    .maybeSingle()
+  if (error) throw error
+  return actionRow as any
+}
+
+export async function getYesterdayCheckupSummary(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<{
+  completed: number
+  missed: number
+  lastWinTitle: string | null
+  topBlocker: string | null
+}> {
+  const today = isoDay(new Date())
+  const yday = addDays(today, -1)
+
+  // Pull yesterday's action entries only (simple, reliable, low cost)
+  const { data: entries, error } = await supabase
+    .from("user_action_entries")
+    .select("status, action_title, note, performed_at")
+    .eq("user_id", userId)
+    .gte("performed_at", `${yday}T00:00:00`)
+    .lt("performed_at", `${today}T00:00:00`)
+    .order("performed_at", { ascending: false })
+    .limit(50)
+
+  if (error || !entries || entries.length === 0) {
+    return { completed: 0, missed: 0, lastWinTitle: null, topBlocker: null }
+  }
+
+  let completed = 0
+  let missed = 0
+  let lastWinTitle: string | null = null
+  const blockerCounts = new Map<string, number>()
+
+  for (const e of entries as any[]) {
+    const st = String(e.status ?? "")
+    if (st === "completed") {
+      completed += 1
+      if (!lastWinTitle) lastWinTitle = String(e.action_title ?? "").trim() || null
+    } else if (st === "missed") {
+      missed += 1
+      const raw = String(e.note ?? "").trim()
+      if (raw) {
+        // Normalize common blockers a bit (lightweight)
+        const lowered = raw.toLowerCase()
+        const key = lowered.includes("fatigu")
+          ? "fatigue"
+          : lowered.includes("temps")
+            ? "manque de temps"
+            : lowered.includes("oubli")
+              ? "oubli"
+              : lowered.includes("motivation")
+                ? "motivation"
+                : raw.slice(0, 80)
+        blockerCounts.set(key, (blockerCounts.get(key) ?? 0) + 1)
+      }
+    }
+  }
+
+  let topBlocker: string | null = null
+  let bestCount = 0
+  for (const [k, v] of blockerCounts.entries()) {
+    if (v > bestCount) {
+      bestCount = v
+      topBlocker = k
+    }
+  }
+
+  return { completed, missed, lastWinTitle, topBlocker }
+}
+
+export async function getPendingItems(supabase: SupabaseClient, userId: string): Promise<CheckupItem[]> {
+  // Bilan = on check les items actifs du PLAN COURANT (pas des anciens plans),
+  // et on applique une logique "dernier check il y a >18h" pour éviter de re-demander.
+  const planRow = await fetchActivePlanRow(supabase, userId).catch(() => null)
+  const planId = planRow?.id as string | undefined
+
+  // Règle des 18h : Si last_performed_at / last_checked_at > 18h ago, on doit checker.
+  const now = new Date()
+  const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
+
+  const pending: CheckupItem[] = []
+
+  // 1. Fetch Actions (plan courant uniquement)
+  const actionsQ = supabase
+    .from("user_actions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
+  const { data: actions } = planId ? await actionsQ.eq("plan_id", planId) : await actionsQ
+
+  // 2. Fetch Vital Signs (plan courant si possible)
+  const vitalsQ = supabase
+    .from("user_vital_signs")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
+  const { data: vitals } = planId ? await vitalsQ.eq("plan_id", planId) : await vitalsQ
+
+  // 3. Fetch Frameworks (plan courant uniquement)
+  const fwQ = supabase
+    .from("user_framework_tracking")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
+  const { data: frameworks } = planId ? await fwQ.eq("plan_id", planId) : await fwQ
+
+  // Apply 18h Logic
+  actions?.forEach((a: any) => {
+    const lastPerformedDate = a.last_performed_at ? new Date(a.last_performed_at) : null
+    // Si jamais fait (null) OU fait il y a plus de 18h -> On ajoute
+    if (!lastPerformedDate || lastPerformedDate < eighteenHoursAgo) {
+      pending.push({
+        id: a.id,
+        type: "action",
+        title: a.title,
+        description: a.description,
+        tracking_type: a.tracking_type,
+        target: a.target_reps,
+      })
+    }
+  })
+
+  vitals?.forEach((v: any) => {
+    const lastCheckedDate = v.last_checked_at ? new Date(v.last_checked_at) : null
+    if (!lastCheckedDate || lastCheckedDate < eighteenHoursAgo) {
+      pending.push({
+        id: v.id,
+        type: "vital",
+        title: v.label || v.name,
+        tracking_type: "counter",
+        unit: v.unit,
+      })
+    }
+  })
+
+  frameworks?.forEach((f: any) => {
+    const lastPerformedDate = f.last_performed_at ? new Date(f.last_performed_at) : null
+    if (!lastPerformedDate || lastPerformedDate < eighteenHoursAgo) {
+      pending.push({
+        id: f.id,
+        type: "framework",
+        title: f.title,
+        tracking_type: "boolean", // Usually frameworks are boolean completion for daily check
+      })
+    }
+  })
+
+  // Tri : Vitals d'abord, puis Actions, puis Frameworks
+  return pending.sort((a, b) => {
+    const typeOrder: Record<string, number> = { vital: 0, action: 1, framework: 2 }
+    return (typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99)
+  })
+}
+
+export async function logItem(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
+  const { item_id, item_type, status, value, note, item_title } = args
+
+  // Génération de l'embedding pour la note (si présente)
+  let embedding: number[] | null = null
+  if (note && note.trim().length > 0) {
+    try {
+      // On contextualise l'embedding avec le statut
+      const textToEmbed = `Statut: ${status}. Note: ${note}`
+      embedding = await generateEmbedding(textToEmbed)
+    } catch (e) {
+      console.error("Error generating embedding for log note:", e)
+    }
+  }
+
+  const now = new Date()
+
+  if (item_type === "action") {
+    // Update Action Stats & Log Entry
+    if (status === "completed") {
+      // 1. Fetch current state to check 18h rule & increment reps
+      const { data: action } = await supabase
+        .from("user_actions")
+        .select("last_performed_at, current_reps")
+        .eq("id", item_id)
+        .single()
+
+      const lastPerformedDate = action?.last_performed_at ? new Date(action.last_performed_at) : null
+      const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
+
+      // Check 18h rule : Si fait il y a moins de 18h, on ne re-log pas (doublon)
+      if (lastPerformedDate && lastPerformedDate > eighteenHoursAgo) {
+        console.log(
+          `[Investigator] Action ${item_id} performed recently (${action?.last_performed_at}), skipping update & log.`,
+        )
+        return "Logged (Skipped duplicate)"
+      }
+
+      // Increment Reps (Si pas skipped)
+      const newReps = (action?.current_reps || 0) + 1
+
+      await supabase.from("user_actions").update({
+        last_performed_at: now.toISOString(),
+        current_reps: newReps,
+      }).eq("id", item_id)
+
+      console.log(`[Investigator] Incremented reps for ${item_id} to ${newReps}`)
+    }
+    // Log Entry
+    const { error: logError } = await supabase.from("user_action_entries").insert({
+      user_id: userId,
+      action_id: item_id,
+      action_title: item_title,
+      status: status,
+      value: value,
+      note: note,
+      performed_at: now.toISOString(),
+      embedding: embedding,
+    })
+
+    if (logError) {
+      console.error("[Investigator] ❌ Log Entry Error:", logError)
+    } else {
+      console.log("[Investigator] ✅ Entry logged successfully")
+    }
+  } else if (item_type === "vital") {
+    // Vital Sign
+    await supabase.from("user_vital_signs").update({
+      current_value: String(value),
+      last_checked_at: new Date().toISOString(),
+    }).eq("id", item_id)
+
+    const { data: vital } = await supabase.from("user_vital_signs").select("plan_id, submission_id").eq("id", item_id)
+      .single()
+
+    await supabase.from("user_vital_sign_entries").insert({
+      user_id: userId,
+      vital_sign_id: item_id,
+      plan_id: vital?.plan_id,
+      submission_id: vital?.submission_id,
+      value: String(value),
+      title: item_title,
+      note: note,
+      recorded_at: new Date().toISOString(),
+      embedding: embedding,
+    })
+  } else if (item_type === "framework") {
+    // Framework Tracking
+    if (status === "completed") {
+      const { data: fw } = await supabase
+        .from("user_framework_tracking")
+        .select("last_performed_at, current_reps, action_id, plan_id, title")
+        .eq("id", item_id)
+        .single()
+
+      const lastPerformedDate = fw?.last_performed_at ? new Date(fw.last_performed_at) : null
+      const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
+
+      if (lastPerformedDate && lastPerformedDate > eighteenHoursAgo) {
+        console.log(`[Investigator] Framework ${item_id} performed recently, skipping update.`)
+        return "Logged (Skipped duplicate)"
+      }
+
+      const newReps = (fw?.current_reps || 0) + 1
+
+      await supabase.from("user_framework_tracking").update({
+        last_performed_at: now.toISOString(),
+        current_reps: newReps,
+      }).eq("id", item_id)
+
+      await supabase.from("user_framework_entries").insert({
+        user_id: userId,
+        plan_id: fw?.plan_id,
+        action_id: fw?.action_id,
+        framework_title: fw?.title,
+        framework_type: "unknown",
+        content: { status: status, note: note, checkup: true },
+        created_at: now.toISOString(),
+      })
+    } else {
+      const { data: fw } = await supabase.from("user_framework_tracking").select("action_id, plan_id, title").eq(
+        "id",
+        item_id,
+      ).single()
+
+      await supabase.from("user_framework_entries").insert({
+        user_id: userId,
+        plan_id: fw?.plan_id,
+        action_id: fw?.action_id,
+        framework_title: fw?.title || item_title,
+        framework_type: "unknown",
+        content: { status: status, note: note, checkup: true },
+        created_at: now.toISOString(),
+      })
+    }
+  }
+
+  return "Logged"
+}
+
+// Exposed for deterministic tool testing (DB writes). This does not change runtime behavior.
+export async function megaTestLogItem(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
+  return await logItem(supabase, userId, args)
+}
+
+export async function handleArchiveAction(
+  supabase: SupabaseClient,
+  userId: string,
+  args: any,
+): Promise<string> {
+  const planRow = await fetchActivePlanRow(supabase, userId)
+  if (!planRow) return "Je ne trouve pas de plan actif."
+
+  const { action_title_or_id } = args
+  const searchTerm = (action_title_or_id || "").trim()
+
+  const { data: action } = await supabase
+    .from("user_actions")
+    .select("id, title")
+    .eq("plan_id", planRow.id)
+    .ilike("title", searchTerm)
+    .maybeSingle()
+
+  if (action) {
+    await supabase.from("user_actions").update({ status: "archived" }).eq("id", action.id)
+    return `C'est fait. J'ai retiré l'action "${action.title}" du plan.`
+  }
+
+  const { data: fw } = await supabase
+    .from("user_framework_tracking")
+    .select("id, title")
+    .eq("plan_id", planRow.id)
+    .ilike("title", searchTerm)
+    .maybeSingle()
+
+  if (fw) {
+    await supabase.from("user_framework_tracking").update({ status: "archived" }).eq("id", fw.id)
+    return `C'est fait. J'ai retiré l'exercice "${fw.title}" du plan.`
+  }
+
+  return `Je ne trouve pas "${action_title_or_id}" dans ton plan.`
+}
+
+export async function getItemHistory(
+  supabase: SupabaseClient,
+  userId: string,
+  itemId: string,
+  itemType: "action" | "vital" | "framework",
+  _currentContext: string = "",
+): Promise<string> {
+  let historyText = ""
+
+  // 1. Chronologique (Le plus récent)
+  if (itemType === "action") {
+    const { data: entries } = await supabase
+      .from("user_action_entries")
+      .select("status, note, performed_at")
+      .eq("user_id", userId)
+      .eq("action_id", itemId)
+      .order("performed_at", { ascending: false })
+      .limit(5)
+
+    if (entries && entries.length > 0) {
+      historyText += "DERNIERS ENREGISTREMENTS CHRONOLOGIQUES :\n"
+      historyText += entries.map((e: any) => {
+        const date = new Date(e.performed_at).toLocaleDateString("fr-FR")
+        const status = e.status === "completed" ? "✅ Fait" : "❌ Non fait"
+        return `- ${date} : ${status} ${e.note ? `(Note: "${e.note}")` : ""}`
+      }).join("\n")
+      historyText += "\n\n"
+    }
+  } else if (itemType === "vital") {
+    const { data: entries } = await supabase
+      .from("user_vital_sign_entries")
+      .select("value, recorded_at")
+      .eq("user_id", userId)
+      .eq("vital_sign_id", itemId)
+      .order("recorded_at", { ascending: false })
+      .limit(5)
+
+    if (entries && entries.length > 0) {
+      historyText += "DERNIÈRES MESURES :\n"
+      historyText += entries.map((e: any) => {
+        const date = new Date(e.recorded_at).toLocaleDateString("fr-FR")
+        return `- ${date} : ${e.value}`
+      }).join("\n")
+      historyText += "\n\n"
+    }
+  } else if (itemType === "framework") {
+    // Keep it simple for now.
+  }
+
+  // 2. Vectoriel / Sémantique (Patterns récurrents)
+  if (itemType === "action") {
+    try {
+      const query = "Difficulté, échec, raison, note importante"
+      const embedding = await generateEmbedding(query)
+
+      const { data: similarEntries } = await supabase.rpc("match_action_entries", {
+        query_embedding: embedding,
+        match_threshold: 0.5,
+        match_count: 3,
+        filter_action_id: itemId,
+      })
+
+      if (similarEntries && similarEntries.length > 0) {
+        historyText += "INSIGHTS / RÉCURRENCES (RAG) :\n"
+        historyText += similarEntries.map((e: any) => {
+          const date = new Date(e.performed_at).toLocaleDateString("fr-FR")
+          return `- [${date}] ${e.status} : "${e.note || "Pas de note"}" (Sim: ${Math.round(e.similarity * 100)}%)`
+        }).join("\n")
+      }
+    } catch (err) {
+      console.error("Error in Investigator RAG:", err)
+    }
+  }
+
+  // 3. Streak info (for "5 jours d'affilée" logic)
+  if (itemType === "action") {
+    try {
+      const streak = await getMissedStreakDays(supabase, userId, itemId)
+      historyText += `\n\nMISSED_STREAK_DAYS: ${streak}\n`
+    } catch (e) {
+      console.error("[Investigator] streak compute failed:", e)
+    }
+  }
+
+  return historyText || "Aucun historique disponible."
+}
+
+
