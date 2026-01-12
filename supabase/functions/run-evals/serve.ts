@@ -217,6 +217,11 @@ export function serveRunEvals() {
           const scenarioChannel = String((s as any)?.channel ?? "web").trim().toLowerCase();
           const isWhatsApp = scenarioChannel === "whatsapp";
           const scope = isWhatsApp ? "whatsapp" : "web";
+          // Mechanical assertion inputs can differ from the final transcript/state.
+          // In particular for WhatsApp, we want mechanical checks to run immediately after explicit `wa_steps`,
+          // not after any optional simulate-user loopback turns.
+          let mechanicalProfileAfterOverride: any | null = null;
+          let mechanicalTranscriptOverride: any[] | null = null;
           const includeVitalsInBilan =
             (Array.isArray((s as any)?.tags) && (s as any).tags.includes("bilan.vitals")) ||
             Boolean((s as any)?.assertions?.include_vitals_in_bilan);
@@ -404,11 +409,6 @@ export function serveRunEvals() {
             const setup = (s as any)?.setup ?? {};
             const waSteps = Array.isArray((s as any)?.wa_steps) ? (s as any).wa_steps : [];
             const defaultFrom = String(setup?.from ?? setup?.phone_number ?? profileBefore?.phone_number ?? "").trim();
-            // Mechanical assertions for WhatsApp should be evaluated right after the explicit `wa_steps`,
-            // not after any optional simulate-user loopback turns. This keeps scenarios stable and makes
-            // `wa_auto_simulate` compatible with state-machine assertions.
-            let mechanicalProfileAfterOverride: any | null = null;
-            let mechanicalTranscriptOverride: any[] | null = null;
 
             const digitsOnly = (raw: string) => String(raw ?? "").trim().replace(/[()\s-]/g, "").replace(/^\+/, "");
 

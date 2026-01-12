@@ -48,12 +48,12 @@ const LandingPage = () => {
               <Link to="/formules" className="hover:text-violet-600 transition-colors">Offres</Link>
               <Link to="/legal" className="hover:text-violet-600 transition-colors">Légal</Link>
             </div>
-            <button 
-              onClick={() => navigate('/auth')}
+            <Link
+              to="/auth"
               className="px-4 py-2 md:px-5 md:py-2.5 rounded-full bg-slate-900 text-white text-xs md:text-sm font-bold hover:bg-violet-600 transition-all shadow-lg hover:shadow-violet-200"
             >
               Accès Membre
-            </button>
+            </Link>
           </div>
         </div>
       </nav>
@@ -80,13 +80,13 @@ const LandingPage = () => {
           </p>
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-3 md:gap-4">
-            <button 
-              onClick={() => navigate('/global-plan')}
+            <Link
+              to="/global-plan"
               className="w-full sm:w-auto px-6 py-3 md:px-8 md:py-4 rounded-xl bg-violet-600 text-white font-bold text-base md:text-lg hover:bg-violet-700 transition-all shadow-xl shadow-violet-200 flex items-center justify-center gap-2 group"
             >
               Générer mon Plan (Gratuit)
               <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
             <button className="w-full sm:w-auto px-6 py-3 md:px-8 md:py-4 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-base md:text-lg hover:border-violet-200 hover:bg-violet-50/50 transition-all flex items-center justify-center gap-2">
               <Play className="w-4 h-4 md:w-5 md:h-5 fill-current text-violet-600" />
               Comment ça marche ?
@@ -237,13 +237,13 @@ const LandingPage = () => {
           </div>
           
           <div className="mt-12 md:mt-20 flex justify-center">
-            <button 
-              onClick={() => navigate('/le-plan')}
+            <Link
+              to="/le-plan"
               className="group flex items-center gap-2 text-violet-600 font-bold text-sm md:text-base transition-colors hover:text-violet-700"
             >
                 Découvrir tout le système
                 <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-            </button>
+            </Link>
           </div>
         </div>
       </section>
@@ -384,10 +384,10 @@ const LandingPage = () => {
               </div>
               
               <div className="flex justify-center w-full mt-8">
-                <button onClick={() => navigate('/le-plan')} className="group flex items-center gap-2 text-violet-600 font-bold text-sm md:text-base transition-colors hover:text-violet-700">
+                <Link to="/le-plan" className="group flex items-center gap-2 text-violet-600 font-bold text-sm md:text-base transition-colors hover:text-violet-700">
                     Découvrir Sophia
                     <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-                </button>
+                </Link>
               </div>
 
             </div>
@@ -447,10 +447,10 @@ const LandingPage = () => {
               </div>
 
               <div className="mt-auto flex justify-center w-full">
-                  <button onClick={() => navigate('/l-architecte')} className="group flex items-center gap-2 text-emerald-400 font-bold text-sm md:text-base transition-colors hover:text-emerald-300">
+                  <Link to="/l-architecte" className="group flex items-center gap-2 text-emerald-400 font-bold text-sm md:text-base transition-colors hover:text-emerald-300">
                     Découvrir l'architecte
                     <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform" />
-              </button>
+              </Link>
               </div>
             </div>
 
@@ -542,13 +542,13 @@ const LandingPage = () => {
             <span className="text-violet-600">Génère ton Plan.</span>
           </h2>
           
-          <button 
-            onClick={() => navigate('/global-plan')}
+          <Link
+            to="/global-plan"
             className="px-12 py-6 rounded-full bg-slate-900 text-white font-bold text-xl hover:bg-violet-600 hover:scale-105 transition-all shadow-2xl shadow-slate-300 flex items-center justify-center gap-3 mx-auto"
           >
             Générer mon Plan (Gratuit)
             <ArrowRight className="w-6 h-6" />
-          </button>
+          </Link>
           
           <p className="mt-8 text-slate-500">
             Rejoignez les pionniers qui ont arrêté de forcer.

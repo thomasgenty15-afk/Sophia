@@ -1,8 +1,7 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 
 const Footer = () => {
-  const navigate = useNavigate();
   const currentYear = new Date().getFullYear();
 
   return (
@@ -17,12 +16,12 @@ const Footer = () => {
         </div>
         
         <div className="flex gap-6 text-sm text-slate-500">
-          <button onClick={() => navigate('/legal#mentions-legales')} className="hover:text-violet-600 transition-colors">
+          <Link to="/legal#mentions-legales" className="hover:text-violet-600 transition-colors">
             Mentions légales
-          </button>
-          <button onClick={() => navigate('/legal#confidentialite')} className="hover:text-violet-600 transition-colors">
+          </Link>
+          <Link to="/legal#confidentialite" className="hover:text-violet-600 transition-colors">
             Politique de confidentialité
-          </button>
+          </Link>
         </div>
 
         <div className="text-sm text-slate-500">
