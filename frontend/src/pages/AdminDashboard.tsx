@@ -10,6 +10,7 @@ import {
   Clock, 
   CreditCard, 
   DollarSign, 
+  FileText,
   LayoutDashboard, 
   Play, 
   Settings2, 

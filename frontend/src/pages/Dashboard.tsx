@@ -155,7 +155,7 @@ const Dashboard = () => {
   // Déterminer quels modules afficher dans le feedback
   const getFeedbackModules = () => {
     const isTrial = trialEnd && new Date(trialEnd) > new Date();
-    const isArchitect = hasArchitecteAccess(user, subscription); 
+    const isArchitect = hasArchitecteAccess(subscription); 
     const isActiveSub = subscription?.status === 'active' || subscription?.status === 'trialing';
 
     if (isTrial || isArchitect) {
