@@ -1,0 +1,22 @@
+{
+  "rewrites": [
+    {
+      "source": "/favicon.ico",
+      "destination": "/favicon.png"
+    },
+    {
+      "source": "/favicon.svg",
+      "destination": "/favicon.png"
+    },
+    {
+      "source": "/site.webmanifest",
+      "destination": "/site.webmanifest"
+    },
+    {
+      "source": "/((?!_vercel|.*\\..*).*)",
+      "destination": "/index.html"
+    }
+  ]
+}
+
+
