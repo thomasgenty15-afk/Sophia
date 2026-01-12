@@ -1,11 +1,14 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../_shared/gemini.ts'
+import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 
 console.log("Archive Plan Function initialized")
 
 Deno.serve(async (req) => {
   try {
+    const guard = ensureInternalRequest(req)
+    if (guard) return guard
     const payload = await req.json()
     
     // Webhook payload check

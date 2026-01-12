@@ -6,9 +6,16 @@ import { fetchActionRowById, fetchActivePlanRow } from "./db.ts"
 
 export async function callBreakDownActionEdge(payload: unknown): Promise<any> {
   const url = `${functionsBaseUrl()}/functions/v1/break-down-action`
+  const internalSecret =
+    (globalThis as any)?.Deno?.env?.get?.("INTERNAL_FUNCTION_SECRET")?.trim() ||
+    (globalThis as any)?.Deno?.env?.get?.("SECRET_KEY")?.trim() ||
+    ""
+  if (!internalSecret) {
+    throw new Error("Missing INTERNAL_FUNCTION_SECRET")
+  }
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: { "Content-Type": "application/json", "x-internal-secret": internalSecret },
     body: JSON.stringify(payload),
   })
   const data = await res.json().catch(() => ({}))

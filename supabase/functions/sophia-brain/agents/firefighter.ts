@@ -1,10 +1,35 @@
 import { generateWithGemini } from '../../_shared/gemini.ts'
 
+type FirefighterTechnique =
+  | "safety_check"
+  | "ab_choice"
+  | "guided_30s"
+  | "name_emotion"
+  | "reframe"
+  | "micro_plan";
+
 function looksLikeGuidedTextRequest(message: string): boolean {
   const m = (message ?? "").toString().toLowerCase()
   // User explicitly asks for a "text/script" to help calm down.
   return /\b(texte|script|guid(?:e|é)|respiration\s+guid(?:e|é)e|exercice|mini[-\s]?texte|petit\s+texte|lis[-\s]?moi|lire|écris[-\s]?moi)\b/i
     .test(m)
+}
+
+function detectLastTechniqueFromAssistant(lastAssistantMessage: string): FirefighterTechnique | null {
+  const t = (lastAssistantMessage ?? "").toString().toLowerCase()
+  if (!t.trim()) return null
+  if (/\b(en\s+s[ée]curit[ée]|tu\s+es\s+en\s+s[ée]curit[ée])\b/i.test(t)) return "safety_check"
+  if (/\b(a\)|option\s+a|b\)|option\s+b)\b/i.test(t)) return "ab_choice"
+  if (/\bmini[-\s]?texte|texte\s+guid[ée]|script\b/i.test(t)) return "guided_30s"
+  if (/\b(quelle\s+[ée]motion|nomme|[ée]motion)\b/i.test(t)) return "name_emotion"
+  if (/\b(au\s+fond|l['’]essentiel|remettre|priorit[ée])\b/i.test(t)) return "reframe"
+  if (/\b(dans\s+les?\s+10\s+minutes|micro[-\s]?plan|prochaine\s+[ée]tape)\b/i.test(t)) return "micro_plan"
+  return null
+}
+
+function looksLikeAcutePanic(message: string): boolean {
+  const m = (message ?? "").toString().toLowerCase()
+  return /\b(panique|crise|angoisse\s+forte|urgence|je\s+craque|au\s+bout)\b/i.test(m)
 }
 
 function looksAffirmative(message: string): boolean {
@@ -28,47 +53,59 @@ export async function runFirefighter(
   const allowGuidedText =
     looksLikeGuidedTextRequest(message) ||
     (lastAssistantOfferedGuidedText(lastAssistantMessage) && looksAffirmative(message))
+  const lastTechnique = detectLastTechniqueFromAssistant(lastAssistantMessage)
+  const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
+  const acutePanic = looksLikeAcutePanic(message)
 
   const basePrompt = `
-    Tu es Sophia. (Mode : Ancrage & Urgence).
-    L'utilisateur est en crise (stress, angoisse, craving).
+    Tu es Sophia. (Mode : Firefighter — désamorçage intelligent).
+    L'utilisateur vit une montée de stress/angoisse. Ton job: faire redescendre la pression vite, sans être relou.
     
     DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 100)}..."
 
     OBJECTIF :
-    - Calmer en restant SIMPLE, concret, question-led.
-    - Pas de "poème" / phrases isolées en cascade.
+    - Aider l'utilisateur à retrouver 10–30% de calme en 1 tour.
+    - Être ingénieux: détourner l'attention, remettre du cadre, valider, proposer 2 options, parler franchement si utile.
+    - Éviter les boucles de grounding répétitives (pas "sens le bureau" 4 fois).
 
-    TON STYLE (SOBRE & SOMATIQUE) :
-    - Phrases courtes et naturelles (pas de style poétique).
-    - Utilise des mots sensoriels (respirer, sentir, toucher, sol, air).
-    - Zéro conseil mental ("tu devrais penser à..."). Priorise un micro-geste physique + une question simple.
-    - Tutoiement. Pas de salutations.
+    TON STYLE :
+    - Chaleureux, direct, intelligent. Pas de "moine".
+    - Tu peux utiliser le corps, MAIS pas comme un mantra; 1 micro-geste max si ça aide.
+    - Tutoiement. Pas de salutations. Pas de **.
+    - WhatsApp: très concis.
 
-    FORMAT PAR DÉFAUT (si l'utilisateur n'a PAS demandé de texte guidé) :
-    - 2 à 4 lignes MAX. Pas de lignes vides.
-    - Pas de séquence type "Inspire. Expire." en mode mantra.
-    - Pose 1 à 2 questions maximum, très simples, pour reprendre du contrôle (ex: "Tu es en sécurité là, maintenant ? (oui/non)", "Sur 0–10, c'est à combien ?").
-    - Tu peux proposer UNE option : "Je peux te lire/écrire un mini-texte guidé (30s). Tu veux ?"
+    RÈGLE CRITIQUE :
+    - 1 QUESTION MAX par message.
+    - Ne répète pas le même exercice que ton dernier message.
+    - Si l'utilisateur est juste stressé (pas panique), ne pars pas direct en interrogatoire.
 
-    MODE TEXTE GUIDÉ (UNIQUEMENT si l'utilisateur l'a demandé explicitement, ou s'il vient de dire oui) :
-    - Tu as le droit d'écrire un texte guidé court (max ~10 lignes), mais reste simple et concret (pas de poésie).
-    - Commence par une question de sécurité ("Tu es en sécurité là, maintenant ?").
-    - Puis donne 3 à 5 étapes claires (respiration / ancrage).
+    STRATÉGIES DISPONIBLES (choisis la meilleure) :
+    A) "ab_choice": proposer 2 options très différentes (A/B) et demander le choix (c'est ta stratégie par défaut).
+    B) "reframe": remettre du cadre (église au milieu du village) + 1 micro-étape.
+    C) "name_emotion": nommer l'émotion + normaliser + 1 question simple d'identification.
+    D) "micro_plan": micro-plan 10 minutes (triage ultra simple) + 1 question.
+    E) "guided_30s": mini-script 30 secondes (seulement si demandé).
+    F) "safety_check": si panique/urgence, poser la question de sécurité (oui/non) et rien d'autre.
+
+    CONSIGNES SELON CONTEXTE :
+    - allow_guided_text = ${allowGuidedText ? "true" : "false"}
+    - acute_panic = ${acutePanic ? "true" : "false"}
+    - last_technique = ${lastTechnique ? `"${lastTechnique}"` : "null"}
+    - channel = ${isWhatsApp ? "whatsapp" : "web"}
+
+    CHOIX FORCÉ :
+    - Si acute_panic = true: utilise "safety_check".
+    - Sinon si allow_guided_text = true: utilise "guided_30s".
+    - Sinon: utilise "ab_choice" (par défaut), sauf si last_technique="ab_choice" alors choisis "reframe" ou "micro_plan".
 
     RÈGLES DE FORME :
-    - Pas de gras (pas d'astérisques **).
-    - Pas de pavés.
-    - Jamais de "Salut", "Bonjour" ou de formules de politesse.
-    - Pas d'emoji par défaut.
+    - WhatsApp: 2 à 6 lignes max.
+    - Si "ab_choice": écris exactement deux lignes qui commencent par "A) " et "B) " (une option par ligne), puis UNE question: "Tu préfères A ou B ?"
+    - Si "guided_30s": max 8 lignes, pas de poésie.
+    - Pas d'emojis par défaut (tu peux en mettre 0–1 max si WhatsApp et si ça sert).
 
     CONTEXTE CRISE :
     ${context ? `${context}\n(Cherche les déclencheurs ici)` : ""}
-
-    IMPORTANT :
-    - allow_guided_text = ${allowGuidedText ? "true" : "false"}
-    - Si allow_guided_text = false, respecte STRICTEMENT le FORMAT PAR DÉFAUT.
-    - Si allow_guided_text = true, utilise le MODE TEXTE GUIDÉ.
     
     IMPORTANT - DÉTECTION DE FIN DE CRISE :
     À la fin de ta réponse, tu dois évaluer si la crise semble passée.
@@ -77,6 +114,7 @@ export async function runFirefighter(
     SORTIE JSON ATTENDUE :
     {
       "response": "Le texte de ta réponse à l'utilisateur.",
+      "technique": "one of: safety_check | ab_choice | guided_30s | name_emotion | reframe | micro_plan",
       "resolved": true/false
     }
   `
@@ -100,7 +138,7 @@ export async function runFirefighter(
   } catch (e) {
     console.error("Erreur parsing Pompier:", e)
     return {
-      content: "Je suis là. Respire avec moi. Inspire... Expire...",
+      content: "Je suis là. On fait simple: tu préfères A) vider ce qui te pèse (2 minutes) ou B) un micro-plan pour les 10 prochaines minutes ?",
       crisisResolved: false
     }
   }

@@ -5,7 +5,7 @@ export async function generateWithGemini(
   jsonMode: boolean = false,
   tools: any[] = [],
   toolChoice: string = "auto", // 'auto', 'any' or specific tool name (not supported by all models but 'any' forces tool use)
-  meta?: { requestId?: string; model?: string; source?: string; forceRealAi?: boolean; userId?: string }
+  meta?: { requestId?: string; model?: string; source?: string; forceRealAi?: boolean; userId?: string; maxRetries?: number; httpTimeoutMs?: number }
 ): Promise<string | { tool: string, args: any }> {
   const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
   const parseTimeoutMs = (raw: string | undefined, fallback: number) => {
@@ -18,7 +18,10 @@ export async function generateWithGemini(
    * If an upstream fetch hangs (no response / stalled TLS), we may never reach our retry logging.
    * We therefore enforce an explicit HTTP timeout for Gemini calls so we fail fast, log, and retry/fallback.
    */
-  const GEMINI_HTTP_TIMEOUT_MS = parseTimeoutMs(Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"), 55_000);
+  const GEMINI_HTTP_TIMEOUT_MS =
+    Number.isFinite(Number(meta?.httpTimeoutMs)) && Number(meta?.httpTimeoutMs) > 0
+      ? Math.floor(Number(meta?.httpTimeoutMs))
+      : parseTimeoutMs(Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"), 55_000);
   const makeTimeoutSignal = (timeoutMs: number): { signal: AbortSignal; cancel: () => void } => {
     // Prefer native AbortSignal.timeout when available.
     const anyAbortSignal = AbortSignal as any;
@@ -155,6 +158,8 @@ export async function generateWithGemini(
   }
 
   const MAX_RETRIES = (() => {
+    const fromMeta = Number(meta?.maxRetries);
+    if (Number.isFinite(fromMeta) && fromMeta >= 1) return Math.floor(fromMeta);
     const raw = (Deno.env.get("GEMINI_MAX_RETRIES") ?? "").trim();
     const n = Number(raw);
     // Default: 10 attempts to allow 2.5 -> 3-flash -> 2.0 paths to actually execute.
@@ -211,7 +216,10 @@ export async function generateWithGemini(
       break;
     } catch (e) {
       const isLast = attempt >= MAX_RETRIES;
-      console.error(`[Gemini] request_id=${meta?.requestId ?? "n/a"} attempt=${attempt}/${MAX_RETRIES} error:`, e);
+      console.error(
+        `[Gemini] request_id=${meta?.requestId ?? "n/a"} source=${meta?.source ?? "n/a"} model=${model} attempt=${attempt}/${MAX_RETRIES} error:`,
+        e,
+      );
       if (isLast) throw e;
       await sleep(backoffMs(attempt));
     }

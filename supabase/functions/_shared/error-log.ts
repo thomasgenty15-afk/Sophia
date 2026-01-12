@@ -67,6 +67,12 @@ function normalizeError(err: unknown): { name: string; message: string; stack?: 
   return { name, message, stack }
 }
 
+function scrubText(value: string, maxLen: number): string {
+  const s = String(value ?? "")
+  if (!s) return ""
+  return s.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, maxLen)
+}
+
 export async function logEdgeFunctionError(args: {
   functionName: string
   error: unknown
@@ -103,14 +109,16 @@ export async function logEdgeFunctionError(args: {
 
     const sev: Severity = args.severity ?? "error"
     const { name, message, stack } = normalizeError(args.error)
+    const safeMessage = scrubText(message, 1200)
+    const safeStack = stack ? scrubText(stack, 2400) : null
 
     const insertRow = {
       severity: sev,
       source: (args.source ?? "edge").toString(),
       function_name: args.functionName,
-      title: (args.title ?? name).toString(),
-      message,
-      stack: stack ?? null,
+      title: scrubText((args.title ?? name).toString(), 200),
+      message: safeMessage,
+      stack: safeStack,
       request_id: args.requestId ?? null,
       user_id: args.userId ?? null,
       metadata: { ...(args.metadata ?? {}), error_name: name },
@@ -124,5 +132,4 @@ export async function logEdgeFunctionError(args: {
     console.warn("[logEdgeFunctionError] unexpected failure:", e)
   }
 }
-
 

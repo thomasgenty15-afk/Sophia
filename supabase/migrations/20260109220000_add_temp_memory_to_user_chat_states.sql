@@ -6,3 +6,4 @@ alter table public.user_chat_states
   add column if not exists temp_memory jsonb not null default '{}'::jsonb;
 
 
+

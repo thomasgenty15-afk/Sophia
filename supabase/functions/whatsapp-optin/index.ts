@@ -1,7 +1,7 @@
 /// <reference path="../tsserver-shims.d.ts" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { corsHeaders } from "../config.ts"
+import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 
 function denoEnv(name: string): string | undefined {
@@ -34,6 +34,12 @@ function normalizeToE164(input: string): string {
 }
 
 async function sendTemplate(toE164: string, name: string, language: string, fullName: string) {
+  // Eval-only transport: loopback means "pretend we sent it to WhatsApp",
+  // but do not call Meta/Graph.
+  if (Boolean((globalThis as any).__SOPHIA_WA_LOOPBACK)) {
+    return { messages: [{ id: "wamid_LOOPBACK" }], loopback: true, template: { name, language }, to: toE164 } as any
+  }
+
   // In tests/local deterministic runs we never want to call Meta/Graph.
   if (isMegaTestMode()) {
     return { messages: [{ id: "wamid_MEGA_TEST" }], mega_test_mode: true, template: { name, language }, to: toE164 } as any
@@ -103,8 +109,11 @@ async function sendTemplate(toE164: string, name: string, language: string, full
 const serve = ((globalThis as any)?.Deno?.serve ?? null) as any
 serve(async (req: Request) => {
   if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders })
+    return handleCorsOptions(req)
   }
+  const corsBlock = enforceCors(req)
+  if (corsBlock) return corsBlock
+  const corsHeaders = getCorsHeaders(req)
 
   try {
     const requestId = crypto.randomUUID()
@@ -221,5 +230,4 @@ serve(async (req: Request) => {
     })
   }
 })
-
 

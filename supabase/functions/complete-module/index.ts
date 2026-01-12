@@ -3,6 +3,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts";
 import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
 import { processCoreIdentity } from "../_shared/identity-manager.ts";
+import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts";
 
 type PaidTier = "system" | "alliance" | "architecte";
 
@@ -100,15 +101,33 @@ function getUnlockDate(condition: string = 'fixed_delay', delayDays: number = 0)
 }
 
 serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return handleCorsOptions(req);
+  }
+  const corsErr = enforceCors(req);
+  if (corsErr) return corsErr;
+  const corsHeaders = getCorsHeaders(req);
+
   const supabaseClient = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   );
 
-  const authHeader = req.headers.get('Authorization')!;
+  const authHeader = req.headers.get("Authorization") ?? "";
+  if (!authHeader) {
+    return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
   const { data: { user }, error: userError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
 
-  if (userError || !user) return new Response(JSON.stringify({ error: 'Unauthorized' }), { status: 401 });
+  if (userError || !user) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      status: 401,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   const { moduleId } = await req.json();
 
@@ -122,7 +141,7 @@ serve(async (req) => {
     if (Number.isFinite(n) && n > 2 && !hasFullArchitecte) {
       return new Response(JSON.stringify({ error: "Paywall: requires architecte", required_tier: "architecte" }), {
         status: 402,
-        headers: { "Content-Type": "application/json" },
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
   }
@@ -238,7 +257,12 @@ serve(async (req) => {
     .eq('user_id', user.id)
     .eq('module_id', moduleId);
 
-  if (updateError) return new Response(JSON.stringify({ error: updateError }), { status: 500 });
+  if (updateError) {
+    return new Response(JSON.stringify({ error: updateError }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 
   // --- 3. UNLOCK NEXT MODULES ---
   const config = MODULES_REGISTRY[moduleId];
@@ -327,5 +351,7 @@ serve(async (req) => {
       }
   }
 
-  return new Response(JSON.stringify({ success: true }), { headers: { "Content-Type": "application/json" } });
+  return new Response(JSON.stringify({ success: true }), {
+    headers: { ...corsHeaders, "Content-Type": "application/json" },
+  });
 });

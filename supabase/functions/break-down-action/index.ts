@@ -1,12 +1,12 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { ensureInternalRequest } from "../_shared/internal-auth.ts"
+import { getCorsHeaders } from "../_shared/cors.ts"
 
 serve(async (req) => {
+  const guard = ensureInternalRequest(req)
+  if (guard) return guard
+  const corsHeaders = getCorsHeaders(req)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -35,7 +35,23 @@ serve(async (req) => {
       return new Response(JSON.stringify(finalAction), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
     }
 
-    const { action, problem, plan, submissionId } = await req.json()
+    let parsed: any = null
+    try {
+      parsed = await req.json()
+    } catch {
+      return new Response(
+        JSON.stringify({ error: "Invalid JSON body" }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 },
+      )
+    }
+
+    const { action, problem, plan, submissionId } = parsed ?? {}
+    if (!action || typeof action !== "object" || !String(problem ?? "").trim()) {
+      return new Response(
+        JSON.stringify({ error: "Missing required fields: action, problem" }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 400 },
+      )
+    }
 
     // 1. Initialize Supabase Client
     const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
@@ -185,10 +201,10 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Error:', error)
+    const msg = error instanceof Error ? error.message : String(error)
     return new Response(
-      JSON.stringify({ error: error.message }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      JSON.stringify({ error: "Internal Server Error", detail: msg }),
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 },
     )
   }
 })
-

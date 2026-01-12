@@ -2,11 +2,14 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini } from '../_shared/gemini.ts'
 import { WEEKS_CONTENT } from '../_shared/weeksContent.ts'
+import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 
 console.log("Update Core Identity Function initialized")
 
 Deno.serve(async (req) => {
   try {
+    const guard = ensureInternalRequest(req)
+    if (guard) return guard
     const payload = await req.json()
     
     // Le payload vient du Trigger Database
@@ -155,4 +158,3 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ error: error.message }), { status: 500 })
   }
 })
-

@@ -24,3 +24,4 @@ on conflict (key) do update
 -- set trial_end = greatest(coalesce(trial_end, now()), now()) + interval '365 days';
 
 
+

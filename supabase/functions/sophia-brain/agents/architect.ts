@@ -2,6 +2,7 @@ import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini } from '../../_shared/gemini.ts'
 import { handleTracking } from "../lib/tracking.ts"
 import { logEdgeFunctionError } from "../../_shared/error-log.ts"
+import { callBreakDownActionEdge } from "./investigator/breakdown.ts"
 
 export type ArchitectModelOutput =
   | string
@@ -77,6 +78,32 @@ const TRACK_PROGRESS_TOOL = {
   }
 }
 
+const BREAK_DOWN_ACTION_TOOL = {
+  name: "break_down_action",
+  description:
+    "Génère une micro-étape (action intermédiaire) pour débloquer UNE action. À appeler uniquement si l'utilisateur accepte explicitement ('oui', 'ok', etc.).",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_title_or_id: {
+        type: "STRING",
+        description: "Titre ou ID de l'action à débloquer (requis si plusieurs actions existent).",
+      },
+      problem: {
+        type: "STRING",
+        description: "Pourquoi ça bloque / ce que l'utilisateur dit (ex: 'pas le temps le soir', 'trop fatigué', 'j'oublie').",
+      },
+      apply_to_plan: {
+        type: "BOOLEAN",
+        description:
+          "Si true, ajoute la micro-étape dans le plan actif (user_plans.content) et crée aussi la ligne user_actions correspondante.",
+        default: true,
+      },
+    },
+    required: ["problem"],
+  },
+}
+
 const UPDATE_ACTION_TOOL = {
   name: "update_action_structure",
   description: "Modifie la structure d'une action existante (Titre, Description, Fréquence). À utiliser si l'utilisateur dit 'Change le nom en X', 'Mets la fréquence à 3'.",
@@ -119,8 +146,8 @@ const ARCHIVE_ACTION_TOOL = {
 
 export function getArchitectTools(opts: { inWhatsAppGuard24h: boolean }) {
   return opts.inWhatsAppGuard24h
-    ? [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
-    : [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, UPDATE_ACTION_TOOL, ACTIVATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
+    ? [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, BREAK_DOWN_ACTION_TOOL, UPDATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
+    : [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, BREAK_DOWN_ACTION_TOOL, UPDATE_ACTION_TOOL, ACTIVATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
 }
 
 export function buildArchitectSystemPromptLite(opts: {
@@ -142,6 +169,7 @@ RÈGLES:
 
 OUTILS (si proposés):
 - "track_progress": uniquement si l'utilisateur dit explicitement qu'il a fait/pas fait une action.
+- "break_down_action": uniquement si une action bloque et que l'utilisateur accepte explicitement de la découper en micro-étape.
 - "create_simple_action"/"create_framework"/"update_action_structure"/"archive_plan_action"/"activate_plan_action": uniquement si le contexte indique un plan actif et si l'utilisateur demande clairement ce changement.
 ${isWa ? `- IMPORTANT WhatsApp: éviter les opérations "activation" pendant onboarding si le contexte le bloque.\n` : ""}
 
@@ -150,6 +178,155 @@ Dernière réponse de Sophia: "${String(opts.lastAssistantMessage ?? "").slice(0
 === CONTEXTE OPÉRATIONNEL ===
 ${String(opts.context ?? "").slice(0, 7000)}
   `.trim()
+}
+
+function findActionInPlanContent(planContent: any, needle: string): { action: any; phaseIndex: number; actionIndex: number } | null {
+  const s = String(needle ?? "").trim().toLowerCase()
+  if (!s) return null
+  const phases = planContent?.phases
+  if (!Array.isArray(phases)) return null
+  for (let pIdx = 0; pIdx < phases.length; pIdx++) {
+    const p = phases[pIdx]
+    const actions = p?.actions
+    if (!Array.isArray(actions)) continue
+    for (let aIdx = 0; aIdx < actions.length; aIdx++) {
+      const a = actions[aIdx]
+      const title = String(a?.title ?? "").trim().toLowerCase()
+      const id = String(a?.id ?? "").trim().toLowerCase()
+      if (!title && !id) continue
+      if (id && id === s) return { action: a, phaseIndex: pIdx, actionIndex: aIdx }
+      if (title && (title === s || title.includes(s))) return { action: a, phaseIndex: pIdx, actionIndex: aIdx }
+    }
+  }
+  return null
+}
+
+function insertActionBeforeInPlanByTitle(planContent: any, targetTitle: string, newAction: any): { updated: any; inserted: boolean } {
+  if (!planContent || typeof planContent !== "object") return { updated: planContent, inserted: false }
+  const phases = (planContent as any)?.phases
+  if (!Array.isArray(phases)) return { updated: planContent, inserted: false }
+
+  const cloned = structuredClone(planContent)
+  const phases2 = (cloned as any).phases
+  for (const p of phases2) {
+    const actions = p?.actions
+    if (!Array.isArray(actions)) continue
+    const idx = actions.findIndex((a: any) => String(a?.title ?? "").trim() === String(targetTitle ?? "").trim())
+    if (idx >= 0) {
+      actions.splice(idx, 0, newAction)
+      return { updated: cloned, inserted: true }
+    }
+  }
+  return { updated: planContent, inserted: false }
+}
+
+async function handleBreakDownAction(opts: {
+  supabase: SupabaseClient
+  userId: string
+  planRow: { id: string; submission_id: string; content: any }
+  args: any
+}): Promise<{ text: string; tool_execution: "success" | "failed" | "uncertain" }> {
+  const { supabase, userId, planRow, args } = opts
+  const problem = String(args?.problem ?? "").trim()
+  const applyToPlan = args?.apply_to_plan !== false
+  const actionNeedle = String(args?.action_title_or_id ?? "").trim()
+
+  if (!problem) return { text: "Ok — j’ai besoin d’UNE phrase: qu’est-ce qui bloque exactement ?", tool_execution: "failed" }
+  if (!actionNeedle) {
+    return { text: "Ok. Quelle action tu veux débloquer exactement ? (donne-moi son titre)", tool_execution: "failed" }
+  }
+
+  const found = findActionInPlanContent(planRow.content, actionNeedle)
+  if (!found?.action?.title) {
+    return { text: `Je ne retrouve pas "${actionNeedle}" dans ton plan actif. Tu peux me redonner le titre exact ?`, tool_execution: "failed" }
+  }
+
+  const targetTitle = String(found.action.title)
+  const { data: actionRow } = await supabase
+    .from("user_actions")
+    .select("title, description, tracking_type, time_of_day, target_reps, submission_id")
+    .eq("user_id", userId)
+    .eq("plan_id", planRow.id)
+    .ilike("title", targetTitle)
+    .maybeSingle()
+
+  const helpingAction = {
+    title: String(actionRow?.title ?? found.action.title),
+    description: String(actionRow?.description ?? found.action.description ?? ""),
+    tracking_type: String(actionRow?.tracking_type ?? found.action.tracking_type ?? "boolean"),
+    time_of_day: String(actionRow?.time_of_day ?? found.action.time_of_day ?? "any_time"),
+    targetReps: Number(actionRow?.target_reps ?? found.action.targetReps ?? 1) || 1,
+  }
+
+  const proposed = await callBreakDownActionEdge({
+    action: helpingAction,
+    problem,
+    plan: planRow.content ?? null,
+    submissionId: planRow.submission_id ?? (actionRow as any)?.submission_id ?? null,
+  })
+
+  const stepId = String(proposed?.id ?? `act_${Date.now()}`)
+  const stepTitle = String(proposed?.title ?? "Micro-étape").trim()
+  const stepDesc = String(proposed?.description ?? "").trim()
+  const tip = String(proposed?.tips ?? "").trim()
+  const rawType = String(proposed?.type ?? "mission")
+
+  const newActionJson = {
+    id: stepId,
+    type: rawType,
+    title: stepTitle,
+    description: stepDesc || "Micro-étape pour débloquer l'action.",
+    questType: "side",
+    targetReps: Number(proposed?.targetReps ?? 1) || 1,
+    tips: tip,
+    rationale: "Micro-étape générée pour débloquer une action.",
+    tracking_type: String(proposed?.tracking_type ?? helpingAction.tracking_type ?? "boolean"),
+    time_of_day: String(proposed?.time_of_day ?? helpingAction.time_of_day ?? "any_time"),
+  }
+
+  if (!applyToPlan) {
+    const txt =
+      `Ok. Micro-étape (2 min) pour "${targetTitle}":\n` +
+      `- ${stepTitle}${stepDesc ? ` — ${stepDesc}` : ""}\n` +
+      (tip ? `\nTip: ${tip}` : "") +
+      `\n\nTu veux que je l’ajoute à ton plan ?`
+    return { text: txt, tool_execution: "uncertain" }
+  }
+
+  const { updated, inserted } = insertActionBeforeInPlanByTitle(planRow.content, targetTitle, newActionJson)
+  if (inserted) {
+    const { error: upErr } = await supabase.from("user_plans").update({ content: updated }).eq("id", planRow.id)
+    if (upErr) console.error("[Architect] Failed to update plan content for breakdown:", upErr)
+  }
+
+  const trackingType = String(newActionJson.tracking_type ?? "boolean")
+  const timeOfDay = String(newActionJson.time_of_day ?? "any_time")
+  const targetReps = Number(newActionJson.targetReps ?? 1) || 1
+  const dbType = rawType === "habitude" ? "habit" : rawType
+  const { error: insErr } = await supabase.from("user_actions").insert({
+    user_id: userId,
+    plan_id: planRow.id,
+    submission_id: planRow.submission_id,
+    type: dbType === "framework" ? "mission" : dbType,
+    title: stepTitle,
+    description: stepDesc || "Micro-étape pour débloquer l'action.",
+    target_reps: targetReps,
+    current_reps: 0,
+    status: "active",
+    tracking_type: trackingType,
+    time_of_day: timeOfDay,
+  })
+  if (insErr) {
+    console.error("[Architect] Failed to insert breakdown user_action:", insErr)
+    return { text: "Je l’ai bien générée, mais j’ai eu un souci technique pour l’ajouter au plan. Retente dans 10s.", tool_execution: "failed" }
+  }
+
+  const reply =
+    `Ok. Je te mets une micro-étape (2 min) pour débloquer "${targetTitle}":\n` +
+    `- ${stepTitle}${stepDesc ? ` — ${stepDesc}` : ""}\n` +
+    (tip ? `\nTip: ${tip}` : "") +
+    `\n\nTu veux la faire maintenant (oui/non) ?`
+  return { text: reply, tool_execution: "success" }
 }
 
 // --- HELPERS ---
@@ -686,12 +863,12 @@ export async function handleArchitectModelOutput(opts: {
   response: ArchitectModelOutput
   inWhatsAppGuard24h: boolean
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
-}): Promise<string> {
+}): Promise<{ text: string; executed_tools: string[]; tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain" }> {
   const { supabase, userId, message, response, inWhatsAppGuard24h, meta } = opts
 
   if (typeof response === 'string') {
     // Nettoyage de sécurité pour virer les ** si l'IA a désobéi
-    return response.replace(/\*\*/g, '')
+    return { text: response.replace(/\*\*/g, ''), executed_tools: [], tool_execution: "none" }
   }
 
   if (typeof response === 'object') {
@@ -702,7 +879,11 @@ export async function handleArchitectModelOutput(opts: {
 
       // HARD GUARD (WhatsApp onboarding 24h): never activate via WhatsApp.
       if (inWhatsAppGuard24h && toolName === "activate_plan_action") {
-        return "Je peux te guider, mais pendant l’onboarding WhatsApp je ne peux pas activer d’actions depuis ici.\n\nVa sur le dashboard pour l’activer, et dis-moi quand c’est fait."
+        return {
+          text: "Je peux te guider, mais pendant l’onboarding WhatsApp je ne peux pas activer d’actions depuis ici.\n\nVa sur le dashboard pour l’activer, et dis-moi quand c’est fait.",
+          executed_tools: [toolName],
+          tool_execution: "blocked",
+        }
       }
 
       // TRACKING (Pas besoin de plan)
@@ -729,7 +910,11 @@ export async function handleArchitectModelOutput(opts: {
             source: "sophia-brain:architect_followup",
             forceRealAi: meta?.forceRealAi,
           })
-          return typeof followUpResponse === 'string' ? followUpResponse.replace(/\*\*/g, '') : "Ok."
+          return {
+            text: typeof followUpResponse === 'string' ? followUpResponse.replace(/\*\*/g, '') : "Ok.",
+            executed_tools: [toolName],
+            tool_execution: "uncertain",
+          }
         }
 
         // Cas : Succès => On génère une confirmation naturelle
@@ -755,26 +940,41 @@ export async function handleArchitectModelOutput(opts: {
           source: "sophia-brain:architect_confirmation",
           forceRealAi: meta?.forceRealAi,
         })
-        return typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "Ok."
+        return {
+          text: typeof confirmationResponse === 'string' ? confirmationResponse.replace(/\*\*/g, '') : "Ok.",
+          executed_tools: [toolName],
+          tool_execution: "success",
+        }
       }
 
       // OPERATIONS SUR LE PLAN (Besoin du plan actif)
       const { data: plan, error: planError } = await supabase
         .from('user_plans')
-        .select('id, submission_id') 
+        .select('id, submission_id, content') 
         .eq('user_id', userId)
         .eq('status', 'active')
         .single()
 
       if (planError || !plan) {
         console.warn(`[Architect] ⚠️ No active plan found for user ${userId}`)
-        return "Je ne trouve pas de plan actif pour faire cette modification."
+        return { text: "Je ne trouve pas de plan actif pour faire cette modification.", executed_tools: [toolName], tool_execution: "failed" }
       }
     
       console.log(`[Architect] ✅ Active Plan found: ${plan.id}`)
 
+      if (toolName === "break_down_action") {
+        const out = await handleBreakDownAction({
+          supabase,
+          userId,
+          planRow: { id: (plan as any).id, submission_id: (plan as any).submission_id, content: (plan as any).content },
+          args: (response as any).args,
+        })
+        return { text: out.text, executed_tools: [toolName], tool_execution: out.tool_execution }
+      }
+
       if (toolName === 'update_action_structure') {
-        return await handleUpdateAction(supabase, userId, plan.id, (response as any).args)
+        const txt = await handleUpdateAction(supabase, userId, plan.id, (response as any).args)
+        return { text: txt, executed_tools: [toolName], tool_execution: "success" }
       }
 
       if (toolName === 'activate_plan_action') {
@@ -798,11 +998,17 @@ export async function handleArchitectModelOutput(opts: {
           source: "sophia-brain:architect_activation_response",
           forceRealAi: meta?.forceRealAi,
         })
-        return typeof activationResponse === 'string' ? activationResponse.replace(/\*\*/g, '') : activationResult
+        return {
+          text: typeof activationResponse === 'string' ? activationResponse.replace(/\*\*/g, '') : activationResult,
+          executed_tools: [toolName],
+          // Activation can be refused or succeed; we conservatively mark uncertain so the global verifier won't over-claim.
+          tool_execution: "uncertain",
+        }
       }
 
       if (toolName === 'archive_plan_action') {
-        return await handleArchiveAction(supabase, userId, (response as any).args)
+        const txt = await handleArchiveAction(supabase, userId, (response as any).args)
+        return { text: txt, executed_tools: [toolName], tool_execution: "success" }
       }
 
       if (toolName === 'create_simple_action') {
@@ -824,7 +1030,11 @@ export async function handleArchitectModelOutput(opts: {
       })
       if (insertErr) {
         console.error("[Architect] ❌ user_actions insert failed:", insertErr)
-        return `Oups — j’ai eu un souci technique en créant l’action "${title}".\n\nVa jeter un œil sur le dashboard pour confirmer si elle apparaît. Si tu veux, dis-moi “retente” et je la recrée proprement.`
+        return {
+          text: `Oups — j’ai eu un souci technique en créant l’action "${title}".\n\nVa jeter un œil sur le dashboard pour confirmer si elle apparaît. Si tu veux, dis-moi “retente” et je la recrée proprement.`,
+          executed_tools: [toolName],
+          tool_execution: "failed",
+        }
       }
 
       const newActionJson = {
@@ -841,16 +1051,28 @@ export async function handleArchitectModelOutput(opts: {
       }
       
       const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
-      if (status === 'duplicate') return `Oula ! ✋\n\nL'action "${title}" existe déjà.`
-      if (status === 'error') return "Erreur technique lors de la mise à jour du plan visuel."
+      if (status === 'duplicate') {
+        return { text: `Oula ! ✋\n\nL'action "${title}" existe déjà.`, executed_tools: [toolName], tool_execution: "success" }
+      }
+      if (status === 'error') {
+        return { text: "Erreur technique lors de la mise à jour du plan visuel.", executed_tools: [toolName], tool_execution: "failed" }
+      }
 
       const verify = await verifyActionCreated(supabase, userId, plan.id, { title, actionId })
       if (!verify.db_ok || !verify.json_ok) {
         console.warn("[Architect] ⚠️ Post-create verification failed:", verify)
-        return `Je viens de tenter de créer "${title}", mais je ne la vois pas encore clairement dans ton plan (il y a peut-être eu un loupé de synchro).\n\nOuvre le dashboard et dis-moi si tu la vois. Sinon, dis “retente” et je la recrée.`
+        return {
+          text: `Je viens de tenter de créer "${title}", mais je ne la vois pas encore clairement dans ton plan (il y a peut-être eu un loupé de synchro).\n\nOuvre le dashboard et dis-moi si tu la vois. Sinon, dis “retente” et je la recrée.`,
+          executed_tools: [toolName],
+          tool_execution: "uncertain",
+        }
       }
 
-        return `C'est validé ! ✅\n\nJe viens de vérifier: l’action "${title}" est bien dans ton plan.\nOn s’y met quand ?`
+        return {
+          text: `C'est validé ! ✅\n\nJe viens de vérifier: l’action "${title}" est bien dans ton plan.\nOn s’y met quand ?`,
+          executed_tools: [toolName],
+          tool_execution: "success",
+        }
       }
 
       if (toolName === 'create_framework') {
@@ -870,8 +1092,12 @@ export async function handleArchitectModelOutput(opts: {
       }
 
       const status = await injectActionIntoPlanJson(supabase, plan.id, newActionJson)
-      if (status === 'duplicate') return `Doucement ! ✋\n\nL'exercice "${title}" est déjà là.`
-      if (status === 'error') return "Erreur technique lors de l'intégration du framework."
+      if (status === 'duplicate') {
+        return { text: `Doucement ! ✋\n\nL'exercice "${title}" est déjà là.`, executed_tools: [toolName], tool_execution: "success" }
+      }
+      if (status === 'error') {
+        return { text: "Erreur technique lors de l'intégration du framework.", executed_tools: [toolName], tool_execution: "failed" }
+      }
 
       const { error: fwInsertErr } = await supabase.from('user_actions').insert({
         user_id: userId,
@@ -886,16 +1112,28 @@ export async function handleArchitectModelOutput(opts: {
       })
       if (fwInsertErr) {
         console.error("[Architect] ❌ user_actions insert failed (framework):", fwInsertErr)
-        return `Oups — j’ai eu un souci technique en créant l’exercice "${title}".\n\nVa vérifier sur le dashboard si tu le vois. Si tu ne le vois pas, dis “retente” et je le recrée.`
+        return {
+          text: `Oups — j’ai eu un souci technique en créant l’exercice "${title}".\n\nVa vérifier sur le dashboard si tu le vois. Si tu ne le vois pas, dis “retente” et je le recrée.`,
+          executed_tools: [toolName],
+          tool_execution: "failed",
+        }
       }
 
       const verify = await verifyActionCreated(supabase, userId, plan.id, { title, actionId })
       if (!verify.db_ok || !verify.json_ok) {
         console.warn("[Architect] ⚠️ Post-create verification failed (framework):", verify)
-        return `Je viens de tenter d’intégrer "${title}", mais je ne le vois pas encore clairement dans ton plan (possible loupé de synchro).\n\nRegarde sur le dashboard et dis-moi si tu le vois. Sinon, dis “retente” et je le recrée.`
+        return {
+          text: `Je viens de tenter d’intégrer "${title}", mais je ne le vois pas encore clairement dans ton plan (possible loupé de synchro).\n\nRegarde sur le dashboard et dis-moi si tu le vois. Sinon, dis “retente” et je le recrée.`,
+          executed_tools: [toolName],
+          tool_execution: "uncertain",
+        }
       }
 
-        return `C'est fait ! 🏗️\n\nJe viens de vérifier: "${title}" est bien dans ton plan.\nTu veux le faire quand ?`
+        return {
+          text: `C'est fait ! 🏗️\n\nJe viens de vérifier: "${title}" est bien dans ton plan.\nTu veux le faire quand ?`,
+          executed_tools: [toolName],
+          tool_execution: "success",
+        }
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e)
@@ -933,13 +1171,18 @@ export async function handleArchitectModelOutput(opts: {
         } as any)
       } catch {}
       return (
-        "Ok, j’ai eu un souci technique en faisant ça.\n\n" +
-        "Va voir sur le dashboard pour confirmer, et dis-moi si tu vois le changement. Sinon, dis “retente”."
+        {
+          text:
+            "Ok, j’ai eu un souci technique en faisant ça.\n\n" +
+            "Va voir sur le dashboard pour confirmer, et dis-moi si tu vois le changement. Sinon, dis “retente”.",
+          executed_tools: toolName ? [toolName] : [],
+          tool_execution: "failed",
+        }
       )
     }
   }
 
-  return String(response ?? "")
+  return { text: String(response ?? ""), executed_tools: [], tool_execution: "none" }
 }
 
 export async function runArchitect(
@@ -950,7 +1193,7 @@ export async function runArchitect(
   userState: any,
   context: string = "",
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
-): Promise<string> {
+): Promise<{ text: string; executed_tools: string[]; tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain" }> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
   const inWhatsAppGuard24h = isWhatsApp && /WHATSAPP_ONBOARDING_GUARD_24H=true/i.test(context ?? "")
@@ -1004,8 +1247,14 @@ export async function runArchitect(
       },
     })
 
+    const createdLower = String(createdMsg || "").toLowerCase()
+    const creationFailed = createdLower.includes("je ne trouve pas de plan actif") || createdLower.includes("erreur")
+    const creationDuplicate = createdLower.includes("déjà")
+    const intro = creationFailed
+      ? "Ok. Voilà l'exercice Attrape‑Rêves Mental."
+      : (creationDuplicate ? "Ok. L'exercice Attrape‑Rêves Mental est déjà dans ton plan." : "Ok. Attrape‑Rêves Mental activé.")
     const steps =
-      `Ok. Attrape‑Rêves Mental activé.\n\n` +
+      `${intro}\n\n` +
       `On le fait maintenant (2–4 min) :\n` +
       `- 1) Note la pensée qui tourne en boucle (1 phrase)\n` +
       `- 2) Écris le scénario catastrophe (sans filtre)\n` +
@@ -1014,10 +1263,10 @@ export async function runArchitect(
       `Envoie-moi juste ta ligne 1 quand tu veux, et je t’aide à faire le 2→3 proprement.`
 
     // If the framework couldn't be created (no active plan), be honest but still deliver the exercise.
-    if (String(createdMsg || "").toLowerCase().includes("je ne trouve pas de plan actif")) {
-      return `${steps}\n\n(Je peux te le mettre dans ton plan dès que tu as un plan actif.)`
+    if (creationFailed) {
+      return { text: `${steps}\n\n(Je peux te le mettre dans ton plan dès que tu as un plan actif.)`, executed_tools: [], tool_execution: "none" }
     }
-    return steps
+    return { text: steps, executed_tools: ["create_framework"], tool_execution: creationDuplicate ? "uncertain" : "success" }
   }
 
   const basePrompt = isWhatsApp ? `
@@ -1034,6 +1283,7 @@ export async function runArchitect(
 
     OUTILS :
     - track_progress: quand l'utilisateur dit qu'il a fait / pas fait une action.
+    - break_down_action: si une action bloque ET que l'utilisateur accepte explicitement qu'on la découpe en micro-étape (2 min).
     - update_action_structure: si l'utilisateur demande un changement sur une action existante.
     - create_simple_action / create_framework: uniquement si un plan actif existe (sinon refuse).
     - activate_plan_action: pour activer une action future (sauf si guard onboarding 24h).
@@ -1082,6 +1332,9 @@ export async function runArchitect(
        - À utiliser si l'utilisateur veut avancer plus vite et lancer une action d'une phase suivante.
        - L'outil vérifiera AUTOMATIQUEMENT si les fondations (phase précédente) sont posées. Tu n'as pas à faire le check toi-même.
        - Si l'outil refuse (message "murs avant le toit"), transmets ce message pédagogique à l'utilisateur.
+    6. "break_down_action" : DÉCOUPER une action en micro-étape (2 minutes).
+       - UNIQUEMENT après accord explicite du user ("oui", "ok", "vas-y").
+       - Passe "action_title_or_id" (titre ou id) + "problem" (raison) + apply_to_plan=true par défaut.
 
     RÈGLE D'OR (CRÉATION/MODIF) :
     - Regarde le CONTEXTE ci-dessous. Si tu vois "AUCUN PLAN DE TRANSFORMATION ACTIF" :
@@ -1225,10 +1478,4 @@ export async function runArchitect(
 
   const response = await generateArchitectModelOutput({ systemPrompt, message, history, tools, meta })
   return await handleArchitectModelOutput({ supabase, userId, message, response, inWhatsAppGuard24h, meta })
-
-      return `C'est fait ! 🏗️\n\nJe viens de vérifier: "${title}" est bien dans ton plan.\nTu devrais le voir apparaître dans tes actions.`
-    }
-  }
-
-  return response as unknown as string
 }

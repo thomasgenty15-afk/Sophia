@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { corsHeaders } from '../config.ts'
+import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
 import { processMessage } from './router.ts'
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 
@@ -9,8 +9,10 @@ console.log("Sophia Brain: Function initialized")
 Deno.serve(async (req) => {
   // Gestion du CORS
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return handleCorsOptions(req)
   }
+  const corsBlock = enforceCors(req)
+  if (corsBlock) return corsBlock
 
   const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
   let authedUserId: string | null = null
@@ -18,7 +20,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json()
     let message = (body?.message ?? body?.content ?? "").toString()
-    const history = Array.isArray(body?.history) ? body.history : []
+    const clientHistory = Array.isArray(body?.history) ? body.history : []
     let forceMode = (body?.forceMode ?? body?.force_mode) as string | undefined
     let contextOverride = (body?.contextOverride ?? body?.context_override ?? body?.context) as string | undefined
     const logMessages = body?.logMessages ?? body?.log_messages
@@ -61,6 +63,39 @@ Deno.serve(async (req) => {
 
     console.log(`Processing message for user ${user.id}: "${message.substring(0, 50)}..."`)
 
+    function sanitizeHistory(raw: any[]): any[] {
+      const rows = Array.isArray(raw) ? raw : []
+      return rows
+        .filter((m) => m && (m.role === "user" || m.role === "assistant"))
+        .map((m) => ({
+          role: m.role,
+          content: String(m.content ?? "").slice(0, 1200),
+          created_at: (m as any)?.created_at ?? null,
+          agent_used: (m as any)?.agent_used ?? null,
+        }))
+        .slice(-20)
+    }
+
+    let history: any[] = []
+    try {
+      const scopeResolved = (scope ?? (channel === "whatsapp" ? "whatsapp" : "web")).toString()
+      const { data: rows } = await supabaseClient
+        .from("chat_messages")
+        .select("role, content, created_at, agent_used")
+        .eq("user_id", user.id)
+        .eq("scope", scopeResolved)
+        .order("created_at", { ascending: false })
+        .limit(20)
+      history = (rows ?? []).slice().reverse().map((r: any) => ({
+        role: r.role,
+        content: r.content,
+        created_at: r.created_at,
+        agent_used: r.agent_used,
+      }))
+    } catch {
+      history = sanitizeHistory(clientHistory)
+    }
+
     // LE CŒUR DU RÉACTEUR
     const response = await processMessage(
       supabaseClient,
@@ -79,7 +114,7 @@ Deno.serve(async (req) => {
     )
 
     return new Response(JSON.stringify(response), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
     })
 
   } catch (error) {
@@ -98,8 +133,7 @@ Deno.serve(async (req) => {
     })
     return new Response(JSON.stringify({ error: (error as any)?.message ?? String(error) }), {
       status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
     })
   }
 })
-

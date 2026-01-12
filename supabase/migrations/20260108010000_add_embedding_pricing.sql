@@ -10,3 +10,4 @@ set
   output_per_1k_tokens_usd = excluded.output_per_1k_tokens_usd,
   updated_at = now();
 
+

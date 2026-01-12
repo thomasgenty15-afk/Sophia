@@ -115,13 +115,45 @@ SORTIE JSON:
 }
   `.trim();
 
-  const raw = await generateWithGemini(systemPrompt, "Analyse et corrige si nécessaire.", 0.0, true, [], "auto", {
-    requestId: args.meta?.requestId,
-    userId: args.meta?.userId,
-    model: getAgentJudgeModel(),
-    source: `sophia-brain:${args.kind}_judge:${args.agent}:${args.channel}`,
-    forceRealAi: args.meta?.forceRealAi,
-  });
+  // Fast fallback for judge calls:
+  // - 1 attempt with 3.0 flash, 1 attempt with 2.5, 1 attempt with 2.0
+  // - then loop back to 3.0 (repeat cycle)
+  // - each attempt is a single HTTP call (no internal retries) to keep wall-clock bounded.
+  const judgeModelCycle = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.0-flash"];
+  const maxAttempts = (() => {
+    const raw = (Deno.env.get("SOPHIA_AGENT_JUDGE_MAX_ATTEMPTS") ?? "").trim();
+    const n = Number(raw);
+    // Default: 9 (three full cycles). Increase if needed, but keep bounded to avoid edge-runtime wall-clock kills.
+    return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 9;
+  })();
+  const perAttemptTimeoutMs = (() => {
+    const raw = (Deno.env.get("SOPHIA_AGENT_JUDGE_HTTP_TIMEOUT_MS") ?? "").trim();
+    const n = Number(raw);
+    // Default: 25s per attempt (faster fallback than the general 55s).
+    return Number.isFinite(n) && n >= 1000 ? Math.floor(n) : 25_000;
+  })();
+
+  let raw: unknown = null;
+  let lastErr: unknown = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const model = judgeModelCycle[(attempt - 1) % judgeModelCycle.length] ?? getAgentJudgeModel();
+    try {
+      raw = await generateWithGemini(systemPrompt, "Analyse et corrige si nécessaire.", 0.0, true, [], "auto", {
+        requestId: args.meta?.requestId,
+        userId: args.meta?.userId,
+        model,
+        source: `sophia-brain:${args.kind}_judge:${args.agent}:${args.channel}`,
+        forceRealAi: args.meta?.forceRealAi,
+        // Force a single attempt per model; we do fallback externally via the cycle.
+        maxRetries: 1,
+        httpTimeoutMs: perAttemptTimeoutMs,
+      });
+      break;
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  if (raw == null && lastErr) throw lastErr;
 
   const parsed = parseOneShotJudgeJson(raw);
   if (!parsed) {
@@ -248,12 +280,68 @@ function looksLikeShortUserMessage(userMessage: unknown): boolean {
   return /\b(ok|oui|vas y|go|suite|next|continue|on y va|daccord|ça marche)\b/i.test(s);
 }
 
+function buildAntiClaimViolations(text: string, ctx: {
+  channel: "web" | "whatsapp";
+  tools_executed?: boolean;
+  executed_tools?: string[];
+  tool_execution?: "none" | "blocked" | "success" | "failed" | "uncertain" | string;
+  whatsapp_guard_24h?: boolean;
+}): string[] {
+  const v: string[] = []
+  const s = String(text ?? "")
+  const channel = ctx.channel
+  const toolsExecuted = Boolean(ctx.tools_executed)
+  const toolExecution = String(ctx.tool_execution ?? "none").toLowerCase()
+  const verifiedSideEffect = toolsExecuted && (toolExecution === "success" || toolExecution === "uncertain")
+
+  // A) Unverified state/side-effect claims
+  const claimsSideEffect =
+    /\b(j['’]ai|je\s+viens\s+de)\s+(?:cr[ée]er|cr[ée]e|ajouter|activ[ée]r?|modifier|mettre\s+à\s+jour|mettre\s+a\s+jour|archiver|supprimer|enregistrer|noter|synchroniser|synchro)\b/i
+      .test(s) ||
+    /\b(c['’]est\s+(?:fait|valid[ée]|enregistr[ée]|cr[ée][ée]))\b/i.test(s) ||
+    /\b(je\s+viens\s+de\s+v[ée]rifier|j['’]ai\s+v[ée]rifi[ée])\b/i.test(s) && /\b(plan|dashboard|actions?)\b/i.test(s)
+
+  if (claimsSideEffect && !verifiedSideEffect) {
+    v.push("unverified_side_effect_claim")
+  }
+
+  // B) WhatsApp unsupported capability promises (channel limitations)
+  // Keep this conservative: only block clearly unsupported capabilities (calls/emails/calendar/device access).
+  const promisesCapability =
+    /\bje\s+peux\b/i.test(s) &&
+    (
+      /\b(appeler|t['’]appeler|t[eé]l[eé]phoner|passer\s+un\s+appel)\b/i.test(s) ||
+      /\b(envoyer)\s+(?:un\s+)?(?:mail|email|sms|message)\b/i.test(s) ||
+      /\b(acc[eè]der)\s+(?:à|a)\s+(?:ton|ta|tes)\s+(?:calendrier|bo[iî]te\s+mail|emails?|sms|messages?)\b/i.test(s) ||
+      /\b(prendre|r[eé]server|booker)\s+(?:un\s+)?rendez[-\s]*vous\b/i.test(s) ||
+      /\b(me\s+connecter|acc[eè]der)\s+(?:à|a)\s+ton\s+compte\b/i.test(s) ||
+      /\b(voir)\s+(?:ton|ta)\s+(?:[eé]cran|app|dashboard)\b/i.test(s)
+    )
+
+  if (channel === "whatsapp" && promisesCapability) {
+    v.push("unsupported_capability_claim_whatsapp")
+  }
+
+  // C) WhatsApp onboarding guard: never promise activation from WhatsApp.
+  if (channel === "whatsapp" && ctx.whatsapp_guard_24h) {
+    if (/\bje\s+peux\b/i.test(s) && /\b(activer|activer\s+une\s+action|lancer\s+une\s+action)\b/i.test(s)) {
+      v.push("whatsapp_onboarding_guard_capability_claim")
+    }
+  }
+
+  return v
+}
+
 export function buildConversationAgentViolations(text: string, ctx: {
   agent: string;
   channel: "web" | "whatsapp";
   user_message?: unknown;
   last_assistant_message?: unknown;
   history_len?: number;
+  tools_executed?: boolean;
+  executed_tools?: string[];
+  tool_execution?: "none" | "blocked" | "success" | "failed" | "uncertain" | string;
+  whatsapp_guard_24h?: boolean;
 }): string[] {
   const v: string[] = [];
   const cleaned = (text ?? "").toString();
@@ -308,6 +396,15 @@ export function buildConversationAgentViolations(text: string, ctx: {
     const b = normalizeLoose(cleaned).slice(0, 140);
     if (a && b && a === b) v.push("repeats_previous_message");
   }
+
+  // Anti-claim / anti-invention (global): prevent unverified state assertions & unsupported promises.
+  v.push(...buildAntiClaimViolations(cleaned, {
+    channel,
+    tools_executed: ctx.tools_executed,
+    executed_tools: ctx.executed_tools,
+    tool_execution: ctx.tool_execution,
+    whatsapp_guard_24h: ctx.whatsapp_guard_24h,
+  }));
 
   return v;
 }
@@ -407,6 +504,10 @@ export async function verifyConversationAgentMessage(opts: {
     user_message: (data as any)?.user_message,
     last_assistant_message: (data as any)?.last_assistant_message,
     history_len: (data as any)?.history_len,
+    tools_executed: Boolean((data as any)?.tools_executed),
+    executed_tools: Array.isArray((data as any)?.executed_tools) ? (data as any).executed_tools : [],
+    tool_execution: String((data as any)?.tool_execution ?? "none"),
+    whatsapp_guard_24h: Boolean((data as any)?.whatsapp_guard_24h),
   });
 
   const one = await oneShotJudgeAndRewrite({

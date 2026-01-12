@@ -230,7 +230,8 @@ Deno.test("sophia-brain tools: track_progress + architect tools + investigator l
 
     // Deterministic shortcut: "Attrape-Rêves Mental" activation should create a framework without LLM.
     const reply = await runArchitect(admin as any, userId, "Vas y active l’attrape rêve !", [], {}, "", { forceRealAi: false });
-    assert(reply.toLowerCase().includes("attrape"), "attrape-reves activation should return a user-facing message");
+    const replyText = (reply as any)?.text ?? String(reply ?? "")
+    assert(replyText.toLowerCase().includes("attrape"), "attrape-reves activation should return a user-facing message");
 
     const { data: planAfterAttrape } = await admin.from("user_plans").select("content").eq("id", planId).single();
     const planJson3 = (planAfterAttrape as any)?.content;

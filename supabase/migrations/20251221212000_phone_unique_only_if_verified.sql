@@ -72,3 +72,4 @@ $$;
 grant execute on function public.is_verified_phone_in_use(text) to anon, authenticated;
 
 
+

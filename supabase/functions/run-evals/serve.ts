@@ -404,6 +404,11 @@ export function serveRunEvals() {
             const setup = (s as any)?.setup ?? {};
             const waSteps = Array.isArray((s as any)?.wa_steps) ? (s as any).wa_steps : [];
             const defaultFrom = String(setup?.from ?? setup?.phone_number ?? profileBefore?.phone_number ?? "").trim();
+            // Mechanical assertions for WhatsApp should be evaluated right after the explicit `wa_steps`,
+            // not after any optional simulate-user loopback turns. This keeps scenarios stable and makes
+            // `wa_auto_simulate` compatible with state-machine assertions.
+            let mechanicalProfileAfterOverride: any | null = null;
+            let mechanicalTranscriptOverride: any[] | null = null;
 
             const digitsOnly = (raw: string) => String(raw ?? "").trim().replace(/[()\s-]/g, "").replace(/^\+/, "");
 
@@ -436,6 +441,28 @@ export function serveRunEvals() {
               if (!wh.ok) {
                 throw new Error(`whatsapp-webhook failed (status=${wh.status}): ${JSON.stringify(wh.body)}`);
               }
+            }
+
+            // Snapshot right after wa_steps (before auto simulation) for mechanical assertions.
+            try {
+              const { data: waMsgs0 } = await admin
+                .from("chat_messages")
+                .select("role,content,created_at,agent_used")
+                .eq("user_id", testUserId)
+                .eq("scope", "whatsapp")
+                .order("created_at", { ascending: true })
+                .limit(120);
+              mechanicalTranscriptOverride = (waMsgs0 ?? []).map((m: any) => ({
+                role: m.role,
+                content: m.content,
+                created_at: m.created_at,
+                agent_used: m.role === "assistant" ? (m.agent_used ?? null) : null,
+              }));
+              mechanicalProfileAfterOverride = await fetchProfileSnapshot(admin as any, testUserId);
+            } catch {
+              // Best-effort: if snapshot fails, fall back to the end-of-run state/transcript.
+              mechanicalTranscriptOverride = null;
+              mechanicalProfileAfterOverride = null;
             }
 
             // Optional: loop "assistant -> simulate-user -> next inbound" without Meta transport.
@@ -794,7 +821,11 @@ export function serveRunEvals() {
           // even though a plan was seeded during the run.
           const dashboardContextAfter = await getDashboardContext(admin as any, testUserId);
           const planSnapshotAfter = await fetchPlanSnapshot(admin as any, testUserId);
-          const mechanicalIssues = buildMechanicalIssues({ scenario: s, profileAfter, transcript });
+          const mechanicalIssues = buildMechanicalIssues({
+            scenario: s,
+            profileAfter: isWhatsApp && mechanicalProfileAfterOverride ? mechanicalProfileAfterOverride : profileAfter,
+            transcript: isWhatsApp && mechanicalTranscriptOverride ? mechanicalTranscriptOverride : transcript,
+          });
 
           // Invoke eval-judge (reuse logic + DB writes). Forward caller JWT for admin gate.
           const judgeResp = await fetch(`${url}/functions/v1/eval-judge`, {

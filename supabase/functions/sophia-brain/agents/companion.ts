@@ -11,6 +11,12 @@ export type CompanionModelOutput =
   | { tool: "set_profile_confirm_pending"; args: any }
   | { tool: "apply_profile_fact"; args: any }
 
+export type CompanionRunResult = {
+  text: string
+  executed_tools: string[]
+  tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain"
+}
+
 export function buildCompanionSystemPrompt(opts: {
   isWhatsApp: boolean
   lastAssistantMessage: string
@@ -43,6 +49,7 @@ export function buildCompanionSystemPrompt(opts: {
     - Le contexte peut contenir un bloc "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
     - Ces candidats ne sont PAS des faits: ils doivent être CONFIRMÉS avant d'être écrits.
     - TU ES LE SEUL mode autorisé à poser ces questions (Companion).
+    - Si des facts existent (tone/verbosity/emojis/plan_push), adapte ton style sans le dire.
     - Si PENDING_CONFIRMATION est non-null:
       - Interprète la réponse du user.
       - Si c'est clair: appelle l'outil apply_profile_fact avec la clé + la valeur confirmée.
@@ -75,7 +82,7 @@ export function buildCompanionSystemPrompt(opts: {
     - Ton but est de maintenir la conversation ouverte et engageante.
     - Ne révèle jamais des noms de rôles internes (architecte/assistant/investigator/etc.). Ne dis jamais "en tant que ..." ou "je suis une IA".
 
-    ADAPTATION AU TON (CRITIQUE, WHATSAPP) :
+    ADAPTATION AU TON (CRITIQUE) :
     - Observe le ton du user. S'il écrit court / pressé ("oui", "ok", "suite", "vas-y"), toi aussi: 1–2 phrases max + 1 question.
     - Évite les envolées + slogans. Pas de slang type "gnaque", "soufflé", etc.
     - Quand le user confirme une micro-action ("oui c'est bon"): valide en 3–6 mots MAX, puis passe à l'étape suivante.
@@ -84,6 +91,19 @@ export function buildCompanionSystemPrompt(opts: {
       - MAX 2 phrases.
       - Puis 1 question courte (oui/non ou A/B).
       - Interdiction des paragraphes longs.
+
+    USER MODEL (PRÉFÉRENCES) :
+    - Le contexte peut contenir un bloc "=== USER MODEL (FACTS) ===" et/ou "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
+    - Si des facts existent (tone/verbosity/emojis/plan_push), adapte ton style sans le dire.
+    - Si PENDING_CONFIRMATION est non-null:
+      - Interprète la réponse du user.
+      - Si c'est clair: appelle l'outil apply_profile_fact avec la clé + la valeur confirmée.
+      - Si ce n'est pas clair: repose UNE question courte pour clarifier (sans écrire de fact).
+    - Si PENDING_CONFIRMATION est null ET qu'il y a des CANDIDATES:
+      - N'interromps pas une conversation importante.
+      - Si le user est dans un moment "low-stakes" (ok/merci/super) et que ta réponse n'a pas déjà une question,
+        tu peux poser UNE question de confirmation sur le candidat le plus important.
+      - Quand tu poses la question, appelle set_profile_confirm_pending (key, scope).
 
     ONBOARDING / CONTEXTE (CRITIQUE) :
     - N'affirme jamais "on a X dans ton plan" / "dans le plan" / "c'est prévu dans ton plan"
@@ -112,12 +132,14 @@ export async function retrieveContext(supabase: SupabaseClient, userId: string, 
       query_embedding: embedding,
       match_threshold: 0.65,
       match_count: 5,
+      filter_status: ["consolidated"],
     } as any);
     const { data: memoriesFallback } = memErr
       ? await supabase.rpc('match_memories', {
         query_embedding: embedding,
         match_threshold: 0.65,
         match_count: 5,
+        filter_status: ["consolidated"],
       } as any)
       : ({ data: null } as any);
     const effectiveMemories = (memErr ? memoriesFallback : memories) as any[] | null;
@@ -206,12 +228,37 @@ const APPLY_PROFILE_FACT_TOOL = {
     properties: {
       candidate_id: { type: "STRING", description: "ID du candidate confirmé (recommandé).", nullable: true },
       key: { type: "STRING", description: "Clé du fact à écrire (ex: conversation.verbosity)" },
-      value: { type: "ANY", description: "Valeur confirmée (string/bool)" },
+      // IMPORTANT: Gemini function_declarations schema does NOT support type="ANY" and will 400.
+      // We accept a string payload and coerce to boolean in code for boolean-like keys.
+      value: { type: "STRING", description: "Valeur confirmée. Pour oui/non, renvoie 'true' ou 'false'. Sinon, renvoie la valeur texte." },
       scope: { type: "STRING", description: "'global' ou 'current'." },
       reason: { type: "STRING", description: "Raison/trace (optionnel)." },
     },
     required: ["key", "value", "scope"],
   },
+}
+
+function coerceProfileFactValue(key: string, value: any): any {
+  const k = String(key ?? "").trim();
+  const s = typeof value === "string" ? value.trim() : value;
+
+  const booleanKeys = new Set([
+    "conversation.use_emojis",
+    "coaching.plan_push_allowed",
+  ]);
+
+  if (booleanKeys.has(k)) {
+    if (typeof value === "boolean") return value;
+    const str = String(s ?? "").trim().toLowerCase();
+    if (["true", "1", "yes", "y", "oui", "ok", "daccord", "d’accord"].includes(str)) return true;
+    if (["false", "0", "no", "n", "non"].includes(str)) return false;
+    // fallback: if we can't parse, store the raw string (better than crashing)
+    return String(s ?? "");
+  }
+
+  // Default: keep string if provided, otherwise pass-through (JSONB accepts primitives)
+  if (typeof s === "string") return s;
+  return value;
 }
 
 export async function generateCompanionModelOutput(opts: {
@@ -246,11 +293,11 @@ export async function handleCompanionModelOutput(opts: {
   message: string
   response: CompanionModelOutput
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
-}): Promise<string> {
+}): Promise<CompanionRunResult> {
   const { supabase, userId, scope, message, response, meta } = opts
 
   if (typeof response === 'string') {
-    return response.replace(/\*\*/g, '')
+    return { text: response.replace(/\*\*/g, ''), executed_tools: [], tool_execution: "none" }
   }
 
   if (typeof response === 'object' && (response as any)?.tool === 'track_progress') {
@@ -281,9 +328,13 @@ export async function handleCompanionModelOutput(opts: {
         source: "sophia-brain:companion_confirmation",
         forceRealAi: meta?.forceRealAi,
       })
-      return typeof confirmationResponse === 'string'
-        ? confirmationResponse.replace(/\*\*/g, '')
-        : "Ça marche, c'est noté."
+      return {
+        text: typeof confirmationResponse === 'string'
+          ? confirmationResponse.replace(/\*\*/g, '')
+          : "Ça marche, c'est noté.",
+        executed_tools: [toolName],
+        tool_execution: "success",
+      }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e)
       console.error("[Companion] tool execution failed (unexpected):", errMsg)
@@ -319,7 +370,11 @@ export async function handleCompanionModelOutput(opts: {
           metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, err: errMsg.slice(0, 240) },
         } as any)
       } catch {}
-      return `Ok, j’ai eu un souci technique en notant ça.\n\nDis “retente” et je réessaie.`
+      return {
+        text: `Ok, j’ai eu un souci technique en notant ça.\n\nDis “retente” et je réessaie.`,
+        executed_tools: [toolName],
+        tool_execution: "failed",
+      }
     }
   }
 
@@ -330,6 +385,7 @@ export async function handleCompanionModelOutput(opts: {
     const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
     const resolvedScope = rawScope === "global" ? "global" : scope
     const reason = String(args?.reason ?? "")
+    let toolExecution: "success" | "uncertain" = "success"
     if (key) {
       try {
         const st = await getUserState(supabase, userId, scope)
@@ -366,15 +422,24 @@ export async function handleCompanionModelOutput(opts: {
         }
       } catch (e) {
         console.warn("[Companion] set_profile_confirm_pending failed (non-blocking):", e)
+        toolExecution = "uncertain"
       }
     }
     // The model is expected to have asked the question in its normal response content;
     // if it returned a tool call, we fall back to a safe generic question.
-    if (key === "conversation.tone") return "Tu préfères que je sois plutôt direct, ou plutôt doux ?"
-    if (key === "conversation.verbosity") return "Tu préfères plutôt des réponses courtes, ou détaillées ?"
-    if (key === "conversation.use_emojis") return "Tu veux que je mette des emojis (oui/non) ?"
-    if (key === "coaching.plan_push_allowed") return "Tu veux que je puisse te ramener à ton plan quand c’est utile (oui/non) ?"
-    return "Tu préfères quoi, là ?"
+    if (key === "conversation.tone") {
+      return { text: "Tu préfères que je sois plutôt direct, ou plutôt doux ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
+    }
+    if (key === "conversation.verbosity") {
+      return { text: "Tu préfères plutôt des réponses courtes, ou détaillées ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
+    }
+    if (key === "conversation.use_emojis") {
+      return { text: "Tu veux que je mette des emojis (oui/non) ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
+    }
+    if (key === "coaching.plan_push_allowed") {
+      return { text: "Tu veux que je puisse te ramener à ton plan quand c’est utile (oui/non) ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
+    }
+    return { text: "Tu préfères quoi, là ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
   }
 
   if (typeof response === "object" && (response as any)?.tool === "apply_profile_fact") {
@@ -383,8 +448,10 @@ export async function handleCompanionModelOutput(opts: {
     const key = String(args?.key ?? "").trim()
     const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
     const resolvedScope = rawScope === "global" ? "global" : scope
-    const value = (args as any)?.value
+    const rawValue = (args as any)?.value
+    const value = coerceProfileFactValue(key, rawValue)
     const reason = String(args?.reason ?? "")
+    let toolExecution: "success" | "uncertain" = "success"
     if (key) {
       try {
         await upsertUserProfileFactWithEvent({
@@ -451,12 +518,13 @@ export async function handleCompanionModelOutput(opts: {
         await updateUserState(supabase, userId, scope, { temp_memory: tmNext })
       } catch (e) {
         console.warn("[Companion] apply_profile_fact failed (non-blocking):", e)
+        toolExecution = "uncertain"
       }
     }
-    return "Ok, c’est noté. On continue."
+    return { text: "Ok, c’est noté. On continue.", executed_tools: ["apply_profile_fact"], tool_execution: toolExecution }
   }
 
-  return String(response ?? "")
+  return { text: String(response ?? ""), executed_tools: [], tool_execution: "none" }
 }
 
 export async function runCompanion(
@@ -468,7 +536,7 @@ export async function runCompanion(
   userState: any, 
   context: string = "",
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
-): Promise<string> {
+): Promise<CompanionRunResult> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
 

@@ -7,6 +7,31 @@ export async function analyzeIntentAndRisk(
   lastAssistantMessage: string,
   meta?: { requestId?: string; forceRealAi?: boolean; model?: string },
 ): Promise<{ targetMode: AgentMode; riskScore: number; nCandidates: 1 | 3 }> {
+  // Multi-candidate is expensive (extra LLM calls). We only enable it for truly complex inputs.
+  // This is an enforced heuristic (not left to the model), to keep WhatsApp latency stable.
+  function isVeryComplexMessage(m: string): boolean {
+    const s = (m ?? "").toString().trim();
+    if (!s) return false;
+    const len = s.length;
+    const q = (s.match(/\?/g) ?? []).length;
+    const lines = s.split("\n").filter((x) => x.trim()).length;
+    const hasList = /(^|\n)\s*([-*]|\d+\.)\s+\S/.test(s);
+    const askedForDeep = /\b(en\s+d[ée]tail|d[ée]taille|guide|pas[- ]?à[- ]?pas|analyse|nuance|compar(?:e|aison)|avantages|inconv[ée]nients)\b/i.test(s);
+    // Strict thresholds:
+    // - long message OR multiple questions OR multi-line/list content OR explicit request for deep explanation.
+    return len >= 260 || q >= 2 || lines >= 4 || hasList || askedForDeep;
+  }
+
+  function looksLikeCheckupIntent(m: string, lastAssistant: string): boolean {
+    const s = (m ?? "").toString();
+    const last = (lastAssistant ?? "").toString();
+    // Explicit bilan/checkup keywords
+    if (/\b(bilan|checkup|check)\b/i.test(s)) return true;
+    // If the assistant explicitly asked to do a checkup/bilan, "oui" can be a checkup confirmation.
+    if (/\b(bilan|checkup|check)\b/i.test(last) && /\b(oui|ok|d['’]accord)\b/i.test(s)) return true;
+    return false;
+  }
+
   // Deterministic test mode: avoid LLM dependency and avoid writing invalid risk levels.
   const mega =
     (((globalThis as any)?.Deno?.env?.get?.("MEGA_TEST_MODE") ?? "") as string).trim() === "1" &&
@@ -65,8 +90,8 @@ export async function analyzeIntentAndRisk(
     
     MULTI-CANDIDATE (QUALITÉ PREMIUM) :
     - Tu peux demander 3 candidates (nCandidates=3) UNIQUEMENT pour: companion, architect, librarian.
-    - nCandidates=3 quand le message est compliqué/ambigü, émotionnel, long, ou demande une explication/nuance.
-    - Sinon nCandidates=1 (par défaut).
+    - RÈGLE DURCIE: nCandidates=3 UNIQUEMENT si le message est VRAIMENT complexe (très long, plusieurs questions, multi-sujets, ou demande explicite d'analyse/guide).
+    - Sinon nCandidates=1 (par défaut) pour limiter la latence.
 
     SORTIE JSON ATTENDUE :
     {
@@ -86,11 +111,22 @@ export async function analyzeIntentAndRisk(
     // IMPORTANT: dispatcher must never return internal worker modes (watcher/dispatcher).
     const allowed: AgentMode[] = ["sentry", "firefighter", "investigator", "architect", "librarian", "assistant", "companion"]
     const rawMode = String(obj?.targetMode ?? "").trim() as AgentMode
-    const targetMode = (allowed as string[]).includes(rawMode) ? rawMode : "companion"
+    let targetMode = (allowed as string[]).includes(rawMode) ? rawMode : "companion"
     const riskScore = Math.max(0, Math.min(10, Number(obj?.riskScore ?? 0) || 0))
     const rawN = Number(obj?.nCandidates ?? 1)
     const candidateAllowed = targetMode === "companion" || targetMode === "architect" || targetMode === "librarian"
-    const nCandidates = (candidateAllowed && rawN === 3) ? 3 : 1
+    const wantsMulti = candidateAllowed && rawN === 3
+    const nCandidates = (wantsMulti && isVeryComplexMessage(message)) ? 3 : 1
+
+    // HARD GUARD: investigator is ONLY for active checkups or explicit checkup intent.
+    // This prevents "investigator" from hijacking normal WhatsApp onboarding / small-talk.
+    if (
+      targetMode === "investigator" &&
+      !currentState?.investigation_state &&
+      !looksLikeCheckupIntent(message, lastAssistantMessage)
+    ) {
+      targetMode = "companion"
+    }
     return { targetMode, riskScore, nCandidates }
   } catch (e) {
     console.error("Erreur Dispatcher Gemini:", e)

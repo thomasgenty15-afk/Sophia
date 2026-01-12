@@ -9,6 +9,40 @@ type TranscriptMsg = { role: "user" | "assistant"; content: string; agent_used?:
 
 type Difficulty = "easy" | "mid" | "hard";
 
+function isShortAck(s: string): boolean {
+  const t = String(s ?? "").trim().toLowerCase();
+  if (!t) return false;
+  if (t.length <= 12 && /^(ok|oui|non|d['’]accord|merci|go|vas[-\s]?y|c['’]est bon|ça marche)\b/i.test(t)) return true;
+  return false;
+}
+
+function looksAssistantish(s: string): { bad: boolean; reason: string } {
+  const t = String(s ?? "").trim();
+  if (!t) return { bad: true, reason: "empty" };
+
+  // Hard disallow role markers / formatting that belongs to transcripts.
+  if (/^(?:S|U)\s*[:：]/i.test(t)) return { bad: true, reason: "role_prefix" };
+
+  // Assistant-y patterns (A/B choices, confirmations, directives).
+  if (/(^|\n)\s*(A\)|B\))\s+/i.test(t)) return { bad: true, reason: "ab_choice_format" };
+  if (/\btu\s+pr[ée]f[èe]res\b/i.test(t)) return { bad: true, reason: "asks_ab_choice" };
+  if (/\bc['’]est\s+not[ée]\b/i.test(t)) return { bad: true, reason: "assistant_ack_cest_note" };
+  if (/\bparfait\b/i.test(t) && t.length > 30) return { bad: true, reason: "assistant_ack_parfait" };
+  if (/\bon\s+va\s+(?:s['’]attaquer|faire|prendre|continuer|passer)\b/i.test(t)) return { bad: true, reason: "assistant_we_will" };
+  if (/\bouvre\s+ton\s+(?:document|ordi|fichier)\b/i.test(t)) return { bad: true, reason: "assistant_directive_open" };
+  if (/\best-ce\s+que\s+tu\s+te\s+sens\s+capable\b/i.test(t)) return { bad: true, reason: "assistant_capable_question" };
+
+  // If it's not a short ack, require at least some first-person grounding.
+  if (!isShortAck(t)) {
+    const hasFirstPerson =
+      /\b(j['’]ai|je\s+suis|je\s+peux|je\s+vais|je\s+voudrais|je\s+crois|je\s+pense|moi|mon|ma|mes)\b/i
+        .test(t);
+    if (!hasFirstPerson) return { bad: true, reason: "no_first_person" };
+  }
+
+  return { bad: false, reason: "ok" };
+}
+
 function isMegaEnabled(): boolean {
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
@@ -140,7 +174,7 @@ Deno.serve(async (req) => {
       .map((m) => `${m.role.toUpperCase()}${m.role === "assistant" && m.agent_used ? `(${m.agent_used})` : ""}: ${m.content}`)
       .join("\n");
 
-    const systemPrompt = `
+    const baseSystemPrompt = `
 Tu joues le rôle d'un UTILISATEUR HUMAIN qui parle avec l'assistant Sophia.
 
 PERSONA:
@@ -182,26 +216,62 @@ SORTIE JSON UNIQUEMENT:
 }
     `.trim();
 
-    const userMessage = `
+    const baseUserMessage = `
 TURN ${body.turn_index + 1}/${body.max_turns}
 
 TRANSCRIPT (dernier contexte):
 ${transcriptText || "(vide)"}
     `.trim();
 
-    const out = await generateWithGemini(systemPrompt, userMessage, 0.4, true, [], "auto", {
-      requestId,
-      model: (body as any).model ?? "gemini-2.5-flash",
-      source: "simulate-user",
-      forceRealAi: allowReal,
-    });
-    const parsedOut = JSON.parse(out as string);
-    const next = String(parsedOut?.next_message ?? "").trim();
-    if (!next) {
-      return jsonResponse(req, { error: "Empty next_message", request_id: requestId }, { status: 500 });
+    const MAX_ROLE_RETRIES = 3;
+    let parsedOut: any = null;
+    let next = "";
+    let satisfied: any[] = [];
+    let done = false;
+    let lastBadReason = "";
+    for (let attempt = 1; attempt <= MAX_ROLE_RETRIES; attempt++) {
+      const roleGuard =
+        attempt === 1
+          ? ""
+          : (
+            `\n\n[ROLE GUARD — CRITIQUE]\n` +
+            `Tu es l'UTILISATEUR (pas Sophia).\n` +
+            `Ton dernier message était invalide (raison=${lastBadReason || "unknown"}).\n` +
+            `Interdictions:\n` +
+            `- "c'est noté", "parfait", "on va ..."\n` +
+            `- A)/B) et "tu préfères"\n` +
+            `- donner des consignes au "tu" comme si tu étais le coach\n` +
+            `Obligation:\n` +
+            `- écrire à la première personne ("je...")\n` +
+            `- exprimer ton état / ta question / ton blocage\n`
+          );
+
+      const systemPrompt = `${baseSystemPrompt}${roleGuard}`.trim();
+      const userMessage = `${baseUserMessage}${roleGuard ? `\n\nRÉPONSE À RÉGÉNÉRER:\n- Fais un seul message utilisateur, court.` : ""}`.trim();
+
+      const out = await generateWithGemini(systemPrompt, userMessage, attempt >= 2 ? 0.2 : 0.4, true, [], "auto", {
+        requestId: `${requestId}:role_retry:${attempt}`,
+        model: (body as any).model ?? "gemini-2.5-flash",
+        source: "simulate-user",
+        forceRealAi: allowReal,
+      });
+      parsedOut = JSON.parse(out as string);
+      next = String(parsedOut?.next_message ?? "").trim();
+      if (!next) continue;
+      const check = looksAssistantish(next);
+      lastBadReason = check.reason;
+      if (!check.bad) break;
     }
-    const done = Boolean(parsedOut?.done) || body.turn_index + 1 >= body.max_turns;
-    const satisfied = Array.isArray(parsedOut?.satisfied) ? parsedOut.satisfied : [];
+    if (!next) return jsonResponse(req, { error: "Empty next_message", request_id: requestId }, { status: 500 });
+    const finalCheck = looksAssistantish(next);
+    if (finalCheck.bad) {
+      // Do NOT crash eval loops: return a safe, user-like fallback message.
+      // Keep it short and first-person.
+      next = "Je sais pas trop… plutôt A.";
+      parsedOut = { ...(parsedOut ?? {}), done: false, satisfied: [] };
+    }
+    done = Boolean(parsedOut?.done) || body.turn_index + 1 >= body.max_turns;
+    satisfied = Array.isArray(parsedOut?.satisfied) ? parsedOut.satisfied : [];
 
     return jsonResponse(req, { success: true, request_id: requestId, next_message: next, done, satisfied });
   } catch (error) {

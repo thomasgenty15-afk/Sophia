@@ -16,7 +16,7 @@ Note importante (comme pour `feat/Prompt test bilan`)
 
 Dans le repo (en full permisssions, pas en dans sandbox)
 
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && npm run eval:wa:onboarding:bundle -- --tests 1 --seed 123 --turns 10 --suite all --exclude wa_onboarding_open_chat_offtopic_after_prompt --model gemini-2.5-flash --timeout-ms 600000
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && npm run eval:wa:onboarding:bundle -- --tests 3 --seed 123 --turns 10 --suite all --exclude wa_onboarding_open_chat_offtopic_after_prompt --model gemini-2.5-flash --timeout-ms 600000
 
 
 Cette commande:

@@ -52,5 +52,3 @@ ${context ? `\n=== CONTEXTE OPÉRATIONNEL ===\n${context}\n` : ""}
   if (typeof resp !== "string") return JSON.stringify(resp)
   return resp.replace(/\*\*/g, "")
 }
-
-

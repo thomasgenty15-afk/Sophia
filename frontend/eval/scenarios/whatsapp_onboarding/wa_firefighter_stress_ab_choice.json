@@ -1,0 +1,44 @@
+{
+  "dataset_key": "core",
+  "id": "wa_firefighter_stress_ab_choice",
+  "scenario_target": "conversation",
+  "description": "WhatsApp: free conversation (plan already active so no onboarding). User reports high work pressure; should route to firefighter and reply with an A/B de-escalation choice (no repetitive grounding).",
+  "tags": ["whatsapp.firefighter", "whatsapp.webhook", "conversational", "stress"],
+  "channel": "whatsapp",
+  "seed_plan": true,
+  "setup": {
+    "phone_verified": true,
+    "whatsapp_opted_in": true,
+    "whatsapp_state": null
+  },
+  "wa_steps": [
+    { "kind": "text", "text": "Là je suis sous une grosse pression au boulot… j’ai le cerveau en vrac, je suis à 8/10 et j’arrive plus à réfléchir." }
+  ],
+  "wa_auto_simulate": true,
+  "wa_force_turns": true,
+  "persona": {
+    "label": "Utilisateur stressé au travail",
+    "age_range": "25-45",
+    "style": "messages courts WhatsApp, parfois saccadés",
+    "background": "en surcharge au boulot, cherche à redescendre puis à retrouver une next-step claire"
+  },
+  "objectives": [
+    { "kind": "generic", "note": "Tour 1: exprimer surcharge/8-10, cerveau en vrac. Tour 2-3: répondre au choix proposé, suivre 30-60s. Tour 4-6: dire si ça baisse un peu, expliquer ce qui met le plus la pression. Tour 7-10: demander une manière simple de prioriser/faire un micro-plan pour finir la soirée -> laisser l'agent basculer vers companion/architect si pertinent." }
+  ],
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "(^|\\n)A\\)\\s+",
+      "(^|\\n)B\\)\\s+",
+      "Tu\\s+pr[ée]f[èe]res\\s+A\\s+ou\\s+B\\s*\\?"
+    ],
+    "assistant_must_not_match": [
+      "\\bbureau\\b",
+      "\\binspire\\b",
+      "\\bexpire\\b",
+      "sur\\s*0\\s*[–-]\\s*10",
+      "0\\s*[–-]\\s*10"
+    ]
+  }
+}
+
+

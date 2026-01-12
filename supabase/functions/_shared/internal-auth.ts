@@ -27,14 +27,24 @@ export function ensureInternalRequest(req: Request): Response | null {
     });
   }
 
-  // Primary: explicit internal secret
-  // Local fallback: Supabase Edge Runtime provides SECRET_KEY; use it only when INTERNAL_FUNCTION_SECRET is unset.
-  const expectedInternalSecret =
-    Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() || Deno.env.get("SECRET_KEY")?.trim();
+  function isLocalEnv(): boolean {
+    const url = (Deno.env.get("SUPABASE_URL") ?? "").trim()
+    if (!url) return false
+    try {
+      const host = new URL(url).hostname.toLowerCase()
+      return host === "127.0.0.1" || host === "localhost" || host === "kong" || host.startsWith("supabase_")
+    } catch {
+      return false
+    }
+  }
+
+  const internalSecret = Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim()
+  const fallbackSecret = isLocalEnv() ? Deno.env.get("SECRET_KEY")?.trim() : ""
+  const expectedInternalSecret = internalSecret || fallbackSecret
   const gotInternalSecret = req.headers.get("x-internal-secret")?.trim();
 
   if (!expectedInternalSecret) {
-    console.error("[internal-auth] Server misconfigured: missing INTERNAL_FUNCTION_SECRET/SECRET_KEY");
+    console.error("[internal-auth] Server misconfigured: missing INTERNAL_FUNCTION_SECRET");
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -55,5 +65,4 @@ export function ensureInternalRequest(req: Request): Response | null {
 
   return null;
 }
-
 

@@ -1,6 +1,7 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { getUserState, updateUserState, normalizeScope } from '../state-manager.ts' // Need access to state
+import { consolidateMemories } from "./gardener.ts"
 
 export async function runWatcher(
   supabase: SupabaseClient, 
@@ -241,6 +242,18 @@ export async function runWatcher(
       }
     } catch (e) {
       console.warn("[Watcher] storing profile fact candidates failed (non-blocking):", e)
+    }
+
+    // E. Trigger Memory Consolidation (Fire & Forget)
+    try {
+      // Don't await, let it run in background (if runtime allows) or just await it if we want safety.
+      // Deno Deploy edge functions usually kill async tasks after response is sent if not awaited, 
+      // but here we are inside a background task (watcher) which is already decoupled from user response.
+      // So awaiting is safer to ensure completion before the isolate dies.
+      console.log(`[Veilleur] Triggering memory consolidation...`)
+      await consolidateMemories(supabase, userId)
+    } catch (e) {
+      console.error("Error triggering consolidation", e)
     }
 
   } catch (err) {

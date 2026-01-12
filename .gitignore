@@ -26,6 +26,9 @@ node_modules
 
 # --- TESTING ---
 coverage
+frontend/test-results
+frontend/test-results/**
+**/supabase_status.json
 
 # --- BUILD OUTPUTS ---
 dist

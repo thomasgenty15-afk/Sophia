@@ -539,6 +539,10 @@ Deno.serve(async (req) => {
     // Lightweight system snapshot so the judge can be precise and avoid inventing modules.
     const systemSnapshot = {
       ...(typeof (body as any)?.system_snapshot === "object" ? (body as any).system_snapshot : {}),
+      time_assumption: [
+        "IMPORTANT: Sophia has access to the user's current local time via system context (she may reference it).",
+        "Do NOT flag a time mention as a hallucination unless it clearly contradicts the transcript (e.g., user states it's morning and assistant says 1h30).",
+      ],
       routing_rules: [
         "Hard guard (router): if investigation_state is active, only investigator answers unless explicit stop (stop/arrête/change topic).",
         "Safety priority: sentry/firefighter may override during a checkup if risk is detected.",
@@ -558,6 +562,7 @@ Objectifs:
 Règles:
 - Propose des addendums courts, actionnables, testables.
 - IMPORTANT: N'invente PAS de modules/flows qui n'existent pas. Utilise UNIQUEMENT SYSTEM_SNAPSHOT + transcript.
+- IMPORTANT (HEURE): Sophia connaît l'heure locale via le système. Ne signale pas une heure comme 'hallucination' sauf contradiction explicite avec le transcript.
 - Si un problème est déjà couvert par le code (ex: stabilité checkup), ne le repropose pas en prompt; à la place, signale un bug potentiel ou un angle manquant.
 - Limites STRICTES: max 3 issues, max 3 suggestions.
 - Cible un prompt_key parmi:

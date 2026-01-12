@@ -54,10 +54,16 @@ export async function runAgentAndVerify(opts: {
 
   let responseContent = ""
   let nextMode: AgentMode = targetMode
+  // Used by the global anti-claim verifier (outside bilan too).
+  let executedTools: string[] = []
+  let toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain" = "none"
 
   function toolUsageWhen(name: string): string {
     const n = String(name ?? "").trim()
     if (n === "track_progress") return "Seulement quand l'utilisateur dit explicitement qu'il a fait / pas fait une action."
+    if (n === "set_profile_confirm_pending") return "Seulement quand tu poses une question de confirmation de préférence (low-stakes)."
+    if (n === "apply_profile_fact") return "Seulement après confirmation explicite d'une préférence."
+    if (n === "break_down_action") return "Seulement quand une action bloque et que l'utilisateur accepte explicitement de la découper en micro-étape."
     if (n === "create_simple_action" || n === "create_framework") return "Seulement si un plan actif existe ET que l'utilisateur demande clairement d'ajouter un élément."
     if (n === "update_action_structure") return "Seulement si l'utilisateur demande un changement sur une action existante."
     if (n === "activate_plan_action") return "Seulement si l'utilisateur demande d'activer une action future (interdit pendant guard onboarding WhatsApp)."
@@ -77,7 +83,11 @@ export async function runAgentAndVerify(opts: {
 
   function toolsAvailableForMode(args: { mode: AgentMode; inWhatsAppGuard24h: boolean }): ToolDescriptor[] {
     if (args.mode === "companion") {
-      return [{ name: "track_progress", description: "Enregistre une progression ou un raté.", usage_when: toolUsageWhen("track_progress") }]
+      return [
+        { name: "track_progress", description: "Enregistre une progression ou un raté.", usage_when: toolUsageWhen("track_progress") },
+        { name: "set_profile_confirm_pending", description: "Marque une question de confirmation posée.", usage_when: toolUsageWhen("set_profile_confirm_pending") },
+        { name: "apply_profile_fact", description: "Applique une préférence confirmée.", usage_when: toolUsageWhen("apply_profile_fact") },
+      ]
     }
     if (args.mode === "architect") {
       return buildToolDescriptorsFromToolDefs(getArchitectTools({ inWhatsAppGuard24h: args.inWhatsAppGuard24h }))
@@ -127,8 +137,8 @@ export async function runAgentAndVerify(opts: {
         context,
         userState: state,
       })
-      allowedTools = ["track_progress"]
       toolsAvailable = toolsAvailableForMode({ mode: "companion", inWhatsAppGuard24h: false })
+      allowedTools = toolsAvailable.map((t) => t.name)
       for (const t of temps) {
         const out = await generateCompanionModelOutput({ systemPrompt, message: userMessage, history, meta: { ...(meta ?? {}), model: sophiaChatModel, temperature: t } })
         if (typeof out === "string") candidatesRaw.push({ kind: "text", text: out })
@@ -170,6 +180,11 @@ export async function runAgentAndVerify(opts: {
           user_message: userMessage,
           last_assistant_message: lastAssistantMessage,
           history_len: Array.isArray(history) ? history.length : 0,
+          // Candidates are not executed, so any tool/side-effect claim must be treated as unverified.
+          tools_executed: false,
+          executed_tools: [],
+          tool_execution: "none",
+          whatsapp_guard_24h: inWhatsAppGuard24h,
         })
         return { label: `c${idx}`, text: txt, mechanical_violations: v }
       }
@@ -196,18 +211,21 @@ export async function runAgentAndVerify(opts: {
     if (targetMode === "companion") {
       if (chosen.kind === "text") finalText = chosen.text
       else {
-        finalText = await handleCompanionModelOutput({
+        const out = await handleCompanionModelOutput({
           supabase,
           userId,
           message: userMessage,
-          response: { tool: "track_progress", args: chosen.args } as any,
+          response: { tool: chosen.tool, args: chosen.args } as any,
           meta: { ...(meta ?? {}), model: sophiaChatModel },
         })
+        finalText = out.text
+        executedTools = out.executed_tools ?? [chosen.tool]
+        toolExecution = out.tool_execution ?? "success"
       }
     } else if (targetMode === "architect") {
       if (chosen.kind === "text") finalText = chosen.text
       else {
-        finalText = await handleArchitectModelOutput({
+        const out = await handleArchitectModelOutput({
           supabase,
           userId,
           message: userMessage,
@@ -215,6 +233,9 @@ export async function runAgentAndVerify(opts: {
           inWhatsAppGuard24h,
           meta: { ...(meta ?? {}), model: sophiaChatModel },
         })
+        executedTools = out.executed_tools ?? []
+        toolExecution = out.tool_execution ?? "uncertain"
+        finalText = out.text
       }
     } else {
       // librarian
@@ -417,7 +438,8 @@ export async function runAgentAndVerify(opts: {
       break
     case "architect":
       try {
-        if (!responseContent) responseContent = await runArchitect(
+        if (!responseContent) {
+          const out = await runArchitect(
           supabase,
           userId,
           userMessage,
@@ -425,7 +447,11 @@ export async function runAgentAndVerify(opts: {
           state,
           context,
           { ...(meta ?? {}), model: sophiaChatModel },
-        )
+          )
+          responseContent = out.text
+          executedTools = out.executed_tools ?? []
+          toolExecution = out.tool_execution ?? "uncertain"
+        }
       } catch (e) {
         console.error("[Router] architect failed:", e)
         const emergency = await tryEmergencyAiReply({
@@ -536,16 +562,21 @@ export async function runAgentAndVerify(opts: {
       // we must NOT store an invalid mode in DB.
       nextMode = "companion"
       try {
-        if (!responseContent) responseContent = await runCompanion(
-          supabase,
-          userId,
-          scope,
-          userMessage,
-          history,
-          state,
-          context,
-          { ...(meta ?? {}), model: sophiaChatModel },
-        )
+        if (!responseContent) {
+          const out = await runCompanion(
+            supabase,
+            userId,
+            scope,
+            userMessage,
+            history,
+            state,
+            context,
+            { ...(meta ?? {}), model: sophiaChatModel },
+          )
+          responseContent = out.text
+          executedTools = out.executed_tools ?? []
+          toolExecution = out.tool_execution ?? "uncertain"
+        }
       } catch (e) {
         console.error("[Router] companion failed:", e)
         const emergency = await tryEmergencyAiReply({
@@ -622,6 +653,10 @@ export async function runAgentAndVerify(opts: {
           context_used: (context ?? "").toString().slice(0, 6000),
           recent_history: recentHistory,
           tools_available,
+          tools_executed: executedTools.length > 0,
+          executed_tools: executedTools,
+          tool_execution: toolExecution,
+          whatsapp_guard_24h: inWhatsAppGuard24h,
         },
         meta: {
           requestId: meta?.requestId,
@@ -755,5 +790,3 @@ export async function runAgentAndVerify(opts: {
 
   return { responseContent, nextMode }
 }
-
-

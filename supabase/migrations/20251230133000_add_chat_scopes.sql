@@ -54,3 +54,4 @@ create index if not exists idx_user_chat_states_user_scope
   on public.user_chat_states (user_id, scope);
 
 
+

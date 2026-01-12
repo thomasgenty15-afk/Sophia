@@ -1,22 +1,16 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { retryOn429 } from "../_shared/retry429.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
-
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+import { createClient } from "jsr:@supabase/supabase-js@2"
+import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
 
 serve(async (req) => {
-  // DEBUG ENV VARS
-  console.log("--- ENV VARS DEBUG ---");
-  console.log("Keys available:", Object.keys(Deno.env.toObject()));
-  console.log("GEMINI_API_KEY present?", !!Deno.env.get('GEMINI_API_KEY'));
-  console.log("----------------------");
-
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return handleCorsOptions(req)
   }
+  const corsErr = enforceCors(req)
+  if (corsErr) return corsErr
+  const corsHeaders = getCorsHeaders(req)
 
   const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
 
@@ -100,8 +94,31 @@ serve(async (req) => {
       return new Response(JSON.stringify(plan), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
-    // 1. Auth & Client Setup - BYPASS TEMPORAIRE DEBUG
-    // On ignore totalement l'auth Supabase pour voir si Gemini fonctionne
+    const authHeader = req.headers.get("Authorization") ?? ""
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim()
+    const anonKey = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim()
+    if (!supabaseUrl || !anonKey) {
+      return new Response(JSON.stringify({ error: "Server misconfigured" }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
+
+    const userClient = createClient(supabaseUrl, anonKey, { global: { headers: { Authorization: authHeader } } })
+    const { data: authData, error: authErr } = await userClient.auth.getUser()
+    if (authErr || !authData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
+    }
     
     // 2. Data Retrieval
     const { inputs, currentAxis, currentPlan, feedback, mode, answers, userProfile, previousPlanContext } = body as any
@@ -651,7 +668,7 @@ serve(async (req) => {
     // au lieu de lancer une exception générique "FunctionsHttpError".
     return new Response(
       JSON.stringify({ error: (error as any)?.message ?? String(error) }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 200 }
+      { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
     )
   }
 })

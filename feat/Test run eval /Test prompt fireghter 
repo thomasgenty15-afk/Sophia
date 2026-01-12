@@ -1,0 +1,72 @@
+Tu es un agent d’audit/optimisation du système Sophia (frontend + Supabase edge functions), focalisé sur le mode firefighter (WhatsApp).
+Ton objectif: lancer un eval “firefighter” en conditions réelles, récupérer un bundle complet (DB + logs docker + production log), puis analyser la conversation/les agents/tools et proposer des améliorations actionnables (prompts, code, scénario), avec un plan de rollout + re-run pour valider.
+Contexte important (à garder en tête)
+Le run WhatsApp se fait via l’edge function run-evals, qui crée un user test, génère un plan si seed_plan=true, injecte l’état WhatsApp, puis simule des tours via whatsapp-webhook + sophia-brain + simulate-user, puis appelle eval-judge et écrit tout dans public.conversation_eval_runs (incluant transcript complet + state_before/after + issues/suggestions + metrics + plan_snapshot).
+Le scénario ciblé est: frontend/eval/scenarios/whatsapp_onboarding/wa_firefighter_stress_ab_choice.json (stress au boulot, escalade firefighter, puis transitions possibles vers companion/architect).
+Les logs terminal pertinents viennent des containers docker:
+supabase_edge_runtime_Sophia_2 (router/agents + logs Gemini + simulate-user + judge)
+supabase_kong_Sophia_2 (access logs HTTP /functions/v1/)
+1) Lance la commande (à exécuter telle quelle)
+Dans le repo:
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && npm run eval:wa:onboarding:bundle -- --tests 3 --seed 123 --turns 10 --scenario wa_firefighter_stress_ab_choice --model gemini-2.5-flash --timeout-ms 600000
+Cette commande:
+lance 3 runs du scénario WhatsApp wa_firefighter_stress_ab_choice
+force jusqu’à 10 tours (via run-evals + simulate-user)
+exporte un bundle complet dans frontend/test-results/eval_bundle_<eval_run_id>/ pour chaque run
+2) Ce que tu dois ouvrir/collecter après exécution
+À partir de chaque bundle_dir affiché, ouvrir:
+conversation_eval_run.json
+transcript complet + agent_used à chaque tour
+state_before / state_after (dont chat_state.current_mode, risk_level, investigation_state)
+issues / suggestions
+config.plan_snapshot (plan seedé, actions, contexte dashboard)
+run_evals_response.json (turns exécutés, coût, tokens)
+bundle_meta.json (durée, request_id, limites)
+docker_edge_runtime.log + docker_edge_runtime.tail.log
+docker_kong.log + docker_kong.tail.log
+production_log.json
+system_error_logs.json
+3) Analyse attendue (structurée, exhaustive, orientée actions)
+A) Qualité de l’échange (WhatsApp)
+Calme / réduction de charge cognitive (éviter “trop de choix” si user dit “je n’arrive plus à réfléchir”)
+Variété des interventions (pas de répétitions reloues)
+Format WhatsApp: court, 1 question max quand nécessaire, pas de markdown , pas de pavés
+Cohérence temporelle (si l’heure est utilisée, elle doit être cohérente avec le contexte système)
+B) Analyse Agents / Routing
+Pour chaque tour assistant:
+agent_used attendu vs réel (dispatcher → agent)
+transitions firefighter → companion/architect:
+sont-elles justifiées (stress résolu, passage en planification) ?
+y a-t-il du “flickering” (architect/companion alternent trop) ?
+investigator ne doit jamais apparaître hors bilan/checkup si investigation_state est null (hard-guard)
+vérifier risk_level et les conditions de bascule
+C) Tools / DB writes (“bon tool, bon moment”)
+Identifier les tool calls (si présents) via logs + transcript
+Vérifier que l’agent ne “claim” jamais un outil non exécuté
+Vérifier cohérence DB (si une micro-étape/action est créée ou loggée)
+D) Optimisations possibles
+Prompt firefighter: règles courtes, testables (ex: “si cognitive freeze → pas de tâche d’écriture, 1 action physique + ok?”)
+Routing: éviter que firefighter lâche trop tôt la main en plein exercice; éviter flickering architect/companion
+Scenario: assertions qui testent le bon comportement sans être trop fragiles
+Stabilité infra: si erreurs UND_ERR_SOCKET/timeouts, proposer hardening du script bundling (non-bloquant après bundle_dir)
+E) Procédure de changement + validation
+Prioriser 1–3 améliorations (impact élevé / risque faible)
+Implémenter (prompt/code/scénario)
+Relancer la même commande et comparer:
+issues/suggestions
+transitions d’agents
+coût tokens
+stabilité (pas d’erreurs réseau / timeouts)
+4) Format de sortie exigé
+Donne un rapport avec ces sections:
+Synthèse (3–8 bullets)
+Transcript: points clés (avec citations)
+Analyse Agents/Routing
+Analyse Tools/DB writes
+Issues & Suggestions du judge (triées par sévérité)
+Recommandations (immédiates / moyen terme)
+Plan de changements + re-run (étapes exactes)
+Contraintes
+Ne rien inventer: tout doit être justifié par conversation_eval_run.json et les logs de bundle.
+Ne pas “tricher” avec des steps hardcodés: le scénario doit rester réaliste (simulate-user).
+Priorité: robustesse produit + cohérence conversationnelle + stabilité des agents + transitions propres.

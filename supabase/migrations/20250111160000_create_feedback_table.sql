@@ -33,3 +33,4 @@ create policy "Users can view their own feedback"
 on user_feedback_entries for select 
 using (auth.uid() = user_id);
 
+

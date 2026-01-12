@@ -29,12 +29,21 @@ export function buildMechanicalIssues(params: {
       .map((m: any) => String(m?.content ?? ""))
       .join("\n");
     for (const reRaw of mustMatch) {
-      const re = new RegExp(String(reRaw), "i");
-      if (!re.test(assistantText)) {
+      try {
+        const re = new RegExp(String(reRaw), "i");
+        if (!re.test(assistantText)) {
+          out.push({
+            severity: "high",
+            kind: "mechanical_assertion_failed",
+            message: `assistant_must_match failed: /${String(reRaw)}/i`,
+          });
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
         out.push({
           severity: "high",
-          kind: "mechanical_assertion_failed",
-          message: `assistant_must_match failed: /${String(reRaw)}/i`,
+          kind: "mechanical_assertion_invalid_regex",
+          message: `assistant_must_match invalid regex: /${String(reRaw)}/i (${msg})`,
         });
       }
     }
@@ -47,12 +56,21 @@ export function buildMechanicalIssues(params: {
       .map((m: any) => String(m?.content ?? ""))
       .join("\n");
     for (const reRaw of mustNotMatch) {
-      const re = new RegExp(String(reRaw), "i");
-      if (re.test(assistantText)) {
+      try {
+        const re = new RegExp(String(reRaw), "i");
+        if (re.test(assistantText)) {
+          out.push({
+            severity: "high",
+            kind: "mechanical_assertion_failed",
+            message: `assistant_must_not_match failed: /${String(reRaw)}/i`,
+          });
+        }
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
         out.push({
           severity: "high",
-          kind: "mechanical_assertion_failed",
-          message: `assistant_must_not_match failed: /${String(reRaw)}/i`,
+          kind: "mechanical_assertion_invalid_regex",
+          message: `assistant_must_not_match invalid regex: /${String(reRaw)}/i (${msg})`,
         });
       }
     }
@@ -60,5 +78,6 @@ export function buildMechanicalIssues(params: {
 
   return out;
 }
+
 
 

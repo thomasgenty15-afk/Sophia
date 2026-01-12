@@ -8,3 +8,4 @@ create index if not exists profiles_whatsapp_onboarding_started_at_idx
   on public.profiles (whatsapp_onboarding_started_at);
 
 
+

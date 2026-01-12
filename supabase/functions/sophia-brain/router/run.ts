@@ -396,11 +396,12 @@ SORTIE JSON STRICTE:
       // Prefer Architect for "how-to" instructions about concrete exercises/actions.
       targetMode = "architect";
     }
-    // Avoid over-triggering Firefighter for normal work pressure venting on WhatsApp.
+    // WhatsApp stress venting:
+    // Previously we often downgraded Firefighter → Investigator (structured assessment).
+    // But this frequently felt cold / "bilan-y" for users who are simply overwhelmed.
+    // New rule: keep Firefighter only when risk is meaningfully elevated; otherwise use Companion.
     if (targetMode === "firefighter" && looksLikeWorkPressureVenting(userMessage) && !looksLikeAcuteDistress(userMessage)) {
-      // If the dispatcher signaled elevated risk, prefer Investigator (structured assessment)
-      // instead of dropping all the way to Companion.
-      targetMode = riskScore >= 3 ? "investigator" : "companion";
+      targetMode = riskScore >= 6 ? "firefighter" : "companion";
     }
   }
 
@@ -480,12 +481,12 @@ SORTIE JSON STRICTE:
   if (!checkupActive && !stopCheckup && dailyBilanReply) {
     targetMode = 'investigator'
   }
-  // Allow Investigator to start on WhatsApp when there are strong overload signals AND the dispatcher marked risk elevated.
-  // This avoids a "firefighter → companion" downgrade producing an under-assessing response in distress-like contexts.
+  // Investigator should ONLY start when the user explicitly asks for it (bilan/check),
+  // or when responding to a checkup/bilan prompt (dailyBilanReply).
+  // Progress reporting ("j'ai fait / pas fait") should be handled by Architect/Companion, not Investigator.
   const shouldStartInvestigator =
     looksLikeExplicitCheckupIntent(userMessage) ||
-    looksLikeActionProgress(userMessage) ||
-    (((meta?.channel ?? "web") === "whatsapp") && riskScore >= 3 && looksLikeWorkPressureVenting(userMessage))
+    dailyBilanReply
   if (!checkupActive && targetMode === 'investigator' && !shouldStartInvestigator) {
     targetMode = 'companion'
   }
@@ -841,6 +842,14 @@ SORTIE JSON STRICTE:
       "- ton téléphone + navigateur (ex: iPhone/Safari, Android/Chrome)\n\n" +
       "En attendant: dis-moi en 1 phrase ton objectif #1 du moment et je te propose un premier pas simple à faire aujourd’hui (sans attendre que le dashboard se remplisse).";
     nextMode = "architect";
+    try {
+      await updateUserState(supabase, userId, scope, {
+        current_mode: nextMode,
+        unprocessed_msg_count: msgCount,
+        last_processed_at: lastProcessed,
+        temp_memory: tempMemory,
+      })
+    } catch {}
     // Best-effort: log the assistant message (don't block the reply if DB write fails).
     try {
       await logMessage(supabase, userId, scope, "assistant", responseContent, "architect", { reason: "no_plan_loop_escalation" });

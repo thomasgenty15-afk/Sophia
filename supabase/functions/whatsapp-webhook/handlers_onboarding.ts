@@ -374,8 +374,43 @@ export async function handleOnboardingState(params: {
       return true
     }
 
-    // After motivation score: immediately kick off the FIRST active action.
-    // This avoids an onboarding loop of generic open questions and creates momentum.
+    const alreadyHasFact = await params.hasWhatsappPersonalFact(admin, userId)
+
+    // If we already have a WhatsApp personal fact, we can end onboarding gating here and continue normally.
+    if (alreadyHasFact) {
+      await replyWithBrain({
+        admin,
+        userId,
+        fromE164,
+        inboundText: raw || `${score}/10`,
+        requestId,
+        replyToWaMessageId: waMessageId,
+        purpose: "awaiting_plan_motivation_score_already_has_fact_exit",
+        forceMode: "companion",
+        whatsappMode: "onboarding",
+        contextOverride:
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_plan_motivation",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "plan_active",
+            phase: "onboarding",
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Le user a donné ${score}/10.\n` +
+          `- Accuse réception (court, WhatsApp).\n` +
+          `- On a déjà un fait perso WhatsApp: n'en redemande pas.\n` +
+          `- Termine par 1 question max pour avancer.\n`,
+      })
+      await admin.from("profiles").update({
+        whatsapp_state: null,
+        whatsapp_state_updated_at: new Date().toISOString(),
+      }).eq("id", userId)
+      return true
+    }
+
+    // Otherwise: after the motivation score, ask for ONE personal fact and keep the state machine on-track.
+    // This is product-like (helps personalization) and keeps the onboarding deterministic for WhatsApp.
     await replyWithBrain({
       admin,
       userId,
@@ -383,12 +418,12 @@ export async function handleOnboardingState(params: {
       inboundText: raw || `${score}/10`,
       requestId,
       replyToWaMessageId: waMessageId,
-      purpose: rest.length > 0 ? "awaiting_plan_motivation_score_plus_request" : "awaiting_plan_motivation_score_kickoff",
-      forceMode: "architect",
+      purpose: "awaiting_plan_motivation_score_to_personal_fact_prompt",
+      forceMode: "companion",
       whatsappMode: "onboarding",
       contextOverride:
         buildWhatsAppOnboardingContext({
-          state: "awaiting_plan_motivation",
+          state: "awaiting_personal_fact",
           siteUrl,
           supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
           planPolicy: "plan_active",
@@ -396,14 +431,14 @@ export async function handleOnboardingState(params: {
         }) +
         `\n\nCONSIGNE DE TOUR:\n` +
         `- Le user a donné ${score}/10.\n` +
-        `- Accuse réception en 1 phrase.\n` +
-        `- Lance tout de suite la prochaine étape concrète (petit pas) sur une action active.\n` +
-        `- Termine par 1 question courte liée à cette étape.\n`,
+        `- Réponds court, sans markdown.\n` +
+        `- Ta réponse DOIT contenir: "merci" (n'importe où), "${score}/10", et "1 truc".\n` +
+        `- Pose UNE seule question demandant 1 fait perso simple (ex: routine du soir, contrainte, préférence).\n` +
+        `- Ne démarre pas l'exécution du plan tant que le fait perso n'est pas capturé.\n`,
     })
 
     await admin.from("profiles").update({
-      // End onboarding gating once motivation is captured; continue normally.
-      whatsapp_state: null,
+      whatsapp_state: "awaiting_personal_fact",
       whatsapp_state_updated_at: new Date().toISOString(),
     }).eq("id", userId)
     return true

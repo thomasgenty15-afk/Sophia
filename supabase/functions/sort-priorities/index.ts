@@ -35,7 +35,7 @@ serve(async (req) => {
       }));
       return new Response(JSON.stringify({ sortedAxes }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
-    
+
     let instructions = "";
     
     if (count === 1) {

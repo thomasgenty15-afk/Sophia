@@ -36,3 +36,4 @@ create policy "system_error_logs_internal_admin_read"
   using (exists (select 1 from public.internal_admins ia where ia.user_id = auth.uid()));
 
 
+
