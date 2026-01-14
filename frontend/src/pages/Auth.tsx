@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
+import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
 import { 
   Mail, 
   Lock, 
@@ -72,6 +73,16 @@ const Auth = () => {
   const [hasAcceptedLegal, setHasAcceptedLegal] = useState(false); // New state for legal acceptance
   const [confirmationPending, setConfirmationPending] = useState(false); // Nouvel état
   const [isResettingPassword, setIsResettingPassword] = useState(false); // Pour la demande de reset MDP
+  const [timezone, setTimezone] = useState<string>(DEFAULT_TIMEZONE);
+  const [tzFollowDevice, setTzFollowDevice] = useState<boolean>(false);
+  const [prefsOpen, setPrefsOpen] = useState<boolean>(false);
+
+  const supportedTimezones = React.useMemo(() => {
+    const detected = detectBrowserTimezone();
+    const all = getAllSupportedTimezones(detected);
+    const current = (timezone || "").trim();
+    return current && !all.includes(current) ? [current, ...all] : all;
+  }, [timezone]);
 
   useEffect(() => {
     // En pré-lancement, on force le mode connexion (inscription interdite)
@@ -83,6 +94,14 @@ const Auth = () => {
       setError("Accès restreint (pré-lancement). Seul le compte master_admin peut se connecter.");
     }
   }, [forbidden]);
+
+  useEffect(() => {
+    // Prefill timezone from browser when opening signup (non-destructive if user already typed something else).
+    // Language is locked to French for now (DEFAULT_LOCALE).
+    if (!isSignUp || prelaunchLockdown) return;
+    const detected = detectBrowserTimezone();
+    if (detected) setTimezone(detected);
+  }, [isSignUp, prelaunchLockdown]);
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -162,7 +181,11 @@ const Auth = () => {
           options: {
             data: { 
                 full_name: name,
-                phone: phoneNorm // Stocker le téléphone (normalisé) dans les métadonnées
+                phone: phoneNorm, // Stocker le téléphone (normalisé) dans les métadonnées
+                // Localization (stored on profiles via DB trigger)
+                locale: DEFAULT_LOCALE,
+                timezone: (timezone || "").trim() || DEFAULT_TIMEZONE,
+                tz_follow_device: tzFollowDevice
             } 
           }
         });
@@ -545,6 +568,76 @@ const Auth = () => {
                     </label>
                   </div>
                 </div>
+            )}
+
+            {/* Préférences (inscription uniquement) */}
+            {isSignUp && !prelaunchLockdown && (
+              <div className="rounded-xl border border-slate-200 overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => setPrefsOpen((v) => !v)}
+                  className="w-full px-4 py-3 flex items-center justify-between bg-white hover:bg-slate-50 transition-colors"
+                  aria-expanded={prefsOpen}
+                >
+                  <div className="text-left">
+                    <div className="text-sm font-bold text-slate-900">Préférences</div>
+                    <div className="text-xs text-slate-500">
+                      Français · {tzFollowDevice ? `${detectBrowserTimezone() || timezone || DEFAULT_TIMEZONE} (appareil)` : `${timezone || DEFAULT_TIMEZONE} (profil)`}
+                    </div>
+                  </div>
+                  <div className="text-slate-400 text-sm font-bold">{prefsOpen ? "—" : "+"}</div>
+                </button>
+
+                {prefsOpen && (
+                  <div className="p-4 bg-white border-t border-slate-200 space-y-3">
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">
+                        Langue
+                      </label>
+                      <input
+                        type="text"
+                        value="Français"
+                        readOnly
+                        className="appearance-none block w-full px-3 py-3 border border-slate-200 rounded-xl bg-slate-50 text-slate-700 sm:text-sm"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">Langue verrouillée pour le moment.</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-bold text-slate-700 mb-1">
+                        Fuseau horaire (IANA)
+                      </label>
+                      <select
+                        value={(timezone || "").trim()}
+                        onChange={(e) => setTimezone(e.target.value)}
+                        className="appearance-none block w-full px-3 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
+                      >
+                        {supportedTimezones.map((tz) => (
+                          <option key={tz} value={tz}>
+                            {tz}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+
+                    <div className="flex items-center justify-between gap-3 rounded-xl border border-slate-200 p-3">
+                      <div>
+                        <div className="text-sm font-bold text-slate-700">Itinérance</div>
+                        <div className="text-xs text-slate-500">Suivre automatiquement le fuseau horaire de l’appareil.</div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTzFollowDevice((v) => !v)}
+                        className={`w-11 h-6 rounded-full p-1 transition-colors ${tzFollowDevice ? "bg-indigo-600" : "bg-slate-200"}`}
+                        aria-pressed={tzFollowDevice}
+                        aria-label="Activer l'itinérance"
+                      >
+                        <div className={`w-4 h-4 bg-white rounded-full shadow-sm transform transition-transform ${tzFollowDevice ? "translate-x-5" : "translate-x-0"}`} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
             )}
 
             {!isSignUp && (

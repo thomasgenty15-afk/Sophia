@@ -1,0 +1,21 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_break_down_action",
+  "description": "Architect should break down an action into a micro-step and insert it (break_down_action tool).",
+  "steps": [
+    { "user": "Ajoute une habitude dans mon plan: \"Sport\". Fréquence: 3 fois par semaine." },
+    { "user": "Je bloque sur \"Sport\" depuis plusieurs jours: trop fatigué et je procrastine. Tu peux la découper en micro-étape de 2 minutes ?" },
+    { "user": "Oui, vas-y, ajoute-la au plan." }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"]
+  },
+  "mechanical_assertions": {
+    "plan_actions_count_min": 2,
+    "plan_actions_must_include": [
+      { "description": "Micro-étape pour débloquer l'action.", "status": "active" }
+    ]
+  }
+}
+
+

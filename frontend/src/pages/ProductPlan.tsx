@@ -31,10 +31,7 @@ const ProductPlan = () => {
         <div className="max-w-6xl mx-auto px-4 md:px-6 h-16 md:h-20 flex items-center justify-between">
           <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/')}>
             <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-7 h-7 md:w-8 md:h-8 rounded-lg" />
-            <div className="flex items-baseline gap-1.5">
-              <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
-              <span className="text-[10px] md:text-xs text-slate-400 font-medium tracking-wide uppercase">Powered by IKIZEN</span>
-            </div>
+            <span className="font-bold text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
           </div>
           <div className="flex items-center gap-8">
              <div className="hidden md:flex gap-6 text-sm font-medium text-slate-600">

@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { generateWithGemini } from "../../../_shared/gemini.ts"
 import { retrieveContext } from "../companion.ts"
-import { approxParisHourUtcPlusOne } from "../../time.ts"
+import { getUserTimeContext } from "../../../_shared/user_time_context.ts"
 import type { InvestigationState, InvestigatorTurnResult } from "./types.ts"
 import { isExplicitStopBilan } from "./utils.ts"
 import { investigatorSay } from "./copy.ts"
@@ -19,6 +19,8 @@ export async function runInvestigator(
   state: any,
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string },
 ): Promise<InvestigatorTurnResult> {
+  const timeCtx = await getUserTimeContext({ supabase, userId }).catch(() => null as any)
+
   // 1. INIT STATE
   let currentState: InvestigationState = state || {
     status: "init",
@@ -51,9 +53,9 @@ export async function runInvestigator(
       }
     }
 
-    // Day scope from (approx) Paris hour
-    const parisHour = approxParisHourUtcPlusOne()
-    const initialDayScope = parisHour >= 17 ? "today" : "yesterday"
+    // Day scope from user's LOCAL hour (timezone-aware).
+    const localHour = Number(timeCtx?.user_local_hour)
+    const initialDayScope = Number.isFinite(localHour) && localHour >= 17 ? "today" : "yesterday"
 
     currentState = {
       status: "checking",
@@ -155,6 +157,7 @@ export async function runInvestigator(
     generalContext,
     history,
     message,
+    timeContextBlock: timeCtx?.prompt_block ? `=== REPÈRES TEMPORELS ===\n${timeCtx.prompt_block}\n` : "",
   })
 
   console.log(`[Investigator] Generating response for item: ${currentItem.title}`)

@@ -4,6 +4,7 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { getRequestId, jsonResponse, serverError } from "../_shared/http.ts";
 import { verifyStripeWebhookSignature } from "../_shared/stripe.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { intervalFromStripePriceId, tierFromStripePriceId } from "../_shared/billing-tier.ts";
 
 function requireEnv(name: string): string {
   const v = Deno.env.get(name)?.trim();
@@ -104,6 +105,8 @@ Deno.serve(async (req) => {
         (sub?.items?.data?.[0]?.price?.id as string | undefined) ??
         (sub?.plan?.id as string | undefined) ??
         null;
+      const tier = tierFromStripePriceId(stripePriceId);
+      const interval = intervalFromStripePriceId(stripePriceId);
 
       const stripeCustomerId = typeof sub?.customer === "string" ? (sub.customer as string) : null;
 
@@ -118,6 +121,8 @@ Deno.serve(async (req) => {
             user_id: userId,
             stripe_subscription_id: stripeSubscriptionId,
             stripe_price_id: stripePriceId,
+            tier,
+            interval,
             status,
             cancel_at_period_end: cancelAtPeriodEnd,
             current_period_start: currentPeriodStart,
@@ -141,6 +146,8 @@ Deno.serve(async (req) => {
           .from("subscriptions")
           .update({
             stripe_price_id: stripePriceId,
+            tier,
+            interval,
             status,
             cancel_at_period_end: cancelAtPeriodEnd,
             current_period_start: currentPeriodStart,

@@ -4,6 +4,8 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { generateWithGemini } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
+import { whatsappLangFromLocale } from "../_shared/locale.ts"
 
 console.log("Memory Echo: Function initialized")
 
@@ -154,6 +156,9 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({} as any)) as any
     const filterUserId = String(body?.user_id ?? "").trim()
     const filterEmail = String(body?.email ?? "").trim().toLowerCase()
+    const userIdsOverride = Array.isArray(body?.user_ids)
+      ? (body.user_ids as any[]).map((x) => String(x ?? "").trim()).filter(Boolean)
+      : []
     const force = Boolean(body?.force)
     const debug = Boolean(body?.debug)
     const quietMinutes = Number.isFinite(Number(body?.quiet_minutes)) ? Number(body?.quiet_minutes) : 20
@@ -161,7 +166,9 @@ Deno.serve(async (req) => {
 
     // Optional targeting: run only for a specific user (user_id or email).
     let userIds: string[] = []
-    if (filterUserId) {
+    if (userIdsOverride.length > 0) {
+      userIds = [...new Set(userIdsOverride)]
+    } else if (filterUserId) {
       userIds = [filterUserId]
     } else if (filterEmail) {
       const { data: prof, error: profErr } = await supabaseAdmin
@@ -196,6 +203,9 @@ Deno.serve(async (req) => {
 
     let triggeredCount = 0
     const debugByUser: Array<{ user_id: string; reason: string; strategy?: string; whatsapp_send?: unknown; error?: unknown }> = []
+    const handledUserIds: string[] = []
+    const skippedUserIds: string[] = []
+    const errorUserIds: string[] = []
 
     for (const userId of userIds) {
         // A. Check Cooldown (Has echo been sent in last 10 days?)
@@ -208,6 +218,7 @@ Deno.serve(async (req) => {
             .contains('metadata', { source: 'memory_echo' })
             .gt('created_at', new Date(Date.now() - COOLDOWN_DAYS * 24 * 60 * 60 * 1000).toISOString())
           if (recentEchoes && recentEchoes.length > 0) {
+            skippedUserIds.push(userId)
             continue
           }
         }
@@ -368,13 +379,15 @@ Deno.serve(async (req) => {
             debugByUser.push({ user_id: userId, reason })
             console.log(`[trigger-memory-echo] request_id=${requestId} user_id=${userId} ${reason}`)
           }
+          // Consider as "handled" so the scheduler can respect the interval even if we didn't send.
+          handledUserIds.push(userId)
           continue
         }
 
         // D. Decide whether to ask permission via template (window closed) or send immediately (window open).
         const { data: profile } = await supabaseAdmin
           .from("profiles")
-          .select("whatsapp_opted_in, phone_invalid, whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+          .select("whatsapp_opted_in, phone_invalid, whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone, locale")
           .eq("id", userId)
           .maybeSingle()
 
@@ -393,7 +406,8 @@ Deno.serve(async (req) => {
               message: {
                 type: "template",
                 name: (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_NAME") ?? "sophia_memory_echo_v1").trim(),
-                language: (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_LANG") ?? "fr").trim(),
+                // For now, UI locks language to French; this mapping is future-proof for multi-lang.
+                language: whatsappLangFromLocale((profile as any)?.locale ?? null, (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_LANG") ?? "fr").trim()),
               },
               purpose: "memory_echo",
               require_opted_in: true,
@@ -410,19 +424,33 @@ Deno.serve(async (req) => {
             })
 
             // Count only if delivery wasn't skipped by whatsapp-send.
-            if (!(sendRes as any)?.skipped) triggeredCount++
+            if ((sendRes as any)?.skipped) {
+              skippedUserIds.push(userId)
+            } else {
+              triggeredCount++
+              handledUserIds.push(userId)
+            }
             if (debug) debugByUser.push({ user_id: userId, reason: "template_sent", strategy: selectedStrategy, whatsapp_send: sendRes })
           } catch (e) {
             // ignore user-level failures
+            errorUserIds.push(userId)
             if (debug) debugByUser.push({ user_id: userId, reason: "template_send_failed", strategy: selectedStrategy })
           }
           continue
         }
 
+        const tctx = buildUserTimeContextFromValues({
+          timezone: (profile as any)?.timezone ?? null,
+          locale: (profile as any)?.locale ?? null,
+        })
+
         // D. Generate the Echo (window open, or WhatsApp not available -> we'll log in-app)
         const prompt = `
 Tu es "L'Archiviste", une facette de Sophia.
 Ton rôle est de reconnecter l'utilisateur avec son passé pour lui donner de la perspective.
+
+Repères temporels (critiques):
+${tctx.prompt_block}
 
 IMPORTANT: ton message doit être VRAIMENT utile. Interdiction de choisir/mentionner un "salut ?", "ok", ou un ping banal.
 Objectif: donner l'impression d'un vrai suivi (on n'en a pas reparlé récemment), sans être lourd ni culpabilisant.
@@ -478,6 +506,7 @@ CONSIGNES:
               })
             }
             // Consider it "handled" for this run (we don't send now).
+            handledUserIds.push(userId)
             continue
           }
 
@@ -492,8 +521,13 @@ CONSIGNES:
               ref_id: refId || "unknown",
             },
           })
-          sentViaWhatsapp = !(sendRes as any)?.skipped
-          if (sentViaWhatsapp) triggeredCount++
+          if ((sendRes as any)?.skipped) {
+            skippedUserIds.push(userId)
+          } else {
+            sentViaWhatsapp = true
+            triggeredCount++
+            handledUserIds.push(userId)
+          }
           if (debug) debugByUser.push({ user_id: userId, reason: sentViaWhatsapp ? "text_sent" : "text_skipped", strategy: selectedStrategy, whatsapp_send: sendRes })
         } catch (e) {
           const status = (e as any)?.status
@@ -503,6 +537,8 @@ CONSIGNES:
           if (status === 429) continue
           // 409 not opted in / phone invalid => fall back to in-app log
           sentViaWhatsapp = false
+          if (msg.includes("Proactive throttle")) skippedUserIds.push(userId)
+          else errorUserIds.push(userId)
           if (debug) debugByUser.push({ user_id: userId, reason: "text_send_failed", strategy: selectedStrategy, error: { status: status ?? null, message: msg, data: data ?? null } })
         }
 
@@ -523,8 +559,10 @@ CONSIGNES:
 
           if (!msgError) {
             triggeredCount++
+            handledUserIds.push(userId)
             if (debug) debugByUser.push({ user_id: userId, reason: "in_app_logged", strategy: selectedStrategy })
           } else {
+            errorUserIds.push(userId)
             if (debug) debugByUser.push({ user_id: userId, reason: "in_app_log_failed", strategy: selectedStrategy, error: { message: String(msgError) } })
           }
         }
@@ -533,7 +571,15 @@ CONSIGNES:
     console.log(`[trigger-memory-echo] request_id=${requestId} triggered=${triggeredCount}`)
     return jsonResponse(
       req,
-      { success: true, triggered: triggeredCount, request_id: requestId, ...(debug ? { debug_by_user: debugByUser } : {}) },
+      {
+        success: true,
+        triggered: triggeredCount,
+        handled_user_ids: handledUserIds,
+        skipped_user_ids: skippedUserIds,
+        error_user_ids: errorUserIds,
+        request_id: requestId,
+        ...(debug ? { debug_by_user: debugByUser } : {}),
+      },
       { includeCors: false },
     )
 

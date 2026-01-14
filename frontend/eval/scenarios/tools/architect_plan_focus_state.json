@@ -1,0 +1,21 @@
+{
+  "dataset_key": "state_machines",
+  "id": "architect_plan_focus_state",
+  "description": "Router should update temp_memory.architect.plan_focus when architect mode is used and user talks objectives/plan.",
+  "steps": [
+    { "user": "Mon objectif en ce moment: retrouver une routine stable. Aide-moi à définir un premier pas concret." }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"]
+  },
+  "mechanical_assertions": {
+    "chat_state_temp_memory_equals": {
+      "architect.plan_focus": true
+    },
+    "chat_state_temp_memory_paths_exist": [
+      "architect.last_updated_at"
+    ]
+  }
+}
+
+

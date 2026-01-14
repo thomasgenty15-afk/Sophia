@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { 
   Check,
@@ -18,27 +18,141 @@ import { supabase } from '../lib/supabase';
 
 const UpgradePlan = () => {
   const navigate = useNavigate();
-  const { user, subscription } = useAuth();
+  const { user, subscription, accessTier } = useAuth();
   const [billingInterval, setBillingInterval] = useState<'monthly' | 'yearly'>('monthly');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const currentTier = accessTier; // single source of truth from profiles.access_tier
+  const currentInterval = (subscription as any)?.interval as ('monthly' | 'yearly' | null | undefined) ?? null;
+  const rank = (t: string) => (t === "system" ? 1 : t === "alliance" ? 2 : t === "architecte" ? 3 : 0);
+  const currentPaidTier = (currentTier === "system" || currentTier === "alliance" || currentTier === "architecte") ? currentTier : "none";
+  // NOTE: Inclusion is tier-based only; interval switching is handled per-card using currentInterval.
+  const includesSystem = currentTier === "system" || currentTier === "alliance" || currentTier === "architecte";
+  const includesAlliance = currentTier === "alliance" || currentTier === "architecte";
+  const includesArchitecte = currentTier === "architecte";
+
+  // Best-effort: if billing data is stale (common right after checkout), force a one-time sync then reload.
+  useEffect(() => {
+    if (!user) return;
+    const attemptedKey = `billing_sync_upgrade_attempted:${user.id}`;
+    const attempted = sessionStorage.getItem(attemptedKey) === "1";
+    const isStale = currentTier === "none" || currentTier === "trial";
+    if (!isStale || attempted) return;
+
+    sessionStorage.setItem(attemptedKey, "1");
+    (async () => {
+      try {
+        await supabase.functions.invoke("stripe-sync-subscription", { body: {} });
+      } catch {
+        // ignore
+      } finally {
+        window.location.reload();
+      }
+    })();
+  }, [user, currentTier]);
 
   const startCheckout = async (
     tier: 'system' | 'alliance' | 'architecte',
     interval: 'monthly' | 'yearly',
   ) => {
     setError(null);
+    setSuccess(null);
     setLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
-        body: { tier, interval },
-      });
-      if (error) throw error;
-      const url = (data as any)?.url as string | undefined;
-      if (!url) throw new Error("Checkout URL manquante");
-      window.location.href = url;
+      const hasActiveSub = currentPaidTier !== "none";
+
+      const isUpgrade = hasActiveSub && rank(tier) > rank(currentPaidTier);
+      const isIntervalSwitch = hasActiveSub && rank(tier) === rank(currentPaidTier) && currentInterval !== interval;
+      const isNewSub = !hasActiveSub;
+
+      const planLabel =
+        tier === "system" ? "Le Système" : tier === "alliance" ? "L'Alliance" : "L'Architecte";
+      const intervalLabel = interval === "yearly" ? "annuel" : "mensuel";
+
+      const confirmMsg =
+        `Confirmer ${isNewSub ? "l'abonnement" : (isUpgrade ? "la mise à niveau" : (isIntervalSwitch ? "le changement de formule" : "le changement de plan"))} ?\n\n` +
+        `Plan : ${planLabel}\n` +
+        `Formule : ${intervalLabel}\n\n` +
+        `Tu pourras toujours gérer ta facturation (factures, annulation, moyen de paiement) depuis le menu.\n\n` +
+        `Note : Stripe calcule automatiquement les ajustements (prorata / différence de prix) selon ton abonnement actuel, ` +
+        `et les applique soit immédiatement, soit sur la prochaine facture (selon la configuration Stripe).`;
+
+      const ok = window.confirm(confirmMsg);
+      if (!ok) {
+        setLoading(false);
+        return;
+      }
+
+      if (hasActiveSub) {
+        // Existing subscriber: change plan directly (avoids Billing Portal config issues).
+        const { error } = await supabase.functions.invoke("stripe-change-plan", {
+          body: { tier, interval, effective_at: "now" },
+        });
+        if (error) throw error;
+        window.alert(
+          `C'est confirmé.\n\n` +
+            `Rappel : tu peux gérer la facturation depuis le menu.\n` +
+            `Stripe appliquera automatiquement les ajustements (prorata / différence de prix) si nécessaire ` +
+            `(immédiatement ou sur la prochaine facture).`,
+        );
+        window.location.href = "/dashboard?billing=success";
+      } else {
+        window.alert(
+          `C'est confirmé.\n\n` +
+            `Tu vas être redirigé vers Stripe pour finaliser.\n` +
+            `Rappel : tu pourras gérer la facturation depuis le menu ensuite.`,
+        );
+        const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
+          body: { tier, interval },
+        });
+        if (error) throw error;
+        const url = (data as any)?.url as string | undefined;
+        if (!url) throw new Error("Checkout URL manquante");
+        window.location.href = url;
+      }
     } catch (err: any) {
       setError(err?.message ?? "Erreur lors de la redirection vers le paiement");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatDateFr = (iso: string | null | undefined) => {
+    const s = String(iso ?? "").trim();
+    if (!s) return null;
+    const d = new Date(s);
+    if (Number.isNaN(d.getTime())) return null;
+    return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
+  };
+
+  const scheduleDowngrade = async (tier: 'system' | 'alliance') => {
+    setError(null);
+    setSuccess(null);
+    const effectiveDate = formatDateFr((subscription as any)?.current_period_end);
+    const intervalToKeep = (currentInterval ?? billingInterval) as 'monthly' | 'yearly';
+    const planLabel = tier === "system" ? "Le Système" : "L'Alliance";
+    const msg =
+      `Confirmer le downgrade vers "${planLabel}" ?\n\n` +
+      `Ton accès actuel reste actif jusqu'à la fin de la période${effectiveDate ? ` (${effectiveDate})` : ""}.\n\n` +
+      `Rappel : tu peux gérer la facturation depuis le menu.\n\n` +
+      `Note : à la date de renouvellement, Stripe appliquera automatiquement le changement (aucun débit immédiat).`;
+    const ok = window.confirm(msg);
+    if (!ok) return;
+
+    setLoading(true);
+    try {
+      const { error } = await supabase.functions.invoke("stripe-change-plan", {
+        body: { tier, interval: intervalToKeep, effective_at: "period_end" },
+      });
+      if (error) throw error;
+      setSuccess(
+        `OK — downgrade programmé${effectiveDate ? ` pour le ${effectiveDate}` : " à la fin de la période"}. ` +
+          `Tu gardes l'accès actuel jusque-là. (Tu peux gérer la facturation depuis le menu.)`,
+      );
+    } catch (err: any) {
+      setError(err?.message ?? "Erreur lors de la programmation du downgrade");
     } finally {
       setLoading(false);
     }
@@ -63,9 +177,11 @@ const UpgradePlan = () => {
           </button>
           
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 md:w-8 md:h-8 bg-violet-600 rounded-lg flex items-center justify-center text-white font-bold shadow-lg shadow-violet-200 font-serif">
-              S
-            </div>
+            <img 
+              src="/apple-touch-icon.png" 
+              alt="Sophia" 
+              className="w-8 h-8"
+            />
             <span className="font-bold text-lg md:text-xl tracking-tight text-slate-900">Sophia</span>
           </div>
 
@@ -107,6 +223,12 @@ const UpgradePlan = () => {
                 {error}
             </div>
         )}
+
+        {success && (
+          <div className="max-w-md mx-auto mb-8 p-4 bg-violet-50 text-violet-800 rounded-xl text-sm border border-violet-100">
+            {success}
+          </div>
+        )}
       </div>
 
       {/* PRICING CARDS */}
@@ -131,11 +253,47 @@ const UpgradePlan = () => {
             
             <button 
                 onClick={() => startCheckout('system', billingInterval)}
-                disabled={loading}
-                className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-700 font-bold hover:border-violet-600 hover:text-violet-600 transition-all mb-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || (rank(currentPaidTier) > rank("system")) || (currentPaidTier === "system" && currentInterval === billingInterval)}
+                className={`w-full py-3 rounded-xl font-bold transition-all mb-8 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                  (rank(currentPaidTier) > rank("system")) || (currentPaidTier === "system" && currentInterval === billingInterval)
+                    ? "bg-violet-50 text-violet-700 border-2 border-violet-200"
+                    : "border-2 border-slate-100 text-slate-700 hover:border-violet-600 hover:text-violet-600"
+                } ${loading ? "opacity-50" : ""}`}
             >
-              {loading ? "Chargement..." : "Choisir ce plan"}
+              {loading ? (
+                "Chargement..."
+              ) : (rank(currentPaidTier) > rank("system")) ? (
+                <>
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-600 text-white">
+                    <Check className="w-3 h-3" />
+                  </span>
+                  <span>Inclus</span>
+                </>
+              ) : (currentPaidTier === "system" && currentInterval === billingInterval) ? (
+                <>
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-600 text-white">
+                    <Check className="w-3 h-3" />
+                  </span>
+                  <span>Plan actuel</span>
+                </>
+              ) : (
+                currentPaidTier === "none"
+                  ? "Choisir Le Système"
+                  : (billingInterval === "yearly" ? "Passer en annuel" : "Passer en mensuel")
+              )}
             </button>
+
+            {/* Downgrade link (only when current plan is above System) */}
+            {rank(currentPaidTier) > rank("system") && (
+              <button
+                type="button"
+                onClick={() => scheduleDowngrade("system")}
+                disabled={loading}
+                className="w-full -mt-4 mb-6 text-xs text-slate-500 hover:text-red-600 underline decoration-slate-300 hover:decoration-red-500 transition-colors disabled:opacity-60 disabled:hover:text-slate-500"
+              >
+                Repasser sur cet abonnement
+              </button>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-start gap-3">
@@ -183,12 +341,50 @@ const UpgradePlan = () => {
             
             <button 
                 onClick={() => startCheckout('alliance', billingInterval)}
-                disabled={loading}
-                className="w-full py-4 rounded-xl bg-violet-600 text-white font-bold hover:bg-violet-500 transition-all shadow-lg shadow-violet-900/50 mb-8 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || (rank(currentPaidTier) > rank("alliance")) || (currentPaidTier === "alliance" && currentInterval === billingInterval)}
+                className={`w-full py-4 rounded-xl font-bold transition-all shadow-lg shadow-violet-900/50 mb-8 flex items-center justify-center gap-2 disabled:cursor-not-allowed ${
+                  (rank(currentPaidTier) > rank("alliance")) || (currentPaidTier === "alliance" && currentInterval === billingInterval)
+                    ? "bg-violet-500/20 text-violet-200 border border-violet-500/30"
+                    : "bg-violet-600 text-white hover:bg-violet-500"
+                } ${loading ? "opacity-50" : ""}`}
             >
-              {loading ? "Chargement..." : "Choisir L'Alliance"}
-              {!loading && <ArrowRight className="w-4 h-4" />}
+              {loading ? (
+                "Chargement..."
+              ) : (rank(currentPaidTier) > rank("alliance")) ? (
+                <>
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-500 text-violet-950">
+                    <Check className="w-3 h-3" />
+                  </span>
+                  <span>Inclus</span>
+                </>
+              ) : (currentPaidTier === "alliance" && currentInterval === billingInterval) ? (
+                <>
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-500 text-violet-950">
+                    <Check className="w-3 h-3" />
+                  </span>
+                  <span>Plan actuel</span>
+                </>
+              ) : (
+                <>
+                  {rank(currentPaidTier) < rank("alliance")
+                    ? "Choisir L'Alliance"
+                    : (billingInterval === "yearly" ? "Passer en annuel" : "Passer en mensuel")}
+                  <ArrowRight className="w-4 h-4" />
+                </>
+              )}
             </button>
+
+            {/* Downgrade link (only when current plan is Architecte) */}
+            {rank(currentPaidTier) > rank("alliance") && (
+              <button
+                type="button"
+                onClick={() => scheduleDowngrade("alliance")}
+                disabled={loading}
+                className="w-full -mt-4 mb-6 text-xs text-slate-300 hover:text-red-400 underline decoration-slate-600 hover:decoration-red-400 transition-colors disabled:opacity-60 disabled:hover:text-slate-300"
+              >
+                Repasser sur cet abonnement
+              </button>
+            )}
 
             <div className="space-y-4">
               <div className="flex items-start gap-3">
@@ -234,10 +430,27 @@ const UpgradePlan = () => {
             
             <button 
                 onClick={() => startCheckout('architecte', billingInterval)}
-                disabled={loading}
-                className="w-full py-3 rounded-xl border-2 border-slate-100 text-slate-700 font-bold hover:border-emerald-600 hover:text-emerald-600 transition-all mb-8 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading || (currentPaidTier === "architecte" && currentInterval === billingInterval)}
+                className={`w-full py-3 rounded-xl font-bold transition-all mb-8 disabled:cursor-not-allowed flex items-center justify-center gap-2 ${
+                  currentPaidTier === "architecte" && currentInterval === billingInterval
+                    ? "bg-violet-50 text-violet-700 border-2 border-violet-200"
+                    : "border-2 border-slate-100 text-slate-700 hover:border-emerald-600 hover:text-emerald-600"
+                } ${loading ? "opacity-50" : ""}`}
             >
-              {loading ? "Chargement..." : "Choisir L'Architecte"}
+              {loading ? (
+                "Chargement..."
+              ) : (currentPaidTier === "architecte" && currentInterval === billingInterval) ? (
+                <>
+                  <span className="inline-flex items-center justify-center w-5 h-5 rounded-md bg-violet-600 text-white">
+                    <Check className="w-3 h-3" />
+                  </span>
+                  <span>Plan actuel</span>
+                </>
+              ) : (
+                currentPaidTier === "architecte"
+                  ? (billingInterval === "yearly" ? "Passer en annuel" : "Passer en mensuel")
+                  : "Choisir L'Architecte"
+              )}
             </button>
 
             <div className="space-y-4">

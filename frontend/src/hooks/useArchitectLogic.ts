@@ -45,17 +45,48 @@ export const useArchitectLogic = (
             if (error) throw error;
         }
 
-        // 2. Sauvegarde Meta (Module State) -> Avancement
-        // On considère le module "started" s'il y a au moins une réponse
-        // On ne le marque "completed" que si on clique sur "Terminer" (voir handleNext)
-        await supabase
+        // 2. Sauvegarde Meta (Week State) -> Progression
+        // La table `user_week_states` est surtout un planning de déblocage:
+        // - `status`: 'available' / 'completed' (et legacy 'active' dans certains envs)
+        // - `first_updated_at`: première fois que l’utilisateur écrit dans la semaine
+        // - `updated_at`: dernière modification
+        //
+        // On ne force pas un status "active" (ça casse avec la contrainte DB). On marque plutôt
+        // `first_updated_at` (si pas déjà défini) + `updated_at`.
+        const { data: existingWeek } = await supabase
+          .from('user_week_states')
+          .select('id, first_updated_at')
+          .eq('user_id', user.id)
+          .eq('module_id', moduleId)
+          .maybeSingle();
+
+        if (!existingWeek) {
+          const { error: insErr } = await supabase.from('user_week_states').insert({
+            user_id: user.id,
+            module_id: moduleId,
+            status: 'available',
+            available_at: timestamp,
+            first_updated_at: timestamp,
+            updated_at: timestamp,
+          });
+          if (insErr) throw insErr;
+        } else {
+          // Update last touched time
+          const { error: updErr } = await supabase
             .from('user_week_states')
-            .upsert({
-                user_id: user.id,
-                week_id: weekNumber,
-                status: 'active', // Reste active tant qu'on edite
-                last_updated_at: timestamp
-            }, { onConflict: 'user_id, week_id' });
+            .update({ updated_at: timestamp })
+            .eq('id', (existingWeek as any).id);
+          if (updErr) throw updErr;
+
+          // Set first_updated_at once
+          if (!(existingWeek as any).first_updated_at) {
+            const { error: firstErr } = await supabase
+              .from('user_week_states')
+              .update({ first_updated_at: timestamp })
+              .eq('id', (existingWeek as any).id);
+            if (firstErr) throw firstErr;
+          }
+        }
 
         setInitialAnswers({ ...answers });
         setLastSavedAt(new Date());

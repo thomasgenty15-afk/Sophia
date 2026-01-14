@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { badRequest, getRequestId, jsonResponse, parseJsonBody, serverError, z } from "../_shared/http.ts";
 import { stripeRequest } from "../_shared/stripe.ts";
+import { tierFromStripePriceId } from "../_shared/billing-tier.ts";
 
 const BodySchema = z
   .object({
@@ -59,24 +60,6 @@ Deno.serve(async (req) => {
 
     const supabaseAdmin = createClient(supabaseUrl, supabaseServiceRole);
 
-    // Guardrail: if the user already has an active subscription, do NOT create a second one.
-    // Instead, send them to Stripe Billing Portal to change plans (avoids double billing).
-    const { data: existingSub, error: existingSubErr } = await supabaseAdmin
-      .from("subscriptions")
-      .select("status, current_period_end")
-      .eq("user_id", user.id)
-      .maybeSingle();
-    if (existingSubErr) {
-      console.error("[stripe-create-checkout-session] subscriptions read error", existingSubErr);
-      return serverError(req, requestId);
-    }
-    const existingStatus = String((existingSub as any)?.status ?? "").toLowerCase();
-    const existingEndRaw = (existingSub as any)?.current_period_end ? String((existingSub as any).current_period_end) : "";
-    const existingEnd = existingEndRaw ? new Date(existingEndRaw).getTime() : null;
-    const existingActive =
-      existingStatus === "active" &&
-      (existingEnd == null || !Number.isFinite(existingEnd) || Date.now() < existingEnd);
-
     const { data: profile, error: profileErr } = await supabaseAdmin
       .from("profiles")
       .select("stripe_customer_id,email")
@@ -89,6 +72,104 @@ Deno.serve(async (req) => {
 
     let customerId = (profile as any)?.stripe_customer_id as string | null | undefined;
     const email = user.email ?? (profile as any)?.email ?? null;
+
+    // Recovery + hard guardrail:
+    // If we can find ANY active subscription for this email (even under a different Stripe customer),
+    // do NOT create a new Checkout Session.
+    // This protects against accidental multiple active subscriptions.
+    let foundActiveFromEmail: { customerId: string; sub: any } | null = null;
+    if (email) {
+      try {
+        const customers = await stripeRequest<{ data: Array<{ id?: string }> }>({
+          method: "GET",
+          path: `/v1/customers?email=${encodeURIComponent(String(email))}&limit=10`,
+          secretKey: stripeSecretKey,
+        });
+        const ids = (customers?.data ?? [])
+          .map((c) => String((c as any)?.id ?? "").trim())
+          .filter(Boolean);
+        for (const cid of ids) {
+          const subs = await stripeRequest<{ data: any[] }>({
+            method: "GET",
+            path: `/v1/subscriptions?customer=${encodeURIComponent(cid)}&status=all&limit=10`,
+            secretKey: stripeSecretKey,
+          });
+          const picked = (subs?.data ?? []).find((s) => {
+            const st = String(s?.status ?? "").toLowerCase();
+            return st === "active" || st === "trialing";
+          });
+          if (picked?.id) {
+            foundActiveFromEmail = { customerId: cid, sub: picked };
+            break;
+          }
+        }
+
+        // If we didn't find an active subscription, but we found an existing customer for this email,
+        // prefer reusing it instead of creating a new Stripe customer.
+        if (!customerId && !foundActiveFromEmail) {
+          const first = ids[0];
+          if (first) customerId = first;
+        }
+      } catch (err) {
+        // Non-fatal: if Stripe is unreachable, fall back to existing behavior.
+        console.warn("[stripe-create-checkout-session] email cross-check failed", err);
+      }
+    }
+
+    if (foundActiveFromEmail) {
+      // Canonicalize stored customer id.
+      customerId = foundActiveFromEmail.customerId;
+      try {
+        await supabaseAdmin.from("profiles").update({ stripe_customer_id: customerId }).eq("id", user.id);
+      } catch {
+        // ignore
+      }
+
+      // Best-effort: upsert our DB mirror from Stripe so the app UI stays consistent.
+      try {
+        const picked = foundActiveFromEmail.sub;
+        const status = String(picked?.status ?? "") || null;
+        const stripePriceId =
+          (picked?.items?.data?.[0]?.price?.id as string | undefined) ??
+          (picked?.plan?.id as string | undefined) ??
+          null;
+        const toIso = (sec: number | null | undefined) => {
+          if (!sec || !Number.isFinite(sec)) return null;
+          return new Date(sec * 1000).toISOString();
+        };
+        const currentPeriodStart = toIso(picked?.current_period_start);
+        const currentPeriodEnd = toIso(picked?.current_period_end);
+        const tier = tierFromStripePriceId(stripePriceId);
+        await supabaseAdmin.from("subscriptions").upsert(
+          {
+            user_id: user.id,
+            stripe_subscription_id: picked.id,
+            stripe_price_id: stripePriceId,
+            tier,
+            status,
+            cancel_at_period_end: Boolean(picked?.cancel_at_period_end),
+            current_period_start: currentPeriodStart,
+            current_period_end: currentPeriodEnd,
+            updated_at: new Date().toISOString(),
+          },
+          { onConflict: "user_id" },
+        );
+      } catch {
+        // ignore
+      }
+
+      const returnUrl = `${appBaseUrl}${parsed.data.cancel_path ?? "/dashboard?billing=portal"}`;
+      const portal = await stripeRequest<{ url: string }>({
+        method: "POST",
+        path: "/v1/billing_portal/sessions",
+        secretKey: stripeSecretKey,
+        body: {
+          customer: customerId!,
+          return_url: returnUrl,
+        },
+      });
+      return jsonResponse(req, { url: portal.url, mode: "portal", request_id: requestId });
+    }
 
     if (!customerId) {
       const customer = await stripeRequest<{ id: string }>({
@@ -109,6 +190,73 @@ Deno.serve(async (req) => {
       if (updErr) {
         console.error("[stripe-create-checkout-session] profile update error", updErr);
         // Don't hard-fail the checkout.
+      }
+    }
+
+    // Guardrail: if the user already has an active subscription, do NOT create a second one.
+    // 1) Check our DB mirror.
+    // 2) If mirror looks empty/stale, cross-check Stripe via customerId and upsert back into DB.
+    // 3) If active: send them to Stripe Billing Portal (avoids double billing).
+    const { data: existingSub, error: existingSubErr } = await supabaseAdmin
+      .from("subscriptions")
+      .select("status, current_period_end")
+      .eq("user_id", user.id)
+      .maybeSingle();
+    if (existingSubErr) {
+      console.error("[stripe-create-checkout-session] subscriptions read error", existingSubErr);
+      return serverError(req, requestId);
+    }
+    const existingStatus = String((existingSub as any)?.status ?? "").toLowerCase();
+    const existingEndRaw = (existingSub as any)?.current_period_end ? String((existingSub as any).current_period_end) : "";
+    const existingEnd = existingEndRaw ? new Date(existingEndRaw).getTime() : null;
+    let existingActive =
+      (existingStatus === "active" || existingStatus === "trialing") &&
+      (existingEnd == null || !Number.isFinite(existingEnd) || Date.now() < existingEnd);
+
+    if (!existingActive && customerId) {
+      try {
+        const list = await stripeRequest<{ data: any[] }>({
+          method: "GET",
+          path: `/v1/subscriptions?customer=${encodeURIComponent(customerId)}&status=all&limit=10`,
+          secretKey: stripeSecretKey,
+        });
+        const picked = (list?.data ?? []).find((s) => {
+          const st = String(s?.status ?? "").toLowerCase();
+          return st === "active" || st === "trialing";
+        });
+        if (picked?.id) {
+          const status = String(picked?.status ?? "") || null;
+          const stripePriceId =
+            (picked?.items?.data?.[0]?.price?.id as string | undefined) ??
+            (picked?.plan?.id as string | undefined) ??
+            null;
+          const toIso = (sec: number | null | undefined) => {
+            if (!sec || !Number.isFinite(sec)) return null;
+            return new Date(sec * 1000).toISOString();
+          };
+          const currentPeriodStart = toIso(picked?.current_period_start);
+          const currentPeriodEnd = toIso(picked?.current_period_end);
+          await supabaseAdmin.from("subscriptions").upsert(
+            {
+              user_id: user.id,
+              stripe_subscription_id: picked.id,
+              stripe_price_id: stripePriceId,
+              status,
+              cancel_at_period_end: Boolean(picked?.cancel_at_period_end),
+              current_period_start: currentPeriodStart,
+              current_period_end: currentPeriodEnd,
+              updated_at: new Date().toISOString(),
+            },
+            { onConflict: "user_id" },
+          );
+          const endMs = currentPeriodEnd ? new Date(currentPeriodEnd).getTime() : null;
+          existingActive =
+            (String(status ?? "").toLowerCase() === "active" || String(status ?? "").toLowerCase() === "trialing") &&
+            (endMs == null || !Number.isFinite(endMs) || Date.now() < endMs);
+        }
+      } catch (err) {
+        // Non-fatal: if Stripe is temporarily unreachable, continue to checkout (worst case).
+        console.warn("[stripe-create-checkout-session] stripe subscription cross-check failed", err);
       }
     }
 

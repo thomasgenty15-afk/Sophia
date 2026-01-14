@@ -58,6 +58,56 @@ export async function stripeRequest<T = any>(
       if (opts.method === "POST" && opts.path === "/v1/customers") {
         return { id: "cus_MEGA_TEST" } as T;
       }
+      if (opts.method === "GET" && opts.path.startsWith("/v1/customers?")) {
+        return { data: [{ id: "cus_MEGA_TEST" }, { id: "cus_MEGA_TEST_2" }] } as T;
+      }
+      if (opts.method === "GET" && opts.path.startsWith("/v1/subscriptions?")) {
+        return {
+          data: [
+            {
+              id: "sub_MEGA_TEST",
+              status: "active",
+              cancel_at_period_end: false,
+              current_period_start: Math.floor(Date.now() / 1000) - 60,
+              current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
+              items: { data: [{ id: "si_MEGA_TEST", price: { id: "price_test_alliance_monthly" } }] },
+            },
+          ],
+        } as T;
+      }
+      if (opts.method === "GET" && opts.path.startsWith("/v1/subscriptions/")) {
+        return {
+          id: "sub_MEGA_TEST",
+          status: "active",
+          cancel_at_period_end: false,
+          current_period_start: Math.floor(Date.now() / 1000) - 60,
+          current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
+          items: { data: [{ id: "si_MEGA_TEST", price: { id: "price_test_alliance_monthly" } }] },
+        } as T;
+      }
+      if (opts.method === "POST" && opts.path.startsWith("/v1/subscriptions/")) {
+        // Simulate an immediate plan change.
+        const newPrice =
+          (opts.body as any)?.items?.[0]?.price ??
+          "price_test_architecte_monthly";
+        // If proration_behavior is always_invoice, Stripe would also create/pay an invoice.
+        // We don't model invoices in MEGA_TEST_MODE; callers only rely on subscription shape.
+        return {
+          id: "sub_MEGA_TEST",
+          status: "active",
+          cancel_at_period_end: false,
+          current_period_start: Math.floor(Date.now() / 1000) - 60,
+          current_period_end: Math.floor(Date.now() / 1000) + 30 * 24 * 3600,
+          items: { data: [{ id: "si_MEGA_TEST", price: { id: String(newPrice) } }] },
+        } as T;
+      }
+      if (opts.method === "POST" && opts.path === "/v1/subscription_schedules") {
+        return { id: "subsch_MEGA_TEST" } as T;
+      }
+      if (opts.method === "POST" && opts.path.startsWith("/v1/subscription_schedules/")) {
+        // Simulate a schedule update (downgrade at period end).
+        return { id: "subsch_MEGA_TEST", status: "active" } as T;
+      }
       if (opts.method === "POST" && opts.path === "/v1/checkout/sessions") {
         return { id: "cs_MEGA_TEST", url: "https://checkout.stripe.test/session/cs_MEGA_TEST" } as T;
       }

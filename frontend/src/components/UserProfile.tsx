@@ -16,6 +16,9 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
+import { getEffectiveTier } from '../lib/entitlements';
+import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
+
 interface UserProfileProps {
   isOpen: boolean;
   onClose: () => void;
@@ -26,11 +29,18 @@ interface UserProfileProps {
 type TabType = 'general' | 'subscription' | 'settings';
 
 const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initialTab }) => {
-  const { user, signOut, subscription, trialEnd } = useAuth();
+  const { user, signOut, subscription, trialEnd, accessTier } = useAuth();
   const navigate = useNavigate();
   const shouldRender = isOpen;
+
   const [activeTab, setActiveTab] = useState<TabType>(initialTab ?? 'general');
-  const [profile, setProfile] = useState<{ full_name: string | null; phone_number?: string | null } | null>(null);
+  const [profile, setProfile] = useState<{
+    full_name: string | null;
+    phone_number?: string | null;
+    timezone?: string | null;
+    locale?: string | null;
+    tz_follow_device?: boolean | null;
+  } | null>(null);
   const [billingLoading, setBillingLoading] = useState<boolean>(false);
   const [billingError, setBillingError] = useState<string | null>(null);
   const [saveLoading, setSaveLoading] = useState<boolean>(false);
@@ -51,6 +61,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
   const [emailError, setEmailError] = useState<string | null>(null);
   const [emailSuccess, setEmailSuccess] = useState<string | null>(null);
 
+  const [prefsLoading, setPrefsLoading] = useState<boolean>(false);
+  const [prefsError, setPrefsError] = useState<string | null>(null);
+  const [prefsSuccess, setPrefsSuccess] = useState<string | null>(null);
+  const [timezoneDraft, setTimezoneDraft] = useState<string>(DEFAULT_TIMEZONE);
+  const [tzFollowDeviceDraft, setTzFollowDeviceDraft] = useState<boolean>(false);
+  const supportedTimezones = useMemo(() => {
+    const detected = detectBrowserTimezone();
+    const all = getAllSupportedTimezones(detected);
+    const current = (timezoneDraft || "").trim();
+    return current && !all.includes(current) ? [current, ...all] : all;
+  }, [timezoneDraft]);
+
   const displayEmail = user?.email || "";
 
   useEffect(() => {
@@ -59,7 +81,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       const fetchProfile = async () => {
         const { data } = await supabase
           .from('profiles')
-          .select('full_name, phone_number')
+          .select('full_name, phone_number, timezone, locale, tz_follow_device')
           .eq('id', user.id)
           .single();
         
@@ -72,6 +94,10 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
           // Ici c'est le fetch initial.
           setPhoneDraft(p);
           setOriginalPhone(p);
+
+          const tz = (((data as any)?.timezone ?? "") as string).trim();
+          setTimezoneDraft(tz || detectBrowserTimezone() || DEFAULT_TIMEZONE);
+          setTzFollowDeviceDraft(Boolean((data as any)?.tz_follow_device));
         }
       };
       fetchProfile();
@@ -99,6 +125,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     setPhoneError(null);
     setPhoneSuccess(null);
     setPhoneEditOpen(false);
+    setPrefsError(null);
+    setPrefsSuccess(null);
   }, [shouldRender, initialTab, displayEmail]);
 
   const handleSignOut = async () => {
@@ -260,26 +288,64 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     }
   };
 
-  const priceIdToPlanLabel = (priceId: string | null | undefined): string | null => {
-    if (!priceId) return null;
-    const v = priceId.toLowerCase();
-    const tier = v.includes("system") ? "Le Système" : v.includes("alliance") ? "L’Alliance" : v.includes("architecte") ? "L’Architecte" : null;
-    const interval = v.includes("year") || v.includes("annual") ? "Annuel" : v.includes("month") ? "Mensuel" : null;
-    if (tier && interval) return `${tier} · ${interval}`;
-    if (tier) return tier;
+  const handleSavePreferences = async () => {
+    if (!user) return;
+    setPrefsLoading(true);
+    setPrefsError(null);
+    setPrefsSuccess(null);
+    try {
+      const nextTimezone = (timezoneDraft ?? "").trim() || DEFAULT_TIMEZONE;
+      const { data, error } = await supabase
+        .from("profiles")
+        .update({
+          timezone: nextTimezone,
+          tz_follow_device: tzFollowDeviceDraft,
+          // For now, language is locked to French; store locale deterministically.
+          locale: DEFAULT_LOCALE,
+        })
+        .eq("id", user.id)
+        .select("timezone, locale, tz_follow_device")
+        .single();
+
+      if (error) throw error;
+      if (data) {
+        setProfile((prev: any) => ({ ...prev, ...data }));
+        setTimezoneDraft(((data as any)?.timezone ?? "") || nextTimezone);
+        setTzFollowDeviceDraft(Boolean((data as any)?.tz_follow_device));
+      }
+      setPrefsSuccess("Préférences enregistrées.");
+    } catch (err: any) {
+      setPrefsError(err?.message || "Impossible d’enregistrer les préférences.");
+    } finally {
+      setPrefsLoading(false);
+    }
+  };
+
+  const accessTierToPlanLabel = (t: string): string => {
+    if (t === "architecte") return "L’Architecte";
+    if (t === "alliance") return "L’Alliance";
+    if (t === "system") return "Le Système";
+    if (t === "trial") return "Essai";
+    return "Lecture seule";
+  };
+
+  const intervalLabel = (i: unknown): string | null => {
+    const v = String(i ?? "").trim().toLowerCase();
+    if (v === "monthly") return "Mensuel";
+    if (v === "yearly") return "Annuel";
     return null;
   };
 
   if (!shouldRender) return null;
 
   const now = Date.now();
-  const trialActive = trialEnd ? new Date(trialEnd).getTime() > now : false;
-  const subActive =
-    subscription?.status === 'active' &&
-    Boolean(subscription?.current_period_end) &&
-    new Date(subscription!.current_period_end!).getTime() > now;
-
-  const softLocked = !trialActive && !subActive;
+  const trialActive = accessTier === "trial";
+  const subActive = accessTier === "system" || accessTier === "alliance" || accessTier === "architecte";
+  const softLocked = accessTier === "none";
+  const currentTier = getEffectiveTier(subscription);
+  const isMaxTier = accessTier === 'architecte';
+  const subInterval = ((subscription as any)?.interval as ('monthly' | 'yearly' | null | undefined)) ?? null;
+  const canSwitchArchitecteInterval = isMaxTier && subInterval === "monthly";
 
   const trialDaysLeft = trialEnd
     ? Math.max(0, Math.ceil((new Date(trialEnd).getTime() - now) / (1000 * 60 * 60 * 24)))
@@ -591,13 +657,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         <span className="px-2 py-1 rounded text-[10px] font-bold uppercase bg-white/10 backdrop-blur-md border border-white/20 text-white">
                           {subActive ? "Actif" : trialActive ? "Essai" : "Lecture seule"}
                         </span>
-                        <h2 className="text-2xl font-serif font-bold mt-2 text-white">Sophia Pro</h2>
+                        <h2 className="text-2xl font-serif font-bold mt-2 text-white">
+                          {accessTierToPlanLabel(accessTier)}
+                        </h2>
                       </div>
                       <Zap className="w-8 h-8 text-amber-400" />
                     </div>
                     {subActive && (
                       <div className="text-xs text-slate-300 mb-2">
-                        {priceIdToPlanLabel(subscription?.stripe_price_id) ?? "Plan actif"}
+                        {accessTierToPlanLabel(accessTier)}
+                        {intervalLabel((subscription as any)?.interval) ? (
+                          <span className="opacity-70"> · {intervalLabel((subscription as any)?.interval)}</span>
+                        ) : null}
                       </div>
                     )}
 
@@ -638,6 +709,20 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
 
                   {subActive ? (
                     <div className="space-y-3">
+                      {(!isMaxTier || canSwitchArchitecteInterval) && (
+                        <button
+                          onClick={() => {
+                            onClose();
+                            navigate('/upgrade');
+                          }}
+                          className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                             isArchitect ? "bg-emerald-600 hover:bg-emerald-500 text-white" : "bg-violet-600 hover:bg-violet-500 text-white shadow-lg shadow-violet-200"
+                          }`}
+                        >
+                          {canSwitchArchitecteInterval ? "Passer en annuel" : "Passer à la vitesse supérieure"}
+                        </button>
+                      )}
+
                       <button
                         onClick={openPortal}
                         disabled={billingLoading}
@@ -656,7 +741,7 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                         disabled={billingLoading}
                         className="w-full text-xs text-slate-400 hover:text-red-500 underline decoration-slate-300 hover:decoration-red-500 transition-all text-center"
                       >
-                        Se désabonner
+                        Annuler mon abonnement
                       </button>
                     </div>
                   ) : (
@@ -699,6 +784,93 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
             {activeTab === 'settings' && (
               <div className="animate-fade-in">
                 <h3 className={styles.sectionTitle}>Préférences</h3>
+
+                <div className={styles.card}>
+                  <div className="space-y-4">
+                    <div>
+                      <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>
+                        Langue
+                      </label>
+                      <input
+                        type="text"
+                        value="Français"
+                        readOnly
+                        className={`${styles.input} opacity-80`}
+                      />
+                      <p className={`mt-1 text-[11px] ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
+                        Langue verrouillée pour le moment.
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className={`block text-xs font-medium mb-1.5 ${isArchitect ? "text-emerald-400" : "text-slate-500"}`}>
+                        Fuseau horaire (IANA)
+                      </label>
+                      <select
+                        value={(timezoneDraft || "").trim()}
+                        onChange={(e) => setTimezoneDraft(e.target.value)}
+                        className={styles.input}
+                      >
+                        {supportedTimezones.map((tz) => (
+                          <option key={tz} value={tz}>
+                            {tz}
+                          </option>
+                        ))}
+                      </select>
+                      <div className={`mt-1 text-[11px] ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
+                        Actuel:{" "}
+                        {tzFollowDeviceDraft
+                          ? (detectBrowserTimezone() || timezoneDraft || DEFAULT_TIMEZONE) + " (appareil)"
+                          : (timezoneDraft || DEFAULT_TIMEZONE) + " (profil)"}
+                      </div>
+                    </div>
+
+                    <div className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${isArchitect ? "border-emerald-800" : "border-slate-200"}`}>
+                      <div>
+                        <div className="text-sm font-medium">Itinérance</div>
+                        <div className={`text-[11px] ${isArchitect ? "text-emerald-500/80" : "text-slate-500"}`}>
+                          Suivre automatiquement le fuseau horaire de l’appareil.
+                        </div>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setTzFollowDeviceDraft((v) => !v)}
+                        className={`w-10 h-5 rounded-full p-1 cursor-pointer transition-colors ${
+                          tzFollowDeviceDraft
+                            ? (isArchitect ? "bg-emerald-600" : "bg-blue-600")
+                            : (isArchitect ? "bg-emerald-900 border border-emerald-700" : "bg-slate-200")
+                        }`}
+                        aria-pressed={tzFollowDeviceDraft}
+                        aria-label="Activer l'itinérance"
+                      >
+                        <div className={`w-3 h-3 bg-white rounded-full shadow-sm transform transition-transform ${tzFollowDeviceDraft ? "translate-x-5" : ""}`} />
+                      </button>
+                    </div>
+
+                    {(prefsError || prefsSuccess) && (
+                      <div className={`text-xs rounded-lg p-3 border ${
+                        prefsError
+                          ? (isArchitect ? "border-red-900/50 bg-red-950/30" : "border-red-100 bg-red-50")
+                          : (isArchitect ? "border-emerald-800 bg-emerald-900/30" : "border-emerald-200 bg-emerald-50")
+                      }`}>
+                        <span className={prefsError ? errorColor : successColor}>{prefsError ?? prefsSuccess}</span>
+                      </div>
+                    )}
+
+                    <button
+                      type="button"
+                      onClick={handleSavePreferences}
+                      disabled={prefsLoading || !user}
+                      className={`w-full py-3 rounded-lg font-bold text-sm transition-all ${
+                        isArchitect
+                          ? "bg-emerald-700 hover:bg-emerald-600 text-white disabled:opacity-60"
+                          : "bg-slate-900 hover:bg-slate-800 text-white disabled:opacity-60"
+                      }`}
+                    >
+                      {prefsLoading ? "Enregistrement..." : "Enregistrer"}
+                    </button>
+                  </div>
+                </div>
                 
                 <div className={styles.card}>
                   <div className="flex items-center justify-between mb-4">

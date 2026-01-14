@@ -2,6 +2,8 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { generateWithGemini } from "../_shared/gemini.ts"
 import { fetchLatestPending, markPending } from "./wa_db.ts"
 import { sendWhatsAppText } from "./wa_whatsapp_api.ts"
+import { generateDynamicWhatsAppCheckinMessage } from "../_shared/scheduled_checkins.ts"
+import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 
 export async function handlePendingActions(params: {
   admin: SupabaseClient
@@ -21,15 +23,40 @@ export async function handlePendingActions(params: {
     // Don't swallow generic "oui" messages if there is no pending scheduled_checkin.
     if (!pending) return false
 
-    const draft = (pending.payload as any)?.draft_message
-    if (typeof draft === "string" && draft.trim()) {
-      const sendResp = await sendWhatsAppText(fromE164, draft)
+    // If linked to a scheduled_checkins row and marked as dynamic, generate the text right now.
+    const scheduledId = (pending as any)?.scheduled_checkin_id ?? null
+    const payload = (pending as any)?.payload ?? {}
+    const mode = String((payload as any)?.message_mode ?? "static").trim().toLowerCase()
+    const draft = (payload as any)?.draft_message
+    let textToSend = typeof draft === "string" ? draft.trim() : ""
+    if (scheduledId && mode === "dynamic") {
+      try {
+        const { data: row } = await admin
+          .from("scheduled_checkins")
+          .select("event_context,message_payload,draft_message")
+          .eq("id", scheduledId)
+          .maybeSingle()
+        const p2 = (row as any)?.message_payload ?? {}
+        textToSend = await generateDynamicWhatsAppCheckinMessage({
+          admin,
+          userId,
+          eventContext: String((row as any)?.event_context ?? (payload as any)?.event_context ?? "check-in"),
+          instruction: String((p2 as any)?.instruction ?? (payload as any)?.message_payload?.instruction ?? ""),
+        })
+      } catch {
+        // best-effort fallback
+        textToSend = textToSend || "Petit check-in: comment ça va depuis tout à l’heure ?"
+      }
+    }
+
+    if (textToSend.trim()) {
+      const sendResp = await sendWhatsAppText(fromE164, textToSend)
       const outId = (sendResp as any)?.messages?.[0]?.id ?? null
       await admin.from("chat_messages").insert({
         user_id: userId,
         scope: "whatsapp",
         role: "assistant",
-        content: draft,
+        content: textToSend,
         agent_used: "companion",
         metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, source: "scheduled_checkin" },
       })
@@ -93,8 +120,15 @@ export async function handlePendingActions(params: {
 
     const strategy = (pending.payload as any)?.strategy
     const data = (pending.payload as any)?.data
+    const { data: prof } = await admin
+      .from("profiles")
+      .select("timezone, locale")
+      .eq("id", userId)
+      .maybeSingle()
+    const tctx = buildUserTimeContextFromValues({ timezone: (prof as any)?.timezone ?? null, locale: (prof as any)?.locale ?? null })
     const prompt =
       `Tu es "L'Archiviste", une facette de Sophia.\n` +
+      `Repères temporels (critiques):\n${tctx.prompt_block}\n\n` +
       `Stratégie: ${strategy}\n` +
       `Données: ${JSON.stringify(data)}\n\n` +
       `Génère un message bref, impactant et bienveillant qui reconnecte l'utilisateur à cet élément du passé.`

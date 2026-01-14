@@ -44,9 +44,13 @@ export function getEffectiveTier(subscription: {
   status: string | null;
   current_period_end: string | null;
   stripe_price_id: string | null;
+  // Optional: server-side computed tier (preferred).
+  effective_tier?: EffectiveTier | null;
 } | null): EffectiveTier {
   if (!subscription) return "none";
   if (!isSubscriptionActive(subscription)) return "none";
+  const t = (subscription as any)?.effective_tier;
+  if (t === "system" || t === "alliance" || t === "architecte") return t;
   return getTierFromStripePriceId(subscription.stripe_price_id) ?? "none";
 }
 

@@ -4,6 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { generateDynamicWhatsAppCheckinMessage } from "../_shared/scheduled_checkins.ts"
 
 console.log("Process Checkins: Function initialized")
 
@@ -132,7 +133,7 @@ Deno.serve(async (req) => {
     // 1. Fetch pending checkins that are due
     const { data: checkins, error: fetchError } = await supabaseAdmin
       .from('scheduled_checkins')
-      .select('id, user_id, draft_message, event_context')
+      .select('id, user_id, draft_message, event_context, message_mode, message_payload')
       .eq('status', 'pending')
       .lte('scheduled_for', new Date().toISOString())
       .limit(50) // Batch size limit
@@ -178,9 +179,28 @@ Deno.serve(async (req) => {
       let sentViaWhatsapp = false
       let usedTemplate = false
       try {
+        const mode = String((checkin as any)?.message_mode ?? "static").trim().toLowerCase()
+        const payload = ((checkin as any)?.message_payload ?? {}) as any
+        let bodyText = String((checkin as any)?.draft_message ?? "").trim()
+        if (mode === "dynamic") {
+          try {
+            bodyText = await generateDynamicWhatsAppCheckinMessage({
+              admin: supabaseAdmin as any,
+              userId: checkin.user_id,
+              eventContext: String((checkin as any)?.event_context ?? "check-in"),
+              instruction: String(payload?.instruction ?? payload?.note ?? ""),
+              requestId,
+            })
+          } catch (e) {
+            // Fallback to stored draft if dynamic generation fails.
+            console.warn(`[process-checkins] request_id=${requestId} dynamic_generation_failed checkin_id=${checkin.id}`, e)
+            bodyText = String((checkin as any)?.draft_message ?? "").trim() || "Petit check-in: comment ça va depuis tout à l’heure ?"
+          }
+        }
+
         const resp = await callWhatsappSend({
           user_id: checkin.user_id,
-          message: { type: "text", body: checkin.draft_message },
+          message: { type: "text", body: bodyText },
           purpose: "scheduled_checkin",
           require_opted_in: true,
           metadata_extra: {
@@ -220,8 +240,11 @@ Deno.serve(async (req) => {
             status: "pending",
             scheduled_checkin_id: checkin.id,
             payload: {
-              draft_message: checkin.draft_message,
+              // Note: draft_message may be null for dynamic checkins.
+              draft_message: (checkin as any)?.draft_message ?? null,
               event_context: checkin.event_context,
+              message_mode: (checkin as any)?.message_mode ?? "static",
+              message_payload: (checkin as any)?.message_payload ?? {},
             },
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           })

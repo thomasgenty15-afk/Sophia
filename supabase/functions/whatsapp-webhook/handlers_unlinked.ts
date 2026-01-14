@@ -96,22 +96,6 @@ export async function handleUnlinkedInbound(params: {
       return
     }
 
-    // Ensure phone isn't already linked to another user (validated).
-    const { data: other, error: oErr } = await admin
-      .from("profiles")
-      .select("id")
-      .eq("phone_number", fromE164)
-      .not("phone_verified_at", "is", null)
-      .maybeSingle()
-    if (oErr) throw oErr
-    if (other?.id) {
-      const msgTxt =
-        "Ce numéro WhatsApp est déjà relié à un compte.\n" +
-        "Si tu penses que c'est une erreur, réponds avec l'email de ton compte."
-      await sendWhatsAppText(fromE164, msgTxt)
-      return
-    }
-
     const { data: target, error: tErr } = await admin
       .from("profiles")
       .select("id, full_name, phone_number, phone_invalid")
@@ -123,30 +107,44 @@ export async function handleUnlinkedInbound(params: {
       return
     }
 
-    // Link phone -> profile
-    const { error: updErr } = await admin
-      .from("profiles")
-      .update({
-        phone_number: fromE164,
-        phone_verified_at: nowIso,
-        phone_invalid: false,
-        whatsapp_opted_in: true,
-        whatsapp_opted_out_at: null,
-        whatsapp_optout_reason: null,
-        whatsapp_optout_confirmed_at: null,
-        whatsapp_last_inbound_at: nowIso,
-      })
-      .eq("id", (target as any).id)
-    if (updErr) {
-      // "First validator wins": if another profile already verified this phone, the unique index blocks us.
-      if (isPhoneUniqueViolation(updErr)) {
-        const msgTxt =
-          "Oups — ce numéro WhatsApp est déjà validé par un autre compte.\n\n" +
-          `Si tu penses que c'est une erreur, écris à ${params.supportEmail}.`
-        await sendWhatsAppText(fromE164, msgTxt)
-        return
+    // Link phone -> profile (atomic transfer if the phone was previously verified on another profile)
+    const { data: xfer, error: xferErr } = await admin.rpc("transfer_verified_phone_to_user", {
+      p_user_id: (target as any).id,
+      p_phone: fromE164,
+    } as any)
+    if (xferErr) throw xferErr
+
+    // Best-effort: notify previous owner by email (no details, just a security heads-up).
+    try {
+      const oldUserId = (xfer as any)?.old_user_id ?? null
+      if (oldUserId && String(oldUserId) !== String((target as any).id)) {
+        const { data: oldProf } = await admin
+          .from("profiles")
+          .select("full_name,email")
+          .eq("id", oldUserId)
+          .maybeSingle()
+        const oldEmail = await getAccountEmailForProfile(admin, String(oldUserId), String((oldProf as any)?.email ?? ""))
+        if (oldEmail) {
+          const prenom = String((oldProf as any)?.full_name ?? "").split(" ")[0] || ""
+          const subject = "Sécurité : ton numéro WhatsApp a été relié à un compte Sophia"
+          const html = `
+            <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color:#0f172a; line-height:1.7; max-width:640px; margin:0 auto;">
+              <p style="margin:0 0 14px;">Hello${prenom ? ` ${prenom}` : ""},</p>
+              <p style="margin:0 0 14px;">
+                Ton numéro WhatsApp vient d’être relié à un compte Sophia. Si c’était bien toi (changement de téléphone/numéro), rien à faire.
+              </p>
+              <p style="margin:0 0 14px;">
+                Si ce n’était pas toi, contacte-nous tout de suite à <strong>${params.supportEmail}</strong> (en indiquant ton email et ton numéro WhatsApp).
+              </p>
+              <p style="margin:18px 0 6px;">Merci,</p>
+              <p style="margin:0;"><strong>Sophia Coach</strong></p>
+            </div>
+          `
+          await maybeSendEmail({ to: oldEmail, subject, html })
+        }
       }
-      throw updErr
+    } catch {
+      // non-blocking
     }
 
     await admin.from("whatsapp_link_tokens").update({

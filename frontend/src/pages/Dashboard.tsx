@@ -43,7 +43,29 @@ import { FeedbackModal, type FeedbackData } from '../components/dashboard/Feedba
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { subscription, trialEnd } = useAuth();
+  const { subscription, trialEnd, accessTier } = useAuth();
+
+  // If user just came back from Stripe Checkout, force a one-time subscription sync
+  // (useful if webhooks are delayed/misconfigured) then clear the query param.
+  useEffect(() => {
+    const billing = new URLSearchParams(window.location.search).get("billing");
+    if (billing !== "success") return;
+    let cancelled = false;
+    (async () => {
+      try {
+        await supabase.functions.invoke("stripe-sync-subscription", { body: {} });
+      } catch {
+        // Non-fatal: dashboard will remain locked until webhook lands.
+      } finally {
+        if (cancelled) return;
+        // Clear param to avoid repeated sync calls.
+        window.location.replace("/dashboard");
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // 1. DATA HOOK : Récupère toutes les données (Plan, User, Modules)
   const {
@@ -175,10 +197,8 @@ const Dashboard = () => {
   const isPhase1Completed = false; // Mock
 
   const nowMs = Date.now();
-  const trialActive = trialEnd ? new Date(trialEnd).getTime() > nowMs : false;
-  const subActive = subscription?.status === 'active' && 
-                    subscription?.current_period_end && 
-                    new Date(subscription.current_period_end).getTime() > nowMs;
+  const trialActive = accessTier === "trial";
+  const subActive = accessTier === "system" || accessTier === "alliance" || accessTier === "architecte";
   
   const softLocked = !trialActive && !subActive;
   const daysLeft = trialEnd ? Math.max(0, Math.ceil((new Date(trialEnd).getTime() - nowMs) / (1000 * 60 * 60 * 24))) : null;
@@ -237,6 +257,17 @@ const Dashboard = () => {
 
   return (
     <div className={`min-h-screen transition-colors duration-500 ${isArchitectMode ? "bg-emerald-950 text-emerald-50" : "bg-gray-50 text-gray-900"} pb-24`}>
+      {/* 
+        SOFT-LOCK UI SHIELD
+        When trial is over and there's no active subscription, block all dashboard interactions
+        (except the Grimoire card, which is rendered above this overlay via z-index).
+      */}
+      {softLocked && (
+        <div
+          className="fixed inset-0 z-30 cursor-not-allowed"
+          aria-hidden="true"
+        />
+      )}
 
       {/* MODALS */}
       {helpingAction && (
@@ -263,7 +294,7 @@ const Dashboard = () => {
       )}
 
       {/* HEADER */}
-      <header className={`${isArchitectMode ? "bg-emerald-900/50 border-emerald-800" : "bg-white border-gray-100"} px-3 md:px-6 py-3 md:py-4 sticky top-0 z-20 shadow-sm border-b backdrop-blur-md transition-colors duration-500`}>
+      <header className={`${isArchitectMode ? "bg-emerald-900/50 border-emerald-800" : "bg-white border-gray-100"} px-3 md:px-6 py-3 md:py-4 sticky top-0 z-50 shadow-sm border-b backdrop-blur-md transition-colors duration-500`}>
         <div className="max-w-5xl mx-auto flex justify-between items-center gap-2">
           <div className="flex items-center gap-2 md:gap-4">
             <div className="flex items-center gap-2 cursor-pointer" onClick={() => navigate('/dashboard')}>
@@ -332,9 +363,9 @@ const Dashboard = () => {
       <main className="max-w-5xl mx-auto px-6 py-10">
         {showBanner && (
           <div
-            className={`mb-6 rounded-2xl border p-4 flex flex-col min-[450px]:flex-row min-[450px]:items-center min-[450px]:justify-between gap-3 ${
+            className={`relative z-45 mb-6 rounded-2xl border p-4 flex flex-col min-[450px]:flex-row min-[450px]:items-center min-[450px]:justify-between gap-3 sticky top-24 ${
               softLocked
-                ? (isArchitectMode ? "bg-amber-950/30 border-amber-900/50 text-amber-200" : "bg-amber-50 border-amber-200 text-amber-900")
+                ? (isArchitectMode ? "bg-amber-950/30 border-amber-900/50 text-amber-200 animate-alert-pulse-amber" : "bg-amber-50 border-amber-200 text-amber-900 animate-alert-pulse-amber")
                 : (isArchitectMode ? "bg-emerald-900/20 border-emerald-800/30 text-emerald-200" : "bg-indigo-50 border-indigo-100 text-indigo-900")
             }`}
           >
@@ -365,7 +396,7 @@ const Dashboard = () => {
             </div>
             <button
               onClick={() => navigate('/upgrade')}
-              className={`px-4 py-2 rounded-xl font-bold text-xs transition-colors shrink-0 ${
+              className={`relative z-40 pointer-events-auto px-4 py-2 rounded-xl font-bold text-xs transition-colors shrink-0 ${
                 softLocked
                   ? (isArchitectMode ? "bg-amber-600/20 hover:bg-amber-600/30 text-amber-200 border border-amber-700/40" : "bg-amber-500 hover:bg-amber-400 text-white shadow-sm")
                   : (isArchitectMode ? "bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg shadow-emerald-900/20" : "bg-indigo-600 hover:bg-indigo-500 text-white shadow-md shadow-indigo-200")
@@ -654,7 +685,7 @@ const Dashboard = () => {
 
                     <section
                       onClick={() => navigate('/grimoire')}
-                      className="bg-indigo-50 border border-indigo-100 rounded-xl p-3 md:p-5 flex flex-col min-[300px]:flex-row items-center justify-between cursor-pointer hover:bg-indigo-100 transition-colors shadow-sm mt-auto gap-3 min-[300px]:gap-4"
+                      className="relative z-40 pointer-events-auto bg-indigo-50 border border-indigo-100 rounded-xl p-3 md:p-5 flex flex-col min-[300px]:flex-row items-center justify-between cursor-pointer hover:bg-indigo-100 transition-colors shadow-sm mt-auto gap-3 min-[300px]:gap-4"
                     >
                       <div className="flex items-center gap-3 md:gap-4 w-full">
                         <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-200 text-indigo-700 rounded-full flex items-center justify-center flex-shrink-0">

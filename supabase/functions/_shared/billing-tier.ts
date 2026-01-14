@@ -2,6 +2,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 export type PaidTier = "system" | "alliance" | "architecte";
 export type EffectiveTier = PaidTier | "none";
+export type BillingInterval = "monthly" | "yearly";
 
 function env(name: string): string | null {
   const v = Deno.env.get(name);
@@ -30,6 +31,24 @@ export function tierFromStripePriceId(priceId: string | null | undefined): PaidT
   if (architecte.has(id)) return "architecte";
   if (alliance.has(id)) return "alliance";
   if (system.has(id)) return "system";
+  return null;
+}
+
+export function intervalFromStripePriceId(priceId: string | null | undefined): BillingInterval | null {
+  const id = (priceId ?? "").trim();
+  if (!id) return null;
+  const monthly = new Set([
+    env("STRIPE_PRICE_ID_SYSTEM_MONTHLY"),
+    env("STRIPE_PRICE_ID_ALLIANCE_MONTHLY"),
+    env("STRIPE_PRICE_ID_ARCHITECTE_MONTHLY"),
+  ].filter(Boolean) as string[]);
+  const yearly = new Set([
+    env("STRIPE_PRICE_ID_SYSTEM_YEARLY"),
+    env("STRIPE_PRICE_ID_ALLIANCE_YEARLY"),
+    env("STRIPE_PRICE_ID_ARCHITECTE_YEARLY"),
+  ].filter(Boolean) as string[]);
+  if (monthly.has(id)) return "monthly";
+  if (yearly.has(id)) return "yearly";
   return null;
 }
 

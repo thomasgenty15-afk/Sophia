@@ -1,7 +1,6 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { hasArchitecteAccess } from "../lib/entitlements";
 
 function buildRedirectQuery(pathname: string, search: string) {
   const dest = `${pathname}${search || ""}`;
@@ -69,14 +68,14 @@ export function RequireAdmin({ children }: { children: React.ReactNode }) {
 }
 
 export function RequireArchitecte({ children }: { children: React.ReactNode }) {
-  const { user, loading, subscription } = useAuth();
+  const { user, loading, accessTier } = useAuth();
   const location = useLocation();
 
   if (loading) return null;
   if (!user) {
     return <Navigate to={`/auth?${buildRedirectQuery(location.pathname, location.search)}`} replace />;
   }
-  if (!hasArchitecteAccess(subscription)) {
+  if (accessTier !== "architecte") {
     return <Navigate to="/upgrade" replace />;
   }
   return <>{children}</>;

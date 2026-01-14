@@ -38,10 +38,7 @@ const Legal = () => {
           </button>
           <div className="flex items-center gap-2">
             <img src="/apple-touch-icon.png" alt="Sophia Logo" className="w-8 h-8 rounded-lg" />
-            <div className="flex flex-col">
-              <span className="font-serif font-bold text-slate-900 leading-none">Sophia</span>
-              <span className="text-[8px] font-bold uppercase tracking-widest text-slate-400">Powered by IKIZEN</span>
-            </div>
+            <span className="font-bold text-xl tracking-tight text-slate-900 leading-none">Sophia</span>
           </div>
           <div className="w-20"></div> {/* Spacer for balance */}
         </div>

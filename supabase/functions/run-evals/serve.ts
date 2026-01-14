@@ -824,6 +824,8 @@ export function serveRunEvals() {
           const mechanicalIssues = buildMechanicalIssues({
             scenario: s,
             profileAfter: isWhatsApp && mechanicalProfileAfterOverride ? mechanicalProfileAfterOverride : profileAfter,
+            chatStateAfter: stAfter ?? null,
+            planSnapshotAfter: planSnapshotAfter ?? planSnapshot,
             transcript: isWhatsApp && mechanicalTranscriptOverride ? mechanicalTranscriptOverride : transcript,
           });
 

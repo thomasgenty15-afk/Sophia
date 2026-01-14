@@ -4,6 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { generateWithGemini } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 
 console.log("Detect Events: Function initialized")
 
@@ -74,6 +75,13 @@ Deno.serve(async (req) => {
     const results = []
 
     for (const userId of userIds) {
+      const { data: prof } = await supabaseAdmin
+        .from("profiles")
+        .select("timezone, locale")
+        .eq("id", userId)
+        .maybeSingle()
+      const tctx = buildUserTimeContextFromValues({ timezone: (prof as any)?.timezone ?? null, locale: (prof as any)?.locale ?? null })
+
       // 2. Fetch chat history for this user (last 48h to have context)
       // We take 48h to capture "Demain j'ai un truc" said yesterday
       const { data: messages, error: msgError } = await supabaseAdmin
@@ -92,14 +100,21 @@ Deno.serve(async (req) => {
 
       // Format transcript
       const transcript = messages.map(m => `[${m.created_at}] ${m.role}: ${m.content}`).join('\n')
-      const now = new Date().toISOString()
+      const now = tctx.now_utc
 
       // 3. Prompt Gemini
       const basePrompt = `
         Tu es "Le Veilleur", une IA bienveillante intégrée à l'assistant Sophia.
         Ta mission est d'analyser les conversations récentes pour identifier des événements futurs importants dans la vie de l'utilisateur.
         
-        Date et heure actuelles (UTC) : ${now}
+        Repères temporels (CRITIQUES):
+        - Maintenant (UTC): ${now}
+        - Timezone utilisateur: ${tctx.user_timezone}
+        - Maintenant (local utilisateur): ${tctx.user_local_datetime} (${tctx.user_local_human})
+        
+        RÈGLE DE TEMPS:
+        - Si l'utilisateur dit "aujourd'hui/demain/lundi prochain", interprète ces expressions en temps LOCAL utilisateur (timezone ci-dessus).
+        - Tu DOIS retourner "scheduled_for" en UTC (ISO 8601).
         
         Objectif :
         1. Repérer les événements mentionnés (réunions, sorties, concerts, examens, rendez-vous, etc.).
@@ -108,13 +123,12 @@ Deno.serve(async (req) => {
            - Si c'est un événement stressant (réunion), on demande après (ex: 1h ou 2h après la fin probable).
            - Si c'est une soirée, on peut demander le lendemain matin ou tard le soir même.
            - Si c'est un concert, le lendemain matin.
-        4. Rédiger le message de manière très naturelle, amicale, courte et contextuelle.
+        4. NE RÉDIGE PAS le message final ici. On génère le message au moment de l'envoi, avec le contexte le plus récent.
         
         Format de sortie attendu : JSON uniquement, un tableau d'objets.
         [
           {
             "event_context": "Courte description de l'événement (ex: Présentation client)",
-            "draft_message": "Le message à envoyer à l'utilisateur",
             "scheduled_for": "Date ISO 8601 précise (UTC) quand le message doit être envoyé"
           }
         ]
@@ -154,7 +168,14 @@ Deno.serve(async (req) => {
                 results.push({
                     user_id: userId,
                     event_context: event.event_context,
-                    draft_message: event.draft_message,
+                    // Dynamic checkin: message generated at send time.
+                    draft_message: null,
+                    message_mode: "dynamic",
+                    message_payload: {
+                      source: "detect-future-events",
+                      instruction:
+                        "Relance courte liée à l'événement. Utilise le tutoiement. 1 question max. Pas de markdown.",
+                    },
                     scheduled_for: event.scheduled_for,
                     status: 'pending'
                 })
@@ -172,7 +193,7 @@ Deno.serve(async (req) => {
             .from('scheduled_checkins')
             // Idempotency: if the job runs twice, we don't create duplicates.
             // Requires a unique index on (user_id, event_context, scheduled_for).
-            .upsert(results, { onConflict: 'user_id,event_context,scheduled_for' })
+            .upsert(results as any, { onConflict: 'user_id,event_context,scheduled_for' })
         
         if (insertError) throw insertError
         console.log(`[detect-future-events] request_id=${requestId} inserted_checkins=${results.length}`)

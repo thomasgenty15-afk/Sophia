@@ -113,6 +113,39 @@
   animation: pulse-slow 3s ease-in-out infinite;
 }
 
+/* ALERT PULSE (SOFT LOCK) */
+@keyframes alert-pulse-amber {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+@keyframes alert-pulse-emerald {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-alert-pulse-amber {
+  animation: alert-pulse-amber 2s infinite;
+}
+
+.animate-alert-pulse-emerald {
+  animation: alert-pulse-emerald 2s infinite;
+}
+
 /* Délais */
 .delay-100 { animation-delay: 100ms; }
 .delay-200 { animation-delay: 200ms; }

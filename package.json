@@ -11,6 +11,6 @@
     "test:mega": "node ./scripts/mega-test.mjs"
   },
   "devDependencies": {
-    "supabase": "^1.115.4"
+    "supabase": "^2.67.1"
   }
 }

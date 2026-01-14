@@ -6,8 +6,9 @@ export function buildMainItemSystemPrompt(opts: {
   generalContext: string
   history: any[]
   message: string
+  timeContextBlock?: string
 }): string {
-  const { currentItem, itemHistory, generalContext, history, message } = opts
+  const { currentItem, itemHistory, generalContext, history, message, timeContextBlock } = opts
 
   return `
     Tu es Sophia (Mode : Investigateur / Bilan).
@@ -16,6 +17,8 @@ export function buildMainItemSystemPrompt(opts: {
     
     RÈGLE ABSOLUE : TU TUTOIES L'UTILISATEUR. JAMAIS DE VOUVOIEMENT.
     Tu es sa partenaire, pas son médecin ou son patron.
+
+    ${timeContextBlock ? timeContextBlock : ""}
 
     ITEM ACTUEL À VÉRIFIER :
     - Type : ${currentItem.type === "vital" ? "Signe Vital (KPI)" : (currentItem.type === "framework" ? "Exercice / Framework" : "Action / Habitude")}

@@ -4,6 +4,8 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { generateWithGemini } from "../_shared/gemini.ts"
+import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
+import { whatsappLangFromLocale } from "../_shared/locale.ts"
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
@@ -53,7 +55,13 @@ function fallbackDailyBilanMessage(): string {
   )
 }
 
-async function buildPersonalizedDailyBilanMessage(admin: ReturnType<typeof createClient>, userId: string, fullName: string, requestId: string) {
+async function buildPersonalizedDailyBilanMessage(admin: ReturnType<typeof createClient>, args: {
+  userId: string
+  fullName: string
+  requestId: string
+  timezone?: string | null
+  locale?: string | null
+}) {
   // Keep local/test mode deterministic and offline.
   if (isMegaTestMode()) return fallbackDailyBilanMessage()
 
@@ -91,8 +99,9 @@ async function buildPersonalizedDailyBilanMessage(admin: ReturnType<typeof creat
     .limit(1)
     .maybeSingle()
 
-  const firstName = (fullName ?? "").trim().split(" ")[0] || ""
+  const firstName = (args.fullName ?? "").trim().split(" ")[0] || ""
   const planTitle = String((plan as any)?.title ?? "").trim()
+  const tctx = buildUserTimeContextFromValues({ timezone: args.timezone ?? null, locale: args.locale ?? null })
 
   const systemPrompt = `
 Tu es Sophia. Tu envoies un message WhatsApp proactif de bilan du soir.
@@ -110,6 +119,7 @@ Contraintes:
 - Tutoiement.
 
 Infos:
+- Repères temporels (critiques):\n${tctx.prompt_block}
 - Prénom (si dispo): "${firstName}"
 - Plan actif (si dispo): "${planTitle}"
 - Historique WhatsApp récent:
@@ -118,10 +128,10 @@ ${history.length > 0 ? history.join("\n") : "(vide)"}
 
   const model = (Deno.env.get("DAILY_BILAN_MODEL") ?? "gemini-2.5-flash").trim()
   const res = await generateWithGemini(systemPrompt, "Écris le message.", 0.4, false, [], "auto", {
-    requestId,
+    requestId: args.requestId,
     model,
     source: "trigger-daily-bilan:copy",
-    userId,
+    userId: args.userId,
   })
 
   const out = normalizeChatText(res)
@@ -198,14 +208,21 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     )
 
+    const body = await req.json().catch(() => ({} as any)) as any
+    const userIdsOverride = Array.isArray(body?.user_ids) ? (body.user_ids as any[]).map((x) => String(x ?? "").trim()).filter(Boolean) : []
+
     // Users eligible for WhatsApp check-ins (phone ok + WhatsApp opted in).
-    const { data: profiles, error } = await admin
+    // Scheduler can pass a user_ids filter; otherwise we keep legacy behavior.
+    const q = admin
       .from("profiles")
-      .select("id, full_name, whatsapp_bilan_opted_in")
+      .select("id, full_name, whatsapp_bilan_opted_in, timezone, locale")
       .eq("whatsapp_opted_in", true)
       .eq("phone_invalid", false)
       .not("phone_number", "is", null)
-      .limit(200)
+
+    const { data: profiles, error } = userIdsOverride.length > 0
+      ? await q.in("id", userIdsOverride)
+      : await q.limit(200)
 
     if (error) throw error
     const userIds = (profiles ?? []).map((p) => p.id)
@@ -232,6 +249,8 @@ Deno.serve(async (req) => {
     let sent = 0
     let skipped = 0
     const errors: Array<{ user_id: string; error: string }> = []
+    const sentUserIds: string[] = []
+    const skippedUserIds: string[] = []
 
     const profilesById = new Map((profiles ?? []).map((p) => [p.id, p]))
 
@@ -246,45 +265,73 @@ Deno.serve(async (req) => {
 
         if (!hasBilanOptIn) {
           // Send a template to ask for explicit opt-in to the daily bilan.
-          await callWhatsappSendWithRetry({
+          const resp = await callWhatsappSendWithRetry({
             user_id: userId,
             message: {
               type: "template",
               name: (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_NAME") ?? "sophia_bilan_v1").trim(),
-              language: (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
+              // For now, UI locks language to French; this mapping is future-proof for multi-lang.
+              language: whatsappLangFromLocale((p as any)?.locale ?? null, (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_LANG") ?? "fr").trim()),
               // components will be auto-filled by whatsapp-send with {{1}} = full_name
             },
             purpose: "daily_bilan",
             require_opted_in: true,
             force_template: true,
           }, { maxAttempts, throttleMs })
+          if ((resp as any)?.skipped) {
+            skipped++
+            skippedUserIds.push(userId)
+          } else {
+            sent++
+            sentUserIds.push(userId)
+          }
         } else {
-          const bilanMessage = await buildPersonalizedDailyBilanMessage(
-            admin,
+          const bilanMessage = await buildPersonalizedDailyBilanMessage(admin, {
             userId,
-            String(p?.full_name ?? ""),
+            fullName: String(p?.full_name ?? ""),
             requestId,
-          )
+            timezone: (p as any)?.timezone ?? null,
+            locale: (p as any)?.locale ?? null,
+          })
           // Already opted in: send the actual bilan prompt (text).
-          await callWhatsappSendWithRetry({
+          const resp = await callWhatsappSendWithRetry({
             user_id: userId,
             message: { type: "text", body: bilanMessage },
             purpose: "daily_bilan",
             require_opted_in: true,
           }, { maxAttempts, throttleMs })
+          if ((resp as any)?.skipped) {
+            skipped++
+            skippedUserIds.push(userId)
+          } else {
+            sent++
+            sentUserIds.push(userId)
+          }
         }
-        sent++
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e)
         // Do not fail the whole batch on one user.
-        if (msg.includes("Proactive throttle")) skipped++
+        if (msg.includes("Proactive throttle")) {
+          skipped++
+          skippedUserIds.push(userId)
+        }
         else errors.push({ user_id: userId, error: msg })
       }
     }
 
     return jsonResponse(
       req,
-      { success: true, sent, skipped, errors, throttle_ms: throttleMs, max_send_attempts: maxAttempts, request_id: requestId },
+      {
+        success: true,
+        sent,
+        skipped,
+        sent_user_ids: sentUserIds,
+        skipped_user_ids: skippedUserIds,
+        errors,
+        throttle_ms: throttleMs,
+        max_send_attempts: maxAttempts,
+        request_id: requestId,
+      },
       { includeCors: false },
     )
   } catch (error) {

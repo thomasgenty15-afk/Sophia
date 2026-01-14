@@ -14,8 +14,8 @@ import {
 import { runCompanion, retrieveContext } from "../agents/companion.ts"
 import { runWatcher } from "../agents/watcher.ts"
 import { normalizeChatText } from "../chat_text.ts"
-import { buildParisTimeContextUtcPlusOne } from "../time.ts"
 import { generateWithGemini } from "../../_shared/gemini.ts"
+import { getUserTimeContext } from "../../_shared/user_time_context.ts"
 import {
   formatUserProfileFactsForPrompt,
   getUserProfileFacts,
@@ -258,6 +258,7 @@ SORTIE JSON STRICTE:
   const channel = meta?.channel ?? "web"
   const scope = normalizeScope(meta?.scope, channel === "whatsapp" ? "whatsapp" : "web")
   const nowIso = new Date().toISOString()
+  const userTime = await getUserTimeContext({ supabase, userId }).catch(() => null as any)
 
   const logMessages = opts?.logMessages !== false
   // 1. Log le message user
@@ -636,9 +637,18 @@ SORTIE JSON STRICTE:
   }
 
   // 4.5 RAG Retrieval (Forge Memory)
-  // Only for Architect, Companion, Firefighter
+  // Build a shared context string used by agent prompts.
+  // We always inject temporal context (timezone-aware), and we add heavy RAG context only for selected modes.
   const injectedContext = context
   context = ""
+
+  // Minimal temporal context: always include (except for sentry, which should be short and deterministic).
+  const timeBlock =
+    targetMode !== "sentry" && userTime?.prompt_block
+      ? `=== REPÈRES TEMPORELS ===\n${userTime.prompt_block}\n(Adapte tes salutations/conseils à ce moment de la journée)\n\n`
+      : ""
+  if (timeBlock) context += timeBlock
+
   if (['architect', 'companion', 'firefighter'].includes(targetMode)) {
     // Recent transcript (raw turns) to complement the Watcher short-term summary ("fil rouge").
     // We keep it bounded to avoid huge prompts.
@@ -660,12 +670,7 @@ SORTIE JSON STRICTE:
     // C. Dashboard Context (Live Data)
     const dashboardContext = await getDashboardContext(supabase, userId);
 
-    // D. Context Temporel
-    const now = new Date();
-    // Hack rapide pour l'heure de Paris (UTC+1 ou +2). On simplifie à UTC+1 pour l'instant
-    const timeContext = buildParisTimeContextUtcPlusOne(now);
-
-    // E. User model (structured facts)
+    // D. User model (structured facts)
     let factsContext = ""
     try {
       const factRows = await getUserProfileFacts({ supabase, userId, scopes: ["global", scope] })
@@ -725,12 +730,12 @@ SORTIE JSON STRICTE:
 
     context = ""
     if (injectedContext) context += `${injectedContext}\n\n`
+    if (timeBlock) context += timeBlock
     if (factsContext) context += `${factsContext}\n\n`
     if (prefConfirmContext) context += `${prefConfirmContext}\n\n`
     if (shortTerm) context += `=== FIL ROUGE (CONTEXTE COURT TERME) ===\n${shortTerm}\n\n`
     if (recentTurns) context += `=== HISTORIQUE RÉCENT (15 DERNIERS MESSAGES) ===\n${recentTurns}\n\n`
     if (dashboardContext) context += `${dashboardContext}\n\n`; 
-    if (timeContext) context += `=== REPÈRES TEMPORELS ===\n${timeContext}\n(Adapte tes salutations/conseils à ce moment de la journée)\n\n`;
     if (identityContext) context += `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identityContext}\n\n`;
     if (vectorContext) context += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${vectorContext}`;
     

@@ -1,0 +1,19 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_update_action",
+  "description": "Architect should update an existing action structure (update_action_structure tool).",
+  "steps": [
+    { "user": "Ajoute une habitude dans mon plan: \"Lecture\". Fréquence: 2 fois par semaine." },
+    { "user": "En fait, mets \"Lecture\" à 4 fois par semaine, et renomme-la \"Lecture (10 min)\"." }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"]
+  },
+  "mechanical_assertions": {
+    "plan_actions_must_include": [
+      { "title": "Lecture (10 min)", "status": "active", "target_reps": 4 }
+    ]
+  }
+}
+
+
