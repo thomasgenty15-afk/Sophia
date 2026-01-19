@@ -147,7 +147,19 @@ export async function runAgentAndVerify(opts: {
     } else if (targetMode === "architect") {
       inWhatsAppGuard24h = channel === "whatsapp" && /WHATSAPP_ONBOARDING_GUARD_24H=true/i.test(context ?? "")
       const systemPrompt = buildArchitectSystemPromptLite({ channel, lastAssistantMessage: String(lastAssistantMessage ?? ""), context })
-      const toolDefs = getArchitectTools({ inWhatsAppGuard24h })
+      const isModuleUi = String(context ?? "").includes("=== CONTEXTE MODULE (UI) ===")
+      function looksLikeExplicitPlanOperationRequest(msg: string): boolean {
+        const s = String(msg ?? "").trim().toLowerCase()
+        if (!s) return false
+        // Creating/adding
+        if (/\b(ajoute|ajouter|cr[ée]e|cr[ée]er|mets|mettre)\b/.test(s) && /\b(plan|dans mon plan|sur mon plan|au plan)\b/.test(s)) return true
+        // Updates / activation / archive
+        if (/\b(modifie|modifier|change|changer|mets|mettre|supprime|supprimer|archive|archiver|d[ée]sactive|d[ée]sactiver|active|activer|fr[ée]quence)\b/i.test(msg)) return true
+        return false
+      }
+      const baseToolDefs = getArchitectTools({ inWhatsAppGuard24h })
+      // In Module (UI) conversations, default to discussion-first: no tools unless explicitly requested.
+      const toolDefs = (isModuleUi && !looksLikeExplicitPlanOperationRequest(userMessage)) ? [] : baseToolDefs
       toolsAvailable = buildToolDescriptorsFromToolDefs(toolDefs)
       allowedTools = toolsAvailable.map((t) => t.name)
       for (const t of temps) {
@@ -231,6 +243,7 @@ export async function runAgentAndVerify(opts: {
           message: userMessage,
           response: { tool: chosen.tool, args: chosen.args } as any,
           inWhatsAppGuard24h,
+          context,
           meta: { ...(meta ?? {}), model: sophiaChatModel },
         })
         executedTools = out.executed_tools ?? []
@@ -446,7 +459,7 @@ export async function runAgentAndVerify(opts: {
           history,
           state,
           context,
-          { ...(meta ?? {}), model: sophiaChatModel },
+          { ...(meta ?? {}), model: sophiaChatModel, scope },
           )
           responseContent = out.text
           executedTools = out.executed_tools ?? []
@@ -606,6 +619,13 @@ export async function runAgentAndVerify(opts: {
         nextMode = "companion"
       }
       break
+  }
+
+  // Global output sanitation (avoid forbidden claims leaking from non-Architect modules).
+  if (typeof responseContent === "string" && responseContent.trim()) {
+    responseContent = responseContent
+      .replace(/\bj[’']ai\s+programm[eé]\b/gi, "c’est calé")
+      .replace(/\*\*/g, "");
   }
 
   responseContent = normalizeChatText(responseContent)

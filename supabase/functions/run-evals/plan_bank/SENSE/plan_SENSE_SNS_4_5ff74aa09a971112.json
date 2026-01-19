@@ -1,0 +1,286 @@
+{
+  "meta": {
+    "id": "plan_SENSE_SNS_4_5ff74aa09a971112",
+    "theme_key": "SENSE",
+    "theme_id": "SNS",
+    "theme_title": "Sens & Direction",
+    "axis_id": "SNS_4",
+    "axis_title": "Mieux me connaître & rester aligné sur la durée",
+    "selected_problem_ids": [
+      "SNS_4_P1",
+      "SNS_4_P5"
+    ],
+    "selected_problem_labels": [
+      "J’ai du mal à dire clairement ce qui est vraiment important pour moi.",
+      "Je ne sais pas bien distinguer ce qui me nourrit de ce qui me vide."
+    ],
+    "fingerprint": "5ff74aa09a971112",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:41:28.007Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je me sens un peu à la dérive, j'ai l'impression de ne pas avoir de boussole interne claire. Je veux comprendre ce qui me motive vraiment et arrêter de me sentir épuisé(e) sans raison, comme si je faisais les choses pour les autres plutôt que pour moi.",
+      "blockers": "Le manque de temps pour l'introspection est un vrai frein, et j'ai aussi une certaine peur de ce que je pourrais découvrir si je creuse vraiment. Et puis, c'est difficile de dire non aux sollicitations ou aux tâches qui me vident, car elles semblent souvent 'nécessaires' ou attendues.",
+      "context": "Je suis dans une période de ma vie où, malgré des succès professionnels et une vie sociale active, je ressens un vide et une fatigue constante. J'ai l'impression de courir après des objectifs qui ne sont pas les miens et de ne pas savoir ce qui me recharge vraiment, ce qui me laisse souvent épuisé(e) à la fin de la journée. Je sens un besoin urgent de faire le point et de retrouver un alignement.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "SNS_4",
+      "title": "Mieux me connaître & rester aligné sur la durée",
+      "theme": "Sens & Direction",
+      "problems": [
+        "J’ai du mal à dire clairement ce qui est vraiment important pour moi.",
+        "Je ne sais pas bien distinguer ce qui me nourrit de ce qui me vide."
+      ]
+    },
+    "answers": {
+      "SNS_4_P1_Q1": "Hésites beaucoup / restes vague",
+      "SNS_4_P1_Q2": [
+        "Vivre un peu selon les attentes des autres",
+        "Suivre ce qui “devrait” être important (succès, statut, etc.)",
+        "Ne pas avoir pris le temps de réfléchir à ce qui compte vraiment"
+      ],
+      "SNS_4_P5_Q1": [
+        "Beaucoup de choses te vident sans que tu comprennes exactement pourquoi",
+        "Tu es souvent épuisé(e) sans savoir d’où ça vient"
+      ],
+      "SNS_4_P5_Q2": [
+        "Certaines relations / dynamiques",
+        "Certaines tâches / activités (pro ou perso)",
+        "Certains environnements (bruit, rythme, pression…)"
+      ],
+      "meta": {
+        "id": "user_answers_SNS_4",
+        "timestamp": "2024-07-30T10:00:00Z"
+      }
+    },
+    "userProfile": {
+      "birth_date": "1996-01-05",
+      "gender": "female"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Code de l'Alignement",
+    "strategy": "Nous allons progressivement cartographier votre monde intérieur, identifier vos véritables sources d'énergie et vos valeurs profondes pour vous permettre de naviguer avec une boussole inébranlable et une énergie renouvelée.",
+    "sophiaKnowledge": "Tu es une femme de 28 ans, en apparence couronnée de succès, mais qui se sent à la dérive, constamment épuisée. Tu as l'impression de vivre pour les attentes des autres, sans savoir distinguer ce qui te nourrit de ce qui te vide. Le manque de temps et une certaine peur de l'introspection t'empêchent de te reconnecter à ta vérité, te laissant vulnérable aux sollicitations qui te drainent.",
+    "context_problem": "Tu te sentais constamment épuisée et déconnectée de tes propres aspirations, comme si une boussole interne te manquait. Ton principal blocage était la difficulté à identifier ce qui était vraiment important pour toi et à dire non aux tâches et aux relations qui te vidaient de ton énergie, par peur de ce que tu pourrais découvrir en creusant.",
+    "identity": "Je suis l'Architecte de ma Vérité.",
+    "deepWhy": "Pour retrouver une boussole interne inébranlable, vibrer avec mes propres aspirations et offrir ma véritable énergie au monde, sans compromis.",
+    "goldenRules": "1. Je protège mon temps d'introspection comme un trésor sacré.\n2. J'honore mes signaux d'énergie : ce qui nourrit est prioritaire, ce qui vide est questionné.\n3. Ma vérité intérieure est mon unique guide.",
+    "vitalSignal": {
+      "name": "Alignement Intérieur",
+      "unit": "/10",
+      "startValue": "5",
+      "targetValue": "9",
+      "description": "Note quotidienne de votre sensation d'être aligné(e) avec vos valeurs et aspirations, de 1 (totalement désaligné) à 10 (parfaitement aligné).",
+      "type": "constat",
+      "tracking_type": "counter",
+      "time_of_day": "evening"
+    },
+    "maintenanceCheck": {
+      "question": "Cette semaine, combien de décisions as-tu prises en te basant uniquement sur ton intuition profonde ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage Silencieux",
+        "subtitle": "Semaines 1-2 • Créer l'espace intérieur",
+        "rationale": "Avant de comprendre où aller, il faut s'offrir le silence nécessaire pour écouter. Cette phase crée les fondations d'une introspection régulière et met en lumière ce qui consomme votre énergie.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "framework",
+            "title": "L'Inventaire Énergétique",
+            "description": "Chaque fin de semaine, dressez la liste de ce qui vous a nourri et de ce qui vous a vidé durant les 7 derniers jours.",
+            "questType": "main",
+            "tips": "Ne filtrez rien. Listez les interactions, les tâches, les pensées. Observez sans jugement.",
+            "rationale": "La conscience est la première étape de la transformation. Comprendre les flux d'énergie est essentiel pour l'alignement.",
+            "targetReps": 2,
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Sophia te guide pour cartographier les sources de ton énergie. Quels sont les événements, personnes, pensées qui te donnent de l'élan ? Et quels sont ceux qui te vident ? Sois honnête, sans jugement. Réfléchis à ta semaine écoulée.",
+              "sections": [
+                {
+                  "id": "p1f1s1",
+                  "label": "Ce qui m'a nourri cette semaine (énergie, joie, sens)",
+                  "inputType": "list",
+                  "placeholder": "Ex: Conversation avec [ami(e)], projet [X], promenade en nature..."
+                },
+                {
+                  "id": "p1f1s2",
+                  "label": "Ce qui m'a vidé cette semaine (fatigue, irritation, doute)",
+                  "inputType": "list",
+                  "placeholder": "Ex: Réunion [Y], tâche administrative, critique non sollicitée..."
+                },
+                {
+                  "id": "p1f1s3",
+                  "label": "Mon niveau d'énergie moyen perçu cette semaine (1-10)",
+                  "inputType": "scale",
+                  "placeholder": "5"
+                }
+              ]
+            }
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "Le Sanctuaire du Silence",
+            "description": "Dédier 15 minutes chaque jour à un silence total, sans écran, sans musique, sans distraction. Juste toi et tes pensées. Assise ou en marchant.",
+            "questType": "side",
+            "tips": "Utilisez un minuteur non agressif. Trouvez un coin calme. L'objectif n'est pas de méditer parfaitement, mais de créer un espace.",
+            "rationale": "Le silence est le terreau de l'introspection. Il permet à ta boussole interne de se calibrer sans le bruit du monde extérieur.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : Le Décodage des Échos",
+        "subtitle": "Semaines 3-4 • Dévoiler les valeurs fondamentales",
+        "rationale": "Maintenant que l'espace est créé, nous allons explorer les profondeurs de ton être pour y débusquer les piliers de ton alignement : tes valeurs. C'est la base de ta boussole interne.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "framework",
+            "title": "La Boussole des Valeurs",
+            "description": "Identifier et articuler clairement 3 à 5 valeurs fondamentales qui guident vraiment tes choix et définissent ton essence.",
+            "questType": "main",
+            "tips": "Pense aux moments où tu te sens le plus vivant(e), le plus toi-même. Quels principes étaient à l'œuvre ? Qu'est-ce qui te met en colère si c'est bafoué ?",
+            "rationale": "Tes valeurs sont tes véritables points cardinaux. Les connaître, c'est savoir où te diriger et pourquoi.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Prends un moment sacré pour définir ce qui est VRAIMENT important pour toi. Au-delà des 'devrait', des attentes. Imagine que tu écris tes propres commandements. Quels sont les 3-5 principes qui guident tes choix les plus profonds ?",
+              "sections": [
+                {
+                  "id": "p2f1s1",
+                  "label": "Ma Valeur Fondamentale #1 (ex: Authenticité, Liberté)",
+                  "inputType": "text",
+                  "placeholder": "Authenticité"
+                },
+                {
+                  "id": "p2f1s2",
+                  "label": "Pourquoi cette valeur est cruciale pour moi (scénarios, émotions)",
+                  "inputType": "textarea",
+                  "placeholder": "Parce que je me sens vide quand je prétends être quelqu'un d'autre..."
+                },
+                {
+                  "id": "p2f1s3",
+                  "label": "Ma Valeur Fondamentale #2",
+                  "inputType": "text",
+                  "placeholder": "Croissance"
+                },
+                {
+                  "id": "p2f1s4",
+                  "label": "Pourquoi cette valeur est cruciale pour moi",
+                  "inputType": "textarea",
+                  "placeholder": "Si je n'apprends pas, je stagne..."
+                },
+                {
+                  "id": "p2f1s5",
+                  "label": "Ma Valeur Fondamentale #3",
+                  "inputType": "text",
+                  "placeholder": "Contribution"
+                },
+                {
+                  "id": "p2f1s6",
+                  "label": "Pourquoi cette valeur est cruciale pour moi",
+                  "inputType": "textarea",
+                  "placeholder": "Aider les autres donne un sens profond à mon existence..."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p2a2",
+            "type": "habitude",
+            "title": "Le Filtre de l'Intention",
+            "description": "Avant de dire 'oui' à une nouvelle sollicitation, tâche ou engagement, fais une pause de 10 secondes. Demande-toi : 'Est-ce que cela résonne avec mes valeurs ? Est-ce que cela me nourrit ou me vide ?'",
+            "questType": "side",
+            "tips": "Entraîne-toi sur les petites demandes d'abord. La pause est cruciale pour briser la réactivité automatique.",
+            "rationale": "Ce filtre est votre premier bouclier contre les déviations. Il renforce votre capacité à honorer vos valeurs au quotidien.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : L'Art du Non Négociable",
+        "subtitle": "Semaines 5-6 • Protéger votre énergie et votre temps",
+        "rationale": "Connaître ses valeurs, c'est bien ; les protéger, c'est vital. Cette phase vous outille pour établir des limites claires et les communiquer, transformant votre 'non' en un puissant 'oui' à vous-même.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "mission",
+            "title": "Le Périmètre Sacré",
+            "description": "Identifier 3 domaines ou situations récurrentes où vous vous sentez le plus vidé(e) (relations, tâches, environnements) et définir une limite concrète et non négociable pour chacun.",
+            "questType": "main",
+            "tips": "Soyez spécifique. 'Je ne réponds plus aux messages professionnels après 18h' est plus efficace que 'Je gère mieux mon temps'.",
+            "rationale": "Les limites sont les gardiens de votre énergie et de votre alignement. Elles créent l'espace pour ce qui compte vraiment.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p3a2",
+            "type": "habitude",
+            "title": "La Voix de l'Affirmation",
+            "description": "Chaque jour, identifiez et exprimez clairement une de vos préférences, un besoin, ou une limite à une personne (collègue, ami, famille). Commencez petit si nécessaire.",
+            "questType": "side",
+            "tips": "Ne craignez pas le conflit. Exprimer calmement et fermement ce qui est important est un acte de respect de soi. Ex: 'Je préférerais X' ou 'Je ne peux pas m'engager sur Y'.",
+            "rationale": "La pratique rend la communication assertive plus naturelle. C'est en osant que vous renforcez votre boussole intérieure.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : Le Chemin de l'Authenticité",
+        "subtitle": "Semaines 7-8 • Agir en alignement",
+        "rationale": "Avec vos valeurs définies et vos limites posées, il est temps de transformer la conscience en action. Cette phase ancre les comportements qui célèbrent votre authenticité et recharge votre énergie.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "mission",
+            "title": "Le Pont vers l'Action Alignée",
+            "description": "Choisissez une de vos valeurs fondamentales et planifiez une action concrète, même petite, qui l'incarne pleinement cette semaine. Mettez-la à votre agenda et réalisez-la.",
+            "questType": "main",
+            "tips": "Si 'créativité' est une valeur, dessinez pendant 30 min. Si 'nature', passez une heure en forêt. L'important est la connexion directe avec la valeur.",
+            "rationale": "Transformer vos valeurs en actions visibles renforce leur pouvoir et vous recharge en énergie authentique, brisant le cycle de l'épuisement.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p4a2",
+            "type": "habitude",
+            "title": "Le Rituel de la Reconnexion Quotidienne",
+            "description": "Chaque soir, avant de te coucher, prends 5 minutes pour réfléchir à une action de la journée qui t'a fait sentir authentique et alignée, et une autre qui t'a éloigné(e) de toi-même.",
+            "questType": "side",
+            "tips": "Notez-le rapidement dans un carnet. Ne cherchez pas à résoudre, juste à observer et à intégrer l'apprentissage.",
+            "rationale": "Ce rituel ancre la conscience de soi et affine votre boussole interne, vous permettant de corriger le cap chaque jour et de renforcer votre alignement sur le long terme.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "night"
+          }
+        ]
+      }
+    ]
+  }
+}

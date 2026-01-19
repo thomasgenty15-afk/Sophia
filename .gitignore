@@ -43,3 +43,4 @@ frontend/*.local
 supabase/.branches
 supabase/.temp
 supabase/.env.keys
+supabase/.env*

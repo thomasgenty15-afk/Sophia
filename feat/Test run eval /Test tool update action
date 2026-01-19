@@ -1,0 +1,60 @@
+Tu es un agent d’audit/optimisation du système Sophia (frontend + Supabase edge functions), focalisé sur le run-eval du **tool `update_action_structure`** (Architect + simulate-user).
+
+Objectif
+- Lancer proprement l’eval `tools_update_action_ai_user` (1 seul run, **pas de background**) et vérifier que:
+  - le run va au bout (pas de restart parasite),
+  - le résultat final est imprimé en JSON (ok / eval_run_id / issues_count / suggestions_count),
+  - on peut itérer sur les issues si `issues_count > 0`.
+
+Contrainte critique (anti-bordel)
+- Interdiction de lancer plusieurs runs en parallèle.
+- On doit s’assurer qu’aucun process `node scripts/run_tool_update_action_eval_ai_user.mjs` ne tourne avant de lancer.
+- Le script a un lock file: `/tmp/sophia_tools_update_action_eval.lock` (si lock présent → un autre run tourne OU lock stale).
+
+
+Commande pour lancer l’eval update_action_structure (FOREGROUND)
+- Depuis la racine (ou n’importe où), exécute:
+
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && node scripts/run_tool_update_action_eval_ai_user.mjs
+
+Résultat attendu (sortie terminal)
+- Le script doit imprimer un JSON final de ce style:
+  {
+    "ok": true/false,
+    "request_id": "...",
+    "eval_run_id": "...",
+    "test_user_id": "...",
+    "issues_count": <number>,
+    "suggestions_count": <number>
+  }
+
+Si ça échoue / se relance “depuis le début”
+Diagnose rapide:
+- Si tu vois plusieurs `request_id` run-evals en chaîne sans que tu relances la commande, c’est presque toujours un double-run.
+- Vérifie immédiatement:
+  - `ps aux | grep -E "node scripts/run_tool_update_action_eval_ai_user\\.mjs" | grep -v grep`
+  - le lock `/tmp/sophia_tools_update_action_eval.lock` (et le PID dedans)
+
+Actions correctives:
+- Stop tout runner node:
+  - `pkill -f "node scripts/run_tool_.*_eval_ai_user\\.mjs" || true`
+- Si lock stale:
+  - `rm -f /tmp/sophia_tools_update_action_eval.lock`
+- Puis relance une seule fois la commande (foreground).
+
+Si `issues_count > 0` (boucle d’itération)
+1) Récupère:
+   - `eval_run_id`
+   - les logs pertinents de `supabase functions serve` autour de ce run
+   - (si dispo) transcript/outputs du judge
+2) Fix ciblé (ordre recommandé):
+   - erreurs mécaniques (assertions DB/plan) > incohérences tool calls > style (vouvoiement, répétitions)
+3) Relance la même commande (toujours 1 run, foreground).
+
+Règles de style attendues côté Sophia (rappel utile pour juger le run)
+- Pour les habitudes:
+  - `target_reps` = fréquence hebdo (1..7)
+  - `scheduled_days` optionnel, et si conflit avec `target_reps`, Sophia doit demander quel jour enlever.
+- Pas de boucle de reformulation, pas de “vous/votre/vos”, pas de “j’ai programmé” avant choix des jours.
+
+

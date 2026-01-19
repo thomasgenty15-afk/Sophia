@@ -6,7 +6,7 @@ import { getDashboardContext } from "../sophia-brain/state-manager.ts";
 
 import { BodySchema, type RunEvalsBody } from "./schemas.ts";
 import { buildMechanicalIssues } from "./lib/mechanical.ts";
-import { buildRunPlanTemplate, fetchPlanSnapshot, type RunPlanTemplate, seedActivePlan } from "./lib/plan.ts";
+import { buildRunPlanTemplate, buildRunPlanTemplateFromBank, fetchPlanSnapshot, type RunPlanTemplate, seedActivePlan } from "./lib/plan.ts";
 import { fetchProfileSnapshot } from "./lib/profile.ts";
 import { invokeWhatsAppWebhook, seedOptInPromptForWhatsApp, waPayloadForSingleMessage } from "./lib/whatsapp.ts";
 import {
@@ -175,10 +175,34 @@ export function serveRunEvals() {
       // (User expectation: retry must continue where it left off, never restart from scratch.)
       let runPlanTemplate: RunPlanTemplate | null = null;
       let runPlanTemplateFingerprint: string | null = null;
+      let runPlanTemplateBank: any | null = null;
       const getRunPlanTemplate = async () => {
         if (!runPlanTemplate) {
-          runPlanTemplate = await buildRunPlanTemplate({ url, anonKey, authHeader, requestId });
+          const useBank = Boolean((body as any)?.limits?.use_pre_generated_plans);
+          const required = Boolean((body as any)?.limits?.pre_generated_plans_required);
+          const themeKey = String((body as any)?.limits?.plan_bank_theme_key ?? "").trim() || null;
+          if (useBank) {
+            try {
+              runPlanTemplate = await buildRunPlanTemplateFromBank({
+                requestId,
+                themeKey,
+                required,
+              });
+            } catch (e) {
+              const msg = String((e as any)?.message ?? e ?? "");
+              const isBankEmpty = msg.includes("PLAN_BANK_EMPTY");
+              if (!required && isBankEmpty) {
+                console.warn(`[run-evals] plan bank empty; falling back to live generate-plan (costly). request_id=${requestId}`);
+                runPlanTemplate = await buildRunPlanTemplate({ url, anonKey, authHeader, requestId });
+              } else {
+                throw e;
+              }
+            }
+          } else {
+            runPlanTemplate = await buildRunPlanTemplate({ url, anonKey, authHeader, requestId });
+          }
           runPlanTemplateFingerprint = runPlanTemplate.templateFingerprint;
+          runPlanTemplateBank = (runPlanTemplate as any)?.bank ?? null;
         }
         return runPlanTemplate;
       };
@@ -259,6 +283,7 @@ export function serveRunEvals() {
               const defaultActiveActionsCount = isWhatsApp
                 ? (Number.isFinite(Number(setup?.active_actions_count)) ? Number(setup.active_actions_count) : 2)
                 : undefined;
+              const useBank = Boolean((body as any)?.limits?.use_pre_generated_plans);
               await seedActivePlan(
                 admin as any,
                 testUserId,
@@ -266,8 +291,13 @@ export function serveRunEvals() {
                 {
                   bilanActionsCount: bilanCount,
                   activeActionsCount: defaultActiveActionsCount,
-                  // Only build a plan template if we actually need to seed a bilan plan.
-                  planTemplate: bilanCount > 0 ? await getRunPlanTemplate() : undefined,
+                  preseedActions: Array.isArray((setup as any)?.preseed_actions) ? (setup as any).preseed_actions : [],
+                  preseedActionEntries: Array.isArray((setup as any)?.preseed_action_entries)
+                    ? (setup as any).preseed_action_entries
+                    : [],
+                  // If we're using the bank, ALWAYS reuse the run template to avoid per-scenario Gemini calls.
+                  // Legacy behavior only built a template for bilan.
+                  planTemplate: useBank ? await getRunPlanTemplate() : (bilanCount > 0 ? await getRunPlanTemplate() : undefined),
                   includeVitalsInBilan,
                 },
               );
@@ -744,14 +774,21 @@ export function serveRunEvals() {
 
                   const msg = String(simJson?.error ?? "");
                   const is429 = simStatus === 429 || msg.toLowerCase().includes("resource exhausted") || msg.includes("429");
+                  // simulate-user can legitimately return 503 in evals:
+                  // - transient model overload/timeouts (handled internally, but still possible)
+                  // - strict output guardrails failing ("invalid output after rescue")
+                  // Retrying within the SAME run avoids the eval runner "restarting from scratch".
+                  const is503 = simStatus === 503 || msg.includes("503");
                   const isOk = simResp.ok && !simJson?.error && String(simJson?.next_message ?? "").trim().length > 0;
 
                   if (isOk) break;
-                  if (!is429) {
-                    throw new Error(simJson?.error || `simulate-user failed (${simStatus})`);
+                  if (!is429 && !is503) {
+                    const extra = simJson?.reason ? ` reason=${String(simJson.reason)}` : "";
+                    throw new Error((simJson?.error ? String(simJson.error) : `simulate-user failed (${simStatus})`) + extra);
                   }
                   if (attempt >= MAX_SIM_RETRIES) {
-                    throw new Error(simJson?.error || `simulate-user failed (${simStatus})`);
+                    const extra = simJson?.reason ? ` reason=${String(simJson.reason)}` : "";
+                    throw new Error((simJson?.error ? String(simJson.error) : `simulate-user failed (${simStatus})`) + extra);
                   }
                   await sleep(backoffMs(attempt));
                 }
@@ -856,6 +893,8 @@ export function serveRunEvals() {
                 tags: (s as any).tags ?? [],
                 scenario_target: (s as any)?.scenario_target ?? null,
                 channel: scenarioChannel,
+                // Preserve the ephemeral test user id for debugging in Studio (config is overwritten by eval-judge).
+                test_user_id: testUserId,
                 limits: {
                   bilan_actions_count: Number(body.limits.bilan_actions_count ?? 0) || 0,
                   test_post_checkup_deferral: Boolean(body.limits.test_post_checkup_deferral),
@@ -864,6 +903,7 @@ export function serveRunEvals() {
                 },
                 plan_snapshot: {
                   template_fingerprint: runPlanTemplateFingerprint ?? null,
+                  template_bank: runPlanTemplateBank,
                   dashboard_context: dashboardContextAfter || dashboardContext || "",
                   ...(planSnapshotAfter ?? planSnapshot),
                 },
@@ -871,6 +911,14 @@ export function serveRunEvals() {
               system_snapshot: {
                 focus: (s as any)?.scenario_target ?? null,
                 channel: scenarioChannel,
+                available_modules: [
+                  "sentry",
+                  "firefighter",
+                  "investigator",
+                  "architect",
+                  "companion",
+                  "librarian",
+                ],
                 whatsapp_state_machine: isWhatsApp
                   ? {
                       profile_whatsapp_state_before: (profileBefore as any)?.whatsapp_state ?? null,
@@ -935,6 +983,7 @@ export function serveRunEvals() {
             scenario_key: s.id,
             eval_run_id: judgeJson.eval_run_id,
             plan_template_fingerprint: runPlanTemplateFingerprint ?? null,
+            test_user_id: testUserId,
             turns_executed: turnsExecuted,
             bilan_completed: bilanCompleted,
             plan_snapshot_actions_count: Array.isArray((planSnapshot as any)?.actions) ? (planSnapshot as any).actions.length : 0,
@@ -959,7 +1008,8 @@ export function serveRunEvals() {
           }
           // Cleanup auth user ONLY after successful completion, otherwise keep for resume.
           try {
-            if (testUserId) await (admin as any).auth.admin.deleteUser(testUserId);
+            const keep = Boolean((body as any)?.limits?.keep_test_user) || Boolean((s as any)?.setup?.keep_test_user);
+            if (!keep && testUserId) await (admin as any).auth.admin.deleteUser(testUserId);
           } catch {
             // ignore
           }
@@ -1007,8 +1057,16 @@ export function serveRunEvals() {
         results,
       });
     } catch (error) {
+      // Preserve a minimal error surface so local runners can decide whether to retry
+      // (and avoid "silent restarts from scratch" on deterministic failures).
+      const msg = error instanceof Error ? error.message : String(error);
       console.error(`[run-evals] request_id=${requestId}`, error);
-      return serverError(req, requestId);
+      const lowered = msg.toLowerCase();
+      const status =
+        lowered.includes("worker_limit") || lowered.includes("workerl") ? 546 :
+        lowered.startsWith("simulate-user failed") ? 503 :
+        500;
+      return jsonResponse(req, { error: msg || "Internal Server Error", request_id: requestId }, { status });
     }
   });
 }

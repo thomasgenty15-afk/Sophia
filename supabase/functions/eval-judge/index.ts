@@ -226,6 +226,73 @@ function ruleBasedSuggestions(issues: any[]): any[] {
   return suggestions;
 }
 
+function parseTimeoutMs(raw: string | undefined, fallback: number) {
+  const n = Number(String(raw ?? "").trim());
+  return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
+}
+
+function uniqModels(models: string[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const m of models) {
+    const s = String(m ?? "").trim();
+    if (!s) continue;
+    const k = s.toLowerCase();
+    if (seen.has(k)) continue;
+    seen.add(k);
+    out.push(s);
+  }
+  return out;
+}
+
+async function runJudgeLlmWithModelCycle(args: {
+  requestId: string;
+  allowReal: boolean;
+  systemPrompt: string;
+  transcriptText: string;
+  baseModel: string;
+}): Promise<{ ok: true; parsed: any; model_used: string } | { ok: false; error: string }> {
+  // Goal: avoid Edge Runtime wall clock kills by bounding the number of HTTP calls and their timeout.
+  // We do ONE call per model attempt (no internal retries), and we cycle models 3 times max.
+  const perAttemptTimeoutMs = parseTimeoutMs(Deno.env.get("EVAL_JUDGE_HTTP_TIMEOUT_MS"), 12_000);
+  const cycles = parseTimeoutMs(Deno.env.get("EVAL_JUDGE_MODEL_CYCLES"), 3);
+
+  const base = String(args.baseModel ?? "").trim() || "gemini-3-pro-preview";
+  const cycle = uniqModels([
+    base,
+    "gemini-3-pro-preview",
+    "gemini-3-flash-preview",
+    "gemini-2.5-flash",
+    "gemini-2.0-flash",
+  ]);
+  const maxCycles = Math.max(1, Math.min(5, Math.floor(cycles || 3)));
+  const attempts: string[] = [];
+  for (let c = 0; c < maxCycles; c++) attempts.push(...cycle);
+
+  let lastErr: string | null = null;
+  for (let i = 0; i < attempts.length; i++) {
+    const model = attempts[i]!;
+    try {
+      const out = await generateWithGemini(args.systemPrompt, args.transcriptText, 0.2, true, [], "auto", {
+        requestId: `${args.requestId}:judge:${i + 1}/${attempts.length}`,
+        model,
+        source: "eval-judge",
+        forceRealAi: args.allowReal,
+        // Critical: prevent long retry/backoff loops inside generateWithGemini.
+        maxRetries: 1,
+        httpTimeoutMs: perAttemptTimeoutMs,
+      });
+      const parsed = JSON.parse(out as string);
+      return { ok: true, parsed, model_used: model };
+    } catch (e) {
+      lastErr = (e instanceof Error ? e.message : String(e)).slice(0, 240);
+      // Short backoff to avoid immediate repeat overload bursts.
+      await new Promise((r) => setTimeout(r, 200));
+    }
+  }
+  return { ok: false, error: lastErr ?? "unknown_error" };
+}
+
 function severityRank(sev: unknown): number {
   const s = String(sev ?? "").toLowerCase();
   if (s === "high") return 3;
@@ -395,9 +462,7 @@ Deno.serve(async (req) => {
       if (insErr) throw insErr;
       runId = inserted.id as string;
     } else {
-      const { error: updErr } = await admin
-        .from("conversation_eval_runs")
-        .update({
+      const patch: Record<string, unknown> = {
           dataset_key: body.dataset_key,
           scenario_key: body.scenario_key,
           status: "running",
@@ -406,7 +471,10 @@ Deno.serve(async (req) => {
           state_before: body.state_before ?? null,
           state_after: body.state_after ?? null,
           created_by: userId,
-        })
+        };
+      const { error: updErr } = await admin
+        .from("conversation_eval_runs")
+        .update(patch as any)
         .eq("id", runId);
       if (updErr) throw updErr;
     }
@@ -596,18 +664,23 @@ Format attendu:
           (body as any)?.config?.model ||
           (body as any)?.config?.limits?.model ||
           JUDGE_DEFAULT_MODEL;
-        const out = await generateWithGemini(systemPrompt, transcriptText, 0.2, true, [], "auto", {
+        const judged = await runJudgeLlmWithModelCycle({
           requestId,
-          model: String(overrideModel),
-          source: "eval-judge",
-          forceRealAi: allowReal,
+          allowReal,
+          systemPrompt,
+          transcriptText,
+          baseModel: String(overrideModel),
         });
-        const parsedJudge = JSON.parse(out as string);
-        if (Array.isArray(parsedJudge?.issues)) {
-          for (const i of parsedJudge.issues) issues.push(i);
-        }
-        if (Array.isArray(parsedJudge?.suggestions)) {
-          for (const s of parsedJudge.suggestions) suggestions.push(s);
+        if (judged.ok) {
+          const parsedJudge = judged.parsed;
+          if (Array.isArray(parsedJudge?.issues)) {
+            for (const i of parsedJudge.issues) issues.push(i);
+          }
+          if (Array.isArray(parsedJudge?.suggestions)) {
+            for (const s of parsedJudge.suggestions) suggestions.push(s);
+          }
+        } else {
+          throw new Error(judged.error);
         }
       } catch (e) {
         // Don't fail the whole run if judge fails; store error into metrics

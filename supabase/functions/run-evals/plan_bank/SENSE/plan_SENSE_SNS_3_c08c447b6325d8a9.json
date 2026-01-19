@@ -1,0 +1,275 @@
+{
+  "meta": {
+    "id": "plan_SENSE_SNS_3_c08c447b6325d8a9",
+    "theme_key": "SENSE",
+    "theme_id": "SNS",
+    "theme_title": "Sens & Direction",
+    "axis_id": "SNS_3",
+    "axis_title": "Traverser un deuil ou une grosse transition",
+    "selected_problem_ids": [
+      "SNS_3_P3",
+      "SNS_3_P4"
+    ],
+    "selected_problem_labels": [
+      "Je dois faire le deuil d’un projet / rêve / situation qui comptait beaucoup.",
+      "Je vis une grosse transition de vie et je suis chamboulé(e)."
+    ],
+    "fingerprint": "c08c447b6325d8a9",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:42:09.615Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je suis ici parce que je viens de perdre mon entreprise, un projet dans lequel j'ai mis toutes mes tripes pendant 5 ans. Je me sens vide, perdu, et je ne sais plus par où commencer pour rebondir. J'ai besoin d'aide pour digérer ça et retrouver un cap.",
+      "blockers": "Le manque d'énergie est énorme. Chaque jour est une lutte pour sortir du lit. J'ai aussi peur de l'échec, de me relancer dans quelque chose et de revivre la même chose. Et puis, je ne sais même pas ce que je veux faire, tout mon sens était lié à ce projet.",
+      "context": "Je suis sans emploi depuis 3 mois. Mes économies fondent. Mes proches sont là, ils essaient d'aider mais je me sens incompris. J'ai l'impression d'avoir perdu une partie de moi-même. Je suis en train de vider les derniers cartons du bureau, c'est dur.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "SNS_3",
+      "title": "Traverser un deuil ou une grosse transition",
+      "theme": "Sens & Direction",
+      "problems": [
+        "Je dois faire le deuil d’un projet / rêve / situation qui comptait beaucoup.",
+        "Je vis une grosse transition de vie et je suis chamboulé(e)."
+      ]
+    },
+    "answers": {
+      "SNS_3_P3": {
+        "SNS_3_P3_Q1": "Un projet pro / une entreprise",
+        "SNS_3_P3_Q2": [
+          "Beaucoup d’espoir / de sens",
+          "Une part de ton identité (“qui tu es”)"
+        ]
+      },
+      "SNS_3_P4": {
+        "SNS_3_P4_Q1": "Un changement pro (nouveau job, reconversion, perte d’emploi)",
+        "SNS_3_P4_Q2": "Subi"
+      },
+      "meta": {
+        "themeId": "SNS",
+        "axisId": "SNS_3",
+        "problemIds": [
+          "SNS_3_P3",
+          "SNS_3_P4"
+        ]
+      }
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "female"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "La Boussole Retrouvée",
+    "strategy": "Nous allons progressivement naviguer à travers le deuil de votre projet, en commençant par ancrer le présent et reconstruire votre énergie, pour ensuite redéfinir votre sens et explorer de nouvelles directions avec sérénité.",
+    "sophiaKnowledge": "Vous êtes une femme née en 1988, et vous traversez une période de deuil intense suite à la perte de votre entreprise, un projet de 5 ans qui était une part essentielle de votre identité. Actuellement sans emploi depuis 3 mois, vous vous sentez vide, perdu(e), et confronté(e) à un manque d'énergie paralysant, ainsi qu'à une peur de l'échec pour l'avenir. Vous cherchez à digérer cette transition pour retrouver un cap, malgré le sentiment d'être incompris(e) par votre entourage et la difficulté de vider les derniers cartons de votre ancien bureau. Votre principal blocage est le manque d'énergie et l'incertitude quant à votre futur sens.",
+    "context_problem": "Vous vous sentiez complètement désorienté(e) et épuisé(e) par le deuil de votre entreprise, qui représentait un espoir immense et une part de votre identité. Votre principal blocage était la peur de l'échec et l'incapacité à retrouver un sens, le tout exacerbé par un manque d'énergie qui rendait chaque jour une lutte, vous laissant dans une impasse malgré la présence de vos proches.",
+    "identity": "Je suis l'Architecte de ma Résilience, l'Exploratrice de mes Nouvelles Directions.",
+    "deepWhy": "Pour honorer le chemin parcouru en me permettant de me reconstruire, d'aligner mes énergies avec un nouveau sens, et de créer un futur où ma contribution est joyeuse et authentique.",
+    "goldenRules": "1. J'honore mon deuil avec bienveillance.\n2. Chaque jour, un petit pas suffit.\n3. Je suis ma meilleure alliée et je protège mon énergie.\n4. La curiosité est mon nouveau guide.",
+    "vitalSignal": {
+      "name": "Temps passé à prendre l'air ou faire une mini-marche",
+      "unit": "min",
+      "startValue": "0",
+      "targetValue": "30",
+      "description": "Ce n'est pas une performance, juste une connexion douce avec l'extérieur pour casser l'isolement et retrouver un peu d'énergie vitale.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois cette semaine as-tu identifié une petite étincelle de curiosité pour un sujet ou une activité nouvelle, même sans y donner suite ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage du Présent",
+        "subtitle": "Semaines 1-2 • Accueillir la tempête",
+        "rationale": "Avant de regarder vers l'horizon, il est crucial d'ancrer vos pieds dans le présent. Cette phase vise à reconnaître et à commencer à traiter la perte, tout en établissant de micro-habitudes pour retrouver une présence minimale.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a1",
+            "type": "framework",
+            "title": "Le Rituel de la Page Blanche",
+            "description": "Chaque soir, videz votre esprit en écrivant librement tout ce qui vous pèse ou vous préoccupe concernant le deuil de votre projet. Ne filtrez rien, laissez tout sortir.",
+            "questType": "main",
+            "tips": "Utilisez un carnet dédié. Ne cherchez ni la syntaxe ni la perfection, juste la décharge émotionnelle. C'est votre espace sacré pour le non-dit.",
+            "rationale": "Écrire permet de décharger le 'cache mental', de réduire le ruminement et le cortisol, facilitant ainsi l'apaisement. C'est une façon de donner une voix à votre douleur sans la laisser vous submerger.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Le deuil est un processus, pas un événement. Chaque soir, offrez-vous cet espace sécurisé pour déposer ce qui vous traverse. La simple action d'écrire active des zones du cerveau qui aident à réguler les émotions.",
+              "sections": [
+                {
+                  "id": "s1",
+                  "label": "Ce qui a pesé sur mon esprit aujourd'hui concernant le projet perdu ou la transition actuelle :",
+                  "inputType": "textarea",
+                  "placeholder": "J'ai repensé à... / Je me sens..."
+                },
+                {
+                  "id": "s2",
+                  "label": "Quelle émotion principale a dominé ?",
+                  "inputType": "text",
+                  "placeholder": "Tristesse, colère, vide..."
+                },
+                {
+                  "id": "s3",
+                  "label": "Mon niveau de tension émotionnelle avant d'écrire (1-10) :",
+                  "inputType": "scale",
+                  "placeholder": "7"
+                }
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "type": "habitude",
+            "title": "Micro-Bulle d'Air Frais",
+            "description": "Sortez de chez vous pour une marche de 15 minutes minimum, sans téléphone, chaque jour. Simplement observer ce qui vous entoure.",
+            "questType": "side",
+            "tips": "Même s'il fait gris, même si vous n'en avez pas envie. C'est une bouffée d'oxygène pour votre cerveau et une rupture avec l'isolement.",
+            "rationale": "L'exposition à la lumière naturelle et le mouvement doux aident à réguler l'humeur et l'énergie. Cela permet de briser le cycle du ruminement en stimulant les sens et en créant une micro-rupture d'état.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : Le Silence et la Voix Intérieure",
+        "subtitle": "Semaines 3-4 • Redéfinir son socle",
+        "rationale": "Après avoir déposé le poids, il est temps de créer l'espace nécessaire pour réécouter votre voix intérieure. Cette phase vous aidera à identifier vos valeurs profondes, au-delà de ce que représentait votre ancien projet, et à protéger votre énergie mentale.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a3",
+            "type": "framework",
+            "title": "L'Inventaire de mes Valeurs Cachées",
+            "description": "Réfléchissez et écrivez quelles étaient les valeurs profondes que vous recherchiez dans votre ancien projet, et comment elles peuvent se manifester différemment dans cette nouvelle phase de votre vie.",
+            "questType": "main",
+            "tips": "Ne cherchez pas 'quoi faire', mais 'qui être'. Exemples de valeurs: créativité, impact, autonomie, connexion, apprentissage, sécurité.",
+            "rationale": "La perte d'un projet est souvent une perte de sens lié aux valeurs qu'il incarnait. Redéfinir ces valeurs, c'est retrouver un compas interne, une source de motivation intrinsèque qui transcende les circonstances extérieures.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Vos valeurs sont les piliers invisibles de votre identité. Votre ancien projet les nourrissait, mais elles existent indépendamment de lui. Le but est de les identifier et d'imaginer de nouvelles façons de les honorer.",
+              "sections": [
+                {
+                  "id": "s1",
+                  "label": "Quelles étaient les 3-5 valeurs les plus importantes que mon entreprise/projet incarnait pour moi ?",
+                  "inputType": "list",
+                  "placeholder": "Ex: Liberté, Créativité, Impact social"
+                },
+                {
+                  "id": "s2",
+                  "label": "Comment ces valeurs se sont-elles manifestées concrètement dans ce projet ?",
+                  "inputType": "textarea",
+                  "placeholder": "J'étais libre de créer mon emploi du temps..."
+                },
+                {
+                  "id": "s3",
+                  "label": "Si je devais nommer 3-5 valeurs essentielles qui me guident AUJOURD'HUI (indépendamment du passé) :",
+                  "inputType": "list",
+                  "placeholder": "Ex: Authenticité, Bienveillance, Apprentissage"
+                },
+                {
+                  "id": "s4",
+                  "label": "Une première petite idée pour honorer l'une de ces nouvelles/anciennes valeurs cette semaine :",
+                  "inputType": "textarea",
+                  "placeholder": "Lire un livre sur un sujet qui m'intrigue (pour la valeur 'apprentissage')."
+                }
+              ]
+            }
+          },
+          {
+            "id": "a4",
+            "type": "habitude",
+            "title": "Pause Digitale Consciente",
+            "description": "Désactivez toutes les notifications (téléphone, ordinateur) et accordez-vous 30 minutes de 'silence digital' par jour. Utilisez ce temps pour simplement être, sans sollicitation.",
+            "questType": "side",
+            "tips": "Ne cherchez pas à 'faire' quelque chose. Juste 'être'. Regarder par la fenêtre, boire un thé, écouter un peu de musique calme sans faire autre chose.",
+            "rationale": "Le cerveau en deuil est déjà surchargé. La sursollicitation digitale entrave la récupération neuronale et la capacité à se reconnecter à soi. Cette pause est une détox pour le système nerveux et un espace pour l'intégration émotionnelle.",
+            "targetReps": 10,
+            "tracking_type": "boolean",
+            "time_of_day": "afternoon"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : La Reconnexion et la Légèreté",
+        "subtitle": "Semaines 5-6 • Cultiver la bienveillance",
+        "rationale": "Il est temps de réintroduire des éléments de joie et de connexion, non pas pour 'passer à autre chose' mais pour adoucir le processus de deuil. Cette phase vise à cultiver des moments de légèreté et de gratitude.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a5",
+            "type": "mission",
+            "title": "Le 'Non-Négociable' du Plaisir",
+            "description": "Chaque semaine, planifiez et réalisez une activité qui vous procure un plaisir pur, sans attente de productivité ou de 'bien-être forcé'. Cela peut être très simple.",
+            "questType": "main",
+            "tips": "Écouter votre chanson préférée en dansant, manger un plat que vous adorez, regarder un vieux film réconfortant. L'objectif est la joie authentique, même furtive.",
+            "rationale": "Le cerveau en deuil a besoin de réapprendre à activer son système de récompense. Ces 'non-négociables' créent des micros-pics de dopamine saine, essentiels pour retrouver l'envie et la motivation, et contrer l'apathie du deuil.",
+            "targetReps": 2,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "a6",
+            "type": "habitude",
+            "title": "Cercle de Gratitude Inattendu",
+            "description": "Chaque soir, avant de vous coucher, identifiez et notez au moins trois choses, même infimes, pour lesquelles vous ressentez une forme de gratitude ou de soulagement dans la journée.",
+            "questType": "side",
+            "tips": "La pluie qui tombe, une tasse de thé chaud, un message inattendu. Cherchez les micro-moments de douceur. Cela ne nie pas votre douleur, cela élargit votre perspective.",
+            "rationale": "Pratiquer la gratitude, même dans la douleur, modifie l'activité cérébrale en renforçant les circuits neuronaux associés au bien-être et en atténuant la dominance des pensées négatives. C'est un entraînement à la flexibilité cognitive.",
+            "targetReps": 14,
+            "tracking_type": "counter",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : Les Premiers Pas du Nouveau Chemin",
+        "subtitle": "Semaines 7-8 • Semer les graines du futur",
+        "rationale": "Avec une énergie un peu plus stable et une meilleure compréhension de vos valeurs, il est temps d'explorer, sans pression, de nouvelles pistes. Cette phase est dédiée à l'expérimentation douce et à la réintégration progressive de l'action dans votre quotidien.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a7",
+            "type": "mission",
+            "title": "Le 'Mini-Projet' Curiosité",
+            "description": "Lancez-vous dans un tout petit projet ou une exploration qui éveille votre curiosité, sans aucune attente de résultat, de performance ou de monétisation. L'objectif est l'exploration pour elle-même.",
+            "questType": "main",
+            "tips": "Apprendre quelques mots d'une nouvelle langue, essayer une recette compliquée, visiter un musée que vous ne connaissez pas, ou faire une recherche sur un sujet qui vous intrigue.",
+            "rationale": "L'exploration de la curiosité active le circuit de la récompense (dopamine) de manière saine et constructive, sans la pression de l'échec. C'est une façon douce de réactiver votre sens de l'initiative et d'ouvrir votre esprit à de nouvelles possibilités, en réhabilitant la notion de jeu et d'apprentissage.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "a8",
+            "type": "habitude",
+            "title": "La Micro-Action du Matin",
+            "description": "Chaque matin, réalisez une petite action pour vous-même avant de vous plonger dans le reste de la journée. Cela peut être étirer votre corps, lire un poème, ou boire un verre d'eau avec intention.",
+            "questType": "side",
+            "tips": "Choisissez quelque chose qui vous donne un mini-boost ou un sentiment de contrôle dès le lever. C'est une façon de commencer la journée en vous priorisant.",
+            "rationale": "Commencer la journée par une action intentionnelle, même minime, pour soi, renforce le sentiment d'agentivité et d'auto-efficacité. Cela pose les bases d'une journée où vous êtes acteur(trice), et non pas simplement réactif(ve) aux événements extérieurs.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          }
+        ]
+      }
+    ]
+  }
+}

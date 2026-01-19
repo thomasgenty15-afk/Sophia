@@ -34,7 +34,20 @@ export function buildMechanicalIssues(params: {
     if (!hay || typeof hay !== "object") return false;
     for (const [k, v] of Object.entries(needle)) {
       const actual = (hay as any)[k];
-      if (typeof v === "string") {
+      if (Array.isArray(v)) {
+        // Back-compat: arrays are used as "one of" for string fields (ex: title/time_of_day).
+        // New behavior: if the actual value is also an array (ex: scheduled_days),
+        // treat the expected array as a case-insensitive subset that must be included.
+        if (Array.isArray(actual)) {
+          const actualSet = new Set((actual ?? []).map((x: any) => normalizeStringLower(x)));
+          const ok = (v ?? []).every((x: any) => actualSet.has(normalizeStringLower(x)));
+          if (!ok) return false;
+        } else {
+          const actualNorm = normalizeStringLower(actual);
+          const ok = v.some((x) => normalizeStringLower(x) === actualNorm);
+          if (!ok) return false;
+        }
+      } else if (typeof v === "string") {
         if (normalizeStringLower(actual) !== normalizeStringLower(v)) return false;
       } else if (typeof v === "number") {
         if (Number(actual) !== v) return false;

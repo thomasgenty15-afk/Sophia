@@ -71,3 +71,4 @@ $$;
 grant execute on function public.transfer_verified_phone_to_user(uuid, text) to service_role;
 
 
+

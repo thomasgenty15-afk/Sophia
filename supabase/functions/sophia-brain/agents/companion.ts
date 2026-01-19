@@ -267,6 +267,10 @@ export async function generateCompanionModelOutput(opts: {
   history: any[]
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; temperature?: number }
 }): Promise<CompanionModelOutput> {
+  const isEvalLike =
+    String(opts.meta?.requestId ?? "").includes(":tools:") ||
+    String(opts.meta?.requestId ?? "").includes(":eval");
+  const DEFAULT_MODEL = isEvalLike ? "gemini-2.5-flash" : "gemini-3-flash-preview";
   const historyText = (opts.history ?? []).slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   const temperature = Number.isFinite(Number(opts.meta?.temperature)) ? Number(opts.meta?.temperature) : 0.7
   const response = await generateWithGemini(
@@ -278,7 +282,7 @@ export async function generateCompanionModelOutput(opts: {
     "auto",
     {
       requestId: opts.meta?.requestId,
-      model: opts.meta?.model ?? "gemini-3-flash-preview",
+      model: opts.meta?.model ?? DEFAULT_MODEL,
       source: "sophia-brain:companion",
       forceRealAi: opts.meta?.forceRealAi,
     },
@@ -324,7 +328,7 @@ export async function handleCompanionModelOutput(opts: {
       `
       const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
         requestId: meta?.requestId,
-        model: meta?.model ?? "gemini-3-flash-preview",
+        model: meta?.model ?? (String(meta?.requestId ?? "").includes(":tools:") ? "gemini-2.5-flash" : "gemini-3-flash-preview"),
         source: "sophia-brain:companion_confirmation",
         forceRealAi: meta?.forceRealAi,
       })
@@ -522,6 +526,26 @@ export async function handleCompanionModelOutput(opts: {
       }
     }
     return { text: "Ok, c’est noté. On continue.", executed_tools: ["apply_profile_fact"], tool_execution: toolExecution }
+  }
+
+  // Catch-all: never stringify arbitrary objects into chat (it becomes "[object Object]").
+  // If we get an unexpected tool call, return a safe user-facing message and log.
+  if (response && typeof response === "object") {
+    const maybeTool = (response as any)?.tool ?? null
+    const maybeText =
+      (response as any)?.text ??
+      (response as any)?.message ??
+      (response as any)?.next_message ??
+      null
+    if (typeof maybeText === "string" && maybeText.trim()) {
+      return { text: maybeText.replace(/\*\*/g, ""), executed_tools: [], tool_execution: "none" }
+    }
+    if (maybeTool) {
+      console.warn("[Companion] Unexpected tool call (ignored):", maybeTool)
+      return { text: "Ok — je te suis. On continue.", executed_tools: [], tool_execution: "blocked" }
+    }
+    console.warn("[Companion] Unexpected non-string response (ignored).")
+    return { text: "Ok — je te suis. On continue.", executed_tools: [], tool_execution: "none" }
   }
 
   return { text: String(response ?? ""), executed_tools: [], tool_execution: "none" }

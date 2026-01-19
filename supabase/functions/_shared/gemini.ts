@@ -5,7 +5,15 @@ export async function generateWithGemini(
   jsonMode: boolean = false,
   tools: any[] = [],
   toolChoice: string = "auto", // 'auto', 'any' or specific tool name (not supported by all models but 'any' forces tool use)
-  meta?: { requestId?: string; model?: string; source?: string; forceRealAi?: boolean; userId?: string; maxRetries?: number; httpTimeoutMs?: number }
+  meta?: {
+    requestId?: string;
+    model?: string;
+    source?: string;
+    forceRealAi?: boolean;
+    userId?: string;
+    maxRetries?: number;
+    httpTimeoutMs?: number;
+  }
 ): Promise<string | { tool: string, args: any }> {
   const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
   const parseTimeoutMs = (raw: string | undefined, fallback: number) => {
@@ -42,6 +50,15 @@ export async function generateWithGemini(
   };
   const retryableStatuses = new Set([429, 500, 502, 503, 504]);
 
+  const requestId = String(meta?.requestId ?? "").trim();
+  const source = String(meta?.source ?? "").trim();
+  // Evals are extremely sensitive to wall-clock time (edge runtime early termination).
+  // We treat any requestId that contains ":tools:" (run-evals scenarios) as an eval-like request.
+  const isEvalLikeRequest =
+    requestId.includes(":tools:") ||
+    source.includes("run-evals") ||
+    source.includes("simulate-user");
+
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
     (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
@@ -63,19 +80,26 @@ export async function generateWithGemini(
     throw new Error('Clé API Gemini manquante')
   }
 
-  const baseModel = (meta?.model ?? "gemini-2.5-flash").trim();
+  let baseModel = (meta?.model ?? "gemini-2.5-flash").trim();
+  // Critical for run-evals stability:
+  // - simulate-user (and most ":tools:" traffic) is extremely sensitive to wall-clock time and model overload.
+  // - HOWEVER, eval-judge explicitly cycles models (3-pro -> 3-flash -> 2.5 -> 2.0) and should be allowed to
+  //   try gemini-3-flash-preview even in eval-like requests.
+  const sourceLower = String(meta?.source ?? "").toLowerCase();
+  const isEvalJudgeCall =
+    sourceLower === "eval-judge" ||
+    sourceLower.includes("eval-judge") ||
+    String(meta?.requestId ?? "").includes(":judge:");
+  if (!isEvalJudgeCall && isEvalLikeRequest && /\bgemini-3[-.]flash-preview\b/i.test(baseModel)) {
+    baseModel = "gemini-2.5-flash";
+  }
   let model = baseModel;
 
   // Fallback policy (as requested):
-  // - If starting with gemini-2.5-flash:
-  //   attempts 1-2 => 2.5
-  //   attempts 3-6 => 3-flash
-  //   attempts 7+  => 2.0
-  //
   // - If starting with gemini-3-flash-preview:
-  //   attempts 1-6 => 3-flash
-  //   attempts 7-9 => 2.5
-  //   attempts 10+ => 2.0
+  //   attempt 1 => 3.0 flash (fast path)
+  //   attempt 2 => 2.5 flash (fallback)
+  //   attempt 3+ => 2.0 flash (final fallback)
   //
   // - If starting with gemini-3-pro-preview (eval-judge):
   //   attempts 1-2 => 3-pro
@@ -100,14 +124,78 @@ export async function generateWithGemini(
     }
     // starting with 3-flash
     if (is30Flash(startModel)) {
-      if (a <= 6) return "gemini-3-flash-preview";
-      if (a <= 9) return "gemini-2.5-flash";
+      if (a <= 1) return "gemini-3-flash-preview";
+      if (a <= 2) return "gemini-2.5-flash";
       return "gemini-2.0-flash";
     }
     // default: starting with 2.5-flash (or anything else)
+    // IMPORTANT: In eval-like requests we avoid switching to gemini-3-flash-preview entirely
+    // (it often overloads/timeouts and causes edge "early termination" → run-evals looks like it restarts).
+    if (isEvalLikeRequest) {
+      if (a <= 2) return is25Flash(startModel) ? "gemini-2.5-flash" : startModel;
+      return "gemini-2.0-flash";
+    }
     if (a <= 2) return is25Flash(startModel) ? "gemini-2.5-flash" : startModel;
     if (a <= 6) return "gemini-3-flash-preview";
     return "gemini-2.0-flash";
+  };
+
+  // Per-model timeout caps: the 3.0 flash preview model can get overloaded and hang.
+  // We prefer failing fast on preview models so we can deterministically fall back to 2.5 / 2.0.
+  const effectiveTimeoutMsForModel = (m: string): number => {
+    // If the caller explicitly set httpTimeoutMs, respect it exactly.
+    if (Number.isFinite(Number(meta?.httpTimeoutMs)) && Number(meta?.httpTimeoutMs) > 0) {
+      return GEMINI_HTTP_TIMEOUT_MS;
+    }
+    const mm = String(m ?? "").trim();
+    // Tight timeouts in evals to avoid edge-runtime early termination → run-evals 500 → "restart from beginning".
+    if (isEvalLikeRequest) {
+      if (/\bgemini-3[-.]flash-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 6_000);
+      if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 10_000);
+      if (/\bgemini-2\.5-flash\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 8_000);
+      if (/\bgemini-2\.0-flash\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 8_000);
+      return Math.min(GEMINI_HTTP_TIMEOUT_MS, 8_000);
+    }
+    if (/\bgemini-3[-.]flash-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 12_000);
+    if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 25_000);
+    return GEMINI_HTTP_TIMEOUT_MS;
+  };
+
+  // Even when callers set maxRetries=1 (common for "follow-up phrasing" steps),
+  // we still want a robust provider fallback chain to avoid hard failures that abort the whole request
+  // (which looks like an "eval restart" when the runner retries).
+  const pickFallbackChainForAttempt = (startModel: string, attempt: number): string[] => {
+    const primary = pickModelForAttempt(startModel, attempt);
+    // For stability, keep a short deterministic chain.
+    // Special-case: for eval-judge we want the explicit model progression:
+    //   3-pro -> 3-flash -> 2.5 -> 2.0
+    // so that judge doesn't "skip" 3-flash when 3-pro times out and maxRetries=1.
+    const chain: string[] = [];
+    const push = (m: string) => {
+      const mm = String(m ?? "").trim();
+      if (!mm) return;
+      if (!chain.includes(mm)) chain.push(mm);
+    };
+    push(primary);
+    if (isEvalJudgeCall && is30Pro(startModel)) {
+      push("gemini-3-flash-preview");
+    }
+    push("gemini-2.5-flash");
+    push("gemini-2.0-flash");
+    return chain;
+  };
+
+  const hasUsableCandidate = (obj: any): boolean => {
+    try {
+      const parts = obj?.candidates?.[0]?.content?.parts;
+      if (!Array.isArray(parts) || parts.length === 0) return false;
+      // We accept either tool calls OR non-empty text.
+      if (parts.some((p: any) => p?.functionCall)) return true;
+      const txt = parts.find((p: any) => typeof p?.text === "string" && String(p.text).trim().length > 0);
+      return Boolean(txt);
+    } catch {
+      return false;
+    }
   };
 
   const payload: any = {
@@ -162,58 +250,101 @@ export async function generateWithGemini(
     if (Number.isFinite(fromMeta) && fromMeta >= 1) return Math.floor(fromMeta);
     const raw = (Deno.env.get("GEMINI_MAX_RETRIES") ?? "").trim();
     const n = Number(raw);
-    // Default: 10 attempts to allow 2.5 -> 3-flash -> 2.0 paths to actually execute.
-    return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 10;
+    // Default: keep retries short in evals (edge-runtime wall clock), longer in prod.
+    if (Number.isFinite(n) && n >= 1) return Math.floor(n);
+    return isEvalLikeRequest ? 4 : 10;
   })();
   let response: Response | null = null;
   let data: any = null;
 
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      // Deterministic model selection per attempt for predictable fallback behavior.
-      const desiredModel = pickModelForAttempt(baseModel, attempt);
-      if (desiredModel && desiredModel !== model) {
-        console.warn(
-          `[Gemini] Switching model (policy) request_id=${meta?.requestId ?? "n/a"} attempt=${attempt}/${MAX_RETRIES} ${model} -> ${desiredModel}`,
-        );
-        model = desiredModel;
-      }
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`
-      const { signal, cancel } = makeTimeoutSignal(GEMINI_HTTP_TIMEOUT_MS);
-      try {
-        response = await fetch(url, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
-          signal,
-        });
-      } finally {
-        cancel();
+      // Deterministic model selection + in-attempt fallback chain.
+      const chain = pickFallbackChainForAttempt(baseModel, attempt);
+      let lastInnerErr: any = null;
+      for (let i = 0; i < chain.length; i++) {
+        const desiredModel = chain[i]!;
+        if (desiredModel && desiredModel !== model) {
+          const tag = i === 0 ? "policy" : "fallback";
+          console.warn(
+            `[Gemini] Switching model (${tag}) request_id=${meta?.requestId ?? "n/a"} attempt=${attempt}/${MAX_RETRIES} ${model} -> ${desiredModel}`,
+          );
+          model = desiredModel;
+        }
+
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`
+        const timeoutMs = effectiveTimeoutMsForModel(model);
+        const { signal, cancel } = makeTimeoutSignal(timeoutMs);
+        try {
+          try {
+            response = await fetch(url, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify(payload),
+              signal,
+            });
+          } catch (e) {
+            // Timeouts / aborts are common on overloaded preview models; immediately fallback within the same attempt.
+            const msg = String((e as any)?.message ?? e ?? "");
+            const name = String((e as any)?.name ?? "");
+            const isTimeoutLike =
+              name === "TimeoutError" ||
+              name === "AbortError" ||
+              /timed\s+out|timeout|aborted|abort/i.test(msg);
+            if (isTimeoutLike) {
+              console.warn(
+                `[Gemini] timeout/abort attempt=${attempt}/${MAX_RETRIES} request_id=${meta?.requestId ?? "n/a"} model=${model} (will fallback)`,
+              );
+              lastInnerErr = e;
+              continue;
+            }
+            throw e;
+          }
+        } finally {
+          cancel();
+        }
+
+        if (retryableStatuses.has(response.status)) {
+          const errorData = await response.json().catch(() => ({}));
+          const msg = errorData?.error?.message || response.statusText || "Retryable error";
+          console.warn(
+            `[Gemini] status=${response.status} attempt=${attempt}/${MAX_RETRIES} request_id=${meta?.requestId ?? "n/a"} model=${model}: ${msg}`,
+          );
+          lastInnerErr = new Error(`Erreur Gemini: ${msg}`);
+          // Try next model in chain (even if MAX_RETRIES=1).
+          continue;
+        }
+
+        if (!response.ok) {
+          const errorData = await response.json().catch(() => ({}));
+          console.error("Gemini Error Payload:", errorData);
+          // Non-retryable error: do not silently switch models (surface the error).
+          throw new Error(`Erreur Gemini: ${errorData.error?.message || response.statusText}`);
+        }
+
+        const parsed = await response.json().catch(() => null);
+        if (!parsed || !hasUsableCandidate(parsed)) {
+          console.warn(
+            `[Gemini] Empty/invalid response attempt=${attempt}/${MAX_RETRIES} request_id=${meta?.requestId ?? "n/a"} model=${model} (will fallback/retry)`,
+          );
+          lastInnerErr = new Error("Empty Gemini response");
+          continue;
+        }
+        data = parsed;
+        lastInnerErr = null;
+        break;
       }
 
-      if (retryableStatuses.has(response.status)) {
-        const errorData = await response.json().catch(() => ({}));
-        const msg = errorData?.error?.message || response.statusText || "Retryable error";
-        console.warn(
-          `[Gemini] status=${response.status} attempt=${attempt}/${MAX_RETRIES} request_id=${meta?.requestId ?? "n/a"} model=${model}: ${msg}`,
-        );
-
+      if (!data) {
+        // If we exhausted the fallback chain inside this attempt, use outer retry/backoff (if any).
         if (attempt < MAX_RETRIES) {
           await sleep(backoffMs(attempt));
           continue;
         }
-        // last attempt falls through to !ok handler
+        if (lastInnerErr) throw lastInnerErr;
+      } else {
+        break;
       }
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        // Log minimal but keep payload for debugging (already was used in your logs).
-        console.error("Gemini Error Payload:", errorData);
-        throw new Error(`Erreur Gemini: ${errorData.error?.message || response.statusText}`);
-      }
-
-      data = await response.json();
-      break;
     } catch (e) {
       const isLast = attempt >= MAX_RETRIES;
       console.error(

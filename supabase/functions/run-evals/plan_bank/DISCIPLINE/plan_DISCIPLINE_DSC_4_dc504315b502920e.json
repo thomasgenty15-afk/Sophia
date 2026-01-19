@@ -1,0 +1,277 @@
+{
+  "meta": {
+    "id": "plan_DISCIPLINE_DSC_4_dc504315b502920e",
+    "theme_key": "DISCIPLINE",
+    "theme_id": "DSC",
+    "theme_title": "Discipline & Organisation",
+    "axis_id": "DSC_4",
+    "axis_title": "Installer des routines simples (matin / soir / semaine)",
+    "selected_problem_ids": [
+      "DSC_4_P6",
+      "DSC_4_P3"
+    ],
+    "selected_problem_labels": [
+      "À chaque fois que je tente une “routine parfaite”, je la lâche vite.",
+      "J’ai du mal à tenir une routine plus de quelques jours."
+    ],
+    "fingerprint": "dc504315b502920e",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:34:42.924Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "J'en ai marre de me sentir désorganisé(e) et de ne pas arriver à suivre mes objectifs. Je vois bien que les routines aident, mais je n'arrive jamais à les tenir sur la durée. J'aimerais vraiment trouver un moyen d'être plus constant(e) et de me sentir plus en contrôle de mes journées, sans que ça devienne une contrainte.",
+      "blockers": "Mon plus gros problème, c'est la persévérance. Je commence avec beaucoup d'enthousiasme, mais dès qu'il y a un grain de sable (une soirée imprévue, un coup de fatigue), tout s'écroule. J'ai aussi tendance à vouloir faire trop de choses d'un coup, ce qui me décourage vite. Je me mets trop de pression.",
+      "context": "Ma vie est assez fluctuante, avec des semaines plus chargées que d'autres, des imprévus professionnels ou personnels. J'ai aussi une tendance à la procrastination. Je suis souvent fatigué(e) le soir, ce qui rend les routines du soir difficiles à tenir. Le matin, je suis un peu plus motivé(e), mais le temps est souvent compté et je me lève parfois au dernier moment.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "DSC_4",
+      "title": "Installer des routines simples (matin / soir / semaine)",
+      "theme": "Discipline & Organisation",
+      "problems": [
+        "À chaque fois que je tente une “routine parfaite”, je la lâche vite.",
+        "J’ai du mal à tenir une routine plus de quelques jours."
+      ]
+    },
+    "answers": {
+      "DSC_4_P6_Q1": [
+        "Longues listes (matin magique, miracle morning, etc.)",
+        "Beaucoup d’habitudes d’un coup (sport, lecture, méditation, journaling…)"
+      ],
+      "DSC_4_P6_Q2": "Tu te sentais plus prisonnier(ère) que soutenu(e) par la routine",
+      "DSC_4_P3_Q1": "Ça dépend, mais rarement sur la durée",
+      "DSC_4_P3_Q2": [
+        "Une période chargée / imprévue",
+        "La fatigue / la flemme",
+        "Le fait de louper 1–2 jours et de te dire “c’est foutu”"
+      ],
+      "meta": {
+        "selectedProblemIds": [
+          "DSC_4_P6",
+          "DSC_4_P3"
+        ]
+      }
+    },
+    "userProfile": {
+      "birth_date": "1992-03-11",
+      "gender": "other"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "L'Architecture de la Constante",
+    "strategy": "Nous allons déconstruire tes schémas d'abandon en bâtissant des micro-routines, flexibles et forgées pour résister aux imprévus, en priorisant la simplicité et la persévérance sur la perfection.",
+    "sophiaKnowledge": "Tu es une personne qui aspire à l'organisation et au contrôle de ses journées par le biais de routines, mais qui se heurte à un manque de persévérance et à la tendance de vouloir trop en faire d'un coup. Tu te sens désorganisé(e), et les imprévus, la fatigue, ou même un seul manquement, te font abandonner tes efforts. Ton contexte de vie est fluctuant, et tu procrastines, rendant les routines du soir particulièrement difficiles, tandis que le matin, malgré une meilleure motivation, le temps est souvent compté.",
+    "context_problem": "Tu te sentais piégé(e) dans un cycle où l'enthousiasme du début laissait place à la frustration et à l'abandon face au moindre obstacle. Le rêve de routines structurantes s'écroulait, te laissant désorganisé(e) et déçu(e) de ne pas tenir tes engagements, principalement à cause d'une pression excessive et d'une rigidité inappropriée pour ton mode de vie fluctuant.",
+    "identity": "Je suis un(e) Architecte de la Simplicité.",
+    "deepWhy": "Pour retrouver le contrôle de mes journées, cultiver une sérénité durable, et me sentir capable d'atteindre mes objectifs, sans que mes routines ne deviennent une contrainte insoutenable.",
+    "goldenRules": "1. Toujours commencer petit, mais commencer.\n2. La flexibilité est ma force, pas mon échec.\n3. Un grain de sable n'anéantit pas le château, il le renforce.",
+    "vitalSignal": {
+      "name": "Ancre du Matin Réalisée",
+      "unit": "fois",
+      "startValue": "0",
+      "targetValue": "1",
+      "description": "Indique si la première petite action de ta routine matinale a été accomplie ce jour-là.",
+      "type": "constat",
+      "tracking_type": "boolean"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de jours cette semaine as-tu maintenu tes routines essentielles (matin OU soir), malgré les imprévus ou la fatigue ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage Minimaliste",
+        "subtitle": "Semaines 1-2 • Reconstruire la confiance",
+        "rationale": "Cette phase vise à réhabiliter la notion de routine en la rendant si insignifiante qu'elle est impossible à ignorer, créant une première base de succès et d'auto-efficacité.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "habitude",
+            "title": "Le Micro-Réveil Actif",
+            "description": "Immédiatement après t'être levé(e), bois un verre d'eau complet. C'est tout. Rien de plus. Juste l'eau.",
+            "questType": "main",
+            "tips": "Prépare ton verre d'eau sur ta table de nuit la veille, ou à côté du lavabo pour n'avoir qu'à l'attraper. Fais-le avant d'allumer le téléphone.",
+            "rationale": "C'est un signal simple pour ton cerveau que la journée commence, et c'est une victoire instantanée qui amorce positivement ta routine sans effort.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          },
+          {
+            "id": "p1a2",
+            "type": "framework",
+            "title": "Autopsie de l'Abandon",
+            "description": "Réfléchis aux fois où tu as abandonné une routine. Qu'est-ce qui s'est réellement passé, et pourquoi ?",
+            "questType": "side",
+            "tips": "Sois honnête avec toi-même, sans jugement. L'objectif est de comprendre, pas de blâmer.",
+            "rationale": "Comprendre les véritables déclencheurs de l'abandon est la première étape pour construire des routines résilientes. C'est ton terrain d'analyse neurologique personnel.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "L'échec n'existe pas, seulement le feedback. Nous allons analyser tes précédentes tentatives de routines. L'objectif n'est pas de te critiquer, mais d'identifier les schémas et les points de friction pour ne pas les reproduire.",
+              "sections": [
+                {
+                  "id": "p1a2s1",
+                  "label": "Quelle routine as-tu essayé ? (ex: miracle morning, sport quotidien)",
+                  "inputType": "text",
+                  "placeholder": "Méditation et journaling"
+                },
+                {
+                  "id": "p1a2s2",
+                  "label": "Qu'est-ce qui t'a fait commencer avec enthousiasme ?",
+                  "inputType": "textarea",
+                  "placeholder": "L'idée d'être plus productif(ve) et zen."
+                },
+                {
+                  "id": "p1a2s3",
+                  "label": "Quel a été le premier grain de sable ou la première difficulté rencontrée ?",
+                  "inputType": "textarea",
+                  "placeholder": "Une soirée prolongée, la fatigue le lendemain matin."
+                },
+                {
+                  "id": "p1a2s4",
+                  "label": "Quelle a été ta réaction à cette difficulté ? (ex: J'ai abandonné, j'ai essayé de rattraper, je me suis senti(e) coupable)",
+                  "inputType": "textarea",
+                  "placeholder": "Je me suis dit 'c'est foutu pour cette semaine', et j'ai abandonné."
+                },
+                {
+                  "id": "p1a2s5",
+                  "label": "Quels sont les 1-2 facteurs principaux qui, selon toi, ont causé l'abandon total ?",
+                  "inputType": "list",
+                  "placeholder": "Trop de pression|Vouloir faire trop d'un coup"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Écho du Soir",
+        "subtitle": "Semaines 3-4 • Préparer le lendemain, libérer l'esprit",
+        "rationale": "Stabiliser la fin de journée est crucial pour un réveil serein. Cette phase introduit des actions minimales pour apaiser le système nerveux et optimiser la logistique du matin, réduisant la friction.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "habitude",
+            "title": "Le Couvre-Feu Digital Doux",
+            "description": "Fixe une heure (par exemple, 30 minutes avant l'heure de coucher souhaitée) où tous les écrans (téléphone, tablette, ordinateur) sont mis de côté. Pas dans la chambre.",
+            "questType": "main",
+            "tips": "Utilise ce temps pour lire un livre physique, discuter, ou faire une activité calme. Commence par 15 minutes si 30 te semble trop. Le but est de créer une coupure douce.",
+            "rationale": "La lumière bleue et la stimulation mentale des écrans perturbent la production de mélatonine. Créer une barrière spatiale et temporelle permet à ton cerveau de se déconnecter progressivement.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "night"
+          },
+          {
+            "id": "p2a2",
+            "type": "mission",
+            "title": "La Logistique du Lendemain",
+            "description": "Chaque soir, prépare une chose pour faciliter ton matin : tes vêtements, ton sac, ou la machine à café programmée.",
+            "questType": "side",
+            "tips": "Choisis l'action qui te fera gagner le plus de temps et réduire le stress au réveil. La clé est 'UNE' chose, pas une liste.",
+            "rationale": "Réduire la charge mentale et les décisions le matin diminue la friction, rendant l'adhérence à ta routine matinale bien plus facile. C'est une victoire avant même de commencer la journée.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : Le Rythme Doux et Flexible",
+        "subtitle": "Semaines 5-6 • Intégrer la fluidité",
+        "rationale": "Cette phase se concentre sur l'intégration de mini-pauses régénératrices et sur la planification flexible, pour que ta discipline s'adapte à ta vie, plutôt que l'inverse, contrant ainsi le piège de la rigidité.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "habitude",
+            "title": "La Micro-Pause 'Reboot'",
+            "description": "Fais une pause de 2 minutes pour te déconnecter de ton écran ou de ta tâche. Respire profondément 5 fois, étire-toi, ou regarde par la fenêtre. À faire au moins deux fois par jour.",
+            "questType": "main",
+            "tips": "Utilise un minuteur si besoin, ou un rappel sur ton téléphone (mais sans le regarder !). L'idée est de briser le tunnel de concentration pour recharger ton énergie mentale.",
+            "rationale": "Des micro-pauses régulières préviennent la fatigue mentale et physique, améliorent la concentration à long terme et réduisent le risque de procrastination due à l'épuisement. C'est une habitude qui s'adapte à ton emploi du temps.",
+            "targetReps": 10,
+            "tracking_type": "counter",
+            "time_of_day": "afternoon"
+          },
+          {
+            "id": "p3a2",
+            "type": "framework",
+            "title": "Mon Agenda des Priorités Flexibles",
+            "description": "Chaque dimanche, esquisse les 3 priorités non-négociables de la semaine, et identifie les 'zones tampon' pour les imprévus.",
+            "questType": "side",
+            "tips": "Ne remplis pas ton agenda. Identifie les ROCHES (les priorités) et laisse de la place pour le SABLE (les imprévus).",
+            "rationale": "Contrairement aux listes rigides qui mènent à la frustration, cette approche t'aide à te concentrer sur l'essentiel tout en intégrant la réalité de ta vie fluctuante, réduisant ainsi la pression et le risque d'abandon.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Ton emploi du temps est fluctuant, et c'est une réalité que nous allons embrasser. L'objectif n'est pas de tout planifier, mais d'identifier ce qui est vraiment important et de laisser de l'espace pour ce qui ne l'est pas encore ou pour les imprévus.",
+              "sections": [
+                {
+                  "id": "p3a2s1",
+                  "label": "Mes 3 priorités absolues pour la semaine à venir : (Tâche|Catégorie (Pro, Perso, Santé))",
+                  "inputType": "categorized_list",
+                  "placeholder": "Finaliser le rapport X|Pro"
+                },
+                {
+                  "id": "p3a2s2",
+                  "label": "Quelles sont les 'zones tampons' (créneaux volontairement vides) que je peux réserver pour les imprévus ou le repos ?",
+                  "inputType": "textarea",
+                  "placeholder": "Mardi après-midi de 14h à 17h, vendredi soir."
+                },
+                {
+                  "id": "p3a2s3",
+                  "label": "Une chose que j'accepte de ne PAS faire cette semaine pour ne pas me surcharger :",
+                  "inputType": "text",
+                  "placeholder": "Répondre à tous les mails instantanément."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : L'Élan Maîtrisé",
+        "subtitle": "Semaines 7-8 • Consolider et s'autonomiser",
+        "rationale": "La dernière phase vise à cimenter les habitudes, à renforcer ta capacité d'auto-évaluation et à te donner les outils pour maintenir cette nouvelle dynamique de discipline flexible, te rendant autonome dans ton processus.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "habitude",
+            "title": "Le Check-in Quotidien du Guerrier",
+            "description": "Chaque soir, prends 1 minute pour noter une petite victoire de la journée (liée ou non à tes routines) et un point d'amélioration pour le lendemain. Simplement dans ta tête, ou sur un post-it.",
+            "questType": "main",
+            "tips": "Ne cherche pas la perfection, cherche la progression. Une 'victoire' peut être d'avoir bu ton verre d'eau, un 'point d'amélioration' peut être de ne pas avoir regardé ton téléphone pendant le dîner.",
+            "rationale": "Ce rituel ancre une boucle de feedback positive, renforce l'auto-observation sans jugement et prépare le cerveau à l'amélioration continue plutôt qu'à l'abandon face à l'échec perçu.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          },
+          {
+            "id": "p4a2",
+            "type": "mission",
+            "title": "L'Espace Sans Friction",
+            "description": "Identifie une zone physique ou digitale qui te cause régulièrement du stress ou de la perte de temps, et prends 30 minutes pour l'organiser ou la simplifier.",
+            "questType": "side",
+            "tips": "Commence petit : la pile de papiers sur ton bureau, les icônes de ton écran d'ordinateur, un tiroir de cuisine. L'objectif est de réduire une friction spécifique, pas de tout ranger.",
+            "rationale": "Un environnement ordonné réduit la charge cognitive et le stress inconscient, libérant de l'énergie mentale pour maintenir tes routines. C'est une mission concrète qui a des répercussions positives sur ton bien-être général.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

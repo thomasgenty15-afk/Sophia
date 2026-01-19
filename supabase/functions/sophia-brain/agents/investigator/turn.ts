@@ -75,6 +75,82 @@ export async function handleInvestigatorModelOutput(opts: {
     response = normalizeChatText(response)
   }
 
+  // Deterministic safety net: during bilan, if the user clearly indicates "pas fait" for the current action
+  // but the model returns plain text (no tool call), we log the miss immediately so the flow can progress
+  // (including missed-streak breakdown offers) instead of looping on the same question.
+  if (typeof response === "string" && currentItem?.type === "action") {
+    const u = String(message ?? "").trim().toLowerCase()
+    const userSaysDone = /\b(fait|ok|c['’]est\s+fait|j['’]ai\s+fait|termin[ée]?|réussi)\b/i.test(u)
+    const userSaysMissed =
+      /\b(pas\s+fait|pas\s+r[eé]ussi|rat[ée]|non\b|j['’]ai\s+pas\s+fait|pas\s+aujourd['’]hui|pas\s+hier)\b/i
+        .test(u)
+    if (userSaysMissed && !userSaysDone) {
+      const argsWithId = {
+        status: "missed",
+        item_id: currentItem.id,
+        item_type: currentItem.type,
+        item_title: currentItem.title,
+        // Keep a short note (best effort) so streak offer has context.
+        note: String(message ?? "").trim().slice(0, 220) || null,
+      }
+      try {
+        await logItem(supabase, userId, argsWithId)
+      } catch (e) {
+        const errMsg = e instanceof Error ? e.message : String(e)
+        console.error("[Investigator] auto-log missed failed (unexpected):", errMsg)
+        await logToolFallback({ tool_name: "log_action_execution(auto_missed)", error: e })
+        return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
+      }
+      // Offer breakdown if streak>=5, otherwise move on.
+      try {
+        const streakIntercept = await maybeHandleStreakAfterLog({
+          supabase,
+          userId,
+          message,
+          currentState,
+          currentItem,
+          argsWithId: { status: "missed", note: argsWithId.note },
+          meta,
+        })
+        if (streakIntercept) return streakIntercept
+      } catch (e) {
+        const errMsg = e instanceof Error ? e.message : String(e)
+        console.error("[Investigator] auto-log maybeHandleStreakAfterLog failed (unexpected):", errMsg)
+      }
+      // Move to next item (same as normal log path)
+      const nextIndex = currentState.current_item_index + 1
+      const nextState = { ...currentState, current_item_index: nextIndex }
+      if (nextIndex >= currentState.pending_items.length) {
+        const base = await investigatorSay(
+          "end_checkup_after_last_log",
+          {
+            user_message: message,
+            channel: meta?.channel,
+            recent_history: history.slice(-15),
+            last_item: currentItem,
+            last_item_log: argsWithId,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          },
+          meta,
+        )
+        return { content: base, investigationComplete: true, newState: null }
+      }
+      const nextItem = currentState.pending_items[nextIndex]
+      const transitionOut = await investigatorSay(
+        "transition_to_next_item",
+        {
+          user_message: message,
+          last_item_log: argsWithId,
+          next_item: nextItem,
+          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          deferred_topic: null,
+        },
+        meta,
+      )
+      return { content: transitionOut, investigationComplete: false, newState: nextState }
+    }
+  }
+
   if (typeof response === "object" && response?.tool === "log_action_execution") {
     console.log(`[Investigator] Logging item ${currentItem.title}:`, response.args)
 
@@ -92,6 +168,29 @@ export async function handleInvestigatorModelOutput(opts: {
       console.error("[Investigator] log_action_execution failed (unexpected):", errMsg)
       await logToolFallback({ tool_name: "log_action_execution", error: e })
       return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
+    }
+
+    // --- WEEKLY HABIT TARGET CONGRATS (immediate) ---
+    // For habits, target_reps is a weekly frequency. When current_reps reaches target_reps (within the ISO week),
+    // we congratulate right away (no extra storage required).
+    let weeklyCongrats: string | null = null
+    if (currentItem.type === "action" && argsWithId.status === "completed") {
+      try {
+        const { data: a } = await supabase
+          .from("user_actions")
+          .select("type, title, current_reps, target_reps")
+          .eq("id", currentItem.id)
+          .maybeSingle()
+        if (a && String((a as any).type ?? "") === "habit") {
+          const curr = Number((a as any).current_reps ?? 0)
+          const target = Number((a as any).target_reps ?? 1)
+          if (target > 0 && curr === target) {
+            weeklyCongrats = `Bravo. Objectif atteint : ${target}× cette semaine — "${String((a as any).title ?? currentItem.title)}".`
+          }
+        }
+      } catch (e) {
+        console.error("[Investigator] weekly habit congrats check failed:", e)
+      }
     }
 
     // --- LEVEL UP CHECK ---
@@ -115,14 +214,14 @@ export async function handleInvestigatorModelOutput(opts: {
 
           if (nextIndex >= currentState.pending_items.length) {
             return {
-              content: levelUpMsg,
+              content: weeklyCongrats ? `${weeklyCongrats}\n\n${levelUpMsg}` : levelUpMsg,
               investigationComplete: true,
               newState: nextState,
             }
           }
 
           return {
-            content: levelUpMsg,
+            content: weeklyCongrats ? `${weeklyCongrats}\n\n${levelUpMsg}` : levelUpMsg,
             investigationComplete: false,
             newState: nextState,
           }
@@ -142,7 +241,11 @@ export async function handleInvestigatorModelOutput(opts: {
         argsWithId: { status: argsWithId.status, note: argsWithId.note },
         meta,
       })
-      if (streakIntercept) return streakIntercept
+      if (streakIntercept) {
+        return weeklyCongrats
+          ? { ...streakIntercept, content: `${weeklyCongrats}\n\n${streakIntercept.content}` }
+          : streakIntercept
+      }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e)
       console.error("[Investigator] maybeHandleStreakAfterLog failed (unexpected):", errMsg)
@@ -158,19 +261,20 @@ export async function handleInvestigatorModelOutput(opts: {
 
     if (nextIndex >= currentState.pending_items.length) {
       console.log("[Investigator] All items checked. Closing investigation.")
+      const base = await investigatorSay(
+        "end_checkup_after_last_log",
+        {
+          user_message: message,
+          channel: meta?.channel,
+          recent_history: history.slice(-15),
+          last_item: currentItem,
+          last_item_log: argsWithId,
+          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+        },
+        meta,
+      )
       return {
-        content: await investigatorSay(
-          "end_checkup_after_last_log",
-          {
-            user_message: message,
-            channel: meta?.channel,
-            recent_history: history.slice(-15),
-            last_item: currentItem,
-            last_item_log: argsWithId,
-            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
-          },
-          meta,
-        ),
+        content: weeklyCongrats ? `${weeklyCongrats}\n\n${base}` : base,
         investigationComplete: true,
         newState: null,
       }
@@ -193,7 +297,7 @@ export async function handleInvestigatorModelOutput(opts: {
     )
 
     return {
-      content: transitionOut,
+      content: weeklyCongrats ? `${weeklyCongrats}\n\n${transitionOut}` : transitionOut,
       investigationComplete: false,
       newState: nextState,
     }

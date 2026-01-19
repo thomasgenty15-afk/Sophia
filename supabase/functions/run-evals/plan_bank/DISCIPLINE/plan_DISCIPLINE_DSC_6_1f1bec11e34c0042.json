@@ -1,0 +1,263 @@
+{
+  "meta": {
+    "id": "plan_DISCIPLINE_DSC_6_1f1bec11e34c0042",
+    "theme_key": "DISCIPLINE",
+    "theme_id": "DSC",
+    "theme_title": "Discipline & Organisation",
+    "axis_id": "DSC_6",
+    "axis_title": "Rigueur dans les engagements & les finances",
+    "selected_problem_ids": [
+      "DSC_6_P1",
+      "DSC_6_P6"
+    ],
+    "selected_problem_labels": [
+      "Je paie souvent mes factures / loyers / charges à la dernière minute (ou en retard).",
+      "J’ai déjà eu des problèmes à cause d’un manque de rigueur (frais, relances, blocages, etc.)."
+    ],
+    "fingerprint": "1f1bec11e34c0042",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:34:04.945Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "J'en ai marre de ce stress permanent lié aux factures et aux échéances. J'ai l'impression de toujours courir après le temps et de rater des paiements, ce qui me coûte cher en frais et en énergie mentale.",
+      "blockers": "Je procrastine beaucoup sur les tâches administratives. J'ai du mal à mettre en place un système simple et je me sens vite dépassé dès qu'il y a plusieurs choses à gérer en même temps. Le manque de temps est aussi un facteur.",
+      "context": "Je suis en pleine période de transition professionnelle, ce qui rend mes revenus un peu irréguliers et la gestion de mes finances plus complexe. J'aimerais vraiment retrouver une sérénité sur ce plan.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "DSC_6",
+      "title": "Rigueur dans les engagements & les finances",
+      "theme": "Discipline & Organisation",
+      "problems": [
+        "Je paie souvent mes factures / loyers / charges à la dernière minute (ou en retard).",
+        "J’ai déjà eu des problèmes à cause d’un manque de rigueur (frais, relances, blocages, etc.)."
+      ]
+    },
+    "answers": {
+      "DSC_6_P1": {
+        "DSC_6_P1_Q1": "Souvent à la dernière minute",
+        "DSC_6_P1_Q2": [
+          "Des frais de retard / pénalités",
+          "Des relances insistantes / mises en demeure"
+        ]
+      },
+      "DSC_6_P6": {
+        "DSC_6_P6_Q1": [
+          "Des frais bancaires répétés",
+          "Des coupures / suspensions de service"
+        ],
+        "DSC_6_P6_Q2": "Plusieurs choses en retard qui te pèsent"
+      },
+      "meta": {
+        "pacing": "balanced"
+      }
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "female"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "La Matrice de la Sérénité",
+    "strategy": "Cette transformation se concentre sur la déconstruction de la procrastination financière par des micro-habitudes ancrées dans la rigueur et l'automatisation. Nous allons réparer le système avant de toucher aux chiffres, pour t'offrir une sérénité inébranlable.",
+    "sophiaKnowledge": "Tu es une femme dynamique de 35 ans, en pleine transition professionnelle, ce qui rend tes revenus fluctuants et ta gestion financière plus complexe. Le stress constant des factures payées à la dernière minute, voire des échéances manquées, te pèse lourdement en frais et en énergie mentale. Tu identifies la procrastination sur les tâches administratives, le sentiment d'être dépassée et le manque d'un système simple comme tes principaux blocages. Ton objectif est de retrouver une sérénité durable sur le plan financier.",
+    "context_problem": "Épuisée par l'anxiété des factures payées à la dernière minute et les frais de retard, tu te sentais constamment dépassée par l'administration financière. Le manque de système clair et la procrastination créaient un cercle vicieux de stress et de dépenses inattendues, t'empêchant de retrouver la sérénité et d'embrasser pleinement ta transition professionnelle.",
+    "identity": "Je suis l'Architecte de ma Stabilité Financière.",
+    "deepWhy": "Pour libérer mon esprit du stress des chiffres et consacrer mon énergie à ma transition professionnelle, tout en offrant une sécurité et une sérénité durable à mon futur.",
+    "goldenRules": "1. Chaque échéance a sa place et son rappel.\n2. Le traitement immédiat des informations financières est non-négociable.\n3. La peur des chiffres est remplacée par l'action éclairée.",
+    "vitalSignal": {
+      "name": "Tâches financières en attente",
+      "unit": "tâche(s)",
+      "startValue": "5",
+      "targetValue": "0",
+      "description": "Suivre quotidiennement le nombre de tâches administratives/financières non traitées ou en attente d'action.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois as-tu ressenti du stress lié à une échéance financière cette semaine ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Éveil de la Conscience",
+        "subtitle": "Semaines 1-2 • Cartographier le terrain miné",
+        "rationale": "Avant de pouvoir construire, il faut comprendre l'étendue du territoire. Cette phase vise à révéler l'intégralité de tes engagements financiers et à identifier les déclencheurs de stress pour une action ciblée.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a1",
+            "type": "mission",
+            "title": "Le Grand Inventaire Numérique",
+            "description": "Collecter et centraliser toutes les informations liées à tes finances (comptes bancaires, assurances, abonnements, crédits, documents fiscaux, identifiants) dans un unique document numérique sécurisé ou un classeur physique.",
+            "questType": "main",
+            "tips": "Utilise un gestionnaire de mots de passe sécurisé (ex: Bitwarden, LastPass) pour les identifiants ou un carnet dédié. Ne te préoccupe pas encore du tri, juste de la collecte.",
+            "rationale": "Tu ne peux gérer que ce que tu vois. Ce premier pas permet de cartographier l'étendue de tes engagements et de réduire la charge mentale de la recherche constante.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "a2",
+            "type": "framework",
+            "title": "Cartographie des Points de Douleur Financiers",
+            "description": "Réfléchir aux moments et situations où tu ressens le plus de stress financier. Identifier les causes profondes et les émotions associées.",
+            "questType": "side",
+            "tips": "Sois honnête avec toi-même. Il n'y a pas de jugement, juste de la clarté.",
+            "rationale": "Comprendre tes déclencheurs est la première étape pour désamorcer les mécanismes de procrastination et construire des solutions adaptées à ton profil émotionnel et cognitif.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Sophia t'invite à plonger au cœur de tes frictions financières. L'objectif est de mettre en lumière les schémas qui te coûtent le plus d'énergie et de sérénité. Sans conscience, pas de transformation.",
+              "sections": [
+                {
+                  "id": "fpd1",
+                  "label": "Quelles sont les trois situations qui génèrent le plus de stress financier ?",
+                  "inputType": "list",
+                  "placeholder": "Paiement du loyer|Relances fiscales|Factures inattendues"
+                },
+                {
+                  "id": "fpd2",
+                  "label": "Quelles émotions ressens-tu principalement dans ces moments ?",
+                  "inputType": "textarea",
+                  "placeholder": "Anxiété, honte, colère contre moi-même."
+                },
+                {
+                  "id": "fpd3",
+                  "label": "Quels sont les facteurs externes ou internes qui déclenchent cette procrastination ?",
+                  "inputType": "list",
+                  "placeholder": "Peur d'ouvrir les courriers|Manque de temps|Complexité des documents"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Architecture Invisible",
+        "subtitle": "Semaines 3-4 • Bâtir tes fondations anti-stress",
+        "rationale": "Cette phase consiste à externaliser la charge mentale en mettant en place des systèmes qui travaillent pour toi. Moins tu as à y penser, plus tu es libre. Nous construisons la première couche de ton bouclier financier.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a3",
+            "type": "habitude",
+            "title": "Le Balayage Quotidien : La Minute Anti-Procrastination",
+            "description": "Chaque matin, prends 5 minutes pour ouvrir tes mails et courriers physiques, traiter immédiatement ce qui est rapide (<2 min) et reporter le reste sur une liste d'actions dédiée.",
+            "questType": "main",
+            "tips": "Place cette habitude juste après ton café. Utilise une règle simple : si c'est rapide, fais-le. Sinon, note-le et range le document.",
+            "rationale": "Cette micro-habitude brise la spirale de la procrastination en te confrontant aux tâches avant qu'elles ne s'accumulent, réduisant ainsi la charge cognitive et le sentiment d'être dépassée.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          },
+          {
+            "id": "a4",
+            "type": "mission",
+            "title": "Protocole d'Automatisation Maximale",
+            "description": "Mettre en place des prélèvements automatiques pour toutes les factures récurrentes possibles (loyer, assurances, abonnements, crédits) et activer les notifications d'échéance par email/SMS pour celles qui ne peuvent pas l'être.",
+            "questType": "side",
+            "tips": "Prends un après-midi dédié. Contacte tes créanciers si besoin. Configure des alertes calendrier pour les rappels non automatisables.",
+            "rationale": "L'automatisation externalise ta charge mentale. Moins tu as à penser aux échéances, plus tu libères de l'énergie pour des tâches à plus haute valeur ajoutée et pour ta sérénité.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : Le Rythme du Maître",
+        "subtitle": "Semaines 5-6 • Ancrer la discipline et la vigilance",
+        "rationale": "Les systèmes sont en place, il est temps d'intégrer des habitudes proactives qui transforment la rigueur en un réflexe naturel. Nous renforçons ta capacité à anticiper et à gérer tes finances avec confiance.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a5",
+            "type": "habitude",
+            "title": "La Minute de Proactivité Financière",
+            "description": "Trois fois par semaine, avant une tâche importante (ex: travail, rendez-vous), prends 10 minutes pour avancer sur une tâche financière de ta liste (non automatisée) ou vérifier un relevé.",
+            "questType": "main",
+            "tips": "Combine-la avec une autre habitude existante. Utilise la 'règle des deux minutes' pour les petites tâches. Célèbre chaque petite victoire.",
+            "rationale": "En insérant de courtes sessions proactives dans ton emploi du temps, tu construis un momentum régulier, évitant l'accumulation et le sentiment d'urgence qui mène au stress.",
+            "targetReps": 10,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "a6",
+            "type": "habitude",
+            "title": "Le Bilan Rapide du Soir",
+            "description": "Chaque soir, avant de te déconnecter de tes activités, passe 5 minutes à examiner tes dépenses de la journée et à t'assurer qu'aucune tâche financière urgente n'a été oubliée.",
+            "questType": "side",
+            "tips": "Fais-en un rituel juste avant de fermer ton ordinateur ou avant de lire. C'est un point de contrôle rapide pour la tranquillité d'esprit.",
+            "rationale": "Cette habitude quotidienne crée un lien régulier avec tes finances, te permettant de repérer les écarts rapidement et d'éviter les surprises désagréables. Elle renforce ta conscience financière.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : La Citadelle de la Sérénité",
+        "subtitle": "Semaines 7-8 • Consolidation et vision à long terme",
+        "rationale": "Les fondations sont solides, les habitudes sont ancrées. Cette dernière phase vise à consolider tes acquis, à te préparer aux imprévus et à t'armer d'une vision stratégique pour une sérénité financière durable, même en période de transition.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a7",
+            "type": "framework",
+            "title": "Mon Plan de Contingence Financière",
+            "description": "Élaborer un plan d'action clair pour gérer les imprévus financiers (revenus irréguliers, dépenses inattendues). Identifier les leviers et les ressources disponibles.",
+            "questType": "main",
+            "tips": "Pense aux scénarios 'et si...'. Quelles seraient tes premières actions ? Qui contacter ? Quels fonds mobiliser ?",
+            "rationale": "Anticiper les difficultés potentielles ne les attire pas, cela te prépare. Un plan de contingence réduit l'anxiété face à l'incertitude, surtout en période de transition professionnelle.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Ta transition professionnelle apporte son lot d'incertitudes. Ce framework est ton bouclier. Il te permettra de naviguer les tempêtes financières avec une feuille de route claire, transformant l'angoisse en action mesurée.",
+              "sections": [
+                {
+                  "id": "pcf1",
+                  "label": "Scénario pessimiste : Si mes revenus baissent de X% pendant 3 mois, quelles sont mes 3 premières actions ?",
+                  "inputType": "list",
+                  "placeholder": "Réduire dépenses non essentielles|Contacter la banque|Chercher revenus complémentaires"
+                },
+                {
+                  "id": "pcf2",
+                  "label": "Quelles ressources d'urgence puis-je mobiliser (épargne, aides, etc.) ?",
+                  "inputType": "list",
+                  "placeholder": "Fonds d'urgence X€|Famille|Organismes sociaux"
+                },
+                {
+                  "id": "pcf3",
+                  "label": "Comment puis-je créer un 'coussin de sécurité' pour l'avenir (même minimal) ?",
+                  "inputType": "textarea",
+                  "placeholder": "Mettre en place un virement automatique de X€ chaque mois dès que possible."
+                }
+              ]
+            }
+          },
+          {
+            "id": "a8",
+            "type": "habitude",
+            "title": "La Revue Éclair des Échéances",
+            "description": "Chaque matin, en démarrant ta journée, jette un œil rapide à ton calendrier financier ou à ta liste d'échéances pour la semaine à venir. Cela ne prendra que 2 minutes.",
+            "questType": "side",
+            "tips": "Intègre cette vérification à ta routine matinale, juste après le 'Balayage Quotidien'. C'est une vérification proactive pour éviter toute surprise.",
+            "rationale": "Une vérification quotidienne précoce permet d'ancrer les échéances dans ton esprit avant qu'elles ne deviennent urgentes, transformant l'anticipation en routine sereine et prévenant le stress de dernière minute.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          }
+        ]
+      }
+    ]
+  }
+}

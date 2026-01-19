@@ -20,3 +20,4 @@ alter table public.scheduled_checkins
   add column if not exists message_payload jsonb not null default '{}'::jsonb;
 
 
+

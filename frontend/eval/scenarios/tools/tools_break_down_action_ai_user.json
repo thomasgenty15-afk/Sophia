@@ -1,0 +1,56 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_break_down_action_ai_user",
+  "scenario_target": "bilan",
+  "description": "Tool test (break_down_action) with AI-generated user messages. Investigator logs a missed action with a 5-day missed streak, offers a micro-step breakdown, proposes a step, and commits it after explicit user acceptance.",
+  "tags": ["sophia.investigator"],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Sport",
+        "type": "mission",
+        "tracking_type": "boolean",
+        "target_reps": 1,
+        "time_of_day": "any_time",
+        "description": "Faire une séance courte (même 10 minutes), sans pression.",
+        "scheduled_days": null
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Sport",
+        "status": "missed",
+        "days": 5,
+        "note": "Trop fatigué(e)."
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur web",
+    "age_range": "25-45",
+    "style": "oral, naturel, honnête",
+    "background": "Je fais mon check du soir. Je bloque sur 'Sport' depuis plusieurs jours et je suis fatigué(e)."
+  },
+  "objectives": [
+    {
+      "kind": "tools_break_down_action_realistic",
+      "spec": {
+        "title": "Sport",
+        "apply_to_plan": true
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["investigator"],
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "micro-étape"
+    ],
+    "plan_actions_count_min": 2
+  }
+}
+
+

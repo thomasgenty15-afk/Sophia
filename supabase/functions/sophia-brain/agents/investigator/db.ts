@@ -4,6 +4,55 @@ import type { CheckupItem } from "./types.ts"
 import { addDays, isoDay } from "./utils.ts"
 import { getMissedStreakDays } from "./streaks.ts"
 
+function ymdInTz(d: Date, timeZone: string): string {
+  // YYYY-MM-DD in a specific TZ (stable format via en-CA).
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d)
+}
+
+function isoWeekStartYmdInTz(d: Date, timeZone: string): string {
+  const ymd = ymdInTz(d, timeZone)
+  const [y, m, dd] = ymd.split("-").map(Number)
+  const dt = new Date(Date.UTC(y, (m ?? 1) - 1, dd ?? 1))
+  // ISO week starts Monday. JS UTC day: Sun=0..Sat=6
+  const isoDayIndex = (dt.getUTCDay() + 6) % 7
+  dt.setUTCDate(dt.getUTCDate() - isoDayIndex)
+  return isoDay(dt)
+}
+
+async function getUserTimezone(supabase: SupabaseClient, userId: string): Promise<string> {
+  try {
+    const { data } = await supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle()
+    const tz = String((data as any)?.timezone ?? "").trim()
+    return tz || "Europe/Paris"
+  } catch {
+    return "Europe/Paris"
+  }
+}
+
+function localHourInTz(d: Date, timeZone: string): number {
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone,
+    hour: "2-digit",
+    hour12: false,
+  }).formatToParts(d)
+  const hh = parts.find(p => p.type === "hour")?.value
+  return Number(hh ?? "0")
+}
+
+function weekdayKeyFromYmd(ymd: string): string {
+  // ymd is local date in tz. Convert to a UTC date at midnight and infer day-of-week.
+  const [y, m, dd] = ymd.split("-").map(Number)
+  const dt = new Date(Date.UTC(y, (m ?? 1) - 1, dd ?? 1))
+  const dow = dt.getUTCDay() // Sun=0..Sat=6
+  const keys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"]
+  return keys[dow] || "mon"
+}
+
 export async function fetchActivePlanRow(supabase: SupabaseClient, userId: string) {
   const { data: planRow, error } = await supabase
     .from("user_plans")
@@ -102,6 +151,14 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
   const planRow = await fetchActivePlanRow(supabase, userId).catch(() => null)
   const planId = planRow?.id as string | undefined
 
+  // Day scope based on user's LOCAL hour (timezone-aware).
+  const tz = await getUserTimezone(supabase, userId)
+  const localHour = localHourInTz(new Date(), tz)
+  const dayScope: "today" | "yesterday" = Number.isFinite(localHour) && localHour >= 17 ? "today" : "yesterday"
+  const localTodayYmd = ymdInTz(new Date(), tz)
+  const localDayYmd = dayScope === "today" ? localTodayYmd : addDays(localTodayYmd, -1)
+  const weekdayKey = weekdayKeyFromYmd(localDayYmd)
+
   // Règle des 18h : Si last_performed_at / last_checked_at > 18h ago, on doit checker.
   const now = new Date()
   const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
@@ -137,13 +194,32 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
     const lastPerformedDate = a.last_performed_at ? new Date(a.last_performed_at) : null
     // Si jamais fait (null) OU fait il y a plus de 18h -> On ajoute
     if (!lastPerformedDate || lastPerformedDate < eighteenHoursAgo) {
+      const isHabit = String(a.type ?? "") === "habit"
+      const scheduledDays: string[] = Array.isArray(a.scheduled_days) ? a.scheduled_days : []
+      const isScheduledDay = scheduledDays.length === 0 ? true : scheduledDays.includes(weekdayKey)
+      // Habitudes planifiées: ne pas "forcer" les jours off -> on ne les inclut pas si aujourd'hui n'est pas prévu.
+      if (isHabit && scheduledDays.length > 0 && !isScheduledDay) return
+
+      // Weekly progress (ISO week in user's timezone)
+      const weekNow = isoWeekStartYmdInTz(now, tz)
+      const weekLast = lastPerformedDate ? isoWeekStartYmdInTz(lastPerformedDate, tz) : null
+      const weekReps = weekLast && weekLast === weekNow ? Number(a.current_reps ?? 0) : 0
+      const target = Number(a.target_reps ?? 1)
+      // If habit already achieved for the week, no need to ask during bilan.
+      if (isHabit && target > 0 && weekReps >= target) return
+
       pending.push({
         id: a.id,
         type: "action",
         title: a.title,
         description: a.description,
         tracking_type: a.tracking_type,
-        target: a.target_reps,
+        target: target,
+        current: isHabit ? weekReps : undefined,
+        scheduled_days: scheduledDays.length > 0 ? scheduledDays : undefined,
+        is_scheduled_day: isScheduledDay,
+        day_scope: dayScope,
+        is_habit: isHabit,
       })
     }
   })
@@ -180,6 +256,7 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
   })
 }
 
+
 export async function logItem(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
   const { item_id, item_type, status, value, note, item_title } = args
 
@@ -203,7 +280,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
       // 1. Fetch current state to check 18h rule & increment reps
       const { data: action } = await supabase
         .from("user_actions")
-        .select("last_performed_at, current_reps")
+        .select("type, target_reps, last_performed_at, current_reps")
         .eq("id", item_id)
         .single()
 
@@ -219,7 +296,14 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
       }
 
       // Increment Reps (Si pas skipped)
-      const newReps = (action?.current_reps || 0) + 1
+      let base = Number(action?.current_reps || 0)
+      if (String(action?.type ?? "") === "habit") {
+        const tz = await getUserTimezone(supabase, userId)
+        const weekNow = isoWeekStartYmdInTz(now, tz)
+        const weekLast = lastPerformedDate ? isoWeekStartYmdInTz(lastPerformedDate, tz) : null
+        if (!weekLast || weekLast !== weekNow) base = 0
+      }
+      const newReps = base + 1
 
       await supabase.from("user_actions").update({
         last_performed_at: now.toISOString(),

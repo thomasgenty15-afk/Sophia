@@ -172,7 +172,7 @@ export const useDashboardData = () => {
 
                 // Fetch Tracking Data (Actions & Frameworks)
                 const [actionsRes, frameworksRes] = await Promise.all([
-                    supabase.from('user_actions').select('title, current_reps, target_reps, status, type').eq('plan_id', planData.id),
+                    supabase.from('user_actions').select('id, title, current_reps, target_reps, status, type, last_performed_at, scheduled_days').eq('plan_id', planData.id),
                     supabase.from('user_framework_tracking').select('action_id, current_reps, target_reps, status, type').eq('plan_id', planData.id)
                 ]);
 
@@ -191,7 +191,9 @@ export const useDashboardData = () => {
                                     currentReps: track.current_reps,
                                     targetReps: track.target_reps,
                                     status: track.status,
-                                    isCompleted: track.status === 'completed'
+                                    isCompleted: track.status === 'completed',
+                                    lastPerformedAt: track.last_performed_at ?? null,
+                                    scheduledDays: track.scheduled_days ?? null,
                                 };
                             }
                             return a;

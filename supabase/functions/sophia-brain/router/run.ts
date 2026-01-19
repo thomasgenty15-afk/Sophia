@@ -46,6 +46,11 @@ import {
 import { debounceAndBurstMerge } from "./debounce.ts"
 import { runAgentAndVerify } from "./agent_exec.ts"
 import { maybeInjectGlobalDeferredNudge, pruneGlobalDeferredTopics, shouldStoreGlobalDeferredFromUserMessage, storeGlobalDeferredTopic } from "./global_deferred.ts"
+import {
+  enqueueSupervisorIntent,
+  getActiveSupervisorSession,
+  syncLegacyArchitectToolFlowSession,
+} from "../supervisor.ts"
 
 const SOPHIA_CHAT_MODEL =
   (
@@ -297,6 +302,12 @@ SORTIE JSON STRICTE:
   // Prune (TTL + cap) opportunistically.
   const pruned = pruneGlobalDeferredTopics(tempMemory)
   if (pruned.changed) tempMemory = pruned.tempMemory
+
+  // --- SUPERVISOR (global runtime: stack/queue) ---
+  // Keep supervisor runtime in sync with legacy multi-turn flows.
+  // (Today we sync the Architect tool flow; other sessions can be added progressively.)
+  const syncedSupervisor = syncLegacyArchitectToolFlowSession({ tempMemory })
+  if (syncedSupervisor.changed) tempMemory = syncedSupervisor.tempMemory
   // Capture explicit user deferrals outside bilan too.
   if (shouldStoreGlobalDeferredFromUserMessage(userMessage)) {
     const extracted = extractDeferredTopicFromUserMessage(userMessage)
@@ -332,13 +343,72 @@ SORTIE JSON STRICTE:
   // 3. Analyse du Chef de Gare (Dispatcher)
   // On récupère le dernier message de l'assistant pour le contexte
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
-  const lastAssistantAgent = history.filter((m: any) => m.role === 'assistant').pop()?.agent_used || null;
+  const lastAssistantAgentRaw = history.filter((m: any) => m.role === 'assistant').pop()?.agent_used || null;
+  const normalizeAgentUsed = (raw: unknown): string | null => {
+    const s = String(raw ?? "").trim()
+    if (!s) return null
+    // DB often stores "sophia.architect" / "sophia.companion" etc.
+    const m = s.match(/\b(sentry|firefighter|investigator|architect|companion|librarian)\b/i)
+    return m ? m[1]!.toLowerCase() : s.toLowerCase()
+  }
+  const lastAssistantAgent = normalizeAgentUsed(lastAssistantAgentRaw)
   
   const analysis = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage, meta)
   const riskScore = analysis.riskScore
   const nCandidates = analysis.nCandidates ?? 1
   // If a forceMode is requested (e.g. module conversation), we keep safety priority for sentry.
   let targetMode: AgentMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
+  const toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
+
+  // Supervisor continuity: if there's an active session, keep its owner mode
+  // (unless safety modes or investigator lock later override).
+  const activeSession = getActiveSupervisorSession(tempMemory)
+  const activeOwner = activeSession?.owner_mode ?? null
+  if (
+    activeOwner &&
+    !state?.investigation_state &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    // If dispatcher wanted something else, queue it as non-urgent follow-up.
+    if (targetMode !== activeOwner) {
+      const queued = enqueueSupervisorIntent({
+        tempMemory,
+        requestedMode: targetMode,
+        reason: `queued_due_to_active_session:${String(activeSession?.type ?? "")}`,
+        messageExcerpt: String(userMessage ?? "").slice(0, 180),
+      })
+      if (queued.changed) tempMemory = queued.tempMemory
+    }
+    targetMode = activeOwner
+  }
+
+  // Hard guard for Architect multi-turn tool flows:
+  // If Architect just asked "which day to remove", ALWAYS keep Architect for the next user reply,
+  // regardless of what the dispatcher says (tool tests rely on this continuity).
+  const archFlow = (tempMemory as any)?.architect_tool_flow ?? null
+  const archFlowAwaitingRemoveDay =
+    archFlow &&
+    String((archFlow as any)?.kind ?? "") === "update_action_structure" &&
+    String((archFlow as any)?.stage ?? "") === "awaiting_remove_day"
+  const lastAskedWhichDay =
+    lastAssistantAgent === "architect" &&
+    /\bquel(le)?\s+jour\b/i.test(lastAssistantMessage ?? "")
+  if (!state?.investigation_state && (archFlowAwaitingRemoveDay || lastAskedWhichDay)) {
+    targetMode = "architect"
+  }
+
+  // If an Architect tool flow is active (create/update action), keep routing on Architect to avoid fragmentation
+  // (except safety modes).
+  if (
+    toolFlowActiveGlobal &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    targetMode = "architect"
+  }
 
   // Safety escalation (candidate -> LLM confirmation) to avoid keyword false positives.
   // We do this BEFORE other routing heuristics, but still allow safety/active-checkup rules below.
@@ -366,7 +436,97 @@ SORTIE JSON STRICTE:
     targetMode === "companion" &&
     looksLikeLongFormExplanationRequest(userMessage)
   ) {
-    targetMode = "librarian"
+    // If the user asks for a "reformulation" right after Architect just configured something,
+    // keep Architect so it can clarify its own parameters (avoid librarian contradictions).
+    const looksConfused =
+      /\b(je\s+suis\s+un\s+peu\s+perdu|je\s+suis\s+perdu|tu\s+peux\s+reformuler|reformule|j['’]ai\s+pas\s+compris)\b/i
+        .test(userMessage ?? "")
+    // Never route to Librarian for "je suis perdu / reformule" (that needs plan-context, not a generic explainer).
+    if (looksConfused) {
+      targetMode = (lastAssistantAgent === "architect" || Boolean((tempMemory as any)?.architect_tool_flow)) ? "architect" : "companion"
+    } else if (lastAssistantAgent === "architect" || Boolean((tempMemory as any)?.architect_tool_flow)) {
+      targetMode = "architect"
+    } else {
+      targetMode = "librarian"
+    }
+  }
+
+  // Hard guard: if the user references a specific plan item by quoted title, keep Architect.
+  // Librarian doesn't have plan context; plan-item questions need Architect.
+  if (
+    !state?.investigation_state &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    (targetMode === "companion" || targetMode === "librarian")
+  ) {
+    // Accept quotes with ", “ ”, « », and also simple apostrophes '...'
+    const hasQuoted = /["“«']\s*[^"”»']{2,80}\s*["”»']/.test(userMessage ?? "")
+    const mentionsPlanOrNext =
+      /\b(mon\s+plan|dans\s+mon\s+plan|phase|action|actions|et\s+apr[eè]s|la\s+suite|prochaine\s+[ée]tape|prochaine\s+chose|la\s+prochaine|pour\s+avancer|on\s+fait\s+quoi|je\s+dois\s+faire\s+quoi|qu['’]est[-\s]?ce\s+que\s+je\s+dois\s+faire|c['’]est\s+quoi\s+(exactement|concr[eè]tement)|c['’]est\s+quoi)\b/i
+        .test(userMessage ?? "")
+    if (hasQuoted && mentionsPlanOrNext) {
+      targetMode = "architect"
+    }
+  }
+
+  // Force Architect for explicit plan/action updates (frequency/days/rename), to ensure tools fire reliably.
+  // This also prevents Companion from answering "update" intents with generic encouragement.
+  if (
+    !state?.investigation_state &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    /\b(mets|met|passe|change|renomme|ajuste|modifie|fr[ée]quence|fois\s+par\s+semaine|x\s*par\s+semaine|jours?\s+fixes?|jours?\s+pr[ée]cis|lun(di)?|mar(di)?|mer(credi)?|jeu(di)?|ven(dredi)?|sam(edi)?|dim(anche)?)\b/i
+      .test(userMessage ?? "")
+  ) {
+    // Narrow it a bit: only if it's plausibly about an action/habit (avoid hijacking unrelated chatter).
+    if (/\b(action|habitude|plan|lecture|dashboard|tableau\s+de\s+bord)\b/i.test(userMessage ?? "") || /\bfois\s+par\s+semaine\b/i.test(userMessage ?? "")) {
+      targetMode = "architect"
+    }
+  }
+
+  // Activation / "what's next in my plan" should NOT go to Librarian:
+  // Librarian is for long-form generic explanations; plan item questions need plan context + tools (Architect).
+  if (
+    !state?.investigation_state &&
+    targetMode === "companion" &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    /\b(mon\s+plan|dans\s+mon\s+plan|phase|action|actions|et\s+apr[eè]s|la\s+suite|qu['’]?est[-\s]?ce\s+qui\s+vient\s+apr[eè]s|prochaine\s+[ée]tape)\b/i.test(userMessage ?? "")
+  ) {
+    targetMode = "architect"
+  }
+
+  // Plan-building continuity: avoid "ping-pong" Companion <-> Architect while an action/habit is being defined.
+  // If the user message clearly relates to plan parameters (frequency/days/dashboard/add), keep Architect.
+  if (
+    !state?.investigation_state &&
+    targetMode === "companion" &&
+    (lastAssistantAgent === "architect" || (state?.current_mode ?? "companion") === "architect" || Boolean((tempMemory as any)?.architect_tool_flow)) &&
+    /\b(fois\s+par\s+semaine|x\s*par\s+semaine|\/\s*semaine|ajust(e|er)|modifi(e|er)|enl[eè]ve|retire|supprime|ajout(e|er)|ajoute|mon\s+plan|plan|habitude|action|dashboard|tableau\s+de\s+bord|jours?\s+fixes?|jours?\s+planifi[ée]s?|planifi[ée]s?|lundis?|mardis?|mercredis?|jeudis?|vendredis?|samedis?|dimanches?|lun|mar|mer|jeu|ven|sam|dim|mon|tue|wed|thu|fri|sat|sun|au\s+feeling|libre)\b/i
+      .test(userMessage ?? "")
+  ) {
+    targetMode = "architect"
+  }
+
+  // Specific guard: if Architect just asked which day to remove, keep Architect for the user's removal choice.
+  if (
+    !state?.investigation_state &&
+    targetMode === "companion" &&
+    lastAssistantAgent === "architect" &&
+    /\bquel(le)?\s+jour\b/i.test(lastAssistantMessage ?? "") &&
+    /\b(enl[eè]ve|retire|supprime)\b/i.test(userMessage ?? "")
+  ) {
+    targetMode = "architect"
+  }
+
+  // Habit friction points ("book", "where is it", "start tonight") should also stay with Architect.
+  if (
+    !state?.investigation_state &&
+    targetMode === "companion" &&
+    (lastAssistantAgent === "architect" || (state?.current_mode ?? "companion") === "architect" || Boolean((tempMemory as any)?.architect_tool_flow)) &&
+    /\b(livre|lecture|roman|oreiller|table\s+de\s+chevet|canap[ée])\b/i.test(userMessage ?? "")
+  ) {
+    targetMode = "architect"
   }
 
   // WhatsApp routing guardrails:
@@ -423,6 +583,11 @@ SORTIE JSON STRICTE:
       /\b(plan|action|actions|phase|objectif|objectifs|et\s+apres|la\s+suite|on\s+fait\s+quoi|par\s+quoi|comment)\b/i
         .test(userMessage ?? "")
 
+    const toolFlowActive = Boolean((tempMemory as any)?.architect_tool_flow)
+    const userConfused =
+      /\b(je\s+suis\s+un\s+peu\s+perdu|je\s+suis\s+perdu|tu\s+peux\s+reformuler|reformule|j['’]ai\s+pas\s+compris)\b/i
+        .test(userMessage ?? "")
+
     // If the user doesn't want plan-focus, and isn't explicitly asking for structured plan help,
     // hand off to Companion to avoid over-architecting / looping on "why/how".
     // Do NOT hand off away from Architect when we're in a confirmation micro-step.
@@ -432,7 +597,20 @@ SORTIE JSON STRICTE:
       lastAssistantAskedForStepConfirmation(lastAssistantMessage) &&
       looksLikeUserConfirmsStep(userMessage)
 
-    if (confirmationMicroStep) {
+    // Also do NOT hand off away from Architect when it just asked "which day to remove"
+    // and the user is replying with the removal choice (common in tool eval flows).
+    const removeDayMicroStep =
+      lastAssistantAgent === "architect" &&
+      /\bquel(le)?\s+jour\b/i.test(lastAssistantMessage ?? "") &&
+      /\b(enl[eè]ve|retire|supprime)\b/i.test(userMessage ?? "")
+    
+    // If the user is explicitly editing habit structure (frequency/days), never hand off away from Architect.
+    const explicitHabitStructureEdit =
+      /\b(fois\s+par\s+semaine|x\s*par\s+semaine|\/\s*semaine|fr[ée]quence|jours?\s+planifi[ée]s?|lun(di)?|mar(di)?|mer(credi)?|jeu(di)?|ven(dredi)?|sam(edi)?|dim(anche)?|mon|tue|wed|thu|fri|sat|sun)\b/i
+        .test(userMessage ?? "")
+
+    // Also: if a tool flow is in progress (create/update action), keep Architect stable even if the user digresses/confused.
+    if (confirmationMicroStep || removeDayMicroStep || explicitHabitStructureEdit || toolFlowActive || userConfused) {
       targetMode = "architect"
     } else if (planFocus === false && !explicitlyAsksForPlanOrSteps) {
       targetMode = "companion"
@@ -892,11 +1070,20 @@ SORTIE JSON STRICTE:
   }
 
   // 6. Mise à jour du mode final et log réponse
-  await updateUserState(supabase, userId, scope, { 
+  // IMPORTANT: agents may have updated temp_memory mid-turn (e.g. Architect tool flows).
+  // Merge with latest DB temp_memory to avoid clobbering those updates.
+  let mergedTempMemory = tempMemory
+  try {
+    const latest = await getUserState(supabase, userId, scope)
+    const latestTm = (latest as any)?.temp_memory ?? {}
+    mergedTempMemory = { ...(tempMemory ?? {}), ...(latestTm ?? {}) }
+  } catch {}
+
+  await updateUserState(supabase, userId, scope, {
     current_mode: nextMode,
     unprocessed_msg_count: msgCount,
     last_processed_at: lastProcessed,
-    temp_memory: tempMemory
+    temp_memory: mergedTempMemory,
   })
   if (logMessages) {
     await logMessage(supabase, userId, scope, 'assistant', responseContent, targetMode, opts?.messageMetadata)

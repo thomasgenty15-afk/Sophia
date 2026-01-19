@@ -2,6 +2,7 @@ import { supabase } from '../lib/supabase';
 import { cleanupSubmissionData } from '../lib/planActions';
 import { useNavigate } from 'react-router-dom';
 import type { GeneratedPlan, Action } from '../types/dashboard';
+import { startOfIsoWeekLocal } from '../lib/isoWeek';
 
 const PLAN_COMPLETION_THRESHOLD_PERCENT = 60;
 
@@ -294,7 +295,14 @@ export const useDashboardLogic = ({
     for (let i = 0; i < newPhases.length - 1; i++) {
         const currentPhase = newPhases[i];
         const nextPhase = newPhases[i+1];
-        const isPhaseCompleted = currentPhase.actions.every(a => a.isCompleted || a.status === 'completed');
+        const isHabit = (a: Action) => {
+          const t = String(a.type ?? "").toLowerCase().trim();
+          return t === "habitude" || t === "habit";
+        };
+        // Habitudes: ne doivent pas bloquer la progression de phase (elles restent actives sur la durée du plan).
+        const isPhaseCompleted = currentPhase.actions
+          .filter(a => !isHabit(a))
+          .every(a => a.isCompleted || a.status === 'completed');
 
         if (isPhaseCompleted) {
             const pendingActions = nextPhase.actions.filter(a => a.status === 'pending');
@@ -361,13 +369,18 @@ export const useDashboardLogic = ({
     if (!activePlanId || !activePlan) return;
 
     const prevPlan = activePlan;
-    const currentReps = action.currentReps || 0;
+    // Compteur hebdo: si l'action n'a pas été faite dans la semaine ISO courante, on repart de 0.
+    const now = new Date();
+    const last = action.lastPerformedAt ? new Date(action.lastPerformedAt) : null;
+    const sameIsoWeek = last ? startOfIsoWeekLocal(last).getTime() === startOfIsoWeekLocal(now).getTime() : true;
+    const currentReps = sameIsoWeek ? (action.currentReps || 0) : 0;
     const targetReps = action.targetReps || 1;
     if (currentReps >= targetReps) return;
 
     const newReps = currentReps + 1;
-    const isNowCompleted = newReps >= targetReps;
-    const newStatus: Action['status'] = isNowCompleted ? 'completed' : 'active';
+    const reachedWeeklyTarget = newReps >= targetReps;
+    // Habitude: jamais "completed" automatiquement. On garde le statut tel quel (active), et on félicite à l’atteinte.
+    const newStatus: Action['status'] = 'active';
 
     const newPhases: GeneratedPlan["phases"] = activePlan.phases.map((p) => ({
       ...p,
@@ -376,51 +389,10 @@ export const useDashboardLogic = ({
           ? ({
               ...a,
               currentReps: newReps,
-              isCompleted: isNowCompleted,
-              status: isNowCompleted ? "completed" : a.status,
+              isCompleted: false,
+              status: a.status,
+              lastPerformedAt: new Date().toISOString(),
             } as Action)
-          : a,
-      ),
-    }));
-    const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
-    setActivePlan(updatedPlan);
-
-    try {
-      if (isNowCompleted) {
-        const { error } = await supabase
-          .from('user_actions')
-          .update({ current_reps: newReps, status: newStatus, last_performed_at: new Date().toISOString() })
-          .eq('plan_id', activePlanId)
-          .eq('title', action.title);
-        mustOk(error);
-      } else {
-        const { error } = await supabase
-          .from('user_actions')
-          .update({ current_reps: newReps, status: newStatus })
-          .eq('plan_id', activePlanId)
-          .eq('title', action.title);
-        mustOk(error);
-      }
-      if (isNowCompleted) await checkPhaseCompletionAndAutoUnlock(updatedPlan);
-    } catch (err) {
-      console.error("Error increment habit:", err);
-      setActivePlan(prevPlan);
-      if (maybeHandleBillingGate(err)) return;
-      alert("Erreur mise à jour habitude.");
-    }
-  };
-
-  const handleMasterHabit = async (action: Action) => {
-    if (!activePlanId || !activePlan) return;
-    if (!confirm("Maîtriser cette habitude ?")) return;
-
-    const prevPlan = activePlan;
-    const newReps = action.targetReps || 1;
-    const newPhases: GeneratedPlan["phases"] = activePlan.phases.map((p) => ({
-      ...p,
-      actions: p.actions.map((a) =>
-        a.id === action.id
-          ? ({ ...a, currentReps: newReps, isCompleted: true, status: "completed" } as Action)
           : a,
       ),
     }));
@@ -430,16 +402,144 @@ export const useDashboardLogic = ({
     try {
       const { error } = await supabase
         .from('user_actions')
-        .update({ current_reps: newReps, status: 'completed', last_performed_at: new Date().toISOString() })
+        .update({ current_reps: newReps, status: newStatus, last_performed_at: new Date().toISOString() })
         .eq('plan_id', activePlanId)
         .eq('title', action.title);
       mustOk(error);
-      await checkPhaseCompletionAndAutoUnlock(updatedPlan);
+
+      if (reachedWeeklyTarget && currentReps < targetReps) {
+        alert(`Bravo ! Objectif atteint : ${targetReps}× cette semaine.`);
+      }
+    } catch (err) {
+      console.error("Error increment habit:", err);
+      setActivePlan(prevPlan);
+      if (maybeHandleBillingGate(err)) return;
+      alert("Erreur mise à jour habitude.");
+    }
+  };
+
+  const handleUnlockNextPendingAfter = async (actionId: string) => {
+    if (!activePlanId || !activePlan) return;
+
+    let found = false;
+    let next: Action | null = null;
+    for (const p of activePlan.phases) {
+      for (const a of p.actions) {
+        if (!found) {
+          if (a.id === actionId) found = true;
+          continue;
+        }
+        if (a.status === 'pending') { next = a; break; }
+      }
+      if (next) break;
+    }
+    if (!next) return;
+
+    // Update local plan
+    const newPhases = activePlan.phases.map(p => ({
+      ...p,
+      actions: p.actions.map(a => a.id === next!.id ? ({ ...a, status: 'active' as const } as Action) : a),
+    }));
+    setActivePlan({ ...activePlan, phases: newPhases });
+
+    // Update DB
+    try {
+      if (next.type === 'framework') {
+        await supabase.from('user_framework_tracking').update({ status: 'active' }).eq('plan_id', activePlanId).eq('action_id', next.id);
+      } else {
+        await supabase.from('user_actions').update({ status: 'active' }).eq('plan_id', activePlanId).eq('title', next.title);
+      }
+    } catch (err) {
+      console.error("Error unlocking next pending action:", err);
+    }
+  };
+
+  const handleMasterHabit = async (action: Action) => {
+    if (!activePlanId || !activePlan) return;
+    if (!confirm("Maîtriser cette habitude ?")) return;
+
+    const prevPlan = activePlan;
+    // IMPORTANT: "Je maîtrise déjà" ne doit PAS setter current_reps = target_reps.
+    const newPhases: GeneratedPlan["phases"] = activePlan.phases.map((p) => ({
+      ...p,
+      actions: p.actions.map((a) =>
+        a.id === action.id
+          ? ({ ...a, currentReps: a.currentReps ?? 0, isCompleted: true, status: "completed" } as Action)
+          : a,
+      ),
+    }));
+    const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
+    setActivePlan(updatedPlan);
+
+    try {
+      const { error } = await supabase
+        .from('user_actions')
+        .update({ status: 'completed', last_performed_at: new Date().toISOString() })
+        .eq('plan_id', activePlanId)
+        .eq('title', action.title);
+      mustOk(error);
+      await handleUnlockNextPendingAfter(action.id);
     } catch (err) {
       console.error("Error master habit:", err);
       setActivePlan(prevPlan);
       if (maybeHandleBillingGate(err)) return;
       alert("Erreur mise à jour habitude.");
+    }
+  };
+
+  const handleSaveHabitSettings = async (action: Action, payload: { targetReps: number; scheduledDays: string[] | null; activateIfPending: boolean }) => {
+    if (!activePlanId || !activePlan) return;
+
+    const prevPlan = activePlan;
+    const normalizedType = String(action.type ?? "").toLowerCase().trim();
+    const isHabit = normalizedType === 'habitude' || normalizedType === 'habit';
+    if (!isHabit) return;
+
+    const safeTarget = Math.max(1, Math.min(7, Number(payload.targetReps || 1)));
+    const safeDays = payload.scheduledDays && payload.scheduledDays.length > 0
+      ? payload.scheduledDays.slice(0, safeTarget)
+      : null;
+
+    const nextStatus: Action['status'] | undefined = payload.activateIfPending ? 'active' : action.status;
+    const nextAction = (a: Action): Action =>
+      a.id !== action.id
+        ? a
+        : ({
+            ...a,
+            targetReps: safeTarget,
+            scheduledDays: safeDays,
+            status: nextStatus ?? a.status,
+          } as Action);
+
+    const newPhases: GeneratedPlan["phases"] = activePlan.phases.map(p => ({
+      ...p,
+      actions: p.actions.map(nextAction),
+    }));
+    const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
+    setActivePlan(updatedPlan);
+
+    try {
+      // 1) Persist in user_plans.content (so the plan stays consistent even without tracking fetch)
+      await supabase.from('user_plans').update({ content: updatedPlan }).eq('id', activePlanId);
+
+      // 2) Persist in user_actions
+      const updates: any = {
+        target_reps: safeTarget,
+        scheduled_days: safeDays,
+      };
+      if (payload.activateIfPending) updates.status = 'active';
+
+      const { error } = await supabase
+        .from('user_actions')
+        .update(updates)
+        .eq('plan_id', activePlanId)
+        .eq('title', action.title);
+      mustOk(error);
+    } catch (err) {
+      console.error("Error saving habit settings:", err);
+      setActivePlan(prevPlan);
+      if (maybeHandleBillingGate(err)) return;
+      alert("Erreur mise à jour réglages habitude.");
     }
   };
 
@@ -594,6 +694,7 @@ export const useDashboardLogic = ({
     handleToggleMission,
     handleIncrementHabit,
     handleMasterHabit,
+    handleSaveHabitSettings,
     handleSaveFramework,
     handleGenerateStep,
     handleUpdateVitalSign

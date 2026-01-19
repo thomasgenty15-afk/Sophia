@@ -37,6 +37,17 @@ export const BodySchema = z.object({
       // Whether eval-judge should use the (slow/expensive) LLM judge.
       // Prod-faithful evals should keep this ON by default (we want real judge feedback).
       judge_force_real_ai: z.boolean().default(true),
+      // NEW: Use a pre-generated plan bank (stored in DB) instead of calling generate-plan (Gemini) during evals.
+      // This reduces latency + cost by reusing real plans generated offline.
+      use_pre_generated_plans: z.boolean().default(false),
+      // Optional: constrain plan pick to a specific theme key (ex: "ENERGY", "SLEEP"...).
+      // If omitted, any theme in the bank can be used.
+      plan_bank_theme_key: z.string().optional(),
+      // If true and the plan bank is empty/unavailable, fail early instead of falling back to live generation.
+      pre_generated_plans_required: z.boolean().default(false),
+      // If true, do NOT delete the ephemeral test auth user at the end of the scenario.
+      // Useful when you want to manually verify DB writes after a tool test.
+      keep_test_user: z.boolean().default(false),
       model: z.string().optional(),
     })
     .default({
@@ -48,6 +59,9 @@ export const BodySchema = z.object({
       budget_usd: 0,
       use_real_ai: true,
       judge_force_real_ai: true,
+      use_pre_generated_plans: false,
+      pre_generated_plans_required: false,
+      keep_test_user: false,
     }),
 });
 

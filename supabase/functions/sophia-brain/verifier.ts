@@ -510,6 +510,13 @@ export async function verifyConversationAgentMessage(opts: {
     whatsapp_guard_24h: Boolean((data as any)?.whatsapp_guard_24h),
   });
 
+  // Cost + stability: only call the LLM judge when there are mechanical violations.
+  // This avoids "hallucinated rewrites" (e.g. wrong action names) when the draft is already compliant.
+  const alwaysJudge = (Deno.env.get("SOPHIA_CONVERSATION_JUDGE_ALWAYS") ?? "").trim() === "1";
+  if (!alwaysJudge && violations.length === 0) {
+    return { text: base, rewritten: false, violations: [] };
+  }
+
   const one = await oneShotJudgeAndRewrite({
     kind: "conversation",
     agent,
@@ -554,6 +561,10 @@ function buildInvestigatorCopyViolations(text: string, ctx: { scenario: string }
     // Hard block: don't invent "bilan des réussites" / recap items.
     if (/\bbilan\s+des\s+r[ée]ussites\b/i.test(cleaned)) v.push("end_checkup_invented_item");
   } else {
+    // Greeting discipline: never say "bonjour/salut" mid-thread in investigator copy.
+    // (We don't have history length here; treat all investigator copy as mid-thread.)
+    if (startsWithGreeting(cleaned)) v.push("greeting_not_allowed_mid_conversation");
+
     // Generic check: prefer 0-1 question per message.
     if (countQuestionMarks(cleaned) > 1) v.push("too_many_questions");
 

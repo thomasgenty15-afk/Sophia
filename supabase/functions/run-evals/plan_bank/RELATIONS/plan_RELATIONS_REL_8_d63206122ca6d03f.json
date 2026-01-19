@@ -1,0 +1,259 @@
+{
+  "meta": {
+    "id": "plan_RELATIONS_REL_8_d63206122ca6d03f",
+    "theme_key": "RELATIONS",
+    "theme_id": "REL",
+    "theme_title": "Relations & Communication",
+    "axis_id": "REL_8",
+    "axis_title": "Être un parent plus serein & épanoui",
+    "selected_problem_ids": [
+      "REL_8_P1",
+      "REL_8_P3"
+    ],
+    "selected_problem_labels": [
+      "Je perds souvent patience, je crie et je culpabilise après.",
+      "J’ai du mal à gérer l’équilibre vie pro / vie de famille."
+    ],
+    "fingerprint": "d63206122ca6d03f",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:39:17.095Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je me sens constamment sous pression, tiraillée entre mon rôle de mère et mes responsabilités professionnelles. Ça me rend irritable et je finis par crier sur mes enfants, ce que je regrette amèrement après. J'aimerais retrouver un équilibre et plus de sérénité à la maison.",
+      "blockers": "Le manque de temps est mon principal ennemi. Je me sens débordée par la charge mentale, entre les tâches ménagères, le suivi scolaire, les activités des enfants et mon travail qui ne s'arrête jamais vraiment. J'ai l'impression de ne pas avoir de marge de manœuvre et de devoir tout gérer seule.",
+      "context": "Je suis mère de deux enfants (un de 6 ans et une de 9 ans), je travaille à temps plein avec un poste assez exigeant. Mon conjoint est aussi très pris par son travail, donc l'organisation de la maison et des enfants repose beaucoup sur moi. Les journées sont longues et les soirs sont souvent chaotiques.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "REL_8",
+      "title": "Être un parent plus serein & épanoui",
+      "theme": "Relations & Communication",
+      "problems": [
+        "Je perds souvent patience, je crie et je culpabilise après.",
+        "J’ai du mal à gérer l’équilibre vie pro / vie de famille."
+      ]
+    },
+    "answers": {
+      "REL_8_P1": {
+        "REL_8_P1_Q1": [
+          "Le soir (fatigue, devoirs, coucher)",
+          "Quand je suis déjà stressé(e) par autre chose"
+        ],
+        "REL_8_P1_Q2": "Terriblement coupable (“je suis un mauvais parent”)"
+      },
+      "REL_8_P3": {
+        "REL_8_P3_Q1": "Je ne suis bien nulle part (coupable au boulot, coupable à la maison)",
+        "REL_8_P3_Q2": [
+          "Le tunnel 18h-20h",
+          "Le soir quand je retravaille après le coucher"
+        ]
+      },
+      "meta": "Je me sens épuisée et coupable. J'ai besoin d'aide pour trouver des solutions concrètes et retrouver de l'énergie pour ma famille et moi."
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "male"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "L'Architecte de la Sérénité Familiale",
+    "strategy": "Nous allons reconstruire ton quotidien en établissant des frontières claires, en déléguant intelligemment la charge mentale, et en cultivant des moments de ressource pour que la sérénité devienne ton mode de vie parental.",
+    "sophiaKnowledge": "Tu es une mère active, dévouée à tes deux enfants de 6 et 9 ans, mais épuisée et tiraillée par une double charge mentale professionnelle et familiale. Cette pression constante te pousse à perdre patience et à culpabiliser, notamment lors des soirées chaotiques. Ton désir profond est de retrouver équilibre et sérénité pour être une mère présente et épanouie.",
+    "context_problem": "Épuisée par les exigences professionnelles et la gestion familiale quasi exclusive, tu te sentais piégée par le manque de temps et une charge mentale écrasante. Cette pression menait à des pertes de patience et une culpabilité tenace, particulièrement durant les 'tunnels' du soir, t'empêchant de te sentir sereine à la maison ou au travail.",
+    "identity": "Je suis une mère consciente et une gardienne de mon énergie, capable de créer un havre de paix pour ma famille et moi.",
+    "deepWhy": "Pour que mes enfants grandissent dans un environnement de calme et de joie, et pour que je puisse enfin m'épanouir pleinement dans tous mes rôles sans le poids de la culpabilité.",
+    "goldenRules": "1. Je ne suis pas une ressource illimitée : mes limites sont mes alliées.\n2. Chaque 'non' à une sollicitation est un 'oui' à mon bien-être.\n3. La sérénité est un muscle qui se travaille chaque jour par des micro-actions intentionnelles.",
+    "vitalSignal": {
+      "name": "Moments de calme personnel",
+      "unit": "min",
+      "startValue": "0",
+      "targetValue": "30",
+      "description": "Le temps que tu te consacres chaque jour, seule, sans écrans ni sollicitations, pour te ressourcer.",
+      "type": "constat",
+      "tracking_type": "counter",
+      "time_of_day": "any_time"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois cette semaine as-tu crié ou élevé la voix sur tes enfants, en le regrettant après ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance",
+      "tracking_type": "counter"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "L'Ancrage de la Présence",
+        "subtitle": "Semaines 1-2 • Vider l'Esprit pour Mieux Construire",
+        "rationale": "Cette phase est dédiée à la prise de conscience de ta charge mentale et à la mise en place de micro-rituels qui apaisent ton système nerveux, pour poser des fondations solides avant d'agir.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "framework",
+            "title": "La Cartographie du Poids Invisible",
+            "description": "Écrire et catégoriser toutes les tâches et préoccupations qui pèsent sur ta charge mentale.",
+            "questType": "main",
+            "tips": "Ne te censure pas. Vise l'exhaustivité. Pense à tous les domaines : maison, enfants, travail, mental.",
+            "rationale": "Externaliser la charge mentale permet de la visualiser et de réduire l'impression de chaos interne, première étape vers la délégation.",
+            "targetReps": 1,
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Le but n'est pas de tout résoudre d'un coup, mais de faire l'inventaire précis de ce qui occupe ton esprit. Chaque tâche, chaque préoccupation, chaque 'il faudrait que...'",
+              "sections": [
+                {
+                  "id": "s1",
+                  "label": "Tâches et préoccupations non résolues",
+                  "inputType": "categorized_list",
+                  "placeholder": "Rappeler école pour sortie|Enfants"
+                },
+                {
+                  "id": "s2",
+                  "label": "Ce qui m'empêche de lâcher prise",
+                  "inputType": "textarea",
+                  "placeholder": "La peur de l'oubli, la perfectionnisme..."
+                }
+              ]
+            },
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "Le Micro-Rituel de Respiration",
+            "description": "Prendre 5 minutes, 2 fois par jour, pour respirer profondément et consciemment, loin de toute distraction.",
+            "questType": "side",
+            "tips": "Règle un minuteur. Cache-toi aux toilettes si besoin. C'est TON moment sacré. Mets une alarme discrète sur ton téléphone.",
+            "rationale": "Ces courtes pauses calment le système nerveux, réduisent le cortisol et augmentent la disponibilité mentale face au stress, rendant ta réaction plus sereine.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Le Souffle des Nouveaux Espaces",
+        "subtitle": "Semaines 3-4 • Reprendre le Contrôle du Temps",
+        "rationale": "Maintenant que tu as visualisé ta charge, cette phase t'aide à récupérer du temps et de l'énergie en établissant des limites claires entre vie professionnelle et familiale, et en délégant activement.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "mission",
+            "title": "Le Plan de Délégation Intelligente",
+            "description": "À partir de ta cartographie, identifie au moins 3 tâches à déléguer, automatiser ou simplement éliminer. Initie la discussion avec ton conjoint ou d'autres ressources pour les déléguer.",
+            "questType": "main",
+            "tips": "Commence par ce qui te pèse le plus ou ce qui n'est pas absolument nécessaire que TU fasses. Parle en termes de bénéfices pour la famille entière.",
+            "rationale": "La charge mentale n'est pas une fatalité. Apprendre à déléguer libère de l'énergie et de l'espace mental, essentiel pour ta sérénité.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p2a2",
+            "type": "habitude",
+            "title": "La Règle des 20h : Fin de la Journée Pro",
+            "description": "À 20h, tu arrêtes toute activité professionnelle. Si des choses restent à faire, elles attendront le lendemain. Créer un sas de décompression.",
+            "questType": "side",
+            "tips": "Mets un rappel. Ferme ton ordinateur portable. Imagine un mur invisible entre ton travail et ta vie personnelle.",
+            "rationale": "Le 'tunnel 18h-20h' est critique. Stopper le travail crée une frontière nécessaire pour te rendre disponible mentalement pour tes enfants et pour toi, réduisant l'irritabilité.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "La Lumière de la Connexion",
+        "subtitle": "Semaines 5-6 • Cultiver la Patience et le Lien",
+        "rationale": "Fortifiée par plus de temps et d'espace mental, cette phase te guide vers une interaction plus consciente et positive avec tes enfants, en travaillant sur la compréhension de tes réactions et le renforcement des liens.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "framework",
+            "title": "Le Journal de la Réactivité Sereine",
+            "description": "Quand tu sens la patience s'échapper ou après un moment difficile, prends quelques minutes pour noter ce qu'il s'est passé, tes émotions et ce qui aurait pu être fait différemment.",
+            "questType": "main",
+            "tips": "Fais-le sans jugement. L'objectif est la prise de conscience, pas la culpabilité. Écris le plus vite possible après l'événement.",
+            "rationale": "Analyser les déclencheurs et tes réactions t'aide à développer des stratégies proactives et à briser le cycle de la culpabilité et des cris.",
+            "targetReps": 7,
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "C'est ton laboratoire personnel. Observe, note, apprends. Chaque incident est une opportunité de mieux te comprendre et d'ajuster ta réponse la prochaine fois.",
+              "sections": [
+                {
+                  "id": "s1",
+                  "label": "Situation et déclencheur",
+                  "inputType": "textarea",
+                  "placeholder": "Les enfants se disputaient pour un jeu, j'étais fatiguée de ma journée..."
+                },
+                {
+                  "id": "s2",
+                  "label": "Ma réaction et mes émotions",
+                  "inputType": "textarea",
+                  "placeholder": "J'ai crié, j'étais en colère, puis coupable..."
+                },
+                {
+                  "id": "s3",
+                  "label": "Ce que j'aurais pu faire différemment",
+                  "inputType": "textarea",
+                  "placeholder": "Prendre 5 secondes pour respirer, nommer mon besoin de calme..."
+                }
+              ]
+            },
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p3a2",
+            "type": "habitude",
+            "title": "Le Rendez-vous Coeur à Coeur",
+            "description": "Dédier au moins 10 minutes chaque jour à chaque enfant, individuellement, pour une activité choisie par lui, sans interruption ni écrans.",
+            "questType": "side",
+            "tips": "C'est un investissement. Les enfants qui se sentent vus et écoutés sont souvent plus coopératifs. Ça peut être lire une histoire, dessiner, écouter leurs histoires.",
+            "rationale": "Ces moments renforcent le lien, remplissent le 'réservoir d'attention' des enfants et réduisent leur besoin d'attirer l'attention négativement, diminuant ainsi les tensions et les cris.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Le Ciment de la Sérénité Durable",
+        "subtitle": "Semaines 7-8 • Ancrer l'Équilibre et la Joie",
+        "rationale": "Cette dernière phase consolide tes acquis. Elle te permet d'intégrer pleinement les nouvelles habitudes, de reconnaître tes progrès et de structurer ton environnement pour maintenir une sérénité durable.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "habitude",
+            "title": "La Reconnaissance des Micro-Victoires",
+            "description": "Chaque soir, avant de te coucher, note 3 choses qui se sont bien passées dans ta journée ou 3 choses pour lesquelles tu es reconnaissante, en lien avec ta famille ou toi-même.",
+            "questType": "main",
+            "tips": "Même les toutes petites choses comptent ! Un sourire d'enfant, une tâche finie, une minute de calme. L'important est de reprogrammer ton cerveau à voir le positif.",
+            "rationale": "Pratiquer la gratitude et la reconnaissance déplace l'attention du stress vers les aspects positifs, renforçant ton bien-être et ta résilience émotionnelle, et réduisant la culpabilité.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "night"
+          },
+          {
+            "id": "p4a2",
+            "type": "mission",
+            "title": "Le Rituel du Conseil Familial",
+            "description": "Mettre en place un court 'conseil familial' hebdomadaire (15-20 min) pour discuter de l'organisation de la semaine à venir, des défis, et des réussites de chacun.",
+            "questType": "side",
+            "tips": "Implique les enfants dans les décisions quand c'est possible. Utilise des règles de communication positive. Ça n'a pas besoin d'être parfait, juste régulier.",
+            "rationale": "Ce rituel structure la semaine, partage la charge mentale des adultes, et donne aux enfants un sentiment de participation et de prévisibilité, réduisant le chaos des soirs et les tensions.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

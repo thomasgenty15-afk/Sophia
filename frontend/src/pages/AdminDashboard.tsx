@@ -260,6 +260,10 @@ export default function AdminDashboard() {
             stop_on_first_failure: stopOnFail,
             budget_usd: Math.max(0, budgetUsd),
             model: evalModel,
+            // Use the local file-based plan bank (supabase/functions/run-evals/plan_bank) to avoid
+            // per-run plan generation costs.
+            use_pre_generated_plans: true,
+            pre_generated_plans_required: true,
           },
         },
       });

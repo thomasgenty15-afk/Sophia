@@ -80,3 +80,4 @@ const OnboardingProgress: React.FC<OnboardingProgressProps> = ({ currentStep }) 
 export default OnboardingProgress;
 
 
+

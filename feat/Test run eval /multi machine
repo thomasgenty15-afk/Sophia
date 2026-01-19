@@ -1,0 +1,1 @@
+npm run eval:tools -- --scenario tools_complex_multimachine_ai_user --turns 20 --model gemini-2.5-flash

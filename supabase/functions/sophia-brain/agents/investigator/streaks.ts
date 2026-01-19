@@ -91,11 +91,16 @@ export async function checkAndHandleLevelUp(
   // 1. Get current action details
   const { data: action, error } = await supabase
     .from("user_actions")
-    .select("id, plan_id, title, current_reps, target_reps, status")
+    .select("id, plan_id, title, type, current_reps, target_reps, status")
     .eq("id", actionId)
     .single()
 
   if (error || !action) return { leveledUp: false }
+
+  // Habitudes: target_reps est une fréquence hebdo -> on ne "level up" pas le plan quand la cible hebdo est atteinte.
+  if (String((action as any).type ?? "") === "habit") {
+    return { leveledUp: false }
+  }
 
   // 2. Check if target reached
   const current = action.current_reps || 0

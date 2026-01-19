@@ -1,4 +1,5 @@
 import { backoffMs, clampInt, pickManyUnique, pickOne, sha256Hex, sleep, isUuidLike } from "./utils.ts";
+import { PLAN_BANK } from "../plan_bank_index.ts";
 
 const AXIS_BANK = [
   {
@@ -177,6 +178,15 @@ export type RunPlanTemplate = {
   fake: ReturnType<typeof buildFakeQuestionnairePayload>;
   planContentRaw: any;
   templateFingerprint: string;
+  bank?: {
+    id: string;
+    theme_key: string;
+    theme_id?: string | null;
+    theme_title?: string | null;
+    axis_id?: string | null;
+    axis_title?: string | null;
+    selected_problem_ids?: string[] | null;
+  } | null;
 };
 
 export async function buildRunPlanTemplate(params: {
@@ -201,7 +211,58 @@ export async function buildRunPlanTemplate(params: {
     },
   });
   const templateFingerprint = (await sha256Hex(JSON.stringify(planContentRaw))).slice(0, 16);
-  return { fake, planContentRaw, templateFingerprint };
+  return { fake, planContentRaw, templateFingerprint, bank: null };
+}
+
+export async function buildRunPlanTemplateFromBank(params: {
+  requestId: string;
+  themeKey?: string | null;
+  required?: boolean;
+}): Promise<RunPlanTemplate> {
+  const themeKey = String(params.themeKey ?? "").trim() || null;
+  const candidates = (PLAN_BANK ?? []).filter((j: any) => {
+    const meta = (j?.meta && typeof j.meta === "object") ? j.meta : {};
+    const tk = String(meta?.theme_key ?? j?.theme_key ?? "").trim();
+    if (themeKey && tk !== themeKey) return false;
+    return Boolean((j as any)?.plan_json);
+  });
+
+  if (candidates.length === 0) {
+    const msg =
+      `[run-evals] PLAN_BANK_EMPTY: No pre-generated plans found in plan_bank` +
+      (themeKey ? ` for theme_key=${themeKey}` : "") +
+      `. Generate them first (real Gemini), then rerun evals.`;
+    if (params.required) throw new Error(msg);
+    throw new Error(msg);
+  }
+
+  const picked = pickOne(candidates);
+  const planContentRaw = picked.plan_json;
+  const templateFingerprint =
+    String(picked?.meta?.fingerprint ?? "").trim() ||
+    (await sha256Hex(JSON.stringify(planContentRaw))).slice(0, 16);
+
+  const fake = picked.fake ?? {
+    inputs: {},
+    currentAxis: {},
+    answers: {},
+    userProfile: {},
+  };
+
+  return {
+    fake,
+    planContentRaw,
+    templateFingerprint,
+    bank: {
+      id: String(picked?.meta?.id ?? "plan_bank"),
+      theme_key: String(picked?.meta?.theme_key ?? ""),
+      theme_id: picked?.meta?.theme_id ?? null,
+      theme_title: picked?.meta?.theme_title ?? null,
+      axis_id: picked?.meta?.axis_id ?? null,
+      axis_title: picked?.meta?.axis_title ?? null,
+      selected_problem_ids: Array.isArray(picked?.meta?.selected_problem_ids) ? picked.meta.selected_problem_ids : null,
+    },
+  };
 }
 
 export async function seedActivePlan(
@@ -215,6 +276,28 @@ export async function seedActivePlan(
     activeActionsCount?: number;
     planTemplate?: RunPlanTemplate;
     includeVitalsInBilan?: boolean;
+    // Tool evals: seed explicit actions that must exist before the conversation starts (e.g. update_action tests).
+    preseedActions?: Array<{
+      title: string;
+      description?: string;
+      tips?: string;
+      type?: "habit" | "mission";
+      tracking_type?: "boolean" | "counter";
+      target_reps?: number;
+      time_of_day?: string;
+      scheduled_days?: string[] | null;
+      // Optional: seed as pending (so tools like activate_plan_action can be tested deterministically).
+      status?: "active" | "pending";
+    }>;
+    // Investigator/tool evals: seed action history (ex: missed streak) to trigger flows like breakdown.
+    preseedActionEntries?: Array<{
+      title: string;
+      status: "completed" | "missed" | "partial";
+      // Number of consecutive days ending yesterday to seed.
+      days: number;
+      // Optional note to attach to each entry.
+      note?: string;
+    }>;
   },
 ) {
   const submissionId = crypto.randomUUID();
@@ -263,6 +346,47 @@ export async function seedActivePlan(
   });
   const rawClone = structuredClone(baseRaw);
   const planContent = applyActivationToPlan(reassignAllPlanActionIds(normalizePlanActionIdsToUuid(rawClone)), activeCount);
+
+  // Optional: inject explicit preseed actions into phase 1 and user_actions.
+  // This is used by tool tests that must update an existing action rather than create it.
+  const preseed = Array.isArray(opts?.preseedActions) ? opts!.preseedActions! : [];
+  if (preseed.length > 0) {
+    const phases = ((planContent as any)?.phases ?? []) as any[];
+    const phase1 = phases.find((p: any) => Number(p?.id) === 1) ?? phases[0];
+    if (phase1 && typeof phase1 === "object") {
+      if (!Array.isArray((phase1 as any).actions)) (phase1 as any).actions = [];
+      for (const a of preseed) {
+        const id = crypto.randomUUID();
+        const tRaw = String(a?.type ?? "habit").toLowerCase();
+        const planType = tRaw === "mission" ? "mission" : "habitude";
+        const trackingType = String(a?.tracking_type ?? "boolean") === "counter" ? "counter" : "boolean";
+        const timeOfDay = String(a?.time_of_day ?? "any_time");
+        const targetReps = planType === "habitude" ? clampInt(a?.target_reps ?? 3, 1, 7, 3) : 1;
+        const status = (String((a as any)?.status ?? "active").toLowerCase() === "pending") ? "pending" : "active";
+        const scheduled =
+          Array.isArray(a?.scheduled_days)
+            ? a!.scheduled_days
+            : (Array.isArray((a as any)?.scheduledDays) ? (a as any).scheduledDays : undefined);
+        (phase1 as any).actions.unshift({
+          id,
+          type: planType,
+          title: String(a?.title ?? "Action"),
+          description: String(a?.description ?? ""),
+          tips: String(a?.tips ?? ""),
+          status,
+          questType: "main",
+          targetReps,
+          time_of_day: timeOfDay,
+          tracking_type: trackingType,
+          isCompleted: false,
+          // Plan JSON uses camelCase; we also keep a snake_case mirror for legacy/defensive reads.
+          ...(scheduled ? { scheduledDays: scheduled, scheduled_days: scheduled } : {}),
+        });
+      }
+      // Ensure phase 1 itself is active.
+      (phase1 as any).status = "active";
+    }
+  }
   const { data: planRow, error: planErr } = await admin
     .from("user_plans")
     .insert({
@@ -279,6 +403,101 @@ export async function seedActivePlan(
     .select("id,submission_id")
     .single();
   if (planErr) throw planErr;
+
+  // Mirror preseed actions in user_actions so tools can find/update them through DB access.
+  if (preseed.length > 0) {
+    const phases = ((planContent as any)?.phases ?? []) as any[];
+    const phase1 = phases.find((p: any) => Number(p?.id) === 1) ?? phases[0];
+    const phase1Actions = Array.isArray(phase1?.actions) ? phase1.actions : [];
+    // IMPORTANT: only mirror ACTIVE preseed actions into user_actions.
+    // Pending preseed actions are meant to exist in plan JSON only, so tools like activate_plan_action can insert them.
+    const seeded = phase1Actions.filter((x: any) => (
+      String((x as any)?.status ?? "").toLowerCase() === "active" &&
+      preseed.some((p: any) => String(p?.title ?? "") === String(x?.title ?? ""))
+    ));
+    const twoDaysAgo = new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString();
+    const rows = seeded.map((x: any) => {
+      const rawType = String(x?.type ?? "").toLowerCase();
+      const t = rawType === "habitude" ? "habit" : "mission";
+      const trackingType = String(x?.tracking_type ?? "boolean") === "counter" ? "counter" : "boolean";
+      const timeOfDay = String(x?.time_of_day ?? "any_time");
+      const targetReps = t === "habit" ? clampInt(x?.targetReps ?? 3, 1, 7, 3) : 1;
+      const scheduledDays =
+        Array.isArray((x as any)?.scheduledDays)
+          ? ((x as any).scheduledDays as string[])
+          : (Array.isArray((x as any)?.scheduled_days) ? ((x as any).scheduled_days as string[]) : null);
+      return {
+        id: String(x?.id ?? crypto.randomUUID()),
+        user_id: userId,
+        plan_id: planRow.id,
+        submission_id: planRow.submission_id,
+        type: t,
+        title: String(x?.title ?? "Action"),
+        description: String(x?.description ?? ""),
+        target_reps: targetReps,
+        current_reps: 0,
+        status: "active",
+        tracking_type: trackingType,
+        time_of_day: timeOfDay,
+        ...(scheduledDays ? { scheduled_days: scheduledDays } : {}),
+        last_performed_at: twoDaysAgo,
+      };
+    });
+    if (rows.length > 0) {
+      const { error } = await admin.from("user_actions").insert(rows);
+      if (error) throw error;
+    }
+  }
+
+  // Optional: seed action entries (history) for specific actions by title.
+  const preseedEntries = Array.isArray(opts?.preseedActionEntries) ? opts!.preseedActionEntries! : [];
+  if (preseedEntries.length > 0) {
+    try {
+      const { data: actions } = await admin
+        .from("user_actions")
+        .select("id,title")
+        .eq("user_id", userId)
+        .in("status", ["active", "pending"])
+        .limit(80);
+      const byTitle = new Map<string, { id: string; title: string }>();
+      for (const a of (actions ?? []) as any[]) {
+        const t = String(a?.title ?? "").trim();
+        if (t) byTitle.set(t.toLowerCase(), { id: String(a?.id), title: t });
+      }
+      const rows: any[] = [];
+      for (const spec of preseedEntries) {
+        const t = String(spec?.title ?? "").trim();
+        if (!t) continue;
+        const found = byTitle.get(t.toLowerCase());
+        if (!found?.id) continue;
+        const days = clampInt(Number(spec?.days ?? 0), 0, 30, 0);
+        const status = String(spec?.status ?? "missed");
+        if (!days) continue;
+        // Seed consecutive days ending yesterday (local-ish, but good enough for tests).
+        for (let i = days; i >= 1; i--) {
+          const d = new Date(Date.now() - i * 24 * 60 * 60 * 1000);
+          // Use midday UTC to avoid DST edge cases; day is derived by split("T")[0].
+          d.setUTCHours(12, 0, 0, 0);
+          rows.push({
+            user_id: userId,
+            action_id: found.id,
+            action_title: found.title,
+            status,
+            value: null,
+            note: spec?.note ?? null,
+            performed_at: d.toISOString(),
+            embedding: null,
+          });
+        }
+      }
+      if (rows.length > 0) {
+        const { error } = await admin.from("user_action_entries").insert(rows);
+        if (error) throw error;
+      }
+    } catch (e) {
+      console.error("[seedActivePlan] preseedActionEntries failed (non-fatal):", e);
+    }
+  }
 
   // Optional: seed tracking tables only if requested (bilan/investigator tests).
   const insertedActions: any[] = [];
@@ -305,7 +524,7 @@ export async function seedActivePlan(
         const t = rawType === "habitude" ? "habit" : "mission";
         const trackingType = String(a?.tracking_type ?? "boolean") === "counter" ? "counter" : "boolean";
         const timeOfDay = String(a?.time_of_day ?? "any_time");
-        const targetReps = t === "habit" ? clampInt(a?.targetReps ?? 1, 1, 14, 1) : 1;
+        const targetReps = t === "habit" ? clampInt(a?.targetReps ?? 1, 1, 7, 1) : 1;
         return {
           id: String(a?.id ?? crypto.randomUUID()),
           user_id: userId,
@@ -347,7 +566,7 @@ export async function seedActivePlan(
       .map((a) => {
         const trackingType = String(a?.tracking_type ?? "boolean") === "counter" ? "counter" : "boolean";
         const fwType = String(a?.frameworkDetails?.type ?? "recurring");
-        const targetReps = clampInt(a?.targetReps ?? 1, 1, 14, 1);
+        const targetReps = clampInt(a?.targetReps ?? 1, 1, 7, 1);
         const rowId = crypto.randomUUID();
         return {
           id: rowId,
@@ -505,7 +724,7 @@ export async function fetchPlanSnapshot(admin: any, userId: string): Promise<any
   const [{ data: actions }, { data: frameworks }] = await Promise.all([
     admin
       .from("user_actions")
-      .select("id,title,description,status,tracking_type,time_of_day,target_reps,current_reps,last_performed_at,created_at")
+      .select("id,title,description,status,tracking_type,time_of_day,target_reps,current_reps,last_performed_at,scheduled_days,created_at")
       .eq("user_id", userId)
       .in("status", ["active", "pending"])
       .order("created_at", { ascending: true })
@@ -529,6 +748,7 @@ export async function fetchPlanSnapshot(admin: any, userId: string): Promise<any
     target_reps: f.target_reps ?? null,
     current_reps: f.current_reps ?? null,
     last_performed_at: f.last_performed_at ?? null,
+    scheduled_days: null,
     created_at: f.created_at ?? null,
     _kind: "framework",
     framework_type: f.type ?? null,

@@ -1,0 +1,269 @@
+{
+  "meta": {
+    "id": "plan_ENERGY_ENG_1_424855a5c6df9022",
+    "theme_key": "ENERGY",
+    "theme_id": "ENG",
+    "theme_title": "Énergie & Vitalité",
+    "axis_id": "ENG_1",
+    "axis_title": "Retrouver une énergie stable & respecter ses limites",
+    "selected_problem_ids": [
+      "ENG_1_P3",
+      "ENG_1_P7"
+    ],
+    "selected_problem_labels": [
+      "J’utilise beaucoup la caféine (café, thé, énergie drinks…) pour tenir.",
+      "Je bois très peu d’eau / je suis souvent déshydraté(e)."
+    ],
+    "fingerprint": "424855a5c6df9022",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:29:14.328Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je me sens épuisé(e) en permanence, même après une bonne nuit. Je compte trop sur le café pour démarrer et tenir la journée, mais ça ne fait qu'aggraver mon état de fatigue sur le long terme. J'aimerais retrouver une énergie naturelle.",
+      "blockers": "Le manque de temps pour préparer des alternatives saines, le stress au travail qui me pousse à chercher des 'coups de fouet' rapides, et l'habitude bien ancrée de prendre un café dès le réveil et tout au long de la journée. J'oublie aussi de boire de l'eau.",
+      "context": "Je travaille dans un environnement assez exigeant, avec des horaires parfois longs. J'ai du mal à déconnecter le soir et mon sommeil n'est pas toujours réparateur. Je suis souvent devant un écran, ce qui me fait oublier de bouger et de m'hydrater.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "ENG_1",
+      "title": "Retrouver une énergie stable & respecter ses limites",
+      "theme": "Énergie & Vitalité",
+      "problems": [
+        "J’utilise beaucoup la caféine (café, thé, énergie drinks…) pour tenir.",
+        "Je bois très peu d’eau / je suis souvent déshydraté(e)."
+      ]
+    },
+    "answers": {
+      "ENG_1_P3": {
+        "ENG_1_P3_Q1": [
+          "Café",
+          "Thé"
+        ],
+        "ENG_1_P3_Q2": "Plus de 5"
+      },
+      "ENG_1_P7": {
+        "ENG_1_P7_Q1": "0,5–1L / jour",
+        "ENG_1_P7_Q2": [
+          "Du café / thé",
+          "Des boissons sucrées"
+        ]
+      },
+      "meta": "Je sais que ma consommation de caféine est excessive et que je ne bois pas assez d'eau, mais c'est devenu une routine difficile à casser. Je me sens coupable, mais sans ces béquilles, j'ai l'impression de ne pas pouvoir fonctionner. J'espère trouver des solutions concrètes pour changer ça."
+    },
+    "userProfile": {
+      "birth_date": "1996-01-05",
+      "gender": "male"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Protocole Hydrate et Révèle",
+    "strategy": "Avant de chercher l'énergie à l'extérieur, nous allons la réactiver de l'intérieur en purifiant tes sources d'hydratation et en stabilisant ton système nerveux pour une vitalité durable.",
+    "sophiaKnowledge": "Tu es un homme de 28 ans, fatigué et dépendant de la caféine (plus de 5 boissons par jour) pour gérer un travail exigeant. Tu te sens coupable de cette dépendance qui aggrave ta fatigue, tout en étant déshydraté (0.5-1L d'eau par jour). Tes blocages sont le manque de temps, le stress au travail et des habitudes bien ancrées. Tu aspires à une énergie naturelle et des solutions concrètes pour changer ce cycle.",
+    "context_problem": "Épuisé par un rythme de vie exigeant, tu te retrouves piégé dans un cycle de dépendance à la caféine et de déshydratation chronique. Ton corps et ton esprit aspirent à une énergie naturelle, mais le stress et des habitudes tenaces t'empêchent de te libérer de ces béquilles artificielles et de retrouver une vitalité authentique.",
+    "identity": "Je suis une Fontaine d'Énergie Naturelle.",
+    "deepWhy": "Pour me libérer de la béquille de la caféine, retrouver une vitalité intrinsèque, me sentir pleinement présent et efficace dans mon travail et ma vie personnelle, sans les montagnes russes de l'épuisement et de la culpabilité.",
+    "goldenRules": "1. Toute soif est d'abord une soif d'eau.\n2. La caféine n'est pas une énergie, c'est un emprunt.\n3. Chaque pause est une opportunité de se ressourcer, pas de se stimuler artificiellement.",
+    "vitalSignal": {
+      "name": "Boissons Caféinées Consommées",
+      "unit": "boissons",
+      "startValue": "5",
+      "targetValue": "2",
+      "description": "Nombre total de cafés, thés, ou boissons énergisantes consommées dans la journée. L'objectif est de réduire progressivement.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de jours cette semaine as-tu consommé plus de 3 boissons caféinées ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : Le Grand Nettoyage Interne",
+        "subtitle": "Semaines 1-2 • L'Éveil de l'Hydratation",
+        "rationale": "Nous commençons par la fondation de toute énergie : l'hydratation. En rétablissant l'équilibre hydrique, nous préparons le corps à se défaire progressivement de la dépendance à la caféine.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "habitude",
+            "title": "Le Rituel Hydratation Matinale",
+            "description": "Boire un grand verre d'eau (300-500ml) tiède juste après le réveil, avant toute boisson caféinée. C'est le premier geste de la journée pour ton corps.",
+            "questType": "main",
+            "tips": "Prépare une bouteille d'eau sur ta table de chevet la veille. Tu peux y ajouter une tranche de citron pour un coup de pouce au métabolisme.",
+            "rationale": "Réhydrate le corps après le jeûne nocturne, relance les fonctions métaboliques et crée une nouvelle association positive dès le matin, diminuant l'urgence de la caféine.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          },
+          {
+            "id": "p1a2",
+            "type": "mission",
+            "title": "L'Inventaire Caféine & Alternatives",
+            "description": "Faire la liste exhaustive de toutes tes sources de caféine et identifier 2-3 alternatives saines que tu pourrais tester (ex: tisanes, eau infusée, bouillon de légumes, eau gazeuse).",
+            "questType": "side",
+            "tips": "Regarde les étiquettes de tes boissons et aliments. Pense à des rituels de pause qui ne sont pas liés à la consommation de caféine.",
+            "rationale": "Prendre conscience de l'ampleur de ta consommation et préparer mentalement le terrain pour un sevrage progressif en ayant des options de remplacement.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Architecture de la Soif Consciente",
+        "subtitle": "Semaines 3-4 • Capter l'Énergie de l'Eau",
+        "rationale": "Maintenant que le corps est amorcé, nous allons intégrer l'eau de manière stratégique et développer une conscience aiguë des liens entre tes consommations et ton énergie.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "habitude",
+            "title": "La Règle des 2 Verres avant Caféine",
+            "description": "Avant de boire *chaque* boisson caféinée, bois impérativement deux grands verres d'eau. C'est ton 'péage' hydrique.",
+            "questType": "main",
+            "tips": "Garde une grande gourde d'eau sur ton bureau. Utilise une application de rappel d'eau pour les premiers jours si tu as peur d'oublier.",
+            "rationale": "Cette habitude crée un filtre conscient qui freine la consommation excessive de caféine et assure une hydratation constante, réduisant la 'fausse' soif de caféine.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p2a2",
+            "type": "framework",
+            "title": "Le Carnet Énergétique Quotidien",
+            "description": "Chaque soir, consigne ton niveau d'énergie, ta consommation de caféine et d'eau, et les ressentis associés. Cherche les patterns.",
+            "questType": "side",
+            "tips": "Sois honnête avec toi-même. Le but est de créer des corrélations. Ne cherche pas la perfection, juste l'observation.",
+            "rationale": "Développer une conscience profonde des liens entre tes habitudes de consommation et ton état énergétique, renforçant la motivation à un changement durable et intrinsèque.",
+            "targetReps": 7,
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Pendant 7 jours, prends quelques minutes en fin de journée pour faire le bilan. C'est ton miroir interne pour comprendre comment ton corps réagit à ce que tu lui donnes.",
+              "sections": [
+                {
+                  "id": "s1",
+                  "label": "Mon niveau d'énergie global aujourd'hui (1-10)",
+                  "inputType": "scale",
+                  "placeholder": "5"
+                },
+                {
+                  "id": "s2",
+                  "label": "Nombre de boissons caféinées consommées",
+                  "inputType": "text",
+                  "placeholder": "3"
+                },
+                {
+                  "id": "s3",
+                  "label": "Quantité d'eau bue (estimation en Litres)",
+                  "inputType": "text",
+                  "placeholder": "1.5 L"
+                },
+                {
+                  "id": "s4",
+                  "label": "Ressentis et observations clés (pics d'énergie, coups de barre...)",
+                  "inputType": "textarea",
+                  "placeholder": "Je me suis senti(e) léthargique en milieu d'après-midi, et le 3ème café n'a pas aidé. Mon énergie était plus stable après avoir bien bu le matin."
+                }
+              ]
+            },
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : Les Racines de la Vitalité Autonome",
+        "subtitle": "Semaines 5-6 • Reconnecter aux Sources Internes",
+        "rationale": "Nous allons activement diversifier tes sources d'énergie et créer des espaces physiques et mentaux pour ancrer ces nouvelles pratiques, réduisant ainsi ta dépendance externe.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "habitude",
+            "title": "Le Shift Caféine Intelligent",
+            "description": "Remplace systématiquement une de tes boissons caféinées habituelles (idéalement celle de l'après-midi) par une alternative non-caféinée que tu as identifiée.",
+            "questType": "main",
+            "tips": "Commence par la boisson la plus facile à remplacer pour toi. Prépare ton alternative à l'avance pour qu'elle soit prête quand l'envie se fait sentir.",
+            "rationale": "Cette substitution déconstruit l'association 'coup de fouet = caféine' et prouve que tu peux maintenir ton énergie sans stimulant, renforçant ton autonomie.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "afternoon"
+          },
+          {
+            "id": "p3a2",
+            "type": "mission",
+            "title": "L'Espace Anti-Écran & Mouvement",
+            "description": "Aménage une micro-zone dédiée à la pause hydratation/mouvement près de ton espace de travail ou de vie, loin des écrans. Fais-y une micro-pause de 5 minutes toutes les 2 heures.",
+            "questType": "side",
+            "tips": "Il peut s'agir d'un coin de la pièce avec une bouteille d'eau, quelques étirements affichés. Le changement de lieu physique est clé.",
+            "rationale": "Rompre l'association écran-immobilité-déshydratation-caféine. Introduire le mouvement comme une source naturelle d'énergie et une opportunité d'hydratation consciente.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : La Symbiose Corps-Esprit Énergisée",
+        "subtitle": "Semaines 7-8 • Ancrage et Maîtrise",
+        "rationale": "Nous consolidons les nouvelles habitudes en les intégrant de manière fluide et proactive dans ton quotidien, et en élaborant des stratégies pour faire face aux défis futurs sans recourir aux anciens schémas.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "habitude",
+            "title": "La Micro-Pause Hydratante et Mouvements",
+            "description": "Toutes les 90 minutes (ou dès les premiers signes de fatigue), lève-toi, bois un verre d'eau et effectue quelques étirements ou mouvements simples (flexions, rotations, marche rapide).",
+            "questType": "main",
+            "tips": "Utilise une alarme discrète ou un minuteur pour te rappeler. Varie les mouvements pour ne pas t'ennuyer. L'objectif est la régularité, pas l'intensité.",
+            "rationale": "Intégrer de manière fluide l'hydratation et le mouvement comme outils proactifs de maintien de l'énergie tout au long de la journée, brisant les cycles de fatigue et de recherche de caféine.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p4a2",
+            "type": "framework",
+            "title": "Ma Stratégie Anti-Stress Énergétique",
+            "description": "Élabore un plan d'action personnalisé pour gérer les moments de stress au travail sans recourir à la caféine. Identifie des techniques de respiration, des micro-pauses, des visualisations ou des supports d'aide.",
+            "questType": "side",
+            "tips": "Pense à des solutions concrètes et que tu peux appliquer discrètement dans ton environnement de travail. La préparation est ta meilleure alliée.",
+            "rationale": "Anticiper et désamorcer les déclencheurs de consommation de caféine liés au stress, pour une énergie stable et autonome. Cela te donne le contrôle face aux situations exigeantes.",
+            "targetReps": 1,
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Le stress est un déclencheur majeur de tes anciennes habitudes. Ce framework est ta carte de navigation personnalisée pour y faire face sans retomber dans la dépendance à la caféine. Sois concret et réaliste pour que ce plan soit utilisable.",
+              "sections": [
+                {
+                  "id": "f4s1",
+                  "label": "Mes principaux déclencheurs de stress au travail (3-5 exemples)",
+                  "inputType": "list",
+                  "placeholder": "Deadline imminente|Réunion difficile|Conflit avec un collègue"
+                },
+                {
+                  "id": "f4s2",
+                  "label": "Mes 3 stratégies non-caféinées pour gérer le stress intense",
+                  "inputType": "list",
+                  "placeholder": "5 min de respiration profonde|Courte marche dehors|Écouter de la musique calme"
+                },
+                {
+                  "id": "f4s3",
+                  "label": "Si je suis submergé(e), qui ou quoi peut m'offrir un soutien ?",
+                  "inputType": "text",
+                  "placeholder": "Un collègue de confiance|Application de méditation guidée|Un ami extérieur"
+                }
+              ]
+            },
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

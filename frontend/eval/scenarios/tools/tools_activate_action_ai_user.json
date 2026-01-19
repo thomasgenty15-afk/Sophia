@@ -1,0 +1,44 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_activate_action_ai_user",
+  "description": "Tool test (activate_plan_action) avec user AI sur plusieurs tours. Contexte réaliste: l'utilisateur se demande ce qui vient après / veut avancer. Il hésite, puis demande explicitement d'activer une action. Sophia ne doit pas activer sans consentement explicite, doit confirmer l'activation et donner une prochaine étape concrète.",
+  "tags": ["sophia.architect"],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Le Premier Pas",
+        "type": "mission",
+        "tracking_type": "boolean",
+        "target_reps": 1,
+        "time_of_day": "any_time",
+        "description": "Enfile tes chaussures de sport. C'est tout.",
+        "scheduled_days": null,
+        "status": "pending"
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur web",
+    "age_range": "25-45",
+    "style": "oral, naturel, un peu hésitant",
+    "background": "Je veux avancer dans mon plan. Je me demande ce qui vient après, et j'hésite avant d'activer une nouvelle action."
+  },
+  "objectives": [
+    {
+      "kind": "tools_activate_action_realistic",
+      "spec": { "title": "Le Premier Pas" }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": ["activ"],
+    "plan_actions_must_include": [
+      { "title": "Le Premier Pas", "status": "active" }
+    ]
+  }
+}
+
+

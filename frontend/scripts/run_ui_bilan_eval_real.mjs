@@ -141,6 +141,8 @@ async function main() {
     budget_usd: 0,
     model: "gemini-2.5-flash",
     use_real_ai: true,
+    use_pre_generated_plans: true,
+    pre_generated_plans_required: true,
   };
 
   const startedAt = Date.now();

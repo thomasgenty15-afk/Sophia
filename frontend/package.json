@@ -11,7 +11,10 @@
     "test:e2e": "playwright test",
     "test:e2e:install": "playwright install --with-deps",
     "eval:tools": "node scripts/run_tool_evals.mjs",
+    "eval:tools:create-action": "node scripts/run_tool_create_action_eval.mjs",
+    "eval:tools:create-action:ai-user": "node scripts/run_tool_create_action_eval_ai_user.mjs",
     "eval:wa:onboarding:bundle": "node scripts/run_ui_whatsapp_onboarding_eval_bundle.mjs",
+    "eval:export-bundle": "node scripts/export_eval_bundle.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

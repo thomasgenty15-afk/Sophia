@@ -36,6 +36,7 @@ import { FrameworkModal } from '../components/dashboard/FrameworkModal';
 import { PlanPhaseBlock } from '../components/dashboard/PlanPhaseBlock';
 import { EmptyState } from '../components/dashboard/EmptyState';
 import { PlanSettingsModal } from '../components/dashboard/PlanSettingsModal';
+import { HabitSettingsModal } from '../components/dashboard/HabitSettingsModal';
 import ResumeOnboardingView from '../components/ResumeOnboardingView';
 import UserProfile from '../components/UserProfile';
 import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
@@ -100,6 +101,8 @@ const Dashboard = () => {
   const [helpingAction, setHelpingAction] = useState<Action | null>(null);
   const [openFrameworkAction, setOpenFrameworkAction] = useState<Action | null>(null);
   const [historyFrameworkAction, setHistoryFrameworkAction] = useState<Action | null>(null);
+  const [habitSettingsAction, setHabitSettingsAction] = useState<Action | null>(null);
+  const [habitSettingsMode, setHabitSettingsMode] = useState<'activate' | 'edit'>('edit');
 
   // 2. LOGIC HOOK : Récupère tous les handlers (Actions, Reset, Save...)
   const logic = useDashboardLogic({
@@ -121,6 +124,16 @@ const Dashboard = () => {
       setIsProfileOpen(true);
     }
   });
+
+  const isHabit = (a: Action | null | undefined) => {
+    const t = String(a?.type ?? '').toLowerCase().trim();
+    return t === 'habitude' || t === 'habit';
+  };
+
+  const openHabitSettings = (action: Action, mode: 'activate' | 'edit') => {
+    setHabitSettingsAction(action);
+    setHabitSettingsMode(mode);
+  };
 
   // --- Feedback Logic ---
   const [isFeedbackOpen, setIsFeedbackOpen] = useState(false);
@@ -598,20 +611,19 @@ const Dashboard = () => {
                         {(() => {
                             let previousPhaseFullyActivated = true;
                             return activePlan.phases.map((phase, index) => {
-                                const isCurrentPhaseFullyActivated = phase.actions.every(a => a.status === 'active' || a.status === 'completed' || (a as any).isCompleted);
+                                // "Fully activated" means: nothing is explicitly pending.
+                                // Important: many plans don't carry `status` in their JSON; in that case we treat it as activated.
+                                const isCurrentPhaseFullyActivated = phase.actions.every(a => {
+                                  const s = (a as any).status as string | undefined;
+                                  return s !== 'pending';
+                                });
                                 const canActivateActions = previousPhaseFullyActivated;
                                 previousPhaseFullyActivated = isCurrentPhaseFullyActivated;
                                 let currentPhaseStatus = phase.status; 
                                 
-                                if (currentPhaseStatus === 'locked' || !currentPhaseStatus) {
-                                    if (index === 0) currentPhaseStatus = 'active'; 
-                                    else {
-                                        const previousPhase = activePlan.phases[index - 1];
-                                        if (previousPhase.status === 'active' || previousPhase.status === 'completed') {
-                                            currentPhaseStatus = 'active';
-                                        }
-                                    }
-                                }
+                                // Don't auto-unlock phases: if the plan says "locked", keep it locked.
+                                // Only provide a safe fallback when `status` is missing in the plan JSON.
+                                if (!currentPhaseStatus) currentPhaseStatus = index === 0 ? 'active' : 'locked';
 
                                 return (
                                     <PlanPhaseBlock
@@ -623,10 +635,14 @@ const Dashboard = () => {
                                         onOpenFramework={setOpenFrameworkAction}
                                         onOpenHistory={setHistoryFrameworkAction}
                                         onUnlockPhase={() => logic.handleUnlockPhase(index)}
-                                        onUnlockAction={logic.handleUnlockAction}
+                                        onUnlockAction={(action) => {
+                                          if (isHabit(action)) return openHabitSettings(action, 'activate');
+                                          return logic.handleUnlockAction(action);
+                                        }}
                                         onToggleMission={logic.handleToggleMission}
                                         onIncrementHabit={logic.handleIncrementHabit}
                                         onMasterHabit={logic.handleMasterHabit}
+                                        onOpenHabitSettings={(action) => openHabitSettings(action, 'edit')}
                                     />
                                 );
                             });
@@ -711,6 +727,17 @@ const Dashboard = () => {
           onSubmit={handleFeedbackSubmit}
           modules={getFeedbackModules()}
           isSubmitting={isFeedbackSubmitting}
+        />
+
+        <HabitSettingsModal
+          isOpen={!!habitSettingsAction}
+          mode={habitSettingsMode}
+          action={habitSettingsAction}
+          onClose={() => setHabitSettingsAction(null)}
+          onSave={async ({ targetReps, scheduledDays, activateIfPending }) => {
+            if (!habitSettingsAction) return;
+            await logic.handleSaveHabitSettings(habitSettingsAction, { targetReps, scheduledDays, activateIfPending });
+          }}
         />
       </main>
     </div>

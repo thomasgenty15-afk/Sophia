@@ -16,19 +16,21 @@ serve(async (req) => {
     const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
     const isLocalSupabase =
       (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
-      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000") ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://127.0.0.1:54321") ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://localhost:54321")
     if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
       const finalAction = {
         id: `inter_${Date.now()}`,
-        title: "MEGA_TEST_STUB: Step intermédiaire",
-        description: "MEGA_TEST_STUB: fais un micro-pas de 2 minutes.",
+        title: "Étape intermédiaire (2 min)",
+        description: "Fais un micro-pas de 2 minutes.",
         questType: "side",
         type: "mission",
         tracking_type: "boolean",
         time_of_day: "any_time",
         targetReps: 1,
-        tips: "MEGA_TEST_STUB: tip",
-        rationale: "MEGA_TEST_STUB: rationale",
+        tips: "Choisis un tout petit pas, facile à faire même si tu es fatigué(e).",
+        rationale: "Réduire l’effort d’entrée diminue la résistance et te remet en mouvement.",
         isCompleted: false,
         status: "active",
       }

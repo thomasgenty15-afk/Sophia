@@ -1,0 +1,261 @@
+{
+  "meta": {
+    "id": "plan_SENSE_SNS_3_22ed64880c0f90e9",
+    "theme_key": "SENSE",
+    "theme_id": "SNS",
+    "theme_title": "Sens & Direction",
+    "axis_id": "SNS_3",
+    "axis_title": "Traverser un deuil ou une grosse transition",
+    "selected_problem_ids": [
+      "SNS_3_P3",
+      "SNS_3_P6"
+    ],
+    "selected_problem_labels": [
+      "Je dois faire le deuil d’un projet / rêve / situation qui comptait beaucoup.",
+      "Je me sens souvent submergé(e) par les émotions ou complètement éteint(e)."
+    ],
+    "fingerprint": "22ed64880c0f90e9",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:40:42.657Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je dois faire le deuil d'un projet professionnel qui a pris fin brutalement. J'ai mis beaucoup d'énergie et d'espoir dedans, et aujourd'hui, je me sens un peu perdu(e) et submergé(e) par les émotions. J'ai besoin d'aide pour tourner la page et retrouver une direction.",
+      "blockers": "J'ai du mal à accepter que ce soit fini, je rumine beaucoup et je me sens bloqué(e) émotionnellement. Parfois, j'ai l'impression de ne plus savoir qui je suis sans ce projet. J'ai peur de ne pas retrouver quelque chose d'aussi stimulant et de ne pas être à la hauteur.",
+      "context": "J'ai récemment dû abandonner un projet entrepreneurial sur lequel je travaillais depuis plusieurs années. C'était mon bébé, ma passion. Aujourd'hui, je suis sans emploi fixe et je vis une période de transition difficile. Mon entourage est de soutien, mais je sens que j'ai besoin d'un accompagnement plus structuré pour avancer.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "SNS_3",
+      "title": "Traverser un deuil ou une grosse transition",
+      "theme": "Sens & Direction",
+      "problems": [
+        "Je dois faire le deuil d’un projet / rêve / situation qui comptait beaucoup.",
+        "Je me sens souvent submergé(e) par les émotions ou complètement éteint(e)."
+      ]
+    },
+    "answers": {
+      "SNS_3_P3_Q1": "Un projet pro / une entreprise",
+      "SNS_3_P3_Q2": [
+        "Beaucoup d’espoir / de sens",
+        "Une part de ton identité (“qui tu es”)"
+      ],
+      "SNS_3_P6_Q1": "Ça oscille beaucoup entre plusieurs états",
+      "SNS_3_P6_Q2": "Par vagues, avec des moments où ça va",
+      "meta": {
+        "problems": [
+          "SNS_3_P3",
+          "SNS_3_P6"
+        ]
+      }
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "female"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Protocole Phénix Intérieur",
+    "strategy": "Cette transformation se concentre sur l'accompagnement d'un deuil professionnel profond, en priorisant l'acceptation émotionnelle, la redéfinition de l'identité personnelle et la réouverture progressive à de nouvelles directions, avec douceur et intention.",
+    "sophiaKnowledge": "Tu traverses une période de deuil intense suite à la fin brutale d'un projet professionnel qui était bien plus qu'un travail : c'était une part de ton identité, ton 'bébé'. Tu te sens perdu(e), submergé(e) par des émotions fluctuantes, et tu as du mal à accepter cette réalité. La rumination est forte et la peur de ne pas retrouver de sens ou d'être à la hauteur te paralyse. Tu recherches une structure pour avancer au-delà de ce blocage émotionnel.",
+    "context_problem": "Tu te sens bloqué(e) et submergé(e) par la fin inattendue d'un projet entrepreneurial qui était ta passion et ton identité. La difficulté à accepter cette perte et la rumination t'empêchent de retrouver un sens et une direction, te laissant perdu(e) dans cette période de transition.",
+    "identity": "Je suis l'Architecte de ma Renaissance.",
+    "deepWhy": "Pour honorer ce qui a été, embrasser mon pouvoir créateur inhérent et bâtir une vie qui me ressemble, pleine de sens, d'apaisement et de nouvelles opportunités.",
+    "goldenRules": "1. Accueillir chaque émotion sans jugement, comme un messager.\n2. Chaque fin est une transformation, un espace pour un nouveau commencement.\n3. Ma valeur est intrinsèque, indépendante de mes projets passés ou futurs.",
+    "vitalSignal": {
+      "name": "Niveau d'apaisement intérieur",
+      "unit": "/10",
+      "startValue": "3",
+      "targetValue": "7",
+      "description": "Évalue ton sentiment général d'apaisement et de sérénité émotionnelle sur la journée.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois cette semaine as-tu repensé au projet perdu avec une intensité émotionnelle qui t'a paralysé(e) pendant plus de 15 minutes ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage de l'Acceptation",
+        "subtitle": "Semaines 1-2 • Accueillir la réalité et les émotions",
+        "rationale": "Cette phase est dédiée à la reconnaissance et à l'expression structurée de ton deuil, afin de créer un espace pour les émotions sans les laisser te submerger. L'objectif est de commencer à dissoudre les blocages émotionnels en les nommant.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "framework",
+            "title": "Le Rituel de la Reconnaissance et du Lâcher-prise",
+            "description": "Un exercice d'écriture en une fois pour honorer le projet passé, exprimer ton deuil et poser l'intention consciente d'avancer.",
+            "questType": "main",
+            "tips": "Trouve un moment où tu peux être seul(e) et sans interruption. N'hésite pas à y revenir si tu ressens le besoin, mais l'objectif est une formalisation initiale.",
+            "rationale": "Ce rituel permet de verbaliser et de structurer le processus de deuil, transformant l'expérience douloureuse en un acte de passage conscient.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Il est temps de donner une voix à ta peine et à ce qui a été. Reconnais ce projet, son impact, et prépare-toi à libérer l'espace pour ce qui vient. Ne filtre rien, sois totalement honnête avec toi-même.",
+              "sections": [
+                {
+                  "id": "p1a1s1",
+                  "label": "Ce que ce projet représentait pour moi (valeurs, espoirs, identité)",
+                  "inputType": "textarea",
+                  "placeholder": "Ce projet était mon refuge, mon terrain de jeu, ma vision du futur..."
+                },
+                {
+                  "id": "p1a1s2",
+                  "label": "Les émotions les plus fortes que je ressens actuellement (colère, tristesse, peur...)",
+                  "inputType": "list",
+                  "placeholder": "Tristesse | Colère | Peur de l'inconnu"
+                },
+                {
+                  "id": "p1a1s3",
+                  "label": "L'acceptation : 'Je reconnais que ce chapitre est terminé et je me permets de ressentir...'",
+                  "inputType": "textarea",
+                  "placeholder": "Je reconnais que ce chapitre est terminé et je me permets de ressentir la tristesse et l'incertitude que cela engendre, tout en m'ouvrant à l'idée d'un nouveau départ."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "La Pause d'Ancrage Émotionnel",
+            "description": "Prends 5 minutes, 1 à 2 fois par jour, pour t'asseoir, observer et nommer les émotions présentes en toi, sans jugement ni tentative de les changer.",
+            "questType": "side",
+            "tips": "Utilise une application de méditation guidée ou un minuteur simple. L'objectif n'est pas de 'résoudre', mais juste d'observer et de reconnaître.",
+            "rationale": "Cette habitude renforce ta capacité à naviguer tes émotions sans te laisser submerger, en créant une distance saine et en développant l'acceptation.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Éveil de l'Identité Retrouvée",
+        "subtitle": "Semaines 3-4 • Reconnexion à soi, au-delà du projet",
+        "rationale": "Cette phase vise à déconstruire l'assimilation de ton identité au projet perdu. En redéfinissant tes valeurs et tes forces intrinsèques, tu retrouves une base solide de 'qui tu es' indépendamment de tes réalisations professionnelles.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "framework",
+            "title": "La Boussole Intérieure",
+            "description": "Un exercice d'écriture pour redéfinir tes valeurs fondamentales, tes forces personnelles et tes passions, au-delà du projet passé.",
+            "questType": "main",
+            "tips": "Pense à des moments de ta vie où tu t'es senti(e) le plus authentique, le plus aligné(e), même avant ce projet. Quelles qualités revenaient ?",
+            "rationale": "Redécouvrir tes piliers internes te permet de reconstruire une identité forte et résiliente, non dépendante d'une circonstance extérieure.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Ce projet était une magnifique facette de toi, mais pas ton essence. Qui es-tu, fondamentalement, sans ce rôle ou cette étiquette ? Quelles sont les valeurs qui te guident, tes forces uniques ?",
+              "sections": [
+                {
+                  "id": "p2a1s1",
+                  "label": "Mes 5 valeurs fondamentales (ex: intégrité, créativité, compassion, liberté...)",
+                  "inputType": "list",
+                  "placeholder": "Créativité | Authenticité | Croissance"
+                },
+                {
+                  "id": "p2a1s2",
+                  "label": "Mes 3 forces intrinsèques (compétences, qualités personnelles uniques)",
+                  "inputType": "list",
+                  "placeholder": "Résilience | Empathie | Vision stratégique"
+                },
+                {
+                  "id": "p2a1s3",
+                  "label": "Quelles passions ou intérêts (passés ou nouveaux) résonnent encore avec moi ?",
+                  "inputType": "textarea",
+                  "placeholder": "J'ai toujours aimé la lecture, l'art, et découvrir de nouvelles cultures."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p2a2",
+            "type": "habitude",
+            "title": "Le Carnet des Petites Victoires",
+            "description": "Chaque soir, note 3 choses (aussi minimes soient-elles) qui ont bien fonctionné, t'ont apporté une satisfaction ou une petite joie dans ta journée.",
+            "questType": "side",
+            "tips": "Ça peut être 'j'ai bu assez d'eau', 'j'ai souri à un inconnu', ou 'j'ai pris 10 minutes pour moi'. L'important est la constance.",
+            "rationale": "Ce décalage de perspective entraîne ton cerveau à rechercher le positif, contrant la rumination et renforçant la gratitude, essentielle pour sortir de l'état 'éteint'.",
+            "targetReps": 7,
+            "tracking_type": "counter",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : La Reconnexion au Monde",
+        "subtitle": "Semaines 5-6 • Recharger les batteries et rompre l'isolement",
+        "rationale": "Après le travail intérieur, cette phase est cruciale pour briser le sentiment d'isolement et de déconnexion. En te réengageant activement avec des sources de plaisir et de soutien extérieur, tu recharges ton énergie vitale.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "habitude",
+            "title": "L'Évasion Consciente",
+            "description": "Pratique chaque jour 30 minutes d'une activité purement plaisante, qui t'absorbe et te déconnecte sans effort mental (lecture, musique, marche en nature, hobby créatif).",
+            "questType": "main",
+            "tips": "Choisis une activité qui ne sollicite pas ton mental sur la productivité ou la performance. Laisse-toi simplement porter.",
+            "rationale": "L'engagement dans des activités plaisantes et sans enjeu aide à réguler le système nerveux, réduit le stress et réactive les circuits de récompense naturels de ton cerveau.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p3a2",
+            "type": "mission",
+            "title": "Le Cercle de S.O.U.T.I.E.N. (S'Ouvrir Utilement aux Tendres Intentions de l'Entourage Non-jugeant)",
+            "description": "Contacte délibérément 2-3 personnes de ton entourage (amis, famille) qui te sont un véritable soutien, pour partager un moment de qualité, sans forcément parler du projet.",
+            "questType": "side",
+            "tips": "Propose une activité simple : un café, une marche, un repas. L'objectif est la connexion et le partage, pas une session de thérapie.",
+            "rationale": "Le lien social est un puissant régulateur émotionnel et un rempart contre l'isolement. Renforcer ces connexions nourrit ton besoin d'appartenance et t'offre de nouvelles perspectives.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : Le Chemin de la Nouvelle Direction",
+        "subtitle": "Semaines 7-8 • Semer les graines du futur",
+        "rationale": "Cette dernière phase est dédiée à l'exploration douce et sans pression de nouvelles pistes pour ton futur. Il ne s'agit pas de trouver LA solution, mais de réactiver ta curiosité et ton pouvoir créateur, pas à pas.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "habitude",
+            "title": "L'Exploration des Graines",
+            "description": "Consacre 1 heure, 3 fois par semaine (ou 30min/jour), à l'exploration d'un nouveau domaine, une compétence, une idée, ou une formation qui t'intrigue (lecture, cours en ligne, recherche).",
+            "questType": "main",
+            "tips": "Ne te fixe aucune obligation de réussite ou d'aboutissement. Laisse-toi guider par la curiosité pure. Ça peut être complètement en dehors de ton ancien domaine.",
+            "rationale": "Réactiver ta curiosité et t'ouvrir à de nouvelles connaissances stimule les circuits de la récompense et de la nouveauté dans ton cerveau, générant de l'espoir et de l'énergie pour le futur.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p4a2",
+            "type": "mission",
+            "title": "La Vision Douce : Mon Tableau de Bord Émergent",
+            "description": "Sur une feuille ou un document, liste au moins 10 idées (petites ou grandes) de ce que tu pourrais vouloir essayer, explorer, apprendre ou créer dans les 6 prochains mois, sans aucune pression de réalisation ou de perfection. Ce n'est qu'un brainstorming.",
+            "questType": "side",
+            "tips": "Écris tout ce qui te vient, même si ça te paraît fou ou irréalisable. L'objectif est de libérer les idées et d'ouvrir le champ des possibles, sans filtre.",
+            "rationale": "Visualiser de nouvelles possibilités, même sans engagement, commence à reprogrammer ton cerveau pour voir au-delà de la perte et à générer un sentiment d'agence et d'espoir pour l'avenir.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

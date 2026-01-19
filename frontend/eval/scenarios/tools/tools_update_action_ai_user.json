@@ -1,0 +1,67 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_update_action_ai_user",
+  "description": "Tool test (update_action_structure) with AI-generated user messages driven by a state machine inside simulate-user. Seeds an existing habit first, then updates frequency + scheduled_days + conflict resolution.",
+  "tags": ["sophia.architect"],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Lecture",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": "evening",
+        "description": "Lire 10 minutes le soir, pour remplacer le scroll.",
+        "scheduled_days": null
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur web",
+    "age_range": "25-35",
+    "style": "oral, naturel, pas robot, va droit au but",
+    "background": "J’ai déjà une habitude \"Lecture\" dans mon plan, et je veux l’ajuster (fréquence + jours)."
+  },
+  "objectives": [
+    {
+      "kind": "tools_update_action_realistic",
+      "spec": {
+        "title": "Lecture",
+        "increase_to_target_reps": 4,
+        "scheduled_days_initial": ["mon", "wed", "fri", "sat"],
+        "decrease_to_target_reps": 3,
+        "day_to_remove": "sat"
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "(quel|quelle).*(jour).*(retirer|enlever|supprimer)",
+      "(jours|jour).*planifi"
+    ],
+    "assistant_must_not_match": [
+      "j[’']ai\\s+programm[eé]"
+    ],
+    "plan_actions_must_include": [
+      {
+        "title": ["Lecture", "10 min de lecture", "10 minutes de lecture", "Lecture (10 min)", "Lecture du soir (10 min)", "Lecture de 10 minutes"],
+        "status": "active",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "scheduled_days": ["mon", "wed", "fri"]
+      }
+    ],
+    "plan_actions_must_not_include": [
+      {
+        "title": ["Lecture", "10 min de lecture", "10 minutes de lecture", "Lecture (10 min)", "Lecture du soir (10 min)", "Lecture de 10 minutes"],
+        "scheduled_days": ["sat"]
+      }
+    ]
+  }
+}
+
+

@@ -604,9 +604,9 @@ const ActionPlanGeneratorNext = () => {
                 </label>
                 <div className="space-y-3">
                     {[
-                        { id: 'fast', label: "Je suis hyper motivé (Intense)", desc: "Plan dense, résultats rapides, demande beaucoup d'énergie." },
-                        { id: 'balanced', label: "Je suis motivé, mais je veux que ce soit progressif", desc: "Équilibre entre effort et récupération. Recommandé." },
-                        { id: 'slow', label: "Je sais que c'est un gros sujet, je préfère prendre mon temps", desc: "Micro-actions, très peu de pression, durée allongée." }
+                        { id: 'fast', label: "Je suis hyper motivé (Intense) (1 mois)", desc: "Plan dense, résultats rapides, demande beaucoup d'énergie." },
+                        { id: 'balanced', label: "Je suis motivé, mais je veux que ce soit progressif (2 mois)", desc: "Équilibre entre effort et récupération. Recommandé." },
+                        { id: 'slow', label: "Je sais que c'est un gros sujet, je préfère prendre mon temps (3 mois)", desc: "Micro-actions, très peu de pression, durée allongée." }
                     ].map((option) => (
                         <label 
                             key={option.id}

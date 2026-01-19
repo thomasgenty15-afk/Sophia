@@ -1,0 +1,297 @@
+{
+  "meta": {
+    "id": "plan_SLEEP_SLP_1_d25dad97a2d43717",
+    "theme_key": "SLEEP",
+    "theme_id": "SLP",
+    "theme_title": "Sommeil & Récupération",
+    "axis_id": "SLP_1",
+    "axis_title": "Passer en mode nuit & s’endormir facilement",
+    "selected_problem_ids": [
+      "SLP_1_P1",
+      "SLP_1_P4"
+    ],
+    "selected_problem_labels": [
+      "Je me couche régulièrement plus tard que ce que je voudrais.",
+      "Mon cerveau tourne en boucle au moment de dormir (ruminations, scénarios…)."
+    ],
+    "fingerprint": "d25dad97a2d43717",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:33:09.000Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "J'en ai marre d'être fatigué tout le temps. Je sais que mon sommeil est la clé, mais je n'arrive pas à me coucher plus tôt et mon cerveau ne veut pas s'éteindre une fois au lit.",
+      "blockers": "Souvent, je me retrouve à travailler tard ou à regarder des séries pour décompresser, et je vois pas le temps passer. Et une fois au lit, c'est la machine à penser qui se met en route, impossible de lâcher prise.",
+      "context": "Je suis assez stressé par mon travail en ce moment, il y a beaucoup de pression et je ramène souvent les problèmes à la maison. J'ai aussi tendance à être perfectionniste, ce qui n'aide pas pour les ruminations.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "SLP_1",
+      "title": "Passer en mode nuit & s’endormir facilement",
+      "theme": "Sommeil & Récupération",
+      "problems": [
+        "Je me couche régulièrement plus tard que ce que je voudrais.",
+        "Mon cerveau tourne en boucle au moment de dormir (ruminations, scénarios…)."
+      ]
+    },
+    "answers": {
+      "SLP_1_P1_Q1": "00h–1h",
+      "SLP_1_P1_Q2": "23h–00h",
+      "SLP_1_P4_Q1": [
+        "Travail / études / organisation",
+        "Scénarios catastrophes / “et si…”"
+      ],
+      "SLP_1_P4_Q2": [
+        "Les deux"
+      ],
+      "meta": {
+        "problemIds": [
+          "SLP_1_P1",
+          "SLP_1_P4"
+        ],
+        "axisId": "SLP_1"
+      }
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "other"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Sanctuaire du Sommeil",
+    "strategy": "Nous allons transformer tes soirées stressantes en un rituel apaisant. La clé est de désamorcer les ruminations et d'ancrer un couvre-feu digital pour redonner à ton cerveau le signal que la nuit est faite pour le repos, pas pour la surcharge.",
+    "sophiaKnowledge": "Tu es une personne perfectionniste, fortement sollicitée par ton travail, ce qui génère un stress chronique et des ruminations incessantes, particulièrement au moment du coucher. Tu utilises écrans et séries comme échappatoire, ce qui retarde ton heure de sommeil et empêche ton cerveau de 's'éteindre'. Ton sommeil actuel est insuffisant et ton heure de coucher habituelle se situe entre minuit et 1h du matin.",
+    "context_problem": "Épuisé par des nuits courtes et des pensées incessantes, tu peines à trouver le chemin vers un sommeil réparateur. Tes habitudes de décompression nocturne et un mental hyperactif sont tes principaux blocages, t'empêchant de te coucher plus tôt et de lâcher prise une fois au lit.",
+    "identity": "Je suis l'Architecte de ma Sérénité Nocturne.",
+    "deepWhy": "Pour retrouver l'énergie vitale d'être pleinement présent, concentré et serein, me libérant de la fatigue constante qui pèse sur ma vie quotidienne et mes relations.",
+    "goldenRules": [
+      "1. L'écran principal s'éteint 90 minutes avant le coucher.",
+      "2. Le lit est un sanctuaire : il ne sert qu'au sommeil et à l'intimité.",
+      "3. Si l'esprit s'emballe, je me lève pour le décharger avant de revenir."
+    ],
+    "vitalSignal": {
+      "name": "Coucher avant heure cible",
+      "unit": "boolean",
+      "startValue": "00:45",
+      "targetValue": "22:30",
+      "description": "Chaque jour, marque si tu t'es couché avant l'heure cible ajustée. L'heure cible débutera à 00h45 et reculera de 15 minutes chaque semaine pour t'amener progressivement vers 22h30. (Ex: Semaine 1-2: 00h45, Semaine 3-4: 00h30, etc.)",
+      "tracking_type": "boolean"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de soirs cette semaine as-tu ressenti ton cerveau s'emballer une fois au lit ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : Le Silence Digital - Ancrer le Nouveau Rythme",
+        "subtitle": "Semaines 1-2 • Couper le flux de stimuli",
+        "rationale": "Avant de calmer l'esprit, nous devons couper les sources externes de surstimulation. Le couvre-feu digital reprogramme ton cerveau à associer la soirée au repos.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "habitude",
+            "title": "Le Couvre-feu Digital (90 min)",
+            "description": "Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 90 minutes avant ton heure de coucher cible. Active un mode 'Ne pas déranger' si besoin.",
+            "questType": "main",
+            "tips": "Utilise ce temps pour lire un livre physique, écouter de la musique douce ou discuter. Commence par 60 min si 90 min semble trop.",
+            "rationale": "La lumière bleue supprime la mélatonine, l'hormone du sommeil. Un arrêt précoce signale au cerveau qu'il est temps de se préparer au repos.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          },
+          {
+            "id": "p1a2",
+            "type": "framework",
+            "title": "Le Journal de Vidange Mentale",
+            "description": "Chaque soir, écris pendant 5-10 minutes tout ce qui te préoccupe, ce qui 'tourne en boucle' dans ta tête. Laisse tout sortir sans jugement.",
+            "questType": "side",
+            "tips": "Utilise un carnet et un stylo. Ne te relis pas forcément, l'acte d'écrire suffit à décharger le mental.",
+            "rationale": "Extérioriser tes pensées réduit l'activité du cortex préfrontal, diminuant les ruminations et facilitant l'endormissement.",
+            "targetReps": 14,
+            "tracking_type": "counter",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "C'est ton espace pour vider le 'cache' de ton cerveau. Ne te soucie pas de la grammaire ou de la structure. Écris ce qui vient, y compris tes listes de tâches, tes inquiétudes ou même tes pensées aléatoires.",
+              "sections": [
+                {
+                  "id": "p1a2s1",
+                  "label": "Mes pensées du jour (tout ce qui m'occupe l'esprit)",
+                  "inputType": "textarea",
+                  "placeholder": "Aujourd'hui, j'ai pensé à..."
+                },
+                {
+                  "id": "p1a2s2",
+                  "label": "Niveau de clarté mentale après l'exercice (1-10)",
+                  "inputType": "scale",
+                  "placeholder": "7"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Art de la Transition - Apaiser le Corps et l'Esprit",
+        "subtitle": "Semaines 3-4 • Créer un sas de décompression",
+        "rationale": "Le cerveau a besoin de signaux clairs pour passer du mode 'éveil' au mode 'sommeil'. Nous allons créer un rituel qui prépare physiquement et mentalement à l'endormissement.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "habitude",
+            "title": "Le Rituel Apaisant du Soir",
+            "description": "Après le couvre-feu digital, engage-toi dans une activité calme et prévisible : lecture (papier), étirements doux, douche tiède, écoute de musique relaxante ou méditation guidée. Choisis une ou deux activités et garde-les constantes.",
+            "questType": "main",
+            "tips": "La répétition crée un ancrage. Fais de ce rituel un moment sacré pour toi. La méditation courte (5-10 min) peut être particulièrement efficace pour les ruminations.",
+            "rationale": "Un rituel pré-sommeil réduit l'activation du système nerveux sympathique (stress) et active le parasympathique (repos), favorisant la sécrétion de mélatonine.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          },
+          {
+            "id": "p2a2",
+            "type": "mission",
+            "title": "Optimisation de l'Environnement Nocturne",
+            "description": "Fais un tour de ta chambre : Obscurcis-la au maximum (rideaux occultants), assure-toi qu'elle est fraîche (18-20°C idéal), et minimise le bruit (boules Quiès, bruit blanc).",
+            "questType": "side",
+            "tips": "Achète un masque de sommeil si la lumière est un problème. Un ventilateur peut aider à la fois pour la température et le bruit blanc.",
+            "rationale": "Un environnement de sommeil optimal est fondamental pour la qualité et la continuité du repos. Les sens sont des portes d'entrée au stress comme à la détente.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : La Gestion du Mental - Désamorcer les Pressions Quotidiennes",
+        "subtitle": "Semaines 5-6 • Réduire le poids des responsabilités",
+        "rationale": "Tes ruminations sont souvent liées au travail et au perfectionnisme. Cette phase vise à désamorcer ces déclencheurs avant qu'ils n'atteignent ton lit.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "framework",
+            "title": "L'Inventaire des 'Chargeurs Mentaux'",
+            "description": "Identifie les 3 principales sources de stress ou de pression mentale dans ta journée de travail. Pour chacune, explore ce que tu peux contrôler et ce qui est hors de ton contrôle. Recherche une action concrète à déléguer, reporter ou simplifier.",
+            "questType": "main",
+            "tips": "Ne cherche pas à résoudre tout d'un coup. Choisis une seule source de stress sur laquelle tu peux avoir un impact la semaine prochaine.",
+            "rationale": "Comprendre et segmenter tes sources de stress t'aide à reprendre le contrôle, réduisant ainsi la charge mentale qui s'invite au coucher.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Tes préoccupations sont réelles. L'objectif est de les sortir de ta tête pour les poser sur le papier, les analyser froidement, et reprendre le pouvoir sur elles. Choisis les 3 plus lourdes cette semaine.",
+              "sections": [
+                {
+                  "id": "p3a1s1",
+                  "label": "Charge Mentale 1 (description)",
+                  "inputType": "textarea",
+                  "placeholder": "Ex: Le projet X en retard..."
+                },
+                {
+                  "id": "p3a1s2",
+                  "label": "Ce que je peux contrôler/influencer",
+                  "inputType": "textarea",
+                  "placeholder": "Ex: Parler au chef, réorganiser mon planning..."
+                },
+                {
+                  "id": "p3a1s3",
+                  "label": "Action concrète pour alléger cette charge",
+                  "inputType": "text",
+                  "placeholder": "Ex: Envoyer un email pour demander un délai."
+                },
+                {
+                  "id": "p3a1s4",
+                  "label": "Charge Mentale 2 (description)",
+                  "inputType": "textarea",
+                  "placeholder": ""
+                },
+                {
+                  "id": "p3a1s5",
+                  "label": "Ce que je peux contrôler/influencer",
+                  "inputType": "textarea",
+                  "placeholder": ""
+                },
+                {
+                  "id": "p3a1s6",
+                  "label": "Action concrète pour alléger cette charge",
+                  "inputType": "text",
+                  "placeholder": ""
+                },
+                {
+                  "id": "p3a1s7",
+                  "label": "Charge Mentale 3 (description)",
+                  "inputType": "textarea",
+                  "placeholder": ""
+                },
+                {
+                  "id": "p3a1s8",
+                  "label": "Ce que je peux contrôler/influencer",
+                  "inputType": "textarea",
+                  "placeholder": ""
+                },
+                {
+                  "id": "p3a1s9",
+                  "label": "Action concrète pour alléger cette charge",
+                  "inputType": "text",
+                  "placeholder": ""
+                }
+              ]
+            }
+          },
+          {
+            "id": "p3a2",
+            "type": "habitude",
+            "title": "La Déconnexion Mentale de Fin de Journée",
+            "description": "À la fin de ta journée de travail, instaure un rituel symbolique (fermer ton ordinateur, changer de pièce, marcher 10 minutes) pour marquer la transition entre 'travail' et 'vie personnelle'. Ceci signale à ton cerveau que le 'mode travail' est terminé.",
+            "questType": "side",
+            "tips": "Visualise que tu 'ranges' tes problèmes de travail dans une boîte virtuelle que tu n'ouvriras que le lendemain. Une courte séance de respiration profonde peut aider.",
+            "rationale": "Cette coupure psychologique réduit la propension à ramener les problèmes du travail à la maison et à les laisser infester tes pensées nocturnes.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : L'Ancrage Profond - Maîtrise et Résilience Nocturne",
+        "subtitle": "Semaines 7-8 • Consolider les acquis pour un sommeil durable",
+        "rationale": "Maintenant que les fondations sont solides, nous allons ancrer ces nouvelles habitudes et te donner les outils pour gérer les rares moments où l'esprit tente de reprendre le dessus.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "habitude",
+            "title": "La Règle des 20 Minutes (Hors du Lit)",
+            "description": "Si tu ne t'endors pas dans les 20 minutes suivant ton coucher, lève-toi. Va dans une autre pièce et fais une activité calme (lecture, écriture, relaxation) sous lumière très faible, jusqu'à ce que tu ressentes à nouveau la fatigue. Retourne au lit seulement quand tu te sens somnolent.",
+            "questType": "main",
+            "tips": "Ne regarde pas l'heure. L'objectif est de ne pas associer le lit à l'insomnie ou à l'anxiété. Cette technique est validée par les thérapies cognitives comportementales de l'insomnie (TCC-I).",
+            "rationale": "Cela rompt le cycle d'anxiété lié à l'incapacité de s'endormir et renforce l'association lit = sommeil.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "night"
+          },
+          {
+            "id": "p4a2",
+            "type": "mission",
+            "title": "Le Kit Anti-Ruminations d'Urgence",
+            "description": "Prépare une liste de 3-5 activités concrètes et non stimulantes à faire si tu te lèves la nuit (selon la règle des 20 minutes) ou si des ruminations intenses surviennent. Ex: Écrire 3 choses pour lesquelles tu es reconnaissant, écouter un podcast soporifique, faire 5 min de cohérence cardiaque.",
+            "questType": "side",
+            "tips": "Garde cette liste à portée de main (sur un carnet près du lit, pas sur ton téléphone !). L'idée est d'avoir un plan d'action immédiat sans avoir à réfléchir.",
+            "rationale": "Avoir un plan préétabli en cas de réveil nocturne ou de ruminations réduit l'anxiété de l'incertitude et offre une voie de sortie efficace.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

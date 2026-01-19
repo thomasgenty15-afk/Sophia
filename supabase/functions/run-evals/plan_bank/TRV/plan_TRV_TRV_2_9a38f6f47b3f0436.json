@@ -1,0 +1,262 @@
+{
+  "meta": {
+    "id": "plan_TRV_TRV_2_9a38f6f47b3f0436",
+    "theme_key": "TRV",
+    "theme_id": "TRV",
+    "theme_title": "Transverses (fond de climat)",
+    "axis_id": "TRV_2",
+    "axis_title": "Anxiété & surchauffe mentale",
+    "selected_problem_ids": [
+      "TRV_2_P2",
+      "TRV_2_P6"
+    ],
+    "selected_problem_labels": [
+      "Je rumine beaucoup (je repense sans arrêt à certaines choses).",
+      "Mon anxiété impacte mon sommeil, ma capacité à me concentrer ou à profiter des moments."
+    ],
+    "fingerprint": "9a38f6f47b3f0436",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:42:51.758Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je sens que je suis toujours en train de trop analyser, de revivre des situations. Ça me prend beaucoup d'énergie et ça m'empêche de vraiment me détendre ou de profiter. Je suis fatigué de cette charge mentale constante et j'aimerais retrouver une certaine légèreté.",
+      "blockers": "Mon principal blocage, c'est cette incapacité à lâcher prise. Dès que j'essaie de ne pas penser, les pensées reviennent en force. J'ai aussi peur de ce que les autres vont penser si je ne suis pas 'parfait' ou si je fais une erreur, ce qui alimente les ruminations. Je me sens piégé dans ce cycle.",
+      "context": "Je suis dans une période où j'ai pas mal de responsabilités, tant au travail qu'à la maison. Les interactions sociales, même si j'apprécie, me demandent beaucoup d'énergie et je passe ensuite mes soirées à les rejouer dans ma tête. Mon sommeil est très perturbé, ce qui n'aide pas à gérer la journée. Je me sens souvent sur les nerfs et j'ai du mal à être pleinement présent pour mes proches ou mes activités.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "TRV_2",
+      "title": "Anxiété & surchauffe mentale",
+      "theme": "Transverses (fond de climat)",
+      "problems": [
+        "Je rumine beaucoup (je repense sans arrêt à certaines choses).",
+        "Mon anxiété impacte mon sommeil, ma capacité à me concentrer ou à profiter des moments."
+      ]
+    },
+    "answers": {
+      "TRV_2_P2_Q1": [
+        "Ce que tu as dit / fait (ou pas dit / pas fait)",
+        "Le regard des autres / ce qu’ils pensent de toi"
+      ],
+      "TRV_2_P2_Q2": [
+        "Le soir / la nuit",
+        "Après des interactions sociales"
+      ],
+      "TRV_2_P6_Q1": [
+        "Ton sommeil (endormissement, réveils, qualité)",
+        "Ta capacité à profiter des moments agréables"
+      ],
+      "TRV_2_P6_Q2": [
+        "Certaines situations à cause du stress (réunions, sorties, démarches…)",
+        "Certaines opportunités (perso / pro) par peur"
+      ],
+      "meta": {
+        "TRV_2_P2": "Je rumine beaucoup (je repense sans arrêt à certaines choses).",
+        "TRV_2_P6": "Mon anxiété impacte mon sommeil, ma capacité à me concentrer ou à profiter des moments."
+      }
+    },
+    "userProfile": {
+      "birth_date": "1996-01-05",
+      "gender": "other"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Protocole du Calme Intérieur",
+    "strategy": "Ce plan vise à désamorcer les boucles de rumination et l'anxiété en construisant des fondations solides de régulation émotionnelle, de gestion de l'énergie sociale et d'amélioration du sommeil, pour retrouver une présence sereine.",
+    "sophiaKnowledge": "Tu es une personne consciente et responsable, mais malheureusement piégée dans un cycle d'analyse excessive et de rumination. Cela épuise ton énergie mentale, perturbe ton sommeil, et t'empêche de profiter pleinement des moments et d'être présent. La peur du jugement des autres alimente ce cycle, te faisant rejouer les interactions sociales. Tu aspires à une plus grande légèreté mentale et à un lâcher-prise que tu n'arrives pas à atteindre seul.",
+    "context_problem": "Actuellement, tu te sens submergé par une charge mentale constante, où les ruminations et l'anxiété sont devenues des ombres envahissantes. Cette surchauffe impacte directement ton sommeil et ta capacité à t'ancrer dans le moment présent, te laissant sur les nerfs et incapable de jouir pleinement de ta vie ou de tes proches. Le besoin de perfection et la peur du jugement nourrissent ce cercle vicieux d'analyse.",
+    "identity": "Je suis l'Architecte de mon Calme Intérieur.",
+    "deepWhy": "Pour retrouver la légèreté et la sérénité nécessaire pour être pleinement présent et joyeux, sans la charge constante de l'analyse et la peur du jugement.",
+    "goldenRules": "1. J'accueille mes pensées sans les juger, elles passent.\n2. Je choisis consciemment mes points d'ancrage dans le présent.\n3. Mon repos mental et ma paix intérieure sont ma priorité absolue.",
+    "vitalSignal": {
+      "name": "Temps d'endormissement",
+      "unit": "min",
+      "startValue": "45",
+      "targetValue": "15",
+      "description": "Temps estimé entre le moment où tu te couches avec l'intention de dormir et l'endormissement réel.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois cette semaine as-tu noté une rumination persistante avant de dormir ou après une interaction sociale ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "L'Ancrage Silencieux : Libérer l'Esprit",
+        "subtitle": "Semaines 1-2 • Interruption des Boucles",
+        "rationale": "Nous allons créer un espace mental de décharge pour briser les premières boucles de rumination et introduire des pratiques de régulation neuronale immédiates.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "framework",
+            "title": "L'Inventaire Mental : Décharge Nocturne",
+            "description": "Chaque soir, 30 minutes avant de te coucher, écris sur papier toutes les pensées, soucis, listes de tâches ou ruminations qui te traversent l'esprit. L'objectif n'est pas de résoudre, mais de vider.",
+            "questType": "main",
+            "tips": "Ne filtre rien. Si c'est dans ta tête, ça va sur le papier. Utilise un carnet dédié que tu laisses hors de la chambre après l'exercice.",
+            "rationale": "Permet de 'décharger' le cerveau de sa RAM active, réduisant l'activation corticale et la production de cortisol, favorisant un endormissement plus rapide et moins perturbé.",
+            "tracking_type": "boolean",
+            "time_of_day": "night",
+            "targetReps": 7,
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Ton cerveau est comme un ordinateur avec trop d'onglets ouverts. Cet exercice est un 'sauvegarder et fermer' avant la mise en veille. Laisse tout sortir, sans jugement.",
+              "sections": [
+                {
+                  "id": "s1_p1a1",
+                  "label": "Toutes les pensées et préoccupations du jour :",
+                  "inputType": "textarea",
+                  "placeholder": "Je repense à la réunion de ce matin, j'ai peur d'oublier de... Mon voisin m'a regardé bizarrement, etc."
+                },
+                {
+                  "id": "s2_p1a1",
+                  "label": "Émotion dominante au moment de l'écriture (1-10) :",
+                  "inputType": "scale",
+                  "placeholder": "6"
+                }
+              ]
+            }
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "La Respiration du Calme Profond (4-7-8)",
+            "description": "Pratique la respiration 4-7-8 (inspire 4s, retiens 7s, expire 8s) 3 fois de suite, trois fois par jour, surtout quand tu sens l'anxiété monter.",
+            "questType": "side",
+            "tips": "Fais-le discrètement, assis ou allongé. L'expiration longue est la clé pour activer le système nerveux parasympathique.",
+            "rationale": "Cette technique simple stimule le nerf vague, ce qui ralentit le rythme cardiaque et abaisse la tension artérielle, signalant au cerveau que tu es en sécurité et réduisant l'état d'alerte.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 14
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Le Rempart de la Présence : Ancrage & Détachement",
+        "subtitle": "Semaines 3-4 • Cesser l'Hyper-Analyse",
+        "rationale": "Nous allons créer des marqueurs conscients pour te ramener au moment présent et installer des pratiques pour te détacher des relectures mentales des interactions passées.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "habitude",
+            "title": "L'Ancre du Moment Présent : Micro-Pause Sensorielle",
+            "description": "Deux fois par jour (ex: à la pause café et en rentrant à la maison), prends 60 secondes pour identifier 5 choses que tu vois, 4 choses que tu sens, 3 choses que tu entends, 2 choses que tu touches, 1 chose que tu goûtes.",
+            "questType": "main",
+            "tips": "Ferme les yeux si possible pour intensifier l'expérience. Fais-le de manière délibérée, sans distraction.",
+            "rationale": "Cette technique de grounding ramène instantanément ton attention de tes pensées au monde extérieur via tes sens, interrompant les boucles de rumination et renforçant les circuits de l'attention sélective.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 14
+          },
+          {
+            "id": "p2a2",
+            "type": "mission",
+            "title": "Désactivation Post-Sociale : Le Rideau de Scène",
+            "description": "Après chaque interaction sociale significative (réunion, soirée, discussion intense), et avant de te lancer dans une autre activité, prends 5 minutes pour 'fermer le dossier'. Imagine un rideau de scène qui tombe ou une porte qui se ferme sur cette interaction.",
+            "questType": "side",
+            "tips": "Tu peux écrire une phrase courte dans ton carnet si tu as vraiment besoin de 'boucler' une pensée, mais l'idée est d'un acte mental symbolique de clôture.",
+            "rationale": "Cet acte symbolique et conscient aide le cerveau à ne pas archiver l'événement comme une tâche en cours nécessitant un traitement continu, réduisant ainsi le rejeu mental et l'anxiété associée.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Le Sanctuaire du Repos : Architecture du Sommeil Serein",
+        "subtitle": "Semaines 5-6 • Réparation Nocturne",
+        "rationale": "Puisque l'anxiété impacte ton sommeil, il est crucial de réaligner tes habitudes nocturnes pour optimiser la récupération mentale et physiologique. Cela aura un effet direct sur ta résilience diurne.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "habitude",
+            "title": "Le Couvre-feu Digital : 90 minutes Sacrées",
+            "description": "Éteins tous les écrans (téléphone, tablette, ordinateur, TV) au moins 90 minutes avant ton heure de coucher cible. Fais de cette période un moment de transition paisible.",
+            "questType": "main",
+            "tips": "Lis un livre papier, écoute de la musique douce, prends un bain chaud, parle avec tes proches. Laisse ton téléphone hors de la chambre.",
+            "rationale": "La lumière bleue des écrans supprime la mélatonine, l'hormone du sommeil. Créer une zone tampon permet à ton cerveau de commencer le processus de sommeil naturellement, réduisant le temps d'endormissement et améliorant la qualité.",
+            "tracking_type": "boolean",
+            "time_of_day": "night",
+            "targetReps": 7
+          },
+          {
+            "id": "p3a2",
+            "type": "framework",
+            "title": "Le Cadre des Interactions : Mon Énergie, Mes Limites",
+            "description": "Réfléchis aux interactions sociales qui te drainent le plus et celles qui te ressourcent. Identifie tes peurs liées au jugement et écris des stratégies concrètes pour gérer ces situations ou établir des limites plus saines.",
+            "questType": "side",
+            "tips": "Sois honnête avec toi-même. Quels sont les déclencheurs de tes ruminations post-sociales ? Comment pourrais-tu modifier ces interactions ?",
+            "rationale": "Comprendre les dynamiques de tes interactions et leurs impacts émotionnels te permet de reprendre le contrôle. En identifiant tes limites et tes peurs, tu peux développer des stratégies proactives pour protéger ton énergie mentale et réduire l'anxiété liée au jugement.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 1,
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Tes interactions sociales sont des échanges d'énergie. Certaines te nourrissent, d'autres te vident. Identifier lesquelles et pourquoi est le premier pas pour créer des limites protectrices.",
+              "sections": [
+                {
+                  "id": "s1_p3a2",
+                  "label": "Interactions qui me drainent le plus (personnes, contextes) :",
+                  "inputType": "list",
+                  "placeholder": "Réunions avec X | Dîners de famille | Discussions sur un sujet sensible avec Y"
+                },
+                {
+                  "id": "s2_p3a2",
+                  "label": "Les peurs et pensées associées au jugement des autres lors de ces interactions :",
+                  "inputType": "textarea",
+                  "placeholder": "Peur de ne pas être à la hauteur, de dire une bêtise, qu'on me trouve trop sensible..."
+                },
+                {
+                  "id": "s3_p3a2",
+                  "label": "Stratégies concrètes pour gérer ou limiter l'impact de ces situations (ex: 'dire non', 'limiter le temps', 'changer de sujet', 'préparer ma réponse') :",
+                  "inputType": "list",
+                  "placeholder": "Réduire le temps de participation | Préparer 2-3 phrases pour rediriger la conversation | Déléguer certaines responsabilités"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "La Légèreté Retrouvée : Consolidations et Sérénité",
+        "subtitle": "Semaines 7-8 • Ancrage Profond du Calme",
+        "rationale": "Cette phase vise à renforcer les acquis, à intégrer ces nouvelles habitudes pour qu'elles deviennent automatiques et à cultiver un état de sérénité durable et une présence accrue.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "habitude",
+            "title": "Le Scan Corporel de Détente Progressive",
+            "description": "Chaque soir, avant de dormir, réalise un scan corporel de 5 à 10 minutes. Concentre-toi sur chaque partie de ton corps, du sommet de la tête aux orteils, en relâchant consciemment les tensions.",
+            "questType": "main",
+            "tips": "Tu peux trouver des guidances audio si tu préfères au début. L'important est de diriger ton attention vers les sensations physiques plutôt que les pensées.",
+            "rationale": "Le scan corporel améliore la conscience intéroceptive, aidant à identifier et relâcher les tensions physiques souvent liées à l'anxiété. Cela active le système parasympathique, induisant une relaxation profonde et préparant au sommeil.",
+            "tracking_type": "boolean",
+            "time_of_day": "night",
+            "targetReps": 7
+          },
+          {
+            "id": "p4a2",
+            "type": "mission",
+            "title": "L'Écrin Anti-Ruminations : Choisir sa Place",
+            "description": "Désigne un moment et/ou un lieu spécifique dans la semaine (ex: 30 minutes le mercredi matin) pour 'autoriser' la rumination, si elle doit arriver. En dehors de ce cadre, tu t'engages à la relâcher ou la reporter à ce moment dédié.",
+            "questType": "side",
+            "tips": "Tu peux même tenir un petit carnet 'des ruminations différées' où tu notes rapidement un sujet pour le traiter plus tard. L'idée est de déprogrammer la compulsion immédiate.",
+            "rationale": "Donner un cadre à la rumination paradoxalement réduit son emprise. Le cerveau sait qu'il aura son 'moment', ce qui diminue la pression de devoir traiter l'information immédiatement, libérant de l'énergie mentale pour le reste de la semaine.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

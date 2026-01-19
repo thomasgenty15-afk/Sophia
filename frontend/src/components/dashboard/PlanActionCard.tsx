@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { 
   Sword, Shield, Zap, FileText, CheckCircle2, Sparkles, 
-  FastForward, PlusCircle, Check, LifeBuoy, Edit3, Lock
+  FastForward, PlusCircle, Check, LifeBuoy, Edit3, Lock, Settings
 } from 'lucide-react';
 import type { Action } from '../../types/dashboard';
+import { isSameIsoWeekLocal } from '../../lib/isoWeek';
 
-export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true, onHelp, onOpenFramework, onOpenHistory, onUnlock, onToggleMission, onIncrementHabit, onMasterHabit }: { 
+export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true, onHelp, onOpenFramework, onOpenHistory, onUnlock, onToggleMission, onIncrementHabit, onMasterHabit, onOpenHabitSettings }: { 
     action: Action, 
     isLocked: boolean, 
     isPending?: boolean, 
@@ -16,9 +17,15 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
     onUnlock?: () => void,
     onToggleMission?: (action: Action) => void,
     onIncrementHabit?: (action: Action) => void,
-    onMasterHabit?: (action: Action) => void
+    onMasterHabit?: (action: Action) => void,
+    onOpenHabitSettings?: (action: Action) => void
 }) => {
-  const [currentReps, setCurrentReps] = useState(action.currentReps || 0);
+  const isHabit = action.type?.toLowerCase().trim() === 'habitude' || action.type?.toLowerCase().trim() === 'habit';
+  const lastPerformed = action.lastPerformedAt ? new Date(action.lastPerformedAt) : null;
+  const now = new Date();
+  const effectiveInitialReps = isHabit && lastPerformed && !isSameIsoWeekLocal(lastPerformed, now) ? 0 : (action.currentReps || 0);
+
+  const [currentReps, setCurrentReps] = useState(effectiveInitialReps);
   const targetReps = action.targetReps || 1;
   const progress = Math.min((currentReps / targetReps) * 100, 100); // Cap visual progress at 100%
   const [isChecked, setIsChecked] = useState(action.isCompleted);
@@ -26,10 +33,12 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
   // Sync state with props when they change (e.g. after DB update)
   useEffect(() => {
       if (action.currentReps !== undefined) {
-          setCurrentReps(action.currentReps);
+          const last = action.lastPerformedAt ? new Date(action.lastPerformedAt) : null;
+          const effective = isHabit && last && !isSameIsoWeekLocal(last, new Date()) ? 0 : (action.currentReps || 0);
+          setCurrentReps(effective);
       }
       setIsChecked(action.isCompleted);
-  }, [action.currentReps, action.isCompleted]);
+  }, [action.currentReps, action.isCompleted, action.lastPerformedAt, isHabit]);
 
   // Couleurs et Icônes selon le Groupe
   // Groupe A (Répétable/Habitude) => Bleu/Vert
@@ -135,8 +144,12 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
                 /* --- PROGRESS BAR (Habitudes & Tous les Frameworks) --- */
                 <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
                   <div className="flex flex-col items-start gap-1 min-[260px]:flex-row min-[260px]:items-center min-[260px]:justify-between mb-1.5">
-                    <span className="text-[10px] min-[330px]:text-xs font-bold text-gray-400 uppercase">Progression</span>
-                    <span className="text-[10px] min-[330px]:text-xs font-bold text-emerald-600">{currentReps}/{targetReps}</span>
+                    <span className="text-[10px] min-[330px]:text-xs font-bold text-gray-400 uppercase">
+                      {isGroupA ? "Cette semaine" : "Progression"}
+                    </span>
+                    <span className="text-[10px] min-[330px]:text-xs font-bold text-emerald-600">
+                      {isGroupA ? `${currentReps}/${targetReps} (×/semaine)` : `${currentReps}/${targetReps}`}
+                    </span>
                   </div>
                   <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden mb-2">
                     <div className="h-full bg-emerald-500 transition-all duration-500" style={{ width: `${progress}%` }} />
@@ -172,6 +185,13 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
                             title="Passer à la suite (Maîtrise acquise)"
                             >
                             <FastForward className="w-3 h-3" /> Je maîtrise déjà
+                            </button>
+                            <button
+                            onClick={() => onOpenHabitSettings && onOpenHabitSettings(action)}
+                            className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded text-[10px] min-[330px]:text-xs font-bold flex items-center justify-center gap-1 transition-colors border border-emerald-200"
+                            title="Réglages (jours / fréquence)"
+                            >
+                            <Settings className="w-3 h-3" />
                             </button>
                             <button
                             onClick={handleIncrement}

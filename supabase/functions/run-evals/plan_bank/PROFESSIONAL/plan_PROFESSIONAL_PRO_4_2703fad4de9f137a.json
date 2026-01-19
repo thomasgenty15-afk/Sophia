@@ -1,0 +1,271 @@
+{
+  "meta": {
+    "id": "plan_PROFESSIONAL_PRO_4_2703fad4de9f137a",
+    "theme_key": "PROFESSIONAL",
+    "theme_id": "PRO",
+    "theme_title": "Carrière & Ambition",
+    "axis_id": "PRO_4",
+    "axis_title": "Leadership & Management d’équipe",
+    "selected_problem_ids": [
+      "PRO_4_P2",
+      "PRO_4_P1"
+    ],
+    "selected_problem_labels": [
+      "Je dois gérer des personnalités difficiles ou des conflits dans l’équipe.",
+      "Je viens de passer manager (ou je le suis) et je me sens illégitime / dépassé(e)."
+    ],
+    "fingerprint": "2703fad4de9f137a",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:37:06.081Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je sens que je ne suis pas à la hauteur de mon rôle de manager. J'ai du mal à affirmer mon autorité, surtout quand il y a des tensions dans l'équipe. Je veux apprendre à gérer ça de manière plus efficace et à me sentir plus confiant(e).",
+      "blockers": "Ma peur de déplaire ou de créer encore plus de problèmes. Je ne sais pas comment aborder les conflits sans que ça dégénère, et j'ai l'impression de manquer d'outils concrets. Je me dis que je devrais savoir faire, mais je n'y arrive pas.",
+      "context": "J'ai été promu(e) il y a environ 6 mois. J'étais très bon(ne) techniquement, mais le management, c'est une autre paire de manches. Mon équipe est globalement bonne, mais il y a des petites frictions récurrentes entre deux membres, et je ne sais pas comment intervenir. Je me sens un peu seul(e) face à ça.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "PRO_4",
+      "title": "Leadership & Management d’équipe",
+      "theme": "Carrière & Ambition",
+      "problems": [
+        "Je dois gérer des personnalités difficiles ou des conflits dans l’équipe.",
+        "Je viens de passer manager (ou je le suis) et je me sens illégitime / dépassé(e)."
+      ]
+    },
+    "answers": {
+      "PRO_4_P2_Q1": "Des tensions entre membres de l’équipe",
+      "PRO_4_P2_Q2": "J’évite / je laisse couler en espérant que ça passe",
+      "PRO_4_P1_Q1": "Recadrer / donner du feedback négatif",
+      "PRO_4_P1_Q2": "Le/la “bon(ne) copain/copine” qui n’ose pas trancher",
+      "meta": "Besoin d'aide pour affirmer mon rôle de manager et gérer les relations au sein de l'équipe."
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "male"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "La Forge du Leader Inébranlable",
+    "strategy": "Ce plan vous permettra de transformer votre insécurité en autorité sereine, en bâtissant des fondations comportementales basées sur la gestion émotionnelle et la communication stratégique.",
+    "sophiaKnowledge": "Vous êtes un nouveau manager, promu(e) pour vos compétences techniques, mais qui lutte avec l'affirmation de son autorité et la gestion des conflits d'équipe. Vous ressentez de l'illégitimité, une peur de déplaire et une tendance à l'évitement face aux tensions. Vous aspirez à la confiance et à l'efficacité dans votre rôle.",
+    "context_problem": "Promu(e) il y a 6 mois, vous vous sentez dépassé(e) par le management d'équipe, notamment face aux frictions récurrentes entre certains membres. Votre peur de déplaire vous pousse à éviter les conflits, vous laissant isolé(e) et doutant de votre capacité à diriger.",
+    "identity": "Je suis l'Architecte de mon Autorité sereine.",
+    "deepWhy": "Pour guider mon équipe avec confiance et sérénité, et faire une réelle différence positive dans leur collaboration et leur succès collectif.",
+    "goldenRules": "1. J'aborde les tensions dès leurs premiers signes.\n2. Ma clarté est au service de la performance et du respect mutuel.\n3. Je privilégie le cadre plutôt que la personne en cas de recadrage.",
+    "vitalSignal": {
+      "name": "Interactions de Leadership Actif",
+      "unit": "interactions",
+      "startValue": "0",
+      "targetValue": "1",
+      "description": "Comptez chaque interaction quotidienne où vous avez intentionnellement donné du feedback, coaché un membre d'équipe, ou géré proactivement une situation d'équipe (hors tâches purement opérationnelles).",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois avez-vous consciemment évité une discussion difficile ou une intervention de leadership cette semaine ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage du Leader - Comprendre pour Agir",
+        "subtitle": "Semaines 1-2 • Déchiffrer les dynamiques internes et externes",
+        "rationale": "Avant d'agir, il est crucial de comprendre vos propres mécanismes de réaction et les dynamiques sous-jacentes de l'équipe. Cette phase pose les fondations de votre conscience de leader.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a1",
+            "type": "framework",
+            "title": "Cartographie de mes Réactions",
+            "description": "Un exercice de réflexion pour identifier et comprendre vos schémas émotionnels et comportementaux face aux tensions ou conflits au sein de votre équipe.",
+            "questType": "main",
+            "tips": "Ne jugez pas vos réactions passées, observez-les. Le but est de prendre conscience pour pouvoir transformer.",
+            "rationale": "Prendre conscience de vos réactions automatiques est la première étape pour les gérer et les transformer en réponses intentionnelles et efficaces.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "targetReps": 3,
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Pensez à trois situations récentes de tension ou de conflit au travail (passées ou anticipées). Pour chacune, décrivez la situation, vos émotions et votre réaction habituelle. Puis, imaginez la réaction 'idéale' d'un leader confiant.",
+              "sections": [
+                {
+                  "id": "s1_conflit",
+                  "label": "Situation de tension/conflit (concrète)",
+                  "inputType": "textarea",
+                  "placeholder": "Ex: Dispute entre X et Y lors de la réunion de projet sur..."
+                },
+                {
+                  "id": "s1_emotions",
+                  "label": "Mes émotions ressenties",
+                  "inputType": "list",
+                  "placeholder": "Peur de déplaire, frustration, anxiété..."
+                },
+                {
+                  "id": "s1_reaction",
+                  "label": "Ma réaction habituelle (ou envie de réagir)",
+                  "inputType": "textarea",
+                  "placeholder": "J'ai évité le sujet, j'ai tenté de minimiser, j'ai pris parti..."
+                },
+                {
+                  "id": "s1_reaction_ideale",
+                  "label": "La réaction du leader que j'aspire à être",
+                  "inputType": "textarea",
+                  "placeholder": "J'aurais écouté activement les deux parties, recadré clairement..."
+                }
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "type": "habitude",
+            "title": "L'Écoute Active Intentionnelle",
+            "description": "Pratiquez délibérément l'écoute active avec au moins une personne différente chaque jour, en vous concentrant pleinement sur ce qu'elle exprime, sans interrompre ni formuler votre réponse mentalement.",
+            "questType": "side",
+            "tips": "Reformulez mentalement ou à voix haute ce que l'autre personne a dit pour vous assurer d'avoir bien compris. Évitez les solutions immédiates.",
+            "rationale": "L'écoute active est la pierre angulaire de la confiance. Elle vous permet de capter les signaux faibles, de comprendre les préoccupations profondes et de désamorcer les tensions avant qu'elles n'escaladent.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Art de la Clarification - Parler pour Impacter",
+        "subtitle": "Semaines 3-4 • Développer des outils de communication structurée",
+        "rationale": "Avec une meilleure compréhension de vous-même et des autres, il est temps d'acquérir les outils concrets pour communiquer avec impact et gérer les situations complexes sans que cela dégénère.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a3",
+            "type": "framework",
+            "title": "Le Script du Courage",
+            "description": "Préparez mentalement et par écrit 3 scénarios de conversations potentiellement difficiles, en structurant votre message pour qu'il soit clair, factuel et orienté solution.",
+            "questType": "main",
+            "tips": "Utilisez la structure 'Faits, Sentiments, Besoins, Demande'. Anticipez les objections et préparez vos réponses. Pratiquez à voix haute si nécessaire.",
+            "rationale": "La préparation est la clé de la confiance. En structurant vos messages, vous réduisez l'improvisation et le risque de dérapage émotionnel, vous permettant d'aborder les conflits avec autorité.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 3,
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Choisissez une conversation que vous redoutez ou une situation où vous avez besoin de recadrer. Structurez-la en 4 étapes clés : 1. Les faits observés 2. Vos sentiments (professionnels) 3. Le besoin/l'impact sur l'équipe/l'objectif 4. Votre demande claire.",
+              "sections": [
+                {
+                  "id": "s2_scenario",
+                  "label": "Description du scénario/sujet de la conversation difficile",
+                  "inputType": "textarea",
+                  "placeholder": "Ex: Recadrage de X sur la qualité de son travail, gestion du conflit entre Y et Z."
+                },
+                {
+                  "id": "s2_faits",
+                  "label": "Les faits observables et neutres",
+                  "inputType": "list",
+                  "placeholder": "Le rapport est incomplet (fait), au lieu de 'tu ne fais jamais ton travail correctement' (jugement)."
+                },
+                {
+                  "id": "s2_impact",
+                  "label": "L'impact sur l'équipe/les objectifs (vos sentiments professionnels)",
+                  "inputType": "textarea",
+                  "placeholder": "Cela retarde l'équipe, génère des frustrations, impacte la qualité de notre livrable."
+                },
+                {
+                  "id": "s2_demande",
+                  "label": "Ma demande ou solution concrète",
+                  "inputType": "textarea",
+                  "placeholder": "J'attends que le rapport soit complété avec ces éléments pour mercredi. Comment pouvons-nous y arriver ?"
+                },
+                {
+                  "id": "s2_objections",
+                  "label": "Anticipation des objections et mes réponses",
+                  "inputType": "categorized_list",
+                  "placeholder": "Objection de l'interlocuteur...|Ma réponse factuelle..."
+                }
+              ]
+            }
+          },
+          {
+            "id": "a4",
+            "type": "habitude",
+            "title": "Le Feedback Positif Intentionnel",
+            "description": "Chaque jour, identifiez et donnez au moins un feedback positif, spécifique et sincère à un membre de votre équipe ou à un collègue.",
+            "questType": "side",
+            "tips": "Soyez précis : 'J'ai remarqué que tu as géré la réunion de ce matin avec beaucoup de calme, c'était très efficace pour maintenir la productivité.' plutôt que 'Bon travail'.",
+            "rationale": "Renforcer les comportements positifs et reconnaître les contributions individuelles crée un climat de confiance. Cela légitime aussi votre rôle de feedbacker lorsque des recadrages sont nécessaires, car l'équipe sait que vous voyez et valorisez leurs efforts.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : Le Cadre Inviolable - Poser les Règles du Jeu",
+        "subtitle": "Semaines 5-6 • Prévenir les conflits par la clarté et les limites",
+        "rationale": "Avec des outils de communication affûtés, il est temps d'établir un cadre clair pour votre équipe. Des règles de fonctionnement définies en amont réduisent drastiquement l'émergence et l'escalade des conflits.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a5",
+            "type": "mission",
+            "title": "Le Manifeste de l'Équipe",
+            "description": "Définissez, communiquez et faites valider par votre équipe un ensemble de 3 à 5 'Règles d'Engagement' claires concernant la collaboration, la communication et la gestion des désaccords. Organisez une réunion dédiée à cette discussion.",
+            "questType": "main",
+            "tips": "Impliquez l'équipe dans la définition de ces règles pour favoriser l'adhésion. Affichez-les visiblement. Exemples : 'On respecte le temps de parole de chacun', 'On privilégie la solution plutôt que le problème', 'On s'adresse directement à la personne concernée en cas de désaccord'.",
+            "rationale": "Établir un cadre explicite crée une référence commune. Cela permet d'intervenir en rappelant les règles convenues par tous, réduisant le sentiment d'arbitraire et renforçant votre autorité légitime.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "a6",
+            "type": "habitude",
+            "title": "Le Capteur de Tensions",
+            "description": "Chaque jour, soyez intentionnellement attentif(ve) aux signes faibles de tensions ou de frustrations au sein de l'équipe. Identifiez-en au moins un et posez une question ouverte pour 'sonder le terrain' sans juger.",
+            "questType": "side",
+            "tips": "Exemples : 'Je te sens un peu pensif(ve) ce matin, tout va bien ?' ou 'J'ai l'impression qu'il y a une divergence sur ce point, comment la perçois-tu ?'. Le but n'est pas de résoudre immédiatement, mais de montrer votre présence et votre ouverture.",
+            "rationale": "Intervenir tôt et discrètement désamorce les problèmes avant qu'ils ne prennent de l'ampleur. Cette habitude renforce votre image de leader attentif et proactif, et vous donne une meilleure visibilité sur les dynamiques d'équipe.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : L'Affirmation Sereine - Appliquer et Consolider",
+        "subtitle": "Semaines 7-8 • Mettre en pratique votre leadership confiant",
+        "rationale": "Cette phase est dédiée à la mise en pratique concrète et à la consolidation de tous les acquis. C'est le moment d'incarner pleinement votre rôle de leader en prenant les devants, même dans les situations inconfortables.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a7",
+            "type": "habitude",
+            "title": "L'Art du 'Non' Stratégique",
+            "description": "Pratiquez l'affirmation de soi en disant 'non' de manière constructive ou en posant une limite claire dans un contexte professionnel (à un collaborateur, à une demande, à une surcharge) au moins une fois par jour. Ce 'non' doit être argumenté et respectueux.",
+            "questType": "main",
+            "tips": "Utilisez une formule comme 'Je comprends ta demande, mais mon rôle/nos priorités actuelles ne me permettent pas de... Cependant, je peux te proposer de...' ou 'Non, car...'.",
+            "rationale": "Affirmer vos limites et votre capacité à dire 'non' est essentiel pour asseoir votre autorité et votre légitimité. Cela montre que vous êtes un leader qui protège les ressources de l'équipe et ses objectifs, tout en gérant votre propre charge mentale.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7
+          },
+          {
+            "id": "a8",
+            "type": "mission",
+            "title": "La Rencontre de Résolution Ciblée",
+            "description": "Planifiez et menez une conversation de résolution spécifique avec les deux membres de l'équipe que vous aviez identifiés comme ayant des frictions récurrentes. Utilisez toutes les techniques d'écoute active, de clarification et de cadrage apprises.",
+            "questType": "side",
+            "tips": "Commencez par rappeler les 'Règles d'Engagement' de l'équipe. Concentrez-vous sur les faits et l'impact sur l'équipe. Visez un accord sur des actions concrètes et des modalités de suivi. N'hésitez pas à solliciter leur propre proposition de solution.",
+            "rationale": "C'est l'occasion d'appliquer concrètement votre transformation. Réussir à gérer ce conflit spécifique renforcera considérablement votre confiance en vous et la perception de votre légitimité par l'équipe, prouvant que vous êtes capable de faire face aux défis.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

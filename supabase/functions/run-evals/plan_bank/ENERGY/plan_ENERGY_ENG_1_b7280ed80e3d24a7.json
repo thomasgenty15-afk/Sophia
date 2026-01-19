@@ -1,0 +1,261 @@
+{
+  "meta": {
+    "id": "plan_ENERGY_ENG_1_b7280ed80e3d24a7",
+    "theme_key": "ENERGY",
+    "theme_id": "ENG",
+    "theme_title": "Énergie & Vitalité",
+    "axis_id": "ENG_1",
+    "axis_title": "Retrouver une énergie stable & respecter ses limites",
+    "selected_problem_ids": [
+      "ENG_1_P7",
+      "ENG_1_P5"
+    ],
+    "selected_problem_labels": [
+      "Je bois très peu d’eau / je suis souvent déshydraté(e).",
+      "Je me sens souvent en pilote automatique / “éteint(e)”."
+    ],
+    "fingerprint": "b7280ed80e3d24a7",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:29:52.010Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je me sens souvent fatigué(e) et un peu 'à côté de la plaque'. J'ai l'impression de fonctionner en mode automatique une bonne partie de la journée et je sais que je ne m'hydrate pas assez, ce qui doit jouer sur mon énergie générale.",
+      "blockers": "J'oublie de boire régulièrement, je n'ai pas le réflexe. Et pour le pilote automatique, c'est comme une routine dont je n'arrive pas à sortir, je me laisse facilement distraire ou je fais les choses sans vraiment y penser.",
+      "context": "Je travaille pas mal devant un écran, ce qui n'aide ni pour la soif ni pour la présence d'esprit. Le soir, je suis souvent épuisé(e) et je tombe facilement dans le scroll ou les séries sans vraiment choisir. J'aimerais retrouver plus de vitalité au quotidien.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "ENG_1",
+      "title": "Retrouver une énergie stable & respecter ses limites",
+      "theme": "Énergie & Vitalité",
+      "problems": [
+        "Je bois très peu d’eau / je suis souvent déshydraté(e).",
+        "Je me sens souvent en pilote automatique / “éteint(e)”."
+      ]
+    },
+    "answers": {
+      "meta": {
+        "pacing": "balanced"
+      },
+      "ENG_1_P7_Q1": "0,5–1L / jour",
+      "ENG_1_P7_Q2": [
+        "De l’eau",
+        "Du café / thé",
+        "Un mélange de tout ça"
+      ],
+      "ENG_1_P5_Q1": [
+        "Au travail / en cours",
+        "À la maison",
+        "Un peu partout"
+      ],
+      "ENG_1_P5_Q2": [
+        "Faire les choses de manière mécanique",
+        "Scroller / regarder des contenus sans vraiment choisir",
+        "Éviter les interactions / conversations"
+      ]
+    },
+    "userProfile": {
+      "birth_date": "1996-01-05",
+      "gender": "other"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Cadran de la Présence",
+    "strategy": "Nous allons réinitialiser votre hydratation comme fondation énergétique et instaurer des rituels conscients pour reprendre les rênes de votre attention, brisant ainsi le cycle du pilote automatique.",
+    "sophiaKnowledge": "Tu es une personne née en 1996, fatiguée par un manque d'hydratation et un sentiment de fonctionner en pilote automatique, souvent exacerbé par le travail sur écran. Tu as tendance à te laisser distraire le soir par le scroll ou les séries, sans choix conscient, et tu as du mal à t'en sortir. Ton objectif est de retrouver une énergie stable et de mieux respecter tes limites.",
+    "context_problem": "Épuisé(e) par la déshydratation et un quotidien en mode 'pilote automatique', tu te sens déconnecté(e) et sans énergie. Le manque de réflexe pour boire et la facilité à te laisser porter par les écrans le soir t'empêchent de retrouver ta vitalité et ta présence d'esprit.",
+    "identity": "Je suis la Source d'Énergie Intérieure et le Pilote de ma Propre Vie.",
+    "deepWhy": "Pour vivre chaque instant pleinement, avec une énergie débordante, et faire des choix conscients qui nourrissent mon bien-être, plutôt que de me laisser porter par l'inertie.",
+    "goldenRules": "1. L'eau est ma première pensée du matin et mon alliée constante.\n2. Je pratique la pause intentionnelle pour me reconnecter.\n3. Je choisis activement mes consommations, qu'elles soient nutritives ou divertissantes.",
+    "vitalSignal": {
+      "name": "Consommation d'eau",
+      "unit": "ml",
+      "startValue": "750",
+      "targetValue": "2500",
+      "description": "Suivi quotidien de la quantité d'eau pure consommée. L'objectif est d'atteindre 2.5L progressivement.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois cette semaine as-tu délibérément choisi une activité engageante plutôt que de scroller sans fin ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage du Flux - La Source Intérieure",
+        "subtitle": "Semaines 1-2 • Réhydratation Profonde & Éveil",
+        "rationale": "L'eau est le carburant de chaque cellule. Restaurer une hydratation optimale est la première étape pour dissiper la fatigue et améliorer la clarté mentale, posant les bases de toute transformation.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "habitude",
+            "title": "Le Geste Hydratant du Réveil",
+            "description": "Boire 500ml d'eau tiède juste après le réveil et avant tout autre liquide ou aliment. Compléter ensuite tout au long de la journée pour atteindre votre objectif quotidien.",
+            "questType": "main",
+            "tips": "Prépare ta bouteille d'eau la veille au soir près de ton lit. Ajoute une tranche de citron pour le goût et l'effet détoxifiant.",
+            "rationale": "Cela réactive le métabolisme, hydrate le corps après une nuit et ancre la routine hydratante dès le début de la journée.",
+            "targetReps": 7,
+            "tracking_type": "counter",
+            "time_of_day": "morning"
+          },
+          {
+            "id": "p1a2",
+            "type": "mission",
+            "title": "Les Points d'Eau Stratégiques",
+            "description": "Place des bouteilles d'eau ou des verres remplis à des endroits clés de ton environnement (bureau, salon, voiture) pour des rappels visuels constants.",
+            "questType": "side",
+            "tips": "Utilise une bouteille réutilisable d'un litre pour visualiser facilement ta consommation. Change le verre d'eau toutes les heures sur ton bureau.",
+            "rationale": "Créer un environnement 'riche en eau' contourne l'oubli et déclenche le réflexe de boire par la vue. Le cerveau est paresseux, facilite-lui la tâche.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : Le Réveil Sensoriel - Briser le Pilote Automatique",
+        "subtitle": "Semaines 3-4 • Reconnaissance et Conscience",
+        "rationale": "Une fois l'hydratation stabilisée, nous allons adresser le pilote automatique en cultivant des moments de pleine conscience qui interrompent les boucles habituelles et augmentent ta présence.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "habitude",
+            "title": "La Micro-Pause de Présence",
+            "description": "Chaque heure, fais une pause de 60 secondes : ferme les yeux, prends 3 respirations profondes, scanne ton corps et pose-toi 'Qu'est-ce que je faisais ? Qu'est-ce que je ressens ?'.",
+            "questType": "main",
+            "tips": "Utilise un minuteur silencieux sur ton téléphone ou une application discrète. L'important est la régularité, pas la durée.",
+            "rationale": "Ces micro-pauses agissent comme des 'resets' neuronaux, interrompant les schémas de pensées automatiques et renforçant la conscience de l'instant présent. Elles augmentent ta neuroplasticité.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p2a2",
+            "type": "framework",
+            "title": "Cartographie du Pilote Automatique",
+            "description": "Identifier les situations, lieux et déclencheurs où tu te sens le plus en 'pilote automatique'.",
+            "questType": "side",
+            "tips": "Sois honnête avec toi-même. Il n'y a pas de jugement, juste de l'observation. Plus tu seras précis, plus il sera facile de trouver des contre-mesures.",
+            "rationale": "La première étape pour changer un comportement est de le comprendre. Reconnaître les déclencheurs permet de créer des stratégies d'interruption ciblées.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "L'objectif est de dresser la carte de tes moments d'inattention. Rappelle-toi les situations où tu fais les choses mécaniquement, où tu scrolles sans fin, ou évites les interactions. Note le contexte, l'heure, l'émotion éventuelle qui précède.",
+              "sections": [
+                {
+                  "id": "s2a2_1",
+                  "label": "Quels sont les 3 principaux moments où je suis en pilote automatique ?",
+                  "inputType": "list",
+                  "placeholder": "Ex: Le matin au réveil / Après le déjeuner au bureau / Le soir sur le canapé"
+                },
+                {
+                  "id": "s2a2_2",
+                  "label": "Quelles sont les émotions ou sensations qui précèdent ces moments ?",
+                  "inputType": "list",
+                  "placeholder": "Ex: Ennui / Fatigue / Stress / Faim"
+                },
+                {
+                  "id": "s2a2_3",
+                  "label": "Quels objets ou environnements favorisent cet état ?",
+                  "inputType": "list",
+                  "placeholder": "Ex: Mon smartphone / La télé allumée / Mon fauteuil préféré"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : La Reconnexion Consciente - Choisir Activement",
+        "subtitle": "Semaines 5-6 • Intentions et Rituels du Soir",
+        "rationale": "Maintenant que tu as identifié tes déclencheurs, cette phase se concentre sur la création de rituels conscients, particulièrement le soir, pour remplacer les habitudes de consommation passive par des choix actifs et régénérants.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "habitude",
+            "title": "Le Débriefing Actif du Soir",
+            "description": "Avant de t'engager dans un divertissement (séries, réseaux sociaux), fais une pause de 2 minutes. Demande-toi : 'Est-ce que j'ai vraiment envie de ça ? Y a-t-il une autre activité qui me nourrirait mieux ?'. Puis fais ton choix consciemment.",
+            "questType": "main",
+            "tips": "Pose ton téléphone ou la télécommande. Respire. Visualise les deux options et choisis celle qui t'apporte le plus de valeur ou de calme. C'est le pouvoir de l'interruption consciente.",
+            "rationale": "Cette habitude crée un espace entre l'envie impulsive et l'action. Elle t'entraîne à reprendre le contrôle de tes choix et à prioriser ton bien-être, réduisant le regret post-scroll.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          },
+          {
+            "id": "p3a2",
+            "type": "framework",
+            "title": "Mon Rituel de Transition du Soir",
+            "description": "Définis et planifie une activité apaisante et régénérante pour la soirée, à faire avant de t'exposer aux écrans ou en remplacement.",
+            "questType": "side",
+            "tips": "Pense à des activités qui ne nécessitent pas d'écran : lecture, écriture, méditation courte, conversation avec un proche, écouter de la musique calme, un bain chaud. L'objectif est de ralentir.",
+            "rationale": "Un rituel de fin de journée aide à signaler à ton cerveau que le moment de 'veille' active est terminé, préparant le terrain pour un repos de meilleure qualité et réduisant l'attrait des distractions numériques.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Il s'agit de créer une nouvelle séquence de fin de journée, qui te permet de te déconnecter en douceur du travail et des stimulations. Pense à 2-3 activités qui t'apportent du calme.",
+              "sections": [
+                {
+                  "id": "s3a2_1",
+                  "label": "Mon rituel de transition du soir (30-60 min avant le coucher ou après le dîner) :",
+                  "inputType": "list",
+                  "placeholder": "Ex: Lecture d'un livre / Étirements doux / Écouter un podcast calme"
+                },
+                {
+                  "id": "s3a2_2",
+                  "label": "Pourquoi est-ce important pour moi ?",
+                  "inputType": "textarea",
+                  "placeholder": "Ex: Pour me détendre avant de dormir et ne pas être trop stimulée par les écrans."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : L'Élan Durable - Ancrer la Vitalité",
+        "subtitle": "Semaines 7-8 • Intégration et Autonomie",
+        "rationale": "Cette dernière phase vise à consolider les nouvelles habitudes, les transformer en automatismes positifs et t'équiper d'outils pour maintenir ta vitalité et ta présence sur le long terme.",
+        "status": "inactive",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "habitude",
+            "title": "Le Check-in Énergétique Quotidien",
+            "description": "Chaque après-midi (vers 15h-16h), prends 2 minutes pour évaluer ton niveau d'énergie physique et mentale sur une échelle de 1 à 10. Si le score est bas, identifie une petite action pour le recharger (boire de l'eau, s'étirer, marcher 5 min).",
+            "questType": "main",
+            "tips": "Tiens un mini-journal mental de ton score et de l'action corrective. Cela affine ta capacité à t'écouter et à répondre à tes besoins en temps réel. C'est la proprioception énergétique.",
+            "rationale": "Cela t'entraîne à être proactif(ve) face aux baisses d'énergie, évitant ainsi de glisser vers le pilote automatique par épuisement et renforçant ton autonomie en matière de gestion de la vitalité.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "afternoon"
+          },
+          {
+            "id": "p4a2",
+            "type": "mission",
+            "title": "Le Kit Anti-Pilote Automatique",
+            "description": "Crée un 'kit' d'activités alternatives pour contrer les moments où le pilote automatique menace de reprendre le dessus (ex: un livre captivant à portée de main, une liste de 5 étirements à faire, une application de méditation rapide).",
+            "questType": "side",
+            "tips": "Pense aux moments et lieux identifiés dans la phase 2. Quels sont les outils que tu peux avoir sous la main pour facilement choisir une alternative consciente ? Range ton smartphone dans un tiroir dédié à ces moments.",
+            "rationale": "Avoir des alternatives prêtes à l'emploi réduit la friction et la charge cognitive. Quand le mode automatique s'active, il est plus facile de 'switcher' vers une activité bénéfique si elle est préparée et accessible.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

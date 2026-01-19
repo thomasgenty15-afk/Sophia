@@ -2,6 +2,7 @@
   "tasks": {
     "start": "deno run --allow-net --allow-env --watch index.ts"
   },
+  "nodeModulesDir": "auto",
   "lock": false,
   "imports": {
     "std/": "https://deno.land/std@0.168.0/",

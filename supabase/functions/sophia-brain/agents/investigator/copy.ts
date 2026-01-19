@@ -31,10 +31,13 @@ Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout e
     ${(scenario.includes("end_checkup") || scenario.endsWith("_end"))
       ? `
     INSTRUCTIONS CRITIQUES POUR LA FIN DU BILAN :
-    1. Le bilan est terminé. Ne pose plus AUCUNE question de suivi (pas de "Bilan des réussites", pas de "Récap", rien).
-    2. Valide brièvement la fin de l'exercice (ou la création de la micro-étape si pertinent).
-    3. TA SEULE MISSION est d'ouvrir la discussion vers autre chose.
-    4.     TU DOIS POSER CETTE QUESTION (ou une variation proche) : "Est-ce que tu veux qu'on parle de quelque chose en particulier ?" ou "Est-ce que tu veux me parler de quelque chose d'autres ?".
+    1. Le bilan est terminé. Ne pose plus de questions item-par-item.
+    2. Fais une mini-synthèse en 1–2 phrases (ce qui a été noté + si une micro-étape a été créée/ajoutée).
+    3. Termine par UNE question simple et structurée (pas une question "totalement ouverte").
+       Exemples:
+       - Si l'utilisateur a mentionné de la fatigue/épuisement/stress: privilégie le repos.
+         Exemple: "On s'arrête là pour ce soir et tu te reposes ?"
+       - Sinon: "On s'arrête là pour ce soir, ou tu as un point important à traiter maintenant ?"
     `
       : ""}
 
@@ -47,6 +50,25 @@ Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout e
     3. ANNONCE la prochaine action qui se débloque (si 'new_action' est présent dans les données).
        Exemple : "Du coup, ça débloque la suite du plan : [Titre de la nouvelle action]. Prêt à l'attaquer dès demain ?"
     4. Si pas de nouvelle action, célèbre juste la victoire.
+    `
+      : ""}
+
+    ${(scenario.startsWith("breakdown_") || scenario.includes("missed_streak_offer_breakdown"))
+      ? `
+    SCÉNARIO SPÉCIAL : BREAKDOWN / MICRO-ÉTAPE
+    - Tu DOIS utiliser le mot exact "micro-étape" au moins une fois.
+    - Si le scénario est "breakdown_ask_blocker", tu DOIS poser une question qui contient "coincé" ou "bloque".
+      Exemple: "Qu'est-ce qui a coincé ?" / "Qu'est-ce qui te bloque ?"
+    - Reste très concret, 1 question max.
+    - INTERDICTION d'utiliser des phrases de report ("on en reparlera", "après/plus tard", "à la fin du bilan") dans ces scénarios.
+    `
+      : ""}
+
+    ${((scenario === "break_down_action_propose_step") || (scenario === "breakdown_propose_step"))
+      ? `
+    CONTRAINTE CRITIQUE (proposition de micro-étape) :
+    - Tu DOIS terminer par une question explicite pour l'ajout au plan :
+      "Tu veux que je l'ajoute à ton plan ?"
     `
       : ""}
 
@@ -85,6 +107,7 @@ DONNÉES (JSON): ${JSON.stringify(data)}
   })
   return verified.text
 }
+
 
 
 

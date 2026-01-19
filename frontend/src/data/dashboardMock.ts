@@ -73,7 +73,7 @@ export const MOCK_CHAOS_PLAN: GeneratedPlan = {
           title: "Défi Hypnose : Réparation",
           description: "Écoute du programme 'Reconstruction Profonde' chaque soir.",
           isCompleted: false,
-          targetReps: 21,
+          targetReps: 7,
           currentReps: 0,
           tips: "Laisse l'inconscient bosser en t'endormant.",
           questType: 'main'

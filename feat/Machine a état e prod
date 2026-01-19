@@ -1,0 +1,60 @@
+Machines à états en prod (celles qui existent réellement dans ton système)
+1) Bilan / Investigator (machine principale)
+Stockage: user_chat_states.investigation_state
+Runner: runInvestigator() (supabase/functions/sophia-brain/agents/investigator/run.ts)
+États:
+status: "init" | "checking" | "closing" (cf. agents/investigator/types.ts)
++ progression via pending_items[] et current_item_index
+2) Breakdown (sous-machine dans le bilan)
+Stockage: user_chat_states.investigation_state.temp_memory.breakdown
+Runner: maybeHandleBreakdownFlow() (agents/investigator/breakdown.ts)
+États (stages) (au moins ceux-ci):
+awaiting_accept
+awaiting_blocker
+(et transitions internes pour proposer/valider une action)
+3) Post-bilan “Parking lot” (router-owned state machine)
+Stockage: user_chat_states.investigation_state.status = "post_checkup" (et "post_checkup_done" en mode eval/test)
+Runner: router/run.ts
+Mémoire: investigation_state.temp_memory = { deferred_topics: string[], current_topic_index: number }
+But: traiter les sujets différés après le bilan, un par un.
+4) Architect Tool Flow (multi-turn tools create/update/activate)
+Stockage: user_chat_states.temp_memory.architect_tool_flow
+Runner: runArchitect() / handleArchitectModelOutput() (agents/architect.ts)
+Kinds / stages repérés:
+kind: "create_simple_action" avec stage: "exploring" | "awaiting_consent" (et probablement d’autres étapes de collecte)
+kind: "update_action_structure" avec stage: "awaiting_remove_day" (au moins)
+kind: "activate_plan_action" avec stage: "awaiting_consent"
+5) Architect anti-loop / plan-focus (lightweight state machine)
+Stockage: user_chat_states.temp_memory.architect (ex: plan_focus, current_objective, last_q_fps, loop_count, etc.)
+Runner: router/run.ts (bloc “Architect anti-loop / plan-focus state”)
+But: empêcher l’Architecte de boucler / sur-architecturer.
+6) User Profile Confirmation (Companion)
+Stockage: user_chat_states.temp_memory.user_profile_confirm.pending
+Runner: agents/companion.ts (+ injection du contexte dans router/run.ts)
+États:
+pending = null vs pending = { candidate_id, key, scope, asked_at, ... }
+But: machine “question → réponse → confirmation → write fact” (sans inférence silencieuse).
+7) Global Deferred Topics (hors-bilan, “parking lot” global léger)
+Stockage: user_chat_states.temp_memory (implémenté dans router/global_deferred.ts)
+Forme: une liste bornée + TTL/hits (max 3 items)
+But: capturer “on en reparle plus tard” hors bilan et nudge parfois.
+8) WhatsApp Onboarding (gating)
+Stockage: profiles.whatsapp_state
+Runner: whatsapp-webhook/handlers_onboarding.ts
+États (ceux présents dans le code):
+awaiting_plan_finalization
+awaiting_plan_finalization_support
+awaiting_onboarding_focus_choice
+awaiting_plan_motivation
+awaiting_plan_motivation_followup (back-compat)
+awaiting_personal_fact
+9) Supervisor Runtime (orchestration globale)
+Stockage: user_chat_states.temp_memory.supervisor
+Runner: router/run.ts (continuité) + helpers supervisor.ts
+Forme: stack[] (sessions) + queue[] (intentions non urgentes)
+Note: c’est une machine “méta” (orchestration), pas une machine métier.
+Machines à états hors prod / evals
+A) simulate-user: tool state machines
+Lieu: supabase/functions/simulate-user/index.ts
+Machines: create_action, update_action, break_down_action, activate_plan_action (toutes explicitement taggées “STATE MACHINE”)
+But: rendre les evals déterministes, pas piloter prod.

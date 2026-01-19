@@ -55,15 +55,43 @@ export async function handleTracking(
   if (actions && actions.length > 0) {
     const action = actions[0] as any;
     const lastPerformedDay = action.last_performed_at ? String(action.last_performed_at).split("T")[0] : null;
+    const isHabit = String(action.type ?? "") === "habit";
 
-    let newReps = action.current_reps || 0;
+    let prevReps = Number(action.current_reps || 0);
     const trackingType = action.tracking_type || "boolean";
+
+    // Weekly semantics for habits: target_reps = frequency per ISO week (in user's timezone).
+    if (isHabit) {
+      try {
+        const { data: profile } = await supabase.from("profiles").select("timezone").eq("id", userId).maybeSingle();
+        const tz = String((profile as any)?.timezone ?? "").trim() || "Europe/Paris";
+        const ymdInTz = (d: Date) =>
+          new Intl.DateTimeFormat("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
+        const isoWeekStartYmd = (d: Date) => {
+          const [y, m, dd] = ymdInTz(d).split("-").map(Number);
+          const dt = new Date(Date.UTC(y, (m ?? 1) - 1, dd ?? 1));
+          const isoDayIndex = (dt.getUTCDay() + 6) % 7;
+          dt.setUTCDate(dt.getUTCDate() - isoDayIndex);
+          return dt.toISOString().split("T")[0];
+        };
+        const now = new Date();
+        const weekNow = isoWeekStartYmd(now);
+        const weekLast = action.last_performed_at ? isoWeekStartYmd(new Date(action.last_performed_at)) : null;
+        if (!weekLast || weekLast !== weekNow) prevReps = 0;
+      } catch (e) {
+        console.error("[Tracking] weekly habit reset check failed:", e);
+      }
+    }
+
+    let newReps = prevReps;
 
     // Update reps only when completed/partial
     if (entryStatus === "completed" || entryStatus === "partial") {
       if (trackingType === "boolean") {
         if (operation === "add" || operation === "set") {
-          if (lastPerformedDay === day && operation === "add") {
+          // Missions: avoid double-counting if already done today.
+          // Habits: allow multiple in the same day (they are weekly frequency, not "once per day").
+          if (!isHabit && lastPerformedDay === day && operation === "add") {
             // Already done today -> avoid double-counting + duplicate history noise
             return `C'est noté, mais je vois que tu avais déjà validé "${action.title}" aujourd'hui. Je laisse validé ! ✅`;
           }
@@ -117,6 +145,13 @@ export async function handleTracking(
     if (entryError) console.error("[Tracking] Error inserting action entry:", entryError);
 
     if (entryStatus === "missed") return `C'est noté (Pas fait). 📉\nAction : ${action.title}`;
+    if (isHabit) {
+      const target = Number(action.target_reps ?? 1);
+      if (target > 0 && prevReps < target && newReps >= target) {
+        return `Bravo ! Tu viens d'atteindre ton objectif hebdo (${target}×/semaine) pour : ${action.title} ✅`;
+      }
+      return `C'est noté ! ✅\nHabitude : ${action.title} (${newReps}/${target} cette semaine)`;
+    }
     return `C'est noté ! ✅\nAction : ${action.title}`;
   }
 

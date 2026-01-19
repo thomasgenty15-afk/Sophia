@@ -1,0 +1,51 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_create_action_ai_user",
+  "description": "Tool test (create_simple_action) with AI-generated user messages driven by a state machine inside simulate-user.",
+  "tags": ["sophia.architect"],
+  "persona": {
+    "label": "Utilisateur web",
+    "age_range": "25-35",
+    "style": "oral, naturel, parfois hésitant, pas robot",
+    "background": "Travail exigeant, le soir je scrolle trop, je veux remplacer par la lecture."
+  },
+  "objectives": [
+    {
+      "kind": "tools_create_action_realistic",
+      "spec": {
+        "title": "Lecture",
+        "duration_minutes": 10,
+        "target_reps": 3,
+        "time_of_day": "evening",
+        "context": "Je veux remplacer mon scroll du soir par un truc plus sain (la lecture), mais je suis pas sûr de tenir.",
+        "rename": true,
+        "must_confirm_active": true
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"]
+  },
+  "mechanical_assertions": {
+    "plan_actions_must_include": [
+      {
+        "title": [
+          "Lecture",
+          "10 min de lecture",
+          "10 minutes de lecture",
+          "Lecture du soir (10 min)",
+          "Lecture du Soir (10 min)",
+          "Lecture de 10 minutes",
+          "Lecture apaisante du soir",
+          "Lecture apaisante du soir"
+        ],
+        "status": "active",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": ["evening", "night"]
+      }
+    ]
+  }
+}
+
+

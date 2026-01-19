@@ -4,7 +4,8 @@ import { z } from "https://deno.land/x/zod@v3.22.4/mod.ts";
 
 const TrackingTypeSchema = z.enum(['boolean', 'counter']);
 const TimeOfDaySchema = z.enum(['morning', 'afternoon', 'evening', 'night', 'any_time']);
-const ActionTypeSchema = z.enum(['habitude', 'mission', 'framework']);
+// Support both "habitude" and legacy "habit" to reduce pointless regeneration loops.
+const ActionTypeSchema = z.enum(['habitude', 'habit', 'mission', 'framework']);
 const VitalTypeSchema = z.enum(['time', 'duration', 'number', 'range', 'text', 'constat']); // 'constat' ajouté par sécurité
 const SurveillanceTypeSchema = z.enum(['surveillance']);
 
@@ -23,8 +24,10 @@ const FrameworkDetailsSchema = z.object({
   sections: z.array(FrameworkSectionSchema),
 });
 
+const ActionIdSchema = z.union([z.string(), z.number()]).transform((v) => String(v));
+
 const ActionSchema = z.object({
-  id: z.string(),
+  id: ActionIdSchema,
   type: ActionTypeSchema,
   title: z.string(),
   description: z.string().optional(),
@@ -39,11 +42,12 @@ const ActionSchema = z.object({
   
   // Champs conditionnels
   targetReps: z.number().optional(), // Pour habitudes et frameworks
+  scheduledDays: z.array(z.enum(["mon", "tue", "wed", "thu", "fri", "sat", "sun"])).optional(), // Habitudes: optionnel (jours planifiés)
   frameworkDetails: FrameworkDetailsSchema.optional(), // Uniquement si type = framework
 });
 
 const PhaseSchema = z.object({
-  id: z.union([z.string(), z.number()]), // Gemini met parfois 1, parfois "1"
+  id: z.union([z.string(), z.number()]).transform((v) => String(v)), // Gemini met parfois 1, parfois "1"
   title: z.string(),
   subtitle: z.string().optional(),
   rationale: z.string().optional(),
@@ -81,8 +85,85 @@ export const PlanSchema = z.object({
   vitalSignal: VitalSignalSchema,
   maintenanceCheck: MaintenanceCheckSchema,
   
-  estimatedDuration: z.string(),
+  estimatedDuration: z.enum(["1 mois", "2 mois", "3 mois"]),
   phases: z.array(PhaseSchema),
+}).superRefine((plan, ctx) => {
+  // --- STRICT PLAN SHAPE (post-generation checker) ---
+  if (plan.phases.length !== 4) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["phases"],
+      message: `Le plan doit contenir exactement 4 phases (reçu: ${plan.phases.length}).`,
+    });
+  }
+
+  for (let i = 0; i < plan.phases.length; i++) {
+    const phase = plan.phases[i]!;
+    if (phase.actions.length !== 3) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phases", i, "actions"],
+        message: `Chaque phase doit contenir exactement 3 actions (phase ${i + 1}, reçu: ${phase.actions.length}).`,
+      });
+    }
+  }
+
+  // Conditional requirements (keep it strict but practical)
+  for (let p = 0; p < plan.phases.length; p++) {
+    const phase = plan.phases[p]!;
+    for (let a = 0; a < phase.actions.length; a++) {
+      const action = phase.actions[a]!;
+      const t = (action.type ?? "").toLowerCase().trim();
+
+      // Habits require targetReps
+      if ((t === "habitude" || t === "habit") && typeof action.targetReps !== "number") {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["phases", p, "actions", a, "targetReps"],
+          message: `Une action "habitude" doit définir targetReps.`,
+        });
+      }
+      // Habits: targetReps is weekly frequency (max 7).
+      if ((t === "habitude" || t === "habit") && typeof action.targetReps === "number") {
+        if (action.targetReps < 1 || action.targetReps > 7) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["phases", p, "actions", a, "targetReps"],
+            message: `Pour une "habitude", targetReps doit être entre 1 et 7 (fois / semaine).`,
+          });
+        }
+      }
+      // Habits: scheduledDays must not exceed targetReps (weekly frequency)
+      if ((t === "habitude" || t === "habit") && Array.isArray((action as any).scheduledDays) && typeof action.targetReps === "number") {
+        const days = (action as any).scheduledDays as string[];
+        if (days.length > action.targetReps) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["phases", p, "actions", a, "scheduledDays"],
+            message: `scheduledDays ne peut pas contenir plus de jours que targetReps (reçu: ${days.length}, targetReps: ${action.targetReps}).`,
+          });
+        }
+      }
+
+      // Frameworks require frameworkDetails + targetReps
+      if (t === "framework") {
+        if (!action.frameworkDetails) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["phases", p, "actions", a, "frameworkDetails"],
+            message: `Une action "framework" doit définir frameworkDetails.`,
+          });
+        }
+        if (typeof action.targetReps !== "number") {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["phases", p, "actions", a, "targetReps"],
+            message: `Une action "framework" doit définir targetReps.`,
+          });
+        }
+      }
+    }
+  }
 });
 
 // Type exporté pour TypeScript

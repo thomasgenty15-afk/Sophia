@@ -116,7 +116,7 @@ describe("integration: distributePlanActions()", () => {
     if (fwErr) throw fwErr;
 
     expect(frameworks).toHaveLength(1);
-    expect(frameworks[0].status).toBe("pending"); // 3e action globale => pending
+    expect(frameworks[0].status).toBe("active"); // phase.status = active => actions are active unless explicitly pending
 
     const { data: vitals, error: vitalsErr } = await client
       .from("user_vital_signs")

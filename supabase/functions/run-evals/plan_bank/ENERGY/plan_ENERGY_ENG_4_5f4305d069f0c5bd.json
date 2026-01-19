@@ -1,0 +1,268 @@
+{
+  "meta": {
+    "id": "plan_ENERGY_ENG_4_5f4305d069f0c5bd",
+    "theme_key": "ENERGY",
+    "theme_id": "ENG",
+    "theme_title": "Énergie & Vitalité",
+    "axis_id": "ENG_4",
+    "axis_title": "Perdre du poids durablement & en douceur",
+    "selected_problem_ids": [
+      "ENG_4_P4",
+      "ENG_4_P2"
+    ],
+    "selected_problem_labels": [
+      "Mon poids impacte ma vie sociale ou intime.",
+      "J’ai déjà fait plusieurs régimes, mais le poids est revenu."
+    ],
+    "fingerprint": "5f4305d069f0c5bd",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:30:34.273Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je veux vraiment me sentir mieux dans ma peau, arrêter de me cacher et pouvoir profiter pleinement des moments avec mes proches sans me soucier de mon apparence. J'en ai marre de cette spirale des régimes qui ne marchent jamais sur le long terme et de me sentir toujours coupable.",
+      "blockers": "Je manque de motivation quand les résultats ne sont pas immédiats, et je cède facilement aux tentations, surtout le soir. J'ai aussi l'impression de ne pas savoir comment manger sans me priver, et j'ai peur de reprendre encore plus de poids si j'arrête un régime. Le regard des autres me pèse beaucoup.",
+      "context": "Je suis une femme de 38 ans, sédentaire à cause de mon travail de bureau. J'ai pris du poids progressivement ces dernières années, surtout après mes grossesses, et je n'arrive plus à le perdre durablement. Mon poids actuel me pèse énormément, mentalement et physiquement, et ça affecte ma confiance en moi. J'essaie de manger sainement mais les craquages sont fréquents.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "ENG_4",
+      "title": "Perdre du poids durablement & en douceur",
+      "theme": "Énergie & Vitalité",
+      "problems": [
+        "Mon poids impacte ma vie sociale ou intime.",
+        "J’ai déjà fait plusieurs régimes, mais le poids est revenu."
+      ]
+    },
+    "answers": {
+      "ENG_4_P4": {
+        "ENG_4_P4_Q1": [
+          "Éviter certains vêtements",
+          "Éviter de te montrer en photo / vidéo",
+          "Te sentir gêné(e) dans l’intimité"
+        ],
+        "ENG_4_P4_Q2": [
+          "Socialement (honte, gêne, comparaison)",
+          "Dans ta vie amoureuse / intime"
+        ]
+      },
+      "ENG_4_P2": {
+        "ENG_4_P2_Q1": "Plus de 5",
+        "ENG_4_P2_Q2": [
+          "Des régimes “connus” (keto, jeûne, etc.)",
+          "Des règles perso très strictes",
+          "Un mélange de tout ça"
+        ]
+      },
+      "meta": "L'utilisateur est une femme de 38 ans, sédentaire, qui a fait plus de 5 régimes sans succès et se sent découragée. Elle souhaite perdre du poids pour améliorer sa vie sociale et intime, car elle se cache et se sent gênée par son corps. Elle cherche une approche durable et a peur de l'échec."
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "other"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Réveil de la Déesse Intérieure",
+    "strategy": "Nous allons reconstruire une relation saine et durable avec ton corps et ton alimentation, en brisant le cycle des régimes et en cultivant la bienveillance envers toi-même.",
+    "sophiaKnowledge": "Tu es une femme de 36 ans qui se sent piégée par un cycle de régimes infructueux et un poids qui pèse sur ta vie sociale et intime. Sédentaire, tu as tendance aux 'craquages' le soir et manques de motivation sans résultats immédiats. Ton estime de toi est affectée par ton image corporelle et la peur de l'échec te paralyse.",
+    "context_problem": "Épuisée par les échecs répétés des régimes et le sentiment de culpabilité, tu te sentais prisonnière de ton corps. Les 'craquages' en soirée et le manque de résultats rapides sabotaient tes efforts, te laissant avec une confiance en toi érodée et une envie de te cacher. Ta motivation profonde était de te sentir enfin à l'aise pour profiter de ta vie, mais la peur de l'échec était un frein puissant.",
+    "identity": "Je suis l'Architecte de ma Vitalité et la Source de ma Propre Bienveillance.",
+    "deepWhy": "Pour enfin me sentir libre, confiante et présente, capable de vivre pleinement ma vie sans être retenue par mon corps, et offrir le meilleur de moi-même à mes proches.",
+    "goldenRules": "1. Chaque repas est une occasion de nourrir mon corps et mon esprit avec bienveillance.\n2. Mon corps est mon allié, pas mon ennemi.\n3. La progression douce est ma seule voie vers la durabilité.\n4. La faim n'est pas une urgence, c'est une information.",
+    "vitalSignal": {
+      "name": "Portions de légumes",
+      "unit": "portions",
+      "startValue": "1",
+      "targetValue": "5",
+      "description": "Nombre total de portions de légumes consommées sur la journée (une portion = taille du poing).",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Sur une échelle de 1 à 10, à quel point te sens-tu en accord avec ton corps cette semaine ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "L'Ancrage du Plaisir",
+        "subtitle": "Semaines 1-2 • Réapprendre à écouter",
+        "rationale": "Avant de changer ce que tu manges, change comment tu manges. Cette phase pose les bases d'une écoute corporelle fine, essentielle pour sortir du cycle des régimes et des 'craquages' impulsifs. Tu vas reconnecter avec tes signaux internes de faim et de satiété.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "framework",
+            "title": "Le Journal de la Sensation",
+            "description": "Tiens un journal quotidien pour noter tes sensations de faim et de satiété avant, pendant et après chaque repas. Inclue aussi tes émotions.",
+            "questType": "main",
+            "tips": "Utilise une échelle de 1 (très faim) à 10 (très plein). Sois honnête, sans jugement. Le but est de te connaître.",
+            "rationale": "Développer ta proprioception alimentaire et identifier les déclencheurs émotionnels de tes envies, pour démystifier tes 'craquages'.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7,
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "L'objectif n'est pas de te priver, mais de comprendre. Chaque repas est une donnée précieuse sur ta relation à la nourriture. Note avant de manger, pendant et après. Identifie ce qui déclenche tes repas (faim physique, ennui, stress...)",
+              "sections": [
+                {
+                  "id": "s1_q1",
+                  "label": "Avant de manger : niveau de faim (1-10)",
+                  "inputType": "scale",
+                  "placeholder": "5"
+                },
+                {
+                  "id": "s1_q2",
+                  "label": "Après manger : niveau de satiété (1-10)",
+                  "inputType": "scale",
+                  "placeholder": "7"
+                },
+                {
+                  "id": "s1_q3",
+                  "label": "Mes émotions du moment",
+                  "inputType": "textarea",
+                  "placeholder": "Je me sens un peu stressée par ma journée..."
+                },
+                {
+                  "id": "s1_q4",
+                  "label": "Le repas en quelques mots et ma perception",
+                  "inputType": "textarea",
+                  "placeholder": "J'ai mangé rapidement, j'étais distraite par mon téléphone. Je me sens lourde."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "L'Écoute du Corps à Table",
+            "description": "Prends au moins 20 minutes pour chaque repas principal, sans écran ni distraction. Mange en pleine conscience, savoure chaque bouchée.",
+            "questType": "side",
+            "tips": "Mets une musique douce, pose tes couverts entre chaque bouchée, respire. Demande-toi si tu as encore faim à mi-parcours.",
+            "rationale": "Permet à ton cerveau d'enregistrer la satiété et de savourer, réduisant ainsi les quantités et la frustration post-repas. La pleine conscience brise le pilote automatique des 'craquages'.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Le Pacte de l'Énergie",
+        "subtitle": "Semaines 3-4 • Mouvement et structure douce",
+        "rationale": "Maintenant que tu écoutes mieux ton corps, il est temps d'intégrer des rituels qui nourrissent ton énergie physique et mentale, sans pression. Tu vas ancrer le mouvement et anticiper les défis du soir pour éviter l'épuisement et les tentations.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "habitude",
+            "title": "La Marche du Renouveau",
+            "description": "Effectue 15 à 20 minutes de marche rapide chaque jour, idéalement en extérieur. Concentre-toi sur tes sensations corporelles et l'environnement.",
+            "questType": "main",
+            "tips": "Profite de ta pause déjeuner ou d'un moment en fin de journée. L'important n'est pas l'intensité, mais la régularité et la connexion à ton corps en mouvement.",
+            "rationale": "Le mouvement doux et régulier est crucial pour le métabolisme et l'humeur. Il réduit le stress, améliore le sommeil et t'aide à te sentir plus présente dans ton corps, augmentant ta confiance et ton énergie.",
+            "tracking_type": "boolean",
+            "time_of_day": "afternoon",
+            "targetReps": 7
+          },
+          {
+            "id": "p2a2",
+            "type": "mission",
+            "title": "Le Sanctuaire du Soir",
+            "description": "Mets en place un rituel anti-craquage pour le soir : tisane, bain chaud, lecture, méditation courte. Prépare aussi des snacks sains (fruits coupés, oléagineux) pour avoir une alternative si l'envie est trop forte.",
+            "questType": "side",
+            "tips": "Choisis une ou deux activités qui t'apaisent réellement. L'idée est de remplacer un comportement automatique par un rituel conscient et bienveillant.",
+            "rationale": "Les 'craquages' du soir sont souvent liés à la fatigue émotionnelle ou au stress. Créer un 'sanctuaire' te donne des outils pour gérer ces moments sans recourir à la nourriture comme réconfort principal, instaurant une nouvelle routine de récompense.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "La Reconnexion Intime",
+        "subtitle": "Semaines 5-6 • Cultiver l'amour-propre",
+        "rationale": "Le poids n'est pas qu'une question de chiffres. Cette phase est dédiée à transformer la perception que tu as de toi-même. Tu vas activement défier le regard extérieur et renforcer l'estime de ton corps, peu importe son apparence actuelle.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "framework",
+            "title": "L'Inventaire des Victoires Non-Scalaires",
+            "description": "Chaque semaine, dresse la liste de toutes tes réussites qui ne sont PAS liées à ton poids ou à l'apparence physique. (Ex: 'J'ai eu plus d'énergie pour jouer avec mes enfants', 'J'ai dit non à une tâche qui me surchargeait', 'J'ai découvert un nouveau podcast passionnant').",
+            "questType": "main",
+            "tips": "Sois spécifique et détaille l'impact positif. Garde ce journal à portée de main pour les moments de doute.",
+            "rationale": "Rediriger l'attention des résultats immédiats sur la balance vers les bénéfices holistiques de ton nouveau mode de vie renforce la motivation intrinsèque et te libère du jugement externe, essentiel pour une transformation durable.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 3,
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Ton corps est un véhicule, mais ce que tu en fais est bien plus grand. Cet exercice va t'aider à reconnaître la valeur de tes progrès qui ne se mesurent pas en kilos, mais en qualité de vie.",
+              "sections": [
+                {
+                  "id": "s3_q1",
+                  "label": "3 victoires de la semaine, non liées à mon poids",
+                  "inputType": "list",
+                  "placeholder": "Plus d'énergie pour monter les escaliers..."
+                },
+                {
+                  "id": "s3_q2",
+                  "label": "Ce que ces victoires m'apportent (émotions, capacités)",
+                  "inputType": "textarea",
+                  "placeholder": "Je me sens plus forte, plus présente. Moins d'essoufflement, plus de joie."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p3a2",
+            "type": "habitude",
+            "title": "Le Réflecteur Bienveillant",
+            "description": "Chaque matin, devant le miroir, fais un compliment sincère à une partie de ton corps ou à tes capacités physiques, sans conditionner ton estime à une perte de poids.",
+            "questType": "side",
+            "tips": "Commence petit : 'J'aime la douceur de ma peau', 'Je suis reconnaissante pour mes bras qui peuvent porter mes enfants', 'Mes jambes me portent chaque jour'.",
+            "rationale": "Briser le cercle vicieux de la honte corporelle est fondamental. Cette pratique quotidienne de l'autocompassion reprogramme ton cerveau à associer ton corps à la gratitude et à la force, non à la critique.",
+            "tracking_type": "boolean",
+            "time_of_day": "morning",
+            "targetReps": 7
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "L'Architecte de Soi",
+        "subtitle": "Semaines 7-8 • Consolider pour l'avenir",
+        "rationale": "Tu as bâti des fondations solides. Cette dernière phase vise à consolider tes acquis, à anticiper les défis futurs et à faire de ton parcours une voie de vie durable. Il s'agit de devenir ta propre architecte de vie, capable de t'adapter et de prospérer.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "mission",
+            "title": "La Carte de Mes Trésors Anti-Craquages",
+            "description": "Identifie 3 situations à risque (fatigue, stress, événements sociaux) qui ont été des déclencheurs de 'craquages' par le passé. Pour chaque situation, élabore un plan d'action concret et une liste de 2-3 alternatives saines.",
+            "questType": "main",
+            "tips": "Écris-le et garde-le visible. Prépare-toi mentalement à utiliser ce plan. Visualise-toi en train de choisir l'alternative saine.",
+            "rationale": "La prévention est la clé de la durabilité. En anticipant les pièges potentiels et en préparant des stratégies claires, tu renforces ta résilience et ta capacité à maintenir tes nouvelles habitudes sur le long terme.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p4a2",
+            "type": "habitude",
+            "title": "Le Carburant de la Sérénité",
+            "description": "Dédie 10 minutes par jour à une pratique de gestion du stress ou de pleine conscience (méditation guidée, respiration profonde, yoga doux).",
+            "questType": "side",
+            "tips": "Utilise des applications comme Petit Bambou ou Calm. L'important est la régularité pour créer une habitude qui nourrit ton système nerveux.",
+            "rationale": "Le stress est un facteur majeur de 'craquages' et de prise de poids. En intégrant la sérénité dans ton quotidien, tu régules ton cortisol, améliores ton bien-être général et renforces ta capacité à faire des choix alignés avec tes objectifs.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7
+          }
+        ]
+      }
+    ]
+  }
+}

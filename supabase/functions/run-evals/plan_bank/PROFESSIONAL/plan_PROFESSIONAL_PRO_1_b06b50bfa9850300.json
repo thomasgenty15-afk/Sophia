@@ -1,0 +1,282 @@
+{
+  "meta": {
+    "id": "plan_PROFESSIONAL_PRO_1_b06b50bfa9850300",
+    "theme_key": "PROFESSIONAL",
+    "theme_id": "PRO",
+    "theme_title": "Carrière & Ambition",
+    "axis_id": "PRO_1",
+    "axis_title": "Booster sa carrière & Négocier (salaire, poste)",
+    "selected_problem_ids": [
+      "PRO_1_P1",
+      "PRO_1_P3"
+    ],
+    "selected_problem_labels": [
+      "Je veux négocier une augmentation ou une promotion, mais je ne sais pas comment m’y prendre.",
+      "Je manque de visibilité, on ne reconnaît pas assez ma valeur."
+    ],
+    "fingerprint": "b06b50bfa9850300",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:37:54.917Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je sens que je stagne un peu dans ma carrière alors que je m'investis beaucoup. J'aimerais qu'on reconnaisse ma valeur à sa juste mesure, aussi bien en termes de responsabilités que de salaire. Mais je n'ose pas vraiment me mettre en avant ou demander ce que je mérite.",
+      "blockers": "Ma plus grande difficulté, c'est de me vendre. J'ai l'impression de ne pas avoir les bons arguments quand il faut parler de chiffres, et puis j'ai toujours cette petite voix qui me dit que je n'en fais pas assez. En plus, je ne sais pas comment faire pour que mon travail soit plus visible sans avoir l'air de me vanter.",
+      "context": "Je suis dans mon poste actuel depuis 3 ans. Je gère des projets importants, mais souvent en back-office. Je vois des collègues moins expérimentés, mais plus 'bruyants', obtenir des promotions. Mon manager est sympa mais je pense qu'il ne voit pas l'étendue de mon travail.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "PRO_1",
+      "title": "Booster sa carrière & Négocier (salaire, poste)",
+      "theme": "Carrière & Ambition",
+      "problems": [
+        "Je veux négocier une augmentation ou une promotion, mais je ne sais pas comment m’y prendre.",
+        "Je manque de visibilité, on ne reconnaît pas assez ma valeur."
+      ]
+    },
+    "answers": {
+      "PRO_1_P1_Q1": "Je pense mériter plus mais je n’ai rien demandé",
+      "PRO_1_P1_Q2": [
+        "Peur de paraître gourmand(e) / ingrat(e)",
+        "Manque d’arguments chiffrés / concrets",
+        "Syndrome de l’imposteur (“est-ce que je le vaux vraiment ?”)"
+      ],
+      "PRO_1_P3_Q1": [
+        "Tu travailles beaucoup dans l’ombre",
+        "D’autres prennent le crédit / parlent plus fort que toi",
+        "Ton manager ne voit pas tout ce que tu fais"
+      ],
+      "PRO_1_P3_Q2": "Ne sais pas comment faire",
+      "meta": {
+        "problems": [
+          "Je veux négocier une augmentation ou une promotion, mais je ne sais pas comment m’y prendre.",
+          "Je manque de visibilité, on ne reconnaît pas assez ma valeur."
+        ],
+        "PRO_1_P1": {
+          "label": "Je veux négocier une augmentation ou une promotion, mais je ne sais pas comment m’y prendre.",
+          "questions": {
+            "PRO_1_P1_Q1": "Je pense mériter plus mais je n’ai rien demandé",
+            "PRO_1_P1_Q2": [
+              "Peur de paraître gourmand(e) / ingrat(e)",
+              "Manque d’arguments chiffrés / concrets",
+              "Syndrome de l’imposteur (“est-ce que je le vaux vraiment ?”)"
+            ]
+          }
+        },
+        "PRO_1_P3": {
+          "label": "Je manque de visibilité, on ne reconnaît pas assez ma valeur.",
+          "questions": {
+            "PRO_1_P3_Q1": [
+              "Tu travailles beaucoup dans l’ombre",
+              "D’autres prennent le crédit / parlent plus fort que toi",
+              "Ton manager ne voit pas tout ce que tu fais"
+            ],
+            "PRO_1_P3_Q2": "Ne sais pas comment faire"
+          }
+        }
+      }
+    },
+    "userProfile": {
+      "birth_date": "1996-01-05",
+      "gender": "male"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "L'Architecture de la Reconnaissance",
+    "strategy": "La reconnaissance professionnelle n'est pas une quête de validation externe, mais la conséquence naturelle d'une valeur solidement prouvée et stratégiquement communiquée. Nous allons construire votre dossier, affûter votre voix et orchestrer votre visibilité.",
+    "sophiaKnowledge": "Tu es un professionnel talentueux et investi qui œuvre dans l'ombre depuis trois ans. Malgré ton importance pour des projets clés, tu te sens invisible et sous-estimé. Ton principal blocage est la difficulté à verbaliser ta valeur et le syndrome de l'imposteur, t'empêchant de demander ce que tu mérites. Tu es prêt à changer cela pour être reconnu à ta juste valeur.",
+    "context_problem": "Tu te sens aujourd'hui en stagnation, frustré de voir ton travail acharné en back-office passer inaperçu tandis que des collègues plus 'bruyants' progressent. Tes blocages se situent dans la peur de te 'vendre', le manque d'arguments chiffrés et cette petite voix interne qui te fait douter de ta propre valeur, t'empêchant de négocier et d'obtenir la reconnaissance que tu mérites.",
+    "identity": "Je suis un Architecte de ma Valeur.",
+    "deepWhy": "Pour enfin obtenir la reconnaissance matérielle et les responsabilités qui reflètent mon investissement, et me sentir pleinement légitime et confiant dans ma progression professionnelle.",
+    "goldenRules": "1. Je collecte des preuves de ma valeur chaque jour.\n2. Ma voix est mon levier; je la cultive.\n3. La visibilité est un choix stratégique, pas de la vanité.",
+    "vitalSignal": {
+      "name": "Impacts Concrets Identifiés",
+      "unit": "unités",
+      "startValue": "0",
+      "targetValue": "3",
+      "description": "Chaque jour, notez le nombre de contributions ou succès concrets que vous avez réalisés ou identifiés. Minimum 3.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois avez-vous initié une conversation sur votre progression ou votre valeur cette semaine ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Inventaire Invisible",
+        "subtitle": "Semaines 1-2 • Reconstruire la Preuve",
+        "rationale": "C'est la fondation. Avant de projeter votre valeur, vous devez la reconnaître et la documenter pour contrer le syndrome de l'imposteur.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "framework",
+            "title": "Le Journal de Réussites Invisibles",
+            "description": "Documenter quotidiennement toutes vos contributions, grandes ou petites, pour construire une base solide contre le syndrome de l'imposteur.",
+            "questType": "main",
+            "tips": "Ne filtrez rien. Tout ce qui a demandé un effort, une solution, un résultat, mérite d'être noté. Soyez factuel.",
+            "rationale": "Le cerveau a tendance à minimiser nos réussites. La documentation systématique recalibre votre perception interne de votre valeur.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Chaque jour, votre cerveau oublie une multitude de micro-réussites. Ce journal est votre rempart contre le biais de négativité. Capturez les faits, les chiffres, l'impact, même si personne d'autre ne les voit encore.",
+              "sections": [
+                {
+                  "id": "p1a1s1",
+                  "label": "Ma contribution/réussite du jour (avec métriques si possible)",
+                  "inputType": "textarea",
+                  "placeholder": "Ex: Résolu le bug X (gain de 2h/semaine pour l'équipe Y)"
+                },
+                {
+                  "id": "p1a1s2",
+                  "label": "L'émotion associée à cette réussite",
+                  "inputType": "text",
+                  "placeholder": "Fierté, soulagement, satisfaction..."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "Scan des Contributions Quotidiennes",
+            "description": "Prendre 5 minutes chaque soir pour balayer mentalement votre journée et identifier au moins une contribution clé.",
+            "questType": "side",
+            "tips": "Commencez petit. Une action, une aide, une idée. L'objectif est de s'entraîner à repérer votre propre impact.",
+            "rationale": "Ancre la reconnaissance de soi au niveau neuronal. Plus vous cherchez, plus votre cerveau trouve des preuves de votre valeur.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Art de la Valorisation",
+        "subtitle": "Semaines 3-4 • Affûter le Récit",
+        "rationale": "Maintenant que vous avez vos preuves, il est temps d'apprendre à les articuler de manière concise et percutante pour les conversations clés.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "framework",
+            "title": "Le Pitch Élevator de ma Valeur",
+            "description": "Rédiger une synthèse concise et percutante de votre valeur unique et de vos aspirations, à utiliser en 60 secondes.",
+            "questType": "main",
+            "tips": "Pensez comme un marketeur. Quel est votre USP (Unique Selling Proposition) ? Quels problèmes résolvez-vous ? Quels résultats apportez-vous ?",
+            "rationale": "Une argumentation claire et concise réduit le stress cognitif et active les circuits de confiance lors d'interactions importantes.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Vous avez collecté les données, il est temps de les distiller en un récit puissant. Cet exercice n'est pas de la vantardise, c'est l'art de la clarté stratégique. Votre cerveau doit être entraîné à extraire l'essence de votre valeur.",
+              "sections": [
+                {
+                  "id": "p2a1s1",
+                  "label": "Mon rôle et mes contributions clés (1 phrase)",
+                  "inputType": "text",
+                  "placeholder": "En tant que [rôle], je [verbe d'action] en [domaine] pour [résultat impactant]."
+                },
+                {
+                  "id": "p2a1s2",
+                  "label": "Mes 3 arguments chiffrés / concrets principaux",
+                  "inputType": "list",
+                  "placeholder": "Ex: Augmentation de X% de Y; Réduction de Z du temps de A..."
+                },
+                {
+                  "id": "p2a1s3",
+                  "label": "Mon aspiration (promotion, salaire, responsabilités) et pourquoi",
+                  "inputType": "textarea",
+                  "placeholder": "J'aspire à [X] pour [raison qui bénéficie l'entreprise et moi]."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p2a2",
+            "type": "habitude",
+            "title": "Répétition Intérieure du Pitch",
+            "description": "Pratiquer mentalement ou à voix basse votre 'Pitch Élevator' chaque jour pour fluidifier votre discours et renforcer votre confiance.",
+            "questType": "side",
+            "tips": "Choisissez un moment calme. Visualisez-vous en train de le prononcer avec assurance. N'hésitez pas à l'adapter légèrement.",
+            "rationale": "La répétition mentale simule l'action, renforçant les voies neuronales et réduisant l'anxiété de performance quand le moment réel arrive.",
+            "targetReps": 14,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : L'Orchestration de la Lumière",
+        "subtitle": "Semaines 5-6 • Stratégies de Visibilité",
+        "rationale": "Il ne suffit pas d'avoir de la valeur, il faut qu'elle soit vue. Cette phase vous apprend à diffuser stratégiquement votre impact.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "mission",
+            "title": "Cartographie des Influenceurs Clés",
+            "description": "Identifier 3 à 5 personnes au sein de votre organisation (manager, pairs influents, leaders d'autres départements) qui devraient connaître votre travail.",
+            "questType": "main",
+            "tips": "Pensez aux personnes qui bénéficient directement ou indirectement de votre travail, ou celles qui sont des 'décideurs silencieux'.",
+            "rationale": "La visibilité est un réseau. Connaître votre audience est la première étape pour diriger votre communication stratégiquement, activant les réseaux sociaux du cerveau.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p3a2",
+            "type": "habitude",
+            "title": "Le Bref Éclair d'Impact",
+            "description": "Une fois tous les deux jours, partager pro-activement un succès ou une avancée clé avec une des personnes identifiées, de manière succincte.",
+            "questType": "side",
+            "tips": "Format : 'Juste pour vous tenir informé, j'ai [action] qui a mené à [résultat].' Sans attendre de réponse, juste informer.",
+            "rationale": "Créer un 'flux d'informations' régulier renforce l'association de votre nom avec des résultats positifs dans la mémoire de vos collègues et managers.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "afternoon"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : Le Sommet de la Négociation",
+        "subtitle": "Semaines 7-8 • Le Dialogue de l'Avancement",
+        "rationale": "Toutes les étapes précédentes convergent vers ce moment. Préparez-vous à transformer votre valeur en reconnaissance concrète.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "mission",
+            "title": "Initiation de la Conversation Stratégique",
+            "description": "Demander un entretien formel avec votre manager pour discuter de vos perspectives de carrière et de votre évolution.",
+            "questType": "main",
+            "tips": "Formulez votre demande comme une 'discussion sur ma trajectoire professionnelle et mes contributions futures', plutôt que 'je veux une augmentation'.",
+            "rationale": "Prendre l'initiative est un signal fort de leadership et d'engagement, renforçant votre position avant même la conversation.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p4a2",
+            "type": "habitude",
+            "title": "Visualisation Pré-Négociation",
+            "description": "Chaque jour, visualisez un scénario positif et constructif de votre future discussion avec votre manager, en imaginant vos arguments et les leurs.",
+            "questType": "side",
+            "tips": "Visualisez la confiance, la clarté et l'issue positive. Ne vous concentrez pas sur les 'et si' négatifs.",
+            "rationale": "La visualisation active les mêmes zones cérébrales que l'action réelle, préparant votre esprit et votre corps à une performance optimale et réduisant l'anxiété.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          }
+        ]
+      }
+    ]
+  }
+}

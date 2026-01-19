@@ -10,6 +10,8 @@ export interface Action {
   // Pour les Habitudes (Groupe A)
   targetReps?: number;
   currentReps?: number;
+  lastPerformedAt?: string | null;
+  scheduledDays?: string[] | null; // ex: ["mon","wed","fri"] (optionnel)
   // Pour les One-Shot (Groupe B)
   frameworkId?: string; // Si c'est un outil à ouvrir
   // Méta

@@ -197,9 +197,9 @@ const ActionPlanGenerator = () => {
                 </label>
                 <div className="space-y-3">
                     {[
-                        { id: 'fast', label: "Je suis hyper motivé (Intense)", desc: "Plan dense, résultats rapides, demande beaucoup d'énergie." },
-                        { id: 'balanced', label: "Je suis motivé, mais je veux que ce soit progressif", desc: "Équilibre entre effort et récupération. Recommandé." },
-                        { id: 'slow', label: "Je sais que c'est un gros sujet, je préfère prendre mon temps", desc: "Micro-actions, très peu de pression, durée allongée." }
+                        { id: 'fast', label: "Je suis hyper motivé (Intense) (1 mois)", desc: "Plan dense, résultats rapides, demande beaucoup d'énergie." },
+                        { id: 'balanced', label: "Je suis motivé, mais je veux que ce soit progressif (2 mois)", desc: "Équilibre entre effort et récupération. Recommandé." },
+                        { id: 'slow', label: "Je sais que c'est un gros sujet, je préfère prendre mon temps (3 mois)", desc: "Micro-actions, très peu de pression, durée allongée." }
                     ].map((option) => (
                         <label 
                             key={option.id}
@@ -403,7 +403,7 @@ const ActionPlanGenerator = () => {
                                 <div className="mt-2">
                                   <div className="flex flex-wrap items-center justify-between text-[10px] md:text-xs font-bold text-slate-500 mb-1 gap-2">
                                     <span className="flex items-center gap-1 whitespace-nowrap"><Trophy className="w-3 h-3 text-amber-500" /> Objectif XP</span>
-                                    <span className="whitespace-nowrap">{action.targetReps} répétitions</span>
+                                    <span className="whitespace-nowrap">{action.targetReps}× / semaine</span>
                                   </div>
                                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                                     <div className="h-full bg-slate-300 w-[30%] rounded-full"></div> 

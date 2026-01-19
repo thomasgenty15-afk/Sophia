@@ -1,0 +1,257 @@
+{
+  "meta": {
+    "id": "plan_PROFESSIONAL_PRO_2_44773b0623429c65",
+    "theme_key": "PROFESSIONAL",
+    "theme_id": "PRO",
+    "theme_title": "Carrière & Ambition",
+    "axis_id": "PRO_2",
+    "axis_title": "Réussir sa recherche d’emploi (CV, Entretiens, Réseau)",
+    "selected_problem_ids": [
+      "PRO_2_P2",
+      "PRO_2_P3"
+    ],
+    "selected_problem_labels": [
+      "Je suis mal à l’aise en entretien, je ne sais pas me vendre.",
+      "Je ne sais pas utiliser mon réseau / le “marché caché”."
+    ],
+    "fingerprint": "44773b0623429c65",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:36:22.744Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je suis à un point où ma recherche d'emploi stagne. J'ai l'impression de ne pas réussir à valoriser mes compétences et mes expériences, surtout en entretien. Et puis, je sais que le réseau est important mais je n'ose pas l'utiliser, je ne sais pas par où commencer.",
+      "blockers": "Le stress en entretien me fait perdre mes moyens et je ne sais pas comment me 'vendre' sans paraître arrogant. D'un autre côté, l'idée de contacter des gens de mon réseau me met mal à l'aise, j'ai peur de déranger ou de ne pas trouver les bons mots.",
+      "context": "Je suis actuellement en poste mais je cherche à évoluer vers un rôle avec plus de responsabilités. J'ai postulé à plusieurs offres mais sans succès concret après les premiers entretiens. Mon réseau professionnel est là, mais je ne l'ai jamais vraiment activé pour une recherche d'emploi.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "PRO_2",
+      "title": "Réussir sa recherche d’emploi (CV, Entretiens, Réseau)",
+      "theme": "Carrière & Ambition",
+      "problems": [
+        "Je suis mal à l’aise en entretien, je ne sais pas me vendre.",
+        "Je ne sais pas utiliser mon réseau / le “marché caché”."
+      ]
+    },
+    "answers": {
+      "PRO_2_P2_Q1": "Trop modeste / passif(ve)",
+      "PRO_2_P2_Q2": "“Pourquoi vous ?”",
+      "PRO_2_P3_Q1": "Gênant, je ne sais pas quoi dire",
+      "PRO_2_P3_Q2": [
+        "Les sites d’annonces (LinkedIn, Indeed…)"
+      ],
+      "meta": {
+        "themeId": "PRO",
+        "axisId": "PRO_2",
+        "problemsId": [
+          "PRO_2_P2",
+          "PRO_2_P3"
+        ]
+      }
+    },
+    "userProfile": {
+      "birth_date": "1996-01-05",
+      "gender": "female"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Manifeste du Potentiel",
+    "strategy": "Nous allons transformer la perception de ta valeur, maîtriser l'art de te présenter et activer stratégiquement ton réseau pour une évolution de carrière ambitieuse.",
+    "sophiaKnowledge": "Tu es une femme née en 1996, actuellement en poste mais aspirant à plus de responsabilités. Ta recherche stagne car tu manques de confiance en entretien et as du mal à valoriser tes compétences sans te sentir arrogante. L'activation de ton réseau est un blocage majeur, te laissant mal à l'aise à l'idée de déranger. Tu as tendance à être trop modeste et à ne pas savoir répondre à la question 'Pourquoi vous ?' malgré ton potentiel. Tu as choisi un rythme 'balanced' pour cette transformation.",
+    "context_problem": "Actuellement en poste, tu te sens freinée dans ton ambition par un manque de confiance en toi lors des entretiens et une incapacité à activer ton réseau. Cette stagnation crée une frustration, te faisant douter de ta capacité à évoluer. Le blocage principal réside dans ta perception de la vente de soi et la peur de déranger, t'empêchant de pleinement exprimer ton potentiel.",
+    "identity": "Je suis un Architecte de ma Carrière, Confident et Connecté.",
+    "deepWhy": "Pour incarner la leader que je sais être, inspirer mon entourage par mon audace et construire une carrière à la hauteur de mes aspirations profondes, sans jamais me sentir limitée ou illégitime.",
+    "goldenRules": "1. Ma valeur est intrinsèque et non négociable.\n2. Chaque interaction est une opportunité d'apprendre et de connecter.\n3. Je me 'vends' avec authenticité, pas avec arrogance.",
+    "vitalSignal": {
+      "name": "Points Positifs Auto-Identifiés",
+      "unit": "unités",
+      "startValue": "0",
+      "targetValue": "3",
+      "description": "Nombre de qualités, compétences ou réussites spécifiques identifiées sur la journée, même les plus petites.",
+      "type": "constat",
+      "tracking_type": "counter",
+      "time_of_day": "evening"
+    },
+    "maintenanceCheck": {
+      "question": "Sur une échelle de 1 à 10, à quel point me suis-je sentie légitime et confiante cette semaine dans mes interactions professionnelles ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : Le Sillage de l'Estime - Ancrer sa Valeur",
+        "subtitle": "Semaines 1-2 • Déconstruire le complexe de la modestie",
+        "rationale": "Avant de convaincre les autres, il est essentiel de te convaincre toi-même de ta valeur. Cette phase te permettra de revisiter tes acquis et d'ancrer une perception solide de tes compétences, pierre angulaire de toute négociation future.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "framework",
+            "title": "Mon Atlas de Compétences et Réussites",
+            "description": "Un exercice quotidien pour identifier et détailler tes compétences et réussites, même les plus anodines. Chaque jour, ajoute de nouvelles entrées.",
+            "questType": "main",
+            "tips": "Ne filtre rien. Une petite réussite personnelle est aussi valide qu'un succès professionnel. L'objectif est de remplir cette liste sans jugement.",
+            "rationale": "C'est une reprogrammation neuronale pour 'voir' ta valeur. Plus tu la listes, plus ton cerveau la reconnaît comme réelle et abondante. Cela combat la modestie excessive et renforce ton discours interne.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Pendant 7 jours, chaque soir, prends 10 minutes pour noter au moins 3 éléments (compétences, réalisations, retours positifs) qui te sont venus à l'esprit durant la journée, ou que tu as identifiés en repensant à ton parcours. Ne te censure pas.",
+              "sections": [
+                {
+                  "id": "p1a1s1",
+                  "label": "Compétence ou Réussite",
+                  "inputType": "list",
+                  "placeholder": "J'ai résolu tel problème..."
+                },
+                {
+                  "id": "p1a1s2",
+                  "label": "Contexte / Impact (Optionnel)",
+                  "inputType": "textarea",
+                  "placeholder": "En quoi c'était important ou comment ça a aidé."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "Le Scan de Gratitude Professionnelle",
+            "description": "Chaque matin, identifie et note 3 choses (petites ou grandes) pour lesquelles tu es reconnaissante dans ton parcours ou environnement professionnel.",
+            "questType": "side",
+            "tips": "Cela peut être une compétence que tu maîtrises, une relation avec un collègue, un aspect de ton travail que tu aimes. L'objectif est de démarrer la journée avec une perspective positive.",
+            "rationale": "La gratitude modifie la chimie cérébrale, réduisant le stress et augmentant le bien-être. Appliquée au professionnel, elle ancre une perception positive de ton environnement et de tes capacités, essentielle pour l'estime de soi.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Écho de l'Authenticité - Maîtriser son Récit",
+        "subtitle": "Semaines 3-4 • Transformer le 'Pourquoi vous ?' en opportunité",
+        "rationale": "Une fois ta valeur solidifiée, il faut apprendre à la communiquer de manière impactante et authentique. Cette phase te prépare à captiver tes interlocuteurs en transformant tes expériences en récits percutants.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "framework",
+            "title": "Le Storytelling de Mon Expertise",
+            "description": "Développe des réponses structurées et narratives pour les questions clés d'entretien, notamment 'Pourquoi vous ?' et 'Parlez-moi de vous'.",
+            "questType": "main",
+            "tips": "Utilise la méthode STAR (Situation, Tâche, Action, Résultat) pour construire tes histoires. Entraîne-toi à les raconter à voix haute.",
+            "rationale": "Ton cerveau retient mieux les informations sous forme d'histoires. En structurant tes réponses, tu réduis la charge cognitive en entretien, laissant place à ton authenticité. Cela te permet de 'vendre' sans arrogance, en partageant des faits et leurs impacts.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Pour chaque question clé, prépare une réponse narrative. Concentre-toi sur tes forces uniques et comment elles se manifestent dans ton travail. Ne rédige pas des phrases complètes, mais des points clés pour guider ta mémoire.",
+              "sections": [
+                {
+                  "id": "p2a1s1",
+                  "label": "Réponse 'Pourquoi vous ?'",
+                  "inputType": "textarea",
+                  "placeholder": "Mon parcours unique m'a apporté X, Y, Z qui sont essentiels pour ce poste car..."
+                },
+                {
+                  "id": "p2a1s2",
+                  "label": "Réponse 'Parlez-moi de vous'",
+                  "inputType": "textarea",
+                  "placeholder": "Je suis passionné(e) par... Mon expérience m'a mené(e) à développer..."
+                },
+                {
+                  "id": "p2a1s3",
+                  "label": "Exemple concret de succès (STAR)",
+                  "inputType": "textarea",
+                  "placeholder": "Situation: ... Tâche: ... Action: ... Résultat: ..."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p2a2",
+            "type": "habitude",
+            "title": "La Visualisation du Succès",
+            "description": "Chaque matin, pendant 5 minutes, visualise-toi avec confiance et aisance lors d'un entretien ou d'une interaction réseau réussie.",
+            "questType": "side",
+            "tips": "Imagine les détails : ton langage corporel, ton calme, la fluidité de tes réponses, la réaction positive de l'interlocuteur. Immerge-toi dans l'émotion du succès.",
+            "rationale": "La visualisation prépare ton cerveau au succès. En simulant mentalement des scénarios positifs, tu réduis l'anxiété et renforces les circuits neuronaux associés à la performance et la confiance, rendant l'exécution réelle plus facile.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : La Toile des Alliés - Activer son Réseau avec Intention",
+        "subtitle": "Semaines 5-6 • Transformer la gêne en connexion authentique",
+        "rationale": "Le réseau n'est pas une transaction, mais une connexion. Cette phase te donnera les outils pour aborder ton réseau avec confiance, clarté et bienveillance, transformant la gêne en opportunités mutuelles.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "mission",
+            "title": "L'Audit Stratégique de Mon Réseau",
+            "description": "Identifie 5 à 10 contacts clés dans ton réseau professionnel (LinkedIn, anciens collègues, mentors) qui pourraient t'apporter des conseils ou ouvrir des portes. Pour chaque contact, définis une intention claire pour une éventuelle interaction.",
+            "questType": "main",
+            "tips": "Ne pense pas 'ce qu'ils peuvent me donner', mais 'comment cette connexion pourrait être mutuellement bénéfique ou instructive'. Priorise les personnes avec qui tu as déjà un lien, même minime.",
+            "rationale": "Cartographier ton réseau réduit l'incertitude et la charge mentale associée à l'activation. Définir une intention claire pour chaque contact structure ton approche et atténue la peur de déranger, car tu sais exactement pourquoi tu les contactes.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p3a2",
+            "type": "habitude",
+            "title": "La Micro-Connexion Quotidienne",
+            "description": "Pendant 5 minutes chaque jour, engage-toi dans une micro-interaction réseau : un like pertinent sur LinkedIn, un commentaire constructif, une réponse à un post, ou un bref message à un ancien collègue.",
+            "questType": "side",
+            "tips": "L'objectif n'est pas d'obtenir un poste, mais de maintenir une présence, d'être visible et d'habituer ton cerveau à l'interaction réseau. La régularité est plus importante que l'intensité.",
+            "rationale": "Les micro-habitudes sont puissantes pour surmonter l'inertie. En initiant de petites interactions, tu désensibilises ton cerveau à la 'peur de déranger' et construis progressivement des connexions sans pression, renforçant ton sentiment d'efficacité personnelle.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "afternoon"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : L'Envol de l'Influence - Concrétiser les Interactions",
+        "subtitle": "Semaines 7-8 • Transformer l'action en opportunités tangibles",
+        "rationale": "C'est le moment d'appliquer toutes les compétences acquises. Cette phase est dédiée à l'action concrète et à la transformation des connexions en opportunités réelles, tout en affinant ton approche à chaque pas.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "mission",
+            "title": "Le Défi de la Première Approche Ciblée",
+            "description": "Contacte au moins 3 personnes identifiées dans ton 'Audit Stratégique' (Phase 3) avec un message personnalisé et une demande claire (conseil, information, introduction).",
+            "questType": "main",
+            "tips": "Concentre-toi sur la valeur que tu cherches à apporter ou la curiosité que tu as pour leur parcours, pas seulement ce qu'ils peuvent faire pour toi. Sois succincte et respectueuse de leur temps. Prépare tes messages à l'avance.",
+            "rationale": "L'action est le meilleur antidote à la peur. En franchissant ce pas, tu valides toutes les étapes précédentes et génères un feedback réel, essentiel pour affiner ton approche. Chaque 'non' ou absence de réponse est une donnée, pas un échec personnel.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p4a2",
+            "type": "habitude",
+            "title": "La Rétrospection Ciblée Post-Interaction",
+            "description": "Après chaque interaction professionnelle (entretien, appel réseau, message important), prends 10 minutes pour noter ce qui s'est bien passé, ce qui pourrait être amélioré et tes émotions ressenties.",
+            "questType": "side",
+            "tips": "Sois honnête mais bienveillante avec toi-même. L'objectif n'est pas de te juger, mais d'apprendre. Qu'est-ce qui t'a surpris ? Qu'est-ce que tu referais différemment ?",
+            "rationale": "La boucle de rétroaction est cruciale pour l'apprentissage et l'adaptation. En analysant objectivement tes interactions, tu crées de nouvelles voies neuronales pour des comportements plus efficaces et réagis mieux aux situations futures, renforçant ta résilience et ta confiance en ta capacité à t'améliorer.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      }
+    ]
+  }
+}

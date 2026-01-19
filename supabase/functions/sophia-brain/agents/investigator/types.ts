@@ -5,7 +5,13 @@ export interface CheckupItem {
   description?: string
   tracking_type: "boolean" | "counter"
   target?: number
+  current?: number
   unit?: string
+  // Habitudes: planification optionnelle (jours) + contexte de bilan
+  scheduled_days?: string[]
+  is_scheduled_day?: boolean
+  day_scope?: "today" | "yesterday"
+  is_habit?: boolean
 }
 
 export interface InvestigationState {

@@ -430,6 +430,8 @@ async function main() {
       model: args.model,
       use_real_ai: true,
       judge_force_real_ai: true,
+      use_pre_generated_plans: true,
+      pre_generated_plans_required: true,
     };
 
     const stableRequestId = `wa_onboarding_bundle:${scenario.id}:i${i}:s${seedInt}`;

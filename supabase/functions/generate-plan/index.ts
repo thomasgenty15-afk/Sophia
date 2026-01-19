@@ -3,6 +3,7 @@ import { retryOn429 } from "../_shared/retry429.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2"
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
+import { validatePlan } from "../_shared/plan-validator.ts"
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -26,8 +27,46 @@ serve(async (req) => {
       (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
       (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000");
     if (!forceRealGeneration && (megaRaw === "1" || (megaRaw === "" && isLocalSupabase))) {
-      const { currentAxis, mode } = body as any;
+      const { currentAxis, mode, inputs } = body as any;
       const axisTitle = currentAxis?.title ?? "Axe";
+      const pacing = (inputs?.pacing ?? "balanced") as string;
+      const durationByPacing: Record<string, { estimatedDuration: "1 mois" | "2 mois" | "3 mois"; subtitles: string[] }> = {
+        fast: { estimatedDuration: "1 mois", subtitles: ["Semaine 1", "Semaine 2", "Semaine 3", "Semaine 4"] },
+        balanced: { estimatedDuration: "2 mois", subtitles: ["Semaines 1-2", "Semaines 3-4", "Semaines 5-6", "Semaines 7-8"] },
+        slow: { estimatedDuration: "3 mois", subtitles: ["Semaines 1-3", "Semaines 4-6", "Semaines 7-9", "Semaines 10-12"] },
+      };
+      const pacingCfg = durationByPacing[pacing] ?? durationByPacing.balanced;
+
+      const mkActions = (phaseIdx: number) => ([
+        {
+          id: `h_${phaseIdx}`,
+          type: "habitude",
+          title: `MEGA_TEST_STUB: Habitude P${phaseIdx}`,
+          description: "MEGA_TEST_STUB: description",
+          tracking_type: "boolean",
+          time_of_day: "morning",
+          targetReps: 7,
+        },
+        {
+          id: `m_${phaseIdx}`,
+          type: "mission",
+          title: `MEGA_TEST_STUB: Mission P${phaseIdx}`,
+          description: "MEGA_TEST_STUB: description",
+          tracking_type: "boolean",
+          time_of_day: "any_time",
+        },
+        {
+          id: `f_${phaseIdx}`,
+          type: "framework",
+          title: `MEGA_TEST_STUB: Framework P${phaseIdx}`,
+          description: "MEGA_TEST_STUB: description",
+          tracking_type: "boolean",
+          time_of_day: "evening",
+          targetReps: 1,
+          frameworkDetails: { type: "one_shot", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
+        },
+      ]);
+
       const plan = {
         grimoireTitle: `MEGA_TEST_STUB: ${axisTitle}`,
         strategy: "MEGA_TEST_STUB: strategy",
@@ -49,49 +88,18 @@ serve(async (req) => {
           frequency: "weekly",
           type: "reflection",
         },
-        estimatedDuration: "4 semaines",
-        phases: [
-          {
-            id: 1,
-            title: `MEGA_TEST_STUB: Phase 1 (${mode ?? "standard"})`,
-            subtitle: "Semaines 1-2",
-            status: "active",
-            actions: [
-              {
-                id: "a1",
-                type: "habitude",
-                title: "MEGA_TEST_STUB: Habitude",
-                description: "MEGA_TEST_STUB: description",
-                tracking_type: "boolean",
-                time_of_day: "morning",
-                targetReps: 7,
-                isCompleted: false,
-              },
-              {
-                id: "a2",
-                type: "mission",
-                title: "MEGA_TEST_STUB: Mission",
-                description: "MEGA_TEST_STUB: description",
-                tracking_type: "boolean",
-                time_of_day: "any_time",
-                isCompleted: false,
-              },
-              {
-                id: "a3",
-                type: "framework",
-                title: "MEGA_TEST_STUB: Framework",
-                description: "MEGA_TEST_STUB: description",
-                tracking_type: "boolean",
-                time_of_day: "evening",
-                targetReps: 3,
-                isCompleted: false,
-                frameworkDetails: { type: "recurring", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
-              },
-            ],
-          },
-        ],
+        estimatedDuration: pacingCfg.estimatedDuration,
+        phases: Array.from({ length: 4 }).map((_, idx) => ({
+          id: idx + 1,
+          title: `MEGA_TEST_STUB: Phase ${idx + 1} (${mode ?? "standard"})`,
+          subtitle: pacingCfg.subtitles[idx]!,
+          status: idx === 0 ? "active" : "pending",
+          actions: mkActions(idx + 1),
+        })),
       };
-      return new Response(JSON.stringify(plan), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+      // Validate in stub mode too, to guarantee deterministic conformity.
+      const validated = validatePlan(plan);
+      return new Response(JSON.stringify(validated), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
     }
 
     const authHeader = req.headers.get("Authorization") ?? ""
@@ -142,7 +150,11 @@ serve(async (req) => {
           2. Ne modifie QUE ce qui est nécessaire pour répondre au feedback.
           3. Si l'utilisateur dit "c'est trop dur", allège le rythme ou supprime des actions complexes.
           4. Si l'utilisateur veut changer une action spécifique, remplace-la par une alternative pertinente.
-          5. Si l'utilisateur demande de changer le rythme (ex: "plus lent"), ajuste la durée (estimatedDuration) et la densité des actions.
+          5. Si l'utilisateur demande de changer le rythme (ex: "plus lent"), applique STRICTEMENT les règles de pacing suivantes :
+             - fast : 4 semaines (1 mois) = 4 phases de 1 semaine, 3 actions par phase.
+             - balanced : 8 semaines (2 mois) = 4 phases de 2 semaines, 3 actions par phase.
+             - slow : 12 semaines (3 mois) = 4 phases de 3 semaines, 3 actions par phase.
+             => Si le rythme change, mets à jour estimatedDuration + sous-titres des phases + nombre de phases + actions par phase pour respecter ces contraintes.
           6. Renvoie UNIQUEMENT le JSON complet mis à jour.
           7. Assure-toi que chaque action a bien un "tracking_type" ('boolean' ou 'counter').
         `;
@@ -184,45 +196,48 @@ serve(async (req) => {
           3. Si c'était "ennuyeux", propose une approche plus ludique ou intense ("fast").
           4. Ne redonne PAS les mêmes actions qui ont échoué. Change d'angle d'attaque.
           
-          RÈGLES DE DURÉE ET INTENSITÉ (PACING) :
-          Adapte STRICTEMENT la structure selon le choix "pacing" de l'utilisateur :
+          RÈGLES DE DURÉE ET STRUCTURE (PACING) — STRICTES :
+          Le plan DOIT être construit en PHASES, et la structure dépend du choix "pacing".
+          Ces règles sont NON-NÉGOCIABLES : tu dois les respecter à la lettre.
 
-          1. SI PACING = "fast" (Intense / Hyper motivé) :
-             - Durée Totale : 4 semaines (1 mois).
-             - Structure : 4 Phases de 1 semaine chacune.
-             - Densité : Jusqu'à 3 actions par phase.
-             - Ton : Radical, rapide, résultats immédiats.
+          1) SI PACING = "fast" (Intense / Hyper motivé) :
+             - Durée totale : 1 mois (4 semaines).
+             - Structure : 4 phases de 1 semaine chacune.
+             - Sous-titres : Semaine 1, Semaine 2, Semaine 3, Semaine 4.
+             - estimatedDuration DOIT être exactement : "1 mois".
 
-          2. SI PACING = "balanced" (Progressif / Recommandé) :
-             - Durée Totale : 8 semaines (2 mois).
-             - Structure : 4 Phases de 2 semaines chacune (ex: Semaines 1-2, 3-4...).
-             - Densité : 2 actions par phase maximum.
-             - Ton : Équilibré, durable.
+          2) SI PACING = "balanced" (Progressif / Recommandé) :
+             - Durée totale : 2 mois (8 semaines).
+             - Structure : 4 phases de 2 semaines chacune.
+             - Sous-titres : Semaines 1-2, 3-4, 5-6, 7-8.
+             - estimatedDuration DOIT être exactement : "2 mois".
 
-          3. SI PACING = "slow" (Prendre son temps / Douceur) :
-             - Durée Totale : 12 semaines (3 mois).
-             - Structure : 6 Phases de 2 semaines chacune.
-             - Densité : 2 actions par phase maximum.
-             - Ton : Micro-habitudes, très faible pression, ancrage profond.
+          3) SI PACING = "slow" (Prendre son temps / Douceur) :
+             - Durée totale : 3 mois (12 semaines).
+             - Structure : 4 phases de 3 semaines chacune.
+             - Sous-titres : Semaines 1-3, 4-6, 7-9, 10-12.
+             - estimatedDuration DOIT être exactement : "3 mois".
 
-          RÈGLES DE CONTENU (FLEXIBLE ET PERSONNALISÉ) :
-          1.  **Structure** : Entre 3 et 6 phases maximum. 
-              - Tu es LIBRE de définir le nombre de phases nécessaire pour atteindre l'objectif.
-              - Les titres des phases doivent être CRÉATIFS, PERSONNALISÉS et ÉVOCATEURS (Pas de "Phase 1", "Phase 2" générique).
-              - Exemple de bons titres : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
-          2.  **Densité et Distribution (CRITIQUE)** :
-              - 1 à 3 actions par phase maximum.
+          RÈGLES DE DENSITÉ — STRICTES :
+          - Tu DOIS produire EXACTEMENT 4 phases (ni plus, ni moins).
+          - Tu DOIS produire EXACTEMENT 3 actions par phase (donc 12 actions au total).
+
+          RÈGLES DE CONTENU (PERSONNALISÉ) :
+          1. **Titres des phases** : Créatifs, personnalisés, évocateurs (pas de "Phase 1" générique).
+             - Exemples : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
+          2. **Distribution (CRITIQUE)** :
               - **RÈGLE DE RATIO GLOBALE** : Sur la totalité du plan, tu DOIS respecter cette distribution :
                 * 50% d'Habitudes ("habitude")
                 * 25% de Missions ("mission")
                 * 25% de Frameworks ("framework")
-                (Exemple : Pour 8 actions au total -> 4 Habitudes, 2 Missions, 2 Frameworks).
+                (Exemple : Pour 12 actions au total -> 6 Habitudes, 3 Missions, 3 Frameworks).
               - Au moins 1 "Quête Principale" ('main') par phase.
           3.  **Types d'Actions** (CRITIQUE - STRICTES DÉFINITIONS) :
               - "habitude" (Groupe A) : Action RÉELLE et RÉPÉTITIVE (ex: "Faire 5min de cohérence cardiaque", "Rituel de relaxation", "Prendre ses compléments").
                 * ATTENTION : Les exercices de respiration, méditation ou visualisation SONT DES HABITUDES (car c'est une action à faire, pas forcément à écrire).
-                * A besoin de 'targetReps' (Combien de fois).
-                * CONTRAINTE STRICTE : 'targetReps' DOIT être compris entre 7 (minimum, 1/jour) et 14 (maximum, 2/jour). Pas moins de 7.
+                * A besoin de 'targetReps' = FRÉQUENCE HEBDO (Combien de fois / semaine).
+                * CONTRAINTE : 'targetReps' DOIT être compris entre 1 et 7 (recommandé: 3 à 6). 
+                * Optionnel : tu peux ajouter "scheduledDays": ["mon","wed","fri"] si tu veux proposer des jours, sinon ne mets pas ce champ.
               - "mission" (Groupe B) : Action RÉELLE "One-shot" à cocher (ex: "Acheter des boules Quies", "Ranger le bureau").
               - "framework" (Groupe B - TYPE SPÉCIAL) : EXERCICE D'ÉCRITURE ou de SAISIE.
                 * L'utilisateur doit ÉCRIRE quelque chose dans l'interface.
@@ -282,7 +297,7 @@ serve(async (req) => {
               "frequency": "hebdomadaire",
               "type": "surveillance"
             },
-            "estimatedDuration": "8 semaines",
+            "estimatedDuration": "2 mois",
             "phases": [
               {
                 "id": 1,
@@ -353,43 +368,46 @@ serve(async (req) => {
           TA MISSION :
           Générer un plan de transformation complet pour l'utilisateur, formaté STRICTEMENT en JSON.
 
-          RÈGLES DE DURÉE ET INTENSITÉ (PACING) :
-          Adapte STRICTEMENT la structure selon le choix "pacing" de l'utilisateur :
+          RÈGLES DE DURÉE ET STRUCTURE (PACING) — STRICTES :
+          Le plan DOIT être construit en PHASES, et la structure dépend du choix "pacing".
+          Ces règles sont NON-NÉGOCIABLES : tu dois les respecter à la lettre.
 
-          1. SI PACING = "fast" (Intense / Hyper motivé) :
-             - Durée Totale : 4 semaines (1 mois).
-             - Structure : 4 Phases de 1 semaine chacune.
-             - Densité : Jusqu'à 3 actions par phase.
-             - Ton : Radical, rapide, résultats immédiats.
+          1) SI PACING = "fast" (Intense / Hyper motivé) :
+             - Durée totale : 1 mois (4 semaines).
+             - Structure : 4 phases de 1 semaine chacune.
+             - Sous-titres : Semaine 1, Semaine 2, Semaine 3, Semaine 4.
+             - estimatedDuration DOIT être exactement : "1 mois".
 
-          2. SI PACING = "balanced" (Progressif / Recommandé) :
-             - Durée Totale : 8 semaines (2 mois).
-             - Structure : 4 Phases de 2 semaines chacune (ex: Semaines 1-2, 3-4...).
-             - Densité : 2 actions par phase maximum.
-             - Ton : Équilibré, durable.
+          2) SI PACING = "balanced" (Progressif / Recommandé) :
+             - Durée totale : 2 mois (8 semaines).
+             - Structure : 4 phases de 2 semaines chacune.
+             - Sous-titres : Semaines 1-2, 3-4, 5-6, 7-8.
+             - estimatedDuration DOIT être exactement : "2 mois".
 
-          3. SI PACING = "slow" (Prendre son temps / Douceur) :
-             - Durée Totale : 12 semaines (3 mois).
-             - Structure : 6 Phases de 2 semaines chacune.
-             - Densité : 2 actions par phase maximum.
-             - Ton : Micro-habitudes, très faible pression, ancrage profond.
+          3) SI PACING = "slow" (Prendre son temps / Douceur) :
+             - Durée totale : 3 mois (12 semaines).
+             - Structure : 4 phases de 3 semaines chacune.
+             - Sous-titres : Semaines 1-3, 4-6, 7-9, 10-12.
+             - estimatedDuration DOIT être exactement : "3 mois".
 
-          RÈGLES DE CONTENU (FLEXIBLE ET PERSONNALISÉ) :
-          1.  **Structure** : Entre 3 et 6 phases maximum. 
-              - Tu es LIBRE de définir le nombre de phases nécessaire pour atteindre l'objectif.
-              - Les titres des phases doivent être CRÉATIFS, PERSONNALISÉS et ÉVOCATEURS (Pas de "Phase 1", "Phase 2" générique).
-              - Exemple de bons titres : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
-          2.  **Densité et Distribution (CRITIQUE)** :
-              - 1 à 3 actions par phase maximum.
+          RÈGLES DE DENSITÉ — STRICTES :
+          - Tu DOIS produire EXACTEMENT 4 phases (ni plus, ni moins).
+          - Tu DOIS produire EXACTEMENT 3 actions par phase (donc 12 actions au total).
+
+          RÈGLES DE CONTENU (PERSONNALISÉ) :
+          1. **Titres des phases** : Créatifs, personnalisés, évocateurs (pas de "Phase 1" générique).
+             - Exemples : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
+          2. **Distribution (CRITIQUE)** :
               - **RÈGLE DE RATIO GLOBALE** : Sur la totalité du plan, tu DOIS respecter cette distribution :
                 * 50% d'Habitudes ("habitude")
                 * 25% de Missions ("mission")
                 * 25% de Frameworks ("framework")
-                (Exemple : Pour 8 actions au total -> 4 Habitudes, 2 Missions, 2 Frameworks).
+                (Exemple : Pour 12 actions au total -> 6 Habitudes, 3 Missions, 3 Frameworks).
               - Au moins 1 "Quête Principale" ('main') par phase.
           3.  **Types d'Actions** :
               - "habitude" (Groupe A) : Action récurrente (ex: Couvre-feu digital). A besoin de 'targetReps'.
-                * CONTRAINTE STRICTE : 'targetReps' DOIT être compris entre 7 (minimum, 1/jour) et 14 (maximum, 2/jour). Pas moins de 7.
+                * 'targetReps' = FRÉQUENCE HEBDO (fois / semaine), entre 1 et 7 (recommandé: 3 à 6).
+                * Optionnel : "scheduledDays": ["mon","wed","fri"] si tu proposes des jours. Sinon ne mets pas ce champ.
               - "mission" (Groupe B) : Action logistique "One-shot" à cocher (ex: Acheter des boules Quies).
               - "framework" (Groupe B - TYPE SPÉCIAL) : C'est un EXERCICE D'ÉCRITURE ou de RÉFLEXION que l'utilisateur doit remplir DANS L'INTERFACE.
                 **IMPORTANT** : 
@@ -454,7 +472,7 @@ serve(async (req) => {
               "frequency": "hebdomadaire",
               "type": "surveillance"
             },
-            "estimatedDuration": "8 semaines",
+            "estimatedDuration": "2 mois",
             "phases": [
               {
                 "id": 1,
@@ -524,10 +542,8 @@ serve(async (req) => {
     
     console.log("Calling Gemini API with key length:", GEMINI_API_KEY.length)
 
-    // Gemini API call (with retries for overload/quotas).
-    // - Historically we only retried 429, but in practice 503 (model overloaded) is common too.
-    // - We also support a fallback model via GEMINI_FALLBACK_MODEL.
-    // UX-first retries: try to recover from temporary overload without asking the user to manually retry.
+    // Gemini API call (with retries for overload/quotas AND post-generation validation).
+    // We validate the returned JSON. If it is non conforme, we retry with corrective feedback.
     // Keep it bounded to avoid extremely long requests.
     const MAX_ATTEMPTS = 12;
     const primaryModel = (Deno.env.get("GEMINI_PLAN_MODEL") ?? "").trim() || "gemini-2.5-flash";
@@ -539,14 +555,64 @@ serve(async (req) => {
 
     let response: Response | null = null;
     let data: any = null;
+    let lastValidationFeedback = "";
+
+    const formatValidationError = (err: any) => {
+      const issues = (err?.issues ?? err?.errors ?? []) as any[];
+      if (Array.isArray(issues) && issues.length > 0) {
+        return issues
+          .slice(0, 8)
+          .map((i) => {
+            const path = Array.isArray(i?.path) ? i.path.join(".") : String(i?.path ?? "");
+            const msg = String(i?.message ?? "invalid");
+            return path ? `${path}: ${msg}` : msg;
+          })
+          .join(" | ");
+      }
+      return String(err?.message ?? err ?? "invalid_plan");
+    };
+
+    const normalizePlanForValidation = (raw: any, pacing?: string) => {
+      const plan = raw && typeof raw === "object" ? raw : {};
+
+      // estimatedDuration fallback (helps if the model forgets this field)
+      if (!plan.estimatedDuration) {
+        const p = (pacing ?? "").toLowerCase().trim();
+        plan.estimatedDuration = p === "fast" ? "1 mois" : p === "slow" ? "3 mois" : "2 mois";
+      }
+
+      // Ensure phases/actions ids + defaults (best-effort)
+      if (Array.isArray(plan.phases)) {
+        for (let p = 0; p < plan.phases.length; p++) {
+          const phase = plan.phases[p] ?? {};
+          if (!phase.id) phase.id = String(p + 1);
+          if (!Array.isArray(phase.actions)) continue;
+          for (let a = 0; a < phase.actions.length; a++) {
+            const act = phase.actions[a] ?? {};
+            if (!act.id) act.id = `${p + 1}_${a + 1}_${crypto.randomUUID().slice(0, 8)}`;
+            if (!act.tracking_type) act.tracking_type = "boolean";
+            if (!act.time_of_day) act.time_of_day = "any_time";
+          }
+        }
+      }
+
+      return plan;
+    };
+
+    const pacingForValidation = (inputs?.pacing ?? "").toString();
+
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      const validationBlock = lastValidationFeedback
+        ? `\n\n=== VALIDATION_FEEDBACK (MUST FIX) ===\nTon précédent JSON n'est pas conforme. Corrige uniquement ces points et renvoie UNIQUEMENT le JSON corrigé.\n${lastValidationFeedback}\n`
+        : "";
+
       response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
+            contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt + validationBlock }] }],
             generationConfig: { responseMimeType: "application/json" },
           }),
         },
@@ -577,80 +643,62 @@ serve(async (req) => {
         }
       }
 
-      // For any other status (or max retries exhausted), break and handle below.
-      break;
+      // If response is not ok (and not retryable), stop here and handle below.
+      if (!response.ok) break;
+
+      // Parse + validate immediately; if invalid, retry with corrective feedback.
+      try {
+        if (!data.candidates || data.candidates.length === 0) {
+          console.log("Gemini OK but no candidates:", JSON.stringify(data, null, 2));
+          if (data.promptFeedback?.blockReason) {
+            throw new Error(`Génération bloquée par sécurité: ${data.promptFeedback.blockReason}`);
+          }
+        }
+
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) throw new Error("Réponse vide de Gemini (structure inattendue)");
+
+        const firstBrace = rawText.indexOf("{");
+        const lastBrace = rawText.lastIndexOf("}");
+        const jsonString =
+          firstBrace !== -1 && lastBrace !== -1
+            ? rawText.substring(firstBrace, lastBrace + 1)
+            : rawText.replace(/```json\n?|```/g, "").trim();
+
+        let plan = JSON.parse(jsonString);
+        plan = normalizePlanForValidation(plan, pacingForValidation);
+
+        const validated = validatePlan(plan);
+        return new Response(JSON.stringify(validated), {
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        });
+      } catch (e) {
+        lastValidationFeedback = formatValidationError(e);
+        console.warn(`[generate-plan] Invalid JSON/schema (attempt ${attempt}/${MAX_ATTEMPTS}): ${lastValidationFeedback}`);
+        if (attempt < MAX_ATTEMPTS) {
+          await sleep(800);
+          continue;
+        }
+        break;
+      }
     }
 
     if (!response) throw new Error("Gemini request did not execute");
-    
+
     if (!response.ok) {
-        // Note: data already parsed/logged in the retry loop for 429/503.
-        if (response.status === 429) {
-            throw new Error("Le cerveau de Sophia est en surchauffe (Quota atteint). Veuillez réessayer dans quelques minutes.")
-        }
-
-        const errorMessage = data.error?.message || 'Erreur inconnue de Gemini';
-        throw new Error(`Erreur Gemini (${response.status}): ${errorMessage}`);
-    } else {
-        // Vérifions si candidates est vide
-        if (!data.candidates || data.candidates.length === 0) {
-             console.log("Gemini OK but no candidates:", JSON.stringify(data, null, 2));
-             // Parfois Gemini renvoie OK mais filtre tout le contenu (Safety settings)
-             if (data.promptFeedback?.blockReason) {
-                 throw new Error(`Génération bloquée par sécurité: ${data.promptFeedback.blockReason}`);
-             }
-        }
-    }
-
-    // 5. Parsing & Cleanup
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!rawText) throw new Error('Réponse vide de Gemini (structure inattendue)')
-    
-    // Nettoyage plus robuste : extraction du JSON entre les accolades
-    // On cherche la première accolade ouvrante et la dernière fermante
-    const firstBrace = rawText.indexOf('{');
-    const lastBrace = rawText.lastIndexOf('}');
-    
-    let jsonString;
-    if (firstBrace !== -1 && lastBrace !== -1) {
-        jsonString = rawText.substring(firstBrace, lastBrace + 1);
-    } else {
-        // Fallback si pas d'accolades (peu probable)
-        jsonString = rawText.replace(/```json\n?|```/g, '').trim()
-    }
-
-    let plan;
-    try {
-        plan = JSON.parse(jsonString)
-    } catch (parseError) {
-        console.error("JSON Parse Error:", parseError);
-        console.error("Raw Text:", rawText);
-        console.error("Extracted String:", jsonString);
-        throw new Error(`Erreur de syntaxe JSON dans la réponse IA: ${parseError.message}`);
-    }
-
-    // Normalize: ensure required fields exist even if the model forgets them.
-    // This makes the function resilient and keeps the app + tests stable.
-    try {
-      if (plan && Array.isArray(plan.phases)) {
-        for (const phase of plan.phases) {
-          const actions = phase?.actions;
-          if (!Array.isArray(actions)) continue;
-          for (const a of actions) {
-            if (!a) continue;
-            if (!a.tracking_type) a.tracking_type = "boolean";
-            if (!a.time_of_day) a.time_of_day = "any_time";
-          }
-        }
+      // Note: data already parsed/logged in the retry loop for 429/503.
+      if (response.status === 429) {
+        throw new Error("Le cerveau de Sophia est en surchauffe (Quota atteint). Veuillez réessayer dans quelques minutes.");
       }
-    } catch {
-      // best-effort only
+      const errorMessage = data.error?.message || "Erreur inconnue de Gemini";
+      throw new Error(`Erreur Gemini (${response.status}): ${errorMessage}`);
     }
 
-    return new Response(
-      JSON.stringify(plan),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-    )
+    // If we reach here, last attempt was "ok" but still invalid JSON/schema.
+    if (lastValidationFeedback) {
+      throw new Error(`Plan non conforme (validation): ${lastValidationFeedback}`);
+    }
+    throw new Error("Plan non conforme (validation) et aucun détail n'a été capturé.");
 
   } catch (error) {
     console.error('Func Error:', error)

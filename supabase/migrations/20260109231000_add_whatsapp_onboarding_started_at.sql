@@ -9,3 +9,4 @@ create index if not exists profiles_whatsapp_onboarding_started_at_idx
 
 
 
+

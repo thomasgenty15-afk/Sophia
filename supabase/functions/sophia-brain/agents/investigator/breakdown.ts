@@ -10,12 +10,26 @@ export async function callBreakDownActionEdge(payload: unknown): Promise<any> {
     (globalThis as any)?.Deno?.env?.get?.("INTERNAL_FUNCTION_SECRET")?.trim() ||
     (globalThis as any)?.Deno?.env?.get?.("SECRET_KEY")?.trim() ||
     ""
+  const serviceRoleKey =
+    (globalThis as any)?.Deno?.env?.get?.("SUPABASE_SERVICE_ROLE_KEY")?.trim() ||
+    (globalThis as any)?.Deno?.env?.get?.("SERVICE_ROLE_KEY")?.trim() ||
+    ""
+  const anonKey =
+    (globalThis as any)?.Deno?.env?.get?.("SUPABASE_ANON_KEY")?.trim() ||
+    (globalThis as any)?.Deno?.env?.get?.("ANON_KEY")?.trim() ||
+    ""
   if (!internalSecret) {
     throw new Error("Missing INTERNAL_FUNCTION_SECRET")
   }
   const res = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json", "x-internal-secret": internalSecret },
+    headers: {
+      "Content-Type": "application/json",
+      "x-internal-secret": internalSecret,
+      // Supabase edge-runtime requires an auth header even for internal calls in local/dev.
+      ...(serviceRoleKey ? { Authorization: `Bearer ${serviceRoleKey}` } : {}),
+      ...(anonKey ? { apikey: anonKey } : {}),
+    },
     body: JSON.stringify(payload),
   })
   const data = await res.json().catch(() => ({}))
@@ -371,5 +385,6 @@ export async function maybeHandleBreakdownFlow(opts: {
 
   return null
 }
+
 
 

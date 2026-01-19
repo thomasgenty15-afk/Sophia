@@ -105,18 +105,35 @@ export const distributePlanActions = async (
   const actionsToInsert: any[] = [];
   const frameworksToTrack: any[] = [];
   
-  let globalActionIndex = 0; // Pour déterminer les 2 premières actions globales
-  
   // Clean submissionId : ensures it's null if undefined
   const cleanSubmissionId = submissionId || null;
 
+  const normalizeStatus = (s: any) => String(s || '').toLowerCase().trim();
+
+  const getInitialStatus = (
+    phase: any,
+    phaseIndex: number,
+    action: any,
+    actionIndex: number,
+  ): 'active' | 'pending' | 'completed' => {
+    const actionStatus = normalizeStatus(action?.status);
+    if (actionStatus === 'active' || actionStatus === 'pending' || actionStatus === 'completed') {
+      return actionStatus as any;
+    }
+
+    const phaseStatus = normalizeStatus(phase?.status);
+    if (phaseStatus === 'locked') return 'pending';
+    if (phaseStatus === 'active' || phaseStatus === 'completed') return 'active';
+
+    // Fallback (legacy): only the first 2 actions of the first phase are active.
+    if (phaseIndex === 0 && actionIndex < 2) return 'active';
+    return 'pending';
+  };
+
   // On parcourt toutes les phases
-  planContent.phases.forEach(phase => {
-    phase.actions.forEach(action => {
-      
-      const isInitialActive = globalActionIndex < 2;
-      const initialStatus = isInitialActive ? 'active' : 'pending';
-      globalActionIndex++;
+  planContent.phases.forEach((phase: any, phaseIndex: number) => {
+    (phase.actions || []).forEach((action: any, actionIndex: number) => {
+      const initialStatus = getInitialStatus(phase, phaseIndex, action, actionIndex);
 
       // Extraction propre du tracking_type (avec fallback 'boolean' si absent)
       const trackingType = (action as any).tracking_type === 'counter' ? 'counter' : 'boolean';

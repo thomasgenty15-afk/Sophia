@@ -1,0 +1,263 @@
+{
+  "meta": {
+    "id": "plan_SLEEP_SLP_2_acaf45404dd4fada",
+    "theme_key": "SLEEP",
+    "theme_id": "SLP",
+    "theme_title": "Sommeil & Récupération",
+    "axis_id": "SLP_2",
+    "axis_title": "Avoir un sommeil continu & réparateur",
+    "selected_problem_ids": [
+      "SLP_2_P4",
+      "SLP_2_P5"
+    ],
+    "selected_problem_labels": [
+      "Je me réveille fatigué(e), même quand j’ai dormi assez longtemps.",
+      "Je me réveille avec le corps tendu / crispé (mâchoires, nuque, dos…)."
+    ],
+    "fingerprint": "acaf45404dd4fada",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:31:28.440Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Mon sommeil est vraiment un problème majeur en ce moment. Je me lève fatigué tous les matins, même si j'ai l'impression d'avoir dormi suffisamment. Ça impacte ma concentration au travail, mon humeur et mon énergie générale. Je ressens aussi beaucoup de tensions physiques au réveil, c'est comme si je n'arrivais pas à me détendre complètement la nuit.",
+      "blockers": "J'ai du mal à lâcher prise le soir, je suis souvent sur mes écrans jusqu'à tard. Le stress du travail et les préoccupations du quotidien tournent en boucle dans ma tête quand je me couche. J'ai aussi l'impression de serrer les dents la nuit, mais je ne sais pas trop comment gérer ça.",
+      "context": "Je suis cadre, j'ai un rythme de vie assez intense avec des journées chargées. J'ai une famille et j'essaie de jongler entre toutes les responsabilités. Le soir, c'est souvent le seul moment où je peux me poser, mais du coup je repousse l'heure du coucher.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "SLP_2",
+      "title": "Avoir un sommeil continu & réparateur",
+      "theme": "Sommeil & Récupération",
+      "problems": [
+        "Je me réveille fatigué(e), même quand j’ai dormi assez longtemps.",
+        "Je me réveille avec le corps tendu / crispé (mâchoires, nuque, dos…)."
+      ]
+    },
+    "answers": {
+      "SLP_2_P4": {
+        "SLP_2_P4_Q1": "7–8h",
+        "SLP_2_P4_Q2": "Très fatigué(e) / vidé(e)"
+      },
+      "SLP_2_P5": {
+        "SLP_2_P5_Q1": [
+          "Mâchoires / dents serrées",
+          "Nuque / épaules"
+        ],
+        "SLP_2_P5_Q2": "Plus de 6 mois"
+      },
+      "meta": {
+        "themeId": "SLP",
+        "axisId": "SLP_2"
+      }
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "male"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Protocole du Calme Nocturne",
+    "strategy": "Avant de reconstruire ton énergie diurne, nous allons déminer les sources de tension nocturne et réapprendre à ton corps à lâcher prise, pas à pas.",
+    "sophiaKnowledge": "Tu es un cadre avec une vie intense, jonglant entre travail et famille. Malgré un temps de sommeil suffisant, tu te réveilles épuisé, tendu (notamment mâchoires et nuque), avec des soucis qui tournent en boucle. Tes soirées sont dédiées aux écrans, repoussant l'heure du coucher, ce qui accentue ton incapacité à lâcher prise.",
+    "context_problem": "Épuisé et tendu au réveil malgré de longues nuits, tu te sentais piégé par un cycle de stress diurne et de stimulation nocturne. Tes écrans et tes pensées intrusives t'empêchaient de te détendre, perpétuant les tensions physiques et la fatigue. Il était temps de reprendre le contrôle de tes soirées.",
+    "identity": "Je suis l'Ancre de mon Sommeil Réparateur.",
+    "deepWhy": "Pour retrouver une clarté mentale et une énergie débordante, être pleinement présent pour ma famille et affronter mes défis professionnels avec une résilience inébranlable.",
+    "goldenRules": "1. La chambre est un sanctuaire : aucun écran après 21h.\n2. Mon corps se prépare au repos : pas d'activités intenses 2h avant de dormir.\n3. J'honore le silence intérieur : mes pensées s'écrivent, elles ne tournent pas en boucle.",
+    "vitalSignal": {
+      "name": "Qualité d'endormissement",
+      "unit": "/10",
+      "startValue": "4",
+      "targetValue": "8",
+      "description": "Évalue chaque soir la facilité de ton endormissement, de 1 (très difficile, pensées envahissantes) à 10 (instantané et serein).",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Sur une échelle de 1 à 10, quel est ton niveau de tension physique au réveil cette semaine (mâchoires, nuque, dos) ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage du Soir",
+        "subtitle": "Semaines 1-2 • Reprendre le contrôle de tes soirées",
+        "rationale": "Cette phase est cruciale pour briser le cycle de surstimulation nocturne. En contrôlant l'exposition aux écrans et en vidant ton esprit, tu signales à ton cerveau qu'il est temps de ralentir et de se préparer au repos, jetant les bases d'un sommeil plus serein.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1_a1",
+            "type": "habitude",
+            "title": "Le Couvre-feu Digital : La Règle d'Or",
+            "description": "Éteins tous les écrans (téléphone, tablette, ordinateur, TV) 60 minutes avant l'heure de coucher souhaitée. Dépose ton téléphone hors de la chambre.",
+            "questType": "main",
+            "tips": "Utilise un réveil analogique. Trouve une activité relaxante alternative : lire un livre papier, écouter de la musique douce, prendre une douche chaude.",
+            "rationale": "Les écrans émettent de la lumière bleue qui perturbe la production de mélatonine. Créer une zone tampon sans écran permet à ton corps de commencer le processus naturel d'endormissement.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "night"
+          },
+          {
+            "id": "p1_a2",
+            "type": "framework",
+            "title": "Le Journal de Décompression Mentale",
+            "description": "Écris pendant 10 à 15 minutes toutes tes pensées, préoccupations et ta liste de tâches pour le lendemain sur un carnet, avant de te coucher.",
+            "questType": "side",
+            "tips": "Ne cherche pas la perfection, le but est de vider ton esprit. Fais-le juste après le couvre-feu digital.",
+            "rationale": "Le 'brain dump' réduit le cortisol et les ruminations mentales qui maintiennent ton cerveau en état d'alerte, facilitant ainsi l'endormissement.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Laisse tes pensées s'écouler librement sur le papier. L'objectif n'est pas de résoudre, mais de décharger. Imagine que tu transfères tes préoccupations de ton esprit vers la page.",
+              "sections": [
+                {
+                  "id": "p1_s1",
+                  "label": "Ce qui tourne en boucle dans ma tête",
+                  "inputType": "textarea",
+                  "placeholder": "Liste tes soucis, tes réflexions du jour..."
+                },
+                {
+                  "id": "p1_s2",
+                  "label": "Les tâches ou priorités pour demain",
+                  "inputType": "list",
+                  "placeholder": "Ex: Appeler X | Préparer Y"
+                },
+                {
+                  "id": "p1_s3",
+                  "label": "Mon émotion dominante avant d'écrire",
+                  "inputType": "text",
+                  "placeholder": "Ex: Stress, Anxiété, Calme..."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : Le Sanctuaire Sensoriel",
+        "subtitle": "Semaines 3-4 • Optimiser ton environnement de sommeil",
+        "rationale": "Ton environnement joue un rôle majeur dans la qualité de ton sommeil. Cette phase vise à minimiser les perturbations sensorielles externes et à préparer physiquement ton corps au repos profond, en ciblant les tensions sous-jacentes.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p2_a1",
+            "type": "mission",
+            "title": "Le Cocooning Nocturne",
+            "description": "Achète des bouchons d'oreille de haute qualité et/ou un masque de sommeil occultant, et assure-toi que ta chambre est totalement obscure et silencieuse. Élimine toute source de lumière (LEDs, veilleuses...).",
+            "questType": "main",
+            "tips": "Teste différents types de bouchons et masques pour trouver ceux qui te conviennent le mieux. Même une petite lumière peut perturber ta mélatonine.",
+            "rationale": "Le bruit et la lumière sont des perturbateurs majeurs du sommeil, signalant à ton cerveau que le jour est encore là. Créer un environnement noir et silencieux favorise la production optimale de mélatonine et un sommeil ininterrompu.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p2_a2",
+            "type": "habitude",
+            "title": "Rituel de Relâchement Corporel Léger",
+            "description": "Réalise une routine de 5 à 10 minutes d'étirements doux et ciblés sur la nuque, les épaules et les mâchoires, combinée à une respiration abdominale profonde, juste avant d'aller te coucher.",
+            "questType": "side",
+            "tips": "Concentrez-vous sur la sensation de détente à chaque expiration. Vous pouvez trouver des tutoriels d'étirements doux sur YouTube, recherchez 'yoga doux avant de dormir'.",
+            "rationale": "Ces étirements aident à dénouer les tensions accumulées pendant la journée, particulièrement celles liées au stress qui peuvent provoquer le serrement des mâchoires et la raideur de la nuque. La respiration profonde active le système nerveux parasympathique, favorisant la détente.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "night"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : La Conscience du Corps Profond",
+        "subtitle": "Semaines 5-6 • Apprendre à écouter et relâcher la tension interne",
+        "rationale": "Cette phase t'aide à te connecter plus profondément à ton corps, à identifier et à libérer les tensions résiduelles, en particulier les crispations inconscientes comme le serrement des mâchoires. Il s'agit d'une compétence essentielle pour un sommeil vraiment réparateur.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p3_a1",
+            "type": "framework",
+            "title": "Scan Corporel de Relâchement",
+            "description": "Pratique un scan corporel de 10 à 15 minutes chaque soir, en te concentrant sur la sensation de détente et en relâchant consciemment les muscles, en particulier ceux du visage (mâchoires), du cou et des épaules.",
+            "questType": "main",
+            "tips": "Allonge-toi confortablement dans ton lit. Commence par les pieds et remonte lentement, en notant et en relâchant chaque zone. Des applications de méditation peuvent proposer des scans guidés.",
+            "rationale": "Le scan corporel est une technique de pleine conscience qui améliore la proprioception et la capacité à relâcher les tensions musculaires inconscientes, un facteur clé dans tes réveils tendus. Il favorise un état de relaxation profonde nécessaire à l'endormissement.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "L'objectif est d'observer sans juger et de permettre à ton corps de se détendre. Concentre-toi sur la mâchoire : sens-tu une légère ouverture entre tes dents ? Tes épaules sont-elles basses ?",
+              "sections": [
+                {
+                  "id": "p3_s1",
+                  "label": "Zones de tension principales ressenties",
+                  "inputType": "list",
+                  "placeholder": "Ex: Mâchoires | Nuque | Bas du dos"
+                },
+                {
+                  "id": "p3_s2",
+                  "label": "Sensation principale après le scan",
+                  "inputType": "textarea",
+                  "placeholder": "Ex: Plus léger, Apaisé, Encore un peu tendu..."
+                },
+                {
+                  "id": "p3_s3",
+                  "label": "Mon score de détente (1-10)",
+                  "inputType": "scale",
+                  "placeholder": "7"
+                }
+              ]
+            }
+          },
+          {
+            "id": "p3_a2",
+            "type": "habitude",
+            "title": "L'Infusion Apaisante",
+            "description": "Bois une tasse de tisane relaxante (camomille, verveine, passiflore, tilleul) tiède 30 à 45 minutes avant l'heure de ton coucher, en la sirotant calmement.",
+            "questType": "side",
+            "tips": "Choisis une tisane sans caféine. Transforme ce moment en un petit rituel de calme, loin de toute distraction.",
+            "rationale": "Les plantes telles que la camomille et la passiflore ont des propriétés anxiolytiques légères et favorisent la relaxation, préparant ton corps et ton esprit à la transition vers le sommeil. Le rituel lui-même est un signal puissant pour ton cerveau.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : L'Architecture du Rythme",
+        "subtitle": "Semaines 7-8 • Consolider et ancrer un rythme durable",
+        "rationale": "Cette dernière phase vise à consolider toutes les habitudes acquises en te concentrant sur la régularité. Un rythme de sommeil stable est la clé d'un cycle circadien équilibré et d'un sommeil profondément réparateur sur le long terme.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p4_a1",
+            "type": "habitude",
+            "title": "La Cadence Immuable du Sommeil",
+            "description": "Vise une heure de coucher et de lever constante chaque jour, avec une tolérance maximale de 30 minutes, même le week-end.",
+            "questType": "main",
+            "tips": "Pour les soirs où tu 'déborde', essaie de ne pas dépasser cette fenêtre de 30 minutes. Le corps aime la régularité.",
+            "rationale": "La régularité est le pilier d'un sommeil réparateur. Elle renforce ton horloge biologique (rythme circadien), optimisant la production d'hormones du sommeil et d'éveil, ce qui réduit la fatigue au réveil et les tensions.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "night"
+          },
+          {
+            "id": "p4_a2",
+            "type": "mission",
+            "title": "Bilan du Voyage Nocturne",
+            "description": "Prends le temps de relire les notes de tes journaux, tes scores d'endormissement et de tension. Célèbre tes victoires et identifie les ajustements nécessaires pour maintenir tes acquis sur le long terme.",
+            "questType": "side",
+            "tips": "Réfléchis à ce qui a le mieux fonctionné et pourquoi. Crée un plan simple pour continuer à intégrer ces habitudes dans ta vie quotidienne.",
+            "rationale": "Faire le bilan permet d'ancrer les apprentissages, de mesurer le chemin parcouru et de prendre conscience de l'efficacité des nouvelles habitudes. C'est un acte de reconnaissance envers toi-même et une feuille de route pour la pérennité de ta transformation.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

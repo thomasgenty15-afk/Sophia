@@ -1,0 +1,268 @@
+{
+  "meta": {
+    "id": "plan_RELATIONS_REL_4_d96679ef9bb625e7",
+    "theme_key": "RELATIONS",
+    "theme_id": "REL",
+    "theme_title": "Relations & Communication",
+    "axis_id": "REL_4",
+    "axis_title": "Sécurité affective & jalousie dans la vie amoureuse",
+    "selected_problem_ids": [
+      "REL_4_P1",
+      "REL_4_P3"
+    ],
+    "selected_problem_labels": [
+      "J’ai souvent peur que l’autre se lasse, parte ou trouve mieux ailleurs.",
+      "J’ai tendance à surveiller / checker (réseaux, téléphone, activité…)."
+    ],
+    "fingerprint": "d96679ef9bb625e7",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:38:32.422Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je me sens constamment anxieuse dans ma relation actuelle. J'ai l'impression de ne jamais être vraiment sereine, toujours à guetter le moindre signe de désintérêt. Ça me pèse énormément et ça finit par créer des tensions avec mon partenaire. Je veux vraiment apprendre à faire confiance, à me sentir plus en sécurité et à arrêter de me faire du mal avec ces pensées et ces comportements.",
+      "blockers": "Je pense que le plus gros blocage, c'est ma propre peur d'être abandonnée ou de ne pas être assez bien. J'ai beau essayer de me raisonner, l'émotion prend le dessus et je me retrouve à douter, à chercher des preuves de ce que je redoute. C'est un cercle vicieux et j'ai du mal à en sortir seule.",
+      "context": "Je suis en couple depuis environ deux ans. Ma relation est globalement bonne, mais ces problèmes de jalousie et d'insécurité affective sont une ombre au tableau. Ça m'affecte aussi dans d'autres domaines de ma vie, comme ma concentration au travail ou ma capacité à profiter pleinement de mes moments de loisirs, car mon esprit est souvent préoccupé par ça. J'ai conscience que ça peut devenir un problème pour mon couple si ça continue.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "REL_4",
+      "title": "Sécurité affective & jalousie dans la vie amoureuse",
+      "theme": "Relations & Communication",
+      "problems": [
+        "J’ai souvent peur que l’autre se lasse, parte ou trouve mieux ailleurs.",
+        "J’ai tendance à surveiller / checker (réseaux, téléphone, activité…)."
+      ]
+    },
+    "answers": {
+      "REL_4_P1_Q1": "En couple",
+      "REL_4_P1_Q2": [
+        "“Je ne suis pas assez bien pour l’autre”",
+        "“Un jour il/elle va se rendre compte qu’il/elle peut trouver mieux”"
+      ],
+      "REL_4_P3_Q1": [
+        "Regarder son téléphone (notifs, messages…)",
+        "Checker ses réseaux (suivis, likes, commentaires…)",
+        "Demander beaucoup de détails sur ses sorties / journées"
+      ],
+      "REL_4_P3_Q2": "Régulier quand tu es insécure",
+      "meta": {
+        "REL_4_P1": {
+          "chosen": true
+        },
+        "REL_4_P3": {
+          "chosen": true
+        }
+      }
+    },
+    "userProfile": {
+      "birth_date": "1996-01-05",
+      "gender": "other"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Sanctuaire Intérieur : Ancrage de la Confiance",
+    "strategy": "Sophia va t'accompagner pour déconstruire les mécanismes de peur et de surveillance, afin de reconstruire une fondation solide d'auto-confiance et de sérénité au sein de ta relation.",
+    "sophiaKnowledge": "Tu es une personne anxieuse en couple depuis deux ans, dont la peur de l'abandon et le sentiment de ne pas être assez bien se manifestent par une jalousie et une tendance à surveiller ton partenaire (réseaux, téléphone). Cette insécurité affecte ta concentration et ta capacité à profiter de la vie, et crée des tensions dans ta relation.",
+    "context_problem": "Tu te sens constamment anxieuse dans ta relation, à guetter le moindre signe de désintérêt, épuisée par ces pensées et ces comportements de surveillance. Le blocage principal réside dans ta peur d'être abandonnée et de ne pas être assez bien, entraînant un cercle vicieux où l'émotion prend le dessus sur la raison.",
+    "identity": "Je suis l'architecte de ma sécurité intérieure et la bâtisseuse d'une confiance sereine.",
+    "deepWhy": "Pour vivre une relation épanouie, basée sur la confiance et la sérénité, et retrouver ma pleine capacité à profiter de chaque instant, libre de l'anxiété et des doutes qui m'empêchent d'être pleinement moi-même.",
+    "goldenRules": "1. L'émotion est un signal, pas une vérité absolue.\n2. La confiance se construit d'abord en soi, puis avec l'autre.\n3. Je me concentre sur ce que je peux contrôler : mes réactions et mes actions.",
+    "vitalSignal": {
+      "name": "Nombre de fois où j'ai vérifié les activités de mon partenaire (réseaux, téléphone)",
+      "unit": "fois",
+      "startValue": "Une moyenne élevée",
+      "targetValue": "0",
+      "description": "Ce KPI mesure la fréquence des comportements de surveillance, signe direct de l'insécurité. L'objectif est de réduire ce nombre à zéro.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de fois cette semaine as-tu ressenti le besoin irrépressible de vérifier l'activité de ton partenaire, même si tu ne l'as pas fait ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance",
+      "tracking_type": "counter"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : Le Bouclier de la Conscience",
+        "subtitle": "Semaines 1-2 • Rompre le cycle réactif",
+        "rationale": "Cette phase vise à créer une distance immédiate avec les déclencheurs de surveillance et à instaurer une première couche de conscience sur tes réactions, pour te donner l'espace de choisir une nouvelle réponse.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "mission",
+            "title": "Le Grand Détachement Digital",
+            "description": "Fais le ménage dans tes abonnements/suivis pour tout ce qui concerne directement ton partenaire sur les réseaux sociaux. Désactive les notifications de ses posts ou stories. Mets son profil en 'mute' ou 'snooze' si possible. L'objectif n'est pas de l'ignorer, mais de ne plus être exposé(e) H24 à ses activités et de réduire la tentation de vérifier.",
+            "questType": "main",
+            "tips": "Utilise les fonctions de 'mute' ou 'snooze' plutôt que de désabonner complètement si cela te semble trop radical au début. L'idée est de créer une barrière temporaire.",
+            "rationale": "Diminuer l'exposition aux informations de ton partenaire réduit les opportunités de comparaison et de déclenchement de l'anxiété, cassant ainsi le réflexe de surveillance.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "L'Ancre Respiratoire d'Urgence",
+            "description": "Dès que tu ressens une poussée d'anxiété ou l'envie de vérifier, pratique la respiration carrée (inspire 4s, retiens 4s, expire 4s, retiens 4s). Répète 3 à 5 fois. C'est ton signal d'arrêt personnel.",
+            "questType": "side",
+            "targetReps": 7,
+            "tips": "Trouve un mot-clé ou un geste discret pour associer à cet exercice, pour qu'il devienne un réflexe immédiat.",
+            "rationale": "La respiration consciente active le système nerveux parasympathique, réduisant la réaction de 'combat ou fuite' et te permettant de reprendre le contrôle face à l'émotion.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Exploration de l'Ombre",
+        "subtitle": "Semaines 3-4 • Comprendre pour transformer",
+        "rationale": "Cette phase t'invite à plonger dans les racines de ton insécurité, à identifier les schémas de pensée et les croyances sous-jacentes qui alimentent tes peurs. La compréhension est la première étape vers la libération.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "framework",
+            "title": "Le Journal des Racines de l'Anxiété",
+            "description": "Un exercice d'écriture pour explorer les origines de tes peurs d'abandon et de ne pas être assez bien, et leurs manifestations concrètes.",
+            "questType": "main",
+            "targetReps": 3,
+            "tips": "Choisis un moment calme, sans être dérangé(e). Ne te censure pas, laisse les pensées venir telles qu'elles sont.",
+            "rationale": "Mettre des mots sur tes peurs aide à les désamorcer. Comprendre leur origine (enfance, expériences passées) permet de les traiter à la source et de ne plus les projeter sur ta relation actuelle.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "L'objectif est de faire remonter à la surface les croyances et expériences passées qui nourrissent tes insécurités actuelles. Sois honnête avec toi-même, il n'y a pas de bonne ou mauvaise réponse. La clarté est ton alliée.",
+              "sections": [
+                {
+                  "id": "p2a1s1",
+                  "label": "Quelle est la peur la plus profonde derrière ma jalousie/insécurité ? (Ex: Être abandonné(e), ne pas être aimé(e), être trahi(e))",
+                  "inputType": "textarea",
+                  "placeholder": "Ma peur la plus profonde est..."
+                },
+                {
+                  "id": "p2a1s2",
+                  "label": "Dans mon passé (enfance, relations précédentes), ai-je déjà ressenti cette peur ? Quand et comment ?",
+                  "inputType": "textarea",
+                  "placeholder": "Je me souviens que..."
+                },
+                {
+                  "id": "p2a1s3",
+                  "label": "Quelle croyance sur moi-même ou sur les relations est alimentée par cette peur ? (Ex: Je ne suis pas digne d'amour, les gens partent toujours)",
+                  "inputType": "textarea",
+                  "placeholder": "Je crois que..."
+                }
+              ]
+            }
+          },
+          {
+            "id": "p2a2",
+            "type": "habitude",
+            "title": "Le Rituel de l'Auto-validation Quotidienne",
+            "description": "Chaque matin, prends 5 minutes pour écrire 3 qualités que tu apprécies chez toi, ou 3 accomplissements de la veille, si petits soient-ils. Lis-les à voix haute. C'est un entraînement à l'estime de soi.",
+            "questType": "side",
+            "targetReps": 10,
+            "tips": "Ne te force pas à trouver de 'grandes' choses. 'J'ai bien écouté un ami', 'J'ai réussi à finir un dossier', 'J'ai souri à un inconnu' sont des victoires. Sois bienveillant(e).",
+            "rationale": "L'auto-validation renforce ton estime de toi et réduit la dépendance à la validation externe, qui est souvent le carburant de l'insécurité amoureuse.",
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : La Reconquête de l'Autonomie",
+        "subtitle": "Semaines 5-6 • Cultiver sa propre valeur",
+        "rationale": "Cette phase est dédiée à la construction de ton identité propre, indépendante de la relation. En renforçant ton sentiment de complétude, tu diminues la pression sur ton partenaire et sur la relation.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "habitude",
+            "title": "Le Pacte du Plaisir Solo",
+            "description": "Dédie au moins 30 minutes par jour à une activité qui te passionne ou t'apporte de la joie, sans aucune implication de ton partenaire. Cela peut être lire, peindre, écouter de la musique, jardiner, méditer, etc. C'est ton espace sacré.",
+            "questType": "main",
+            "targetReps": 7,
+            "tips": "Planifie cette activité dans ton agenda comme un rendez-vous non négociable avec toi-même. Le plaisir n'a pas besoin d'être productif pour être valable.",
+            "rationale": "Développer tes propres sources de bonheur et de satisfaction renforce ton autonomie émotionnelle et réduit le besoin inconscient que ton partenaire comble tous tes désirs, diminuant ainsi l'anxiété liée à sa potentielle absence.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          },
+          {
+            "id": "p3a2",
+            "type": "mission",
+            "title": "Le Nettoyage Digital Personnel",
+            "description": "Passe en revue tes propres réseaux sociaux : unfollow ou masque les comptes qui te donnent le sentiment de devoir te comparer, ou qui te font douter de toi (influenceurs, 'amis' aux vies parfaites...). C'est un environnement sain que tu crées pour ton esprit.",
+            "questType": "side",
+            "tips": "Pose-toi la question : 'Est-ce que ce compte nourrit mon estime de moi ou la diminue ?' Si c'est la deuxième option, tu sais quoi faire.",
+            "rationale": "Réduire les sources externes de comparaison et d'insatisfaction nourrit une perception plus juste de ta propre valeur et diminue l'apport de 'preuves' inconscientes que tu ne serais 'pas assez bien'.",
+            "tracking_type": "boolean",
+            "time_of_day": "afternoon"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : Le Pont de la Confiance",
+        "subtitle": "Semaines 7-8 • Ancrer la relation sécurisante",
+        "rationale": "Dans cette dernière phase, tu vas appliquer tes nouvelles ressources pour renforcer la confiance dans la relation, en apprenant à communiquer tes besoins et à écouter sans préjugé, cultivant ainsi un attachement plus sécurisant.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "framework",
+            "title": "La Carte des Besoins et des Peurs Partagées",
+            "description": "Un exercice d'écriture et de réflexion pour clarifier tes besoins non satisfaits et tes peurs, puis pour envisager comment les communiquer à ton partenaire de manière constructive.",
+            "questType": "main",
+            "targetReps": 1,
+            "tips": "Pense à la communication non-violente (OSBD: Observation, Sentiment, Besoin, Demande). Prépare un moment serein pour potentiellement aborder ces points avec ton partenaire après cet exercice.",
+            "rationale": "Clarifier et exprimer tes besoins profonds et tes peurs avec vulnérabilité permet d'établir une connexion plus authentique et de donner à ton partenaire les outils pour te rassurer et te soutenir, renforçant la confiance mutuelle.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "L'objectif est de passer de la réaction (jalousie, surveillance) à l'action proactive (communication). Quelles sont tes vrais besoins sous-jacents aux peurs que tu as identifiées ? Comment ton partenaire pourrait-il t'aider à te sentir plus en sécurité, sans que cela ne devienne un fardeau pour lui ?",
+              "sections": [
+                {
+                  "id": "p4a1s1",
+                  "label": "Liste mes 3 principaux besoins émotionnels non satisfaits dans la relation (Ex: Besoin de réassurance, de connexion profonde, de reconnaissance).",
+                  "inputType": "list",
+                  "placeholder": "Mon besoin est..."
+                },
+                {
+                  "id": "p4a1s2",
+                  "label": "Si je devais communiquer ces besoins à mon partenaire, comment le ferais-je sans accuser ni exiger ?",
+                  "inputType": "textarea",
+                  "placeholder": "Je pourrais dire : 'Quand je ressens..., j'ai besoin de...'"
+                },
+                {
+                  "id": "p4a1s3",
+                  "label": "Quelle action concrète mon partenaire pourrait-il faire (ou que je pourrais faire moi-même) pour répondre à un de ces besoins ? (Ex: Un message doux le matin, une soirée de qualité sans écran, passer du temps avec mes amis)",
+                  "inputType": "categorized_list",
+                  "placeholder": "Action...|Type d'aide"
+                }
+              ]
+            }
+          },
+          {
+            "id": "p4a2",
+            "type": "habitude",
+            "title": "L'Écoute Active et Empathique",
+            "description": "Chaque jour, choisis un moment pour écouter ton partenaire attentivement, sans interrompre, sans juger, sans chercher à te défendre. Concentre-toi sur comprendre ce qu'il/elle ressent et veut exprimer. Applique la même écoute à tes propres signaux internes avant de réagir.",
+            "questType": "side",
+            "targetReps": 7,
+            "tips": "Reformule ce que tu as compris : 'Si je comprends bien, tu te sens... parce que...' Cela montre que tu as écouté et réduit les malentendus. Fais d'abord cet exercice avec toi-même face à tes émotions.",
+            "rationale": "L'écoute active renforce la connexion émotionnelle et la confiance mutuelle, créant un espace sécurisant où chacun se sent entendu et validé, réduisant ainsi le terreau de l'insécurité et de la jalousie.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          }
+        ]
+      }
+    ]
+  }
+}

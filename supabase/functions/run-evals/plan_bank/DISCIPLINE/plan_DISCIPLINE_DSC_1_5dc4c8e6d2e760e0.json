@@ -1,0 +1,256 @@
+{
+  "meta": {
+    "id": "plan_DISCIPLINE_DSC_1_5dc4c8e6d2e760e0",
+    "theme_key": "DISCIPLINE",
+    "theme_id": "DSC",
+    "theme_title": "Discipline & Organisation",
+    "axis_id": "DSC_1",
+    "axis_title": "Sortir de la procrastination et passer à l’action",
+    "selected_problem_ids": [
+      "DSC_1_P3",
+      "DSC_1_P4"
+    ],
+    "selected_problem_labels": [
+      "Je commence beaucoup de choses mais j’en termine peu.",
+      "J’ai une grosse pile de choses en retard qui m’angoisse."
+    ],
+    "fingerprint": "5dc4c8e6d2e760e0",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:35:24.804Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je me sens souvent débordé par tout ce que j'ai commencé sans jamais vraiment finir. Ça me frustre et ça crée une charge mentale énorme. J'aimerais retrouver de la clarté et de l'efficacité pour avancer sur mes projets et ne plus me sentir constamment en retard.",
+      "blockers": "Je manque de méthode pour prioriser et pour rester concentré sur une tâche. Je me laisse facilement distraire par de nouvelles idées ou par l'urgence des choses qui s'accumulent. J'ai aussi du mal à estimer le temps nécessaire pour chaque chose, ce qui me décourage avant même de commencer.",
+      "context": "Je suis salarié dans une entreprise où les projets s'enchaînent vite, et à côté, j'ai des projets personnels qui me tiennent à cœur mais que j'ai du mal à concrétiser. Ma vie quotidienne est aussi impactée par cette accumulation de tâches non finies.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "DSC_1",
+      "title": "Sortir de la procrastination et passer à l’action",
+      "theme": "Discipline & Organisation",
+      "problems": [
+        "Je commence beaucoup de choses mais j’en termine peu.",
+        "J’ai une grosse pile de choses en retard qui m’angoisse."
+      ]
+    },
+    "answers": {
+      "DSC_1_P3_Q1": "Les deux",
+      "DSC_1_P3_Q2": [
+        "Tu te lasses rapidement",
+        "Tu es attiré(e) par une nouvelle idée / priorité",
+        "Tu te sens dépassé(e) par l’ampleur du truc"
+      ],
+      "DSC_1_P4_Q1": [
+        "Des mails non lus / non traités",
+        "Des tâches administratives en attente",
+        "Des choses pro / études à rattraper"
+      ],
+      "DSC_1_P4_Q2": "Grosse, je préfère ne pas regarder",
+      "meta": "Je me retrouve vraiment dans ces descriptions, c'est un cercle vicieux où plus j'ai de choses en attente, moins j'ai envie de m'y mettre et plus l'angoisse monte."
+    },
+    "userProfile": {
+      "birth_date": "1996-01-05",
+      "gender": "other"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "L'Architecture de la Volonté",
+    "strategy": "Nous allons structurer ton énergie créative pour la transformer en réalisations concrètes, en construisant une méthode progressive pour prioriser, se concentrer et finaliser tes projets, brique par brique.",
+    "sophiaKnowledge": "Tu es une personne créative et ambitieuse qui démarre de nombreux projets, mais tu te sens rapidement débordé(e) par la quantité, peines à les finir et manques de méthode pour prioriser et maintenir ta concentration. Cette situation génère une frustration et une charge mentale importantes, amplifiée par une pile grandissante de tâches en attente qui t'angoisse profondément.",
+    "context_problem": "Tu te sentais constamment submergé(e) par des projets inachevés et une montagne de tâches qui s'accumulaient, te laissant un sentiment de frustration et d'angoisse. Ton principal blocage était l'incapacité à prioriser et à maintenir ton focus, te détournant de tes objectifs par de nouvelles idées ou l'urgence perçue.",
+    "identity": "Je suis un Maître de l'Achèvement.",
+    "deepWhy": "Pour ressentir la satisfaction du travail accompli, retrouver ma clarté mentale, et libérer mon énergie pour les projets qui comptent vraiment, sans la pression constante du retard.",
+    "goldenRules": "1. Une seule tâche importante à la fois.\n2. Tout ce qui prend moins de 2 minutes est fait immédiatement.\n3. Je planifie ma journée AVANT qu'elle ne commence.",
+    "vitalSignal": {
+      "name": "Tâches prioritaires terminées",
+      "unit": "tâches",
+      "startValue": "0",
+      "targetValue": "2",
+      "description": "Compte le nombre de tâches importantes que tu as commencées ET MENÉES À TERME chaque jour.",
+      "type": "constat",
+      "tracking_type": "counter",
+      "time_of_day": "evening"
+    },
+    "maintenanceCheck": {
+      "question": "Combien de nouvelles idées/projets as-tu lancés cette semaine sans les lier à tes objectifs actuels ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : Le Démarrage Lucide",
+        "subtitle": "Semaines 1-2 • Vider le cache mental et s'orienter",
+        "rationale": "Avant de construire, il faut faire l'inventaire précis du terrain et identifier le premier pas le plus évident. Cette phase vise à transformer l'angoisse diffuse en une liste claire d'actions gérables et à t'offrir une première victoire.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a1",
+            "type": "framework",
+            "title": "L'Inventaire du Chaos",
+            "description": "Énumère toutes les tâches, petites et grandes, professionnelles et personnelles, qui pèsent sur ta charge mentale. Catégorise-les par domaine ou type d'effort.",
+            "questType": "main",
+            "tips": "Ne filtre rien. Si ça te traverse l'esprit, écris-le. Utilise des catégories comme 'Projets Pro', 'Admin & Logistique', 'Projets Perso', 'Petites tâches < 15 min'.",
+            "rationale": "Externaliser ta charge mentale réduit l'anxiété et te donne une vue d'ensemble objective de ce qui doit être fait, au lieu d'un sentiment diffus de surcharge.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 1,
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Il est temps de sortir toutes ces préoccupations de ta tête et de les poser sur le papier. C'est le premier pas pour reprendre le contrôle.",
+              "sections": [
+                {
+                  "id": "s1",
+                  "label": "Tâches en attente (Tâche | Catégorie)",
+                  "inputType": "categorized_list",
+                  "placeholder": "Répondre à l'email de Jean | Admin"
+                },
+                {
+                  "id": "s2",
+                  "label": "Sensation générale après cet inventaire (1-10, 1=soulagé, 10=encore plus submergé)",
+                  "inputType": "scale",
+                  "placeholder": "5"
+                }
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "type": "mission",
+            "title": "La Mini-Victoire Initiatique",
+            "description": "Choisis une tâche de ton inventaire qui prend moins de 15 minutes et réalise-la immédiatement. Cocher cette tâche est ta première victoire.",
+            "questType": "side",
+            "tips": "L'objectif est de créer un momentum positif. Ne choisis pas la plus importante, mais la plus rapide et la plus simple.",
+            "rationale": "Déclencher le circuit de la récompense par une petite victoire renforce ta confiance et ta capacité à passer à l'action, brisant le cercle vicieux de la procrastination.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : L'Ancrage de l'Attention",
+        "subtitle": "Semaines 3-4 • Capter et maintenir le focus",
+        "rationale": "La dispersion est ton ennemi. Cette phase installe des rituels pour te protéger des distractions et entraîner ton cerveau à des périodes de concentration profonde, indispensable pour achever tes projets.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "a3",
+            "type": "habitude",
+            "title": "Le Bloc de Concentration Profonde (30 min)",
+            "description": "Dédie un bloc de 30 minutes chaque jour à une seule tâche de ton inventaire, sans aucune interruption (téléphone en mode avion, onglets fermés, porte fermée si possible).",
+            "questType": "main",
+            "tips": "Commence petit. 30 minutes, c'est suffisant pour sentir un progrès sans être décourageant. Choisis la tâche la plus urgente ou celle que tu repousses le plus.",
+            "rationale": "Entraîne ton cerveau à résister aux distractions et à maintenir un focus soutenu, créant de nouvelles voies neuronales pour la concentration. La dopamine de la tâche accomplie renforce ce comportement.",
+            "tracking_type": "boolean",
+            "time_of_day": "morning",
+            "targetReps": 7
+          },
+          {
+            "id": "a4",
+            "type": "habitude",
+            "title": "Le Cadre Anti-Distraction Numérique",
+            "description": "Avant chaque session de travail profond, active le mode 'Ne pas déranger' sur tous tes appareils et ferme toutes les notifications pendant au moins 1 heure.",
+            "questType": "side",
+            "tips": "Fais-en un rituel. Mets une minute pour fermer les onglets, couper les sons, et poser ton téléphone hors de portée visuelle. La friction pour être distrait doit être maximale.",
+            "rationale": "Réduit l'impact des 'alertes nouveautés' sur ton système dopaminergique, permettant à ton cerveau de s'engager pleinement dans la tâche sans être constamment 'tiré' vers l'extérieur.",
+            "tracking_type": "boolean",
+            "time_of_day": "morning",
+            "targetReps": 7
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : Le Rythme du Maître d'Œuvre",
+        "subtitle": "Semaines 5-6 • Planifier, évaluer, ajuster",
+        "rationale": "Pour achever tes projets, tu dois apprendre à évaluer la réalité du temps et de l'effort. Cette phase intègre des boucles de feedback pour améliorer ta planification et te donner une vision claire de ton avancement.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "a5",
+            "type": "habitude",
+            "title": "L'Estimation Réaliste (Mini-Sprint)",
+            "description": "Chaque matin, estime le temps que te prendront 3 tâches de ton choix. En fin de journée, compare ton estimation au temps réel passé. Note les écarts.",
+            "questType": "main",
+            "tips": "Utilise un timer pour mesurer le temps réel. Ne te juge pas, observe juste. L'objectif est d'affiner ta perception du temps, pas d'être parfait dès le premier jour.",
+            "rationale": "Ton cerveau sous-estime souvent l'effort nécessaire. Cette pratique répétée recalibre ton système de planification, réduisant la peur de l'ampleur et augmentant ta motivation à commencer.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7
+          },
+          {
+            "id": "a6",
+            "type": "framework",
+            "title": "Le Bilan Hebdomadaire Stratégique",
+            "description": "Réserve 30 minutes chaque semaine pour faire le point : Qu'ai-je accompli ? Qu'est-ce qui m'a bloqué ? Quelles sont les 3 priorités pour la semaine prochaine ?",
+            "questType": "side",
+            "tips": "C'est ton moment pour prendre du recul. Sois honnête avec toi-même, mais bienveillant. La clarté des priorités est essentielle pour ne pas se disperser.",
+            "rationale": "Les boucles de feedback régulières sont cruciales pour l'apprentissage et l'ajustement. Ce framework t'aide à consolider tes progrès et à affiner ta stratégie sans te laisser submerger par l'urgence constante.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "targetReps": 2,
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Prends un moment pour évaluer ta semaine. C'est l'opportunité de célébrer tes réussites et d'apprendre de tes défis.",
+              "sections": [
+                {
+                  "id": "s1",
+                  "label": "Mes 3 plus grandes réussites de la semaine",
+                  "inputType": "list",
+                  "placeholder": "J'ai terminé le rapport X"
+                },
+                {
+                  "id": "s2",
+                  "label": "Ce qui m'a le plus bloqué ou ralenti",
+                  "inputType": "textarea",
+                  "placeholder": "Les interruptions imprévues..."
+                },
+                {
+                  "id": "s3",
+                  "label": "Mes 3 priorités pour la semaine prochaine",
+                  "inputType": "list",
+                  "placeholder": "Finaliser le projet Y"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : L'Élan Inarrêtable",
+        "subtitle": "Semaines 7-8 • Consolider et projeter l'action",
+        "rationale": "Les habitudes sont ancrées, ta méthode est en place. Cette phase vise à solidifier tes acquis, à prévenir la rechute dans la procrastination par de nouvelles idées non structurées, et à gérer proactivement tes flux de travail pour une efficacité durable.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "a7",
+            "type": "habitude",
+            "title": "La Règle du 'Une Seule Nouvelle Porte'",
+            "description": "Adopte la règle suivante : tu ne commences un nouveau grand projet (ou une idée nécessitant un investissement significatif) que si tu as terminé un autre projet en cours, ou si tu as clairement identifié où et comment cette nouvelle idée s'intègre à tes priorités existantes.",
+            "questType": "main",
+            "tips": "Quand une nouvelle idée apparaît, ne la rejette pas, mais 'parque-la' dans une liste dédiée pour la revisiter lors de ton bilan hebdomadaire. Résiste à l'impulsion de l'action immédiate.",
+            "rationale": "Ton cerveau est attiré par la nouveauté. Cette règle crée une friction saine qui t'oblige à évaluer l'opportunité d'une nouvelle entreprise par rapport à l'achèvement des tâches existantes, combattant la dispersion et l'accumulation de chantiers ouverts.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 7
+          },
+          {
+            "id": "a8",
+            "type": "mission",
+            "title": "Le Purgeur des Flux Entrants",
+            "description": "Dédie un bloc de 1 à 2 heures pour traiter et vider tes boîtes de réception (mails, messages pro, etc.) et les tâches administratives qui t'angoissent le plus, en utilisant la méthode des petits pas apprise.",
+            "questType": "side",
+            "tips": "Ne cherche pas la perfection, cherche le progrès. Traite les choses une par une, en appliquant les principes de concentration. Fais des pauses si nécessaire. Le but est de réduire drastiquement la 'pile' qui te pèse.",
+            "rationale": "S'attaquer directement aux sources d'accumulation (mails, admin) réduit la charge mentale et les déclencheurs de procrastination. C'est une application concrète des habitudes acquises pour une libération tangible.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

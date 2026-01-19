@@ -433,6 +433,8 @@ async function main() {
     budget_usd: 0,
     model: args.model,
     use_real_ai: true,
+    use_pre_generated_plans: true,
+    pre_generated_plans_required: true,
   };
 
   // IMPORTANT:

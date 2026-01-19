@@ -1,0 +1,258 @@
+{
+  "meta": {
+    "id": "plan_RELATIONS_REL_8_9ab3d7eb64c965e4",
+    "theme_key": "RELATIONS",
+    "theme_id": "REL",
+    "theme_title": "Relations & Communication",
+    "axis_id": "REL_8",
+    "axis_title": "Être un parent plus serein & épanoui",
+    "selected_problem_ids": [
+      "REL_8_P2",
+      "REL_8_P3"
+    ],
+    "selected_problem_labels": [
+      "Je suis épuisé(e) par la charge parentale / mentale.",
+      "J’ai du mal à gérer l’équilibre vie pro / vie de famille."
+    ],
+    "fingerprint": "9ab3d7eb64c965e4",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:40:01.983Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je me sens complètement dépassée par le quotidien. J'ai l'impression de courir partout sans jamais m'arrêter, et je culpabilise de ne pas être suffisamment présente pour mes enfants ou performante au travail. J'aimerais retrouver un peu de sérénité et d'équilibre.",
+      "blockers": "Mon plus gros frein, c'est le manque de temps et d'énergie. Quand j'ai un moment, je tombe de fatigue ou je me dis qu'il faut absolument faire les tâches ménagères en retard. J'ai aussi du mal à déléguer, je pense que je dois tout gérer seule.",
+      "context": "Je suis maman de deux jeunes enfants, en bas âge. Mon conjoint travaille aussi beaucoup, et on a peu de relais familial. Les journées sont un marathon entre le travail, l'école, les activités et la maison. Le soir, je suis vidée, mais souvent obligée de me remettre au travail une fois les enfants couchés.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "REL_8",
+      "title": "Être un parent plus serein & épanoui",
+      "theme": "Relations & Communication",
+      "problems": [
+        "Je suis épuisé(e) par la charge parentale / mentale.",
+        "J’ai du mal à gérer l’équilibre vie pro / vie de famille."
+      ]
+    },
+    "answers": {
+      "REL_8_P2_Q1": [
+        "La charge mentale (penser à tout, rendez-vous, école…)",
+        "Le bruit / les sollicitations constantes"
+      ],
+      "REL_8_P2_Q2": "Un peu, mais je l’utilise pour faire des corvées",
+      "REL_8_P3_Q1": "Je ne suis bien nulle part (coupable au boulot, coupable à la maison)",
+      "REL_8_P3_Q2": [
+        "Le tunnel 18h-20h",
+        "Le soir quand je retravaille après le coucher"
+      ],
+      "meta": {
+        "problems": [
+          {
+            "id": "REL_8_P2",
+            "label": "Je suis épuisé(e) par la charge parentale / mentale."
+          },
+          {
+            "id": "REL_8_P3",
+            "label": "J’ai du mal à gérer l’équilibre vie pro / vie de famille."
+          }
+        ]
+      }
+    },
+    "userProfile": {
+      "birth_date": "1992-03-11",
+      "gender": "other"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "L'Éveil de la Mère Sereine",
+    "strategy": "Reconstruire la sérénité en priorisant la décharge mentale et la récupération énergétique, pour une présence accrue et un équilibre retrouvé, en établissant des frontières claires et durables.",
+    "sophiaKnowledge": "Tu es une mère de deux jeunes enfants, submergée par la charge mentale et la culpabilité, te sentant constamment en train de courir. Tu manques de temps et d'énergie, peines à déléguer et te retrouves souvent à travailler tard le soir, ce qui nourrit ton épuisement et ton sentiment d'inadéquation. Le bruit et les sollicitations constantes sont des sources majeures de stress, et tu as du mal à trouver un équilibre entre tes responsabilités professionnelles et familiales.",
+    "context_problem": "Tu te sentais aspirée par le tourbillon de la charge mentale et de l'épuisement, piégée entre tes rôles de mère et de professionnelle, avec une culpabilité omniprésente. Tes blocages majeurs étaient le manque de temps pour toi et l'incapacité à déléguer, te poussant à tout gérer seule jusqu'à l'épuisement. Ce rythme t'empêchait d'être pleinement sereine et présente.",
+    "identity": "Je suis la gardienne de mon énergie et la créatrice de ma sérénité.",
+    "deepWhy": "Pour être pleinement présente, joyeuse et patiente avec mes enfants, pour nourrir mon épanouissement personnel sans culpabilité, et pour créer un foyer rempli de calme et d'amour.",
+    "goldenRules": "1. Mon énergie est sacrée et non négociable.\n2. Déléguer n'est pas abandonner, c'est renforcer ma capacité à me recentrer.\n3. Le temps pour moi est un investissement vital, pas une récompense conditionnelle.",
+    "vitalSignal": {
+      "name": "Moments de Calme Conscient",
+      "unit": "min",
+      "startValue": "0",
+      "targetValue": "10",
+      "description": "Chaque jour, trouve au moins 10 minutes pour toi, sans écran, sans tâche, sans sollicitation, pour simplement 'être' et respirer. L'objectif est d'accumuler ce temps de 'non-faire'.",
+      "type": "constat",
+      "tracking_type": "counter"
+    },
+    "maintenanceCheck": {
+      "question": "Cette semaine, combien de fois as-tu ressenti la culpabilité de ne pas en faire assez, ou de ne pas être suffisamment présente pour tes enfants ou au travail ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage Invisible - Vider le Sac",
+        "subtitle": "Semaines 1-2 • Réduire la charge mentale lourde",
+        "rationale": "Avant de reconstruire, il est crucial de désencombrer l'esprit. Cette phase s'attaque directement à ta charge mentale pour créer de l'espace pour la sérénité.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a1",
+            "type": "framework",
+            "title": "Le Journal de Décharge Mentale Quotidienne",
+            "description": "Chaque soir, consigne par écrit toutes les pensées, préoccupations et tâches qui encombrent ton esprit. L'objectif est de les 'déposer' hors de ta tête.",
+            "questType": "main",
+            "tips": "Ne cherche pas la perfection, juste à vider ton cerveau. Une simple feuille et un stylo suffisent. Ce n'est pas pour résoudre, mais pour libérer.",
+            "rationale": "Le cerveau ne fait pas la différence entre penser et faire. Déposer tes pensées réduit l'activité du cortex préfrontal, facilitant la relaxation et le sommeil.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "targetReps": 14,
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "L'esprit humain n'est pas fait pour stocker les informations, mais pour les traiter. Consigne tout ce qui te trotte dans la tête, même les petites choses. Plus c'est sur papier, moins c'est dans ta tête.",
+              "sections": [
+                {
+                  "id": "s1_a1",
+                  "label": "Toutes les pensées et préoccupations de la journée",
+                  "inputType": "textarea",
+                  "placeholder": "Je pense à l'email à envoyer, au repas de demain, à la dispute avec mon enfant..."
+                },
+                {
+                  "id": "s2_a1",
+                  "label": "Niveau de charge mentale avant d'écrire (1-10)",
+                  "inputType": "scale",
+                  "placeholder": "8"
+                }
+              ]
+            }
+          },
+          {
+            "id": "a2",
+            "type": "habitude",
+            "title": "Le Micro-Moment Présent",
+            "description": "Au moins une fois par jour, prends une minute pour arrêter ce que tu fais, fermer les yeux et te concentrer uniquement sur un sens (le son, l'odeur, la sensation).",
+            "questType": "side",
+            "tips": "Fais-le quand tu sens la pression monter ou entre deux tâches. Pas besoin de méditer, juste d'observer sans juger.",
+            "rationale": "Ces micro-pauses activent le système nerveux parasympathique, réduisant le stress et entraînant ton cerveau à revenir au moment présent, un remède contre la culpabilité et l'épuisement mental.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 14
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : Le Sanctuaire du Silence - Protéger son Havre",
+        "subtitle": "Semaines 3-4 • Réduire les sollicitations et le bruit",
+        "rationale": "Le bruit constant et les sollicitations épuisent le cerveau. Cette phase vise à créer des zones et des temps de calme pour recharger tes batteries.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a3",
+            "type": "habitude",
+            "title": "Le Couvre-Feu Digital pour le Soir",
+            "description": "Fixe-toi une heure (ex: 21h00) à partir de laquelle tous les écrans (téléphone, tablette, ordinateur) sont rangés, et ne sont plus consultés jusqu'au lendemain matin.",
+            "questType": "main",
+            "tips": "Charge ton téléphone hors de ta chambre. Utilise un réveil analogique. Prépare-toi un livre ou une activité calme pour la soirée.",
+            "rationale": "La lumière bleue des écrans et la stimulation mentale perturbent la production de mélatonine, l'hormone du sommeil. Établir une coupure nette protège ton cerveau de l'hyper-stimulation et favorise un endormissement plus rapide et un sommeil de meilleure qualité.",
+            "tracking_type": "boolean",
+            "time_of_day": "night",
+            "targetReps": 14
+          },
+          {
+            "id": "a4",
+            "type": "mission",
+            "title": "L'Audit des Bruits et Distractions",
+            "description": "Identifie les 3 principales sources de bruit ou de distraction dans ton environnement (maison, travail) et trouve une solution concrète pour réduire leur impact.",
+            "questType": "side",
+            "tips": "Cela peut être des écouteurs anti-bruit, réorganiser un espace, établir des règles claires avec la famille ou les collègues, ou un fond sonore relaxant.",
+            "rationale": "Le cerveau dépense une énergie considérable pour filtrer les informations indésirables. Réduire le bruit ambiant libère de la capacité mentale et diminue la fatigue cognitive, te permettant de te sentir moins débordée.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : Le Rythme du Parent Serein - Récupérer l'Élan",
+        "subtitle": "Semaines 5-6 • Réintroduire du temps pour soi et déléguer",
+        "rationale": "Pour être une mère présente et sereine, il faut avant tout être une femme reposée. Cette phase te permet de récupérer du temps pour toi et d'apprendre à partager la charge.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a5",
+            "type": "habitude",
+            "title": "La Parenthèse Sacrée de 15 Minutes",
+            "description": "Chaque jour, même fragmentée, alloue-toi 15 minutes ininterrompues pour une activité qui te nourrit et t'apporte du plaisir (lire, écouter de la musique, dessiner, simplement regarder par la fenêtre).",
+            "questType": "main",
+            "tips": "Planifie ce moment dans ton agenda comme un rendez-vous important. Mets-toi en mode 'ne pas déranger'.",
+            "rationale": "Ces moments de plaisir activent le circuit de la récompense dans le cerveau, augmentant les niveaux de dopamine et de sérotonine. C'est un antidote puissant à la culpabilité et à l'épuisement, et un rappel que ton bien-être est essentiel.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 14
+          },
+          {
+            "id": "a6",
+            "type": "framework",
+            "title": "La Matrice de Délégation Efficace",
+            "description": "Identifie les tâches que tu gères seule, puis classe-les et détermine lesquelles peuvent être déléguées ou partagées. Crée un plan d'action concret.",
+            "questType": "side",
+            "tips": "Sois spécifique : qui peut faire quoi ? Quel est le niveau d'autonomie possible ? N'hésite pas à demander de l'aide.",
+            "rationale": "Déléguer réduit la charge cognitive de 'tout gérer'. Cela permet de libérer de l'énergie mentale et physique, réduisant le sentiment de surcharge et renforçant les liens en partageant les responsabilités.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "targetReps": 1,
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "La capacité à déléguer est une compétence clé pour alléger ta charge. Il ne s'agit pas de 'lâcher' mais de 'partager'. Identifie les tâches et les personnes potentielles pour t'aider. Pense aux tâches domestiques, aux courses, aux rendez-vous, ou même à certaines responsabilités professionnelles.",
+              "sections": [
+                {
+                  "id": "s1_a6",
+                  "label": "Liste des tâches que je gère seule et qui pèsent",
+                  "inputType": "categorized_list",
+                  "placeholder": "Faire la lessive|Maison"
+                },
+                {
+                  "id": "s2_a6",
+                  "label": "Tâches identifiées pour la délégation / le partage (avec qui)",
+                  "inputType": "list",
+                  "placeholder": "Préparer les sacs d'école avec mon conjoint"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : L'Équilibre Maîtrisé - Bâtir des Frontières",
+        "subtitle": "Semaines 7-8 • Consolider les nouvelles habitudes et anticiper",
+        "rationale": "Il est temps d'ancrer ces transformations et de mettre en place des systèmes pour maintenir l'équilibre à long terme, en protégeant ton énergie et tes rôles.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "a7",
+            "type": "habitude",
+            "title": "Le Rituel de Fermeture de Journée (Pro et Perso)",
+            "description": "Chaque soir, après le coucher des enfants (ou à une heure fixe), instaure un rituel de 10 minutes pour 'fermer' ta journée de travail et tes préoccupations quotidiennes. Fais une liste rapide pour le lendemain et dis 'stop'.",
+            "questType": "main",
+            "tips": "Cela peut être ranger ton bureau, écrire la liste du lendemain, ou simplement un moment pour dire 'la journée est finie, je me repose'.",
+            "rationale": "Ce rituel crée une frontière neuronale claire entre tes différents rôles et responsabilités. Il permet à ton cerveau de savoir quand 'débrancher' du mode 'travail/gestion', réduisant ainsi l'anxiété du lendemain et la tendance à te remettre au travail une fois les enfants couchés.",
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "targetReps": 14
+          },
+          {
+            "id": "a8",
+            "type": "mission",
+            "title": "La Grande Réunion de Vie : Partage et Vision",
+            "description": "Organise une discussion formelle avec ton conjoint pour discuter du partage des tâches, des besoins de chacun et de la vision commune pour l'équilibre familial. Établissez ensemble un plan d'action.",
+            "questType": "side",
+            "tips": "Prépare les points que tu souhaites aborder. Il s'agit d'une discussion constructive pour l'équipe parentale, pas d'un reproche. Concentrez-vous sur des solutions pratiques.",
+            "rationale": "Le fait de verbaliser et de formaliser le partage des responsabilités réduit la charge mentale 'invisible' et renforce le soutien mutuel. Cela permet d'aligner les attentes et de créer une base solide pour un équilibre durable et partagé, combattant le sentiment d'être seule face à tout.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      }
+    ]
+  }
+}

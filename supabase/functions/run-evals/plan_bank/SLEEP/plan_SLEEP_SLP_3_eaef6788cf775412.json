@@ -1,0 +1,260 @@
+{
+  "meta": {
+    "id": "plan_SLEEP_SLP_3_eaef6788cf775412",
+    "theme_key": "SLEEP",
+    "theme_id": "SLP",
+    "theme_title": "Sommeil & Récupération",
+    "axis_id": "SLP_3",
+    "axis_title": "Stabiliser mon rythme & mon réveil",
+    "selected_problem_ids": [
+      "SLP_3_P3",
+      "SLP_3_P5"
+    ],
+    "selected_problem_labels": [
+      "J’appuie plusieurs fois sur le bouton snooze avant de me lever.",
+      "Mes siestes me cassent plus qu’elles ne m’aident."
+    ],
+    "fingerprint": "eaef6788cf775412",
+    "model": "gemini-2.5-flash",
+    "created_at": "2026-01-15T18:32:09.155Z"
+  },
+  "fake": {
+    "inputs": {
+      "why": "Je me sens souvent fatigué dès le matin, même après une nuit complète. Le réveil est un calvaire et mes siestes, au lieu de me rebooster, me laissent encore plus groggy. J'aimerais retrouver un rythme où je me lève frais et dispo, et où mes siestes sont réellement réparatrices, si j'en fais.",
+      "blockers": "Le manque de temps le matin pour me lever sans stress. Le soir, je traîne souvent devant les écrans, ce qui décale mon coucher. Et les week-ends, je compense en dormant beaucoup trop, ce qui dérègle tout pour la semaine.",
+      "context": "Je travaille en bureau, avec des horaires assez fixes mais une charge mentale importante. J'ai deux jeunes enfants, donc les nuits sont parfois interrompues. J'essaie de faire du sport 2-3 fois par semaine, mais souvent je suis trop fatigué pour m'y mettre ou j'y vais à reculons.",
+      "pacing": "balanced"
+    },
+    "currentAxis": {
+      "id": "SLP_3",
+      "title": "Stabiliser mon rythme & mon réveil",
+      "theme": "Sommeil & Récupération",
+      "problems": [
+        "J’appuie plusieurs fois sur le bouton snooze avant de me lever.",
+        "Mes siestes me cassent plus qu’elles ne m’aident."
+      ]
+    },
+    "answers": {
+      "SLP_3_P3_Q1": "Plus de 3 fois",
+      "SLP_3_P3_Q2": "Ton smartphone",
+      "SLP_3_P5_Q1": "3 fois par semaine ou plus",
+      "SLP_3_P5_Q2": "Après 17h",
+      "meta": "Je suis une personne qui a beaucoup de mal à sortir du lit le matin, appuyant sur snooze plus de 3 fois, et mon smartphone est mon réveil. De plus, j'ai tendance à faire des siestes fréquentes (3 fois par semaine ou plus), souvent tard dans la journée (après 17h), ce qui semble me fatiguer plus qu'autre chose."
+    },
+    "userProfile": {
+      "birth_date": "1988-09-22",
+      "gender": "female"
+    }
+  },
+  "plan_json": {
+    "grimoireTitle": "Le Protocole Chronos",
+    "strategy": "Nous allons d'abord réaligner ton horloge biologique et maîtriser les déclencheurs de fatigue pour créer une fondation solide, puis nous affinerons ton rythme circadien et optimiserons ta récupération.",
+    "sophiaKnowledge": "Tu es une femme de 35 ans, mère de deux jeunes enfants, confrontée à une charge mentale élevée et des nuits potentiellement interrompues. Ton réveil est difficile, marqué par des rappels multiples sur ton smartphone, qui est aussi ton réveil principal. Tu cherches à briser ce cycle de fatigue matinale et de siestes non réparatrices (souvent prises tardivement après 17h) pour retrouver un rythme stable et une énergie durable.",
+    "context_problem": "Épuisée par des réveils difficiles et des siestes contre-productives, tu peines à trouver un rythme stable. Les écrans le soir décalent ton coucher, et les excès de sommeil le week-end perturbent ta semaine, te laissant constamment en dette de sommeil et d'énergie.",
+    "identity": "Je suis le Maître de mon Rythme.",
+    "deepWhy": "Pour me lever avec une énergie sereine, être pleinement présente pour mes enfants et mes responsabilités, et me sentir revitalisée par mes moments de repos.",
+    "goldenRules": "1. Le lit est sacré : uniquement pour le sommeil et l'intimité.\n2. Écrans off : 90 minutes avant le coucher, la chambre est une zone sans écran.\n3. Routine du guerrier : Le réveil est une action unique, sans rappel.",
+    "vitalSignal": {
+      "name": "Snooze Matinal",
+      "unit": "fois",
+      "startValue": "3",
+      "targetValue": "0",
+      "description": "Nombre de fois où tu appuies sur le bouton 'snooze' de ton réveil chaque matin.",
+      "type": "constat",
+      "tracking_type": "counter",
+      "time_of_day": "morning"
+    },
+    "maintenanceCheck": {
+      "question": "Quel a été ton niveau d'énergie moyen cette semaine au réveil (1-10) ?",
+      "frequency": "hebdomadaire",
+      "type": "surveillance"
+    },
+    "estimatedDuration": "8 semaines",
+    "phases": [
+      {
+        "id": 1,
+        "title": "Phase 1 : L'Ancrage du Réveil",
+        "subtitle": "Semaines 1-2 • Briser le cycle de la somnolence",
+        "rationale": "C'est la première étape pour briser le cycle de fatigue. En maîtrisant ton réveil, tu envoies un signal clair à ton corps pour réinitialiser ton horloge interne.",
+        "status": "active",
+        "actions": [
+          {
+            "id": "p1a1",
+            "type": "mission",
+            "title": "Désactive ton Réveil Smartphone",
+            "description": "Retire l'alarme de ton smartphone et utilise un réveil analogique ou un simulateur d'aube. Mets ton téléphone hors de la chambre.",
+            "questType": "main",
+            "tips": "Un réveil lumineux peut faciliter un réveil en douceur. Choisis un son d'alarme doux et non-agressif.",
+            "rationale": "Ton smartphone est un puissant déclencheur de distraction et de stress. Le bannir de ta chambre coupe ce lien négatif et t'oblige à te lever pour l'éteindre.",
+            "tracking_type": "boolean",
+            "time_of_day": "night"
+          },
+          {
+            "id": "p1a2",
+            "type": "habitude",
+            "title": "Le Réveil Unique",
+            "description": "À partir de maintenant, ton réveil sonne une seule fois. Lorsque l'alarme retentit, tu te lèves immédiatement, sans appuyer sur 'snooze'.",
+            "questType": "side",
+            "tips": "Mets ton réveil à une distance où tu dois te lever pour l'atteindre. Prévois une petite action immédiate comme boire un verre d'eau.",
+            "rationale": "Chaque 'snooze' fragmente ton sommeil, le rendant moins réparateur. Briser cette habitude renforce ta discipline matinale et améliore la qualité de ton éveil.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Phase 2 : Le Silence Avant l'Aube",
+        "subtitle": "Semaines 3-4 • Maîtrise de la soirée",
+        "rationale": "La qualité de ton réveil est directement liée à la qualité de ta soirée. Couper les écrans et apaiser ton esprit est crucial pour préparer ton cerveau au sommeil profond.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p2a1",
+            "type": "habitude",
+            "title": "Couvre-Feu Digital Strict",
+            "description": "Arrête toute exposition aux écrans (téléphone, tablette, ordinateur, TV) au moins 90 minutes avant ton heure de coucher visée.",
+            "questType": "main",
+            "tips": "Lis un livre, écoute un podcast, prends un bain, ou parle à tes enfants/partenaire. Mets ton téléphone en mode 'ne pas déranger' ou dans une autre pièce.",
+            "rationale": "La lumière bleue des écrans supprime la production de mélatonine, l'hormone du sommeil. Un couvre-feu digital permet à ton corps de se préparer naturellement à l'endormissement.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening"
+          },
+          {
+            "id": "p2a2",
+            "type": "framework",
+            "title": "Bilan de Décharge Mentale du Soir",
+            "description": "Prends 10-15 minutes chaque soir pour vider ton esprit de toutes les pensées et préoccupations qui pourraient interférer avec ton sommeil.",
+            "questType": "side",
+            "tips": "Ne juge pas ce que tu écris, l'objectif est simplement de le sortir de ta tête. Tu peux aussi lister les 1-2 tâches les plus importantes pour le lendemain.",
+            "rationale": "La rumination mentale est un frein majeur à l'endormissement. Cet exercice aide à réduire le cortisol pré-sommeil et à clarifier tes pensées pour le repos.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "evening",
+            "frameworkDetails": {
+              "type": "recurring",
+              "intro": "Avant de te coucher, prends quelques minutes pour vider ton esprit de toutes les pensées et préoccupations qui tournent en boucle. Le but est de laisser tout ce qui te pèse sur le papier pour que ton cerveau puisse se reposer.",
+              "sections": [
+                {
+                  "id": "thoughts_concerns",
+                  "label": "Mes pensées et préoccupations du jour",
+                  "inputType": "textarea",
+                  "placeholder": "Je dois penser à... / Ce qui m'a tracassé aujourd'hui..."
+                },
+                {
+                  "id": "tomorrow_priorities",
+                  "label": "1-2 choses à faire demain",
+                  "inputType": "list",
+                  "placeholder": "Tâche 1 | Catégorie (Urgent, Important...)"
+                },
+                {
+                  "id": "stress_level",
+                  "label": "Niveau de clarté mentale avant de dormir (1-10)",
+                  "inputType": "scale",
+                  "placeholder": "7"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Phase 3 : La Science de la Sieste et du Temps Libre",
+        "subtitle": "Semaines 5-6 • Optimiser la récupération",
+        "rationale": "Les siestes peuvent être réparatrices si elles sont bien utilisées. Nous allons t'apprendre à les transformer en alliées, et à éviter le dérèglement du week-end qui perturbe ton rythme.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p3a1",
+            "type": "habitude",
+            "title": "La Power Nap Stratégique",
+            "description": "Si tu ressens le besoin d'une sieste, limite-la à 20 minutes maximum et fais-la avant 16h.",
+            "questType": "main",
+            "tips": "Utilise une alarme douce. Si tu as du mal à t'endormir, ne force pas, repose-toi simplement les yeux dans le calme.",
+            "rationale": "Les siestes trop longues ou trop tardives peuvent t'envoyer dans des cycles de sommeil profond, provoquant une inertie du sommeil ('groggy') et décalant ton coucher du soir. Une courte sieste au bon moment restaure la vigilance sans perturber la nuit.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "afternoon"
+          },
+          {
+            "id": "p3a2",
+            "type": "mission",
+            "title": "Week-end Rythmé : Une Activité Non-Écran",
+            "description": "Planifie chaque week-end au moins une activité qui t'enthousiasme et qui ne t'expose pas aux écrans, pour éviter la compensation excessive de sommeil.",
+            "questType": "side",
+            "tips": "Cela peut être une sortie en famille, une activité créative, une longue marche en nature, ou rencontrer des amis. L'important est de te recharger activement.",
+            "rationale": "Compenser le manque de sommeil en dormant excessivement le week-end dérègle ton horloge biologique, rendant le retour à un rythme sain difficile. Des activités engageantes t'aident à rester dans un rythme plus stable.",
+            "tracking_type": "boolean",
+            "time_of_day": "any_time"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "Phase 4 : Le Rythme du Guerrier Lumineux",
+        "subtitle": "Semaines 7-8 • Consolidation et Énergie Durable",
+        "rationale": "Après avoir stabilisé les fondations, cette phase vise à intégrer pleinement ces nouveaux rythmes dans ta vie et à optimiser ton énergie quotidienne de manière durable, en adéquation avec ton axe prioritaire.",
+        "status": "pending",
+        "actions": [
+          {
+            "id": "p4a1",
+            "type": "habitude",
+            "title": "Rituel Matinal Énergisant (10 min)",
+            "description": "Développe un rituel matinal de 10 minutes qui n'implique pas d'écrans et qui t'apporte de l'énergie (ex: étirements légers, méditation courte, boire de l'eau citronnée, lire quelques pages).",
+            "questType": "main",
+            "tips": "Commence petit et augmente progressivement. Fais-le juste après t'être levée, avant que les distractions ne commencent. L'objectif est de signaler à ton corps et ton esprit que la journée commence positivement.",
+            "rationale": "Un rituel matinal structuré programme ton cerveau pour la journée, réduit le stress du 'manque de temps' et crée une transition douce vers l'éveil complet, augmentant ta vitalité dès le matin.",
+            "targetReps": 7,
+            "tracking_type": "boolean",
+            "time_of_day": "morning"
+          },
+          {
+            "id": "p4a2",
+            "type": "framework",
+            "title": "Ma Carte d'Énergie",
+            "description": "Analyse tes semaines pour identifier tes pics et creux d'énergie récurrents, ainsi que les activités qui te rechargent ou te vident le plus.",
+            "questType": "side",
+            "tips": "Base-toi sur tes observations des dernières semaines. Sois honnête avec toi-même sur ce qui t'impacte réellement.",
+            "rationale": "Comprendre tes propres rythmes énergétiques te permet de planifier tes activités plus efficacement, de maximiser ta productivité pendant tes pics et de prévoir des moments de récupération durant tes creux, en accord avec ton sport.",
+            "targetReps": 1,
+            "tracking_type": "boolean",
+            "time_of_day": "any_time",
+            "frameworkDetails": {
+              "type": "one_shot",
+              "intro": "Maintenant que tu as stabilisé ton rythme, il est temps de comprendre plus finement les moments de ta journée où tu es la plus énergique et ceux où tu l'es moins. Cette carte t'aidera à planifier tes activités en fonction de tes pics et creux naturels.",
+              "sections": [
+                {
+                  "id": "peak_energy",
+                  "label": "Mes heures de pic d'énergie",
+                  "inputType": "list",
+                  "placeholder": "Ex: 9h-12h, 16h-18h"
+                },
+                {
+                  "id": "low_energy",
+                  "label": "Mes heures de creux d'énergie",
+                  "inputType": "list",
+                  "placeholder": "Ex: 14h-15h, après 20h"
+                },
+                {
+                  "id": "energy_boosters",
+                  "label": "Activités qui me rechargent vraiment",
+                  "inputType": "list",
+                  "placeholder": "Lire, marcher dans la nature, écouter de la musique"
+                },
+                {
+                  "id": "energy_drainers",
+                  "label": "Activités qui me vident le plus",
+                  "inputType": "list",
+                  "placeholder": "Réunions improductives, réseaux sociaux"
+                }
+              ]
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

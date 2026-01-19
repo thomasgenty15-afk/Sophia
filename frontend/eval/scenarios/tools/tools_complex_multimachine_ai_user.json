@@ -1,0 +1,68 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_complex_multimachine_ai_user",
+  "description": "Complex tool-actions eval: multi-machine flow (architect create-flow discussion without consent -> firefighter panic interruption -> investigator breakdown -> post-checkup deferred topic). All turns are AI-generated (simulate-user + sophia-brain).",
+  "tags": ["sophia.architect", "sophia.firefighter", "sophia.investigator"],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Sport",
+        "type": "mission",
+        "tracking_type": "boolean",
+        "target_reps": 1,
+        "time_of_day": "any_time",
+        "description": "Faire une séance courte (même 10 minutes), sans pression.",
+        "scheduled_days": null
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Sport",
+        "status": "missed",
+        "days": 5,
+        "note": "Trop fatigué(e), j'ai évité."
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur web",
+    "age_range": "25-40",
+    "style": "oral, naturel, vulnérable mais pas théâtral",
+    "background": "Je veux améliorer mes soirées (moins de scroll), mais je suis instable en ce moment. Je fais une crise de panique au milieu. Ensuite je fais un bilan et on part d'une action existante (Sport) pour comprendre le blocage."
+  },
+  "objectives": [
+    {
+      "kind": "tools_complex_multimachine_realistic",
+      "spec": {
+        "create_title": "Lecture (anti-scroll)",
+        "create_context": "Je veux arrêter de scroller le soir et remplacer par un truc simple, mais je suis instable en ce moment.",
+        "create_duration_minutes": 10,
+        "create_target_reps": 3,
+        "create_time_of_day": "evening",
+        "existing_action_title": "Sport",
+        "deferred_topic": "mon stress au travail"
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect", "firefighter", "investigator"],
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "micro-étape",
+      "C['’]est bon pour ce point\\s*\\?",
+      "stress au travail"
+    ],
+    "plan_actions_count_min": 2,
+    "plan_actions_must_not_include": [
+      { "title": ["Lecture (anti-scroll)", "Lecture anti-scroll"] }
+    ],
+    "chat_state_equals": {
+      "investigation_state": null
+    }
+  }
+}
+
+
