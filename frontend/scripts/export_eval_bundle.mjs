@@ -1,31 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
-import { execSync } from "node:child_process";
+import { execSync, spawnSync } from "node:child_process";
 import fs from "node:fs";
 import path from "node:path";
 import crypto from "node:crypto";
-
-function parseArgs(argv) {
-  const out = {
-    evalRunId: null,
-    outFile: null,
-    logsFile: null,
-    includeChatMessages: true,
-  };
-  for (let i = 0; i < argv.length; i++) {
-    const a = argv[i];
-    if (a === "--eval-run-id" || a === "--id") out.evalRunId = String(argv[++i] ?? "").trim() || null;
-    else if (a === "--out") out.outFile = String(argv[++i] ?? "").trim() || null;
-    else if (a === "--logs-file") out.logsFile = String(argv[++i] ?? "").trim() || null;
-    else if (a === "--no-chat-messages") out.includeChatMessages = false;
-  }
-  return out;
-}
-
-function must(v, name) {
-  const s = String(v ?? "").trim();
-  if (!s) throw new Error(`Missing ${name}`);
-  return s;
-}
 
 function decodeJwtAlg(jwt) {
   const t = String(jwt ?? "").trim();
@@ -57,6 +33,7 @@ function normalizeSupabaseStatusKeys(st) {
   const jwtSecret = String(st?.JWT_SECRET ?? "").trim();
   if (!jwtSecret) return st;
 
+  // Local convenience: forge HS256 anon/service tokens for tools that expect HS256 (PostgREST/JWT secret).
   const now = Math.floor(Date.now() / 1000);
   const exp = now + 60 * 60 * 24 * 365 * 10;
   const iss = "supabase-demo";
@@ -65,113 +42,213 @@ function normalizeSupabaseStatusKeys(st) {
   return { ...st, ANON_KEY: anonKey, SERVICE_ROLE_KEY: serviceRoleKey };
 }
 
+function parseArgs(argv) {
+  const out = { eval_run_id: null, scenario: null, force_new: false };
+  for (let i = 0; i < argv.length; i++) {
+    const a = argv[i];
+    if (a === "--eval-run-id") out.eval_run_id = String(argv[++i] ?? "").trim() || null;
+    else if (a === "--scenario") out.scenario = String(argv[++i] ?? "").trim() || null;
+    else if (a === "--force-new") out.force_new = true;
+  }
+  return out;
+}
+
+function must(v, msg) {
+  if (!v) throw new Error(msg);
+  return v;
+}
+
 function getLocalSupabaseStatus() {
   const repoRoot = path.resolve(process.cwd(), "..");
-  const supabaseCli = String(process.env.SOPHIA_SUPABASE_CLI ?? "npx --yes supabase@latest").trim();
+  // IMPORTANT: default to the installed supabase CLI (avoid npx/npm EPERM issues).
+  const supabaseCli = String(process.env.SOPHIA_SUPABASE_CLI ?? "supabase").trim();
   const raw = execSync(`${supabaseCli} status --output json`, { encoding: "utf8", cwd: repoRoot });
   return normalizeSupabaseStatusKeys(JSON.parse(raw));
 }
 
-function ensureDir(p) {
-  fs.mkdirSync(p, { recursive: true });
-}
-
-function nowIso() {
-  return new Date().toISOString();
-}
-
-function safeReadText(p) {
+function curlJson({ url, headers }) {
+  const args = ["-sS", "-X", "GET", url];
+  for (const [k, v] of Object.entries(headers ?? {})) args.push("-H", `${k}: ${v}`);
+  const res = spawnSync("curl", args, { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 });
+  if (res.error) throw res.error;
+  if ((res.status ?? 0) !== 0) throw new Error(`curl failed (status=${res.status ?? "null"}): ${(res.stderr ?? "").slice(0, 400)}`);
+  const raw = String(res.stdout ?? "");
   try {
-    if (!p) return null;
-    if (!fs.existsSync(p)) return null;
-    return fs.readFileSync(p, "utf8");
+    return raw ? JSON.parse(raw) : null;
+  } catch {
+    return { _raw: raw };
+  }
+}
+
+function dockerDbContainerName() {
+  try {
+    const res = spawnSync("docker", ["ps", "--format", "{{.Names}}"], { encoding: "utf8", maxBuffer: 10 * 1024 * 1024 });
+    const out = String(res.stdout ?? "");
+    const names = out.split("\n").map((s) => s.trim()).filter(Boolean);
+    // Local supabase convention: supabase_db_<project>
+    const hit = names.find((n) => /^supabase_db_/i.test(n));
+    return hit ?? null;
   } catch {
     return null;
   }
 }
 
+function dockerPsqlJson({ sql }) {
+  const container = dockerDbContainerName();
+  if (!container) return null;
+  try {
+    const res = spawnSync(
+      "docker",
+      ["exec", container, "psql", "-U", "postgres", "-d", "postgres", "-t", "-A", "-q", "-c", sql],
+      // eval rows can be large (transcript + state_before/state_after). Avoid spawnSync 1MB default truncation.
+      { encoding: "utf8", maxBuffer: 50 * 1024 * 1024 },
+    );
+    const out = String(res.stdout ?? "").trim();
+    if (!out) return null;
+    // psql prints a single JSON value (not wrapped). Keep it flexible:
+    // - for `select row_to_json(t)` it returns the object directly
+    // - for `select json_agg(...)` it returns the array directly
+    return JSON.parse(out);
+  } catch {
+    return null;
+  }
+}
+
+function ensureDir(p) {
+  fs.mkdirSync(p, { recursive: true });
+}
+function writeJson(p, obj) {
+  fs.writeFileSync(p, JSON.stringify(obj, null, 2), "utf8");
+}
+function safeName(s) {
+  return String(s ?? "").replace(/[^a-zA-Z0-9._-]+/g, "_").slice(0, 140);
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
-  const evalRunId = must(args.evalRunId, "--eval-run-id");
+  const evalRunId = must(args.eval_run_id, "Missing --eval-run-id <uuid>");
 
   const st = getLocalSupabaseStatus();
-  const url = must(st?.API_URL, "Supabase API_URL");
-  const serviceRoleKey = must(st?.SERVICE_ROLE_KEY, "Supabase SERVICE_ROLE_KEY");
+  const url = must(st.API_URL, "Missing API_URL from supabase status");
+  const anonKey = must(st.ANON_KEY, "Missing ANON_KEY from supabase status");
+  const serviceRoleKey = must(st.SERVICE_ROLE_KEY, "Missing SERVICE_ROLE_KEY from supabase status");
+  const dbUrl = String(st.DB_URL ?? "").trim();
 
-  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
-
-  const { data: runRow, error: runErr } = await admin
-    .from("conversation_eval_runs")
-    .select("*")
-    .eq("id", evalRunId)
-    .single();
-  if (runErr) throw runErr;
-
-  const config = (runRow ?? {})?.config ?? {};
-  const testUserId = String(config?.test_user_id ?? "").trim() || null;
-  const channel = String(config?.channel ?? "").trim() || null;
-  const scope = channel === "whatsapp" ? "whatsapp" : "web";
-
-  let chatMessages = null;
-  let chatState = null;
-  if (args.includeChatMessages && testUserId) {
-    const { data: msgs } = await admin
-      .from("chat_messages")
-      .select("id,role,content,created_at,agent_used,metadata,scope")
-      .eq("user_id", testUserId)
-      .eq("scope", scope)
-      .order("created_at", { ascending: true })
-      .limit(600);
-    chatMessages = msgs ?? null;
-
-    const { data: stRow } = await admin
-      .from("user_chat_states")
-      .select("*")
-      .eq("user_id", testUserId)
-      .eq("scope", scope)
-      .maybeSingle();
-    chatState = stRow ?? null;
+  // Use select=* to avoid breaking when local schema differs (migrations added/removed columns).
+  const runUrl = `${url}/rest/v1/conversation_eval_runs?id=eq.${encodeURIComponent(evalRunId)}&select=${encodeURIComponent("*")}&limit=1`;
+  let row = null;
+  try {
+    const rowJson = curlJson({ url: runUrl, headers: { apikey: anonKey, Authorization: `Bearer ${serviceRoleKey}` } });
+    row = Array.isArray(rowJson) ? (rowJson[0] ?? null) : null;
+  } catch {
+    row = null;
+  }
+  // If PostgREST rejects JWT (PGRST301) or other auth issues, fall back to DB direct query (psql).
+  if (!row && dbUrl) {
+    try {
+      const sql =
+        `select row_to_json(t) as json from (` +
+        `select id, created_at, status, dataset_key, scenario_key, transcript, state_before, state_after, issues, suggestions, metrics, config, error, completed_at, partial_reason, partial_at ` +
+        `from public.conversation_eval_runs where id = '${evalRunId.replace(/'/g, "''")}' limit 1` +
+        `) t;`;
+      const res = spawnSync(
+        "psql",
+        [dbUrl, "-t", "-A", "-q", "-c", sql],
+        { encoding: "utf8" },
+      );
+      const out = String(res.stdout ?? "").trim();
+      if (out) {
+        const parsed = JSON.parse(out);
+        row = parsed?.json ?? null;
+      }
+    } catch {
+      // ignore; row remains null
+    }
+  }
+  // If psql isn't available on the host (common), fall back to running psql inside the dockerized DB.
+  if (!row) {
+    const sql =
+      `select row_to_json(t) from (` +
+      `select * from public.conversation_eval_runs where id = '${evalRunId.replace(/'/g, "''")}' limit 1` +
+      `) t;`;
+    const parsed = dockerPsqlJson({ sql });
+    if (parsed && typeof parsed === "object") row = parsed;
   }
 
-  // Optional: attach a log capture file (supabase logs --follow > file) for post-mortem analysis.
-  const logsText = safeReadText(args.logsFile);
+  const evUrl = `${url}/rest/v1/conversation_eval_events?eval_run_id=eq.${encodeURIComponent(evalRunId)}&select=${encodeURIComponent("*")}&order=${encodeURIComponent("created_at.asc")}&limit=5000`;
+  let evs = [];
+  try {
+    evs = curlJson({ url: evUrl, headers: { apikey: anonKey, Authorization: `Bearer ${serviceRoleKey}` } });
+  } catch {
+    evs = [];
+  }
+  if ((!Array.isArray(evs) || evs.length === 0) && dbUrl) {
+    try {
+      const sql =
+        `select coalesce(json_agg(t order by t.created_at), '[]'::json) as json from (` +
+        `select id, created_at, level, event, source, request_id, payload ` +
+        `from public.conversation_eval_events where eval_run_id = '${evalRunId.replace(/'/g, "''")}' ` +
+        `order by created_at asc limit 5000` +
+        `) t;`;
+      const res = spawnSync("psql", [dbUrl, "-t", "-A", "-q", "-c", sql], { encoding: "utf8" });
+      const out = String(res.stdout ?? "").trim();
+      if (out) evs = JSON.parse(out)?.json ?? [];
+    } catch {
+      // ignore
+    }
+  }
+  if (!Array.isArray(evs) || evs.length === 0) {
+    const sql =
+      `select coalesce(json_agg(t order by t.created_at), '[]'::json) from (` +
+      `select * from public.conversation_eval_events where eval_run_id = '${evalRunId.replace(/'/g, "''")}' ` +
+      `order by created_at asc limit 5000` +
+      `) t;`;
+    const parsed = dockerPsqlJson({ sql });
+    if (Array.isArray(parsed)) evs = parsed;
+  }
 
-  const bundle = {
-    kind: "eval_bundle",
-    exported_at: nowIso(),
+  const scenarioKey = args.scenario ?? (row?.scenario_key ?? "scenario");
+  // By default, keep exports stable/idempotent (same folder for same eval_run_id).
+  // Use --force-new if you want a new folder each time.
+  const bundleTitle = args.force_new
+    ? safeName(`${scenarioKey}_${evalRunId}_${Date.now()}_${safeName(crypto.randomUUID().slice(0, 8))}_EXPORT`)
+    : safeName(`${scenarioKey}_${evalRunId}_EXPORT`);
+  const bundleDir = path.join(process.cwd(), "test-results", `eval_bundle_${bundleTitle}`);
+  if (!args.force_new) {
+    try { fs.rmSync(bundleDir, { recursive: true, force: true }); } catch {}
+  }
+  ensureDir(bundleDir);
+
+  writeJson(path.join(bundleDir, "supabase_status.json"), st);
+  writeJson(path.join(bundleDir, "bundle_meta.json"), {
+    kind: "eval_bundle_dir",
+    ok: true,
+    exported_only: true,
+    scenario_key: scenarioKey,
     eval_run_id: evalRunId,
-    scenario_key: runRow?.scenario_key ?? null,
-    dataset_key: runRow?.dataset_key ?? null,
-    status: runRow?.status ?? null,
-    config: runRow?.config ?? null,
-    issues: runRow?.issues ?? null,
-    suggestions: runRow?.suggestions ?? null,
-    metrics: runRow?.metrics ?? null,
-    // What eval-judge saw:
-    transcript: runRow?.transcript ?? null,
-    state_before: runRow?.state_before ?? null,
-    state_after: runRow?.state_after ?? null,
-    // Extra raw DB artifacts (useful when debugging races / routing):
-    db: {
-      test_user_id: testUserId,
-      scope,
-      chat_state_live: chatState,
-      chat_messages: chatMessages,
-    },
-    logs: args.logsFile
-      ? {
-          source_file: args.logsFile,
-          text: logsText,
-        }
-      : null,
-  };
+    request_id: row?.config?.request_id ?? null,
+    started_at: new Date().toISOString(),
+    finished_at: new Date().toISOString(),
+  });
+  writeJson(path.join(bundleDir, "conversation_eval_run.json"), row ?? { ok: false, error: "eval_run_not_found" });
+  writeJson(path.join(bundleDir, "conversation_eval_events.json"), Array.isArray(evs) ? evs : []);
 
-  const outFile = args.outFile
-    ? args.outFile
-    : path.join(process.cwd(), "eval", "bundles", `${evalRunId}.json`);
-  ensureDir(path.dirname(outFile));
-  fs.writeFileSync(outFile, JSON.stringify(bundle, null, 2), "utf8");
-  console.log(JSON.stringify({ ok: true, eval_run_id: evalRunId, out: outFile }, null, 2));
+  // Also export prod verifier/judge logs (conversation_judge_events) scoped by request_id.
+  // This lets us assert/verif that prod verifier (sophia-brain/verifier.ts) fired during the eval.
+  const reqId = row?.config?.request_id ?? null;
+  let judgeEvents = [];
+  if (reqId) {
+    const jUrl = `${url}/rest/v1/conversation_judge_events?request_id=eq.${encodeURIComponent(reqId)}&select=${encodeURIComponent("*")}&order=${encodeURIComponent("created_at.asc")}&limit=5000`;
+    try {
+      judgeEvents = curlJson({ url: jUrl, headers: { apikey: anonKey, Authorization: `Bearer ${serviceRoleKey}` } });
+    } catch {
+      judgeEvents = [];
+    }
+    if (!Array.isArray(judgeEvents)) judgeEvents = [];
+  }
+  writeJson(path.join(bundleDir, "conversation_judge_events.json"), Array.isArray(judgeEvents) ? judgeEvents : []);
+
+  console.log(JSON.stringify({ ok: true, eval_run_id: evalRunId, bundle_dir: bundleDir }, null, 2));
 }
 
 main().catch((e) => {

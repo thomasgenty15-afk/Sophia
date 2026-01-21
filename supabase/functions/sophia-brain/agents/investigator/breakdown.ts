@@ -354,17 +354,41 @@ export async function maybeHandleBreakdownFlow(opts: {
     }
 
     if (isNegative(message)) {
-      const nextState = {
+      // The user refused the proposed micro-step: don't keep looping on it.
+      // Record the decline for this action and resume the checkup with the next item.
+      const declinedIds = Array.isArray((currentState as any)?.temp_memory?.breakdown_declined_action_ids)
+        ? ((currentState as any).temp_memory.breakdown_declined_action_ids as any[])
+        : [];
+      const nextDeclined = Array.from(new Set([...declinedIds.map((x: any) => String(x)), String(currentItem.id)]));
+
+      const nextIndex = currentState.current_item_index + 1
+      const baseNextState: any = {
         ...currentState,
         temp_memory: {
           ...(currentState.temp_memory || {}),
-          breakdown: { ...breakdown, stage: "awaiting_blocker", proposed_action: null },
+          breakdown: null,
+          breakdown_declined_action_ids: nextDeclined,
         },
       }
+
+      if (nextIndex >= currentState.pending_items.length) {
+        return {
+          content: await investigatorSay(
+            "breakdown_declined_end",
+            { user_message: message, action_title: breakdown?.action_title ?? currentItem.title, proposed_step: proposed, channel: meta?.channel },
+            meta,
+          ),
+          investigationComplete: true,
+          newState: null,
+        }
+      }
+
+      const nextItem = currentState.pending_items[nextIndex]
+      const nextState = { ...baseNextState, current_item_index: nextIndex }
       return {
         content: await investigatorSay(
-          "breakdown_decline_ask_adjust",
-          { user_message: message, proposed_step: proposed, action_title: breakdown?.action_title ?? currentItem.title },
+          "breakdown_declined_continue",
+          { user_message: message, action_title: breakdown?.action_title ?? currentItem.title, proposed_step: proposed, next_item: nextItem },
           meta,
         ),
         investigationComplete: false,

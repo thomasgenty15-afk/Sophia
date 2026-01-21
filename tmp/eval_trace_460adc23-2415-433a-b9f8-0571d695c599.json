@@ -1,0 +1,248 @@
+[
+  {
+    "id": 619,
+    "created_at": "2026-01-20T17:12:08.839562+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user:role_retry:1",
+    "source": "gemini",
+    "level": "info",
+    "event": "rate_limit_acquire",
+    "payload": {
+      "model": "gemini-2.5-flash",
+      "global": {
+        "max": 6,
+        "inUse": 1,
+        "queued": 0
+      },
+      "source": "simulate-user",
+      "attempt": 1,
+      "per_model": {
+        "max": 3,
+        "inUse": 1,
+        "queued": 0
+      },
+      "waited_ms": 0,
+      "max_retries": 3,
+      "is_eval_like": true
+    }
+  },
+  {
+    "id": 620,
+    "created_at": "2026-01-20T17:12:21.523087+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user",
+    "source": "run-evals",
+    "level": "info",
+    "event": "turn",
+    "payload": {
+      "kind": "simulated",
+      "user": "Sophia, je me disais que j'aimerais bien ajouter une petite habitude de lecture le soir, pour 10 minutes, 3 fois par semaine, histoire d'arrêter de scroller. Mais je suis un peu instable en ce moment, tu en penses quoi ?",
+      "assistant_mode": "architect"
+    }
+  },
+  {
+    "id": 621,
+    "created_at": "2026-01-20T17:12:21.957952+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user:role_retry:1",
+    "source": "gemini",
+    "level": "info",
+    "event": "rate_limit_acquire",
+    "payload": {
+      "model": "gemini-2.5-flash",
+      "global": {
+        "max": 6,
+        "inUse": 1,
+        "queued": 0
+      },
+      "source": "simulate-user",
+      "attempt": 1,
+      "per_model": {
+        "max": 3,
+        "inUse": 1,
+        "queued": 0
+      },
+      "waited_ms": 0,
+      "max_retries": 3,
+      "is_eval_like": true
+    }
+  },
+  {
+    "id": 622,
+    "created_at": "2026-01-20T17:12:31.692509+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user",
+    "source": "run-evals",
+    "level": "info",
+    "event": "turn",
+    "payload": {
+      "kind": "simulated",
+      "user": "Hmm, je ne sais pas si c'est le bon moment pour ajouter des choses. Je voudrais juste voir si c'est une bonne idée pour moi en ce moment, avec tout ce qui se passe.",
+      "assistant_mode": "architect"
+    }
+  },
+  {
+    "id": 623,
+    "created_at": "2026-01-20T17:12:32.125534+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user:role_retry:1",
+    "source": "gemini",
+    "level": "info",
+    "event": "rate_limit_acquire",
+    "payload": {
+      "model": "gemini-2.5-flash",
+      "global": {
+        "max": 6,
+        "inUse": 1,
+        "queued": 0
+      },
+      "source": "simulate-user",
+      "attempt": 1,
+      "per_model": {
+        "max": 3,
+        "inUse": 1,
+        "queued": 0
+      },
+      "waited_ms": 0,
+      "max_retries": 3,
+      "is_eval_like": true
+    }
+  },
+  {
+    "id": 624,
+    "created_at": "2026-01-20T17:12:46.584151+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user",
+    "source": "run-evals",
+    "level": "info",
+    "event": "turn",
+    "payload": {
+      "kind": "simulated",
+      "user": "Oui, l'idée de lire 3 fois par semaine, j'aime bien, mais je sais pas si je dois la créer maintenant. Je me sens un peu dépassée, tu vois.",
+      "assistant_mode": "architect"
+    }
+  },
+  {
+    "id": 625,
+    "created_at": "2026-01-20T17:12:47.016584+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user:role_retry:1",
+    "source": "gemini",
+    "level": "info",
+    "event": "rate_limit_acquire",
+    "payload": {
+      "model": "gemini-2.5-flash",
+      "global": {
+        "max": 6,
+        "inUse": 1,
+        "queued": 0
+      },
+      "source": "simulate-user",
+      "attempt": 1,
+      "per_model": {
+        "max": 3,
+        "inUse": 1,
+        "queued": 0
+      },
+      "waited_ms": 0,
+      "max_retries": 3,
+      "is_eval_like": true
+    }
+  },
+  {
+    "id": 626,
+    "created_at": "2026-01-20T17:13:00.936629+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user",
+    "source": "run-evals",
+    "level": "info",
+    "event": "turn",
+    "payload": {
+      "kind": "simulated",
+      "user": "Sophia, je... je n'y arrive plus. J'ai une crise de panique, ma respiration est bloquée, je sens que je vais m'effondrer. J'ai besoin d'aide, tout de suite.",
+      "assistant_mode": "firefighter"
+    }
+  },
+  {
+    "id": 627,
+    "created_at": "2026-01-20T17:13:01.407949+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user:role_retry:1",
+    "source": "gemini",
+    "level": "info",
+    "event": "rate_limit_acquire",
+    "payload": {
+      "model": "gemini-2.5-flash",
+      "global": {
+        "max": 6,
+        "inUse": 1,
+        "queued": 0
+      },
+      "source": "simulate-user",
+      "attempt": 1,
+      "per_model": {
+        "max": 3,
+        "inUse": 1,
+        "queued": 0
+      },
+      "waited_ms": 0,
+      "max_retries": 3,
+      "is_eval_like": true
+    }
+  },
+  {
+    "id": 628,
+    "created_at": "2026-01-20T17:13:18.464602+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user",
+    "source": "run-evals",
+    "level": "info",
+    "event": "turn",
+    "payload": {
+      "kind": "simulated",
+      "user": "Oui, je suis chez moi. Mais j'ai toujours cette boule au ventre, j'arrive pas à me calmer. C'est trop, tout est trop...",
+      "assistant_mode": "firefighter"
+    }
+  },
+  {
+    "id": 629,
+    "created_at": "2026-01-20T17:13:18.916318+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user:role_retry:1",
+    "source": "gemini",
+    "level": "info",
+    "event": "rate_limit_acquire",
+    "payload": {
+      "model": "gemini-2.5-flash",
+      "global": {
+        "max": 6,
+        "inUse": 1,
+        "queued": 0
+      },
+      "source": "simulate-user",
+      "attempt": 1,
+      "per_model": {
+        "max": 3,
+        "inUse": 1,
+        "queued": 0
+      },
+      "waited_ms": 0,
+      "max_retries": 3,
+      "is_eval_like": true
+    }
+  },
+  {
+    "id": 630,
+    "created_at": "2026-01-20T17:13:40.871715+00:00",
+    "eval_run_id": "460adc23-2415-433a-b9f8-0571d695c599",
+    "request_id": "31a7c001-7198-44f1-9102-7355d0efeea3:tools:tools_complex_multimachine_ai_user",
+    "source": "run-evals",
+    "level": "info",
+    "event": "turn",
+    "payload": {
+      "kind": "simulated",
+      "user": "Je crois que A, Sophia. J'ai besoin de me concentrer sur ma respiration. (pause) Ok, ça va un peu mieux. Écoute, pour la lecture, annule, je crois que ce n'est pas le moment. Par contre, j'ai une action \"Sport\" qui est là, mais je n'arrive pas à la faire depuis plusieurs jours. On pourrait essayer de la décomposer, de trouver une micro-étape ?",
+      "assistant_mode": "architect"
+    }
+  }
+]

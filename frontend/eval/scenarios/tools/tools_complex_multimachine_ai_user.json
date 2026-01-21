@@ -5,6 +5,8 @@
   "tags": ["sophia.architect", "sophia.firefighter", "sophia.investigator"],
   "setup": {
     "seed_plan": true,
+    "test_post_checkup_deferral": true,
+    "bilan_actions_count": 0,
     "preseed_actions": [
       {
         "title": "Sport",
@@ -52,6 +54,8 @@
   "mechanical_assertions": {
     "assistant_must_match": [
       "micro-étape",
+      "Ok, on a fini le bilan",
+      "Tu m'avais dit qu'on reparlerait de",
       "C['’]est bon pour ce point\\s*\\?",
       "stress au travail"
     ],
@@ -59,9 +63,7 @@
     "plan_actions_must_not_include": [
       { "title": ["Lecture (anti-scroll)", "Lecture anti-scroll"] }
     ],
-    "chat_state_equals": {
-      "investigation_state": null
-    }
+    "chat_state_equals": {}
   }
 }
 

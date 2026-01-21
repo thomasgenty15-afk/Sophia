@@ -405,7 +405,9 @@ export async function seedActivePlan(
   if (planErr) throw planErr;
 
   // Mirror preseed actions in user_actions so tools can find/update them through DB access.
-  if (preseed.length > 0) {
+  // IMPORTANT: If activeCount > 0, we will insert the "itemsToCheck" into user_actions later (bilan seeding),
+  // and preseed actions are part of the plan's active items. Mirroring here would duplicate PKs.
+  if (preseed.length > 0 && activeCount === 0) {
     const phases = ((planContent as any)?.phases ?? []) as any[];
     const phase1 = phases.find((p: any) => Number(p?.id) === 1) ?? phases[0];
     const phase1Actions = Array.isArray(phase1?.actions) ? phase1.actions : [];

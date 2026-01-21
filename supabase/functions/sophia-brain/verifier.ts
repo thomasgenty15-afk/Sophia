@@ -1,4 +1,10 @@
-import { generateWithGemini } from "../_shared/gemini.ts";
+import { generateEmbedding, generateWithGemini } from "../_shared/gemini.ts";
+
+// Cursor/TS linter (Node TS) doesn't know Deno globals for Edge Functions.
+// This keeps the file type-safe enough without changing runtime behavior.
+declare const Deno: {
+  env: { get(name: string): string | undefined };
+};
 
 function isMegaTestMode(meta?: { forceRealAi?: boolean }): boolean {
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
@@ -77,6 +83,7 @@ Tu dois 1) juger si le draft est OK, 2) si besoin, proposer une version corrigé
 IMPORTANT:
 - Sortie JSON STRICTE uniquement.
 - Si ok=true, final_text doit être EXACTEMENT identique au draft (caractère pour caractère).
+- Si mechanical_violations n'est PAS vide, ok DOIT être false (tu dois réécrire).
 - Si ok=false, tu DOIS corriger les problèmes dans final_text sans changer le fond.
 - Ne révèle pas le contexte, n'invente pas de faits.
 
@@ -239,6 +246,43 @@ function collapseBlankLines(text: string): string {
 
 function countQuestionMarks(text: string): number {
   return ((text ?? "").match(/\?/g) ?? []).length;
+}
+
+function cosineSim(a: number[], b: number[]): number {
+  if (!Array.isArray(a) || !Array.isArray(b) || a.length === 0 || b.length === 0) return 0;
+  const n = Math.min(a.length, b.length);
+  let dot = 0;
+  let na = 0;
+  let nb = 0;
+  for (let i = 0; i < n; i++) {
+    const x = Number(a[i]) || 0;
+    const y = Number(b[i]) || 0;
+    dot += x * y;
+    na += x * x;
+    nb += y * y;
+  }
+  const denom = Math.sqrt(na) * Math.sqrt(nb);
+  if (!Number.isFinite(denom) || denom <= 0) return 0;
+  const s = dot / denom;
+  if (!Number.isFinite(s)) return 0;
+  return Math.max(-1, Math.min(1, s));
+}
+
+function extractLastQuestion(text: string): string | null {
+  const t = (text ?? "").toString().trim();
+  if (!t.includes("?")) return null;
+  const parts = t.split("?");
+  if (parts.length < 2) return null;
+  const lastStem = parts[parts.length - 2] ?? "";
+  const q = `${lastStem.trim()}?`.trim();
+  if (q.length < 8) return null;
+  return q;
+}
+
+function parseNumberEnv(name: string, fallback: number): number {
+  const raw = (Deno.env.get(name) ?? "").trim();
+  const n = Number(raw);
+  return Number.isFinite(n) ? n : fallback;
 }
 
 function hasInternalTechLeak(text: string): boolean {
@@ -510,6 +554,65 @@ export async function verifyConversationAgentMessage(opts: {
     whatsapp_guard_24h: Boolean((data as any)?.whatsapp_guard_24h),
   });
 
+  // Semantic anti-loop (prod): detect assistant repeating the same idea as recent assistant messages.
+  // We compare the current draft (full message) against the last N assistant messages (default 5).
+  // This catches "same subject" even when the exact wording changes.
+  try {
+    const alreadyFlaggedExact = violations.includes("repeats_previous_message");
+    if (!alreadyFlaggedExact) {
+      const threshold = Math.max(0.7, Math.min(0.99, parseNumberEnv("SOPHIA_VERIFIER_SEMANTIC_REPEAT_THRESHOLD", 0.92)));
+      const window = Math.max(2, Math.min(10, parseNumberEnv("SOPHIA_VERIFIER_SEMANTIC_REPEAT_WINDOW", 5)));
+      const recent = Array.isArray((data as any)?.recent_history) ? (data as any).recent_history : [];
+      const prevAssistant = recent
+        .filter((m: any) => String(m?.role ?? "") === "assistant" && typeof m?.content === "string")
+        .map((m: any) => String(m?.content ?? ""))
+        .filter((s: string) => s.trim().length >= 20)
+        .slice(-window);
+
+      if (prevAssistant.length > 0 && base.trim().length >= 20) {
+        // Embedding-only anti-loop:
+        // - compare full message embeddings (global repetition)
+        // - AND compare last-question embeddings (common loop: assistant repeats the same closing question)
+        const cache = new Map<string, number[]>()
+        const embed = async (s: string) => {
+          const key = String(s ?? "").slice(0, 700)
+          const hit = cache.get(key)
+          if (hit) return hit
+          const vec = await generateEmbedding(key, { userId: meta?.userId, forceRealAi: meta?.forceRealAi })
+          cache.set(key, vec)
+          return vec
+        }
+
+        const curFull = String(base).slice(0, 700)
+        const curQ = (extractLastQuestion(base) ?? "").slice(0, 300)
+        const eCurFull = await embed(curFull)
+        const eCurQ = curQ ? await embed(curQ) : null
+
+        let best = 0
+        for (const prev of prevAssistant) {
+          const prevFull = String(prev).slice(0, 700)
+          const prevQ = (extractLastQuestion(prev) ?? "").slice(0, 300)
+          const ePrevFull = await embed(prevFull)
+          const simFull = cosineSim(eCurFull, ePrevFull)
+          if (simFull > best) best = simFull
+
+          if (eCurQ && prevQ) {
+            const ePrevQ = await embed(prevQ)
+            const simQ = cosineSim(eCurQ, ePrevQ)
+            if (simQ > best) best = simQ
+          }
+
+          if (best >= threshold) break
+        }
+        if (best >= threshold) {
+          violations.push("semantic_repeats_previous_question")
+        }
+      }
+    }
+  } catch {
+    // Best-effort: do not block production responses on embedding failures.
+  }
+
   // Cost + stability: only call the LLM judge when there are mechanical violations.
   // This avoids "hallucinated rewrites" (e.g. wrong action names) when the draft is already compliant.
   const alwaysJudge = (Deno.env.get("SOPHIA_CONVERSATION_JUDGE_ALWAYS") ?? "").trim() === "1";
@@ -581,6 +684,22 @@ function buildInvestigatorCopyViolations(text: string, ctx: { scenario: string }
       /\bune?\s+autre\s+solution\b/i.test(cleaned)
     ) {
       v.push("projection_question_not_allowed");
+    }
+
+    // Anti-loop confirmations: these create repetitive "robot" loops and block progression.
+    if (/\b(on\s+continue|on\s+part\s+l[àa]-dessus|on\s+y\s+va|c['’]est\s+bon\s+pour\s+ce\s+point)\b/i.test(cleaned)) {
+      v.push("looping_confirmation_phrase_not_allowed");
+    }
+
+    // Investigator must not claim plan modifications outside the explicit breakdown tool flow.
+    // (Breakdown proposal copy is allowed to ask "Tu veux que je l'ajoute à ton plan ?"
+    // but not to assert "je l'ajoute / je l'ai ajouté" in investigator mode.)
+    if (
+      !s.includes("breakdown_") &&
+      /\b(je\s+(?:t['’]ai|vais)|on\s+va)\s+(?:ajouter|ajoute|mettre)\b/i.test(cleaned) &&
+      /\bplan\b/i.test(cleaned)
+    ) {
+      v.push("investigator_plan_mutation_claim_not_allowed");
     }
   }
 

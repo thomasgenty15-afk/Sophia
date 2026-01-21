@@ -1,0 +1,29 @@
+{
+  "dataset_key": "state_machines",
+  "id": "router_burst_merge_x3",
+  "description": "Router debounce/burst merge x3: simulate 3 quick user messages. The third message requires reproducing secret codes only present in msg1/msg2, proving the router merged all three into one prompt.",
+  "tags": ["router", "debounce", "burst", "merge", "x3"],
+  "steps": [
+    {
+      "user": "Message 1 (burst). CODE1=KILO873. Ne réponds pas, attends les 2 prochains messages.",
+      "burst_delay_ms": 200,
+      "burst_group": [
+        "Message 2 (burst). CODE2=MIKE442. Toujours: ne réponds pas avant le 3e message.",
+        "Message 3 (burst): Dans ta réponse, commence EXACTEMENT par: \"ACK_BURST3: CODE1 CODE2\" (remplace CODE1/CODE2 par les valeurs exactes des 2 codes). Ensuite, propose 1 seule micro-action simple pour ce soir."
+      ]
+    },
+    {
+      "user": "Merci, c’est bon."
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "ACK_BURST3: KILO873 MIKE442"
+    ]
+  }
+}
+
+

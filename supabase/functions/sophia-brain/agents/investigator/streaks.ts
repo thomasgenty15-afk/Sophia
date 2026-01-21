@@ -196,8 +196,25 @@ export async function maybeHandleStreakAfterLog(opts: {
   // If missed and streak>=5: propose breakdown flow BEFORE moving on.
   if (currentItem.type === "action" && argsWithId.status === "missed") {
     try {
+      // If the user already declined a breakdown for this action in the current checkup,
+      // never re-offer it (prevents repetitive "micro-étape 2 minutes" loops).
+      const declinedIds = Array.isArray((currentState as any)?.temp_memory?.breakdown_declined_action_ids)
+        ? ((currentState as any).temp_memory.breakdown_declined_action_ids as any[])
+        : [];
+      const declined = declinedIds.map((x: any) => String(x)).includes(String(currentItem.id));
+      if (declined) return null;
+
       const streak = await getMissedStreakDays(supabase, userId, currentItem.id)
-      if (streak >= 5) {
+      const note = String(argsWithId.note ?? message ?? "").trim().toLowerCase()
+      const explicitBreakdownRequest =
+        /\b(d[ée]coupe|d[ée]composer|un\s+petit\s+pas|[ée]tape\s+minuscule|plus\s+simple|d[ée]bloqu)\b/i.test(note)
+      const explicitBlockerSignal =
+        /\b(bloqu[ée]?|j['’]y\s+arrive\s+pas|trop\s+dur|insurmontable|me\s+demande\s+trop|je\s+repousse|procrastin)\b/i.test(note)
+
+      // Trigger breakdown when:
+      // - classic: missed streak >= 5 days
+      // - OR: user language clearly indicates being stuck / needing a smaller step (even without saying "micro-étape")
+      if (streak >= 5 || explicitBreakdownRequest || explicitBlockerSignal) {
         const nextState = {
           ...currentState,
           temp_memory: {

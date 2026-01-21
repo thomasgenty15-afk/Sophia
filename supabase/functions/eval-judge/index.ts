@@ -5,6 +5,7 @@ import { z, getRequestId, jsonResponse, parseJsonBody, serverError } from "../_s
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { sumUsageByRequestId } from "../_shared/llm-usage.ts";
+import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 
 type TranscriptMsg = {
   role: "user" | "assistant";
@@ -247,6 +248,7 @@ function uniqModels(models: string[]): string[] {
 
 async function runJudgeLlmWithModelCycle(args: {
   requestId: string;
+  evalRunId?: string | null;
   allowReal: boolean;
   systemPrompt: string;
   transcriptText: string;
@@ -256,6 +258,8 @@ async function runJudgeLlmWithModelCycle(args: {
   // We do ONE call per model attempt (no internal retries), and we cycle models 3 times max.
   const perAttemptTimeoutMs = parseTimeoutMs(Deno.env.get("EVAL_JUDGE_HTTP_TIMEOUT_MS"), 12_000);
   const cycles = parseTimeoutMs(Deno.env.get("EVAL_JUDGE_MODEL_CYCLES"), 3);
+  // Since judge now runs async (out-of-band), we can afford a higher retry budget.
+  const perModelRetries = Math.max(1, Math.min(10, Math.floor(parseTimeoutMs(Deno.env.get("EVAL_JUDGE_MAX_RETRIES"), 10))));
 
   const base = String(args.baseModel ?? "").trim() || "gemini-3-pro-preview";
   const cycle = uniqModels([
@@ -275,11 +279,12 @@ async function runJudgeLlmWithModelCycle(args: {
     try {
       const out = await generateWithGemini(args.systemPrompt, args.transcriptText, 0.2, true, [], "auto", {
         requestId: `${args.requestId}:judge:${i + 1}/${attempts.length}`,
+        evalRunId: args.evalRunId ?? null,
         model,
         source: "eval-judge",
         forceRealAi: args.allowReal,
-        // Critical: prevent long retry/backoff loops inside generateWithGemini.
-        maxRetries: 1,
+        // Async judge: allow deeper retries without risking run-evals wall-clock.
+        maxRetries: perModelRetries,
         httpTimeoutMs: perAttemptTimeoutMs,
       });
       const parsed = JSON.parse(out as string);
@@ -396,6 +401,13 @@ console.log("eval-judge: Function initialized");
 Deno.serve(async (req) => {
   const requestId = getRequestId(req);
   try {
+    // Internal worker mode must short-circuit BEFORE any CORS/browser gating.
+    // The internal worker calls with X-Internal-Secret (no browser, no JWT), so we must validate it first.
+    if (req.headers.get("x-internal-secret")) {
+      const guard = ensureInternalRequest(req);
+      if (guard) return guard;
+    }
+
     if (req.method === "OPTIONS") return handleCorsOptions(req);
     const corsErr = enforceCors(req);
     if (corsErr) return corsErr;
@@ -405,6 +417,11 @@ Deno.serve(async (req) => {
     if (!parsed.ok) return parsed.response;
     const body: z.infer<typeof BodySchema> = parsed.data as any;
 
+    // Internal worker mode:
+    // - used by process-eval-judge-jobs to run qualitative judging async (outside run-evals wall-clock)
+    // - guarded by X-Internal-Secret
+    const isInternal = Boolean(req.headers.get("x-internal-secret"));
+
     const authHeader = req.headers.get("Authorization") ?? "";
     const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
     const anonKey = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
@@ -412,15 +429,22 @@ Deno.serve(async (req) => {
     const serviceKey = await getServiceRoleKeyForRequest(req, envServiceKey);
     if (!url || !anonKey || !serviceKey) return serverError(req, requestId, "Server misconfigured");
 
-    // Authenticate caller
-    const userClient = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } });
-    const { data: auth, error: authError } = await userClient.auth.getUser();
-    if (authError || !auth.user) return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
-    const userId = auth.user.id;
+    // Authenticate caller (unless internal worker call).
+    let userId: string | null = null;
+    if (!isInternal) {
+      const userClient = createClient(url, anonKey, { global: { headers: { Authorization: authHeader } } });
+      const { data: auth, error: authError } = await userClient.auth.getUser();
+      if (authError || !auth.user) return jsonResponse(req, { error: "Unauthorized", request_id: requestId }, { status: 401 });
+      userId = auth.user.id;
 
-    // Admin gate (RLS allows reading own row)
-    const { data: adminRow } = await userClient.from("internal_admins").select("user_id").eq("user_id", userId).maybeSingle();
-    if (!adminRow) return jsonResponse(req, { error: "Forbidden", request_id: requestId }, { status: 403 });
+      // Admin gate (RLS allows reading own row)
+      const { data: adminRow } = await userClient.from("internal_admins").select("user_id").eq("user_id", userId).maybeSingle();
+      if (!adminRow) return jsonResponse(req, { error: "Forbidden", request_id: requestId }, { status: 403 });
+    } else {
+      // For internal calls, we allow associating the run with the original initiator (optional).
+      const createdBy = (body?.config as any)?.created_by ?? (body?.config as any)?.initiator_user_id ?? null;
+      userId = createdBy ? String(createdBy) : null;
+    }
 
     // Service role client for writing eval artifacts atomically
     const admin = createClient(url, serviceKey, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -608,8 +632,8 @@ Deno.serve(async (req) => {
     const systemSnapshot = {
       ...(typeof (body as any)?.system_snapshot === "object" ? (body as any).system_snapshot : {}),
       time_assumption: [
-        "IMPORTANT: Sophia has access to the user's current local time via system context (she may reference it).",
-        "Do NOT flag a time mention as a hallucination unless it clearly contradicts the transcript (e.g., user states it's morning and assistant says 1h30).",
+        "IMPORTANT: Sophia has access to the user's current local time AND date via system context (she may reference it).",
+        "Do NOT flag a time/date mention as a hallucination unless it clearly contradicts the transcript (e.g., user states it's morning and assistant says 1h30; or user says it's Monday and assistant says Friday).",
       ],
       routing_rules: [
         "Hard guard (router): if investigation_state is active, only investigator answers unless explicit stop (stop/arrête/change topic).",
@@ -630,7 +654,7 @@ Objectifs:
 Règles:
 - Propose des addendums courts, actionnables, testables.
 - IMPORTANT: N'invente PAS de modules/flows qui n'existent pas. Utilise UNIQUEMENT SYSTEM_SNAPSHOT + transcript.
-- IMPORTANT (HEURE): Sophia connaît l'heure locale via le système. Ne signale pas une heure comme 'hallucination' sauf contradiction explicite avec le transcript.
+- IMPORTANT (HEURE/DATE): Sophia connaît l'heure ET la date locales via le système. Ne signale pas une heure/date comme 'hallucination' sauf contradiction explicite avec le transcript.
 - Si un problème est déjà couvert par le code (ex: stabilité checkup), ne le repropose pas en prompt; à la place, signale un bug potentiel ou un angle manquant.
 - Limites STRICTES: max 3 issues, max 3 suggestions.
 - Cible un prompt_key parmi:
@@ -666,6 +690,7 @@ Format attendu:
           JUDGE_DEFAULT_MODEL;
         const judged = await runJudgeLlmWithModelCycle({
           requestId,
+          evalRunId: runId,
           allowReal,
           systemPrompt,
           transcriptText,
@@ -752,13 +777,46 @@ Format attendu:
     // Prefer exact usage logged by gemini.ts (usageMetadata). Fallback to 0 if unavailable.
     const summed = await sumUsageByRequestId(requestId);
 
+    // Attach a compact runtime trace (if available) so qualitative analysis can reference actual routing/model events.
+    // This is a controlled event stream (not raw Supabase logs).
+    let runtimeTrace: any[] = [];
+    try {
+      const { data: events } = await admin
+        .from("conversation_eval_events")
+        .select("created_at,source,level,event,payload")
+        .eq("eval_run_id", runId)
+        .order("created_at", { ascending: true })
+        .limit(80);
+      runtimeTrace = Array.isArray(events) ? events : [];
+    } catch {
+      runtimeTrace = [];
+    }
+
+    // Preserve pre-existing metrics (run-evals may write mechanical stats there).
+    let existingMetrics: any = {};
+    try {
+      const { data: existingRow } = await admin
+        .from("conversation_eval_runs")
+        .select("issues,metrics")
+        .eq("id", runId)
+        .maybeSingle();
+      existingMetrics = (existingRow as any)?.metrics && typeof (existingRow as any).metrics === "object" ? (existingRow as any).metrics : {};
+    } catch {
+      // best-effort; don't block the judge
+    }
+
+    // Keep issues focused and non-redundant: we persist ONLY the qualitative issues produced by eval-judge
+    // (rule-based + optional LLM judge enrichment), which are already limited upstream.
+    const mergedIssues = issuesLimited;
+
     const { error: persistErr } = await admin
       .from("conversation_eval_runs")
       .update({
         status: "completed",
-        issues: issuesLimited,
+        issues: mergedIssues,
         suggestions: suggestionsLimited,
         metrics: {
+          ...existingMetrics,
           request_id: requestId,
           mega_test_mode: isMegaEnabled(),
           judge_llm_used: judgeLlmUsed,
@@ -766,6 +824,12 @@ Format attendu:
           output_tokens: summed.output_tokens,
           total_tokens: summed.total_tokens,
           cost_usd: summed.cost_usd,
+          judge_completed_at: new Date().toISOString(),
+        },
+        config: {
+          ...(typeof (body.config ?? {}) === "object" ? (body.config ?? {}) : {}),
+          request_id: requestId,
+          runtime_trace: runtimeTrace,
         },
       })
       .eq("id", runId);

@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getCorsHeaders } from "../_shared/cors.ts"
+import { generateWithGemini } from "../_shared/gemini.ts"
 
 serve(async (req) => {
   const guard = ensureInternalRequest(req)
@@ -159,34 +160,17 @@ serve(async (req) => {
       Réponds uniquement avec le JSON de la nouvelle action.
     `;
 
-    // 4. Call Gemini API
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
-    if (!GEMINI_API_KEY) throw new Error('GEMINI_API_KEY missing')
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      }
-    )
-
-    if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(`Gemini Error: ${errData.error?.message || response.statusText}`);
-    }
-
-    const data = await response.json()
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
-    
-    if (!rawText) throw new Error('Empty response from Gemini')
-    
-    const jsonString = rawText.replace(/```json\n?|```/g, '').trim()
-    const newActionData = JSON.parse(jsonString)
+    // 4. Call LLM (Gemini/OpenAI fallback chain) via shared client
+    const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
+    const raw = await generateWithGemini(systemPrompt.trim(), userPrompt.trim(), 0.4, true, [], "auto", {
+      requestId: `${requestId}:break-down-action`,
+      source: "break-down-action",
+      forceRealAi: true,
+      maxRetries: 6,
+      httpTimeoutMs: 12_000,
+      model: "gemini-3-flash-preview",
+    } as any)
+    const newActionData = typeof raw === "string" ? JSON.parse(raw) : (raw as any)
 
     // Add ID and default fields
     const finalAction = {

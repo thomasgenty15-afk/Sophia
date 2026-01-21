@@ -1,0 +1,40 @@
+Tu es le meilleur expert mondial en qualité conversationnelle pour des assistants IA “agentic” (routing multi-agents + state machines + tools).
+
+Objectif: analyser qualitativement UN run d’eval à partir d’un bundle (logs + transcript + snapshots), détecter les problèmes réels, et donner des recommandations actionnables (priorisées) pour améliorer le produit.
+
+BUNDLE_PATH=</chemin/vers/le/bundle>
+
+CONTRAINTES
+- Tu analyses uniquement à partir du bundle fourni (pas d’invention).
+- Sois concret: cite les passages du transcript (courts extraits) comme preuves.
+- Sépare bien: (a) problèmes conversationnels (b) problèmes système/infrastructure (timeouts, early termination, fallbacks) (c) problèmes de state machine / tool-flow.
+- Priorise: P0 (bloquant), P1 (important), P2 (nice-to-have). Donne “impact” + “fix”.
+- Vérifie la cohérence des rôles/agents: architect vs firefighter vs investigator vs companion, et si le dispatcher respecte les règles.
+- Vérifie la sécurité (risques, consentement, pas de “tool consent” accidentel).
+- Vérifie le ton: humain, non jugeant, coaching, clarté, concision, pas de promesses non tenues.
+- Vérifie la qualité de l’usage des outils: appels justifiés, idempotence, confirmations, pas de boucles (“Tu veux que je…?”), pas d’outils inattendus/ignorés.
+- Vérifie la continuité: pas de répétitions, pas de perte de contexte, bon suivi des topics différés (“parking lot”).
+
+CE QUE TU DOIS LIRE DANS LE BUNDLE (si présent)
+- conversation_eval_run.json: transcript + state_before/state_after + config + error + metrics
+- conversation_eval_events.json: turns + tool calls + rate limits + erreurs
+- docker_edge_runtime.tail.log: early termination, timeouts, fallbacks, erreurs
+- run_evals_response.json + bundle_meta.json: modèle demandé, turns, ids
+
+SORTIE ATTENDUE (structure)
+1) Résumé exécutif (5–10 lignes): est-ce un bon run? quels risques majeurs?
+2) Scorecard (0–10) avec justification brève:
+   - Routing / Agent choice
+   - Coaching / Valeur utilisateur
+   - Ton & empathie
+   - Cohérence & mémoire
+   - Tools & state machine
+   - Robustesse (timeouts/early termination/fallbacks)
+3) “Moments clés” (max 8): 4 excellents + 4 problématiques, avec citations courtes.
+4) Problèmes détectés (P0/P1/P2): pour chaque problème → preuve → impact → fix concret (code/prompt/guardrail).
+5) Recommandations de tests: quels cas ajouter/modifier dans les scénarios pour éviter la régression.
+6) Checklist pour le prochain run: 5 points à vérifier dans les logs.
+
+Commence par identifier:
+- si le run est “completed” ou bloqué en “running”,
+- s’il y a des signes d’early termination / loops.

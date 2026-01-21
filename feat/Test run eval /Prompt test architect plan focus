@@ -1,0 +1,45 @@
+PROMPT (RUN + QUALI "JUDGE" MANUEL PAR GPT-5.2)
+Tu dois commencer par lancer le run. La première chose à faire est de lancer la commande.
+
+Objectif
+- Tester la machine "Architect plan_focus" (focus plan vs discussion/émotion) qui alimente temp_memory.architect.plan_focus.
+- Vérifier que le router sait basculer en mode non-plan quand l’utilisateur ventile/est en détresse, même si le message contient "plan".
+
+1) Commande à lancer (local) — en mode full (pas dans la sandbox)
+
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && \
+SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=240000 \
+npm run eval:tools -- --scenario architect_plan_focus_toggle_state --turns 6 --model gemini-3-flash-preview
+
+2) Artefacts à ouvrir (obligatoires)
+
+Dans bundle_dir:
+- conversation_eval_run.json
+  - transcript
+  - state_after.temp_memory.architect.plan_focus
+  - issues
+- docker_edge_runtime.tail.log
+- run_evals_response.json
+
+3) Analyse attendue — focus "plan_focus"
+
+A) Invariants
+- issues[] vide (mécanique).
+- Pas de drift "plan obsession" quand l’utilisateur exprime une surcharge émotionnelle.
+
+B) Vérifs state machine (preuve)
+- Après le dernier tour (venting + blocage), vérifier:
+  - state_after.temp_memory.architect.plan_focus = false
+- Vérifier dans le transcript que la réponse:
+  - valide l’émotion / met du cadre
+  - ne “force” pas du plan / dashboard si l’utilisateur est en surcharge
+
+C) Critères d’échec
+- plan_focus reste à true alors que le message est clairement du venting.
+- réponse architect qui repart dans “actions / plan / objectifs” sans recadrage émotionnel.
+
+4) Sortie exigée
+- Synthèse + preuve (champ exact + extrait transcript)
+- Si échec: proposer 1 fix max (classifiers/router) puis re-run.
+
+

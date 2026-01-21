@@ -1,0 +1,32 @@
+{
+  "dataset_key": "state_machines",
+  "id": "router_burst_merge_basic",
+  "description": "Router debounce/burst: when the user sends two messages quickly, the first should abort (race) and the second should merge both messages into one prompt (Burst detected). We assert the assistant saw BOTH tokens.",
+  "tags": ["router", "debounce", "burst", "merge"],
+  "steps": [
+    {
+      "user": "Je t’écris en 2 messages très rapprochés (double text). CODE_SECRET=KILO_873. Ne réponds pas encore, attends mon 2e message.",
+      "burst_delay_ms": 250
+    },
+    {
+      "user": "Deuxième message: dans ta réponse, commence EXACTEMENT par: \"ACK_BURST: <CODE_SECRET>\" (le code secret du message précédent). Ensuite, propose 1 seule micro-action pour ce soir."
+    },
+    {
+      "user": "Merci, c’est bon."
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"],
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "ACK_BURST: KILO_873"
+    ],
+    "chat_state_temp_memory_paths_exist": [
+      "architect.last_updated_at"
+    ]
+  }
+}
+
+

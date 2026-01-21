@@ -48,7 +48,15 @@ awaiting_onboarding_focus_choice
 awaiting_plan_motivation
 awaiting_plan_motivation_followup (back-compat)
 awaiting_personal_fact
-9) Supervisor Runtime (orchestration globale)
+9) Topic Session (focus / cohérence conversationnelle + handoff)
+Stockage: user_chat_states.temp_memory.supervisor.stack[] (session type="topic_session")
+Runner: router/run.ts + helpers supervisor.ts
+États (phases):
+opening | exploring | converging | closing
+Champs utiles:
+topic (label), focus_mode ("plan" | "discussion" | "mixed"), handoff_to, handoff_brief
+But: savoir “sur quel sujet on est”, quand converger/stopper, et rendre le bâton proprement (ex: architect -> companion) sans tourner en rond.
+10) Supervisor Runtime (orchestration globale)
 Stockage: user_chat_states.temp_memory.supervisor
 Runner: router/run.ts (continuité) + helpers supervisor.ts
 Forme: stack[] (sessions) + queue[] (intentions non urgentes)

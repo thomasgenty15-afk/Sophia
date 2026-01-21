@@ -7,6 +7,7 @@ import { getDashboardContext } from "../sophia-brain/state-manager.ts";
 import { BodySchema, type RunEvalsBody } from "./schemas.ts";
 import { buildMechanicalIssues } from "./lib/mechanical.ts";
 import { buildRunPlanTemplate, buildRunPlanTemplateFromBank, fetchPlanSnapshot, type RunPlanTemplate, seedActivePlan } from "./lib/plan.ts";
+import { logEvalEvent } from "./lib/eval_trace.ts";
 import { fetchProfileSnapshot } from "./lib/profile.ts";
 import { invokeWhatsAppWebhook, seedOptInPromptForWhatsApp, waPayloadForSingleMessage } from "./lib/whatsapp.ts";
 import {
@@ -23,6 +24,39 @@ import {
 const EVAL_MODEL = "gemini-2.5-flash";
 const DEFAULT_JUDGE_MODEL = "gemini-3-pro-preview";
 
+function summarizeTranscriptRoleRuns(transcript: any[]): { role_runs: number; max_run: number; examples: Array<{ role: string; count: number; at: number }> } {
+  const msgs = Array.isArray(transcript) ? transcript : [];
+  let roleRuns = 0;
+  let maxRun = 1;
+  const examples: Array<{ role: string; count: number; at: number }> = [];
+  let curRole: string | null = null;
+  let curCount = 0;
+  let curStart = 0;
+  for (let i = 0; i < msgs.length; i++) {
+    const r = String((msgs[i] as any)?.role ?? "");
+    if (!r) continue;
+    if (curRole == null) {
+      curRole = r; curCount = 1; curStart = i; continue;
+    }
+    if (r === curRole) {
+      curCount += 1;
+      continue;
+    }
+    if (curCount > 1) {
+      roleRuns += 1;
+      if (curCount > maxRun) maxRun = curCount;
+      if (examples.length < 5) examples.push({ role: curRole, count: curCount, at: curStart });
+    }
+    curRole = r; curCount = 1; curStart = i;
+  }
+  if (curRole && curCount > 1) {
+    roleRuns += 1;
+    if (curCount > maxRun) maxRun = curCount;
+    if (examples.length < 5) examples.push({ role: curRole, count: curCount, at: curStart });
+  }
+  return { role_runs: roleRuns, max_run: maxRun, examples };
+}
+
 export function serveRunEvals() {
   console.log("run-evals: Function initialized");
 
@@ -38,6 +72,33 @@ export function serveRunEvals() {
       const parsed = await parseJsonBody(req, BodySchema, requestId);
       if (!parsed.ok) return parsed.response;
       const body: RunEvalsBody = parsed.data as any;
+
+      // Manual judging mode:
+      // When enabled, we do NOT generate "issues/suggestions" automatically (no mechanical assertions, no LLM judge).
+      // We only persist transcript/state/config so an external qualitative judge (human / GPT in Cursor) can analyze.
+      const manualJudge = Boolean((body as any)?.limits?.manual_judge);
+
+      // IMPORTANT: run-evals can be killed by edge-runtime wall-clock limits when running long scenarios (20 turns).
+      // We therefore support "chunked" execution: if we approach a per-request budget, we return a partial response.
+      const maxWallClockMsPerRequest = (() => {
+        const raw = (body as any)?.limits?.max_wall_clock_ms_per_request;
+        const n = Number(raw);
+        // Default: keep comfortably under typical wall-clock kills (~6–7 min observed locally).
+        return Number.isFinite(n) && n >= 10_000 ? Math.floor(n) : 180_000; // 3 minutes
+      })();
+      const requestDeadlineMs = Date.now() + maxWallClockMsPerRequest;
+      const remainingBudgetMs = () => Math.max(0, requestDeadlineMs - Date.now());
+
+      async function withTimeout<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+        const t = Math.max(1_000, Math.floor(ms));
+        return await Promise.race([
+          p,
+          (async () => {
+            await sleep(t);
+            throw new Error(`timeout:${label}:${t}ms`);
+          })(),
+        ]);
+      }
 
       const authHeader = req.headers.get("Authorization") ?? "";
       const url = (denoEnv("SUPABASE_URL") ?? "").trim();
@@ -407,7 +468,47 @@ export function serveRunEvals() {
           const maxTurns = Number(body.limits.max_turns_per_scenario);
 
           // Always real AI in eval runner.
-          const meta = { requestId: scenarioRequestId, forceRealAi: true, model: evalModel, channel: "web" as const, scope: "web" };
+          const meta = {
+            requestId: scenarioRequestId,
+            forceRealAi: true,
+            model: evalModel,
+            channel: "web" as const,
+            scope: "web",
+            evalRunId: existingRunId,
+          };
+          const stepHttpTimeoutMsCap = (() => {
+            const raw = (denoEnv("EVAL_STEP_HTTP_TIMEOUT_MS") ?? "").trim();
+            const n = Number(raw);
+            return Number.isFinite(n) && n >= 5_000 ? Math.floor(n) : 90_000;
+          })();
+
+          // Ensure values persisted to JSON/JSONB columns are actually JSON-serializable.
+          // (If serialization fails, supabase-js can end up sending an empty/invalid body -> PGRST102.)
+          const toJsonSafe = <T>(value: T): T => {
+            const controlChars = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
+            const replacer = (_k: string, v: any) => {
+              if (typeof v === "bigint") return Number(v);
+              if (typeof v === "number" && !Number.isFinite(v)) return null;
+              // Avoid rare PostgREST "invalid json" failures due to control chars in strings.
+              if (typeof v === "string" && controlChars.test(v)) return v.replace(controlChars, " ");
+              return v;
+            };
+            return JSON.parse(JSON.stringify(value, replacer));
+          };
+
+          // Transcript-specific sanitization:
+          // We aggressively coerce content to a plain string and strip control chars to avoid PostgREST PGRST102
+          // when updating `conversation_eval_runs.transcript` (seen in practice for some model outputs/tool traces).
+          const toTranscriptText = (value: unknown): string => {
+            const controlChars = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
+            try {
+              const s = typeof value === "string" ? value : JSON.stringify(value);
+              return String(s ?? "").replace(controlChars, " ");
+            } catch {
+              // As a last resort, make sure we never throw while building the transcript.
+              return String(value ?? "").replace(controlChars, " ");
+            }
+          };
 
           // BILAN kickoff:
           // When bilan_actions_count > 0, we start the conversation as if the user just accepted the checkup ("oui").
@@ -420,18 +521,27 @@ export function serveRunEvals() {
 
           if (shouldKickoff && history.length === 0) {
             const kickoffMsg = "Oui";
+            // Prevent long LLM hangs from triggering edge worker limits; keep each step bounded.
+            (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
             const kickoffResp = await processMessage(admin as any, testUserId, kickoffMsg, history, meta);
             history.push({ role: "user", content: kickoffMsg });
             history.push({ role: "assistant", content: kickoffResp.content, agent_used: kickoffResp.mode });
           }
 
           const testDeferral = Boolean(body.limits.test_post_checkup_deferral);
-          const sophiaTestOpts = testDeferral
+          // IMPORTANT: only apply the parking-lot coaching override DURING an active bilan/checkup.
+          // Applying it outside a checkup causes the assistant to mention "bilan" out of nowhere and derails flows.
+          const deferralEligible =
+            testDeferral &&
+            Boolean((stBefore as any)?.investigation_state) &&
+            (stBefore as any)?.investigation_state?.status !== "post_checkup";
+          const sophiaTestOpts = deferralEligible
             ? {
               // Eval-only: encourage explicit deferral phrases so the parking-lot can be tested.
               contextOverride:
                 "MODE TEST PARKING LOT: Si l'utilisateur digresse pendant le bilan (stress/bruit/orga), réponds brièvement ET dis explicitement " +
-                "\"on pourra en reparler après / à la fin\" avant de revenir au bilan. Fais-le au moins 2 fois sur le bilan si possible.",
+                "\"on pourra en reparler après / à la fin\" avant de revenir au bilan. Fais-le 1 fois (max) par sujet (ne boucle pas). " +
+                "Si l'utilisateur insiste 2 fois sur le même sujet, propose explicitement: \"on met le bilan en pause 2 minutes pour en parler maintenant, ou tu préfères qu'on finisse vite le bilan puis on y revient ?\"",
             }
             : undefined;
 
@@ -596,8 +706,50 @@ export function serveRunEvals() {
             const stepsToRun = (s as any).steps.slice(startStepIdx, maxTurns);
             
             for (let i = 0; i < stepsToRun.length; i++) {
+              const persistAndReturnPartial = async (reason: string) => {
+                try {
+                  if (existingRunId) {
+                    await admin
+                      .from("conversation_eval_runs")
+                      .update({
+                        status: "running",
+                        transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
+                        metrics: {
+                          ...(typeof (stBefore as any)?.metrics === "object" ? (stBefore as any).metrics : {}),
+                          partial: true,
+                          partial_turn: startStepIdx + i,
+                          partial_at: new Date().toISOString(),
+                          partial_reason: String(reason ?? "").slice(0, 80),
+                        },
+                      } as any)
+                      .eq("id", existingRunId);
+                  }
+                } catch {
+                  // ignore
+                }
+                return jsonResponse(req, {
+                  success: true,
+                  request_id: requestId,
+                  partial: true,
+                  resume: true,
+                  ran: 0,
+                  results: [],
+                });
+              };
+
+              // Chunked execution (steps mode): avoid long silent requests that exceed curl max-time.
+              if (Date.now() > requestDeadlineMs) {
+                return await persistAndReturnPartial("deadline");
+              }
+              if (remainingBudgetMs() < 20_000) {
+                return await persistAndReturnPartial("deadline_margin");
+              }
+
               const step = stepsToRun[i];
-              const burstDelay = step.burst_delay_ms;
+              const burstDelay = Number((step as any)?.burst_delay_ms ?? 0) || 0;
+              const burstGroup = Array.isArray((step as any)?.burst_group)
+                ? (step as any).burst_group.map((x: any) => String(x ?? "")).filter((x: string) => x.trim().length > 0)
+                : [];
               
               // BURST LOGIC: If this step has a burst_delay_ms, it means we send this message
               // AND the NEXT message in very quick succession (simulating a double text).
@@ -612,13 +764,38 @@ export function serveRunEvals() {
               // So if we call `processMessage(Msg1)` it will sleep 3.5s.
               // If we want to test the debounce, we need to launch `processMessage(Msg2)` WHILE Msg1 is sleeping.
               
-              if (burstDelay && i + 1 < stepsToRun.length) {
+              // Multi-message burst group (3+):
+              // step.user + burst_group[0..N-1] are sent while the first call is still within debounce wait.
+              if (burstDelay > 0 && burstGroup.length > 0) {
+                  const burstMsgs = [String((step as any)?.user ?? ""), ...burstGroup];
+                  console.log(`[Eval] ⚡️ Simulating BURSTx${burstMsgs.length}: "${burstMsgs[0]}" then (+${burstDelay}ms) ${burstMsgs.length - 1} more messages`);
+
+                  const promises: Promise<any>[] = [];
+                  for (let k = 0; k < burstMsgs.length; k++) {
+                    if (k > 0) await sleep(burstDelay);
+                    (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
+                    promises.push(processMessage(admin as any, testUserId, burstMsgs[k], history, meta, sophiaTestOpts));
+                  }
+
+                  const results = await Promise.all(promises);
+
+                  for (const um of burstMsgs) history.push({ role: "user", content: um });
+                  for (const r of results) {
+                    if (r && !r.aborted && r.content) history.push({ role: "assistant", content: r.content, agent_used: r.mode });
+                  }
+
+                  continue;
+              }
+
+              if (burstDelay > 0 && i + 1 < stepsToRun.length) {
                   const nextStep = stepsToRun[i + 1];
                   console.log(`[Eval] ⚡️ Simulating BURST: "${step.user}" then (+${burstDelay}ms) "${nextStep.user}"`);
                   
                   // Launch both "simultaneously"
+                  (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
                   const p1 = processMessage(admin as any, testUserId, step.user, history, meta, sophiaTestOpts);
                   await sleep(burstDelay);
+                  (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
                   const p2 = processMessage(admin as any, testUserId, nextStep.user, history, meta, sophiaTestOpts);
                   
                   // Wait for both
@@ -645,9 +822,18 @@ export function serveRunEvals() {
                   continue;
               }
 
+              (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
               const resp = await processMessage(admin as any, testUserId, step.user, history, meta, sophiaTestOpts);
               history.push({ role: "user", content: step.user });
               history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
+              await logEvalEvent({
+                supabase: admin as any,
+                evalRunId: existingRunId,
+                requestId: scenarioRequestId,
+                source: "run-evals",
+                event: "turn",
+                payload: { kind: "step", user: step.user, assistant_mode: resp.mode },
+              });
 
               // For BILAN runs:
               // - If test_post_checkup_deferral is OFF: stop immediately once the investigation is complete (normal bilan test).
@@ -729,6 +915,45 @@ export function serveRunEvals() {
             let turn = history.filter((m) => m.role === "user").length;
             let done = false;
             while (!done && turn < maxTurns) {
+              const persistAndReturnPartial = async (reason: string) => {
+                try {
+                  if (existingRunId) {
+                    await admin
+                      .from("conversation_eval_runs")
+                      .update({
+                        status: "running",
+                        transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
+                        metrics: {
+                          ...(typeof (stBefore as any)?.metrics === "object" ? (stBefore as any).metrics : {}),
+                          partial: true,
+                          partial_turn: turn,
+                          partial_at: new Date().toISOString(),
+                          partial_reason: String(reason ?? "").slice(0, 80),
+                        },
+                      } as any)
+                      .eq("id", existingRunId);
+                  }
+                } catch {
+                  // ignore
+                }
+                return jsonResponse(req, {
+                  success: true,
+                  request_id: requestId,
+                  partial: true,
+                  resume: true,
+                  ran: 0,
+                  results: [],
+                });
+              };
+
+              // Chunked execution: return partial before we hit edge-runtime wall-clock kills.
+              if (Date.now() > requestDeadlineMs) {
+                return await persistAndReturnPartial("deadline");
+              }
+              // Safety margin: if we're close to the wall-clock budget, return partial NOW (avoid hard kills -> stuck "running").
+              if (remainingBudgetMs() < 20_000) {
+                return await persistAndReturnPartial("deadline_margin");
+              }
               let userMsg = "";
               let nextDone = false;
 
@@ -737,7 +962,7 @@ export function serveRunEvals() {
                 let simJson: any = null;
                 let simStatus = 0;
                 for (let attempt = 1; attempt <= MAX_SIM_RETRIES; attempt++) {
-                  const simResp = await fetch(`${url}/functions/v1/simulate-user`, {
+                  const simReq = fetch(`${url}/functions/v1/simulate-user`, {
                     method: "POST",
                     headers: {
                       "Content-Type": "application/json",
@@ -746,6 +971,8 @@ export function serveRunEvals() {
                       "x-request-id": scenarioRequestId,
                     },
                     body: JSON.stringify({
+                      // Propagate eval_run_id so simulate-user + gemini tracing can persist structured runtime events.
+                      eval_run_id: existingRunId,
                       persona: (s as any).persona ?? { label: "default", age_range: "25-50", style: "naturel" },
                       objectives: (s as any).objectives ?? [],
                       suggested_replies: (s as any).suggested_replies ?? undefined,
@@ -769,6 +996,22 @@ export function serveRunEvals() {
                       force_real_ai: true,
                     }),
                   });
+                  let simResp: Response;
+                  try {
+                    simResp = await withTimeout(
+                      simReq,
+                      // Allow simulate-user enough time to perform retries + provider fallbacks.
+                      // (If this is too short, increasing simulate-user LLM retries is useless.)
+                      Math.min(90_000, Math.max(15_000, remainingBudgetMs() - 5_000)),
+                      "simulate-user-fetch",
+                    );
+                  } catch (e) {
+                    const msg = String((e as any)?.message ?? e);
+                    if (msg.includes("timeout:simulate-user-fetch")) {
+                      return await persistAndReturnPartial("timeout_simulate_user");
+                    }
+                    throw e;
+                  }
                   simStatus = simResp.status;
                   simJson = await simResp.json().catch(() => ({}));
 
@@ -797,9 +1040,58 @@ export function serveRunEvals() {
                 nextDone = Boolean(simJson?.done);
               }
 
-              const resp = await processMessage(admin as any, testUserId, userMsg, history, meta, sophiaTestOpts);
+              let resp: any;
+              try {
+                resp = await withTimeout(
+                  processMessage(admin as any, testUserId, userMsg, history, meta, sophiaTestOpts),
+                  Math.min(45_000, Math.max(10_000, remainingBudgetMs() - 2_000)),
+                  "processMessage",
+                );
+              } catch (e) {
+                const msg = String((e as any)?.message ?? e);
+                if (msg.includes("timeout:processMessage")) {
+                  return await persistAndReturnPartial("timeout_processMessage");
+                }
+                throw e;
+              }
+              // In eval runner mode, an aborted response means debounce/burst logic fired unexpectedly.
+              // Treat it as an infra-level failure: the runner expects 1 assistant response per simulated turn.
+              if (resp?.aborted || !String(resp?.content ?? "").trim()) {
+                const why = resp?.aborted ? "processMessage_aborted" : "processMessage_empty";
+                try {
+                  if (existingRunId) {
+                    await admin
+                      .from("conversation_eval_runs")
+                      .update({
+                        status: "failed",
+                        error: why,
+                        metrics: {
+                          judge_async: false,
+                          judge_pending: false,
+                          manual_judge: manualJudge,
+                          turns_executed: history.filter((m) => m?.role === "user").length,
+                          max_turns: maxTurns,
+                          completed_reason: why,
+                          completed_at: new Date().toISOString(),
+                        },
+                      } as any)
+                      .eq("id", existingRunId);
+                  }
+                } catch {
+                  // ignore
+                }
+                throw new Error(why);
+              }
               history.push({ role: "user", content: userMsg });
               history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
+              await logEvalEvent({
+                supabase: admin as any,
+                evalRunId: existingRunId,
+                requestId: scenarioRequestId,
+                source: "run-evals",
+                event: "turn",
+                payload: { kind: "simulated", user: userMsg, assistant_mode: resp.mode },
+              });
 
               // IMPORTANT:
               // simulate-user may decide "done" early, but for bilan tests we must keep going until
@@ -835,20 +1127,35 @@ export function serveRunEvals() {
             }
           }
 
+          // IMPORTANT: use the runner's own `history` as the canonical transcript for eval results.
+          // DB `chat_messages` can contain extra messages (debounce bursts, retries, concurrent isolates),
+          // which makes the exported transcript noisy or even structurally invalid for eval interpretation.
+          const transcript = history.map((m: any) => ({
+            role: m.role,
+            content: toTranscriptText(m.content),
+            created_at: null,
+            agent_used: m.role === "assistant" ? (m.agent_used ?? null) : null,
+          }));
+
+          // Still fetch DB transcript as diagnostics and store a small integrity summary in metrics.
           const { data: msgs } = await admin
             .from("chat_messages")
             .select("role,content,created_at,agent_used")
             .eq("user_id", testUserId)
             .eq("scope", scope)
             .order("created_at", { ascending: true })
-            .limit(200);
-
-          const transcript = (msgs ?? []).map((m: any) => ({
+            .limit(400);
+          const dbTranscript = (msgs ?? []).map((m: any) => ({
             role: m.role,
             content: m.content,
             created_at: m.created_at,
             agent_used: m.role === "assistant" ? m.agent_used : null,
           }));
+          const runnerRoleRuns = summarizeTranscriptRoleRuns(transcript);
+          const dbRoleRuns = summarizeTranscriptRoleRuns(dbTranscript);
+
+          const turnsExecuted = Array.isArray(transcript) ? transcript.filter((m: any) => m?.role === "user").length : 0;
+          const completedReason = turnsExecuted >= maxTurns ? "max_turns" : "done";
 
           const { data: stAfter } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).eq("scope", scope).maybeSingle();
           const profileAfter = await fetchProfileSnapshot(admin as any, testUserId);
@@ -858,86 +1165,216 @@ export function serveRunEvals() {
           // even though a plan was seeded during the run.
           const dashboardContextAfter = await getDashboardContext(admin as any, testUserId);
           const planSnapshotAfter = await fetchPlanSnapshot(admin as any, testUserId);
-          const mechanicalIssues = buildMechanicalIssues({
+          // Pull prod verifier/judge logs for this scenario run (conversation_judge_events),
+          // keyed by request_id (stable per scenario run).
+          let judgeEvents: any[] = [];
+          try {
+            const { data: evs } = await admin
+              .from("conversation_judge_events")
+              .select("*")
+              .eq("user_id", testUserId)
+              .eq("scope", scope)
+              .eq("request_id", scenarioRequestId)
+              .order("created_at", { ascending: true })
+              .limit(200);
+            judgeEvents = Array.isArray(evs) ? evs : [];
+          } catch {
+            judgeEvents = [];
+          }
+          // Pull eval trace events (conversation_eval_events) for this run id (includes verifier_issues).
+          let evalEvents: any[] = [];
+          try {
+            const { data: evs } = await admin
+              .from("conversation_eval_events")
+              .select("id,created_at,source,event,level,payload,request_id")
+              .eq("eval_run_id", existingRunId)
+              .order("created_at", { ascending: true })
+              .limit(5000);
+            evalEvents = Array.isArray(evs) ? evs : [];
+          } catch {
+            evalEvents = [];
+          }
+          // Deterministic mechanical assertions are valuable even in manual_judge mode (they gate infra/state-machine correctness).
+          const mechanicalIssues = await buildMechanicalIssues({
             scenario: s,
             profileAfter: isWhatsApp && mechanicalProfileAfterOverride ? mechanicalProfileAfterOverride : profileAfter,
             chatStateAfter: stAfter ?? null,
             planSnapshotAfter: planSnapshotAfter ?? planSnapshot,
             transcript: isWhatsApp && mechanicalTranscriptOverride ? mechanicalTranscriptOverride : transcript,
+            judgeEvents,
+            evalEvents,
           });
 
-          // Invoke eval-judge (reuse logic + DB writes). Forward caller JWT for admin gate.
-          const judgeResp = await fetch(`${url}/functions/v1/eval-judge`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-              "Authorization": authHeader,
-              "apikey": anonKey,
-              "x-request-id": scenarioRequestId,
-            },
-            body: JSON.stringify({
-              // Ensure eval-judge updates the SAME row (no duplicates).
-              eval_run_id: existingRunId,
-              dataset_key: s.dataset_key,
-              scenario_key: s.id,
-              tags: (s as any).tags ?? [],
-              // By default, avoid the LLM judge to keep the eval run within edge runtime limits.
-              // (Rule-based judge is enough for most regressions; enable explicitly when needed.)
-              force_real_ai: Boolean(body.limits.judge_force_real_ai),
+          // Qualitative judge (optional):
+          // - In local dev, we may disable it and do manual judging (Cursor/GPT-5.2).
+          // - If enabled, we persist transcript/state/config now (so the job is replayable/idempotent),
+          //   then enqueue a job and return immediately (avoid edge-runtime wall-clock / WORKER_LIMIT).
+          const configForRun = {
+            request_id: scenarioRequestId,
+            eval_runner: true,
+            description: (s as any).description ?? null,
+            tags: (s as any).tags ?? [],
+            scenario_target: (s as any)?.scenario_target ?? null,
+            channel: scenarioChannel,
+            test_user_id: testUserId,
+            created_by: callerId,
+            assertions: (s as any)?.assertions ?? undefined,
+            judge_model: judgeModel,
+            limits: {
+              bilan_actions_count: Number(body.limits.bilan_actions_count ?? 0) || 0,
+              test_post_checkup_deferral: Boolean(body.limits.test_post_checkup_deferral),
+              user_difficulty: body.limits.user_difficulty ?? "mid",
               model: judgeModel,
-              transcript,
-              state_before: isWhatsApp ? { profile: profileBefore, chat_state: stBefore ?? null } : (stBefore ?? null),
-              state_after: isWhatsApp ? { profile: profileAfter, chat_state: stAfter ?? null } : (stAfter ?? null),
-              config: {
-                description: (s as any).description ?? null,
-                tags: (s as any).tags ?? [],
-                scenario_target: (s as any)?.scenario_target ?? null,
-                channel: scenarioChannel,
-                // Preserve the ephemeral test user id for debugging in Studio (config is overwritten by eval-judge).
-                test_user_id: testUserId,
-                limits: {
-                  bilan_actions_count: Number(body.limits.bilan_actions_count ?? 0) || 0,
-                  test_post_checkup_deferral: Boolean(body.limits.test_post_checkup_deferral),
-                  user_difficulty: body.limits.user_difficulty ?? "mid",
-                  model: judgeModel,
-                },
-                plan_snapshot: {
-                  template_fingerprint: runPlanTemplateFingerprint ?? null,
-                  template_bank: runPlanTemplateBank,
-                  dashboard_context: dashboardContextAfter || dashboardContext || "",
-                  ...(planSnapshotAfter ?? planSnapshot),
-                },
-              },
-              system_snapshot: {
-                focus: (s as any)?.scenario_target ?? null,
-                channel: scenarioChannel,
-                available_modules: [
-                  "sentry",
-                  "firefighter",
-                  "investigator",
-                  "architect",
-                  "companion",
-                  "librarian",
-                ],
-                whatsapp_state_machine: isWhatsApp
-                  ? {
-                      profile_whatsapp_state_before: (profileBefore as any)?.whatsapp_state ?? null,
-                      profile_whatsapp_state_after: (profileAfter as any)?.whatsapp_state ?? null,
-                      notes:
-                        "WhatsApp onboarding uses a lightweight profile.whatsapp_state machine. In particular, when profile.whatsapp_state='awaiting_personal_fact', the webhook may send a Companion-style acknowledgement (e.g. 'Merci, je note…') and open the floor ('tu as envie qu’on parle de quoi ?') while clearing the state. This is expected and is NOT a routing violation.",
-                    }
-                  : null,
-                notes:
-                  "Judge context: during active checkup, router hard-guard keeps investigator stable unless explicit stop/safety. In post-bilan parking-lot (test_post_checkup_deferral), routing to companion/architect to handle deferred topics is expected.",
-              },
-              // eval-judge schema: assertions is optional but NOT nullable.
-              assertions: (s as any)?.assertions ?? undefined,
-            }),
-          });
-          const judgeJson = await judgeResp.json().catch(() => ({}));
-          if (!judgeResp.ok || judgeJson?.error) {
-            throw new Error(judgeJson?.error || `eval-judge failed (${judgeResp.status})`);
+              judge_async: Boolean(body.limits.judge_async),
+            },
+            plan_snapshot: {
+              template_fingerprint: runPlanTemplateFingerprint ?? null,
+              template_bank: runPlanTemplateBank,
+              dashboard_context: dashboardContextAfter || dashboardContext || "",
+              ...(planSnapshotAfter ?? planSnapshot),
+            },
+            system_snapshot: {
+              focus: (s as any)?.scenario_target ?? null,
+              channel: scenarioChannel,
+              available_modules: [
+                "sentry",
+                "firefighter",
+                "investigator",
+                "architect",
+                "companion",
+                "librarian",
+              ],
+              whatsapp_state_machine: isWhatsApp
+                ? {
+                    profile_whatsapp_state_before: (profileBefore as any)?.whatsapp_state ?? null,
+                    profile_whatsapp_state_after: (profileAfter as any)?.whatsapp_state ?? null,
+                    notes:
+                      "WhatsApp onboarding uses a lightweight profile.whatsapp_state machine. In particular, when profile.whatsapp_state='awaiting_personal_fact', the webhook may send a Companion-style acknowledgement (e.g. 'Merci, je note…') and open the floor ('tu as envie qu’on parle de quoi ?') while clearing the state. This is expected and is NOT a routing violation.",
+                  }
+                : null,
+              notes:
+                "Async judge: eval-judge runs out-of-band via process-eval-judge-jobs (internal secret).",
+            },
+          };
+
+          const judgeEnabled = !manualJudge && Boolean(body.limits.judge_async);
+
+          // LLM usage accounting (best-effort): sum events by request_id prefix so manual_judge runs still have tokens/cost.
+          // This includes simulate-user + sophia-brain + any tool functions that log usage.
+          let usageTotals = { cost_usd: 0, prompt_tokens: 0, output_tokens: 0, total_tokens: 0 };
+          const modelsUsed: Record<string, number> = {};
+          try {
+            const { data: usageRows } = await admin
+              .from("llm_usage_events")
+              .select("prompt_tokens,output_tokens,total_tokens,cost_usd,model")
+              .ilike("request_id", `${scenarioRequestId}%`)
+              .limit(500);
+            for (const r of usageRows ?? []) {
+              usageTotals.prompt_tokens += Number((r as any).prompt_tokens ?? 0) || 0;
+              usageTotals.output_tokens += Number((r as any).output_tokens ?? 0) || 0;
+              usageTotals.total_tokens += Number((r as any).total_tokens ?? 0) || 0;
+              usageTotals.cost_usd += Number((r as any).cost_usd ?? 0) || 0;
+              const m = String((r as any).model ?? "").trim();
+              if (m) modelsUsed[m] = (modelsUsed[m] ?? 0) + 1;
+            }
+          } catch {
+            // ignore
           }
+
+          if (existingRunId) {
+            const baseUpdate: any = {
+              status: "completed",
+              transcript,
+              state_after: isWhatsApp ? { profile: profileAfter, chat_state: stAfter ?? null } : (stAfter ?? null),
+              config: configForRun,
+              // NOTE: mechanical issues are deterministic and should be persisted even in manual_judge mode.
+              issues: (Array.isArray(mechanicalIssues) ? mechanicalIssues : []),
+              suggestions: [],
+              metrics: {
+                judge_async: judgeEnabled,
+                judge_pending: judgeEnabled,
+                manual_judge: manualJudge,
+                turns_executed: turnsExecuted,
+                max_turns: maxTurns,
+                completed_reason: completedReason,
+                completed_at: new Date().toISOString(),
+                transcript_role_runs: runnerRoleRuns,
+                db_transcript_role_runs: dbRoleRuns,
+                llm_usage: usageTotals,
+                models_used: modelsUsed,
+                ...(judgeEnabled ? { judge_enqueued_at: new Date().toISOString() } : {}),
+              },
+            };
+
+            const attemptUpdate = async (label: string, payload: any) => {
+              const { error } = await admin
+                .from("conversation_eval_runs")
+                .update(toJsonSafe(payload))
+                .eq("id", existingRunId);
+              if (error) {
+                console.error(`[run-evals] conversation_eval_runs update failed (${label}):`, error);
+
+                // Workaround: in some environments, supabase-js can end up sending an empty/invalid JSON body
+                // (observed as PostgREST PGRST102). When that happens, retry once using a direct fetch with a
+                // fully materialized JSON.stringify body so transcript can be persisted and shown in admin.
+                const code = String((error as any)?.code ?? "");
+                if (code === "PGRST102") {
+                  try {
+                    const runId = String(existingRunId);
+                    const patchUrl = `${url.replace(/\/+$/g, "")}/rest/v1/conversation_eval_runs?id=eq.${encodeURIComponent(runId)}`;
+                    const resp = await fetch(patchUrl, {
+                      method: "PATCH",
+                      headers: {
+                        apikey: serviceKey,
+                        Authorization: `Bearer ${serviceKey}`,
+                        "Content-Type": "application/json",
+                        Prefer: "return=minimal",
+                      },
+                      body: JSON.stringify(toJsonSafe(payload)),
+                    });
+                    if (resp.ok) {
+                      console.log(`[run-evals] conversation_eval_runs update succeeded via raw fetch (${label})`);
+                      return null;
+                    } else {
+                      const txt = await resp.text().catch(() => "");
+                      console.error(
+                        `[run-evals] conversation_eval_runs raw fetch update failed (${label}) status=${resp.status} body=${txt.slice(0, 500)}`,
+                      );
+                    }
+                  } catch (e) {
+                    console.error(`[run-evals] conversation_eval_runs raw fetch update threw (${label}):`, e);
+                  }
+                }
+              }
+              else if (label !== "full") console.log(`[run-evals] conversation_eval_runs update succeeded (${label})`);
+              return error;
+            };
+
+            let updErr = await attemptUpdate("full", baseUpdate);
+            if (updErr) updErr = await attemptUpdate("no_config", { ...baseUpdate, config: null });
+            if (updErr) updErr = await attemptUpdate("no_state_after", { ...baseUpdate, state_after: null });
+            if (updErr) updErr = await attemptUpdate("no_transcript", { ...baseUpdate, transcript: [] });
+            if (updErr) updErr = await attemptUpdate("minimal_status", { status: "completed" });
+            if (updErr) throw updErr;
+
+            if (judgeEnabled) {
+              const { error: enqueueErr } = await admin.rpc("enqueue_conversation_eval_judge_job", {
+                p_eval_run_id: existingRunId,
+                p_metadata: { source: "run-evals", request_id: scenarioRequestId },
+              });
+              if (enqueueErr) {
+                console.error("[run-evals] enqueue_conversation_eval_judge_job failed:", enqueueErr);
+              }
+            }
+          }
+
+          // Placeholder "judgeJson" object so the rest of the code can keep building results.
+          const judgeJson: any = {
+            eval_run_id: existingRunId,
+            issues: (Array.isArray(mechanicalIssues) ? mechanicalIssues : []),
+            suggestions: [],
+            metrics: { judge_async: judgeEnabled, judge_pending: judgeEnabled, manual_judge: manualJudge },
+          };
 
           // Merge deterministic mechanical checks into the eval run row (in addition to the judge).
           if (Array.isArray(mechanicalIssues) && mechanicalIssues.length > 0 && existingRunId) {
@@ -948,7 +1385,14 @@ export function serveRunEvals() {
                 .eq("id", existingRunId)
                 .maybeSingle();
               const prev = Array.isArray((row as any)?.issues) ? (row as any).issues : [];
-              const merged = [...prev, ...mechanicalIssues];
+              // Avoid accidental duplication if issues were already written in the main update.
+              const merged = [...prev, ...mechanicalIssues].filter((x: any, idx: number, arr: any[]) => {
+                const msg = String((x as any)?.message ?? "");
+                const kind = String((x as any)?.kind ?? "");
+                const key = `${kind}::${msg}`;
+                const first = arr.findIndex((y: any) => `${String((y as any)?.kind ?? "")}::${String((y as any)?.message ?? "")}` === key);
+                return first === idx;
+              });
               const prevMetrics = (row as any)?.metrics && typeof (row as any).metrics === "object" ? (row as any).metrics : {};
               await admin
                 .from("conversation_eval_runs")
@@ -964,18 +1408,18 @@ export function serveRunEvals() {
             }
           }
 
-          const issuesCount = Array.isArray(judgeJson.issues) ? judgeJson.issues.length : 0;
-          const suggestionsCount = Array.isArray(judgeJson.suggestions) ? judgeJson.suggestions.length : 0;
-          const costUsd = Number(judgeJson?.metrics?.cost_usd ?? 0) || 0;
-          const pTok = Number(judgeJson?.metrics?.prompt_tokens ?? 0) || 0;
-          const oTok = Number(judgeJson?.metrics?.output_tokens ?? 0) || 0;
-          const tTok = Number(judgeJson?.metrics?.total_tokens ?? 0) || 0;
+          const issuesCount = (Array.isArray(judgeJson.issues) ? judgeJson.issues.length : 0);
+          const suggestionsCount = manualJudge ? null : (Array.isArray(judgeJson.suggestions) ? judgeJson.suggestions.length : 0);
+          // Prefer unified accounting from llm_usage_events (covers simulate-user + sophia-brain), fall back to judge-only.
+          const costUsd = Number(usageTotals.cost_usd ?? 0) || Number(judgeJson?.metrics?.cost_usd ?? 0) || 0;
+          const pTok = Number(usageTotals.prompt_tokens ?? 0) || Number(judgeJson?.metrics?.prompt_tokens ?? 0) || 0;
+          const oTok = Number(usageTotals.output_tokens ?? 0) || Number(judgeJson?.metrics?.output_tokens ?? 0) || 0;
+          const tTok = Number(usageTotals.total_tokens ?? 0) || Number(judgeJson?.metrics?.total_tokens ?? 0) || 0;
           totalEstimatedCostUsd += costUsd;
           totalPromptTokens += pTok;
           totalOutputTokens += oTok;
           totalTokens += tTok;
 
-          const turnsExecuted = Array.isArray(transcript) ? transcript.filter((m: any) => m?.role === "user").length : 0;
           const bilanCompleted = bilanCount > 0 ? isBilanCompletedFromChatState(stAfter) : false;
 
           results.push({
@@ -990,15 +1434,17 @@ export function serveRunEvals() {
             bilan_pending_items_count: Array.isArray((stBefore as any)?.investigation_state?.pending_items)
               ? (stBefore as any).investigation_state.pending_items.length
               : 0,
+            // In manual_judge mode: keep deterministic mechanical issues visible; suggestions remain null.
             issues_count: issuesCount,
             suggestions_count: suggestionsCount,
+            // Token/cost are still valuable even in manual_judge mode (for observability).
             cost_usd: costUsd,
             prompt_tokens: pTok,
             output_tokens: oTok,
             total_tokens: tTok,
           });
 
-          if (body.limits.stop_on_first_failure && issuesCount > 0) {
+          if (!manualJudge && body.limits.stop_on_first_failure && issuesCount > 0) {
             stoppedReason = `Stopped on first failure: scenario ${s.id} had ${issuesCount} issues`;
             break;
           }
@@ -1050,6 +1496,7 @@ export function serveRunEvals() {
         ran: results.length,
         stopped_reason: stoppedReason,
         plan_template_fingerprint: runPlanTemplateFingerprint ?? null,
+        // Token/cost totals are computed from llm_usage_events (covers simulate-user + sophia-brain), even in manual_judge mode.
         total_cost_usd: totalEstimatedCostUsd,
         total_prompt_tokens: totalPromptTokens,
         total_output_tokens: totalOutputTokens,

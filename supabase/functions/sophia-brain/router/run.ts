@@ -49,7 +49,9 @@ import { maybeInjectGlobalDeferredNudge, pruneGlobalDeferredTopics, shouldStoreG
 import {
   enqueueSupervisorIntent,
   getActiveSupervisorSession,
+  setArchitectToolFlowInTempMemory,
   syncLegacyArchitectToolFlowSession,
+  upsertTopicSession,
 } from "../supervisor.ts"
 
 const SOPHIA_CHAT_MODEL =
@@ -207,12 +209,38 @@ SORTIE JSON STRICTE:
     const s = normalizeLoose(m)
     if (!s) return null
     // If the user is venting / emotional, default away from plan-focus.
-    if (looksLikeWorkPressureVenting(m) || looksLikeAcuteDistress(m)) return false
+    // NOTE: keep this conservative: only clear "down-regulation / overwhelmed" language.
+    // Otherwise we may wrongly disable plan-focus for normal planning conversations.
+    if (
+      looksLikeWorkPressureVenting(m) ||
+      looksLikeAcuteDistress(m) ||
+      /\b(submerg[ée]?\b|d[ée]bord[ée]?\b|micro[-\s]?pause\b|pause\s+ensemble\b|j(?:e|')\s+veux\s+juste\s+respirer\b|j(?:e|')\s+veux\s+juste\s+que\s+[çc]a\s+s['’]arr[êe]te\b|redescendre\b|pas\s+de\s+(?:plan|tableau\s+de\s+bord|dashboard|objectifs?)\b)\b/i
+        .test(s)
+    ) return false
     // Plan / actions / dashboard intent
     if (/\b(plan|phase|objectif|objectifs|action|actions|exercice|exercices|dashboard|plateforme|activer|activation|debloquer|deblocage)\b/i.test(m)) return true
     // "Et après ?" usually means "next step"; treat as plan-focus but NOT "goals-focus".
     if (/\b(et\s+apres|la\s+suite|on\s+fait\s+quoi\s+maintenant|next)\b/i.test(s)) return true
     return null
+  }
+
+  function looksLikeUserBoredOrWantsToStop(m: string): boolean {
+    const s = normalizeLoose(m)
+    if (!s) return false
+    if (/\b(stop|arrete|arr[êe]te|laisse\s+tomber|on\s+arrete|on\s+change|passe\s+a\s+autre\s+chose|bref)\b/i.test(s)) return true
+    // Very short "ok." / "..." / "bon." replies are often fatigue signals.
+    if (s.length <= 4 && /\b(ok|ok\?|bon)\b/i.test(s)) return true
+    return false
+  }
+
+  function guessTopicLabel(m: string): string {
+    const s = normalizeLoose(m)
+    if (!s) return "conversation"
+    if (/\b(bilan|checkup|check)\b/i.test(s)) return "bilan/checkup"
+    if (/\b(plan|dashboard|phase|action|actions|exercice|exercices)\b/i.test(s)) return "plan / exécution"
+    if (/\b(stress|angoisse|panique|peur|boss|boulot|travail)\b/i.test(s)) return "stress / travail"
+    if (/\b(sport|bouger|lecture|scroll|tel)\b/i.test(s)) return "habitudes (sport/lecture)"
+    return String(m ?? "").trim().slice(0, 80) || "conversation"
   }
 
   function extractObjective(m: string): string | null {
@@ -244,11 +272,18 @@ SORTIE JSON STRICTE:
       `- Interdiction d'introduire un 2e objectif si un objectif existe déjà.\n` +
       `- Si plan_focus=false: ne parle pas du plan, avance sur le problème concret + émotion du moment.\n` +
       `- Si plan_focus=true: reste sur UNE piste et passe en exécution.\n` +
+      `- Anti-boucle utilisateur (obligatoire si répétition 2+ fois): fais un meta-turn ("On tourne en rond" ou équivalent),\n` +
+      `  puis CONVERGE: 1 micro-action concrète à faire maintenant + termine par UNE question oui/non.\n` +
+      `  IMPORTANT: ne répète pas la même question oui/non mot pour mot sur 2 tours d'affilée.\n` +
+      `  Exemples de questions oui/non (à alterner):\n` +
+      `  - "Tu peux le faire maintenant ? (oui/non)"\n` +
+      `  - "Tu veux que je te guide pas à pas, là, tout de suite ? (oui/non)"\n` +
+      `  - "Tu veux qu’on fixe un moment précis (ce soir/demain) ? (oui/non)"\n` +
       (strictness >= 1
         ? `- Anti-boucle: limite à 2 étapes max. Résume ce qui est décidé, puis donne 1 prochaine étape concrète.\n`
         : "") +
       (strictness >= 2
-        ? `- N'ajoute pas de nouvelles idées/axes. Converge: "voici ce qu'on fait" + 1 question logistique (oui/non).\n`
+        ? `- Interdiction de proposer A/B. Converge: "voici ce qu'on fait" + 1 question oui/non.\n`
         : "") +
       (strictness >= 3
         ? `- Zéro diagnostic. Zéro nouveaux objectifs. Donne la prochaine action, point.\n`
@@ -288,6 +323,7 @@ SORTIE JSON STRICTE:
       loggedMessageId,
       userMessage,
     })
+    // Important: when aborted, do not emit an assistant message (prevents double-assistant / empty assistant entries).
     if (debounced.aborted) return { content: "", mode: "companion", aborted: true }
     userMessage = debounced.userMessage
   }
@@ -314,6 +350,19 @@ SORTIE JSON STRICTE:
     const topic = extracted || String(userMessage ?? "").trim().slice(0, 240) || ""
     const stored = storeGlobalDeferredTopic({ tempMemory, topic })
     if (stored.changed) tempMemory = stored.tempMemory
+  }
+  // If the user explicitly says "later", inject a hard preference so the next agent doesn't override it.
+  // NOTE: context is built later; we store the addendum now and prepend it once `context` exists.
+  let deferredUserPrefContext = ""
+  if (userExplicitlyDefersTopic(userMessage)) {
+    const extracted = extractDeferredTopicFromUserMessage(userMessage)
+    const topic = extracted || ""
+    if (topic) {
+      deferredUserPrefContext =
+        `=== SUJET À TRAITER PLUS TARD (PRÉFÉRENCE UTILISATEUR) ===\n` +
+        `L'utilisateur a explicitement demandé d'en reparler plus tard: "${topic}".\n` +
+        `RÈGLE: ne force pas ce sujet maintenant; demande seulement si on le fait maintenant OU on le garde pour plus tard.\n`
+    }
   }
   // Context string injected into agent prompts (must be declared before any post-checkup logic uses it).
   let context = ""
@@ -489,8 +538,6 @@ SORTIE JSON STRICTE:
   if (
     !state?.investigation_state &&
     targetMode === "companion" &&
-    targetMode !== "sentry" &&
-    targetMode !== "firefighter" &&
     /\b(mon\s+plan|dans\s+mon\s+plan|phase|action|actions|et\s+apr[eè]s|la\s+suite|qu['’]?est[-\s]?ce\s+qui\s+vient\s+apr[eè]s|prochaine\s+[ée]tape)\b/i.test(userMessage ?? "")
   ) {
     targetMode = "architect"
@@ -625,6 +672,37 @@ SORTIE JSON STRICTE:
   // This prevents breaking the checkup flow for normal "stress/organisation" topics.
   const checkupActive = Boolean(state?.investigation_state);
   const stopCheckup = isExplicitStopCheckup(userMessage);
+
+  // Firefighter continuity:
+  // If the last assistant message was in Firefighter mode (panic grounding / safety check),
+  // do NOT bounce back to investigator immediately just because the user mentions a checkup item.
+  // Keep firefighter for at least one more turn to close the loop and hand off cleanly.
+  const firefighterJustSpoke = lastAssistantAgent === "firefighter" || (state?.current_mode ?? "") === "firefighter";
+  if (firefighterJustSpoke && !stopCheckup) {
+    const lastFF = (lastAssistantMessage ?? "").toString().toLowerCase();
+    const u = (userMessage ?? "").toString().toLowerCase();
+    const userChoseAB =
+      (/\bA\)\b/.test(lastAssistantMessage ?? "") && /\bB\)\b/.test(lastAssistantMessage ?? "")) &&
+      /\b(a|b)\b/i.test((userMessage ?? "").toString().trim());
+    const userAnsweringFFPrompt =
+      /\b(comment tu te sens|tu te sens comment|es-tu en s[eé]curit[eé]|tu es en s[eé]curit[eé]|es-tu seul|tu es seul|on va faire|inspire|expire|respire|4\s*secondes|7\s*secondes|8\s*secondes)\b/i
+        .test(lastAssistantMessage ?? "");
+    const userStillPhysicallyActivated =
+      /\b(j['’]arrive\s+pas\s+[àa]\s+respirer|respir(er|e)\s+mal|coeur|c[œoe]ur|palpit|oppress|panique|angoiss|trembl|vertige)\b/i
+        .test(userMessage ?? "");
+    const userReportsPartialRelief =
+      /\b([çc]a\s+va\s+(un\s+peu\s+)?mieux|un\s+peu\s+mieux|[çc]a\s+aide|merci)\b/i.test(userMessage ?? "");
+    const userStillEmotionallyOverwhelmed =
+      /\b(j['’]ai\s+l['’]impression\s+de\s+(?:craquer|exploser)|[àa]\s+bout|pas\s+à\s+la\s+hauteur|n['’]y\s+arrive\s+plus|je\s+suis\s+(?:vid[ée]e?|epuis[ée]e?)|[ée]puis[ée]e|trop\s+dur)\b/i
+        .test(userMessage ?? "");
+
+    // If the user is still in the firefighter "thread" (answering the prompt, still activated, or just recovering),
+    // keep firefighter for this turn. Firefighter can then explicitly hand off back to the bilan.
+    if (userChoseAB || userAnsweringFFPrompt || userStillPhysicallyActivated || userReportsPartialRelief || userStillEmotionallyOverwhelmed) {
+      targetMode = "firefighter";
+    }
+  }
+
   if (checkupActive && !stopCheckup && targetMode === "firefighter" && riskScore <= 1 && !looksLikeAcuteDistress(userMessage)) {
     targetMode = "investigator";
   }
@@ -681,8 +759,7 @@ SORTIE JSON STRICTE:
     !isPostCheckup &&
     !stopCheckup &&
     targetMode !== "sentry" &&
-    targetMode !== "firefighter" &&
-    !shouldBypassCheckupLockForDeepWork(userMessage, targetMode)
+    targetMode !== "firefighter"
   ) {
     targetMode = "investigator";
   }
@@ -907,6 +984,7 @@ SORTIE JSON STRICTE:
     }
 
     context = ""
+    if (deferredUserPrefContext) context += `${deferredUserPrefContext}\n\n`
     if (injectedContext) context += `${injectedContext}\n\n`
     if (timeBlock) context += timeBlock
     if (factsContext) context += `${factsContext}\n\n`
@@ -927,6 +1005,24 @@ SORTIE JSON STRICTE:
 
   // --- Architect anti-loop / plan-focus state (lightweight state machine) ---
   // Goal: prevent the Architect from looping on objectives, asking the same question twice, or expanding into multiple objectives.
+  // NOTE: plan_focus should reflect user intent even if we temporarily route to firefighter/companion.
+  // Otherwise it can get "stuck" (ex: user asks for a micro-pause -> routed to firefighter, but plan_focus stays true).
+  {
+    const inferred = inferPlanFocusFromUser(userMessage)
+    if (inferred != null) {
+      const tm = (tempMemory ?? {}) as any
+      const arch0 = (tm.architect ?? {}) as any
+      tempMemory = {
+        ...(tm ?? {}),
+        architect: {
+          ...arch0,
+          plan_focus: inferred,
+          last_updated_at: new Date().toISOString(),
+        },
+      }
+    }
+  }
+
   if (targetMode === "architect") {
     const tm = (tempMemory ?? {}) as any
     const arch = (tm.architect ?? {}) as any
@@ -956,7 +1052,33 @@ SORTIE JSON STRICTE:
     const objectiveOverTalk = /\b(objectif|pourquoi|prioritaire|vision|identit[eé]|deep\s*why)\b/i.test(objectiveTalk) &&
       recentQfps.length >= 2
 
-    const loopHit = dup || objectiveOverTalk
+    // Also detect repeated user intents (common failure mode: the user repeats the same sentence and the assistant keeps proposing variants).
+    const userMsgs = [...history.filter((m: any) => m?.role === "user").map((m: any) => String(m?.content ?? "")), String(userMessage ?? "")]
+      .slice(-3)
+      .map(normalizeLoose)
+      .filter(Boolean)
+    const looksLikeReadingLoop = (() => {
+      // Heuristic for the common loop: "lecture 10 min, 3 fois/semaine, peur que ça pèse / échec"
+      if (userMsgs.length < 2) return false
+      const hits = userMsgs.map((s) =>
+        /\blecture\b/i.test(s) &&
+        /\b10\b/.test(s) &&
+        (/\b3\b/.test(s) || /\btrois\b/i.test(s)) &&
+        /\b(semaine|fois)\b/i.test(s) &&
+        /\b(peur|angoiss|corv[ée]e|pression|[ée]chec)\b/i.test(s),
+      )
+      return hits.filter(Boolean).length >= 2
+    })()
+    const userRepeats =
+      userMsgs.length >= 2 &&
+      (userMsgs[userMsgs.length - 1] === userMsgs[userMsgs.length - 2] ||
+        (userMsgs.length >= 3 && userMsgs[userMsgs.length - 1] === userMsgs[userMsgs.length - 3]))
+
+    // User can explicitly flag we're looping even if the wording changes.
+    const userSignalsLoop = /\b(tourne en rond|on tourne en rond|tu\s+me\s+reposes?\s+pas|tu\s+me\s+reposes?\s+la\s+meme\s+question|la\s+meme\s+question|tu\s+me\s+redemandes?)\b/i
+      .test(normalizeLoose(userMessage))
+
+    const loopHit = dup || objectiveOverTalk || userRepeats || looksLikeReadingLoop || userSignalsLoop
     const prevLoopCount = Number(arch.loop_count ?? 0) || 0
     const loopCount = loopHit ? Math.min(5, prevLoopCount + 1) : Math.max(0, prevLoopCount - 1)
 
@@ -980,6 +1102,52 @@ SORTIE JSON STRICTE:
       })
       context = `${guard}\n\n${context}`.trim()
     }
+  }
+
+  // --- TOPIC SESSION (global supervisor state machine) ---
+  // Goal: keep a coarse "topic lifecycle" across agents (opening/exploring/converging/closing) and enable clean handoffs.
+  try {
+    let tm0 = (tempMemory ?? {}) as any
+    const toolFlowActive = Boolean((tm0 as any)?.architect_tool_flow)
+    const arch = (tm0 as any)?.architect ?? {}
+    const planFocus = Boolean(arch?.plan_focus ?? false)
+    const loopCount = Number(arch?.loop_count ?? 0) || 0
+    const focusMode: "plan" | "discussion" | "mixed" =
+      planFocus ? "plan" : (targetMode === "architect" ? "mixed" : "discussion")
+    const topic = guessTopicLabel(userMessage)
+    const bored = looksLikeUserBoredOrWantsToStop(userMessage)
+
+    // If the user explicitly wants to stop/change topic, we should NOT keep an Architect toolflow "active"
+    // (it blocks baton handoff and causes the Architect to keep pushing a plan/tool sequence).
+    if (bored && toolFlowActive) {
+      const cleared = setArchitectToolFlowInTempMemory({ tempMemory: tm0, nextFlow: null })
+      if (cleared.changed) {
+        tempMemory = cleared.tempMemory
+        tm0 = tempMemory as any
+      }
+    }
+
+    const toolFlowActiveAfter = Boolean((tm0 as any)?.architect_tool_flow)
+    const phase: "opening" | "exploring" | "converging" | "closing" =
+      bored ? "closing" : (loopCount >= 2 ? "converging" : "exploring")
+    const handoffTo = (phase === "closing" && targetMode === "architect" && !toolFlowActiveAfter) ? "companion" : undefined
+    const updated = upsertTopicSession({
+      tempMemory: tm0,
+      topic,
+      ownerMode: (handoffTo ? "companion" : targetMode),
+      phase,
+      focusMode,
+      handoffTo,
+      handoffBrief: handoffTo ? `On clôture: "${topic}". L'utilisateur montre de la fatigue/stop. Reprendre en mode compagnon.` : undefined,
+    })
+    if (updated.changed) tempMemory = updated.tempMemory
+
+    // Conservative baton handoff: only when the user signals stop/boredom AND no active tool flow.
+    if (handoffTo === "companion" && !looksLikeAcuteDistress(userMessage)) {
+      targetMode = "companion"
+    }
+  } catch {
+    // best-effort; never block routing
   }
 
   // 5. Exécution de l'Agent Choisi
@@ -1076,7 +1244,13 @@ SORTIE JSON STRICTE:
   try {
     const latest = await getUserState(supabase, userId, scope)
     const latestTm = (latest as any)?.temp_memory ?? {}
-    mergedTempMemory = { ...(tempMemory ?? {}), ...(latestTm ?? {}) }
+    // Keep latestTm as base (preserve agent-written changes), but re-apply router-owned supervisor runtime.
+    mergedTempMemory = { ...(latestTm ?? {}) }
+    if (tempMemory && typeof tempMemory === "object") {
+      if ((tempMemory as any).supervisor) (mergedTempMemory as any).supervisor = (tempMemory as any).supervisor
+      if ((tempMemory as any).global_deferred_topics) (mergedTempMemory as any).global_deferred_topics = (tempMemory as any).global_deferred_topics
+      if ((tempMemory as any).architect) (mergedTempMemory as any).architect = (tempMemory as any).architect
+    }
   } catch {}
 
   await updateUserState(supabase, userId, scope, {

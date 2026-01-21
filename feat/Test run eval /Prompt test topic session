@@ -1,0 +1,47 @@
+PROMPT (RUN + QUALI "JUDGE" MANUEL PAR GPT-5.2)
+Tu dois commencer par lancer le run. La première chose à faire est de lancer la commande.
+
+Objectif
+- Tester la machine "Topic Session" (focus conversationnel + handoff) au niveau du Supervisor runtime.
+- Vérifier qu’un sujet est suivi, qu’on converge quand l’utilisateur montre un stop/boredom, et qu’on rend le bâton proprement (architect -> companion) quand approprié.
+
+1) Commande à lancer (local) — en mode full (pas dans la sandbox)
+
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && \
+SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=240000 \
+npm run eval:tools -- --scenario topic_session_handoff_basic --turns 14 --model gemini-3-flash-preview
+
+2) Artefacts à ouvrir (obligatoires)
+
+Dans bundle_dir:
+- conversation_eval_run.json
+  - transcript
+  - state_after.temp_memory.supervisor.stack (chercher type="topic_session")
+  - issues
+- docker_edge_runtime.tail.log
+- run_evals_response.json
+
+3) Analyse attendue — focus "Topic Session"
+
+A) Présence / persistance
+- Vérifier que state_after.temp_memory.supervisor.stack contient une entrée:
+  - type: "topic_session"
+- Vérifier que la session contient des champs utiles:
+  - topic, phase, focus_mode (au minimum topic + phase)
+
+B) Handoff (bâton)
+- Si l’utilisateur dit explicitement stop/boredom (ex: "Bref, laisse tomber. On change de sujet."):
+  - vérifier que la session passe en phase "closing"
+  - vérifier une intention de handoff (handoff_to / handoff_brief si présent)
+  - vérifier dans le transcript que l’agent ne “sur-place” pas (pas de relance plan/diagnostic inutile)
+
+C) Critères d’échec
+- Pas de topic_session dans supervisor.stack.
+- Topic session qui reste en "exploring" malgré un stop user.
+- L’Architect continue à pousser le plan / des questions alors que le user veut changer.
+
+4) Sortie exigée
+- Synthèse + preuve (champs exacts dans state_after + extrait transcript)
+- Si échec: 1 fix max (router/supervisor) + re-run.
+
+

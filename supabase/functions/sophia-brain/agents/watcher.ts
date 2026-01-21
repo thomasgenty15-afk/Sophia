@@ -251,7 +251,7 @@ export async function runWatcher(
       // but here we are inside a background task (watcher) which is already decoupled from user response.
       // So awaiting is safer to ensure completion before the isolate dies.
       console.log(`[Veilleur] Triggering memory consolidation...`)
-      await consolidateMemories(supabase, userId)
+      await consolidateMemories({ supabase, userId })
     } catch (e) {
       console.error("Error triggering consolidation", e)
     }

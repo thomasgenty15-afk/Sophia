@@ -91,7 +91,7 @@ export async function handleTracking(
         if (operation === "add" || operation === "set") {
           // Missions: avoid double-counting if already done today.
           // Habits: allow multiple in the same day (they are weekly frequency, not "once per day").
-          if (!isHabit && lastPerformedDay === day && operation === "add") {
+          if (!isHabit && lastPerformedDay === day && (operation === "add" || operation === "set")) {
             // Already done today -> avoid double-counting + duplicate history noise
             return `C'est noté, mais je vois que tu avais déjà validé "${action.title}" aujourd'hui. Je laisse validé ! ✅`;
           }

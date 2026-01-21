@@ -391,3 +391,8 @@ npm run eval:wa:onboarding:bundle -- --tests 10 --seed 123 --turns 8 --model gem
 
 Pour lancer test pour les tools : 
 npm run eval:tools -- --scenario tools_create_action
+
+
+Chargé bon environnement : 
+
+cd "/Users/ahmedamara/Dev/Sophia 2" && supabase functions serve --env-file supabase/.env

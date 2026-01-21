@@ -1,1 +1,70 @@
-npm run eval:tools -- --scenario tools_complex_multimachine_ai_user --turns 20 --model gemini-2.5-flash
+PROMPT (RUN + QUALI "JUDGE" MANUEL PAR GPT-5.2) - Tu dois commencer par lancer le run, c'est la seule chose à faire, la première chose à faire est de lancer la commande.
+
+Objectif
+- Exécuter le scénario `tools_complex_multimachine_ai_user` (20 tours) et faire un bilan qualitatif complet SANS utiliser le juge Gemini.
+- À chaque run: identifier les erreurs / points à optimiser, appliquer des fixes, relancer, et re-valider.
+
+1) Commande pour lancer le run (local) —— en mode full pas dans la sandbox 
+
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=240000 npm run eval:tools -- --scenario tools_complex_multimachine_ai_user --turns 20 --model gemini-3-flash-preview
+
+2) IMPORTANT: ignorer le juge automatique (Gemini)
+
+- Ne pas interpréter les résultats du judge Gemini comme source de vérité (en local, gros inputs => fallback => analyse dégradée).
+- Le juge, c’est GPT-5.2 (moi) dans Cursor: on fait une analyse qualitative manuelle à partir des logs/transcripts.
+
+3) Ce que tu me donnes après chaque run
+
+Minimum:
+- `eval_run_id` (affiché par la commande)
+- le chemin du bundle (affiché automatiquement par le runner, ex: `frontend/test-results/eval_bundle_tools_complex_multimachine_ai_user_<eval_run_id>/`)
+
+Idéal (pour un bilan plus précis):
+- Transcript complet (user/assistant + agent_used)
+- Snapshots d’état pertinents: `user_chat_states` (temp_memory, investigation_state), plan snapshot (actions), et events/trace si dispo
+- Toute sortie/log utile (run-evals / sophia-brain / simulate-user)
+
+4) Checklist "Quali Judge" (à faire à chaque run)
+
+A) Intégrité du scénario / machines à états attendues
+- Confirmer que les flows attendus ont bien eu lieu, dans cet ordre logique:
+  - Architect create-flow (discussion sans consentement accidentel si c’est requis)
+  - Firefighter panic crisis (stabilité: pas de bounce inapproprié)
+  - Breakdown action (peut arriver HORS bilan; ne doit pas créer `investigation_state`)
+  - Deferred topics / post-checkup (parking-lot): le sujet "stress au travail" est bien capturé puis réouvert après
+- Confirmer que les transitions sont "fluides" (pause/reprise) et qu’on ne “perd” pas le contexte.
+
+B) Routing / préemption / continuité
+- Pas de ROUTING_ERROR: rester sur l’agent adapté (ex: Firefighter pendant crise tant que pas résolu).
+- Pas de handoff prématuré (ex: basculer Architect alors que l’utilisateur est encore en détresse).
+- Si `investigation_state` est actif: hard-guard (investigator only), sauf stop explicite ou safety.
+
+C) Qualité conversationnelle (style + UX)
+- Anti-répétition: pas de boucle (micro-étapes / confirmations / même structure “robot”).
+- Empathie adaptée: Firefighter doit être flexible (exhaustion/isolement => validation + micro-choix, pas technique rigide).
+- Pas d’évitement: si l’utilisateur insiste sur “stress au travail” comme cause racine, on l’adresse (pas de “plus tard” en boucle).
+
+D) Fidélité au transcript / hallucinations
+- Zéro ajout de faits non présents (dates précises, événements non mentionnés, etc.).
+- IMPORTANT: Sophia peut connaître l’heure ET la date locales via le système; ne flagger “date/heure” que si contradiction explicite.
+
+E) Outils / data / invariants
+- Les tool calls doivent respecter les règles:
+  - Pas de création/activation d’action sans consentement explicite (si c’est la règle du flow).
+  - `break_down_action` peut être déclenché hors bilan, et ne doit pas activer `investigation_state`.
+- Vérifier plan snapshot: actions count, titres attendus/interdits, statut active/pending selon scénario.
+- Vérifier que l’état post-run est cohérent (ex: cleanup de temp_memory / flows terminés).
+
+F) Diagnostic: conclusion actionnable
+- Liste des problèmes trouvés, chacun avec:
+  - code court (ex: ROUTING_ERROR, REPETITION, CONTEXT_BLEED, TOPIC_AVOIDANCE_LOOP…)
+  - sévérité (high/medium/low)
+  - preuve (extrait transcript + agent_used + tour)
+  - cause probable (router vs prompt vs state machine vs simulate-user vs tool gating)
+  - fix concret (fichier + règle à changer)
+
+5) Boucle d’itération
+- Run → Quali judge (cette checklist) → Fix → Re-run → Re-judge
+- Objectif: converger vers un run sans erreurs majeures et avec un comportement naturel (pas robot), sans casser les invariants de routing et d’état.
+
+

@@ -6,7 +6,16 @@ export const ScenarioSchema = z
     id: z.string().min(1),
     description: z.string().optional(),
     tags: z.array(z.string()).optional(),
-    steps: z.array(z.object({ user: z.string().min(1) })).optional(),
+    steps: z.array(z.object({
+      user: z.string().min(1),
+      // Optional: simulate a "double text" (burst) by sending this step and the next in quick succession.
+      // Used to trigger Router debounce/burst merge behavior.
+      burst_delay_ms: z.number().int().min(1).max(20_000).optional(),
+      // Optional: simulate a multi-message burst (3+ messages) by providing additional user messages
+      // that will be sent shortly after this step (while the first is still within debounce wait).
+      // Example: step.user (msg1) + burst_group[0] (msg2) + burst_group[1] (msg3).
+      burst_group: z.array(z.string().min(1)).min(1).max(8).optional(),
+    })).optional(),
     persona: z.any().optional(),
     objectives: z.array(z.any()).optional(),
     suggested_replies: z.array(z.string().min(1)).max(10).optional(),
@@ -37,6 +46,10 @@ export const BodySchema = z.object({
       // Whether eval-judge should use the (slow/expensive) LLM judge.
       // Prod-faithful evals should keep this ON by default (we want real judge feedback).
       judge_force_real_ai: z.boolean().default(true),
+      // If true, do not emit issues/suggestions automatically; manual qualitative judging is done externally.
+      manual_judge: z.boolean().default(false),
+      // If true, run eval-judge async (enqueued) instead of inline. Default false for local dev determinism.
+      judge_async: z.boolean().default(false),
       // NEW: Use a pre-generated plan bank (stored in DB) instead of calling generate-plan (Gemini) during evals.
       // This reduces latency + cost by reusing real plans generated offline.
       use_pre_generated_plans: z.boolean().default(false),
@@ -49,7 +62,13 @@ export const BodySchema = z.object({
       // Useful when you want to manually verify DB writes after a tool test.
       keep_test_user: z.boolean().default(false),
       model: z.string().optional(),
+      // Runner-only: stable request id across chunked run-evals calls (resume on wall-clock kills).
+      _run_request_id: z.string().optional(),
+      // Runner-only: keep each run-evals request under edge-runtime wall clock limits.
+      max_wall_clock_ms_per_request: z.number().int().min(30_000).max(900_000).optional(),
     })
+    // Important: do NOT strip unknown flags from the runner (keeps forward compatibility).
+    .passthrough()
     .default({
       max_scenarios: 10,
       max_turns_per_scenario: 8,
@@ -59,6 +78,8 @@ export const BodySchema = z.object({
       budget_usd: 0,
       use_real_ai: true,
       judge_force_real_ai: true,
+      manual_judge: false,
+      judge_async: false,
       use_pre_generated_plans: false,
       pre_generated_plans_required: false,
       keep_test_user: false,

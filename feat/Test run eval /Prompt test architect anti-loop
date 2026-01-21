@@ -1,0 +1,58 @@
+PROMPT (RUN + QUALI "JUDGE" MANUEL PAR GPT-5.2)
+Tu dois commencer par lancer le run. La première chose à faire est de lancer la commande.
+
+Objectif
+- Tester l’anti-loop **PROD** (verifier sémantique via embeddings) : détecter la répétition **assistant** sur une fenêtre des derniers messages et forcer un rewrite (au besoin) avant envoi.
+- Obtenir 0 issues mécaniques (P0/P1) sur 5 runs consécutifs avant d’intégrer à des scénarios multi-machines.
+
+1) Commande à lancer (local) — en mode full (pas dans la sandbox)
+
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && \
+SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 \
+npm run eval:tools -- --scenario architect_anti_loop_state --turns 6 --model gemini-3-flash-preview
+
+Cette commande exporte un bundle complet dans:
+frontend/test-results/eval_bundle_<scenario>_<eval_run_id>_.../
+
+2) Artefacts à ouvrir (obligatoires)
+
+Dans bundle_dir:
+- conversation_eval_run.json
+  - transcript (conversation complète)
+  - issues / suggestions
+- conversation_eval_events.json
+  - preuve que le verifier PROD a bien levé une alerte anti-loop via events `verifier_issues`:
+    - `mech:semantic_repeats_previous_question` (répétition sémantique) OU
+    - `mech:repeats_previous_message` (répétition exacte)
+- docker_edge_runtime.tail.log
+- run_evals_response.json
+
+3) Analyse attendue — focus "anti-loop verifier PROD (embeddings)"
+
+A) Invariants (doivent être vrais)
+- Alternance transcript correcte (pas de double user/assistant).
+- Aucune écriture tool inattendue (pas de create/update plan si pas demandé).
+- issues[] doit être vide (ou uniquement low si tu as volontairement relâché des warnings).
+
+B) Machine anti-loop (preuve via state + transcript)
+- Vérifier que le verifier PROD a détecté une répétition sémantique (message global) et a loggué l’issue:
+  - dans `conversation_judge_events.json` → `issues[]` contient `mech:semantic_repeats_previous_question`
+- Vérifier que la réponse envoyée (transcript assistant) ne répète pas 3 fois le même contenu (rewrite effectif si nécessaire).
+
+Paramètres attendus (config):
+- `SOPHIA_VERIFIER_SEMANTIC_REPEAT_WINDOW=5`
+- `SOPHIA_VERIFIER_SEMANTIC_REPEAT_THRESHOLD=0.92`
+
+C) Critères d’échec typiques (et preuve)
+- `conversation_judge_events.json` ne contient pas `mech:semantic_repeats_previous_question` malgré répétition évidente.
+- Le verifier détecte mais ne rewrite pas (transcript assistant reste quasi identique sur 2+ tours).
+- Faux positifs: l’alerte se déclenche sur des messages différents (threshold trop bas / fenêtre trop grande).
+
+4) Sortie exigée
+- Synthèse (bullets)
+- Preuve: extraits transcript + champs exacts (state_after.temp_memory.architect.*)
+- Si échec: 1 fix max (fichier + logique), puis re-run.
+
+
+Variante 6 tour :
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 npm run eval:tools -- --scenario architect_anti_loop_state --variant six_turns --turns 6 --model gemini-3-flash-preview

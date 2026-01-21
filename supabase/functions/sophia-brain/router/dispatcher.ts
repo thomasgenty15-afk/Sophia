@@ -32,6 +32,13 @@ export async function analyzeIntentAndRisk(
     return false;
   }
 
+  function looksLikeBreakdownIntent(m: string): boolean {
+    const s = (m ?? "").toString().toLowerCase()
+    if (!s.trim()) return false
+    return /\b(micro[-\s]?etape|d[ée]compos|d[ée]coup|d[ée]taill|petit\s+pas|[ée]tape\s+minuscule|je\s+bloqu|j['’]y\s+arrive\s+pas|trop\s+dur|insurmontable)\b/i
+      .test(s)
+  }
+
   // Deterministic test mode: avoid LLM dependency and avoid writing invalid risk levels.
   const mega =
     (((globalThis as any)?.Deno?.env?.get?.("MEGA_TEST_MODE") ?? "") as string).trim() === "1" &&
@@ -56,7 +63,9 @@ export async function analyzeIntentAndRisk(
     LES AGENTS DISPONIBLES :
     1. sentry (DANGER VITAL) : Suicide, automutilation, violence immédiate. PRIORITÉ ABSOLUE.
     2. firefighter (URGENCE ÉMOTIONNELLE) : Panique, angoisse, craving fort, pleurs.
-    3. investigator (DATA & BILAN) : L'utilisateur veut faire son bilan ("Check du soir", "Bilan"), donne des chiffres (cigarettes, sommeil), dit "J'ai fait mon sport", OU répond "Oui" à une invitation au bilan.
+    3. investigator (DATA & BILAN) : L'utilisateur veut faire son bilan ("Check du soir", "Bilan") OU répond à un prompt de bilan/check.
+       IMPORTANT: hors bilan, ne déclenche PAS investigator juste parce que l'utilisateur parle d'une action ("j'ai fait / pas fait").
+       Dans ce cas, route plutôt companion (par défaut) ou architect si on doit ajuster le plan.
     4. architect (DEEP WORK & AIDE MODULE) : L'utilisateur parle de ses Valeurs, Vision, Identité, ou demande de l'aide pour un exercice. C'est AUSSI lui qui gère la création/modification du plan.
     5. librarian (EXPLICATION LONGUE) : L'utilisateur demande explicitement une explication détaillée, un mécanisme ("comment ça marche"), une réponse longue structurée, ou un guide pas-à-pas.
        Exemples: "Explique-moi en détail", "Tu peux développer ?", "Décris le mécanisme", "Fais-moi un guide complet".
@@ -80,6 +89,14 @@ export async function analyzeIntentAndRisk(
     - "plus tard", "pas maintenant", "on en reparlera" NE sont PAS des stops.
 
     POST-BILAN (PARKING LOT) :
+    RÈGLE "BESOIN DE DÉCOUPER" (HORS BILAN) :
+    - Si l'utilisateur exprime qu'il est bloqué sur une action / n'arrive pas à démarrer / que c'est trop dur
+      (ex: "je bloque", "j'y arrive pas", "c'est trop dur", "ça me demande trop d'effort", "insurmontable", "je repousse"),
+      OU s'il demande une version plus simple (ex: "un petit pas", "une étape minuscule", "encore plus simple"),
+      OU s'il demande explicitement de "découper / décomposer / micro-étape" une action,
+      ALORS route vers ARCHITECT (outil break_down_action) plutôt que companion.
+      Cela ne doit PAS être traité comme un bilan.
+
     - Si \`investigation_state.status = post_checkup\`, le bilan est terminé.
     - Tu ne dois JAMAIS proposer de "continuer/reprendre le bilan".
     - Tu dois router vers l’agent adapté au sujet reporté (companion par défaut, architect si organisation/planning/priorités, firefighter si détresse).
@@ -118,6 +135,23 @@ export async function analyzeIntentAndRisk(
     const wantsMulti = candidateAllowed && rawN === 3
     const nCandidates = (wantsMulti && isVeryComplexMessage(message)) ? 3 : 1
 
+    // HARD GUARD: if we're already in architect mode, keep architect unless there is acute distress (firefighter/sentry).
+    // This prevents mid-flow bouncing to companion which causes tool/consent loops.
+    if (currentState?.current_mode === "architect") {
+      const acute = looksLikeAcuteDistress(message)
+      const wantsCheckup = looksLikeCheckupIntent(message, lastAssistantMessage)
+      // Checkup intent should override "stay in architect" stability.
+      if (!acute && !wantsCheckup && targetMode !== "architect") {
+        targetMode = "architect"
+      }
+    }
+
+    // HARD FORCE: explicit checkup intent always routes to investigator (unless user asked to stop a checkup).
+    // This is critical for eval scenarios (and for real UX) where "on fait le bilan" must not be ignored.
+    if (!currentState?.investigation_state && looksLikeCheckupIntent(message, lastAssistantMessage)) {
+      targetMode = "investigator"
+    }
+
     // HARD GUARD: investigator is ONLY for active checkups or explicit checkup intent.
     // This prevents "investigator" from hijacking normal WhatsApp onboarding / small-talk.
     if (
@@ -126,6 +160,12 @@ export async function analyzeIntentAndRisk(
       !looksLikeCheckupIntent(message, lastAssistantMessage)
     ) {
       targetMode = "companion"
+    }
+
+    // If the user clearly asks for a micro-step breakdown and there is no acute distress,
+    // do not route to firefighter just because the message is emotional.
+    if (!looksLikeAcuteDistress(message) && looksLikeBreakdownIntent(message) && targetMode === "firefighter") {
+      targetMode = "architect"
     }
     return { targetMode, riskScore, nCandidates }
   } catch (e) {
@@ -138,8 +178,9 @@ export async function analyzeIntentAndRisk(
 export function looksLikeAcuteDistress(message: string): boolean {
   const s = (message ?? "").toString().toLowerCase()
   if (!s.trim()) return false
-  // Keep conservative: only clear crisis/panic language.
-  return /\b(panique|crise|je\s+craque|je\s+n['’]en\s+peux\s+plus|au\s+bout|d[ée]tresse|angoisse\s+(?:forte|intense)|aide\s+vite|urgence)\b/i
+  // Keep conservative: route to firefighter on clear acute distress signals (panic/overwhelm/physical stress cues),
+  // but avoid over-triggering on generic "stress" talk.
+  return /\b(panique|crise|je\s+craque|je\s+n['’]en\s+peux\s+plus|au\s+bout|d[ée]tresse|angoisse\s+(?:forte|intense)|aide\s+vite|urgence|envie\s+de\s+pleurer|j['’]ai\s+envie\s+de\s+pleurer|boule\s+au\s+ventre|submerg[ée]?|d[ée]bord[ée]?|je\s+n['’]arrive\s+plus\s+à\s+me\s+concentrer|j['’]arrive\s+pas\s+à\s+me\s+concentrer|pression\s+non\s+stop|pression\s+impossible)\b/i
     .test(s)
 }
 

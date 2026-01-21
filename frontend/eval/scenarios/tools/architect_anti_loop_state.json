@@ -1,0 +1,43 @@
+{
+  "dataset_key": "state_machines",
+  "id": "architect_anti_loop_state",
+  "description": "Anti-loop verifier (prod): detect when the assistant repeats the same closing question across turns and ensure the prod verifier raises semantic_repeats_previous_question (logged via conversation_judge_events).",
+  "tags": ["sophia.architect", "state_machine", "anti_loop"],
+  "steps": [
+    { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" },
+    { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" },
+    { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" },
+    { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" }
+  ],
+  "variants": [
+    {
+      "id": "six_turns",
+      "steps": [
+        { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" },
+        { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" },
+        { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" },
+        { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" },
+        { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" },
+        { "user": "Je veux avancer sur mon plan mais je tourne en rond. Par quoi je commence ?" }
+      ]
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"],
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "chat_state_equals": {
+      "current_mode": "architect"
+    },
+    "chat_state_temp_memory_paths_exist": [
+      "architect.last_updated_at",
+      "architect.last_q_fps"
+    ],
+    "assistant_regex_max_occurrences": [
+      { "re": "tu\\s+peux\\s+le\\s+faire\\s+maintenant\\s*\\?","max": 1 }
+    ]
+  }
+}
+
+

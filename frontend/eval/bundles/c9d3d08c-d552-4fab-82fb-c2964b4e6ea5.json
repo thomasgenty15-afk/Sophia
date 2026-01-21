@@ -1,0 +1,553 @@
+{
+  "kind": "eval_bundle",
+  "exported_at": "2026-01-20T02:23:06.471Z",
+  "eval_run_id": "c9d3d08c-d552-4fab-82fb-c2964b4e6ea5",
+  "scenario_key": "tools_complex_multimachine_ai_user",
+  "dataset_key": "tools",
+  "status": "completed",
+  "config": {
+    "tags": [
+      "sophia.architect",
+      "sophia.firefighter",
+      "sophia.investigator"
+    ],
+    "limits": {
+      "model": "gemini-3-pro-preview",
+      "judge_async": true,
+      "user_difficulty": "mid",
+      "bilan_actions_count": 1,
+      "test_post_checkup_deferral": true
+    },
+    "channel": "web",
+    "assertions": {
+      "must_include_agent": [
+        "architect",
+        "firefighter",
+        "investigator"
+      ],
+      "assistant_must_not_match": [
+        "\\*\\*"
+      ]
+    },
+    "created_by": "bcca087d-0ef3-4812-9280-d57ac194e59a",
+    "request_id": "c2e793b3-490a-41ca-abe4-2d03149bc9d3:tools:tools_complex_multimachine_ai_user",
+    "description": "Complex tool-actions eval: multi-machine flow (architect create-flow discussion without consent -> firefighter panic interruption -> investigator breakdown -> post-checkup deferred topic). All turns are AI-generated (simulate-user + sophia-brain).",
+    "eval_runner": true,
+    "judge_model": "gemini-3-pro-preview",
+    "test_user_id": "1317e6a0-f46d-4786-b402-cd80ef0e04cf",
+    "plan_snapshot": {
+      "plan": {
+        "id": "f23f022c-3743-4fae-9b88-5579e14ebbb5",
+        "title": "L'Architecte de la Sérénité Familiale",
+        "status": "active",
+        "content": {
+          "phases": [
+            {
+              "id": 1,
+              "title": "L'Ancrage de la Présence",
+              "status": "active",
+              "actions": [
+                {
+                  "id": "c713e052-1f84-4531-9915-ca29ea37ce65",
+                  "tips": "",
+                  "type": "mission",
+                  "title": "Sport",
+                  "status": "active",
+                  "questType": "main",
+                  "targetReps": 1,
+                  "description": "Faire une séance courte (même 10 minutes), sans pression.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "c9d3976a-da34-44a2-a25e-a8908a863c7f",
+                  "tips": "Ne te censure pas. Vise l'exhaustivité. Pense à tous les domaines : maison, enfants, travail, mental.",
+                  "type": "framework",
+                  "title": "La Cartographie du Poids Invisible",
+                  "status": "active",
+                  "questType": "main",
+                  "rationale": "Externaliser la charge mentale permet de la visualiser et de réduire l'impression de chaos interne, première étape vers la délégation.",
+                  "targetReps": 1,
+                  "description": "Écrire et catégoriser toutes les tâches et préoccupations qui pèsent sur ta charge mentale.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "one_shot",
+                    "intro": "Le but n'est pas de tout résoudre d'un coup, mais de faire l'inventaire précis de ce qui occupe ton esprit. Chaque tâche, chaque préoccupation, chaque 'il faudrait que...'",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Tâches et préoccupations non résolues",
+                        "inputType": "categorized_list",
+                        "placeholder": "Rappeler école pour sortie|Enfants"
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Ce qui m'empêche de lâcher prise",
+                        "inputType": "textarea",
+                        "placeholder": "La peur de l'oubli, la perfectionnisme..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "6ea8f5fe-6ec2-44f9-847d-e4eadac2652d",
+                  "tips": "Règle un minuteur. Cache-toi aux toilettes si besoin. C'est TON moment sacré. Mets une alarme discrète sur ton téléphone.",
+                  "type": "habitude",
+                  "title": "Le Micro-Rituel de Respiration",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ces courtes pauses calment le système nerveux, réduisent le cortisol et augmentent la disponibilité mentale face au stress, rendant ta réaction plus sereine.",
+                  "targetReps": 14,
+                  "description": "Prendre 5 minutes, 2 fois par jour, pour respirer profondément et consciemment, loin de toute distraction.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 1-2 • Vider l'Esprit pour Mieux Construire",
+              "rationale": "Cette phase est dédiée à la prise de conscience de ta charge mentale et à la mise en place de micro-rituels qui apaisent ton système nerveux, pour poser des fondations solides avant d'agir."
+            },
+            {
+              "id": 2,
+              "title": "Le Souffle des Nouveaux Espaces",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "6d3e80f7-b652-4645-9ff8-df33bc51be33",
+                  "tips": "Commence par ce qui te pèse le plus ou ce qui n'est pas absolument nécessaire que TU fasses. Parle en termes de bénéfices pour la famille entière.",
+                  "type": "mission",
+                  "title": "Le Plan de Délégation Intelligente",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "La charge mentale n'est pas une fatalité. Apprendre à déléguer libère de l'énergie et de l'espace mental, essentiel pour ta sérénité.",
+                  "description": "À partir de ta cartographie, identifie au moins 3 tâches à déléguer, automatiser ou simplement éliminer. Initie la discussion avec ton conjoint ou d'autres ressources pour les déléguer.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "8c3e979c-48c7-4324-9eb7-bb1e30edec8b",
+                  "tips": "Mets un rappel. Ferme ton ordinateur portable. Imagine un mur invisible entre ton travail et ta vie personnelle.",
+                  "type": "habitude",
+                  "title": "La Règle des 20h : Fin de la Journée Pro",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Le 'tunnel 18h-20h' est critique. Stopper le travail crée une frontière nécessaire pour te rendre disponible mentalement pour tes enfants et pour toi, réduisant l'irritabilité.",
+                  "targetReps": 14,
+                  "description": "À 20h, tu arrêtes toute activité professionnelle. Si des choses restent à faire, elles attendront le lendemain. Créer un sas de décompression.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 3-4 • Reprendre le Contrôle du Temps",
+              "rationale": "Maintenant que tu as visualisé ta charge, cette phase t'aide à récupérer du temps et de l'énergie en établissant des limites claires entre vie professionnelle et familiale, et en délégant activement."
+            },
+            {
+              "id": 3,
+              "title": "La Lumière de la Connexion",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "9aeef708-39ce-40bd-9050-195af320b97f",
+                  "tips": "Fais-le sans jugement. L'objectif est la prise de conscience, pas la culpabilité. Écris le plus vite possible après l'événement.",
+                  "type": "framework",
+                  "title": "Le Journal de la Réactivité Sereine",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Analyser les déclencheurs et tes réactions t'aide à développer des stratégies proactives et à briser le cycle de la culpabilité et des cris.",
+                  "targetReps": 7,
+                  "description": "Quand tu sens la patience s'échapper ou après un moment difficile, prends quelques minutes pour noter ce qu'il s'est passé, tes émotions et ce qui aurait pu être fait différemment.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean",
+                  "frameworkDetails": {
+                    "type": "recurring",
+                    "intro": "C'est ton laboratoire personnel. Observe, note, apprends. Chaque incident est une opportunité de mieux te comprendre et d'ajuster ta réponse la prochaine fois.",
+                    "sections": [
+                      {
+                        "id": "s1",
+                        "label": "Situation et déclencheur",
+                        "inputType": "textarea",
+                        "placeholder": "Les enfants se disputaient pour un jeu, j'étais fatiguée de ma journée..."
+                      },
+                      {
+                        "id": "s2",
+                        "label": "Ma réaction et mes émotions",
+                        "inputType": "textarea",
+                        "placeholder": "J'ai crié, j'étais en colère, puis coupable..."
+                      },
+                      {
+                        "id": "s3",
+                        "label": "Ce que j'aurais pu faire différemment",
+                        "inputType": "textarea",
+                        "placeholder": "Prendre 5 secondes pour respirer, nommer mon besoin de calme..."
+                      }
+                    ]
+                  }
+                },
+                {
+                  "id": "d1914f53-3716-4845-bb23-5c433fc4580b",
+                  "tips": "C'est un investissement. Les enfants qui se sentent vus et écoutés sont souvent plus coopératifs. Ça peut être lire une histoire, dessiner, écouter leurs histoires.",
+                  "type": "habitude",
+                  "title": "Le Rendez-vous Coeur à Coeur",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ces moments renforcent le lien, remplissent le 'réservoir d'attention' des enfants et réduisent leur besoin d'attirer l'attention négativement, diminuant ainsi les tensions et les cris.",
+                  "targetReps": 14,
+                  "description": "Dédier au moins 10 minutes chaque jour à chaque enfant, individuellement, pour une activité choisie par lui, sans interruption ni écrans.",
+                  "isCompleted": false,
+                  "time_of_day": "evening",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 5-6 • Cultiver la Patience et le Lien",
+              "rationale": "Fortifiée par plus de temps et d'espace mental, cette phase te guide vers une interaction plus consciente et positive avec tes enfants, en travaillant sur la compréhension de tes réactions et le renforcement des liens."
+            },
+            {
+              "id": 4,
+              "title": "Le Ciment de la Sérénité Durable",
+              "status": "locked",
+              "actions": [
+                {
+                  "id": "97631a65-0808-4834-a6e9-59da21fa597e",
+                  "tips": "Même les toutes petites choses comptent ! Un sourire d'enfant, une tâche finie, une minute de calme. L'important est de reprogrammer ton cerveau à voir le positif.",
+                  "type": "habitude",
+                  "title": "La Reconnaissance des Micro-Victoires",
+                  "status": "pending",
+                  "questType": "main",
+                  "rationale": "Pratiquer la gratitude et la reconnaissance déplace l'attention du stress vers les aspects positifs, renforçant ton bien-être et ta résilience émotionnelle, et réduisant la culpabilité.",
+                  "targetReps": 14,
+                  "description": "Chaque soir, avant de te coucher, note 3 choses qui se sont bien passées dans ta journée ou 3 choses pour lesquelles tu es reconnaissante, en lien avec ta famille ou toi-même.",
+                  "isCompleted": false,
+                  "time_of_day": "night",
+                  "tracking_type": "boolean"
+                },
+                {
+                  "id": "06534592-f3d0-49f7-a7ca-8eff963134e0",
+                  "tips": "Implique les enfants dans les décisions quand c'est possible. Utilise des règles de communication positive. Ça n'a pas besoin d'être parfait, juste régulier.",
+                  "type": "mission",
+                  "title": "Le Rituel du Conseil Familial",
+                  "status": "pending",
+                  "questType": "side",
+                  "rationale": "Ce rituel structure la semaine, partage la charge mentale des adultes, et donne aux enfants un sentiment de participation et de prévisibilité, réduisant le chaos des soirs et les tensions.",
+                  "description": "Mettre en place un court 'conseil familial' hebdomadaire (15-20 min) pour discuter de l'organisation de la semaine à venir, des défis, et des réussites de chacun.",
+                  "isCompleted": false,
+                  "time_of_day": "any_time",
+                  "tracking_type": "boolean"
+                }
+              ],
+              "subtitle": "Semaines 7-8 • Ancrer l'Équilibre et la Joie",
+              "rationale": "Cette dernière phase consolide tes acquis. Elle te permet d'intégrer pleinement les nouvelles habitudes, de reconnaître tes progrès et de structurer ton environnement pour maintenir une sérénité durable."
+            }
+          ],
+          "deepWhy": "Pour que mes enfants grandissent dans un environnement de calme et de joie, et pour que je puisse enfin m'épanouir pleinement dans tous mes rôles sans le poids de la culpabilité.",
+          "identity": "Je suis une mère consciente et une gardienne de mon énergie, capable de créer un havre de paix pour ma famille et moi.",
+          "strategy": "Nous allons reconstruire ton quotidien en établissant des frontières claires, en déléguant intelligemment la charge mentale, et en cultivant des moments de ressource pour que la sérénité devienne ton mode de vie parental.",
+          "goldenRules": "1. Je ne suis pas une ressource illimitée : mes limites sont mes alliées.\n2. Chaque 'non' à une sollicitation est un 'oui' à mon bien-être.\n3. La sérénité est un muscle qui se travaille chaque jour par des micro-actions intentionnelles.",
+          "vitalSignal": {
+            "name": "Moments de calme personnel",
+            "type": "constat",
+            "unit": "min",
+            "startValue": "0",
+            "description": "Le temps que tu te consacres chaque jour, seule, sans écrans ni sollicitations, pour te ressourcer.",
+            "targetValue": "30",
+            "time_of_day": "any_time",
+            "tracking_type": "counter"
+          },
+          "grimoireTitle": "L'Architecte de la Sérénité Familiale",
+          "context_problem": "Épuisée par les exigences professionnelles et la gestion familiale quasi exclusive, tu te sentais piégée par le manque de temps et une charge mentale écrasante. Cette pression menait à des pertes de patience et une culpabilité tenace, particulièrement durant les 'tunnels' du soir, t'empêchant de te sentir sereine à la maison ou au travail.",
+          "sophiaKnowledge": "Tu es une mère active, dévouée à tes deux enfants de 6 et 9 ans, mais épuisée et tiraillée par une double charge mentale professionnelle et familiale. Cette pression constante te pousse à perdre patience et à culpabiliser, notamment lors des soirées chaotiques. Ton désir profond est de retrouver équilibre et sérénité pour être une mère présente et épanouie.",
+          "maintenanceCheck": {
+            "type": "surveillance",
+            "question": "Combien de fois cette semaine as-tu crié ou élevé la voix sur tes enfants, en le regrettant après ?",
+            "frequency": "hebdomadaire",
+            "tracking_type": "counter"
+          },
+          "estimatedDuration": "8 semaines"
+        },
+        "goal_id": "f52d742c-67cc-4550-82ea-5dddf30870ac",
+        "deep_why": "Pour que mes enfants grandissent dans un environnement de calme et de joie, et pour que je puisse enfin m'épanouir pleinement dans tous mes rôles sans le poids de la culpabilité.",
+        "created_at": "2026-01-20T02:18:22.290219+00:00",
+        "inputs_why": null,
+        "current_phase": 1,
+        "submission_id": "604a3bd4-ef5a-4bad-8b40-faad238b8456",
+        "inputs_context": null,
+        "inputs_blockers": null,
+        "progress_percentage": 0
+      },
+      "actions": [
+        {
+          "id": "c713e052-1f84-4531-9915-ca29ea37ce65",
+          "title": "Sport",
+          "status": "active",
+          "created_at": "2026-01-20T02:18:22.297695+00:00",
+          "description": "Faire une séance courte (même 10 minutes), sans pression.",
+          "target_reps": 1,
+          "time_of_day": "any_time",
+          "current_reps": 0,
+          "tracking_type": "boolean",
+          "scheduled_days": null,
+          "last_performed_at": "2026-01-18T02:18:22.296+00:00"
+        }
+      ],
+      "frameworks": [],
+      "template_bank": {
+        "id": "plan_RELATIONS_REL_8_d63206122ca6d03f",
+        "axis_id": "REL_8",
+        "theme_id": "REL",
+        "theme_key": "RELATIONS",
+        "axis_title": "Être un parent plus serein & épanoui",
+        "theme_title": "Relations & Communication",
+        "selected_problem_ids": [
+          "REL_8_P1",
+          "REL_8_P3"
+        ]
+      },
+      "dashboard_context": "=== PLAN ACTUEL (Tableau de Bord) ===\nTitre: L'Architecte de la Sérénité Familiale\nStatut: active\nPhase courante (dashboard): 1\nPourquoi (Deep Why): Pour que mes enfants grandissent dans un environnement de calme et de joie, et pour que je puisse enfin m'épanouir pleinement dans tous mes rôles sans le poids de la culpabilité.\nDÉTAIL COMPLET DU PLAN (Structure JSON) :\n{\n  \"phases\": [\n    {\n      \"id\": 1,\n      \"title\": \"L'Ancrage de la Présence\",\n      \"status\": \"active\",\n      \"actions\": [\n        {\n          \"id\": \"c713e052-1f84-4531-9915-ca29ea37ce65\",\n          \"tips\": \"\",\n          \"type\": \"mission\",\n          \"title\": \"Sport\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"targetReps\": 1,\n          \"description\": \"Faire une séance courte (même 10 minutes), sans pression.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"c9d3976a-da34-44a2-a25e-a8908a863c7f\",\n          \"tips\": \"Ne te censure pas. Vise l'exhaustivité. Pense à tous les domaines : maison, enfants, travail, mental.\",\n          \"type\": \"framework\",\n          \"title\": \"La Cartographie du Poids Invisible\",\n          \"status\": \"active\",\n          \"questType\": \"main\",\n          \"rationale\": \"Externaliser la charge mentale permet de la visualiser et de réduire l'impression de chaos interne, première étape vers la délégation.\",\n          \"targetReps\": 1,\n          \"description\": \"Écrire et catégoriser toutes les tâches et préoccupations qui pèsent sur ta charge mentale.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"one_shot\",\n            \"intro\": \"Le but n'est pas de tout résoudre d'un coup, mais de faire l'inventaire précis de ce qui occupe ton esprit. Chaque tâche, chaque préoccupation, chaque 'il faudrait que...'\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Tâches et préoccupations non résolues\",\n                \"inputType\": \"categorized_list\",\n                \"placeholder\": \"Rappeler école pour sortie|Enfants\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Ce qui m'empêche de lâcher prise\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"La peur de l'oubli, la perfectionnisme...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"6ea8f5fe-6ec2-44f9-847d-e4eadac2652d\",\n          \"tips\": \"Règle un minuteur. Cache-toi aux toilettes si besoin. C'est TON moment sacré. Mets une alarme discrète sur ton téléphone.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Micro-Rituel de Respiration\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ces courtes pauses calment le système nerveux, réduisent le cortisol et augmentent la disponibilité mentale face au stress, rendant ta réaction plus sereine.\",\n          \"targetReps\": 14,\n          \"description\": \"Prendre 5 minutes, 2 fois par jour, pour respirer profondément et consciemment, loin de toute distraction.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 1-2 • Vider l'Esprit pour Mieux Construire\",\n      \"rationale\": \"Cette phase est dédiée à la prise de conscience de ta charge mentale et à la mise en place de micro-rituels qui apaisent ton système nerveux, pour poser des fondations solides avant d'agir.\"\n    },\n    {\n      \"id\": 2,\n      \"title\": \"Le Souffle des Nouveaux Espaces\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"6d3e80f7-b652-4645-9ff8-df33bc51be33\",\n          \"tips\": \"Commence par ce qui te pèse le plus ou ce qui n'est pas absolument nécessaire que TU fasses. Parle en termes de bénéfices pour la famille entière.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Plan de Délégation Intelligente\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"La charge mentale n'est pas une fatalité. Apprendre à déléguer libère de l'énergie et de l'espace mental, essentiel pour ta sérénité.\",\n          \"description\": \"À partir de ta cartographie, identifie au moins 3 tâches à déléguer, automatiser ou simplement éliminer. Initie la discussion avec ton conjoint ou d'autres ressources pour les déléguer.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"8c3e979c-48c7-4324-9eb7-bb1e30edec8b\",\n          \"tips\": \"Mets un rappel. Ferme ton ordinateur portable. Imagine un mur invisible entre ton travail et ta vie personnelle.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Règle des 20h : Fin de la Journée Pro\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Le 'tunnel 18h-20h' est critique. Stopper le travail crée une frontière nécessaire pour te rendre disponible mentalement pour tes enfants et pour toi, réduisant l'irritabilité.\",\n          \"targetReps\": 14,\n          \"description\": \"À 20h, tu arrêtes toute activité professionnelle. Si des choses restent à faire, elles attendront le lendemain. Créer un sas de décompression.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 3-4 • Reprendre le Contrôle du Temps\",\n      \"rationale\": \"Maintenant que tu as visualisé ta charge, cette phase t'aide à récupérer du temps et de l'énergie en établissant des limites claires entre vie professionnelle et familiale, et en délégant activement.\"\n    },\n    {\n      \"id\": 3,\n      \"title\": \"La Lumière de la Connexion\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"9aeef708-39ce-40bd-9050-195af320b97f\",\n          \"tips\": \"Fais-le sans jugement. L'objectif est la prise de conscience, pas la culpabilité. Écris le plus vite possible après l'événement.\",\n          \"type\": \"framework\",\n          \"title\": \"Le Journal de la Réactivité Sereine\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Analyser les déclencheurs et tes réactions t'aide à développer des stratégies proactives et à briser le cycle de la culpabilité et des cris.\",\n          \"targetReps\": 7,\n          \"description\": \"Quand tu sens la patience s'échapper ou après un moment difficile, prends quelques minutes pour noter ce qu'il s'est passé, tes émotions et ce qui aurait pu être fait différemment.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\",\n          \"frameworkDetails\": {\n            \"type\": \"recurring\",\n            \"intro\": \"C'est ton laboratoire personnel. Observe, note, apprends. Chaque incident est une opportunité de mieux te comprendre et d'ajuster ta réponse la prochaine fois.\",\n            \"sections\": [\n              {\n                \"id\": \"s1\",\n                \"label\": \"Situation et déclencheur\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Les enfants se disputaient pour un jeu, j'étais fatiguée de ma journée...\"\n              },\n              {\n                \"id\": \"s2\",\n                \"label\": \"Ma réaction et mes émotions\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"J'ai crié, j'étais en colère, puis coupable...\"\n              },\n              {\n                \"id\": \"s3\",\n                \"label\": \"Ce que j'aurais pu faire différemment\",\n                \"inputType\": \"textarea\",\n                \"placeholder\": \"Prendre 5 secondes pour respirer, nommer mon besoin de calme...\"\n              }\n            ]\n          }\n        },\n        {\n          \"id\": \"d1914f53-3716-4845-bb23-5c433fc4580b\",\n          \"tips\": \"C'est un investissement. Les enfants qui se sentent vus et écoutés sont souvent plus coopératifs. Ça peut être lire une histoire, dessiner, écouter leurs histoires.\",\n          \"type\": \"habitude\",\n          \"title\": \"Le Rendez-vous Coeur à Coeur\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ces moments renforcent le lien, remplissent le 'réservoir d'attention' des enfants et réduisent leur besoin d'attirer l'attention négativement, diminuant ainsi les tensions et les cris.\",\n          \"targetReps\": 14,\n          \"description\": \"Dédier au moins 10 minutes chaque jour à chaque enfant, individuellement, pour une activité choisie par lui, sans interruption ni écrans.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"evening\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 5-6 • Cultiver la Patience et le Lien\",\n      \"rationale\": \"Fortifiée par plus de temps et d'espace mental, cette phase te guide vers une interaction plus consciente et positive avec tes enfants, en travaillant sur la compréhension de tes réactions et le renforcement des liens.\"\n    },\n    {\n      \"id\": 4,\n      \"title\": \"Le Ciment de la Sérénité Durable\",\n      \"status\": \"locked\",\n      \"actions\": [\n        {\n          \"id\": \"97631a65-0808-4834-a6e9-59da21fa597e\",\n          \"tips\": \"Même les toutes petites choses comptent ! Un sourire d'enfant, une tâche finie, une minute de calme. L'important est de reprogrammer ton cerveau à voir le positif.\",\n          \"type\": \"habitude\",\n          \"title\": \"La Reconnaissance des Micro-Victoires\",\n          \"status\": \"pending\",\n          \"questType\": \"main\",\n          \"rationale\": \"Pratiquer la gratitude et la reconnaissance déplace l'attention du stress vers les aspects positifs, renforçant ton bien-être et ta résilience émotionnelle, et réduisant la culpabilité.\",\n          \"targetReps\": 14,\n          \"description\": \"Chaque soir, avant de te coucher, note 3 choses qui se sont bien passées dans ta journée ou 3 choses pour lesquelles tu es reconnaissante, en lien avec ta famille ou toi-même.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"night\",\n          \"tracking_type\": \"boolean\"\n        },\n        {\n          \"id\": \"06534592-f3d0-49f7-a7ca-8eff963134e0\",\n          \"tips\": \"Implique les enfants dans les décisions quand c'est possible. Utilise des règles de communication positive. Ça n'a pas besoin d'être parfait, juste régulier.\",\n          \"type\": \"mission\",\n          \"title\": \"Le Rituel du Conseil Familial\",\n          \"status\": \"pending\",\n          \"questType\": \"side\",\n          \"rationale\": \"Ce rituel structure la semaine, partage la charge mentale des adultes, et donne aux enfants un sentiment de participation et de prévisibilité, réduisant le chaos des soirs et les tensions.\",\n          \"description\": \"Mettre en place un court 'conseil familial' hebdomadaire (15-20 min) pour discuter de l'organisation de la semaine à venir, des défis, et des réussites de chacun.\",\n          \"isCompleted\": false,\n          \"time_of_day\": \"any_time\",\n          \"tracking_type\": \"boolean\"\n        }\n      ],\n      \"subtitle\": \"Semaines 7-8 • Ancrer l'Équilibre et la Joie\",\n      \"rationale\": \"Cette dernière phase consolide tes acquis. Elle te permet d'intégrer pleinement les nouvelles habitudes, de reconnaître tes progrès et de structurer ton environnement pour maintenir une sérénité durable.\"\n    }\n  ],\n  \"deepWhy\": \"Pour que mes enfants grandissent dans un environnement de calme et de joie, et pour que je puisse enfin m'épanouir pleinement dans tous mes rôles sans le poids de la culpabilité.\",\n  \"identity\": \"Je suis une mère consciente et une gardienne de mon énergie, capable de créer un havre de paix pour ma famille et moi.\",\n  \"strategy\": \"Nous allons reconstruire ton quotidien en établissant des frontières claires, en déléguant intelligemment la charge mentale, et en cultivant des moments de ressource pour que la sérénité devienne ton mode de vie parental.\",\n  \"goldenRules\": \"1. Je ne suis pas une ressource illimitée : mes limites sont mes alliées.\\n2. Chaque 'non' à une sollicitation est un 'oui' à mon bien-être.\\n3. La sérénité est un muscle qui se travaille chaque jour par des micro-actions intentionnelles.\",\n  \"vitalSignal\": {\n    \"name\": \"Moments de calme personnel\",\n    \"type\": \"constat\",\n    \"unit\": \"min\",\n    \"startValue\": \"0\",\n    \"description\": \"Le temps que tu te consacres chaque jour, seule, sans écrans ni sollicitations, pour te ressourcer.\",\n    \"targetValue\": \"30\",\n    \"time_of_day\": \"any_time\",\n    \"tracking_type\": \"counter\"\n  },\n  \"grimoireTitle\": \"L'Architecte de la Sérénité Familiale\",\n  \"context_problem\": \"Épuisée par les exigences professionnelles et la gestion familiale quasi exclusive, tu te sentais piégée par le manque de temps et une charge mentale écrasante. Cette pression menait à des pertes de patience et une culpabilité tenace, particulièrement durant les 'tunnels' du soir, t'empêchant de te sentir sereine à la maison ou au travail.\",\n  \"sophiaKnowledge\": \"Tu es une mère active, dévouée à tes deux enfants de 6 et 9 ans, mais épuisée et tiraillée par une double charge mentale professionnelle et familiale. Cette pression constante te pousse à perdre patience et à culpabiliser, notamment lors des soirées chaotiques. Ton désir profond est de retrouver équilibre et sérénité pour être une mère présente et épanouie.\",\n  \"maintenanceCheck\": {\n    \"type\": \"surveillance\",\n    \"question\": \"Combien de fois cette semaine as-tu crié ou élevé la voix sur tes enfants, en le regrettant après ?\",\n    \"frequency\": \"hebdomadaire\",\n    \"tracking_type\": \"counter\"\n  },\n  \"estimatedDuration\": \"8 semaines\"\n}\n=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\nRÈGLES IMPORTANTES:\n- Les frameworks comptent comme des actions côté utilisateur.\n- \"active\" = activée et visible comme active dans l'app. \"pending\" = pas active.\n- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\nActives (1):\n- [ACTION] Sport (any_time)\n\n=== SIGNES VITAUX (État Actuel) ===\n- Moments de calme personnel: 0 min\n",
+      "template_fingerprint": "d63206122ca6d03f"
+    },
+    "scenario_target": "bilan",
+    "system_snapshot": {
+      "focus": "bilan",
+      "notes": "Async judge: eval-judge runs out-of-band via process-eval-judge-jobs (internal secret).",
+      "channel": "web",
+      "available_modules": [
+        "sentry",
+        "firefighter",
+        "investigator",
+        "architect",
+        "companion",
+        "librarian"
+      ],
+      "whatsapp_state_machine": null
+    }
+  },
+  "issues": [
+    {
+      "code": "assert_missing_agent",
+      "message": "Assertion failed: must include agent \"architect\"",
+      "evidence": {
+        "agent_sequence": [
+          "investigator",
+          "investigator",
+          "investigator",
+          "companion"
+        ]
+      },
+      "severity": "high"
+    },
+    {
+      "code": "assert_missing_agent",
+      "message": "Assertion failed: must include agent \"firefighter\"",
+      "evidence": {
+        "agent_sequence": [
+          "investigator",
+          "investigator",
+          "investigator",
+          "companion"
+        ]
+      },
+      "severity": "high"
+    },
+    {
+      "code": "vouvoiement_detected",
+      "message": "Vouvoiement détecté (vous/votre/vos). La plupart des modes exigent le tutoiement.",
+      "evidence": {
+        "snippet": "Je vois que les moments de calme personnel n'ont pas été au rendez-vous hier, et que le stress au travail a joué un rôle. On en reparlera.\n\nPour aujourd'hui, est-ce que tu as réussi à faire une séance de sport, même courte ?",
+        "agent_used": "investigator"
+      },
+      "severity": "medium"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "plan_actions_count_min failed: expected>=2 actual=1",
+      "severity": "high"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "assistant_must_match failed: /micro-étape/i",
+      "severity": "high"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "assistant_must_match failed: /C['’]est bon pour ce point\\s*\\?/i",
+      "severity": "high"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "plan_actions_count_min failed: expected>=2 actual=1",
+      "severity": "high"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "assistant_must_match failed: /micro-étape/i",
+      "severity": "high"
+    },
+    {
+      "kind": "mechanical_assertion_failed",
+      "message": "assistant_must_match failed: /C['’]est bon pour ce point\\s*\\?/i",
+      "severity": "high"
+    }
+  ],
+  "suggestions": [
+    {
+      "action": "append",
+      "rationale": "Uniformise le style et évite les ruptures de persona.",
+      "prompt_key": "sophia.investigator",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"6a882d95-c306-4a42-b485-f723af32f748\",\n      \"type\": \"vital\",\n      \"unit\": \"min\",\n      \"title\": \"Moments de calme personnel\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"c713e052-1f84-4531-9915-ca29ea37ce65\",\n      \"type\": \"action\",\n      \"title\": \"Sport\",\n      \"target\": 1,\n      \"description\": \"Faire une séance courte (même 10 minutes), sans pression.\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Super. Pour tes Moments de calme personnel, combien de minutes tu as pu t'accorder hier ?\n#2 USER: Zéro minute, j'étais trop prise par le boulot et mon stress. Mais on en reparlera après de ça, du stress au travail.\n#3 ASSISTANT(investigator): Je vois que les moments de calme personnel n'ont pas été au rendez-vous hier, et que le stress au travail a joué un rôle. On en reparlera. Pour aujourd'hui, est-ce que tu as réussi à faire une séance de sport, même courte ?\n\n=== APPLY ===\nprompt_key: sophia.investigator\naction: append\n\nproposed_addendum:\nCONTRAINTE: Tu tutoies toujours. Remplace tout \"vous/votre/vos\" par \"tu/ton/tes\".",
+      "proposed_addendum": "CONTRAINTE: Tu tutoies toujours. Remplace tout \"vous/votre/vos\" par \"tu/ton/tes\"."
+    },
+    {
+      "action": "append",
+      "rationale": "To maintain a consistent conversation flow, especially when the user is already discussing a specific issue with the investigator.",
+      "prompt_key": "sophia.dispatcher",
+      "context_block": "=== CONTEXT (transcript excerpt) ===\n=== STATE_BEFORE (user_chat_states) ===\ncurrent_mode: investigator\nrisk_level: 0\ninvestigation_state:\n{\n  \"status\": \"checking\",\n  \"temp_memory\": {\n    \"opening_done\": false\n  },\n  \"pending_items\": [\n    {\n      \"id\": \"6a882d95-c306-4a42-b485-f723af32f748\",\n      \"type\": \"vital\",\n      \"unit\": \"min\",\n      \"title\": \"Moments de calme personnel\",\n      \"tracking_type\": \"counter\"\n    },\n    {\n      \"id\": \"c713e052-1f84-4531-9915-ca29ea37ce65\",\n      \"type\": \"action\",\n      \"title\": \"Sport\",\n      \"target\": 1,\n      \"description\": \"Faire une séance courte (même 10 minutes), sans pression.\",\n      \"tracking_type\": \"boolean\"\n    }\n  ],\n  \"current_item_index\": 0\n}\n=== TRANSCRIPT ===\n#0 USER: Oui\n#1 ASSISTANT(investigator): Super. Pour tes Moments de calme personnel, combien de minutes tu as pu t'accorder hier ?\n#2 USER: Zéro minute, j'étais trop prise par le boulot et mon stress. Mais on en reparlera après de ça, du stress au travail.\n#3 ASSISTANT(investigator): Je vois que les moments de calme personnel n'ont pas été au rendez-vous hier, et que le stress au travail a joué un rôle. On en reparlera. Pour aujourd'hui, est-ce que tu as réussi à faire une séance de sport, même courte ?\n\n=== APPLY ===\nprompt_key: sophia.dispatcher\naction: append\n\nproposed_addendum:\nif user expresses stress or work-related issues during the bilan, ensure the investigator continues the conversation to maintain context and avoid abrupt transitions to the companion.",
+      "proposed_addendum": "if user expresses stress or work-related issues during the bilan, ensure the investigator continues the conversation to maintain context and avoid abrupt transitions to the companion."
+    }
+  ],
+  "metrics": {
+    "cost_usd": 0.008068999999999998,
+    "request_id": "c2e793b3-490a-41ca-abe4-2d03149bc9d3:tools:tools_complex_multimachine_ai_user",
+    "judge_async": true,
+    "total_tokens": 30500,
+    "judge_pending": true,
+    "output_tokens": 737,
+    "prompt_tokens": 20755,
+    "judge_llm_used": true,
+    "mega_test_mode": false,
+    "judge_enqueued_at": "2026-01-20T02:19:44.573Z",
+    "judge_completed_at": "2026-01-20T02:22:26.456Z",
+    "mechanical_issues_count": 3
+  },
+  "transcript": [
+    {
+      "role": "user",
+      "content": "Oui",
+      "agent_used": null,
+      "created_at": "2026-01-20T02:18:22.367458+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Super. Pour tes Moments de calme personnel, combien de minutes tu as pu t'accorder hier ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-20T02:18:31.086619+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Zéro minute, j'étais trop prise par le boulot et mon stress. Mais on en reparlera après de ça, du stress au travail.",
+      "agent_used": null,
+      "created_at": "2026-01-20T02:18:38.676565+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Je vois que les moments de calme personnel n'ont pas été au rendez-vous hier, et que le stress au travail a joué un rôle. On en reparlera.\n\nPour aujourd'hui, est-ce que tu as réussi à faire une séance de sport, même courte ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-20T02:18:47.486871+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Non, pas de sport aujourd'hui. Mon stress au travail, c'est vraiment l'enfer en ce moment. J'ai l'impression d'être submergée par les mails et les demandes urgentes qui tombent jusqu'à tard le soir. Je n'arrive plus à déconnecter, même une fois rentrée à la maison.",
+      "agent_used": null,
+      "created_at": "2026-01-20T02:18:50.471497+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ok, on a fini le bilan.\n\nTu m'avais dit qu'on reparlerait de : \"mon stress\".\nTu veux qu'on commence par ça ?",
+      "agent_used": "investigator",
+      "created_at": "2026-01-20T02:19:11.003629+00:00"
+    },
+    {
+      "role": "user",
+      "content": "Oui, c'est ça. En fait, c'est une pression constante. J'ai l'impression de devoir être dispo tout le temps, même après 18h. Les mails continuent d'arriver, et je me sens obligée de répondre, sinon j'ai peur de rater quelque chose d'important. Ça me ronge.",
+      "agent_used": null,
+      "created_at": "2026-01-20T02:19:14.161184+00:00"
+    },
+    {
+      "role": "assistant",
+      "content": "Ah ouais, je vois... C'est vraiment lourd à porter ça. Qu'est-ce qui te fait te sentir submergée par ces mails et demandes urgentes ?",
+      "agent_used": "companion",
+      "created_at": "2026-01-20T02:19:44.190396+00:00"
+    }
+  ],
+  "state_before": {
+    "scope": "web",
+    "user_id": "1317e6a0-f46d-4786-b402-cd80ef0e04cf",
+    "risk_level": 0,
+    "updated_at": "2026-01-20T02:18:22.303606+00:00",
+    "temp_memory": {},
+    "current_mode": "investigator",
+    "last_processed_at": "2026-01-20T02:18:22.303606+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "checking",
+      "temp_memory": {
+        "opening_done": false
+      },
+      "pending_items": [
+        {
+          "id": "6a882d95-c306-4a42-b485-f723af32f748",
+          "type": "vital",
+          "unit": "min",
+          "title": "Moments de calme personnel",
+          "tracking_type": "counter"
+        },
+        {
+          "id": "c713e052-1f84-4531-9915-ca29ea37ce65",
+          "type": "action",
+          "title": "Sport",
+          "target": 1,
+          "description": "Faire une séance courte (même 10 minutes), sans pression.",
+          "tracking_type": "boolean"
+        }
+      ],
+      "current_item_index": 0
+    },
+    "last_interaction_at": "2026-01-20T02:18:22.303606+00:00",
+    "unprocessed_msg_count": 0
+  },
+  "state_after": {
+    "scope": "web",
+    "user_id": "1317e6a0-f46d-4786-b402-cd80ef0e04cf",
+    "risk_level": 4,
+    "updated_at": "2026-01-20T02:19:44.187498+00:00",
+    "temp_memory": {
+      "global_deferred_topics": {
+        "items": [
+          {
+            "hits": 1,
+            "topic": "mon stress",
+            "created_at": "2026-01-20T02:18:42.198Z",
+            "last_mentioned_at": "2026-01-20T02:18:42.198Z"
+          }
+        ],
+        "last_nudge_at": null
+      }
+    },
+    "current_mode": "companion",
+    "last_processed_at": "2026-01-20T02:18:22.303606+00:00",
+    "short_term_context": null,
+    "investigation_state": {
+      "status": "post_checkup_done",
+      "temp_memory": {
+        "finished_at": "2026-01-20T02:19:22.793Z",
+        "deferred_topics": [
+          "mon stress"
+        ],
+        "current_topic_index": 1
+      }
+    },
+    "last_interaction_at": "2026-01-20T02:18:22.303606+00:00",
+    "unprocessed_msg_count": 4
+  },
+  "db": {
+    "test_user_id": "1317e6a0-f46d-4786-b402-cd80ef0e04cf",
+    "scope": "web",
+    "chat_state_live": null,
+    "chat_messages": []
+  },
+  "logs": null
+}

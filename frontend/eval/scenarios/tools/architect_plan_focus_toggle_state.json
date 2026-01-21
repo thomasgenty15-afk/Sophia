@@ -1,0 +1,58 @@
+{
+  "dataset_key": "state_machines",
+  "id": "architect_plan_focus_toggle_state",
+  "description": "Architect focus/coherence: plan_focus should switch based on user intent (plan/action -> true, emotional venting -> false) and current_mode should be consistent.",
+  "tags": ["sophia.architect", "state_machine", "plan_focus"],
+  "steps": [
+    {
+      "user": "J’ai besoin d’aide sur mon plan. Là je suis un peu perdu: je ne sais pas quelle action faire en premier, ni comment prioriser. Concrètement ce soir: est-ce que tu me fais choisir l’action la plus simple ou la plus “impactante” ? Et j’ai une question: si je fais l’hydratation mais que je bois quand même 4 cafés… c’est utile ou juste du “feel good” ?"
+    },
+    {
+      "user": "Contrainte réelle: demain j’ai 3 réunions + une deadline, je dors mal. Si tu devais faire une version “minimum viable” du plan sur 7 jours (sans perfection), ça ressemble à quoi ?"
+    },
+    {
+      "user": "Ok. Et si je loupe un jour: tu veux que je rattrape ou que je reprenne juste au prochain jour ? J’ai besoin d’une règle simple (sinon je culpabilise et j’abandonne)."
+    },
+    {
+      "user": "Là je décroche: au boulot c’est la pression non stop, j’ai envie de pleurer. Et du coup je bloque sur tout… même entendre “plan” me met une pression. J’arrive plus à avancer."
+    },
+    {
+      "user": "J’ai la boule au ventre. Je n’arrive plus à me concentrer. Là, tout de suite, tu me fais faire quoi pendant 2 minutes ?"
+    },
+    {
+      "user": "Et je culpabilise… j’ai peur de craquer et de compenser avec encore plus de cafés. Je veux juste que ça redescende."
+    },
+    {
+      "user": "S’il te plaît: pas de plan, pas de dashboard, pas d’objectifs. Juste un truc simple et concret pour redescendre maintenant."
+    },
+    {
+      "user": "Ok… ça va un peu mieux. Mais j’ai peur de tout lâcher dès que je re-sature. Comment je fais pour garder le fil sans me mettre la pression ?"
+    },
+    {
+      "user": "Demain matin: une seule mini-action en 2 minutes, vraiment. Dis-moi quoi faire, et je m’arrête là. (Pas de liste.)"
+    },
+    {
+      "user": "Ok, c’est noté. Et je veux éviter le mode “tout ou rien”: si demain je rate, je reprends sans me juger, c’est bien ça ?"
+    },
+    {
+      "user": "Et juste pour être sûr: là maintenant je ne veux pas qu’on parle du plan. Juste me calmer."
+    },
+    {
+      "user": "Je sens que je re-monte en stress… là je redeviens submergé. On fait une micro‑pause guidée ensemble, et après on verra."
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "chat_state_temp_memory_paths_exist": [
+      "architect.plan_focus",
+      "architect.last_updated_at"
+    ],
+    "chat_state_temp_memory_equals": {
+      "architect.plan_focus": false
+    }
+  }
+}
+
+

@@ -12,6 +12,7 @@ import type { AgentMode } from "./state-manager.ts"
 export type SupervisorSessionType =
   | "architect_tool_flow"
   | "user_profile_confirm"
+  | "topic_session"
 
 export type SupervisorSessionStatus = "active" | "paused"
 
@@ -22,6 +23,12 @@ export interface SupervisorSession {
   status: SupervisorSessionStatus
   started_at: string
   last_active_at: string
+  // Topic-session specific fields (kept optional so other session types remain unchanged).
+  topic?: string
+  phase?: "opening" | "exploring" | "converging" | "closing"
+  focus_mode?: "plan" | "discussion" | "mixed"
+  handoff_to?: AgentMode
+  handoff_brief?: string
   /**
    * Short, ready-to-use recap when resuming this session.
    * (We keep it optional; resume UX can be implemented progressively.)
@@ -80,6 +87,14 @@ export function getActiveSupervisorSession(tempMemory: any): SupervisorSession |
   return last && typeof last === "object" ? (last as SupervisorSession) : null
 }
 
+export function getActiveTopicSession(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const last = stack.length > 0 ? stack[stack.length - 1] : null
+  if (!last || typeof last !== "object") return null
+  return String((last as any)?.type ?? "") === "topic_session" ? (last as SupervisorSession) : null
+}
+
 function mkId(prefix: string, now?: Date): string {
   const t = nowIso(now).replace(/[:.]/g, "-")
   return `${prefix}_${t}`
@@ -106,6 +121,64 @@ export function enqueueSupervisorIntent(opts: {
   const bounded = queue0.slice(-maxQueue)
   const rtNext: SupervisorRuntime = { ...rt0, queue: bounded, updated_at: nowIso(opts.now) }
   return { tempMemory: writeSupervisorRuntime(opts.tempMemory, rtNext), changed: true }
+}
+
+export function upsertTopicSession(opts: {
+  tempMemory: any
+  topic: string
+  ownerMode: AgentMode
+  phase: "opening" | "exploring" | "converging" | "closing"
+  focusMode: "plan" | "discussion" | "mixed"
+  handoffTo?: AgentMode
+  handoffBrief?: string
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  const existing = stack0.findLast?.((s: any) => String(s?.type ?? "") === "topic_session")
+    ?? [...stack0].reverse().find((s: any) => String(s?.type ?? "") === "topic_session")
+    ?? null
+
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "topic_session")
+
+  const topic = String(opts.topic ?? "").trim().slice(0, 160)
+  const startedAt = existing ? String((existing as any).started_at ?? nowIso(opts.now)) : nowIso(opts.now)
+  const id = existing ? String((existing as any).id ?? mkId("sess_topic", opts.now)) : mkId("sess_topic", opts.now)
+
+  const session: SupervisorSession = {
+    id,
+    type: "topic_session",
+    owner_mode: opts.ownerMode,
+    status: "active",
+    started_at: startedAt,
+    last_active_at: nowIso(opts.now),
+    topic,
+    phase: opts.phase,
+    focus_mode: opts.focusMode,
+    handoff_to: opts.handoffTo,
+    handoff_brief: opts.handoffBrief ? String(opts.handoffBrief).slice(0, 360) : undefined,
+    resume_brief: topic ? `On parlait de: ${topic}` : undefined,
+    meta: {
+      ...(typeof (existing as any)?.meta === "object" ? (existing as any).meta : {}),
+    },
+  }
+  filtered.push(session)
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+export function closeTopicSession(opts: {
+  tempMemory: any
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "topic_session")
+  if (filtered.length === stack0.length) return { tempMemory: tm0, changed: false }
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
 }
 
 /**

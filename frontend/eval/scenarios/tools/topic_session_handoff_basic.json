@@ -1,0 +1,37 @@
+{
+  "dataset_key": "state_machines",
+  "id": "topic_session_handoff_basic",
+  "description": "Topic Session (global supervisor) should exist and allow a clean handoff from architect to companion when the user signals boredom/stop. Scenario is simulated (simulate-user) for more realistic pacing and multi-turn transitions, including an acute stress moment (firefighter) and a gentle return to plan.",
+  "tags": ["supervisor", "topic_session", "handoff"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur web",
+    "age_range": "25-40",
+    "style": "oral, naturel, pas robotique; peut mettre 2 tours à changer d'étape; exprime un stop/boredom sans être agressif; puis un stress corporel concret; revient ensuite au plan doucement.",
+    "background": "Je veux avancer sur mon plan mais je décroche vite quand c'est trop structuré. Je peux changer de sujet, puis réaliser que je suis stressé, demander 2 minutes, puis revenir au plan calmement."
+  },
+  "objectives": [
+    {
+      "kind": "topic_session_handoff_realistic",
+      "spec": {
+        "notes": "Pacing réaliste. Handoff attendu sur stop/boredom. Inclure un moment 'stress corporel' (firefighter). Retour au plan ensuite, sans tool immédiat."
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "chat_state_temp_memory_array_some_match": [
+      { "path": "supervisor.stack", "match": { "type": "topic_session" } }
+    ],
+    "chat_state_temp_memory_paths_exist": [
+      "supervisor.updated_at"
+    ]
+  }
+}
+
+

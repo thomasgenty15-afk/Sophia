@@ -193,8 +193,13 @@ function inferUpdateActionStageFromTranscript(ts: TranscriptMsg[]): number {
 }
 
 function looksLikePanicCrisisUser(ts: TranscriptMsg[]): boolean {
-  return (ts ?? []).some((m) =>
-    m?.role === "user" &&
+  // IMPORTANT: only treat panic/crisis as "active" if it appears in the most recent user message(s).
+  // Otherwise, a single early panic mention would make the whole scenario stick to the crisis branch forever.
+  const recentUser = [...(ts ?? [])]
+    .reverse()
+    .filter((m) => m?.role === "user")
+    .slice(0, 2);
+  return recentUser.some((m) =>
     /\b(crise\s+de\s+panique|je\s+panique|panique|angoisse)\b/i.test(String(m?.content ?? "")),
   );
 }
@@ -206,6 +211,103 @@ function hasAssistantMode(ts: TranscriptMsg[], mode: string): boolean {
     m?.role === "assistant" &&
     String((m as any)?.agent_used ?? "").trim().toLowerCase().includes(target)
   );
+}
+
+function buildTopicSessionHandoffStateMachineContext(
+  obj: any,
+  ts: TranscriptMsg[],
+  turnIndex: number,
+  maxTurns: number,
+): { stage: number; finalStage: number; ctx: string; forcedDone: boolean } {
+  const spec = (obj?.spec && typeof obj.spec === "object") ? obj.spec : {};
+  const finalStage = 8;
+
+  const userMsgs = (ts ?? []).filter((m) => m?.role === "user").map((m) => String(m?.content ?? ""));
+  const assistantMsgs = (ts ?? []).filter((m) => m?.role === "assistant").map((m) => String(m?.content ?? ""));
+  const uAll = userMsgs.join("\n").toLowerCase();
+  const aLast = String(assistantMsgs.slice(-1)[0] ?? "");
+  const aLastL = aLast.toLowerCase();
+
+  const hasStop = /\b(stop|laisse\s+tomber|on\s+change\s+de\s+sujet|change\s+de\s+sujet|j['’]en\s+ai\s+marre|on\s+arr[êe]te)\b/i.test(uAll);
+  const hasBored = /\b(je\s+d[ée]croche|tu\s+me\s+perds|bref)\b/i.test(uAll);
+  const hasDistress = /\b(boule\s+au\s+ventre|panique|angoisse|j['’]ai\s+du\s+mal\s+a\s+respirer|je\s+suffoque|stress[ée]?)\b/i.test(uAll);
+  const hasReturnPlan = /\b(revenir\s+au\s+plan|reprendre\s+le\s+plan|on\s+revient\s+au\s+plan|reparler\s+du\s+plan)\b/i.test(uAll);
+  const askedNoTool = /\b(sans\s+tool|sans\s+outil|sans\s+outils|sans\s+outil\s+pour\s+l['’]instant)\b/i.test(uAll);
+  const hasFinalThanks = /\b(merci[, ]+\s*c['’]est\s+bon|merci\s+c['’]est\s+bon|on\s+s['’]arr[êe]te|c['’]est\s+bon\s+pour\s+moi)\b/i.test(uAll);
+
+  const askedMicroAction = /\b(micro[-\s]?action|un\s+truc\s+simple|une\s+action\s+simple|2\s+minutes|deux\s+minutes)\b/i.test(uAll);
+  const assistantActivated = /\b(j['’]ai\s+activ[ée]|\bactiv[ée]\b|c['’]est\s+activ[ée]|je\s+l['’]ai\s+mis\s+en\s+place)\b/i.test(aLastL);
+
+  // Stage progression (coarse):
+  // 0) Ask to move on plan
+  // 1) Push for one micro-action (optionally activate)
+  // 2) Mild friction ("tu me perds") before hard stop
+  // 3) Explicit stop/change topic (handoff)
+  // 4) Small talk / new topic
+  // 5) Acute stress (trigger firefighter)
+  // 6) Return to plan gently
+  // 7) Ask next step without tools
+  // 8) Close conversation
+  let stage = 0;
+  if (askedMicroAction || assistantActivated) stage = Math.max(stage, 1);
+  if (hasBored) stage = Math.max(stage, 2);
+  if (hasStop) stage = Math.max(stage, 3);
+  // If we stopped, the next "topic" is usually a new subject or small talk.
+  if (stage >= 3 && userMsgs.length >= 4) stage = Math.max(stage, 4);
+  if (hasDistress) stage = Math.max(stage, 5);
+  if (hasReturnPlan) stage = Math.max(stage, 6);
+  if (askedNoTool) stage = Math.max(stage, 7);
+  if (hasFinalThanks) stage = Math.max(stage, 8);
+
+  // Prevent early "done": this scenario is meant to run the full budget (realistic pacing).
+  const forcedDone = stage >= finalStage && (turnIndex + 1 >= maxTurns);
+
+  const desired = (() => {
+    if (turnIndex === 0) return "Démarre la conversation en demandant quoi faire sur ton plan (simple, humain).";
+    if (stage === 0) return "Reformule ton besoin: avancer sur le plan, tu veux un point de départ concret.";
+    if (stage === 1 && !assistantActivated) return "Demande 1 micro-action concrète (2 minutes) et propose de l'activer, sans être robotique.";
+    if (stage === 1 && assistantActivated) return "OK, mais demande un repère simple/clarif (sans retomber dans un plan long).";
+    if (stage === 2) return "Exprime que tu décroches / que c'est trop. 1 message, naturel (pas agressif).";
+    if (stage === 3) return "Dis explicitement stop / on change de sujet. Court.";
+    if (stage === 4 && !hasDistress) return "Passe à un sujet différent de façon humaine (petite question ou remarque).";
+    if (stage === 5) return "Exprime un stress corporel concret (boule au ventre), demande 2 minutes pour redescendre.";
+    if (stage === 6) return "Remercie et propose de revenir au plan doucement (sans pression).";
+    if (stage === 7) return "Demande la prochaine étape simple, explicitement sans tool pour l'instant.";
+    return "Clôture simplement (merci c'est bon / on s'arrête là).";
+  })();
+
+  const softGuards = [
+    "Si Sophia te pose une question (A/B ou clarification), réponds de manière simple au lieu de répéter la demande initiale.",
+    "Tu peux prendre 2 tours pour changer d'étape si ça fait plus naturel (ex: 'attends' puis 'stop').",
+    "Évite les phrases trop 'scriptées' (pas de listes, pas de jargon).",
+  ].join("\n- ");
+
+  const requiredSignals = [
+    "- Déclencher un moment stop/boredom qui mène à un handoff (architect -> companion).",
+    "- Avoir au moins un passage stress/physique pour déclencher firefighter.",
+    "- Revenir ensuite au plan de façon douce, puis finir.",
+    ...(String(spec?.notes ?? "").trim() ? [`- Notes scénario: ${String(spec.notes).trim()}`] : []),
+  ].join("\n");
+
+  const ctx = `
+[TOPIC_SESSION_HANDOFF — CONTEXTE]
+But: conversation fluide (pas robotique) pour tester la machine globale "topic_session" + imbriquation (architect/companion/firefighter) sur ~${maxTurns} tours.
+
+État courant (estimation):
+- stage=${stage}/${finalStage}
+- tours déjà passés: user=${userMsgs.length}, assistant=${assistantMsgs.length}
+
+Signaux requis (sur l'ensemble du run):
+${requiredSignals}
+
+Ce que tu dois faire au prochain message:
+- ${desired}
+
+Garde-fous:
+- ${softGuards}
+`.trim();
+
+  return { stage, finalStage, ctx, forcedDone };
 }
 
 function buildComplexMultiMachineStateMachineContext(
@@ -222,54 +324,78 @@ function buildComplexMultiMachineStateMachineContext(
   const existingActionTitle = String(spec?.existing_action_title ?? "Sport").trim() || "Sport";
   const deferredTopic = String(spec?.deferred_topic ?? "mon stress au travail").trim() || "mon stress au travail";
 
-  // Stage map (user turns). We keep it mostly turn-index driven for stability.
-  // We also allow jumping forward if the transcript clearly indicates later stages were reached.
-  // Stages:
+  // Stages (user turns):
   // 0) explore creating an action (no consent)
-  // 1) give duration + time of day
-  // 2) give frequency + hesitation about creating now (still no consent)
+  // 1) give duration + time of day (no consent)
+  // 2) give frequency + hesitation about creating now (no consent)
   // 3) panic crisis -> should route firefighter
-  // 4) cancel create flow explicitly + pivot to bilan
-  // 5) trigger bilan + mention existing action "Sport"
-  // 6) say missed action + short reason
-  // 7) give blocker context + defer a topic "pour X, on en reparle après"
-  // 8) accept micro-step breakdown
-  // 9) give blocker details if asked
-  // 10) accept adding the micro-step to the plan
-  // 11) post-checkup: engage on deferred topic
-  // 12) close the deferred topic (answer "oui/ok" when asked "C'est bon pour ce point ?")
-  const desiredByTurn = (i: number): number => {
-    if (i <= 0) return 0;
-    if (i === 1) return 1;
-    if (i === 2) return 2;
-    if (i === 3) return 3;
-    if (i === 4) return 4;
-    if (i === 5) return 5;
-    if (i === 6) return 6;
-    if (i === 7) return 7;
-    if (i === 8) return 8;
-    if (i === 9) return 9;
-    if (i === 10) return 10;
-    if (i === 11) return 11;
-    return 12;
-  };
+  // 4) after firefighter: cancel create + request micro-step breakdown for an EXISTING action (NO bilan yet)
+  // 5) confirm the existing action was missed + short reason (to feed breakdown)
+  // 6) give blocker context + mention the deferred topic (work stress) WITHOUT deferring phrase
+  // 7) accept micro-step breakdown
+  // 8) provide blocker details if asked
+  // 9) accept adding the micro-step to the plan
+  // 10) explicitly ask to start a bilan/checkup now (investigator)
+  // 11) during bilan: mention the deferred topic naturally (assistant will defer via eval override)
+  // 12) post-checkup: engage on deferred topic
+  // 13) close the deferred topic (answer "Oui, c'est bon.")
 
   const inferred = (() => {
     const lastA = [...(ts ?? [])].reverse().find((m) => m?.role === "assistant")?.content ?? "";
     const lastAL = String(lastA).toLowerCase();
-    if (/c['’]est\s+bon\s+pour\s+ce\s+point\s*\?/i.test(lastA)) return 12;
-    if (/\bpost-?bilan\b/i.test(lastA) || /\b(sujet\s+report[ée]|tu\s+m['’]avais\s+dit)\b/i.test(lastAL)) return 11;
-    if ((ts ?? []).some((m) => m?.role === "user" && /\bajoute-la\s+au\s+plan\b/i.test(String(m?.content ?? "")))) return 10;
-    if ((ts ?? []).some((m) => m?.role === "user" && /\bmicro-étape|micro[-\s]?etape\b/i.test(String(m?.content ?? "")) && /\b(oui|ok|vas[-\s]?y)\b/i.test(String(m?.content ?? "")))) return 8;
-    if ((ts ?? []).some((m) => m?.role === "user" && /\b(pas\s+fait|rat[ée]|j['’]ai\s+pas\s+fait)\b/i.test(String(m?.content ?? "")))) return 6;
-    if (hasAssistantMode(ts, "investigator")) return 5;
-    if ((ts ?? []).some((m) => m?.role === "user" && /\bannule|laisse\s+tomber|stop\b/i.test(String(m?.content ?? "")))) return 4;
-    if (hasAssistantMode(ts, "firefighter") || looksLikePanicCrisisUser(ts)) return 3;
+
+    const userSaidCancel = (ts ?? []).some((m) => m?.role === "user" && /\bannule|laisse\s+tomber|stop\b/i.test(String(m?.content ?? "")));
+    const userSaidBilan = (ts ?? []).some((m) => m?.role === "user" && /\b(bilan|checkup)\b/i.test(String(m?.content ?? "")));
+    const userSaidMissed = (ts ?? []).some((m) => m?.role === "user" && /\b(pas\s+fait|rat[ée]|j['’]ai\s+pas\s+fait)\b/i.test(String(m?.content ?? "")));
+
+    const askedCloseTopic = /c['’]est\s+bon\s+pour\s+ce\s+point\s*\?/i.test(lastA);
+    const inPostCheckupConversation =
+      /\b(sujet\s+report[ée]|tu\s+m['’]avais\s+dit|mode\s+post)\b/i.test(lastAL) ||
+      (/\bstress\b/i.test(lastAL) && /\btravail\b/i.test(lastAL));
+    // IMPORTANT: only treat "add to plan" as the micro-step confirmation (stage 9),
+    // not the initial "add a new action" prompt (which happens early in the scenario).
+    const askedAddToPlan =
+      /\b(ajout|ajouter|ajoute|mets)\b/i.test(lastAL) &&
+      /\bplan\b/i.test(lastAL) &&
+      /\b(tu\s+veux|ok\s+pour|ça\s+te\s+va)\b/i.test(lastAL) &&
+      /\bmicro-étape|micro[-\s]?etape\b/i.test(lastAL);
+    const offeredBreakdown =
+      /\bmicro-étape|micro[-\s]?etape\b/i.test(lastAL) &&
+      /\b(d[ée]coupe|d[ée]composer|d[ée]tailler)\b/i.test(lastAL) &&
+      /\b(tu\s+veux|ok\s+pour|ça\s+te\s+dit)\b/i.test(lastAL);
+    const askedBlocker = /\b(qu['’]?est-ce|quel|quelle)\b/i.test(lastAL) && /\b(bloqu|coinc)\b/i.test(lastAL);
+
+    if (askedCloseTopic) return 13;
+    if (inPostCheckupConversation) return 12;
+    if (askedAddToPlan) return 9;
+    if (askedBlocker) return 8;
+    if (offeredBreakdown) return 7;
+
+    // If the bilan/checkup has started, progress that thread.
+    if (hasAssistantMode(ts, "investigator")) return 11;
+
+    // If the latest user message is a panic crisis and firefighter hasn't happened yet, stay on the panic stage.
+    if (looksLikePanicCrisisUser(ts) && !hasAssistantMode(ts, "firefighter")) return 3;
+
+    // After firefighter, we pivot once: cancel create + request help on the existing action.
+    // But do NOT keep re-triggering this stage forever.
+    if (hasAssistantMode(ts, "firefighter") && !userSaidCancel) return 4;
+    if (userSaidCancel && userSaidMissed) {
+      if (userSaidBilan) return 11;
+      return 10;
+    }
     return 0;
   })();
 
-  const finalStage = 12;
-  const stage = Math.min(finalStage, Math.max(inferred, desiredByTurn(Math.max(0, Number(turnIndex) || 0))));
+  const finalStage = 13;
+  // Keep the first 3 turns stable to ensure we test Architect pre-panic, then force panic.
+  const byTurn =
+    (Number(turnIndex) || 0) <= 0 ? 0 :
+    (Number(turnIndex) || 0) === 1 ? 1 :
+    (Number(turnIndex) || 0) === 2 ? 2 :
+    (Number(turnIndex) || 0) === 3 ? 3 :
+    inferred;
+  const stage = Math.min(finalStage, Math.max(inferred, byTurn));
   const forcedDone = stage >= finalStage;
 
   const stageInstruction = (() => {
@@ -278,20 +404,20 @@ function buildComplexMultiMachineStateMachineContext(
         return [
           `Tu veux créer une action mais tu n'es pas sûr(e). Contexte: ${createContext}`,
           `OBLIGATOIRE: inclure la question "tu en penses quoi ?"`,
-          `IMPORTANT: NE DONNE PAS de consentement explicite ("ok vas-y") pour l'ajouter.`,
+          `IMPORTANT: NE DONNE PAS de consentement (pas de "oui" à une question d'ajout, pas de "ok vas-y", pas de "tu peux l'ajouter").`,
         ].join(" ");
       case 1:
         return [
           `Tu donnes des paramètres pratiques.`,
           `OBLIGATOIRE: inclure "${createDuration} minutes" et "le soir" (ou "avant de dormir").`,
-          `IMPORTANT: pas de consentement explicite pour l'ajouter.`,
+          `IMPORTANT: si Sophia te demande de l'ajouter, tu réponds en mode "pas maintenant / je réfléchis" (pas de "oui").`,
         ].join(" ");
       case 2:
         return [
           `Tu précises la fréquence et tu hésites.`,
           `OBLIGATOIRE: inclure exactement "${createReps} fois par semaine".`,
           `OBLIGATOIRE: inclure une hésitation du type "je sais pas si je dois la créer maintenant".`,
-          `IMPORTANT: ne dis pas "ok vas-y" / "tu peux l'ajouter".`,
+          `IMPORTANT: ne dis pas "ok vas-y" / "tu peux l'ajouter" / "oui".`,
         ].join(" ");
       case 3:
         return [
@@ -303,49 +429,54 @@ function buildComplexMultiMachineStateMachineContext(
         return [
           `Après que Sophia t'ait aidé(e), tu pivotes: tu annules la création d'action.`,
           `OBLIGATOIRE: inclure un mot clair: "annule" ou "laisse tomber".`,
-          `Puis tu dis que tu veux faire un bilan rapide pour comprendre ton blocage sur "${existingActionTitle}".`,
-          `OBLIGATOIRE: mentionner "${existingActionTitle}".`,
+          `Puis tu proposes de partir de "${existingActionTitle}" pour comprendre le blocage (sans demander de "bilan" ici).`,
+          `OBLIGATOIRE: dire que "${existingActionTitle}" n'a PAS été fait (ou "raté") et que ça bloque depuis plusieurs jours.`,
+          `OBLIGATOIRE: demander une "micro-étape" (ou "décomposer") pour "${existingActionTitle}".`,
         ].join(" ");
       case 5:
         return [
-          `Tu déclenches explicitement le bilan.`,
-          `OBLIGATOIRE: inclure le mot "bilan".`,
-          `Tu précises que sur "${existingActionTitle}" tu bloques depuis plusieurs jours.`,
-        ].join(" ");
-      case 6:
-        return [
-          `Tu réponds à l'investigator: "${existingActionTitle}" n'a pas été fait.`,
+          `Tu confirmes: "${existingActionTitle}" n'a pas été fait.`,
           `OBLIGATOIRE: inclure "pas fait" (ou "raté").`,
           `OBLIGATOIRE: 1 raison courte (fatigue, procrastination, stress).`,
         ].join(" ");
-      case 7:
+      case 6:
         return [
           `Tu donnes 1-2 phrases de contexte sur le blocage.`,
-          `Et tu ajoutes un sujet à traiter après: "${deferredTopic}".`,
-          `OBLIGATOIRE: utiliser exactement la structure: "Pour ${deferredTopic}, on en reparle après."`,
+          `Et tu mentionnes le sujet "${deferredTopic}" comme cause de fond (sans le reporter).`,
+          `IMPORTANT: n'utilise PAS la phrase "on en reparle après" (c'est Sophia qui la dira dans le bilan via la consigne d'eval).`,
           `IMPORTANT: reste naturel, pas de meta.`,
         ].join(" ");
-      case 8:
+      case 7:
         return [
           `Si Sophia propose une micro-étape, tu acceptes clairement.`,
           `OBLIGATOIRE: inclure "oui" ou "ok" + "vas-y" et le mot "micro-étape".`,
         ].join(" ");
-      case 9:
+      case 8:
         return [
           `Si Sophia te demande ce qui bloque concrètement, tu réponds avec un détail actionnable (1-2 phrases).`,
           `Ex: fatigue + friction de démarrage + lieu/moment.`,
         ].join(" ");
-      case 10:
+      case 9:
         return [
           `Si Sophia propose d'ajouter la micro-étape au plan, tu acceptes explicitement.`,
           `OBLIGATOIRE: inclure "oui, ajoute-la au plan".`,
         ].join(" ");
+      case 10:
+        return [
+          `Tu demandes explicitement de démarrer ton bilan/checkup maintenant.`,
+          `OBLIGATOIRE: inclure le mot "bilan" (ou "checkup").`,
+        ].join(" ");
       case 11:
         return [
-          `Tu entres dans le sujet différé: ${deferredTopic}.`,
-          `Tu décris en 2-4 phrases ce qui se passe (concret, vécu).`,
+          `Pendant le bilan/checkup, tu réponds brièvement et tu ramènes le sujet "${deferredTopic}" comme contexte (concret).`,
+          `IMPORTANT: ne dis PAS "on en reparle après".`,
         ].join(" ");
       case 12:
+        return [
+          `Après le bilan, tu entres dans le sujet reporté: ${deferredTopic}.`,
+          `Tu décris en 2-4 phrases ce qui se passe (concret, vécu).`,
+        ].join(" ");
+      case 13:
         return [
           `Tu clôtures le sujet quand Sophia demande "C'est bon pour ce point ?"`,
           `Réponds simplement: "Oui, c'est bon."`,
@@ -377,6 +508,95 @@ function buildComplexMultiMachineStateMachineContext(
   ].join("\n");
 
   return { stage, finalStage, ctx, forcedDone };
+}
+
+function validateComplexStageMessage(
+  stage: number,
+  next: string,
+  meta: { createTitle: string; deferredTopic: string; createTargetReps: number },
+): { ok: boolean; reason: string } {
+  const s = String(next ?? "").trim();
+  const lower = s.toLowerCase();
+  if (!s) return { ok: false, reason: "empty" };
+  // Global bans: do not accidentally consent to tool creation.
+  const consent =
+    /\bok\s+vas[-\s]?y\b/i.test(lower) ||
+    /\bvas[-\s]?y\b/i.test(lower) ||
+    /\btu\s+peux\s+l['’]?ajouter\b/i.test(lower) ||
+    /\bajoute[-\s]la\b/i.test(lower) ||
+    /\bmets[-\s]la\b/i.test(lower);
+  const startsYes = /^\s*(oui|ouais|okay)\b/i.test(s);
+
+  if (stage === 0) {
+    if (!/tu\s+en\s+penses\s+quoi\s*\?/i.test(s)) return { ok: false, reason: "stage0_missing_question" };
+    if (consent) return { ok: false, reason: "stage0_unexpected_consent" };
+    if (startsYes) return { ok: false, reason: "stage0_starts_with_yes" };
+    // Avoid phrasing that looks like explicit immediate add.
+    if (/\bajoute(r|)\b/i.test(lower)) return { ok: false, reason: "stage0_mentions_add" };
+  }
+  if (stage === 1) {
+    // IMPORTANT:
+    // Stage 1 is not safety-critical; being too strict here makes eval runs flaky under provider overload.
+    // We keep ONLY the consent guard so we never accidentally authorize creation.
+    // Allow "oui/ouais/ok" as acknowledgement at this stage, but never allow creation consent keywords.
+    if (consent) return { ok: false, reason: "stage1_unexpected_consent" };
+  }
+  if (stage === 2) {
+    // Same rationale as stage 1: keep flow alive under rate limits/overload; only keep consent guard.
+    if (consent) return { ok: false, reason: "stage2_unexpected_consent" };
+  }
+  if (stage === 3) {
+    if (!/\bcrise\s+de\s+panique\b/i.test(lower)) return { ok: false, reason: "stage3_missing_panic" };
+  }
+  if (stage === 4) {
+    if (!/\b(annule|laisse\s+tomber|stop)\b/i.test(lower)) return { ok: false, reason: "stage4_missing_cancel" };
+    // IMPORTANT: defer topic must be mentioned AFTER investigator is running so the router can capture it.
+    if (/\bon\s+en\s+reparl\w*\b/i.test(lower)) return { ok: false, reason: "stage4_should_not_defer_yet" };
+  }
+  if (stage === 6) {
+    // At this point, the USER should mention the deferred topic, but NOT use a deferral phrase.
+    // The assistant will produce the deferral during the bilan due to the eval override.
+    if (/\bon\s+en\s+reparl\w*\s+apr[èe]s\b/i.test(lower)) return { ok: false, reason: "stage6_forbidden_deferral_phrase" };
+    const topic = String(meta?.deferredTopic ?? "").trim();
+    if (topic) {
+      const escaped = topic.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&");
+      // Require at least *some* mention of the topic (or a key part of it).
+      const loose = new RegExp(escaped.split(/\s+/).slice(0, 2).map((w) => w.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")).join("[\\s\\S]{0,40}"), "i");
+      if (!loose.test(s)) return { ok: false, reason: "stage6_missing_topic_reference" };
+    }
+  }
+
+  if (stage === 10) {
+    if (!/\b(bilan|checkup)\b/i.test(lower)) return { ok: false, reason: "stage10_missing_bilan" };
+  }
+  if (stage === 11) {
+    if (/\bon\s+en\s+reparl\w*\s+apr[èe]s\b/i.test(lower)) return { ok: false, reason: "stage11_forbidden_deferral_phrase" };
+    const topic = String(meta?.deferredTopic ?? "").trim();
+    if (topic) {
+      const escaped = topic.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&");
+      const loose = new RegExp(escaped.split(/\s+/).slice(0, 2).map((w) => w.replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")).join("[\\s\\S]{0,40}"), "i");
+      if (!loose.test(s)) return { ok: false, reason: "stage11_missing_topic_reference" };
+    }
+  }
+  // Avoid quoting the create title with explicit add commands in any stage.
+  if (new RegExp(`"${String(meta?.createTitle ?? "").replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}"`, "i").test(s) && consent) {
+    return { ok: false, reason: "title_plus_consent" };
+  }
+  return { ok: true, reason: "ok" };
+}
+
+function isComplexMessageSafeNoConsent(next: string): { ok: boolean; reason: string } {
+  const s = String(next ?? "").trim();
+  const lower = s.toLowerCase();
+  if (!s) return { ok: false, reason: "empty" };
+  const consent =
+    /\bok\s+vas[-\s]?y\b/i.test(lower) ||
+    /\bvas[-\s]?y\b/i.test(lower) ||
+    /\btu\s+peux\s+l['’]?ajouter\b/i.test(lower) ||
+    /\bajoute[-\s]la\b/i.test(lower) ||
+    /\bmets[-\s]la\b/i.test(lower);
+  if (consent) return { ok: false, reason: "unexpected_consent" };
+  return { ok: true, reason: "ok" };
 }
 
 function buildCreateActionStateMachineContext(obj: any, ts: TranscriptMsg[], turnIndex: number): { stage: number; finalStage: number; ctx: string; forcedDone: boolean } {
@@ -690,6 +910,16 @@ function isShortAck(s: string): boolean {
   return false;
 }
 
+function normalizeForRepeatCheck(s: string): string {
+  return String(s ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function looksAssistantish(s: string): { bad: boolean; reason: string } {
   // NOTE (2026-01): We intentionally DO NOT hard-block "assistant-ish" phrasing here.
   // The eval judge should decide style violations at the end of the scenario.
@@ -700,10 +930,10 @@ function looksAssistantish(s: string): { bad: boolean; reason: string } {
 }
 
 function isMegaEnabled(): boolean {
-  const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
+  const megaRaw = (((globalThis as any)?.Deno?.env?.get?.("MEGA_TEST_MODE") ?? "") as string).trim();
   const isLocalSupabase =
-    (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
-    (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000");
+    ((((globalThis as any)?.Deno?.env?.get?.("SUPABASE_INTERNAL_HOST_PORT") ?? "") as string).trim() === "54321") ||
+    (String(((globalThis as any)?.Deno?.env?.get?.("SUPABASE_URL") ?? "") as string).includes("http://kong:8000"));
   return megaRaw === "1" || (megaRaw === "" && isLocalSupabase);
 }
 
@@ -754,6 +984,9 @@ function stubNextMessage(
 }
 
 const BodySchema = z.object({
+  // When simulate-user is invoked by run-evals, we propagate the eval_run_id to enable structured tracing
+  // (conversation_eval_events) from both simulate-user and the Gemini wrapper.
+  eval_run_id: z.string().uuid().optional(),
   persona: z
     .object({
       label: z.string().min(1),
@@ -785,10 +1018,14 @@ const BodySchema = z.object({
 
 console.log("simulate-user: Function initialized");
 
-Deno.serve(async (req) => {
+(globalThis as any).Deno.serve(async (req: Request) => {
   const requestId = getRequestId(req);
   // Keep last parsed body accessible for the catch block (to support graceful fallback).
   let body: z.infer<typeof BodySchema> | null = null;
+  // Keep last prompts for a "rescue" attempt in case we hit transient provider issues.
+  // Must be defined outside try/catch so the rescue path can use them.
+  let lastSystemPrompt = "";
+  let lastUserMessage = "";
   try {
     if (req.method === "OPTIONS") return handleCorsOptions(req);
     const corsErr = enforceCors(req);
@@ -800,8 +1037,8 @@ Deno.serve(async (req) => {
     body = parsed.data;
 
     const authHeader = req.headers.get("Authorization") ?? "";
-    const url = (Deno.env.get("SUPABASE_URL") ?? "").trim();
-    const anonKey = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim();
+    const url = String(((globalThis as any)?.Deno?.env?.get?.("SUPABASE_URL") ?? "") as string).trim();
+    const anonKey = String(((globalThis as any)?.Deno?.env?.get?.("SUPABASE_ANON_KEY") ?? "") as string).trim();
     if (!url || !anonKey) return serverError(req, requestId, "Server misconfigured");
 
     // Authenticate caller
@@ -830,11 +1067,30 @@ Deno.serve(async (req) => {
       .map((m) => `${m.role.toUpperCase()}${m.role === "assistant" && m.agent_used ? `(${m.agent_used})` : ""}: ${m.content}`)
       .join("\n");
 
+    // Anti-loop shortcut: if Sophia asks a clean A/B question, pick an option instead of repeating the original ask.
+    // This keeps evals from stalling on endless "tu préfères A ou B ?" when the simulated user is anxious/indecisive.
+    try {
+      const lastAssistant = [...(body.transcript as TranscriptMsg[] ?? [])].reverse().find((m) => m?.role === "assistant")?.content ?? "";
+      const lastAL = String(lastAssistant ?? "").toLowerCase();
+      const askedAB =
+        (/\ba\)\b/.test(lastAL) && /\bb\)\b/.test(lastAL)) ||
+        (/\boption\s*a\b/.test(lastAL) && /\boption\s*b\b/.test(lastAL)) ||
+        (/\btu\s+pr[ée]f[èe]res\s+a\s+ou\s+b\b/.test(lastAL)) ||
+        (/\ba\s+ou\s+b\s*\?/.test(lastAL));
+      if (askedAB) {
+        const choice = (body.difficulty === "hard") ? "Je sais pas..." : "A";
+        return jsonResponse(req, { success: true, request_id: requestId, next_message: choice, done: false, satisfied: ["picked_ab"] });
+      }
+    } catch {
+      // ignore
+    }
+
     const toolCreateActionObj = findObjective(body.objectives ?? [], "tools_create_action_realistic");
     const toolUpdateActionObj = findObjective(body.objectives ?? [], "tools_update_action_realistic");
     const toolBreakDownActionObj = findObjective(body.objectives ?? [], "tools_break_down_action_realistic");
     const toolActivateActionObj = findObjective(body.objectives ?? [], "tools_activate_action_realistic");
     const toolComplexObj = findObjective(body.objectives ?? [], "tools_complex_multimachine_realistic");
+    const topicSessionObj = findObjective(body.objectives ?? [], "topic_session_handoff_realistic");
 
     // Multi-tool flows:
     // - If both create + update objectives are present, we first run the create state machine
@@ -862,6 +1118,15 @@ Deno.serve(async (req) => {
       ? buildComplexMultiMachineStateMachineContext(toolComplexObj, body.transcript as TranscriptMsg[], body.turn_index)
       : null;
     const complexDone = Boolean(complexFlow?.forcedDone);
+
+    const topicFlow = topicSessionObj
+      ? buildTopicSessionHandoffStateMachineContext(
+        topicSessionObj,
+        body.transcript as TranscriptMsg[],
+        body.turn_index,
+        Number(body.max_turns) || 14,
+      )
+      : null;
 
     const toolFlow =
       (!complexDone && complexFlow)
@@ -897,6 +1162,8 @@ ${body.context ? body.context : "(aucun)"}
 
 ${toolFlow ? `\n\n${toolFlow.ctx}\n` : ""}
 
+${topicFlow ? `\n\n${topicFlow.ctx}\n` : ""}
+
 CANAL / CONTRAINTES UI:
 ${Array.isArray((body as any).suggested_replies) && (body as any).suggested_replies.length > 0
   ? `- Si possible, réponds avec UNE des quick replies suivantes (copie exacte) : ${JSON.stringify((body as any).suggested_replies)}`
@@ -928,15 +1195,13 @@ TRANSCRIPT (dernier contexte):
 ${transcriptText || "(vide)"}
     `.trim();
 
-    const MAX_ROLE_RETRIES = 3;
+    const MAX_ROLE_RETRIES = (toolComplexObj && complexFlow && !complexDone) ? 6 : 3;
     let parsedOut: any = null;
     let next = "";
     let satisfied: any[] = [];
     let done = false;
     let lastInvalidReason = "";
-    // Keep last prompts for a "rescue" attempt in case we hit transient provider issues.
-    let lastSystemPrompt = "";
-    let lastUserMessage = "";
+    let lastNonEmptyCandidate = "";
     for (let attempt = 1; attempt <= MAX_ROLE_RETRIES; attempt++) {
       const stageStrict =
         (toolUpdateActionObj && updateFlow && !updateDone)
@@ -981,20 +1246,62 @@ ${transcriptText || "(vide)"}
           )
           : "";
 
-      const systemPrompt = `${baseSystemPrompt}${stageStrict}${stageStrictBreakdown}`.trim();
+      const stageStrictComplex =
+        (toolComplexObj && complexFlow && !complexDone)
+          ? (
+            `\n\n[COMPLEX_MULTI_MACHINE — CONTRAINTES STRICTES]\n` +
+            `Tu es l'utilisateur. 1 seul message.\n` +
+            (lastInvalidReason ? `Ton message précédent était invalide: ${lastInvalidReason}\n` : "") +
+            `stage=${complexFlow.stage}/${complexFlow.finalStage}\n` +
+            `RÈGLES:\n` +
+            `- Tant que tu n'as pas explicitement changé d'avis, tu NE DONNES PAS de consentement pour créer/ajouter une nouvelle action.\n` +
+            `- Ne réponds PAS "oui" à une question d'ajout.\n` +
+            (complexFlow.stage === 4
+              ? `INTERDICTION (stage=4): ne mentionne PAS "stress au travail" et ne dis pas "on en reparlera après" dans ce message.\n`
+              : "") +
+            (complexFlow.stage === 6
+              ? `OBLIGATION (stage=6): mentionner "mon stress au travail" comme contexte (SANS écrire "on en reparle après").\n`
+              : "") +
+            (complexFlow.stage === 10
+              ? `OBLIGATION (stage=10): demander explicitement de démarrer le "bilan" (ou "checkup").\n`
+              : "") +
+            (complexFlow.stage === 11
+              ? `OBLIGATION (stage=11): pendant le bilan, reparler de "mon stress au travail" (SANS écrire "on en reparle après").\n`
+              : "")
+          )
+          : "";
+
+      const systemPrompt = `${baseSystemPrompt}${stageStrict}${stageStrictBreakdown}${stageStrictComplex}`.trim();
       const userMessage = baseUserMessage;
       lastSystemPrompt = systemPrompt;
       lastUserMessage = userMessage;
 
+      // Drastic (per request): always start simulate-user from gemini-3-flash-preview unless the caller overrides.
+      // Fallback order is handled inside gemini.ts.
+      const requestedModel = String((body as any).model ?? "").trim() || "gemini-3-flash-preview";
+
+      const simMaxRetries = (() => {
+        const raw = String((globalThis as any)?.Deno?.env?.get?.("SIMULATE_USER_LLM_MAX_RETRIES") ?? "").trim();
+        const n = Number(raw);
+        return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 10;
+      })();
+      const simHttpTimeoutMs = (() => {
+        const raw = String((globalThis as any)?.Deno?.env?.get?.("SIMULATE_USER_LLM_HTTP_TIMEOUT_MS") ?? "").trim();
+        const n = Number(raw);
+        // Default: long-ish because retries + fallbacks need time; can be overridden.
+        return Number.isFinite(n) && n >= 1000 ? Math.floor(n) : 25_000;
+      })();
+
       const out = await generateWithGemini(systemPrompt, userMessage, attempt >= 2 ? 0.2 : 0.4, true, [], "auto", {
         requestId: `${requestId}:role_retry:${attempt}`,
-        // IMPORTANT: start from 2.5 (stable) and let gemini.ts fallback to 2.0 on timeouts/503/empty responses.
-        model: (body as any).model ?? "gemini-2.5-flash",
+        // IMPORTANT: start from the requested model (runner passes it); fallbacks happen inside gemini.ts.
+        model: requestedModel,
         source: "simulate-user",
         forceRealAi: allowReal,
+        evalRunId: (body as any)?.eval_run_id ?? null,
         // Keep retries short to avoid edge-runtime early termination; gemini.ts has an internal fallback chain.
-        maxRetries: 3,
-        httpTimeoutMs: 8_000,
+        maxRetries: simMaxRetries,
+        httpTimeoutMs: simHttpTimeoutMs,
       } as any);
       try {
       parsedOut = JSON.parse(out as string);
@@ -1004,30 +1311,72 @@ ${transcriptText || "(vide)"}
       }
       next = String(parsedOut?.next_message ?? "").trim();
       if (!next) continue;
+      // Anti-loop: never repeat the exact previous user message.
+      const lastUserMsg = [...(body.transcript as TranscriptMsg[])].reverse().find((m) => m?.role === "user")?.content ?? "";
+      if (normalizeForRepeatCheck(next) && normalizeForRepeatCheck(next) === normalizeForRepeatCheck(lastUserMsg)) {
+        lastInvalidReason = "repeat_last_user_message";
+        next = "";
+        continue;
+      }
+      lastNonEmptyCandidate = next;
       // No "assistant-ish" hard gate here; judge will evaluate style at the end.
       // BUT: keep the update_action state machine mechanically valid so the scenario can reach the assertions.
       if (toolUpdateActionObj && updateFlow && !updateDone) {
         const v = validateUpdateActionStageMessage(updateFlow.stage, next, updateFlow.meta);
         if (!v.ok) {
-          lastInvalidReason = v.reason;
-          next = "";
-          continue;
+          // Soft validation: never block the whole run on strict stage constraints.
+          // Only enforce the safety invariant: no accidental consent phrasing.
+          const safe = isComplexMessageSafeNoConsent(next);
+          if (!safe.ok) {
+            lastInvalidReason = `update_${v.reason}_unsafe_${safe.reason}`;
+            next = "";
+            continue;
+          }
+          lastInvalidReason = `update_${v.reason}`;
         }
       }
       if (toolBreakDownActionObj && breakDownFlow && !breakDownDone) {
         const v = validateBreakDownActionStageMessage(breakDownFlow.stage, next, breakDownFlow.meta);
         if (!v.ok) {
+          const safe = isComplexMessageSafeNoConsent(next);
+          if (!safe.ok) {
+            lastInvalidReason = `breakdown_${v.reason}_unsafe_${safe.reason}`;
+            next = "";
+            continue;
+          }
+          lastInvalidReason = `breakdown_${v.reason}`;
+        }
+      }
+      if (toolComplexObj && complexFlow && !complexDone) {
+        const spec = (toolComplexObj?.spec && typeof toolComplexObj.spec === "object") ? toolComplexObj.spec : {};
+        const meta = {
+          createTitle: String(spec?.create_title ?? "Lecture (anti-scroll)"),
+          deferredTopic: String(spec?.deferred_topic ?? "mon stress au travail"),
+          createTargetReps: Number(spec?.create_target_reps ?? 3) || 3,
+        };
+        const v = validateComplexStageMessage(complexFlow.stage, next, meta);
+        if (!v.ok) {
+          // Soft validation: do not block on strict stage requirements (they are brittle under overload).
+          // Only enforce safety: never accidentally consent to creating/adding an action.
+          const safe = isComplexMessageSafeNoConsent(next);
+          if (!safe.ok) {
+            lastInvalidReason = `complex_${v.reason}_unsafe_${safe.reason}`;
+            next = "";
+            continue;
+          }
           lastInvalidReason = v.reason;
-          next = "";
-          continue;
         }
       }
       if (toolActivateActionObj && activateFlow && !activateDone) {
         const v = validateActivateActionStageMessage(activateFlow.stage, next, activateFlow.meta);
         if (!v.ok) {
-          lastInvalidReason = v.reason;
-          next = "";
-          continue;
+          const safe = isComplexMessageSafeNoConsent(next);
+          if (!safe.ok) {
+            lastInvalidReason = `activate_${v.reason}_unsafe_${safe.reason}`;
+            next = "";
+            continue;
+          }
+          lastInvalidReason = `activate_${v.reason}`;
         }
       }
       // After update_action flow is complete, avoid the simulated user parroting an assistant recap
@@ -1039,8 +1388,78 @@ ${transcriptText || "(vide)"}
       }
       break;
     }
+
+    // If we still couldn't produce a valid next_message, do one extra "rescue" attempt (still full AI, no hardcoded text).
+    if (!next && toolComplexObj && complexFlow && !complexDone) {
+      try {
+        const rescueSystem = `
+Tu joues le rôle d'un UTILISATEUR HUMAIN qui parle avec Sophia.
+Tu dois produire UN SEUL message utilisateur pour respecter une machine à états de test.
+Tu ne dis pas que tu fais un test.
+Tu ne donnes pas d'instructions au coach.
+
+Objectif: produire un JSON valide:
+{"next_message":"...","done":true/false,"satisfied":[]}
+
+Contrainte critique: ton message doit être valide pour le stage=${complexFlow.stage} (voir contexte).
+Raison du dernier échec (si présent): ${lastInvalidReason || "none"}.
+        `.trim();
+        const rescueUser = `
+TURN ${body.turn_index + 1}/${body.max_turns}
+
+TRANSCRIPT:
+${transcriptText || "(vide)"}
+
+CONTEXTE MACHINE:
+${complexFlow.ctx}
+        `.trim();
+
+        const out2 = await generateWithGemini(rescueSystem, rescueUser, 0.15, true, [], "auto", {
+          requestId: `${requestId}:role_rescue:complex`,
+          model: "gemini-2.0-flash",
+          source: "simulate-user:role_rescue_complex",
+          forceRealAi: allowReal,
+          evalRunId: (body as any)?.eval_run_id ?? null,
+          maxRetries: 2,
+          httpTimeoutMs: 8_000,
+        } as any);
+        const parsed2 = JSON.parse(out2 as string);
+        const cand = String(parsed2?.next_message ?? "").trim();
+        if (cand) {
+          const spec = (toolComplexObj?.spec && typeof toolComplexObj.spec === "object") ? toolComplexObj.spec : {};
+          const meta = {
+            createTitle: String(spec?.create_title ?? "Lecture (anti-scroll)"),
+            deferredTopic: String(spec?.deferred_topic ?? "mon stress au travail"),
+            createTargetReps: Number(spec?.create_target_reps ?? 3) || 3,
+          };
+          // Rescue should never hard-fail on strict stage constraints; only enforce safety.
+          const safe = isComplexMessageSafeNoConsent(cand);
+          if (safe.ok) {
+            next = cand;
+            parsedOut = parsed2;
+          } else {
+            lastInvalidReason = `rescue_unsafe_${safe.reason}`;
+          }
+        }
+      } catch {}
+    }
+    // Last resort: never abort the whole eval due to strict constraints.
+    // Safety invariant is enforced by isComplexMessageSafeNoConsent().
+    const allowInvalidFallback = true;
+    if (!next && lastNonEmptyCandidate && allowInvalidFallback) next = lastNonEmptyCandidate;
+    if (!next && !allowInvalidFallback) {
+      return jsonResponse(
+        req,
+        { error: "simulate-user failed to generate a valid next_message for complex flow", reason: lastInvalidReason, request_id: requestId },
+        { status: 500 },
+      );
+    }
     if (!next) return jsonResponse(req, { error: "Empty next_message", request_id: requestId }, { status: 500 });
     done = Boolean(parsedOut?.done) || body.turn_index + 1 >= body.max_turns;
+    // Topic-session scenario: do NOT allow early done; we want a full-length, fluid run for realism.
+    if (topicSessionObj) {
+      done = Boolean(topicFlow?.forcedDone) || body.turn_index + 1 >= body.max_turns;
+    }
     // Tool state machines: prevent early stop until ALL requested flows complete.
     if (toolFlow) {
       const allDone =
@@ -1109,6 +1528,7 @@ ${transcriptText || "(vide)"}
           model: "gemini-2.0-flash",
           source: "simulate-user:rescue_transient",
           forceRealAi: allowReal,
+          evalRunId: (body as any)?.eval_run_id ?? null,
           maxRetries: 2,
           httpTimeoutMs: 8_000,
         } as any);

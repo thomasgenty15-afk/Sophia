@@ -15,6 +15,7 @@ import { normalizeChatText } from "../chat_text.ts"
 import { buildConversationAgentViolations, judgeOfThree, type ToolDescriptor, verifyBilanAgentMessage, verifyConversationAgentMessage, verifyPostCheckupAgentMessage } from "../verifier.ts"
 import { appendDeferredTopicToState, assistantDeferredTopic, extractDeferredTopicFromUserMessage } from "./deferred_topics.ts"
 import { enqueueLlmRetryJob, tryEmergencyAiReply } from "./emergency.ts"
+import { logEvalEvent } from "../../run-evals/lib/eval_trace.ts"
 
 export async function runAgentAndVerify(opts: {
   supabase: SupabaseClient
@@ -337,6 +338,34 @@ export async function runAgentAndVerify(opts: {
     }
   }
 
+  async function maybeLogVerifierEvalTrace(args: { verifier_kind: string; issues: string[]; rewritten: boolean }) {
+    const requestId = String(meta?.requestId ?? "").trim()
+    if (!requestId) return
+    // Only useful for eval runs (request_id looks like "<uuid>:<dataset>:<scenario>").
+    if (!requestId.includes(":state_machines:") && !requestId.includes(":tools:") && !requestId.includes(":whatsapp:")) return
+    try {
+      const { data: row } = await supabase
+        .from("conversation_eval_runs")
+        .select("id,created_at")
+        .eq("config->>request_id", requestId)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      const evalRunId = (row as any)?.id ? String((row as any).id) : null
+      await logEvalEvent({
+        supabase,
+        evalRunId,
+        requestId,
+        source: "sophia-brain:verifier",
+        event: "verifier_issues",
+        level: "info",
+        payload: { verifier_kind: args.verifier_kind, issues: args.issues, rewritten: args.rewritten },
+      })
+    } catch {
+      // best-effort; never block user reply/eval
+    }
+  }
+
   switch (targetMode) {
     case "sentry":
       responseContent = await runSentry(userMessage, meta)
@@ -621,6 +650,18 @@ export async function runAgentAndVerify(opts: {
       break
   }
 
+  // Post-bilan rule (global): for post-checkup turns, always end with the validation phrase,
+  // regardless of the selected agent. This keeps the parking-lot progression deterministic.
+  if (
+    isPostCheckup &&
+    targetMode !== "sentry" &&
+    typeof responseContent === "string" &&
+    responseContent.trim() &&
+    !/c['’]est\s+bon\s+pour\s+ce\s+point\s*\?/i.test(responseContent)
+  ) {
+    responseContent = `${responseContent.trim()}\n\nC'est bon pour ce point ?`
+  }
+
   // Global output sanitation (avoid forbidden claims leaking from non-Architect modules).
   if (typeof responseContent === "string" && responseContent.trim()) {
     responseContent = responseContent
@@ -689,6 +730,11 @@ export async function runAgentAndVerify(opts: {
         },
       })
       responseContent = normalizeChatText(verified.text)
+      await maybeLogVerifierEvalTrace({
+        verifier_kind: "conversation",
+        issues: Array.isArray(verified.violations) ? verified.violations : [],
+        rewritten: Boolean(verified.rewritten),
+      })
       await logJudgeEvent({
         verifier_kind: "conversation",
         agent_used: targetMode,
