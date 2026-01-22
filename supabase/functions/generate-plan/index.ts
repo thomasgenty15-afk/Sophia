@@ -47,24 +47,26 @@ serve(async (req) => {
           time_of_day: "morning",
           targetReps: 7,
         },
-        {
-          id: `m_${phaseIdx}`,
-          type: "mission",
-          title: `MEGA_TEST_STUB: Mission P${phaseIdx}`,
-          description: "MEGA_TEST_STUB: description",
-          tracking_type: "boolean",
-          time_of_day: "any_time",
-        },
-        {
-          id: `f_${phaseIdx}`,
-          type: "framework",
-          title: `MEGA_TEST_STUB: Framework P${phaseIdx}`,
-          description: "MEGA_TEST_STUB: description",
-          tracking_type: "boolean",
-          time_of_day: "evening",
-          targetReps: 1,
-          frameworkDetails: { type: "one_shot", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
-        },
+        // Alterner entre mission et framework pour les phases paires/impaires
+        phaseIdx % 2 === 1
+          ? {
+              id: `m_${phaseIdx}`,
+              type: "mission",
+              title: `MEGA_TEST_STUB: Mission P${phaseIdx}`,
+              description: "MEGA_TEST_STUB: description",
+              tracking_type: "boolean",
+              time_of_day: "any_time",
+            }
+          : {
+              id: `f_${phaseIdx}`,
+              type: "framework",
+              title: `MEGA_TEST_STUB: Framework P${phaseIdx}`,
+              description: "MEGA_TEST_STUB: description",
+              tracking_type: "boolean",
+              time_of_day: "evening",
+              targetReps: 1,
+              frameworkDetails: { type: "one_shot", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
+            },
       ]);
 
       const plan = {
@@ -151,9 +153,9 @@ serve(async (req) => {
           3. Si l'utilisateur dit "c'est trop dur", allège le rythme ou supprime des actions complexes.
           4. Si l'utilisateur veut changer une action spécifique, remplace-la par une alternative pertinente.
           5. Si l'utilisateur demande de changer le rythme (ex: "plus lent"), applique STRICTEMENT les règles de pacing suivantes :
-             - fast : 4 semaines (1 mois) = 4 phases de 1 semaine, 3 actions par phase.
-             - balanced : 8 semaines (2 mois) = 4 phases de 2 semaines, 3 actions par phase.
-             - slow : 12 semaines (3 mois) = 4 phases de 3 semaines, 3 actions par phase.
+             - fast : 4 semaines (1 mois) = 4 phases de 1 semaine, 2 actions par phase.
+             - balanced : 8 semaines (2 mois) = 4 phases de 2 semaines, 2 actions par phase.
+             - slow : 12 semaines (3 mois) = 4 phases de 3 semaines, 2 actions par phase.
              => Si le rythme change, mets à jour estimatedDuration + sous-titres des phases + nombre de phases + actions par phase pour respecter ces contraintes.
           6. Renvoie UNIQUEMENT le JSON complet mis à jour.
           7. Assure-toi que chaque action a bien un "tracking_type" ('boolean' ou 'counter').
@@ -220,17 +222,17 @@ serve(async (req) => {
 
           RÈGLES DE DENSITÉ — STRICTES :
           - Tu DOIS produire EXACTEMENT 4 phases (ni plus, ni moins).
-          - Tu DOIS produire EXACTEMENT 3 actions par phase (donc 12 actions au total).
+          - Tu DOIS produire EXACTEMENT 2 actions par phase (donc 8 actions au total).
+          - CHAQUE PHASE DOIT contenir EXACTEMENT 1 habitude. C'est NON-NÉGOCIABLE.
 
           RÈGLES DE CONTENU (PERSONNALISÉ) :
           1. **Titres des phases** : Créatifs, personnalisés, évocateurs (pas de "Phase 1" générique).
              - Exemples : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
           2. **Distribution (CRITIQUE)** :
-              - **RÈGLE DE RATIO GLOBALE** : Sur la totalité du plan, tu DOIS respecter cette distribution :
-                * 50% d'Habitudes ("habitude")
-                * 25% de Missions ("mission")
-                * 25% de Frameworks ("framework")
-                (Exemple : Pour 12 actions au total -> 6 Habitudes, 3 Missions, 3 Frameworks).
+              - **RÈGLE DE RATIO GLOBALE** : Sur la totalité du plan :
+                * 4 Habitudes OBLIGATOIRES (1 par phase)
+                * Les 4 autres actions sont des Missions ("mission") ou Frameworks ("framework")
+                (Exemple : Pour 8 actions au total -> 4 Habitudes + 2 Missions + 2 Frameworks).
               - Au moins 1 "Quête Principale" ('main') par phase.
           3.  **Types d'Actions** (CRITIQUE - STRICTES DÉFINITIONS) :
               - "habitude" (Groupe A) : Action RÉELLE et RÉPÉTITIVE (ex: "Faire 5min de cohérence cardiaque", "Rituel de relaxation", "Prendre ses compléments").
@@ -392,17 +394,17 @@ serve(async (req) => {
 
           RÈGLES DE DENSITÉ — STRICTES :
           - Tu DOIS produire EXACTEMENT 4 phases (ni plus, ni moins).
-          - Tu DOIS produire EXACTEMENT 3 actions par phase (donc 12 actions au total).
+          - Tu DOIS produire EXACTEMENT 2 actions par phase (donc 8 actions au total).
+          - CHAQUE PHASE DOIT contenir EXACTEMENT 1 habitude. C'est NON-NÉGOCIABLE.
 
           RÈGLES DE CONTENU (PERSONNALISÉ) :
           1. **Titres des phases** : Créatifs, personnalisés, évocateurs (pas de "Phase 1" générique).
              - Exemples : "Le Grand Nettoyage", "Protocole Sommeil Profond", "Mode Moine Activé", "L'Architecture Invisible".
           2. **Distribution (CRITIQUE)** :
-              - **RÈGLE DE RATIO GLOBALE** : Sur la totalité du plan, tu DOIS respecter cette distribution :
-                * 50% d'Habitudes ("habitude")
-                * 25% de Missions ("mission")
-                * 25% de Frameworks ("framework")
-                (Exemple : Pour 12 actions au total -> 6 Habitudes, 3 Missions, 3 Frameworks).
+              - **RÈGLE DE RATIO GLOBALE** : Sur la totalité du plan :
+                * 4 Habitudes OBLIGATOIRES (1 par phase)
+                * Les 4 autres actions sont des Missions ("mission") ou Frameworks ("framework")
+                (Exemple : Pour 8 actions au total -> 4 Habitudes + 2 Missions + 2 Frameworks).
               - Au moins 1 "Quête Principale" ('main') par phase.
           3.  **Types d'Actions** :
               - "habitude" (Groupe A) : Action récurrente (ex: Couvre-feu digital). A besoin de 'targetReps'.

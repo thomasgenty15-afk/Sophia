@@ -243,9 +243,26 @@ function coerceProfileFactValue(key: string, value: any): any {
   const s = typeof value === "string" ? value.trim() : value;
 
   const booleanKeys = new Set([
-    "conversation.use_emojis",
     "coaching.plan_push_allowed",
   ]);
+
+  // Normalize common synonyms for enumerated facts.
+  if (k === "conversation.verbosity") {
+    const str = String(s ?? "").trim().toLowerCase();
+    if (["short", "concise", "court", "courtes", "bref", "brève", "breve", "brèves", "breves"].includes(str)) return "short";
+    if (["detailed", "detaille", "détaillé", "détaillée", "detaillé", "detaillée", "long", "longue"].includes(str)) return "detailed";
+    // fallback: keep as-is (string)
+    return String(s ?? "");
+  }
+
+  if (k === "conversation.use_emojis") {
+    const str = String(s ?? "").trim().toLowerCase();
+    // Normalize to the enum used by the watcher schema: "never" | "normal"
+    if (["false", "0", "no", "n", "non", "never", "sans", "stop"].includes(str)) return "never";
+    if (["true", "1", "yes", "y", "oui", "ok", "normal", "oui stp", "vas-y"].includes(str)) return "normal";
+    // fallback: keep as-is
+    return String(s ?? "");
+  }
 
   if (booleanKeys.has(k)) {
     if (typeof value === "boolean") return value;
@@ -259,6 +276,25 @@ function coerceProfileFactValue(key: string, value: any): any {
   // Default: keep string if provided, otherwise pass-through (JSONB accepts primitives)
   if (typeof s === "string") return s;
   return value;
+}
+
+function normalizeProfileFactKey(rawKey: string): string {
+  const k = String(rawKey ?? "").trim();
+  if (!k) return "";
+  // Back-compat / common model aliasing:
+  if (k === "conversation.plan_push" || k === "coaching.plan_push" || k === "plan_push_allowed") return "coaching.plan_push_allowed";
+  if (k === "conversation.verbose") return "conversation.verbosity";
+  if (k === "conversation.emojis" || k === "conversation.emoji") return "conversation.use_emojis";
+  return k;
+}
+
+function isAllowedProfileFactKey(key: string): boolean {
+  return new Set([
+    "conversation.tone",
+    "conversation.verbosity",
+    "conversation.use_emojis",
+    "coaching.plan_push_allowed",
+  ]).has(String(key ?? "").trim());
 }
 
 export async function generateCompanionModelOutput(opts: {
@@ -449,14 +485,15 @@ export async function handleCompanionModelOutput(opts: {
   if (typeof response === "object" && (response as any)?.tool === "apply_profile_fact") {
     const args = (response as any).args ?? {}
     const candidateId = (args?.candidate_id ?? null) ? String(args?.candidate_id) : null
-    const key = String(args?.key ?? "").trim()
+    const key0 = String(args?.key ?? "").trim()
+    const key = normalizeProfileFactKey(key0)
     const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
     const resolvedScope = rawScope === "global" ? "global" : scope
     const rawValue = (args as any)?.value
     const value = coerceProfileFactValue(key, rawValue)
     const reason = String(args?.reason ?? "")
     let toolExecution: "success" | "uncertain" = "success"
-    if (key) {
+    if (key && isAllowedProfileFactKey(key)) {
       try {
         await upsertUserProfileFactWithEvent({
           supabase,
@@ -524,6 +561,8 @@ export async function handleCompanionModelOutput(opts: {
         console.warn("[Companion] apply_profile_fact failed (non-blocking):", e)
         toolExecution = "uncertain"
       }
+    } else {
+      toolExecution = "uncertain"
     }
     return { text: "Ok, c’est noté. On continue.", executed_tools: ["apply_profile_fact"], tool_execution: toolExecution }
   }

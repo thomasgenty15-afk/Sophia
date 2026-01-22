@@ -1,3 +1,125 @@
+import { generateWithGemini } from "../../_shared/gemini.ts"
+
+/**
+ * VALIDATE + FORMALIZE a potential deferred topic using AI.
+ * Called at STORAGE TIME (not at reprise) to ensure we only store clean, valid topics.
+ * 
+ * Returns:
+ * - { isValid: true, formalizedTopic: "la situation avec ton boss" } → Store this
+ * - { isValid: false } → Don't store, it's noise
+ */
+export async function validateAndFormalizeDeferredTopic(opts: {
+  rawMessage: string
+  extractedTopic?: string
+  source: "user_digression" | "user_explicit_defer" | "assistant_defer"
+}): Promise<{ isValid: boolean; formalizedTopic?: string }> {
+  const raw = String(opts.rawMessage ?? "").trim()
+  const extracted = String(opts.extractedTopic ?? "").trim()
+  
+  if (!raw && !extracted) return { isValid: false }
+  
+  // Quick rule-based rejection for obvious noise
+  const combined = `${raw} ${extracted}`.toLowerCase()
+  if (/^(?:ok|oui|non|merci|euh|hm+|bof|ah|oh)$/i.test(combined.trim())) {
+    return { isValid: false }
+  }
+  
+  try {
+    const prompt = `Tu es un assistant qui analyse si un message contient un VRAI sujet à reprendre plus tard.
+
+SOURCE: ${opts.source === "user_digression" ? "L'utilisateur a fait une digression pendant le bilan" : opts.source === "user_explicit_defer" ? "L'utilisateur a dit 'on en reparle après'" : "Sophia a dit 'on en reparlera après le bilan'"}
+MESSAGE COMPLET: "${raw.slice(0, 400)}"
+SUJET EXTRAIT (règles): "${extracted.slice(0, 200)}"
+
+TÂCHE: Analyse et réponds en JSON strict.
+
+RÈGLES DE VALIDATION:
+- Un VRAI sujet = quelque chose de concret dont on peut discuter (boss, travail, stress, organisation, famille, projet, etc.)
+- PAS un vrai sujet = expressions vagues, incertitudes, fillers ("je sais pas", "peut-être", "bof", "euh")
+- Si le message mentionne un problème réel (boss stressant, organisation, anxiété, etc.), c'est VALIDE même si entouré de "je sais pas trop"
+
+RÈGLES DE FORMULATION (si valide):
+- Utilise "tu/ton/ta" (pas "je/mon/ma")  
+- Max 10 mots, naturel et clair
+- Exemples:
+  - "j'ai mon boss qui me stresse, je sais pas trop" → "la situation avec ton boss"
+  - "mon organisation au travail" → "ton organisation au travail"
+  - "je sais pas trop" (seul) → INVALIDE
+
+RÉPONDS EN JSON:
+{"isValid": true, "topic": "description formalisée"} 
+ou
+{"isValid": false}
+
+JSON:`
+
+    const result = await generateWithGemini({
+      model: "gemini-2.0-flash",
+      systemInstruction: "Tu analyses des sujets de conversation. Réponds uniquement en JSON valide.",
+      contents: [{ role: "user", parts: [{ text: prompt }] }],
+      maxOutputTokens: 80,
+      temperature: 0.1,
+    })
+    
+    const text = String(result?.text ?? "").trim()
+    // Extract JSON from response (handle potential markdown code blocks)
+    const jsonMatch = text.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      console.warn("[deferred_topics] AI returned non-JSON:", text.slice(0, 100))
+      return { isValid: false }
+    }
+    
+    const parsed = JSON.parse(jsonMatch[0])
+    const isValid = Boolean(parsed?.isValid)
+    const topic = String(parsed?.topic ?? "").trim()
+      .replace(/^["'""'']+|["'""'']+$/g, "")
+      .trim()
+    
+    if (isValid && topic && topic.length >= 3 && topic.length <= 120) {
+      console.log(`[deferred_topics] Validated & formalized: "${extracted.slice(0, 30) || raw.slice(0, 30)}" → "${topic}"`)
+      return { isValid: true, formalizedTopic: topic }
+    }
+    
+    if (!isValid) {
+      console.log(`[deferred_topics] Rejected as invalid: "${extracted.slice(0, 40) || raw.slice(0, 40)}"`)
+    }
+    
+    return { isValid: false }
+  } catch (e) {
+    console.warn("[deferred_topics] AI validation failed:", e)
+    // Fallback: use rule-based validation
+    if (isValidDeferredTopic(extracted || raw)) {
+      return { isValid: true, formalizedTopic: extracted || raw.slice(0, 120) }
+    }
+    return { isValid: false }
+  }
+}
+
+/**
+ * LEGACY: Simple formalization without validation (used at reprise if topic wasn't pre-formalized)
+ */
+export async function formalizeDeferredTopicWithAI(
+  rawTopic: string,
+  userMessageContext?: string,
+): Promise<string> {
+  const raw = String(rawTopic ?? "").trim()
+  if (!raw || raw.length < 5) return raw
+  
+  // If the topic already looks clean (short, no filler), skip AI
+  if (raw.length <= 30 && !/\b(?:je\s+sais?\s+pas|euh|hm|bof|peut[-\s]?être)\b/i.test(raw)) {
+    return raw
+  }
+  
+  // Use the new validation function
+  const result = await validateAndFormalizeDeferredTopic({
+    rawMessage: userMessageContext || raw,
+    extractedTopic: raw,
+    source: "user_digression",
+  })
+  
+  return result.formalizedTopic || raw
+}
+
 export function assistantDeferredTopic(assistantText: string): boolean {
   const s = (assistantText ?? "").toString().toLowerCase()
   // Examples to catch:
@@ -50,27 +172,29 @@ export function extractDeferredTopicFromUserMessage(userMsg: string): string {
     if (!s) return ""
     // Strip leading discourse fillers that are not the topic.
     s = s.replace(/^(?:mais|en\s+fait|du\s+coup|bon|bref|alors|ok)\b[,:]?\s*/i, "").trim()
-    s = s.replace(/^c['’]est\s+vrai\s+que\s+/i, "").trim()
+    s = s.replace(/^c['']est\s+vrai\s+que\s+/i, "").trim()
     // Remove surrounding quotes
-    s = s.replace(/^["'“”‘’]+|["'“”‘’]+$/g, "").trim()
+    s = s.replace(/^["'""'']+|["'""'']+$/g, "").trim()
     // If the user message contains an explicit deferral, keep only the part BEFORE it.
     // This prevents storing the whole paragraph including "on en reparlera après".
     s = s.split(/\bon\s+(?:en\s+)?(?:reparl\w*|parl\w*|discut\w*|y\s+revien\w*|revien\w*)\b/i)[0]?.trim() ?? s
     // Remove trailing "after" / deferral / filler fragments that often follow the true topic
     s = s.replace(/\b(apr[èe]s\s+(?:le\s+)?bilan)\b/gi, "").trim()
+    // Remove uncertainty expressions that aren't the topic
+    s = s.replace(/\b(?:mais\s+)?(?:je\s+(?:ne\s+)?sais?\s+pas\s+(?:trop|vraiment)?|j['']?h[ée]site|je\s+suis\s+pas\s+s[ûu]r(?:e)?|peut[-\s]?être)\b/gi, "").trim()
     // If we have commas, the first clause is usually the clean topic BUT
     // avoid discourse markers like "D'ailleurs," / "Au fait," which are not the topic.
     if (s.includes(",")) {
       const parts = s.split(",").map((p) => p.trim()).filter(Boolean)
       const first = parts[0] ?? ""
-      const isMarker = /^(d['’]?ailleurs|au\s+fait|sinon|bon|bref|du\s+coup|tiens|ok|alors)$/i.test(first)
+      const isMarker = /^(d['']?ailleurs|au\s+fait|sinon|bon|bref|du\s+coup|tiens|ok|alors)$/i.test(first)
       s = (isMarker ? (parts[1] ?? first) : first).trim()
     }
     // Strip common trailing fillers repeatedly
     for (let i = 0; i < 4; i++) {
       const before = s
       s = s
-        .replace(/\s+(?:s['’]il\s+te\s+pla[iî]t|s['’]il\s+vous\s+pla[iî]t|si\s+tu\s+veux|si\s+vous\s+voulez|du\s+coup|enfin|bref)\s*$/i, "")
+        .replace(/\s+(?:s['']il\s+te\s+pla[iî]t|s['']il\s+vous\s+pla[iî]t|si\s+tu\s+veux|si\s+vous\s+voulez|du\s+coup|enfin|bref)\s*$/i, "")
         .replace(/\s*(?:,|\.)?\s*(?:mais|par\s+contre|donc)\s*$/i, "")
         .trim()
       if (s === before) break
@@ -78,6 +202,17 @@ export function extractDeferredTopicFromUserMessage(userMsg: string): string {
     // Final safety: truncate overly long topics
     return s.slice(0, 160)
   }
+  
+  // PRIORITY EXTRACTION: Look for common work/life stress indicators FIRST
+  // These are often buried in uncertainty ("j'ai mon boss qui..., je sais pas trop")
+  const bossMatch = m.match(/\b(?:mon\s+)?(?:boss|chef|manager|sup[eé]rieur|patron|directeur)(?:\s+qui\s+[^,.!?]+)?/i)
+  if (bossMatch?.[0]) return normalizeTopic(bossMatch[0])
+  
+  const workMatch = m.match(/\b(?:mon\s+)?(?:travail|boulot|taff|job)(?:\s+qui\s+[^,.!?]+)?/i)
+  if (workMatch?.[0]) return normalizeTopic(workMatch[0])
+  
+  const stressMatch = m.match(/\b(?:le\s+|mon\s+)?stress(?:\s+(?:au|du|avec)\s+[^,.!?]+)?/i)
+  if (stressMatch?.[0]) return normalizeTopic(stressMatch[0])
 
   // High-precision shortcuts (common in FR): extract the noun phrase directly.
   const org = /\b(?:mon|ma|mes)\s+organisation(?:\s+(?:au|du)\s+travail)?\b/i.exec(m)
@@ -117,20 +252,52 @@ export function extractDeferredTopicFromUserMessage(userMsg: string): string {
   return normalizeTopic(tail)
 }
 
+/**
+ * Check if a candidate topic is actually a real subject worth storing,
+ * or just noise/filler/uncertainty expressions.
+ */
+export function isValidDeferredTopic(topic: string): boolean {
+  const t = String(topic ?? "").trim().toLowerCase()
+  if (!t || t.length < 4) return false
+  
+  // Reject pure uncertainty/filler expressions
+  const invalidPatterns = [
+    /^(?:je\s+(?:ne\s+)?sais?\s+pas(?:\s+trop)?|j['']?h[ée]site|peut[-\s]?[êe]tre|bof|euh+|hm+)$/i,
+    /^(?:d['']?ailleurs|bref|ok|oui|non|merci|c['']est\s+bon|voil[àa]|bon|alors)$/i,
+    /^(?:je\s+(?:ne\s+)?sais?\s+pas(?:\s+trop)?)/i, // starts with "je sais pas"
+    /^(?:pas\s+s[ûu]r|pas\s+sure)/i,
+  ]
+  
+  for (const p of invalidPatterns) {
+    if (p.test(t)) return false
+  }
+  
+  // Must contain at least one "real" noun or subject
+  const hasRealSubject = /\b(?:boss|chef|travail|boulot|stress|famille|parents|ami|relation|sommeil|sant[ée]|argent|projet|objectif|plan|exercice|action|routine|habitude|organisation|temps|emploi|job|sport|lecture)\b/i.test(t)
+  
+  // Or be long enough to likely be meaningful
+  return hasRealSubject || t.length >= 15
+}
+
 export function appendDeferredTopicToState(currentState: any, topic: string): any {
   const prev = currentState?.temp_memory?.deferred_topics ?? []
   const t = String(topic ?? "").trim()
   if (!t) return currentState
+  
+  // STRICT VALIDATION: reject invalid/noise topics
+  if (!isValidDeferredTopic(t)) {
+    console.warn(`[deferred_topics] Rejecting invalid topic: "${t.slice(0, 50)}"`)
+    return currentState
+  }
+  
   const norm = (x: unknown) =>
     String(x ?? "")
       .toLowerCase()
-      .replace(/[“”"']/g, "")
+      .replace(/["""']/g, "")
       .replace(/\s+/g, " ")
       .trim()
   const tN = norm(t)
-  // Drop useless topics that are too generic/noisy.
-  if (!tN || tN.length < 4) return currentState
-  if (/^(d['’]ailleurs|bref|ok|oui|merci|c['’]est\s+bon)$/i.test(tN)) return currentState
+  
   const exists =
     Array.isArray(prev) &&
     prev.some((x: any) => {

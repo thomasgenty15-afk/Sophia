@@ -13,7 +13,7 @@ import { buildCompanionSystemPrompt, generateCompanionModelOutput, handleCompani
 import { runAssistant } from "../agents/assistant.ts"
 import { normalizeChatText } from "../chat_text.ts"
 import { buildConversationAgentViolations, judgeOfThree, type ToolDescriptor, verifyBilanAgentMessage, verifyConversationAgentMessage, verifyPostCheckupAgentMessage } from "../verifier.ts"
-import { appendDeferredTopicToState, assistantDeferredTopic, extractDeferredTopicFromUserMessage } from "./deferred_topics.ts"
+import { appendDeferredTopicToState, assistantDeferredTopic, extractDeferredTopicFromUserMessage, formalizeDeferredTopicWithAI } from "./deferred_topics.ts"
 import { enqueueLlmRetryJob, tryEmergencyAiReply } from "./emergency.ts"
 import { logEvalEvent } from "../../run-evals/lib/eval_trace.ts"
 
@@ -34,6 +34,8 @@ export async function runAgentAndVerify(opts: {
   isPostCheckup: boolean
   outageTemplate: string
   sophiaChatModel: string
+  /** Pre-formalized deferred topic from dispatcher (avoids extra AI call) */
+  dispatcherDeferredTopic?: string | null
 }): Promise<{ responseContent: string; nextMode: AgentMode }> {
   const {
     supabase,
@@ -426,13 +428,23 @@ export async function runAgentAndVerify(opts: {
           const stAfter = await getUserState(supabase, userId, scope)
           const deferred = stAfter?.investigation_state?.temp_memory?.deferred_topics ?? prevDeferred
           if (deferred.length > 0) {
+            // Formalize the topic with AI for a cleaner reprise
+            let formalizedTopic = deferred[0]
+            try {
+              formalizedTopic = await formalizeDeferredTopicWithAI(deferred[0], userMessage)
+            } catch (e) {
+              console.warn("[Router] Topic formalization failed, using raw:", e)
+            }
+            
+            // Store the formalized version for future use
+            const formalizedDeferred = [formalizedTopic, ...deferred.slice(1)]
             await updateUserState(supabase, userId, scope, {
-              investigation_state: { status: "post_checkup", temp_memory: { deferred_topics: deferred, current_topic_index: 0 } },
+              investigation_state: { status: "post_checkup", temp_memory: { deferred_topics: formalizedDeferred, current_topic_index: 0 } },
             })
             responseContent =
               `Ok, on a fini le bilan.\n\n` +
-              `Tu m'avais dit qu'on reparlerait de : "${deferred[0]}".\n` +
-              `Tu veux qu'on commence par ça ?`
+              `Tu voulais qu'on reparle de ${formalizedTopic}.\n` +
+              `On en discute maintenant ?`
             nextMode = "companion"
           } else {
             nextMode = "companion"
@@ -752,18 +764,28 @@ export async function runAgentAndVerify(opts: {
   }
 
   // During an active checkup, if ANY agent explicitly defers, store the topic.
+  // Use dispatcher's pre-formalized topic if available (no extra AI call!)
   if (checkupActive && !stopCheckup && targetMode !== "sentry" && assistantDeferredTopic(responseContent)) {
     try {
       const latest = await getUserState(supabase, userId, scope)
-      const extracted = extractDeferredTopicFromUserMessage(userMessage)
-      const topic = extracted || String(userMessage ?? "").trim().slice(0, 240) || "Sujet à reprendre"
-      if (latest?.investigation_state) {
-        const updatedInv = appendDeferredTopicToState(latest.investigation_state, topic)
-        await updateUserState(supabase, userId, scope, { investigation_state: updatedInv })
+      
+      // USE DISPATCHER'S FORMALIZED TOPIC if available (already computed in router)
+      const formalizedFromDispatcher = opts.dispatcherDeferredTopic
+      const fallbackExtracted = extractDeferredTopicFromUserMessage(userMessage) || String(userMessage ?? "").trim().slice(0, 240)
+      const topicToStore = formalizedFromDispatcher || fallbackExtracted
+      
+      if (topicToStore && topicToStore.length >= 3) {
+        if (latest?.investigation_state) {
+          const updatedInv = appendDeferredTopicToState(latest.investigation_state, topicToStore)
+          await updateUserState(supabase, userId, scope, { investigation_state: updatedInv })
+        } else {
+          await updateUserState(supabase, userId, scope, {
+            investigation_state: { status: "post_checkup", temp_memory: { deferred_topics: [topicToStore], current_topic_index: 0 } },
+          })
+        }
+        console.log(`[Router] Assistant defer captured: "${topicToStore}" (from=${formalizedFromDispatcher ? "dispatcher" : "fallback"})`)
       } else {
-        await updateUserState(supabase, userId, scope, {
-          investigation_state: { status: "post_checkup", temp_memory: { deferred_topics: [topic], current_topic_index: 0 } },
-        })
+        console.log(`[Router] Assistant defer rejected - no valid topic`)
       }
     } catch (e) {
       console.error("[Router] deferred topic store failed (non-blocking):", e)

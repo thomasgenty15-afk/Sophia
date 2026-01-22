@@ -1,0 +1,45 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_easy_toolflow_topic",
+  "description": "EASY: 2 machines (toolflow + topic_session). User starts a plan update, gets bored, triggers topic handoff, then comes back.",
+  "tags": ["stress_test", "easy", "toolflow", "topic_session"],
+  "difficulty": "easy",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur distrait",
+    "age_range": "25-35",
+    "style": "oral, naturel, se laisse facilement distraire mais revient sur le sujet",
+    "background": "Je veux améliorer mon sommeil mais je décroche facilement. Je peux changer de sujet puis revenir."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_easy_toolflow_topic",
+      "spec": {
+        "phase_1_plan_focus": "Parle-moi de mon plan sommeil, je veux ajouter une action",
+        "phase_2_digression": "En fait non, laisse tomber. Parlons d'autre chose.",
+        "phase_3_small_talk": "Comment tu vas toi Sophia ?",
+        "phase_4_return": "Bon ok, on reprend le plan, qu'est-ce qu'on faisait déjà ?",
+        "phase_5_continue": "Oui vas-y, on fait ça.",
+        "phase_6_done": "Ok merci, c'est bon pour aujourd'hui."
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "chat_state_temp_memory_paths_exist": [
+      "supervisor.updated_at"
+    ],
+    "scheduler_invariants": [
+      "toolflow_cleared_after_stop",
+      "sessions_have_resume_brief",
+      "queue_bounded",
+      "topic_session_meaningful_topic"
+    ]
+  }
+}
+

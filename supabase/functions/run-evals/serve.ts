@@ -80,11 +80,12 @@ export function serveRunEvals() {
 
       // IMPORTANT: run-evals can be killed by edge-runtime wall-clock limits when running long scenarios (20 turns).
       // We therefore support "chunked" execution: if we approach a per-request budget, we return a partial response.
+      // NOTE: Supabase edge runtime kills isolates at ~60s wall clock. We MUST checkpoint BEFORE that.
       const maxWallClockMsPerRequest = (() => {
         const raw = (body as any)?.limits?.max_wall_clock_ms_per_request;
         const n = Number(raw);
-        // Default: keep comfortably under typical wall-clock kills (~6–7 min observed locally).
-        return Number.isFinite(n) && n >= 10_000 ? Math.floor(n) : 180_000; // 3 minutes
+        // Default: 45s to checkpoint safely before ~60s isolate kill
+        return Number.isFinite(n) && n >= 10_000 ? Math.floor(n) : 45_000; // 45 seconds
       })();
       const requestDeadlineMs = Date.now() + maxWallClockMsPerRequest;
       const remainingBudgetMs = () => Math.max(0, requestDeadlineMs - Date.now());
@@ -485,15 +486,29 @@ export function serveRunEvals() {
           // Ensure values persisted to JSON/JSONB columns are actually JSON-serializable.
           // (If serialization fails, supabase-js can end up sending an empty/invalid body -> PGRST102.)
           const toJsonSafe = <T>(value: T): T => {
-            const controlChars = /[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g;
+            const controlChars = /[\u0000-\u0008\u000B\u000C\u000E-\u001F\u007F-\u009F]/g;
             const replacer = (_k: string, v: any) => {
+              if (v === undefined) return null;
               if (typeof v === "bigint") return Number(v);
               if (typeof v === "number" && !Number.isFinite(v)) return null;
+              if (typeof v === "function") return null;
+              if (typeof v === "symbol") return null;
               // Avoid rare PostgREST "invalid json" failures due to control chars in strings.
-              if (typeof v === "string" && controlChars.test(v)) return v.replace(controlChars, " ");
+              if (typeof v === "string") {
+                // Replace control chars AND strip any invalid UTF-8 surrogates
+                let clean = v.replace(controlChars, " ");
+                // Remove lone surrogates (invalid in JSON)
+                clean = clean.replace(/[\uD800-\uDFFF]/g, "");
+                return clean;
+              }
               return v;
             };
-            return JSON.parse(JSON.stringify(value, replacer));
+            try {
+              return JSON.parse(JSON.stringify(value, replacer));
+            } catch (e) {
+              console.error("[toJsonSafe] stringify failed, returning null:", e);
+              return null as T;
+            }
           };
 
           // Transcript-specific sanitization:
@@ -519,7 +534,10 @@ export function serveRunEvals() {
             // If the scenario already starts with "bilan"/an affirmative, don't double-trigger.
             !(looksAffirmative(firstStepUser) || looksLikeCheckupIntent(firstStepUser));
 
-          if (shouldKickoff && history.length === 0) {
+          const hasExplicitSteps = Array.isArray((s as any)?.steps) && (s as any).steps.length > 0;
+          // Kickoff ("Oui") is only useful for fixed-step scenarios where the first user message might be a bare confirmation.
+          // For simulated AI-user scenarios (no steps), kickoff can accidentally start an unrelated session/mode and derail the run.
+          if (shouldKickoff && history.length === 0 && hasExplicitSteps) {
             const kickoffMsg = "Oui";
             // Prevent long LLM hangs from triggering edge worker limits; keep each step bounded.
             (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
@@ -956,8 +974,28 @@ export function serveRunEvals() {
               }
               let userMsg = "";
               let nextDone = false;
+              
+              // Fetch current chat state for sophisticated state machines (ultimate_full_flow)
+              let currentChatState: any = stBefore;
+              try {
+                const { data: stCurrent } = await admin
+                  .from("user_chat_states")
+                  .select("*")
+                  .eq("user_id", testUserId)
+                  .eq("scope", scope)
+                  .maybeSingle();
+                if (stCurrent) currentChatState = stCurrent;
+              } catch {}
 
-              if (true) {
+              const lastHistoryMsg = history.length > 0 ? history[history.length - 1] : null
+              const needsAssistantCatchup = lastHistoryMsg?.role === "user" && String(lastHistoryMsg?.content ?? "").trim().length > 0
+
+              if (needsAssistantCatchup) {
+                // If the previous run ended after a user turn (e.g., timeout), do NOT generate a new user message.
+                // Re-run the assistant on the pending user message to avoid consecutive user turns.
+                userMsg = String(lastHistoryMsg?.content ?? "")
+                nextDone = false
+              } else {
                 const MAX_SIM_RETRIES = 6;
                 let simJson: any = null;
                 let simStatus = 0;
@@ -978,12 +1016,14 @@ export function serveRunEvals() {
                       suggested_replies: (s as any).suggested_replies ?? undefined,
                       difficulty: (body.limits.user_difficulty ?? "mid"),
                       model: evalModel,
+                      // Pass chat_state for sophisticated state machines (ultimate_full_flow)
+                      chat_state: currentChatState ?? null,
                       context: [
                         "=== CONTEXTE PLAN (référence) ===",
                         dashboardContext || "(vide)",
                         "",
-                        "=== ÉTAT CHAT (référence) ===",
-                        JSON.stringify(stBefore ?? null, null, 2),
+                        "=== ÉTAT CHAT ACTUEL (référence) ===",
+                        JSON.stringify(currentChatState ?? null, null, 2),
                         "",
                         "=== CONSIGNE DE TEST SPÉCIFIQUE (EVAL RUNNER) ===",
                         body.limits.test_post_checkup_deferral
@@ -1082,8 +1122,32 @@ export function serveRunEvals() {
                 }
                 throw new Error(why);
               }
-              history.push({ role: "user", content: userMsg });
-              history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
+              // GUARD: Only add user message if history doesn't already end with this exact user message
+              const lastMsg = history[history.length - 1];
+              const lastUserMsg = history.filter((m) => m.role === "user").slice(-1)[0];
+              const userMsgNorm = String(userMsg ?? "").trim().toLowerCase();
+              const lastUserMsgNorm = String(lastUserMsg?.content ?? "").trim().toLowerCase();
+              const isDuplicate = lastUserMsgNorm === userMsgNorm && userMsgNorm.length > 0;
+              
+              if (!isDuplicate) {
+                // GUARD: If last message was also user, don't add another user (should not happen but defensive)
+                if (lastMsg?.role !== "user") {
+                  history.push({ role: "user", content: userMsg });
+                } else {
+                  console.warn(`[run-evals] Skipping consecutive user message: "${userMsg.slice(0, 50)}"`);
+                }
+              } else {
+                console.warn(`[run-evals] Skipping duplicate user message: "${userMsg.slice(0, 50)}"`);
+              }
+              
+              // GUARD: If last message was already assistant, don't add another assistant
+              const lastMsgAfterUser = history[history.length - 1];
+              if (lastMsgAfterUser?.role !== "assistant") {
+                history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
+              } else {
+                console.warn(`[run-evals] Skipping consecutive assistant message: "${resp.content?.slice(0, 50)}"`);
+              }
+              
               await logEvalEvent({
                 supabase: admin as any,
                 evalRunId: existingRunId,
@@ -1159,6 +1223,26 @@ export function serveRunEvals() {
 
           const { data: stAfter } = await admin.from("user_chat_states").select("*").eq("user_id", testUserId).eq("scope", scope).maybeSingle();
           const profileAfter = await fetchProfileSnapshot(admin as any, testUserId);
+          // Fetch user_profile_facts for mechanical assertions (preference confirmation state machine)
+          let profileFactsAfter: any[] = [];
+          try {
+            const { data: rows } = await admin
+              .from("user_profile_facts")
+              .select("scope,key,value,updated_at,created_at")
+              .eq("user_id", testUserId)
+              .in("scope", ["global", scope])
+              .order("updated_at", { ascending: false })
+              .limit(100);
+            profileFactsAfter = Array.isArray(rows)
+              ? rows.map((r: any) => ({
+                scope: String(r?.scope ?? ""),
+                key: String(r?.key ?? ""),
+                value: r?.value ?? null,
+              }))
+              : [];
+          } catch {
+            profileFactsAfter = [];
+          }
           // Refresh plan/dashboard AFTER the conversation because WhatsApp onboarding evals may
           // simulate plan activation mid-run (e.g. when the user says "C'est bon").
           // Without this, the bundled/judge plan_snapshot can incorrectly show "no plan"
@@ -1198,6 +1282,7 @@ export function serveRunEvals() {
           const mechanicalIssues = await buildMechanicalIssues({
             scenario: s,
             profileAfter: isWhatsApp && mechanicalProfileAfterOverride ? mechanicalProfileAfterOverride : profileAfter,
+            profileFactsAfter,
             chatStateAfter: stAfter ?? null,
             planSnapshotAfter: planSnapshotAfter ?? planSnapshot,
             transcript: isWhatsApp && mechanicalTranscriptOverride ? mechanicalTranscriptOverride : transcript,
@@ -1307,12 +1392,35 @@ export function serveRunEvals() {
             };
 
             const attemptUpdate = async (label: string, payload: any) => {
+              // Pre-sanitize and validate the payload before sending
+              let safePayload: any;
+              try {
+                safePayload = toJsonSafe(payload);
+              } catch (e) {
+                console.error(`[run-evals] toJsonSafe failed for (${label}):`, e);
+                return new Error("toJsonSafe failed");
+              }
+
+              // Double-check we can stringify the payload
+              let bodyStr: string;
+              try {
+                bodyStr = JSON.stringify(safePayload);
+                if (!bodyStr || bodyStr === "null" || bodyStr === "undefined") {
+                  console.error(`[run-evals] JSON.stringify produced empty/null for (${label})`);
+                  return new Error("empty JSON body");
+                }
+              } catch (e) {
+                console.error(`[run-evals] JSON.stringify failed for (${label}):`, e);
+                return new Error("JSON.stringify failed");
+              }
+
               const { error } = await admin
                 .from("conversation_eval_runs")
-                .update(toJsonSafe(payload))
+                .update(safePayload)
                 .eq("id", existingRunId);
               if (error) {
                 console.error(`[run-evals] conversation_eval_runs update failed (${label}):`, error);
+                console.error(`[run-evals] payload keys: ${Object.keys(safePayload ?? {}).join(", ")}, bodyLen=${bodyStr.length}`);
 
                 // Workaround: in some environments, supabase-js can end up sending an empty/invalid JSON body
                 // (observed as PostgREST PGRST102). When that happens, retry once using a direct fetch with a
@@ -1330,7 +1438,7 @@ export function serveRunEvals() {
                         "Content-Type": "application/json",
                         Prefer: "return=minimal",
                       },
-                      body: JSON.stringify(toJsonSafe(payload)),
+                      body: bodyStr,
                     });
                     if (resp.ok) {
                       console.log(`[run-evals] conversation_eval_runs update succeeded via raw fetch (${label})`);
@@ -1353,9 +1461,25 @@ export function serveRunEvals() {
             let updErr = await attemptUpdate("full", baseUpdate);
             if (updErr) updErr = await attemptUpdate("no_config", { ...baseUpdate, config: null });
             if (updErr) updErr = await attemptUpdate("no_state_after", { ...baseUpdate, state_after: null });
+            if (updErr) updErr = await attemptUpdate("no_state_no_config", { ...baseUpdate, state_after: null, config: null });
+            // Try with simplified transcript (just role + content, no metadata)
+            if (updErr) {
+              const simpleTranscript = (transcript ?? []).map((m: any) => ({
+                role: String(m?.role ?? "user"),
+                content: String(m?.content ?? "").slice(0, 4000),
+              }));
+              updErr = await attemptUpdate("simple_transcript", {
+                status: "completed",
+                transcript: simpleTranscript,
+                metrics: { partial_save: true, completed_at: new Date().toISOString() },
+              });
+            }
             if (updErr) updErr = await attemptUpdate("no_transcript", { ...baseUpdate, transcript: [] });
             if (updErr) updErr = await attemptUpdate("minimal_status", { status: "completed" });
-            if (updErr) throw updErr;
+            if (updErr) {
+              console.error("[run-evals] All update attempts failed, eval run may be incomplete in DB");
+              // Don't throw - let the eval continue and return results anyway
+            }
 
             if (judgeEnabled) {
               const { error: enqueueErr } = await admin.rpc("enqueue_conversation_eval_judge_job", {

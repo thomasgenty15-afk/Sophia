@@ -1,0 +1,44 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_medium_topic_toolflow_deferred",
+  "description": "MEDIUM: 3 machines (topic_session + toolflow + deferred). User discusses topic, starts toolflow, defers, then returns.",
+  "tags": ["stress_test", "medium", "topic_session", "toolflow", "deferred"],
+  "difficulty": "medium",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur multi-taches",
+    "age_range": "25-35",
+    "style": "oral, saute d'un sujet a l'autre, reporte des discussions",
+    "background": "Je discute de plusieurs choses a la fois. Je peux reporter un sujet pour y revenir plus tard."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_medium_topic_toolflow_deferred",
+      "spec": {
+        "phase_1_topic_start": "Parlons de mon sommeil",
+        "phase_2_topic_explore": "Oui j'ai du mal a m'endormir",
+        "phase_3_start_toolflow": "En fait, ajoute-moi une action meditation le soir",
+        "phase_4_defer": "Attends, on reparle du sommeil plus tard, note-le",
+        "phase_5_continue_toolflow": "Ok valide l'action meditation",
+        "phase_6_done_toolflow": "Merci c'est fait",
+        "phase_7_low_stakes": "Ok super",
+        "phase_8_return_deferred": "Oui on peut reparler du sommeil maintenant"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "toolflow_cleared_after_stop",
+      "sessions_have_resume_brief",
+      "queue_bounded",
+      "topic_session_meaningful_topic"
+    ]
+  }
+}
+

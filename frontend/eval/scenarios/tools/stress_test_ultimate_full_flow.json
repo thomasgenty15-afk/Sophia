@@ -1,0 +1,82 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_ultimate_full_flow",
+  "description": "ULTIMATE: Full flow test - Bilan (4 actions) + Panic during bilan + Breakdown proposal (5 failures) + Digression (deferred) + Emoji preference (confirm after deferred). No turn limit - ends when emoji is confirmed.",
+  "tags": ["stress_test", "ultimate", "bilan", "firefighter", "breakdown", "deferred", "profile_confirm"],
+  "difficulty": "ultimate",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 4,
+    "preseed_actions": [
+      {
+        "title": "Boire 2L d'eau par jour",
+        "frequency": 7,
+        "active": true
+      },
+      {
+        "title": "Marcher 30 minutes",
+        "frequency": 5,
+        "active": true
+      },
+      {
+        "title": "Mediter 10 minutes le matin",
+        "frequency": 7,
+        "active": true,
+        "consecutive_failures": 5
+      },
+      {
+        "title": "Lire 20 pages avant de dormir",
+        "frequency": 5,
+        "active": true
+      }
+    ],
+    "preseed_action_entries": [
+      { "action_title": "Boire 2L d'eau par jour", "status": "done", "days_ago": 1 },
+      { "action_title": "Boire 2L d'eau par jour", "status": "done", "days_ago": 2 },
+      { "action_title": "Marcher 30 minutes", "status": "skipped", "days_ago": 1 },
+      { "action_title": "Marcher 30 minutes", "status": "skipped", "days_ago": 2 },
+      { "action_title": "Mediter 10 minutes le matin", "status": "skipped", "days_ago": 1 },
+      { "action_title": "Mediter 10 minutes le matin", "status": "skipped", "days_ago": 2 },
+      { "action_title": "Mediter 10 minutes le matin", "status": "skipped", "days_ago": 3 },
+      { "action_title": "Mediter 10 minutes le matin", "status": "skipped", "days_ago": 4 },
+      { "action_title": "Mediter 10 minutes le matin", "status": "skipped", "days_ago": 5 },
+      { "action_title": "Lire 20 pages avant de dormir", "status": "done", "days_ago": 1 }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur complexe realiste",
+    "age_range": "28-42",
+    "style": "oral, naturel, peut avoir des crises d'angoisse, fait des digressions, a des preferences incertaines",
+    "background": "Je suis quelqu'un de stresse qui essaie de s'ameliorer. J'ai du mal avec certaines habitudes (surtout la meditation). Je pars facilement dans des digressions. Je suis pas sur de mes preferences."
+  },
+  "objectives": [
+    {
+      "kind": "ultimate_full_flow",
+      "spec": {
+        "actions": [
+          { "title": "Boire 2L d'eau", "outcome": "success" },
+          { "title": "Marcher 30 minutes", "outcome": "fail", "panic_trigger": true },
+          { "title": "Mediter 10 minutes", "outcome": "fail", "consecutive_failures": 5, "expect_breakdown_proposal": true },
+          { "title": "Lire 20 pages", "outcome": "success", "emoji_hint": true }
+        ],
+        "digression_topic": "mon boss qui m'enerve en ce moment",
+        "emoji_preference": "plus d'emojis mais je suis pas sur",
+        "notes": "Sophia doit: 1) proposer le bilan, 2) gerer la panique, 3) proposer spontanement un breakdown pour meditation (5 echecs), 4) stocker la digression, 5) stocker l'emoji pref, 6) reprendre deferred apres bilan, 7) confirmer emoji apres deferred."
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "eval_events_issues_must_not_include": [
+      "scheduler:toolflow_active_after_stop"
+    ],
+    "completion_conditions": {
+      "profile_confirm_completed": true,
+      "deferred_topics_surfaced": true,
+      "firefighter_triggered": true
+    }
+  }
+}
+

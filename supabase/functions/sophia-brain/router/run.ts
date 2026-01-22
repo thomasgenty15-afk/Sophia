@@ -37,7 +37,7 @@ import {
   looksLikeWorkPressureVenting,
   shouldBypassCheckupLockForDeepWork,
 } from "./classifiers.ts"
-import { analyzeIntentAndRisk, looksLikeAcuteDistress } from "./dispatcher.ts"
+import { analyzeIntentAndRisk, analyzeSignals, looksLikeAcuteDistress, type DispatcherSignals } from "./dispatcher.ts"
 import {
   appendDeferredTopicToState,
   extractDeferredTopicFromUserMessage,
@@ -47,17 +47,32 @@ import { debounceAndBurstMerge } from "./debounce.ts"
 import { runAgentAndVerify } from "./agent_exec.ts"
 import { maybeInjectGlobalDeferredNudge, pruneGlobalDeferredTopics, shouldStoreGlobalDeferredFromUserMessage, storeGlobalDeferredTopic } from "./global_deferred.ts"
 import {
+  closeTopicSession,
   enqueueSupervisorIntent,
   getActiveSupervisorSession,
+  getSupervisorRuntime,
+  pruneStaleArchitectToolFlow,
+  pruneStaleSupervisorState,
+  pruneStaleUserProfileConfirm,
   setArchitectToolFlowInTempMemory,
   syncLegacyArchitectToolFlowSession,
   upsertTopicSession,
+  writeSupervisorRuntime,
 } from "../supervisor.ts"
 
 const SOPHIA_CHAT_MODEL =
   (
     ((globalThis as any)?.Deno?.env?.get?.("GEMINI_SOPHIA_CHAT_MODEL") ?? "") as string
   ).trim() || "gemini-3-flash-preview";
+
+const ENABLE_SUPERVISOR_PENDING_NUDGES_V1 =
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_SUPERVISOR_PENDING_NUDGES_V1") ?? "") as string).trim() === "1"
+
+const ENABLE_SUPERVISOR_RESUME_NUDGES_V1 =
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_SUPERVISOR_RESUME_NUDGES_V1") ?? "") as string).trim() === "1"
+
+const ENABLE_DISPATCHER_V2 =
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_DISPATCHER_V2") ?? "") as string).trim() === "1"
 
 export async function processMessage(
   supabase: SupabaseClient, 
@@ -88,6 +103,239 @@ export async function processMessage(
       .replace(/[^a-z0-9\s?]/g, " ")
       .replace(/\s+/g, " ")
       .trim()
+  }
+
+  function pickToolflowSummary(tm: any): { active: boolean; kind?: string; stage?: string } {
+    const flow = (tm as any)?.architect_tool_flow
+    if (!flow || typeof flow !== "object") return { active: false }
+    const kind = typeof (flow as any).kind === "string" ? String((flow as any).kind) : undefined
+    const stage = typeof (flow as any).stage === "string" ? String((flow as any).stage) : undefined
+    return { active: true, kind, stage }
+  }
+
+  function pickSupervisorSummary(tm: any): {
+    stack_top_type?: string
+    stack_top_owner?: string
+    stack_top_status?: string
+    topic_session?: { topic?: string; phase?: string; focus_mode?: string; handoff_to?: string }
+    queue_size?: number
+    queue_reasons_tail?: string[]
+    queue_pending_reasons?: string[]
+  } {
+    const sess = getActiveSupervisorSession(tm)
+    const rt = (tm as any)?.supervisor
+    const q = Array.isArray((rt as any)?.queue) ? (rt as any).queue : []
+    const queueSize = q.length || undefined
+    const reasons = q.map((x: any) => String(x?.reason ?? "")).filter((x: string) => x.trim())
+    const tail = reasons.slice(-5)
+    const pending = tail.filter((r: string) => r.startsWith("pending:"))
+    const out: any = {
+      stack_top_type: sess?.type ? String(sess.type) : undefined,
+      stack_top_owner: sess?.owner_mode ? String(sess.owner_mode) : undefined,
+      stack_top_status: sess?.status ? String(sess.status) : undefined,
+      queue_size: queueSize,
+      queue_reasons_tail: tail.length ? tail : undefined,
+      queue_pending_reasons: pending.length ? pending : undefined,
+    }
+    if (sess?.type === "topic_session") {
+      out.topic_session = {
+        topic: sess.topic ? String(sess.topic).slice(0, 160) : undefined,
+        phase: sess.phase ? String(sess.phase) : undefined,
+        focus_mode: sess.focus_mode ? String(sess.focus_mode) : undefined,
+        handoff_to: sess.handoff_to ? String(sess.handoff_to) : undefined,
+      }
+    }
+    return out
+  }
+
+  function pickDeferredSummary(tm: any): { has_items: boolean; last_topic?: string } {
+    const st = (tm as any)?.global_deferred_topics
+    const items = Array.isArray((st as any)?.items) ? (st as any).items : []
+    const last = items.length ? items[items.length - 1] : null
+    const topic = last && typeof last === "object" ? String((last as any).topic ?? "").trim() : ""
+    return { has_items: items.length > 0, last_topic: topic ? topic.slice(0, 160) : undefined }
+  }
+
+  function pickProfileConfirmSummary(tm: any): { pending: boolean; key?: string } {
+    const pending = (tm as any)?.user_profile_confirm?.pending ?? null
+    if (!pending || typeof pending !== "object") return { pending: false }
+    const key = typeof (pending as any).key === "string" ? String((pending as any).key).slice(0, 80) : undefined
+    return { pending: true, key }
+  }
+
+  function buildRouterDecisionV1(args: {
+    requestId?: string
+    scope: string
+    channel: string
+    dispatcher_target_mode: string
+    target_mode_initial: string
+    target_mode_final: string
+    final_mode: string
+    risk_score: number
+    checkup_active: boolean
+    stop_checkup: boolean
+    is_post_checkup: boolean
+    forced_preference_mode: boolean
+    forced_pending_confirm: boolean
+    toolflow_active_global: boolean
+    toolflow_cancelled_on_stop: boolean
+    pending_nudge_kind: string | null
+    resume_action_v1: string | null
+    stale_cleaned: string[]
+    topic_session_closed: boolean
+    topic_session_handoff: boolean
+    safety_preempted_flow: boolean
+    dispatcher_signals: DispatcherSignals | null
+    temp_memory_before: any
+    temp_memory_after: any
+  }): { router_decision_v1: Record<string, unknown>; reason_codes: string[] } {
+    const reasonCodes: string[] = []
+    if (args.target_mode_final === "sentry") reasonCodes.push("SAFETY_SENTRY_OVERRIDE")
+    else if (args.target_mode_final === "firefighter") reasonCodes.push("SAFETY_FIREFIGHTER_OVERRIDE")
+    if (args.checkup_active && !args.is_post_checkup && !args.stop_checkup) reasonCodes.push("BILAN_HARD_GUARD_ACTIVE")
+    if (args.is_post_checkup) reasonCodes.push("POST_CHECKUP_ACTIVE")
+    if (args.toolflow_active_global && args.target_mode_final === "architect") reasonCodes.push("TOOLFLOW_ACTIVE_FOREGROUND")
+    if (args.toolflow_cancelled_on_stop) reasonCodes.push("TOOLFLOW_CANCELLED_ON_STOP")
+    if (args.forced_pending_confirm) reasonCodes.push("PROFILE_CONFIRM_HARD_GUARD_ACTIVE")
+    if (args.forced_preference_mode) reasonCodes.push("PREFERENCE_FORCE_COMPANION")
+    if (args.pending_nudge_kind === "global_deferred") reasonCodes.push("GLOBAL_DEFERRED_NUDGE")
+    if (args.pending_nudge_kind === "post_checkup") reasonCodes.push("POST_CHECKUP_PENDING_NUDGE")
+    if (args.pending_nudge_kind === "profile_confirm") reasonCodes.push("PROFILE_CONFIRM_PENDING_NUDGE")
+    if (args.resume_action_v1 === "prompted") reasonCodes.push("RESUME_NUDGE_SHOWN")
+    if (args.resume_action_v1 === "accepted") reasonCodes.push("RESUME_PREVIOUS_FLOW")
+    if (args.resume_action_v1 === "declined") reasonCodes.push("RESUME_DECLINED")
+    if (args.safety_preempted_flow) reasonCodes.push("SAFETY_PREEMPTED_FLOW")
+    if (args.stale_cleaned.length > 0) reasonCodes.push("STALE_CLEANUP")
+    if (args.topic_session_closed) reasonCodes.push("TOPIC_SESSION_CLOSED")
+    if (args.topic_session_handoff) reasonCodes.push("TOPIC_SESSION_HANDOFF")
+
+    const snapshotBefore = {
+      toolflow: pickToolflowSummary(args.temp_memory_before),
+      profile_confirm: pickProfileConfirmSummary(args.temp_memory_before),
+      global_deferred: pickDeferredSummary(args.temp_memory_before),
+      supervisor: pickSupervisorSummary(args.temp_memory_before),
+    }
+    const snapshotAfter = {
+      toolflow: pickToolflowSummary(args.temp_memory_after),
+      profile_confirm: pickProfileConfirmSummary(args.temp_memory_after),
+      global_deferred: pickDeferredSummary(args.temp_memory_after),
+      supervisor: pickSupervisorSummary(args.temp_memory_after),
+    }
+
+    return {
+      router_decision_v1: {
+        request_id: args.requestId ?? null,
+        scope: args.scope,
+        channel: args.channel,
+        risk_score: args.risk_score,
+        modes: {
+          dispatcher_target: args.dispatcher_target_mode,
+          target_initial: args.target_mode_initial,
+          target_final: args.target_mode_final,
+          final_mode: args.final_mode,
+        },
+        state_flags: {
+          checkup_active: args.checkup_active,
+          stop_checkup: args.stop_checkup,
+          is_post_checkup: args.is_post_checkup,
+          forced_preference_mode: args.forced_preference_mode,
+          forced_pending_confirm: args.forced_pending_confirm,
+          toolflow_active_global: args.toolflow_active_global,
+          toolflow_cancelled_on_stop: args.toolflow_cancelled_on_stop,
+        },
+        pending_nudge_kind: args.pending_nudge_kind,
+        resume_action_v1: args.resume_action_v1,
+        stale_cleaned: args.stale_cleaned.length > 0 ? args.stale_cleaned : null,
+        topic_session_closed: args.topic_session_closed || null,
+        topic_session_handoff: args.topic_session_handoff || null,
+        safety_preempted_flow: args.safety_preempted_flow || null,
+        dispatcher_signals: args.dispatcher_signals ? {
+          safety: args.dispatcher_signals.safety,
+          intent: args.dispatcher_signals.user_intent_primary,
+          intent_conf: args.dispatcher_signals.user_intent_confidence,
+          interrupt: args.dispatcher_signals.interrupt,
+          flow_resolution: args.dispatcher_signals.flow_resolution,
+        } : null,
+        reason_codes: reasonCodes,
+        snapshot_before: snapshotBefore,
+        snapshot_after: snapshotAfter,
+        ts: new Date().toISOString(),
+      },
+      reason_codes: reasonCodes,
+    }
+  }
+
+  function ensureSupervisorQueueIntent(opts: {
+    tempMemory: any
+    requestedMode: AgentMode
+    reason: string
+    messageExcerpt?: string
+  }): { tempMemory: any; changed: boolean } {
+    const reason = String(opts.reason ?? "").trim().slice(0, 160)
+    if (!reason) return { tempMemory: opts.tempMemory, changed: false }
+    const rt = getSupervisorRuntime(opts.tempMemory)
+    const exists = Array.isArray(rt.queue) && rt.queue.some((q: any) => String(q?.reason ?? "") === reason)
+    if (exists) return { tempMemory: opts.tempMemory, changed: false }
+    return enqueueSupervisorIntent({
+      tempMemory: opts.tempMemory,
+      requestedMode: opts.requestedMode,
+      reason,
+      messageExcerpt: opts.messageExcerpt,
+    })
+  }
+
+  function pruneSupervisorQueueManagedIntents(opts: {
+    tempMemory: any
+    keepReasons: Record<string, boolean>
+  }): { tempMemory: any; changed: boolean } {
+    const rt0 = getSupervisorRuntime(opts.tempMemory)
+    const q0 = Array.isArray(rt0.queue) ? rt0.queue : []
+    const keep = opts.keepReasons ?? {}
+    const q1 = q0.filter((q: any) => {
+      const r = String(q?.reason ?? "")
+      // Only manage the explicit "pending:*" reasons we own; keep everything else untouched.
+      if (r.startsWith("pending:")) {
+        return Boolean(keep[r])
+      }
+      return true
+    })
+    if (q1.length === q0.length) return { tempMemory: opts.tempMemory, changed: false }
+    const rt1 = { ...rt0, queue: q1, updated_at: new Date().toISOString() }
+    return { tempMemory: writeSupervisorRuntime(opts.tempMemory, rt1 as any), changed: true }
+  }
+
+  function lowStakesTurn(m: string): boolean {
+    const s = normalizeLoose(m)
+    if (!s) return false
+    if (s.length > 24) return false
+    return /\b(ok|ok\s+merci|merci|super|top|daccord|dac|cool|yes|oui)\b/i.test(s)
+  }
+
+  function pickPendingFromSupervisorQueue(tm: any): { kind: "post_checkup" | "profile_confirm" | "global_deferred"; excerpt?: string } | null {
+    const rt = getSupervisorRuntime(tm)
+    const reasons = Array.isArray(rt.queue) ? rt.queue.map((q: any) => String(q?.reason ?? "")).filter(Boolean) : []
+    const has = (r: string) => reasons.includes(r)
+    // Priority order
+    if (has("pending:post_checkup_parking_lot")) return { kind: "post_checkup" }
+    if (has("pending:user_profile_confirm")) {
+      // Attempt to find excerpt from the queued intent
+      const q = (rt.queue ?? []).find((x: any) => String(x?.reason ?? "") === "pending:user_profile_confirm")
+      const ex = q ? String((q as any)?.message_excerpt ?? "").trim().slice(0, 80) : ""
+      return { kind: "profile_confirm", excerpt: ex || undefined }
+    }
+    if (has("pending:global_deferred_nudge")) return { kind: "global_deferred" }
+    return null
+  }
+
+  function removeSupervisorQueueByReasonPrefix(opts: { tempMemory: any; prefix: string }): { tempMemory: any; changed: boolean } {
+    const prefix = String(opts.prefix ?? "")
+    if (!prefix) return { tempMemory: opts.tempMemory, changed: false }
+    const rt0 = getSupervisorRuntime(opts.tempMemory)
+    const q0 = Array.isArray(rt0.queue) ? rt0.queue : []
+    const q1 = q0.filter((q: any) => !String(q?.reason ?? "").startsWith(prefix))
+    if (q1.length === q0.length) return { tempMemory: opts.tempMemory, changed: false }
+    const rt1 = { ...rt0, queue: q1, updated_at: new Date().toISOString() }
+    return { tempMemory: writeSupervisorRuntime(opts.tempMemory, rt1 as any), changed: true }
   }
 
   function looksLikeLongFormExplanationRequest(m: string): boolean {
@@ -236,11 +484,41 @@ SORTIE JSON STRICTE:
   function guessTopicLabel(m: string): string {
     const s = normalizeLoose(m)
     if (!s) return "conversation"
+    if (/^(salut|coucou|hello|hey|bonjour|bonsoir)\b/i.test(s)) return "conversation"
+    
+    // Avoid generic acknowledgments as topic labels
+    const raw = String(m ?? "").trim()
+    const isGeneric = /^(ok|oui|non|merci|super|top|cool|daccord|c'?est bon|parfait|d'?accord|bien recu|je vois|ah|oh|hmm|ça va)/i.test(normalizeLoose(raw))
+    if (isGeneric || raw.length < 12) return "conversation"
+    
+    // Try to extract a more specific topic by looking for key nouns/phrases
+    // Boss/work related - extract the specific entity
+    const bossMatch = s.match(/\b(boss|chef|manager|sup[eé]rieur|patron|directeur)\b/i)
+    if (bossMatch) return `problème avec ${bossMatch[1]}`
+    
+    const workMatch = s.match(/\b(travail|boulot|taff|job|bureau|boite|entreprise)\b/i)
+    if (workMatch) return `situation au ${workMatch[1]}`
+    
+    // Emotional states - keep more specific  
+    if (/\b(stress|stressé|anxieux|anxiété)\b/i.test(s)) return "stress / anxiété"
+    if (/\b(angoisse|angoissé|panique|peur)\b/i.test(s)) return "angoisse / panique"
+    if (/\b(triste|tristesse|déprim|cafard)\b/i.test(s)) return "humeur basse"
+    
+    // Specific activities
     if (/\b(bilan|checkup|check)\b/i.test(s)) return "bilan/checkup"
     if (/\b(plan|dashboard|phase|action|actions|exercice|exercices)\b/i.test(s)) return "plan / exécution"
-    if (/\b(stress|angoisse|panique|peur|boss|boulot|travail)\b/i.test(s)) return "stress / travail"
-    if (/\b(sport|bouger|lecture|scroll|tel)\b/i.test(s)) return "habitudes (sport/lecture)"
-    return String(m ?? "").trim().slice(0, 80) || "conversation"
+    if (/\b(sport|bouger|course|gym|marche)\b/i.test(s)) return "activité physique"
+    if (/\b(lecture|lire|livre|scroll|tel|téléphone)\b/i.test(s)) return "habitudes (lecture/écrans)"
+    if (/\b(sommeil|dormir|insomnie|fatigue)\b/i.test(s)) return "sommeil / fatigue"
+    if (/\b(famille|parents|enfants|conjoint|couple)\b/i.test(s)) return "relations familiales"
+    if (/\b(ami|amis|copain|pote|social)\b/i.test(s)) return "vie sociale"
+    
+    // Default: use first meaningful part of the message (skip greeting words)
+    const meaningful = raw.replace(/^(en fait|bon|alors|euh|hm+|ah|oh|oui|non|bref|enfin)\s*/gi, "").trim()
+    if (meaningful.length > 10 && meaningful.length <= 80) return meaningful.slice(0, 80)
+    if (meaningful.length > 80) return meaningful.slice(0, 77) + "..."
+    
+    return "conversation"
   }
 
   function extractObjective(m: string): string | null {
@@ -251,6 +529,57 @@ SORTIE JSON STRICTE:
     if (m1?.[1]) return String(m1[1]).trim().slice(0, 220) || null
     const m2 = raw.match(/\bobjectif\s*(?:=|:)\s*(.+)$/i)
     if (m2?.[1]) return String(m2[1]).trim().slice(0, 220) || null
+    return null
+  }
+
+  function looksLikeDigressionRequest(m: string): boolean {
+    const s = String(m ?? "").toLowerCase()
+    if (!s.trim()) return false
+    return (
+      /\b(on\s+peut|j['’]ai\s+besoin\s+de|je\s+veux|j['’]ai\s+envie\s+de)\s+(?:te\s+)?parler\b/i.test(s) ||
+      /\bparler\s+(?:de|du|des|d['’])\b/i.test(s) ||
+      /\ben\s+parler\b/i.test(s) ||
+      /\bau\s+fait\b/i.test(s) ||
+      /\bd['’]?ailleurs\b/i.test(s)
+    )
+  }
+
+  function extractTopicFromUserDigression(m: string): string {
+    const raw = String(m ?? "").trim()
+    if (!raw) return ""
+    
+    // PRIORITY: Extract work/stress-related subjects first (often buried in filler text)
+    const bossMatch = raw.match(/\b(?:mon\s+)?(?:boss|chef|manager|sup[eé]rieur|patron|directeur)(?:\s+qui\s+[^,.!?]+)?/i)
+    if (bossMatch?.[0]) return String(bossMatch[0]).trim().slice(0, 160)
+    
+    const workMatch = raw.match(/\b(?:mon\s+)?(?:travail|boulot|taff|job)(?:\s+qui\s+[^,.!?]+)?/i)
+    if (workMatch?.[0]) return String(workMatch[0]).trim().slice(0, 160)
+    
+    const stressMatch = raw.match(/\b(?:le\s+|mon\s+)?stress(?:\s+(?:au|du|avec)\s+[^,.!?]+)?/i)
+    if (stressMatch?.[0]) return String(stressMatch[0]).trim().slice(0, 160)
+    
+    // Standard patterns
+    const m1 = raw.match(/\b(?:parler|discuter|revenir)\s+(?:de|du|des|d[''])\s+([^?.!]+)/i)
+    if (m1?.[1]) {
+      return String(m1[1]).trim().replace(/^[:\s-]+/, "").slice(0, 160)
+    }
+    return extractDeferredTopicFromUserMessage(raw)
+  }
+
+  function detectPreferenceHint(m: string): { key: string; uncertain: boolean } | null {
+    const s = normalizeLoose(m)
+    if (!s) return null
+    const uncertain = /\b(pas\s+s[ûu]r|pas\s+sure|je\s+sais\s+pas|je\s+ne\s+sais\s+pas|peut[-\s]?être|je\s+crois|bof|j['’]h[ée]site|je\s+suis\s+pas\s+s[ûu]r)\b/i.test(s)
+    if (/\b(emoji|emojis|smiley|smileys)\b/i.test(s)) return { key: "conversation.use_emojis", uncertain }
+    if (/\b(plus\s+direct|plut[oô]t\s+direct|sois\s+direct|ton\s+direct|plus\s+doux|plut[oô]t\s+doux)\b/i.test(s)) {
+      return { key: "conversation.tone", uncertain }
+    }
+    if (/\b(r[ée]ponses?\s+(?:plus\s+)?courtes?|r[ée]ponses?\s+br[èe]ves?|plus\s+concis|plus\s+succinct|moins\s+long|moins\s+d[ée]tail)\b/i.test(s)) {
+      return { key: "conversation.verbosity", uncertain }
+    }
+    if (/\b(ne\s+me\s+ram[eè]ne\s+pas|arr[êe]te\s+de\s+me\s+ramener|[ée]vite\s+de\s+me\s+ramener)\b[\s\S]{0,40}\b(plan|objectifs?|actions?)\b/i.test(s)) {
+      return { key: "coaching.plan_push_allowed", uncertain }
+    }
     return null
   }
 
@@ -339,6 +668,20 @@ SORTIE JSON STRICTE:
   const pruned = pruneGlobalDeferredTopics(tempMemory)
   if (pruned.changed) tempMemory = pruned.tempMemory
 
+  // --- TTL / STALE CLEANUP (uniform across all machines) ---
+  // Run early so that stale state doesn't affect routing decisions.
+  const staleCleaned: string[] = []
+  {
+    const c1 = pruneStaleArchitectToolFlow({ tempMemory })
+    if (c1.changed) { tempMemory = c1.tempMemory; staleCleaned.push("architect_tool_flow") }
+
+    const c2 = pruneStaleUserProfileConfirm({ tempMemory })
+    if (c2.changed) { tempMemory = c2.tempMemory; staleCleaned.push("user_profile_confirm") }
+
+    const c3 = pruneStaleSupervisorState({ tempMemory })
+    if (c3.changed) { tempMemory = c3.tempMemory; staleCleaned.push(...c3.cleaned) }
+  }
+
   // --- SUPERVISOR (global runtime: stack/queue) ---
   // Keep supervisor runtime in sync with legacy multi-turn flows.
   // (Today we sync the Architect tool flow; other sessions can be added progressively.)
@@ -351,6 +694,40 @@ SORTIE JSON STRICTE:
     const stored = storeGlobalDeferredTopic({ tempMemory, topic })
     if (stored.changed) tempMemory = stored.tempMemory
   }
+
+  // --- PR3: Index pending obligations into supervisor.queue (no duplication of state) ---
+  // We keep these conservative and deduped; they serve as a "what's pending?" index for the scheduler.
+  const managedPendingReasons: Record<string, boolean> = {
+    "pending:user_profile_confirm": false,
+    "pending:global_deferred_nudge": false,
+    "pending:post_checkup_parking_lot": false,
+  }
+
+  // Global deferred nudge (opportunistic): only queue when there are items and the user turn looks low-stakes.
+  // (We keep this simple and conservative; the actual injection stays in maybeInjectGlobalDeferredNudge.)
+  {
+    const st = (tempMemory as any)?.global_deferred_topics
+    const items = Array.isArray((st as any)?.items) ? (st as any).items : []
+    const hasItems = items.length > 0
+    const s = normalizeLoose(userMessage)
+    const lowStakes =
+      s.length > 0 &&
+      s.length <= 24 &&
+      /\b(ok|ok\s+merci|merci|super|top|daccord|dac|cool|yes|oui)\b/i.test(s)
+    if (hasItems && lowStakes) {
+      managedPendingReasons["pending:global_deferred_nudge"] = true
+      const last = items[items.length - 1]
+      const topic = last && typeof last === "object" ? String((last as any)?.topic ?? "").trim().slice(0, 160) : ""
+      const queued = ensureSupervisorQueueIntent({
+        tempMemory,
+        requestedMode: "companion",
+        reason: "pending:global_deferred_nudge",
+        messageExcerpt: topic || undefined,
+      })
+      if (queued.changed) tempMemory = queued.tempMemory
+    }
+  }
+
   // If the user explicitly says "later", inject a hard preference so the next agent doesn't override it.
   // NOTE: context is built later; we store the addendum now and prepend it once `context` exists.
   let deferredUserPrefContext = ""
@@ -402,17 +779,212 @@ SORTIE JSON STRICTE:
   }
   const lastAssistantAgent = normalizeAgentUsed(lastAssistantAgentRaw)
   
+  // --- DISPATCHER V2: Signal-based routing (behind flag) ---
+  // When enabled, we use structured signals → deterministic policies instead of LLM choosing the mode directly.
+  let dispatcherSignals: DispatcherSignals | null = null
+  let riskScore = 0
+  let nCandidates: 1 | 3 = 1
+  let dispatcherTargetMode: AgentMode = "companion"
+  let targetMode: AgentMode = "companion"
+
+  if (ENABLE_DISPATCHER_V2) {
+    // Build state snapshot for dispatcher v2
+    const topicSession = getActiveSupervisorSession(tempMemory)
+    const stateSnapshot = {
+      current_mode: state?.current_mode,
+      investigation_active: Boolean(state?.investigation_state),
+      investigation_status: state?.investigation_state?.status,
+      toolflow_active: Boolean((tempMemory as any)?.architect_tool_flow),
+      toolflow_kind: (tempMemory as any)?.architect_tool_flow?.kind,
+      profile_confirm_pending: Boolean((tempMemory as any)?.user_profile_confirm?.pending),
+      topic_session_phase: topicSession?.type === "topic_session" ? topicSession.phase : undefined,
+      risk_level: state?.risk_level,
+    }
+
+    dispatcherSignals = await analyzeSignals(userMessage, stateSnapshot, lastAssistantMessage, meta)
+    riskScore = dispatcherSignals.risk_score
+
+    // --- DETERMINISTIC POLICY: Signal → targetMode ---
+    // Priority order: Safety > Hard blockers > Intent-based routing
+
+    // 1. Safety override (threshold: confidence >= 0.75)
+    if (dispatcherSignals.safety.level === "SENTRY" && dispatcherSignals.safety.confidence >= 0.75) {
+      targetMode = "sentry"
+    } else if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.75) {
+      targetMode = "firefighter"
+    }
+    // 2. Active bilan hard guard (unless explicit stop)
+    else if (
+      state?.investigation_state &&
+      state?.investigation_state?.status !== "post_checkup" &&
+      dispatcherSignals.interrupt.kind !== "EXPLICIT_STOP"
+    ) {
+      targetMode = "investigator"
+    }
+    // 3. Intent-based routing
+    else {
+      const intent = dispatcherSignals.user_intent_primary
+      const intentConf = dispatcherSignals.user_intent_confidence
+
+      if (intent === "CHECKUP" && intentConf >= 0.6) {
+        targetMode = "investigator"
+      } else if (intent === "PLAN" && intentConf >= 0.6) {
+        targetMode = "architect"
+      } else if (intent === "BREAKDOWN" && intentConf >= 0.6) {
+        targetMode = "architect"
+      } else if (intent === "PREFERENCE" && intentConf >= 0.6) {
+        targetMode = "companion"
+      } else if (intent === "EMOTIONAL_SUPPORT") {
+        // Check if it's acute distress (firefighter) or mild support (companion)
+        if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.5) {
+          targetMode = "firefighter"
+        } else {
+          targetMode = "companion"
+        }
+      } else {
+        // Default: companion
+        targetMode = "companion"
+      }
+    }
+
+    // 4. Force mode override (module conversation, etc.)
+    if (opts?.forceMode && targetMode !== "sentry" && targetMode !== "firefighter") {
+      targetMode = opts.forceMode
+    }
+
+    dispatcherTargetMode = targetMode
+    console.log(`[Dispatcher v2] Signals: safety=${dispatcherSignals.safety.level}(${dispatcherSignals.safety.confidence.toFixed(2)}), intent=${dispatcherSignals.user_intent_primary}(${dispatcherSignals.user_intent_confidence.toFixed(2)}), interrupt=${dispatcherSignals.interrupt.kind}, → targetMode=${targetMode}`)
+  } else {
+    // Legacy dispatcher v1
   const analysis = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage, meta)
-  const riskScore = analysis.riskScore
-  const nCandidates = analysis.nCandidates ?? 1
+    riskScore = analysis.riskScore
+    nCandidates = analysis.nCandidates ?? 1
+    dispatcherTargetMode = analysis.targetMode
   // If a forceMode is requested (e.g. module conversation), we keep safety priority for sentry.
-  let targetMode: AgentMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
-  const toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
+    targetMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
+  }
+
+  const targetModeInitial = targetMode
+  let toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
+  const stopCheckup = isExplicitStopCheckup(userMessage);
+  // Use signal-based interrupt detection when dispatcher v2 is enabled
+  const boredOrStopFromSignals = dispatcherSignals && (
+    (dispatcherSignals.interrupt.kind === "EXPLICIT_STOP" && dispatcherSignals.interrupt.confidence >= 0.65) ||
+    (dispatcherSignals.interrupt.kind === "BORED" && dispatcherSignals.interrupt.confidence >= 0.65)
+  )
+  const boredOrStop = boredOrStopFromSignals || looksLikeUserBoredOrWantsToStop(userMessage) || stopCheckup
+  let toolflowCancelledOnStop = false
+  let resumeActionV1: "prompted" | "accepted" | "declined" | null = null
+
+  // --- Scheduler v1 (minimal): explicit stop/boredom cancels any active Architect toolflow.
+  // Toolflows are transactional; they should not block handoffs (topic_session) nor hijack emotional/safety turns.
+  if (boredOrStop && toolFlowActiveGlobal) {
+    const cleared = setArchitectToolFlowInTempMemory({ tempMemory, nextFlow: null })
+    if (cleared.changed) {
+      tempMemory = cleared.tempMemory
+      toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
+      toolflowCancelledOnStop = true
+    }
+  }
+
+  // --- PR5: deterministic resume acceptance/decline for a queued toolflow resume prompt ---
+  // If we previously prompted and the user answers "oui/non", act deterministically.
+  {
+    const marker = (tempMemory as any)?.__router_resume_prompt_v1 ?? null
+    const kind = String(marker?.kind ?? "")
+    const askedAt = Date.parse(String(marker?.asked_at ?? ""))
+    const expired = Number.isFinite(askedAt) ? (Date.now() - askedAt) > 30 * 60 * 1000 : true
+    const s = normalizeLoose(userMessage)
+    const yes = /\b(oui|ok|daccord|vas\s*y|go)\b/i.test(s) && s.length <= 24
+    const no = /\b(non|pas\s+maintenant|laisse|laisse\s+tomber|on\s+s'en\s+fout|plus\s+tard)\b/i.test(s) && s.length <= 40
+    if (kind === "architect_toolflow" && !expired && (yes || no)) {
+      // Clear marker either way
+      try { delete (tempMemory as any).__router_resume_prompt_v1 } catch {}
+      if (yes) {
+        resumeActionV1 = "accepted"
+        // Route to Architect (unless safety/investigator overrides later).
+        if (targetMode !== "sentry" && targetMode !== "firefighter" && targetMode !== "investigator") {
+          targetMode = "architect"
+        }
+      } else {
+        resumeActionV1 = "declined"
+      }
+      // Remove the queued resume intent so we don't nag again.
+      const removed = removeSupervisorQueueByReasonPrefix({ tempMemory, prefix: "queued_due_to_irrelevant_active_session:architect_tool_flow" })
+      if (removed.changed) tempMemory = removed.tempMemory
+    } else if (kind === "architect_toolflow" && expired) {
+      // Stale marker: clear silently.
+      try { delete (tempMemory as any).__router_resume_prompt_v1 } catch {}
+    }
+  }
+
+  // --- Preference change requests should always be handled by Companion ---
+  // We DO NOT rely on dispatcher LLM for this because it may incorrectly route to architect
+  // when the user mentions "suite"/"plan"/"style". This breaks the user_profile_confirm state machine.
+  {
+    const s = normalizeLoose(userMessage)
+    const looksLikePreference =
+      /\b(plus\s+direct|plutot\s+direct|sois\s+direct|ton\s+direct|plus\s+doux|plutot\s+doux)\b/i.test(s) ||
+      /\b(reponses?\s+(?:plus\s+)?courtes?|reponses?\s+br[eè]ves?|plus\s+concis|plus\s+succinct|moins\s+long|moins\s+detail)\b/i.test(s) ||
+      /\b(emoji|emojis|smiley|smileys)\b/i.test(s) ||
+      /\b(on\s+confirme|je\s+valide|je\s+veux\s+valider)\b/i.test(s);
+    ;(tempMemory as any).__router_forced_preference_mode = looksLikePreference ? "companion" : null
+    if (
+      looksLikePreference &&
+      targetMode !== "sentry" &&
+      targetMode !== "firefighter" &&
+      targetMode !== "investigator"
+    ) {
+      targetMode = "companion"
+    }
+  }
+
+  // --- User Profile Confirmation (Companion) hard guard ---
+  // If a confirmation is pending, we must route to Companion so it can interpret the answer and call apply_profile_fact.
+  // Otherwise the state machine can get stuck (e.g. user mentions "plan" and dispatcher routes to architect).
+  {
+    const pending = (tempMemory as any)?.user_profile_confirm?.pending ?? null
+    ;(tempMemory as any).__router_forced_pending_confirm = pending ? true : false
+    if (
+      pending &&
+      targetMode !== "sentry" &&
+      targetMode !== "firefighter" &&
+      targetMode !== "investigator"
+    ) {
+      targetMode = "companion"
+    }
+
+    // PR3: index pending confirmation into supervisor.queue (so scheduler can see it even if preempted).
+    if (pending) {
+      managedPendingReasons["pending:user_profile_confirm"] = true
+      const key = typeof (pending as any)?.key === "string" ? String((pending as any).key).slice(0, 80) : ""
+      const queued = ensureSupervisorQueueIntent({
+        tempMemory,
+        requestedMode: "companion",
+        reason: "pending:user_profile_confirm",
+        messageExcerpt: key || undefined,
+      })
+      if (queued.changed) tempMemory = queued.tempMemory
+    }
+  }
 
   // Supervisor continuity: if there's an active session, keep its owner mode
   // (unless safety modes or investigator lock later override).
   const activeSession = getActiveSupervisorSession(tempMemory)
   const activeOwner = activeSession?.owner_mode ?? null
+  const forcedPref = Boolean((tempMemory as any)?.__router_forced_preference_mode)
+  const forcedPendingConfirm = Boolean((tempMemory as any)?.__router_forced_pending_confirm)
+  // Local heuristics: only continue architect tool flows when the user message *actually* continues the flow.
+  const userLooksLikeToolFlowContinuation = (() => {
+    const s = normalizeLoose(userMessage)
+    // If the user explicitly talks about plan/actions tooling, assume it's relevant.
+    if (/\b(plan|action|actions|activer|active|ajoute|ajouter|cr[ée]e|cr[ée]er|modifier|mettre\s+a\s+jour|supprime|retire)\b/i.test(s)) return true
+    // If the last assistant (architect) asked for consent/clarification, short "oui/ok" is a continuation.
+    if (lastAssistantAgent === "architect" && /\b(tu\s+veux|ok\s+pour|on\s+le\s+fait|j['’]ajoute|j['’]active|confirme|d'accord)\b/i.test(normalizeLoose(lastAssistantMessage ?? ""))) {
+      if (/\b(oui|ok|daccord|vas\s*y|go)\b/i.test(s) && s.length <= 30) return true
+    }
+    return false
+  })()
   if (
     activeOwner &&
     !state?.investigation_state &&
@@ -420,7 +992,26 @@ SORTIE JSON STRICTE:
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
   ) {
-    // If dispatcher wanted something else, queue it as non-urgent follow-up.
+    // IMPORTANT: Use toolFlowActiveGlobal (checks temp_memory.architect_tool_flow directly)
+    // because topic_session is always pushed after architect_tool_flow in the stack,
+    // so getActiveSupervisorSession would return topic_session, not architect_tool_flow.
+    const hasActiveArchitectToolFlow = toolFlowActiveGlobal && !toolflowCancelledOnStop
+    // If this is a preference-confirmation moment, do NOT let active sessions hijack.
+    if (forcedPref || forcedPendingConfirm) {
+      // Keep targetMode as-is (already forced to companion above).
+    } else if (hasActiveArchitectToolFlow && !userLooksLikeToolFlowContinuation) {
+      // User is off-topic relative to toolflow: let them talk, and keep the toolflow "waiting".
+      // (We enqueue the architect continuation as non-urgent follow-up instead of hijacking.)
+      const queued = enqueueSupervisorIntent({
+        tempMemory,
+        requestedMode: "architect",
+        reason: `queued_due_to_irrelevant_active_session:architect_tool_flow`,
+        messageExcerpt: String(userMessage ?? "").slice(0, 180),
+      })
+      if (queued.changed) tempMemory = queued.tempMemory
+      // Keep targetMode (dispatcher-selected), do NOT force to architect.
+    } else {
+      // Default supervisor behavior: keep owner mode, and queue the dispatcher choice for later.
     if (targetMode !== activeOwner) {
       const queued = enqueueSupervisorIntent({
         tempMemory,
@@ -431,6 +1022,7 @@ SORTIE JSON STRICTE:
       if (queued.changed) tempMemory = queued.tempMemory
     }
     targetMode = activeOwner
+    }
   }
 
   // Hard guard for Architect multi-turn tool flows:
@@ -456,7 +1048,12 @@ SORTIE JSON STRICTE:
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
   ) {
+    // Do NOT force Architect if the user is currently doing preference confirmations or off-topic chit-chat.
+    const s = normalizeLoose(userMessage)
+    const looksLikeChitChat = s.length <= 80 && /\b(met[eé]o|soleil|temps|journ[ée]e|salut|hello|[çc]a\s+va)\b/i.test(s)
+    if (!forcedPref && !forcedPendingConfirm && (userLooksLikeToolFlowContinuation || !looksLikeChitChat)) {
     targetMode = "architect"
+    }
   }
 
   // Safety escalation (candidate -> LLM confirmation) to avoid keyword false positives.
@@ -671,7 +1268,58 @@ SORTIE JSON STRICTE:
   // risk is elevated or the message clearly signals acute distress.
   // This prevents breaking the checkup flow for normal "stress/organisation" topics.
   const checkupActive = Boolean(state?.investigation_state);
-  const stopCheckup = isExplicitStopCheckup(userMessage);
+  const isPostCheckup = state?.investigation_state?.status === "post_checkup"
+
+  // If the user digresses during an active bilan (even without saying "later"),
+  // capture the topic so it can be revisited after the checkup.
+  if (checkupActive && !isPostCheckup && !stopCheckup) {
+    const digressionSignal =
+      dispatcherSignals &&
+      (dispatcherSignals.interrupt.kind === "DIGRESSION" || dispatcherSignals.interrupt.kind === "SWITCH_TOPIC") &&
+      dispatcherSignals.interrupt.confidence >= 0.6
+    const shouldCaptureDigression = digressionSignal || looksLikeDigressionRequest(userMessage)
+    if (shouldCaptureDigression) {
+      try {
+        const latest = await getUserState(supabase, userId, scope)
+        if (latest?.investigation_state) {
+          // USE DISPATCHER'S FORMALIZED TOPIC (no extra AI call!)
+          const formalizedFromDispatcher = dispatcherSignals?.interrupt?.deferred_topic_formalized
+          const fallbackExtracted = extractTopicFromUserDigression(userMessage) || String(userMessage ?? "").trim().slice(0, 160)
+          const topicToStore = formalizedFromDispatcher || fallbackExtracted
+          
+          if (topicToStore && topicToStore.length >= 3) {
+            const updatedInv = appendDeferredTopicToState(latest.investigation_state, topicToStore)
+            await updateUserState(supabase, userId, scope, { investigation_state: updatedInv })
+            state = { ...(state ?? {}), investigation_state: updatedInv }
+            console.log(`[Router] Digression captured: "${topicToStore}" (from=${formalizedFromDispatcher ? "dispatcher" : "fallback"})`)
+          } else {
+            console.log(`[Router] Digression rejected - no valid topic extracted`)
+          }
+        }
+      } catch (e) {
+        console.error("[Router] digression deferred topic store failed (non-blocking):", e)
+      }
+    }
+  }
+
+  // If the user hints at a preference during an active checkup, capture it for later confirmation.
+  if (checkupActive && !isPostCheckup && !stopCheckup) {
+    const prefHint = detectPreferenceHint(userMessage)
+    const pending = (tempMemory as any)?.user_profile_confirm?.pending ?? null
+    if (prefHint?.key && prefHint.uncertain && !pending) {
+      const now = new Date().toISOString()
+      const prev = (tempMemory as any)?.user_profile_confirm ?? {}
+      tempMemory = {
+        ...(tempMemory ?? {}),
+        user_profile_confirm: {
+          ...(prev ?? {}),
+          pending: { candidate_id: null, key: prefHint.key, scope: "current", asked_at: now, reason: "hint_in_checkup" },
+          last_asked_at: now,
+        },
+      }
+      managedPendingReasons["pending:user_profile_confirm"] = true
+    }
+  }
 
   // Firefighter continuity:
   // If the last assistant message was in Firefighter mode (panic grounding / safety check),
@@ -750,7 +1398,22 @@ SORTIE JSON STRICTE:
 
   // Deferred-topic helpers are implemented in `router/deferred_topics.ts` (imported).
 
-  const isPostCheckup = state?.investigation_state?.status === "post_checkup"
+  // PR3: index post-checkup parking lot into supervisor.queue (pointer only; state remains in investigation_state).
+  if (isPostCheckup) {
+    managedPendingReasons["pending:post_checkup_parking_lot"] = true
+    const queued = ensureSupervisorQueueIntent({
+      tempMemory,
+      requestedMode: "companion",
+      reason: "pending:post_checkup_parking_lot",
+    })
+    if (queued.changed) tempMemory = queued.tempMemory
+  }
+
+  // Prune managed pending intents that are no longer relevant (keeps supervisor.queue from drifting forever).
+  {
+    const pruned = pruneSupervisorQueueManagedIntents({ tempMemory, keepReasons: managedPendingReasons })
+    if (pruned.changed) tempMemory = pruned.tempMemory
+  }
 
   // HARD GUARD: during an active checkup/bilan, only investigator may answer (unless explicit stop).
   // We still allow safety escalation (sentry/firefighter) to override.
@@ -770,13 +1433,21 @@ SORTIE JSON STRICTE:
     try {
       const latest = await getUserState(supabase, userId, scope)
       if (latest?.investigation_state) {
-        const extracted = extractDeferredTopicFromUserMessage(userMessage)
-        const topic = extracted || String(userMessage ?? "").trim().slice(0, 240) || "Sujet à reprendre"
-        const updatedInv = appendDeferredTopicToState(latest.investigation_state, topic)
-        await updateUserState(supabase, userId, scope, { investigation_state: updatedInv })
-        // Keep local in-memory state in sync so later "preserve deferred_topics" merges don't drop it.
-        // (The Investigator branch below uses `state` as a baseline when it writes invResult.newState.)
-        state = { ...(state ?? {}), investigation_state: updatedInv }
+        // USE DISPATCHER'S FORMALIZED TOPIC if available (no extra AI call!)
+        const formalizedFromDispatcher = dispatcherSignals?.interrupt?.deferred_topic_formalized
+        const fallbackExtracted = extractDeferredTopicFromUserMessage(userMessage) || String(userMessage ?? "").trim().slice(0, 240)
+        const topicToStore = formalizedFromDispatcher || fallbackExtracted
+        
+        if (topicToStore && topicToStore.length >= 3) {
+          const updatedInv = appendDeferredTopicToState(latest.investigation_state, topicToStore)
+          await updateUserState(supabase, userId, scope, { investigation_state: updatedInv })
+          // Keep local in-memory state in sync so later "preserve deferred_topics" merges don't drop it.
+          // (The Investigator branch below uses `state` as a baseline when it writes invResult.newState.)
+          state = { ...(state ?? {}), investigation_state: updatedInv }
+          console.log(`[Router] User explicit defer captured: "${topicToStore}" (from=${formalizedFromDispatcher ? "dispatcher" : "fallback"})`)
+        } else {
+          console.log(`[Router] User explicit defer rejected - no valid topic`)
+        }
       }
     } catch (e) {
       console.error("[Router] user deferred topic store failed (non-blocking):", e)
@@ -1106,6 +1777,8 @@ SORTIE JSON STRICTE:
 
   // --- TOPIC SESSION (global supervisor state machine) ---
   // Goal: keep a coarse "topic lifecycle" across agents (opening/exploring/converging/closing) and enable clean handoffs.
+  let topicSessionClosedThisTurn = false
+  let topicSessionHandoffThisTurn = false
   try {
     let tm0 = (tempMemory ?? {}) as any
     const toolFlowActive = Boolean((tm0 as any)?.architect_tool_flow)
@@ -1117,16 +1790,24 @@ SORTIE JSON STRICTE:
     const topic = guessTopicLabel(userMessage)
     const bored = looksLikeUserBoredOrWantsToStop(userMessage)
 
-    // If the user explicitly wants to stop/change topic, we should NOT keep an Architect toolflow "active"
-    // (it blocks baton handoff and causes the Architect to keep pushing a plan/tool sequence).
-    if (bored && toolFlowActive) {
-      const cleared = setArchitectToolFlowInTempMemory({ tempMemory: tm0, nextFlow: null })
-      if (cleared.changed) {
-        tempMemory = cleared.tempMemory
+    // Auto-close topic_session if it was in "closing" phase and user continues (not bored).
+    // This ensures clean transitions after handoff.
+    const existingTopicSession = getActiveSupervisorSession(tm0)
+    if (
+      existingTopicSession?.type === "topic_session" &&
+      existingTopicSession.phase === "closing" &&
+      !bored
+    ) {
+      const closed = closeTopicSession({ tempMemory: tm0 })
+      if (closed.changed) {
+        tempMemory = closed.tempMemory
         tm0 = tempMemory as any
+        topicSessionClosedThisTurn = true
       }
     }
 
+    // NOTE: Toolflow cancellation on bored/stop is handled earlier (line ~697-705) via the main scheduler block.
+    // We don't repeat it here to avoid confusion; just re-check the current state.
     const toolFlowActiveAfter = Boolean((tm0 as any)?.architect_tool_flow)
     const phase: "opening" | "exploring" | "converging" | "closing" =
       bored ? "closing" : (loopCount >= 2 ? "converging" : "exploring")
@@ -1145,6 +1826,7 @@ SORTIE JSON STRICTE:
     // Conservative baton handoff: only when the user signals stop/boredom AND no active tool flow.
     if (handoffTo === "companion" && !looksLikeAcuteDistress(userMessage)) {
       targetMode = "companion"
+      topicSessionHandoffThisTurn = true
     }
   } catch {
     // best-effort; never block routing
@@ -1155,6 +1837,7 @@ SORTIE JSON STRICTE:
   let nextMode = targetMode
 
   console.log(`[Router] User: "${userMessage}" -> Dispatch: ${targetMode} (Risk: ${riskScore})`)
+  const targetModeFinalBeforeExec = targetMode
 
   // Anti-loop (plan non détecté): on évite le "computer says no".
   // Si le contexte indique qu'il n'y a AUCUN plan actif et que l'utilisateur insiste (C'est bon / j'ai validé / bug),
@@ -1203,7 +1886,39 @@ SORTIE JSON STRICTE:
     } catch {}
     // Best-effort: log the assistant message (don't block the reply if DB write fails).
     try {
-      await logMessage(supabase, userId, scope, "assistant", responseContent, "architect", { reason: "no_plan_loop_escalation" });
+      const dec = buildRouterDecisionV1({
+        requestId: meta?.requestId,
+        scope,
+        channel,
+        dispatcher_target_mode: String(dispatcherTargetMode),
+        target_mode_initial: String(targetModeInitial),
+        target_mode_final: String(targetModeFinalBeforeExec),
+        final_mode: String(nextMode),
+        risk_score: Number(riskScore ?? 0) || 0,
+        checkup_active: Boolean(checkupActive),
+        stop_checkup: Boolean(stopCheckup),
+        is_post_checkup: Boolean(isPostCheckup),
+        forced_preference_mode: forcedPref,
+        forced_pending_confirm: forcedPendingConfirm,
+        toolflow_active_global: Boolean(toolFlowActiveGlobal),
+        toolflow_cancelled_on_stop: Boolean(toolflowCancelledOnStop),
+        pending_nudge_kind: null,
+        resume_action_v1: resumeActionV1,
+        stale_cleaned: staleCleaned,
+        topic_session_closed: topicSessionClosedThisTurn,
+        topic_session_handoff: topicSessionHandoffThisTurn,
+        safety_preempted_flow: Boolean((tempMemory as any)?.__router_safety_preempted_v1),
+        dispatcher_signals: dispatcherSignals,
+        temp_memory_before: tempMemory,
+        temp_memory_after: tempMemory,
+      })
+      const md = {
+        ...(opts?.messageMetadata ?? {}),
+        reason: "no_plan_loop_escalation",
+        ...dec,
+      } as any
+      console.log("[RouterDecisionV1]", JSON.stringify(md?.router_decision_v1 ?? {}))
+      await logMessage(supabase, userId, scope, "assistant", responseContent, "architect", md);
     } catch {}
     return { content: normalizeChatText(responseContent), mode: nextMode, aborted: false };
   }
@@ -1225,6 +1940,8 @@ SORTIE JSON STRICTE:
     isPostCheckup,
     outageTemplate,
     sophiaChatModel: SOPHIA_CHAT_MODEL,
+    // Pass dispatcher's formalized deferred topic to avoid extra AI call in agent_exec
+    dispatcherDeferredTopic: dispatcherSignals?.interrupt?.deferred_topic_formalized ?? null,
   })
 
   responseContent = agentOut.responseContent
@@ -1235,6 +1952,110 @@ SORTIE JSON STRICTE:
   if (nudged.changed) {
     tempMemory = nudged.tempMemory
     responseContent = nudged.responseText
+  }
+
+  // --- PR4: deterministic pending nudge (supervisor.queue-driven), behind flag ---
+  // Goal: when the user is in a low-stakes moment, surface ONE pending obligation, in a predictable priority order.
+  // We never do this in safety or during an active bilan lock.
+  let pendingNudgeKind: string | null = null
+  if (
+    ENABLE_SUPERVISOR_PENDING_NUDGES_V1 &&
+    !nudged.changed &&
+    nextMode === "companion" &&
+    riskScore <= 1 &&
+    !checkupActive &&
+    lowStakesTurn(userMessage)
+  ) {
+    const p = pickPendingFromSupervisorQueue(tempMemory)
+    if (p?.kind === "post_checkup") {
+      pendingNudgeKind = "post_checkup"
+      responseContent =
+        `${String(responseContent ?? "").trim()}\n\n` +
+        `Au fait: il reste un sujet reporté à reprendre. Tu veux qu’on le traite maintenant ?`
+    } else if (p?.kind === "profile_confirm") {
+      pendingNudgeKind = "profile_confirm"
+      responseContent =
+        `${String(responseContent ?? "").trim()}\n\n` +
+        `Au fait: on avait une petite confirmation en attente${p.excerpt ? ` (${p.excerpt})` : ""}. On la fait maintenant ?`
+    } else if (p?.kind === "global_deferred") {
+      // Global deferred already has its own injection logic; keep this as a marker only.
+      pendingNudgeKind = "global_deferred"
+      // No extra text: avoid duplicating the existing global-deferred phrasing.
+    }
+  }
+
+  // --- PR5: deterministic resume prompt for queued toolflow (low-stakes only), behind flag ---
+  if (
+    ENABLE_SUPERVISOR_RESUME_NUDGES_V1 &&
+    resumeActionV1 == null &&
+    pendingNudgeKind == null &&
+    !nudged.changed &&
+    nextMode === "companion" &&
+    riskScore <= 1 &&
+    !checkupActive &&
+    lowStakesTurn(userMessage)
+  ) {
+    const rt = getSupervisorRuntime(tempMemory)
+    const hasQueuedToolflow = Array.isArray(rt.queue) && rt.queue.some((q: any) =>
+      String(q?.reason ?? "") === "queued_due_to_irrelevant_active_session:architect_tool_flow"
+    )
+    if (hasQueuedToolflow) {
+      resumeActionV1 = "prompted"
+      ;(tempMemory as any).__router_resume_prompt_v1 = {
+        kind: "architect_toolflow",
+        asked_at: new Date().toISOString(),
+      }
+      responseContent =
+        `${String(responseContent ?? "").trim()}\n\n` +
+        `Au fait: tu veux qu'on reprenne la mise à jour du plan qu'on avait commencée, ou on laisse tomber ?`
+    }
+  }
+
+  // --- Safety preemption recovery: when firefighter/sentry preempts a flow, offer to resume later ---
+  // Store marker if safety mode preempts an active toolflow
+  if (
+    (nextMode === "firefighter" || nextMode === "sentry") &&
+    toolFlowActiveGlobal &&
+    !toolflowCancelledOnStop
+  ) {
+    ;(tempMemory as any).__router_safety_preempted_v1 = {
+      preempted_flow: "architect_tool_flow",
+      preempted_at: new Date().toISOString(),
+      safety_mode: nextMode,
+    }
+  }
+
+  // On subsequent low-stakes turn after safety, offer to resume
+  if (
+    ENABLE_SUPERVISOR_RESUME_NUDGES_V1 &&
+    resumeActionV1 == null &&
+    pendingNudgeKind == null &&
+    !nudged.changed &&
+    nextMode === "companion" &&
+    riskScore === 0 &&
+    !checkupActive &&
+    lowStakesTurn(userMessage)
+  ) {
+    const safetyMarker = (tempMemory as any)?.__router_safety_preempted_v1 ?? null
+    const preemptedFlow = safetyMarker?.preempted_flow
+    const preemptedAt = Date.parse(String(safetyMarker?.preempted_at ?? ""))
+    const expired = !Number.isFinite(preemptedAt) || (Date.now() - preemptedAt) > 30 * 60 * 1000 // 30 min TTL
+    
+    if (preemptedFlow === "architect_tool_flow" && !expired && toolFlowActiveGlobal) {
+      resumeActionV1 = "prompted"
+      ;(tempMemory as any).__router_resume_prompt_v1 = {
+        kind: "safety_recovery",
+        asked_at: new Date().toISOString(),
+      }
+      responseContent =
+        `${String(responseContent ?? "").trim()}\n\n` +
+        `Tu as l'air d'aller mieux. Tu veux qu'on reprenne ce qu'on faisait avant, ou on laisse tomber ?`
+      // Clear the safety preempted marker
+      try { delete (tempMemory as any).__router_safety_preempted_v1 } catch {}
+    } else if (expired || !toolFlowActiveGlobal) {
+      // Clear stale marker
+      try { delete (tempMemory as any).__router_safety_preempted_v1 } catch {}
+    }
   }
 
   // 6. Mise à jour du mode final et log réponse
@@ -1251,6 +2072,12 @@ SORTIE JSON STRICTE:
       if ((tempMemory as any).global_deferred_topics) (mergedTempMemory as any).global_deferred_topics = (tempMemory as any).global_deferred_topics
       if ((tempMemory as any).architect) (mergedTempMemory as any).architect = (tempMemory as any).architect
     }
+    // Scheduler override: if we explicitly cancelled a toolflow on stop/boredom, ensure it stays cleared.
+    if (toolflowCancelledOnStop) {
+      try {
+        delete (mergedTempMemory as any).architect_tool_flow
+      } catch {}
+    }
   } catch {}
 
   await updateUserState(supabase, userId, scope, {
@@ -1260,7 +2087,35 @@ SORTIE JSON STRICTE:
     temp_memory: mergedTempMemory,
   })
   if (logMessages) {
-    await logMessage(supabase, userId, scope, 'assistant', responseContent, targetMode, opts?.messageMetadata)
+    const dec = buildRouterDecisionV1({
+      requestId: meta?.requestId,
+      scope,
+      channel,
+      dispatcher_target_mode: String(dispatcherTargetMode),
+      target_mode_initial: String(targetModeInitial),
+      target_mode_final: String(targetModeFinalBeforeExec),
+      final_mode: String(nextMode),
+      risk_score: Number(riskScore ?? 0) || 0,
+      checkup_active: Boolean(checkupActive),
+      stop_checkup: Boolean(stopCheckup),
+      is_post_checkup: Boolean(isPostCheckup),
+      forced_preference_mode: forcedPref,
+      forced_pending_confirm: forcedPendingConfirm,
+      toolflow_active_global: Boolean(toolFlowActiveGlobal),
+      toolflow_cancelled_on_stop: Boolean(toolflowCancelledOnStop),
+        pending_nudge_kind: pendingNudgeKind,
+        resume_action_v1: resumeActionV1,
+        stale_cleaned: staleCleaned,
+        topic_session_closed: topicSessionClosedThisTurn,
+        topic_session_handoff: topicSessionHandoffThisTurn,
+        safety_preempted_flow: Boolean((mergedTempMemory as any)?.__router_safety_preempted_v1),
+        dispatcher_signals: dispatcherSignals,
+        temp_memory_before: tempMemory,
+        temp_memory_after: mergedTempMemory,
+      })
+      const md = { ...(opts?.messageMetadata ?? {}), ...dec } as any
+      console.log("[RouterDecisionV1]", JSON.stringify(md?.router_decision_v1 ?? {}))
+    await logMessage(supabase, userId, scope, 'assistant', responseContent, targetMode, md)
   }
 
   return {

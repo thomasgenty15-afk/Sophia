@@ -178,26 +178,32 @@ Deno.serve(async (req) => {
       // If the user isn't opted in / no phone: fall back to logging into chat_messages only.
       let sentViaWhatsapp = false
       let usedTemplate = false
-      try {
-        const mode = String((checkin as any)?.message_mode ?? "static").trim().toLowerCase()
-        const payload = ((checkin as any)?.message_payload ?? {}) as any
-        let bodyText = String((checkin as any)?.draft_message ?? "").trim()
-        if (mode === "dynamic") {
-          try {
-            bodyText = await generateDynamicWhatsAppCheckinMessage({
-              admin: supabaseAdmin as any,
-              userId: checkin.user_id,
-              eventContext: String((checkin as any)?.event_context ?? "check-in"),
-              instruction: String(payload?.instruction ?? payload?.note ?? ""),
-              requestId,
-            })
-          } catch (e) {
-            // Fallback to stored draft if dynamic generation fails.
-            console.warn(`[process-checkins] request_id=${requestId} dynamic_generation_failed checkin_id=${checkin.id}`, e)
-            bodyText = String((checkin as any)?.draft_message ?? "").trim() || "Petit check-in: comment ça va depuis tout à l’heure ?"
-          }
+      
+      // Generate bodyText BEFORE try/catch so it's available for fallback
+      const mode = String((checkin as any)?.message_mode ?? "static").trim().toLowerCase()
+      const payload = ((checkin as any)?.message_payload ?? {}) as any
+      let bodyText = String((checkin as any)?.draft_message ?? "").trim()
+      if (mode === "dynamic") {
+        try {
+          bodyText = await generateDynamicWhatsAppCheckinMessage({
+            admin: supabaseAdmin as any,
+            userId: checkin.user_id,
+            eventContext: String((checkin as any)?.event_context ?? "check-in"),
+            instruction: String(payload?.instruction ?? payload?.note ?? ""),
+            requestId,
+          })
+        } catch (e) {
+          // Fallback to stored draft if dynamic generation fails.
+          console.warn(`[process-checkins] request_id=${requestId} dynamic_generation_failed checkin_id=${checkin.id}`, e)
+          bodyText = String((checkin as any)?.draft_message ?? "").trim() || "Petit check-in: comment ça va depuis tout à l'heure ?"
         }
+      }
+      // Ensure bodyText is never empty/null for the fallback
+      if (!bodyText.trim()) {
+        bodyText = "Petit check-in: comment ça va depuis tout à l'heure ?"
+      }
 
+      try {
         const resp = await callWhatsappSend({
           user_id: checkin.user_id,
           message: { type: "text", body: bodyText },
@@ -263,12 +269,13 @@ Deno.serve(async (req) => {
       }
 
       if (!sentViaWhatsapp) {
+        // Use bodyText (which includes dynamically generated message) instead of draft_message
         const { error: msgError } = await supabaseAdmin
           .from('chat_messages')
           .insert({
             user_id: checkin.user_id,
             role: 'assistant',
-            content: checkin.draft_message,
+            content: bodyText,  // ← FIX: was checkin.draft_message which is null for dynamic checkins
             agent_used: 'companion',
             metadata: {
               source: 'scheduled_checkin',

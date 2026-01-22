@@ -1,0 +1,41 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_easy_bilan_firefighter",
+  "description": "EASY: 2 machines (bilan + firefighter). User starts checkup, has a stress moment, then resumes checkup.",
+  "tags": ["stress_test", "easy", "bilan", "firefighter"],
+  "difficulty": "easy",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 3
+  },
+  "persona": {
+    "label": "Utilisateur anxieux",
+    "age_range": "30-45",
+    "style": "oral, peut avoir des pics de stress soudains mais se calme vite",
+    "background": "Je fais mon bilan mais parfois le stress me submerge. Je veux quand même finir mon check."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_easy_bilan_firefighter",
+      "spec": {
+        "phase_1_start_bilan": "Salut Sophia, on fait le bilan ?",
+        "phase_2_answer_bilan": "Oui j'ai fait 2 actions sur 3 aujourd'hui",
+        "phase_3_stress_spike": "Attends, là j'ai une boule au ventre, je stresse trop",
+        "phase_4_calming": "Ok ça va un peu mieux merci",
+        "phase_5_resume_bilan": "Bon on reprend le bilan ?",
+        "phase_6_finish": "Ok merci pour le check"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "bilan_active_implies_investigator",
+      "sessions_have_resume_brief",
+      "queue_bounded"
+    ]
+  }
+}
+

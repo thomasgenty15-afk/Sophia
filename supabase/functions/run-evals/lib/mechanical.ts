@@ -3,6 +3,7 @@ import { generateEmbedding } from "../../_shared/gemini.ts";
 export async function buildMechanicalIssues(params: {
   scenario: any;
   profileAfter: any;
+  profileFactsAfter?: any[];
   chatStateAfter?: any;
   planSnapshotAfter?: any;
   transcript: any[];
@@ -164,6 +165,23 @@ export async function buildMechanicalIssues(params: {
   const plan = params.planSnapshotAfter ?? null;
   const planActions = Array.isArray((plan as any)?.actions) ? (plan as any).actions : [];
   const planFrameworks = Array.isArray((plan as any)?.frameworks) ? (plan as any).frameworks : [];
+
+  // User profile facts assertions (user_profile_facts table)
+  // mech.user_profile_facts_must_include = [{ key: "conversation.tone", value: "direct", scope: ["global","web"] }]
+  const profFacts = Array.isArray((params as any)?.profileFactsAfter) ? (params as any).profileFactsAfter : [];
+  const profFactsMustInclude = Array.isArray((mech as any)?.user_profile_facts_must_include)
+    ? (mech as any).user_profile_facts_must_include
+    : [];
+  for (const expected of profFactsMustInclude) {
+    const ok = profFacts.some((r: any) => shallowMatchObject(r, expected));
+    if (!ok) {
+      out.push({
+        severity: "high",
+        kind: "mechanical_assertion_failed",
+        message: `user_profile_facts_must_include failed: ${JSON.stringify(expected)}`,
+      });
+    }
+  }
 
   const actionsCountMin = (mech as any)?.plan_actions_count_min;
   if (actionsCountMin != null) {
@@ -405,6 +423,117 @@ export async function buildMechanicalIssues(params: {
         kind: "mechanical_assertion_failed",
         message: `eval_events_issues_must_include_any_of failed: missing_any_of=${JSON.stringify(evalMustAny)}`,
       });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SCHEDULER INVARIANTS (testable release blockers)
+  // ═══════════════════════════════════════════════════════════════════════════════
+
+  const invariants = (mech as any)?.scheduler_invariants ?? [];
+  if (Array.isArray(invariants) && invariants.length > 0) {
+    const tm = (params.chatStateAfter as any)?.temp_memory ?? null;
+    const invState = (params.chatStateAfter as any)?.investigation_state ?? null;
+    const currentMode = (params.chatStateAfter as any)?.current_mode ?? null;
+    const userMessages = (params.transcript ?? [])
+      .filter((m: any) => m?.role === "user")
+      .map((m: any) => String(m?.content ?? "").toLowerCase());
+
+    for (const inv of invariants) {
+      const invName = String(inv).toLowerCase().trim();
+
+      // INV1: Toolflow never active after explicit stop
+      // If user said "stop/arrête/on arrête" in ANY turn, toolflow must be cleared at end
+      if (invName === "toolflow_cleared_after_stop") {
+        const userSaidStop = userMessages.some((m: string) =>
+          /\b(stop|arrete|arr[êe]te|on\s+arrete|on\s+arr[êe]te|laisse\s+tomber)\b/i.test(m)
+        );
+        const toolflowActive = Boolean((tm as any)?.architect_tool_flow);
+        if (userSaidStop && toolflowActive) {
+          out.push({
+            severity: "high",
+            kind: "scheduler_invariant_violated",
+            message: `INVARIANT toolflow_cleared_after_stop: user said stop but toolflow still active`,
+          });
+        }
+      }
+
+      // INV2: Bilan active → investigator mode (unless safety override)
+      if (invName === "bilan_active_implies_investigator") {
+        const bilanActive = invState && invState.status && invState.status !== "post_checkup";
+        const isSafetyMode = currentMode === "sentry" || currentMode === "firefighter";
+        if (bilanActive && !isSafetyMode && currentMode !== "investigator") {
+          out.push({
+            severity: "high",
+            kind: "scheduler_invariant_violated",
+            message: `INVARIANT bilan_active_implies_investigator: bilan active (status=${invState.status}) but mode=${currentMode}`,
+          });
+        }
+      }
+
+      // INV3: Every active session has resume_brief and last_active_at
+      if (invName === "sessions_have_resume_brief") {
+        const stack = Array.isArray((tm as any)?.supervisor?.stack) ? (tm as any).supervisor.stack : [];
+        for (const sess of stack) {
+          const hasResumeBrief = typeof (sess as any)?.resume_brief === "string" && (sess as any).resume_brief.length > 0;
+          const hasLastActive = typeof (sess as any)?.last_active_at === "string";
+          if (!hasResumeBrief || !hasLastActive) {
+            out.push({
+              severity: "medium",
+              kind: "scheduler_invariant_violated",
+              message: `INVARIANT sessions_have_resume_brief: session type=${(sess as any)?.type} missing resume_brief=${!hasResumeBrief} missing last_active_at=${!hasLastActive}`,
+            });
+          }
+        }
+      }
+
+      // INV4: supervisor.updated_at must be recent (within last hour) if supervisor exists
+      if (invName === "supervisor_recently_updated") {
+        const sup = (tm as any)?.supervisor;
+        if (sup && typeof sup === "object") {
+          const updated = (sup as any)?.updated_at;
+          if (typeof updated === "string") {
+            const age = Date.now() - new Date(updated).getTime();
+            const oneHour = 60 * 60 * 1000;
+            if (age > oneHour) {
+              out.push({
+                severity: "medium",
+                kind: "scheduler_invariant_violated",
+                message: `INVARIANT supervisor_recently_updated: supervisor.updated_at is ${Math.round(age / 60000)} minutes old`,
+              });
+            }
+          }
+        }
+      }
+
+      // INV5: Queue size is bounded (max 6)
+      if (invName === "queue_bounded") {
+        const queue = Array.isArray((tm as any)?.supervisor?.queue) ? (tm as any).supervisor.queue : [];
+        if (queue.length > 6) {
+          out.push({
+            severity: "high",
+            kind: "scheduler_invariant_violated",
+            message: `INVARIANT queue_bounded: queue size=${queue.length} exceeds max=6`,
+          });
+        }
+      }
+
+      // INV6: Topic session should not have generic topic (e.g., "merci", "ok")
+      if (invName === "topic_session_meaningful_topic") {
+        const stack = Array.isArray((tm as any)?.supervisor?.stack) ? (tm as any).supervisor.stack : [];
+        const topicSessions = stack.filter((s: any) => String(s?.type) === "topic_session");
+        for (const sess of topicSessions) {
+          const topic = String((sess as any)?.topic ?? "").toLowerCase().trim();
+          const isGeneric = /^(ok|oui|non|merci|super|top|cool|daccord|c'?est bon|parfait|conversation)$/i.test(topic);
+          if (isGeneric) {
+            out.push({
+              severity: "low",
+              kind: "scheduler_invariant_violated",
+              message: `INVARIANT topic_session_meaningful_topic: topic="${topic}" is too generic`,
+            });
+          }
+        }
+      }
     }
   }
 

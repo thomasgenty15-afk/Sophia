@@ -1,0 +1,43 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_medium_toolflow_firefighter_resume",
+  "description": "MEDIUM: 3 machines (toolflow + firefighter + resume). User starts toolflow, has acute stress (firefighter preempts), then resumes toolflow.",
+  "tags": ["stress_test", "medium", "toolflow", "firefighter", "resume"],
+  "difficulty": "medium",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur anxieux en action",
+    "age_range": "28-40",
+    "style": "oral, motivé mais sujet à des crises de stress, veut finir ce qu'il commence",
+    "background": "Je modifie mon plan mais parfois j'ai des moments de panique. Je veux quand même finir."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_medium_toolflow_firefighter_resume",
+      "spec": {
+        "phase_1_start_toolflow": "Je veux ajouter une action sport le mardi",
+        "phase_2_continue_toolflow": "Oui, genre 30 minutes de course",
+        "phase_3_stress_acute": "Putain j'ai le coeur qui s'emballe là, j'arrive plus à respirer",
+        "phase_4_grounding": "Oui... je respire... ok ça va un peu mieux",
+        "phase_5_stabilize": "Merci, oui ça passe",
+        "phase_6_resume_prompt": "Ok on peut reprendre où on en était ?",
+        "phase_7_finish_toolflow": "Oui, valide l'action sport",
+        "phase_8_done": "Merci c'est bon"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "toolflow_cleared_after_stop",
+      "sessions_have_resume_brief",
+      "queue_bounded"
+    ]
+  }
+}
+

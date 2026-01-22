@@ -99,11 +99,23 @@ export const PlanSchema = z.object({
 
   for (let i = 0; i < plan.phases.length; i++) {
     const phase = plan.phases[i]!;
-    if (phase.actions.length !== 3) {
+    if (phase.actions.length !== 2) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         path: ["phases", i, "actions"],
-        message: `Chaque phase doit contenir exactement 3 actions (phase ${i + 1}, reçu: ${phase.actions.length}).`,
+        message: `Chaque phase doit contenir exactement 2 actions (phase ${i + 1}, reçu: ${phase.actions.length}).`,
+      });
+    }
+    
+    // Vérifier qu'il y a au moins 1 habitude par phase
+    const habitudeCount = phase.actions.filter(
+      (a) => (a.type ?? "").toLowerCase().trim() === "habitude" || (a.type ?? "").toLowerCase().trim() === "habit"
+    ).length;
+    if (habitudeCount < 1) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phases", i, "actions"],
+        message: `Chaque phase doit contenir au moins 1 habitude (phase ${i + 1}, habitudes trouvées: ${habitudeCount}).`,
       });
     }
   }

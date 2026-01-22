@@ -66,3 +66,6 @@ A) simulate-user: tool state machines
 Lieu: supabase/functions/simulate-user/index.ts
 Machines: create_action, update_action, break_down_action, activate_plan_action (toutes explicitement taggées “STATE MACHINE”)
 But: rendre les evals déterministes, pas piloter prod.
+
+---
+Note: voir aussi `feat/Supervisor Scheduler RFC (OS conversationnel).md` pour le modèle mental “Supervisor = scheduler” + le contrat standard machine ↔ supervisor (priorités, préemption, pause/cancel/resume, invariants).

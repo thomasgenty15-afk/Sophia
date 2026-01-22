@@ -1,0 +1,46 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_hard_topic_confirm_deferred_toolflow",
+  "description": "HARD: 4 machines (topic_session + profile_confirm + deferred + toolflow). Complex multi-topic conversation with preferences and actions.",
+  "tags": ["stress_test", "hard", "topic_session", "profile_confirm", "deferred", "toolflow"],
+  "difficulty": "hard",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur exigeant",
+    "age_range": "30-45",
+    "style": "oral, aime personnaliser, discute de plusieurs sujets, reporte, modifie son plan",
+    "background": "Je veux une experience sur mesure. Je parle de plusieurs sujets, je reporte, j'ajuste mes preferences."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_hard_topic_confirm_deferred_toolflow",
+      "spec": {
+        "phase_1_topic": "Parlons de ma productivite",
+        "phase_2_preference": "D'abord, j'aimerais que tu sois plus directive avec moi",
+        "phase_3_confirm": "Oui je confirme, sois plus directive",
+        "phase_4_defer": "On reparle de la productivite plus tard, note-le",
+        "phase_5_toolflow_start": "Je veux ajouter une action planning matinal",
+        "phase_6_toolflow_details": "Oui, 15 minutes chaque matin",
+        "phase_7_toolflow_done": "Ok parfait",
+        "phase_8_low_stakes": "Merci",
+        "phase_9_return_deferred": "Oui on peut reparler de productivite",
+        "phase_10_close": "Ok c'est bon merci"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "toolflow_cleared_after_stop",
+      "sessions_have_resume_brief",
+      "queue_bounded",
+      "topic_session_meaningful_topic"
+    ]
+  }
+}
+

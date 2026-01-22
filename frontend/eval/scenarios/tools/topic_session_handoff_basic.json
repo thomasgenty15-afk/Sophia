@@ -30,6 +30,12 @@
     ],
     "chat_state_temp_memory_paths_exist": [
       "supervisor.updated_at"
+    ],
+    "scheduler_invariants": [
+      "toolflow_cleared_after_stop",
+      "sessions_have_resume_brief",
+      "queue_bounded",
+      "topic_session_meaningful_topic"
     ]
   }
 }

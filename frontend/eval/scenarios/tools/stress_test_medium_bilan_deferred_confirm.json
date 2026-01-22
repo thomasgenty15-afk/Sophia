@@ -1,0 +1,43 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_medium_bilan_deferred_confirm",
+  "description": "MEDIUM: 3 machines (bilan + deferred + profile_confirm). User does checkup, defers topics, then gets profile confirmation.",
+  "tags": ["stress_test", "medium", "bilan", "deferred", "profile_confirm"],
+  "difficulty": "medium",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 3
+  },
+  "persona": {
+    "label": "Utilisateur organisé",
+    "age_range": "30-45",
+    "style": "oral, structuré, reporte des sujets pour plus tard, ajuste ses préférences",
+    "background": "Je fais mon bilan régulièrement. Je préfère reporter certains sujets et j'aime personnaliser Sophia."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_medium_bilan_deferred_confirm",
+      "spec": {
+        "phase_1_start_bilan": "Salut, on fait le check du jour ?",
+        "phase_2_answer": "2 sur 3 faites",
+        "phase_3_defer": "Au fait, on parlera de ma gestion du temps plus tard",
+        "phase_4_continue_bilan": "Ok revenons au bilan",
+        "phase_5_finish_bilan": "Ok merci pour le check",
+        "phase_6_preference": "D'ailleurs j'aimerais des bilans plus courts",
+        "phase_7_confirm": "Oui je confirme",
+        "phase_8_low_stakes": "Ok merci"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "bilan_active_implies_investigator",
+      "sessions_have_resume_brief",
+      "queue_bounded"
+    ]
+  }
+}
+

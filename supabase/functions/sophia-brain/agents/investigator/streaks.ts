@@ -30,11 +30,16 @@ export async function getMissedStreakDays(
   const days = Array.from(dayToStatus.keys()).sort((a, b) => (a > b ? -1 : a < b ? 1 : 0))
   if (days.length === 0) return 0
 
+  const isMissedStatus = (st: string | undefined): boolean => {
+    const s = String(st ?? "").toLowerCase()
+    return s === "missed" || s === "skipped" || s === "failed"
+  }
+
   let streak = 0
   let cursor = days[0]
   while (true) {
     const st = dayToStatus.get(cursor)
-    if (st !== "missed") break
+    if (!isMissedStatus(st)) break
     streak += 1
     const prev = addDays(cursor, -1)
     if (!dayToStatus.has(prev)) break

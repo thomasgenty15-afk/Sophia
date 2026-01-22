@@ -1,0 +1,46 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_hard_bilan_ff_toolflow_resume",
+  "description": "HARD: 4 machines (bilan + firefighter + toolflow + resume). Checkup interrupted by panic, then toolflow started, then resume of checkup.",
+  "tags": ["stress_test", "hard", "bilan", "firefighter", "toolflow", "resume"],
+  "difficulty": "hard",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 3
+  },
+  "persona": {
+    "label": "Utilisateur chaotique anxieux",
+    "age_range": "28-42",
+    "style": "oral, instable emotionnellement, mais veut avancer sur son plan malgre tout",
+    "background": "Je fais mon bilan mais j'ai des crises d'anxiete. Je veux quand meme modifier mon plan et finir mon check."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_hard_bilan_ff_toolflow_resume",
+      "spec": {
+        "phase_1_start_bilan": "Salut, on fait le bilan ?",
+        "phase_2_answer": "J'ai fait 1 action sur 3",
+        "phase_3_panic": "Putain je stresse trop la, mon coeur bat super vite",
+        "phase_4_grounding": "Ok... je respire...",
+        "phase_5_calm": "Ca va mieux merci",
+        "phase_6_change_subject": "En fait, je veux modifier une action de mon plan",
+        "phase_7_toolflow": "Oui, change la frequence de ma meditation a 3x par semaine",
+        "phase_8_done_toolflow": "Ok parfait merci",
+        "phase_9_resume_bilan": "Bon on finit le bilan ?",
+        "phase_10_finish": "Ok merci pour tout"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "bilan_active_implies_investigator",
+      "toolflow_cleared_after_stop",
+      "sessions_have_resume_brief",
+      "queue_bounded"
+    ]
+  }
+}
+

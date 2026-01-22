@@ -1,0 +1,40 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_easy_confirm_deferred",
+  "description": "EASY: 2 machines (profile_confirm + global_deferred). User sets preferences, defers a topic, then gets nudged.",
+  "tags": ["stress_test", "easy", "profile_confirm", "deferred"],
+  "difficulty": "easy",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur qui personnalise",
+    "age_range": "25-40",
+    "style": "oral, aime ajuster les choses, peut reporter des sujets",
+    "background": "Je veux personnaliser Sophia et je reporte parfois des discussions pour plus tard."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_easy_confirm_deferred",
+      "spec": {
+        "phase_1_preference": "Je voudrais des réponses plus courtes s'il te plaît",
+        "phase_2_confirm": "Oui je confirme, réponses courtes",
+        "phase_3_defer_topic": "Au fait on parlera de mon sommeil plus tard ok ?",
+        "phase_4_small_talk": "Ok merci",
+        "phase_5_low_stakes": "Super",
+        "phase_6_acknowledge_nudge": "Oui on peut en parler maintenant"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "sessions_have_resume_brief",
+      "queue_bounded"
+    ]
+  }
+}
+

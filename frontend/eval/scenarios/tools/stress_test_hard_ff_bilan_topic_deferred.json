@@ -1,0 +1,46 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_hard_ff_bilan_topic_deferred",
+  "description": "HARD: 4 machines (firefighter + bilan + topic_session + deferred). Starts with stress, then checkup, then topic discussion, then defer.",
+  "tags": ["stress_test", "hard", "firefighter", "bilan", "topic_session", "deferred"],
+  "difficulty": "hard",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 3
+  },
+  "persona": {
+    "label": "Utilisateur vulnerable mais structure",
+    "age_range": "32-48",
+    "style": "oral, commence stresse mais se calme, veut faire son bilan, discute, reporte",
+    "background": "Je commence souvent mes journees stresse mais je veux quand meme avancer. Je fais mon bilan et je discute."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_hard_ff_bilan_topic_deferred",
+      "spec": {
+        "phase_1_stress": "Je suis pas bien la, j'ai le coeur qui bat",
+        "phase_2_grounding": "Ok je respire...",
+        "phase_3_calm": "Ca va mieux",
+        "phase_4_start_bilan": "Bon on fait le bilan quand meme ?",
+        "phase_5_answer_bilan": "2 sur 3",
+        "phase_6_finish_bilan": "Ok merci",
+        "phase_7_topic": "Parlons de mon alimentation",
+        "phase_8_topic_explore": "Oui je mange mal ces derniers temps",
+        "phase_9_defer": "On en reparle plus tard, note ca",
+        "phase_10_done": "Ok merci"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "bilan_active_implies_investigator",
+      "sessions_have_resume_brief",
+      "queue_bounded",
+      "topic_session_meaningful_topic"
+    ]
+  }
+}
+

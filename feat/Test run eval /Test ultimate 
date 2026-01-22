@@ -1,0 +1,10 @@
+
+
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 SOPHIA_DISPATCHER_V2=1 npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 50 --model gemini-3-flash-preview 2>&1 | tail -50
+
+ OK alors analyse moi correctement ce bundle créer avec cette commande : 
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 SOPHIA_DISPATCHER_V2=1 npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 50 --model gemini-3-flash-preview 2>&1 | tail -50
+
+Fais moi un bilan, il y a plusieurs erreurs qui vont nécessiter d'améliorer. Je veux que tu m'analyses tout, du transcript, au log, au niveau des machines a état, au niveau de gestion de supervisor, de dispacther, fin qu'il y ait vraiment une analyse exhaustive qui va dans le détails (incluant aussi la partie test si il y a besoin). Fais moi un bilan avec les 10 points à améliorer avec les raisons, en allant vraiment dans le détails du code en essayant de comprendre fondementalement ce qu'il se passe, prend ton temps.
+
+Il faut que tu fasses attention a la qualité de la conversation, la fluidité, la pertinence des réponses, l'aspect humain de la conversation, le ton et le déclenchement des bons outils au bon moment, la fermeture, la pause, le dméarrage des machinies a état au bon moment. 

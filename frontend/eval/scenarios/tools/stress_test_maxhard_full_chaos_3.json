@@ -1,0 +1,52 @@
+{
+  "dataset_key": "stress_test",
+  "id": "stress_test_maxhard_full_chaos_3",
+  "description": "MAX HARD: 5+ machines (profile_confirm + firefighter + topic_session + toolflow + deferred + bilan). The ultimate chaos test.",
+  "tags": ["stress_test", "maxhard", "profile_confirm", "firefighter", "topic_session", "toolflow", "deferred", "bilan"],
+  "difficulty": "maxhard",
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 3
+  },
+  "persona": {
+    "label": "Utilisateur extreme chaos",
+    "age_range": "25-50",
+    "style": "oral, impulsif, emotionnel, change d'avis, preferences, tout en meme temps",
+    "background": "Je suis imprevisible. Je veux tout faire en meme temps: preferences, bilan, plan, emotions, reports."
+  },
+  "objectives": [
+    {
+      "kind": "stress_test_maxhard_full_chaos_3",
+      "spec": {
+        "phase_1_preference": "Je veux que tu sois plus directe avec moi",
+        "phase_2_confirm": "Oui confirme",
+        "phase_3_topic": "Parlons de mon energie",
+        "phase_4_stress": "En fait la je suis pas bien, coeur qui bat",
+        "phase_5_grounding": "Je respire",
+        "phase_6_calm": "Ok ca va",
+        "phase_7_topic_continue": "Oui mon energie est basse",
+        "phase_8_defer": "Note ca pour plus tard",
+        "phase_9_bilan": "Bon on fait le check ?",
+        "phase_10_answer": "2 sur 3",
+        "phase_11_toolflow": "Ajoute une sieste 20min",
+        "phase_12_toolflow_details": "Oui, apres le dejeuner",
+        "phase_13_done_toolflow": "Ok parfait",
+        "phase_14_finish_bilan": "Termine le check",
+        "phase_15_done": "Merci pour tout"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "bilan_active_implies_investigator",
+      "toolflow_cleared_after_stop",
+      "sessions_have_resume_brief",
+      "queue_bounded",
+      "topic_session_meaningful_topic"
+    ]
+  }
+}
+
