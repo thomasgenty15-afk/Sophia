@@ -461,6 +461,10 @@ const UpgradePlan = () => {
                 <span className="text-sm text-slate-600">Tout ce qu'il y a dans "L'Alliance"</span>
               </div>
               <div className="flex items-start gap-3">
+                <MessageCircle className="w-5 h-5 text-amber-500 flex-shrink-0" />
+                <span className="text-sm text-amber-600 font-bold">Messages illimités avec Sophia</span>
+              </div>
+              <div className="flex items-start gap-3">
                 <Brain className="w-5 h-5 text-amber-500 flex-shrink-0" />
                 <span className="text-sm text-slate-900 font-bold">Module "Architecte" Complet</span>
               </div>

@@ -256,17 +256,39 @@ function invokeRunEvalsJson({ url, anonKey, accessToken, body }) {
   }
 }
 
+function getSupabaseCredentials() {
+  // STAGING/PROD MODE: Use environment variables if SOPHIA_EVAL_REMOTE=1
+  const useRemote = parseBoolEnv(process.env.SOPHIA_EVAL_REMOTE);
+  if (useRemote) {
+    const url = process.env.SOPHIA_SUPABASE_URL;
+    const anonKey = process.env.SOPHIA_SUPABASE_ANON_KEY;
+    const serviceRoleKey = process.env.SOPHIA_SUPABASE_SERVICE_ROLE_KEY;
+    if (!url || !anonKey || !serviceRoleKey) {
+      throw new Error(
+        "SOPHIA_EVAL_REMOTE=1 but missing credentials. Set:\n" +
+        "  SOPHIA_SUPABASE_URL=https://xxx.supabase.co\n" +
+        "  SOPHIA_SUPABASE_ANON_KEY=eyJ...\n" +
+        "  SOPHIA_SUPABASE_SERVICE_ROLE_KEY=eyJ..."
+      );
+    }
+    console.log(`[Runner] Using REMOTE Supabase: ${url}`);
+    return { url, anonKey, serviceRoleKey };
+  }
+
+  // LOCAL MODE: Use supabase status (default)
+  const st0 = getLocalSupabaseStatus();
+  const st = normalizeSupabaseStatusKeys(st0);
+  console.log(`[Runner] Using LOCAL Supabase: ${st.API_URL}`);
+  return { url: st.API_URL, anonKey: st.ANON_KEY, serviceRoleKey: st.SERVICE_ROLE_KEY };
+}
+
 async function main() {
   const args = parseArgs(process.argv.slice(2));
   // #region agent log
   fetch('http://127.0.0.1:7242/ingest/f0e4cdf2-e090-4c26-80a9-306daf5df797',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-run',hypothesisId:'H1',location:'run_tool_evals.mjs:main:args',message:'parsed args',data:{scenario:args.scenario,turns:args.turns,model:args.model},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
-  const st0 = getLocalSupabaseStatus();
-  const st = normalizeSupabaseStatusKeys(st0);
-  const url = st.API_URL;
-  const anonKey = st.ANON_KEY;
-  const serviceRoleKey = st.SERVICE_ROLE_KEY;
-  if (!url || !anonKey || !serviceRoleKey) throw new Error("Missing local Supabase status keys (API_URL / ANON_KEY / SERVICE_ROLE_KEY)");
+  const { url, anonKey, serviceRoleKey } = getSupabaseCredentials();
+  if (!url || !anonKey || !serviceRoleKey) throw new Error("Missing Supabase credentials (url / anonKey / serviceRoleKey)");
 
   const { accessToken } = await ensureMasterAdminSession({ url, anonKey, serviceRoleKey });
 

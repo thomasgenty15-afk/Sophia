@@ -16,6 +16,7 @@ import { runWatcher } from "../agents/watcher.ts"
 import { normalizeChatText } from "../chat_text.ts"
 import { generateWithGemini } from "../../_shared/gemini.ts"
 import { getUserTimeContext } from "../../_shared/user_time_context.ts"
+import { getEffectiveTierForUser } from "../../_shared/billing-tier.ts"
 import {
   formatUserProfileFactsForPrompt,
   getUserProfileFacts,
@@ -37,7 +38,7 @@ import {
   looksLikeWorkPressureVenting,
   shouldBypassCheckupLockForDeepWork,
 } from "./classifiers.ts"
-import { analyzeIntentAndRisk, analyzeSignals, looksLikeAcuteDistress, type DispatcherSignals } from "./dispatcher.ts"
+import { analyzeSignals, looksLikeAcuteDistress, type DispatcherSignals } from "./dispatcher.ts"
 import {
   appendDeferredTopicToState,
   extractDeferredTopicFromUserMessage,
@@ -65,14 +66,51 @@ const SOPHIA_CHAT_MODEL =
     ((globalThis as any)?.Deno?.env?.get?.("GEMINI_SOPHIA_CHAT_MODEL") ?? "") as string
   ).trim() || "gemini-3-flash-preview";
 
+// Premium model for critical modes (sentry, firefighter high-risk, architect)
+const SOPHIA_CHAT_MODEL_PRO =
+  (
+    ((globalThis as any)?.Deno?.env?.get?.("GEMINI_SOPHIA_CHAT_MODEL_PRO") ?? "") as string
+  ).trim() || "gemini-3-pro-preview";
+
+// Model routing: use pro model for critical situations
+function selectChatModel(targetMode: AgentMode, riskScore: number): string {
+  // Sentry = always pro (safety critical)
+  if (targetMode === "sentry") return SOPHIA_CHAT_MODEL_PRO;
+  // Firefighter with high risk (8+) = pro
+  if (targetMode === "firefighter" && riskScore >= 8) return SOPHIA_CHAT_MODEL_PRO;
+  // Architect = pro (complex reasoning for plan/values)
+  if (targetMode === "architect") return SOPHIA_CHAT_MODEL_PRO;
+  // Default = flash
+  return SOPHIA_CHAT_MODEL;
+}
+
 const ENABLE_SUPERVISOR_PENDING_NUDGES_V1 =
   (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_SUPERVISOR_PENDING_NUDGES_V1") ?? "") as string).trim() === "1"
 
 const ENABLE_SUPERVISOR_RESUME_NUDGES_V1 =
   (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_SUPERVISOR_RESUME_NUDGES_V1") ?? "") as string).trim() === "1"
 
-const ENABLE_DISPATCHER_V2 =
-  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_DISPATCHER_V2") ?? "") as string).trim() === "1"
+// Daily message soft cap (to protect margins on power users)
+const DAILY_MESSAGE_SOFT_CAP = Number(
+  ((globalThis as any)?.Deno?.env?.get?.("SOPHIA_DAILY_MESSAGE_SOFT_CAP") ?? "100").trim()
+) || 100;
+
+const SOFT_CAP_ENABLED = 
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_SOFT_CAP_ENABLED") ?? "1") as string).trim() === "1";
+
+const SOFT_CAP_RESPONSE_TEMPLATE = `Hey 😊 On a atteint les 100 messages du jour — c'est la limite de ton forfait actuel.
+
+J'adore qu'on échange autant, ça montre qu'on avance bien ensemble !
+
+Avec le **forfait Architect**, tu aurais un accès **illimité** à nos conversations, plus des outils avancés pour construire ton plan de vie.
+
+👉 Découvre le forfait Architect : https://sophia-coach.ai/upgrade
+
+Est-ce que ça t'intéresse ? Réponds **oui** ou **non**.
+
+On se retrouve demain matin, reposé·e ! 💜`;
+
+// Dispatcher v2 is now the only dispatcher (v1 legacy removed)
 
 export async function processMessage(
   supabase: SupabaseClient, 
@@ -93,6 +131,8 @@ export async function processMessage(
     forceMode?: AgentMode;
     contextOverride?: string;
     messageMetadata?: Record<string, unknown>;
+    // Eval-only: disable router-enforced mode overrides (preference/pending confirm/forceMode).
+    disableForcedRouting?: boolean;
   }
 ) {
   function normalizeLoose(s: string): string {
@@ -475,10 +515,19 @@ SORTIE JSON STRICTE:
   function looksLikeUserBoredOrWantsToStop(m: string): boolean {
     const s = normalizeLoose(m)
     if (!s) return false
-    if (/\b(stop|arrete|arr[êe]te|laisse\s+tomber|on\s+arrete|on\s+change|passe\s+a\s+autre\s+chose|bref)\b/i.test(s)) return true
+    if (/\b(stop|arrete|arr[êe]te|laisse\s+tomber|on\s+arrete|on\s+change|passe\s+a\s+autre\s+chose|bref|on\s+a\s+fait\s+le\s+tour|on\s+a\s+fini|c['']est\s+bon\s+pour\s+moi)\b/i.test(s)) return true
     // Very short "ok." / "..." / "bon." replies are often fatigue signals.
     if (s.length <= 4 && /\b(ok|ok\?|bon)\b/i.test(s)) return true
     return false
+  }
+
+  // Detect breakdown/micro-step intent: user is blocked and wants to split an action into smaller steps.
+  // This should route to architect (break_down_action tool), NOT firefighter.
+  function looksLikeBreakdownIntent(m: string): boolean {
+    const s = (m ?? "").toString().toLowerCase()
+    if (!s.trim()) return false
+    return /\b(micro[-\s]?etape|d[ée]compos|d[ée]coup|d[ée]taill|petit\s+pas|[ée]tape\s+minuscule|je\s+bloqu|j['']y\s+arrive\s+pas|trop\s+dur|insurmontable|plus\s+simple|simplifi|version\s+light|version\s+facile)\b/i
+      .test(s)
   }
 
   function guessTopicLabel(m: string): string {
@@ -624,6 +673,7 @@ SORTIE JSON STRICTE:
   const isEvalParkingLotTest =
     Boolean(opts?.contextOverride && String(opts.contextOverride).includes("MODE TEST PARKING LOT")) ||
     Boolean(opts?.contextOverride && String(opts.contextOverride).includes("CONSIGNE TEST PARKING LOT"));
+  const disableForcedRouting = Boolean(opts?.disableForcedRouting)
   const channel = meta?.channel ?? "web"
   const scope = normalizeScope(meta?.scope, channel === "whatsapp" ? "whatsapp" : "web")
   const nowIso = new Date().toISOString()
@@ -661,6 +711,115 @@ SORTIE JSON STRICTE:
   let state = await getUserState(supabase, userId, scope)
   // Global parking-lot lives in user_chat_states.temp_memory (independent from investigation_state).
   let tempMemory = (state as any)?.temp_memory ?? {}
+
+  // --- SOFT CAP: Daily message limit to protect margins on power users ---
+  // Skip for evals and for Architect tier (unlimited messages)
+  const userTier = SOFT_CAP_ENABLED ? await getEffectiveTierForUser(supabase, userId).catch(() => "none" as const) : "none"
+  const isArchitect = userTier === "architecte"
+  
+  if (SOFT_CAP_ENABLED && !isArchitect && !meta?.requestId?.includes(":eval") && !meta?.requestId?.includes(":tools:")) {
+    // Use user's local date (from their timezone), fallback to UTC if not available
+    const today = userTime?.user_local_date ?? new Date().toISOString().slice(0, 10) // YYYY-MM-DD in user's timezone
+    const softCapState = (tempMemory as any)?.soft_cap ?? {}
+    const lastCountDate = softCapState.date ?? ""
+    const messageCount = lastCountDate === today ? (softCapState.count ?? 0) : 0
+    const wasOverCap = softCapState.over_cap === true && lastCountDate === today
+    const hasAnsweredUpgrade = softCapState.upgrade_answered === true && lastCountDate === today
+
+    // Check if user is responding to the upgrade question
+    const userMsgLower = normalizeLoose(userMessage)
+    const isUpgradeYes = wasOverCap && !hasAnsweredUpgrade && /^(oui|yes|ouais|ok|yep|yeah|je veux|interesse)/.test(userMsgLower)
+    const isUpgradeNo = wasOverCap && !hasAnsweredUpgrade && /^(non|no|nan|pas vraiment|pas pour l instant)/.test(userMsgLower)
+
+    if (isUpgradeYes || isUpgradeNo) {
+      // Store upgrade interest (for Architect plan)
+      try {
+        await supabase.from("upgrade_interest").upsert({
+          user_id: userId,
+          interested: isUpgradeYes,
+          source: "soft_cap_architect_prompt",
+          created_at: new Date().toISOString(),
+        }, { onConflict: "user_id" })
+        console.log(`[SoftCap] User ${userId} responded to Architect upgrade: ${isUpgradeYes ? "YES" : "NO"}`)
+      } catch (e) {
+        console.warn("[SoftCap] Failed to store upgrade interest:", e)
+      }
+
+      // Update state
+      tempMemory = {
+        ...tempMemory,
+        soft_cap: { ...softCapState, date: today, upgrade_answered: true },
+      }
+      await updateUserState(supabase, userId, scope, { temp_memory: tempMemory })
+
+      // Respond
+      const responseContent = isUpgradeYes
+        ? "Super ! 💜 Je note ton intérêt pour le forfait Architect. Tu recevras bientôt plus d'infos pour découvrir tout ce qu'il peut t'apporter. À demain !"
+        : "Pas de souci, je comprends ! 😊 Le forfait actuel te convient peut-être très bien. On se retrouve demain pour continuer. Prends soin de toi d'ici là !"
+
+      if (logMessages) {
+        await supabase.from("chat_messages").insert({
+          user_id: userId,
+          scope,
+          role: "assistant",
+          content: responseContent,
+          metadata: { agent: "soft_cap", soft_cap_response: true },
+        })
+      }
+
+      return { content: responseContent, mode: "companion" as AgentMode }
+    }
+
+    // If over cap (whether answered or not), keep blocking
+    if (wasOverCap) {
+      const blockResponse = hasAnsweredUpgrade 
+        ? "On a atteint les 100 messages du jour 😊 On se retrouve demain matin !"
+        : "On a atteint les 100 messages du jour. Tu peux répondre **oui** ou **non** à ma question sur le forfait Architect, sinon on se retrouve demain ! 💜"
+      if (logMessages) {
+        await supabase.from("chat_messages").insert({
+          user_id: userId,
+          scope,
+          role: "assistant",
+          content: blockResponse,
+          metadata: { agent: "soft_cap", soft_cap_blocked: true },
+        })
+      }
+      return { content: blockResponse, mode: "companion" as AgentMode }
+    }
+
+    // Check if we hit the cap NOW
+    if (messageCount >= DAILY_MESSAGE_SOFT_CAP && !wasOverCap) {
+      console.log(`[SoftCap] User ${userId} hit daily cap (${messageCount}/${DAILY_MESSAGE_SOFT_CAP})`)
+      
+      // Mark as over cap
+      tempMemory = {
+        ...tempMemory,
+        soft_cap: { date: today, count: messageCount, over_cap: true, upgrade_answered: false },
+      }
+      await updateUserState(supabase, userId, scope, { temp_memory: tempMemory })
+
+      // Send soft cap template
+      if (logMessages) {
+        await supabase.from("chat_messages").insert({
+          user_id: userId,
+          scope,
+          role: "assistant",
+          content: SOFT_CAP_RESPONSE_TEMPLATE,
+          metadata: { agent: "soft_cap", soft_cap_triggered: true },
+        })
+      }
+
+      return { content: SOFT_CAP_RESPONSE_TEMPLATE, mode: "companion" as AgentMode }
+    }
+
+    // Increment counter
+    tempMemory = {
+      ...tempMemory,
+      soft_cap: { date: today, count: messageCount + 1, over_cap: false },
+    }
+    // Note: state will be saved later in the normal flow
+  }
+
   // NOTE: router should never infer/parse preferences from keywords.
   // - Watcher proposes candidates (LLM), stored in temp_memory.user_profile_candidates
   // - Companion asks confirmation and writes user_profile_facts via tools
@@ -779,96 +938,85 @@ SORTIE JSON STRICTE:
   }
   const lastAssistantAgent = normalizeAgentUsed(lastAssistantAgentRaw)
   
-  // --- DISPATCHER V2: Signal-based routing (behind flag) ---
-  // When enabled, we use structured signals → deterministic policies instead of LLM choosing the mode directly.
-  let dispatcherSignals: DispatcherSignals | null = null
+  // --- DISPATCHER: Signal-based routing ---
+  // Structured signals → deterministic policies instead of LLM choosing the mode directly.
   let riskScore = 0
-  let nCandidates: 1 | 3 = 1
   let dispatcherTargetMode: AgentMode = "companion"
   let targetMode: AgentMode = "companion"
 
-  if (ENABLE_DISPATCHER_V2) {
-    // Build state snapshot for dispatcher v2
-    const topicSession = getActiveSupervisorSession(tempMemory)
-    const stateSnapshot = {
-      current_mode: state?.current_mode,
-      investigation_active: Boolean(state?.investigation_state),
-      investigation_status: state?.investigation_state?.status,
-      toolflow_active: Boolean((tempMemory as any)?.architect_tool_flow),
-      toolflow_kind: (tempMemory as any)?.architect_tool_flow?.kind,
-      profile_confirm_pending: Boolean((tempMemory as any)?.user_profile_confirm?.pending),
-      topic_session_phase: topicSession?.type === "topic_session" ? topicSession.phase : undefined,
-      risk_level: state?.risk_level,
-    }
+  // Build state snapshot for dispatcher
+  const topicSession = getActiveSupervisorSession(tempMemory)
+  const stateSnapshot = {
+    current_mode: state?.current_mode,
+    investigation_active: Boolean(state?.investigation_state),
+    investigation_status: state?.investigation_state?.status,
+    toolflow_active: Boolean((tempMemory as any)?.architect_tool_flow),
+    toolflow_kind: (tempMemory as any)?.architect_tool_flow?.kind,
+    profile_confirm_pending: Boolean((tempMemory as any)?.user_profile_confirm?.pending),
+    topic_session_phase: topicSession?.type === "topic_session" ? topicSession.phase : undefined,
+    risk_level: state?.risk_level,
+  }
 
-    dispatcherSignals = await analyzeSignals(userMessage, stateSnapshot, lastAssistantMessage, meta)
-    riskScore = dispatcherSignals.risk_score
+  const dispatcherSignals = await analyzeSignals(userMessage, stateSnapshot, lastAssistantMessage, meta)
+  riskScore = dispatcherSignals.risk_score
 
-    // --- DETERMINISTIC POLICY: Signal → targetMode ---
-    // Priority order: Safety > Hard blockers > Intent-based routing
+  // --- DETERMINISTIC POLICY: Signal → targetMode ---
+  // Priority order: Safety > Hard blockers > Intent-based routing
 
-    // 1. Safety override (threshold: confidence >= 0.75)
-    if (dispatcherSignals.safety.level === "SENTRY" && dispatcherSignals.safety.confidence >= 0.75) {
-      targetMode = "sentry"
-    } else if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.75) {
-      targetMode = "firefighter"
-    }
-    // 2. Active bilan hard guard (unless explicit stop)
-    else if (
-      state?.investigation_state &&
-      state?.investigation_state?.status !== "post_checkup" &&
-      dispatcherSignals.interrupt.kind !== "EXPLICIT_STOP"
-    ) {
+  // 1. Safety override (threshold: confidence >= 0.75)
+  if (dispatcherSignals.safety.level === "SENTRY" && dispatcherSignals.safety.confidence >= 0.75) {
+    targetMode = "sentry"
+  } else if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.75) {
+    targetMode = "firefighter"
+  }
+  // 2. Active bilan hard guard (unless explicit stop)
+  else if (
+    state?.investigation_state &&
+    state?.investigation_state?.status !== "post_checkup" &&
+    dispatcherSignals.interrupt.kind !== "EXPLICIT_STOP"
+  ) {
+    targetMode = "investigator"
+  }
+  // 3. Intent-based routing
+  else {
+    const intent = dispatcherSignals.user_intent_primary
+    const intentConf = dispatcherSignals.user_intent_confidence
+
+    if (intent === "CHECKUP" && intentConf >= 0.6) {
       targetMode = "investigator"
-    }
-    // 3. Intent-based routing
-    else {
-      const intent = dispatcherSignals.user_intent_primary
-      const intentConf = dispatcherSignals.user_intent_confidence
-
-      if (intent === "CHECKUP" && intentConf >= 0.6) {
-        targetMode = "investigator"
-      } else if (intent === "PLAN" && intentConf >= 0.6) {
-        targetMode = "architect"
-      } else if (intent === "BREAKDOWN" && intentConf >= 0.6) {
-        targetMode = "architect"
-      } else if (intent === "PREFERENCE" && intentConf >= 0.6) {
-        targetMode = "companion"
-      } else if (intent === "EMOTIONAL_SUPPORT") {
-        // Check if it's acute distress (firefighter) or mild support (companion)
-        if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.5) {
-          targetMode = "firefighter"
-        } else {
-          targetMode = "companion"
-        }
+    } else if (intent === "PLAN" && intentConf >= 0.6) {
+      targetMode = "architect"
+    } else if (intent === "BREAKDOWN" && intentConf >= 0.6) {
+      targetMode = "architect"
+    } else if (intent === "PREFERENCE" && intentConf >= 0.6) {
+      targetMode = "companion"
+    } else if (intent === "EMOTIONAL_SUPPORT") {
+      // Check if it's acute distress (firefighter) or mild support (companion)
+      if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.5) {
+        targetMode = "firefighter"
       } else {
-        // Default: companion
         targetMode = "companion"
       }
+    } else {
+      // Default: companion
+      targetMode = "companion"
     }
-
-    // 4. Force mode override (module conversation, etc.)
-    if (opts?.forceMode && targetMode !== "sentry" && targetMode !== "firefighter") {
-      targetMode = opts.forceMode
-    }
-
-    dispatcherTargetMode = targetMode
-    console.log(`[Dispatcher v2] Signals: safety=${dispatcherSignals.safety.level}(${dispatcherSignals.safety.confidence.toFixed(2)}), intent=${dispatcherSignals.user_intent_primary}(${dispatcherSignals.user_intent_confidence.toFixed(2)}), interrupt=${dispatcherSignals.interrupt.kind}, → targetMode=${targetMode}`)
-  } else {
-    // Legacy dispatcher v1
-  const analysis = await analyzeIntentAndRisk(userMessage, state, lastAssistantMessage, meta)
-    riskScore = analysis.riskScore
-    nCandidates = analysis.nCandidates ?? 1
-    dispatcherTargetMode = analysis.targetMode
-  // If a forceMode is requested (e.g. module conversation), we keep safety priority for sentry.
-    targetMode = (analysis.targetMode === 'sentry' ? 'sentry' : (opts?.forceMode ?? analysis.targetMode))
   }
+
+  // 4. Force mode override (module conversation, etc.)
+  if (!disableForcedRouting && opts?.forceMode && targetMode !== "sentry" && targetMode !== "firefighter") {
+    targetMode = opts.forceMode
+  }
+
+  dispatcherTargetMode = targetMode
+  const nCandidates = 1 // Multi-candidate generation disabled (was only used for complex messages in legacy v1)
+  console.log(`[Dispatcher] Signals: safety=${dispatcherSignals.safety.level}(${dispatcherSignals.safety.confidence.toFixed(2)}), intent=${dispatcherSignals.user_intent_primary}(${dispatcherSignals.user_intent_confidence.toFixed(2)}), interrupt=${dispatcherSignals.interrupt.kind}, → targetMode=${targetMode}`)
 
   const targetModeInitial = targetMode
   let toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
   const stopCheckup = isExplicitStopCheckup(userMessage);
-  // Use signal-based interrupt detection when dispatcher v2 is enabled
-  const boredOrStopFromSignals = dispatcherSignals && (
+  // Signal-based interrupt detection
+  const boredOrStopFromSignals = (
     (dispatcherSignals.interrupt.kind === "EXPLICIT_STOP" && dispatcherSignals.interrupt.confidence >= 0.65) ||
     (dispatcherSignals.interrupt.kind === "BORED" && dispatcherSignals.interrupt.confidence >= 0.65)
   )
@@ -921,7 +1069,7 @@ SORTIE JSON STRICTE:
   // --- Preference change requests should always be handled by Companion ---
   // We DO NOT rely on dispatcher LLM for this because it may incorrectly route to architect
   // when the user mentions "suite"/"plan"/"style". This breaks the user_profile_confirm state machine.
-  {
+  if (!disableForcedRouting) {
     const s = normalizeLoose(userMessage)
     const looksLikePreference =
       /\b(plus\s+direct|plutot\s+direct|sois\s+direct|ton\s+direct|plus\s+doux|plutot\s+doux)\b/i.test(s) ||
@@ -942,7 +1090,7 @@ SORTIE JSON STRICTE:
   // --- User Profile Confirmation (Companion) hard guard ---
   // If a confirmation is pending, we must route to Companion so it can interpret the answer and call apply_profile_fact.
   // Otherwise the state machine can get stuck (e.g. user mentions "plan" and dispatcher routes to architect).
-  {
+  if (!disableForcedRouting) {
     const pending = (tempMemory as any)?.user_profile_confirm?.pending ?? null
     ;(tempMemory as any).__router_forced_pending_confirm = pending ? true : false
     if (
@@ -972,8 +1120,8 @@ SORTIE JSON STRICTE:
   // (unless safety modes or investigator lock later override).
   const activeSession = getActiveSupervisorSession(tempMemory)
   const activeOwner = activeSession?.owner_mode ?? null
-  const forcedPref = Boolean((tempMemory as any)?.__router_forced_preference_mode)
-  const forcedPendingConfirm = Boolean((tempMemory as any)?.__router_forced_pending_confirm)
+  const forcedPref = !disableForcedRouting && Boolean((tempMemory as any)?.__router_forced_preference_mode)
+  const forcedPendingConfirm = !disableForcedRouting && Boolean((tempMemory as any)?.__router_forced_pending_confirm)
   // Local heuristics: only continue architect tool flows when the user message *actually* continues the flow.
   const userLooksLikeToolFlowContinuation = (() => {
     const s = normalizeLoose(userMessage)
@@ -1274,7 +1422,6 @@ SORTIE JSON STRICTE:
   // capture the topic so it can be revisited after the checkup.
   if (checkupActive && !isPostCheckup && !stopCheckup) {
     const digressionSignal =
-      dispatcherSignals &&
       (dispatcherSignals.interrupt.kind === "DIGRESSION" || dispatcherSignals.interrupt.kind === "SWITCH_TOPIC") &&
       dispatcherSignals.interrupt.confidence >= 0.6
     const shouldCaptureDigression = digressionSignal || looksLikeDigressionRequest(userMessage)
@@ -1283,7 +1430,7 @@ SORTIE JSON STRICTE:
         const latest = await getUserState(supabase, userId, scope)
         if (latest?.investigation_state) {
           // USE DISPATCHER'S FORMALIZED TOPIC (no extra AI call!)
-          const formalizedFromDispatcher = dispatcherSignals?.interrupt?.deferred_topic_formalized
+          const formalizedFromDispatcher = dispatcherSignals.interrupt.deferred_topic_formalized
           const fallbackExtracted = extractTopicFromUserDigression(userMessage) || String(userMessage ?? "").trim().slice(0, 160)
           const topicToStore = formalizedFromDispatcher || fallbackExtracted
           
@@ -1353,6 +1500,13 @@ SORTIE JSON STRICTE:
 
   if (checkupActive && !stopCheckup && targetMode === "firefighter" && riskScore <= 1 && !looksLikeAcuteDistress(userMessage)) {
     targetMode = "investigator";
+  }
+
+  // HARD GUARD: If the user asks for a micro-step breakdown and there is no acute distress,
+  // do not route to firefighter just because the message sounds emotional.
+  // "je bloque", "j'y arrive pas", "c'est trop dur" → architect (break_down_action), NOT firefighter.
+  if (!looksLikeAcuteDistress(userMessage) && looksLikeBreakdownIntent(userMessage) && targetMode === "firefighter") {
+    targetMode = "architect"
   }
 
   // Manual checkup resumption:
@@ -1434,7 +1588,7 @@ SORTIE JSON STRICTE:
       const latest = await getUserState(supabase, userId, scope)
       if (latest?.investigation_state) {
         // USE DISPATCHER'S FORMALIZED TOPIC if available (no extra AI call!)
-        const formalizedFromDispatcher = dispatcherSignals?.interrupt?.deferred_topic_formalized
+        const formalizedFromDispatcher = dispatcherSignals.interrupt.deferred_topic_formalized
         const fallbackExtracted = extractDeferredTopicFromUserMessage(userMessage) || String(userMessage ?? "").trim().slice(0, 240)
         const topicToStore = formalizedFromDispatcher || fallbackExtracted
         
@@ -1575,34 +1729,48 @@ SORTIE JSON STRICTE:
       : ""
   if (timeBlock) context += timeBlock
 
-  if (['architect', 'companion', 'firefighter'].includes(targetMode)) {
-    // Recent transcript (raw turns) to complement the Watcher short-term summary ("fil rouge").
-    // We keep it bounded to avoid huge prompts.
-    const recentTurns = (history ?? []).slice(-15).map((m: any) => {
-      const role = String(m?.role ?? "").trim() || "unknown"
-      const content = String(m?.content ?? "").trim().slice(0, 420)
-      const ts = String((m as any)?.created_at ?? "").trim()
-      return ts ? `[${ts}] ${role}: ${content}` : `${role}: ${content}`
-    }).join("\n")
+  // Modes that need context loading (investigator gets minimal context for efficiency)
+  const needsFullContext = ['architect', 'companion', 'firefighter'].includes(targetMode)
+  const needsDashboardOnly = targetMode === 'investigator'
 
-    // Short-term "fil rouge" maintained by Watcher (when available).
-    const shortTerm = (state?.short_term_context ?? "").toString().trim()
-    // A. Vector Memory
-    const vectorContext = await retrieveContext(supabase, userId, userMessage);
-    
-    // B. Core Identity (Temple)
-    const identityContext = await getCoreIdentity(supabase, userId);
-
-    // C. Dashboard Context (Live Data)
+  if (needsFullContext || needsDashboardOnly) {
+    // C. Dashboard Context (Live Data) - loaded for ALL context-aware modes including investigator
     const dashboardContext = await getDashboardContext(supabase, userId);
 
-    // D. User model (structured facts)
+    // Heavy context only for full-context modes (not investigator - keep it lightweight)
+    let vectorContext = ""
+    let identityContext = ""
+    let recentTurns = ""
+    let shortTerm = ""
+
+    if (needsFullContext) {
+      // Recent transcript (raw turns) to complement the Watcher short-term summary ("fil rouge").
+      // We keep it bounded to avoid huge prompts.
+      recentTurns = (history ?? []).slice(-15).map((m: any) => {
+        const role = String(m?.role ?? "").trim() || "unknown"
+        const content = String(m?.content ?? "").trim().slice(0, 420)
+        const ts = String((m as any)?.created_at ?? "").trim()
+        return ts ? `[${ts}] ${role}: ${content}` : `${role}: ${content}`
+      }).join("\n")
+
+      // Short-term "fil rouge" maintained by Watcher (when available).
+      shortTerm = (state?.short_term_context ?? "").toString().trim()
+      // A. Vector Memory
+      vectorContext = await retrieveContext(supabase, userId, userMessage);
+      
+      // B. Core Identity (Temple)
+      identityContext = await getCoreIdentity(supabase, userId);
+    }
+
+    // D. User model (structured facts) - only for full context modes
     let factsContext = ""
-    try {
-      const factRows = await getUserProfileFacts({ supabase, userId, scopes: ["global", scope] })
-      factsContext = formatUserProfileFactsForPrompt(factRows, scope)
-    } catch (e) {
-      console.warn("[Context] failed to load user_profile_facts (non-blocking):", e)
+    if (needsFullContext) {
+      try {
+        const factRows = await getUserProfileFacts({ supabase, userId, scopes: ["global", scope] })
+        factsContext = formatUserProfileFactsForPrompt(factRows, scope)
+      } catch (e) {
+        console.warn("[Context] failed to load user_profile_facts (non-blocking):", e)
+      }
     }
 
     // F. User model confirmation state (for Companion only; no inference in router)
@@ -1667,7 +1835,10 @@ SORTIE JSON STRICTE:
     if (vectorContext) context += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${vectorContext}`;
     
     if (context) {
-      console.log(`[Context] Loaded Dashboard + Identity + Vectors`);
+      const loadedParts = needsFullContext 
+        ? "Dashboard + Identity + Vectors" 
+        : "Dashboard only (investigator)"
+      console.log(`[Context] Loaded ${loadedParts}`);
     }
   }
   if (opts?.contextOverride) {
@@ -1939,9 +2110,15 @@ SORTIE JSON STRICTE:
     stopCheckup,
     isPostCheckup,
     outageTemplate,
-    sophiaChatModel: SOPHIA_CHAT_MODEL,
+    sophiaChatModel: (() => {
+      const model = selectChatModel(targetMode, riskScore);
+      if (model !== SOPHIA_CHAT_MODEL) {
+        console.log(`[Model] Using PRO model (${model}) for ${targetMode} (risk=${riskScore})`);
+      }
+      return model;
+    })(),
     // Pass dispatcher's formalized deferred topic to avoid extra AI call in agent_exec
-    dispatcherDeferredTopic: dispatcherSignals?.interrupt?.deferred_topic_formalized ?? null,
+    dispatcherDeferredTopic: dispatcherSignals.interrupt.deferred_topic_formalized ?? null,
   })
 
   responseContent = agentOut.responseContent

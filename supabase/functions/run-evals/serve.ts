@@ -524,6 +524,44 @@ export function serveRunEvals() {
               return String(value ?? "").replace(controlChars, " ");
             }
           };
+          const normalizeTranscriptContent = (value: unknown) =>
+            toTranscriptText(value).trim().toLowerCase();
+          const buildTranscript = (items: any[]) => {
+            const out: any[] = [];
+            for (const m of (items ?? [])) {
+              const role = String(m?.role ?? "").trim();
+              const content = toTranscriptText(m?.content ?? "");
+              if (!role || !content.trim()) continue;
+              const last = out[out.length - 1];
+              const isDup =
+                last &&
+                last.role === role &&
+                normalizeTranscriptContent(last.content) === normalizeTranscriptContent(content);
+              if (isDup) continue;
+              out.push({ role, content, agent_used: (m as any)?.agent_used ?? null });
+            }
+            return out;
+          };
+
+          const testDeferral = Boolean(body.limits.test_post_checkup_deferral);
+          // IMPORTANT: only apply the parking-lot coaching override DURING an active bilan/checkup.
+          // Applying it outside a checkup causes the assistant to mention "bilan" out of nowhere and derails flows.
+          const deferralEligible =
+            testDeferral &&
+            Boolean((stBefore as any)?.investigation_state) &&
+            (stBefore as any)?.investigation_state?.status !== "post_checkup";
+          const sophiaRunnerOpts = {
+            disableForcedRouting: true,
+            ...(deferralEligible
+              ? {
+                // Eval-only: encourage explicit deferral phrases so the parking-lot can be tested.
+                contextOverride:
+                  "MODE TEST PARKING LOT: Si l'utilisateur digresse pendant le bilan (stress/bruit/orga), réponds brièvement ET dis explicitement " +
+                  "\"on pourra en reparler après / à la fin\" avant de revenir au bilan. Fais-le 1 fois (max) par sujet (ne boucle pas). " +
+                  "Si l'utilisateur insiste 2 fois sur le même sujet, propose explicitement: \"on met le bilan en pause 2 minutes pour en parler maintenant, ou tu préfères qu'on finisse vite le bilan puis on y revient ?\"",
+              }
+              : {}),
+          };
 
           // BILAN kickoff:
           // When bilan_actions_count > 0, we start the conversation as if the user just accepted the checkup ("oui").
@@ -541,27 +579,11 @@ export function serveRunEvals() {
             const kickoffMsg = "Oui";
             // Prevent long LLM hangs from triggering edge worker limits; keep each step bounded.
             (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
-            const kickoffResp = await processMessage(admin as any, testUserId, kickoffMsg, history, meta);
+            const kickoffResp = await processMessage(admin as any, testUserId, kickoffMsg, history, meta, sophiaRunnerOpts);
             history.push({ role: "user", content: kickoffMsg });
             history.push({ role: "assistant", content: kickoffResp.content, agent_used: kickoffResp.mode });
           }
 
-          const testDeferral = Boolean(body.limits.test_post_checkup_deferral);
-          // IMPORTANT: only apply the parking-lot coaching override DURING an active bilan/checkup.
-          // Applying it outside a checkup causes the assistant to mention "bilan" out of nowhere and derails flows.
-          const deferralEligible =
-            testDeferral &&
-            Boolean((stBefore as any)?.investigation_state) &&
-            (stBefore as any)?.investigation_state?.status !== "post_checkup";
-          const sophiaTestOpts = deferralEligible
-            ? {
-              // Eval-only: encourage explicit deferral phrases so the parking-lot can be tested.
-              contextOverride:
-                "MODE TEST PARKING LOT: Si l'utilisateur digresse pendant le bilan (stress/bruit/orga), réponds brièvement ET dis explicitement " +
-                "\"on pourra en reparler après / à la fin\" avant de revenir au bilan. Fais-le 1 fois (max) par sujet (ne boucle pas). " +
-                "Si l'utilisateur insiste 2 fois sur le même sujet, propose explicitement: \"on met le bilan en pause 2 minutes pour en parler maintenant, ou tu préfères qu'on finisse vite le bilan puis on y revient ?\"",
-            }
-            : undefined;
 
           if (isWhatsApp) {
             const setup = (s as any)?.setup ?? {};
@@ -731,7 +753,7 @@ export function serveRunEvals() {
                       .from("conversation_eval_runs")
                       .update({
                         status: "running",
-                        transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
+                        transcript: buildTranscript(history),
                         metrics: {
                           ...(typeof (stBefore as any)?.metrics === "object" ? (stBefore as any).metrics : {}),
                           partial: true,
@@ -792,7 +814,7 @@ export function serveRunEvals() {
                   for (let k = 0; k < burstMsgs.length; k++) {
                     if (k > 0) await sleep(burstDelay);
                     (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
-                    promises.push(processMessage(admin as any, testUserId, burstMsgs[k], history, meta, sophiaTestOpts));
+                    promises.push(processMessage(admin as any, testUserId, burstMsgs[k], history, meta, sophiaRunnerOpts));
                   }
 
                   const results = await Promise.all(promises);
@@ -811,10 +833,10 @@ export function serveRunEvals() {
                   
                   // Launch both "simultaneously"
                   (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
-                  const p1 = processMessage(admin as any, testUserId, step.user, history, meta, sophiaTestOpts);
+                  const p1 = processMessage(admin as any, testUserId, step.user, history, meta, sophiaRunnerOpts);
                   await sleep(burstDelay);
                   (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
-                  const p2 = processMessage(admin as any, testUserId, nextStep.user, history, meta, sophiaTestOpts);
+                  const p2 = processMessage(admin as any, testUserId, nextStep.user, history, meta, sophiaRunnerOpts);
                   
                   // Wait for both
                   const [r1, r2] = await Promise.all([p1, p2]);
@@ -841,7 +863,7 @@ export function serveRunEvals() {
               }
 
               (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
-              const resp = await processMessage(admin as any, testUserId, step.user, history, meta, sophiaTestOpts);
+              const resp = await processMessage(admin as any, testUserId, step.user, history, meta, sophiaRunnerOpts);
               history.push({ role: "user", content: step.user });
               history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
               await logEvalEvent({
@@ -910,7 +932,7 @@ export function serveRunEvals() {
                       "Si Sophia te propose de reprendre un sujet après bilan, réponds 'Oui'.",
                       "Quand elle te demande 'c'est bon pour ce point ?', réponds 'C'est bon, on passe au suivant.'",
                     ].join("\n"),
-                    transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
+                    transcript: buildTranscript(history),
                     turn_index: extraTurn,
                     max_turns: maxTurns,
                   }),
@@ -918,7 +940,7 @@ export function serveRunEvals() {
                 const simJson = await simResp.json().catch(() => ({}));
                 const userMsg = String(simJson?.next_message ?? "Oui");
 
-                const resp2 = await processMessage(admin as any, testUserId, userMsg, history, meta, sophiaTestOpts);
+                const resp2 = await processMessage(admin as any, testUserId, userMsg, history, meta, sophiaRunnerOpts);
                 history.push({ role: "user", content: userMsg });
                 history.push({ role: "assistant", content: resp2.content, agent_used: resp2.mode });
                 extraTurn += 1;
@@ -940,7 +962,7 @@ export function serveRunEvals() {
                       .from("conversation_eval_runs")
                       .update({
                         status: "running",
-                        transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
+                        transcript: buildTranscript(history),
                         metrics: {
                           ...(typeof (stBefore as any)?.metrics === "object" ? (stBefore as any).metrics : {}),
                           partial: true,
@@ -1030,7 +1052,7 @@ export function serveRunEvals() {
                           ? "IMPORTANT : TU DOIS TESTER LE 'PARKING LOT'. Pendant le bilan, trouve un moment pour dire 'on en reparle après' ou 'on verra ça à la fin' à propos d'un sujet (ex: ton organisation ou ton stress). Le but est de vérifier que Sophia le note et t'en reparle après le bilan."
                           : "",
                       ].join("\n"),
-                      transcript: history.map((m) => ({ role: m.role, content: m.content, agent_used: m.agent_used ?? null })),
+                      transcript: buildTranscript(history),
                       turn_index: turn,
                       max_turns: maxTurns,
                       force_real_ai: true,
@@ -1083,7 +1105,7 @@ export function serveRunEvals() {
               let resp: any;
               try {
                 resp = await withTimeout(
-                  processMessage(admin as any, testUserId, userMsg, history, meta, sophiaTestOpts),
+                  processMessage(admin as any, testUserId, userMsg, history, meta, sophiaRunnerOpts),
                   Math.min(45_000, Math.max(10_000, remainingBudgetMs() - 2_000)),
                   "processMessage",
                 );
@@ -1194,12 +1216,8 @@ export function serveRunEvals() {
           // IMPORTANT: use the runner's own `history` as the canonical transcript for eval results.
           // DB `chat_messages` can contain extra messages (debounce bursts, retries, concurrent isolates),
           // which makes the exported transcript noisy or even structurally invalid for eval interpretation.
-          const transcript = history.map((m: any) => ({
-            role: m.role,
-            content: toTranscriptText(m.content),
-            created_at: null,
-            agent_used: m.role === "assistant" ? (m.agent_used ?? null) : null,
-          }));
+          // Use buildTranscript() to deduplicate consecutive identical messages.
+          const transcript = buildTranscript(history);
 
           // Still fetch DB transcript as diagnostics and store a small integrity summary in metrics.
           const { data: msgs } = await admin

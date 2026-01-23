@@ -405,7 +405,7 @@ export function looksLikeAcuteDistress(message: string): boolean {
   if (!s.trim()) return false
   // Keep conservative: route to firefighter on clear acute distress signals (panic/overwhelm/physical stress cues),
   // but avoid over-triggering on generic "stress" talk.
-  return /\b(panique|crise|je\s+craque|je\s+n['’]en\s+peux\s+plus|au\s+bout|d[ée]tresse|angoisse\s+(?:forte|intense)|aide\s+vite|urgence|envie\s+de\s+pleurer|j['’]ai\s+envie\s+de\s+pleurer|boule\s+au\s+ventre|submerg[ée]?|d[ée]bord[ée]?|je\s+n['’]arrive\s+plus\s+à\s+me\s+concentrer|j['’]arrive\s+pas\s+à\s+me\s+concentrer|pression\s+non\s+stop|pression\s+impossible)\b/i
+  return /\b(panique|crise|je\s+craque|je\s+n['’]en\s+peux\s+plus|au\s+bout|d[ée]tresse|angoisse\s+(?:forte|intense)|aide\s+vite|urgence|envie\s+de\s+pleurer|j['’]ai\s+envie\s+de\s+pleurer|boule\s+au\s+ventre|poitrine\s+serr[ée]e|serrement\s+dans\s+la\s+poitrine|difficile\s+de\s+respirer|mal\s+à\s+respirer|souffle\s+court|c[œo]ur\s+qui\s+s['’]emballe|c[œo]ur\s+qui\s+cogne|submerg[ée]?|d[ée]bord[ée]?|je\s+n['’]arrive\s+plus\s+à\s+me\s+concentrer|j['’]arrive\s+pas\s+à\s+me\s+concentrer|pression\s+non\s+stop|pression\s+impossible)\b/i
     .test(s)
 }
 

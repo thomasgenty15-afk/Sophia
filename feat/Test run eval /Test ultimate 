@@ -1,10 +1,118 @@
-
-
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 SOPHIA_DISPATCHER_V2=1 npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 50 --model gemini-3-flash-preview 2>&1 | tail -50
-
- OK alors analyse moi correctement ce bundle créer avec cette commande : 
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 SOPHIA_DISPATCHER_V2=1 npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 50 --model gemini-3-flash-preview 2>&1 | tail -50
+OK alors analyse moi correctement ce bundle créer avec cette commande : 
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 50 --model gemini-3-flash-preview 2>&1 | tail -50
 
 Fais moi un bilan, il y a plusieurs erreurs qui vont nécessiter d'améliorer. Je veux que tu m'analyses tout, du transcript, au log, au niveau des machines a état, au niveau de gestion de supervisor, de dispacther, fin qu'il y ait vraiment une analyse exhaustive qui va dans le détails (incluant aussi la partie test si il y a besoin). Fais moi un bilan avec les 10 points à améliorer avec les raisons, en allant vraiment dans le détails du code en essayant de comprendre fondementalement ce qu'il se passe, prend ton temps.
 
 Il faut que tu fasses attention a la qualité de la conversation, la fluidité, la pertinence des réponses, l'aspect humain de la conversation, le ton et le déclenchement des bons outils au bon moment, la fermeture, la pause, le dméarrage des machinies a état au bon moment. 
+
+---
+
+CHEMIN DU BUNDLE À ANALYSER :
+
+
+---
+
+# PROMPT D'ANALYSE EXHAUSTIVE (à copier-coller)
+
+Tu es le plus grand expert mondial en agents conversationnels complexes, spécialisé dans les systèmes multi-agents qui doivent sembler profondément humains. Tu as conçu des architectures conversationnelles pour les plus grandes entreprises tech et tu comprends intimement les subtilités qui font la différence entre un chatbot et un véritable compagnon digital empathique.
+
+## TA MISSION
+
+Analyse le bundle d'évaluation situé au chemin ci-dessus. Tu dois produire un rapport exhaustif avec **10 points d'amélioration prioritaires**, classés par impact sur l'expérience utilisateur.
+
+## FICHIERS À LIRE OBLIGATOIREMENT
+
+1. `conversation_eval_run.json` — Le transcript complet + états before/after
+2. `conversation_eval_events.json` — Les événements détaillés (turns, rate limits, etc.)
+3. `docker_edge_runtime.log` et `docker_edge_runtime.tail.log` — Les logs du runtime (erreurs, warnings, décisions du router)
+4. `run_evals_response.json` — Métriques globales (tokens, coût, turns exécutés)
+5. `system_error_logs.json` — Erreurs système éventuelles
+
+## AXES D'ANALYSE (tous obligatoires)
+
+### 1. QUALITÉ CONVERSATIONNELLE
+- La conversation semble-t-elle naturelle et fluide ?
+- Les réponses sont-elles trop longues/courtes/robotiques ?
+- Y a-t-il des répétitions, des formulations maladroites, des "tics" de langage IA ?
+- Le ton est-il adapté au contexte émotionnel de l'utilisateur ?
+
+### 2. DISPATCHER & ROUTING
+- Les modes (investigator, companion, firefighter, architect) sont-ils déclenchés au bon moment ?
+- Y a-t-il des forcings inappropriés (PREFERENCE_FORCE_COMPANION, etc.) ?
+- Les transitions entre modes sont-elles fluides ou abruptes ?
+- Le risk_score est-il cohérent avec le contenu des messages ?
+
+### 3. MACHINES À ÉTAT
+- Le bilan (investigation_state) démarre/termine-t-il correctement ?
+- Les topic_sessions s'ouvrent/ferment-elles au bon moment ?
+- Les sujets différés (deferred_topics) sont-ils bien capturés et restitués ?
+- Le supervisor.stack et supervisor.queue sont-ils cohérents ?
+
+### 4. DÉTECTION ÉMOTIONNELLE & SAFETY
+- Les signaux de détresse sont-ils détectés (poitrine serrée, difficulté à respirer, etc.) ?
+- Le firefighter est-il déclenché quand nécessaire ?
+- Y a-t-il des moments où Sophia aurait dû faire une pause empathique mais a continué mécaniquement ?
+
+### 5. OUTILS & ACTIONS
+- Les outils (log_action_execution, break_down_action, etc.) sont-ils appelés au bon moment ?
+- Les confirmations de préférences utilisateur sont-elles bien gérées ?
+- Y a-t-il des tool calls en doublon ou manquants ?
+
+### 6. TRANSCRIPT INTEGRITY
+- Y a-t-il des messages dupliqués (user ou assistant) ?
+- Y a-t-il des messages assistant consécutifs sans user entre ?
+- Le transcript reflète-t-il fidèlement la conversation ?
+
+### 7. INFRA & PERFORMANCE
+- Y a-t-il des erreurs dans les logs (CPU limit, early termination, timeouts) ?
+- Les temps de réponse sont-ils acceptables ?
+- Y a-t-il des retries ou fallbacks de modèle ?
+
+### 8. COHÉRENCE GLOBALE
+- Sophia se souvient-elle du contexte tout au long de la conversation ?
+- Les informations collectées pendant le bilan sont-elles utilisées ensuite ?
+- Y a-t-il des contradictions dans ce que dit Sophia ?
+
+### 9. FERMETURE & TRANSITIONS
+- Les sujets sont-ils correctement clôturés avant de passer à autre chose ?
+- La phrase "C'est bon pour ce point ?" est-elle utilisée à bon escient (pas trop répétée) ?
+- Les handoffs entre agents sont-ils fluides ?
+
+### 10. ASPECT HUMAIN
+- Sophia montre-t-elle de l'empathie réelle ou des formules creuses ?
+- Les réponses s'adaptent-elles au style de l'utilisateur ?
+- Y a-t-il des moments où un humain aurait réagi différemment ?
+
+## FORMAT DE SORTIE ATTENDU
+
+Pour chaque point d'amélioration :
+
+```
+## [N]. TITRE DU PROBLÈME
+
+**Impact** : 🔴 Critique / 🟠 Important / 🟡 Modéré
+
+**Ce qui se passe** :
+- Description précise du problème observé dans le transcript/logs
+- Citations exactes si pertinent
+
+**Pourquoi c'est un problème** :
+- Explication de l'impact sur l'UX
+
+**Où dans le code** :
+- Fichier(s) concerné(s) et lignes approximatives
+- Logique actuelle vs logique attendue
+
+**Solution proposée** :
+- Description concrète de la correction à apporter
+```
+
+## RÈGLES CRITIQUES
+
+- Ne te contente PAS d'observations superficielles — va dans le code pour comprendre la CAUSE ROOT
+- Cite les lignes exactes du transcript qui illustrent le problème
+- Propose des solutions CONCRÈTES et IMPLÉMENTABLES, pas des généralités
+- Prends ton temps — je préfère une analyse longue et profonde qu'un survol rapide
+- Si tu vois des anomalies infra (logs), mentionne-les même si elles semblent mineures
+
+Lance ton analyse.
