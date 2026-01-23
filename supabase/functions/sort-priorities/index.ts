@@ -116,7 +116,12 @@ serve(async (req) => {
       true, // jsonMode
       [], 
       "auto",
-      { source: "sort-priorities" } // No userId here as it might be pre-auth
+      {
+        source: "sort-priorities",
+        // Force 2.5 first: 3.0 flash preview can be slower in some environments.
+        // Keep `generateWithGemini` fallback chain intact.
+        model: "gemini-2.5-flash",
+      } // No userId here as it might be pre-auth
     );
 
     let result;

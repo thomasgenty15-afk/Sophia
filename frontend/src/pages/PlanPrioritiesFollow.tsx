@@ -16,6 +16,7 @@ import {
   Loader2
 } from 'lucide-react';
 import OnboardingProgress from '../components/OnboardingProgress';
+import { getThemeLabelById } from '../data/onboarding/registry';
 
 interface PriorityItem {
   id: string;
@@ -24,9 +25,10 @@ interface PriorityItem {
 }
 
 const MOCK_IA_ORDER: PriorityItem[] = [
-  { id: 'SLP_1', title: 'Passer en mode nuit & s’endormir facilement', theme: 'Sommeil' },
-  { id: 'NRG_2', title: 'Sortir du cycle fatigue → sucre → crash', theme: 'Énergie' },
-  { id: 'PDT_3', title: 'Système de Deep Work (4h/jour)', theme: 'Productivité' }
+  // NOTE: keep theme as a theme_id when possible (display label is derived).
+  { id: 'SLP_1', title: 'Passer en mode nuit & s’endormir facilement', theme: 'SLP' },
+  { id: 'ENG_2', title: 'Sortir du cycle fatigue → sucre → crash', theme: 'ENG' },
+  { id: 'DSP_1', title: 'Retrouver de la discipline & arrêter de procrastiner', theme: 'DSP' }
 ];
 
 import { cleanupSubmissionData } from '../lib/planActions';
@@ -562,7 +564,7 @@ const PlanPrioritiesFollow = () => {
                     <div className="flex-1">
                       <div className="flex items-center justify-between mb-1 md:mb-2">
                         <span className="text-[10px] md:text-xs font-bold text-violet-600 uppercase tracking-wider bg-violet-50 px-2 py-0.5 rounded">
-                          {item.theme}
+                          {getThemeLabelById(item.theme)}
                         </span>
                       </div>
 
@@ -597,8 +599,8 @@ const PlanPrioritiesFollow = () => {
         >
           <span className="truncate px-2">
           {isModified 
-            ? `Générer mon plan ${currentOrder[0].theme} (Malgré le risque)` 
-            : `Générer mon plan ${currentOrder[0].theme}`}
+            ? `Générer mon plan ${getThemeLabelById(currentOrder[0].theme)} (Malgré le risque)` 
+            : `Générer mon plan ${getThemeLabelById(currentOrder[0].theme)}`}
           </span>
           <ArrowRight className="w-4 h-4 md:w-5 md:h-5 group-hover:translate-x-1 transition-transform shrink-0" />
         </button>

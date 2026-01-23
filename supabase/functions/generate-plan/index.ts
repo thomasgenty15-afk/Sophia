@@ -50,23 +50,23 @@ serve(async (req) => {
         // Alterner entre mission et framework pour les phases paires/impaires
         phaseIdx % 2 === 1
           ? {
-              id: `m_${phaseIdx}`,
-              type: "mission",
-              title: `MEGA_TEST_STUB: Mission P${phaseIdx}`,
-              description: "MEGA_TEST_STUB: description",
-              tracking_type: "boolean",
-              time_of_day: "any_time",
+          id: `m_${phaseIdx}`,
+          type: "mission",
+          title: `MEGA_TEST_STUB: Mission P${phaseIdx}`,
+          description: "MEGA_TEST_STUB: description",
+          tracking_type: "boolean",
+          time_of_day: "any_time",
             }
           : {
-              id: `f_${phaseIdx}`,
-              type: "framework",
-              title: `MEGA_TEST_STUB: Framework P${phaseIdx}`,
-              description: "MEGA_TEST_STUB: description",
-              tracking_type: "boolean",
-              time_of_day: "evening",
-              targetReps: 1,
-              frameworkDetails: { type: "one_shot", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
-            },
+          id: `f_${phaseIdx}`,
+          type: "framework",
+          title: `MEGA_TEST_STUB: Framework P${phaseIdx}`,
+          description: "MEGA_TEST_STUB: description",
+          tracking_type: "boolean",
+          time_of_day: "evening",
+          targetReps: 1,
+          frameworkDetails: { type: "one_shot", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
+        },
       ]);
 
       const plan = {
@@ -548,10 +548,15 @@ serve(async (req) => {
     // We validate the returned JSON. If it is non conforme, we retry with corrective feedback.
     // Keep it bounded to avoid extremely long requests.
     const MAX_ATTEMPTS = 12;
-    const primaryModel = (Deno.env.get("GEMINI_PLAN_MODEL") ?? "").trim() || "gemini-2.5-flash";
+    // Model policy:
+    // - generation + iterations: gemini-2.5-flash (faster + more stable; avoids edge early termination)
+    // Note: these can be overridden by env vars if needed.
+    const initialModel =
+      (Deno.env.get("GEMINI_PLAN_INITIAL_MODEL") ?? "").trim() || "gemini-2.5-flash";
+    const iterationModel =
+      (Deno.env.get("GEMINI_PLAN_ITERATION_MODEL") ?? "").trim() || "gemini-2.5-flash";
     const fallbackModel = (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim();
-    let model = primaryModel;
-    let usedFallback = false;
+    let model = initialModel;
 
     const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
@@ -604,43 +609,62 @@ serve(async (req) => {
     const pacingForValidation = (inputs?.pacing ?? "").toString();
 
     for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+      // Enforce model per attempt:
+      // - attempt 1: initialModel
+      // - attempt 2+: iterationModel
+      model = attempt === 1 ? initialModel : iterationModel;
+      let usedFallbackThisAttempt = false;
+
       const validationBlock = lastValidationFeedback
         ? `\n\n=== VALIDATION_FEEDBACK (MUST FIX) ===\nTon précédent JSON n'est pas conforme. Corrige uniquement ces points et renvoie UNIQUEMENT le JSON corrigé.\n${lastValidationFeedback}\n`
         : "";
 
-      response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt + validationBlock }] }],
-            generationConfig: { responseMimeType: "application/json" },
-          }),
-        },
-      );
+      // Per-attempt model chain: primary (per policy above) -> optional fallback model on 503.
+      // This preserves the existing overload fallback behavior while keeping iteration on 2.5.
+      for (;;) {
+        response = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt + validationBlock }] }],
+              generationConfig: { responseMimeType: "application/json" },
+            }),
+          },
+        );
 
-      data = await response.json().catch(() => ({}));
-      console.log("Gemini Response Status:", response.status);
+        data = await response.json().catch(() => ({}));
+        console.log("Gemini Response Status:", response.status, "model:", model);
+
+        // Retry on 429 and 503 (overloaded/unavailable)
+        if (response.status === 429 || response.status === 503) {
+          console.log("Gemini Error Body:", JSON.stringify(data, null, 2));
+          // If overloaded and we have a fallback model, switch once (per attempt).
+          if (
+            response.status === 503 &&
+            !usedFallbackThisAttempt &&
+            fallbackModel &&
+            fallbackModel !== model
+          ) {
+            console.log(`[Gemini] Switching to fallback model: ${fallbackModel}`);
+            model = fallbackModel;
+            usedFallbackThisAttempt = true;
+            await sleep(1000);
+            continue;
+          }
+          if (attempt < MAX_ATTEMPTS) {
+            await sleep(2000);
+            break; // next outer attempt
+          }
+        }
+
+        break;
+      }
 
       // Retry on 429 and 503 (overloaded/unavailable)
       if (response.status === 429 || response.status === 503) {
-        console.log("Gemini Error Body:", JSON.stringify(data, null, 2));
-        // If overloaded and we have a fallback model, switch once.
-        if (
-          response.status === 503 &&
-          !usedFallback &&
-          fallbackModel &&
-          fallbackModel !== model
-        ) {
-          console.log(`[Gemini] Switching to fallback model: ${fallbackModel}`);
-          model = fallbackModel;
-          usedFallback = true;
-          await sleep(1000);
-          continue;
-        }
         if (attempt < MAX_ATTEMPTS) {
-          await sleep(2000);
           continue;
         }
       }

@@ -256,6 +256,12 @@ function invokeRunEvalsJson({ url, anonKey, accessToken, body }) {
   }
 }
 
+function extractProjectRef(supabaseUrl) {
+  // Extract project ref from URL like https://iabxchanerdkczbxyjgg.supabase.co
+  const match = supabaseUrl?.match(/https?:\/\/([a-z0-9]+)\.supabase\.co/i);
+  return match?.[1] ?? null;
+}
+
 function getSupabaseCredentials() {
   // STAGING/PROD MODE: Use environment variables if SOPHIA_EVAL_REMOTE=1
   const useRemote = parseBoolEnv(process.env.SOPHIA_EVAL_REMOTE);
@@ -263,6 +269,7 @@ function getSupabaseCredentials() {
     const url = process.env.SOPHIA_SUPABASE_URL;
     const anonKey = process.env.SOPHIA_SUPABASE_ANON_KEY;
     const serviceRoleKey = process.env.SOPHIA_SUPABASE_SERVICE_ROLE_KEY;
+    const managementToken = process.env.SUPABASE_ACCESS_TOKEN;
     if (!url || !anonKey || !serviceRoleKey) {
       throw new Error(
         "SOPHIA_EVAL_REMOTE=1 but missing credentials. Set:\n" +
@@ -271,15 +278,20 @@ function getSupabaseCredentials() {
         "  SOPHIA_SUPABASE_SERVICE_ROLE_KEY=eyJ..."
       );
     }
-    console.log(`[Runner] Using REMOTE Supabase: ${url}`);
-    return { url, anonKey, serviceRoleKey };
+    const projectRef = extractProjectRef(url);
+    console.log(`[Runner] Using REMOTE Supabase: ${url} (ref=${projectRef})`);
+    if (!managementToken) {
+      console.warn(`[Runner] ⚠️  SUPABASE_ACCESS_TOKEN not set - Edge Function logs will not be fetched`);
+      console.warn(`[Runner]    Run 'supabase login' and export the token, or set SUPABASE_ACCESS_TOKEN`);
+    }
+    return { url, anonKey, serviceRoleKey, isRemote: true, projectRef, managementToken };
   }
 
   // LOCAL MODE: Use supabase status (default)
   const st0 = getLocalSupabaseStatus();
   const st = normalizeSupabaseStatusKeys(st0);
   console.log(`[Runner] Using LOCAL Supabase: ${st.API_URL}`);
-  return { url: st.API_URL, anonKey: st.ANON_KEY, serviceRoleKey: st.SERVICE_ROLE_KEY };
+  return { url: st.API_URL, anonKey: st.ANON_KEY, serviceRoleKey: st.SERVICE_ROLE_KEY, isRemote: false, projectRef: null, managementToken: null };
 }
 
 async function main() {
@@ -287,7 +299,7 @@ async function main() {
   // #region agent log
   fetch('http://127.0.0.1:7242/ingest/f0e4cdf2-e090-4c26-80a9-306daf5df797',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-run',hypothesisId:'H1',location:'run_tool_evals.mjs:main:args',message:'parsed args',data:{scenario:args.scenario,turns:args.turns,model:args.model},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
-  const { url, anonKey, serviceRoleKey } = getSupabaseCredentials();
+  const { url, anonKey, serviceRoleKey, isRemote, projectRef, managementToken } = getSupabaseCredentials();
   if (!url || !anonKey || !serviceRoleKey) throw new Error("Missing Supabase credentials (url / anonKey / serviceRoleKey)");
 
   const { accessToken } = await ensureMasterAdminSession({ url, anonKey, serviceRoleKey });
@@ -523,9 +535,47 @@ async function main() {
     return data ?? [];
   };
 
+  // Fetch Edge Function logs via Supabase Management API (for remote/staging runs)
+  const fetchEdgeFunctionLogs = async ({ projectRef, accessToken, sinceIso, untilIso }) => {
+    if (!projectRef || !accessToken) {
+      return { ok: false, error: "Missing projectRef or SUPABASE_ACCESS_TOKEN for remote logs" };
+    }
+    const baseUrl = "https://api.supabase.com/v1";
+    const params = new URLSearchParams({
+      iso_timestamp_start: sinceIso,
+      iso_timestamp_end: untilIso || new Date().toISOString(),
+    });
+    const logsUrl = `${baseUrl}/projects/${projectRef}/analytics/endpoints/logs.edge-functions?${params}`;
+    
+    const res = spawnSync("curl", [
+      "-sS",
+      "-X", "GET",
+      logsUrl,
+      "-H", `Authorization: Bearer ${accessToken}`,
+      "-H", "Content-Type: application/json",
+    ], { encoding: "utf8" });
+    
+    if (res.error) return { ok: false, error: res.error.message };
+    if ((res.status ?? 0) !== 0) return { ok: false, error: `curl failed: ${(res.stderr ?? "").slice(0, 400)}` };
+    
+    const raw = String(res.stdout ?? "");
+    try {
+      const json = raw ? JSON.parse(raw) : null;
+      // The API returns { result: [...] } with log entries
+      return { ok: true, logs: json?.result ?? json ?? [] };
+    } catch {
+      return { ok: false, error: "Failed to parse logs response", _raw: raw.slice(0, 1000) };
+    }
+  };
+
   const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
   const startedAt = nowIso();
   const startEpochSec = Math.floor(Date.now() / 1000);
+  
+  // Create a unified status object for the bundle
+  const supabaseStatus = isRemote 
+    ? { mode: "remote", url, projectRef, hasManagementToken: Boolean(managementToken) }
+    : (() => { try { return getLocalSupabaseStatus(); } catch { return { mode: "local", url }; } })();
   const requestId = data?.request_id ?? runRequestId;
   // Unique per runner execution (so re-running the same scenario never overwrites a previous bundle)
   const runStamp = `${Date.now()}`;
@@ -538,7 +588,7 @@ async function main() {
     const bundleDir = path.join(process.cwd(), "test-results", `eval_bundle_${bundleTitle}`);
     ensureDir(bundleDir);
 
-    writeJson(path.join(bundleDir, "supabase_status.json"), st);
+    writeJson(path.join(bundleDir, "supabase_status.json"), supabaseStatus);
     writeJson(path.join(bundleDir, "run_evals_response.json"), data ?? null);
     writeJson(path.join(bundleDir, "bundle_meta.json"), {
       kind: "eval_bundle_dir",
@@ -568,13 +618,39 @@ async function main() {
       writeJson(path.join(bundleDir, "production_log.json"), { ok: false, error: e?.message ?? String(e) });
     }
 
-    // Docker logs (best effort)
-    const edgeContainer = "supabase_edge_runtime_Sophia_2";
-    const kongContainer = "supabase_kong_Sophia_2";
-    dumpCmdToFile(`docker logs --since ${startEpochSec} ${edgeContainer}`, path.join(bundleDir, "docker_edge_runtime.log"));
-    dumpCmdToFile(`docker logs --since ${startEpochSec} ${kongContainer}`, path.join(bundleDir, "docker_kong.log"));
-    dumpCmdToFile(`docker logs --tail 5000 ${edgeContainer}`, path.join(bundleDir, "docker_edge_runtime.tail.log"));
-    dumpCmdToFile(`docker logs --tail 5000 ${kongContainer}`, path.join(bundleDir, "docker_kong.tail.log"));
+    // Docker logs (best effort) - only for local runs
+    if (!isRemote) {
+      const edgeContainer = "supabase_edge_runtime_Sophia_2";
+      const kongContainer = "supabase_kong_Sophia_2";
+      dumpCmdToFile(`docker logs --since ${startEpochSec} ${edgeContainer}`, path.join(bundleDir, "docker_edge_runtime.log"));
+      dumpCmdToFile(`docker logs --since ${startEpochSec} ${kongContainer}`, path.join(bundleDir, "docker_kong.log"));
+      dumpCmdToFile(`docker logs --tail 5000 ${edgeContainer}`, path.join(bundleDir, "docker_edge_runtime.tail.log"));
+      dumpCmdToFile(`docker logs --tail 5000 ${kongContainer}`, path.join(bundleDir, "docker_kong.tail.log"));
+    }
+
+    // Edge Function logs via Management API (for remote runs)
+    if (isRemote && projectRef && managementToken) {
+      try {
+        const edgeLogs = await fetchEdgeFunctionLogs({
+          projectRef,
+          accessToken: managementToken,
+          sinceIso: new Date(Date.now() - 15 * 60_000).toISOString(), // last 15 min
+          untilIso: nowIso(),
+        });
+        writeJson(path.join(bundleDir, "edge_function_logs.json"), edgeLogs);
+        if (edgeLogs.ok) {
+          console.log(`[Runner] ✓ Fetched ${edgeLogs.logs?.length ?? 0} Edge Function log entries`);
+        }
+      } catch (e) {
+        writeJson(path.join(bundleDir, "edge_function_logs.json"), { ok: false, error: e?.message ?? String(e) });
+      }
+    } else if (isRemote) {
+      writeJson(path.join(bundleDir, "edge_function_logs.json"), { 
+        ok: false, 
+        error: "SUPABASE_ACCESS_TOKEN not set - cannot fetch Edge Function logs",
+        hint: "Run 'supabase login' and set SUPABASE_ACCESS_TOKEN env var"
+      });
+    }
 
     console.log(JSON.stringify({ ok: false, bundle_dir: bundleDir, reason: String(reason ?? "") }, null, 2));
     return bundleDir;
@@ -587,7 +663,7 @@ async function main() {
     const bundleTitle = safeName(`${scenarioKey || "scenario"}_${evalRunId}_${runStamp}_${runTag}`);
     const bundleDir = path.join(process.cwd(), "test-results", `eval_bundle_${bundleTitle}`);
     ensureDir(bundleDir);
-    writeJson(path.join(bundleDir, "supabase_status.json"), st);
+    writeJson(path.join(bundleDir, "supabase_status.json"), supabaseStatus);
     writeJson(path.join(bundleDir, "run_evals_response.json"), data);
     writeJson(path.join(bundleDir, "bundle_meta.json"), {
       kind: "eval_bundle_dir",
@@ -625,13 +701,40 @@ async function main() {
     } catch (e) {
       writeJson(path.join(bundleDir, "production_log.json"), { ok: false, error: e?.message ?? String(e) });
     }
-    // Docker logs (best effort)
-    const edgeContainer = "supabase_edge_runtime_Sophia_2";
-    const kongContainer = "supabase_kong_Sophia_2";
-    dumpCmdToFile(`docker logs --since ${startEpochSec} ${edgeContainer}`, path.join(bundleDir, "docker_edge_runtime.log"));
-    dumpCmdToFile(`docker logs --since ${startEpochSec} ${kongContainer}`, path.join(bundleDir, "docker_kong.log"));
-    dumpCmdToFile(`docker logs --tail 5000 ${edgeContainer}`, path.join(bundleDir, "docker_edge_runtime.tail.log"));
-    dumpCmdToFile(`docker logs --tail 5000 ${kongContainer}`, path.join(bundleDir, "docker_kong.tail.log"));
+    // Docker logs (best effort) - only for local runs
+    if (!isRemote) {
+      const edgeContainer = "supabase_edge_runtime_Sophia_2";
+      const kongContainer = "supabase_kong_Sophia_2";
+      dumpCmdToFile(`docker logs --since ${startEpochSec} ${edgeContainer}`, path.join(bundleDir, "docker_edge_runtime.log"));
+      dumpCmdToFile(`docker logs --since ${startEpochSec} ${kongContainer}`, path.join(bundleDir, "docker_kong.log"));
+      dumpCmdToFile(`docker logs --tail 5000 ${edgeContainer}`, path.join(bundleDir, "docker_edge_runtime.tail.log"));
+      dumpCmdToFile(`docker logs --tail 5000 ${kongContainer}`, path.join(bundleDir, "docker_kong.tail.log"));
+    }
+
+    // Edge Function logs via Management API (for remote runs)
+    if (isRemote && projectRef && managementToken) {
+      try {
+        const edgeLogs = await fetchEdgeFunctionLogs({
+          projectRef,
+          accessToken: managementToken,
+          sinceIso: new Date(Date.now() - 15 * 60_000).toISOString(), // last 15 min
+          untilIso: nowIso(),
+        });
+        writeJson(path.join(bundleDir, "edge_function_logs.json"), edgeLogs);
+        if (edgeLogs.ok) {
+          console.log(`[Runner] ✓ Fetched ${edgeLogs.logs?.length ?? 0} Edge Function log entries`);
+        }
+      } catch (e) {
+        writeJson(path.join(bundleDir, "edge_function_logs.json"), { ok: false, error: e?.message ?? String(e) });
+      }
+    } else if (isRemote) {
+      writeJson(path.join(bundleDir, "edge_function_logs.json"), { 
+        ok: false, 
+        error: "SUPABASE_ACCESS_TOKEN not set - cannot fetch Edge Function logs",
+        hint: "Run 'supabase login' and set SUPABASE_ACCESS_TOKEN env var"
+      });
+    }
+
     console.log(JSON.stringify({ ok: true, eval_run_id: evalRunId, scenario_key: scenarioKey ?? null, bundle_dir: bundleDir }, null, 2));
   }
 

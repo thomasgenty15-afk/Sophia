@@ -198,7 +198,7 @@ export const SophiaAssistantModal: React.FC<SophiaAssistantModalProps> = ({ onCl
                                 <div key={i} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
                                     <div className="flex justify-between items-start mb-2">
                                         <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                                            {rec.themeId}
+                                            {rec.axisTitle || rec.axisId}
                                         </span>
                                     </div>
                                     <p className="text-sm text-slate-600 italic">

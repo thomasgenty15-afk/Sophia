@@ -529,9 +529,12 @@ const GlobalPlanFollow = () => {
         if (!data || !data.recommendations) throw new Error("Format de réponse invalide");
 
         // 3. Appliquer les changements (Magie)
-        const newAxisSelection = { ...selectedAxisByTheme };
-        let newProblemsIds = [...responses.selectedProblemsIds];
-        
+        // RESET : On repart d'une sélection vierge pour éviter de cumuler (ex: 1 manuel + 3 recommandés = 4)
+        const newAxisSelection: Record<string, string | null> = {};
+        // On garde les problèmes sélectionnés qui sont pertinents pour les nouveaux axes (ou on reset aussi ?)
+        // Pour être propre, on reset aussi les problèmes et on ne prend que ceux de l'IA.
+        let newProblemsIds: string[] = [];
+
         data.recommendations.forEach((rec: any) => {
             // A. Sélectionner l'axe
             if (rec.themeId && rec.axisId) {
@@ -580,21 +583,60 @@ const GlobalPlanFollow = () => {
         <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-visible scrollbar-hide w-full pb-1 md:pb-0">
           {displayedThemes.map(theme => {
             const isAxisSelectedInTheme = selectedAxisByTheme[theme.id] != null;
+            
+            // Vérification du statut "Rempli" (au moins 1 problème coché ET au moins 1 réponse donnée)
+            let isCompleted = false;
+            if (isAxisSelectedInTheme) {
+                const axisId = selectedAxisByTheme[theme.id];
+                const axis = theme.axes?.find(a => a.id === axisId);
+                if (axis) {
+                    const activeProblems = axis.problems.filter(p => responses.selectedProblemsIds.includes(p.id));
+                    
+                    if (activeProblems.length > 0) {
+                        const questionIds = activeProblems.flatMap(p => p.detailQuestions.map(q => q.id));
+                        
+                        if (questionIds.length === 0) {
+                            // Pas de sous-questions = Rempli dès la sélection
+                            isCompleted = true;
+                        } else {
+                            // Doit avoir répondu à au moins une question
+                            isCompleted = questionIds.some(qId => {
+                                const answer = responses.detailAnswers[qId];
+                                return answer && (Array.isArray(answer) ? answer.length > 0 : String(answer).trim() !== '');
+                            });
+                        }
+                    }
+                }
+            }
+
+            const isActive = currentTheme.id === theme.id;
+
             return (
               <button
                 key={theme.id}
                 onClick={() => setCurrentTheme(theme)}
-                className={`shrink-0 md:shrink md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-colors relative whitespace-nowrap ${currentTheme.id === theme.id
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "hover:bg-gray-100 text-gray-600"
+                className={`shrink-0 md:shrink md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-all relative whitespace-nowrap 
+                  ${isActive
+                    ? "bg-blue-600 text-white shadow-md border-2 border-blue-600" // Actif = Bleu plein
+                    : isAxisSelectedInTheme 
+                        ? "bg-blue-50 text-blue-900 border-2 border-blue-600" // Sélectionné mais pas actif = Cadre bleu + fond léger
+                        : "hover:bg-gray-100 text-gray-600 border-2 border-transparent" // Rien = Gris
                   }`}
               >
                 <span className="text-lg md:text-xl">{theme.icon}</span>
                 <span className="font-medium text-sm md:text-base">{theme.shortTitle}</span>
 
-                {/* Indicateur si un axe est choisi dans ce thème */}
+                {/* Indicateur d'état */}
                 {isAxisSelectedInTheme && (
-                  <div className={`ml-2 md:absolute md:right-3 w-2 h-2 rounded-full ${currentTheme.id === theme.id ? 'bg-white' : 'bg-blue-500'}`} />
+                  <div className="ml-2 md:absolute md:right-3">
+                      {isCompleted ? (
+                          <div className={`rounded-full p-0.5 ${isActive ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'}`}>
+                              <Check className="w-3 h-3" strokeWidth={3} />
+                          </div>
+                      ) : (
+                          <div className={`w-4 h-4 rounded-full border-2 ${isActive ? 'border-white' : 'border-blue-600'}`} />
+                      )}
+                  </div>
                 )}
               </button>
             );
@@ -775,6 +817,11 @@ const GlobalPlanFollow = () => {
 
           <button
             onClick={async () => {
+              if (totalSelectedAxes > MAX_AXES) {
+                alert(`Tu as sélectionné ${totalSelectedAxes} transformations. La limite est de ${MAX_AXES} pour garantir l'efficacité du plan. Désélectionnes-en une.`);
+                return;
+              }
+
               const data = prepareSelectionData();
               
               // CRITIQUE : On utilise le submissionId existant s'il y en a un (ce qui devrait être le cas via Dashboard)

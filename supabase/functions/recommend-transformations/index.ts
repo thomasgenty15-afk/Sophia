@@ -45,11 +45,13 @@ serve(async (req) => {
       Ton rôle est d'aider l'utilisateur à choisir ses transformations prioritaires (axes de travail) parmi un catalogue, en fonction de ses réponses à 3 questions introspectives.
 
       RÈGLES DE SÉLECTION :
-      1. Tu dois choisir entre 1 et 3 Axes (Transformations) maximum au total.
+      1. Tu dois choisir 2 Axes (Transformations) idéalement. Choisis 3 uniquement si c'est ABSOLUMENT NÉCESSAIRE.
       2. RÈGLE D'OR : Ne sélectionne QUE ce qui est vraiment prioritaire ("le cœur du sujet"). Mieux vaut choisir 1 ou 2 axes pertinents et impactants que de remplir les 3 slots pour rien. La qualité prime sur la quantité.
       3. CONTRAINTE TECHNIQUE : Maximum 1 Axe par Thème (ThemeId). Tu ne peux pas choisir deux axes appartenant au même thème (ex: deux axes 'REL_...').
       4. Pour chaque Axe choisi, tu dois sélectionner les Problèmes (checkboxes) qui semblent correspondre à la situation de l'utilisateur.
+         **ATTENTION : Sélectionne MAXIMUM 2 problèmes par axe. Choisis uniquement les plus pertinents.**
       5. Tes choix doivent être justifiés par la situation décrite par l'utilisateur.
+      6. IMPORTANT : Base-toi UNIQUEMENT sur le catalogue fourni ci-dessous. N'invente pas d'axes en dehors de cette liste.
 
       FORMAT DE SORTIE (JSON STRICT) :
       {
@@ -57,6 +59,7 @@ serve(async (req) => {
           {
             "themeId": "ID_DU_THEME",
             "axisId": "ID_DE_L_AXE",
+            "axisTitle": "TITRE_DE_L_AXE",
             "problemIds": ["ID_PROBLEME_1", "ID_PROBLEME_2"], 
             "reasoning": "Une phrase courte expliquant pourquoi cet axe est pertinent pour lui."
           }
@@ -86,7 +89,12 @@ serve(async (req) => {
       true, // jsonMode
       [],
       "auto",
-      { source: "recommend-transformations" } // No userId
+      {
+        source: "recommend-transformations",
+        // Force 2.5 first: we observed 3.0 flash preview can be slower / timeout in some environments.
+        // Keep `generateWithGemini` fallback chain intact.
+        model: "gemini-2.5-flash",
+      } // No userId
     );
 
     let result;
