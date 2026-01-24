@@ -3,14 +3,18 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../_shared/gemini.ts'
 import { WEEKS_CONTENT } from '../_shared/weeksContent.ts'
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 console.log("Create Module Memory Function initialized")
 
 Deno.serve(async (req) => {
+  let ctx = getRequestContext(req)
   try {
     const guard = ensureInternalRequest(req)
     if (guard) return guard
-    const payload = await req.json()
+    const payload = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, payload)
     const { record } = payload
     
     // Check payload
@@ -32,7 +36,7 @@ Deno.serve(async (req) => {
         return new Response('Skipped: Content too short', { status: 200 })
     }
 
-    console.log(`[Memory] Processing memory for module ${moduleId} user ${userId}`);
+    console.log(`[create-module-memory] request_id=${ctx.requestId} user_id=${userId} module_id=${moduleId}`);
 
     // Init Supabase Admin
     const supabaseAdmin = createClient(
@@ -119,7 +123,15 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error("[Memory] Error:", error)
+    console.error(`[create-module-memory] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
+    await logEdgeFunctionError({
+      functionName: "create-module-memory",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(JSON.stringify({ error: error.message }), { status: 500 })
   }
 })

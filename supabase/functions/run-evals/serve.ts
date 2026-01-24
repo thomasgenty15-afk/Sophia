@@ -114,22 +114,30 @@ export function serveRunEvals() {
         const t = (jwt ?? "").trim();
         const p0 = t.split(".")[0] ?? "";
         if (!p0) return "missing";
-        const header = JSON.parse(
-          new TextDecoder().decode(
-            Uint8Array.from(
-              atob(p0.replace(/-/g, "+").replace(/_/g, "/")),
-              (c) => c.charCodeAt(0),
+        try {
+          // JWT uses base64url *without* padding. atob expects base64 with proper padding.
+          const b64 = p0.replace(/-/g, "+").replace(/_/g, "/");
+          const padLen = (4 - (b64.length % 4)) % 4;
+          const padded = b64 + (padLen ? "=".repeat(padLen) : "");
+          const header = JSON.parse(
+            new TextDecoder().decode(
+              Uint8Array.from(
+                atob(padded),
+                (c) => c.charCodeAt(0),
+              ),
             ),
-          ),
-        );
-        return String(header?.alg ?? "unknown");
+          );
+          return String(header?.alg ?? "unknown");
+        } catch {
+          return "parse_failed";
+        }
       };
       let serviceAlg = "parse_failed";
       let anonAlg = "parse_failed";
       try {
         serviceAlg = decodeAlg(envServiceKey);
         anonAlg = decodeAlg(envAnonKey);
-        console.log(`[run-evals] request_id=${requestId} service_role_alg=${serviceAlg} anon_alg=${anonAlg}`);
+        console.log(`[run-evals] request_id=${requestId} service_role_alg=${serviceAlg} anon_alg=${anonAlg} (decodeAlg_v2)`);
       } catch {
         console.log(`[run-evals] request_id=${requestId} key_alg=parse_failed`);
       }
@@ -194,8 +202,9 @@ export function serveRunEvals() {
         }
       }
 
-      // If we still don't have HS256, return a retryable structured error.
-      if (decodeAlg(serviceKey) !== "HS256" || decodeAlg(anonKey) !== "HS256") {
+      // Local-only guard: local stacks can occasionally surface non-HS256 keys (ES256) which break GoTrue/PostgREST.
+      // On Supabase Cloud, keys may not be HS256 JWTs; do not block remote runs.
+      if (isLocal && (decodeAlg(serviceKey) !== "HS256" || decodeAlg(anonKey) !== "HS256")) {
         return jsonResponse(
           req,
           {
@@ -1267,22 +1276,7 @@ export function serveRunEvals() {
           // even though a plan was seeded during the run.
           const dashboardContextAfter = await getDashboardContext(admin as any, testUserId);
           const planSnapshotAfter = await fetchPlanSnapshot(admin as any, testUserId);
-          // Pull prod verifier/judge logs for this scenario run (conversation_judge_events),
-          // keyed by request_id (stable per scenario run).
-          let judgeEvents: any[] = [];
-          try {
-            const { data: evs } = await admin
-              .from("conversation_judge_events")
-              .select("*")
-              .eq("user_id", testUserId)
-              .eq("scope", scope)
-              .eq("request_id", scenarioRequestId)
-              .order("created_at", { ascending: true })
-              .limit(200);
-            judgeEvents = Array.isArray(evs) ? evs : [];
-          } catch {
-            judgeEvents = [];
-          }
+          // Verifier logs are now persisted into conversation_eval_events during eval runs.
           // Pull eval trace events (conversation_eval_events) for this run id (includes verifier_issues).
           let evalEvents: any[] = [];
           try {
@@ -1304,7 +1298,6 @@ export function serveRunEvals() {
             chatStateAfter: stAfter ?? null,
             planSnapshotAfter: planSnapshotAfter ?? planSnapshot,
             transcript: isWhatsApp && mechanicalTranscriptOverride ? mechanicalTranscriptOverride : transcript,
-            judgeEvents,
             evalEvents,
           });
 

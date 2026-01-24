@@ -1,8 +1,11 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2"
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 serve(async (req) => {
+  const ctx = getRequestContext(req)
   if (req.method === 'OPTIONS') {
     return handleCorsOptions(req)
   }
@@ -131,7 +134,15 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error(`[generate-feedback] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
+    await logEdgeFunctionError({
+      functionName: "generate-feedback",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 
 export type Message = {
   id: string;
@@ -46,6 +47,7 @@ export function useChat() {
     try {
       setIsLoading(true);
       setError(null);
+      const clientRequestId = newRequestId();
 
       // 1. Ajouter le message utilisateur localement (Optimistic UI)
       // Note : L'insertion réelle en DB est faite par la fonction sophia-brain via 'logMessage'
@@ -61,7 +63,8 @@ export function useChat() {
 
       // 2. Appel à la Edge Function
       const { data, error: fnError } = await supabase.functions.invoke('sophia-brain', {
-        body: { message: content, history: messages.slice(-10), channel: "web", scope } 
+        body: { message: content, history: messages.slice(-10), channel: "web", scope, client_request_id: clientRequestId },
+        headers: requestHeaders(clientRequestId)
       });
 
       if (fnError) throw fnError;

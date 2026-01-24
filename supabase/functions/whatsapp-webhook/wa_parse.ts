@@ -19,6 +19,15 @@ export type ExtractedInboundMessage = {
   profile_name?: string
 }
 
+export type ExtractedStatus = {
+  provider_message_id: string
+  status: string
+  // Meta sends unix seconds as string; we convert to ISO when possible.
+  status_timestamp_iso: string | null
+  recipient_id: string | null
+  raw: unknown
+}
+
 export function extractMessages(payload: WaInbound): ExtractedInboundMessage[] {
   const out: any[] = []
   for (const entry of payload.entry ?? []) {
@@ -52,6 +61,40 @@ export function extractMessages(payload: WaInbound): ExtractedInboundMessage[] {
           interactive_id,
           interactive_title,
           profile_name: profileName,
+        })
+      }
+    }
+  }
+  return out
+}
+
+export function extractStatuses(payload: WaInbound): ExtractedStatus[] {
+  const out: ExtractedStatus[] = []
+  for (const entry of payload.entry ?? []) {
+    for (const change of entry.changes ?? []) {
+      const value = change.value ?? {}
+      const statuses = value.statuses ?? []
+      for (const s of statuses) {
+        const provider_message_id = String(s?.id ?? "").trim()
+        const status = String(s?.status ?? "").trim()
+        if (!provider_message_id || !status) continue
+        const tsRaw = String(s?.timestamp ?? "").trim()
+        const tsIso = (() => {
+          const n = Number(tsRaw)
+          if (!Number.isFinite(n) || n <= 0) return null
+          try {
+            return new Date(n * 1000).toISOString()
+          } catch {
+            return null
+          }
+        })()
+        const recipient_id = s?.recipient_id != null ? String(s.recipient_id) : null
+        out.push({
+          provider_message_id,
+          status,
+          status_timestamp_iso: tsIso,
+          recipient_id,
+          raw: s,
         })
       }
     }

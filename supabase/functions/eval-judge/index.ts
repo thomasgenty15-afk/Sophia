@@ -19,10 +19,14 @@ function decodeJwtAlg(jwt: string): string {
   const p0 = t.split(".")[0] ?? "";
   if (!p0) return "missing";
   try {
+    // JWT uses base64url *without* padding. atob expects base64 with proper padding.
+    const b64 = p0.replace(/-/g, "+").replace(/_/g, "/");
+    const padLen = (4 - (b64.length % 4)) % 4;
+    const padded = b64 + (padLen ? "=".repeat(padLen) : "");
     const header = JSON.parse(
       new TextDecoder().decode(
         Uint8Array.from(
-          atob(p0.replace(/-/g, "+").replace(/_/g, "/")),
+          atob(padded),
           (c) => c.charCodeAt(0),
         ),
       ),

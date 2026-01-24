@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { 
   ArrowRight, 
   GripVertical, 
@@ -224,8 +225,10 @@ const PlanPrioritiesFollow = () => {
 
         console.log(`🚀 Appel Gemini en cours... (Essai ${attemptsCount + 1}/3)`);
         
+        const reqId = newRequestId();
         const { data, error } = await supabase.functions.invoke('sort-priorities', {
-            body: { axes: axesToAnalyze }
+            body: { axes: axesToAnalyze, client_request_id: reqId },
+            headers: requestHeaders(reqId),
         });
 
         if (error) throw error;

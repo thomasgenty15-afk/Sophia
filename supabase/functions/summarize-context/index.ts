@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { retryOn429 } from "../_shared/retry429.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,14 +10,17 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  let ctx = getRequestContext(req)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    console.log("🚀 START summarize-context");
-    const { responses, currentAxis } = await req.json()
-    console.log("📥 Body parsed, currentAxis:", currentAxis?.title);
+    const body = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, body)
+    console.log(`[summarize-context] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"} START`)
+    const { responses, currentAxis } = body as any
+    console.log(`[summarize-context] request_id=${ctx.requestId} currentAxis=${currentAxis?.title ?? "—"}`)
 
     // Deterministic test mode (no network / no GEMINI_API_KEY required)
     const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
@@ -160,7 +165,15 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('🔥 Final Error Catch:', error)
+    console.error(`[summarize-context] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"} ERROR`, error)
+    await logEdgeFunctionError({
+      functionName: "summarize-context",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     // On renvoie 200 pour faciliter la lecture du message d'erreur côté client
     return new Response(
       JSON.stringify({ error: error.message }),

@@ -1,9 +1,11 @@
 import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+import { getRequestContext } from "../_shared/request_context.ts";
 
 // Minimal health/env visibility endpoint for local debugging.
 // Do NOT expose this in production without access controls.
 
-serve((_req) => {
+serve((req) => {
+  const ctx = getRequestContext(req)
   const openaiKey = (Deno.env.get("OPENAI_API_KEY") ?? "").trim();
   const geminiKey = (Deno.env.get("GEMINI_API_KEY") ?? "").trim();
   const openaiBaseUrl = (Deno.env.get("OPENAI_BASE_URL") ?? "https://api.openai.com").trim();
@@ -12,6 +14,7 @@ serve((_req) => {
     JSON.stringify(
       {
         ok: true,
+        request_id: ctx.requestId,
         openai_key_loaded: Boolean(openaiKey),
         openai_key_prefix: openaiKey ? openaiKey.slice(0, 7) : null,
         openai_base_url: openaiBaseUrl,

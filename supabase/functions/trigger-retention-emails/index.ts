@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { sendResendEmail } from "../_shared/resend.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { getRequestContext } from "../_shared/request_context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -18,13 +20,14 @@ const RETENTION_STEPS = [
 ];
 
 serve(async (req) => {
+  const ctx = getRequestContext(req)
   const guardRes = ensureInternalRequest(req);
   if (guardRes) return guardRes;
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    console.log("Démarrage du job de rétention...");
+    console.log(`[trigger-retention-emails] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"} start`);
     // In MEGA_TEST_MODE, Resend is skipped by the shared helper; keep the job safe anyway.
 
     // Configurable links per environment (DB-driven)
@@ -132,7 +135,15 @@ serve(async (req) => {
     });
 
   } catch (err) {
-    console.error(err);
+    console.error(`[trigger-retention-emails] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, err);
+    await logEdgeFunctionError({
+      functionName: "trigger-retention-emails",
+      error: err,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "email",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(JSON.stringify({ error: err.message }), { status: 500 });
   }
 });

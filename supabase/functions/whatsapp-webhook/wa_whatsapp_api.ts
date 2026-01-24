@@ -1,66 +1,99 @@
 /// <reference path="../tsserver-shims.d.ts" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
+import { sendWhatsAppGraph } from "../_shared/whatsapp_graph.ts"
+import {
+  createWhatsAppOutboundRow,
+  markWhatsAppOutboundFailed,
+  markWhatsAppOutboundSent,
+  markWhatsAppOutboundSkipped,
+} from "../_shared/whatsapp_outbound_tracking.ts"
 
 function denoEnv(name: string): string | undefined {
   return (globalThis as any)?.Deno?.env?.get?.(name)
 }
 
-function isMegaTestMode(): boolean {
-  const megaRaw = (denoEnv("MEGA_TEST_MODE") ?? "").trim()
-  const isLocalSupabase =
-    (denoEnv("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
-    (denoEnv("SUPABASE_URL") ?? "").includes("http://kong:8000") ||
-    (denoEnv("SUPABASE_URL") ?? "").includes(":54321")
-  return megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
-}
-
 export async function sendWhatsAppText(toE164: string, body: string) {
-  // Eval-only transport: loopback means "pretend we sent it to WhatsApp",
-  // but do not call Meta/Graph. The webhook will still log the assistant message in DB.
-  if (Boolean((globalThis as any).__SOPHIA_WA_LOOPBACK)) {
-    return { messages: [{ id: "wamid_LOOPBACK" }], loopback: true, to: toE164, body } as any
-  }
-
-  // In tests/local deterministic runs we never want to call Meta/Graph.
-  if (isMegaTestMode()) {
-    return { messages: [{ id: "wamid_MEGA_TEST" }], mega_test_mode: true, to: toE164, body } as any
-  }
-
-  const token = denoEnv("WHATSAPP_ACCESS_TOKEN")?.trim()
-  const phoneNumberId = denoEnv("WHATSAPP_PHONE_NUMBER_ID")?.trim()
-  if (!token || !phoneNumberId) throw new Error("Missing WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID")
-
-  const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`
   const payload = {
     messaging_product: "whatsapp",
     to: toE164.replace("+", ""),
     type: "text",
     text: { body },
   }
+  const res = await sendWhatsAppGraph(payload)
+  if (!res.ok) throw new Error(`WhatsApp send failed: ${JSON.stringify(res.error)}`)
+  if (res.skipped) return { skipped: true, reason: res.skip_reason, meta: res.data } as any
+  return res.data as any
+}
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    // In Meta test mode, the Cloud API phone number can only message recipients added to the allowlist
-    // in "WhatsApp -> API Setup -> To". When missing, Meta returns code 131030.
-    const metaCode = (data as any)?.error?.code
-    if (res.status === 400 && metaCode === 131030) {
-      console.warn("[whatsapp] recipient not in allowed list (Meta test mode)", {
-        to: toE164,
-        phone_number_id: phoneNumberId,
-        status: res.status,
-        metaCode,
-        details: (data as any)?.error?.error_data?.details ?? null,
-      })
-      return { skipped: true, reason: "recipient_not_allowed_list", meta: data } as any
-    }
-    throw new Error(`WhatsApp send failed (${res.status}): ${JSON.stringify(data)}`)
+export async function sendWhatsAppTextTracked(params: {
+  admin: SupabaseClient
+  requestId: string
+  userId: string | null
+  toE164: string
+  body: string
+  purpose?: string | null
+  isProactive?: boolean
+  replyToWaMessageId?: string | null
+  metadata?: Record<string, unknown>
+}) {
+  const { admin, requestId, userId, toE164, body } = params
+  const graphPayload = {
+    messaging_product: "whatsapp",
+    to: toE164.replace("+", ""),
+    type: "text",
+    text: { body },
   }
-  return data as any
+
+  const outboundId = await createWhatsAppOutboundRow(admin as any, {
+    request_id: requestId,
+    user_id: userId,
+    to_e164: toE164,
+    message_type: "text",
+    content_preview: body.slice(0, 500),
+    graph_payload: graphPayload,
+    reply_to_wamid_in: params.replyToWaMessageId ?? null,
+    metadata: {
+      purpose: params.purpose ?? null,
+      is_proactive: Boolean(params.isProactive),
+      ...(params.metadata ?? {}),
+    },
+  })
+
+  const sendRes = await sendWhatsAppGraph(graphPayload)
+  const attemptCount = 1
+
+  if (!sendRes.ok) {
+    await markWhatsAppOutboundFailed(admin as any, outboundId, {
+      attempt_count: attemptCount,
+      retryable: Boolean(sendRes.retryable),
+      error_code: sendRes.meta_code != null ? String(sendRes.meta_code) : (sendRes.http_status != null ? String(sendRes.http_status) : "network_error"),
+      error_message: sendRes.non_retry_reason ?? "whatsapp_send_failed",
+      error_payload: sendRes.error,
+    })
+    const err = new Error(`WhatsApp send failed (${sendRes.http_status ?? "network"}): ${JSON.stringify(sendRes.error)}`)
+    ;(err as any).outbound_tracking_id = outboundId
+    ;(err as any).http_status = sendRes.http_status
+    throw err
+  }
+
+  if (sendRes.skipped) {
+    await markWhatsAppOutboundSkipped(admin as any, outboundId, {
+      attempt_count: attemptCount,
+      transport: sendRes.transport,
+      skip_reason: sendRes.skip_reason,
+      raw_response: sendRes.data,
+    })
+    return { ...(sendRes.data ?? {}), outbound_tracking_id: outboundId, skipped: true } as any
+  }
+
+  await markWhatsAppOutboundSent(admin as any, outboundId, {
+    provider_message_id: sendRes.wamid_out,
+    attempt_count: attemptCount,
+    transport: sendRes.transport,
+    raw_response: sendRes.data,
+  })
+  return { ...(sendRes.data ?? {}), outbound_tracking_id: outboundId } as any
 }
 
 

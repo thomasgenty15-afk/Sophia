@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { ChevronDown, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { SophiaAssistantModal } from '../components/SophiaAssistantModal';
 import OnboardingProgress from '../components/OnboardingProgress';
@@ -518,11 +519,13 @@ const GlobalPlanFollow = () => {
         }));
 
         // 2. Appel Edge Function
+        const reqId = newRequestId();
         const { data, error } = await supabase.functions.invoke('recommend-transformations', {
             body: { 
                 userAnswers: answers,
                 availableTransformations: catalog
-            }
+            },
+            headers: requestHeaders(reqId),
         });
 
         if (error) throw error;

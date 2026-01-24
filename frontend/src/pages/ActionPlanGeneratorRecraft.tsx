@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions, cleanupPlanData } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
@@ -251,6 +252,7 @@ const ActionPlanGeneratorRecraft = () => {
       }
 
       // On appelle l'IA avec les infos + LES REPONSES + ANCIEN PLAN
+      const reqId = newRequestId();
       const { data, error } = await supabase.functions.invoke('generate-plan', {
         body: {
           inputs, // Les nouveaux inputs (Raison du changement, Nouveaux blocages)
@@ -263,7 +265,8 @@ const ActionPlanGeneratorRecraft = () => {
               birth_date: profileBirthDate,
               gender: profileGender
           }
-        }
+        },
+        headers: requestHeaders(reqId),
       });
 
       if (error) throw error;

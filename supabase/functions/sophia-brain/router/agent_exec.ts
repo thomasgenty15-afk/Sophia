@@ -16,6 +16,8 @@ import { buildConversationAgentViolations, judgeOfThree, type ToolDescriptor, ve
 import { appendDeferredTopicToState, assistantDeferredTopic, extractDeferredTopicFromUserMessage, formalizeDeferredTopicWithAI } from "./deferred_topics.ts"
 import { enqueueLlmRetryJob, tryEmergencyAiReply } from "./emergency.ts"
 import { logEvalEvent } from "../../run-evals/lib/eval_trace.ts"
+import { logBrainTrace } from "../../_shared/brain-trace.ts"
+import { logVerifierEvalEvent } from "../lib/verifier_eval_log.ts"
 
 export async function runAgentAndVerify(opts: {
   supabase: SupabaseClient
@@ -26,7 +28,7 @@ export async function runAgentAndVerify(opts: {
   history: any[]
   state: any
   context: string
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
+  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; evalRunId?: string | null; forceBrainTrace?: boolean }
   targetMode: AgentMode
   nCandidates?: 1 | 3
   checkupActive: boolean
@@ -60,6 +62,35 @@ export async function runAgentAndVerify(opts: {
   // Used by the global anti-claim verifier (outside bilan too).
   let executedTools: string[] = []
   let toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain" = "none"
+
+  const TRACE_VERBOSE =
+    (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_BRAIN_TRACE_VERBOSE") ?? "") as string).trim() === "1"
+  const trace = async (event: string, phase: any, payload: Record<string, unknown> = {}, level: "debug" | "info" | "warn" | "error" = "info") => {
+    await logBrainTrace({
+      supabase,
+      userId,
+      meta: { requestId: meta?.requestId, evalRunId: (meta as any)?.evalRunId ?? null, forceBrainTrace: (meta as any)?.forceBrainTrace },
+      event,
+      phase,
+      level,
+      payload,
+    })
+  }
+  const traceV = async (event: string, phase: any, payload: Record<string, unknown> = {}, level: "debug" | "info" | "warn" | "error" = "debug") => {
+    if (!TRACE_VERBOSE) return
+    await trace(event, phase, payload, level)
+  }
+
+  await trace("brain:agent_exec_start", "agent", {
+    target_mode: targetMode,
+    channel,
+    scope,
+    checkupActive,
+    stopCheckup,
+    isPostCheckup,
+    nCandidates: opts.nCandidates ?? 1,
+    sophiaChatModel,
+  }, "debug")
 
   function toolUsageWhen(name: string): string {
     const n = String(name ?? "").trim()
@@ -260,7 +291,7 @@ export async function runAgentAndVerify(opts: {
 
     // Best-effort log: store which candidate was chosen + brief reasons.
     await logJudgeEvent({
-      verifier_kind: "judge_of_3",
+      verifier_kind: "verifier_3",
       agent_used: targetMode,
       ok: null,
       rewritten: null,
@@ -310,33 +341,38 @@ export async function runAgentAndVerify(opts: {
     final_text: string
     metadata?: Record<string, unknown>
   }) {
-    const enabledRaw = (Deno.env.get("SOPHIA_JUDGE_LOGS") ?? "").trim().toLowerCase()
-    const enabled = enabledRaw === "" || enabledRaw === "1" || enabledRaw === "true" || enabledRaw === "on"
-    if (!enabled) return
+    // IMPORTANT: verifier logs are persisted only into conversation_eval_events during eval runs.
     try {
+      const requestId = String(meta?.requestId ?? "").trim()
+      if (!requestId) return
       const draft = String(args.draft ?? "")
       const finalText = String(args.final_text ?? "")
       const [draftHash, finalHash] = await Promise.all([sha256Hex(draft), sha256Hex(finalText)])
-      await supabase.from("conversation_judge_events").insert({
-        user_id: userId,
-        scope,
-        channel,
-        agent_used: args.agent_used,
-        verifier_kind: args.verifier_kind,
-        request_id: meta?.requestId ?? null,
-        model: (Deno.env.get("GEMINI_AGENT_JUDGE_MODEL") ?? "").trim() || "gemini-3-flash-preview",
-        ok: args.ok,
-        rewritten: args.rewritten,
-        issues: args.issues,
-        mechanical_violations: args.mechanical_violations,
-        draft_len: draft.length,
-        final_len: finalText.length,
-        draft_hash: draftHash || null,
-        final_hash: finalHash || null,
-        metadata: args.metadata ?? {},
-      } as any)
+      await logVerifierEvalEvent({
+        supabase: supabase as any,
+        requestId,
+        source: "sophia-brain:verifier",
+        event: "verifier_decision",
+        level: (args.ok === false || (args.issues ?? []).length > 0) ? "warn" : "info",
+        payload: {
+          user_id: userId,
+          scope,
+          channel,
+          agent_used: args.agent_used,
+          verifier_kind: args.verifier_kind,
+          ok: args.ok,
+          rewritten: args.rewritten,
+          issues: args.issues ?? [],
+          mechanical_violations: args.mechanical_violations ?? [],
+          draft_len: draft.length,
+          final_len: finalText.length,
+          draft_hash: draftHash || null,
+          final_hash: finalHash || null,
+          metadata: args.metadata ?? {},
+        },
+      })
     } catch {
-      // best-effort; don't block user reply
+      // best-effort; don't block user reply/eval
     }
   }
 
@@ -346,17 +382,8 @@ export async function runAgentAndVerify(opts: {
     // Only useful for eval runs (request_id looks like "<uuid>:<dataset>:<scenario>").
     if (!requestId.includes(":state_machines:") && !requestId.includes(":tools:") && !requestId.includes(":whatsapp:")) return
     try {
-      const { data: row } = await supabase
-        .from("conversation_eval_runs")
-        .select("id,created_at")
-        .eq("config->>request_id", requestId)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .maybeSingle()
-      const evalRunId = (row as any)?.id ? String((row as any).id) : null
-      await logEvalEvent({
-        supabase,
-        evalRunId,
+      await logVerifierEvalEvent({
+        supabase: supabase as any,
         requestId,
         source: "sophia-brain:verifier",
         event: "verifier_issues",
@@ -743,12 +770,12 @@ export async function runAgentAndVerify(opts: {
       })
       responseContent = normalizeChatText(verified.text)
       await maybeLogVerifierEvalTrace({
-        verifier_kind: "conversation",
+        verifier_kind: "verifier_1:conversation",
         issues: Array.isArray(verified.violations) ? verified.violations : [],
         rewritten: Boolean(verified.rewritten),
       })
       await logJudgeEvent({
-        verifier_kind: "conversation",
+        verifier_kind: "verifier_1:conversation",
         agent_used: targetMode,
         ok: null,
         rewritten: Boolean(verified.rewritten),
@@ -805,6 +832,13 @@ export async function runAgentAndVerify(opts: {
       // During bilan, non-investigator agents must not claim tool ops; expose no tools.
       const tools_available: ToolDescriptor[] = []
       const draftBefore = responseContent
+      await traceV("brain:verifier_start", "verifier", {
+        verifier_kind: "verifier_1:bilan",
+        agent: targetMode,
+        draft_len: String(draftBefore ?? "").length,
+        tools_executed: executedTools,
+        tool_execution: toolExecution,
+      }, "info")
       const verified = await verifyBilanAgentMessage({
         draft: responseContent,
         agent: targetMode,
@@ -829,8 +863,16 @@ export async function runAgentAndVerify(opts: {
         },
       })
       responseContent = normalizeChatText(verified.text)
+      await traceV("brain:verifier_done", "verifier", {
+        verifier_kind: "verifier_1:bilan",
+        agent: targetMode,
+        rewritten: Boolean(verified.rewritten),
+        violations_count: Array.isArray(verified.violations) ? verified.violations.length : null,
+        violations: TRACE_VERBOSE ? (Array.isArray(verified.violations) ? verified.violations : []) : undefined,
+        final_len: String(responseContent ?? "").length,
+      }, "info")
       await logJudgeEvent({
-        verifier_kind: "bilan",
+        verifier_kind: "verifier_1:bilan",
         agent_used: targetMode,
         ok: null,
         rewritten: Boolean(verified.rewritten),
@@ -842,6 +884,7 @@ export async function runAgentAndVerify(opts: {
       })
     } catch (e) {
       console.error("[Router] bilan verifier failed (non-blocking):", e)
+      await traceV("brain:verifier_error", "verifier", { verifier_kind: "verifier_1:bilan", message: String((e as any)?.message ?? e ?? "unknown").slice(0, 800) }, "warn")
     }
   }
 
@@ -849,6 +892,11 @@ export async function runAgentAndVerify(opts: {
   if (isPostCheckup && targetMode !== "sentry") {
     try {
       if (targetMode === "watcher") return { responseContent, nextMode }
+      await traceV("brain:verifier_start", "verifier", {
+        verifier_kind: "verifier_1:post_checkup",
+        agent: targetMode,
+        draft_len: String(responseContent ?? "").length,
+      }, "info")
       const verified = await verifyPostCheckupAgentMessage({
         draft: responseContent,
         agent: targetMode,
@@ -871,10 +919,27 @@ export async function runAgentAndVerify(opts: {
         },
       })
       responseContent = normalizeChatText(verified.text)
+      await traceV("brain:verifier_done", "verifier", {
+        verifier_kind: "verifier_1:post_checkup",
+        agent: targetMode,
+        rewritten: Boolean(verified.rewritten),
+        violations_count: Array.isArray(verified.violations) ? verified.violations.length : null,
+        violations: TRACE_VERBOSE ? (Array.isArray(verified.violations) ? verified.violations : []) : undefined,
+        final_len: String(responseContent ?? "").length,
+      }, "info")
     } catch (e) {
       console.error("[Router] post_checkup verifier failed (non-blocking):", e)
+      await traceV("brain:verifier_error", "verifier", { verifier_kind: "verifier_1:post_checkup", message: String((e as any)?.message ?? e ?? "unknown").slice(0, 800) }, "warn")
     }
   }
+
+  await trace("brain:agent_exec_end", "agent", {
+    target_mode: targetMode,
+    next_mode: nextMode,
+    response_len: String(responseContent ?? "").length,
+    executed_tools: executedTools,
+    tool_execution: toolExecution,
+  }, "debug")
 
   return { responseContent, nextMode }
 }

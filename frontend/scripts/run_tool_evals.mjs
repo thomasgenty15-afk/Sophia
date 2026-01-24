@@ -511,6 +511,16 @@ async function main() {
       throw e;
     }
   };
+
+  const pickBrainTraceFromEvalEvents = (evalEvents) => {
+    const evs = Array.isArray(evalEvents) ? evalEvents : [];
+    // Canonical brain trace stream: source="brain-trace"
+    return evs.filter((e) => String(e?.source ?? "") === "brain-trace");
+  };
+  // Brain traces are stored canonically inside conversation_eval_events with source="brain-trace".
+  // We intentionally do not depend on a separate brain_trace_events table anymore.
+
+  // NOTE: conversation_judge_events was removed; verifier logs are included in conversation_eval_events during eval runs.
   const fetchSystemErrorLogs = async ({ admin, sinceIso, requestIdPrefix }) => {
     let q = admin
       .from("system_error_logs")
@@ -540,32 +550,65 @@ async function main() {
     if (!projectRef || !accessToken) {
       return { ok: false, error: "Missing projectRef or SUPABASE_ACCESS_TOKEN for remote logs" };
     }
+    // IMPORTANT:
+    // As of current Supabase Management API, there is no stable public v1 endpoint that returns Edge Function
+    // runtime logs (console output) like "docker logs" does locally. The dashboard uses internal services.
+    // We keep this function as a best-effort probe and make failures explicit in the bundle.
     const baseUrl = "https://api.supabase.com/v1";
     const params = new URLSearchParams({
       iso_timestamp_start: sinceIso,
       iso_timestamp_end: untilIso || new Date().toISOString(),
     });
+
+    // NOTE: This endpoint may 404 depending on Supabase platform changes.
     const logsUrl = `${baseUrl}/projects/${projectRef}/analytics/endpoints/logs.edge-functions?${params}`;
-    
-    const res = spawnSync("curl", [
-      "-sS",
-      "-X", "GET",
-      logsUrl,
-      "-H", `Authorization: Bearer ${accessToken}`,
-      "-H", "Content-Type: application/json",
-    ], { encoding: "utf8" });
-    
+
+    const res = spawnSync(
+      "curl",
+      [
+        "-sS",
+        "-X",
+        "GET",
+        logsUrl,
+        "-H",
+        `Authorization: Bearer ${accessToken}`,
+        "-H",
+        "Content-Type: application/json",
+        "-w",
+        "\n__HTTP_CODE__:%{http_code}\n",
+      ],
+      { encoding: "utf8" },
+    );
+
     if (res.error) return { ok: false, error: res.error.message };
     if ((res.status ?? 0) !== 0) return { ok: false, error: `curl failed: ${(res.stderr ?? "").slice(0, 400)}` };
-    
+
     const raw = String(res.stdout ?? "");
+    const m = raw.match(/\n__HTTP_CODE__:(\d+)\n?$/);
+    const httpCode = m ? Number(m[1]) : null;
+    const body = m ? raw.slice(0, m.index) : raw;
+
+    let json = null;
     try {
-      const json = raw ? JSON.parse(raw) : null;
-      // The API returns { result: [...] } with log entries
-      return { ok: true, logs: json?.result ?? json ?? [] };
+      json = body ? JSON.parse(body) : null;
     } catch {
-      return { ok: false, error: "Failed to parse logs response", _raw: raw.slice(0, 1000) };
+      json = { _raw: body.slice(0, 2000) };
     }
+
+    if (httpCode && httpCode >= 200 && httpCode < 300) {
+      // Some endpoints return { result: [...] }, some return arrays; keep both.
+      const logs = Array.isArray(json) ? json : (json?.result ?? json ?? []);
+      return { ok: true, http_code: httpCode, logs };
+    }
+
+    return {
+      ok: false,
+      http_code: httpCode,
+      url: logsUrl,
+      error:
+        "Supabase Management API did not return logs (likely no public endpoint). Use a Log Drain (Logflare) or DB logging for automatic bundling.",
+      response: json,
+    };
   };
 
   const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
@@ -617,6 +660,15 @@ async function main() {
     } catch (e) {
       writeJson(path.join(bundleDir, "production_log.json"), { ok: false, error: e?.message ?? String(e) });
     }
+
+    // Brain traces / judge events aren't available without an eval_run_id, but still export placeholders for consistency.
+    writeJson(path.join(bundleDir, "brain_traces.json"), []);
+    writeJson(path.join(bundleDir, "conversation_judge_events.json"), []);
+    writeJson(path.join(bundleDir, "brain_timeline.json"), {
+      ok: false,
+      reason: "no_eval_run_id",
+      timeline: [],
+    });
 
     // Docker logs (best effort) - only for local runs
     if (!isRemote) {
@@ -682,12 +734,34 @@ async function main() {
     } catch (e) {
       writeJson(path.join(bundleDir, "conversation_eval_run.json"), { ok: false, error: e?.message ?? String(e) });
     }
+    let evalEventsForBundle = [];
     try {
       const evs = await fetchEvalEvents({ admin, evalRunId });
+      evalEventsForBundle = Array.isArray(evs) ? evs : [];
       writeJson(path.join(bundleDir, "conversation_eval_events.json"), evs);
     } catch (e) {
+      evalEventsForBundle = [];
       writeJson(path.join(bundleDir, "conversation_eval_events.json"), { ok: false, error: e?.message ?? String(e) });
     }
+    // Brain traces (new): high-granularity router decision timeline
+    let evalRunRow = null;
+    try {
+      evalRunRow = await fetchEvalRun({ admin, evalRunId });
+    } catch {}
+    const scenarioRequestId = evalRunRow?.config?.request_id ? String(evalRunRow.config.request_id) : (requestId ?? null);
+    try {
+      const tracesEval = pickBrainTraceFromEvalEvents(evalEventsForBundle);
+      // Export brain traces as a dedicated file for convenience (subset of conversation_eval_events).
+      writeJson(path.join(bundleDir, "brain_traces.json"), {
+        ok: true,
+        eval_run_id: evalRunId,
+        request_id: scenarioRequestId ?? null,
+        rows: Array.isArray(tracesEval) ? tracesEval : [],
+      });
+    } catch (e) {
+      writeJson(path.join(bundleDir, "brain_traces.json"), { ok: false, error: e?.message ?? String(e) });
+    }
+    // Verifier logs are now included in conversation_eval_events during eval runs.
     const sinceIso = new Date(Date.now() - 10 * 60_000).toISOString();
     try {
       const sysErrors = await fetchSystemErrorLogs({ admin, sinceIso, requestIdPrefix: requestId });
@@ -700,6 +774,110 @@ async function main() {
       writeJson(path.join(bundleDir, "production_log.json"), prod);
     } catch (e) {
       writeJson(path.join(bundleDir, "production_log.json"), { ok: false, error: e?.message ?? String(e) });
+    }
+
+    // brain_timeline.json: merge all known structured streams into one ordered timeline
+    try {
+      const safeIso = (v) => {
+        const s = String(v ?? "").trim();
+        if (!s) return null;
+        const t = Date.parse(s);
+        return Number.isFinite(t) ? new Date(t).toISOString() : null;
+      };
+      const toTimeline = (source, row) => {
+        const ts =
+          safeIso(row?.created_at) ??
+          safeIso(row?.timestamp) ??
+          (Number.isFinite(Number(row?.timestamp_ms)) ? new Date(Number(row.timestamp_ms)).toISOString() : null);
+        return ts
+          ? {
+              ts,
+              source,
+              request_id: row?.request_id ?? null,
+              event: row?.event ?? row?.title ?? row?.source ?? null,
+              level: row?.level ?? row?.severity ?? null,
+              phase: row?.phase ?? null,
+              payload: row?.payload ?? row?.metadata ?? row ?? null,
+            }
+          : null;
+      };
+
+      const evalEvents = (() => {
+        try {
+          const raw = fs.readFileSync(path.join(bundleDir, "conversation_eval_events.json"), "utf8");
+          const j = JSON.parse(raw);
+          return Array.isArray(j) ? j : [];
+        } catch {
+          return [];
+        }
+      })();
+      const brainTraces = (() => {
+        try {
+          const raw = fs.readFileSync(path.join(bundleDir, "brain_traces.json"), "utf8");
+          const j = JSON.parse(raw);
+          // brain_traces.json is { rows: [...] }.
+          if (Array.isArray(j)) return j;
+          if (Array.isArray(j?.rows)) return j.rows;
+          return [];
+        } catch {
+          return [];
+        }
+      })();
+      const judgeEvents = [];
+      const sysErrors = (() => {
+        try {
+          const raw = fs.readFileSync(path.join(bundleDir, "system_error_logs.json"), "utf8");
+          const j = JSON.parse(raw);
+          return Array.isArray(j) ? j : [];
+        } catch {
+          return [];
+        }
+      })();
+      const prodLog = (() => {
+        try {
+          const raw = fs.readFileSync(path.join(bundleDir, "production_log.json"), "utf8");
+          const j = JSON.parse(raw);
+          return Array.isArray(j) ? j : [];
+        } catch {
+          return [];
+        }
+      })();
+
+      const timeline = [];
+      for (const e of brainTraces) {
+        const t = toTimeline("brain_trace", e);
+        if (t) timeline.push(t);
+      }
+      for (const e of evalEvents) {
+        const t = toTimeline("conversation_eval_event", e);
+        if (t) timeline.push(t);
+      }
+      for (const e of sysErrors) {
+        const t = toTimeline("system_error_log", e);
+        if (t) timeline.push(t);
+      }
+      for (const e of prodLog) {
+        const t = toTimeline("production_log", e);
+        if (t) timeline.push(t);
+      }
+
+      timeline.sort((a, b) => (a.ts < b.ts ? -1 : a.ts > b.ts ? 1 : 0));
+      writeJson(path.join(bundleDir, "brain_timeline.json"), {
+        ok: true,
+        eval_run_id: evalRunId,
+        scenario_key: scenarioKey ?? null,
+        request_id: scenarioRequestId ?? null,
+        counts: {
+          brain_trace: brainTraces.length,
+          conversation_eval_events: evalEvents.length,
+          system_error_logs: sysErrors.length,
+          production_log: prodLog.length,
+          total: timeline.length,
+        },
+        timeline,
+      });
+    } catch (e) {
+      writeJson(path.join(bundleDir, "brain_timeline.json"), { ok: false, error: e?.message ?? String(e) });
     }
     // Docker logs (best effort) - only for local runs
     if (!isRemote) {

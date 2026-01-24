@@ -12,7 +12,6 @@ export async function logEvalEvent(opts: {
   payload?: any
 }): Promise<void> {
   const { supabase, evalRunId, requestId, source, event } = opts
-  if (!evalRunId) return
   try {
     await supabase.from("conversation_eval_events").insert({
       eval_run_id: evalRunId,

@@ -17,6 +17,7 @@ import { normalizeChatText } from "../chat_text.ts"
 import { generateWithGemini } from "../../_shared/gemini.ts"
 import { getUserTimeContext } from "../../_shared/user_time_context.ts"
 import { getEffectiveTierForUser } from "../../_shared/billing-tier.ts"
+import { logBrainTrace, type BrainTracePhase } from "../../_shared/brain-trace.ts"
 import {
   formatUserProfileFactsForPrompt,
   getUserProfileFacts,
@@ -125,6 +126,10 @@ export async function processMessage(
     scope?: string
     // WhatsApp-only: used to isolate onboarding behavior from normal WhatsApp conversations.
     whatsappMode?: "onboarding" | "normal"
+    // Eval-only: run-evals populates this to enable structured tracing + bundling.
+    evalRunId?: string | null
+    // Debug escape hatch: enable brain tracing outside evals when needed.
+    forceBrainTrace?: boolean
   },
   opts?: { 
     logMessages?: boolean;
@@ -135,6 +140,45 @@ export async function processMessage(
     disableForcedRouting?: boolean;
   }
 ) {
+  const TRACE_VERBOSE =
+    (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_BRAIN_TRACE_VERBOSE") ?? "") as string).trim() === "1"
+
+  const trace = async (
+    event: string,
+    phase: BrainTracePhase,
+    payload: Record<string, unknown> = {},
+    level: "debug" | "info" | "warn" | "error" = "info",
+  ) => {
+    await logBrainTrace({
+      supabase,
+      userId,
+      meta: { requestId: meta?.requestId, evalRunId: meta?.evalRunId ?? null, forceBrainTrace: meta?.forceBrainTrace },
+      event,
+      phase,
+      level,
+      payload,
+    })
+  }
+
+  const traceV = async (
+    event: string,
+    phase: BrainTracePhase,
+    payload: Record<string, unknown> = {},
+    level: "debug" | "info" | "warn" | "error" = "debug",
+  ) => {
+    if (!TRACE_VERBOSE) return
+    await trace(event, phase, payload, level)
+  }
+
+  // Start-of-request trace (awaited so staging/evals reliably persist it)
+  await trace("brain:request_start", "io", {
+    channel: meta?.channel ?? null,
+    scope: meta?.scope ?? null,
+    whatsappMode: meta?.whatsappMode ?? null,
+    user_message_len: String(userMessage ?? "").length,
+    history_len: Array.isArray(history) ? history.length : null,
+  })
+
   function normalizeLoose(s: string): string {
     return String(s ?? "")
       .toLowerCase()
@@ -703,7 +747,10 @@ SORTIE JSON STRICTE:
       userMessage,
     })
     // Important: when aborted, do not emit an assistant message (prevents double-assistant / empty assistant entries).
-    if (debounced.aborted) return { content: "", mode: "companion", aborted: true }
+    if (debounced.aborted) {
+      await traceV("brain:debounce_aborted", "io", { reason: "debounceAndBurstMerge" }, "debug")
+      return { content: "", mode: "companion", aborted: true }
+    }
     userMessage = debounced.userMessage
   }
 
@@ -767,6 +814,7 @@ SORTIE JSON STRICTE:
         })
       }
 
+      await traceV("brain:soft_cap_response", "soft_cap", { kind: "answer_recorded", interested: isUpgradeYes }, "info")
       return { content: responseContent, mode: "companion" as AgentMode }
     }
 
@@ -784,6 +832,7 @@ SORTIE JSON STRICTE:
           metadata: { agent: "soft_cap", soft_cap_blocked: true },
         })
       }
+      await traceV("brain:soft_cap_response", "soft_cap", { kind: "blocked", hasAnsweredUpgrade }, "info")
       return { content: blockResponse, mode: "companion" as AgentMode }
     }
 
@@ -809,6 +858,7 @@ SORTIE JSON STRICTE:
         })
       }
 
+      await traceV("brain:soft_cap_response", "soft_cap", { kind: "prompted" }, "info")
       return { content: SOFT_CAP_RESPONSE_TEMPLATE, mode: "companion" as AgentMode }
     }
 
@@ -1005,12 +1055,41 @@ SORTIE JSON STRICTE:
 
   // 4. Force mode override (module conversation, etc.)
   if (!disableForcedRouting && opts?.forceMode && targetMode !== "sentry" && targetMode !== "firefighter") {
+    await traceV("brain:forced_routing_override", "routing", {
+      from: targetMode,
+      to: opts.forceMode,
+      reason: "opts.forceMode",
+      disableForcedRouting,
+    })
     targetMode = opts.forceMode
   }
 
   dispatcherTargetMode = targetMode
   const nCandidates = 1 // Multi-candidate generation disabled (was only used for complex messages in legacy v1)
   console.log(`[Dispatcher] Signals: safety=${dispatcherSignals.safety.level}(${dispatcherSignals.safety.confidence.toFixed(2)}), intent=${dispatcherSignals.user_intent_primary}(${dispatcherSignals.user_intent_confidence.toFixed(2)}), interrupt=${dispatcherSignals.interrupt.kind}, → targetMode=${targetMode}`)
+  await trace("brain:dispatcher_result", "dispatcher", {
+    risk_score: riskScore,
+    target_mode: targetMode,
+    target_mode_reason: (() => {
+      // Coarse reason, to reconstruct deterministic path without parsing code.
+      if (dispatcherSignals.safety.level === "SENTRY" && dispatcherSignals.safety.confidence >= 0.75) return "safety:SENTRY";
+      if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.75) return "safety:FIREFIGHTER";
+      if (
+        state?.investigation_state &&
+        state?.investigation_state?.status !== "post_checkup" &&
+        dispatcherSignals.interrupt.kind !== "EXPLICIT_STOP"
+      ) return "hard_guard:active_bilan";
+      return `intent:${dispatcherSignals.user_intent_primary}`;
+    })(),
+    safety: dispatcherSignals.safety,
+    intent: {
+      primary: dispatcherSignals.user_intent_primary,
+      confidence: dispatcherSignals.user_intent_confidence,
+    },
+    interrupt: dispatcherSignals.interrupt,
+    last_assistant_agent: lastAssistantAgent ?? null,
+    state_snapshot: stateSnapshot,
+  }, "info")
 
   const targetModeInitial = targetMode
   let toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
@@ -1021,6 +1100,12 @@ SORTIE JSON STRICTE:
     (dispatcherSignals.interrupt.kind === "BORED" && dispatcherSignals.interrupt.confidence >= 0.65)
   )
   const boredOrStop = boredOrStopFromSignals || looksLikeUserBoredOrWantsToStop(userMessage) || stopCheckup
+  await traceV("brain:interrupt_detection", "routing", {
+    stopCheckup,
+    boredOrStopFromSignals,
+    interrupt: dispatcherSignals.interrupt,
+    boredOrStop,
+  })
   let toolflowCancelledOnStop = false
   let resumeActionV1: "prompted" | "accepted" | "declined" | null = null
 
@@ -1032,6 +1117,10 @@ SORTIE JSON STRICTE:
       tempMemory = cleared.tempMemory
       toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
       toolflowCancelledOnStop = true
+      await trace("brain:toolflow_cancelled", "routing", {
+        reason: boredOrStopFromSignals ? "dispatcher_interrupt" : "heuristic_stop",
+        interrupt: dispatcherSignals.interrupt,
+      })
     }
   }
 
@@ -1057,12 +1146,19 @@ SORTIE JSON STRICTE:
       } else {
         resumeActionV1 = "declined"
       }
+      await traceV("brain:resume_prompt_answer", "routing", {
+        kind,
+        answer: yes ? "yes" : "no",
+        action: resumeActionV1,
+        routed_to: yes ? targetMode : null,
+      }, "info")
       // Remove the queued resume intent so we don't nag again.
       const removed = removeSupervisorQueueByReasonPrefix({ tempMemory, prefix: "queued_due_to_irrelevant_active_session:architect_tool_flow" })
       if (removed.changed) tempMemory = removed.tempMemory
     } else if (kind === "architect_toolflow" && expired) {
       // Stale marker: clear silently.
       try { delete (tempMemory as any).__router_resume_prompt_v1 } catch {}
+      await traceV("brain:resume_prompt_expired", "routing", { kind }, "debug")
     }
   }
 
@@ -1697,6 +1793,12 @@ SORTIE JSON STRICTE:
       } else {
         // Nothing to do -> close
         if (isEvalParkingLotTest) {
+          await traceV("brain:state_update", "state", {
+            kind: "investigation_state",
+            action: "set_post_checkup_done",
+            deferred_topics_count: Array.isArray(deferredTopics) ? deferredTopics.length : null,
+            current_topic_index: idx,
+          }, "info")
           await updateUserState(supabase, userId, scope, {
             investigation_state: {
               status: "post_checkup_done",
@@ -1704,6 +1806,7 @@ SORTIE JSON STRICTE:
             },
           })
         } else {
+          await traceV("brain:state_update", "state", { kind: "investigation_state", action: "clear" }, "info")
           await updateUserState(supabase, userId, scope, { investigation_state: null })
         }
         targetMode = "companion"
@@ -1713,6 +1816,11 @@ SORTIE JSON STRICTE:
 
   // 4. Mise à jour du risque si nécessaire
   if (riskScore !== state.risk_level) {
+    await traceV("brain:state_update", "state", {
+      kind: "risk_level",
+      from: state.risk_level ?? null,
+      to: riskScore,
+    }, "debug")
     await updateUserState(supabase, userId, scope, { risk_level: riskScore })
   }
 
@@ -1734,6 +1842,7 @@ SORTIE JSON STRICTE:
   const needsDashboardOnly = targetMode === 'investigator'
 
   if (needsFullContext || needsDashboardOnly) {
+    const __ctxStart = Date.now()
     // C. Dashboard Context (Live Data) - loaded for ALL context-aware modes including investigator
     const dashboardContext = await getDashboardContext(supabase, userId);
 
@@ -1744,32 +1853,32 @@ SORTIE JSON STRICTE:
     let shortTerm = ""
 
     if (needsFullContext) {
-      // Recent transcript (raw turns) to complement the Watcher short-term summary ("fil rouge").
-      // We keep it bounded to avoid huge prompts.
+    // Recent transcript (raw turns) to complement the Watcher short-term summary ("fil rouge").
+    // We keep it bounded to avoid huge prompts.
       recentTurns = (history ?? []).slice(-15).map((m: any) => {
-        const role = String(m?.role ?? "").trim() || "unknown"
-        const content = String(m?.content ?? "").trim().slice(0, 420)
-        const ts = String((m as any)?.created_at ?? "").trim()
-        return ts ? `[${ts}] ${role}: ${content}` : `${role}: ${content}`
-      }).join("\n")
+      const role = String(m?.role ?? "").trim() || "unknown"
+      const content = String(m?.content ?? "").trim().slice(0, 420)
+      const ts = String((m as any)?.created_at ?? "").trim()
+      return ts ? `[${ts}] ${role}: ${content}` : `${role}: ${content}`
+    }).join("\n")
 
-      // Short-term "fil rouge" maintained by Watcher (when available).
+    // Short-term "fil rouge" maintained by Watcher (when available).
       shortTerm = (state?.short_term_context ?? "").toString().trim()
-      // A. Vector Memory
+    // A. Vector Memory
       vectorContext = await retrieveContext(supabase, userId, userMessage);
-      
-      // B. Core Identity (Temple)
+    
+    // B. Core Identity (Temple)
       identityContext = await getCoreIdentity(supabase, userId);
     }
 
     // D. User model (structured facts) - only for full context modes
     let factsContext = ""
     if (needsFullContext) {
-      try {
-        const factRows = await getUserProfileFacts({ supabase, userId, scopes: ["global", scope] })
-        factsContext = formatUserProfileFactsForPrompt(factRows, scope)
-      } catch (e) {
-        console.warn("[Context] failed to load user_profile_facts (non-blocking):", e)
+    try {
+      const factRows = await getUserProfileFacts({ supabase, userId, scopes: ["global", scope] })
+      factsContext = formatUserProfileFactsForPrompt(factRows, scope)
+    } catch (e) {
+      console.warn("[Context] failed to load user_profile_facts (non-blocking):", e)
       }
     }
 
@@ -1839,6 +1948,24 @@ SORTIE JSON STRICTE:
         ? "Dashboard + Identity + Vectors" 
         : "Dashboard only (investigator)"
       console.log(`[Context] Loaded ${loadedParts}`);
+      await trace("brain:context_loaded", "context", {
+        target_mode: targetMode,
+        needs_full_context: needsFullContext,
+        needs_dashboard_only: needsDashboardOnly,
+        loaded_parts: loadedParts,
+        load_ms: Date.now() - __ctxStart,
+        // lengths only (avoid duplicating sensitive content)
+        len: {
+          dashboard: String(dashboardContext ?? "").length,
+          identity: String(identityContext ?? "").length,
+          vectors: String(vectorContext ?? "").length,
+          facts: String(factsContext ?? "").length,
+          short_term: String(shortTerm ?? "").length,
+          recent_turns: String(recentTurns ?? "").length,
+          pref_candidates: String(prefConfirmContext ?? "").length,
+          total_context: String(context ?? "").length,
+        },
+      }, "info")
     }
   }
   if (opts?.contextOverride) {
@@ -1852,6 +1979,7 @@ SORTIE JSON STRICTE:
   {
     const inferred = inferPlanFocusFromUser(userMessage)
     if (inferred != null) {
+      await traceV("brain:plan_focus_updated", "routing", { plan_focus: inferred }, "info")
       const tm = (tempMemory ?? {}) as any
       const arch0 = (tm.architect ?? {}) as any
       tempMemory = {
@@ -1937,6 +2065,19 @@ SORTIE JSON STRICTE:
 
     // Inject a guardrail when we detect a loop OR when plan_focus is false (to prevent plan-obsession bleeding into emotional chats).
     if (loopHit || planFocus === false) {
+      await traceV("brain:anti_loop_guardrail", "routing", {
+        loopHit,
+        reasons: {
+          dup,
+          objectiveOverTalk,
+          userRepeats,
+          looksLikeReadingLoop,
+          userSignalsLoop,
+        },
+        loopCount,
+        planFocus,
+        currentObjective: currentObjective || null,
+      }, "info")
       const guard = buildArchitectLoopGuard({
         planFocus,
         currentObjective: currentObjective || null,
@@ -1996,6 +2137,15 @@ SORTIE JSON STRICTE:
 
     // Conservative baton handoff: only when the user signals stop/boredom AND no active tool flow.
     if (handoffTo === "companion" && !looksLikeAcuteDistress(userMessage)) {
+      await traceV("brain:topic_session_handoff", "routing", {
+        from: targetMode,
+        to: "companion",
+        reason: "topic_session_closing",
+        topic,
+        phase,
+        focusMode,
+        loopCount,
+      }, "info")
       targetMode = "companion"
       topicSessionHandoffThisTurn = true
     }
@@ -2094,6 +2244,14 @@ SORTIE JSON STRICTE:
     return { content: normalizeChatText(responseContent), mode: nextMode, aborted: false };
   }
 
+  const selectedChatModel = selectChatModel(targetMode, riskScore)
+  await trace("brain:model_selected", "agent", {
+    target_mode: targetMode,
+    risk_score: riskScore,
+    selected_model: selectedChatModel,
+    default_model: SOPHIA_CHAT_MODEL,
+  }, selectedChatModel === SOPHIA_CHAT_MODEL ? "debug" : "info")
+
   const agentOut = await runAgentAndVerify({
             supabase,
             userId,
@@ -2111,11 +2269,10 @@ SORTIE JSON STRICTE:
     isPostCheckup,
     outageTemplate,
     sophiaChatModel: (() => {
-      const model = selectChatModel(targetMode, riskScore);
-      if (model !== SOPHIA_CHAT_MODEL) {
-        console.log(`[Model] Using PRO model (${model}) for ${targetMode} (risk=${riskScore})`);
+      if (selectedChatModel !== SOPHIA_CHAT_MODEL) {
+        console.log(`[Model] Using PRO model (${selectedChatModel}) for ${targetMode} (risk=${riskScore})`);
       }
-      return model;
+      return selectedChatModel;
     })(),
     // Pass dispatcher's formalized deferred topic to avoid extra AI call in agent_exec
     dispatcherDeferredTopic: dispatcherSignals.interrupt.deferred_topic_formalized ?? null,
@@ -2123,12 +2280,22 @@ SORTIE JSON STRICTE:
 
   responseContent = agentOut.responseContent
   nextMode = agentOut.nextMode
+  await trace("brain:agent_done", "agent", {
+    target_mode: targetMode,
+    next_mode: nextMode,
+    response_len: String(responseContent ?? "").length,
+    aborted: Boolean((agentOut as any)?.aborted),
+    rewritten: Boolean((agentOut as any)?.rewritten),
+  }, "info")
 
   // Lightweight global proactivity: occasionally remind a deferred topic (max 1/day, and only if we won't add a 2nd question).
   const nudged = maybeInjectGlobalDeferredNudge({ tempMemory, userMessage, responseText: responseContent })
   if (nudged.changed) {
     tempMemory = nudged.tempMemory
     responseContent = nudged.responseText
+    await traceV("brain:global_deferred_nudge_injected", "routing", {
+      reason: "maybeInjectGlobalDeferredNudge",
+    })
   }
 
   // --- PR4: deterministic pending nudge (supervisor.queue-driven), behind flag ---
@@ -2159,6 +2326,12 @@ SORTIE JSON STRICTE:
       pendingNudgeKind = "global_deferred"
       // No extra text: avoid duplicating the existing global-deferred phrasing.
     }
+    if (pendingNudgeKind) {
+      await traceV("brain:pending_nudge_injected", "routing", {
+        kind: pendingNudgeKind,
+        excerpt: p?.excerpt ?? null,
+      }, "info")
+    }
   }
 
   // --- PR5: deterministic resume prompt for queued toolflow (low-stakes only), behind flag ---
@@ -2185,6 +2358,10 @@ SORTIE JSON STRICTE:
       responseContent =
         `${String(responseContent ?? "").trim()}\n\n` +
         `Au fait: tu veux qu'on reprenne la mise à jour du plan qu'on avait commencée, ou on laisse tomber ?`
+      await traceV("brain:resume_prompt_prompted", "routing", {
+        kind: "architect_toolflow",
+        reason: "queued_due_to_irrelevant_active_session:architect_tool_flow",
+      }, "info")
     }
   }
 

@@ -1,5 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { generateWithGemini } from "../_shared/gemini.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,6 +9,7 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  let ctx = getRequestContext(req)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
@@ -14,7 +17,9 @@ serve(async (req) => {
   try {
     // On lit le body. On ne vérifie PAS le JWT ici (on suppose que la fonction est déployée en --no-verify-jwt si besoin)
     // ou que le client envoie un token Anon valide.
-    const { userAnswers, availableTransformations } = await req.json()
+    const body = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, body)
+    const { userAnswers, availableTransformations } = body as any
 
     if (!userAnswers || !availableTransformations) {
         throw new Error('Données manquantes (userAnswers ou availableTransformations)');
@@ -115,7 +120,15 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error(`[recommend-transformations] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
+    await logEdgeFunctionError({
+      functionName: "recommend-transformations",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

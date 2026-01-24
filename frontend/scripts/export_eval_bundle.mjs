@@ -233,20 +233,7 @@ async function main() {
   writeJson(path.join(bundleDir, "conversation_eval_run.json"), row ?? { ok: false, error: "eval_run_not_found" });
   writeJson(path.join(bundleDir, "conversation_eval_events.json"), Array.isArray(evs) ? evs : []);
 
-  // Also export prod verifier/judge logs (conversation_judge_events) scoped by request_id.
-  // This lets us assert/verif that prod verifier (sophia-brain/verifier.ts) fired during the eval.
-  const reqId = row?.config?.request_id ?? null;
-  let judgeEvents = [];
-  if (reqId) {
-    const jUrl = `${url}/rest/v1/conversation_judge_events?request_id=eq.${encodeURIComponent(reqId)}&select=${encodeURIComponent("*")}&order=${encodeURIComponent("created_at.asc")}&limit=5000`;
-    try {
-      judgeEvents = curlJson({ url: jUrl, headers: { apikey: anonKey, Authorization: `Bearer ${serviceRoleKey}` } });
-    } catch {
-      judgeEvents = [];
-    }
-    if (!Array.isArray(judgeEvents)) judgeEvents = [];
-  }
-  writeJson(path.join(bundleDir, "conversation_judge_events.json"), Array.isArray(judgeEvents) ? judgeEvents : []);
+  // Verifier logs are now included in conversation_eval_events during eval runs.
 
   console.log(JSON.stringify({ ok: true, eval_run_id: evalRunId, bundle_dir: bundleDir }, null, 2));
 }

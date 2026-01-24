@@ -3,14 +3,18 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini } from '../_shared/gemini.ts'
 import { WEEKS_CONTENT } from '../_shared/weeksContent.ts'
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 console.log("Update Core Identity Function initialized")
 
 Deno.serve(async (req) => {
+  let ctx = getRequestContext(req)
   try {
     const guard = ensureInternalRequest(req)
     if (guard) return guard
-    const payload = await req.json()
+    const payload = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, payload)
     
     // Le payload vient du Trigger Database
     // Il peut venir de 'user_week_states' (completion) OU 'user_module_state_entries' (update)
@@ -35,7 +39,7 @@ Deno.serve(async (req) => {
         return new Response('Ignored: Not a week related record', { status: 200 })
     }
 
-    console.log(`[Identity] Processing Week ${weekNum} for user ${userId}`)
+    console.log(`[update-core-identity] request_id=${ctx.requestId} user_id=${userId} week=${weekNum}`)
 
     // 2. Init Supabase Admin
     const supabaseAdmin = createClient(
@@ -154,7 +158,15 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error("Error update-core-identity:", error)
+    console.error(`[update-core-identity] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
+    await logEdgeFunctionError({
+      functionName: "update-core-identity",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(JSON.stringify({ error: error.message }), { status: 500 })
   }
 })

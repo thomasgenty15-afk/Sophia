@@ -116,3 +116,32 @@ Pour chaque point d'amélioration :
 - Si tu vois des anomalies infra (logs), mentionne-les même si elles semblent mineures
 
 Lance ton analyse.
+
+
+
+
+
+
+Commande à rallonge db staging : 
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && env $(python3 - <<'PY'
+import re
+p='/Users/ahmedamara/Dev/Sophia 2/feat/Commande sensibles'
+text=open(p,'r',encoding='utf-8').read()
+
+def grab(name):
+    m=re.search(rf'{re.escape(name)}="([^"]+)"', text)
+    if not m:
+        raise SystemExit(f'missing {name} in {p}')
+    return m.group(1)
+
+pairs = {
+  'SOPHIA_EVAL_REMOTE':'1',
+  'SOPHIA_SUPABASE_URL':'https://iabxchanerdkczbxyjgg.supabase.co',
+  'SOPHIA_SUPABASE_ANON_KEY': grab('SOPHIA_SUPABASE_ANON_KEY'),
+  'SOPHIA_SUPABASE_SERVICE_ROLE_KEY': grab('SOPHIA_SUPABASE_SERVICE_ROLE_KEY'),
+  'SUPABASE_ACCESS_TOKEN': grab('SUPABASE_ACCESS_TOKEN'),
+  'SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS':'600000',
+}
+print(' '.join([f"{k}={v}" for k,v in pairs.items()]))
+PY
+) npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 12 --model gemini-3-flash-preview

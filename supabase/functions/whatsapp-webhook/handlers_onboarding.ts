@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { buildWhatsAppOnboardingContext } from "./onboarding_context.ts"
+import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
 
 async function countRecentAssistantPurpose(params: {
   admin: SupabaseClient
@@ -142,15 +143,31 @@ export async function handleOnboardingState(params: {
             "- une capture de ton dashboard\n" +
             "- ton téléphone + navigateur (ex: iPhone/Safari)\n\n" +
             "En attendant: dis-moi ton objectif #1 en 1 phrase et je te propose un premier pas simple aujourd’hui."
-          const sendResp = await sendWhatsAppText(fromE164, txt)
+          const sendResp = await sendWhatsAppTextTracked({
+            admin,
+            requestId,
+            userId,
+            toE164: fromE164,
+            body: txt,
+            purpose: "awaiting_plan_finalization_support_escalation",
+            isProactive: false,
+            replyToWaMessageId: waMessageId,
+          })
           const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+          const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
           await admin.from("chat_messages").insert({
             user_id: userId,
             scope: "whatsapp",
             role: "assistant",
             content: txt,
             agent_used: "companion",
-            metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, purpose: "awaiting_plan_finalization_support_escalation" },
+            metadata: {
+              channel: "whatsapp",
+              wa_outbound_message_id: outId,
+              outbound_tracking_id: outboundTrackingId,
+              is_proactive: false,
+              purpose: "awaiting_plan_finalization_support_escalation",
+            },
           })
         }
 

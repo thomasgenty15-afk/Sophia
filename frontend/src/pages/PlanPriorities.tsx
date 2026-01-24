@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { 
   ArrowRight, 
   GripVertical, 
@@ -241,8 +242,10 @@ const PlanPriorities = () => {
         
         // On n'a pas besoin de forcer les headers pour le mode invité, le client Supabase 
         // configuré avec la clé anon gère cela automatiquement pour les fonctions publiques.
+        const reqId = newRequestId();
         const { data, error } = await supabase.functions.invoke('sort-priorities', {
-            body: { axes: axesToAnalyze }
+            body: { axes: axesToAnalyze, client_request_id: reqId },
+            headers: requestHeaders(reqId),
         });
 
         if (error) throw error;

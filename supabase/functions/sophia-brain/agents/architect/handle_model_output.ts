@@ -4,6 +4,7 @@ import { getUserState, normalizeScope, updateUserState } from "../../state-manag
 import { setArchitectToolFlowInTempMemory } from "../../supervisor.ts"
 import { generateWithGemini } from "../../../_shared/gemini.ts"
 import { handleTracking } from "../../lib/tracking.ts"
+import { logToolLedgerEvent } from "../../lib/tool_ledger.ts"
 import { logEdgeFunctionError } from "../../../_shared/error-log.ts"
 
 import type { ArchitectModelOutput } from "./types.ts"
@@ -115,7 +116,7 @@ export async function handleArchitectModelOutput(opts: {
   response: ArchitectModelOutput
   inWhatsAppGuard24h: boolean
   context?: string
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string }
+  meta?: { requestId?: string; evalRunId?: string | null; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string }
   userState?: any
   scope?: string
 }): Promise<{ text: string; executed_tools: string[]; tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain" }> {
@@ -850,11 +851,50 @@ export async function handleArchitectModelOutput(opts: {
 
   if (typeof response === "object") {
     const toolName = String((response as any).tool ?? "").trim()
+    const requestId = String(meta?.requestId ?? "").trim()
+    const tAttempt0 = Date.now()
+    const trace = async (evt: {
+      event: "tool_call_attempted" | "tool_call_blocked" | "tool_call_succeeded" | "tool_call_failed"
+      level?: "debug" | "info" | "warn" | "error"
+      toolArgs?: any
+      toolResult?: any
+      error?: unknown
+      metadata?: any
+    }) => {
+      if (!requestId) return
+      await logToolLedgerEvent({
+        supabase,
+        requestId,
+        evalRunId: meta?.evalRunId ?? null,
+        userId,
+        source: "sophia-brain:architect",
+        event: evt.event,
+        level: evt.level ?? (evt.event === "tool_call_failed" ? "error" : (evt.event === "tool_call_blocked" ? "warn" : "info")),
+        toolName,
+        toolArgs: evt.toolArgs ?? (response as any).args,
+        toolResult: evt.toolResult,
+        error: evt.error,
+        latencyMs: Date.now() - tAttempt0,
+        metadata: {
+          channel: meta?.channel ?? null,
+          scope,
+          in_whatsapp_guard_24h: !!inWhatsAppGuard24h,
+          flow: currentFlow ? { kind: (currentFlow as any)?.kind ?? null, stage: (currentFlow as any)?.stage ?? null } : null,
+          ...(evt.metadata ?? {}),
+        },
+      })
+    }
     try {
       console.log(`[Architect] 🛠️ Tool Call: ${toolName}`)
       console.log(`[Architect] Args:`, JSON.stringify((response as any).args))
 
+      await trace({ event: "tool_call_attempted", level: "debug" })
+
       if (inWhatsAppGuard24h && toolName === "activate_plan_action") {
+        await trace({
+          event: "tool_call_blocked",
+          metadata: { reason: "whatsapp_onboarding_guard_24h" },
+        })
         return {
           text: "Je peux te guider, mais pendant l’onboarding WhatsApp je ne peux pas activer d’actions depuis ici.\n\nVa sur le dashboard pour l’activer, et dis-moi quand c’est fait.",
           executed_tools: [toolName],
@@ -881,6 +921,7 @@ export async function handleArchitectModelOutput(opts: {
               updated_at: new Date().toISOString(),
             })
           } catch {}
+          await trace({ event: "tool_call_blocked", metadata: { reason: "missing_user_consent" } })
           return {
             text: `Tu veux que je note “${target}” comme ${humanStatus} pour aujourd’hui ? (oui/non)`,
             executed_tools: [],
@@ -889,6 +930,7 @@ export async function handleArchitectModelOutput(opts: {
         }
 
         const trackingResult = await handleTracking(supabase, userId, (response as any).args, { source: meta?.channel ?? "chat" })
+        await trace({ event: "tool_call_succeeded", toolResult: trackingResult })
         try {
           if (currentFlow && String((currentFlow as any)?.kind ?? "") === "track_progress") {
             await setFlow(null)
@@ -959,6 +1001,7 @@ export async function handleArchitectModelOutput(opts: {
 
       if (planError || !plan) {
         console.warn(`[Architect] ⚠️ No active plan found for user ${userId}`)
+        await trace({ event: "tool_call_failed", metadata: { reason: "no_active_plan" } })
         return { text: "Je ne trouve pas de plan actif pour faire cette modification.", executed_tools: [toolName], tool_execution: "failed" }
       }
 
@@ -971,6 +1014,7 @@ export async function handleArchitectModelOutput(opts: {
           planRow: { id: (plan as any).id, submission_id: (plan as any).submission_id, content: (plan as any).content },
           args: (response as any).args,
         })
+        await trace({ event: out.tool_execution === "success" ? "tool_call_succeeded" : "tool_call_blocked", toolResult: out })
         return { text: out.text, executed_tools: [toolName], tool_execution: out.tool_execution }
       }
 
@@ -985,6 +1029,7 @@ export async function handleArchitectModelOutput(opts: {
           const days = Array.isArray(a?.new_scheduled_days) ? (a.new_scheduled_days as string[]) : null
           const recap =
             `${reps != null ? `${reps}×/semaine` : ""}${reps != null && days && days.length ? ", " : ""}${days && days.length ? `jours: ${formatDaysFrench(days)}` : ""}`.trim()
+          await trace({ event: "tool_call_blocked", metadata: { reason: "missing_user_consent" } })
           return {
             text: `Tu veux que je mette à jour “${target}”${recap ? ` (${recap})` : ""} ?`,
             executed_tools: [],
@@ -1002,12 +1047,14 @@ export async function handleArchitectModelOutput(opts: {
               updated_at: new Date().toISOString(),
             })
           } catch {}
+          await trace({ event: "tool_call_blocked", toolResult: rawResult, metadata: { reason: "needs_followup_remove_day" } })
           return {
             text: rawResult.replace(/\*\*/g, ""),
             executed_tools: [toolName],
             tool_execution: "blocked",
           }
         }
+        await trace({ event: "tool_call_succeeded", toolResult: rawResult })
         const isEvalLikeRequest =
           String(meta?.requestId ?? "").includes(":tools:") ||
           String(meta?.requestId ?? "").includes(":eval")
@@ -1072,6 +1119,7 @@ FORMAT :
             started_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
           })
+          await trace({ event: "tool_call_blocked", metadata: { reason: "missing_user_consent" } })
           return {
             text: `Ok.\n\nTu veux que j’active “${title}” maintenant ?`,
             executed_tools: [toolName],
@@ -1080,6 +1128,7 @@ FORMAT :
         }
 
         const activationResult = await handleActivateAction(supabase, userId, (response as any).args)
+        await trace({ event: "tool_call_succeeded", toolResult: activationResult })
         try { if (currentFlow) await setFlow(null) } catch {}
         return {
           text: activationResult,
@@ -1090,6 +1139,7 @@ FORMAT :
 
       if (toolName === "archive_plan_action") {
         const txt = await handleArchiveAction(supabase, userId, (response as any).args)
+        await trace({ event: "tool_call_succeeded", toolResult: txt })
         return { text: txt, executed_tools: [toolName], tool_execution: "success" }
       }
 
@@ -1120,6 +1170,7 @@ STYLE :
             maxRetries: 1,
             httpTimeoutMs: 10_000,
           } as any)
+          await trace({ event: "tool_call_blocked", metadata: { reason: "exploration_no_create" } })
           return {
             text: typeof explore === "string" ? explore.replace(/\*\*/g, "") : "Ok. Tu veux que je l'ajoute à ton plan maintenant ?",
             executed_tools: [toolName],
@@ -1152,6 +1203,7 @@ STYLE :
         })
         if (insertErr) {
           console.error("[Architect] ❌ user_actions insert failed:", insertErr)
+          await trace({ event: "tool_call_failed", error: insertErr, metadata: { reason: "db_insert_failed:user_actions" } })
           return {
             text: `Oups — j’ai eu un souci technique en créant l’action "${title}".\n\nVa jeter un œil sur le dashboard pour confirmer si elle apparaît. Si tu veux, dis-moi “retente” et je la recrée proprement.`,
             executed_tools: [toolName],
@@ -1174,21 +1226,25 @@ STYLE :
 
         const status = await injectActionIntoPlanJson(supabase, (plan as any).id, newActionJson)
         if (status === "duplicate") {
+          await trace({ event: "tool_call_succeeded", toolResult: { status: "duplicate" }, metadata: { outcome: "duplicate" } })
           return { text: `Oula ! ✋\n\nL'action "${title}" existe déjà.`, executed_tools: [toolName], tool_execution: "success" }
         }
         if (status === "error") {
+          await trace({ event: "tool_call_failed", toolResult: { status: "error" }, metadata: { reason: "inject_plan_json_failed" } })
           return { text: "Erreur technique lors de la mise à jour du plan visuel.", executed_tools: [toolName], tool_execution: "failed" }
         }
 
         const verify = await verifyActionCreated(supabase, userId, (plan as any).id, { title, actionId })
         if (!verify.db_ok || !verify.json_ok) {
           console.warn("[Architect] ⚠️ Post-create verification failed:", verify)
+          await trace({ event: "tool_call_succeeded", toolResult: verify, metadata: { outcome: "uncertain_verification" } })
           return {
             text: `Je viens de tenter de créer "${title}", mais je ne la vois pas encore clairement dans ton plan (il y a peut-être eu un loupé de synchro).\n\nOuvre le dashboard et dis-moi si tu la vois. Sinon, dis “retente” et je la recrée.`,
             executed_tools: [toolName],
             tool_execution: "uncertain",
           }
         }
+        await trace({ event: "tool_call_succeeded", toolResult: verify, metadata: { outcome: "created_and_verified" } })
 
         const confirmationPrompt = `
 ACTION CRÉÉE (SUCCÈS).
@@ -1249,9 +1305,11 @@ FORMAT :
 
         const status = await injectActionIntoPlanJson(supabase, (plan as any).id, newActionJson)
         if (status === "duplicate") {
+          await trace({ event: "tool_call_succeeded", toolResult: { status: "duplicate" }, metadata: { outcome: "duplicate" } })
           return { text: `Doucement ! ✋\n\nL'exercice "${title}" est déjà là.`, executed_tools: [toolName], tool_execution: "success" }
         }
         if (status === "error") {
+          await trace({ event: "tool_call_failed", toolResult: { status: "error" }, metadata: { reason: "inject_plan_json_failed" } })
           return { text: "Erreur technique lors de l'intégration du framework.", executed_tools: [toolName], tool_execution: "failed" }
         }
 
@@ -1268,6 +1326,7 @@ FORMAT :
         })
         if (fwInsertErr) {
           console.error("[Architect] ❌ user_actions insert failed (framework):", fwInsertErr)
+          await trace({ event: "tool_call_failed", error: fwInsertErr, metadata: { reason: "db_insert_failed:user_actions" } })
           return {
             text: `Oups — j’ai eu un souci technique en créant l’exercice "${title}".\n\nVa vérifier sur le dashboard si tu le vois. Si tu ne le vois pas, dis “retente” et je le recrée.`,
             executed_tools: [toolName],
@@ -1278,12 +1337,14 @@ FORMAT :
         const verify = await verifyActionCreated(supabase, userId, (plan as any).id, { title, actionId })
         if (!verify.db_ok || !verify.json_ok) {
           console.warn("[Architect] ⚠️ Post-create verification failed (framework):", verify)
+          await trace({ event: "tool_call_succeeded", toolResult: verify, metadata: { outcome: "uncertain_verification" } })
           return {
             text: `Je viens de tenter d’intégrer "${title}", mais je ne le vois pas encore clairement dans ton plan (possible loupé de synchro).\n\nRegarde sur le dashboard et dis-moi si tu le vois. Sinon, dis “retente” et je le recrée.`,
             executed_tools: [toolName],
             tool_execution: "uncertain",
           }
         }
+        await trace({ event: "tool_call_succeeded", toolResult: verify, metadata: { outcome: "created_and_verified" } })
 
         return {
           text: `C'est fait ! 🏗️\n\nJe viens de vérifier: "${title}" est bien dans ton plan.\nTu veux le faire quand ?`,
@@ -1294,6 +1355,9 @@ FORMAT :
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e)
       console.error("[Architect] tool execution failed (unexpected):", toolName, errMsg)
+      try {
+        await trace({ event: "tool_call_failed", error: e, metadata: { reason: "tool_execution_failed_unexpected" } })
+      } catch {}
       await logEdgeFunctionError({
         functionName: "sophia-brain",
         error: e,
@@ -1305,24 +1369,24 @@ FORMAT :
         metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, channel: meta?.channel ?? "web" },
       })
       try {
-        await supabase.from("conversation_judge_events").insert({
-          user_id: userId,
-          scope: null,
-          channel: meta?.channel ?? "web",
-          agent_used: "architect",
-          verifier_kind: "tool_execution_fallback",
-          request_id: meta?.requestId ?? null,
-          model: null,
-          ok: null,
-          rewritten: null,
-          issues: ["tool_execution_failed_unexpected"],
-          mechanical_violations: [],
-          draft_len: null,
-          final_len: null,
-          draft_hash: null,
-          final_hash: null,
-          metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, err: errMsg.slice(0, 240) },
-        } as any)
+        const { logVerifierEvalEvent } = await import("../../lib/verifier_eval_log.ts")
+        const rid = String(meta?.requestId ?? "").trim()
+        if (rid) {
+          await logVerifierEvalEvent({
+            supabase: supabase as any,
+            requestId: rid,
+            source: "sophia-brain:verifier",
+            event: "verifier_tool_execution_fallback",
+            level: "warn",
+            payload: {
+              verifier_kind: "verifier_1:tool_execution_fallback",
+              agent_used: "architect",
+              channel: meta?.channel ?? "web",
+              tool_name: toolName,
+              err: errMsg.slice(0, 240),
+            },
+          })
+        }
       } catch {}
       return {
         text:

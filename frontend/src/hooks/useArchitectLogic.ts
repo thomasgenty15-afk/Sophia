@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { canAccessArchitectWeek } from '../lib/entitlements';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 
 export const useArchitectLogic = (
   user: any,
@@ -105,6 +106,7 @@ export const useArchitectLogic = (
     setIsAiLoading(true);
 
     try {
+        const clientRequestId = newRequestId();
         const { data, error } = await supabase.functions.invoke('sophia-brain', {
             body: {
                 mode: 'architect_help',
@@ -113,7 +115,8 @@ export const useArchitectLogic = (
                     currentAnswer: currentAnswer,
                     userPrompt: aiPrompt
                 }
-            }
+            },
+            headers: requestHeaders(clientRequestId)
         });
 
         if (error) throw error;

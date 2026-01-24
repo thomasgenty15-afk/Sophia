@@ -7,7 +7,6 @@ export async function buildMechanicalIssues(params: {
   chatStateAfter?: any;
   planSnapshotAfter?: any;
   transcript: any[];
-  judgeEvents?: any[];
   evalEvents?: any[];
 }): Promise<any[]> {
   const out: any[] = [];

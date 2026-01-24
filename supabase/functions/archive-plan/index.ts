@@ -2,14 +2,18 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 console.log("Archive Plan Function initialized")
 
 Deno.serve(async (req) => {
+  let ctx = getRequestContext(req)
   try {
     const guard = ensureInternalRequest(req)
     if (guard) return guard
-    const payload = await req.json()
+    const payload = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, payload)
     
     // Webhook payload check
     if (!payload.record || !payload.type) {
@@ -20,7 +24,7 @@ Deno.serve(async (req) => {
     const status = record.status
     const oldStatus = old_record?.status
 
-    console.log(`[ArchivePlan] Triggered for plan ${record.id} (Status: ${status})`)
+    console.log(`[archive-plan] request_id=${ctx.requestId} user_id=${record.user_id} plan_id=${record.id} status=${status}`)
 
     // Only proceed if status CHANGED to 'completed' or 'archived'
     // Or if it's an INSERT with 'completed' (unlikely but safe to handle)
@@ -235,7 +239,15 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error("Error in archive-plan:", error)
+    console.error(`[archive-plan] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
+    await logEdgeFunctionError({
+      functionName: "archive-plan",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(JSON.stringify({ error: error.message }), { 
         status: 500,
         headers: { 'Content-Type': 'application/json' }

@@ -389,26 +389,26 @@ export async function handleCompanionModelOutput(opts: {
         source: "sophia-brain:companion",
         metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, channel: meta?.channel ?? "web" },
       })
-      // Quality/ops log
+      // Best-effort eval trace (during eval runs only).
       try {
-        await supabase.from("conversation_judge_events").insert({
-          user_id: userId,
-          scope: null,
-          channel: meta?.channel ?? "web",
-          agent_used: "companion",
-          verifier_kind: "tool_execution_fallback",
-          request_id: meta?.requestId ?? null,
-          model: null,
-          ok: null,
-          rewritten: null,
-          issues: ["tool_execution_failed_unexpected"],
-          mechanical_violations: [],
-          draft_len: null,
-          final_len: null,
-          draft_hash: null,
-          final_hash: null,
-          metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, err: errMsg.slice(0, 240) },
-        } as any)
+        const { logVerifierEvalEvent } = await import("../lib/verifier_eval_log.ts")
+        const rid = String(meta?.requestId ?? "").trim()
+        if (rid) {
+          await logVerifierEvalEvent({
+            supabase: supabase as any,
+            requestId: rid,
+            source: "sophia-brain:verifier",
+            event: "verifier_tool_execution_fallback",
+            level: "warn",
+            payload: {
+              verifier_kind: "verifier_1:tool_execution_fallback",
+              agent_used: "companion",
+              channel: meta?.channel ?? "web",
+              tool_name: toolName,
+              err: errMsg.slice(0, 240),
+            },
+          })
+        }
       } catch {}
       return {
         text: `Ok, j’ai eu un souci technique en notant ça.\n\nDis “retente” et je réessaie.`,

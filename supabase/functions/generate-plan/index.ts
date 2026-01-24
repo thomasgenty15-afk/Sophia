@@ -4,6 +4,7 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2"
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
 import { validatePlan } from "../_shared/plan-validator.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -13,11 +14,12 @@ serve(async (req) => {
   if (corsErr) return corsErr
   const corsHeaders = getCorsHeaders(req)
 
-  const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
+  let ctx = getRequestContext(req)
 
   try {
     // Parse once so we can both support MEGA stub and also allow forcing real generation in local.
     const body = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, body)
     const forceRealGeneration = Boolean((body as any)?.force_real_generation)
 
     // Deterministic test mode (no network / no GEMINI_API_KEY required).
@@ -731,11 +733,12 @@ serve(async (req) => {
     await logEdgeFunctionError({
       functionName: "generate-plan",
       error,
-      requestId,
-      userId: null,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
       metadata: {
         path: new URL(req.url).pathname,
         method: req.method,
+        client_request_id: ctx.clientRequestId,
       },
     })
     // On renvoie 200 (OK) même en cas d'erreur pour que le client Supabase puisse lire le JSON de l'erreur

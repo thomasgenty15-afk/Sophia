@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
 import { 
@@ -208,7 +209,8 @@ const Auth = () => {
             // Note: requires an active session/JWT; if email confirmations are enabled, this will be retried on first login.
             try {
               if (data.session) {
-                const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {} });
+                const waReqId = newRequestId();
+                const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {}, headers: requestHeaders(waReqId) });
                 if (waErr) {
                   console.warn("WhatsApp opt-in send failed (non-blocking):", waErr, waData);
                 }
@@ -281,7 +283,8 @@ const Auth = () => {
         if (data.user) {
             // Retry WhatsApp opt-in template on first login (best-effort)
             try {
-              const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {} });
+              const waReqId = newRequestId();
+              const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {}, headers: requestHeaders(waReqId) });
               if (waErr) {
                 console.warn("WhatsApp opt-in send failed on login (non-blocking):", waErr, waData);
               }

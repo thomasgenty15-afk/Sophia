@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { generateWithGemini } from "../_shared/gemini.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,12 +10,15 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  let ctx = getRequestContext(req)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    const { axes } = await req.json()
+    const body = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, body)
+    const { axes } = body as any
 
     if (!axes || !Array.isArray(axes) || axes.length === 0) {
         throw new Error('Axes invalides ou vides');
@@ -143,7 +148,15 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error(`[sort-priorities] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
+    await logEdgeFunctionError({
+      functionName: "sort-priorities",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(
       JSON.stringify({ error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }

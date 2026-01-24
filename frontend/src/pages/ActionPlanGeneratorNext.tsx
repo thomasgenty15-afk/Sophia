@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
@@ -185,11 +187,13 @@ const ActionPlanGeneratorNext = () => {
               if (answersData?.content) {
                    console.log("🧠 Appel IA pour résumé contextuel (Next Plan)...");
                    
+                   const reqId = newRequestId();
                    const { data: summaryData, error } = await supabase.functions.invoke('summarize-context', {
                        body: { 
                            responses: answersData.content,
                            currentAxis: currentAxis
-                       }
+                       },
+                       headers: requestHeaders(reqId),
                    });
                    
                    if (error) throw error;
@@ -309,6 +313,7 @@ const ActionPlanGeneratorNext = () => {
       }
 
       // On appelle l'IA avec les infos + LES REPONSES
+      const reqId = newRequestId();
       const { data, error } = await supabase.functions.invoke('generate-plan', {
         body: {
           inputs,
@@ -319,7 +324,8 @@ const ActionPlanGeneratorNext = () => {
               birth_date: profileBirthDate,
               gender: profileGender
           }
-        }
+        },
+        headers: requestHeaders(reqId),
       });
 
       if (error) throw error;

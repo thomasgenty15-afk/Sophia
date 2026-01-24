@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { processMessage } from "../sophia-brain/router.ts"
-import { sendWhatsAppText } from "./wa_whatsapp_api.ts"
+import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
 import { loadHistory } from "./wa_db.ts"
 
 function buildWhatsappOnboardingGuard(params: { onboardingStartedAtIso: string | null }) {
@@ -59,8 +59,18 @@ export async function replyWithBrain(params: {
     { requestId: params.requestId, channel: "whatsapp", scope, whatsappMode: params.whatsappMode ?? "normal" },
     { logMessages: false, contextOverride, forceMode: params.forceMode },
   )
-  const sendResp = await sendWhatsAppText(params.fromE164, brain.content)
+  const sendResp = await sendWhatsAppTextTracked({
+    admin: params.admin,
+    requestId: params.requestId,
+    userId: params.userId,
+    toE164: params.fromE164,
+    body: brain.content,
+    purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",
+    isProactive: false,
+    replyToWaMessageId: params.replyToWaMessageId ?? null,
+  })
   const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+  const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
   await params.admin.from("chat_messages").insert({
     user_id: params.userId,
     scope,
@@ -70,6 +80,7 @@ export async function replyWithBrain(params: {
     metadata: {
       channel: "whatsapp",
       wa_outbound_message_id: outId,
+      outbound_tracking_id: outboundTrackingId,
       is_proactive: false,
       reply_to_wa_message_id: params.replyToWaMessageId ?? null,
       purpose: params.purpose ?? "whatsapp_state_soft_brain_reply",

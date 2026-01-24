@@ -3,6 +3,7 @@ import { cleanupSubmissionData } from '../lib/planActions';
 import { useNavigate } from 'react-router-dom';
 import type { GeneratedPlan, Action } from '../types/dashboard';
 import { startOfIsoWeekLocal } from '../lib/isoWeek';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 
 const PLAN_COMPLETION_THRESHOLD_PERCENT = 60;
 
@@ -593,8 +594,10 @@ export const useDashboardLogic = ({
   const handleGenerateStep = async (problem: string, helpingAction: Action) => {
     if (!helpingAction || !activePlan || !activePlanId) return;
     try {
+        const reqId = newRequestId();
         const { data: newAction, error } = await supabase.functions.invoke('break-down-action', {
-            body: { action: helpingAction, problem, plan: activePlan, submissionId: activeSubmissionId }
+            body: { action: helpingAction, problem, plan: activePlan, submissionId: activeSubmissionId, client_request_id: reqId },
+            headers: requestHeaders(reqId),
         });
         if (error || !newAction) throw error || new Error("No action generated");
 

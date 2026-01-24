@@ -43,24 +43,24 @@ export async function handleInvestigatorModelOutput(opts: {
     })
     // Quality/ops log (optional, does not block)
     try {
-      await supabase.from("conversation_judge_events").insert({
-        user_id: userId,
-        scope: null,
-        channel: meta?.channel ?? "web",
-        agent_used: "investigator",
-        verifier_kind: "tool_execution_fallback",
-        request_id: meta?.requestId ?? null,
-        model: null,
-        ok: null,
-        rewritten: null,
-        issues: ["tool_execution_failed_unexpected"],
-        mechanical_violations: [],
-        draft_len: null,
-        final_len: null,
-        draft_hash: null,
-        final_hash: null,
-        metadata: { reason: "tool_execution_failed_unexpected", tool_name: args.tool_name, err: errMsg.slice(0, 240) },
-      } as any)
+      const { logVerifierEvalEvent } = await import("../../lib/verifier_eval_log.ts")
+      const rid = String(meta?.requestId ?? "").trim()
+      if (rid) {
+        await logVerifierEvalEvent({
+          supabase: supabase as any,
+          requestId: rid,
+          source: "sophia-brain:verifier",
+          event: "verifier_tool_execution_fallback",
+          level: "warn",
+          payload: {
+            verifier_kind: "verifier_1:tool_execution_fallback",
+            agent_used: "investigator",
+            channel: meta?.channel ?? "web",
+            tool_name: args.tool_name,
+            err: errMsg.slice(0, 240),
+          },
+        })
+      }
     } catch {}
   }
 

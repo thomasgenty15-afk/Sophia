@@ -4,6 +4,8 @@ import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts";
 import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
 import { processCoreIdentity } from "../_shared/identity-manager.ts";
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { getRequestContext } from "../_shared/request_context.ts";
 
 type PaidTier = "system" | "alliance" | "architecte";
 
@@ -101,6 +103,7 @@ function getUnlockDate(condition: string = 'fixed_delay', delayDays: number = 0)
 }
 
 serve(async (req) => {
+  let ctx = getRequestContext(req)
   if (req.method === "OPTIONS") {
     return handleCorsOptions(req);
   }
@@ -108,28 +111,31 @@ serve(async (req) => {
   if (corsErr) return corsErr;
   const corsHeaders = getCorsHeaders(req);
 
-  const supabaseClient = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  );
+  try {
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    );
 
-  const authHeader = req.headers.get("Authorization") ?? "";
-  if (!authHeader) {
-    return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
-  const { data: { user }, error: userError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
+    const authHeader = req.headers.get("Authorization") ?? "";
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const { data: { user }, error: userError } = await supabaseClient.auth.getUser(authHeader.replace('Bearer ', ''));
 
-  if (userError || !user) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { ...corsHeaders, "Content-Type": "application/json" },
-    });
-  }
+    if (userError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-  const { moduleId } = await req.json();
+    const body = await req.json().catch(() => ({} as any));
+    const { moduleId } = body as any;
+    ctx = getRequestContext(req, { ...(body as any), user_id: user.id })
 
   // Entitlements:
   // - All tiers can access Architecte preview weeks 1 & 2.
@@ -354,4 +360,19 @@ serve(async (req) => {
   return new Response(JSON.stringify({ success: true }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+  } catch (error) {
+    console.error(`[complete-module] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error);
+    await logEdgeFunctionError({
+      functionName: "complete-module",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
+    return new Response(JSON.stringify({ error: (error as any)?.message ?? String(error), request_id: ctx.requestId }), {
+      status: 500,
+      headers: { ...corsHeaders, "Content-Type": "application/json" },
+    });
+  }
 });

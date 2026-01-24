@@ -19,6 +19,7 @@ import {
 import { useNavigate, useParams } from 'react-router-dom';
 import { WEEKS_CONTENT } from '../data/weeksContent';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { MODULES_REGISTRY } from '../config/modules-registry';
 import { canAccessArchitectWeek } from '../lib/entitlements';
@@ -389,6 +390,7 @@ const IdentityArchitect = () => {
 
       const contextOverride = trunc(contextOverrideRaw, 20000);
 
+      const clientRequestId = newRequestId();
       const { data, error } = await supabase.functions.invoke('sophia-brain', {
         body: {
           message: userText,
@@ -409,6 +411,8 @@ const IdentityArchitect = () => {
             activeQuestionIndex,
           },
         }
+        ,
+        headers: requestHeaders(clientRequestId)
       });
 
       if (error) throw error;

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
@@ -344,11 +345,13 @@ const ActionPlanGeneratorFollow = () => {
                    
                    try {
                        // 2. Appeler l'IA pour résumer avec TIMEOUT FORCE CÔTÉ CLIENT (Race)
+                       const reqId = newRequestId();
                        const invokePromise = supabase.functions.invoke('summarize-context', {
                            body: { 
                                responses: answersData.content,
                                currentAxis: currentAxis
-                           }
+                           },
+                           headers: requestHeaders(reqId),
                        });
 
                        // Promesse de timeout qui rejette après 15s
@@ -612,6 +615,7 @@ const ActionPlanGeneratorFollow = () => {
           }
       }
 
+      const reqId = newRequestId();
       const { data, error } = await supabase.functions.invoke('generate-plan', {
         body: {
           inputs,
@@ -621,7 +625,8 @@ const ActionPlanGeneratorFollow = () => {
               birth_date: profileBirthDate,
               gender: profileGender
           }
-        }
+        },
+        headers: requestHeaders(reqId),
       });
 
       if (error) throw error;
