@@ -56,6 +56,7 @@ export async function analyzeSignals(
     toolflow_active?: boolean
     toolflow_kind?: string
     profile_confirm_pending?: boolean
+    plan_confirm_pending?: boolean
     topic_session_phase?: string
     risk_level?: string
   },
@@ -80,6 +81,7 @@ DERNIER MESSAGE ASSISTANT:
 - Bilan actif: ${stateSnapshot.investigation_active ? "OUI" : "NON"}${stateSnapshot.investigation_status ? ` (${stateSnapshot.investigation_status})` : ""}
 - Toolflow actif: ${stateSnapshot.toolflow_active ? `OUI (${stateSnapshot.toolflow_kind ?? "unknown"})` : "NON"}
 - Confirmation profil en attente: ${stateSnapshot.profile_confirm_pending ? "OUI" : "NON"}
+- Confirmation plan en attente (WhatsApp onboarding): ${stateSnapshot.plan_confirm_pending ? "OUI" : "NON"}
 - Topic session phase: ${stateSnapshot.topic_session_phase ?? "none"}
 
 SIGNAUX À PRODUIRE (JSON strict):
@@ -108,6 +110,10 @@ SIGNAUX À PRODUIRE (JSON strict):
 5. **flow_resolution** — L'utilisateur indique un état de flow?
    - kind: "NONE" | "ACK_DONE" (confirme avoir fini) | "WANTS_RESUME" | "DECLINES_RESUME" | "WANTS_PAUSE"
    - confidence: 0.0 à 1.0
+
+RÈGLE SPÉCIALE (plan_confirm_pending):
+- Si "Confirmation plan en attente" = OUI, utilise ACK_DONE UNIQUEMENT si l'utilisateur confirme avoir finalisé/activé son plan sur le site/dashboard.
+- Si tu n'es pas sûr que ça parle du plan (ex: "j'ai fini ma journée", "ok" ambigu), laisse flow_resolution.kind="NONE".
 
 6. **wants_tools**: true si l'utilisateur demande explicitement d'activer/créer/modifier une action
 

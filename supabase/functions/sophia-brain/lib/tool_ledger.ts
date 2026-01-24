@@ -7,6 +7,46 @@ function safeJsonValue(x: unknown): any {
   return { value: x ?? null }
 }
 
+function safeErrorObject(err: unknown): any {
+  try {
+    if (err instanceof Error) {
+      return {
+        name: err.name,
+        message: String(err.message ?? "").slice(0, 4000),
+        stack: String(err.stack ?? "").slice(0, 12000),
+      }
+    }
+    return { message: String(err ?? "").slice(0, 4000) }
+  } catch {
+    return { message: "unknown_error" }
+  }
+}
+
+function jsonSizeBytes(x: any): number {
+  try {
+    return new TextEncoder().encode(JSON.stringify(x)).length
+  } catch {
+    return 0
+  }
+}
+
+function capJsonValue(x: any, maxBytes: number): any {
+  // Keep full JSON when reasonable; otherwise keep a truncated text + hash.
+  const size = jsonSizeBytes(x)
+  if (size <= maxBytes) return { kind: "full", size_bytes: size, value: x }
+  let txt = ""
+  try {
+    txt = JSON.stringify(x)
+  } catch {
+    txt = String(x)
+  }
+  return {
+    kind: "truncated_text",
+    size_bytes: size,
+    value_truncated: txt.slice(0, Math.max(0, maxBytes)),
+  }
+}
+
 async function sha256Hex(text: string): Promise<string> {
   try {
     const buf = new TextEncoder().encode(String(text ?? ""))
@@ -105,9 +145,10 @@ export async function logToolLedgerEvent(opts: {
   const argsHash = toolName ? await sha256Hex(stableStringify(opts.toolArgs)) : null
   const resultPreview = toolName ? summarizeToolResult(toolName, opts.toolResult) : null
   const resultHash = toolName ? await sha256Hex(stableStringify(opts.toolResult)) : null
-  const errMsg = opts.error instanceof Error
-    ? opts.error.message
-    : (opts.error != null ? String(opts.error) : null)
+  const maxBytes = 64_000 // “full details” but bounded to keep DB sane
+  const argsFull = toolName ? capJsonValue(opts.toolArgs ?? null, maxBytes) : null
+  const resultFull = toolName ? capJsonValue(opts.toolResult ?? null, maxBytes) : null
+  const errFull = opts.error != null ? safeErrorObject(opts.error) : null
 
   // IMPORTANT: conversation_eval_events is admin-only (RLS).
   // We therefore persist via a SECURITY DEFINER RPC to avoid relying on service role env inside Edge.
@@ -121,11 +162,13 @@ export async function logToolLedgerEvent(opts: {
       p_payload: safeJsonValue({
         tool: toolName,
         user_id: opts.userId ?? null,
+        args: argsFull,
         args_hash: argsHash,
         args_preview: argsPreview,
+        result: resultFull,
         result_hash: resultHash,
         result_preview: resultPreview,
-        error: errMsg ? { message: String(errMsg).slice(0, 1200) } : null,
+        error: errFull,
         latency_ms: Number.isFinite(Number(opts.latencyMs)) ? Math.max(0, Math.floor(Number(opts.latencyMs))) : null,
         metadata: opts.metadata ?? null,
       }),

@@ -176,7 +176,8 @@ export async function handleOptInAndDailyBilanActions(params: {
           ? `- Demande un score de motivation SUR 10 (inclure les mots "sur 10" et "motivation").\n`
           : `- Explique que tu ne vois pas encore de plan actif.\n` +
             `- Demande de finaliser sur le site.\n` +
-            `- Termine en demandant de répondre exactement: "C'est bon".\n` +
+            `- Termine par une question simple de confirmation (pas de phrase exacte).\n` +
+            `- Exemple: "Dis-moi quand c'est fait et je continue ici."\n` +
             `- N'ajoute pas de markdown.\n`) ,
     })
 

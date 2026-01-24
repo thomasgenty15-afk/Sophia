@@ -405,7 +405,53 @@ export async function runArchitect(
   } catch {}
 
   const response = await generateArchitectModelOutput({ systemPrompt, message, history, tools, meta })
-  return await handleArchitectModelOutput({ supabase, userId, message, history, response, inWhatsAppGuard24h, context, meta, userState, scope })
+  // Robust tool ledger: log around tool execution from the architect runner (even if downstream handler changes).
+  const requestId = String(meta?.requestId ?? "").trim()
+  const evalRunId = meta?.evalRunId ?? null
+  const t0 = Date.now()
+  if (requestId && typeof response === "object" && response && (response as any).tool) {
+    try {
+      await logToolLedgerEvent({
+        supabase,
+        requestId,
+        evalRunId,
+        userId,
+        source: "sophia-brain:architect",
+        event: "tool_call_attempted",
+        level: "info",
+        toolName: String((response as any).tool ?? ""),
+        toolArgs: (response as any).args,
+        latencyMs: 0,
+        metadata: { phase: "pre_execute" },
+      })
+    } catch {}
+  }
+  const out = await handleArchitectModelOutput({ supabase, userId, message, history, response, inWhatsAppGuard24h, context, meta, userState, scope })
+  if (requestId && typeof response === "object" && response && (response as any).tool) {
+    try {
+      const toolExecution = (out as any)?.tool_execution ?? "uncertain"
+      const ev =
+        toolExecution === "success" ? "tool_call_succeeded"
+        : toolExecution === "blocked" ? "tool_call_blocked"
+        : toolExecution === "failed" ? "tool_call_failed"
+        : "tool_call_succeeded"
+      await logToolLedgerEvent({
+        supabase,
+        requestId,
+        evalRunId,
+        userId,
+        source: "sophia-brain:architect",
+        event: ev as any,
+        level: ev === "tool_call_failed" ? "error" : (ev === "tool_call_blocked" ? "warn" : "info"),
+        toolName: String((response as any).tool ?? ""),
+        toolArgs: (response as any).args,
+        toolResult: out,
+        latencyMs: Date.now() - t0,
+        metadata: { phase: "post_execute" },
+      })
+    } catch {}
+  }
+  return out
 }
 
 

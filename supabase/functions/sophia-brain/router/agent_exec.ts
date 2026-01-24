@@ -18,6 +18,7 @@ import { enqueueLlmRetryJob, tryEmergencyAiReply } from "./emergency.ts"
 import { logEvalEvent } from "../../run-evals/lib/eval_trace.ts"
 import { logBrainTrace } from "../../_shared/brain-trace.ts"
 import { logVerifierEvalEvent } from "../lib/verifier_eval_log.ts"
+import { logToolLedgerEvent } from "../lib/tool_ledger.ts"
 
 export async function runAgentAndVerify(opts: {
   supabase: SupabaseClient
@@ -257,6 +258,25 @@ export async function runAgentAndVerify(opts: {
     if (targetMode === "companion") {
       if (chosen.kind === "text") finalText = chosen.text
       else {
+        const requestId = String(meta?.requestId ?? "").trim()
+        const t0 = Date.now()
+        try {
+          if (requestId) {
+            await logToolLedgerEvent({
+              supabase,
+              requestId,
+              evalRunId: meta?.evalRunId ?? null,
+              userId,
+              source: "sophia-brain:router",
+              event: "tool_call_attempted",
+              level: "info",
+              toolName: chosen.tool,
+              toolArgs: chosen.args,
+              latencyMs: 0,
+              metadata: { agent: "companion", chosen_index: chosenIdx },
+            })
+          }
+        } catch {}
         const out = await handleCompanionModelOutput({
           supabase,
           userId,
@@ -267,10 +287,52 @@ export async function runAgentAndVerify(opts: {
         finalText = out.text
         executedTools = out.executed_tools ?? [chosen.tool]
         toolExecution = out.tool_execution ?? "success"
+        try {
+          if (requestId) {
+            const ev =
+              toolExecution === "success" ? "tool_call_succeeded"
+              : toolExecution === "blocked" ? "tool_call_blocked"
+              : toolExecution === "failed" ? "tool_call_failed"
+              : "tool_call_succeeded"
+            await logToolLedgerEvent({
+              supabase,
+              requestId,
+              evalRunId: meta?.evalRunId ?? null,
+              userId,
+              source: "sophia-brain:router",
+              event: ev as any,
+              level: ev === "tool_call_failed" ? "error" : (ev === "tool_call_blocked" ? "warn" : "info"),
+              toolName: chosen.tool,
+              toolArgs: chosen.args,
+              toolResult: { executed_tools: out.executed_tools ?? null, tool_execution: toolExecution, text: out.text },
+              latencyMs: Date.now() - t0,
+              metadata: { agent: "companion", chosen_index: chosenIdx },
+            })
+          }
+        } catch {}
       }
     } else if (targetMode === "architect") {
       if (chosen.kind === "text") finalText = chosen.text
       else {
+        const requestId = String(meta?.requestId ?? "").trim()
+        const t0 = Date.now()
+        try {
+          if (requestId) {
+            await logToolLedgerEvent({
+              supabase,
+              requestId,
+              evalRunId: meta?.evalRunId ?? null,
+              userId,
+              source: "sophia-brain:router",
+              event: "tool_call_attempted",
+              level: "info",
+              toolName: chosen.tool,
+              toolArgs: chosen.args,
+              latencyMs: 0,
+              metadata: { agent: "architect", chosen_index: chosenIdx, in_whatsapp_guard_24h: !!inWhatsAppGuard24h },
+            })
+          }
+        } catch {}
         const out = await handleArchitectModelOutput({
           supabase,
           userId,
@@ -283,6 +345,29 @@ export async function runAgentAndVerify(opts: {
         executedTools = out.executed_tools ?? []
         toolExecution = out.tool_execution ?? "uncertain"
         finalText = out.text
+        try {
+          if (requestId) {
+            const ev =
+              toolExecution === "success" ? "tool_call_succeeded"
+              : toolExecution === "blocked" ? "tool_call_blocked"
+              : toolExecution === "failed" ? "tool_call_failed"
+              : "tool_call_succeeded"
+            await logToolLedgerEvent({
+              supabase,
+              requestId,
+              evalRunId: meta?.evalRunId ?? null,
+              userId,
+              source: "sophia-brain:router",
+              event: ev as any,
+              level: ev === "tool_call_failed" ? "error" : (ev === "tool_call_blocked" ? "warn" : "info"),
+              toolName: chosen.tool,
+              toolArgs: chosen.args,
+              toolResult: { executed_tools: out.executed_tools ?? null, tool_execution: toolExecution, text: out.text },
+              latencyMs: Date.now() - t0,
+              metadata: { agent: "architect", chosen_index: chosenIdx, in_whatsapp_guard_24h: !!inWhatsAppGuard24h },
+            })
+          }
+        } catch {}
       }
     } else {
       // librarian

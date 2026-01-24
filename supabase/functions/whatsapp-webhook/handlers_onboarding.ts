@@ -1,6 +1,20 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { buildWhatsAppOnboardingContext } from "./onboarding_context.ts"
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
+import { analyzeSignals } from "../sophia-brain/router/dispatcher.ts"
+
+async function getLastAssistantMessage(admin: SupabaseClient, userId: string): Promise<string> {
+  const { data } = await admin
+    .from("chat_messages")
+    .select("content, created_at")
+    .eq("user_id", userId)
+    .eq("scope", "whatsapp")
+    .eq("role", "assistant")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle()
+  return String((data as any)?.content ?? "")
+}
 
 async function countRecentAssistantPurpose(params: {
   admin: SupabaseClient
@@ -63,8 +77,66 @@ export async function handleOnboardingState(params: {
   const st = String(whatsappState || "").trim()
 
   if (st === "awaiting_plan_finalization") {
-    if (!params.isDonePhrase(text ?? "")) {
-      const raw = String(text ?? "").trim()
+    const raw = String(text ?? "").trim()
+    const saysDoneFast = params.isDonePhrase(raw)
+    let decision: "done" | "uncertain" | "not_done" = saysDoneFast ? "done" : "not_done"
+    let signals: any = null
+
+    if (!saysDoneFast && raw) {
+      const lastAssistant = await getLastAssistantMessage(admin, userId).catch(() => "")
+      signals = await analyzeSignals(
+        raw,
+        { current_mode: "companion", plan_confirm_pending: true },
+        lastAssistant,
+        { requestId },
+      )
+      const ack = Number(signals?.flow_resolution?.confidence ?? 0)
+      const isAck = String(signals?.flow_resolution?.kind ?? "NONE") === "ACK_DONE"
+      const isPlan = String(signals?.user_intent_primary ?? "UNKNOWN") === "PLAN"
+      const planConf = Number(signals?.user_intent_confidence ?? 0)
+
+      if (isAck && ack >= 0.7) {
+        // Conservative: only treat as done if model is confident in ACK_DONE *in plan-confirm context*.
+        decision = "done"
+      } else if (isAck && ack >= 0.45) {
+        decision = "uncertain"
+      } else if (isPlan && planConf >= 0.75) {
+        // User is clearly talking about the plan, but didn't explicitly confirm completion.
+        decision = "uncertain"
+      } else {
+        decision = "not_done"
+      }
+    }
+
+    if (decision === "uncertain") {
+      await replyWithBrain({
+        admin,
+        userId,
+        fromE164,
+        inboundText: raw || "Ok",
+        requestId,
+        replyToWaMessageId: waMessageId,
+        purpose: "awaiting_plan_finalization_confirm_intent",
+        whatsappMode: "onboarding",
+        forceMode: "companion",
+        contextOverride:
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_plan_finalization",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "no_plan",
+            phase: "onboarding",
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Le user a répondu de façon ambigüe.\n` +
+          `- Priorité: confirmer si le user veut dire "j'ai bien activé/finalisé mon plan sur le site".\n` +
+          `- Pose UNE seule question fermée (oui/non), très simple.\n` +
+          `- Exemple: "Tu veux dire que ton plan est bien activé sur le site (dashboard) ? (Oui / Pas encore)"\n`,
+      })
+      return true
+    }
+
+    if (decision !== "done") {
       // Soft state-machine: answer the user normally, then gently remind the expected next step.
       await replyWithBrain({
         admin,
@@ -86,13 +158,13 @@ export async function handleOnboardingState(params: {
           `\n\nCONSIGNE DE TOUR:\n` +
           `- Réponds au message de l'utilisateur.\n` +
           `- Puis rappelle en 1 phrase: finaliser/activer le plan sur le site.\n` +
-          `- Termine par: "Réponds exactement: C'est bon" quand c'est fait.\n`,
+          `- Termine par une question courte de confirmation (pas de phrase exacte).\n` +
+          `- Exemple: "Dis-moi quand c'est fait et je continue ici."\n`,
       })
       return true
     }
 
     // They say "done": re-check if an active plan exists now.
-    const raw = String(text ?? "").trim()
     const maybeFact = params.extractAfterDonePhrase(raw)
     if (maybeFact.length > 0) {
       // If user piggybacks a personal fact in the same message as "C'est bon", keep it.
@@ -225,7 +297,7 @@ export async function handleOnboardingState(params: {
           `- Réponds gentiment (sans contredire agressivement).\n` +
           `- Propose 1 explication simple: délai de synchro.\n` +
           `- Propose 1 seul essai (recharger/attendre 2 min).\n` +
-          `- Termine en demandant de répondre "C'est bon" après cet essai.\n`,
+          `- Termine par une question courte de confirmation après cet essai (pas de phrase exacte).\n`,
       })
       return true
     }
