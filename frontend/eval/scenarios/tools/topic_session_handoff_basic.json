@@ -1,8 +1,8 @@
 {
   "dataset_key": "state_machines",
-  "id": "topic_session_handoff_basic",
-  "description": "Topic Session (global supervisor) should exist and allow a clean handoff from architect to companion when the user signals boredom/stop. Scenario is simulated (simulate-user) for more realistic pacing and multi-turn transitions, including an acute stress moment (firefighter) and a gentle return to plan.",
-  "tags": ["supervisor", "topic_session", "handoff"],
+  "id": "topic_exploration_handoff_basic",
+  "description": "Topic Exploration (global supervisor) should exist and allow a clean handoff from architect to companion when the user signals boredom/stop. Scenario is simulated (simulate-user) for more realistic pacing and multi-turn transitions, including an acute stress moment (firefighter) and a gentle return to plan.",
+  "tags": ["supervisor", "topic_exploration", "handoff"],
   "setup": {
     "seed_plan": true,
     "bilan_actions_count": 0
@@ -15,7 +15,7 @@
   },
   "objectives": [
     {
-      "kind": "topic_session_handoff_realistic",
+      "kind": "topic_exploration_handoff_realistic",
       "spec": {
         "notes": "Pacing réaliste. Handoff attendu sur stop/boredom. Inclure un moment 'stress corporel' (firefighter). Retour au plan ensuite, sans tool immédiat."
       }
@@ -26,7 +26,7 @@
   },
   "mechanical_assertions": {
     "chat_state_temp_memory_array_some_match": [
-      { "path": "supervisor.stack", "match": { "type": "topic_session" } }
+      { "path": "supervisor.stack", "match": { "type": "topic_exploration" } }
     ],
     "chat_state_temp_memory_paths_exist": [
       "supervisor.updated_at"
@@ -35,9 +35,7 @@
       "toolflow_cleared_after_stop",
       "sessions_have_resume_brief",
       "queue_bounded",
-      "topic_session_meaningful_topic"
+      "topic_exploration_meaningful_topic"
     ]
   }
 }
-
-

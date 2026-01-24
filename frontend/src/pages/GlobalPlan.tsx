@@ -6,6 +6,7 @@ import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { SophiaAssistantModal } from '../components/SophiaAssistantModal';
 import OnboardingProgress from '../components/OnboardingProgress';
+import { loadGuestPlanFlowState, saveGuestPlanFlowState } from '../lib/guestPlanFlowCache';
 
 import type { Theme } from '../data/onboarding/types';
 import { THEME_SLEEP } from '../data/onboarding/theme_sleep';
@@ -60,6 +61,20 @@ const GlobalPlan = () => {
     otherAnswers: {},
   });
 
+  type AssistantContextV1 = {
+    version: 1;
+    mode: 'specific' | 'general';
+    input: {
+      improvement: string;
+      obstacles: string;
+      other: string;
+    };
+    output: any; // { recommendations, globalMessage, ... }
+    created_at: string;
+  };
+
+  const [assistantContext, setAssistantContext] = useState<AssistantContextV1 | null>(null);
+
   // --- CHARGEMENT & SAUVEGARDE PROGRESSION ---
   
   // CHARGEMENT & SAUVEGARDE PROGRESSION
@@ -81,7 +96,22 @@ const GlobalPlan = () => {
         }
       }
 
-      if (!user) return;
+      // MODE INVITÉ : restaurer depuis sessionStorage si possible
+      if (!user) {
+        const cached = loadGuestPlanFlowState();
+        const fullAnswers = (cached as any)?.fullAnswers;
+        const uiState = fullAnswers?.ui_state || fullAnswers;
+        if (uiState?.selectedAxisByTheme) setSelectedAxisByTheme(uiState.selectedAxisByTheme);
+        if (uiState?.responses) setResponses(uiState.responses);
+        const restoredAssistant =
+          fullAnswers?.assistant_context ||
+          uiState?.assistant_context ||
+          uiState?.assistantContext ||
+          null;
+        if (restoredAssistant) setAssistantContext(restoredAssistant);
+        setIsLoaded(true);
+        return;
+      }
 
       try {
         const { data, error } = await supabase
@@ -180,6 +210,11 @@ const GlobalPlan = () => {
               }
           }
           if (uiState.responses) setResponses(uiState.responses);
+          const restoredAssistant =
+            (savedData as any)?.assistant_context ||
+            (uiState as any)?.assistant_context ||
+            (uiState as any)?.assistantContext;
+          if (restoredAssistant) setAssistantContext(restoredAssistant);
         }
       } catch (err) {
         console.error('Error loading progress:', err);
@@ -307,8 +342,12 @@ const GlobalPlan = () => {
               // Pour l'UI : État brut pour restauration facile
               ui_state: {
                   selectedAxisByTheme,
-                  responses
+                  responses,
+                  assistant_context: assistantContext
               },
+
+              // Mémoire Sophia (si utilisée)
+              assistant_context: assistantContext,
               
               // Méta
               last_updated: new Date().toISOString()
@@ -491,7 +530,7 @@ const GlobalPlan = () => {
   // --- SOPHIA ASSISTANT LOGIC ---
   const [showAssistant, setShowAssistant] = useState(false);
 
-  const handleAssistantAnalysis = async ({ answers, setStep, setRecommendationResult }: any) => {
+  const handleAssistantAnalysis = async ({ answers, mode, setStep, setRecommendationResult }: any) => {
     setStep('loading');
     
     try {
@@ -520,6 +559,19 @@ const GlobalPlan = () => {
 
         if (error) throw error;
         if (!data || !data.recommendations) throw new Error("Format de réponse invalide");
+
+        // 2.5. Mémoriser (pondération élevée dans les prompts suivants)
+        setAssistantContext({
+            version: 1,
+            mode: mode === 'specific' || mode === 'general' ? mode : 'general',
+            input: {
+                improvement: String((answers as any)?.improvement ?? ''),
+                obstacles: String((answers as any)?.obstacles ?? ''),
+                other: String((answers as any)?.other ?? ''),
+            },
+            output: data,
+            created_at: new Date().toISOString(),
+        });
 
         // 3. Appliquer les changements (Magie)
         // RESET : On repart d'une sélection vierge pour éviter de cumuler (ex: 1 manuel + 3 recommandés = 4)
@@ -654,7 +706,7 @@ const GlobalPlan = () => {
                 {isRefineMode ? (
                   "Pour réinitialiser, commence par identifier une transformation dans le thème que tu avais choisi."
                 ) : (
-                   <>Pour être efficace, ne te disperse pas. Choisis <strong>3 transformations prioritaires</strong> au total (maximum 1 par thème).</>
+                   <>Pour être efficace, ne te disperse pas. Choisis jusqu'à <strong>3 transformations</strong> au total (maximum 1 par thème).</>
                 )}
               </p>
             </div>
@@ -859,7 +911,8 @@ const GlobalPlan = () => {
                           submission_id: submissionId, // On update l'ID de soumission
                           content: {
                               structured_data: structuredData,
-                              ui_state: { selectedAxisByTheme, responses },
+                              ui_state: { selectedAxisByTheme, responses, assistant_context: assistantContext },
+                              assistant_context: assistantContext,
                               last_updated: new Date().toISOString()
                           },
                           // On incrémente sorting_attempts ici même si PlanPriorities le refera peut-être
@@ -931,20 +984,22 @@ const GlobalPlan = () => {
               // Pour que le backfill fonctionne correctement
               const fullContentPayload = {
                   structured_data: buildStructuredData(),
-                  ui_state: { selectedAxisByTheme, responses },
+                  ui_state: { selectedAxisByTheme, responses, assistant_context: assistantContext },
+                  assistant_context: assistantContext,
                   last_updated: new Date().toISOString()
               };
 
-              navigate('/plan-priorities', { 
-                  state: { 
-                      selectedAxes: data, 
-                      fromOnboarding: true, // C'est le flag "Global Questionnaire"
-                      forceRefresh: true,
-                      generationTimestamp: timestamp,
-                      submissionId: submissionId, // On passe l'ID
-                      fullAnswers: fullContentPayload // TRANSMISSION DES DONNÉES COMPLÈTES (Guest)
-                  } 
-              });
+              const navState = { 
+                  selectedAxes: data, 
+                  fromOnboarding: true, // C'est le flag "Global Questionnaire"
+                  forceRefresh: true,
+                  generationTimestamp: timestamp,
+                  submissionId: submissionId, // On passe l'ID
+                  fullAnswers: fullContentPayload // TRANSMISSION DES DONNÉES COMPLÈTES (Guest)
+              };
+              // Cache invité: permet "retour" / refresh sans perdre les données
+              saveGuestPlanFlowState(navState);
+              navigate('/plan-priorities', { state: navState });
             }}
             disabled={totalSelectedAxes === 0}
             className={`px-8 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${totalSelectedAxes > 0

@@ -376,7 +376,7 @@ const Dashboard = () => {
       <main className="max-w-5xl mx-auto px-6 py-10">
         {showBanner && (
           <div
-            className={`relative z-45 mb-6 rounded-2xl border p-4 flex flex-col min-[450px]:flex-row min-[450px]:items-center min-[450px]:justify-between gap-3 sticky top-24 ${
+            className={`relative z-45 mb-6 rounded-2xl border p-4 flex flex-col min-[450px]:flex-row min-[450px]:items-center min-[450px]:justify-between gap-3 ${
               softLocked
                 ? (isArchitectMode ? "bg-amber-950/30 border-amber-900/50 text-amber-200 animate-alert-pulse-amber" : "bg-amber-50 border-amber-200 text-amber-900 animate-alert-pulse-amber")
                 : (isArchitectMode ? "bg-emerald-900/20 border-emerald-800/30 text-emerald-200" : "bg-indigo-50 border-indigo-100 text-indigo-900")
@@ -609,21 +609,40 @@ const Dashboard = () => {
 
                     <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-8">
                         {(() => {
-                            let previousPhaseFullyActivated = true;
+                            // Check if ALL actions in ALL phases up to index-1 are activated
+                            const areAllPreviousPhasesFullyActivated = (phaseIndex: number) => {
+                                for (let i = 0; i < phaseIndex; i++) {
+                                    const prevPhase = activePlan.phases[i];
+                                    const allActionsActivated = prevPhase.actions.every(a => {
+                                        const s = (a as any).status as string | undefined;
+                                        return s !== 'pending';
+                                    });
+                                    if (!allActionsActivated) return false;
+                                }
+                                return true;
+                            };
+
                             return activePlan.phases.map((phase, index) => {
-                                // "Fully activated" means: nothing is explicitly pending.
-                                // Important: many plans don't carry `status` in their JSON; in that case we treat it as activated.
+                                // Phase can be unlocked only if ALL actions in ALL previous phases are activated
+                                const canUnlockThisPhase = areAllPreviousPhasesFullyActivated(index);
+                                
+                                // "Fully activated" for THIS phase means: nothing is explicitly pending
                                 const isCurrentPhaseFullyActivated = phase.actions.every(a => {
                                   const s = (a as any).status as string | undefined;
                                   return s !== 'pending';
                                 });
-                                const canActivateActions = previousPhaseFullyActivated;
-                                previousPhaseFullyActivated = isCurrentPhaseFullyActivated;
+                                
+                                // Actions in this phase can only be activated if all previous phases are fully activated
+                                const canActivateActions = canUnlockThisPhase;
+                                
                                 let currentPhaseStatus = phase.status; 
                                 
                                 // Don't auto-unlock phases: if the plan says "locked", keep it locked.
                                 // Only provide a safe fallback when `status` is missing in the plan JSON.
                                 if (!currentPhaseStatus) currentPhaseStatus = index === 0 ? 'active' : 'locked';
+                                
+                                // If user can't unlock this phase (previous phases not fully activated), force it locked
+                                if (!canUnlockThisPhase && index > 0) currentPhaseStatus = 'locked';
 
                                 return (
                                     <PlanPhaseBlock
@@ -634,7 +653,7 @@ const Dashboard = () => {
                                         onHelpAction={setHelpingAction}
                                         onOpenFramework={setOpenFrameworkAction}
                                         onOpenHistory={setHistoryFrameworkAction}
-                                        onUnlockPhase={() => logic.handleUnlockPhase(index)}
+                                        onUnlockPhase={canUnlockThisPhase ? () => logic.handleUnlockPhase(index) : undefined}
                                         onUnlockAction={(action) => {
                                           if (isHabit(action)) return openHabitSettings(action, 'activate');
                                           return logic.handleUnlockAction(action);

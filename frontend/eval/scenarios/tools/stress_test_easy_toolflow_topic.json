@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
   "id": "stress_test_easy_toolflow_topic",
-  "description": "EASY: 2 machines (toolflow + topic_session). User starts a plan update, gets bored, triggers topic handoff, then comes back.",
-  "tags": ["stress_test", "easy", "toolflow", "topic_session"],
+  "description": "EASY: 2 machines (toolflow + topic_exploration). User starts a plan update, gets bored, triggers topic handoff, then comes back.",
+  "tags": ["stress_test", "easy", "toolflow", "topic_exploration"],
   "difficulty": "easy",
   "setup": {
     "seed_plan": true,
@@ -38,8 +38,7 @@
       "toolflow_cleared_after_stop",
       "sessions_have_resume_brief",
       "queue_bounded",
-      "topic_session_meaningful_topic"
+      "topic_exploration_meaningful_topic"
     ]
   }
 }
-

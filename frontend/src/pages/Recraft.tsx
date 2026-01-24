@@ -387,8 +387,8 @@ const Recraft = () => {
                 <span className="font-bold text-sm">i</span>
             </div>
             <p className="text-blue-800 text-sm">
-                Vous êtes en train de refaire le parcours pour cet axe. Vos choix précédents sont pré-remplis.
-                Modifiez ce qui doit l'être, puis validez pour régénérer votre plan.
+                Tu es en train de refaire le parcours pour cet axe. Tes choix précédents sont pré-remplis.
+                Modifie ce qui doit l'être, puis valide pour régénérer ton plan.
             </p>
         </div>
 

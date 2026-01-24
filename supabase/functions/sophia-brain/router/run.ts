@@ -44,12 +44,15 @@ import {
   appendDeferredTopicToState,
   extractDeferredTopicFromUserMessage,
   userExplicitlyDefersTopic,
+  getDeepReasonsDeferredTopic,
+  hasDeepReasonsDeferredTopic,
+  removeDeepReasonsDeferredTopic,
 } from "./deferred_topics.ts"
 import { debounceAndBurstMerge } from "./debounce.ts"
 import { runAgentAndVerify } from "./agent_exec.ts"
 import { maybeInjectGlobalDeferredNudge, pruneGlobalDeferredTopics, shouldStoreGlobalDeferredFromUserMessage, storeGlobalDeferredTopic } from "./global_deferred.ts"
 import {
-  closeTopicSession,
+  closeTopicExploration,
   enqueueSupervisorIntent,
   getActiveSupervisorSession,
   getSupervisorRuntime,
@@ -58,20 +61,29 @@ import {
   pruneStaleUserProfileConfirm,
   setArchitectToolFlowInTempMemory,
   syncLegacyArchitectToolFlowSession,
-  upsertTopicSession,
+  upsertTopicExploration,
+  upsertDeepReasonsExploration,
+  closeDeepReasonsExploration,
+  getActiveDeepReasonsExploration,
   writeSupervisorRuntime,
 } from "../supervisor.ts"
+import {
+  runDeepReasonsExploration,
+  resumeDeepReasonsFromDeferred,
+  detectDeepReasonsPattern,
+} from "../agents/architect/deep_reasons.ts"
+import type { DeepReasonsState } from "../agents/architect/deep_reasons_types.ts"
 
 const SOPHIA_CHAT_MODEL =
   (
     ((globalThis as any)?.Deno?.env?.get?.("GEMINI_SOPHIA_CHAT_MODEL") ?? "") as string
-  ).trim() || "gemini-3-flash-preview";
+  ).trim() || "gpt-5-mini";
 
 // Premium model for critical modes (sentry, firefighter high-risk, architect)
 const SOPHIA_CHAT_MODEL_PRO =
   (
     ((globalThis as any)?.Deno?.env?.get?.("GEMINI_SOPHIA_CHAT_MODEL_PRO") ?? "") as string
-  ).trim() || "gemini-3-pro-preview";
+  ).trim() || "gpt-5.2";
 
 // Model routing: use pro model for critical situations
 function selectChatModel(targetMode: AgentMode, riskScore: number): string {
@@ -201,13 +213,13 @@ export async function processMessage(
     stack_top_type?: string
     stack_top_owner?: string
     stack_top_status?: string
-    topic_session?: { topic?: string; phase?: string; focus_mode?: string; handoff_to?: string }
+    topic_exploration?: { topic?: string; phase?: string; focus_mode?: string; handoff_to?: string }
     queue_size?: number
     queue_reasons_tail?: string[]
     queue_pending_reasons?: string[]
   } {
     const sess = getActiveSupervisorSession(tm)
-    const rt = (tm as any)?.supervisor
+    const rt = (tm as any)?.global_machine ?? (tm as any)?.supervisor
     const q = Array.isArray((rt as any)?.queue) ? (rt as any).queue : []
     const queueSize = q.length || undefined
     const reasons = q.map((x: any) => String(x?.reason ?? "")).filter((x: string) => x.trim())
@@ -221,8 +233,8 @@ export async function processMessage(
       queue_reasons_tail: tail.length ? tail : undefined,
       queue_pending_reasons: pending.length ? pending : undefined,
     }
-    if (sess?.type === "topic_session") {
-      out.topic_session = {
+    if (sess?.type === "topic_exploration") {
+      out.topic_exploration = {
         topic: sess.topic ? String(sess.topic).slice(0, 160) : undefined,
         phase: sess.phase ? String(sess.phase) : undefined,
         focus_mode: sess.focus_mode ? String(sess.focus_mode) : undefined,
@@ -266,8 +278,8 @@ export async function processMessage(
     pending_nudge_kind: string | null
     resume_action_v1: string | null
     stale_cleaned: string[]
-    topic_session_closed: boolean
-    topic_session_handoff: boolean
+    topic_exploration_closed: boolean
+    topic_exploration_handoff: boolean
     safety_preempted_flow: boolean
     dispatcher_signals: DispatcherSignals | null
     temp_memory_before: any
@@ -290,8 +302,8 @@ export async function processMessage(
     if (args.resume_action_v1 === "declined") reasonCodes.push("RESUME_DECLINED")
     if (args.safety_preempted_flow) reasonCodes.push("SAFETY_PREEMPTED_FLOW")
     if (args.stale_cleaned.length > 0) reasonCodes.push("STALE_CLEANUP")
-    if (args.topic_session_closed) reasonCodes.push("TOPIC_SESSION_CLOSED")
-    if (args.topic_session_handoff) reasonCodes.push("TOPIC_SESSION_HANDOFF")
+    if (args.topic_exploration_closed) reasonCodes.push("TOPIC_EXPLORATION_CLOSED")
+    if (args.topic_exploration_handoff) reasonCodes.push("TOPIC_EXPLORATION_HANDOFF")
 
     const snapshotBefore = {
       toolflow: pickToolflowSummary(args.temp_memory_before),
@@ -330,8 +342,8 @@ export async function processMessage(
         pending_nudge_kind: args.pending_nudge_kind,
         resume_action_v1: args.resume_action_v1,
         stale_cleaned: args.stale_cleaned.length > 0 ? args.stale_cleaned : null,
-        topic_session_closed: args.topic_session_closed || null,
-        topic_session_handoff: args.topic_session_handoff || null,
+        topic_exploration_closed: args.topic_exploration_closed || null,
+        topic_exploration_handoff: args.topic_exploration_handoff || null,
         safety_preempted_flow: args.safety_preempted_flow || null,
         dispatcher_signals: args.dispatcher_signals ? {
           safety: args.dispatcher_signals.safety,
@@ -1003,12 +1015,153 @@ SORTIE JSON STRICTE:
     toolflow_active: Boolean((tempMemory as any)?.architect_tool_flow),
     toolflow_kind: (tempMemory as any)?.architect_tool_flow?.kind,
     profile_confirm_pending: Boolean((tempMemory as any)?.user_profile_confirm?.pending),
-    topic_session_phase: topicSession?.type === "topic_session" ? topicSession.phase : undefined,
+    topic_exploration_phase: topicSession?.type === "topic_exploration" ? topicSession.phase : undefined,
     risk_level: state?.risk_level,
   }
 
   const dispatcherSignals = await analyzeSignals(userMessage, stateSnapshot, lastAssistantMessage, meta)
   riskScore = dispatcherSignals.risk_score
+
+  // Tracing flags for topic exploration (reported in RouterDecisionV1)
+  let topicSessionClosedThisTurn = false
+  let topicSessionHandoffThisTurn = false
+
+  // --- TOPIC EXPLORATION (global_machine) ---
+  // Uses topic_depth signal to determine:
+  // - NEED_SUPPORT → firefighter (handled in policy section below)
+  // - SERIOUS → topic_exploration with owner=architect
+  // - LIGHT → topic_exploration with owner=companion
+  // - NONE → no topic exploration triggered
+  try {
+    const tm0 = (tempMemory ?? {}) as any
+    const existing = getActiveSupervisorSession(tm0)
+    const hasExistingTopicExploration = existing?.type === "topic_exploration"
+    const interrupt = dispatcherSignals?.interrupt
+    const topicDepth = dispatcherSignals?.topic_depth?.value ?? "NONE"
+    const topicDepthConf = dispatcherSignals?.topic_depth?.confidence ?? 0
+
+    // Should trigger topic_exploration: SERIOUS or LIGHT topic + interruption
+    const shouldTrigger =
+      (topicDepth === "SERIOUS" || topicDepth === "LIGHT") &&
+      topicDepthConf >= 0.6 &&
+      (interrupt?.kind === "DIGRESSION" || interrupt?.kind === "SWITCH_TOPIC") &&
+      (Number(interrupt?.confidence ?? 0) >= 0.6)
+
+    const bored = looksLikeUserBoredOrWantsToStop(userMessage)
+
+    // Auto-close: if topic exploration was in "closing" and user continues (not bored), close it.
+    if (
+      hasExistingTopicExploration &&
+      existing?.phase === "closing" &&
+      !bored
+    ) {
+      const closed = closeTopicExploration({ tempMemory: tm0 })
+      if (closed.changed) {
+        tempMemory = closed.tempMemory
+        topicSessionClosedThisTurn = true
+      }
+    }
+
+    if (hasExistingTopicExploration || shouldTrigger) {
+      const topicFromDispatcher = interrupt?.deferred_topic_formalized ?? null
+      const topic = (typeof topicFromDispatcher === "string" && topicFromDispatcher.trim())
+        ? topicFromDispatcher.trim().slice(0, 160)
+        : (existing?.topic ? String(existing.topic) : guessTopicLabel(userMessage))
+
+      // Owner mode based on topic_depth:
+      // - SERIOUS → architect (deep introspection, personal issues)
+      // - LIGHT → companion (casual conversation)
+      // - For existing sessions, preserve the owner unless new topic_depth overrides
+      const ownerMode: AgentMode =
+        topicDepth === "SERIOUS" ? "architect" :
+        topicDepth === "LIGHT" ? "companion" :
+        (existing?.owner_mode ?? "companion")
+
+      const arch = (tm0 as any)?.architect ?? {}
+      const planFocus = Boolean(arch?.plan_focus ?? false)
+      const loopCount = Number(arch?.loop_count ?? 0) || 0
+      const focusMode: "plan" | "discussion" | "mixed" =
+        planFocus ? "plan" : (ownerMode === "architect" ? "mixed" : "discussion")
+      const phase: "opening" | "exploring" | "converging" | "closing" =
+        bored ? "closing" : (loopCount >= 2 ? "converging" : "exploring")
+
+      const updated = upsertTopicExploration({
+        tempMemory: tm0,
+        topic,
+        ownerMode,
+        phase,
+        focusMode,
+      })
+      if (updated.changed) tempMemory = updated.tempMemory
+    }
+  } catch {
+    // best-effort
+  }
+
+  // --- DEEP REASONS EXPLORATION ---
+  // Two entry points:
+  // 1. DEFERRED: Investigator created a deep_reasons deferred topic during bilan → resume after bilan
+  // 2. DIRECT: Dispatcher detects motivational blocker outside bilan → Architect can launch directly
+  let deepReasonsActiveSession = getActiveDeepReasonsExploration(tempMemory)
+  let deepReasonsStateFromTm = (tempMemory as any)?.deep_reasons_state as DeepReasonsState | undefined
+  
+  try {
+    const checkupActive = Boolean(state?.investigation_state && state.investigation_state.status !== "post_checkup")
+    const hasDeepReasonsDeferred = hasDeepReasonsDeferredTopic(tempMemory)
+    const deepReasonsOpportunity = dispatcherSignals?.deep_reasons?.opportunity ?? false
+    const deepReasonsConf = dispatcherSignals?.deep_reasons?.confidence ?? 0
+    const inBilanContext = dispatcherSignals?.deep_reasons?.in_bilan_context ?? checkupActive
+    
+    // Enrich dispatcherSignals with deferred_ready (computed from state)
+    if (dispatcherSignals?.deep_reasons) {
+      dispatcherSignals.deep_reasons.deferred_ready = hasDeepReasonsDeferred && !checkupActive
+    }
+    
+    // Entry Point 1: Resume deferred deep_reasons topic AFTER bilan ends
+    if (hasDeepReasonsDeferred && !checkupActive && !deepReasonsActiveSession && !deepReasonsStateFromTm) {
+      const deferredTopic = getDeepReasonsDeferredTopic(tempMemory)
+      if (deferredTopic) {
+        // Create the deep_reasons state from deferred topic
+        const state0 = resumeDeepReasonsFromDeferred(deferredTopic)
+        // Store in temp_memory
+        ;(tempMemory as any).deep_reasons_state = state0
+        deepReasonsStateFromTm = state0
+        
+        // Create supervisor session
+        const sessionCreated = upsertDeepReasonsExploration({
+          tempMemory,
+          topic: deferredTopic.topic,
+          phase: state0.phase,
+          pattern: state0.detected_pattern,
+          actionTitle: deferredTopic.context?.action_title,
+          source: "deferred",
+        })
+        if (sessionCreated.changed) tempMemory = sessionCreated.tempMemory
+        deepReasonsActiveSession = getActiveDeepReasonsExploration(tempMemory)
+        
+        // Remove the deferred topic (it's now active)
+        const removed = removeDeepReasonsDeferredTopic({ temp_memory: tempMemory })
+        if (removed?.temp_memory) tempMemory = removed.temp_memory
+        
+        console.log(`[Router] Deep reasons exploration resumed from deferred topic: ${deferredTopic.topic}`)
+      }
+    }
+    
+    // Entry Point 2: Direct opportunity detected by dispatcher (outside bilan)
+    // The Architect will handle proposing and potentially launching via start_deep_exploration tool
+    // We just need to ensure routing goes to Architect when opportunity is detected
+    if (deepReasonsOpportunity && !inBilanContext && deepReasonsConf >= 0.65 && !deepReasonsActiveSession && !checkupActive) {
+      // Add a routing hint for Architect
+      ;(tempMemory as any).__deep_reasons_opportunity = {
+        detected: true,
+        pattern: detectDeepReasonsPattern(userMessage) ?? "unknown",
+        user_words: String(userMessage ?? "").slice(0, 200),
+      }
+      console.log(`[Router] Deep reasons opportunity detected (confidence: ${deepReasonsConf.toFixed(2)}), will route to Architect`)
+    }
+  } catch (e) {
+    console.error("[Router] Deep reasons handling error:", e)
+  }
 
   // --- DETERMINISTIC POLICY: Signal → targetMode ---
   // Priority order: Safety > Hard blockers > Intent-based routing
@@ -1041,12 +1194,20 @@ SORTIE JSON STRICTE:
     } else if (intent === "PREFERENCE" && intentConf >= 0.6) {
       targetMode = "companion"
     } else if (intent === "EMOTIONAL_SUPPORT") {
-      // Check if it's acute distress (firefighter) or mild support (companion)
-      if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.5) {
+      // EMOTIONAL_SUPPORT + topic_depth.NEED_SUPPORT → firefighter
+      // Otherwise, companion handles mild emotional talk
+      const topicDepth = dispatcherSignals.topic_depth?.value ?? "NONE"
+      const topicDepthConf = dispatcherSignals.topic_depth?.confidence ?? 0
+      if (topicDepth === "NEED_SUPPORT" && topicDepthConf >= 0.6) {
+        targetMode = "firefighter"
+      } else if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.5) {
         targetMode = "firefighter"
       } else {
         targetMode = "companion"
       }
+    } else if (dispatcherSignals.topic_depth?.value === "NEED_SUPPORT" && dispatcherSignals.topic_depth?.confidence >= 0.6) {
+      // Catch-all: if NEED_SUPPORT is detected regardless of intent, route to firefighter
+      targetMode = "firefighter"
     } else {
       // Default: companion
       targetMode = "companion"
@@ -1064,9 +1225,35 @@ SORTIE JSON STRICTE:
     targetMode = opts.forceMode
   }
 
+  // 5. Deep Reasons Exploration routing
+  // If there's an active deep_reasons session or opportunity, route to Architect
+  if (
+    !state?.investigation_state &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    // Active deep_reasons session takes priority
+    if (deepReasonsActiveSession || deepReasonsStateFromTm) {
+      targetMode = "architect"
+      await traceV("brain:deep_reasons_routing", "routing", {
+        reason: "active_deep_reasons_session",
+        phase: deepReasonsStateFromTm?.phase ?? deepReasonsActiveSession?.phase,
+      })
+    }
+    // Deep reasons opportunity (dispatcher detected motivational blocker outside bilan)
+    else if ((tempMemory as any)?.__deep_reasons_opportunity?.detected) {
+      targetMode = "architect"
+      await traceV("brain:deep_reasons_routing", "routing", {
+        reason: "deep_reasons_opportunity",
+        pattern: (tempMemory as any)?.__deep_reasons_opportunity?.pattern,
+      })
+    }
+  }
+
   dispatcherTargetMode = targetMode
   const nCandidates = 1 // Multi-candidate generation disabled (was only used for complex messages in legacy v1)
-  console.log(`[Dispatcher] Signals: safety=${dispatcherSignals.safety.level}(${dispatcherSignals.safety.confidence.toFixed(2)}), intent=${dispatcherSignals.user_intent_primary}(${dispatcherSignals.user_intent_confidence.toFixed(2)}), interrupt=${dispatcherSignals.interrupt.kind}, → targetMode=${targetMode}`)
+  console.log(`[Dispatcher] Signals: safety=${dispatcherSignals.safety.level}(${dispatcherSignals.safety.confidence.toFixed(2)}), intent=${dispatcherSignals.user_intent_primary}(${dispatcherSignals.user_intent_confidence.toFixed(2)}), interrupt=${dispatcherSignals.interrupt.kind}, topic_depth=${dispatcherSignals.topic_depth.value}(${dispatcherSignals.topic_depth.confidence.toFixed(2)}) → targetMode=${targetMode}`)
   await trace("brain:dispatcher_result", "dispatcher", {
     risk_score: riskScore,
     target_mode: targetMode,
@@ -1110,7 +1297,7 @@ SORTIE JSON STRICTE:
   let resumeActionV1: "prompted" | "accepted" | "declined" | null = null
 
   // --- Scheduler v1 (minimal): explicit stop/boredom cancels any active Architect toolflow.
-  // Toolflows are transactional; they should not block handoffs (topic_session) nor hijack emotional/safety turns.
+  // Toolflows are transactional; they should not block handoffs (topic_exploration) nor hijack emotional/safety turns.
   if (boredOrStop && toolFlowActiveGlobal) {
     const cleared = setArchitectToolFlowInTempMemory({ tempMemory, nextFlow: null })
     if (cleared.changed) {
@@ -1237,8 +1424,8 @@ SORTIE JSON STRICTE:
     targetMode !== "investigator"
   ) {
     // IMPORTANT: Use toolFlowActiveGlobal (checks temp_memory.architect_tool_flow directly)
-    // because topic_session is always pushed after architect_tool_flow in the stack,
-    // so getActiveSupervisorSession would return topic_session, not architect_tool_flow.
+    // because topic_exploration is always pushed after architect_tool_flow in the stack,
+    // so getActiveSupervisorSession would return topic_exploration, not architect_tool_flow.
     const hasActiveArchitectToolFlow = toolFlowActiveGlobal && !toolflowCancelledOnStop
     // If this is a preference-confirmation moment, do NOT let active sessions hijack.
     if (forcedPref || forcedPendingConfirm) {
@@ -2087,72 +2274,6 @@ SORTIE JSON STRICTE:
     }
   }
 
-  // --- TOPIC SESSION (global supervisor state machine) ---
-  // Goal: keep a coarse "topic lifecycle" across agents (opening/exploring/converging/closing) and enable clean handoffs.
-  let topicSessionClosedThisTurn = false
-  let topicSessionHandoffThisTurn = false
-  try {
-    let tm0 = (tempMemory ?? {}) as any
-    const toolFlowActive = Boolean((tm0 as any)?.architect_tool_flow)
-    const arch = (tm0 as any)?.architect ?? {}
-    const planFocus = Boolean(arch?.plan_focus ?? false)
-    const loopCount = Number(arch?.loop_count ?? 0) || 0
-    const focusMode: "plan" | "discussion" | "mixed" =
-      planFocus ? "plan" : (targetMode === "architect" ? "mixed" : "discussion")
-    const topic = guessTopicLabel(userMessage)
-    const bored = looksLikeUserBoredOrWantsToStop(userMessage)
-
-    // Auto-close topic_session if it was in "closing" phase and user continues (not bored).
-    // This ensures clean transitions after handoff.
-    const existingTopicSession = getActiveSupervisorSession(tm0)
-    if (
-      existingTopicSession?.type === "topic_session" &&
-      existingTopicSession.phase === "closing" &&
-      !bored
-    ) {
-      const closed = closeTopicSession({ tempMemory: tm0 })
-      if (closed.changed) {
-        tempMemory = closed.tempMemory
-        tm0 = tempMemory as any
-        topicSessionClosedThisTurn = true
-      }
-    }
-
-    // NOTE: Toolflow cancellation on bored/stop is handled earlier (line ~697-705) via the main scheduler block.
-    // We don't repeat it here to avoid confusion; just re-check the current state.
-    const toolFlowActiveAfter = Boolean((tm0 as any)?.architect_tool_flow)
-    const phase: "opening" | "exploring" | "converging" | "closing" =
-      bored ? "closing" : (loopCount >= 2 ? "converging" : "exploring")
-    const handoffTo = (phase === "closing" && targetMode === "architect" && !toolFlowActiveAfter) ? "companion" : undefined
-    const updated = upsertTopicSession({
-      tempMemory: tm0,
-      topic,
-      ownerMode: (handoffTo ? "companion" : targetMode),
-      phase,
-      focusMode,
-      handoffTo,
-      handoffBrief: handoffTo ? `On clôture: "${topic}". L'utilisateur montre de la fatigue/stop. Reprendre en mode compagnon.` : undefined,
-    })
-    if (updated.changed) tempMemory = updated.tempMemory
-
-    // Conservative baton handoff: only when the user signals stop/boredom AND no active tool flow.
-    if (handoffTo === "companion" && !looksLikeAcuteDistress(userMessage)) {
-      await traceV("brain:topic_session_handoff", "routing", {
-        from: targetMode,
-        to: "companion",
-        reason: "topic_session_closing",
-        topic,
-        phase,
-        focusMode,
-        loopCount,
-      }, "info")
-      targetMode = "companion"
-      topicSessionHandoffThisTurn = true
-    }
-  } catch {
-    // best-effort; never block routing
-  }
-
   // 5. Exécution de l'Agent Choisi
   let responseContent = ""
   let nextMode = targetMode
@@ -2226,8 +2347,8 @@ SORTIE JSON STRICTE:
         pending_nudge_kind: null,
         resume_action_v1: resumeActionV1,
         stale_cleaned: staleCleaned,
-        topic_session_closed: topicSessionClosedThisTurn,
-        topic_session_handoff: topicSessionHandoffThisTurn,
+        topic_exploration_closed: topicSessionClosedThisTurn,
+        topic_exploration_handoff: topicSessionHandoffThisTurn,
         safety_preempted_flow: Boolean((tempMemory as any)?.__router_safety_preempted_v1),
         dispatcher_signals: dispatcherSignals,
         temp_memory_before: tempMemory,
@@ -2242,6 +2363,60 @@ SORTIE JSON STRICTE:
       await logMessage(supabase, userId, scope, "assistant", responseContent, "architect", md);
     } catch {}
     return { content: normalizeChatText(responseContent), mode: nextMode, aborted: false };
+  }
+
+  // --- DEEP REASONS STATE MACHINE EXECUTION ---
+  // If there's an active deep_reasons state, run the state machine instead of normal agent flow
+  if (targetMode === "architect" && deepReasonsStateFromTm) {
+    try {
+      const drResult = await runDeepReasonsExploration({
+        supabase,
+        userId,
+        message: userMessage,
+        history,
+        currentState: deepReasonsStateFromTm,
+        meta: { requestId: meta?.requestId, channel, model: meta?.model },
+      })
+      
+      // Update or clear the deep_reasons state
+      if (drResult.newState) {
+        ;(tempMemory as any).deep_reasons_state = drResult.newState
+        // Update supervisor session phase
+        const sessionUpdated = upsertDeepReasonsExploration({
+          tempMemory,
+          topic: deepReasonsStateFromTm.action_context?.title ?? "blocage motivationnel",
+          phase: drResult.newState.phase,
+          pattern: drResult.newState.detected_pattern,
+          source: drResult.newState.source,
+        })
+        if (sessionUpdated.changed) tempMemory = sessionUpdated.tempMemory
+      } else {
+        // Exploration ended - close session and clear state
+        const closed = closeDeepReasonsExploration({ 
+          tempMemory, 
+          outcome: drResult.outcome,
+        })
+        if (closed.changed) tempMemory = closed.tempMemory
+      }
+      
+      // Merge temp_memory updates back to state
+      const mergedTempMemory = {
+        ...((state?.temp_memory ?? {}) as any),
+        ...((tempMemory ?? {}) as any),
+      }
+      await updateUserState(supabase, userId, scope, { temp_memory: mergedTempMemory })
+      
+      await trace("brain:deep_reasons_turn", "agent", {
+        phase: drResult.newState?.phase ?? "ended",
+        outcome: drResult.outcome ?? null,
+        turn_count: drResult.newState?.turn_count ?? deepReasonsStateFromTm.turn_count,
+      }, "info")
+      
+      return { content: normalizeChatText(drResult.content), mode: "architect" as AgentMode, aborted: false }
+    } catch (e) {
+      console.error("[Router] Deep reasons execution failed:", e)
+      // Fall through to normal agent execution
+    }
   }
 
   const selectedChatModel = selectChatModel(targetMode, riskScore)
@@ -2422,6 +2597,7 @@ SORTIE JSON STRICTE:
     // Keep latestTm as base (preserve agent-written changes), but re-apply router-owned supervisor runtime.
     mergedTempMemory = { ...(latestTm ?? {}) }
     if (tempMemory && typeof tempMemory === "object") {
+      if ((tempMemory as any).global_machine) (mergedTempMemory as any).global_machine = (tempMemory as any).global_machine
       if ((tempMemory as any).supervisor) (mergedTempMemory as any).supervisor = (tempMemory as any).supervisor
       if ((tempMemory as any).global_deferred_topics) (mergedTempMemory as any).global_deferred_topics = (tempMemory as any).global_deferred_topics
       if ((tempMemory as any).architect) (mergedTempMemory as any).architect = (tempMemory as any).architect
@@ -2460,8 +2636,8 @@ SORTIE JSON STRICTE:
         pending_nudge_kind: pendingNudgeKind,
         resume_action_v1: resumeActionV1,
         stale_cleaned: staleCleaned,
-        topic_session_closed: topicSessionClosedThisTurn,
-        topic_session_handoff: topicSessionHandoffThisTurn,
+        topic_exploration_closed: topicSessionClosedThisTurn,
+        topic_exploration_handoff: topicSessionHandoffThisTurn,
         safety_preempted_flow: Boolean((mergedTempMemory as any)?.__router_safety_preempted_v1),
         dispatcher_signals: dispatcherSignals,
         temp_memory_before: tempMemory,

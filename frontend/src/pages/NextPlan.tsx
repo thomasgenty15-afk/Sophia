@@ -204,7 +204,7 @@ const NextPlan = () => {
               </div>
               <h1 className="text-2xl font-bold text-slate-900 mb-2">Toutes les transformations sont terminées !</h1>
               <p className="text-slate-500 max-w-md mb-8">
-                  Vous avez traité tous les axes prioritaires de votre plan global. C'est un accomplissement majeur.
+                  Tu as traité tous les axes prioritaires de ton plan global. C'est un accomplissement majeur.
               </p>
               <button 
                   onClick={handleStartNewCycle}
@@ -466,7 +466,7 @@ const NextPlan = () => {
                 <span className="font-bold text-sm">i</span>
             </div>
             <p className="text-indigo-800 text-sm">
-                Voici votre prochain axe prioritaire. Confirmez ou précisez vos réponses pour ce sujet spécifique avant de générer le plan.
+                Voici ton prochain axe prioritaire. Confirme ou précise tes réponses pour ce sujet spécifique avant de générer le plan.
             </p>
         </div>
 

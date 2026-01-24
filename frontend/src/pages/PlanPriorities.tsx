@@ -19,6 +19,7 @@ import {
 
 import OnboardingProgress from '../components/OnboardingProgress';
 import { getThemeLabelById } from '../data/onboarding/registry';
+import { loadGuestPlanFlowState, saveGuestPlanFlowState } from '../lib/guestPlanFlowCache';
 
 interface PriorityItem {
   id: string;
@@ -27,6 +28,50 @@ interface PriorityItem {
   role?: string;
   reasoning?: string;
 }
+
+// --- CACHE HELPERS ---
+const SORT_PRIORITIES_CACHE_KEY = 'sophia_sort_priorities_cache';
+
+interface SortPrioritiesCacheData {
+  order: PriorityItem[];
+  reasoning: Record<string, any>;
+  axisIds: string; // Sorted axis IDs joined, used as cache key
+}
+
+const getCachedSortPriorities = (axisIds: string[]): SortPrioritiesCacheData | null => {
+  try {
+    const cached = sessionStorage.getItem(SORT_PRIORITIES_CACHE_KEY);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    const requestedKey = [...axisIds].sort().join(',');
+    if (parsed.axisIds === requestedKey && parsed.order?.length > 0) {
+      console.log("♻️ Cache hit for sort-priorities:", requestedKey);
+      return parsed;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedSortPriorities = (data: SortPrioritiesCacheData) => {
+  try {
+    sessionStorage.setItem(SORT_PRIORITIES_CACHE_KEY, JSON.stringify({
+      ...data,
+      timestamp: Date.now()
+    }));
+  } catch {
+    // Ignore storage errors
+  }
+};
+
+const clearCachedSortPriorities = () => {
+  try {
+    sessionStorage.removeItem(SORT_PRIORITIES_CACHE_KEY);
+  } catch {
+    // Ignore
+  }
+};
 
 const MOCK_IA_ORDER: PriorityItem[] = [
   // NOTE: keep theme as a theme_id when possible (display label is derived).
@@ -42,6 +87,16 @@ const PlanPriorities = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
+  
+  // 🔥 PRIORITÉ au cache s'il contient des résultats IA (retour depuis /auth)
+  // Sinon fallback sur location.state puis sur le cache simple
+  const cached = loadGuestPlanFlowState();
+  const cachedHasAiData = Array.isArray(cached?.finalOrder) && 
+    cached.finalOrder.some((item: any) => item?.reasoning || item?.role);
+  const navState = cachedHasAiData ? cached : ((location.state as any) || cached);
+  
+  // Ne PAS sauvegarder automatiquement au montage - ça écrase les bonnes données!
+  // La sauvegarde se fait uniquement dans handleValidate avant navigation.
 
   // --- STATE ---
   const [initialOrder, setInitialOrder] = useState<PriorityItem[]>([]);
@@ -80,9 +135,122 @@ const PlanPriorities = () => {
       
       setIsLoading(true);
       try {
+        // --- STEP 0: DÉTERMINER SI C'EST UNE NOUVELLE DEMANDE OU UN RETOUR ---
+        const generationTimestamp = navState?.generationTimestamp;
+        const lastProcessedGen = sessionStorage.getItem('last_processed_gen_timestamp');
+        const isNewGenerationRequest = Boolean(navState?.forceRefresh) && 
+          generationTimestamp && 
+          lastProcessedGen !== String(generationTimestamp);
+
+        // Si nouvelle demande explicite, clear le cache pour forcer un nouvel appel
+        if (isNewGenerationRequest) {
+          console.log("🔄 Nouvelle demande détectée - Cache invalidé");
+          clearCachedSortPriorities();
+          sessionStorage.setItem('last_processed_gen_timestamp', String(generationTimestamp));
+        }
+
+        // --- STEP 1: SI UTILISATEUR CONNECTÉ, ESSAYER LA DB D'ABORD (plus fiable) ---
+        if (user && !isNewGenerationRequest) {
+          const { data: existingGoalsFromDB } = await supabase
+            .from('user_goals')
+            .select('*')
+            .eq('user_id', user.id)
+            .in('status', ['active', 'pending'])
+            .order('priority_order', { ascending: true });
+
+          if (existingGoalsFromDB && existingGoalsFromDB.length > 0) {
+            // Vérifier que les données ont du reasoning (= déjà passé par l'IA)
+            const hasReasoningInDB = existingGoalsFromDB.some((g: any) => g.reasoning);
+            if (hasReasoningInDB) {
+              console.log("✅ Restauration depuis la DB (utilisateur connecté)");
+              loadFromData(existingGoalsFromDB, existingGoalsFromDB);
+              
+              // Sauvegarder aussi dans le cache sessionStorage pour accès rapide
+              const loadedOrder = existingGoalsFromDB.map((g: any) => ({
+                id: g.axis_id,
+                title: g.axis_title,
+                theme: g.theme_id,
+                role: g.role,
+                reasoning: g.reasoning
+              }));
+              const reasoningMap: any = {};
+              existingGoalsFromDB.forEach((g: any) => {
+                reasoningMap[g.axis_id] = {
+                  roleTitle: g.role === 'foundation' ? "LA FONDATION" : g.role === 'lever' ? "LE LEVIER" : "L'OPTIMISATION",
+                  reasoning: g.reasoning,
+                  type: g.role,
+                  style: g.role === 'foundation' ? "bg-emerald-50 border-emerald-100 text-emerald-800" 
+                       : g.role === 'lever' ? "bg-amber-50 border-amber-100 text-amber-800" 
+                       : "bg-violet-50 border-violet-100 text-violet-800",
+                  iconType: g.role === 'foundation' ? 'shield' : g.role === 'lever' ? 'zap' : 'trophy'
+                };
+              });
+              const axisIds = loadedOrder.map((a: any) => a.id);
+              setCachedSortPriorities({
+                order: loadedOrder,
+                reasoning: reasoningMap,
+                axisIds: [...axisIds].sort().join(',')
+              });
+              
+              setIsLoading(false);
+              return;
+            }
+          }
+        }
+
+        // --- STEP 2: FALLBACK SUR LE CACHE SESSIONSTORAGE (invités ou pas de données DB) ---
+        const axesToCheck = navState?.selectedAxes || [];
+        if (axesToCheck.length > 0 && !isNewGenerationRequest) {
+          const axisIds = axesToCheck.map((a: any) => a.id);
+          const cachedData = getCachedSortPriorities(axisIds);
+          if (cachedData) {
+            console.log("✅ Restauration depuis sessionStorage cache (fallback)");
+            setAiReasoning(cachedData.reasoning);
+            setInitialOrder(cachedData.order);
+            setCurrentOrder(cachedData.order);
+            setIsLoading(false);
+            return;
+          }
+        }
+
+        // --- STEP 3: FALLBACK SUR LE NAVSTATE (retour depuis /auth pour invités) ---
+        const cachedFinalOrder = navState?.finalOrder;
+        if (Array.isArray(cachedFinalOrder) && cachedFinalOrder.length > 0) {
+            const hasAiData = cachedFinalOrder.some((item: any) => item?.reasoning || item?.role);
+            if (hasAiData) {
+                console.log("✅ Restauration des résultats IA depuis navState (retour arrière)");
+                const reasoningMap: any = {};
+                cachedFinalOrder.forEach((item: any, index: number) => {
+                    reasoningMap[item.id] = formatReasoning(
+                        { originalId: item.id, role: item.role, reasoning: item.reasoning },
+                        index,
+                        cachedFinalOrder.length
+                    );
+                });
+                setAiReasoning(reasoningMap);
+                setInitialOrder(cachedFinalOrder);
+                setCurrentOrder(cachedFinalOrder);
+                
+                // Sauvegarder aussi dans le cache sessionStorage pour les prochains retours
+                const axisIds = cachedFinalOrder.map((a: any) => a.id);
+                setCachedSortPriorities({
+                  order: cachedFinalOrder,
+                  reasoning: reasoningMap,
+                  axisIds: [...axisIds].sort().join(',')
+                });
+                
+                setIsLoading(false);
+                return; // On a tout, on s'arrête là
+            }
+        }
+
         // 1. DÉFINIR LES AXES À TRAITER
         // Priorité : State de navigation (ex: venant de l'onboarding) > Mock
-        let axesToAnalyze = location.state?.selectedAxes;
+        let axesToAnalyze = navState?.selectedAxes;
+        let assistantContextToSend =
+          navState?.fullAnswers?.assistant_context ||
+          navState?.fullAnswers?.assistantContext ||
+          null;
         
         // 2. RECUPERER LES DONNÉES EXISTANTES (Si User connecté)
         let existingGoals: any[] = [];
@@ -111,10 +279,10 @@ const PlanPriorities = () => {
           }
 
           // C. Récupérer le compteur d'essais
-          const submissionId = location.state?.submissionId;
+          const submissionId = navState?.submissionId;
           let query = supabase
             .from('user_answers')
-            .select('id, sorting_attempts')
+            .select('id, sorting_attempts, content')
             .eq('user_id', user.id)
             .eq('questionnaire_type', 'onboarding');
 
@@ -128,6 +296,11 @@ const PlanPriorities = () => {
           if (answerData) {
             attemptsCount = answerData.sorting_attempts || 0;
             lastAnswerId = answerData.id;
+            assistantContextToSend =
+              assistantContextToSend ||
+              (answerData as any)?.content?.assistant_context ||
+              (answerData as any)?.content?.assistantContext ||
+              null;
           } else if (submissionId) {
              // CRUCIAL : Si l'utilisateur n'est pas connecté ou est en mode "guest", 
              // user sera undefined et on ne passera pas ici.
@@ -168,7 +341,7 @@ const PlanPriorities = () => {
         }
 
         // 3. DECISION : CHARGER OU GÉNÉRER ?
-        let isForceRefresh = location.state?.forceRefresh;
+        // isNewGenerationRequest est déjà calculé au début de initPage()
         
         // On vérifie si les données en base correspondent à la demande actuelle
         const existingIds = existingGoals.map((g: any) => g.axis_id).sort().join(',');
@@ -186,35 +359,63 @@ const PlanPriorities = () => {
             }));
         }
 
-        // PROTECTION NAVIGATION "BACK/FORWARD" (Le vrai problème)
-        // Si on a un timestamp de génération et qu'il est vieux (déjà traité), on annule le forceRefresh.
-        const generationTimestamp = location.state?.generationTimestamp;
-        const lastProcessedGen = sessionStorage.getItem('last_processed_gen_timestamp');
-        
-        if (isForceRefresh && generationTimestamp && lastProcessedGen === String(generationTimestamp)) {
-             console.log("🛡 Navigation Back/Forward détectée : Annulation du forceRefresh.");
-             isForceRefresh = false;
-        }
+        // Note: La protection navigation Back/Forward est gérée au début de initPage()
+        // via isNewGenerationRequest et le cache sessionStorage.
 
-        // Si on traite vraiment une nouvelle demande, on marque le timestamp comme traité
-        if (isForceRefresh && generationTimestamp) {
-             sessionStorage.setItem('last_processed_gen_timestamp', String(generationTimestamp));
-        }
+        const isSingleAxis = Array.isArray(axesToAnalyze) && axesToAnalyze.length === 1;
+        const hasExistingReasoning =
+          isSingleAxis &&
+          hasMatchingData &&
+          Array.isArray(existingGoals) &&
+          existingGoals.length === 1 &&
+          Boolean((existingGoals as any)[0]?.reasoning);
+
+        // ✅ Focus unique: on veut quand même un appel IA pour générer un vrai reasoning (une fois),
+        // sauf si on a déjà un reasoning en cache DB.
+        const shouldGenerate = isNewGenerationRequest || (isSingleAxis && !hasExistingReasoning);
 
         // Condition pour charger depuis la DB (Pas d'appel IA)
-        // SI : (On a des données correspondantes) ET (On ne force pas le refresh)
-        if (hasMatchingData && !isForceRefresh) {
+        // SI : (On a des données correspondantes) ET (On ne génère pas)
+        if (hasMatchingData && !shouldGenerate) {
             console.log("📂 Chargement depuis le cache DB (Données existantes trouvées)");
             loadFromData(existingGoals, axesToAnalyze);
+            
+            // Sauvegarder aussi dans sessionStorage pour les prochains retours
+            const loadedOrder = existingGoals.map((g: any) => ({
+                id: g.axis_id,
+                title: g.axis_title,
+                theme: g.theme_id,
+                role: g.role,
+                reasoning: g.reasoning
+            }));
+            const reasoningMap: any = {};
+            existingGoals.forEach((g: any) => {
+                reasoningMap[g.axis_id] = {
+                    roleTitle: g.role === 'foundation' ? "LA FONDATION" : g.role === 'lever' ? "LE LEVIER" : "L'OPTIMISATION",
+                    reasoning: g.reasoning,
+                    type: g.role,
+                    style: g.role === 'foundation' ? "bg-emerald-50 border-emerald-100 text-emerald-800" 
+                         : g.role === 'lever' ? "bg-amber-50 border-amber-100 text-amber-800" 
+                         : "bg-violet-50 border-violet-100 text-violet-800",
+                    iconType: g.role === 'foundation' ? 'shield' : g.role === 'lever' ? 'zap' : 'trophy'
+                };
+            });
+            const axisIds = loadedOrder.map((a: any) => a.id);
+            setCachedSortPriorities({
+              order: loadedOrder,
+              reasoning: reasoningMap,
+              axisIds: [...axisIds].sort().join(',')
+            });
+            
             setIsLoading(false);
             return;
         }
 
         // 4. LOGIQUE DE GÉNÉRATION (Appel IA)
         
-        // SÉCURITÉ : On n'appelle l'IA que si l'utilisateur a explicitement demandé une génération (forceRefresh = true)
-        // Si on arrive ici sans cache et sans demande explicite (accès direct URL, reload...), on bloque.
-        if (!isForceRefresh) {
+        // SÉCURITÉ : on n'appelle l'IA que si demandé, SAUF en focus unique (1 axe) où on veut enrichir le reasoning.
+        // Note: La restauration depuis le cache est gérée au tout début de initPage().
+        if (!shouldGenerate) {
              console.warn("⛔️ Tentative de génération sans demande explicite. Chargement du Mock.");
              loadSimple(axesToAnalyze);
              setIsLoading(false);
@@ -225,7 +426,7 @@ const PlanPriorities = () => {
         if (attemptsCount >= 3) {
             console.warn("⚠️ Limite atteinte (3/3). Blocage régénération.");
             if (hasMatchingData) {
-                alert("Vous avez atteint la limite de 3 régénérations. Chargement de la dernière version.");
+                alert("Tu as atteint la limite de 3 régénérations. Chargement de la dernière version.");
                 loadFromData(existingGoals, axesToAnalyze);
             } else {
                 // Cas critique : Limite atteinte ET pas de données -> Fallback simple sans IA
@@ -244,7 +445,7 @@ const PlanPriorities = () => {
         // configuré avec la clé anon gère cela automatiquement pour les fonctions publiques.
         const reqId = newRequestId();
         const { data, error } = await supabase.functions.invoke('sort-priorities', {
-            body: { axes: axesToAnalyze, client_request_id: reqId },
+            body: { axes: axesToAnalyze, assistantContext: assistantContextToSend, client_request_id: reqId },
             headers: requestHeaders(reqId),
         });
 
@@ -311,12 +512,21 @@ const PlanPriorities = () => {
             setAiReasoning(reasoningMap);
             setInitialOrder(newOrder);
             setCurrentOrder(newOrder);
+            
+            // D. SAUVEGARDER DANS LE CACHE SESSIONSTORAGE
+            const axisIds = newOrder.map((a: any) => a.id);
+            setCachedSortPriorities({
+              order: newOrder,
+              reasoning: reasoningMap,
+              axisIds: [...axisIds].sort().join(',')
+            });
+            console.log("💾 Résultats IA sauvegardés dans sessionStorage cache");
         }
 
       } catch (err: any) {
         console.warn("⚠️ Erreur PlanPriorities (Mode Fallback activé):", err.message || err);
         // Fallback en cas d'erreur
-        loadSimple(location.state?.selectedAxes || MOCK_IA_ORDER);
+        loadSimple(navState?.selectedAxes || MOCK_IA_ORDER);
       } finally {
         setIsLoading(false);
       }
@@ -419,10 +629,14 @@ const PlanPriorities = () => {
     const handleValidate = async () => {
     // Navigation vers la suite
     const navigationState = { 
+        // IMPORTANT (guest): garder aussi les axes + fullAnswers dans le cache,
+        // sinon en revenant (back) PlanPriorities tombe en fallback "Placement recommandé".
+        selectedAxes: navState?.selectedAxes || currentOrder,
         finalOrder: currentOrder,
-        fullAnswers: location.state?.fullAnswers, // On propage les données complètes
+        fullAnswers: navState?.fullAnswers, // On propage les données complètes
+        submissionId: navState?.submissionId, // PROPAGATION EXPLICTE DU SUBMISSION ID
+        forceRefresh: false,
         generationRequestTimestamp: Date.now(),
-        submissionId: location.state?.submissionId // PROPAGATION EXPLICTE DU SUBMISSION ID
     };
 
     // Note : La sauvegarde a déjà été faite lors de la génération IA.
@@ -481,6 +695,8 @@ const PlanPriorities = () => {
     } else {
       // Force signOut if anonymous just in case to clean state
       if (user) await supabase.auth.signOut();
+      // Cache invité: permet retour/refresh sans perdre les datas avant inscription
+      saveGuestPlanFlowState(navigationState);
       navigate('/auth', { state: navigationState });
     }
   };
@@ -524,8 +740,8 @@ const PlanPriorities = () => {
           </h1>
           <p className="text-sm min-[350px]:text-base md:text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
             {currentOrder.length === 1 
-             ? "L'IA valide votre choix de concentration unique. C'est souvent la clé de la réussite."
-             : <>L'IA a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/> Vous pouvez le modifier, mais attention aux incohérences.</>}
+             ? "Sophia valide ton choix de concentration unique. C'est souvent la clé de la réussite."
+             : <>Sophia a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/> Tu peux le modifier, mais attention aux incohérences.</>}
           </p>
         </div>
 
@@ -535,7 +751,7 @@ const PlanPriorities = () => {
             <div className="flex items-center gap-2 md:gap-3">
               <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
               <p className="text-xs md:text-sm text-amber-800 font-medium leading-tight">
-                Vous avez modifié l'ordre recommandé par l'IA.
+                Tu as modifié l'ordre recommandé par l'IA.
               </p>
             </div>
             <button 
@@ -551,7 +767,7 @@ const PlanPriorities = () => {
         {!isModified && currentOrder.length > 1 && (
           <div className="flex items-center justify-center gap-2 text-slate-400 text-xs md:text-sm font-bold uppercase tracking-wider mb-6 md:mb-8 text-center px-4">
             <Move className="w-3 h-3 md:w-4 md:h-4" />
-            Glissez les cartes pour modifier l'ordre
+            Glisse les cartes pour modifier l'ordre
           </div>
         )}
 

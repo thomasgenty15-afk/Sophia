@@ -1,4 +1,17 @@
 import { generateWithGemini } from "../../_shared/gemini.ts"
+import type { 
+  EnrichedDeferredTopic, 
+  DeepReasonsPattern,
+  DeepReasonsDeferredContext 
+} from "../agents/architect/deep_reasons_types.ts"
+import { 
+  createDeepReasonsDeferredTopic,
+  isDeepReasonsDeferredTopic 
+} from "../agents/architect/deep_reasons_types.ts"
+
+// Re-export types for convenience
+export type { EnrichedDeferredTopic, DeepReasonsPattern, DeepReasonsDeferredContext }
+export { createDeepReasonsDeferredTopic, isDeepReasonsDeferredTopic }
 
 /**
  * VALIDATE + FORMALIZE a potential deferred topic using AI.
@@ -301,7 +314,7 @@ export function appendDeferredTopicToState(currentState: any, topic: string): an
   const exists =
     Array.isArray(prev) &&
     prev.some((x: any) => {
-      const xN = norm(x)
+      const xN = norm(typeof x === "string" ? x : x?.topic)
       return xN === tN || xN.includes(tN) || tN.includes(xN)
     })
   const nextTopics = exists ? prev : [...(Array.isArray(prev) ? prev : []), t.slice(0, 120)]
@@ -310,6 +323,101 @@ export function appendDeferredTopicToState(currentState: any, topic: string): an
   return {
     ...(currentState ?? {}),
     temp_memory: { ...((currentState ?? {})?.temp_memory ?? {}), deferred_topics: bounded },
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ENRICHED DEFERRED TOPICS (deep_reasons support)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Append an enriched deferred topic (with type and context) to state.
+ * Used for deep_reasons topics created by the Investigator.
+ */
+export function appendEnrichedDeferredTopicToState(
+  currentState: any, 
+  enrichedTopic: EnrichedDeferredTopic
+): any {
+  const prev = currentState?.temp_memory?.deferred_topics ?? []
+  
+  if (!enrichedTopic?.topic) return currentState
+  
+  const norm = (x: unknown) =>
+    String(typeof x === "string" ? x : (x as any)?.topic ?? "")
+      .toLowerCase()
+      .replace(/["""']/g, "")
+      .replace(/\s+/g, " ")
+      .trim()
+  
+  const tN = norm(enrichedTopic.topic)
+  
+  // Check for duplicates (compare topic strings)
+  const exists =
+    Array.isArray(prev) &&
+    prev.some((x: any) => {
+      const xN = norm(x)
+      return xN === tN || xN.includes(tN) || tN.includes(xN)
+    })
+  
+  if (exists) {
+    console.log(`[deferred_topics] Enriched topic already exists: "${enrichedTopic.topic.slice(0, 40)}"`)
+    return currentState
+  }
+  
+  const nextTopics = [...(Array.isArray(prev) ? prev : []), enrichedTopic]
+  // Keep the list bounded (avoid loops) - deep_reasons topics have higher priority
+  const bounded = nextTopics.slice(-4)
+  
+  console.log(`[deferred_topics] Added enriched topic (${enrichedTopic.type}): "${enrichedTopic.topic.slice(0, 40)}"`)
+  
+  return {
+    ...(currentState ?? {}),
+    temp_memory: { ...((currentState ?? {})?.temp_memory ?? {}), deferred_topics: bounded },
+  }
+}
+
+/**
+ * Get the first deep_reasons deferred topic from state (if any).
+ * Used to check if there's a deep_reasons topic ready to be explored.
+ */
+export function getDeepReasonsDeferredTopic(tempMemory: any): EnrichedDeferredTopic | null {
+  const topics = tempMemory?.deferred_topics ?? []
+  if (!Array.isArray(topics)) return null
+  
+  for (const t of topics) {
+    if (isDeepReasonsDeferredTopic(t)) {
+      return t
+    }
+  }
+  return null
+}
+
+/**
+ * Check if there's any deep_reasons deferred topic in state.
+ */
+export function hasDeepReasonsDeferredTopic(tempMemory: any): boolean {
+  return getDeepReasonsDeferredTopic(tempMemory) !== null
+}
+
+/**
+ * Remove a deep_reasons deferred topic from state (after it's been processed).
+ */
+export function removeDeepReasonsDeferredTopic(currentState: any): any {
+  const prev = currentState?.temp_memory?.deferred_topics ?? []
+  if (!Array.isArray(prev) || prev.length === 0) return currentState
+  
+  const filtered = prev.filter((t: any) => !isDeepReasonsDeferredTopic(t))
+  
+  if (filtered.length === prev.length) return currentState // Nothing removed
+  
+  console.log(`[deferred_topics] Removed deep_reasons deferred topic`)
+  
+  return {
+    ...(currentState ?? {}),
+    temp_memory: { 
+      ...((currentState ?? {})?.temp_memory ?? {}), 
+      deferred_topics: filtered.length > 0 ? filtered : undefined 
+    },
   }
 }
 

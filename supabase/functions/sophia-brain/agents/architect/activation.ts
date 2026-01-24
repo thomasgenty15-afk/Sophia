@@ -134,6 +134,15 @@ export async function handleActivateAction(
     })
   }
 
+  // Auto-activate the phase in plan JSON if it's locked (so UI unlocks)
+  const targetPhase = phases[targetPhaseIndex]
+  if (targetPhase && (targetPhase.status === "locked" || !targetPhase.status)) {
+    const updatedPhases = [...phases]
+    updatedPhases[targetPhaseIndex] = { ...targetPhase, status: "active" }
+    const updatedContent = { ...plan.content, phases: updatedPhases }
+    await supabase.from("user_plans").update({ content: updatedContent }).eq("id", plan.id)
+  }
+
   // Update plan current_phase if we just stepped into a new phase
   const newPhaseNumber = targetPhaseIndex + 1
   if (newPhaseNumber > (plan.current_phase || 1)) {

@@ -100,7 +100,7 @@ export const usePlanGeneratorLogic = (
           if (existingPlan && existingPlan.generation_attempts >= 2) {
               clearInterval(loadingInterval);
               setPlan(existingPlan.content);
-              alert("Vous avez utilisé vos 2 essais. Voici votre plan final.");
+              alert("Tu as utilisé tes 2 essais. Voici ton plan final.");
               setStep('result');
               return; 
           }

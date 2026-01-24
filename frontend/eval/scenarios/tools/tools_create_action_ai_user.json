@@ -11,7 +11,7 @@
   },
   "objectives": [
     {
-      "kind": "tools_create_action_realistic",
+      "kind": "tools_create_action",
       "spec": {
         "title": "Lecture",
         "duration_minutes": 10,
@@ -30,6 +30,7 @@
     "plan_actions_must_include": [
       {
         "title": [
+          "Pause Lecture",
           "Lecture",
           "10 min de lecture",
           "10 minutes de lecture",

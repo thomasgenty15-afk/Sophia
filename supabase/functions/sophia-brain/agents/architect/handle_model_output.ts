@@ -11,7 +11,7 @@ import type { ArchitectModelOutput } from "./types.ts"
 import { defaultArchitectModelForRequestId } from "./model.ts"
 import { formatDaysFrench, dayTokenToFrench } from "./dates.ts"
 import { handleBreakDownAction } from "./breakdown.ts"
-import { injectActionIntoPlanJson, verifyActionCreated } from "./plan_json.ts"
+import { injectActionIntoPlanJson, planJsonHasAction, verifyActionCreated } from "./plan_json.ts"
 import { handleUpdateAction } from "./update_action.ts"
 import { handleActivateAction, handleArchiveAction } from "./activation.ts"
 import {
@@ -25,6 +25,11 @@ import {
   looksLikeYesToProceed,
   parseQuotedActionTitle,
 } from "./consent.ts"
+import { 
+  startDeepReasonsExploration,
+  detectDeepReasonsPattern,
+} from "./deep_reasons.ts"
+import type { DeepReasonsPattern } from "./deep_reasons_types.ts"
 
 function looksLikePlanStepQuestion(message: string): boolean {
   const t = String(message ?? "").toLowerCase()
@@ -43,10 +48,12 @@ function parseExplicitCreateActionFromUserMessage(message: string): {
   const lower = raw.toLowerCase()
 
   const quoted = raw.match(/(?:\"|«|“)([^\"»”]{2,120})(?:\"|»|”)/)
-  const title = quoted?.[1]?.trim() || undefined
+  const titledByVerb =
+    raw.match(/\b(?:appelle[-\s]la|nomme[-\s]la|nom|titre)\s*[:：]?\s*(?:\"|«|“)?([^\"»”\n]{2,80})(?:\"|»|”)?/i)
+  const title = (quoted?.[1]?.trim() || titledByVerb?.[1]?.trim()) || undefined
 
   const freqMatch = lower.match(/(?:fr[ée]quence\s*[:：]?\s*)?(\d{1,2})\s*(?:fois|x)\s*par\s*semaine\b/i)
-  const targetReps = freqMatch ? Math.max(1, Math.min(7, Number(freqMatch[1]) || 0)) : undefined
+  const targetReps = freqMatch ? Math.max(1, Math.min(6, Number(freqMatch[1]) || 0)) : undefined
 
   const descMatch = raw.match(/description\s*[:：]\s*([^\n]+)$/i)
   const description = descMatch?.[1]?.trim() || undefined
@@ -55,6 +62,8 @@ function parseExplicitCreateActionFromUserMessage(message: string): {
     if (/\b(matin|au r[ée]veil)\b/i.test(raw)) return "morning"
     if (/\b(apr[èe]s[-\s]?midi)\b/i.test(raw)) return "afternoon"
     if (/\b(soir|le soir)\b/i.test(raw)) return "evening"
+    // Common phrasing: "avant de dormir / avant de me coucher" -> evening for consistency.
+    if (/\b(avant\s+de\s+(?:me\s+)?coucher|au\s+coucher|avant\s+de\s+dormir|avant\s+le\s+dodo)\b/i.test(raw)) return "evening"
     if (/\b(nuit)\b/i.test(raw)) return "night"
     return undefined
   })()
@@ -81,7 +90,7 @@ function parseExplicitUpdateActionFromUserMessage(message: string): {
   const verbAll = Array.from(lower.matchAll(verbRe))
   const pick = (arr: RegExpMatchArray[]) => (arr.length > 0 ? arr[arr.length - 1]?.[1] : undefined)
   const picked = pick(verbAll) ?? pick(freqAll)
-  let new_target_reps = picked ? Math.max(1, Math.min(7, Number(picked) || 0)) : undefined
+  let new_target_reps = picked ? Math.max(1, Math.min(6, Number(picked) || 0)) : undefined
 
   const dayMap: Record<string, string> = {
     "lun": "mon", "lundi": "mon",
@@ -102,7 +111,7 @@ function parseExplicitUpdateActionFromUserMessage(message: string): {
   const uniq = Array.from(new Set(days))
   const new_scheduled_days = uniq.length > 0 ? uniq : undefined
   if (new_target_reps === undefined && Array.isArray(new_scheduled_days) && new_scheduled_days.length > 0) {
-    new_target_reps = Math.max(1, Math.min(7, new_scheduled_days.length))
+    new_target_reps = Math.max(1, Math.min(6, new_scheduled_days.length))
   }
 
   return { target_name, new_target_reps, new_scheduled_days }
@@ -1018,6 +1027,58 @@ export async function handleArchitectModelOutput(opts: {
         return { text: out.text, executed_tools: [toolName], tool_execution: out.tool_execution }
       }
 
+      // DEEP REASONS EXPLORATION - Entry Point 2 (Architect direct, outside bilan)
+      if (toolName === "start_deep_exploration") {
+        const args = (response as any).args ?? {}
+        const actionTitle = String(args.action_title ?? "").trim() || undefined
+        const actionId = String(args.action_id ?? "").trim() || undefined
+        const detectedPattern = (args.detected_pattern ?? "unknown") as DeepReasonsPattern
+        const userWords = String(args.user_words ?? message ?? "").trim().slice(0, 200)
+        const skipReConsent = args.skip_re_consent !== false // default true
+
+        // Create the deep reasons state
+        const deepReasonsState = startDeepReasonsExploration({
+          action_title: actionTitle,
+          action_id: actionId,
+          detected_pattern: detectedPattern,
+          user_words: userWords,
+          source: "direct",
+          skip_re_consent: skipReConsent,
+        })
+
+        // Store in temp_memory for the next turn
+        try {
+          const latest = await getUserState(supabase, userId, scope).catch(() => null as any)
+          const tmLatest = ((latest as any)?.temp_memory ?? {}) as any
+          const updatedTm = {
+            ...tmLatest,
+            deep_reasons_state: deepReasonsState,
+          }
+          await updateUserState(supabase, userId, scope, { temp_memory: updatedTm } as any)
+        } catch (e) {
+          console.error("[Architect] Failed to store deep_reasons_state:", e)
+        }
+
+        await trace({ 
+          event: "tool_call_succeeded", 
+          toolResult: { phase: deepReasonsState.phase, pattern: detectedPattern },
+          metadata: { outcome: "deep_reasons_started", source: "direct" }
+        })
+
+        console.log(`[Architect] Deep exploration started for action "${actionTitle ?? '(general)'}" (pattern: ${detectedPattern}, phase: ${deepReasonsState.phase})`)
+
+        // Generate the first message based on the phase
+        const firstPrompt = skipReConsent
+          ? "Qu'est-ce qui se passe pour toi quand tu penses à le faire ? 🙂"
+          : `Ok, on prend 5 minutes pour explorer ce qui se passe.\n\nTu es prêt ? (Tu peux dire stop à tout moment)`
+
+        return {
+          text: firstPrompt,
+          executed_tools: [toolName],
+          tool_execution: "success",
+        }
+      }
+
       if (toolName === "update_action_structure") {
         const updFlowStage = String((currentFlow as any)?.stage ?? "")
         const hasExplicitUpdate = looksLikeExplicitUpdateActionRequest(message)
@@ -1180,26 +1241,132 @@ STYLE :
 
         const parsed = parseExplicitCreateActionFromUserMessage(message)
         const rawArgs = (response as any).args ?? {}
-        const title = (parsed.title ?? rawArgs.title)
+        // Prefer an explicit user-requested title, even if it was said on a previous turn.
+        const flowTitle = String((currentFlow as any)?.draft?.title ?? "").trim()
+        const recentUserTitle = (() => {
+          const msgs = Array.isArray(opts.history) ? opts.history : []
+          for (let i = msgs.length - 1; i >= 0 && i >= msgs.length - 12; i--) {
+            const m = msgs[i]
+            if (m?.role !== "user") continue
+            const c = String(m?.content ?? "")
+            const p = parseExplicitCreateActionFromUserMessage(c)
+            if (p?.title) return String(p.title).trim()
+          }
+          return ""
+        })()
+        const title =
+          (flowTitle || recentUserTitle || parsed.title || rawArgs.title || "").toString().trim()
+        const finalTitle = title || String(rawArgs.title ?? "").trim() || "Action"
         const description = (parsed.description ?? rawArgs.description)
         const type = (parsed.type ?? rawArgs.type ?? "habit")
         const targetReps = (parsed.targetReps ?? rawArgs.targetReps ?? (type === "mission" ? 1 : 1))
         const tips = rawArgs.tips
-        const time_of_day = (parsed.time_of_day ?? rawArgs.time_of_day)
+        const time_of_day = (parsed.time_of_day ?? (currentFlow as any)?.draft?.time_of_day ?? rawArgs.time_of_day)
         const actionId = `act_${Date.now()}`
+
+        // Normalize: if the user said "avant de dormir / le soir", treat as evening (more stable than night).
+        const normalizedTod = (() => {
+          const fromText = parseExplicitCreateActionFromUserMessage(message)?.time_of_day
+          const fromHistory = (() => {
+            const msgs = Array.isArray(opts.history) ? opts.history : []
+            for (let i = msgs.length - 1; i >= 0 && i >= msgs.length - 12; i--) {
+              const m = msgs[i]
+              if (m?.role !== "user") continue
+              const p = parseExplicitCreateActionFromUserMessage(String(m?.content ?? ""))
+              if (p?.time_of_day) return p.time_of_day
+            }
+            return undefined
+          })()
+          return (fromText ?? fromHistory ?? time_of_day ?? "any_time")
+        })()
+
+        // Idempotency / cost control:
+        // If the action already exists in DB or in plan JSON (same title), update it instead of creating duplicates.
+        try {
+          const titleNeedle = String(title ?? "").trim()
+          if (titleNeedle) {
+            const { data: existingDb } = await supabase
+              .from("user_actions")
+              .select("id,title,created_at")
+              .eq("user_id", userId)
+              .eq("plan_id", (plan as any).id)
+              .ilike("title", titleNeedle)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle()
+            const planHas = (() => {
+              try {
+                const content = (plan as any)?.content
+                return Boolean(content && planJsonHasAction(content, { title: titleNeedle }))
+              } catch {
+                return false
+              }
+            })()
+            if (existingDb?.id || planHas) {
+              // Best-effort: align DB row to the latest args.
+              if (existingDb?.id) {
+                try {
+                  await supabase
+                    .from("user_actions")
+                    .update({
+                      title: titleNeedle,
+                      description: description ?? null,
+                      type: type || "habit",
+                      target_reps: Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1,
+                      time_of_day: normalizedTod || "any_time",
+                      status: "active",
+                      tracking_type: "boolean",
+                    })
+                    .eq("id", existingDb.id)
+                } catch {}
+              }
+              // Best-effort: align plan JSON action fields (if present) without adding a duplicate.
+              try {
+                const content = (plan as any)?.content
+                const phases = content?.phases
+                if (Array.isArray(phases)) {
+                  for (const ph of phases) {
+                    const actions = (ph as any)?.actions
+                    if (!Array.isArray(actions)) continue
+                    for (const a of actions) {
+                      if (String(a?.title ?? "").trim().toLowerCase() !== titleNeedle.toLowerCase()) continue
+                      a.title = titleNeedle
+                      if (description != null) a.description = description
+                      if (tips != null) a.tips = tips
+                      a.type = type || a.type
+                      a.targetReps = Number.isFinite(Number(targetReps)) ? Number(targetReps) : (a.targetReps ?? 1)
+                      a.time_of_day = normalizedTod || a.time_of_day || "any_time"
+                    }
+                  }
+                  await supabase.from("user_plans").update({ content }).eq("id", (plan as any).id)
+                }
+              } catch {}
+              const toolResult = { db_ok: Boolean(existingDb?.id), json_ok: true, db_row_id: (existingDb as any)?.id ?? null, dedup: true }
+              await trace({ event: "tool_call_succeeded", toolResult, metadata: { outcome: "dedup_updated" } })
+              try { if (currentFlow) await setFlow(null) } catch {}
+              return {
+                text: `Ok — j’ai mis à jour “${titleNeedle}”.`,
+                executed_tools: [toolName],
+                tool_execution: "success",
+              }
+            }
+          }
+        } catch {
+          // If dedup checks fail, we still attempt creation below.
+        }
 
         console.log(`[Architect] Attempting to insert into user_actions...`)
         const { error: insertErr } = await supabase.from("user_actions").insert({
           user_id: userId,
           plan_id: (plan as any).id,
           submission_id: (plan as any).submission_id,
-          title,
+          title: finalTitle,
           description,
           type: type || "habit",
           target_reps: Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1,
           status: "active",
           tracking_type: "boolean",
-          time_of_day: time_of_day || "any_time",
+          time_of_day: normalizedTod || "any_time",
         })
         if (insertErr) {
           console.error("[Architect] ❌ user_actions insert failed:", insertErr)

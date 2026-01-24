@@ -145,6 +145,33 @@ export async function logToolLedgerEvent(opts: {
   const argsHash = toolName ? await sha256Hex(stableStringify(opts.toolArgs)) : null
   const resultPreview = toolName ? summarizeToolResult(toolName, opts.toolResult) : null
   const resultHash = toolName ? await sha256Hex(stableStringify(opts.toolResult)) : null
+
+  // Best-effort in-process dedup (prevents duplicated ledger rows when the same tool call is executed twice
+  // due to upstream retries within the same isolate).
+  try {
+    const g: any = globalThis as any
+    if (!g.__sophia_tool_ledger_dedup) g.__sophia_tool_ledger_dedup = { set: new Set<string>(), order: [] as string[] }
+    const bag = g.__sophia_tool_ledger_dedup
+    const key = [
+      requestId,
+      String(opts.source ?? ""),
+      String(opts.event ?? ""),
+      String(toolName ?? ""),
+      String(argsHash ?? ""),
+      String(resultHash ?? ""),
+    ].join("|")
+    if (bag.set.has(key)) return
+    bag.set.add(key)
+    bag.order.push(key)
+    const MAX = 2000
+    while (bag.order.length > MAX) {
+      const old = bag.order.shift()
+      if (old) bag.set.delete(old)
+    }
+  } catch {
+    // ignore
+  }
+
   const maxBytes = 64_000 // “full details” but bounded to keep DB sane
   const argsFull = toolName ? capJsonValue(opts.toolArgs ?? null, maxBytes) : null
   const resultFull = toolName ? capJsonValue(opts.toolResult ?? null, maxBytes) : null

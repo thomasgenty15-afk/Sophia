@@ -130,7 +130,7 @@ export async function buildMechanicalIssues(params: {
   }
 
   // Array existence assertions for temp_memory (useful for supervisor.stack sessions):
-  // mech.chat_state_temp_memory_array_some_match = [{ path: "supervisor.stack", match: { type: "topic_session" } }]
+  // mech.chat_state_temp_memory_array_some_match = [{ path: "supervisor.stack", match: { type: "topic_exploration" } }]
   const tmArraySome = Array.isArray((mech as any)?.chat_state_temp_memory_array_some_match)
     ? (mech as any).chat_state_temp_memory_array_some_match
     : [];
@@ -517,18 +517,18 @@ export async function buildMechanicalIssues(params: {
         }
       }
 
-      // INV6: Topic session should not have generic topic (e.g., "merci", "ok")
-      if (invName === "topic_session_meaningful_topic") {
+      // INV6: Topic exploration should not have generic topic (e.g., "merci", "ok")
+      if (invName === "topic_exploration_meaningful_topic") {
         const stack = Array.isArray((tm as any)?.supervisor?.stack) ? (tm as any).supervisor.stack : [];
-        const topicSessions = stack.filter((s: any) => String(s?.type) === "topic_session");
-        for (const sess of topicSessions) {
+        const topicExplorations = stack.filter((s: any) => String(s?.type) === "topic_exploration");
+        for (const sess of topicExplorations) {
           const topic = String((sess as any)?.topic ?? "").toLowerCase().trim();
           const isGeneric = /^(ok|oui|non|merci|super|top|cool|daccord|c'?est bon|parfait|conversation)$/i.test(topic);
           if (isGeneric) {
             out.push({
               severity: "low",
               kind: "scheduler_invariant_violated",
-              message: `INVARIANT topic_session_meaningful_topic: topic="${topic}" is too generic`,
+              message: `INVARIANT topic_exploration_meaningful_topic: topic="${topic}" is too generic`,
             });
           }
         }

@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
   "id": "stress_test_maxhard_full_chaos_2",
-  "description": "MAX HARD: 5 machines (bilan + topic_session + firefighter + toolflow + deferred). Starts with bilan, explores topics, has crisis, modifies plan.",
-  "tags": ["stress_test", "maxhard", "bilan", "topic_session", "firefighter", "toolflow", "deferred"],
+  "description": "MAX HARD: 5 machines (bilan + topic_exploration + firefighter + toolflow + deferred). Starts with bilan, explores topics, has crisis, modifies plan.",
+  "tags": ["stress_test", "maxhard", "bilan", "topic_exploration", "firefighter", "toolflow", "deferred"],
   "difficulty": "maxhard",
   "setup": {
     "seed_plan": true,
@@ -43,8 +43,7 @@
       "toolflow_cleared_after_stop",
       "sessions_have_resume_brief",
       "queue_bounded",
-      "topic_session_meaningful_topic"
+      "topic_exploration_meaningful_topic"
     ]
   }
 }
-

@@ -314,25 +314,7 @@ export async function runAgentAndVerify(opts: {
     } else if (targetMode === "architect") {
       if (chosen.kind === "text") finalText = chosen.text
       else {
-        const requestId = String(meta?.requestId ?? "").trim()
-        const t0 = Date.now()
-        try {
-          if (requestId) {
-            await logToolLedgerEvent({
-              supabase,
-              requestId,
-              evalRunId: meta?.evalRunId ?? null,
-              userId,
-              source: "sophia-brain:router",
-              event: "tool_call_attempted",
-              level: "info",
-              toolName: chosen.tool,
-              toolArgs: chosen.args,
-              latencyMs: 0,
-              metadata: { agent: "architect", chosen_index: chosenIdx, in_whatsapp_guard_24h: !!inWhatsAppGuard24h },
-            })
-          }
-        } catch {}
+        // NOTE: Architect tool-call ledger is logged inside handleArchitectModelOutput (deeper + avoids duplicates).
         const out = await handleArchitectModelOutput({
           supabase,
           userId,
@@ -345,29 +327,6 @@ export async function runAgentAndVerify(opts: {
         executedTools = out.executed_tools ?? []
         toolExecution = out.tool_execution ?? "uncertain"
         finalText = out.text
-        try {
-          if (requestId) {
-            const ev =
-              toolExecution === "success" ? "tool_call_succeeded"
-              : toolExecution === "blocked" ? "tool_call_blocked"
-              : toolExecution === "failed" ? "tool_call_failed"
-              : "tool_call_succeeded"
-            await logToolLedgerEvent({
-              supabase,
-              requestId,
-              evalRunId: meta?.evalRunId ?? null,
-              userId,
-              source: "sophia-brain:router",
-              event: ev as any,
-              level: ev === "tool_call_failed" ? "error" : (ev === "tool_call_blocked" ? "warn" : "info"),
-              toolName: chosen.tool,
-              toolArgs: chosen.args,
-              toolResult: { executed_tools: out.executed_tools ?? null, tool_execution: toolExecution, text: out.text },
-              latencyMs: Date.now() - t0,
-              metadata: { agent: "architect", chosen_index: chosenIdx, in_whatsapp_guard_24h: !!inWhatsAppGuard24h },
-            })
-          }
-        } catch {}
       }
     } else {
       // librarian

@@ -68,6 +68,20 @@ const GlobalPlanFollow = () => {
     otherAnswers: {},
   });
 
+  type AssistantContextV1 = {
+    version: 1;
+    mode: 'specific' | 'general';
+    input: {
+      improvement: string;
+      obstacles: string;
+      other: string;
+    };
+    output: any; // { recommendations, globalMessage, ... }
+    created_at: string;
+  };
+
+  const [assistantContext, setAssistantContext] = useState<AssistantContextV1 | null>(null);
+
   // --- CHARGEMENT & SAUVEGARDE PROGRESSION ---
   
   // CHARGEMENT & SAUVEGARDE PROGRESSION
@@ -200,7 +214,12 @@ const GlobalPlanFollow = () => {
                          }
                      }
                  }
-                 if (uiState.responses) setResponses(uiState.responses);
+                if (uiState.responses) setResponses(uiState.responses);
+                const restoredAssistant =
+                  (savedData as any)?.assistant_context ||
+                  (uiState as any)?.assistant_context ||
+                  (uiState as any)?.assistantContext;
+                if (restoredAssistant) setAssistantContext(restoredAssistant);
              }
         } else if (isNewGlobalMode) {
              // Si mode new mais pas de réponse trouvée (cas rare si Dashboard a bien fait son job, mais possible en direct)
@@ -367,8 +386,12 @@ const GlobalPlanFollow = () => {
               // Pour l'UI : État brut pour restauration facile
               ui_state: {
                   selectedAxisByTheme,
-                  responses
+                  responses,
+                  assistant_context: assistantContext
               },
+
+              // Mémoire Sophia (si utilisée)
+              assistant_context: assistantContext,
               
               // Méta
               last_updated: new Date().toISOString()
@@ -502,7 +525,7 @@ const GlobalPlanFollow = () => {
   // --- SOPHIA ASSISTANT LOGIC ---
   const [showAssistant, setShowAssistant] = useState(false);
 
-  const handleAssistantAnalysis = async ({ answers, setStep, setRecommendationResult }: any) => {
+  const handleAssistantAnalysis = async ({ answers, mode, setStep, setRecommendationResult }: any) => {
     setStep('loading');
     
     try {
@@ -530,6 +553,19 @@ const GlobalPlanFollow = () => {
 
         if (error) throw error;
         if (!data || !data.recommendations) throw new Error("Format de réponse invalide");
+
+        // 2.5. Mémoriser (pondération élevée dans les prompts suivants)
+        setAssistantContext({
+            version: 1,
+            mode: mode === 'specific' || mode === 'general' ? mode : 'general',
+            input: {
+                improvement: String((answers as any)?.improvement ?? ''),
+                obstacles: String((answers as any)?.obstacles ?? ''),
+                other: String((answers as any)?.other ?? ''),
+            },
+            output: data,
+            created_at: new Date().toISOString(),
+        });
 
         // 3. Appliquer les changements (Magie)
         // RESET : On repart d'une sélection vierge pour éviter de cumuler (ex: 1 manuel + 3 recommandés = 4)
@@ -661,7 +697,7 @@ const GlobalPlanFollow = () => {
                 Nouveau Cycle de Transformation
               </h3>
               <p className="text-blue-800 text-sm mt-1">
-                   Pour être efficace, ne te disperse pas. Choisis <strong>3 transformations prioritaires</strong> au total (maximum 1 par thème) pour ce nouveau cycle.
+                   Pour être efficace, ne te disperse pas. Choisis jusqu'à <strong>3 transformations</strong> au total (maximum 1 par thème) pour ce nouveau cycle.
               </p>
             </div>
           </div>
@@ -847,7 +883,8 @@ const GlobalPlanFollow = () => {
                           submission_id: submissionId, // On s'assure qu'il est set
                           content: {
                               structured_data: structuredData,
-                              ui_state: { selectedAxisByTheme, responses },
+                              ui_state: { selectedAxisByTheme, responses, assistant_context: assistantContext },
+                              assistant_context: assistantContext,
                               last_updated: new Date().toISOString()
                           },
                           updated_at: new Date().toISOString(),

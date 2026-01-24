@@ -1,5 +1,27 @@
-OK alors analyse moi correctement ce bundle créer avec cette commande : 
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && SOPHIA_SUPABASE_CLI="supabase" SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 50 --model gemini-3-flash-preview 2>&1 | tail -50
+OK alors analyse moi correctement ce bundle créé sur STAGING avec cette commande :
+
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && env $(python3 - <<'PY'
+import re
+p='/Users/ahmedamara/Dev/Sophia 2/feat/Commande sensibles'
+text=open(p,'r',encoding='utf-8').read()
+
+def grab(name):
+    m=re.search(rf'{re.escape(name)}="([^"]+)"', text)
+    if not m:
+        raise SystemExit(f'missing {name} in {p}')
+    return m.group(1)
+
+pairs = {
+  'SOPHIA_EVAL_REMOTE':'1',
+  'SOPHIA_SUPABASE_URL':'https://iabxchanerdkczbxyjgg.supabase.co',
+  'SOPHIA_SUPABASE_ANON_KEY': grab('SOPHIA_SUPABASE_ANON_KEY'),
+  'SOPHIA_SUPABASE_SERVICE_ROLE_KEY': grab('SOPHIA_SUPABASE_SERVICE_ROLE_KEY'),
+  'SUPABASE_ACCESS_TOKEN': grab('SUPABASE_ACCESS_TOKEN'),
+  'SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS':'600000',
+}
+print(' '.join([f"{k}={v}" for k,v in pairs.items()]))
+PY
+) npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 20 --model gemini-3-flash-preview
 
 Fais moi un bilan, il y a plusieurs erreurs qui vont nécessiter d'améliorer. Je veux que tu m'analyses tout, du transcript, au log, au niveau des machines a état, au niveau de gestion de supervisor, de dispacther, fin qu'il y ait vraiment une analyse exhaustive qui va dans le détails (incluant aussi la partie test si il y a besoin). Fais moi un bilan avec les 10 points à améliorer avec les raisons, en allant vraiment dans le détails du code en essayant de comprendre fondementalement ce qu'il se passe, prend ton temps.
 
@@ -7,7 +29,7 @@ Il faut que tu fasses attention a la qualité de la conversation, la fluidité, 
 
 ---
 
-CHEMIN DU BUNDLE À ANALYSER :
+CHEMIN DU BUNDLE À ANALYSER (STAGING) :
 
 
 ---
@@ -20,13 +42,16 @@ Tu es le plus grand expert mondial en agents conversationnels complexes, spécia
 
 Analyse le bundle d'évaluation situé au chemin ci-dessus. Tu dois produire un rapport exhaustif avec **10 points d'amélioration prioritaires**, classés par impact sur l'expérience utilisateur.
 
-## FICHIERS À LIRE OBLIGATOIREMENT
+## FICHIERS À LIRE OBLIGATOIREMENT (bundle)
 
 1. `conversation_eval_run.json` — Le transcript complet + états before/after
 2. `conversation_eval_events.json` — Les événements détaillés (turns, rate limits, etc.)
-3. `docker_edge_runtime.log` et `docker_edge_runtime.tail.log` — Les logs du runtime (erreurs, warnings, décisions du router)
-4. `run_evals_response.json` — Métriques globales (tokens, coût, turns exécutés)
-5. `system_error_logs.json` — Erreurs système éventuelles
+3. `run_evals_response.json` — Métriques globales (tokens, coût, turns exécutés)
+4. `system_error_logs.json` — Erreurs système éventuelles
+5. `edge_function_logs.json` — Logs Edge Functions (router/agents, warnings/errors)
+6. `production_log.json` — Log “drain-like” agrégé (si présent)
+7. `brain_timeline.json` — Timeline haut niveau (router/supervisor/state)
+8. `brain_traces.json` — Traces détaillées (si activées)
 
 ## AXES D'ANALYSE (tous obligatoires)
 
@@ -121,27 +146,3 @@ Lance ton analyse.
 
 
 
-
-Commande à rallonge db staging : 
-cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && env $(python3 - <<'PY'
-import re
-p='/Users/ahmedamara/Dev/Sophia 2/feat/Commande sensibles'
-text=open(p,'r',encoding='utf-8').read()
-
-def grab(name):
-    m=re.search(rf'{re.escape(name)}="([^"]+)"', text)
-    if not m:
-        raise SystemExit(f'missing {name} in {p}')
-    return m.group(1)
-
-pairs = {
-  'SOPHIA_EVAL_REMOTE':'1',
-  'SOPHIA_SUPABASE_URL':'https://iabxchanerdkczbxyjgg.supabase.co',
-  'SOPHIA_SUPABASE_ANON_KEY': grab('SOPHIA_SUPABASE_ANON_KEY'),
-  'SOPHIA_SUPABASE_SERVICE_ROLE_KEY': grab('SOPHIA_SUPABASE_SERVICE_ROLE_KEY'),
-  'SUPABASE_ACCESS_TOKEN': grab('SUPABASE_ACCESS_TOKEN'),
-  'SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS':'600000',
-}
-print(' '.join([f"{k}={v}" for k,v in pairs.items()]))
-PY
-) npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 12 --model gemini-3-flash-preview

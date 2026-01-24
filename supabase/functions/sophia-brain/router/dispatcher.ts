@@ -10,6 +10,8 @@ export type SafetyLevel = "NONE" | "FIREFIGHTER" | "SENTRY"
 export type UserIntentPrimary = "CHECKUP" | "PLAN" | "EMOTIONAL_SUPPORT" | "SMALL_TALK" | "PREFERENCE" | "BREAKDOWN" | "UNKNOWN"
 export type InterruptKind = "NONE" | "EXPLICIT_STOP" | "BORED" | "SWITCH_TOPIC" | "DIGRESSION"
 export type FlowResolutionKind = "NONE" | "ACK_DONE" | "WANTS_RESUME" | "DECLINES_RESUME" | "WANTS_PAUSE"
+export type TopicDepth = "NONE" | "NEED_SUPPORT" | "SERIOUS" | "LIGHT"
+export type UserEngagementLevel = "HIGH" | "MEDIUM" | "LOW" | "DISENGAGED"
 
 export interface DispatcherSignals {
   safety: {
@@ -29,6 +31,29 @@ export interface DispatcherSignals {
     kind: FlowResolutionKind
     confidence: number // 0..1
   }
+  /**
+   * Topic depth analysis for topic_exploration routing:
+   * - NONE: no topic exploration needed
+   * - NEED_SUPPORT: emotional support needed → firefighter
+   * - SERIOUS: deep topic (psyche, problems, fears) → topic_exploration owner=architect
+   * - LIGHT: casual topic (small talk, anecdotes) → topic_exploration owner=companion
+   */
+  topic_depth: {
+    value: TopicDepth
+    confidence: number // 0..1
+  }
+  /**
+   * Deep reasons exploration signals:
+   * - opportunity: user expresses a motivational blocker (not practical)
+   * - deferred_ready: a deep_reasons deferred topic exists and moment is opportune
+   * - in_bilan_context: true if during active bilan (Investigator handles)
+   */
+  deep_reasons: {
+    opportunity: boolean
+    deferred_ready: boolean
+    in_bilan_context: boolean
+    confidence: number // 0..1
+  }
   wants_tools: boolean
   risk_score: number // 0..10 (legacy compatibility)
 }
@@ -39,6 +64,8 @@ const DEFAULT_SIGNALS: DispatcherSignals = {
   user_intent_confidence: 0.5,
   interrupt: { kind: "NONE", confidence: 0.9 },
   flow_resolution: { kind: "NONE", confidence: 0.9 },
+  topic_depth: { value: "NONE", confidence: 0.9 },
+  deep_reasons: { opportunity: false, deferred_ready: false, in_bilan_context: false, confidence: 0.9 },
   wants_tools: false,
   risk_score: 0,
 }
@@ -57,7 +84,7 @@ export async function analyzeSignals(
     toolflow_kind?: string
     profile_confirm_pending?: boolean
     plan_confirm_pending?: boolean
-    topic_session_phase?: string
+    topic_exploration_phase?: string
     risk_level?: string
   },
   lastAssistantMessage: string,
@@ -82,7 +109,7 @@ DERNIER MESSAGE ASSISTANT:
 - Toolflow actif: ${stateSnapshot.toolflow_active ? `OUI (${stateSnapshot.toolflow_kind ?? "unknown"})` : "NON"}
 - Confirmation profil en attente: ${stateSnapshot.profile_confirm_pending ? "OUI" : "NON"}
 - Confirmation plan en attente (WhatsApp onboarding): ${stateSnapshot.plan_confirm_pending ? "OUI" : "NON"}
-- Topic session phase: ${stateSnapshot.topic_session_phase ?? "none"}
+- Topic exploration phase: ${stateSnapshot.topic_exploration_phase ?? "none"}
 
 SIGNAUX À PRODUIRE (JSON strict):
 
@@ -115,9 +142,32 @@ RÈGLE SPÉCIALE (plan_confirm_pending):
 - Si "Confirmation plan en attente" = OUI, utilise ACK_DONE UNIQUEMENT si l'utilisateur confirme avoir finalisé/activé son plan sur le site/dashboard.
 - Si tu n'es pas sûr que ça parle du plan (ex: "j'ai fini ma journée", "ok" ambigu), laisse flow_resolution.kind="NONE".
 
-6. **wants_tools**: true si l'utilisateur demande explicitement d'activer/créer/modifier une action
+6. **topic_depth** — Profondeur du sujet abordé (pour topic_exploration)?
+   - value: "NONE" | "NEED_SUPPORT" | "SERIOUS" | "LIGHT"
+   - confidence: 0.0 à 1.0
+   CRITÈRES:
+   - "NEED_SUPPORT": L'utilisateur exprime un besoin de soutien émotionnel, de la vulnérabilité, de l'anxiété, du mal-être (sans danger vital). Détresse modérée.
+   - "SERIOUS": Sujet profond qui touche la psyché — problèmes personnels, peurs, blocages, patterns de comportement, relations difficiles, introspection. PAS de détresse aiguë.
+   - "LIGHT": Sujet léger — bavardage, anecdotes du quotidien, humour, discussions sans enjeu émotionnel profond.
+   - "NONE": Aucun des cas ci-dessus (ou le message concerne le plan/bilan/préférences).
 
-7. **risk_score**: 0 (calme) à 10 (danger vital)
+7. **wants_tools**: true si l'utilisateur demande explicitement d'activer/créer/modifier une action
+
+8. **risk_score**: 0 (calme) à 10 (danger vital)
+
+9. **deep_reasons** — Blocage motivationnel détecté?
+   - opportunity: true si le message exprime un blocage MOTIVATIONNEL (pas pratique):
+     * "j'ai pas envie", "j'y crois pas", "je sais pas pourquoi je fais ça"
+     * "ça me saoule", "flemme chronique", "aucune motivation"
+     * "j'évite", "je repousse sans raison", "j'arrive vraiment pas"
+     * "ça me fait peur", "je me sens nul", "c'est trop pour moi"
+     * "une partie de moi veut pas", "je suis pas fait pour ça"
+   - deferred_ready: laisse à false (sera déterminé côté router avec l'état)
+   - in_bilan_context: true si "Bilan actif" = OUI ci-dessus
+   - confidence: 0.0 à 1.0
+
+   NOTE: opportunity=true pour blocages MOTIVATIONNELS uniquement.
+   PAS pour blocages pratiques (oubli, temps, organisation) → ceux-ci restent dans BREAKDOWN.
 
 RÈGLES:
 - Produis UNIQUEMENT le JSON, pas de prose.
@@ -125,6 +175,7 @@ RÈGLES:
 - "stop", "arrête", "on arrête" = EXPLICIT_STOP (confidence élevée).
 - "ok.", "bon.", réponses très courtes après question = potentiellement BORED.
 - "plus tard", "pas maintenant" = DIGRESSION ou WANTS_PAUSE, PAS un stop.
+- Pour topic_depth: si intent est PLAN/CHECKUP/BREAKDOWN/PREFERENCE, mets "NONE". Analyse le sujet UNIQUEMENT si c'est une digression ou un changement de sujet.
 
 MESSAGE UTILISATEUR:
 "${(message ?? "").slice(0, 800)}"
@@ -175,6 +226,19 @@ Réponds UNIQUEMENT avec le JSON:`
       : "NONE"
     const flowConf = Math.max(0, Math.min(1, Number(obj?.flow_resolution?.confidence ?? 0.9) || 0.9))
 
+    // Parse topic_depth signal
+    const topicDepthValue = (["NONE", "NEED_SUPPORT", "SERIOUS", "LIGHT"] as TopicDepth[])
+      .includes(obj?.topic_depth?.value)
+      ? obj.topic_depth.value as TopicDepth
+      : "NONE"
+    const topicDepthConf = Math.max(0, Math.min(1, Number(obj?.topic_depth?.confidence ?? 0.9) || 0.9))
+
+    // Parse deep_reasons signal
+    const deepReasonsOpportunity = Boolean(obj?.deep_reasons?.opportunity)
+    const deepReasonsInBilanContext = Boolean(obj?.deep_reasons?.in_bilan_context) || Boolean(stateSnapshot.investigation_active)
+    const deepReasonsConf = Math.max(0, Math.min(1, Number(obj?.deep_reasons?.confidence ?? 0.5) || 0.5))
+    // deferred_ready is computed at router level, not by LLM
+
     const wantsTools = Boolean(obj?.wants_tools)
     const riskScore = Math.max(0, Math.min(10, Number(obj?.risk_score ?? 0) || 0))
 
@@ -188,6 +252,13 @@ Réponds UNIQUEMENT avec le JSON:`
         deferred_topic_formalized: (interruptKind === "DIGRESSION" || interruptKind === "SWITCH_TOPIC") ? deferredTopicFormalized : undefined,
       },
       flow_resolution: { kind: flowKind, confidence: flowConf },
+      topic_depth: { value: topicDepthValue, confidence: topicDepthConf },
+      deep_reasons: { 
+        opportunity: deepReasonsOpportunity, 
+        deferred_ready: false, // Computed at router level
+        in_bilan_context: deepReasonsInBilanContext,
+        confidence: deepReasonsConf,
+      },
       wants_tools: wantsTools,
       risk_score: riskScore,
     }

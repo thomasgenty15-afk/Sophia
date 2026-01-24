@@ -18,6 +18,7 @@ import {
 } from 'lucide-react';
 import OnboardingProgress from '../components/OnboardingProgress';
 import { getThemeLabelById } from '../data/onboarding/registry';
+import { loadGuestPlanFlowState, saveGuestPlanFlowState } from '../lib/guestPlanFlowCache';
 
 interface PriorityItem {
   id: string;
@@ -39,6 +40,16 @@ const PlanPrioritiesFollow = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user, loading: authLoading } = useAuth();
+  
+  // 🔥 PRIORITÉ au cache s'il contient des résultats IA (retour depuis /auth)
+  // Sinon fallback sur location.state puis sur le cache simple
+  const cached = loadGuestPlanFlowState();
+  const cachedHasAiData = Array.isArray(cached?.finalOrder) && 
+    cached.finalOrder.some((item: any) => item?.reasoning || item?.role);
+  const navState = cachedHasAiData ? cached : ((location.state as any) || cached);
+  
+  // Ne PAS sauvegarder automatiquement au montage - ça écrase les bonnes données!
+  // La sauvegarde se fait uniquement dans handleValidate avant navigation.
 
   // --- STATE ---
   const [initialOrder, setInitialOrder] = useState<PriorityItem[]>([]);
@@ -77,9 +88,36 @@ const PlanPrioritiesFollow = () => {
       
       setIsLoading(true);
       try {
+        // 🔥 PRIORITÉ ABSOLUE: Si on a déjà les résultats IA dans le cache (retour depuis /auth),
+        // on les restaure IMMÉDIATEMENT sans passer par toute la logique.
+        const cachedFinalOrder = navState?.finalOrder;
+        if (Array.isArray(cachedFinalOrder) && cachedFinalOrder.length > 0) {
+            const hasAiData = cachedFinalOrder.some((item: any) => item?.reasoning || item?.role);
+            if (hasAiData) {
+                console.log("✅ Restauration des résultats IA depuis le cache (retour arrière)");
+                const reasoningMap: any = {};
+                cachedFinalOrder.forEach((item: any, index: number) => {
+                    reasoningMap[item.id] = formatReasoning(
+                        { originalId: item.id, role: item.role, reasoning: item.reasoning },
+                        index,
+                        cachedFinalOrder.length
+                    );
+                });
+                setAiReasoning(reasoningMap);
+                setInitialOrder(cachedFinalOrder);
+                setCurrentOrder(cachedFinalOrder);
+                setIsLoading(false);
+                return; // On a tout, on s'arrête là
+            }
+        }
+
         // 1. DÉFINIR LES AXES À TRAITER
         // Priorité : State de navigation (ex: venant de l'onboarding) > Mock
-        let axesToAnalyze = location.state?.selectedAxes;
+        let axesToAnalyze = navState?.selectedAxes;
+        let assistantContextToSend =
+          navState?.fullAnswers?.assistant_context ||
+          navState?.fullAnswers?.assistantContext ||
+          null;
         
         // 2. RECUPERER LES DONNÉES EXISTANTES (Si User connecté)
         let existingGoals: any[] = [];
@@ -108,10 +146,10 @@ const PlanPrioritiesFollow = () => {
           }
 
           // C. Récupérer le compteur d'essais
-          const submissionId = location.state?.submissionId;
+          const submissionId = navState?.submissionId;
           let query = supabase
             .from('user_answers')
-            .select('id, sorting_attempts')
+            .select('id, sorting_attempts, content')
             .eq('user_id', user.id)
             .eq('questionnaire_type', 'global_plan');
 
@@ -125,6 +163,11 @@ const PlanPrioritiesFollow = () => {
           if (answerData) {
             attemptsCount = answerData.sorting_attempts || 0;
             lastAnswerId = answerData.id;
+            assistantContextToSend =
+              assistantContextToSend ||
+              (answerData as any)?.content?.assistant_context ||
+              (answerData as any)?.content?.assistantContext ||
+              null;
           } else if (submissionId) {
              // Créer l'entrée si elle n'existe pas (cas rare mais possible)
              const { data: newAns } = await supabase.from('user_answers').insert({
@@ -147,7 +190,7 @@ const PlanPrioritiesFollow = () => {
         }
 
         // 3. DECISION : CHARGER OU GÉNÉRER ?
-        let isForceRefresh = location.state?.forceRefresh;
+        let isForceRefresh = Boolean(navState?.forceRefresh);
         
         // On vérifie si les données en base correspondent à la demande actuelle
         const existingIds = existingGoals.map((g: any) => g.axis_id).sort().join(',');
@@ -167,7 +210,7 @@ const PlanPrioritiesFollow = () => {
 
         // PROTECTION NAVIGATION "BACK/FORWARD" (Le vrai problème)
         // Si on a un timestamp de génération et qu'il est vieux (déjà traité), on annule le forceRefresh.
-        const generationTimestamp = location.state?.generationTimestamp;
+        const generationTimestamp = navState?.generationTimestamp;
         const lastProcessedGen = sessionStorage.getItem('last_processed_gen_timestamp_follow');
         
         if (isForceRefresh && generationTimestamp && lastProcessedGen === String(generationTimestamp)) {
@@ -180,9 +223,21 @@ const PlanPrioritiesFollow = () => {
              sessionStorage.setItem('last_processed_gen_timestamp_follow', String(generationTimestamp));
         }
 
+        const isSingleAxis = Array.isArray(axesToAnalyze) && axesToAnalyze.length === 1;
+        const hasExistingReasoning =
+          isSingleAxis &&
+          hasMatchingData &&
+          Array.isArray(existingGoals) &&
+          existingGoals.length === 1 &&
+          Boolean((existingGoals as any)[0]?.reasoning);
+
+        // ✅ Focus unique: on veut quand même un appel IA pour générer un vrai reasoning (une fois),
+        // sauf si on a déjà un reasoning en cache DB.
+        const shouldGenerate = Boolean(isForceRefresh) || (isSingleAxis && !hasExistingReasoning);
+
         // Condition pour charger depuis la DB (Pas d'appel IA)
-        // SI : (On a des données correspondantes) ET (On ne force pas le refresh)
-        if (hasMatchingData && !isForceRefresh) {
+        // SI : (On a des données correspondantes) ET (On ne génère pas)
+        if (hasMatchingData && !shouldGenerate) {
             console.log("📂 Chargement depuis le cache DB (Données existantes trouvées)");
             loadFromData(existingGoals, axesToAnalyze);
             setIsLoading(false);
@@ -191,9 +246,9 @@ const PlanPrioritiesFollow = () => {
 
         // 4. LOGIQUE DE GÉNÉRATION (Appel IA)
         
-        // SÉCURITÉ : On n'appelle l'IA que si l'utilisateur a explicitement demandé une génération (forceRefresh = true)
-        // Si on arrive ici sans cache et sans demande explicite (accès direct URL, reload...), on bloque.
-        if (!isForceRefresh) {
+        // SÉCURITÉ : on n'appelle l'IA que si demandé, SAUF en focus unique (1 axe) où on veut enrichir le reasoning.
+        // Note: La restauration depuis le cache est gérée au tout début de initPage().
+        if (!shouldGenerate) {
              console.warn("⛔️ Tentative de génération sans demande explicite. Chargement du Mock.");
              loadSimple(axesToAnalyze);
              setIsLoading(false);
@@ -204,7 +259,7 @@ const PlanPrioritiesFollow = () => {
         if (attemptsCount >= 3) {
             console.warn("⚠️ Limite atteinte (3/3). Blocage régénération.");
             if (hasMatchingData) {
-                alert("Vous avez atteint la limite de 3 régénérations. Chargement de la dernière version.");
+                alert("Tu as atteint la limite de 3 régénérations. Chargement de la dernière version.");
                 loadFromData(existingGoals, axesToAnalyze);
             } else {
                 // Cas critique : Limite atteinte ET pas de données -> Fallback simple sans IA
@@ -227,7 +282,7 @@ const PlanPrioritiesFollow = () => {
         
         const reqId = newRequestId();
         const { data, error } = await supabase.functions.invoke('sort-priorities', {
-            body: { axes: axesToAnalyze, client_request_id: reqId },
+            body: { axes: axesToAnalyze, assistantContext: assistantContextToSend, client_request_id: reqId },
             headers: requestHeaders(reqId),
         });
 
@@ -395,8 +450,14 @@ const PlanPrioritiesFollow = () => {
   const handleValidate = async () => {
     // Navigation vers la suite
     const navigationState = { 
+        // IMPORTANT (guest): garder aussi les axes + fullAnswers dans le cache,
+        // sinon en revenant (back) PlanPriorities tombe en fallback "Placement recommandé".
+        selectedAxes: navState?.selectedAxes || currentOrder,
         finalOrder: currentOrder,
-        generationRequestTimestamp: Date.now() 
+        fullAnswers: navState?.fullAnswers,
+        submissionId: navState?.submissionId,
+        forceRefresh: false,
+        generationRequestTimestamp: Date.now(),
     };
 
     // Note : La sauvegarde a déjà été faite lors de la génération IA.
@@ -496,8 +557,8 @@ const PlanPrioritiesFollow = () => {
           </h1>
           <p className="text-sm min-[350px]:text-base md:text-lg text-slate-600 max-w-xl mx-auto leading-relaxed">
             {currentOrder.length === 1 
-             ? "L'IA valide votre choix de concentration unique. C'est souvent la clé de la réussite."
-             : <>L'IA a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/> Vous pouvez le modifier, mais attention aux incohérences.</>}
+             ? "Sophia valide ton choix de concentration unique. C'est souvent la clé de la réussite."
+             : <>Sophia a calculé l'itinéraire le plus sûr. <br className="hidden md:block"/> Tu peux le modifier, mais attention aux incohérences.</>}
           </p>
         </div>
 
@@ -507,7 +568,7 @@ const PlanPrioritiesFollow = () => {
             <div className="flex items-center gap-2 md:gap-3">
               <AlertTriangle className="w-4 h-4 md:w-5 md:h-5 text-amber-600" />
               <p className="text-xs md:text-sm text-amber-800 font-medium leading-tight">
-                Vous avez modifié l'ordre recommandé par l'IA.
+                Tu as modifié l'ordre recommandé par l'IA.
               </p>
             </div>
             <button 
@@ -523,7 +584,7 @@ const PlanPrioritiesFollow = () => {
         {!isModified && currentOrder.length > 1 && (
           <div className="flex items-center justify-center gap-2 text-slate-400 text-xs md:text-sm font-bold uppercase tracking-wider mb-6 md:mb-8 text-center px-4">
             <Move className="w-3 h-3 md:w-4 md:h-4" />
-            Glissez les cartes pour modifier l'ordre
+            Glisse les cartes pour modifier l'ordre
           </div>
         )}
 

@@ -496,7 +496,7 @@ export const useDashboardLogic = ({
     const isHabit = normalizedType === 'habitude' || normalizedType === 'habit';
     if (!isHabit) return;
 
-    const safeTarget = Math.max(1, Math.min(7, Number(payload.targetReps || 1)));
+    const safeTarget = Math.max(1, Math.min(6, Number(payload.targetReps || 1)));
     const safeDays = payload.scheduledDays && payload.scheduledDays.length > 0
       ? payload.scheduledDays.slice(0, safeTarget)
       : null;

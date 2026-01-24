@@ -265,13 +265,12 @@ async function runJudgeLlmWithModelCycle(args: {
   // Since judge now runs async (out-of-band), we can afford a higher retry budget.
   const perModelRetries = Math.max(1, Math.min(10, Math.floor(parseTimeoutMs(Deno.env.get("EVAL_JUDGE_MAX_RETRIES"), 10))));
 
-  const base = String(args.baseModel ?? "").trim() || "gemini-3-pro-preview";
+  const base = String(args.baseModel ?? "").trim() || "gpt-5.2";
   const cycle = uniqModels([
     base,
-    "gemini-3-pro-preview",
-    "gemini-3-flash-preview",
+    "gpt-5.2",
     "gemini-2.5-flash",
-    "gemini-2.0-flash",
+    "gpt-5-mini",
   ]);
   const maxCycles = Math.max(1, Math.min(5, Math.floor(cycles || 3)));
   const attempts: string[] = [];
@@ -686,7 +685,7 @@ Format attendu:
           .map((m) => `${m.role.toUpperCase()}${m.agent_used ? `(${m.agent_used})` : ""}: ${m.content}`)
           .join("\n");
         const JUDGE_DEFAULT_MODEL =
-          (Deno.env.get("GEMINI_JUDGE_MODEL") ?? "").trim() || "gemini-3-pro-preview";
+          (Deno.env.get("GEMINI_JUDGE_MODEL") ?? "").trim() || "gpt-5.2";
         const overrideModel =
           (body as any)?.model ||
           (body as any)?.config?.model ||

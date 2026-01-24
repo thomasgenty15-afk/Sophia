@@ -57,7 +57,7 @@ export function HabitSettingsModal(props: {
   };
 
   const dec = () => setTargetReps(v => Math.max(1, v - 1));
-  const inc = () => setTargetReps(v => Math.min(7, v + 1));
+  const inc = () => setTargetReps(v => Math.min(6, v + 1));
 
   const handleSave = async () => {
     if (tooManyDays) return;

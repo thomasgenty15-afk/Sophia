@@ -66,11 +66,11 @@ export function getRequestContext(req: Request, body?: unknown): RequestContext 
       req.headers.get("x-correlation-id") ??
       "")?.trim() || null
 
+  const headerUserId = (req.headers.get("x-user-id") ?? "").trim()
   const userId =
     extractUserIdFromBody(body as any) ??
     extractUserIdFromUrl(req) ??
-    (req.headers.get("x-user-id") ?? "").trim() ||
-    extractJwtSub(req)
+    (headerUserId || extractJwtSub(req))
 
   return {
     requestId,

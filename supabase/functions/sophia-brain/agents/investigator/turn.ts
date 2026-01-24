@@ -8,6 +8,11 @@ import { fetchActionRowById, fetchActivePlanRow, handleArchiveAction, logItem } 
 import { checkAndHandleLevelUp, maybeHandleStreakAfterLog } from "./streaks.ts"
 import { callBreakDownActionEdge } from "./breakdown.ts"
 import { logEdgeFunctionError } from "../../../_shared/error-log.ts"
+import { 
+  appendEnrichedDeferredTopicToState, 
+  createDeepReasonsDeferredTopic 
+} from "../../router/deferred_topics.ts"
+import type { DeepReasonsPattern } from "../architect/deep_reasons_types.ts"
 
 export async function handleInvestigatorModelOutput(opts: {
   supabase: SupabaseClient
@@ -407,6 +412,86 @@ export async function handleInvestigatorModelOutput(opts: {
         "Je note ton envie d'activer ça. Pour être sûr de respecter le plan (les murs avant le toit !), je laisse l'Architecte valider et l'activer tout de suite. (Transition vers Architecte...)",
       investigationComplete: true,
       newState: null,
+    }
+  }
+
+  // DEFER DEEP EXPLORATION TOOL
+  // Used when detecting a motivational/deep blocker during bilan
+  // The exploration will happen AFTER the bilan ends
+  if (typeof response === "object" && response?.tool === "defer_deep_exploration") {
+    try {
+      const args = (response as any)?.args ?? {}
+      const actionId = String(args.action_id ?? currentItem?.id ?? "").trim()
+      const actionTitle = String(args.action_title ?? currentItem?.title ?? "").trim()
+      const detectedPattern = (args.detected_pattern ?? "unknown") as DeepReasonsPattern
+      const userWords = String(args.user_words ?? message ?? "").trim().slice(0, 200)
+      const consentObtained = Boolean(args.consent_obtained)
+
+      if (!consentObtained) {
+        // User hasn't consented yet - just acknowledge and continue
+        return {
+          content: "Ok, on n'y touche pas. On continue le bilan ? 🙂",
+          investigationComplete: false,
+          newState: currentState,
+        }
+      }
+
+      // Create an enriched deferred topic for deep exploration
+      const enrichedTopic = createDeepReasonsDeferredTopic({
+        action_id: actionId,
+        action_title: actionTitle,
+        detected_pattern: detectedPattern,
+        user_words: userWords,
+      })
+
+      // Add to state (will be picked up after bilan)
+      const updatedState = appendEnrichedDeferredTopicToState(currentState, enrichedTopic)
+      
+      console.log(`[Investigator] Deep exploration deferred for action "${actionTitle}" (pattern: ${detectedPattern})`)
+
+      // Move to next item
+      const nextIndex = currentState.current_item_index + 1
+      const nextState = { 
+        ...updatedState, 
+        current_item_index: nextIndex,
+      }
+
+      if (nextIndex >= currentState.pending_items.length) {
+        // End of bilan - the deferred topic will be picked up by router
+        return {
+          content: await investigatorSay(
+            "deep_exploration_deferred_end",
+            { 
+              user_message: message, 
+              action_title: actionTitle,
+              channel: meta?.channel,
+            },
+            meta,
+          ),
+          investigationComplete: true,
+          newState: nextState,
+        }
+      }
+
+      const nextItem = currentState.pending_items[nextIndex]
+      return {
+        content: await investigatorSay(
+          "deep_exploration_deferred_continue",
+          { 
+            user_message: message, 
+            action_title: actionTitle, 
+            next_item: nextItem,
+          },
+          meta,
+        ),
+        investigationComplete: false,
+        newState: nextState,
+      }
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : String(e)
+      console.error("[Investigator] defer_deep_exploration failed (unexpected):", errMsg)
+      await logToolFallback({ tool_name: "defer_deep_exploration", error: e })
+      return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
     }
   }
 

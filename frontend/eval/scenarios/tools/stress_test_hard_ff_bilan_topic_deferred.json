@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
   "id": "stress_test_hard_ff_bilan_topic_deferred",
-  "description": "HARD: 4 machines (firefighter + bilan + topic_session + deferred). Starts with stress, then checkup, then topic discussion, then defer.",
-  "tags": ["stress_test", "hard", "firefighter", "bilan", "topic_session", "deferred"],
+  "description": "HARD: 4 machines (firefighter + bilan + topic_exploration + deferred). Starts with stress, then checkup, then topic discussion, then defer.",
+  "tags": ["stress_test", "hard", "firefighter", "bilan", "topic_exploration", "deferred"],
   "difficulty": "hard",
   "setup": {
     "seed_plan": true,
@@ -39,8 +39,7 @@
       "bilan_active_implies_investigator",
       "sessions_have_resume_brief",
       "queue_bounded",
-      "topic_session_meaningful_topic"
+      "topic_exploration_meaningful_topic"
     ]
   }
 }
-

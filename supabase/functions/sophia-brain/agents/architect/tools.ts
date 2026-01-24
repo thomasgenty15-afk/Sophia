@@ -13,7 +13,7 @@ const CREATE_ACTION_TOOL: ToolDef = {
       targetReps: {
         type: "INTEGER",
         description:
-          "Si habit, nombre de fois par SEMAINE (ex: 3). Si mission, mettre 1. Intervalle recommandé: 1 à 7 (max 7). IMPORTANT: si tu veux '4 grands verres d'eau', mets-le dans le titre/description (c'est une validation par jour), pas via targetReps>7.",
+          "Si habit, nombre de fois par SEMAINE (ex: 3). Si mission, mettre 1. Intervalle recommandé: 1 à 6 (max 6). IMPORTANT: si tu veux '4 grands verres d'eau', mets-le dans le titre/description (c'est une validation par jour), pas via targetReps>6.",
       },
       tips: { type: "STRING", description: "Un petit conseil court pour réussir." },
       time_of_day: {
@@ -153,10 +153,66 @@ const ARCHIVE_ACTION_TOOL: ToolDef = {
   },
 }
 
+/**
+ * START DEEP EXPLORATION TOOL
+ * 
+ * Used to launch deep reasons exploration DIRECTLY (entry point 2 - outside bilan).
+ * When user expresses a motivational blocker, Architect can propose and launch exploration.
+ */
+const START_DEEP_EXPLORATION_TOOL: ToolDef = {
+  name: "start_deep_exploration",
+  description:
+    "Lance une exploration profonde des raisons de blocage MOTIVATIONNEL (pas pratique). " +
+    "À utiliser HORS BILAN quand l'utilisateur exprime: 'j'arrive vraiment pas', 'j'ai la flemme', " +
+    "'je repousse toujours', 'je sais pas pourquoi je fais ça', 'ça me fait peur'. " +
+    "L'utilisateur doit avoir dit 'oui' à la proposition d'explorer.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_title: {
+        type: "STRING",
+        description: "Titre de l'action concernée (optionnel si blocage général).",
+      },
+      action_id: {
+        type: "STRING",
+        description: "ID de l'action concernée (optionnel).",
+      },
+      detected_pattern: {
+        type: "STRING",
+        enum: ["fear", "meaning", "energy", "ambivalence", "identity", "unknown"],
+        description:
+          "Pattern détecté: fear (peur/échec/jugement), meaning (manque de sens), " +
+          "energy (flemme/fatigue), ambivalence (veut et veut pas), " +
+          "identity (pas mon truc), unknown (pas clair).",
+      },
+      user_words: {
+        type: "STRING",
+        description: "Ce que l'utilisateur a dit (verbatim court, max 150 caractères).",
+      },
+      skip_re_consent: {
+        type: "BOOLEAN",
+        description: "True si le consentement a déjà été obtenu (on saute la phase re_consent).",
+        default: true,
+      },
+    },
+    required: ["detected_pattern", "user_words"],
+  },
+}
+
 export function getArchitectTools(opts: { inWhatsAppGuard24h: boolean }): ToolDef[] {
+  const baseTools = [
+    CREATE_ACTION_TOOL, 
+    CREATE_FRAMEWORK_TOOL, 
+    TRACK_PROGRESS_TOOL, 
+    BREAK_DOWN_ACTION_TOOL, 
+    UPDATE_ACTION_TOOL, 
+    ARCHIVE_ACTION_TOOL,
+    START_DEEP_EXPLORATION_TOOL,
+  ]
+  
   return opts.inWhatsAppGuard24h
-    ? [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, BREAK_DOWN_ACTION_TOOL, UPDATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
-    : [CREATE_ACTION_TOOL, CREATE_FRAMEWORK_TOOL, TRACK_PROGRESS_TOOL, BREAK_DOWN_ACTION_TOOL, UPDATE_ACTION_TOOL, ACTIVATE_ACTION_TOOL, ARCHIVE_ACTION_TOOL]
+    ? baseTools
+    : [...baseTools, ACTIVATE_ACTION_TOOL]
 }
 
 

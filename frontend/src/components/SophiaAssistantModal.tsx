@@ -224,7 +224,7 @@ export const SophiaAssistantModal: React.FC<SophiaAssistantModalProps> = ({ onCl
                      <button 
                         onClick={() => {
                             // On déclenche l'appel via la prop parente
-                            onApply({ answers, setStep, setRecommendationResult }); 
+                            onApply({ answers, mode, setStep, setRecommendationResult }); 
                         }}
                         disabled={!answers.improvement || !answers.obstacles}
                         className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-violet-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"

@@ -18,7 +18,7 @@ serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({} as any))
     ctx = getRequestContext(req, body)
-    const { axes } = body as any
+    const { axes, assistantContext } = body as any
 
     if (!axes || !Array.isArray(axes) || axes.length === 0) {
         throw new Error('Axes invalides ou vides');
@@ -80,6 +80,9 @@ serve(async (req) => {
       Tu es Sophia, une intelligence artificielle experte en stratégie comportementale et en développement personnel.
       Ton rôle est d'analyser les problématiques (axes) identifiées chez un utilisateur et de déterminer l'ordre optimal pour les traiter, ou de valider leur choix unique.
 
+      CONTEXTE IMPORTANT :
+      - Si un bloc "assistantContext" est fourni, considère-le comme une information fiable et PRIORITAIRE sur la situation (ce que l'utilisateur a explicitement exprimé).
+
       ${instructions}
 
       FORMAT DE RÉPONSE ATTENDU (JSON STRICT) :
@@ -99,7 +102,16 @@ serve(async (req) => {
       - Le champ "reasoning" doit s'adresser directement à l'utilisateur ("tu").
     `
 
+    const assistantBlock = assistantContext
+      ? `
+      CE QUE SOPHIA SAIT DÉJÀ (PRIORITÉ ÉLEVÉE) :
+      ${JSON.stringify(assistantContext)}
+      `
+      : "";
+
     const userPrompt = `
+      ${assistantBlock}
+
       Voici les ${count} axe(s) identifié(s) pour cet utilisateur :
       ${JSON.stringify(axes)}
       
