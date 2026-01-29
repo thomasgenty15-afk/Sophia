@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 import { callBreakDownActionEdge } from "../investigator/breakdown.ts"
 
-function findActionInPlanContent(planContent: any, needle: string): { action: any; phaseIndex: number; actionIndex: number } | null {
+export function findActionInPlanContent(planContent: any, needle: string): { action: any; phaseIndex: number; actionIndex: number } | null {
   const s = String(needle ?? "").trim().toLowerCase()
   if (!s) return null
   const phases = planContent?.phases
@@ -51,6 +51,9 @@ export async function handleBreakDownAction(opts: {
   const problem = String(args?.problem ?? "").trim()
   const applyToPlan = args?.apply_to_plan !== false
   const actionNeedle = String(args?.action_title_or_id ?? "").trim()
+  const proposedFromArgs = (args?.proposed_step && typeof args?.proposed_step === "object")
+    ? args.proposed_step
+    : null
 
   if (!problem) return { text: "Ok — j’ai besoin d’UNE phrase: qu’est-ce qui bloque exactement ?", tool_execution: "failed" }
   if (!actionNeedle) {
@@ -79,17 +82,19 @@ export async function handleBreakDownAction(opts: {
     targetReps: Number(actionRow?.target_reps ?? found.action.targetReps ?? 1) || 1,
   }
 
-  const proposed = await callBreakDownActionEdge({
-    action: helpingAction,
-    problem,
-    plan: planRow.content ?? null,
-    submissionId: planRow.submission_id ?? (actionRow as any)?.submission_id ?? null,
-  })
+  const proposed = proposedFromArgs?.title
+    ? proposedFromArgs
+    : await callBreakDownActionEdge({
+        action: helpingAction,
+        problem,
+        plan: planRow.content ?? null,
+        submissionId: planRow.submission_id ?? (actionRow as any)?.submission_id ?? null,
+      })
 
   const stepId = String(proposed?.id ?? `act_${Date.now()}`)
   const stepTitle = String(proposed?.title ?? "Micro-étape").trim()
   const stepDesc = String(proposed?.description ?? "").trim()
-  const tip = String(proposed?.tips ?? "").trim()
+  const tip = String((proposed as any)?.tips ?? (proposed as any)?.tip ?? "").trim()
   const rawType = String(proposed?.type ?? "mission")
 
   const newActionJson = {

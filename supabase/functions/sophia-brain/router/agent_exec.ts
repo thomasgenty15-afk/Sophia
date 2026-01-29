@@ -13,7 +13,7 @@ import { buildCompanionSystemPrompt, generateCompanionModelOutput, handleCompani
 import { runAssistant } from "../agents/assistant.ts"
 import { normalizeChatText } from "../chat_text.ts"
 import { buildConversationAgentViolations, judgeOfThree, type ToolDescriptor, verifyBilanAgentMessage, verifyConversationAgentMessage, verifyPostCheckupAgentMessage } from "../verifier.ts"
-import { appendDeferredTopicToState, assistantDeferredTopic, extractDeferredTopicFromUserMessage, formalizeDeferredTopicWithAI } from "./deferred_topics.ts"
+import { appendDeferredTopicToState, assistantDeferredTopic, extractDeferredTopicFromUserMessage } from "./deferred_topics.ts"
 import { enqueueLlmRetryJob, tryEmergencyAiReply } from "./emergency.ts"
 import { logEvalEvent } from "../../run-evals/lib/eval_trace.ts"
 import { logBrainTrace } from "../../_shared/brain-trace.ts"
@@ -495,41 +495,18 @@ export async function runAgentAndVerify(opts: {
 
         responseContent = invResult.content
         if (invResult.investigationComplete) {
-          const prevDeferred = state?.investigation_state?.temp_memory?.deferred_topics ?? []
-          const stAfter = await getUserState(supabase, userId, scope)
-          const deferred = stAfter?.investigation_state?.temp_memory?.deferred_topics ?? prevDeferred
-          if (deferred.length > 0) {
-            // Formalize the topic with AI for a cleaner reprise
-            let formalizedTopic = deferred[0]
-            try {
-              formalizedTopic = await formalizeDeferredTopicWithAI(deferred[0], userMessage)
-            } catch (e) {
-              console.warn("[Router] Topic formalization failed, using raw:", e)
-            }
-            
-            // Store the formalized version for future use
-            const formalizedDeferred = [formalizedTopic, ...deferred.slice(1)]
-            await updateUserState(supabase, userId, scope, {
-              investigation_state: { status: "post_checkup", temp_memory: { deferred_topics: formalizedDeferred, current_topic_index: 0 } },
-            })
-            responseContent =
-              `Ok, on a fini le bilan.\n\n` +
-              `Tu voulais qu'on reparle de ${formalizedTopic}.\n` +
-              `On en discute maintenant ?`
-            nextMode = "companion"
-          } else {
-            nextMode = "companion"
-            await updateUserState(supabase, userId, scope, { investigation_state: null })
-          }
+          // Bilan is complete - clear investigation_state
+          // Deferred topics are now stored in temp_memory.deferred_topics_v2 (global)
+          // The auto-relaunch mechanism in run.ts will handle them
+          const tm = (state as any)?.temp_memory ?? {}
+          await updateUserState(supabase, userId, scope, { 
+            investigation_state: null,
+            temp_memory: { ...tm, __flow_just_closed_normally: true },
+          })
+          nextMode = "companion"
+          console.log("[Router] Bilan complete. investigation_state cleared. Auto-relaunch flagged.")
         } else {
-          const latestSt = await getUserState(supabase, userId, scope)
-          const prevTopics = latestSt?.investigation_state?.temp_memory?.deferred_topics ?? []
-          if (Array.isArray(prevTopics) && prevTopics.length > 0) {
-            invResult.newState = {
-              ...(invResult.newState ?? {}),
-              temp_memory: { ...((invResult.newState ?? {})?.temp_memory ?? {}), deferred_topics: prevTopics },
-            }
-          }
+          // Bilan continues - save the new state
           await updateUserState(supabase, userId, scope, { investigation_state: invResult.newState })
         }
       } catch (err) {

@@ -216,26 +216,28 @@ export async function maybeHandleStreakAfterLog(opts: {
       const explicitBlockerSignal =
         /\b(bloqu[ée]?|j['’]y\s+arrive\s+pas|trop\s+dur|insurmontable|me\s+demande\s+trop|je\s+repousse|procrastin)\b/i.test(note)
 
-      // Trigger breakdown when:
+      // Trigger post-bilan deferral offer when:
       // - classic: missed streak >= 5 days
-      // - OR: user language clearly indicates being stuck / needing a smaller step (even without saying "micro-étape")
+      // - OR: user language clearly indicates being stuck / needing a smaller step
       if (streak >= 5 || explicitBreakdownRequest || explicitBlockerSignal) {
         const nextState = {
           ...currentState,
           temp_memory: {
             ...(currentState.temp_memory || {}),
-            breakdown: {
+            bilan_defer_offer: {
               stage: "awaiting_consent",
+              kind: "breakdown",
               action_id: currentItem.id,
               action_title: currentItem.title,
               streak_days: streak,
               last_note: String(argsWithId.note ?? "").trim(),
+              last_item_log: argsWithId,
             },
           },
         }
         return {
           content: await investigatorSay(
-            "missed_streak_offer_breakdown",
+            "bilan_defer_offer_breakdown",
             { user_message: message, streak_days: streak, item: currentItem, last_note: String(argsWithId.note ?? "").trim() },
             meta,
           ),

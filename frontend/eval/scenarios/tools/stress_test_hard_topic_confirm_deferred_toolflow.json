@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
   "id": "stress_test_hard_topic_confirm_deferred_toolflow",
-  "description": "HARD: 4 machines (topic_exploration + profile_confirm + deferred + toolflow). Complex multi-topic conversation with preferences and actions.",
-  "tags": ["stress_test", "hard", "topic_exploration", "profile_confirm", "deferred", "toolflow"],
+  "description": "HARD: 4 machines (topic_session + profile_confirm + deferred + toolflow). Complex multi-topic conversation with preferences and actions.",
+  "tags": ["stress_test", "hard", "topic_session", "profile_confirm", "deferred", "toolflow"],
   "difficulty": "hard",
   "setup": {
     "seed_plan": true,
@@ -39,7 +39,7 @@
       "toolflow_cleared_after_stop",
       "sessions_have_resume_brief",
       "queue_bounded",
-      "topic_exploration_meaningful_topic"
+      "topic_session_meaningful_topic"
     ]
   }
 }

@@ -400,7 +400,7 @@ function buildTopicExplorationHandoffStateMachineContext(
 
   const ctx = `
 [TOPIC_EXPLORATION_HANDOFF — CONTEXTE]
-But: conversation fluide (pas robotique) pour tester la machine globale "topic_exploration" + imbriquation (architect/companion/firefighter) sur ~${maxTurns} tours.
+But: conversation fluide (pas robotique) pour tester les machines globales "topic_serious"/"topic_light" + imbriquation (architect/companion/firefighter) sur ~${maxTurns} tours.
 
 État courant (estimation):
 - stage=${stage}/${finalStage}
@@ -1449,7 +1449,9 @@ console.log("simulate-user: Function initialized");
     const toolBreakDownActionObj = findObjective(body.objectives ?? [], "tools_break_down_action_realistic");
     const toolActivateActionObj = findObjective(body.objectives ?? [], "tools_activate_action_realistic");
     const toolComplexObj = findObjective(body.objectives ?? [], "tools_complex_multimachine_realistic");
-    const topicExplorationObj = findObjective(body.objectives ?? [], "topic_exploration_handoff_realistic");
+    // Topic session objectives (supports both topic_serious and topic_light machine scenarios)
+    const topicExplorationObj = findObjective(body.objectives ?? [], "topic_exploration_handoff_realistic") ??
+      findObjective(body.objectives ?? [], "topic_session_handoff_realistic");
     const profileConfirmObj = findObjective(body.objectives ?? [], "profile_confirm_3_topics_realistic");
     
     // Stress test objectives (multi-machine scenarios)

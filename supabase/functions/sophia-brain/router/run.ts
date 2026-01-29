@@ -39,7 +39,23 @@ import {
   looksLikeWorkPressureVenting,
   shouldBypassCheckupLockForDeepWork,
 } from "./classifiers.ts"
-import { analyzeSignals, looksLikeAcuteDistress, type DispatcherSignals } from "./dispatcher.ts"
+import { 
+  analyzeSignals,
+  analyzeSignalsV2,
+  looksLikeAcuteDistress, 
+  detectMachineTypeFromSignals,
+  generateDeferredSignalSummary,
+  isSafetySignal,
+  shouldInterruptForSafety,
+  type DispatcherSignals,
+  type DispatcherInputV2,
+  type DispatcherOutputV2,
+  type SignalHistoryEntry,
+  type NewSignalEntry,
+  type SignalEnrichment,
+  type FlowContext,
+  type DeferredMachineType,
+} from "./dispatcher.ts"
 import {
   appendDeferredTopicToState,
   extractDeferredTopicFromUserMessage,
@@ -52,27 +68,101 @@ import { debounceAndBurstMerge } from "./debounce.ts"
 import { runAgentAndVerify } from "./agent_exec.ts"
 import { maybeInjectGlobalDeferredNudge, pruneGlobalDeferredTopics, shouldStoreGlobalDeferredFromUserMessage, storeGlobalDeferredTopic } from "./global_deferred.ts"
 import {
-  closeTopicExploration,
+  closeTopicSession,
+  closeTopicExploration,  // deprecated alias
   enqueueSupervisorIntent,
   getActiveSupervisorSession,
+  getActiveTopicSession,
   getSupervisorRuntime,
   pruneStaleArchitectToolFlow,
   pruneStaleSupervisorState,
   pruneStaleUserProfileConfirm,
   setArchitectToolFlowInTempMemory,
   syncLegacyArchitectToolFlowSession,
-  upsertTopicExploration,
+  upsertTopicSerious,
+  upsertTopicLight,
+  upsertTopicExploration,  // deprecated alias
+  incrementTopicTurnCount,
+  updateTopicEngagement,
+  setTopicLibrarianEscalation,
+  shouldConvergeTopic,
+  shouldEscalateToLibrarian,
+  computeNextTopicPhase,
   upsertDeepReasonsExploration,
   closeDeepReasonsExploration,
   getActiveDeepReasonsExploration,
+  pauseDeepReasonsExploration,
+  resumeDeepReasonsExplorationSession,
+  getPausedDeepReasonsExploration,
+  // Create Action Flow v2
+  getActiveCreateActionFlow,
+  upsertCreateActionFlow,
+  closeCreateActionFlow,
+  getActionCandidateFromFlow,
+  isCreateActionFlowStale,
+  // Update Action Flow v2
+  getActiveUpdateActionFlow,
+  upsertUpdateActionFlow,
+  closeUpdateActionFlow,
+  getUpdateCandidateFromFlow,
+  isUpdateActionFlowStale,
+  // Breakdown Action Flow v2
+  getActiveBreakdownActionFlow,
+  upsertBreakdownActionFlow,
+  closeBreakdownActionFlow,
+  getBreakdownCandidateFromFlow,
+  isBreakdownActionFlowStale,
   writeSupervisorRuntime,
+  // Machine pause/resume for safety parenthesis
+  getPausedMachine,
+  pauseMachineForSafety,
+  resumePausedMachine,
+  hasPausedMachine,
+  clearPausedMachine,
+  getAnyActiveToolFlow,
+  getAnyActiveMachine,
+  hasActiveToolFlow,
+  hasAnyActiveMachine,
+  getActiveToolFlowActionTarget,
+  type TopicEngagementLevel,
+  type PausedMachineStateV2,
 } from "../supervisor.ts"
+import {
+  // Deferred Topics V2
+  deferSignal,
+  getDeferredTopicsV2,
+  getNextDeferredToProcess,
+  removeDeferredTopicV2,
+  pruneExpiredDeferredTopics,
+  pauseAllDeferredTopics,
+  isDeferredPaused,
+  clearDeferredPause,
+  hasPendingDeferredTopics,
+  findMatchingDeferred,
+  isToolMachine,
+  machineTypeToSessionType,
+  type DeferredTopicV2,
+} from "./deferred_topics_v2.ts"
+import {
+  generateAcknowledgmentPrefix,
+  generateSubtleUpdateAck,
+  generatePostParenthesisQuestion,
+  generateDeclineResumeMessage,
+  generateResumeMessage,
+  generateAutoRelaunchIntro,
+  looksLikeWantsToResume,
+  looksLikeWantsToRest,
+  lastAssistantAskedResumeQuestion,
+} from "./deferred_messages.ts"
 import {
   runDeepReasonsExploration,
   resumeDeepReasonsFromDeferred,
   detectDeepReasonsPattern,
 } from "../agents/architect/deep_reasons.ts"
 import type { DeepReasonsState } from "../agents/architect/deep_reasons_types.ts"
+import { createActionCandidate } from "../agents/architect/action_candidate_types.ts"
+import { createUpdateCandidate } from "../agents/architect/update_action_candidate_types.ts"
+import { createBreakdownCandidate } from "../agents/architect/breakdown_candidate_types.ts"
 
 const SOPHIA_CHAT_MODEL =
   (
@@ -124,6 +214,263 @@ Est-ce que ça t'intéresse ? Réponds **oui** ou **non**.
 On se retrouve demain matin, reposé·e ! 💜`;
 
 // Dispatcher v2 is now the only dispatcher (v1 legacy removed)
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SIGNAL HISTORY V1: Storage and management in temp_memory
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const SIGNAL_HISTORY_KEY = "signal_history_v1"
+const MAX_SIGNAL_HISTORY_TURNS = 5  // Keep signals from last 5 turns
+const MIN_SIGNAL_HISTORY_TURN_INDEX = -(MAX_SIGNAL_HISTORY_TURNS - 1)
+
+interface SignalHistoryState {
+  entries: SignalHistoryEntry[]
+  last_turn_index: number
+}
+
+/**
+ * Get signal history from temp_memory.
+ */
+function getSignalHistory(tempMemory: any): SignalHistoryEntry[] {
+  const state = (tempMemory as any)?.[SIGNAL_HISTORY_KEY] as SignalHistoryState | undefined
+  return state?.entries ?? []
+}
+
+/**
+ * Update signal history with new signals and enrichments.
+ * Ages existing entries and prunes old ones.
+ */
+function updateSignalHistory(opts: {
+  tempMemory: any
+  newSignals: NewSignalEntry[]
+  enrichments: SignalEnrichment[]
+  activeMachine: string | null
+}): { tempMemory: any; prunedCount: number } {
+  const state = (opts.tempMemory as any)?.[SIGNAL_HISTORY_KEY] as SignalHistoryState | undefined
+  const current = state?.entries ?? []
+  const turnIndex = (state?.last_turn_index ?? 0) + 1
+  
+  // Age existing entries (decrement turn_index)
+  let entries = current.map(e => ({ ...e, turn_index: e.turn_index - 1 }))
+  
+  // Prune old entries (keep last N turns)
+  const beforeCount = entries.length
+  entries = entries.filter(e => e.turn_index >= MIN_SIGNAL_HISTORY_TURN_INDEX)
+  const prunedCount = beforeCount - entries.length
+  
+  // Apply enrichments to existing entries
+  for (const enrich of opts.enrichments) {
+    const existing = entries.find(e => e.signal_type === enrich.existing_signal_type)
+    if (existing) {
+      existing.brief = enrich.updated_brief.slice(0, 100)
+    }
+  }
+  
+  // Add new signals at turn_index = 0
+  for (const sig of opts.newSignals) {
+    // Don't add duplicates
+    const alreadyExists = entries.some(e => 
+      e.signal_type === sig.signal_type && 
+      (e.action_target === sig.action_target || (!e.action_target && !sig.action_target))
+    )
+    if (!alreadyExists) {
+      entries.push({
+        signal_type: sig.signal_type,
+        turn_index: 0,
+        brief: sig.brief.slice(0, 100),
+        status: opts.activeMachine ? "deferred" : "pending",
+        action_target: sig.action_target,
+        detected_at: new Date().toISOString(),
+      })
+    }
+  }
+  
+  // Update status for signals that match the active machine
+  if (opts.activeMachine) {
+    for (const e of entries) {
+      if (machineMatchesSignalType(opts.activeMachine, e.signal_type)) {
+        e.status = "in_machine"
+      }
+    }
+  }
+  
+  return {
+    tempMemory: {
+      ...opts.tempMemory,
+      [SIGNAL_HISTORY_KEY]: { entries, last_turn_index: turnIndex }
+    },
+    prunedCount,
+  }
+}
+
+/**
+ * Mark a signal as resolved (when its machine completes).
+ */
+function resolveSignalInHistory(opts: {
+  tempMemory: any
+  signalType: string
+  actionTarget?: string
+}): { tempMemory: any } {
+  const state = (opts.tempMemory as any)?.[SIGNAL_HISTORY_KEY] as SignalHistoryState | undefined
+  if (!state?.entries) return { tempMemory: opts.tempMemory }
+  
+  const entries = state.entries.map(e => {
+    if (e.signal_type === opts.signalType && 
+        (e.action_target === opts.actionTarget || (!e.action_target && !opts.actionTarget))) {
+      return { ...e, status: "resolved" as const }
+    }
+    return e
+  })
+  
+  return {
+    tempMemory: {
+      ...opts.tempMemory,
+      [SIGNAL_HISTORY_KEY]: { ...state, entries }
+    }
+  }
+}
+
+/**
+ * Check if a machine type matches a signal type.
+ * Used to update signal status when entering a machine.
+ */
+function machineMatchesSignalType(machineType: string | null, signalType: string): boolean {
+  if (!machineType || !signalType) return false
+  const mappings: Record<string, string[]> = {
+    "create_action_flow": ["create_action_intent", "create_action"],
+    "update_action_flow": ["update_action_intent", "update_action"],
+    "breakdown_action_flow": ["breakdown_action_intent", "breakdown_action", "breakdown_intent"],
+    "topic_serious": ["topic_exploration_intent", "topic_serious"],
+    "topic_light": ["topic_exploration_intent", "topic_light"],
+    "deep_reasons_exploration": ["deep_reasons_intent", "deep_reasons"],
+    "user_profile_confirmation": ["profile_info_detected", "profile_confirmation"],
+  }
+  return mappings[machineType]?.includes(signalType) ?? false
+}
+
+/**
+ * Get the currently active machine type from temp_memory.
+ */
+function getActiveMachineType(tempMemory: any): string | null {
+  // Check tool flows first
+  if ((tempMemory as any)?.create_action_flow) return "create_action_flow"
+  if ((tempMemory as any)?.update_action_flow) return "update_action_flow"
+  if ((tempMemory as any)?.breakdown_action_flow) return "breakdown_action_flow"
+  
+  // Check topic sessions
+  const topicSession = getActiveTopicSession(tempMemory)
+  if (topicSession?.type === "topic_serious") return "topic_serious"
+  if (topicSession?.type === "topic_light") return "topic_light"
+  
+  // Check deep reasons
+  if ((tempMemory as any)?.deep_reasons_state) return "deep_reasons_exploration"
+  
+  // Check profile confirmation
+  if ((tempMemory as any)?.user_profile_confirm?.pending) return "user_profile_confirmation"
+  
+  return null
+}
+
+/**
+ * Build the flow context for the active machine.
+ * This enriches the dispatcher prompt with details about what's happening in the flow.
+ */
+function buildFlowContext(tempMemory: any, state?: any): FlowContext | undefined {
+  const tm = tempMemory as any
+  
+  // Bilan (investigation) active - highest priority
+  const invState = state?.investigation_state
+  if (invState && invState.status !== "post_checkup") {
+    const currentIndex = invState.current_item_index ?? 0
+    const currentItem = invState.pending_items?.[currentIndex]
+    const pendingOffer = invState.temp_memory?.bilan_defer_offer
+    
+    // Get missed streak from pending offer or legacy breakdown state if available
+    const missedStreak =
+      pendingOffer?.streak_days ??
+      invState.temp_memory?.breakdown?.streak_days ??
+      0
+    
+    return {
+      isBilan: true,
+      currentItemTitle: pendingOffer?.action_title ?? currentItem?.title,
+      currentItemId: pendingOffer?.action_id ?? currentItem?.id,
+      missedStreak,
+    }
+  }
+  
+  // Create action flow
+  if (tm?.create_action_flow) {
+    const candidate = tm.create_action_flow.candidate
+    if (candidate) {
+      return {
+        actionLabel: candidate.label,
+        actionType: candidate.type,
+        actionStatus: candidate.status,
+      }
+    }
+  }
+  
+  // Update action flow
+  if (tm?.update_action_flow) {
+    const candidate = tm.update_action_flow.candidate
+    if (candidate) {
+      const changes: string[] = []
+      if (candidate.proposed_changes?.new_reps) changes.push(`freq: ${candidate.proposed_changes.new_reps}x`)
+      if (candidate.proposed_changes?.new_days) changes.push(`jours: ${candidate.proposed_changes.new_days.join(", ")}`)
+      if (candidate.proposed_changes?.new_time_of_day) changes.push(`moment: ${candidate.proposed_changes.new_time_of_day}`)
+      if (candidate.proposed_changes?.new_title) changes.push(`titre: ${candidate.proposed_changes.new_title}`)
+      return {
+        targetActionTitle: candidate.target_action?.title,
+        proposedChanges: changes.length > 0 ? changes.join(", ") : undefined,
+      }
+    }
+  }
+  
+  // Breakdown action flow
+  if (tm?.breakdown_action_flow) {
+    const candidate = tm.breakdown_action_flow.candidate
+    if (candidate) {
+      return {
+        breakdownTarget: candidate.target_action?.title,
+        blocker: candidate.blocker,
+        proposedStep: candidate.proposed_step?.title,
+      }
+    }
+  }
+  
+  // Topic exploration
+  const topicSession = getActiveTopicSession(tempMemory)
+  if (topicSession) {
+    return {
+      topicLabel: topicSession.topic,
+      topicPhase: topicSession.phase,
+    }
+  }
+  
+  // Deep reasons exploration
+  if (tm?.deep_reasons_state) {
+    return {
+      deepReasonsTopic: tm.deep_reasons_state.topic,
+      deepReasonsPhase: tm.deep_reasons_state.phase,
+    }
+  }
+  
+  // Profile confirmation
+  if (tm?.user_profile_confirm?.pending) {
+    const pending = tm.user_profile_confirm.pending
+    return {
+      profileFactKey: pending.key,
+      profileFactValue: pending.proposed_value,
+    }
+  }
+  
+  return undefined
+}
+
+// Feature flag for contextual dispatcher
+const ENABLE_CONTEXTUAL_DISPATCHER_V1 =
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_CONTEXTUAL_DISPATCHER_V1") ?? "") as string).trim() === "1"
 
 export async function processMessage(
   supabase: SupabaseClient, 
@@ -1007,7 +1354,7 @@ SORTIE JSON STRICTE:
   let targetMode: AgentMode = "companion"
 
   // Build state snapshot for dispatcher
-  const topicSession = getActiveSupervisorSession(tempMemory)
+  const topicSession = getActiveTopicSession(tempMemory)
   const stateSnapshot = {
     current_mode: state?.current_mode,
     investigation_active: Boolean(state?.investigation_state),
@@ -1015,32 +1362,234 @@ SORTIE JSON STRICTE:
     toolflow_active: Boolean((tempMemory as any)?.architect_tool_flow),
     toolflow_kind: (tempMemory as any)?.architect_tool_flow?.kind,
     profile_confirm_pending: Boolean((tempMemory as any)?.user_profile_confirm?.pending),
-    topic_exploration_phase: topicSession?.type === "topic_exploration" ? topicSession.phase : undefined,
+    plan_confirm_pending: Boolean((tempMemory as any)?.__wa_plan_confirm_pending),
+    topic_exploration_phase: topicSession ? topicSession.phase : undefined,
+    topic_exploration_type: topicSession?.type,  // "topic_serious" or "topic_light"
     risk_level: state?.risk_level,
   }
 
-  const dispatcherSignals = await analyzeSignals(userMessage, stateSnapshot, lastAssistantMessage, meta)
+  // --- CONTEXTUAL DISPATCHER V2 (with signal history) ---
+  let dispatcherSignals: DispatcherSignals
+  let newSignalsDetected: NewSignalEntry[] = []
+  let signalEnrichments: SignalEnrichment[] = []
+  
+  if (ENABLE_CONTEXTUAL_DISPATCHER_V1) {
+    // Get signal history and active machine
+    const signalHistory = getSignalHistory(tempMemory)
+    const activeMachine = getActiveMachineType(tempMemory)
+    
+    // Build last 10 messages (5 turns) for context
+    // A turn = 1 user message + 1 assistant message = 2 messages
+    const last5TurnsMessages = (history ?? []).slice(-10).map((m: any) => ({
+      role: String(m?.role ?? "user"),
+      content: String(m?.content ?? "").slice(0, 300),
+    }))
+    
+    // Build flow context for enriching machine-specific prompts
+    const flowContext = buildFlowContext(tempMemory, state)
+    
+    // Build V2 input
+    const dispatcherInputV2: DispatcherInputV2 = {
+      userMessage,
+      lastAssistantMessage,
+      last5Messages: last5TurnsMessages,
+      signalHistory,
+      activeMachine,
+      stateSnapshot,
+      flowContext,
+    }
+    
+    // Call contextual dispatcher
+    const dispatcherResult = await analyzeSignalsV2(dispatcherInputV2, meta)
+    dispatcherSignals = dispatcherResult.signals
+    newSignalsDetected = dispatcherResult.new_signals
+    signalEnrichments = dispatcherResult.enrichments
+    
+    // Update signal history with new signals and enrichments
+    const historyUpdate = updateSignalHistory({
+      tempMemory,
+      newSignals: newSignalsDetected,
+      enrichments: signalEnrichments,
+      activeMachine,
+    })
+    tempMemory = historyUpdate.tempMemory
+    
+    // Trace dispatcher context
+    await traceV("brain:dispatcher_contextual", "dispatcher", {
+      active_machine: activeMachine,
+      signal_history_count: signalHistory.length,
+      new_signals_count: newSignalsDetected.length,
+      enrichments_count: signalEnrichments.length,
+      pruned_count: historyUpdate.prunedCount,
+    })
+    
+    // Trace new signals detected
+    if (newSignalsDetected.length > 0) {
+      await trace("brain:new_signals_detected", "dispatcher", {
+        signals: newSignalsDetected.map(s => ({
+          type: s.signal_type,
+          brief: s.brief.slice(0, 50),
+          action_target: s.action_target,
+        })),
+      })
+    }
+    
+    // Trace enrichments
+    if (signalEnrichments.length > 0) {
+      await traceV("brain:signal_briefs_enriched", "dispatcher", {
+        enrichments: signalEnrichments.map(e => ({
+          signal: e.existing_signal_type,
+          brief: e.updated_brief.slice(0, 50),
+        })),
+      })
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // BILAN SIGNAL DEFERRAL: Store tool signals during bilan for post-bilan processing
+    // ═══════════════════════════════════════════════════════════════════════════
+    const bilanActive = flowContext?.isBilan && stateSnapshot.investigation_active
+    const machineSignals = dispatcherResult.machine_signals
+    
+    if (bilanActive && machineSignals?.user_consents_defer) {
+      // User consented to defer something during bilan - store in deferred_topics_v2
+      const currentItemTitle = flowContext?.currentItemTitle ?? undefined
+      
+      // Determine which machine type to defer based on detected signals
+      let machineType: DeferredMachineType | null = null
+      let summary = ""
+      let actionTarget: string | undefined = currentItemTitle
+      
+      if (machineSignals.breakdown_recommended) {
+        machineType = "breakdown_action"
+        summary = currentItemTitle 
+          ? `Micro-etape pour ${currentItemTitle}` 
+          : "Creer une micro-etape"
+      } else if (machineSignals.deep_reasons_opportunity) {
+        machineType = "deep_reasons"
+        summary = currentItemTitle 
+          ? `Explorer blocage sur ${currentItemTitle}` 
+          : "Explorer blocage motivationnel"
+      } else if (machineSignals.create_action_intent) {
+        machineType = "create_action"
+        actionTarget = undefined
+        summary = "Creer une nouvelle action"
+      } else if (machineSignals.update_action_intent) {
+        machineType = "update_action"
+        summary = currentItemTitle 
+          ? `Modifier ${currentItemTitle}` 
+          : "Modifier une action"
+      }
+      
+      if (machineType) {
+        const deferResult = deferSignal({
+          tempMemory,
+          machine_type: machineType,
+          action_target: actionTarget,
+          summary: summary.slice(0, 100),
+        })
+        tempMemory = deferResult.tempMemory
+        
+        await trace("brain:bilan_signal_deferred", "investigator", {
+          machine_type: machineType,
+          action_target: currentItemTitle,
+          summary: summary.slice(0, 50),
+          trigger_count: deferResult.topic.trigger_count,
+        })
+        
+        console.log(`[Router] Bilan: deferred ${machineType} signal for "${currentItemTitle}" (consent obtained)`)
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // PROFILE FACTS DETECTION: Handle direct detection of 10 profile fact types
+    // ═══════════════════════════════════════════════════════════════════════════
+    const profileFacts = dispatcherResult.machine_signals?.profile_facts_detected
+    const pendingConfirm = (tempMemory as any)?.user_profile_confirm?.pending ?? null
+    
+    // Only process if facts detected, no pending confirmation, and not in safety mode
+    if (profileFacts && !pendingConfirm && !bilanActive) {
+      // Find the highest confidence fact to confirm first
+      const factEntries = Object.entries(profileFacts) as [string, { value: string; confidence: number }][]
+      const highConfFact = factEntries
+        .filter(([_, f]) => f && f.confidence >= 0.7)
+        .sort((a, b) => b[1].confidence - a[1].confidence)[0]
+      
+      if (highConfFact) {
+        const [factType, factData] = highConfFact
+        const now = new Date().toISOString()
+        const prev = (tempMemory as any)?.user_profile_confirm ?? {}
+        
+        // Map dispatcher type to database key
+        const dbKeyMapping: Record<string, string> = {
+          "tone_preference": "conversation.tone",
+          "verbosity": "conversation.verbosity",
+          "emoji_preference": "conversation.use_emojis",
+          "work_schedule": "schedule.work_hours",
+          "energy_peaks": "schedule.energy_peaks",
+          "wake_time": "schedule.wake_time",
+          "sleep_time": "schedule.sleep_time",
+          "job": "personal.job",
+          "hobbies": "personal.hobbies",
+          "family": "personal.family",
+        }
+        const dbKey = dbKeyMapping[factType]
+        
+        if (dbKey) {
+          tempMemory = {
+            ...(tempMemory ?? {}),
+            user_profile_confirm: {
+              ...(prev ?? {}),
+              pending: {
+                candidate_id: null,
+                key: dbKey,
+                proposed_value: factData.value,
+                scope: "current",
+                asked_at: now,
+                reason: "dispatcher_detection",
+                confidence: factData.confidence,
+              },
+              last_asked_at: now,
+            },
+          }
+          
+          await trace("brain:profile_fact_detected", "dispatcher", {
+            fact_type: factType,
+            db_key: dbKey,
+            value: factData.value.slice(0, 50),
+            confidence: factData.confidence,
+          })
+          
+          console.log(`[Router] Profile fact detected: ${factType} = "${factData.value}" (conf: ${factData.confidence})`)
+        }
+      }
+    }
+  } else {
+    // Fallback to legacy dispatcher (V2 without signal history)
+    dispatcherSignals = await analyzeSignals(userMessage, stateSnapshot, lastAssistantMessage, meta)
+  }
+  
   riskScore = dispatcherSignals.risk_score
 
   // Tracing flags for topic exploration (reported in RouterDecisionV1)
   let topicSessionClosedThisTurn = false
   let topicSessionHandoffThisTurn = false
 
-  // --- TOPIC EXPLORATION (global_machine) ---
+  // --- TOPIC MACHINES (global_machine) ---
+  // Two distinct machines: topic_serious (architect) and topic_light (companion)
   // Uses topic_depth signal to determine:
   // - NEED_SUPPORT → firefighter (handled in policy section below)
-  // - SERIOUS → topic_exploration with owner=architect
-  // - LIGHT → topic_exploration with owner=companion
+  // - SERIOUS → topic_serious with owner=architect
+  // - LIGHT → topic_light with owner=companion
   // - NONE → no topic exploration triggered
   try {
     const tm0 = (tempMemory ?? {}) as any
-    const existing = getActiveSupervisorSession(tm0)
-    const hasExistingTopicExploration = existing?.type === "topic_exploration"
+    const existing = getActiveTopicSession(tm0)
+    const hasExistingTopic = existing?.type === "topic_serious" || existing?.type === "topic_light"
     const interrupt = dispatcherSignals?.interrupt
     const topicDepth = dispatcherSignals?.topic_depth?.value ?? "NONE"
     const topicDepthConf = dispatcherSignals?.topic_depth?.confidence ?? 0
 
-    // Should trigger topic_exploration: SERIOUS or LIGHT topic + interruption
+    // Should trigger topic machine: SERIOUS or LIGHT topic + interruption (or continuing existing)
     const shouldTrigger =
       (topicDepth === "SERIOUS" || topicDepth === "LIGHT") &&
       topicDepthConf >= 0.6 &&
@@ -1049,50 +1598,105 @@ SORTIE JSON STRICTE:
 
     const bored = looksLikeUserBoredOrWantsToStop(userMessage)
 
-    // Auto-close: if topic exploration was in "closing" and user continues (not bored), close it.
+    // PREEMPTION RULE: topic_serious preempts topic_light
+    // If a SERIOUS topic is detected and there's an active topic_light, close the light topic
     if (
-      hasExistingTopicExploration &&
-      existing?.phase === "closing" &&
-      !bored
+      topicDepth === "SERIOUS" && 
+      topicDepthConf >= 0.6 && 
+      existing?.type === "topic_light"
     ) {
-      const closed = closeTopicExploration({ tempMemory: tm0 })
+      const closed = closeTopicSession({ tempMemory: tm0 })
+      if (closed.changed) {
+        tempMemory = closed.tempMemory
+        topicSessionClosedThisTurn = true
+        // Track the preemption for potential resume
+        ;(tempMemory as any).__topic_light_preempted = {
+          topic: existing.topic,
+          phase: existing.phase,
+          turn_count: existing.turn_count,
+        }
+      }
+    }
+
+    // Compute next phase using the new logic
+    const nextPhase = computeNextTopicPhase(existing, {
+      topic_satisfaction: dispatcherSignals?.topic_satisfaction,
+      user_engagement: dispatcherSignals?.user_engagement,
+      interrupt: dispatcherSignals?.interrupt ? {
+        kind: dispatcherSignals.interrupt.kind,
+        confidence: dispatcherSignals.interrupt.confidence,
+      } : undefined,
+    })
+
+    // Auto-close: if topic was in "closing" phase and next phase is also closing, close it
+    if (hasExistingTopic && existing?.phase === "closing" && nextPhase === "closing") {
+      const closed = closeTopicSession({ tempMemory: tm0 })
       if (closed.changed) {
         tempMemory = closed.tempMemory
         topicSessionClosedThisTurn = true
       }
     }
-
-    if (hasExistingTopicExploration || shouldTrigger) {
+    // Also close if user explicitly wants to stop
+    else if (hasExistingTopic && bored && existing?.phase !== "opening") {
+      const closed = closeTopicSession({ tempMemory: tm0 })
+      if (closed.changed) {
+        tempMemory = closed.tempMemory
+        topicSessionClosedThisTurn = true
+      }
+    }
+    // Update or create topic session
+    else if (hasExistingTopic || shouldTrigger) {
       const topicFromDispatcher = interrupt?.deferred_topic_formalized ?? null
       const topic = (typeof topicFromDispatcher === "string" && topicFromDispatcher.trim())
         ? topicFromDispatcher.trim().slice(0, 160)
         : (existing?.topic ? String(existing.topic) : guessTopicLabel(userMessage))
 
-      // Owner mode based on topic_depth:
-      // - SERIOUS → architect (deep introspection, personal issues)
-      // - LIGHT → companion (casual conversation)
-      // - For existing sessions, preserve the owner unless new topic_depth overrides
-      const ownerMode: AgentMode =
-        topicDepth === "SERIOUS" ? "architect" :
-        topicDepth === "LIGHT" ? "companion" :
-        (existing?.owner_mode ?? "companion")
+      // Map engagement level from dispatcher signal
+      const engagementMap: Record<string, TopicEngagementLevel> = {
+        "HIGH": "high",
+        "MEDIUM": "medium", 
+        "LOW": "low",
+        "DISENGAGED": "disengaged",
+      }
+      const engagement = engagementMap[dispatcherSignals?.user_engagement?.level ?? "MEDIUM"] ?? "medium"
+      const satisfaction = dispatcherSignals?.topic_satisfaction?.detected && 
+        (dispatcherSignals?.topic_satisfaction?.confidence ?? 0) >= 0.6
 
-      const arch = (tm0 as any)?.architect ?? {}
-      const planFocus = Boolean(arch?.plan_focus ?? false)
-      const loopCount = Number(arch?.loop_count ?? 0) || 0
-      const focusMode: "plan" | "discussion" | "mixed" =
-        planFocus ? "plan" : (ownerMode === "architect" ? "mixed" : "discussion")
+      // Compute phase: use existing phase progression or start at opening
       const phase: "opening" | "exploring" | "converging" | "closing" =
-        bored ? "closing" : (loopCount >= 2 ? "converging" : "exploring")
+        nextPhase ?? (existing?.phase === "opening" ? "exploring" : "exploring")
 
-      const updated = upsertTopicExploration({
+      // Increment turn count for existing sessions
+      const turnCount = (existing?.turn_count ?? 0) + (hasExistingTopic ? 1 : 0)
+
+      // Route to appropriate machine based on topic_depth
+      if (topicDepth === "SERIOUS" || (hasExistingTopic && existing?.type === "topic_serious")) {
+        const updated = upsertTopicSerious({
         tempMemory: tm0,
         topic,
-        ownerMode,
         phase,
-        focusMode,
+          turnCount,
+          engagement,
+          satisfaction,
+          escalateToLibrarian: shouldEscalateToLibrarian(existing, {
+            needs_explanation: dispatcherSignals?.needs_explanation,
+          }),
+        })
+        if (updated.changed) tempMemory = updated.tempMemory
+      } else if (topicDepth === "LIGHT" || (hasExistingTopic && existing?.type === "topic_light")) {
+        const updated = upsertTopicLight({
+          tempMemory: tm0,
+          topic,
+          phase,
+          turnCount,
+          engagement,
+          satisfaction,
+          escalateToLibrarian: shouldEscalateToLibrarian(existing, {
+            needs_explanation: dispatcherSignals?.needs_explanation,
+          }),
       })
       if (updated.changed) tempMemory = updated.tempMemory
+      }
     }
   } catch {
     // best-effort
@@ -1163,14 +1767,169 @@ SORTIE JSON STRICTE:
     console.error("[Router] Deep reasons handling error:", e)
   }
 
+  // --- INTERCONNECTION: topic_serious ↔ deep_reasons ---
+  // 1. topic_serious → deep_reasons: if during topic_serious, user mentions blocker on specific action
+  // 2. deep_reasons → topic_serious: if during deep_reasons, user wants to explore broader topic
+  try {
+    const activeTopicForInterconnect = getActiveTopicSession(tempMemory)
+    const deepReasonsForInterconnect = getActiveDeepReasonsExploration(tempMemory)
+    const pausedDeepReasons = getPausedDeepReasonsExploration(tempMemory)
+    const deepReasonsOpportunity = dispatcherSignals?.deep_reasons?.opportunity ?? false
+    const deepReasonsActionMentioned = dispatcherSignals?.deep_reasons?.action_mentioned ?? false
+    const deepReasonsActionHint = dispatcherSignals?.deep_reasons?.action_hint
+    const topicDepth = dispatcherSignals?.topic_depth?.value ?? "NONE"
+    const topicDepthConf = dispatcherSignals?.topic_depth?.confidence ?? 0
+
+    // Case 1: topic_serious active + blocker on specific action detected → transition to deep_reasons
+    if (
+      activeTopicForInterconnect?.type === "topic_serious" &&
+      deepReasonsOpportunity &&
+      deepReasonsActionMentioned &&
+      (dispatcherSignals?.deep_reasons?.confidence ?? 0) >= 0.65
+    ) {
+      // Close topic_serious and mark for deep_reasons transition
+      const closed = closeTopicSession({ tempMemory })
+      if (closed.changed) {
+        tempMemory = closed.tempMemory
+        // Store the transition info for the architect to launch deep_reasons
+        ;(tempMemory as any).__deep_reasons_from_topic = {
+          from_topic: activeTopicForInterconnect.topic,
+          action_hint: deepReasonsActionHint,
+          pattern: detectDeepReasonsPattern(userMessage) ?? "unknown",
+          user_words: String(userMessage ?? "").slice(0, 200),
+        }
+        // Also set the opportunity flag
+        ;(tempMemory as any).__deep_reasons_opportunity = {
+          detected: true,
+          from_topic_serious: true,
+          action_hint: deepReasonsActionHint,
+          pattern: detectDeepReasonsPattern(userMessage) ?? "unknown",
+          user_words: String(userMessage ?? "").slice(0, 200),
+        }
+        console.log(`[Router] Transition: topic_serious → deep_reasons (action: ${deepReasonsActionHint})`)
+      }
+    }
+
+    // Case 2: deep_reasons active + user wants to explore broader topic → pause deep_reasons for topic_serious
+    if (
+      deepReasonsForInterconnect &&
+      deepReasonsForInterconnect.status === "active" &&
+      topicDepth === "SERIOUS" &&
+      topicDepthConf >= 0.65 &&
+      !deepReasonsActionMentioned  // Must be about a broader topic, not another action
+    ) {
+      // Pause deep_reasons
+      const paused = pauseDeepReasonsExploration({ tempMemory })
+      if (paused.changed) {
+        tempMemory = paused.tempMemory
+        // Track the pause for potential resume
+        ;(tempMemory as any).__deep_reasons_paused_for_topic = {
+          paused_at: new Date().toISOString(),
+          resume_brief: paused.pausedSession?.resume_brief,
+        }
+        console.log(`[Router] Paused deep_reasons for broader topic_serious exploration`)
+      }
+    }
+
+    // Case 3: topic_serious closes normally + there's a paused deep_reasons → offer to resume
+    if (
+      !activeTopicForInterconnect &&
+      pausedDeepReasons &&
+      !deepReasonsForInterconnect  // No active deep_reasons
+    ) {
+      // Set a flag for the architect to offer resume
+      ;(tempMemory as any).__deep_reasons_resume_available = {
+        topic: pausedDeepReasons.topic,
+        resume_brief: pausedDeepReasons.resume_brief,
+        phase: pausedDeepReasons.phase,
+      }
+    }
+  } catch (e) {
+    console.error("[Router] Topic/DeepReasons interconnection error:", e)
+  }
+
   // --- DETERMINISTIC POLICY: Signal → targetMode ---
-  // Priority order: Safety > Hard blockers > Intent-based routing
+  // Priority order:
+  // 1. Safety (sentry, firefighter) - preempts everything
+  // 2. Active bilan (investigator) - preempts topic machines
+  // 3. deep_reasons_exploration (architect) - structured intervention, preempts topics
+  // 4. topic_serious (architect) - preempts topic_light
+  // 5. topic_light (companion)
+  // 6. Plan focus (architect tools) - can coexist
+  // 7. Default (companion)
+
+  // Track preemption for resume handling
+  let topicPreemptedBySafety = false
+  let machinePreemptedBySafety = false
+  const activeTopicForPreemption = getActiveTopicSession(tempMemory)
+  const activeMachineForPreemption = getAnyActiveMachine(tempMemory)
 
   // 1. Safety override (threshold: confidence >= 0.75)
+  // IMPORTANT: Safety signals can PAUSE active machines (parenthesis pattern)
   if (dispatcherSignals.safety.level === "SENTRY" && dispatcherSignals.safety.confidence >= 0.75) {
     targetMode = "sentry"
+    
+    // PAUSE any active machine (tool flow, topic, deep_reasons)
+    if (activeMachineForPreemption && !hasPausedMachine(tempMemory)) {
+      const candidate = activeMachineForPreemption.meta?.candidate
+      const pauseResult = pauseMachineForSafety({
+        tempMemory,
+        session: activeMachineForPreemption,
+        candidate,
+        reason: "sentry",
+      })
+      tempMemory = pauseResult.tempMemory
+      machinePreemptedBySafety = true
+      
+      await trace("brain:machine_paused", "routing", {
+        machine_type: activeMachineForPreemption.type,
+        action_target: pauseResult.pausedState.action_target,
+        reason: "sentry",
+      })
+    }
+    
+    // Track if a topic session was preempted (legacy)
+    if (activeTopicForPreemption) {
+      topicPreemptedBySafety = true
+      ;(tempMemory as any).__topic_preempted_by_safety = {
+        topic_type: activeTopicForPreemption.type,
+        topic: activeTopicForPreemption.topic,
+        phase: activeTopicForPreemption.phase,
+        turn_count: activeTopicForPreemption.turn_count,
+      }
+    }
   } else if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.75) {
     targetMode = "firefighter"
+    
+    // PAUSE any active machine (tool flow, topic, deep_reasons)
+    if (activeMachineForPreemption && !hasPausedMachine(tempMemory)) {
+      const candidate = activeMachineForPreemption.meta?.candidate
+      const pauseResult = pauseMachineForSafety({
+        tempMemory,
+        session: activeMachineForPreemption,
+        candidate,
+        reason: "firefighter",
+      })
+      tempMemory = pauseResult.tempMemory
+      machinePreemptedBySafety = true
+      
+      await trace("brain:machine_paused", "routing", {
+        machine_type: activeMachineForPreemption.type,
+        action_target: pauseResult.pausedState.action_target,
+        reason: "firefighter",
+      })
+    }
+    
+    // Track if a topic session was preempted (legacy)
+    if (activeTopicForPreemption) {
+      topicPreemptedBySafety = true
+      ;(tempMemory as any).__topic_preempted_by_safety = {
+        topic_type: activeTopicForPreemption.type,
+        topic: activeTopicForPreemption.topic,
+        phase: activeTopicForPreemption.phase,
+        turn_count: activeTopicForPreemption.turn_count,
+      }
+    }
   }
   // 2. Active bilan hard guard (unless explicit stop)
   else if (
@@ -1247,6 +2006,393 @@ SORTIE JSON STRICTE:
       await traceV("brain:deep_reasons_routing", "routing", {
         reason: "deep_reasons_opportunity",
         pattern: (tempMemory as any)?.__deep_reasons_opportunity?.pattern,
+      })
+    }
+  }
+
+  // 5.5. Create Action Flow v2 routing
+  // If there's an active create_action_flow session, route to Architect
+  const activeCreateActionSession = getActiveCreateActionFlow(tempMemory)
+  if (
+    activeCreateActionSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    targetMode = "architect"
+    await traceV("brain:create_action_flow_routing", "routing", {
+      reason: "active_create_action_flow",
+      candidate_status: (activeCreateActionSession.meta as any)?.candidate_status,
+    })
+  }
+  
+  // Prune stale create_action_flow sessions
+  if (isCreateActionFlowStale(tempMemory)) {
+    const pruned = closeCreateActionFlow({ tempMemory, outcome: "abandoned" })
+    if (pruned.changed) {
+      tempMemory = pruned.tempMemory
+      console.log("[Router] Pruned stale create_action_flow session")
+    }
+  }
+
+  // Handle create_action signals from dispatcher (start new flow if explicit intent)
+  const createActionSignal = dispatcherSignals?.create_action
+  if (
+    createActionSignal &&
+    createActionSignal.intent_strength !== "none" &&
+    createActionSignal.confidence >= 0.6 &&
+    !activeCreateActionSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    // Route to architect when create_action intent is detected
+    if (createActionSignal.intent_strength === "explicit" || createActionSignal.intent_strength === "implicit") {
+      targetMode = "architect"
+      // Store the signal info for architect to use
+      ;(tempMemory as any).__create_action_signal = {
+        intent_strength: createActionSignal.intent_strength,
+        sophia_suggested: createActionSignal.sophia_suggested,
+        user_response: createActionSignal.user_response,
+        action_type_hint: createActionSignal.action_type_hint,
+        action_label_hint: createActionSignal.action_label_hint,
+      }
+      await traceV("brain:create_action_signal_routing", "routing", {
+        reason: "create_action_signal",
+        intent_strength: createActionSignal.intent_strength,
+        sophia_suggested: createActionSignal.sophia_suggested,
+      })
+    }
+  }
+
+  // 5.6. Update Action Flow v2 routing
+  // If there's an active update_action_flow session, route to Architect
+  const activeUpdateActionSession = getActiveUpdateActionFlow(tempMemory)
+  if (
+    activeUpdateActionSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    targetMode = "architect"
+    await traceV("brain:update_action_flow_routing", "routing", {
+      reason: "active_update_action_flow",
+      candidate_status: (activeUpdateActionSession.meta as any)?.candidate_status,
+    })
+  }
+  
+  // Prune stale update_action_flow sessions
+  if (isUpdateActionFlowStale(tempMemory)) {
+    const pruned = closeUpdateActionFlow({ tempMemory, outcome: "abandoned" })
+    if (pruned.changed) {
+      tempMemory = pruned.tempMemory
+      console.log("[Router] Pruned stale update_action_flow session")
+    }
+  }
+
+  // Handle update_action signals from dispatcher
+  const updateActionSignal = dispatcherSignals?.update_action
+  if (
+    updateActionSignal &&
+    updateActionSignal.detected &&
+    updateActionSignal.confidence >= 0.6 &&
+    !activeUpdateActionSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    // Route to architect when update_action intent is detected
+    targetMode = "architect"
+    // Store the signal info for architect to use
+    ;(tempMemory as any).__update_action_signal = {
+      detected: updateActionSignal.detected,
+      target_hint: updateActionSignal.target_hint,
+      change_type: updateActionSignal.change_type,
+      new_value_hint: updateActionSignal.new_value_hint,
+      user_response: updateActionSignal.user_response,
+    }
+    await traceV("brain:update_action_signal_routing", "routing", {
+      reason: "update_action_signal",
+      target_hint: updateActionSignal.target_hint,
+      change_type: updateActionSignal.change_type,
+    })
+  }
+
+  // 5.7. Breakdown Action Flow v2 routing
+  // If there's an active breakdown_action_flow session, route to Architect
+  const activeBreakdownActionSession = getActiveBreakdownActionFlow(tempMemory)
+  if (
+    activeBreakdownActionSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    targetMode = "architect"
+    await traceV("brain:breakdown_action_flow_routing", "routing", {
+      reason: "active_breakdown_action_flow",
+      candidate_status: (activeBreakdownActionSession.meta as any)?.candidate_status,
+    })
+  }
+  
+  // Prune stale breakdown_action_flow sessions
+  if (isBreakdownActionFlowStale(tempMemory)) {
+    const pruned = closeBreakdownActionFlow({ tempMemory, outcome: "abandoned" })
+    if (pruned.changed) {
+      tempMemory = pruned.tempMemory
+      console.log("[Router] Pruned stale breakdown_action_flow session")
+    }
+  }
+
+  // Handle breakdown_action signals from dispatcher
+  const breakdownActionSignal = dispatcherSignals?.breakdown_action
+  if (
+    breakdownActionSignal &&
+    breakdownActionSignal.detected &&
+    breakdownActionSignal.confidence >= 0.6 &&
+    !activeBreakdownActionSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    // Route to architect when breakdown_action intent is detected
+    targetMode = "architect"
+    // Store the signal info for architect to use
+    ;(tempMemory as any).__breakdown_action_signal = {
+      detected: breakdownActionSignal.detected,
+      target_hint: breakdownActionSignal.target_hint,
+      blocker_hint: breakdownActionSignal.blocker_hint,
+      sophia_suggested: breakdownActionSignal.sophia_suggested,
+      user_response: breakdownActionSignal.user_response,
+    }
+    await traceV("brain:breakdown_action_signal_routing", "routing", {
+      reason: "breakdown_action_signal",
+      target_hint: breakdownActionSignal.target_hint,
+      blocker_hint: breakdownActionSignal.blocker_hint,
+    })
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // 5.8. SIGNAL DEFERRAL DURING ACTIVE MACHINE
+  // Only SENTRY/FIREFIGHTER can interrupt; other signals are deferred
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  let deferredAckPrefix = ""  // Will be prepended to agent response if signal was deferred
+  
+  // Prune expired deferred topics first
+  {
+    const pruneResult = pruneExpiredDeferredTopics({ tempMemory })
+    if (pruneResult.pruned.length > 0) {
+      tempMemory = pruneResult.tempMemory
+      for (const expired of pruneResult.pruned) {
+        await trace("brain:deferred_expired", "cleanup", {
+          topic_id: expired.id,
+          machine_type: expired.machine_type,
+          action_target: expired.action_target,
+          age_hours: Math.round((Date.now() - new Date(expired.created_at).getTime()) / (60 * 60 * 1000)),
+        })
+      }
+    }
+  }
+  
+  // Check if any state machine is currently active
+  const anyActiveMachine = getAnyActiveMachine(tempMemory)
+  const anyActiveToolFlow = getAnyActiveToolFlow(tempMemory)
+  const activeToolFlowTarget = anyActiveToolFlow ? getActiveToolFlowActionTarget(tempMemory) : null
+  
+  // Detect if dispatcher signals would trigger a NEW machine
+  const newMachineSignal = detectMachineTypeFromSignals(dispatcherSignals)
+  
+  // SIGNAL DEFERRAL LOGIC
+  if (anyActiveMachine && newMachineSignal) {
+    // Check if it's the SAME machine type and SAME action (not a deferral case)
+    const isSameMachineType = (() => {
+      const activeType = anyActiveMachine.type
+      // Map session types to deferred machine types for comparison
+      const activeAsMachineType = 
+        activeType === "create_action_flow" ? "create_action" :
+        activeType === "update_action_flow" ? "update_action" :
+        activeType === "breakdown_action_flow" ? "breakdown_action" :
+        activeType === "deep_reasons_exploration" ? "deep_reasons" :
+        activeType
+      return activeAsMachineType === newMachineSignal.machine_type
+    })()
+    
+    const isSameAction = (() => {
+      if (!isSameMachineType) return false
+      // For non-tool machines (topics, deep_reasons), same machine type is enough
+      if (!isToolMachine(newMachineSignal.machine_type)) return true
+      // For tool machines, require matching action targets
+      return Boolean(
+        activeToolFlowTarget &&
+        newMachineSignal.action_target &&
+        activeToolFlowTarget.toLowerCase().includes(newMachineSignal.action_target.toLowerCase())
+      )
+    })()
+    
+    // If it's NOT sentry/firefighter AND (different machine OR different action), DEFER
+    if (!shouldInterruptForSafety(dispatcherSignals) && (!isSameMachineType || !isSameAction)) {
+      // Generate summary for the deferred signal
+      const summary = generateDeferredSignalSummary({
+        signals: dispatcherSignals,
+        userMessage,
+        machine_type: newMachineSignal.machine_type,
+        action_target: newMachineSignal.action_target,
+      })
+      
+      // Check if matching deferred exists (for UPDATE logic)
+      const existingDeferred = findMatchingDeferred({
+        tempMemory,
+        machine_type: newMachineSignal.machine_type,
+        action_target: newMachineSignal.action_target,
+      })
+      
+      // Defer the signal
+      const deferResult = deferSignal({
+        tempMemory,
+        machine_type: newMachineSignal.machine_type,
+        action_target: newMachineSignal.action_target,
+        summary,
+      })
+      tempMemory = deferResult.tempMemory
+      
+      // Generate acknowledgment prefix
+      if (deferResult.action === "created") {
+        deferredAckPrefix = generateAcknowledgmentPrefix({
+          machine_type: newMachineSignal.machine_type,
+          action_target: newMachineSignal.action_target,
+          isUpdate: false,
+        })
+      } else {
+        // UPDATE case - subtle or silent acknowledgment
+        const subtleAck = generateSubtleUpdateAck({
+          machine_type: newMachineSignal.machine_type,
+          action_target: newMachineSignal.action_target,
+          triggerCount: deferResult.topic.trigger_count,
+        })
+        deferredAckPrefix = subtleAck
+      }
+      
+      // Log the deferral with specific event type
+      if (deferResult.action === "created") {
+        await trace("brain:deferred_created", "routing", {
+          topic_id: deferResult.topic.id,
+          machine_type: newMachineSignal.machine_type,
+          action_target: newMachineSignal.action_target,
+          summary,
+          active_machine: anyActiveMachine.type,
+          active_machine_target: activeToolFlowTarget,
+        })
+      } else {
+        await trace("brain:deferred_updated", "routing", {
+          topic_id: deferResult.topic.id,
+          machine_type: newMachineSignal.machine_type,
+          action_target: newMachineSignal.action_target,
+          trigger_count: deferResult.topic.trigger_count,
+          new_summary: summary,
+        })
+      }
+      
+      // Also log the generic signal_deferred event
+      await trace("brain:signal_deferred", "routing", {
+        machine_type: newMachineSignal.machine_type,
+        action_target: newMachineSignal.action_target,
+        deferred_action: deferResult.action,
+        summary,
+        active_machine: anyActiveMachine.type,
+        active_machine_target: activeToolFlowTarget,
+      })
+      
+      // Log if cancelled an old topic due to limit
+      if (deferResult.cancelled) {
+        await trace("brain:deferred_cancelled_limit", "routing", {
+          cancelled_id: deferResult.cancelled.id,
+          cancelled_type: deferResult.cancelled.machine_type,
+          cancelled_target: deferResult.cancelled.action_target,
+        })
+      }
+      
+      // Clear any signals that would have triggered the new machine
+      // (so the current machine continues uninterrupted)
+      if (newMachineSignal.machine_type === "breakdown_action") {
+        delete (tempMemory as any).__breakdown_action_signal
+      } else if (newMachineSignal.machine_type === "create_action") {
+        delete (tempMemory as any).__create_action_signal
+      } else if (newMachineSignal.machine_type === "update_action") {
+        delete (tempMemory as any).__update_action_signal
+      } else if (newMachineSignal.machine_type === "deep_reasons") {
+        delete (tempMemory as any).__deep_reasons_opportunity
+      }
+    }
+  }
+  
+  // Store the deferred ack prefix for agent to prepend
+  if (deferredAckPrefix) {
+    ;(tempMemory as any).__deferred_ack_prefix = deferredAckPrefix
+  }
+  
+  // 6. Topic Machine routing (topic_serious / topic_light)
+  // If there's an active topic session, route based on owner_mode with librarian escalation
+  const activeTopicSession = getActiveTopicSession(tempMemory)
+  if (
+    activeTopicSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    const isSerious = activeTopicSession.type === "topic_serious"
+    const isLight = activeTopicSession.type === "topic_light"
+    
+    // Check for librarian escalation
+    if (activeTopicSession.escalate_to_librarian) {
+      // Check if librarian just responded (so we should return to owner)
+      const lastAgent = String(state?.current_mode ?? "").toLowerCase()
+      if (lastAgent === "librarian") {
+        // Librarian has responded, clear escalation and return to owner
+        const cleared = setTopicLibrarianEscalation({ tempMemory, escalate: false })
+        if (cleared.changed) tempMemory = cleared.tempMemory
+        
+        targetMode = isSerious ? "architect" : "companion"
+        topicSessionHandoffThisTurn = true
+        await traceV("brain:topic_librarian_return", "routing", {
+          topic_type: activeTopicSession.type,
+          returning_to: targetMode,
+        })
+      } else {
+        // Escalation requested, route to librarian
+        targetMode = "librarian"
+        await traceV("brain:topic_librarian_escalation", "routing", {
+          topic_type: activeTopicSession.type,
+          reason: "needs_explanation",
+        })
+      }
+    }
+    // New escalation detected this turn
+    else if (
+      dispatcherSignals.needs_explanation?.value &&
+      (dispatcherSignals.needs_explanation.confidence ?? 0) >= 0.7
+    ) {
+      // Set escalation flag and route to librarian
+      const updated = setTopicLibrarianEscalation({ tempMemory, escalate: true })
+      if (updated.changed) tempMemory = updated.tempMemory
+      
+      targetMode = "librarian"
+      await traceV("brain:topic_librarian_escalation", "routing", {
+        topic_type: activeTopicSession.type,
+        reason: dispatcherSignals.needs_explanation.reason ?? "needs_explanation",
+      })
+    }
+    // Normal routing based on topic type
+    else if (isSerious) {
+      targetMode = "architect"
+      await traceV("brain:topic_serious_routing", "routing", {
+        phase: activeTopicSession.phase,
+        turn_count: activeTopicSession.turn_count,
+      })
+    } else if (isLight) {
+      targetMode = "companion"
+      await traceV("brain:topic_light_routing", "routing", {
+        phase: activeTopicSession.phase,
+        turn_count: activeTopicSession.turn_count,
       })
     }
   }
@@ -2463,6 +3609,109 @@ SORTIE JSON STRICTE:
     rewritten: Boolean((agentOut as any)?.rewritten),
   }, "info")
 
+  // Refresh temp_memory after agent execution to capture flow closures and markers.
+  try {
+    const latestAfterAgent = await getUserState(supabase, userId, scope)
+    const tmLatest = (latestAfterAgent as any)?.temp_memory ?? {}
+    const tmRouter = tempMemory ?? {}
+    // Preserve router-only keys that may not be in latest
+    const routerKeys = [
+      "__deferred_ack_prefix",
+      "__resume_message_prefix",
+      "deferred_topics_v2",
+      "__paused_machine_v2",
+    ]
+    const merged: any = { ...(tmLatest ?? {}) }
+    for (const key of routerKeys) {
+      if (Object.prototype.hasOwnProperty.call(tmRouter, key)) {
+        merged[key] = (tmRouter as any)[key]
+      }
+    }
+    tempMemory = merged
+  } catch {}
+
+  // Inject deferred/resume prefixes into the response (prefixes are prepended)
+  const deferredPrefix = (tempMemory as any)?.__deferred_ack_prefix ?? ""
+  const resumePrefix = (tempMemory as any)?.__resume_message_prefix ?? ""
+  if (deferredPrefix || resumePrefix) {
+    const prefix = `${String(deferredPrefix ?? "")}${String(resumePrefix ?? "")}`
+    responseContent = `${prefix}${String(responseContent ?? "")}`.trim()
+    try { delete (tempMemory as any).__deferred_ack_prefix } catch {}
+    try { delete (tempMemory as any).__resume_message_prefix } catch {}
+  }
+
+  // AUTO-RELAUNCH FROM DEFERRED (after a flow closes normally)
+  const flowJustClosed = (tempMemory as any)?.__flow_just_closed_normally
+  if (flowJustClosed) {
+    try { delete (tempMemory as any).__flow_just_closed_normally } catch {}
+
+    if (!isDeferredPaused(tempMemory) && hasPendingDeferredTopics(tempMemory)) {
+      const nextDeferred = getNextDeferredToProcess(tempMemory)
+      if (nextDeferred) {
+        const intro = generateAutoRelaunchIntro({ topic: nextDeferred })
+        responseContent = `${String(responseContent ?? "").trim()}\n\n${intro}`.trim()
+
+        // Remove from deferred (we're about to process it)
+        const removeResult = removeDeferredTopicV2({ tempMemory, topicId: nextDeferred.id })
+        tempMemory = removeResult.tempMemory
+
+        // Initialize the next machine immediately
+        if (nextDeferred.machine_type === "breakdown_action") {
+          const candidate = createBreakdownCandidate({
+            target_action: nextDeferred.action_target ? { title: nextDeferred.action_target } : undefined,
+          })
+          const updated = upsertBreakdownActionFlow({ tempMemory, candidate })
+          tempMemory = updated.tempMemory
+          nextMode = "architect"
+        } else if (nextDeferred.machine_type === "update_action") {
+          const candidate = createUpdateCandidate({
+            target_action: { title: nextDeferred.action_target ?? "une action" },
+            proposed_changes: {},
+          })
+          const updated = upsertUpdateActionFlow({ tempMemory, candidate })
+          tempMemory = updated.tempMemory
+          nextMode = "architect"
+        } else if (nextDeferred.machine_type === "create_action") {
+          const candidate = createActionCandidate({
+            label: nextDeferred.action_target ?? "Nouvelle action",
+            proposed_by: "sophia",
+            status: "awaiting_confirm",
+          })
+          const updated = upsertCreateActionFlow({ tempMemory, candidate })
+          tempMemory = updated.tempMemory
+          nextMode = "architect"
+        } else if (nextDeferred.machine_type === "topic_light") {
+          const topic = nextDeferred.action_target ?? nextDeferred.signal_summaries[0]?.summary ?? "un sujet"
+          const updated = upsertTopicLight({ tempMemory, topic, phase: "opening" })
+          tempMemory = updated.tempMemory
+          nextMode = "companion"
+        } else if (nextDeferred.machine_type === "topic_serious") {
+          const topic = nextDeferred.action_target ?? nextDeferred.signal_summaries[0]?.summary ?? "un sujet important"
+          const updated = upsertTopicSerious({ tempMemory, topic, phase: "opening" })
+          tempMemory = updated.tempMemory
+          nextMode = "architect"
+        } else if (nextDeferred.machine_type === "deep_reasons") {
+          const topic = nextDeferred.action_target ?? nextDeferred.signal_summaries[0]?.summary ?? "un blocage motivationnel"
+          const updated = upsertDeepReasonsExploration({
+            tempMemory,
+            topic,
+            phase: "re_consent",
+            source: "deferred",
+          })
+          tempMemory = updated.tempMemory
+          nextMode = "architect"
+        }
+
+        await trace("brain:auto_relaunch", "routing", {
+          machine_type: nextDeferred.machine_type,
+          action_target: nextDeferred.action_target,
+          from_deferred_id: nextDeferred.id,
+          trigger_count: nextDeferred.trigger_count,
+        })
+      }
+    }
+  }
+
   // Lightweight global proactivity: occasionally remind a deferred topic (max 1/day, and only if we won't add a 2nd question).
   const nudged = maybeInjectGlobalDeferredNudge({ tempMemory, userMessage, responseText: responseContent })
   if (nudged.changed) {
@@ -2587,6 +3836,114 @@ SORTIE JSON STRICTE:
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // POST-PARENTHESIS RESUME HANDLING (V2: for paused machines)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  // Check if we have a paused machine waiting to be resumed
+  const pausedMachineV2 = getPausedMachine(tempMemory)
+  
+  // If the last assistant message asked the resume question, handle user's answer
+  if (pausedMachineV2 && lastAssistantAskedResumeQuestion(lastAssistantMessage ?? "")) {
+    const wantsResume = looksLikeWantsToResume(userMessage)
+    const wantsRest = looksLikeWantsToRest(userMessage)
+    
+    if (wantsResume) {
+      // User wants to resume - restore the machine
+      const resumeResult = resumePausedMachine({ tempMemory })
+      tempMemory = resumeResult.tempMemory
+      
+      if (resumeResult.resumed && resumeResult.machineType) {
+        // Generate resume message
+        const resumeMsg = generateResumeMessage({ pausedMachine: pausedMachineV2 })
+        
+        // Store for agent to prepend
+        ;(tempMemory as any).__resume_message_prefix = resumeMsg
+        
+        // Route to appropriate owner
+        if (resumeResult.machineType === "topic_light") {
+          nextMode = "companion"
+        } else {
+          nextMode = "architect"
+        }
+        
+        await trace("brain:machine_resumed", "routing", {
+          machine_type: resumeResult.machineType,
+          paused_duration_ms: Date.now() - new Date(pausedMachineV2.paused_at).getTime(),
+          reason: pausedMachineV2.reason,
+        })
+      }
+    } else if (wantsRest) {
+      // User declined - move machine to deferred and pause ALL deferred for 2h
+      
+      // First, create a deferred topic from the paused machine
+      const machineAsDeferredType = (
+        pausedMachineV2.machine_type === "create_action_flow" ? "create_action" :
+        pausedMachineV2.machine_type === "update_action_flow" ? "update_action" :
+        pausedMachineV2.machine_type === "breakdown_action_flow" ? "breakdown_action" :
+        pausedMachineV2.machine_type === "deep_reasons_exploration" ? "deep_reasons" :
+        pausedMachineV2.machine_type === "topic_serious" ? "topic_serious" :
+        pausedMachineV2.machine_type === "topic_light" ? "topic_light" : null
+      ) as DeferredMachineType | null
+      
+      if (machineAsDeferredType) {
+        const deferResult = deferSignal({
+          tempMemory,
+          machine_type: machineAsDeferredType,
+          action_target: pausedMachineV2.action_target,
+          summary: pausedMachineV2.resume_context ?? `Pausé après ${pausedMachineV2.reason}`,
+        })
+        tempMemory = deferResult.tempMemory
+        
+        await trace("brain:machine_to_deferred", "routing", {
+          machine_type: pausedMachineV2.machine_type,
+          action_target: pausedMachineV2.action_target,
+          user_declined_resume: true,
+        })
+      }
+      
+      // Clear the paused machine
+      tempMemory = clearPausedMachine(tempMemory).tempMemory
+      
+      // Pause ALL deferred topics for 2 hours
+      const pauseResult = pauseAllDeferredTopics({ tempMemory, durationMs: 2 * 60 * 60 * 1000 })
+      tempMemory = pauseResult.tempMemory
+      
+      await trace("brain:deferred_pause_activated", "routing", {
+        duration_ms: 2 * 60 * 60 * 1000,
+        reason: "user_declined_resume_after_safety",
+      })
+      
+      // Generate decline message
+      const declineMsg = generateDeclineResumeMessage()
+      responseContent = declineMsg
+    }
+    // If neither yes nor no, continue normally (might be a follow-up)
+  }
+  
+  // If there's a paused machine and we're now in a low-stakes turn (after safety),
+  // append the resume question to the response
+  else if (
+    pausedMachineV2 &&
+    nextMode === "companion" &&  // Safety intervention is over
+    riskScore <= 1 &&
+    !checkupActive
+  ) {
+    // Generate and append the post-parenthesis question
+    const resumeQuestion = generatePostParenthesisQuestion({
+      pausedMachine: pausedMachineV2,
+      reason: pausedMachineV2.reason,
+    })
+    
+    responseContent = `${String(responseContent ?? "").trim()}\n\n${resumeQuestion}`
+    
+    await trace("brain:post_parenthesis_question", "routing", {
+      machine_type: pausedMachineV2.machine_type,
+      action_target: pausedMachineV2.action_target,
+      paused_duration_ms: Date.now() - new Date(pausedMachineV2.paused_at).getTime(),
+    })
+  }
+
   // 6. Mise à jour du mode final et log réponse
   // IMPORTANT: agents may have updated temp_memory mid-turn (e.g. Architect tool flows).
   // Merge with latest DB temp_memory to avoid clobbering those updates.
@@ -2601,6 +3958,10 @@ SORTIE JSON STRICTE:
       if ((tempMemory as any).supervisor) (mergedTempMemory as any).supervisor = (tempMemory as any).supervisor
       if ((tempMemory as any).global_deferred_topics) (mergedTempMemory as any).global_deferred_topics = (tempMemory as any).global_deferred_topics
       if ((tempMemory as any).architect) (mergedTempMemory as any).architect = (tempMemory as any).architect
+      // V2 deferred topics
+      if ((tempMemory as any).deferred_topics_v2) (mergedTempMemory as any).deferred_topics_v2 = (tempMemory as any).deferred_topics_v2
+      // Paused machine state (for safety parenthesis)
+      if ((tempMemory as any).__paused_machine_v2) (mergedTempMemory as any).__paused_machine_v2 = (tempMemory as any).__paused_machine_v2
     }
     // Scheduler override: if we explicitly cancelled a toolflow on stop/boredom, ensure it stays cleared.
     if (toolflowCancelledOnStop) {

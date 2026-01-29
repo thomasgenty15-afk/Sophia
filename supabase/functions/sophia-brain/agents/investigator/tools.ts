@@ -107,12 +107,21 @@ export const DEFER_DEEP_EXPLORATION_TOOL = {
   },
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// INVESTIGATOR TOOLS
+// 
+// The Investigator now only uses log_action_execution.
+// All other tools (breakdown, activate, archive) are handled POST-bilan via
+// the deferred_topics_v2 system, which routes to the Architect.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export const INVESTIGATOR_TOOLS = [
   LOG_ACTION_TOOL,
-  BREAK_DOWN_ACTION_TOOL,
-  DEFER_DEEP_EXPLORATION_TOOL,
-  ACTIVATE_ACTION_TOOL,
-  ARCHIVE_ACTION_TOOL,
+  // Other tools removed - signals are now deferred to post-bilan:
+  // - breakdown_action → deferred_topics_v2 + auto-relaunch to Architect
+  // - defer_deep_exploration → deferred_topics_v2 + auto-relaunch to Architect
+  // - activate_plan_action → deferred_topics_v2 + auto-relaunch to Architect
+  // - archive_plan_action → deferred_topics_v2 + auto-relaunch to Architect
 ]
 
 

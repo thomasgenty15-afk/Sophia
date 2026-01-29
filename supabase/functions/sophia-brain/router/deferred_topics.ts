@@ -327,10 +327,19 @@ export function appendDeferredTopicToState(currentState: any, topic: string): an
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// ENRICHED DEFERRED TOPICS (deep_reasons support)
+// ENRICHED DEFERRED TOPICS (LEGACY - deprecated)
+// ═══════════════════════════════════════════════════════════════════════════════
+//
+// @deprecated These functions are no longer used by the Investigator.
+// Deferred topics during bilan are now stored in deferred_topics_v2 (global).
+// These functions are kept for backward compatibility with existing runtime data.
+// Will be removed in a future version.
+//
+// See: deferred_topics_v2.ts for the new system.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
+ * @deprecated Use deferSignal from deferred_topics_v2.ts instead.
  * Append an enriched deferred topic (with type and context) to state.
  * Used for deep_reasons topics created by the Investigator.
  */

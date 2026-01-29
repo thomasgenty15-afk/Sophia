@@ -4,15 +4,11 @@ import { normalizeChatText } from "../../chat_text.ts"
 import type { CheckupItem, InvestigationState, InvestigatorTurnResult } from "./types.ts"
 import { investigatorSay } from "./copy.ts"
 import { isMegaTestMode } from "./utils.ts"
-import { fetchActionRowById, fetchActivePlanRow, handleArchiveAction, logItem } from "./db.ts"
+import { logItem } from "./db.ts"
 import { checkAndHandleLevelUp, maybeHandleStreakAfterLog } from "./streaks.ts"
-import { callBreakDownActionEdge } from "./breakdown.ts"
 import { logEdgeFunctionError } from "../../../_shared/error-log.ts"
-import { 
-  appendEnrichedDeferredTopicToState, 
-  createDeepReasonsDeferredTopic 
-} from "../../router/deferred_topics.ts"
-import type { DeepReasonsPattern } from "../architect/deep_reasons_types.ts"
+// NOTE: Tool handlers for break_down_action, defer_deep_exploration, activate_plan_action,
+// archive_plan_action have been removed. These are now handled post-bilan via deferred_topics_v2.
 
 export async function handleInvestigatorModelOutput(opts: {
   supabase: SupabaseClient
@@ -308,192 +304,11 @@ export async function handleInvestigatorModelOutput(opts: {
     }
   }
 
-  if (typeof response === "object" && response?.tool === "break_down_action") {
-    try {
-      if (currentItem.type !== "action") {
-        return {
-          content: await investigatorSay("break_down_action_wrong_type", { user_message: message, item: currentItem }, meta),
-          investigationComplete: false,
-          newState: currentState,
-        }
-      }
-
-      const problem = String((response as any)?.args?.problem ?? "").trim()
-      const applyToPlan = (response as any)?.args?.apply_to_plan !== false
-      if (!problem) {
-        return {
-          content: await investigatorSay("break_down_action_missing_problem", { user_message: message, item: currentItem }, meta),
-          investigationComplete: false,
-          newState: currentState,
-        }
-      }
-
-      const planRow = await fetchActivePlanRow(supabase, userId)
-      const actionRow = await fetchActionRowById(supabase, userId, currentItem.id)
-
-      const helpingAction = {
-        title: actionRow?.title ?? currentItem.title,
-        description: actionRow?.description ?? currentItem.description ?? "",
-        tracking_type: actionRow?.tracking_type ?? currentItem.tracking_type ?? "boolean",
-        time_of_day: actionRow?.time_of_day ?? "any_time",
-        targetReps: actionRow?.target_reps ?? currentItem.target ?? 1,
-      }
-
-      let newAction: any
-      try {
-        newAction = await callBreakDownActionEdge({
-          action: helpingAction,
-          problem,
-          plan: planRow?.content ?? null,
-          submissionId: planRow?.submission_id ?? actionRow?.submission_id ?? null,
-        })
-      } catch (e) {
-        const errMsg = e instanceof Error ? e.message : String(e)
-        console.error("[Investigator] break_down_action tool failed (unexpected):", errMsg)
-        await logToolFallback({ tool_name: "break_down_action", error: e })
-        return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
-      }
-
-      const stepTitle = String(newAction?.title ?? "Micro-étape").trim()
-      const stepDesc = String(newAction?.description ?? "").trim()
-      const tip = String(newAction?.tips ?? "").trim()
-
-      const nextState = {
-        ...currentState,
-        temp_memory: {
-          ...(currentState.temp_memory || {}),
-          breakdown: {
-            stage: "awaiting_accept",
-            action_id: currentItem.id,
-            action_title: currentItem.title,
-            problem,
-            proposed_action: newAction,
-            apply_to_plan: applyToPlan,
-          },
-        },
-      }
-
-      return {
-        content: await investigatorSay(
-          "break_down_action_propose_step",
-          { user_message: message, action_title: currentItem.title, problem, proposed_step: { title: stepTitle, description: stepDesc, tip }, apply_to_plan: applyToPlan },
-          meta,
-        ),
-        investigationComplete: false,
-        newState: nextState,
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      console.error("[Investigator] break_down_action failed:", e)
-      await logToolFallback({ tool_name: "break_down_action", error: e })
-      return {
-        content: await investigatorSay("break_down_action_error", { user_message: message, error: msg, item: currentItem }, meta),
-        investigationComplete: false,
-        newState: currentState,
-      }
-    }
-  }
-
-  if (typeof response === "object" && response?.tool === "archive_plan_action") {
-    try {
-      const result = await handleArchiveAction(supabase, userId, response.args)
-      return { content: result, investigationComplete: false, newState: currentState }
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e)
-      console.error("[Investigator] archive_plan_action failed (unexpected):", errMsg)
-      await logToolFallback({ tool_name: "archive_plan_action", error: e })
-      return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
-    }
-  }
-
-  if (typeof response === "object" && response?.tool === "activate_plan_action") {
-    return {
-      content:
-        "Je note ton envie d'activer ça. Pour être sûr de respecter le plan (les murs avant le toit !), je laisse l'Architecte valider et l'activer tout de suite. (Transition vers Architecte...)",
-      investigationComplete: true,
-      newState: null,
-    }
-  }
-
-  // DEFER DEEP EXPLORATION TOOL
-  // Used when detecting a motivational/deep blocker during bilan
-  // The exploration will happen AFTER the bilan ends
-  if (typeof response === "object" && response?.tool === "defer_deep_exploration") {
-    try {
-      const args = (response as any)?.args ?? {}
-      const actionId = String(args.action_id ?? currentItem?.id ?? "").trim()
-      const actionTitle = String(args.action_title ?? currentItem?.title ?? "").trim()
-      const detectedPattern = (args.detected_pattern ?? "unknown") as DeepReasonsPattern
-      const userWords = String(args.user_words ?? message ?? "").trim().slice(0, 200)
-      const consentObtained = Boolean(args.consent_obtained)
-
-      if (!consentObtained) {
-        // User hasn't consented yet - just acknowledge and continue
-        return {
-          content: "Ok, on n'y touche pas. On continue le bilan ? 🙂",
-          investigationComplete: false,
-          newState: currentState,
-        }
-      }
-
-      // Create an enriched deferred topic for deep exploration
-      const enrichedTopic = createDeepReasonsDeferredTopic({
-        action_id: actionId,
-        action_title: actionTitle,
-        detected_pattern: detectedPattern,
-        user_words: userWords,
-      })
-
-      // Add to state (will be picked up after bilan)
-      const updatedState = appendEnrichedDeferredTopicToState(currentState, enrichedTopic)
-      
-      console.log(`[Investigator] Deep exploration deferred for action "${actionTitle}" (pattern: ${detectedPattern})`)
-
-      // Move to next item
-      const nextIndex = currentState.current_item_index + 1
-      const nextState = { 
-        ...updatedState, 
-        current_item_index: nextIndex,
-      }
-
-      if (nextIndex >= currentState.pending_items.length) {
-        // End of bilan - the deferred topic will be picked up by router
-        return {
-          content: await investigatorSay(
-            "deep_exploration_deferred_end",
-            { 
-              user_message: message, 
-              action_title: actionTitle,
-              channel: meta?.channel,
-            },
-            meta,
-          ),
-          investigationComplete: true,
-          newState: nextState,
-        }
-      }
-
-      const nextItem = currentState.pending_items[nextIndex]
-      return {
-        content: await investigatorSay(
-          "deep_exploration_deferred_continue",
-          { 
-            user_message: message, 
-            action_title: actionTitle, 
-            next_item: nextItem,
-          },
-          meta,
-        ),
-        investigationComplete: false,
-        newState: nextState,
-      }
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e)
-      console.error("[Investigator] defer_deep_exploration failed (unexpected):", errMsg)
-      await logToolFallback({ tool_name: "defer_deep_exploration", error: e })
-      return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
-    }
-  }
+  // NOTE: Tool handlers for break_down_action, archive_plan_action, activate_plan_action,
+  // defer_deep_exploration have been removed. These tools are no longer available to the
+  // Investigator. The Investigator now only proposes these actions verbally; if the user
+  // consents, the Dispatcher detects the signal and stores it in deferred_topics_v2 for
+  // processing after the bilan ends.
 
   // Text response: verify copy rules (unless in mega test)
   if (typeof response === "string" && !isMegaTestMode(meta)) {
@@ -512,7 +327,7 @@ export async function handleInvestigatorModelOutput(opts: {
         user_message: message,
         now_iso: new Date().toISOString(),
         system_prompt_excerpt: String(opts.systemPrompt ?? "").slice(0, 1600),
-        tools_available: ["log_action_execution", "break_down_action", "activate_plan_action", "archive_plan_action"],
+        tools_available: ["log_action_execution"],
       },
       meta: { ...meta, userId },
     })

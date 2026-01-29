@@ -16,6 +16,9 @@ export type SupervisorSessionType =
   | "topic_serious"           // Deep topics (owner=architect): introspection, personal issues
   | "topic_light"             // Casual topics (owner=companion): small talk, anecdotes
   | "deep_reasons_exploration"
+  | "create_action_flow"      // Simplified action creation flow (v2)
+  | "update_action_flow"      // Simplified action update flow (v2)
+  | "breakdown_action_flow"   // Simplified action breakdown flow (v2)
 
 export type SupervisorSessionStatus = "active" | "paused"
 
@@ -625,6 +628,71 @@ export function closeDeepReasonsExploration(opts: {
 }
 
 /**
+ * Pause a deep_reasons exploration (set status to "paused").
+ * This happens when the user wants to explore a broader topic (topic_serious).
+ */
+export function pauseDeepReasonsExploration(opts: {
+  tempMemory: any
+  now?: Date
+}): { tempMemory: any; changed: boolean; pausedSession: SupervisorSession | null } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const idx = stack0.findIndex((s: any) => String(s?.type ?? "") === "deep_reasons_exploration")
+  if (idx < 0) return { tempMemory: tm0, changed: false, pausedSession: null }
+  
+  const session = { ...stack0[idx] } as SupervisorSession
+  session.status = "paused"
+  session.last_active_at = nowIso(opts.now)
+  stack0[idx] = session
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: stack0, updated_at: nowIso(opts.now) }
+  return { 
+    tempMemory: writeSupervisorRuntime(tm0, rtNext), 
+    changed: true,
+    pausedSession: session,
+  }
+}
+
+/**
+ * Resume a paused deep_reasons exploration.
+ */
+export function resumeDeepReasonsExplorationSession(opts: {
+  tempMemory: any
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const idx = stack0.findIndex((s: any) => 
+    String(s?.type ?? "") === "deep_reasons_exploration" && s?.status === "paused"
+  )
+  if (idx < 0) return { tempMemory: tm0, changed: false }
+  
+  const session = { ...stack0[idx] } as SupervisorSession
+  session.status = "active"
+  session.last_active_at = nowIso(opts.now)
+  stack0[idx] = session
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: stack0, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Check if there's a paused deep_reasons exploration that can be resumed.
+ */
+export function getPausedDeepReasonsExploration(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const paused = stack.find((s: any) => 
+    String(s?.type ?? "") === "deep_reasons_exploration" && s?.status === "paused"
+  )
+  return paused ? (paused as SupervisorSession) : null
+}
+
+/**
  * Keep the supervisor stack in sync with the legacy Architect multi-turn toolflow stored at
  * `temp_memory.architect_tool_flow`.
  *
@@ -695,6 +763,9 @@ const TTL_ARCHITECT_TOOL_FLOW_MS = 60 * 60 * 1000        // 60 min
 const TTL_TOPIC_SERIOUS_MS = 2 * 60 * 60 * 1000          // 2 hours (deep topics need more time)
 const TTL_TOPIC_LIGHT_MS = 30 * 60 * 1000                // 30 min (casual topics expire faster)
 const TTL_DEEP_REASONS_EXPLORATION_MS = 30 * 60 * 1000   // 30 min (keep shorter, sensitive context)
+const TTL_CREATE_ACTION_FLOW_MS = 15 * 60 * 1000          // 15 min (short, focused flow)
+const TTL_UPDATE_ACTION_FLOW_MS = 10 * 60 * 1000          // 10 min (shorter, simpler flow)
+const TTL_BREAKDOWN_ACTION_FLOW_MS = 10 * 60 * 1000       // 10 min (short, needs concrete blocker)
 const TTL_USER_PROFILE_CONFIRM_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 const TTL_QUEUE_INTENT_MS = 2 * 60 * 60 * 1000            // 2 hours
 
@@ -732,6 +803,18 @@ export function pruneStaleSupervisorState(opts: {
     }
     if (type === "deep_reasons_exploration" && age > TTL_DEEP_REASONS_EXPLORATION_MS) {
       cleaned.push(`stack:deep_reasons_exploration:stale`)
+      return false
+    }
+    if (type === "create_action_flow" && age > TTL_CREATE_ACTION_FLOW_MS) {
+      cleaned.push(`stack:create_action_flow:stale`)
+      return false
+    }
+    if (type === "update_action_flow" && age > TTL_UPDATE_ACTION_FLOW_MS) {
+      cleaned.push(`stack:update_action_flow:stale`)
+      return false
+    }
+    if (type === "breakdown_action_flow" && age > TTL_BREAKDOWN_ACTION_FLOW_MS) {
+      cleaned.push(`stack:breakdown_action_flow:stale`)
       return false
     }
     return true
@@ -907,5 +990,528 @@ export async function updateSessionResumeBrief(opts: {
   stack0[idx] = session
   const rtNext: SupervisorRuntime = { ...rt0, stack: stack0, updated_at: nowIso(opts.now) }
   return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// CREATE ACTION FLOW (v2 simplified)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Get active create_action_flow session from the supervisor stack.
+ */
+export function getActiveCreateActionFlow(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const session = stack.find((s: any) => String(s?.type ?? "") === "create_action_flow" && s?.status === "active")
+  return session ? (session as SupervisorSession) : null
+}
+
+/**
+ * Upsert a create_action_flow session.
+ * Stores the ActionCandidate in session.meta.candidate.
+ */
+export function upsertCreateActionFlow(opts: {
+  tempMemory: any
+  candidate: any  // ActionCandidate
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+
+  // Remove any existing create_action_flow sessions
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "create_action_flow")
+
+  const candidate = opts.candidate
+  const label = String(candidate?.label ?? "une action").trim().slice(0, 80)
+  const status = String(candidate?.status ?? "exploring")
+
+  const session: SupervisorSession = {
+    id: candidate?.id ?? mkId("sess_create_action", opts.now),
+    type: "create_action_flow",
+    owner_mode: "architect",
+    status: "active",
+    started_at: candidate?.started_at ?? nowIso(opts.now),
+    last_active_at: nowIso(opts.now),
+    topic: label,
+    resume_brief: `On créait: ${label}`,
+    meta: {
+      candidate,
+      candidate_status: status,
+    },
+  }
+
+  filtered.push(session)
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Close the create_action_flow session.
+ */
+export function closeCreateActionFlow(opts: {
+  tempMemory: any
+  outcome: "created" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "create_action_flow")
+  if (filtered.length === stack0.length) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Get the ActionCandidate from an active create_action_flow session.
+ */
+export function getActionCandidateFromFlow(tempMemory: any): any | null {
+  const session = getActiveCreateActionFlow(tempMemory)
+  if (!session) return null
+  return (session.meta as any)?.candidate ?? null
+}
+
+/**
+ * Check if create_action_flow is stale (exceeded TTL).
+ */
+export function isCreateActionFlowStale(tempMemory: any, now?: Date): boolean {
+  const session = getActiveCreateActionFlow(tempMemory)
+  if (!session) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(session.last_active_at ?? session.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_CREATE_ACTION_FLOW_MS
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// UPDATE ACTION FLOW (v2 simplified)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Get active update_action_flow session from the supervisor stack.
+ */
+export function getActiveUpdateActionFlow(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const session = stack.find((s: any) => String(s?.type ?? "") === "update_action_flow" && s?.status === "active")
+  return session ? (session as SupervisorSession) : null
+}
+
+/**
+ * Upsert an update_action_flow session.
+ * Stores the UpdateActionCandidate in session.meta.candidate.
+ */
+export function upsertUpdateActionFlow(opts: {
+  tempMemory: any
+  candidate: any  // UpdateActionCandidate
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+
+  // Remove any existing update_action_flow sessions
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "update_action_flow")
+
+  const candidate = opts.candidate
+  const title = String(candidate?.target_action?.title ?? "une action").trim().slice(0, 80)
+  const status = String(candidate?.status ?? "awaiting_confirm")
+
+  const session: SupervisorSession = {
+    id: candidate?.id ?? mkId("sess_update_action", opts.now),
+    type: "update_action_flow",
+    owner_mode: "architect",
+    status: "active",
+    started_at: candidate?.started_at ?? nowIso(opts.now),
+    last_active_at: nowIso(opts.now),
+    topic: title,
+    resume_brief: `On modifiait: ${title}`,
+    meta: {
+      candidate,
+      candidate_status: status,
+    },
+  }
+
+  filtered.push(session)
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Close the update_action_flow session.
+ */
+export function closeUpdateActionFlow(opts: {
+  tempMemory: any
+  outcome: "applied" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "update_action_flow")
+  if (filtered.length === stack0.length) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Get the UpdateActionCandidate from an active update_action_flow session.
+ */
+export function getUpdateCandidateFromFlow(tempMemory: any): any | null {
+  const session = getActiveUpdateActionFlow(tempMemory)
+  if (!session) return null
+  return (session.meta as any)?.candidate ?? null
+}
+
+/**
+ * Check if update_action_flow is stale (exceeded TTL).
+ */
+export function isUpdateActionFlowStale(tempMemory: any, now?: Date): boolean {
+  const session = getActiveUpdateActionFlow(tempMemory)
+  if (!session) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(session.last_active_at ?? session.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_UPDATE_ACTION_FLOW_MS
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// BREAKDOWN ACTION FLOW (v2 simplified)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Get active breakdown_action_flow session from the supervisor stack.
+ */
+export function getActiveBreakdownActionFlow(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const session = stack.find((s: any) => String(s?.type ?? "") === "breakdown_action_flow" && s?.status === "active")
+  return session ? (session as SupervisorSession) : null
+}
+
+/**
+ * Upsert a breakdown_action_flow session.
+ * Stores the BreakdownCandidate in session.meta.candidate.
+ */
+export function upsertBreakdownActionFlow(opts: {
+  tempMemory: any
+  candidate: any  // BreakdownCandidate
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+
+  // Remove any existing breakdown_action_flow sessions
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "breakdown_action_flow")
+
+  const candidate = opts.candidate
+  const targetTitle = String(candidate?.target_action?.title ?? "une action").trim().slice(0, 80)
+  const status = String(candidate?.status ?? "awaiting_target")
+
+  const session: SupervisorSession = {
+    id: candidate?.id ?? mkId("sess_breakdown_action", opts.now),
+    type: "breakdown_action_flow",
+    owner_mode: "architect",
+    status: "active",
+    started_at: candidate?.started_at ?? nowIso(opts.now),
+    last_active_at: nowIso(opts.now),
+    topic: targetTitle,
+    resume_brief: `On débloquait: ${targetTitle}`,
+    meta: {
+      candidate,
+      candidate_status: status,
+    },
+  }
+
+  filtered.push(session)
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Close the breakdown_action_flow session.
+ */
+export function closeBreakdownActionFlow(opts: {
+  tempMemory: any
+  outcome: "applied" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "breakdown_action_flow")
+  if (filtered.length === stack0.length) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Get the BreakdownCandidate from an active breakdown_action_flow session.
+ */
+export function getBreakdownCandidateFromFlow(tempMemory: any): any | null {
+  const session = getActiveBreakdownActionFlow(tempMemory)
+  if (!session) return null
+  return (session.meta as any)?.candidate ?? null
+}
+
+/**
+ * Check if breakdown_action_flow is stale (exceeded TTL).
+ */
+export function isBreakdownActionFlowStale(tempMemory: any, now?: Date): boolean {
+  const session = getActiveBreakdownActionFlow(tempMemory)
+  if (!session) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(session.last_active_at ?? session.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_BREAKDOWN_ACTION_FLOW_MS
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MACHINE PAUSE/RESUME FOR SENTRY/FIREFIGHTER PARENTHESIS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PAUSED_MACHINE_KEY = "__paused_machine_v2"
+
+export interface PausedMachineStateV2 {
+  machine_type: SupervisorSessionType
+  session_id: string
+  action_target?: string
+  candidate_snapshot?: any
+  paused_at: string
+  reason: "sentry" | "firefighter"
+  resume_context?: string  // Brief context for resuming
+}
+
+/**
+ * Get the currently paused machine state (if any).
+ */
+export function getPausedMachine(tempMemory: any): PausedMachineStateV2 | null {
+  const tm = safeObj(tempMemory)
+  const raw = (tm as any)[PAUSED_MACHINE_KEY]
+  if (!raw || typeof raw !== "object") return null
+  
+  return {
+    machine_type: raw.machine_type as SupervisorSessionType,
+    session_id: String(raw.session_id ?? ""),
+    action_target: raw.action_target ? String(raw.action_target) : undefined,
+    candidate_snapshot: raw.candidate_snapshot,
+    paused_at: String(raw.paused_at ?? nowIso()),
+    reason: raw.reason === "sentry" ? "sentry" : "firefighter",
+    resume_context: raw.resume_context ? String(raw.resume_context) : undefined,
+  }
+}
+
+/**
+ * Pause the current machine for sentry/firefighter intervention.
+ * Stores the machine state and clears it from the active stack.
+ */
+export function pauseMachineForSafety(opts: {
+  tempMemory: any
+  session: SupervisorSession
+  candidate?: any
+  reason: "sentry" | "firefighter"
+  now?: Date
+}): { tempMemory: any; pausedState: PausedMachineStateV2 } {
+  const tm0 = safeObj(opts.tempMemory)
+  const nowStr = nowIso(opts.now)
+  
+  // Extract action_target from session metadata
+  let actionTarget: string | undefined
+  if (opts.session.type === "create_action_flow" || 
+      opts.session.type === "update_action_flow" || 
+      opts.session.type === "breakdown_action_flow") {
+    const candidate = opts.candidate ?? (opts.session.meta as any)?.candidate
+    actionTarget = candidate?.label ?? candidate?.target_action?.title ?? opts.session.topic
+  } else if (opts.session.type === "topic_serious" || opts.session.type === "topic_light") {
+    actionTarget = opts.session.topic ?? undefined
+  } else if (opts.session.type === "deep_reasons_exploration") {
+    actionTarget = opts.session.topic ?? undefined
+  }
+  
+  // Generate resume context
+  const resumeContext = opts.session.topic 
+    ? `On était en train de travailler sur: ${opts.session.topic}` 
+    : `On était dans un flow de ${opts.session.type}`
+  
+  const pausedState: PausedMachineStateV2 = {
+    machine_type: opts.session.type,
+    session_id: opts.session.id,
+    action_target: actionTarget?.slice(0, 80),
+    candidate_snapshot: opts.candidate ?? (opts.session.meta as any)?.candidate,
+    paused_at: nowStr,
+    reason: opts.reason,
+    resume_context: resumeContext,
+  }
+  
+  // Store paused state
+  let tempMemory = { ...(tm0 as any), [PAUSED_MACHINE_KEY]: pausedState }
+  
+  // Remove the session from active stack
+  const sessionType = opts.session.type
+  if (sessionType === "create_action_flow") {
+    const closed = closeCreateActionFlow({ tempMemory, outcome: "abandoned", now: opts.now })
+    tempMemory = closed.tempMemory
+  } else if (sessionType === "update_action_flow") {
+    const closed = closeUpdateActionFlow({ tempMemory, outcome: "abandoned", now: opts.now })
+    tempMemory = closed.tempMemory
+  } else if (sessionType === "breakdown_action_flow") {
+    const closed = closeBreakdownActionFlow({ tempMemory, outcome: "abandoned", now: opts.now })
+    tempMemory = closed.tempMemory
+  } else if (sessionType === "deep_reasons_exploration") {
+    const closed = closeDeepReasonsExploration({ tempMemory, outcome: "defer_continue", now: opts.now })
+    tempMemory = closed.tempMemory
+  } else if (sessionType === "topic_serious" || sessionType === "topic_light") {
+    const closed = closeTopicSession({ tempMemory, now: opts.now })
+    tempMemory = closed.tempMemory
+  }
+  
+  return { tempMemory, pausedState }
+}
+
+/**
+ * Resume a paused machine after safety intervention.
+ * Restores the machine to active state.
+ */
+export function resumePausedMachine(opts: {
+  tempMemory: any
+  now?: Date
+}): { tempMemory: any; resumed: boolean; machineType?: SupervisorSessionType } {
+  const tm0 = safeObj(opts.tempMemory)
+  const pausedState = getPausedMachine(tm0)
+  
+  if (!pausedState) {
+    return { tempMemory: tm0, resumed: false }
+  }
+  
+  let tempMemory = { ...(tm0 as any) }
+  
+  // Restore the machine based on type
+  const machineType = pausedState.machine_type
+  const candidate = pausedState.candidate_snapshot
+  
+  if (machineType === "create_action_flow" && candidate) {
+    const result = upsertCreateActionFlow({ tempMemory, candidate, now: opts.now })
+    tempMemory = result.tempMemory
+  } else if (machineType === "update_action_flow" && candidate) {
+    const result = upsertUpdateActionFlow({ tempMemory, candidate, now: opts.now })
+    tempMemory = result.tempMemory
+  } else if (machineType === "breakdown_action_flow" && candidate) {
+    const result = upsertBreakdownActionFlow({ tempMemory, candidate, now: opts.now })
+    tempMemory = result.tempMemory
+  } else if (machineType === "deep_reasons_exploration") {
+    // For deep_reasons, we need more context - just set a flag to indicate resume
+    ;(tempMemory as any).__resume_deep_reasons = {
+      action_target: pausedState.action_target,
+      context: pausedState.resume_context,
+    }
+  } else if (machineType === "topic_serious") {
+    const result = upsertTopicSerious({
+      tempMemory,
+      topic: pausedState.action_target ?? "",
+      phase: "exploring",
+      now: opts.now,
+    })
+    tempMemory = result.tempMemory
+  } else if (machineType === "topic_light") {
+    const result = upsertTopicLight({
+      tempMemory,
+      topic: pausedState.action_target ?? "",
+      phase: "exploring",
+      now: opts.now,
+    })
+    tempMemory = result.tempMemory
+  }
+  
+  // Clear paused state
+  delete (tempMemory as any)[PAUSED_MACHINE_KEY]
+  
+  return { tempMemory, resumed: true, machineType }
+}
+
+/**
+ * Check if there's a paused machine waiting to be resumed.
+ */
+export function hasPausedMachine(tempMemory: any): boolean {
+  return getPausedMachine(tempMemory) !== null
+}
+
+/**
+ * Clear paused machine state without resuming (e.g., when user declines).
+ */
+export function clearPausedMachine(tempMemory: any): { tempMemory: any } {
+  const tm = safeObj(tempMemory)
+  const next = { ...(tm as any) }
+  delete next[PAUSED_MACHINE_KEY]
+  return { tempMemory: next }
+}
+
+/**
+ * Get any active tool flow (create, update, or breakdown).
+ * Returns the session if one exists.
+ */
+export function getAnyActiveToolFlow(tempMemory: any): SupervisorSession | null {
+  return getActiveCreateActionFlow(tempMemory) 
+    ?? getActiveUpdateActionFlow(tempMemory) 
+    ?? getActiveBreakdownActionFlow(tempMemory)
+}
+
+/**
+ * Get any active state machine (tool flow, topic, or deep_reasons).
+ */
+export function getAnyActiveMachine(tempMemory: any): SupervisorSession | null {
+  return getAnyActiveToolFlow(tempMemory)
+    ?? getActiveTopicSession(tempMemory)
+    ?? getActiveDeepReasonsExploration(tempMemory)
+}
+
+/**
+ * Check if any tool flow is currently active.
+ */
+export function hasActiveToolFlow(tempMemory: any): boolean {
+  return getAnyActiveToolFlow(tempMemory) !== null
+}
+
+/**
+ * Check if any state machine is currently active.
+ */
+export function hasAnyActiveMachine(tempMemory: any): boolean {
+  return getAnyActiveMachine(tempMemory) !== null
+}
+
+/**
+ * Get the action target from an active tool flow session.
+ */
+export function getActiveToolFlowActionTarget(tempMemory: any): string | null {
+  const session = getAnyActiveToolFlow(tempMemory)
+  if (!session) return null
+  
+  const candidate = (session.meta as any)?.candidate
+  if (!candidate) return session.topic ?? null
+  
+  // Different candidate types have different field names
+  return candidate.label 
+    ?? candidate.target_action?.title 
+    ?? session.topic 
+    ?? null
 }
 

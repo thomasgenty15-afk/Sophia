@@ -3,10 +3,10 @@ import { generateWithGemini } from "../../../_shared/gemini.ts"
 import { retrieveContext } from "../companion.ts"
 import { getUserTimeContext } from "../../../_shared/user_time_context.ts"
 import type { InvestigationState, InvestigatorTurnResult } from "./types.ts"
-import { isExplicitStopBilan } from "./utils.ts"
+import { isAffirmative, isExplicitStopBilan, isNegative } from "./utils.ts"
 import { investigatorSay } from "./copy.ts"
 import { getItemHistory, getPendingItems, getYesterdayCheckupSummary } from "./db.ts"
-import { maybeHandleBreakdownFlow } from "./breakdown.ts"
+// NOTE: Breakdown flow removed - signals are now deferred to post-bilan via deferred_topics_v2
 import { buildMainItemSystemPrompt } from "./prompt.ts"
 import { INVESTIGATOR_TOOLS } from "./tools.ts"
 import { handleInvestigatorModelOutput } from "./turn.ts"
@@ -143,9 +143,73 @@ export async function runInvestigator(
   // 3. CURRENT ITEM
   const currentItem = currentState.pending_items[currentState.current_item_index]
 
-  // NOTE: Parking-lot (post-bilan) state machine lives in router.ts.
-  const breakdownResult = await maybeHandleBreakdownFlow({ supabase, userId, message, currentState, currentItem, meta })
-  if (breakdownResult) return breakdownResult
+  // Handle pending post-bilan offer (micro-étape / deep reasons) before normal flow
+  const pendingOffer = (currentState as any)?.temp_memory?.bilan_defer_offer
+  if (pendingOffer?.stage === "awaiting_consent") {
+    const userSaysYes = isAffirmative(message)
+    const userSaysNo = isNegative(message)
+    if (userSaysYes || userSaysNo) {
+      const nextIndex = currentState.current_item_index + 1
+      const nextState = {
+        ...currentState,
+        current_item_index: nextIndex,
+        temp_memory: {
+          ...(currentState.temp_memory || {}),
+          bilan_defer_offer: undefined,
+          breakdown_declined_action_ids: userSaysNo
+            ? Array.from(new Set([...(currentState.temp_memory?.breakdown_declined_action_ids ?? []), pendingOffer.action_id]))
+            : currentState.temp_memory?.breakdown_declined_action_ids,
+        },
+      }
+
+      if (nextIndex >= currentState.pending_items.length) {
+        const base = await investigatorSay(
+          "end_checkup_after_last_log",
+          {
+            user_message: message,
+            channel: meta?.channel,
+            recent_history: history.slice(-15),
+            last_item: currentItem,
+            last_item_log: pendingOffer.last_item_log ?? null,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          },
+          meta,
+        )
+        const prefix = userSaysYes ? "Parfait, j'ai noté. " : "Ok, pas de souci. "
+        return { content: `${prefix}${base}`.trim(), investigationComplete: true, newState: null }
+      }
+
+      const nextItem = currentState.pending_items[nextIndex]
+      const transitionOut = await investigatorSay(
+        "transition_to_next_item",
+        {
+          user_message: message,
+          last_item_log: pendingOffer.last_item_log ?? null,
+          next_item: nextItem,
+          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          deferred_topic: userSaysYes ? "micro-étape après le bilan" : null,
+        },
+        meta,
+      )
+      const prefix = userSaysYes ? "Parfait, j'ai noté. " : "Ok, pas de souci. "
+      return { content: `${prefix}${transitionOut}`.trim(), investigationComplete: false, newState: nextState }
+    }
+
+    // User response unclear: clarify once, then continue bilan
+    return {
+      content: await investigatorSay(
+        "bilan_defer_offer_clarify",
+        { user_message: message, item: currentItem },
+        meta,
+      ),
+      investigationComplete: false,
+      newState: currentState,
+    }
+  }
+
+  // NOTE: Breakdown/deep_reasons flows are now handled post-bilan via deferred_topics_v2.
+  // The Investigator only proposes these actions; if user consents, the Dispatcher
+  // stores the signal and auto-relaunches the appropriate machine after the bilan.
 
   // RAG : history for this item + general context
   const itemHistory = await getItemHistory(supabase, userId, currentItem.id, currentItem.type)

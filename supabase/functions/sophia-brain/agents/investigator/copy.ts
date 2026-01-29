@@ -64,6 +64,25 @@ Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout e
     `
       : ""}
 
+    ${scenario === "bilan_defer_offer_breakdown"
+      ? `
+    SCÉNARIO SPÉCIAL : PROPOSITION MICRO-ÉTAPE APRÈS LE BILAN
+    - Tu DOIS utiliser le mot exact "micro-étape" au moins une fois.
+    - Tu DOIS mentionner explicitement "après le bilan".
+    - Tu DOIS poser UNE question simple de consentement (oui/non).
+    - Ne parle pas d'outils, de systèmes, ni de process internes.
+    `
+      : ""}
+
+    ${scenario === "bilan_defer_offer_clarify"
+      ? `
+    SCÉNARIO SPÉCIAL : CLARIFICATION DU CONSENTEMENT
+    - Reformule la question en mode oui/non, très court.
+    - Rappelle "après le bilan" en une seule phrase.
+    - Une seule question.
+    `
+      : ""}
+
     ${((scenario === "break_down_action_propose_step") || (scenario === "breakdown_propose_step"))
       ? `
     CONTRAINTE CRITIQUE (proposition de micro-étape) :

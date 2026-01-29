@@ -9,7 +9,7 @@ export async function handleUpdateAction(
 ): Promise<string> {
   console.log(`[Architect] 🛠️ handleUpdateAction called with args:`, JSON.stringify(args))
 
-  const { target_name, new_title, new_description, new_target_reps, new_scheduled_days } = args
+  const { target_name, new_title, new_description, new_target_reps, new_scheduled_days, new_time_of_day } = args
   const searchTerm = target_name.trim().toLowerCase()
 
   // 1. Récupérer le plan JSON
@@ -100,6 +100,11 @@ export async function handleUpdateAction(
     if (Array.isArray(new_scheduled_days)) {
       matchedAction.scheduledDays = new_scheduled_days
     }
+    if (new_time_of_day) {
+      // JSON can have either snake_case or camelCase depending on legacy content.
+      ;(matchedAction as any).time_of_day = new_time_of_day
+      ;(matchedAction as any).timeOfDay = new_time_of_day
+    }
   }
 
   // 3. Save JSON
@@ -120,6 +125,7 @@ export async function handleUpdateAction(
   if (new_description) updates.description = new_description
   if (new_target_reps !== undefined) updates.target_reps = new_target_reps
   if (Array.isArray(new_scheduled_days)) updates.scheduled_days = new_scheduled_days
+  if (new_time_of_day) updates.time_of_day = new_time_of_day
 
   if (Object.keys(updates).length > 0) {
     console.log(`[Architect] Syncing updates to SQL tables...`)
@@ -156,6 +162,7 @@ export async function handleUpdateAction(
   const bits: string[] = []
   if (Number.isFinite(repsOut as any)) bits.push(`Fréquence: ${repsOut}×/semaine.`)
   if (daysOut && daysOut.length) bits.push(`Jours planifiés: ${daysOut.join(", ")}.`)
+  if (new_time_of_day) bits.push(`Moment: ${String(new_time_of_day)}.`)
   return `C’est fait — “${titleOut}” est bien mise à jour.${bits.length ? ` ${bits.join(" ")}` : ""}`.trim()
 }
 

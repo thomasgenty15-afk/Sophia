@@ -96,6 +96,15 @@ function summarizeToolArgs(toolName: string, args: any): any {
       return pick(["title", "type", "targetReps", "time_of_day"])
     case "create_framework":
       return pick(["title", "targetReps", "time_of_day"])
+    case "create_action_flow":
+      // ActionCandidate v2 flow - log relevant state
+      return pick(["status", "label", "type", "clarification_count", "proposed_by"])
+    case "update_action_flow":
+      // UpdateActionCandidate v2 flow - log relevant state
+      return pick(["status", "target_title", "change_type", "clarification_count"])
+    case "breakdown_action_flow":
+      // BreakdownCandidate v2 flow - log relevant state
+      return pick(["status", "target_action", "blocker", "clarification_count", "proposed_step_title"])
     default:
       return pick(Object.keys(a).slice(0, 8))
   }
