@@ -61,3 +61,4 @@ WHERE temp_memory->'global_machine'->'stack' IS NOT NULL
   );
 
 
+

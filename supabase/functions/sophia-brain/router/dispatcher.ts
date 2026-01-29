@@ -317,6 +317,15 @@ export interface MachineSignals {
   create_action_intent?: boolean
   update_action_intent?: boolean
   user_consents_defer?: boolean
+  
+  // Checkup flow signals
+  checkup_intent?: {
+    detected: boolean
+    confidence: number
+    trigger_phrase?: string
+  }
+  wants_to_checkup?: boolean  // User response to "tu veux faire le bilan?"
+  track_from_bilan_done_ok?: boolean  // User wants track_progress when bilan already done
 }
 
 /**
@@ -387,6 +396,36 @@ Ils servent a detecter de nouvelles intentions qui seront mises en attente (defe
 - breakdown_action_intent: Signal mere pour decomposition d'action
 - topic_exploration_intent: Signal mere pour exploration de sujet (serious/light)
 - deep_reasons_intent: Signal mere pour blocage motivationnel
+- checkup_intent: Signal mere pour demande de bilan/checkup quotidien
+`
+
+/**
+ * Checkup intent detection - detect when user wants to do their daily checkup.
+ * This is a mother signal that triggers the checkup flow.
+ */
+const CHECKUP_INTENT_DETECTION_SECTION = `
+=== DETECTION CHECKUP_INTENT ===
+Detecte si l'utilisateur veut faire son BILAN (checkup quotidien).
+
+MOTS-CLES / EXPRESSIONS A DETECTER:
+- Explicites: "bilan", "check", "checkup", "faire le point", "on check", "check du soir"
+- Implicites: "comment ca s'est passe aujourd'hui", "je veux voir mes actions", "on fait le tour"
+- Confirmation: "oui" apres proposition de bilan par Sophia ("tu veux qu'on fasse le bilan?")
+
+ATTENTION - NE PAS CONFONDRE:
+- "j'ai fait X" = track_progress, PAS checkup
+- "je veux modifier mon plan" = update_action, PAS checkup
+- Discussion sur une action specifique = PAS checkup
+- "j'ai pas fait X" hors bilan = track_progress, PAS checkup
+
+SORTIE JSON (dans machine_signals):
+{
+  "checkup_intent": {
+    "detected": true | false,
+    "confidence": 0.0-1.0,
+    "trigger_phrase": "phrase exacte qui a declenche" | null
+  }
+}
 `
 
 /**
@@ -479,13 +518,77 @@ export interface FlowContext {
   currentItemId?: string
   missedStreak?: number
   isBilan?: boolean
+  /** Checkup flow addons */
+  checkupAddon?: "BILAN_ALREADY_DONE" | "CHECKUP_ENTRY_CONFIRM" | "CHECKUP_DEFERRED"
+  checkupDeferredTopic?: string  // The topic that caused deferral
 }
 
 /**
  * Build machine-specific addon with flow context.
  */
 function buildMachineAddonWithContext(activeMachine: string | null, flowContext?: FlowContext): string {
-  if (!activeMachine) return ""
+  const checkupAddon = (() => {
+    if (flowContext?.checkupAddon === "BILAN_ALREADY_DONE") {
+      return `
+=== CONTEXTE: BILAN DEJA FAIT AUJOURD'HUI ===
+L'utilisateur veut faire le bilan mais il a DEJA ete fait aujourd'hui.
+
+TON ROLE:
+1. Signaler gentiment que le bilan du jour est deja fait
+2. Proposer: "Par contre, si tu veux noter un progres sur une action, je peux le faire maintenant. Ca t'interesse?"
+
+ANALYSE de la reponse utilisateur:
+{
+  "machine_signals": {
+    "track_from_bilan_done_ok": true | false
+  }
+}
+- true si: "oui", "ok", "vas-y", acceptation claire
+- false si: "non", "pas besoin", refus, pas clair
+`
+    }
+    
+    if (flowContext?.checkupAddon === "CHECKUP_ENTRY_CONFIRM") {
+      return `
+=== CONFIRMATION ENTREE BILAN ===
+L'utilisateur a exprime une intention de faire le bilan (checkup quotidien).
+Tu dois CONFIRMER avant de le lancer.
+
+TON ROLE:
+1. Message personnalise (mentionne un element recent si possible)
+2. Demande clairement: "Tu veux qu'on fasse le bilan maintenant?"
+
+ANALYSE de la reponse utilisateur:
+{
+  "machine_signals": {
+    "wants_to_checkup": true | false
+  }
+}
+- true si: "oui", "ok", "vas-y", "on y va", acceptation claire
+- false si: "non", "pas maintenant", "plus tard", hesitation claire
+`
+    }
+    
+    if (flowContext?.checkupAddon === "CHECKUP_DEFERRED") {
+      const topic = flowContext.checkupDeferredTopic || "le sujet en cours"
+      return `
+=== CONTEXTE: BILAN MIS EN ATTENTE ===
+L'utilisateur veut faire le bilan, mais une autre machine a etat est active.
+Le bilan sera fait APRES avoir termine ${topic}.
+
+TON ROLE:
+1. Signaler que tu as note l'envie de faire le bilan
+2. Expliquer qu'on y reviendra apres ${topic}
+3. Continuer avec la machine a etat actuelle
+
+PAS DE SIGNAL SPECIFIQUE A PRODUIRE - ce contexte est juste informatif.
+`
+    }
+    
+    return ""
+  })()
+  
+  if (!activeMachine) return checkupAddon
   
   if (activeMachine === "create_action_flow") {
     let addon = `
@@ -518,7 +621,7 @@ Guide d'interpretation:
 - user_abandons: true si "laisse tomber", "on oublie", "non finalement", "annule"
 - modification_requested: texte de la modification demandee (ex: "changer le nom", "ajouter un rappel")
 `
-    return addon
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
   }
   
   if (activeMachine === "update_action_flow") {
@@ -549,7 +652,7 @@ Guide d'interpretation:
 - new_value_provided: la valeur exacte fournie (ex: "3 fois", "lundi et mercredi", "le matin")
 - user_abandons: true si abandon explicite
 `
-    return addon
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
   }
   
   if (activeMachine === "breakdown_action_flow") {
@@ -583,7 +686,7 @@ Guide d'interpretation:
 - blocker_clarified: texte du blocage si l'utilisateur explique ce qui le bloque
 - user_abandons: true si abandon
 `
-    return addon
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
   }
   
   if (activeMachine === "topic_serious" || activeMachine === "topic_light") {
@@ -726,10 +829,10 @@ DISTINCTION CRITIQUE (breakdown vs deep_reasons):
 - breakdown = blocage PRATIQUE: "j'oublie", "pas le temps", "trop fatigue le soir" -> micro-etape
 - deep_reasons = blocage MOTIVATIONNEL: "j'ai pas envie", "je sais pas pourquoi", "ca me saoule" -> exploration profonde
 `
-    return addon
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
   }
   
-  return ""
+  return checkupAddon
 }
 
 /**
@@ -760,6 +863,12 @@ ETAT ACTUEL:
   // Add mother signals (always)
   prompt += MOTHER_SIGNALS_SECTION
   
+  // Add checkup intent detection (always, unless already in bilan)
+  // This allows users to trigger their daily checkup via LLM detection
+  if (!stateSnapshot.investigation_active) {
+    prompt += CHECKUP_INTENT_DETECTION_SECTION
+  }
+  
   // Add profile facts detection (only when no profile confirmation is pending)
   // This allows direct detection of 10 fact types without a mother signal
   if (!stateSnapshot.profile_confirm_pending) {
@@ -789,6 +898,7 @@ function machineMatchesSignalType(machineType: string | null, signalType: string
     "topic_light": ["topic_exploration_intent", "topic_light"],
     "deep_reasons_exploration": ["deep_reasons_intent", "deep_reasons"],
     "user_profile_confirmation": ["profile_info_detected", "profile_confirmation"],
+    "investigation": ["checkup_intent", "checkup", "bilan"],
   }
   return mappings[machineType]?.includes(signalType) ?? false
 }
@@ -1658,6 +1768,24 @@ Reponds UNIQUEMENT avec le JSON:`
         machineSignals.user_consents_defer = Boolean(ms.user_consents_defer)
       }
       
+      // Checkup flow signals
+      if (ms.checkup_intent && typeof ms.checkup_intent === "object") {
+        const ci = ms.checkup_intent
+        machineSignals.checkup_intent = {
+          detected: Boolean(ci.detected),
+          confidence: Math.min(1, Math.max(0, Number(ci.confidence ?? 0))),
+          trigger_phrase: typeof ci.trigger_phrase === "string" 
+            ? ci.trigger_phrase.slice(0, 100) 
+            : undefined,
+        }
+      }
+      if (ms.wants_to_checkup !== undefined) {
+        machineSignals.wants_to_checkup = Boolean(ms.wants_to_checkup)
+      }
+      if (ms.track_from_bilan_done_ok !== undefined) {
+        machineSignals.track_from_bilan_done_ok = Boolean(ms.track_from_bilan_done_ok)
+      }
+      
       // Profile facts detection (direct, 10 types)
       if (ms.profile_facts_detected && typeof ms.profile_facts_detected === "object") {
         const pf = ms.profile_facts_detected
@@ -1791,15 +1919,7 @@ export async function analyzeIntentAndRisk(
     return len >= 260 || q >= 2 || lines >= 4 || hasList || askedForDeep;
   }
 
-  function looksLikeCheckupIntent(m: string, lastAssistant: string): boolean {
-    const s = (m ?? "").toString();
-    const last = (lastAssistant ?? "").toString();
-    // Explicit bilan/checkup keywords
-    if (/\b(bilan|checkup|check)\b/i.test(s)) return true;
-    // If the assistant explicitly asked to do a checkup/bilan, "oui" can be a checkup confirmation.
-    if (/\b(bilan|checkup|check)\b/i.test(last) && /\b(oui|ok|d['’]accord)\b/i.test(s)) return true;
-    return false;
-  }
+  // NOTE: looksLikeCheckupIntent() was removed - checkup detection is now via LLM signals (checkup_intent)
 
   function looksLikeBreakdownIntent(m: string): boolean {
     const s = (m ?? "").toString().toLowerCase()
@@ -1926,21 +2046,17 @@ export async function analyzeIntentAndRisk(
     // This prevents mid-flow bouncing to companion which causes tool/consent loops.
     //
     // EXCEPTION: preference confirmations MUST route to companion, even if the current mode is architect.
-    // Otherwise user_profile_confirm gets stuck (common when the preference mentions "plan").
+    // Otherwise user_profile_confirmation gets stuck (common when the preference mentions "plan").
     if (currentState?.current_mode === "architect" && !looksLikePreferenceChangeIntent(message)) {
       const acute = looksLikeAcuteDistress(message)
-      const wantsCheckup = looksLikeCheckupIntent(message, lastAssistantMessage)
-      // Checkup intent should override "stay in architect" stability.
-      if (!acute && !wantsCheckup && targetMode !== "architect") {
+      // NOTE: checkup_intent is now handled via LLM signals in V2 dispatcher
+      if (!acute && targetMode !== "architect") {
         targetMode = "architect"
       }
     }
 
-    // HARD FORCE: explicit checkup intent always routes to investigator (unless user asked to stop a checkup).
-    // This is critical for eval scenarios (and for real UX) where "on fait le bilan" must not be ignored.
-    if (!currentState?.investigation_state && looksLikeCheckupIntent(message, lastAssistantMessage)) {
-      targetMode = "investigator"
-    }
+    // NOTE: Explicit checkup forcing removed - checkup detection now via LLM checkup_intent signal.
+    // The router handles this in the V2 dispatcher flow.
 
     // HARD FORCE: preference change / confirmation is Companion work (unless investigator/safety).
     if (
@@ -1952,12 +2068,11 @@ export async function analyzeIntentAndRisk(
       targetMode = "companion"
     }
 
-    // HARD GUARD: investigator is ONLY for active checkups or explicit checkup intent.
-    // This prevents "investigator" from hijacking normal WhatsApp onboarding / small-talk.
+    // HARD GUARD: investigator is ONLY for active checkups.
+    // NOTE: checkup_intent is now detected via LLM signals in V2 dispatcher.
     if (
       targetMode === "investigator" &&
-      !currentState?.investigation_state &&
-      !looksLikeCheckupIntent(message, lastAssistantMessage)
+      !currentState?.investigation_state
     ) {
       targetMode = "companion"
     }

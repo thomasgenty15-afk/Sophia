@@ -110,3 +110,4 @@ export function hasProposedStep(candidate: BreakdownCandidate): boolean {
   return Boolean(candidate.proposed_step?.title)
 }
 
+

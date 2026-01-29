@@ -7,13 +7,15 @@ import { getUserState, updateUserState } from "../state-manager.ts"
 import { runSentry } from "../agents/sentry.ts"
 import { runFirefighter } from "../agents/firefighter.ts"
 import { runInvestigator } from "../agents/investigator.ts"
+import { logCheckupCompletion } from "../agents/investigator/db.ts"
 import { buildArchitectSystemPromptLite, generateArchitectModelOutput, getArchitectTools, handleArchitectModelOutput, runArchitect } from "../agents/architect.ts"
 import { runLibrarian } from "../agents/librarian.ts"
 import { buildCompanionSystemPrompt, generateCompanionModelOutput, handleCompanionModelOutput, runCompanion } from "../agents/companion.ts"
 import { runAssistant } from "../agents/assistant.ts"
 import { normalizeChatText } from "../chat_text.ts"
 import { buildConversationAgentViolations, judgeOfThree, type ToolDescriptor, verifyBilanAgentMessage, verifyConversationAgentMessage, verifyPostCheckupAgentMessage } from "../verifier.ts"
-import { appendDeferredTopicToState, assistantDeferredTopic, extractDeferredTopicFromUserMessage } from "./deferred_topics.ts"
+import { assistantDeferredTopic, extractDeferredTopicFromUserMessage } from "./deferred_topics.ts"
+import { deferSignal } from "./deferred_topics_v2.ts"
 import { enqueueLlmRetryJob, tryEmergencyAiReply } from "./emergency.ts"
 import { logEvalEvent } from "../../run-evals/lib/eval_trace.ts"
 import { logBrainTrace } from "../../_shared/brain-trace.ts"
@@ -495,16 +497,28 @@ export async function runAgentAndVerify(opts: {
 
         responseContent = invResult.content
         if (invResult.investigationComplete) {
-          // Bilan is complete - clear investigation_state
+          // Bilan is complete - log completion and clear investigation_state
           // Deferred topics are now stored in temp_memory.deferred_topics_v2 (global)
           // The auto-relaunch mechanism in run.ts will handle them
+          
+          // Log checkup completion to DB
+          const items = state?.investigation_state?.pending_items ?? []
+          const completedCount = items.filter((i: any) => i?.logged_status === "completed").length
+          const missedCount = items.filter((i: any) => i?.logged_status === "missed").length
+          
+          await logCheckupCompletion(supabase, userId, {
+            items: items.length,
+            completed: completedCount,
+            missed: missedCount,
+          }, "chat")
+          
           const tm = (state as any)?.temp_memory ?? {}
           await updateUserState(supabase, userId, scope, { 
             investigation_state: null,
             temp_memory: { ...tm, __flow_just_closed_normally: true },
           })
           nextMode = "companion"
-          console.log("[Router] Bilan complete. investigation_state cleared. Auto-relaunch flagged.")
+          console.log(`[Router] Bilan complete. Logged: ${completedCount}/${items.length} completed, ${missedCount} missed. Auto-relaunch flagged.`)
         } else {
           // Bilan continues - save the new state
           await updateUserState(supabase, userId, scope, { investigation_state: invResult.newState })
@@ -812,26 +826,25 @@ export async function runAgentAndVerify(opts: {
   }
 
   // During an active checkup, if ANY agent explicitly defers, store the topic.
-  // Use dispatcher's pre-formalized topic if available (no extra AI call!)
+  // NOW USES deferred_topics_v2 instead of the old parking lot.
+  // Topics will auto-relaunch after bilan completes.
   if (checkupActive && !stopCheckup && targetMode !== "sentry" && assistantDeferredTopic(responseContent)) {
     try {
-      const latest = await getUserState(supabase, userId, scope)
-      
       // USE DISPATCHER'S FORMALIZED TOPIC if available (already computed in router)
       const formalizedFromDispatcher = opts.dispatcherDeferredTopic
       const fallbackExtracted = extractDeferredTopicFromUserMessage(userMessage) || String(userMessage ?? "").trim().slice(0, 240)
       const topicToStore = formalizedFromDispatcher || fallbackExtracted
       
       if (topicToStore && topicToStore.length >= 3) {
-        if (latest?.investigation_state) {
-          const updatedInv = appendDeferredTopicToState(latest.investigation_state, topicToStore)
-          await updateUserState(supabase, userId, scope, { investigation_state: updatedInv })
-        } else {
-          await updateUserState(supabase, userId, scope, {
-            investigation_state: { status: "post_checkup", temp_memory: { deferred_topics: [topicToStore], current_topic_index: 0 } },
-          })
-        }
-        console.log(`[Router] Assistant defer captured: "${topicToStore}" (from=${formalizedFromDispatcher ? "dispatcher" : "fallback"})`)
+        // Store in deferred_topics_v2 as topic_light (will auto-relaunch after bilan)
+        const deferResult = deferSignal({
+          tempMemory: opts.tempMemory ?? {},
+          machine_type: "topic_light",
+          action_target: topicToStore.slice(0, 80),
+          summary: topicToStore.slice(0, 100),
+        })
+        // Note: tempMemory update handled by caller (router) via returned state
+        console.log(`[Router] Assistant defer captured to deferred_topics_v2: "${topicToStore}" (from=${formalizedFromDispatcher ? "dispatcher" : "fallback"})`)
       } else {
         console.log(`[Router] Assistant defer rejected - no valid topic`)
       }

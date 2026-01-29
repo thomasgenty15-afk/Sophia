@@ -49,6 +49,9 @@ export function generateAcknowledgmentPrefix(opts: {
         ? `J'ai noté la modif pour ${target}, on fait ça ensuite ! `
         : `J'ai noté la modification, on s'en occupe juste après ! `
     
+    case "track_progress":
+      return `J'ai noté pour le suivi, on s'en occupe juste après ! `
+    
     case "deep_reasons":
       return target
         ? `J'ai noté qu'on devrait creuser ${target}, on en parlera après. `
@@ -64,11 +67,99 @@ export function generateAcknowledgmentPrefix(opts: {
         ? `Ah oui ${target} ! On en reparle juste après. `
         : `Bien noté, on en reparle après ! `
     
+    case "checkup":
+      return `J'ai noté pour le bilan, on fait ça juste après ! `
+    
+    case "user_profile_confirmation":
+      return `J'ai noté quelques infos te concernant, on confirme ça après ! `
+    
     default:
       return target
         ? `J'ai noté pour ${target}, on en reparle après. `
         : `J'ai noté, on en reparle après. `
   }
+}
+
+/**
+ * Generate acknowledgment with context about what topic is currently active.
+ * Used when deferring a signal while another machine is running.
+ */
+export function generateDeferredAckWithTopic(opts: {
+  deferredType: DeferredMachineType
+  currentTopic: string
+}): string {
+  const topicLabel = opts.currentTopic?.trim() || "ca"
+  
+  // Different templates to vary the phrasing
+  const templates: string[] = (() => {
+    switch (opts.deferredType) {
+      case "checkup":
+        return [
+          `J'ai note pour le bilan. On y revient des qu'on a fini de parler de ${topicLabel}.`,
+          `Ok pour le bilan, je garde ca en tete. Une fois qu'on met ${topicLabel} derriere nous, on s'y colle.`,
+          `Le bilan, c'est note. On voit ca juste apres ${topicLabel}.`,
+        ]
+      
+      case "breakdown_action":
+        return [
+          `J'ai note pour la micro-etape. On s'y met apres ${topicLabel}.`,
+          `Ok, on decompose ca apres ${topicLabel}.`,
+          `Note pour la decomposition, on fait ca juste apres ${topicLabel}.`,
+        ]
+      
+      case "create_action":
+        return [
+          `J'ai note pour la nouvelle action. On la cree apres ${topicLabel}.`,
+          `Ok pour la creation, on fait ca apres ${topicLabel}.`,
+          `Note pour l'action a creer, on s'y met apres ${topicLabel}.`,
+        ]
+      
+      case "update_action":
+        return [
+          `J'ai note pour la modif. On la fait apres ${topicLabel}.`,
+          `Ok pour le changement, on voit ca apres ${topicLabel}.`,
+          `Note pour la modification, on s'y colle apres ${topicLabel}.`,
+        ]
+      
+      case "track_progress":
+        return [
+          `J'ai note pour le suivi. On le fait apres ${topicLabel}.`,
+          `Ok pour noter le progres, on voit ca apres ${topicLabel}.`,
+          `Note pour le tracking, on s'en occupe apres ${topicLabel}.`,
+        ]
+      
+      case "deep_reasons":
+        return [
+          `J'ai note, on creuse ca apres ${topicLabel}.`,
+          `Ok, on explore ca en profondeur apres ${topicLabel}.`,
+          `Note pour l'exploration, on en parle apres ${topicLabel}.`,
+        ]
+      
+      case "topic_serious":
+      case "topic_light":
+        return [
+          `J'ai note ce sujet. On y revient apres ${topicLabel}.`,
+          `Ok, on en parle apres ${topicLabel}.`,
+          `Note, on discute de ca apres ${topicLabel}.`,
+        ]
+      
+      case "user_profile_confirmation":
+        return [
+          `J'ai note quelques infos te concernant. On confirme ca apres ${topicLabel}.`,
+          `Ok, j'ai capte des trucs sur toi. On valide apres ${topicLabel}.`,
+          `Note, on fait le point sur tes preferences apres ${topicLabel}.`,
+        ]
+      
+      default:
+        return [
+          `J'ai note. On y revient des qu'on a fini de parler de ${topicLabel}.`,
+          `Ok, je garde ca en tete. Une fois qu'on met ${topicLabel} derriere nous, on s'y colle.`,
+          `Parfait, c'est note. On voit ca juste apres ${topicLabel}.`,
+        ]
+    }
+  })()
+  
+  return templates[Math.floor(Math.random() * templates.length)]
 }
 
 /**
@@ -205,6 +296,9 @@ export function generateAutoRelaunchIntro(opts: {
         ? `Maintenant pour modifier ${target} — qu'est-ce que tu veux changer ?`
         : `Tu voulais modifier une action. Laquelle ?`
     
+    case "track_progress":
+      return `Tu voulais noter un progres. C'etait pour quelle action ?`
+    
     case "deep_reasons":
       return target
         ? `Tu voulais qu'on creuse un peu plus ${target}. Tu veux qu'on en parle ?`
@@ -215,6 +309,12 @@ export function generateAutoRelaunchIntro(opts: {
       return target
         ? `Au fait, tu voulais parler de ${target}. On y va ?`
         : `Tu voulais qu'on discute de quelque chose. C'était quoi ?`
+    
+    case "checkup":
+      return `Tu voulais faire le bilan. On s'y met ?`
+    
+    case "user_profile_confirmation":
+      return `J'ai note quelques infos te concernant. Je peux te poser quelques questions rapides pour confirmer ?`
     
     default:
       return target

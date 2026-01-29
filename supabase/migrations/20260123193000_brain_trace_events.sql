@@ -26,3 +26,4 @@ create index if not exists brain_trace_events_created_at_idx
 alter table public.brain_trace_events enable row level security;
 
 
+

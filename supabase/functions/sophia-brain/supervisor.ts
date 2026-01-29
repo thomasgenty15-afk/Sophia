@@ -12,15 +12,37 @@ import { generateWithGemini } from "../_shared/gemini.ts"
 
 export type SupervisorSessionType =
   | "architect_tool_flow"
-  | "user_profile_confirm"
-  | "topic_serious"           // Deep topics (owner=architect): introspection, personal issues
-  | "topic_light"             // Casual topics (owner=companion): small talk, anecdotes
+  | "user_profile_confirmation"      // Proper state machine for profile fact confirmation
+  | "topic_serious"                  // Deep topics (owner=architect): introspection, personal issues
+  | "topic_light"                    // Casual topics (owner=companion): small talk, anecdotes
   | "deep_reasons_exploration"
-  | "create_action_flow"      // Simplified action creation flow (v2)
-  | "update_action_flow"      // Simplified action update flow (v2)
-  | "breakdown_action_flow"   // Simplified action breakdown flow (v2)
+  | "create_action_flow"             // Simplified action creation flow (v2)
+  | "update_action_flow"             // Simplified action update flow (v2)
+  | "breakdown_action_flow"          // Simplified action breakdown flow (v2)
 
 export type SupervisorSessionStatus = "active" | "paused"
+
+/**
+ * Profile fact to confirm - used in user_profile_confirmation machine.
+ */
+export interface ProfileFactToConfirm {
+  key: string           // e.g. "schedule.wake_time", "personal.job"
+  proposed_value: string
+  confidence: number
+  detected_at: string
+}
+
+/**
+ * State for the user_profile_confirmation machine.
+ * Stored in temp_memory.profile_confirmation_state
+ */
+export interface UserProfileConfirmationState {
+  facts_queue: ProfileFactToConfirm[]
+  current_index: number
+  status: "confirming" | "completed"
+  started_at: string
+  last_updated_at: string
+}
 
 export type TopicEngagementLevel = "high" | "medium" | "low" | "disengaged"
 
@@ -692,6 +714,139 @@ export function getPausedDeepReasonsExploration(tempMemory: any): SupervisorSess
   return paused ? (paused as SupervisorSession) : null
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// USER PROFILE CONFIRMATION SESSION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const PROFILE_CONFIRM_STATE_KEY = "profile_confirmation_state"
+
+/**
+ * Get active user profile confirmation state.
+ */
+export function getProfileConfirmationState(tempMemory: any): UserProfileConfirmationState | null {
+  const tm = safeObj(tempMemory)
+  const state = (tm as any)[PROFILE_CONFIRM_STATE_KEY] ?? null
+  if (!state || typeof state !== "object") return null
+  if (!Array.isArray(state.facts_queue)) return null
+  return state as UserProfileConfirmationState
+}
+
+/**
+ * Check if profile confirmation machine is active.
+ */
+export function hasActiveProfileConfirmation(tempMemory: any): boolean {
+  const state = getProfileConfirmationState(tempMemory)
+  return state !== null && state.status === "confirming"
+}
+
+/**
+ * Create or update profile confirmation state with new facts to confirm.
+ * Limits to MAX_PROFILE_FACTS_PER_SESSION (3).
+ */
+export function upsertProfileConfirmation(opts: {
+  tempMemory: any
+  factsToAdd: ProfileFactToConfirm[]
+  now?: Date
+}): { tempMemory: any; changed: boolean; state: UserProfileConfirmationState } {
+  const tm0 = safeObj(opts.tempMemory)
+  const existing = getProfileConfirmationState(tm0)
+  const now = nowIso(opts.now)
+  
+  // Max 3 facts per session
+  const MAX_FACTS = 3
+  
+  let factsQueue: ProfileFactToConfirm[]
+  let currentIndex: number
+  let startedAt: string
+  
+  if (existing && existing.status === "confirming") {
+    // Append to existing queue (up to limit)
+    const remainingSlots = MAX_FACTS - existing.facts_queue.length
+    const toAdd = opts.factsToAdd.slice(0, remainingSlots)
+    factsQueue = [...existing.facts_queue, ...toAdd]
+    currentIndex = existing.current_index
+    startedAt = existing.started_at
+  } else {
+    // Create new session
+    factsQueue = opts.factsToAdd.slice(0, MAX_FACTS)
+    currentIndex = 0
+    startedAt = now
+  }
+  
+  const state: UserProfileConfirmationState = {
+    facts_queue: factsQueue,
+    current_index: currentIndex,
+    status: "confirming",
+    started_at: startedAt,
+    last_updated_at: now,
+  }
+  
+  const tmNext = {
+    ...(tm0 as any),
+    [PROFILE_CONFIRM_STATE_KEY]: state,
+  }
+  
+  return { tempMemory: tmNext, changed: true, state }
+}
+
+/**
+ * Get the current fact being confirmed.
+ */
+export function getCurrentFactToConfirm(tempMemory: any): ProfileFactToConfirm | null {
+  const state = getProfileConfirmationState(tempMemory)
+  if (!state || state.status !== "confirming") return null
+  if (state.current_index >= state.facts_queue.length) return null
+  return state.facts_queue[state.current_index]
+}
+
+/**
+ * Advance to next fact after user confirms/rejects current one.
+ */
+export function advanceProfileConfirmation(opts: {
+  tempMemory: any
+  now?: Date
+}): { tempMemory: any; changed: boolean; completed: boolean; nextFact: ProfileFactToConfirm | null } {
+  const tm0 = safeObj(opts.tempMemory)
+  const state = getProfileConfirmationState(tm0)
+  if (!state || state.status !== "confirming") {
+    return { tempMemory: tm0, changed: false, completed: true, nextFact: null }
+  }
+  
+  const nextIndex = state.current_index + 1
+  const completed = nextIndex >= state.facts_queue.length
+  const nextFact = completed ? null : state.facts_queue[nextIndex]
+  
+  const newState: UserProfileConfirmationState = {
+    ...state,
+    current_index: nextIndex,
+    status: completed ? "completed" : "confirming",
+    last_updated_at: nowIso(opts.now),
+  }
+  
+  const tmNext = {
+    ...(tm0 as any),
+    [PROFILE_CONFIRM_STATE_KEY]: newState,
+  }
+  
+  return { tempMemory: tmNext, changed: true, completed, nextFact }
+}
+
+/**
+ * Close profile confirmation session.
+ */
+export function closeProfileConfirmation(opts: {
+  tempMemory: any
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const state = getProfileConfirmationState(tm0)
+  if (!state) return { tempMemory: tm0, changed: false }
+  
+  const tmNext = { ...(tm0 as any) }
+  delete tmNext[PROFILE_CONFIRM_STATE_KEY]
+  
+  return { tempMemory: tmNext, changed: true }
+}
+
 /**
  * Keep the supervisor stack in sync with the legacy Architect multi-turn toolflow stored at
  * `temp_memory.architect_tool_flow`.
@@ -766,7 +921,6 @@ const TTL_DEEP_REASONS_EXPLORATION_MS = 30 * 60 * 1000   // 30 min (keep shorter
 const TTL_CREATE_ACTION_FLOW_MS = 15 * 60 * 1000          // 15 min (short, focused flow)
 const TTL_UPDATE_ACTION_FLOW_MS = 10 * 60 * 1000          // 10 min (shorter, simpler flow)
 const TTL_BREAKDOWN_ACTION_FLOW_MS = 10 * 60 * 1000       // 10 min (short, needs concrete blocker)
-const TTL_USER_PROFILE_CONFIRM_MS = 7 * 24 * 60 * 60 * 1000 // 7 days
 const TTL_QUEUE_INTENT_MS = 2 * 60 * 60 * 1000            // 2 hours
 
 /**
@@ -873,32 +1027,6 @@ export function pruneStaleArchitectToolFlow(opts: {
 /**
  * Prune stale `temp_memory.user_profile_confirm.pending` if it's older than TTL.
  */
-export function pruneStaleUserProfileConfirm(opts: {
-  tempMemory: any
-  now?: Date
-}): { tempMemory: any; changed: boolean } {
-  const tm0 = safeObj(opts.tempMemory)
-  const confirm = (tm0 as any).user_profile_confirm ?? null
-  const pending = confirm?.pending ?? null
-  if (!pending) return { tempMemory: tm0, changed: false }
-
-  const nowMs = (opts.now ?? new Date()).getTime()
-  const addedAt = typeof (pending as any)?.added_at === "string"
-    ? new Date((pending as any).added_at).getTime()
-    : 0
-  const age = addedAt > 0 ? nowMs - addedAt : Infinity
-
-  if (age > TTL_USER_PROFILE_CONFIRM_MS) {
-    const tm1: any = { ...(tm0 as any) }
-    const c = { ...(confirm ?? {}) }
-    delete c.pending
-    tm1.user_profile_confirm = Object.keys(c).length > 0 ? c : undefined
-    if (!tm1.user_profile_confirm) delete tm1.user_profile_confirm
-    return { tempMemory: tm1, changed: true }
-  }
-  return { tempMemory: tm0, changed: false }
-}
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // RESUME BRIEF GENERATION (LLM-assisted)
 // ═══════════════════════════════════════════════════════════════════════════════

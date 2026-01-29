@@ -126,3 +126,4 @@ export function getChangeType(candidate: UpdateActionCandidate): "frequency" | "
   return "mixed"
 }
 
+

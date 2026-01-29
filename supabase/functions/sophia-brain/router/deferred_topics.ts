@@ -292,7 +292,13 @@ export function isValidDeferredTopic(topic: string): boolean {
   return hasRealSubject || t.length >= 15
 }
 
+/**
+ * @deprecated Legacy parking lot function. Use deferSignal from deferred_topics_v2.ts instead.
+ * This function appended topics to investigation_state.temp_memory.deferred_topics.
+ * The new system uses deferred_topics_v2 which is global and supports all machine types.
+ */
 export function appendDeferredTopicToState(currentState: any, topic: string): any {
+  console.warn("[deferred_topics] DEPRECATED: appendDeferredTopicToState called. Use deferred_topics_v2.deferSignal instead.")
   const prev = currentState?.temp_memory?.deferred_topics ?? []
   const t = String(topic ?? "").trim()
   if (!t) return currentState

@@ -12,6 +12,16 @@
 import type { SupervisorSessionType } from "../supervisor.ts"
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/** Max number of sub-topics within a single topic machine (topic_light/topic_serious) */
+export const MAX_TOPICS_PER_MACHINE = 3
+
+/** Max number of profile facts to confirm in a single confirmation session */
+export const MAX_PROFILE_FACTS_PER_SESSION = 3
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -22,6 +32,9 @@ export type DeferredMachineType =
   | "create_action"
   | "update_action"
   | "breakdown_action"
+  | "checkup"  // User-initiated bilan request
+  | "track_progress"  // Log action progress after current flow
+  | "user_profile_confirmation"  // Confirm detected user profile facts
 
 export interface SignalSummary {
   summary: string       // Max 100 chars, e.g. "L'utilisateur bloque sur lecture car trop long"
@@ -548,6 +561,8 @@ export function machineTypeToSessionType(machineType: DeferredMachineType): Supe
       return "update_action_flow"
     case "breakdown_action":
       return "breakdown_action_flow"
+    case "track_progress":
+      return null
     case "deep_reasons":
       return "deep_reasons_exploration"
     case "topic_serious":
@@ -560,8 +575,18 @@ export function machineTypeToSessionType(machineType: DeferredMachineType): Supe
 }
 
 /**
+ * Check if a machine type is a topic machine (can accumulate sub-topics).
+ */
+function isTopicMachineType(machineType: DeferredMachineType): boolean {
+  return machineType === "topic_light" || machineType === "topic_serious"
+}
+
+/**
  * Create or update a deferred topic based on whether a matching one exists.
  * This is the main entry point for deferring signals.
+ * 
+ * For topic machines (topic_light, topic_serious): if existing topic has >= MAX_TOPICS_PER_MACHINE
+ * summaries, create a new topic instead of enriching (to avoid "machine a gaz").
  */
 export function deferSignal(opts: {
   tempMemory: any
@@ -584,6 +609,28 @@ export function deferSignal(opts: {
   })
 
   if (existing) {
+    // For topic machines: enforce MAX_TOPICS_PER_MACHINE limit
+    // If existing already has 3+ summaries, create a new topic instead
+    if (
+      isTopicMachineType(opts.machine_type) &&
+      existing.signal_summaries.length >= MAX_TOPICS_PER_MACHINE
+    ) {
+      // CREATE new topic (same type, different instance)
+      const result = createDeferredTopicV2({
+        tempMemory: opts.tempMemory,
+        machine_type: opts.machine_type,
+        action_target: opts.action_target,
+        summary: opts.summary,
+        now: opts.now,
+      })
+      return {
+        tempMemory: result.tempMemory,
+        action: "created",
+        topic: result.topic,
+        cancelled: result.cancelled,
+      }
+    }
+    
     // UPDATE existing
     const result = updateDeferredTopicV2({
       tempMemory: opts.tempMemory,

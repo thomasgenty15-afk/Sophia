@@ -54,3 +54,4 @@ WHERE temp_memory->'global_machine'->'stack' IS NOT NULL
     WHERE elem->>'type' = 'topic_session'
   );
 
+

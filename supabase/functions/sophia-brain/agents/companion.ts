@@ -4,6 +4,15 @@ import { handleTracking } from "../lib/tracking.ts"
 import { logEdgeFunctionError } from "../../_shared/error-log.ts"
 import { getUserState, updateUserState } from "../state-manager.ts"
 import { upsertUserProfileFactWithEvent } from "../profile_facts.ts"
+import {
+  getProfileConfirmationState,
+  hasActiveProfileConfirmation,
+  getCurrentFactToConfirm,
+  upsertProfileConfirmation,
+  advanceProfileConfirmation,
+  closeProfileConfirmation,
+  type ProfileFactToConfirm,
+} from "../supervisor.ts"
 
 export type CompanionModelOutput =
   | string
@@ -487,22 +496,23 @@ export async function handleCompanionModelOutput(opts: {
     const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
     const resolvedScope = rawScope === "global" ? "global" : scope
     const reason = String(args?.reason ?? "")
+    const proposedValue = typeof (args as any)?.proposed_value === "string"
+      ? String((args as any)?.proposed_value)
+      : ""
     let toolExecution: "success" | "uncertain" = "success"
     if (key) {
       try {
         const st = await getUserState(supabase, userId, scope)
         const tm0 = (st as any)?.temp_memory ?? {}
-        const now = new Date().toISOString()
-        const confirm = (tm0 as any)?.user_profile_confirm ?? {}
-        const tmNext = {
-          ...tm0,
-          user_profile_confirm: {
-            ...(confirm ?? {}),
-            pending: { candidate_id: candidateId, key, scope: resolvedScope, asked_at: now, reason },
-            last_asked_at: now,
-          },
+        const now = new Date()
+        const fact: ProfileFactToConfirm = {
+          key,
+          proposed_value: proposedValue,
+          confidence: 0.6,
+          detected_at: now.toISOString(),
         }
-        await updateUserState(supabase, userId, scope, { temp_memory: tmNext })
+        const result = upsertProfileConfirmation({ tempMemory: tm0, factsToAdd: [fact], now })
+        await updateUserState(supabase, userId, scope, { temp_memory: result.tempMemory })
 
         // Mark candidate as "asked" (best-effort, by id if available)
         if (candidateId) {
@@ -610,14 +620,29 @@ export async function handleCompanionModelOutput(opts: {
           .neq("proposed_value", value as any)
           .in("status", ["pending", "asked"])
 
-        // Clear pending (state machine)
+        // Clear pending and advance profile confirmation machine
         const st = await getUserState(supabase, userId, scope)
         const tm0 = (st as any)?.temp_memory ?? {}
-        const confirm = (tm0 as any)?.user_profile_confirm ?? {}
-        const tmNext = {
-          ...tm0,
-          user_profile_confirm: { ...(confirm ?? {}), pending: null },
+        
+        // Check if we're using the new machine
+        const hasActiveMachine = hasActiveProfileConfirmation(tm0)
+        let tmNext = { ...tm0 }
+        
+        if (hasActiveMachine) {
+          // Advance to next fact in the machine
+          const advanceResult = advanceProfileConfirmation({ tempMemory: tmNext })
+          tmNext = advanceResult.tempMemory
+          
+          if (advanceResult.completed) {
+            // Machine completed - close it
+            const closeResult = closeProfileConfirmation({ tempMemory: tmNext })
+            tmNext = closeResult.tempMemory
+            console.log("[Companion] Profile confirmation machine completed")
+          } else if (advanceResult.nextFact) {
+            console.log(`[Companion] Profile confirmation machine advanced, next fact: ${advanceResult.nextFact.key}`)
+          }
         }
+        
         await updateUserState(supabase, userId, scope, { temp_memory: tmNext })
       } catch (e) {
         console.warn("[Companion] apply_profile_fact failed (non-blocking):", e)

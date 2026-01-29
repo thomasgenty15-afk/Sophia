@@ -444,7 +444,10 @@ function buildUltimateFullFlowStateMachineContext(
   const investigationActive = Boolean(chatState?.investigation_state);
   const investigationStatus = String(chatState?.investigation_state?.status ?? "");
   const isPostCheckup = investigationStatus === "post_checkup";
-  const profileConfirmPending = Boolean(chatState?.temp_memory?.user_profile_confirm?.pending);
+  const profileConfirmPending = Boolean(
+    chatState?.temp_memory?.profile_confirmation_state &&
+    chatState?.temp_memory?.profile_confirmation_state?.status === "confirming"
+  );
   const deferredTopics = chatState?.temp_memory?.global_deferred_topics ?? [];
   const hasDeferredTopics = Array.isArray(deferredTopics) && deferredTopics.length > 0;
 
