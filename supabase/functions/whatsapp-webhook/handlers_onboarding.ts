@@ -704,7 +704,9 @@ export async function handleOnboardingState(params: {
         `- Le user a donné ${score}/10.\n` +
         `- Réponds court, sans markdown.\n` +
         `- Ta réponse DOIT contenir: "merci" (n'importe où), "${score}/10", et "1 truc".\n` +
-        `- Pose UNE seule question demandant 1 fait perso simple (ex: routine du soir, contrainte, préférence).\n` +
+        `- Pose UNE seule question demandant 1 fait perso simple.\n` +
+        `- IMPORTANT: favorise un fait ultra-facile à répondre en 1 message WhatsApp.\n` +
+        `- Exemple recommandé (privilégier celui-ci): "Tu es plutôt du matin ou du soir en général ?"\n` +
         `- Ne démarre pas l'exécution du plan tant que le fait perso n'est pas capturé.\n`,
     })
 
@@ -790,8 +792,10 @@ export async function handleOnboardingState(params: {
         }) +
         `\n\nCONSIGNE DE TOUR:\n` +
         `- Réponds en WhatsApp (court).\n` +
-        `- Accuse réception avec une phrase contenant EXACTEMENT "Merci, je note".\n` +
-        `- Puis termine par EXACTEMENT: "Et là, tout de suite: tu as envie qu'on parle de quoi ?"\n` +
+        `- Accuse réception de façon humaine (pas robotique), et ta réponse DOIT contenir "Merci".\n` +
+        `- Fais une transition naturelle (ex: "Top", "Parfait", "Ça marche").\n` +
+        `- Puis termine par une question ouverte, très simple, du type:\n` +
+        `  "Et là, tout de suite : tu as envie qu'on parle de quoi ?"\n` +
         (fact ? `- Le fait partagé est: "${fact}".` : "") +
         `\n`,
     })

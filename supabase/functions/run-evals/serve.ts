@@ -630,6 +630,29 @@ export function serveRunEvals() {
               if (!wh.ok) {
                 throw new Error(`whatsapp-webhook failed (status=${wh.status}): ${JSON.stringify(wh.body)}`);
               }
+
+              // Persist a minimal event so WhatsApp runs have a visible turn timeline in the bundle.
+              // This is best-effort and MUST NOT fail the eval if it can't be written.
+              try {
+                if (existingRunId) {
+                  await logEvalEvent({
+                    supabase: admin as any,
+                    evalRunId: existingRunId,
+                    requestId: scenarioRequestId,
+                    source: "run-evals",
+                    event: "wa_step",
+                    payload: {
+                      idx,
+                      kind,
+                      from,
+                      wa_message_id: waMessageId,
+                      text: kind === "interactive" ? null : String(step.text ?? "").slice(0, 400),
+                    },
+                  });
+                }
+              } catch {
+                // ignore
+              }
             }
 
             // Snapshot right after wa_steps (before auto simulation) for mechanical assertions.
@@ -741,6 +764,22 @@ export function serveRunEvals() {
                 });
                 const wh = await invokeWhatsAppWebhook({ url, requestId: scenarioRequestId, payload });
                 if (!wh.ok) throw new Error(`whatsapp-webhook failed (status=${wh.status}): ${JSON.stringify(wh.body)}`);
+
+                // Best-effort event persistence (helps debug WhatsApp runs remotely).
+                try {
+                  if (existingRunId) {
+                    await logEvalEvent({
+                      supabase: admin as any,
+                      evalRunId: existingRunId,
+                      requestId: scenarioRequestId,
+                      source: "run-evals",
+                      event: "wa_turn",
+                      payload: { turn_index: turn, wa_message_id: waMessageId, user: userMsg.slice(0, 400) },
+                    });
+                  }
+                } catch {
+                  // ignore
+                }
 
                 if (!forceTurns && Boolean(simJson?.done)) break;
                 turn += 1;
@@ -1226,7 +1265,10 @@ export function serveRunEvals() {
           // DB `chat_messages` can contain extra messages (debounce bursts, retries, concurrent isolates),
           // which makes the exported transcript noisy or even structurally invalid for eval interpretation.
           // Use buildTranscript() to deduplicate consecutive identical messages.
-          const transcript = buildTranscript(history);
+          // For WhatsApp scenarios, the runner does not build a local `history` (messages are routed through
+          // whatsapp-webhook + DB). In that case, use the DB transcript as the canonical transcript.
+          // We still dedupe with buildTranscript to keep it stable.
+          let transcript: any[] = [];
 
           // Still fetch DB transcript as diagnostics and store a small integrity summary in metrics.
           const { data: msgs } = await admin
@@ -1242,6 +1284,8 @@ export function serveRunEvals() {
             created_at: m.created_at,
             agent_used: m.role === "assistant" ? m.agent_used : null,
           }));
+
+          transcript = buildTranscript(isWhatsApp ? dbTranscript : history);
           const runnerRoleRuns = summarizeTranscriptRoleRuns(transcript);
           const dbRoleRuns = summarizeTranscriptRoleRuns(dbTranscript);
 
