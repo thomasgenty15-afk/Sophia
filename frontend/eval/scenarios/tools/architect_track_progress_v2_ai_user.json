@@ -1,0 +1,70 @@
+{
+  "dataset_key": "state_machines_v2",
+  "id": "architect_track_progress_v2_ai_user",
+  "description": "V2: Architect conversation avec track_progress mid-flow. User discute du plan puis mentionne avoir fait une action → track_progress flow → confirmation → log → retour à la discussion. Teste tracking pendant conversation normale.",
+  "tags": ["architect", "track_progress", "companion", "v2", "state_machine", "ai_user"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0,
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "frequency": 3,
+        "active": true
+      },
+      {
+        "title": "Lecture 20 pages",
+        "frequency": 5,
+        "active": true
+      },
+      {
+        "title": "Méditation 10 min",
+        "frequency": 7,
+        "active": true
+      }
+    ],
+    "preseed_action_entries": [
+      { "action_title": "Sport 30 min", "status": "skipped", "days_ago": 1 },
+      { "action_title": "Lecture 20 pages", "status": "done", "days_ago": 1 }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur proactif qui reporte ses progrès",
+    "age_range": "25-40",
+    "style": "oral, naturel, aime dire quand il a fait quelque chose, ne veut pas de bilan formel",
+    "background": "Je discute de mon plan avec Sophia. Pendant la discussion, je mentionne que j'ai fait mon sport ce matin. Je veux que ce soit noté mais je ne veux pas lancer un bilan complet. Juste noter que j'ai fait mon sport et continuer à discuter."
+  },
+  "objectives": [
+    {
+      "kind": "architect_with_track_progress_v2",
+      "spec": {
+        "action_to_track": "Sport 30 min",
+        "track_status": "completed",
+        "phase_sequence": [
+          "start_casual_plan_discussion",
+          "ask_about_plan_progress",
+          "mention_did_sport_today",
+          "sophia_asks_to_confirm_tracking",
+          "confirm_yes_track_it",
+          "sophia_confirms_logged",
+          "continue_casual_discussion",
+          "close_conversation"
+        ],
+        "notes": "Sophia doit détecter le report de progrès, demander confirmation (track_progress consent), logger dans user_action_entries, et continuer la discussion sans lancer de bilan."
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*", "\\bbilan\\b.*\\bcomplet\\b"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "sport|Sport",
+      "not[ée]|enregistr[ée]|pris en compte"
+    ],
+    "scheduler_invariants": [
+      "sessions_have_resume_brief"
+    ]
+  }
+}
+

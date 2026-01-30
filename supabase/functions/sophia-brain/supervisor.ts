@@ -1760,9 +1760,11 @@ export function pauseMachineForSafety(opts: {
     const closed = closeTopicSession({ tempMemory, now: opts.now })
     tempMemory = closed.tempMemory
   } else if (sessionType === "user_profile_confirmation") {
-    // For profile confirmation, we don't close - we just store the current state
-    // The state is already in temp_memory and will be preserved with pausedState
-    // We'll restore it from candidate_snapshot on resume
+    // For profile confirmation, remove active state so safety flow can take over.
+    // The state is preserved in pausedState.candidate_snapshot for resume.
+    const next = { ...(tempMemory as any) }
+    delete next[PROFILE_CONFIRM_STATE_KEY]
+    tempMemory = next
   }
   
   return { tempMemory, pausedState }

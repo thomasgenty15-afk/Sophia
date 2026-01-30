@@ -240,6 +240,51 @@ Dans l’écran WhatsApp → Webhooks:
 - Verify token: `WHATSAPP_WEBHOOK_VERIFY_TOKEN`
 - Subscriptions: `messages` (et éventuellement `message_template_status_update`).
 
+---
+
+## 7bis) Ce qui fait vraiment passer le numéro à “Connected” (Meta)
+
+Si ton numéro apparaît **en pending / en attente** dans WhatsApp Manager, le passage à **Connected** se fait généralement via **2 appels Graph API**:
+
+### A) Register le numéro (call clé)
+
+Endpoint:
+- `POST https://graph.facebook.com/v21.0/<PHONE_NUMBER_ID>/register`
+
+Body:
+- `{ "messaging_product": "whatsapp", "pin": "<PIN_6_CHIFFRES>" }`
+
+Réponse attendue:
+- `{"success": true}`
+
+### B) Subscribe l’app au WABA
+
+Endpoint:
+- `POST https://graph.facebook.com/v21.0/<WABA_ID>/subscribed_apps`
+
+Réponse attendue:
+- `{"success": true}`
+
+### C) Le piège n°1: le bon ID au bon endroit
+
+- **PHONE_NUMBER_ID**: pour `/register` et `/messages`
+- **WABA_ID**: pour `/subscribed_apps`
+- **BUSINESS_ID**: autre chose (pas pour register)
+
+### D) Récupérer les IDs (Graph)
+
+Avec un token valable:
+- Lister tes Business:
+  - `GET /me/businesses?fields=id,name`
+- Lister tes WABA d’un Business:
+  - `GET /<BUSINESS_ID>/owned_whatsapp_business_accounts?fields=id,name`
+- Lister les numéros d’un WABA (et récupérer `PHONE_NUMBER_ID`):
+  - `GET /<WABA_ID>/phone_numbers?fields=id,display_phone_number,verified_name,quality_rating,code_verification_status`
+
+### E) Script fourni dans ce repo (recommandé)
+
+Le script `scripts/whatsapp_connect_number.sh` encapsule tout ça (discovery + register + subscribe + check webhook).
+
 ### Étape 5 — Tester en local
 Points importants:
 - Meta ne peut pas appeler `localhost` directement. Pour un vrai test webhook, il faut une URL publique (ngrok) ou tester en staging.

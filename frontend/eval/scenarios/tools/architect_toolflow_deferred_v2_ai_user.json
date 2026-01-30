@@ -1,0 +1,67 @@
+{
+  "dataset_key": "state_machines_v2",
+  "id": "architect_toolflow_deferred_v2_ai_user",
+  "description": "V2: Architect create_action flow avec digression. User crée une action mais part en digression → topic capturé → flow reprend → topic relancé après. Teste deferred topic pendant architect_tool_flow actif.",
+  "tags": ["architect", "toolflow", "create_action", "deferred_topics", "v2", "state_machine", "ai_user"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0,
+    "preseed_actions": [
+      {
+        "title": "Sport",
+        "frequency": 3,
+        "active": true
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur dispersé créatif",
+    "age_range": "25-40",
+    "style": "oral, part dans tous les sens, mais revient à son idée principale",
+    "background": "Je veux créer une nouvelle habitude de marche quotidienne. Mais j'ai aussi des problèmes de sommeil qui me préoccupent. Je vais mentionner le sommeil pendant la création de l'action, mais je veux d'abord finir de créer mon habitude."
+  },
+  "objectives": [
+    {
+      "kind": "architect_create_with_digression_v2",
+      "spec": {
+        "create_action": {
+          "title": "Marcher 20 minutes",
+          "duration": "20 minutes",
+          "frequency": 5,
+          "time_of_day": "morning"
+        },
+        "digression_topic": "mon sommeil qui est vraiment nul en ce moment, je dors mal",
+        "phase_sequence": [
+          "ask_to_create_walking_habit",
+          "provide_duration_20min",
+          "digress_to_sleep_problem",
+          "sophia_defers_sleep_continues_creation",
+          "provide_frequency_5x",
+          "consent_to_add_to_plan",
+          "confirm_creation",
+          "expect_sleep_topic_resurface"
+        ],
+        "notes": "Sophia doit capturer le topic sommeil sans interrompre le flow create_action. Le topic doit être relancé après la création."
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"],
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "plan_actions_count_min": 2,
+    "assistant_must_match": [
+      "march|walk",
+      "sommeil|dormir"
+    ],
+    "scheduler_invariants": [
+      "sessions_have_resume_brief",
+      "queue_bounded"
+    ],
+    "completion_conditions": {
+      "deferred_topics_surfaced": true
+    }
+  }
+}
+

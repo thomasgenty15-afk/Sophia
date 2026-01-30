@@ -1,0 +1,64 @@
+{
+  "dataset_key": "state_machines_v2",
+  "id": "topic_session_deferred_v2_ai_user",
+  "description": "V2: Topic Session avec defer explicite. User explore un sujet puis demande à le reporter → capturé dans global_deferred_topics → nudge plus tard. Teste l'exploration conversationnelle + defer explicite.",
+  "tags": ["topic_session", "global_deferred", "supervisor", "v2", "state_machine", "ai_user"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0,
+    "preseed_actions": [
+      {
+        "title": "Organisation semaine",
+        "frequency": 1,
+        "active": true
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur réfléchi qui reporte",
+    "age_range": "35-50",
+    "style": "oral, posé, préfère reporter certains sujets quand pas la tête",
+    "background": "Je veux parler de ma gestion du temps au travail. Mais après quelques échanges, je me rends compte que je n'ai pas la tête à approfondir maintenant. Je préfère qu'on note le sujet et qu'on y revienne plus tard."
+  },
+  "objectives": [
+    {
+      "kind": "topic_exploration_then_defer_v2",
+      "spec": {
+        "initial_topic": "gestion du temps au travail",
+        "defer_reason": "pas la tête à approfondir maintenant",
+        "light_topic_after": "comment s'est passé mon week-end",
+        "phase_sequence": [
+          "introduce_time_management_topic",
+          "explore_topic_briefly",
+          "say_not_ready_to_go_deeper",
+          "request_defer_explicitly",
+          "confirm_defer",
+          "pivot_to_light_topic",
+          "exchange_on_light_topic",
+          "close_conversation",
+          "expect_nudge_on_low_stakes_turn"
+        ],
+        "notes": "Sophia doit accepter le defer, noter le topic, et proposer de le reprendre plus tard (nudge opportuniste)."
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "chat_state_temp_memory_paths_exist": [
+      "supervisor.stack",
+      "supervisor.updated_at"
+    ],
+    "assistant_must_match": [
+      "gestion|temps|travail",
+      "note|on en reparle|plus tard"
+    ],
+    "scheduler_invariants": [
+      "topic_session_meaningful_topic",
+      "sessions_have_resume_brief",
+      "queue_bounded"
+    ]
+  }
+}
+

@@ -81,7 +81,7 @@ import { runAgentAndVerify } from "./agent_exec.ts"
 import { maybeInjectGlobalDeferredNudge, pruneGlobalDeferredTopics, shouldStoreGlobalDeferredFromUserMessage, storeGlobalDeferredTopic } from "./global_deferred.ts"
 import { applyDeterministicRouting } from "./routing_decision.ts"
 import { applyDeepReasonsFlow } from "./deep_reasons_flow.ts"
-import { handleSignalDeferral } from "./deferral_handling.ts"
+import { filterToSingleMotherSignal, handleSignalDeferral } from "./deferral_handling.ts"
 import {
   closeTopicSession,
   enqueueSupervisorIntent,
@@ -168,6 +168,7 @@ import {
   // Deferred Topics V2
   deferSignal,
   getDeferredTopicsV2,
+  updateDeferredTopicV2,
   pauseAllDeferredTopics,
   isDeferredPaused,
   clearDeferredPause,
@@ -194,6 +195,7 @@ import {
 } from "./deferred_relaunch.ts"
 import { buildRelaunchConsentAgentAddon } from "./relaunch_consent_addons.ts"
 import { buildResumeFromSafetyAddon } from "./resume_from_safety_addons.ts"
+import { findNextSameTypeTopic, buildNextTopicProposalAddon, type PendingNextTopic } from "./next_topic_addons.ts"
 
 const SOPHIA_CHAT_MODEL =
   (
@@ -1028,6 +1030,7 @@ SORTIE JSON STRICTE:
   let dispatcherResult: DispatcherOutputV2 | null = null
   let newSignalsDetected: NewSignalEntry[] = []
   let signalEnrichments: SignalEnrichment[] = []
+  let primaryMotherSignal: string | null = null
   
   if (ENABLE_CONTEXTUAL_DISPATCHER_V1) {
     const contextual = await runContextualDispatcherV2({
@@ -1050,6 +1053,109 @@ SORTIE JSON STRICTE:
     tempMemory = contextual.tempMemory
     const flowContext = contextual.flowContext
     const activeMachine = contextual.activeMachine
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // DEFERRED ENRICHMENT: Apply enrichment to existing deferred topic
+    // Dispatcher identified that user's message enriches an existing topic
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (dispatcherResult.deferred_enrichment) {
+      const { topic_id, new_brief } = dispatcherResult.deferred_enrichment
+      const enrichResult = updateDeferredTopicV2({
+        tempMemory,
+        topicId: topic_id,
+        summary: new_brief,
+      })
+      if (enrichResult.updated) {
+        tempMemory = enrichResult.tempMemory
+        await traceV("brain:deferred_enrichment_applied", "routing", {
+          topic_id,
+          new_brief,
+          total_summaries: enrichResult.topic?.signal_summaries.length ?? 0,
+        })
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
+    // SINGLE MOTHER SIGNAL ENFORCEMENT
+    // Keep only ONE mother signal (except safety) even if dispatcher detected many
+    // ═══════════════════════════════════════════════════════════════════════════
+    {
+      const { primarySignal, filtered } = filterToSingleMotherSignal(dispatcherSignals)
+      primaryMotherSignal = primarySignal
+      if (primarySignal && filtered.length > 0) {
+        const shouldClear = (signal: string) => signal !== primarySignal
+        
+        if (shouldClear("create_action")) {
+          dispatcherSignals.create_action = {
+            ...dispatcherSignals.create_action,
+            intent_strength: "none",
+            sophia_suggested: false,
+            user_response: "none",
+            modification_info: "none",
+            action_type_hint: "unknown",
+            action_label_hint: undefined,
+          }
+        }
+        if (shouldClear("update_action")) {
+          dispatcherSignals.update_action = {
+            ...dispatcherSignals.update_action,
+            detected: false,
+            target_hint: undefined,
+            change_type: "unknown",
+            new_value_hint: undefined,
+            user_response: "none",
+          }
+        }
+        if (shouldClear("breakdown_action")) {
+          dispatcherSignals.breakdown_action = {
+            ...dispatcherSignals.breakdown_action,
+            detected: false,
+            target_hint: undefined,
+            blocker_hint: undefined,
+            sophia_suggested: false,
+            user_response: "none",
+          }
+        }
+        if (shouldClear("topic_exploration")) {
+          dispatcherSignals.topic_depth = {
+            value: "NONE",
+            confidence: 0,
+            plan_focus: false,
+          }
+        }
+        if (shouldClear("deep_reasons")) {
+          dispatcherSignals.deep_reasons = {
+            ...dispatcherSignals.deep_reasons,
+            opportunity: false,
+            action_mentioned: false,
+            action_hint: undefined,
+            confidence: 0,
+          }
+        }
+        if (shouldClear("track_progress")) {
+          dispatcherSignals.track_progress = {
+            ...dispatcherSignals.track_progress,
+            detected: false,
+            target_hint: undefined,
+            status_hint: "unknown",
+            value_hint: undefined,
+          }
+        }
+        if (shouldClear("activate_action")) {
+          dispatcherSignals.activate_action = {
+            ...dispatcherSignals.activate_action,
+            detected: false,
+            target_hint: undefined,
+            exercise_type_hint: undefined,
+          }
+        }
+        
+        await traceV("brain:mother_signal_filtered", "dispatcher", {
+          primary: primarySignal,
+          filtered,
+        })
+      }
+    }
     
     // ═══════════════════════════════════════════════════════════════════════════
     // RELAUNCH CONSENT HANDLING (uses dispatcher's consent_to_relaunch signal)
@@ -1425,6 +1531,28 @@ SORTIE JSON STRICTE:
     }
     
     // ═══════════════════════════════════════════════════════════════════════════
+    // PROFILE CONFIRMATION RESPONSES: handle explicit "no" without tool call
+    // If user refuses the current fact, advance queue to avoid getting stuck.
+    // (Yes/nuance are handled via apply_profile_fact in Companion.)
+    // ═══════════════════════════════════════════════════════════════════════════
+    if (profileConfirmActive && dispatcherResult.machine_signals?.user_confirms_fact === "no") {
+      const advanceResult = advanceProfileConfirmation({ tempMemory })
+      tempMemory = advanceResult.tempMemory
+      
+      if (advanceResult.completed) {
+        const closed = closeProfileConfirmation({ tempMemory })
+        tempMemory = closed.tempMemory
+        await traceV("brain:profile_confirmation_declined_completed", "dispatcher", {
+          reason: "user_declined_fact",
+        })
+      } else {
+        await traceV("brain:profile_confirmation_declined_advanced", "dispatcher", {
+          next_fact_key: advanceResult.nextFact?.key,
+        })
+      }
+    }
+    
+    // ═══════════════════════════════════════════════════════════════════════════
     // CHECKUP FLOW: Handle checkup_intent, wants_to_checkup, track_from_bilan_done_ok
     // ═══════════════════════════════════════════════════════════════════════════
     const checkupIntentSignal = dispatcherResult.machine_signals?.checkup_intent
@@ -1432,6 +1560,7 @@ SORTIE JSON STRICTE:
     const trackFromBilanDoneOk = dispatcherResult.machine_signals?.track_from_bilan_done_ok
     const pendingCheckupEntry = (tempMemory as any)?.__checkup_entry_pending
     const pendingBilanAlreadyDone = (tempMemory as any)?.__bilan_already_done_pending
+    const allowCheckupIntent = !primaryMotherSignal || primaryMotherSignal === "checkup"
     
     // --- Handle response to "tu veux faire le bilan?" question ---
     if (pendingCheckupEntry && wantsToCheckup !== undefined) {
@@ -1506,6 +1635,7 @@ SORTIE JSON STRICTE:
     if (
       checkupIntentSignal?.detected && 
       checkupIntentSignal.confidence >= 0.7 &&
+      allowCheckupIntent &&
       !bilanActive &&  // Not already in bilan
       !pendingCheckupEntry &&  // Not already asking
       !pendingBilanAlreadyDone  // Not already handling bilan-done
@@ -1645,6 +1775,7 @@ SORTIE JSON STRICTE:
   // Tracing flags for topic exploration (reported in RouterDecisionV1)
   let topicSessionClosedThisTurn = false
   let topicSessionHandoffThisTurn = false
+  let closedTopicType: "topic_serious" | "topic_light" | null = null
 
   // --- TOPIC MACHINES (global_machine) ---
   // Two distinct machines: topic_serious (architect) and topic_light (companion)
@@ -1680,6 +1811,7 @@ SORTIE JSON STRICTE:
       topicDepthConf >= 0.6 && 
       existing?.type === "topic_light"
     ) {
+      closedTopicType = existing?.type === "topic_light" ? "topic_light" : null
       const closed = closeTopicSession({ tempMemory: tm0 })
       if (closed.changed) {
         tempMemory = closed.tempMemory
@@ -1705,6 +1837,9 @@ SORTIE JSON STRICTE:
 
     // Auto-close: if topic was in "closing" phase and next phase is also closing, close it
     if (hasExistingTopic && existing?.phase === "closing" && nextPhase === "closing") {
+      closedTopicType = (existing?.type === "topic_serious" || existing?.type === "topic_light")
+        ? existing.type
+        : null
       const closed = closeTopicSession({ tempMemory: tm0 })
       if (closed.changed) {
         tempMemory = closed.tempMemory
@@ -1713,6 +1848,9 @@ SORTIE JSON STRICTE:
     }
     // Also close if user explicitly wants to stop
     else if (hasExistingTopic && bored && existing?.phase !== "opening") {
+      closedTopicType = (existing?.type === "topic_serious" || existing?.type === "topic_light")
+        ? existing.type
+        : null
       const closed = closeTopicSession({ tempMemory: tm0 })
       if (closed.changed) {
         tempMemory = closed.tempMemory
@@ -1781,6 +1919,32 @@ SORTIE JSON STRICTE:
     }
   } catch {
     // best-effort
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // AUTO-CHAINING: If a topic machine was closed, check for next topic in queue
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (topicSessionClosedThisTurn && closedTopicType) {
+    const deferredTopics = getDeferredTopicsV2(tempMemory)
+    const nextTopic = findNextSameTypeTopic(deferredTopics, closedTopicType)
+    
+    if (nextTopic) {
+      const pendingNext: PendingNextTopic = {
+        type: nextTopic.machine_type,
+        topic_id: nextTopic.id,
+        briefs: nextTopic.signal_summaries.map(s => s.summary),
+        action_target: nextTopic.action_target,
+      }
+      tempMemory = {
+        ...(tempMemory ?? {}),
+        __pending_next_topic: pendingNext,
+      }
+      await traceV("brain:auto_chaining_detected", "routing", {
+        closed_type: closedTopicType,
+        next_topic_id: nextTopic.id,
+        next_topic_type: nextTopic.machine_type,
+      })
+    }
   }
 
   let deepReasonsActiveSession: any | null = null
@@ -3130,7 +3294,24 @@ SORTIE JSON STRICTE:
         turn_count: drResult.newState?.turn_count ?? deepReasonsStateFromTm.turn_count,
       }, "info")
       
-      return { content: normalizeChatText(drResult.content), mode: "architect" as AgentMode, aborted: false }
+      let contentOut = drResult.content
+      
+      // If deep_reasons closed, propose the next queued deep_reasons topic (auto-chaining)
+      if (!drResult.newState) {
+        const deferredTopics = getDeferredTopicsV2(tempMemory)
+        const nextTopic = findNextSameTypeTopic(deferredTopics, "deep_reasons_exploration")
+        if (nextTopic) {
+          const brief = nextTopic.signal_summaries?.[0]?.summary ?? nextTopic.action_target ?? "un autre point"
+          contentOut = `${contentOut}\n\nAu fait, tu avais aussi mentionné \"${brief}\". On le creuse maintenant ou plus tard ?`
+          await traceV("brain:auto_chaining_injected", "routing", {
+            closed_type: "deep_reasons_exploration",
+            next_topic_id: nextTopic.id,
+            next_topic_type: nextTopic.machine_type,
+          })
+        }
+      }
+      
+      return { content: normalizeChatText(contentOut), mode: "architect" as AgentMode, aborted: false }
     } catch (e) {
       console.error("[Router] Deep reasons execution failed:", e)
       // Fall through to normal agent execution
@@ -3215,6 +3396,20 @@ SORTIE JSON STRICTE:
     console.log(`[Router] Injected relaunch consent agent add-on for ${askRelaunchConsent.machine_type}`)
   }
 
+  // Inject next topic proposal add-on (for auto-chaining after topic/deep_reasons closure)
+  const pendingNextTopic = (tempMemory as any)?.__pending_next_topic as PendingNextTopic | undefined
+  if (pendingNextTopic) {
+    const nextTopicAddon = buildNextTopicProposalAddon({
+      type: pendingNextTopic.type,
+      briefs: pendingNextTopic.briefs,
+      action_target: pendingNextTopic.action_target,
+    })
+    context = `${context}\n\n${nextTopicAddon}`
+    // Clear after injection (one-time use)
+    try { delete (tempMemory as any).__pending_next_topic } catch {}
+    console.log(`[Router] Injected next topic proposal add-on for ${pendingNextTopic.type}`)
+  }
+
   const agentOut = await runAgentAndVerify({
             supabase,
             userId,
@@ -3269,6 +3464,7 @@ SORTIE JSON STRICTE:
       "__track_progress_parallel",
       "deferred_topics_v2",
       "__paused_machine_v2",
+      "__pending_next_topic",
       PROFILE_CONFIRM_DEFERRED_KEY,
     ]
     const merged: any = { ...(tmLatest ?? {}) }

@@ -11,6 +11,7 @@ import {
   upsertProfileConfirmation,
   advanceProfileConfirmation,
   closeProfileConfirmation,
+  updateProfileConfirmationPhase,
   type ProfileFactToConfirm,
 } from "../supervisor.ts"
 
@@ -545,7 +546,12 @@ export async function handleCompanionModelOutput(opts: {
           detected_at: now.toISOString(),
         }
         const result = upsertProfileConfirmation({ tempMemory: tm0, factsToAdd: [fact], now })
-        await updateUserState(supabase, userId, scope, { temp_memory: result.tempMemory })
+        const phaseResult = updateProfileConfirmationPhase({
+          tempMemory: result.tempMemory,
+          phase: "awaiting_confirm",
+          now,
+        })
+        await updateUserState(supabase, userId, scope, { temp_memory: phaseResult.tempMemory })
 
         // Mark candidate as "asked" (best-effort, by id if available)
         if (candidateId) {
