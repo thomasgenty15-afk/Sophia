@@ -4,6 +4,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 const DEFAULT_ALLOWED_ORIGINS = [
+  // Production web
+  "https://sophia-coach.ai",
+  "https://www.sophia-coach.ai",
   "http://localhost:5173",
   "http://127.0.0.1:5173",
   "http://localhost:3000",
@@ -45,7 +48,8 @@ export function getCorsHeaders(req: Request): Record<string, string> {
     // Default: keep it minimal; add GET only if you really need it.
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     // Supabase client requires `apikey` + `authorization` + `x-client-info`.
-    "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type, x-request-id, x-internal-secret",
+    // Browser calls may include supabase-js tracing headers and our own request id header.
+    "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type, x-request-id, x-client-request-id, x-sophia-client-request-id, x-internal-secret",
   };
 }
 
@@ -64,7 +68,7 @@ export function enforceCors(req: Request): Response | null {
         "Access-Control-Allow-Origin": origin,
         "Vary": "Origin",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type, x-request-id, x-internal-secret",
+        "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type, x-request-id, x-client-request-id, x-sophia-client-request-id, x-internal-secret",
         "Content-Type": "application/json",
       },
     });
