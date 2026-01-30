@@ -117,15 +117,6 @@ const ActionPlanGeneratorRecraft = () => {
     { id: 'slow', label: "Je sais que c'est un gros sujet, je préfère prendre mon temps (3 mois)", desc: "Micro-actions, très peu de pression, durée allongée." }
   ] as const;
 
-  const suggestedPacingId = contextAssist?.suggested_pacing?.id;
-
-  // --- AUTO-SELECT PACING ---
-  useEffect(() => {
-    if (suggestedPacingId) {
-        setInputs(prev => ({ ...prev, pacing: suggestedPacingId }));
-    }
-  }, [suggestedPacingId]);
-
   // --- RESTORE CACHED CONTEXT ASSIST ---
   useEffect(() => {
     if (!currentAxis) return;
@@ -189,6 +180,15 @@ const ActionPlanGeneratorRecraft = () => {
   const [isContextLoading, setIsContextLoading] = useState(false);
   const [contextAssist, setContextAssist] = useState<ContextAssistData | null>(null);
   const fetchSummaryRef = React.useRef(false);
+
+  const suggestedPacingId = contextAssist?.suggested_pacing?.id;
+
+  // --- AUTO-SELECT PACING ---
+  useEffect(() => {
+    if (suggestedPacingId) {
+      setInputs(prev => ({ ...prev, pacing: suggestedPacingId }));
+    }
+  }, [suggestedPacingId]);
 
   // --- PROFILE INFO STATE ---
   const [profileBirthDate, setProfileBirthDate] = useState<string>('');
