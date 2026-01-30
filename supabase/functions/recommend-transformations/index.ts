@@ -4,8 +4,11 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"
 
 const corsHeaders = {
+  // Keep permissive by default; project-level allowed origins can still restrict if desired.
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  // Important: frontend attaches x-sophia-client-request-id for tracing.
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sophia-client-request-id',
 }
 
 type SeverityLevel = 1 | 2 | 3

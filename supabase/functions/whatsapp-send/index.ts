@@ -13,6 +13,16 @@ import {
   markWhatsAppOutboundSkipped,
 } from "../_shared/whatsapp_outbound_tracking.ts"
 
+function isMegaTestMode(): boolean {
+  const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
+  const url = (Deno.env.get("SUPABASE_URL") ?? "").trim()
+  const isLocalSupabase =
+    (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+    url.includes("http://kong:8000") ||
+    url.includes(":54321")
+  return megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
+}
+
 type SendText = { type: "text"; body: string }
 type SendTemplate = {
   type: "template"
