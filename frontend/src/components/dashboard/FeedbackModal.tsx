@@ -106,7 +106,7 @@ export const FeedbackModal: React.FC<FeedbackModalProps> = ({ isOpen, onClose, o
                   <X className="w-5 h-5" />
                 </button>
               </div>
-              <h2 className="text-2xl font-serif font-bold text-slate-900 leading-tight">Comment s'est passée cette étape ?</h2>
+              <h2 className="text-2xl font-bold text-slate-900 leading-tight">Comment s'est passée cette étape ?</h2>
             </div>
 
             {/* Content */}

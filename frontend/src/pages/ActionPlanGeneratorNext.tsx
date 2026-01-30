@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
 import OnboardingProgress from '../components/OnboardingProgress';
+import { EpicLoading } from '../components/common/EpicLoading';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -32,6 +34,42 @@ interface AxisContext {
   theme: string;
   problems?: string[];
 }
+
+type SuggestedPacingId = "fast" | "balanced" | "slow";
+
+interface ContextAssistData {
+  suggested_pacing?: { id: SuggestedPacingId; reason?: string };
+  examples?: { why?: string[]; blockers?: string[]; context?: string[] };
+}
+
+// --- CACHE HELPERS ---
+const CONTEXT_ASSIST_CACHE_KEY = 'sophia_context_assist_cache_next';
+
+const getCachedContextAssist = (axisId: string): ContextAssistData | null => {
+  try {
+    const cached = sessionStorage.getItem(CONTEXT_ASSIST_CACHE_KEY);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    if (parsed.axisId === axisId && parsed.data) {
+      return parsed.data as ContextAssistData;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedContextAssist = (axisId: string, data: ContextAssistData) => {
+  try {
+    sessionStorage.setItem(CONTEXT_ASSIST_CACHE_KEY, JSON.stringify({
+      axisId,
+      data,
+      timestamp: Date.now()
+    }));
+  } catch {
+    // Ignore storage errors
+  }
+};
 
 const ActionPlanGeneratorNext = () => {
   const navigate = useNavigate();
@@ -75,7 +113,59 @@ const ActionPlanGeneratorNext = () => {
 
   const [contextSummary, setContextSummary] = useState<string | null>(null);
   const [isContextLoading, setIsContextLoading] = useState(false);
+  const [contextAssist, setContextAssist] = useState<ContextAssistData | null>(null);
   const fetchSummaryRef = React.useRef(false);
+
+  const suggestedPacingId = contextAssist?.suggested_pacing?.id;
+
+  // --- AUTO-SELECT PACING ---
+  useEffect(() => {
+    if (suggestedPacingId) {
+        setInputs(prev => ({ ...prev, pacing: suggestedPacingId }));
+    }
+  }, [suggestedPacingId]);
+
+  // --- RESTORE CACHED CONTEXT ASSIST ---
+  useEffect(() => {
+    if (!currentAxis) return;
+    if (!contextAssist) {
+      const cached = getCachedContextAssist(currentAxis.id);
+      if (cached) {
+        console.log("♻️ Restored contextAssist from cache (Next):", currentAxis.id);
+        setContextAssist(cached);
+      }
+    }
+  }, [currentAxis?.id]);
+
+  const ExampleList = ({
+    examples,
+    onKeep,
+    currentValue
+  }: {
+    examples?: string[];
+    onKeep: (value: string) => void;
+    currentValue: string;
+  }) => {
+    const list = (examples ?? []).filter(Boolean).slice(0, 2);
+    if (list.length === 0) return null;
+    return (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {list.map((ex, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => {
+                  const newValue = currentValue ? `${currentValue} ${ex}` : ex;
+                  onKeep(newValue);
+              }}
+              className="text-left text-xs bg-violet-50 text-violet-700 border border-violet-100 hover:bg-violet-100 px-3 py-2 rounded-lg transition-colors leading-relaxed"
+            >
+              <span className="font-bold mr-1">+</span> {ex}
+            </button>
+        ))}
+      </div>
+    );
+  };
 
   // --- PROFILE INFO STATE ---
   const [profileBirthDate, setProfileBirthDate] = useState<string>('');
@@ -105,6 +195,15 @@ const ActionPlanGeneratorNext = () => {
     };
     fetchProfile();
   }, [user]);
+
+  const SnakeBorder = ({ active }: { active: boolean }) => {
+    if (!active) return null;
+    return (
+      <div className="snake-border-box">
+        <div className="snake-border-gradient" />
+      </div>
+    );
+  };
 
   // --- LOGIQUE DE RETRY (LIMITÉE) ---
   const canRetry = plan && (plan.generationAttempts || 1) < 2;
@@ -185,11 +284,13 @@ const ActionPlanGeneratorNext = () => {
               if (answersData?.content) {
                    console.log("🧠 Appel IA pour résumé contextuel (Next Plan)...");
                    
+                   const reqId = newRequestId();
                    const { data: summaryData, error } = await supabase.functions.invoke('summarize-context', {
                        body: { 
                            responses: answersData.content,
                            currentAxis: currentAxis
-                       }
+                       },
+                       headers: requestHeaders(reqId),
                    });
                    
                    if (error) throw error;
@@ -200,6 +301,16 @@ const ActionPlanGeneratorNext = () => {
                         setContextSummary("Analyse momentanément indisponible. Vous pouvez lancer la génération.");
                    } else if (summaryData?.summary) {
                        setContextSummary(summaryData.summary);
+                       
+                       // Also set contextAssist if available
+                       if (summaryData?.suggested_pacing || summaryData?.examples) {
+                         const assistData: ContextAssistData = {
+                           suggested_pacing: summaryData?.suggested_pacing,
+                           examples: summaryData?.examples,
+                         };
+                         setContextAssist(assistData);
+                         setCachedContextAssist(currentAxis.id, assistData);
+                       }
                        
                        // D. SAUVEGARDE & INCREMENT
                        const attempts = (existingGoal?.summary_attempts || 0) + 1;
@@ -309,6 +420,7 @@ const ActionPlanGeneratorNext = () => {
       }
 
       // On appelle l'IA avec les infos + LES REPONSES
+      const reqId = newRequestId();
       const { data, error } = await supabase.functions.invoke('generate-plan', {
         body: {
           inputs,
@@ -319,7 +431,8 @@ const ActionPlanGeneratorNext = () => {
               birth_date: profileBirthDate,
               gender: profileGender
           }
-        }
+        },
+        headers: requestHeaders(reqId),
       });
 
       if (error) throw error;
@@ -563,7 +676,7 @@ const ActionPlanGeneratorNext = () => {
                         Personnalisation Physiologique
                     </h3>
                     <p className="text-sm text-slate-600 mb-4">
-                        Ces informations permettent à Sophia d'adapter le plan à votre métabolisme et votre biologie. Elles ne seront demandées qu'une seule fois.
+                        Ces informations permettent à Sophia d'adapter le plan à ton métabolisme et ta biologie. Elles ne seront demandées qu'une seule fois.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -597,15 +710,16 @@ const ActionPlanGeneratorNext = () => {
               )}
 
               {/* SÉLECTEUR DE RYTHME (PACING) */}
-              <div className="bg-violet-50 border border-violet-100 rounded-xl p-4">
+              <div className="relative bg-violet-50 border border-violet-100 rounded-xl p-4">
+                <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-violet-900 mb-3 flex items-center gap-2">
                   <Calendar className="w-4 h-4" />
                   À quelle vitesse souhaites-tu effectuer cette transformation ?
                 </label>
                 <div className="space-y-3">
                     {[
-                        { id: 'fast', label: "Je suis hyper motivé (Intense) (1 mois)", desc: "Plan dense, résultats rapides, demande beaucoup d'énergie." },
-                        { id: 'balanced', label: "Je suis motivé, mais je veux que ce soit progressif (2 mois)", desc: "Équilibre entre effort et récupération. Recommandé." },
+                        { id: 'fast', label: "Je suis hyper motivé (Intense) (1 mois)", desc: "Plan dense, résultats rapides." },
+                        { id: 'balanced', label: "Je suis motivé, mais je veux que ce soit progressif (2 mois)", desc: "Équilibre entre effort et récupération." },
                         { id: 'slow', label: "Je sais que c'est un gros sujet, je préfère prendre mon temps (3 mois)", desc: "Micro-actions, très peu de pression, durée allongée." }
                     ].map((option) => (
                         <label 
@@ -640,7 +754,8 @@ const ActionPlanGeneratorNext = () => {
                 </div>
               </div>
 
-              <div>
+              <div className="relative rounded-xl">
+                <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
                   Pourquoi est-ce important pour toi aujourd'hui ?
                 </label>
@@ -648,11 +763,17 @@ const ActionPlanGeneratorNext = () => {
                   value={inputs.why}
                   onChange={e => setInputs({...inputs, why: e.target.value})}
                   className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
-                  placeholder="Ex: Je suis épuisé d'être irritable avec mes enfants le matin..."
+                  placeholder=""
+                />
+                <ExampleList
+                  examples={contextAssist?.examples?.why}
+                  currentValue={inputs.why}
+                  onKeep={(v) => setInputs({ ...inputs, why: v })}
                 />
               </div>
 
-              <div>
+              <div className="relative rounded-xl">
+                <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
                   Quels sont les vrais blocages (honnêtement) ?
                 </label>
@@ -660,11 +781,17 @@ const ActionPlanGeneratorNext = () => {
                   value={inputs.blockers}
                   onChange={e => setInputs({...inputs, blockers: e.target.value})}
                   className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
-                  placeholder="Ex: J'ai peur de m'ennuyer si je lâche mon téléphone..."
+                  placeholder=""
+                />
+                <ExampleList
+                  examples={contextAssist?.examples?.blockers}
+                  currentValue={inputs.blockers}
+                  onKeep={(v) => setInputs({ ...inputs, blockers: v })}
                 />
               </div>
 
-              <div>
+              <div className="relative rounded-xl">
+                <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
                   Informations contextuelles utiles (matériel, horaires...)
                 </label>
@@ -672,7 +799,12 @@ const ActionPlanGeneratorNext = () => {
                   value={inputs.context}
                   onChange={e => setInputs({...inputs, context: e.target.value})}
                   className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
-                  placeholder="Ex: Je vis en colocation, je n'ai pas de tapis de sport..."
+                  placeholder=""
+                />
+                <ExampleList
+                  examples={contextAssist?.examples?.context}
+                  currentValue={inputs.context}
+                  onKeep={(v) => setInputs({ ...inputs, context: v })}
                 />
               </div>
             </div>
@@ -688,13 +820,7 @@ const ActionPlanGeneratorNext = () => {
         )}
 
         {step === 'generating' && (
-          <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-            <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-8">
-              <RotateCcw className="w-10 h-10 animate-spin" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Génération du plan en cours...</h2>
-            <p className="text-slate-500 font-medium">{loadingMessage || "Sophia intègre tes nouvelles données."}</p>
-          </div>
+          <EpicLoading />
         )}
 
         {step === 'result' && plan && (
@@ -745,7 +871,7 @@ const ActionPlanGeneratorNext = () => {
                    </div>
                    
                    {plan.phases.map((phase: any, idx: number) => (
-                       <div key={idx} className="border-l-2 border-slate-100 pl-4 pb-4">
+                       <div key={idx} className="pb-4">
                           <h3 className="font-bold text-slate-900">{phase.title}</h3>
                           <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-slate-400 mb-6">{phase.subtitle}</p>
                           
@@ -791,7 +917,7 @@ const ActionPlanGeneratorNext = () => {
                                           <div className="mt-2">
                                             <div className="flex flex-wrap items-center justify-between text-[10px] md:text-xs font-bold text-slate-500 mb-1 gap-2">
                                               <span className="flex items-center gap-1 whitespace-nowrap"><Trophy className="w-3 h-3 text-amber-500" /> Objectif XP</span>
-                                              <span className="whitespace-nowrap">{action.targetReps} répétitions</span>
+                                              <span className="whitespace-nowrap">{action.targetReps}× / semaine</span>
                                             </div>
                                             <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                                               <div className="h-full bg-slate-300 w-[30%] rounded-full"></div> 

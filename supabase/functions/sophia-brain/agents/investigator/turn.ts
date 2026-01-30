@@ -4,10 +4,16 @@ import { normalizeChatText } from "../../chat_text.ts"
 import type { CheckupItem, InvestigationState, InvestigatorTurnResult } from "./types.ts"
 import { investigatorSay } from "./copy.ts"
 import { isMegaTestMode } from "./utils.ts"
-import { fetchActionRowById, fetchActivePlanRow, handleArchiveAction, logItem } from "./db.ts"
-import { checkAndHandleLevelUp, maybeHandleStreakAfterLog } from "./streaks.ts"
-import { callBreakDownActionEdge } from "./breakdown.ts"
+import { logItem } from "./db.ts"
+import {
+  checkAndHandleLevelUp,
+  maybeHandleStreakAfterLog,
+  getCompletedStreakDays,
+  getMissedStreakDaysForCheckupItem,
+} from "./streaks.ts"
 import { logEdgeFunctionError } from "../../../_shared/error-log.ts"
+// NOTE: Tool handlers for break_down_action, defer_deep_exploration, activate_plan_action,
+// archive_plan_action have been removed. These are now handled post-bilan via deferred_topics_v2.
 
 export async function handleInvestigatorModelOutput(opts: {
   supabase: SupabaseClient
@@ -22,6 +28,13 @@ export async function handleInvestigatorModelOutput(opts: {
 }): Promise<InvestigatorTurnResult> {
   const { supabase, userId, message, history, currentState, currentItem, meta } = opts
   let response: any = opts.response
+
+  function updateMissedStreakCache(actionId: string, streak: number) {
+    const tm = currentState.temp_memory ?? {}
+    const existing = (tm as any).missed_streaks_by_action ?? {}
+    const next = { ...existing, [String(actionId)]: Math.max(0, Math.floor(Number(streak) || 0)) }
+    currentState.temp_memory = { ...(tm as any), missed_streaks_by_action: next }
+  }
 
   async function logToolFallback(args: { tool_name: string; error: unknown }) {
     const errMsg = args.error instanceof Error ? args.error.message : String(args.error)
@@ -43,24 +56,24 @@ export async function handleInvestigatorModelOutput(opts: {
     })
     // Quality/ops log (optional, does not block)
     try {
-      await supabase.from("conversation_judge_events").insert({
-        user_id: userId,
-        scope: null,
-        channel: meta?.channel ?? "web",
-        agent_used: "investigator",
-        verifier_kind: "tool_execution_fallback",
-        request_id: meta?.requestId ?? null,
-        model: null,
-        ok: null,
-        rewritten: null,
-        issues: ["tool_execution_failed_unexpected"],
-        mechanical_violations: [],
-        draft_len: null,
-        final_len: null,
-        draft_hash: null,
-        final_hash: null,
-        metadata: { reason: "tool_execution_failed_unexpected", tool_name: args.tool_name, err: errMsg.slice(0, 240) },
-      } as any)
+      const { logVerifierEvalEvent } = await import("../../lib/verifier_eval_log.ts")
+      const rid = String(meta?.requestId ?? "").trim()
+      if (rid) {
+        await logVerifierEvalEvent({
+          supabase: supabase as any,
+          requestId: rid,
+          source: "sophia-brain:verifier",
+          event: "verifier_tool_execution_fallback",
+          level: "warn",
+          payload: {
+            verifier_kind: "verifier_1:tool_execution_fallback",
+            agent_used: "investigator",
+            channel: meta?.channel ?? "web",
+            tool_name: args.tool_name,
+            err: errMsg.slice(0, 240),
+          },
+        })
+      }
     } catch {}
   }
 
@@ -117,7 +130,7 @@ export async function handleInvestigatorModelOutput(opts: {
         const errMsg = e instanceof Error ? e.message : String(e)
         console.error("[Investigator] auto-log maybeHandleStreakAfterLog failed (unexpected):", errMsg)
       }
-      // Move to next item (same as normal log path)
+      // Move to next item with enriched transition (comment on reason + next question)
       const nextIndex = currentState.current_item_index + 1
       const nextState = { ...currentState, current_item_index: nextIndex }
       if (nextIndex >= currentState.pending_items.length) {
@@ -136,17 +149,44 @@ export async function handleInvestigatorModelOutput(opts: {
         return { content: base, investigationComplete: true, newState: null }
       }
       const nextItem = currentState.pending_items[nextIndex]
-      const transitionOut = await investigatorSay(
-        "transition_to_next_item",
-        {
-          user_message: message,
-          last_item_log: argsWithId,
-          next_item: nextItem,
-          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
-          deferred_topic: null,
-        },
-        meta,
-      )
+      
+      // Get missed streak for context
+      let missedStreak = 0
+      try {
+        missedStreak = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
+      } catch {}
+      updateMissedStreakCache(currentItem.id, missedStreak)
+      
+      const note = String(argsWithId.note ?? "").trim()
+      const hasReason = note.length > 2 && !/^(pas\s+fait|non|rat[ée]?|pas\s+r[eé]ussi)$/i.test(note)
+      
+      // Use enriched scenario only if a reason is provided
+      const transitionOut = hasReason
+        ? await investigatorSay(
+          "action_missed_comment_transition",
+          {
+            user_message: message,
+            missed_item: currentItem,
+            reason_given: note,
+            last_item_log: argsWithId,
+            next_item: nextItem,
+            missed_streak: missedStreak,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+            channel: meta?.channel,
+          },
+          meta,
+        )
+        : await investigatorSay(
+          "transition_to_next_item",
+          {
+            user_message: message,
+            last_item_log: argsWithId,
+            next_item: nextItem,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+            deferred_topic: null,
+          },
+          meta,
+        )
       return { content: transitionOut, investigationComplete: false, newState: nextState }
     }
   }
@@ -168,6 +208,49 @@ export async function handleInvestigatorModelOutput(opts: {
       console.error("[Investigator] log_action_execution failed (unexpected):", errMsg)
       await logToolFallback({ tool_name: "log_action_execution", error: e })
       return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
+    }
+
+    if (currentItem.type === "action" && argsWithId.status === "completed") {
+      updateMissedStreakCache(currentItem.id, 0)
+    }
+
+    // --- VITAL SIGN: Personalized reaction + transition ---
+    if (currentItem.type === "vital") {
+      const nextIndex = currentState.current_item_index + 1
+      const nextState = { ...currentState, current_item_index: nextIndex }
+
+      if (nextIndex >= currentState.pending_items.length) {
+        // Last item was a vital sign
+        const endMsg = await investigatorSay(
+          "end_checkup_after_last_log",
+          {
+            user_message: message,
+            channel: meta?.channel,
+            recent_history: history.slice(-15),
+            last_item: currentItem,
+            last_item_log: argsWithId,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          },
+          meta,
+        )
+        return { content: endMsg, investigationComplete: true, newState: null }
+      }
+
+      const nextItem = currentState.pending_items[nextIndex]
+      const transitionMsg = await investigatorSay(
+        "vital_logged_transition",
+        {
+          user_message: message,
+          vital_title: currentItem.title,
+          vital_value: argsWithId.value ?? argsWithId.status,
+          vital_unit: currentItem.unit,
+          next_item: nextItem,
+          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          channel: meta?.channel,
+        },
+        meta,
+      )
+      return { content: transitionMsg, investigationComplete: false, newState: nextState }
     }
 
     // --- WEEKLY HABIT TARGET CONGRATS (immediate) ---
@@ -284,6 +367,75 @@ export async function handleInvestigatorModelOutput(opts: {
     console.log(`[Investigator] Next item: ${nextItem.title}`)
     const deferred = Boolean(currentState?.temp_memory?.deferred_topic)
 
+    // Use enriched scenario for action completed (félicitation + transition in same message)
+    if (currentItem.type === "action" && argsWithId.status === "completed") {
+      // Get win streak for context (already checked for >= 3 earlier, but we pass it anyway)
+      let winStreak = 0
+      try {
+        winStreak = await getCompletedStreakDays(supabase, userId, currentItem.id)
+      } catch {}
+
+      const transitionOut = await investigatorSay(
+        "action_completed_transition",
+        {
+          user_message: message,
+          completed_item: currentItem,
+          last_item_log: argsWithId,
+          next_item: nextItem,
+          win_streak: winStreak,
+          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          channel: meta?.channel,
+        },
+        meta,
+      )
+      return {
+        content: weeklyCongrats ? `${weeklyCongrats}\n\n${transitionOut}` : transitionOut,
+        investigationComplete: false,
+        newState: nextState,
+      }
+    }
+
+    // Handle missed actions with enriched transition (comment on reason + next question)
+    if (currentItem.type === "action" && argsWithId.status === "missed") {
+      let missedStreak = 0
+      try {
+        missedStreak = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
+      } catch {}
+      updateMissedStreakCache(currentItem.id, missedStreak)
+
+      const note = String(argsWithId.note ?? "").trim()
+      const hasReason = note.length > 2 && !/^(pas\s+fait|non|rat[ée]?|pas\s+r[eé]ussi)$/i.test(note)
+
+      const transitionOut = hasReason
+        ? await investigatorSay(
+          "action_missed_comment_transition",
+          {
+            user_message: message,
+            missed_item: currentItem,
+            reason_given: note,
+            last_item_log: argsWithId,
+            next_item: nextItem,
+            missed_streak: missedStreak,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+            channel: meta?.channel,
+          },
+          meta,
+        )
+        : await investigatorSay(
+          "transition_to_next_item",
+          {
+            user_message: message,
+            last_item_log: argsWithId,
+            next_item: nextItem,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+            deferred_topic: deferred ? "planning/organisation" : null,
+          },
+          meta,
+        )
+      return { content: transitionOut, investigationComplete: false, newState: nextState }
+    }
+
+    // Default transition for other cases (frameworks, etc.)
     const transitionOut = await investigatorSay(
       "transition_to_next_item",
       {
@@ -303,112 +455,11 @@ export async function handleInvestigatorModelOutput(opts: {
     }
   }
 
-  if (typeof response === "object" && response?.tool === "break_down_action") {
-    try {
-      if (currentItem.type !== "action") {
-        return {
-          content: await investigatorSay("break_down_action_wrong_type", { user_message: message, item: currentItem }, meta),
-          investigationComplete: false,
-          newState: currentState,
-        }
-      }
-
-      const problem = String((response as any)?.args?.problem ?? "").trim()
-      const applyToPlan = (response as any)?.args?.apply_to_plan !== false
-      if (!problem) {
-        return {
-          content: await investigatorSay("break_down_action_missing_problem", { user_message: message, item: currentItem }, meta),
-          investigationComplete: false,
-          newState: currentState,
-        }
-      }
-
-      const planRow = await fetchActivePlanRow(supabase, userId)
-      const actionRow = await fetchActionRowById(supabase, userId, currentItem.id)
-
-      const helpingAction = {
-        title: actionRow?.title ?? currentItem.title,
-        description: actionRow?.description ?? currentItem.description ?? "",
-        tracking_type: actionRow?.tracking_type ?? currentItem.tracking_type ?? "boolean",
-        time_of_day: actionRow?.time_of_day ?? "any_time",
-        targetReps: actionRow?.target_reps ?? currentItem.target ?? 1,
-      }
-
-      let newAction: any
-      try {
-        newAction = await callBreakDownActionEdge({
-          action: helpingAction,
-          problem,
-          plan: planRow?.content ?? null,
-          submissionId: planRow?.submission_id ?? actionRow?.submission_id ?? null,
-        })
-      } catch (e) {
-        const errMsg = e instanceof Error ? e.message : String(e)
-        console.error("[Investigator] break_down_action tool failed (unexpected):", errMsg)
-        await logToolFallback({ tool_name: "break_down_action", error: e })
-        return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
-      }
-
-      const stepTitle = String(newAction?.title ?? "Micro-étape").trim()
-      const stepDesc = String(newAction?.description ?? "").trim()
-      const tip = String(newAction?.tips ?? "").trim()
-
-      const nextState = {
-        ...currentState,
-        temp_memory: {
-          ...(currentState.temp_memory || {}),
-          breakdown: {
-            stage: "awaiting_accept",
-            action_id: currentItem.id,
-            action_title: currentItem.title,
-            problem,
-            proposed_action: newAction,
-            apply_to_plan: applyToPlan,
-          },
-        },
-      }
-
-      return {
-        content: await investigatorSay(
-          "break_down_action_propose_step",
-          { user_message: message, action_title: currentItem.title, problem, proposed_step: { title: stepTitle, description: stepDesc, tip }, apply_to_plan: applyToPlan },
-          meta,
-        ),
-        investigationComplete: false,
-        newState: nextState,
-      }
-    } catch (e) {
-      const msg = e instanceof Error ? e.message : String(e)
-      console.error("[Investigator] break_down_action failed:", e)
-      await logToolFallback({ tool_name: "break_down_action", error: e })
-      return {
-        content: await investigatorSay("break_down_action_error", { user_message: message, error: msg, item: currentItem }, meta),
-        investigationComplete: false,
-        newState: currentState,
-      }
-    }
-  }
-
-  if (typeof response === "object" && response?.tool === "archive_plan_action") {
-    try {
-      const result = await handleArchiveAction(supabase, userId, response.args)
-      return { content: result, investigationComplete: false, newState: currentState }
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e)
-      console.error("[Investigator] archive_plan_action failed (unexpected):", errMsg)
-      await logToolFallback({ tool_name: "archive_plan_action", error: e })
-      return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
-    }
-  }
-
-  if (typeof response === "object" && response?.tool === "activate_plan_action") {
-    return {
-      content:
-        "Je note ton envie d'activer ça. Pour être sûr de respecter le plan (les murs avant le toit !), je laisse l'Architecte valider et l'activer tout de suite. (Transition vers Architecte...)",
-      investigationComplete: true,
-      newState: null,
-    }
-  }
+  // NOTE: Tool handlers for break_down_action, archive_plan_action, activate_plan_action,
+  // defer_deep_exploration have been removed. These tools are no longer available to the
+  // Investigator. The Investigator now only proposes these actions verbally; if the user
+  // consents, the Dispatcher detects the signal and stores it in deferred_topics_v2 for
+  // processing after the bilan ends.
 
   // Text response: verify copy rules (unless in mega test)
   if (typeof response === "string" && !isMegaTestMode(meta)) {
@@ -427,7 +478,7 @@ export async function handleInvestigatorModelOutput(opts: {
         user_message: message,
         now_iso: new Date().toISOString(),
         system_prompt_excerpt: String(opts.systemPrompt ?? "").slice(0, 1600),
-        tools_available: ["log_action_execution", "break_down_action", "activate_plan_action", "archive_plan_action"],
+        tools_available: ["log_action_execution"],
       },
       meta: { ...meta, userId },
     })

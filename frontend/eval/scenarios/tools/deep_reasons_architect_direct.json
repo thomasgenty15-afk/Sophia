@@ -1,0 +1,64 @@
+{
+  "dataset_key": "state_machines",
+  "id": "deep_reasons_architect_direct",
+  "description": "Deep Reasons Exploration Entry Point 2: Outside bilan, user expresses motivational blocker on an action. Dispatcher detects opportunity, routes to Architect who proposes exploration and launches the state machine directly.",
+  "tags": ["deep_reasons", "architect", "direct", "dispatcher", "state_machine"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur bloqué hors bilan",
+    "age_range": "28-40",
+    "style": "direct, honnête; exprime un blocage motivationnel sans être en bilan; cherche de l'aide",
+    "background": "J'ai mon plan mais j'arrive vraiment pas à faire la méditation. J'ai toujours la flemme, je repousse sans raison. Je veux comprendre pourquoi."
+  },
+  "turns": [
+    {
+      "user_message": "J'arrive vraiment pas à faire ma méditation. J'ai la flemme chronique, je repousse tout le temps sans raison.",
+      "expected_mode": "architect",
+      "notes": "Dispatcher should detect deep_reasons opportunity, route to Architect",
+      "assertions": {
+        "assistant_should_match": ["explor|comprendre|qu'est-ce qui"]
+      }
+    },
+    {
+      "user_message": "Oui, allons-y",
+      "expected_mode": "architect",
+      "notes": "User consents, Architect launches deep_reasons state machine"
+    },
+    {
+      "user_message": "En fait quand je pense à méditer, j'ai l'impression que c'est une perte de temps. Je sais pas si ça sert vraiment.",
+      "expected_mode": "architect",
+      "notes": "User in clarify phase, describes symptom"
+    },
+    {
+      "user_message": "Oui c'est ça, je vois pas l'intérêt en fait",
+      "expected_mode": "architect",
+      "notes": "User in hypotheses/resonance phase"
+    },
+    {
+      "user_message": "Ok ça me parle, je vais essayer",
+      "expected_mode": "architect",
+      "notes": "User accepts micro-commitment, closing phase"
+    }
+  ],
+  "mechanical_assertions": {
+    "chat_state_temp_memory_array_some_match": [
+      { "path": "supervisor.stack", "match": { "type": "deep_reasons_exploration" } }
+    ],
+    "chat_state_temp_memory_paths_exist": [
+      "deep_reasons_state",
+      "supervisor.updated_at"
+    ],
+    "scheduler_invariants": [
+      "sessions_have_resume_brief"
+    ]
+  },
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"],
+    "state_machine_flow": "clarify -> hypotheses -> resonance -> intervention -> closing"
+  }
+}
+
+

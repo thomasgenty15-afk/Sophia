@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { getPrelaunchLockdownRawValue, isPrelaunchLockdownEnabled } from '../security/prelaunch';
 import { DEFAULT_LOCALE, DEFAULT_TIMEZONE, detectBrowserTimezone, getAllSupportedTimezones } from '../lib/localization';
 import { 
@@ -14,6 +15,8 @@ import {
   AlertCircle,
   Loader2
 } from 'lucide-react';
+import { getThemeLabelById } from '../data/onboarding/registry';
+import { clearGuestPlanFlowState, loadGuestPlanFlowState, saveGuestPlanFlowState } from '../lib/guestPlanFlowCache';
 
 function getErrorMessage(err: unknown, fallback: string) {
   if (err instanceof Error && err.message) return err.message;
@@ -59,7 +62,7 @@ const Auth = () => {
   const prelaunchRaw = debug ? getPrelaunchLockdownRawValue() : "";
   
   // Récupérer les données du plan si on vient du flux onboarding
-  const planData = location.state || null;
+  const planData = location.state || loadGuestPlanFlowState() || null;
   const isRegistrationFlow = !!planData?.finalOrder; // Si on a des priorités, c'est une inscription
 
   const [isSignUp, setIsSignUp] = useState(prelaunchLockdown ? false : isRegistrationFlow); // Par défaut Inscription si flux, sinon Connexion
@@ -75,6 +78,13 @@ const Auth = () => {
   const [isResettingPassword, setIsResettingPassword] = useState(false); // Pour la demande de reset MDP
   const [timezone, setTimezone] = useState<string>(DEFAULT_TIMEZONE);
   const [tzFollowDevice, setTzFollowDevice] = useState<boolean>(false);
+
+  // Keep guest flow state in sessionStorage so "back" / refresh doesn't wipe the plan data.
+  useEffect(() => {
+    if (planData && isRegistrationFlow) {
+      saveGuestPlanFlowState(planData);
+    }
+  }, [isRegistrationFlow, planData]);
   const [prefsOpen, setPrefsOpen] = useState<boolean>(false);
 
   const supportedTimezones = React.useMemo(() => {
@@ -158,6 +168,20 @@ const Auth = () => {
           throw new Error("Le numéro de téléphone est requis pour Sophia.");
         }
 
+        // Validation plus stricte du format
+        if (phoneNorm.startsWith('+33')) {
+          // France : on attend exactement 12 caractères (+33 + 9 chiffres)
+          // Ex: +33 6 12 34 56 78
+          if (phoneNorm.length !== 12) {
+            throw new Error("Numéro de téléphone incorrect (10 chiffres attendus pour la France).");
+          }
+        } else if (phoneNorm.startsWith('+0')) {
+             // Cas où normalizePhone n'a pas reconnu le pays et a juste ajouté + devant un 0
+             throw new Error("Format international requis (ex: +33...) ou numéro incomplet.");
+        } else if (phoneNorm.length < 8) {
+             throw new Error("Numéro de téléphone trop court.");
+        }
+
         // If the phone is already validated by another account, block signup with a friendly message.
         // Note: Uses an RPC to avoid exposing broad profiles read access to anon users.
         try {
@@ -208,7 +232,8 @@ const Auth = () => {
             // Note: requires an active session/JWT; if email confirmations are enabled, this will be retried on first login.
             try {
               if (data.session) {
-                const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {} });
+                const waReqId = newRequestId();
+                const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {}, headers: requestHeaders(waReqId) });
                 if (waErr) {
                   console.warn("WhatsApp opt-in send failed (non-blocking):", waErr, waData);
                 }
@@ -254,6 +279,9 @@ const Auth = () => {
                 }
             }
 
+            // Guest cache is no longer needed once signup succeeded.
+            clearGuestPlanFlowState();
+
             if (isRegistrationFlow) {
                 // Flow Standard : Génération après questionnaire
                 navigate('/plan-generator', { state: planData });
@@ -281,7 +309,8 @@ const Auth = () => {
         if (data.user) {
             // Retry WhatsApp opt-in template on first login (best-effort)
             try {
-              const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {} });
+              const waReqId = newRequestId();
+              const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {}, headers: requestHeaders(waReqId) });
               if (waErr) {
                 console.warn("WhatsApp opt-in send failed on login (non-blocking):", waErr, waData);
               }
@@ -346,7 +375,7 @@ const Auth = () => {
         {isRegistrationFlow ? (
           <div className="animate-fade-in-up">
             <h2 className="text-3xl font-bold text-slate-900 mb-2">
-              Dernière étape avant votre plan {planData.finalOrder[0].theme}.
+              Dernière étape avant ton plan {String(getThemeLabelById(planData.finalOrder[0].theme)).toLocaleLowerCase('fr-FR')}.
             </h2>
             <p className="text-slate-600 max-w-sm mx-auto">
               Créez votre espace sécurisé pour finaliser votre stratégie.

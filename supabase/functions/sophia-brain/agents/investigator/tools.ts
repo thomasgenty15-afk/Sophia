@@ -64,11 +64,64 @@ export const BREAK_DOWN_ACTION_TOOL = {
   },
 }
 
+/**
+ * DEFER DEEP EXPLORATION TOOL
+ * 
+ * Called when the Investigator detects a motivational/deep blocker during bilan
+ * and the user consents to explore it AFTER the bilan.
+ * 
+ * This is different from break_down_action:
+ * - break_down_action = practical problem (how to do it)
+ * - defer_deep_exploration = motivational problem (why I don't want to do it)
+ */
+export const DEFER_DEEP_EXPLORATION_TOOL = {
+  name: "defer_deep_exploration",
+  description:
+    "Propose une exploration profonde des raisons de blocage APRÈS le bilan. À utiliser quand le blocage semble motivationnel (pas envie, peur, manque de sens) plutôt que pratique. L'utilisateur doit avoir dit 'oui' à la proposition d'explorer.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_id: {
+        type: "STRING",
+        description: "L'ID de l'action concernée par le blocage.",
+      },
+      action_title: {
+        type: "STRING",
+        description: "Le titre de l'action concernée.",
+      },
+      detected_pattern: {
+        type: "STRING",
+        enum: ["fear", "meaning", "energy", "ambivalence", "identity", "unknown"],
+        description: "Pattern détecté: fear (peur), meaning (manque de sens), energy (flemme/fatigue), ambivalence (veut et veut pas), identity (pas mon truc), unknown (pas clair).",
+      },
+      user_words: {
+        type: "STRING",
+        description: "Ce que l'utilisateur a dit (verbatim court, max 150 caractères).",
+      },
+      consent_obtained: {
+        type: "BOOLEAN",
+        description: "True si l'utilisateur a dit oui à 'Tu veux qu'on explore ça après le bilan ?'.",
+      },
+    },
+    required: ["action_id", "action_title", "detected_pattern", "user_words", "consent_obtained"],
+  },
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// INVESTIGATOR TOOLS
+// 
+// The Investigator now only uses log_action_execution.
+// All other tools (breakdown, activate, archive) are handled POST-bilan via
+// the deferred_topics_v2 system, which routes to the Architect.
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export const INVESTIGATOR_TOOLS = [
   LOG_ACTION_TOOL,
-  BREAK_DOWN_ACTION_TOOL,
-  ACTIVATE_ACTION_TOOL,
-  ARCHIVE_ACTION_TOOL,
+  // Other tools removed - signals are now deferred to post-bilan:
+  // - breakdown_action → deferred_topics_v2 + auto-relaunch to Architect
+  // - defer_deep_exploration → deferred_topics_v2 + auto-relaunch to Architect
+  // - activate_plan_action → deferred_topics_v2 + auto-relaunch to Architect
+  // - archive_plan_action → deferred_topics_v2 + auto-relaunch to Architect
 ]
 
 

@@ -4,11 +4,11 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 
-import { extractMessages, type WaInbound } from "./wa_parse.ts"
+import { extractMessages, extractStatuses, type WaInbound } from "./wa_parse.ts"
 import { verifyXHubSignature } from "./wa_security.ts"
 import { e164ToFrenchLocal, normalizeFrom } from "./wa_phone.ts"
 import { extractAfterDonePhrase, isDonePhrase, isStopKeyword, stripFirstMotivationScore } from "./wa_text.ts"
-import { sendWhatsAppText } from "./wa_whatsapp_api.ts"
+import { sendWhatsAppText, sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
 import { hasWhatsappPersonalFact } from "./wa_db.ts"
 import { replyWithBrain } from "./wa_reply.ts"
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
@@ -16,9 +16,17 @@ import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 import { handleUnlinkedInbound } from "./handlers_unlinked.ts"
 import { handleStopOptOut } from "./handlers_optout.ts"
 import { handlePendingActions } from "./handlers_pending.ts"
-import { handleOnboardingState } from "./handlers_onboarding.ts"
+import {
+  handleOnboardingState,
+  handleDeferredMotivationAnswer,
+  handleDeferredPersonalFactAnswer,
+  handleDeferredOnboardingSteps,
+} from "./handlers_onboarding.ts"
 import { computeOptInAndBilanContext, handleOptInAndDailyBilanActions } from "./handlers_optin_bilan.ts"
 import { handleWrongNumber } from "./handlers_wrong_number.ts"
+import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts"
+import { analyzeSignals } from "../sophia-brain/router/dispatcher.ts"
+import { getDeferredOnboardingSteps } from "./onboarding_helpers.ts"
 
 const LINK_PROMPT_COOLDOWN_MS = Number.parseInt(
   (Deno.env.get("WHATSAPP_LINK_PROMPT_COOLDOWN_MS") ?? "").trim() || String(10 * 60 * 1000),
@@ -47,10 +55,14 @@ function decodeJwtAlg(jwt: string) {
   const p0 = t.split(".")[0] ?? ""
   if (!p0) return "missing"
   try {
+    // JWT uses base64url *without* padding. atob expects base64 with proper padding.
+    const b64 = p0.replace(/-/g, "+").replace(/_/g, "/")
+    const padLen = (4 - (b64.length % 4)) % 4
+    const padded = b64 + (padLen ? "=".repeat(padLen) : "")
     const header = JSON.parse(
       new TextDecoder().decode(
         Uint8Array.from(
-          atob(p0.replace(/-/g, "+").replace(/_/g, "/")),
+          atob(padded),
           (c) => c.charCodeAt(0),
         ),
       ),
@@ -149,16 +161,96 @@ Deno.serve(async (req) => {
     const raw = new Uint8Array(rawBuf)
     const payload = JSON.parse(new TextDecoder().decode(raw)) as WaInbound
     const inbound = extractMessages(payload)
-    if (inbound.length === 0) {
+    const statuses = extractStatuses(payload)
+    if (inbound.length === 0 && statuses.length === 0) {
       // Most webhook calls may be statuses/acks; acknowledge.
       return jsonResponse(req, { ok: true, request_id: requestId }, { includeCors: false })
     }
 
     const admin = await getAdminClientForRequest(req)
 
+    // 0) Status callbacks (delivery/read/failed). Best-effort: never fail the webhook for these.
+    if (statuses.length > 0) {
+      for (const st of statuses) {
+        try {
+          await admin
+            .from("whatsapp_outbound_status_events")
+            .upsert(
+              {
+                provider_message_id: st.provider_message_id,
+                status: st.status,
+                status_timestamp: st.status_timestamp_iso,
+                recipient_id: st.recipient_id,
+                raw: st.raw as any,
+              } as any,
+              { onConflict: "provider_message_id,status,status_timestamp", ignoreDuplicates: true },
+            )
+
+          const nextStatus = (() => {
+            const s = (st.status ?? "").toLowerCase()
+            if (s === "read") return "read"
+            if (s === "delivered") return "delivered"
+            if (s === "sent") return "sent"
+            if (s === "failed") return "failed"
+            return null
+          })()
+          if (nextStatus) {
+            const { data: row, error: rowErr } = await admin
+              .from("whatsapp_outbound_messages")
+              .select("id,status,attempt_count,max_attempts,next_retry_at")
+              .eq("provider_message_id", st.provider_message_id)
+              .maybeSingle()
+            if (rowErr) throw rowErr
+            if (!row) continue
+
+            const cur = String((row as any)?.status ?? "").toLowerCase()
+            const precedence = (s: string) => (s === "read" ? 4 : s === "delivered" ? 3 : s === "sent" ? 2 : s === "failed" ? 1 : 0)
+            const shouldUpdate = precedence(nextStatus) >= precedence(cur)
+
+            const patch: any = shouldUpdate ? { status: nextStatus, updated_at: new Date().toISOString() } : { updated_at: new Date().toISOString() }
+
+            // If Meta says failed and we haven't scheduled a retry yet, schedule one (unless clearly non-retryable).
+            if (nextStatus === "failed") {
+              const attemptCount = Number((row as any)?.attempt_count ?? 0) || 0
+              const maxAttempts = Number((row as any)?.max_attempts ?? 8) || 8
+              const nextRetryAt = (row as any)?.next_retry_at ? String((row as any).next_retry_at) : ""
+
+              const errors = ((st.raw as any)?.errors ?? []) as any[]
+              const e0 = Array.isArray(errors) && errors.length > 0 ? errors[0] : null
+              const eCode = e0?.code != null ? String(e0.code) : null
+              const eTitle = e0?.title != null ? String(e0.title) : null
+              const eMsg = e0?.message != null ? String(e0.message) : null
+              const blob = `${eTitle ?? ""}\n${eMsg ?? ""}`.toLowerCase()
+
+              const nonRetry =
+                eCode === "470" ||
+                blob.includes("opt out") ||
+                blob.includes("opted out") ||
+                blob.includes("not a valid whatsapp user") ||
+                blob.includes("invalid phone") ||
+                (blob.includes("template") && blob.includes("required"))
+
+              if (!nonRetry && !nextRetryAt && attemptCount < maxAttempts) {
+                patch.next_retry_at = computeNextRetryAtIso(attemptCount)
+              }
+              if (eCode) patch.last_error_code = eCode
+              if (eTitle || eMsg) patch.last_error_message = [eTitle, eMsg].filter(Boolean).join(" · ")
+              patch.last_error = { status_webhook: st.raw }
+            }
+
+            await admin.from("whatsapp_outbound_messages").update(patch).eq("id", (row as any).id)
+          }
+        } catch (e) {
+          console.warn(`[whatsapp-webhook] request_id=${requestId} status_update_failed`, e)
+        }
+      }
+    }
+
     for (const msg of inbound) {
       let userIdForLog: string | null = null
       try {
+        // One process id per inbound message (more granular than the webhook request id).
+        const processId = crypto.randomUUID()
         const fromE164 = normalizeFrom(msg.from)
         if (!fromE164) continue
 
@@ -194,6 +286,7 @@ Deno.serve(async (req) => {
             msg,
             fromE164,
             ambiguous,
+            requestId: processId,
             siteUrl: SITE_URL,
             supportEmail: SUPPORT_EMAIL,
             defaultWhatsappNumber: DEFAULT_WHATSAPP_NUMBER,
@@ -207,17 +300,30 @@ Deno.serve(async (req) => {
         userIdForLog = String(profile.id ?? "") || null
         if (profile.phone_invalid) continue
 
-        // Idempotency: skip if already logged this wa_message_id
-        const { count: already } = await admin
-          .from("chat_messages")
-          .select("id", { count: "exact", head: true })
-          .eq("user_id", profile.id)
-          .eq("scope", "whatsapp")
-          .eq("role", "user")
-          .filter("metadata->>channel", "eq", "whatsapp")
-          .filter("metadata->>wa_message_id", "eq", msg.wa_message_id)
+        // Idempotency (race-safe): insert dedup row first with unique wamid_in.
+        const { error: dedupErr } = await admin
+          .from("whatsapp_inbound_dedup")
+          .insert({
+            request_id: processId,
+            webhook_request_id: requestId,
+            wamid_in: msg.wa_message_id,
+            from_e164: fromE164,
+            user_id: profile.id,
+            status: "received",
+            metadata: {
+              wa_type: msg.type,
+              wa_interactive_id: msg.interactive_id ?? null,
+              wa_interactive_title: msg.interactive_title ?? null,
+              wa_profile_name: msg.profile_name ?? null,
+            },
+          } as any)
 
-        if ((already ?? 0) > 0) continue
+        if (dedupErr) {
+          const code = String((dedupErr as any)?.code ?? "")
+          // 23505 = unique_violation => Meta delivered the same inbound message twice; ACK & skip.
+          if (code === "23505") continue
+          throw dedupErr
+        }
 
         // Prefer stable interactive ids (Quick Replies), fallback to text matching.
         const actionId = (msg.interactive_id ?? "").trim()
@@ -300,7 +406,7 @@ Deno.serve(async (req) => {
         .eq("id", profile.id)
 
       // Log inbound
-      const { error: inErr } = await admin.from("chat_messages").insert({
+      const { data: insertedIn, error: inErr } = await admin.from("chat_messages").insert({
         user_id: profile.id,
         scope: "whatsapp",
         role: "user",
@@ -313,9 +419,21 @@ Deno.serve(async (req) => {
           wa_type: msg.type,
           wa_interactive_id: msg.interactive_id ?? null,
           wa_interactive_title: msg.interactive_title ?? null,
+          request_id: processId,
+          webhook_request_id: requestId,
         },
-      })
+      }).select("id").maybeSingle()
       if (inErr) throw inErr
+
+      // Mark dedup row as processed + link to the logged chat message.
+      await admin
+        .from("whatsapp_inbound_dedup")
+        .update({
+          status: "processed",
+          processed_at: new Date().toISOString(),
+          chat_message_id: (insertedIn as any)?.id ?? null,
+        } as any)
+        .eq("wamid_in", msg.wa_message_id)
 
       // If user is messaging us but has no active plan, put them in the onboarding state-machine
       // so we don't spam the same generic "no plan" reply over and over.
@@ -343,7 +461,7 @@ Deno.serve(async (req) => {
             userId: profile.id,
             whatsappState: "awaiting_plan_finalization",
             fromE164,
-            requestId,
+            requestId: processId,
             waMessageId: msg.wa_message_id,
             text: msg.text ?? "",
             siteUrl: SITE_URL,
@@ -356,6 +474,24 @@ Deno.serve(async (req) => {
           })
           if (didHandleOnboarding) continue
         }
+      }
+
+      // If user just opted out, send a single confirmation message (once), then stop.
+      if (isStop) {
+        const enabled = (Deno.env.get("WHATSAPP_STOP_CONFIRMATION_ENABLED") ?? "true").trim().toLowerCase() !== "false"
+        const alreadyConfirmed = Boolean(profile.whatsapp_optout_confirmed_at)
+        await handleStopOptOut({
+          admin,
+          userId: profile.id,
+          fromE164,
+          alreadyConfirmed,
+          enabled,
+          nowIso,
+          replyWithBrain,
+          requestId: processId,
+          replyToWaMessageId: msg.wa_message_id,
+        })
+        continue
       }
 
       // Paywall notice: if user messages on WhatsApp but is out of trial and not on Alliance/Architecte,
@@ -385,8 +521,19 @@ Deno.serve(async (req) => {
               ? `Hello${firstName ? ` ${firstName}` : ""} — je vois que tu es sur le plan Système.\n\nLa partie coaching sur WhatsApp n’est incluse qu’avec le plan Alliance.\n\nTu peux passer sur Alliance ici : ${upgradeUrl}`
               : `Hello${firstName ? ` ${firstName}` : ""} — ton essai est terminé et l’accès au coaching sur WhatsApp n’est pas actif sur ton plan actuel.\n\nPour activer WhatsApp, tu peux prendre le plan Alliance ici : ${upgradeUrl}`
 
-            const sendResp = await sendWhatsAppText(fromE164, txt)
+            const sendResp = await sendWhatsAppTextTracked({
+              admin,
+              requestId: processId,
+              userId: profile.id,
+              toE164: fromE164,
+              body: txt,
+              purpose: "whatsapp_paywall_upgrade",
+              isProactive: false,
+              replyToWaMessageId: msg.wa_message_id,
+              metadata: { tier },
+            })
             const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+            const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
             await admin.from("chat_messages").insert({
               user_id: profile.id,
               scope: "whatsapp",
@@ -396,6 +543,7 @@ Deno.serve(async (req) => {
               metadata: {
                 channel: "whatsapp",
                 wa_outbound_message_id: outId,
+                outbound_tracking_id: outboundTrackingId,
                 is_proactive: false,
                 purpose: "whatsapp_paywall_upgrade",
                 tier,
@@ -404,24 +552,6 @@ Deno.serve(async (req) => {
           }
           continue
         }
-      }
-
-      // If user just opted out, send a single confirmation message (once), then stop.
-      if (isStop) {
-        const enabled = (Deno.env.get("WHATSAPP_STOP_CONFIRMATION_ENABLED") ?? "true").trim().toLowerCase() !== "false"
-        const alreadyConfirmed = Boolean(profile.whatsapp_optout_confirmed_at)
-        await handleStopOptOut({
-          admin,
-          userId: profile.id,
-          fromE164,
-          alreadyConfirmed,
-          enabled,
-          nowIso,
-          replyWithBrain,
-          requestId,
-          replyToWaMessageId: msg.wa_message_id,
-        })
-        continue
       }
 
       // Opt-in + daily bilan fast paths (may send messages / update state) AFTER inbound is logged.
@@ -436,8 +566,9 @@ Deno.serve(async (req) => {
         hasBilanContext,
         siteUrl: SITE_URL,
         replyWithBrain,
-        requestId,
+        requestId: processId,
         waMessageId: msg.wa_message_id,
+        inboundText: msg.text ?? "",
       })
       if (didHandleOptInOrBilan) continue
 
@@ -445,6 +576,7 @@ Deno.serve(async (req) => {
         admin,
         userId: profile.id,
         fromE164,
+        requestId: processId,
         isOptInYes,
         isCheckinYes,
         isCheckinLater,
@@ -456,12 +588,45 @@ Deno.serve(async (req) => {
       // Mini state-machine for a lively first WhatsApp onboarding (post opt-in).
       // We intercept these states BEFORE calling the AI brain.
       if (profile.whatsapp_state) {
+        const waState = String(profile.whatsapp_state || "")
+
+        // Handle deferred states (motivation/personal_fact asked later)
+        if (waState === "awaiting_deferred_motivation") {
+          const didHandle = await handleDeferredMotivationAnswer({
+            admin,
+            userId: profile.id,
+            fromE164,
+            requestId: processId,
+            waMessageId: msg.wa_message_id,
+            text: msg.text ?? "",
+            siteUrl: SITE_URL,
+            replyWithBrain,
+            stripFirstMotivationScore,
+          })
+          if (didHandle) continue
+        }
+
+        if (waState === "awaiting_deferred_personal_fact") {
+          const didHandle = await handleDeferredPersonalFactAnswer({
+            admin,
+            userId: profile.id,
+            fromE164,
+            requestId: processId,
+            waMessageId: msg.wa_message_id,
+            text: msg.text ?? "",
+            siteUrl: SITE_URL,
+            replyWithBrain,
+          })
+          if (didHandle) continue
+        }
+
+        // Standard onboarding states
         const didHandleOnboarding = await handleOnboardingState({
           admin,
           userId: profile.id,
-          whatsappState: String(profile.whatsapp_state || ""),
+          whatsappState: waState,
           fromE164,
-          requestId,
+          requestId: processId,
           waMessageId: msg.wa_message_id,
           text: msg.text ?? "",
           siteUrl: SITE_URL,
@@ -475,13 +640,44 @@ Deno.serve(async (req) => {
         if (didHandleOnboarding) continue
       }
 
+      // Deferred onboarding steps (only when no active onboarding state)
+      if (!profile.whatsapp_state) {
+        const deferredSteps = await getDeferredOnboardingSteps(admin, profile.id)
+        if (deferredSteps.length > 0) {
+          let signals: any = null
+          try {
+            signals = await analyzeSignals(
+              (msg.text ?? "").trim() || "Ok",
+              { current_mode: "companion" },
+              "",
+              { requestId: processId },
+            )
+          } catch (e) {
+            console.warn("[whatsapp-webhook] analyzeSignals failed for deferred steps:", e)
+          }
+
+          const deferredHandled = await handleDeferredOnboardingSteps({
+            admin,
+            userId: profile.id,
+            fromE164,
+            requestId: processId,
+            waMessageId: msg.wa_message_id,
+            text: msg.text ?? "",
+            siteUrl: SITE_URL,
+            signals: signals ?? {},
+            replyWithBrain,
+          })
+          if (deferredHandled.handled) continue
+        }
+      }
+
       // Default: call Sophia brain (no auto logging) then send reply
         await replyWithBrain({
           admin,
           userId: profile.id,
           fromE164,
           inboundText: (msg.text ?? "").trim() || "Salut",
-          requestId,
+          requestId: processId,
           replyToWaMessageId: msg.wa_message_id,
           purpose: "whatsapp_default_brain_reply",
           contextOverride: "",

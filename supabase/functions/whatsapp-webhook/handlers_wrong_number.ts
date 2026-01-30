@@ -20,6 +20,8 @@ export async function handleWrongNumber(params: {
     phone_invalid: false,
     whatsapp_opted_in: false,
     whatsapp_bilan_opted_in: false,
+    whatsapp_state: null,
+    whatsapp_state_updated_at: nowIso,
     whatsapp_opted_out_at: nowIso,
     whatsapp_optout_reason: "wrong_number",
     whatsapp_optout_confirmed_at: null,

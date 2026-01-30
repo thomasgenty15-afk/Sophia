@@ -1,3 +1,18 @@
+/**
+ * @deprecated This file is no longer used as of the Investigator Deferred Unification refactor.
+ * 
+ * The breakdown flow during bilan has been removed. Instead:
+ * 1. The Investigator only proposes breakdown actions verbally
+ * 2. If the user consents, the Dispatcher detects the signal
+ * 3. The signal is stored in deferred_topics_v2
+ * 4. After bilan ends, the signal auto-launches the Architect's breakdown_action_flow
+ * 
+ * This file is kept for reference only. The callBreakDownActionEdge function may still
+ * be useful for other contexts but is no longer called by the Investigator.
+ * 
+ * See: deferred_topics_v2.ts, dispatcher.ts (ADDON_BILAN_ACTIVE)
+ */
+
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import type { CheckupItem, InvestigationState, InvestigatorTurnResult } from "./types.ts"
 import { investigatorSay } from "./copy.ts"

@@ -322,7 +322,7 @@ function hasAssistantMode(ts: TranscriptMsg[], mode: string): boolean {
   );
 }
 
-function buildTopicSessionHandoffStateMachineContext(
+function buildTopicExplorationHandoffStateMachineContext(
   obj: any,
   ts: TranscriptMsg[],
   turnIndex: number,
@@ -399,8 +399,8 @@ function buildTopicSessionHandoffStateMachineContext(
   ].join("\n");
 
   const ctx = `
-[TOPIC_SESSION_HANDOFF — CONTEXTE]
-But: conversation fluide (pas robotique) pour tester la machine globale "topic_session" + imbriquation (architect/companion/firefighter) sur ~${maxTurns} tours.
+[TOPIC_EXPLORATION_HANDOFF — CONTEXTE]
+But: conversation fluide (pas robotique) pour tester les machines globales "topic_serious"/"topic_light" + imbriquation (architect/companion/firefighter) sur ~${maxTurns} tours.
 
 État courant (estimation):
 - stage=${stage}/${finalStage}
@@ -444,7 +444,10 @@ function buildUltimateFullFlowStateMachineContext(
   const investigationActive = Boolean(chatState?.investigation_state);
   const investigationStatus = String(chatState?.investigation_state?.status ?? "");
   const isPostCheckup = investigationStatus === "post_checkup";
-  const profileConfirmPending = Boolean(chatState?.temp_memory?.user_profile_confirm?.pending);
+  const profileConfirmPending = Boolean(
+    chatState?.temp_memory?.profile_confirmation_state &&
+    chatState?.temp_memory?.profile_confirmation_state?.status === "confirming"
+  );
   const deferredTopics = chatState?.temp_memory?.global_deferred_topics ?? [];
   const hasDeferredTopics = Array.isArray(deferredTopics) && deferredTopics.length > 0;
 
@@ -1440,12 +1443,18 @@ console.log("simulate-user: Function initialized");
       // ignore
     }
 
-    const toolCreateActionObj = findObjective(body.objectives ?? [], "tools_create_action_realistic");
+    // Tool eval objectives (AI-user state machines)
+    // Keep backward compatibility with older scenario kind names.
+    const toolCreateActionObj =
+      findObjective(body.objectives ?? [], "tools_create_action") ??
+      findObjective(body.objectives ?? [], "tools_create_action_realistic");
     const toolUpdateActionObj = findObjective(body.objectives ?? [], "tools_update_action_realistic");
     const toolBreakDownActionObj = findObjective(body.objectives ?? [], "tools_break_down_action_realistic");
     const toolActivateActionObj = findObjective(body.objectives ?? [], "tools_activate_action_realistic");
     const toolComplexObj = findObjective(body.objectives ?? [], "tools_complex_multimachine_realistic");
-    const topicSessionObj = findObjective(body.objectives ?? [], "topic_session_handoff_realistic");
+    // Topic session objectives (supports both topic_serious and topic_light machine scenarios)
+    const topicExplorationObj = findObjective(body.objectives ?? [], "topic_exploration_handoff_realistic") ??
+      findObjective(body.objectives ?? [], "topic_session_handoff_realistic");
     const profileConfirmObj = findObjective(body.objectives ?? [], "profile_confirm_3_topics_realistic");
     
     // Stress test objectives (multi-machine scenarios)
@@ -1484,9 +1493,9 @@ console.log("simulate-user: Function initialized");
       : null;
     const complexDone = Boolean(complexFlow?.forcedDone);
 
-    const topicFlow = topicSessionObj
-      ? buildTopicSessionHandoffStateMachineContext(
-        topicSessionObj,
+    const topicFlow = topicExplorationObj
+      ? buildTopicExplorationHandoffStateMachineContext(
+        topicExplorationObj,
         body.transcript as TranscriptMsg[],
         body.turn_index,
         Number(body.max_turns) || 14,
@@ -1925,8 +1934,8 @@ ${complexFlow.ctx}
     if (!next) return jsonResponse(req, { error: "Empty next_message", request_id: requestId }, { status: 500 });
     done = Boolean(parsedOut?.done) || body.turn_index + 1 >= body.max_turns;
     let doneLocked = false;
-    // Topic-session scenario: do NOT allow early done; we want a full-length, fluid run for realism.
-    if (topicSessionObj) {
+    // Topic-exploration scenario: do NOT allow early done; we want a full-length, fluid run for realism.
+    if (topicExplorationObj) {
       done = Boolean(topicFlow?.forcedDone) || body.turn_index + 1 >= body.max_turns;
     }
     // Profile confirmation scenario: do NOT allow early done; we need enough turns to confirm 3 preferences.

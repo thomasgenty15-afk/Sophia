@@ -1,0 +1,60 @@
+{
+  "dataset_key": "state_machines_v2",
+  "id": "wa_onboarding_full_flow_v2_ai_user",
+  "description": "V2: WhatsApp onboarding complet (webhook). Flow: opt-in (seeded prompt) → motivation score → personal fact → open question. Vérifie que whatsapp_opted_in=true et whatsapp_state repasse à null.",
+  "tags": ["whatsapp", "onboarding", "v2", "state_machine", "ai_user"],
+  "channel": "whatsapp",
+  "wa_auto_simulate": true,
+  "wa_force_turns": false,
+  "setup": {
+    "seed_plan": true,
+    "seed_optin_prompt": true,
+    "phone_number": "+33612345678",
+    "from": "+33612345678",
+    "phone_verified": true,
+    "whatsapp_opted_in": false
+  },
+  "wa_steps": [
+    { "kind": "text", "text": "Oui" },
+    { "kind": "text", "text": "7/10" },
+    { "kind": "text", "text": "Je suis du matin, je me lève tôt naturellement" }
+  ],
+  "persona": {
+    "label": "Utilisateur WhatsApp motivé",
+    "age_range": "25-45",
+    "style": "messages courts typiques WhatsApp, direct, positif",
+    "background": "Je viens d'activer WhatsApp avec Sophia. Je suis motivé à 7/10 pour mon plan. Je suis plutôt du matin comme personne. Je réponds simplement aux questions."
+  },
+  "objectives": [
+    {
+      "kind": "wa_onboarding_full_v2",
+      "spec": {
+        "motivation_score": "7/10",
+        "personal_fact": "Je suis du matin, je me lève tôt naturellement",
+        "phase_sequence": [
+          "opt_in_yes",
+          "give_motivation_score",
+          "share_personal_fact",
+          "answer_open_question"
+        ],
+        "notes": "Flow linéaire: Sophia pose motivation → user répond score → Sophia pose personal fact → user partage → Sophia ouvre la discussion"
+      }
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_opted_in": true,
+      "whatsapp_state": null
+    },
+    "assistant_must_match": [
+      "motivation",
+      "sur\\s*10",
+      "1\\s*truc",
+      "Merci"
+    ]
+  }
+}
+

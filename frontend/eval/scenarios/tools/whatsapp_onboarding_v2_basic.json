@@ -1,0 +1,34 @@
+{
+  "dataset_key": "whatsapp_onboarding",
+  "id": "whatsapp_onboarding_v2_basic",
+  "description": "WhatsApp onboarding V2 (flow normal): opt-in -> motivation -> personal fact -> open question. Verifies state machine clears and expected prompts are present.",
+  "channel": "whatsapp",
+  "tags": ["whatsapp", "onboarding", "v2", "state_machine"],
+  "setup": {
+    "seed_plan": true,
+    "seed_optin_prompt": true,
+    "phone_number": "+15551234567",
+    "phone_verified": true
+  },
+  "wa_steps": [
+    { "from": "+15551234567", "text": "Oui" },
+    { "from": "+15551234567", "text": "7/10" },
+    { "from": "+15551234567", "text": "Je suis du matin" }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "profile_equals": {
+      "whatsapp_state": null
+    },
+    "assistant_must_match": [
+      "motivation",
+      "sur\\s*10",
+      "1\\s*truc",
+      "Merci, je note",
+      "tu as envie qu['’]on parle de quoi"
+    ]
+  }
+}
+

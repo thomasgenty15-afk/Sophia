@@ -2,7 +2,7 @@
   "dataset_key": "state_machines",
   "id": "companion_profile_confirm_3_topics_ai_user",
   "description": "User Profile Confirmation (Companion): simulate-user first states 3 preferences (list), defers confirmation, then later confirms them one by one. Verifies Sophia can keep the 3 topics and reconfirm later.",
-  "tags": ["sophia.companion", "state_machine", "user_profile_confirm"],
+  "tags": ["sophia.companion", "state_machine", "user_profile_confirmation"],
   "setup": {
     "keep_test_user": true
   },
@@ -27,12 +27,8 @@
     "assistant_must_not_match": ["\\*\\*"]
   },
   "mechanical_assertions": {
-    "chat_state_temp_memory_paths_exist": [
-      "user_profile_confirm",
-      "user_profile_confirm.last_asked_at"
-    ],
     "chat_state_temp_memory_equals": {
-      "user_profile_confirm.pending": null
+      "profile_confirmation_state": null
     },
     "user_profile_facts_must_include": [
       { "key": "conversation.tone", "value": "direct" },

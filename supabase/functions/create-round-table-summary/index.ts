@@ -2,14 +2,18 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 console.log("Create Round Table Summary Function initialized")
 
 Deno.serve(async (req) => {
+  let ctx = getRequestContext(req)
   try {
     const guard = ensureInternalRequest(req)
     if (guard) return guard
-    const payload = await req.json()
+    const payload = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, payload)
     const { record } = payload
     
     // Check payload
@@ -21,7 +25,7 @@ Deno.serve(async (req) => {
     const moduleId = record.module_id; // ex: 'round_table_1'
     const userId = record.user_id;
 
-    console.log(`[RoundTable] Processing summary for ${moduleId} user ${userId}`);
+    console.log(`[create-round-table-summary] request_id=${ctx.requestId} user_id=${userId} module_id=${moduleId}`);
 
     // Init Supabase Admin
     const supabaseAdmin = createClient(
@@ -97,7 +101,15 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
-    console.error("[RoundTable] Error:", error)
+    console.error(`[create-round-table-summary] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
+    await logEdgeFunctionError({
+      functionName: "create-round-table-summary",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(JSON.stringify({ error: error.message }), { status: 500 })
   }
 })

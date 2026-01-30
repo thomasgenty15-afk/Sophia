@@ -1,0 +1,51 @@
+{
+  "dataset_key": "state_machines",
+  "id": "deep_reasons_user_stop",
+  "description": "Deep Reasons Exploration: User can stop the exploration at any time. The system should respect user boundaries and close properly.",
+  "tags": ["deep_reasons", "user_stop", "consent", "state_machine"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur qui arrête",
+    "age_range": "25-45",
+    "style": "honnête mais met une limite; commence à explorer puis décide que c'est trop lourd",
+    "background": "J'ai un blocage sur mon plan mais quand on commence à creuser, je réalise que c'est trop dur d'en parler maintenant."
+  },
+  "turns": [
+    {
+      "user_message": "J'ai vraiment pas envie de faire mon sport. Je sais pas pourquoi mais j'y arrive pas.",
+      "expected_mode": "architect",
+      "notes": "Dispatcher detects opportunity, routes to Architect"
+    },
+    {
+      "user_message": "Oui on peut explorer",
+      "expected_mode": "architect",
+      "notes": "User consents, deep_reasons starts"
+    },
+    {
+      "user_message": "En fait c'est trop dur d'en parler, stop",
+      "expected_mode": "architect",
+      "notes": "User wants to stop - system should respect immediately",
+      "assertions": {
+        "assistant_should_match": ["ok|d'accord|arr[êe]te|souci|l[àa]"],
+        "assistant_must_not_match": ["pourquoi|continue|mais"]
+      }
+    }
+  ],
+  "mechanical_assertions": {
+    "chat_state_temp_memory_paths_not_exist": [
+      "deep_reasons_state"
+    ],
+    "scheduler_invariants": [
+      "deep_reasons_closed_on_stop"
+    ]
+  },
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"],
+    "ux_principle": "User can always stop, no guilt, no insistence"
+  }
+}
+
+

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import type { SystemModule } from './useEvolutionData';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 
 export const useEvolutionLogic = (user: any, coreIdentity: any, setCoreIdentity: (data: any) => void) => {
   const [selectedModule, setSelectedModule] = useState<SystemModule | null>(null);
@@ -77,6 +78,7 @@ export const useEvolutionLogic = (user: any, coreIdentity: any, setCoreIdentity:
     setIsAiLoading(true);
 
     try {
+        const clientRequestId = newRequestId();
         // On utilise l'Edge Function existante 'sophia-brain' ou 'update-core-identity'
         // Ici on veut juste une suggestion, pas une écriture directe
         
@@ -89,7 +91,8 @@ export const useEvolutionLogic = (user: any, coreIdentity: any, setCoreIdentity:
                     currentContent: editContent,
                     userPrompt: aiPrompt
                 }
-            }
+            },
+            headers: requestHeaders(clientRequestId)
         });
 
         if (error) throw error;

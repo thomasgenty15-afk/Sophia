@@ -52,6 +52,13 @@ describe("edge functions: client-facing (stubbed by default)", () => {
     if (error) throw error;
     expect(typeof data.summary).toBe("string");
     if (IS_STUB) expect(data.summary).toContain("MEGA_TEST_STUB");
+    // Optional enrichments (may be undefined if backend falls back)
+    if (data.suggested_pacing) {
+      expect(["fast", "balanced", "slow"]).toContain(data.suggested_pacing.id);
+    }
+    if (data.examples) {
+      expect(typeof data.examples).toBe("object");
+    }
   });
 
   it("sort-priorities returns {sortedAxes}", async () => {

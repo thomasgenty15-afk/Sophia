@@ -1,4 +1,11 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
+import { analyzeSignals } from "../sophia-brain/router/dispatcher.ts"
+import {
+  loadOnboardingContext,
+  setDeferredOnboardingSteps,
+  type DeferredOnboardingStep,
+} from "./onboarding_helpers.ts"
+import { buildAdaptiveOnboardingContext, type OnboardingFlow } from "./onboarding_context.ts"
 
 export async function computeOptInAndBilanContext(params: {
   admin: SupabaseClient
@@ -60,6 +67,82 @@ export async function computeOptInAndBilanContext(params: {
   return { isOptInYes, hasBilanContext }
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// ADAPTIVE FLOW DETECTION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+interface AdaptiveFlowResult {
+  flow: OnboardingFlow
+  deferredSteps: DeferredOnboardingStep[]
+  detectedTopic?: string
+  forceMode?: "companion" | "firefighter" | "sentry"
+}
+
+async function detectAdaptiveFlow(
+  inboundText: string,
+  requestId: string,
+): Promise<AdaptiveFlowResult> {
+  // Default: normal flow with all steps
+  const defaultResult: AdaptiveFlowResult = {
+    flow: "normal",
+    deferredSteps: [],
+  }
+
+  const text = (inboundText ?? "").trim()
+  if (!text) return defaultResult
+
+  try {
+    const signals = await analyzeSignals(
+      inboundText,
+      { current_mode: "companion" },
+      "", // no last assistant message at opt-in
+      { requestId },
+    )
+
+    // SCENARIO A: Urgency detected (safety or NEED_SUPPORT)
+    const isUrgent =
+      signals.safety.level !== "NONE" ||
+      (signals.topic_depth?.value === "NEED_SUPPORT" && (signals.topic_depth?.confidence ?? 0) >= 0.7)
+
+    if (isUrgent) {
+      const forceMode =
+        signals.safety.level === "SENTRY"
+          ? "sentry"
+          : signals.safety.level === "FIREFIGHTER"
+            ? "firefighter"
+            : "companion"
+      return {
+        flow: "urgent",
+        deferredSteps: ["motivation", "personal_fact"],
+        forceMode,
+      }
+    }
+
+    // SCENARIO B: Serious topic (not urgent but deep)
+    const isSerious =
+      signals.topic_depth?.value === "SERIOUS" && (signals.topic_depth?.confidence ?? 0) >= 0.6
+
+    if (isSerious) {
+      const topic = signals.interrupt?.deferred_topic_formalized ?? undefined
+      return {
+        flow: "serious_topic",
+        deferredSteps: ["motivation"],
+        detectedTopic: topic,
+      }
+    }
+
+    // SCENARIO C: Normal (calm mood, no urgency)
+    return defaultResult
+  } catch (e) {
+    console.warn("[handlers_optin_bilan] detectAdaptiveFlow error:", e)
+    return defaultResult
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// MAIN HANDLER
+// ═══════════════════════════════════════════════════════════════════════════════
+
 export async function handleOptInAndDailyBilanActions(params: {
   admin: SupabaseClient
   userId: string
@@ -84,6 +167,8 @@ export async function handleOptInAndDailyBilanActions(params: {
   }) => Promise<any>
   requestId: string
   waMessageId: string
+  // NEW: The actual inbound text (for context detection)
+  inboundText?: string
 }): Promise<boolean> {
   // If user accepts the daily bilan prompt, enable and kick off the bilan conversation.
   if (params.isBilanYes && params.hasBilanContext && !params.isOptInYes) {
@@ -132,56 +217,76 @@ export async function handleOptInAndDailyBilanActions(params: {
     return true
   }
 
-  // If this is the opt-in “Oui”, answer with a welcome message (fast path)
+  // If this is the opt-in "Oui", answer with a welcome message (adaptive flow)
   if (params.isOptInYes) {
-    // User explicitly accepted the opt-in template: enable daily bilan reminders too.
-    const nowIso = new Date().toISOString()
-    await params.admin.from("profiles").update({
-      whatsapp_bilan_opted_in: true,
-      whatsapp_onboarding_started_at: nowIso,
-    }).eq("id", params.userId)
+    // Load onboarding context in parallel with other data
+    const [onboardingCtx, planResult, adaptiveFlow] = await Promise.all([
+      loadOnboardingContext(params.admin, params.userId, params.inboundText ?? "onboarding"),
+      params.admin
+        .from("user_plans")
+        .select("title, updated_at")
+        .eq("user_id", params.userId)
+        .eq("status", "active")
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle(),
+      detectAdaptiveFlow(params.inboundText ?? "Oui", params.requestId),
+    ])
 
+    if (planResult.error) throw planResult.error
+    const planTitle = String((planResult.data as any)?.title ?? "").trim()
     const prenom = (params.fullName ?? "").trim().split(" ")[0] || ""
 
-    const { data: activePlan, error: planErr } = await params.admin
-      .from("user_plans")
-      .select("title, updated_at")
-      .eq("user_id", params.userId)
-      .eq("status", "active")
-      .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
-    if (planErr) throw planErr
+    // Update profile: enable daily bilan opt-in
+    await params.admin.from("profiles").update({
+      whatsapp_bilan_opted_in: true,
+    }).eq("id", params.userId)
 
-    const planTitle = String((activePlan as any)?.title ?? "").trim()
+    // Store deferred steps if any
+    if (adaptiveFlow.deferredSteps.length > 0) {
+      await setDeferredOnboardingSteps(params.admin, params.userId, adaptiveFlow.deferredSteps)
+    }
+
+    // Build context with personalization
+    const contextBase = buildAdaptiveOnboardingContext({
+      flow: adaptiveFlow.flow,
+      state: "optin_welcome",
+      siteUrl: params.siteUrl,
+      supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+      planPolicy: planTitle ? "plan_active" : "no_plan",
+      profileFacts: onboardingCtx.profileFacts,
+      memories: onboardingCtx.memories,
+      isReturningUser: onboardingCtx.isReturning,
+      detectedTopic: adaptiveFlow.detectedTopic,
+    })
+
+    // Build turn instructions based on flow
+    const turnInstructions = buildOptInTurnInstructions({
+      flow: adaptiveFlow.flow,
+      prenom,
+      planTitle,
+      siteUrl: params.siteUrl,
+      isReturning: onboardingCtx.isReturning,
+      detectedTopic: adaptiveFlow.detectedTopic,
+    })
+
     await params.replyWithBrain({
       admin: params.admin,
       userId: params.userId,
       fromE164: params.fromE164,
-      inboundText: "Oui",
+      inboundText: params.inboundText ?? "Oui",
       requestId: params.requestId,
       replyToWaMessageId: params.waMessageId,
-      purpose: "optin_yes_welcome_ai",
-      whatsappMode: "onboarding",
-      forceMode: "companion",
-      contextOverride:
-        `=== CONTEXTE WHATSAPP ===\n` +
-        `L'utilisateur vient d'accepter l'opt-in WhatsApp (OPTIN_V2).\n` +
-        `Prénom: "${prenom}".\n` +
-        `Plan actif détecté ? ${planTitle ? "OUI" : "NON"}.\n` +
-        (planTitle ? `Titre plan: "${planTitle}".\n` : `URL site: ${params.siteUrl}\n`) +
-        `\nCONSIGNE DE TOUR:\n` +
-        `- Message court, chaleureux, pro (WhatsApp).\n` +
-        (planTitle
-          ? `- Demande un score de motivation SUR 10 (inclure les mots "sur 10" et "motivation").\n`
-          : `- Explique que tu ne vois pas encore de plan actif.\n` +
-            `- Demande de finaliser sur le site.\n` +
-            `- Termine en demandant de répondre exactement: "C'est bon".\n` +
-            `- N'ajoute pas de markdown.\n`) ,
+      purpose: `optin_yes_welcome_ai_${adaptiveFlow.flow}`,
+      whatsappMode: adaptiveFlow.flow === "normal" ? "onboarding" : "normal",
+      forceMode: adaptiveFlow.forceMode ?? "companion",
+      contextOverride: `${contextBase}\n\n${turnInstructions}`,
     })
 
+    // Determine next state based on flow and plan
+    const nextState = determineNextState(adaptiveFlow.flow, Boolean(planTitle))
     await params.admin.from("profiles").update({
-      whatsapp_state: planTitle ? "awaiting_plan_motivation" : "awaiting_plan_finalization",
+      whatsapp_state: nextState,
       whatsapp_state_updated_at: new Date().toISOString(),
     }).eq("id", params.userId)
 
@@ -191,4 +296,86 @@ export async function handleOptInAndDailyBilanActions(params: {
   return false
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// TURN INSTRUCTIONS BUILDER
+// ═══════════════════════════════════════════════════════════════════════════════
 
+function buildOptInTurnInstructions(opts: {
+  flow: OnboardingFlow
+  prenom: string
+  planTitle: string
+  siteUrl: string
+  isReturning: boolean
+  detectedTopic?: string
+}): string {
+  const { flow, prenom, planTitle, siteUrl, isReturning, detectedTopic } = opts
+
+  const welcomeStyle = isReturning
+    ? `- Welcome court: "Content de te retrouver ici${prenom ? `, ${prenom}` : ""} !"`
+    : `- Welcome chaleureux mais pas trop long.`
+
+  // FLOW: URGENT
+  if (flow === "urgent") {
+    return [
+      "CONSIGNE DE TOUR (URGENCE):",
+      welcomeStyle,
+      "- L'utilisateur arrive avec un besoin urgent.",
+      "- Réponds d'abord à son besoin/souci avec empathie.",
+      "- PAS de question motivation/score maintenant.",
+      "- 1 question max pour clarifier ou avancer.",
+      "- On reviendra à l'onboarding plus tard.",
+    ].join("\n")
+  }
+
+  // FLOW: SERIOUS TOPIC
+  if (flow === "serious_topic") {
+    return [
+      "CONSIGNE DE TOUR (SUJET SÉRIEUX):",
+      welcomeStyle,
+      detectedTopic ? `- Sujet détecté: "${detectedTopic}"` : "",
+      "- L'utilisateur a un sujet important à discuter.",
+      "- Accueille, puis ouvre sur son sujet avec 1 question.",
+      "- PAS de question motivation maintenant (on la posera plus tard).",
+      "- Sois présent et à l'écoute.",
+    ].filter(Boolean).join("\n")
+  }
+
+  // FLOW: NORMAL (with or without plan)
+  if (planTitle) {
+    return [
+      "CONSIGNE DE TOUR (NORMAL + PLAN):",
+      welcomeStyle,
+      `- Prénom: "${prenom}".`,
+      `- Plan actif: "${planTitle}".`,
+      "- Message court, chaleureux, pro (WhatsApp).",
+      `- Demande un score de motivation SUR 10 (inclure les mots "sur 10" et "motivation").`,
+    ].join("\n")
+  }
+
+  return [
+    "CONSIGNE DE TOUR (NORMAL SANS PLAN):",
+    welcomeStyle,
+    `- Prénom: "${prenom}".`,
+    "- Aucun plan actif détecté.",
+    "- Message court, chaleureux, pro (WhatsApp).",
+    "- Explique que tu ne vois pas encore de plan actif.",
+    `- Demande de finaliser sur le site: ${siteUrl}`,
+    `- Termine par une question simple de confirmation (pas de phrase exacte).`,
+    `- Exemple: "Dis-moi quand c'est fait et je continue ici."`,
+    "- N'ajoute pas de markdown.",
+  ].join("\n")
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE DETERMINATION
+// ═══════════════════════════════════════════════════════════════════════════════
+
+function determineNextState(flow: OnboardingFlow, hasPlan: boolean): string | null {
+  // Urgent or serious: go to normal mode (no onboarding gating)
+  if (flow === "urgent" || flow === "serious_topic") {
+    return null
+  }
+
+  // Normal flow: standard onboarding states
+  return hasPlan ? "awaiting_plan_motivation" : "awaiting_plan_finalization"
+}

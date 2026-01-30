@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions, cleanupPlanData } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
+import { EpicLoading } from '../components/common/EpicLoading';
 import { 
   ArrowRight, 
   Sparkles, 
@@ -31,6 +33,42 @@ interface AxisContext {
   theme: string;
   problems?: string[];
 }
+
+type SuggestedPacingId = "fast" | "balanced" | "slow";
+
+interface ContextAssistData {
+  suggested_pacing?: { id: SuggestedPacingId; reason?: string };
+  examples?: { why?: string[]; blockers?: string[] }; // Pas de context en mode recraft
+}
+
+// --- CACHE HELPERS ---
+const CONTEXT_ASSIST_CACHE_KEY = 'sophia_context_assist_cache_recraft';
+
+const getCachedContextAssist = (axisId: string): ContextAssistData | null => {
+  try {
+    const cached = sessionStorage.getItem(CONTEXT_ASSIST_CACHE_KEY);
+    if (!cached) return null;
+    const parsed = JSON.parse(cached);
+    if (parsed.axisId === axisId && parsed.data) {
+      return parsed.data as ContextAssistData;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+const setCachedContextAssist = (axisId: string, data: ContextAssistData) => {
+  try {
+    sessionStorage.setItem(CONTEXT_ASSIST_CACHE_KEY, JSON.stringify({
+      axisId,
+      data,
+      timestamp: Date.now()
+    }));
+  } catch {
+    // Ignore storage errors
+  }
+};
 
 const ActionPlanGeneratorRecraft = () => {
   const navigate = useNavigate();
@@ -73,6 +111,63 @@ const ActionPlanGeneratorRecraft = () => {
   const [error, setError] = useState<string | null>(null);
   const [loadingMessage, setLoadingMessage] = useState<string>('');
 
+  const pacingOptions = [
+    { id: 'fast', label: "Je suis hyper motivé (Intense) (1 mois)", desc: "Plan dense, résultats rapides." },
+    { id: 'balanced', label: "Je suis motivé, mais je veux que ce soit progressif (2 mois)", desc: "Équilibre entre effort et récupération." },
+    { id: 'slow', label: "Je sais que c'est un gros sujet, je préfère prendre mon temps (3 mois)", desc: "Micro-actions, très peu de pression, durée allongée." }
+  ] as const;
+
+  // --- RESTORE CACHED CONTEXT ASSIST ---
+  useEffect(() => {
+    if (!currentAxis) return;
+    if (!contextAssist) {
+      const cached = getCachedContextAssist(currentAxis.id);
+      if (cached) {
+        console.log("♻️ Restored contextAssist from cache (Recraft):", currentAxis.id);
+        setContextAssist(cached);
+      }
+    }
+  }, [currentAxis?.id]);
+
+  const SnakeBorder = ({ active }: { active: boolean }) => {
+    if (!active) return null;
+    return (
+      <div className="snake-border-box">
+        <div className="snake-border-gradient" />
+      </div>
+    );
+  };
+
+  const ExampleList = ({
+    examples,
+    onKeep,
+    currentValue
+  }: {
+    examples?: string[];
+    onKeep: (value: string) => void;
+    currentValue: string;
+  }) => {
+    const list = (examples ?? []).filter(Boolean).slice(0, 2);
+    if (list.length === 0) return null;
+    return (
+      <div className="mt-2 flex flex-wrap gap-2">
+        {list.map((ex, idx) => (
+            <button
+              key={idx}
+              type="button"
+              onClick={() => {
+                  const newValue = currentValue ? `${currentValue} ${ex}` : ex;
+                  onKeep(newValue);
+              }}
+              className="text-left text-xs bg-violet-50 text-violet-700 border border-violet-100 hover:bg-violet-100 px-3 py-2 rounded-lg transition-colors leading-relaxed"
+            >
+              <span className="font-bold mr-1">+</span> {ex}
+            </button>
+        ))}
+      </div>
+    );
+  };
+
   // --- LOGIQUE DE RETRY (LIMITÉE) ---
   const canRetry = plan && (plan.generationAttempts || 1) < 2;
 
@@ -83,7 +178,17 @@ const ActionPlanGeneratorRecraft = () => {
 
   const [contextSummary, setContextSummary] = useState<string | null>(null);
   const [isContextLoading, setIsContextLoading] = useState(false);
+  const [contextAssist, setContextAssist] = useState<ContextAssistData | null>(null);
   const fetchSummaryRef = React.useRef(false);
+
+  const suggestedPacingId = contextAssist?.suggested_pacing?.id;
+
+  // --- AUTO-SELECT PACING ---
+  useEffect(() => {
+    if (suggestedPacingId) {
+      setInputs(prev => ({ ...prev, pacing: suggestedPacingId }));
+    }
+  }, [suggestedPacingId]);
 
   // --- PROFILE INFO STATE ---
   const [profileBirthDate, setProfileBirthDate] = useState<string>('');
@@ -138,13 +243,24 @@ const ActionPlanGeneratorRecraft = () => {
                    const { data: summaryData, error } = await supabase.functions.invoke('summarize-context', {
                        body: { 
                            responses: answersData.content,
-                           currentAxis: currentAxis
+                           currentAxis: currentAxis,
+                           mode: 'recraft' // Mode spécial pour questions adaptées
                        }
                    });
                    
                    if (error) throw error;
                    if (summaryData?.summary) {
                        setContextSummary(summaryData.summary);
+                       
+                       // Also set contextAssist if available
+                       if (summaryData?.suggested_pacing || summaryData?.examples) {
+                         const assistData: ContextAssistData = {
+                           suggested_pacing: summaryData?.suggested_pacing,
+                           examples: summaryData?.examples,
+                         };
+                         setContextAssist(assistData);
+                         setCachedContextAssist(currentAxis.id, assistData);
+                       }
                    }
               }
           } catch (err) {
@@ -192,7 +308,7 @@ const ActionPlanGeneratorRecraft = () => {
               setPlan(existingPlan.content);
               
               // On informe l'utilisateur
-              alert("Vous avez utilisé vos 2 essais (1 création + 1 modification). Voici votre plan final.");
+              alert("Tu as utilisé tes 2 essais (1 création + 1 modification). Voici ton plan final.");
               stopLoading();
               
               // On affiche le résultat et on arrête tout
@@ -251,6 +367,7 @@ const ActionPlanGeneratorRecraft = () => {
       }
 
       // On appelle l'IA avec les infos + LES REPONSES + ANCIEN PLAN
+      const reqId = newRequestId();
       const { data, error } = await supabase.functions.invoke('generate-plan', {
         body: {
           inputs, // Les nouveaux inputs (Raison du changement, Nouveaux blocages)
@@ -263,7 +380,8 @@ const ActionPlanGeneratorRecraft = () => {
               birth_date: profileBirthDate,
               gender: profileGender
           }
-        }
+        },
+        headers: requestHeaders(reqId),
       });
 
       if (error) throw error;
@@ -479,7 +597,7 @@ const ActionPlanGeneratorRecraft = () => {
                         Personnalisation Physiologique
                     </h3>
                     <p className="text-sm text-slate-600 mb-4">
-                        Ces informations permettent à Sophia d'adapter le plan à votre métabolisme et votre biologie. Elles ne seront demandées qu'une seule fois.
+                        Ces informations permettent à Sophia d'adapter le plan à ton métabolisme et ta biologie. Elles ne seront demandées qu'une seule fois.
                     </p>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div>
@@ -512,7 +630,8 @@ const ActionPlanGeneratorRecraft = () => {
                 </div>
               )}
 
-              <div>
+              <div className="relative rounded-xl">
+                <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
                   Pourquoi ce changement de plan ? (Qu'est-ce qui n'a pas marché ?)
                 </label>
@@ -520,11 +639,17 @@ const ActionPlanGeneratorRecraft = () => {
                   value={inputs.why}
                   onChange={e => setInputs({...inputs, why: e.target.value})}
                   className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
-                  placeholder="Ex: C'était trop intense, ou je me suis lassé..."
+                  placeholder=""
+                />
+                <ExampleList
+                  examples={contextAssist?.examples?.why}
+                  currentValue={inputs.why}
+                  onKeep={(v) => setInputs({ ...inputs, why: v })}
                 />
               </div>
 
-              <div>
+              <div className="relative rounded-xl">
+                <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
                   Nouveaux blocages ou contraintes ?
                 </label>
@@ -532,7 +657,12 @@ const ActionPlanGeneratorRecraft = () => {
                   value={inputs.blockers}
                   onChange={e => setInputs({...inputs, blockers: e.target.value})}
                   className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
-                  placeholder="Ex: J'ai moins de temps le soir maintenant..."
+                  placeholder=""
+                />
+                <ExampleList
+                  examples={contextAssist?.examples?.blockers}
+                  currentValue={inputs.blockers}
+                  onKeep={(v) => setInputs({ ...inputs, blockers: v })}
                 />
               </div>
             </div>
@@ -548,13 +678,7 @@ const ActionPlanGeneratorRecraft = () => {
         )}
 
         {step === 'generating' && (
-          <div className="flex flex-col items-center justify-center py-20 animate-pulse">
-            <div className="w-20 h-20 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mb-8">
-              <RotateCcw className="w-10 h-10 animate-spin" />
-            </div>
-            <h2 className="text-2xl font-bold text-slate-900 mb-2">Refonte du plan en cours...</h2>
-            <p className="text-slate-500 font-medium">{loadingMessage || "Sophia intègre tes nouvelles données."}</p>
-          </div>
+          <EpicLoading />
         )}
 
         {step === 'result' && plan && (
@@ -670,7 +794,7 @@ const ActionPlanGeneratorRecraft = () => {
                                 <div className="mt-2">
                                   <div className="flex flex-wrap items-center justify-between text-[10px] md:text-xs font-bold text-slate-500 mb-1 gap-2">
                                     <span className="flex items-center gap-1 whitespace-nowrap"><Trophy className="w-3 h-3 text-amber-500" /> Objectif XP</span>
-                                    <span className="whitespace-nowrap">{action.targetReps} répétitions</span>
+                                          <span className="whitespace-nowrap">{action.targetReps}× / semaine</span>
                                   </div>
                                   <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
                                     <div className="h-full bg-slate-300 w-[30%] rounded-full"></div> 

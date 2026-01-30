@@ -1,6 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { retryOn429 } from "../_shared/retry429.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -8,14 +10,18 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  let ctx = getRequestContext(req)
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
-    console.log("🚀 START summarize-context");
-    const { responses, currentAxis } = await req.json()
-    console.log("📥 Body parsed, currentAxis:", currentAxis?.title);
+    const body = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, body)
+    console.log(`[summarize-context] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"} START`)
+    const { responses, currentAxis, mode } = body as any
+    const isRecraftMode = mode === 'recraft'
+    console.log(`[summarize-context] request_id=${ctx.requestId} currentAxis=${currentAxis?.title ?? "—"} mode=${mode ?? 'standard'}`)
 
     // Deterministic test mode (no network / no GEMINI_API_KEY required)
     const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
@@ -24,7 +30,30 @@ serve(async (req) => {
       (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
     if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
       return new Response(
-        JSON.stringify({ summary: `MEGA_TEST_STUB: résumé pour ${currentAxis?.title ?? "axe"}` }),
+        JSON.stringify({
+          summary: `MEGA_TEST_STUB: résumé pour ${currentAxis?.title ?? "axe"}`,
+          suggested_pacing: {
+            id: "balanced",
+            reason: "MEGA_TEST_STUB: rythme progressif par défaut en mode test.",
+          },
+          examples: {
+            why: [
+              "MEGA_TEST_STUB: Je veux changer parce que ça pèse sur mon quotidien et mon humeur.",
+              "MEGA_TEST_STUB: Je veux retrouver de la stabilité et arrêter de subir ce sujet.",
+              "MEGA_TEST_STUB: J’en ai assez de me sentir bloqué(e) et je veux des progrès concrets.",
+            ],
+            blockers: [
+              "MEGA_TEST_STUB: Je manque d’énergie et je pars trop vite puis j’abandonne.",
+              "MEGA_TEST_STUB: Je me décourage quand je ne vois pas de résultat immédiat.",
+              "MEGA_TEST_STUB: Je ne sais pas quoi faire exactement, donc je procrastine.",
+            ],
+            context: [
+              "MEGA_TEST_STUB: Mes journées sont chargées, j’ai besoin d’un plan simple et réaliste.",
+              "MEGA_TEST_STUB: Je peux y consacrer un petit créneau fixe, mais pas tous les jours.",
+              "MEGA_TEST_STUB: Je veux éviter du matériel compliqué et rester flexible.",
+            ],
+          },
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
     }
@@ -55,35 +84,81 @@ serve(async (req) => {
     }
 
     const contextData = axisSpecificData || fallbackRawData;
+    const assistantContext = (responses as any)?.assistant_context || (responses as any)?.assistantContext || null;
 
     if (!contextData) {
         throw new Error("Impossible de trouver des données contextuelles à résumer.");
     }
 
+    // Questions adaptées selon le mode
+    const questionLabels = isRecraftMode ? {
+      why: "Pourquoi ce changement de plan ? (Qu'est-ce qui n'a pas marché ?)",
+      blockers: "Nouveaux blocages ou contraintes ?",
+      context: null // Pas de question context en mode recraft
+    } : {
+      why: "Pourquoi est-ce important pour toi aujourd'hui ?",
+      blockers: "Quels sont les vrais blocages (honnêtement) ?",
+      context: "Informations contextuelles utiles (matériel, horaires...)"
+    }
+
+    const examplesInstructions = isRecraftMode
+      ? `3) Générer 2 exemples PERCUTANTS par question pour aider l'utilisateur à remplir 2 questions:
+         - why: "${questionLabels.why}" → Exemples orientés "échec du plan précédent", "ce qui n'a pas fonctionné", "nouvelle situation"
+         - blockers: "${questionLabels.blockers}" → Exemples orientés "nouvelles contraintes", "obstacles découverts"`
+      : `3) Générer 2 exemples PERCUTANTS par question pour aider l'utilisateur à remplir 3 questions:
+         - why: "${questionLabels.why}"
+         - blockers: "${questionLabels.blockers}"
+         - context: "${questionLabels.context}"`
+
+    const jsonSchema = isRecraftMode
+      ? `{
+        "summary": string,
+        "suggested_pacing": { "id": "fast"|"balanced"|"slow", "reason": string },
+        "examples": { "why": string[], "blockers": string[] }
+      }`
+      : `{
+        "summary": string,
+        "suggested_pacing": { "id": "fast"|"balanced"|"slow", "reason": string },
+        "examples": { "why": string[], "blockers": string[], "context": string[] }
+      }`
+
     const systemPrompt = `
       Tu es Sophia, une IA empathique et perspicace.
-      Ton rôle est de rassurer l'utilisateur en lui montrant que tu as parfaitement compris sa situation avant de construire son plan d'action pour l'objectif : "${currentAxis.title}".
+      ${isRecraftMode 
+        ? `L'utilisateur revient pour REFAIRE son plan d'action car le précédent n'a pas fonctionné. Ton rôle est de comprendre ce qui a échoué et de l'aider à repartir sur de bonnes bases pour l'objectif : "${currentAxis.title}".`
+        : `Ton rôle est de rassurer l'utilisateur en lui montrant que tu as parfaitement compris sa situation avant de construire son plan d'action pour l'objectif : "${currentAxis.title}".`
+      }
 
       TA MISSION :
-      Analyser UNIQUEMENT les réponses fournies ci-dessous (qui concernent spécifiquement cet axe) et rédiger un court résumé (3-4 phrases denses) qui synthétise sa situation actuelle.
+      1) Produire un résumé "miroir" (3-4 phrases denses) qui synthétise sa situation actuelle${isRecraftMode ? ' et ce qui semble avoir bloqué' : ''}.
+      2) Proposer un rythme conseillé :
+         - PAR DÉFAUT : "fast" (1 mois). C'est le standard pour garder la motivation.
+         - "balanced" (2 mois) : UNIQUEMENT si l'utilisateur mentionne explicitement vouloir y aller doucement ou a un emploi du temps très chargé.
+         - "slow" (3 mois) : UNIQUEMENT pour des cas très lourds (trauma, burnout avéré).
+      ${examplesInstructions}
 
-      TON STYLE :
-      - Direct ("Tu...").
-      - Empathique mais analytique (fais des liens entre ses symptômes et ses blocages).
-      - Montre que tu as lu les détails (ex: ne dis pas juste "tu as des problèmes de sommeil", dis "tes réveils nocturnes semblent liés à ton anxiété professionnelle...").
-      - Ne propose PAS de solutions. Fais le constat.
+      CONTRAINTES IMPORTANTES :
+      - N'invente pas de détails factuels. Si une info manque, fais une proposition générique clairement "à adapter".
+      - Les exemples doivent être COURTS (max 15 mots), style "Je...", impactants.
+      - PAS DE BLA-BLA. Droit au but.
+      - Le résumé reste en "Tu..." (comme aujourd'hui).
 
-      FORMAT DE RÉPONSE (TEXTE BRUT) :
-      Juste le paragraphe de résumé. Pas de titre, pas de markdown.
+      FORMAT DE RÉPONSE : JSON STRICT (pas de markdown, pas de texte autour).
+      Schéma:
+      ${jsonSchema}
     `
 
     const userPrompt = `
       OBJECTIF CIBLE : ${currentAxis.title} (Thème: ${currentAxis.theme})
+
+      ${assistantContext ? `CE QUE SOPHIA SAIT DÉJÀ (PRIORITÉ ÉLEVÉE) :
+      ${JSON.stringify(assistantContext, null, 2)}
+      ` : ""}
       
       DONNÉES UTILISATEUR (FILTRÉES POUR CET AXE) :
       ${JSON.stringify(contextData, null, 2)}
 
-      Fais le résumé "Miroir" maintenant.
+      Retourne le JSON demandé maintenant.
     `
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
@@ -115,7 +190,7 @@ serve(async (req) => {
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
                 contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-                generationConfig: { responseMimeType: "text/plain" }
+                generationConfig: { responseMimeType: "application/json" }
               }),
               signal: controller.signal
             }
@@ -147,20 +222,50 @@ serve(async (req) => {
             throw new Error(`Gemini Error: ${data.error?.message || 'Unknown error'}`);
     }
 
-    const summary = data.candidates?.[0]?.content?.parts?.[0]?.text
-    if (!summary) {
+    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text
+    if (!raw) {
         console.error("❌ No summary in response:", JSON.stringify(data));
         throw new Error('Réponse vide de Gemini')
     }
 
+    // Parse JSON (robust fallback to previous behavior)
+    let parsed: any = null
+    try {
+      parsed = JSON.parse(raw)
+    } catch {
+      parsed = null
+    }
+
+    const summary = (parsed && typeof parsed === "object" && typeof parsed.summary === "string")
+      ? parsed.summary
+      : raw
+
+    const suggested_pacing =
+      parsed?.suggested_pacing && typeof parsed.suggested_pacing === "object"
+        ? parsed.suggested_pacing
+        : undefined
+
+    const examples =
+      parsed?.examples && typeof parsed.examples === "object"
+        ? parsed.examples
+        : undefined
+
     console.log("✅ Summary generated successfully");
     return new Response(
-        JSON.stringify({ summary }),
+        JSON.stringify({ summary, suggested_pacing, examples }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
   } catch (error) {
-    console.error('🔥 Final Error Catch:', error)
+    console.error(`[summarize-context] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"} ERROR`, error)
+    await logEdgeFunctionError({
+      functionName: "summarize-context",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "edge",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     // On renvoie 200 pour faciliter la lecture du message d'erreur côté client
     return new Response(
       JSON.stringify({ error: error.message }),

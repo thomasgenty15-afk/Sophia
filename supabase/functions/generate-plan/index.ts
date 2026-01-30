@@ -4,6 +4,8 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2"
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
 import { validatePlan } from "../_shared/plan-validator.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
+import { generateWithGemini } from "../_shared/gemini.ts"
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -13,11 +15,12 @@ serve(async (req) => {
   if (corsErr) return corsErr
   const corsHeaders = getCorsHeaders(req)
 
-  const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
+  let ctx = getRequestContext(req)
 
   try {
     // Parse once so we can both support MEGA stub and also allow forcing real generation in local.
     const body = await req.json().catch(() => ({} as any))
+    ctx = getRequestContext(req, body)
     const forceRealGeneration = Boolean((body as any)?.force_real_generation)
 
     // Deterministic test mode (no network / no GEMINI_API_KEY required).
@@ -50,23 +53,23 @@ serve(async (req) => {
         // Alterner entre mission et framework pour les phases paires/impaires
         phaseIdx % 2 === 1
           ? {
-              id: `m_${phaseIdx}`,
-              type: "mission",
-              title: `MEGA_TEST_STUB: Mission P${phaseIdx}`,
-              description: "MEGA_TEST_STUB: description",
-              tracking_type: "boolean",
-              time_of_day: "any_time",
+          id: `m_${phaseIdx}`,
+          type: "mission",
+          title: `MEGA_TEST_STUB: Mission P${phaseIdx}`,
+          description: "MEGA_TEST_STUB: description",
+          tracking_type: "boolean",
+          time_of_day: "any_time",
             }
           : {
-              id: `f_${phaseIdx}`,
-              type: "framework",
-              title: `MEGA_TEST_STUB: Framework P${phaseIdx}`,
-              description: "MEGA_TEST_STUB: description",
-              tracking_type: "boolean",
-              time_of_day: "evening",
-              targetReps: 1,
-              frameworkDetails: { type: "one_shot", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
-            },
+          id: `f_${phaseIdx}`,
+          type: "framework",
+          title: `MEGA_TEST_STUB: Framework P${phaseIdx}`,
+          description: "MEGA_TEST_STUB: description",
+          tracking_type: "boolean",
+          time_of_day: "evening",
+          targetReps: 1,
+          frameworkDetails: { type: "one_shot", intro: "MEGA_TEST_STUB", sections: [{ id: "s1", label: "Q", inputType: "text", placeholder: "A" }] },
+        },
       ]);
 
       const plan = {
@@ -135,6 +138,15 @@ serve(async (req) => {
     
     // On utilise les réponses passées par le frontend
     const onboardingResponses = answers || {}
+    const assistantContext =
+      (onboardingResponses as any)?.assistant_context || (onboardingResponses as any)?.assistantContext || null
+    const assistantContextBlock = assistantContext
+      ? `
+          CE QUE SOPHIA SAIT DÉJÀ (PRIORITÉ ÉLEVÉE) :
+          ${JSON.stringify(assistantContext, null, 2)}
+          
+        `
+      : ""
 
     let systemPrompt = '';
     let userPrompt = '';
@@ -172,6 +184,8 @@ serve(async (req) => {
           - Motivation : "${inputs.why}"
           - Blocages : "${inputs.blockers}"
           - Contexte : "${inputs.context}"
+
+          ${assistantContextBlock}
 
           DONNÉES BACKGROUND (Questionnaire) :
           ${JSON.stringify(onboardingResponses)}
@@ -238,7 +252,7 @@ serve(async (req) => {
               - "habitude" (Groupe A) : Action RÉELLE et RÉPÉTITIVE (ex: "Faire 5min de cohérence cardiaque", "Rituel de relaxation", "Prendre ses compléments").
                 * ATTENTION : Les exercices de respiration, méditation ou visualisation SONT DES HABITUDES (car c'est une action à faire, pas forcément à écrire).
                 * A besoin de 'targetReps' = FRÉQUENCE HEBDO (Combien de fois / semaine).
-                * CONTRAINTE : 'targetReps' DOIT être compris entre 1 et 7 (recommandé: 3 à 6). 
+                * CONTRAINTE : 'targetReps' DOIT être compris entre 1 et 6 (recommandé: 2 à 5). 
                 * Optionnel : tu peux ajouter "scheduledDays": ["mon","wed","fri"] si tu veux proposer des jours, sinon ne mets pas ce champ.
               - "mission" (Groupe B) : Action RÉELLE "One-shot" à cocher (ex: "Acheter des boules Quies", "Ranger le bureau").
               - "framework" (Groupe B - TYPE SPÉCIAL) : EXERCICE D'ÉCRITURE ou de SAISIE.
@@ -356,6 +370,8 @@ serve(async (req) => {
           - NOUVEAUX BLOCAGES (Blockers) : "${inputs.blockers}"
           - NOUVEAU RYTHME SOUHAITÉ (Pacing) : "${inputs.pacing || 'balanced'}"
           
+          ${assistantContextBlock}
+
           DONNÉES BACKGROUND (Questionnaire) :
           ${JSON.stringify(onboardingResponses)}
           
@@ -369,6 +385,17 @@ serve(async (req) => {
           
           TA MISSION :
           Générer un plan de transformation complet pour l'utilisateur, formaté STRICTEMENT en JSON.
+
+          PROGRESSION (CRITIQUE — OBLIGATOIRE) :
+          - Le plan doit être INCRÉMENTAL : on commence très facile, puis on augmente la difficulté/engagement à chaque phase.
+          - Principe : Phase 1 = friction minimale (facile à réussir même fatigué), Phase 4 = plus exigeant/structurant.
+          - Pour l'action "habitude" (hebdo), respecte une rampe de fréquence selon le pacing choisi :
+            * fast     : Phase 1=3×/semaine, Phase 2=4×, Phase 3=5×, Phase 4=6×
+            * balanced : Phase 1=2×/semaine, Phase 2=3×, Phase 3=4×, Phase 4=5×
+            * slow     : Phase 1=1×/semaine, Phase 2=2×, Phase 3=3×, Phase 4=4×
+          - IMPORTANT : ne JAMAIS mettre 7×/semaine. Maximum = 6×/semaine pour une habitude.
+          - Choisis les actions en tenant compte de la "capacité" implicite de l'utilisateur (contexte, énergie, blocages, rythme/pacing).
+          - Évite les contraintes très strictes ("absolu", "jamais", "tous les jours") en Phase 1 sauf si l'utilisateur l'a explicitement demandé.
 
           RÈGLES DE DURÉE ET STRUCTURE (PACING) — STRICTES :
           Le plan DOIT être construit en PHASES, et la structure dépend du choix "pacing".
@@ -405,13 +432,14 @@ serve(async (req) => {
                 * 4 Habitudes OBLIGATOIRES (1 par phase)
                 * Les 4 autres actions sont des Missions ("mission") ou Frameworks ("framework")
                 (Exemple : Pour 8 actions au total -> 4 Habitudes + 2 Missions + 2 Frameworks).
-              - Au moins 1 "Quête Principale" ('main') par phase.
+              - OBLIGATOIRE : Chaque phase contient exactement 2 actions : 1 "Quête Principale" (questType="main") et 1 "Quête Secondaire" (questType="side").
           3.  **Types d'Actions** :
               - "habitude" (Groupe A) : Action récurrente (ex: Couvre-feu digital). A besoin de 'targetReps'.
-                * 'targetReps' = FRÉQUENCE HEBDO (fois / semaine), entre 1 et 7 (recommandé: 3 à 6).
+                * 'targetReps' = FRÉQUENCE HEBDO (fois / semaine), entre 1 et 6 (recommandé: 2 à 5).
                 * Optionnel : "scheduledDays": ["mon","wed","fri"] si tu proposes des jours. Sinon ne mets pas ce champ.
-              - "mission" (Groupe B) : Action logistique "One-shot" à cocher (ex: Acheter des boules Quies).
-              - "framework" (Groupe B - TYPE SPÉCIAL) : C'est un EXERCICE D'ÉCRITURE ou de RÉFLEXION que l'utilisateur doit remplir DANS L'INTERFACE.
+              - "mission" (Groupe B) : Action "one-shot" concrète à faire dans la vraie vie, à cocher. PAS un exercice à remplir dans l'interface.
+                * Si l'action consiste surtout à écrire/structurer/répondre à des questions => ce n'est PAS une mission, c'est un framework.
+              - "framework" (Groupe B - TYPE SPÉCIAL) : EXERCICE à remplir DANS L'INTERFACE (questions, fiche, journaling, to-do list, worksheet).
                 **IMPORTANT** : 
                 - Tu DOIS définir 'targetReps' pour ce type (Nombre de fois à réaliser, entre 1 et 30).
                 - Tu DOIS inclure un objet "frameworkDetails" dans l'action avec :
@@ -432,6 +460,7 @@ serve(async (req) => {
               - "constat" (Groupe C) : Le KPI "Signe Vital" OBLIGATOIRE (métrique chiffrée à suivre).
                 * CRITIQUE : Ce signe doit être tracké CHAQUE JOUR. Ne donne PAS de métrique hebdomadaire.
                 * Exemple : Pas de "Moyenne par semaine", mais "Temps de sommeil cette nuit" ou "Nombre de réveils cette nuit".
+                * IMPORTANT : Les champs "startValue" et "targetValue" doivent TOUJOURS être des chaînes de caractères (ex: "5", "10 min", "01:00"), même si ce sont des nombres.
               - "surveillance" (Groupe D) : La question de maintenance OBLIGATOIRE.
           
           5.  **Stratégie Identitaire** : Identité, Pourquoi, Règles d'or.
@@ -527,6 +556,8 @@ serve(async (req) => {
           - Contexte : "${inputs.context}"
           - RYTHME SOUHAITÉ (PACING) : "${inputs.pacing || 'balanced'}"
           
+          ${assistantContextBlock}
+
           DONNÉES BACKGROUND (Questionnaire) :
           ${JSON.stringify(onboardingResponses)}
           
@@ -534,29 +565,19 @@ serve(async (req) => {
         `
     }
 
-    // 4. Gemini API Call
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+    // 4. LLM API Call (critical mode: gpt-5.2 → gemini-2.5-flash → gpt-5-mini)
+    // Uses generateWithGemini which handles multi-provider fallback chain.
+    const requestId = ctx.requestId ?? crypto.randomUUID();
     
-    if (!GEMINI_API_KEY) {
-      console.error("CRITICAL: GEMINI_API_KEY is missing from env vars.")
-      throw new Error('Configuration serveur incomplète (Clé API manquante)')
-    }
-    
-    console.log("Calling Gemini API with key length:", GEMINI_API_KEY.length)
+    // Model policy: critical mode (gpt-5.2) for plan generation - complex reasoning required.
+    // Can be overridden by env vars if needed.
+    const planModel =
+      (Deno.env.get("GEMINI_PLAN_MODEL") ?? "").trim() || "gpt-5.2";
 
-    // Gemini API call (with retries for overload/quotas AND post-generation validation).
-    // We validate the returned JSON. If it is non conforme, we retry with corrective feedback.
-    // Keep it bounded to avoid extremely long requests.
-    const MAX_ATTEMPTS = 12;
-    const primaryModel = (Deno.env.get("GEMINI_PLAN_MODEL") ?? "").trim() || "gemini-2.5-flash";
-    const fallbackModel = (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim();
-    let model = primaryModel;
-    let usedFallback = false;
+    console.log("[generate-plan] Using critical model chain starting with:", planModel);
 
     const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
-    let response: Response | null = null;
-    let data: any = null;
     let lastValidationFeedback = "";
 
     const formatValidationError = (err: any) => {
@@ -583,17 +604,90 @@ serve(async (req) => {
         plan.estimatedDuration = p === "fast" ? "1 mois" : p === "slow" ? "3 mois" : "2 mois";
       }
 
+      // Progressive ramp (deterministic): enforce habit frequency per phase based on pacing.
+      // Goal: avoid "too hard too soon" (e.g., 7x/week in phase 1) and make plans incremental.
+      const rampByPacing: Record<string, number[]> = {
+        // Never 7×/week (discouraging). Cap habits at 6×/week max.
+        fast: [3, 4, 5, 6],
+        balanced: [2, 3, 4, 5],
+        slow: [1, 2, 3, 4],
+      };
+      const ramp = rampByPacing[(pacing ?? "").toLowerCase().trim()] ?? rampByPacing.balanced;
+      const clampInt = (n: any, lo: number, hi: number) => {
+        const x = Number(n);
+        if (!Number.isFinite(x)) return lo;
+        return Math.max(lo, Math.min(hi, Math.floor(x)));
+      };
+
       // Ensure phases/actions ids + defaults (best-effort)
       if (Array.isArray(plan.phases)) {
         for (let p = 0; p < plan.phases.length; p++) {
           const phase = plan.phases[p] ?? {};
           if (!phase.id) phase.id = String(p + 1);
           if (!Array.isArray(phase.actions)) continue;
+
+          // Quest types: enforce exactly 1 main + 1 side for the 2 actions in the phase.
+          // If model outputs missing/duplicate questType, we deterministically repair it.
+          if (phase.actions.length === 2) {
+            const a0 = phase.actions[0] ?? {};
+            const a1 = phase.actions[1] ?? {};
+            const q0 = String(a0.questType ?? "").toLowerCase().trim();
+            const q1 = String(a1.questType ?? "").toLowerCase().trim();
+            const isMain0 = q0 === "main";
+            const isSide0 = q0 === "side";
+            const isMain1 = q1 === "main";
+            const isSide1 = q1 === "side";
+            // Already good
+            if ((isMain0 && isSide1) || (isSide0 && isMain1)) {
+              // noop
+            } else {
+              // Default: first action main, second action side
+              a0.questType = "main";
+              a1.questType = "side";
+            }
+            phase.actions[0] = a0;
+            phase.actions[1] = a1;
+          }
+
           for (let a = 0; a < phase.actions.length; a++) {
             const act = phase.actions[a] ?? {};
             if (!act.id) act.id = `${p + 1}_${a + 1}_${crypto.randomUUID().slice(0, 8)}`;
             if (!act.tracking_type) act.tracking_type = "boolean";
             if (!act.time_of_day) act.time_of_day = "any_time";
+
+            const t = String(act.type ?? "").toLowerCase().trim();
+            const phaseTarget = ramp[Math.min(ramp.length - 1, Math.max(0, p))] ?? 5;
+
+            // Habits: required targetReps + progressive ramp
+            if (t === "habitude" || t === "habit") {
+              act.targetReps = clampInt(act.targetReps ?? phaseTarget, 1, 6);
+              // Clamp scheduledDays length if present (validator requires <= targetReps)
+              if (Array.isArray(act.scheduledDays)) {
+                act.scheduledDays = act.scheduledDays.slice(0, Math.max(0, act.targetReps));
+              }
+            }
+
+            // Frameworks: validator requires targetReps + frameworkDetails.
+            // We do a light auto-repair to avoid regeneration loops on missing fields.
+            if (t === "framework") {
+              // If the model forgot: default to one_shot + targetReps=1
+              const fType = String(act.frameworkDetails?.type ?? "one_shot").toLowerCase().trim();
+              if (fType === "one_shot") {
+                act.targetReps = 1;
+              } else {
+                act.targetReps = clampInt(act.targetReps ?? 3, 1, 30);
+              }
+              if (!act.frameworkDetails || typeof act.frameworkDetails !== "object") {
+                act.frameworkDetails = {
+                  type: "one_shot",
+                  intro: "Remplis cette fiche en quelques minutes. Sois concret(ète) et honnête.",
+                  sections: [
+                    { id: "notes", label: "Notes", inputType: "textarea", placeholder: "Écris ici..." },
+                  ],
+                };
+                act.targetReps = 1;
+              }
+            }
           }
         }
       }
@@ -603,62 +697,33 @@ serve(async (req) => {
 
     const pacingForValidation = (inputs?.pacing ?? "").toString();
 
-    for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    // Retry loop for validation (re-prompt if JSON is invalid)
+    const MAX_VALIDATION_ATTEMPTS = 6;
+    for (let attempt = 1; attempt <= MAX_VALIDATION_ATTEMPTS; attempt++) {
       const validationBlock = lastValidationFeedback
         ? `\n\n=== VALIDATION_FEEDBACK (MUST FIX) ===\nTon précédent JSON n'est pas conforme. Corrige uniquement ces points et renvoie UNIQUEMENT le JSON corrigé.\n${lastValidationFeedback}\n`
         : "";
 
-      response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt + validationBlock }] }],
-            generationConfig: { responseMimeType: "application/json" },
-          }),
-        },
-      );
-
-      data = await response.json().catch(() => ({}));
-      console.log("Gemini Response Status:", response.status);
-
-      // Retry on 429 and 503 (overloaded/unavailable)
-      if (response.status === 429 || response.status === 503) {
-        console.log("Gemini Error Body:", JSON.stringify(data, null, 2));
-        // If overloaded and we have a fallback model, switch once.
-        if (
-          response.status === 503 &&
-          !usedFallback &&
-          fallbackModel &&
-          fallbackModel !== model
-        ) {
-          console.log(`[Gemini] Switching to fallback model: ${fallbackModel}`);
-          model = fallbackModel;
-          usedFallback = true;
-          await sleep(1000);
-          continue;
-        }
-        if (attempt < MAX_ATTEMPTS) {
-          await sleep(2000);
-          continue;
-        }
-      }
-
-      // If response is not ok (and not retryable), stop here and handle below.
-      if (!response.ok) break;
-
-      // Parse + validate immediately; if invalid, retry with corrective feedback.
       try {
-        if (!data.candidates || data.candidates.length === 0) {
-          console.log("Gemini OK but no candidates:", JSON.stringify(data, null, 2));
-          if (data.promptFeedback?.blockReason) {
-            throw new Error(`Génération bloquée par sécurité: ${data.promptFeedback.blockReason}`);
+        const rawText = await generateWithGemini(
+          systemPrompt,
+          userPrompt + validationBlock,
+          0.7,
+          true, // jsonMode
+          [], // no tools
+          "auto",
+          {
+            requestId: `${requestId}:plan:${attempt}`,
+            model: planModel,
+            source: "generate-plan",
+            forceRealAi: forceRealGeneration,
+            maxRetries: 4,
           }
-        }
+        );
 
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!rawText) throw new Error("Réponse vide de Gemini (structure inattendue)");
+        if (typeof rawText !== "string") {
+          throw new Error("Unexpected tool call response from LLM");
+        }
 
         const firstBrace = rawText.indexOf("{");
         const lastBrace = rawText.lastIndexOf("}");
@@ -675,28 +740,27 @@ serve(async (req) => {
           headers: { ...corsHeaders, "Content-Type": "application/json" },
         });
       } catch (e) {
-        lastValidationFeedback = formatValidationError(e);
-        console.warn(`[generate-plan] Invalid JSON/schema (attempt ${attempt}/${MAX_ATTEMPTS}): ${lastValidationFeedback}`);
-        if (attempt < MAX_ATTEMPTS) {
-          await sleep(800);
-          continue;
+        const errMsg = String((e as any)?.message ?? e ?? "");
+        // Check if it's a validation error (not an LLM error)
+        const isValidationError = errMsg.includes("validation") || 
+          errMsg.includes("Invalid") || 
+          errMsg.includes("JSON") ||
+          (e as any)?.issues;
+        
+        if (isValidationError) {
+          lastValidationFeedback = formatValidationError(e);
+          console.warn(`[generate-plan] Invalid JSON/schema (attempt ${attempt}/${MAX_VALIDATION_ATTEMPTS}): ${lastValidationFeedback}`);
+          if (attempt < MAX_VALIDATION_ATTEMPTS) {
+            await sleep(800);
+            continue;
+          }
         }
-        break;
+        // LLM error or final validation failure
+        throw e;
       }
     }
 
-    if (!response) throw new Error("Gemini request did not execute");
-
-    if (!response.ok) {
-      // Note: data already parsed/logged in the retry loop for 429/503.
-      if (response.status === 429) {
-        throw new Error("Le cerveau de Sophia est en surchauffe (Quota atteint). Veuillez réessayer dans quelques minutes.");
-      }
-      const errorMessage = data.error?.message || "Erreur inconnue de Gemini";
-      throw new Error(`Erreur Gemini (${response.status}): ${errorMessage}`);
-    }
-
-    // If we reach here, last attempt was "ok" but still invalid JSON/schema.
+    // If we reach here, all validation attempts failed.
     if (lastValidationFeedback) {
       throw new Error(`Plan non conforme (validation): ${lastValidationFeedback}`);
     }
@@ -707,11 +771,12 @@ serve(async (req) => {
     await logEdgeFunctionError({
       functionName: "generate-plan",
       error,
-      requestId,
-      userId: null,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
       metadata: {
         path: new URL(req.url).pathname,
         method: req.method,
+        client_request_id: ctx.clientRequestId,
       },
     })
     // On renvoie 200 (OK) même en cas d'erreur pour que le client Supabase puisse lire le JSON de l'erreur

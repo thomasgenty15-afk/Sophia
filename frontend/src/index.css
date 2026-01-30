@@ -170,3 +170,37 @@
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
   background: rgba(255, 255, 255, 0.2);
 }
+
+/* SNAKE BORDER ANIMATION */
+@keyframes spin-gradient {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.snake-border-box {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 2px; /* Width of the border */
+  z-index: 10;
+  overflow: hidden; /* Fixes potential scrollbar issues with large gradient */
+}
+
+.snake-border-gradient {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200vmax; /* Huge size to ensure it covers corners of any rectangular shape */
+  height: 200vmax;
+  background: conic-gradient(transparent 270deg, #8b5cf6 360deg); /* Violet tail */
+  animation: spin-gradient 3s linear infinite;
+}

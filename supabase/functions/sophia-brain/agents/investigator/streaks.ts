@@ -3,6 +3,39 @@ import type { CheckupItem, InvestigationState } from "./types.ts"
 import { addDays } from "./utils.ts"
 import { investigatorSay } from "./copy.ts"
 
+function toYmd(d: Date): string {
+  return d.toISOString().slice(0, 10)
+}
+
+function daysBetweenYmd(startYmd: string, endYmd: string): number {
+  if (!startYmd || !endYmd) return 0
+  const start = new Date(`${startYmd}T00:00:00.000Z`).getTime()
+  const end = new Date(`${endYmd}T00:00:00.000Z`).getTime()
+  if (!Number.isFinite(start) || !Number.isFinite(end)) return 0
+  const diff = Math.floor((end - start) / (24 * 60 * 60 * 1000))
+  return Math.max(0, diff)
+}
+
+async function getMissedStreakDaysFromActivation(opts: {
+  supabase: SupabaseClient
+  userId: string
+  table: "user_actions" | "user_framework_tracking"
+  itemId: string
+}): Promise<number> {
+  const { supabase, userId, table, itemId } = opts
+  const { data, error } = await supabase
+    .from(table)
+    .select("created_at, status")
+    .eq("id", itemId)
+    .eq("user_id", userId)
+    .maybeSingle()
+  if (error || !data?.created_at) return 0
+  if (String(data.status ?? "").toLowerCase() !== "active") return 0
+  const startYmd = String(data.created_at).split("T")[0]
+  const todayYmd = toYmd(new Date())
+  return daysBetweenYmd(startYmd, todayYmd)
+}
+
 export async function getMissedStreakDays(
   supabase: SupabaseClient,
   userId: string,
@@ -86,6 +119,33 @@ export async function getCompletedStreakDays(
     cursor = prev
   }
   return streak
+}
+
+export async function getMissedStreakDaysForCheckupItem(
+  supabase: SupabaseClient,
+  userId: string,
+  item: CheckupItem,
+): Promise<number> {
+  if (item.type === "framework") {
+    return await getMissedStreakDaysFromActivation({
+      supabase,
+      userId,
+      table: "user_framework_tracking",
+      itemId: item.id,
+    })
+  }
+  if (item.type === "action") {
+    if (item.is_habit) {
+      return await getMissedStreakDays(supabase, userId, item.id)
+    }
+    return await getMissedStreakDaysFromActivation({
+      supabase,
+      userId,
+      table: "user_actions",
+      itemId: item.id,
+    })
+  }
+  return 0
 }
 
 export async function checkAndHandleLevelUp(
@@ -209,33 +269,35 @@ export async function maybeHandleStreakAfterLog(opts: {
       const declined = declinedIds.map((x: any) => String(x)).includes(String(currentItem.id));
       if (declined) return null;
 
-      const streak = await getMissedStreakDays(supabase, userId, currentItem.id)
+      const streak = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
       const note = String(argsWithId.note ?? message ?? "").trim().toLowerCase()
       const explicitBreakdownRequest =
         /\b(d[ée]coupe|d[ée]composer|un\s+petit\s+pas|[ée]tape\s+minuscule|plus\s+simple|d[ée]bloqu)\b/i.test(note)
       const explicitBlockerSignal =
         /\b(bloqu[ée]?|j['’]y\s+arrive\s+pas|trop\s+dur|insurmontable|me\s+demande\s+trop|je\s+repousse|procrastin)\b/i.test(note)
 
-      // Trigger breakdown when:
+      // Trigger post-bilan deferral offer when:
       // - classic: missed streak >= 5 days
-      // - OR: user language clearly indicates being stuck / needing a smaller step (even without saying "micro-étape")
+      // - OR: user language clearly indicates being stuck / needing a smaller step
       if (streak >= 5 || explicitBreakdownRequest || explicitBlockerSignal) {
         const nextState = {
           ...currentState,
           temp_memory: {
             ...(currentState.temp_memory || {}),
-            breakdown: {
+            bilan_defer_offer: {
               stage: "awaiting_consent",
+              kind: "breakdown",
               action_id: currentItem.id,
               action_title: currentItem.title,
               streak_days: streak,
               last_note: String(argsWithId.note ?? "").trim(),
+              last_item_log: argsWithId,
             },
           },
         }
         return {
           content: await investigatorSay(
-            "missed_streak_offer_breakdown",
+            "bilan_defer_offer_breakdown",
             { user_message: message, streak_days: streak, item: currentItem, last_note: String(argsWithId.note ?? "").trim() },
             meta,
           ),

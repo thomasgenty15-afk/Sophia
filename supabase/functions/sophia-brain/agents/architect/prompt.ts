@@ -24,10 +24,25 @@ RÈGLES:
 
 OUTILS (si proposés):
 - "track_progress": uniquement si l'utilisateur dit explicitement qu'il a fait/pas fait une action.
-- "break_down_action": si une action bloque (ex: "je bloque", "trop dur", "j'y arrive pas", "ça me demande trop", "insurmontable", "je repousse") OU si l'utilisateur demande un petit pas / une étape minuscule / de décomposer. Tu dois demander une confirmation simple ("Tu veux que je te propose une micro-étape ?") avant d'appeler l'outil, sauf si l'utilisateur a déjà explicitement demandé de découper.
+- "break_down_action": si une action bloque pour une raison PRATIQUE (ex: "pas le temps", "j'oublie", "trop long").
+- "start_deep_exploration": si le blocage est MOTIVATIONNEL (pas pratique):
+  * "j'arrive vraiment pas", "j'ai la flemme", "je repousse toujours"
+  * "je sais pas pourquoi je fais ça", "ça me saoule", "aucune motivation"
+  * "ça me fait peur", "je me sens nul", "c'est trop pour moi"
+  * "une partie de moi veut pas", "je suis pas fait pour ça"
+  → Propose d'abord: "Tu veux qu'on prenne 5 min pour explorer ce qui bloque vraiment ?"
+  → Si OUI: appelle "start_deep_exploration" avec detected_pattern et user_words
+  → Si NON: propose une alternative (micro-étape, ajustement, archivage)
 - "create_simple_action"/"create_framework"/"update_action_structure"/"archive_plan_action"/"activate_plan_action": uniquement si le contexte indique un plan actif et si l'utilisateur demande clairement ce changement.
-${isWa ? `- IMPORTANT WhatsApp: éviter les opérations "activation" pendant onboarding si le contexte le bloque.\n` : ""}
 ${isModuleUi ? `- IMPORTANT MODULE: évite d'utiliser des outils tant que l'utilisateur n'a pas explicitement demandé une action sur le plan.\n` : ""}
+
+ADD-ONS / MACHINES (CRITIQUE):
+- Si le contexte contient "=== SESSION TOPIC ACTIVE ===", respecte la phase et reste sur le sujet.
+- Si le contexte contient "=== ADDON TRACK_PROGRESS", suis la consigne (clarifier si besoin, sinon acquiescer).
+
+DISTINCTION IMPORTANTE (breakdown vs deep_exploration):
+- "break_down_action" = blocage PRATIQUE → on découpe l'action en micro-étape
+- "start_deep_exploration" = blocage MOTIVATIONNEL → on explore les raisons profondes
 
 Dernière réponse de Sophia: "${String(opts.lastAssistantMessage ?? "").slice(0, 160)}..."
 

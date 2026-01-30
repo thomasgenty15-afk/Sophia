@@ -5,6 +5,13 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { sendWhatsAppGraph } from "../_shared/whatsapp_graph.ts"
+import {
+  createWhatsAppOutboundRow,
+  markWhatsAppOutboundFailed,
+  markWhatsAppOutboundSent,
+  markWhatsAppOutboundSkipped,
+} from "../_shared/whatsapp_outbound_tracking.ts"
 
 type SendText = { type: "text"; body: string }
 type SendTemplate = {
@@ -38,47 +45,6 @@ function normalizeToE164(input: string): string {
   // last resort: if already digits, prefix +
   if (/^\d+$/.test(s)) return `+${s}`
   return s
-}
-
-async function sendViaGraph(toE164: string, payload: unknown) {
-  const token = Deno.env.get("WHATSAPP_ACCESS_TOKEN")?.trim()
-  const phoneNumberId = Deno.env.get("WHATSAPP_PHONE_NUMBER_ID")?.trim()
-  if (!token || !phoneNumberId) throw new Error("Missing WHATSAPP_ACCESS_TOKEN/WHATSAPP_PHONE_NUMBER_ID")
-
-  const url = `https://graph.facebook.com/v20.0/${phoneNumberId}/messages`
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify(payload),
-  })
-
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    const metaCode = (data as any)?.error?.code
-    if (res.status === 400 && metaCode === 131030) {
-      console.warn("[whatsapp-send] recipient not in allowed list (Meta test mode)", {
-        to: toE164,
-        phone_number_id: phoneNumberId,
-        status: res.status,
-        metaCode,
-        details: (data as any)?.error?.error_data?.details ?? null,
-      })
-      return { skipped: true, reason: "recipient_not_allowed_list", meta: data } as any
-    }
-    throw new Error(`WhatsApp send failed (${res.status}): ${JSON.stringify(data)}`)
-  }
-  return data as any
-}
-
-function isMegaTestMode(): boolean {
-  const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
-  const isLocalSupabase =
-    (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
-    (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
-  return megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
 }
 
 function getFallbackTemplate(purpose: string | undefined) {
@@ -241,20 +207,74 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Mega test runner / local deterministic mode: do not call Meta/Graph.
-    const mega = isMegaTestMode()
-    const resp = mega
-      ? { messages: [{ id: "wamid_MEGA_TEST" }], mega_test_mode: true }
-      : await sendViaGraph(toE164, graphPayload)
-    const waOutboundId = (resp as any)?.messages?.[0]?.id ?? null
-    const skipped = Boolean((resp as any)?.skipped)
-    const skipReason = ((resp as any)?.reason ?? null) as string | null
-
-    // Log outbound in chat_messages
+    // Always create an outbound tracking row (authoritative for retry/status).
     const contentForLog = body.message.type === "text"
       ? body.message.body
       : `[TEMPLATE:${body.message.type === "template" ? body.message.name : "unknown"}]`
 
+    const outboundId = await createWhatsAppOutboundRow(admin as any, {
+      request_id: requestId,
+      user_id: body.user_id,
+      to_e164: toE164,
+      message_type: graphPayload?.type === "template" ? "template" : "text",
+      content_preview: contentForLog.slice(0, 500),
+      graph_payload: graphPayload,
+      reply_to_wamid_in: (body.metadata_extra as any)?.wa_reply_to_message_id ?? null,
+      metadata: {
+        purpose: body.purpose ?? null,
+        require_opted_in: requireOptedIn,
+        proactive: isProactive,
+        used_template: Boolean(mustUseTemplate),
+        in_24h_window: Boolean(isIn24h),
+      },
+    })
+
+    const sendRes = await sendWhatsAppGraph(graphPayload)
+    const attemptCount = 1
+
+    if (!sendRes.ok) {
+      await markWhatsAppOutboundFailed(admin as any, outboundId, {
+        attempt_count: attemptCount,
+        retryable: Boolean(sendRes.retryable),
+        error_code: sendRes.meta_code != null ? String(sendRes.meta_code) : (sendRes.http_status != null ? String(sendRes.http_status) : "network_error"),
+        error_message: sendRes.non_retry_reason ?? "whatsapp_send_failed",
+        error_payload: sendRes.error,
+      })
+      const status = sendRes.http_status === 429 ? 429 : 502
+      return jsonResponse(
+        req,
+        {
+          error: "WhatsApp send failed",
+          meta_code: sendRes.meta_code,
+          http_status: sendRes.http_status,
+          retryable: sendRes.retryable,
+          request_id: requestId,
+        },
+        { status, includeCors: false },
+      )
+    }
+
+    const waOutboundId = sendRes.wamid_out
+    const skipped = Boolean(sendRes.skipped)
+    const skipReason = sendRes.skip_reason
+
+    if (skipped) {
+      await markWhatsAppOutboundSkipped(admin as any, outboundId, {
+        attempt_count: attemptCount,
+        transport: sendRes.transport,
+        skip_reason: skipReason,
+        raw_response: sendRes.data,
+      })
+    } else {
+      await markWhatsAppOutboundSent(admin as any, outboundId, {
+        provider_message_id: waOutboundId,
+        attempt_count: attemptCount,
+        transport: sendRes.transport,
+        raw_response: sendRes.data,
+      })
+    }
+
+    // Log outbound in chat_messages
     const { error: logErr } = await admin.from("chat_messages").insert({
       user_id: body.user_id,
       scope: "whatsapp",
@@ -268,6 +288,8 @@ Deno.serve(async (req) => {
         require_opted_in: requireOptedIn,
         wa_outbound_message_id: waOutboundId,
         to: toE164,
+        request_id: requestId,
+        outbound_tracking_id: outboundId,
         ...(body.metadata_extra && typeof body.metadata_extra === "object" ? body.metadata_extra : {}),
       },
     })
@@ -285,7 +307,7 @@ Deno.serve(async (req) => {
         wa_outbound_message_id: waOutboundId,
         skipped,
         skip_reason: skipReason,
-        mega_test_mode: mega,
+        mega_test_mode: sendRes.transport === "mega_test",
         in_trial: inTrial,
         proactive: isProactive,
         used_template: Boolean(mustUseTemplate),

@@ -15,6 +15,7 @@ import { generateArchitectModelOutput } from "./architect/model.ts"
 import { handleArchitectModelOutput } from "./architect/handle_model_output.ts"
 import { megaToolCreateFramework } from "./architect/mega_tools.ts"
 import { looksLikeExplicitCreateActionRequest, looksLikeUserAsksToAddToPlanLoosely } from "./architect/consent.ts"
+import { logToolLedgerEvent } from "../lib/tool_ledger.ts"
 
 export async function runArchitect(
   supabase: SupabaseClient,
@@ -23,11 +24,10 @@ export async function runArchitect(
   history: any[], 
   userState: any,
   context: string = "",
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string },
+  meta?: { requestId?: string; evalRunId?: string | null; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string },
 ): Promise<{ text: string; executed_tools: string[]; tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain" }> {
   const lastAssistantMessage = history.filter((m: any) => m.role === "assistant").pop()?.content || ""
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
-  const inWhatsAppGuard24h = isWhatsApp && /WHATSAPP_ONBOARDING_GUARD_24H=true/i.test(context ?? "")
   const isModuleUi = String(context ?? "").includes("=== CONTEXTE MODULE (UI) ===")
 
   function looksLikeExplicitPlanOperationRequest(msg: string): boolean {
@@ -53,6 +53,32 @@ export async function runArchitect(
     /\b(active|activez|activer|lance|lancer|on\s+y\s+va|vas[-\s]*y|go)\b/i.test(msgLower)
 
   if (!isWhatsApp && looksLikeAttrapeReves && looksLikeActivation) {
+    const reqId = String(meta?.requestId ?? "").trim()
+    const evalRunId = meta?.evalRunId ?? null
+    const t0 = Date.now()
+    const traceTool = async (evt: "tool_call_attempted" | "tool_call_succeeded" | "tool_call_failed", extra?: any) => {
+      if (!reqId) return
+      await logToolLedgerEvent({
+        supabase,
+        requestId: reqId,
+        evalRunId,
+        userId,
+        source: "sophia-brain:architect",
+        event: evt,
+        level: evt === "tool_call_failed" ? "error" : "info",
+        toolName: "create_framework",
+        toolArgs: {
+          title: "Attrape-Rêves Mental",
+          targetReps: 7,
+          time_of_day: "night",
+        },
+        latencyMs: Date.now() - t0,
+        metadata: { deterministic: true, shortcut: "attrape_reves", ...(extra ?? {}) },
+      })
+    }
+    try {
+      await traceTool("tool_call_attempted")
+    } catch {}
     const createdMsg = await megaToolCreateFramework(supabase, userId, {
       title: "Attrape-Rêves Mental",
       description: "Un mini exercice d’écriture (2–4 minutes) pour relâcher les pensées intrusives avant de dormir.",
@@ -94,6 +120,10 @@ export async function runArchitect(
     const createdLower = String(createdMsg || "").toLowerCase()
     const creationFailed = createdLower.includes("je ne trouve pas de plan actif") || createdLower.includes("erreur")
     const creationDuplicate = createdLower.includes("déjà")
+    try {
+      if (creationFailed) await traceTool("tool_call_failed", { outcome: "failed", reason: "no_active_plan_or_error", created_msg: String(createdMsg ?? "").slice(0, 240) })
+      else await traceTool("tool_call_succeeded", { outcome: creationDuplicate ? "duplicate_or_uncertain" : "success", created_msg: String(createdMsg ?? "").slice(0, 240) })
+    } catch {}
     const intro = creationFailed
       ? "Ok. Voilà l'exercice Attrape‑Rêves Mental."
       : (creationDuplicate ? "Ok. L'exercice Attrape‑Rêves Mental est déjà dans ton plan." : "Ok. Attrape‑Rêves Mental activé.")
@@ -135,7 +165,7 @@ export async function runArchitect(
     - break_down_action: si une action bloque ET que l'utilisateur accepte explicitement qu'on la découpe en micro-étape (2 min).
     - update_action_structure: si l'utilisateur demande un changement sur une action existante.
     - create_simple_action / create_framework: uniquement si un plan actif existe (sinon refuse).
-    - activate_plan_action: pour activer une action future (sauf si guard onboarding 24h).
+    - activate_plan_action: pour activer une action future.
 
     RÈGLES CRITIQUES :
     - N'invente jamais un changement ("j'ai activé/créé") sans preuve (outil + succès).
@@ -344,12 +374,37 @@ export async function runArchitect(
     : ""
 
   const systemPrompt = `${basePrompt}${flowContext}`.trim()
-  const baseTools = getArchitectTools({ inWhatsAppGuard24h })
+  const baseTools = getArchitectTools()
   // In Module (UI) conversations, default to discussion-first: no tools unless the user explicitly asks.
   const tools = (isModuleUi && !looksLikeExplicitPlanOperationRequest(message)) ? [] : baseTools
 
+  // Tool ledger: record the toolset we *offer* to the model for this request.
+  try {
+    const requestId = String(meta?.requestId ?? "").trim()
+    if (requestId) {
+      const toolNames = (Array.isArray(tools) ? tools : []).map((t: any) => String(t?.name ?? "")).filter(Boolean)
+      await logToolLedgerEvent({
+        supabase,
+        requestId,
+        evalRunId: meta?.evalRunId ?? null,
+        userId,
+        source: "sophia-brain:architect",
+        event: "tool_call_proposed",
+        level: "debug",
+        metadata: {
+          channel: meta?.channel ?? null,
+          scope,
+          is_module_ui: !!isModuleUi,
+          has_active_flow: !!existingFlow,
+          tools: toolNames,
+        },
+      })
+    }
+  } catch {}
+
   const response = await generateArchitectModelOutput({ systemPrompt, message, history, tools, meta })
-  return await handleArchitectModelOutput({ supabase, userId, message, history, response, inWhatsAppGuard24h, context, meta, userState, scope })
+  // NOTE: tool-call ledger is logged inside the tool handler (handleArchitectModelOutput) to avoid duplicate events.
+  return await handleArchitectModelOutput({ supabase, userId, message, history, response, context, meta, userState, scope })
 }
 
 

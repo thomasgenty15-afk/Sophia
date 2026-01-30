@@ -60,15 +60,27 @@ export const PlanPhaseBlock = ({
             <p className="text-xs min-[350px]:text-sm text-gray-400">{phase.subtitle}</p>
         </div>
         
-        {/* Bouton Unlock Manuel de PHASE (optionnel si on veut débloquer tout le bloc) */}
+        {/* Bouton Unlock Manuel de PHASE */}
         {isPhaseLocked && onUnlockPhase && (
             <button 
                 onClick={onUnlockPhase}
-                className="px-3 py-1 bg-gray-100 hover:bg-gray-200 text-gray-500 text-xs font-bold uppercase tracking-wider rounded-lg flex items-center gap-1 transition-colors"
+                className="group relative px-4 py-2 bg-gradient-to-r from-indigo-500 to-violet-500 hover:from-indigo-600 hover:to-violet-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
             >
-                <Lock className="w-3 h-3" />
-                Débloquer Phase
+                <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
+                <Lock className="w-3.5 h-3.5 group-hover:hidden transition-all" />
+                <svg className="w-3.5 h-3.5 hidden group-hover:block transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
+                </svg>
+                <span className="relative z-10">Débloquer</span>
             </button>
+        )}
+        
+        {/* Badge indiquant que la phase est verrouillée car phases précédentes non complètes */}
+        {isPhaseLocked && !onUnlockPhase && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-400 text-[10px] font-medium rounded-lg">
+                <Lock className="w-3 h-3" />
+                <span>Activer les phases précédentes</span>
+            </div>
         )}
       </div>
 

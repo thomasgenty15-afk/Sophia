@@ -11,8 +11,8 @@ function parseArgs(argv) {
     until: null,
     outFile: null,
     limitMessages: 5000,
-    limitJudge: 2000,
     limitErrors: 1000,
+    limitEvalEvents: 5000,
     limitUsage: 5000,
   };
   for (let i = 0; i < argv.length; i++) {
@@ -23,8 +23,8 @@ function parseArgs(argv) {
     else if (a === "--until") out.until = String(argv[++i] ?? "").trim() || null; // ISO string
     else if (a === "--out") out.outFile = String(argv[++i] ?? "").trim() || null;
     else if (a === "--limit-messages") out.limitMessages = Math.max(1, Number(argv[++i] ?? 5000) || 5000);
-    else if (a === "--limit-judge") out.limitJudge = Math.max(1, Number(argv[++i] ?? 2000) || 2000);
     else if (a === "--limit-errors") out.limitErrors = Math.max(1, Number(argv[++i] ?? 1000) || 1000);
+    else if (a === "--limit-eval-events") out.limitEvalEvents = Math.max(1, Number(argv[++i] ?? 5000) || 5000);
     else if (a === "--limit-usage") out.limitUsage = Math.max(1, Number(argv[++i] ?? 5000) || 5000);
   }
   return out;
@@ -123,14 +123,6 @@ async function main() {
     `&order=created_at.asc` +
     `&limit=${encodeURIComponent(String(args.limitMessages))}`;
 
-  const judgeUrl =
-    `${url}/rest/v1/conversation_judge_events` +
-    `?user_id=eq.${encodeURIComponent(args.userId)}` +
-    `&scope=eq.${encodeURIComponent(args.scope)}` +
-    `${range}` +
-    `&order=created_at.asc` +
-    `&limit=${encodeURIComponent(String(args.limitJudge))}`;
-
   const errorsUrl =
     `${url}/rest/v1/system_error_logs` +
     `?user_id=eq.${encodeURIComponent(args.userId)}` +
@@ -138,15 +130,29 @@ async function main() {
     `&order=created_at.asc` +
     `&limit=${encodeURIComponent(String(args.limitErrors))}`;
 
-  const [messages, judgeEvents, errorLogs] = await Promise.all([
+  const [messages, errorLogs] = await Promise.all([
     fetchJson(messagesUrl, headers),
-    fetchJson(judgeUrl, headers),
     fetchJson(errorsUrl, headers),
   ]);
 
   // LLM usage is keyed by request_id, not user_id.
   // We best-effort join by request_ids observed in chat messages.
   const requestIds = pickRequestIds(messages);
+  // Eval events are also keyed by request_id (and only exist during eval runs).
+  let evalEvents = [];
+  if (requestIds.length > 0) {
+    const batches = chunk(requestIds, 40); // keep URLs short/safe
+    for (const b of batches) {
+      const inList = b.map((x) => `"${String(x).replaceAll('"', '\\"')}"`).join(",");
+      const evUrl =
+        `${url}/rest/v1/conversation_eval_events` +
+        `?request_id=in.(${encodeURIComponent(inList)})` +
+        `&order=created_at.asc` +
+        `&limit=${encodeURIComponent(String(args.limitEvalEvents))}`;
+      const rows = await fetchJson(evUrl, headers);
+      if (Array.isArray(rows)) evalEvents = evalEvents.concat(rows);
+    }
+  }
   let llmUsage = [];
   if (requestIds.length > 0) {
     const batches = chunk(requestIds, 40); // keep URLs short/safe
@@ -172,12 +178,12 @@ async function main() {
     request_ids: requestIds,
     counts: {
       chat_messages: Array.isArray(messages) ? messages.length : null,
-      conversation_judge_events: Array.isArray(judgeEvents) ? judgeEvents.length : null,
+      conversation_eval_events: Array.isArray(evalEvents) ? evalEvents.length : null,
       system_error_logs: Array.isArray(errorLogs) ? errorLogs.length : null,
       llm_usage_events: Array.isArray(llmUsage) ? llmUsage.length : null,
     },
     chat_messages: messages,
-    conversation_judge_events: judgeEvents,
+    conversation_eval_events: evalEvents,
     system_error_logs: errorLogs,
     llm_usage_events: llmUsage,
   };

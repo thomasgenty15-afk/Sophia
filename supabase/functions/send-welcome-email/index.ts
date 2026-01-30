@@ -2,6 +2,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.7.1";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { sendResendEmail } from "../_shared/resend.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
+import { getRequestContext } from "../_shared/request_context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
@@ -11,6 +13,7 @@ const WHATSAPP_PHONE_NUMBER = Deno.env.get("WHATSAPP_PHONE_NUMBER") || "33674637
 const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? "Sophia <sophia@sophia-coach.ai>"; 
 
 serve(async (req) => {
+  let ctx = getRequestContext(req)
   const guardRes = ensureInternalRequest(req);
   if (guardRes) return guardRes;
 
@@ -25,7 +28,8 @@ serve(async (req) => {
     // 1. Vérification auth (interne ou admin)
     // On s'attend à être appelé par un Trigger DB (Webhook) ou manuellement
     // Le payload Webhook standard de Supabase est { type: 'INSERT', table: 'profiles', record: { ... }, old_record: null }
-    const payload = await req.json();
+    const payload = await req.json().catch(() => ({} as any));
+    ctx = getRequestContext(req, payload)
     
     // Si appelé via Trigger Webhook
     const userRecord = payload.record || payload; // Fallback si on appelle avec juste { email, name }
@@ -61,7 +65,7 @@ serve(async (req) => {
       });
     }
 
-    console.log(`Préparation envoi email Bienvenue à ${targetEmail} (${userId})`);
+    console.log(`[send-welcome-email] request_id=${ctx.requestId} user_id=${userId} target=${targetEmail}`);
 
     // 2. Vérifier si déjà envoyé (Idempotency)
     const { data: existingLogs } = await supabase
@@ -134,7 +138,15 @@ serve(async (req) => {
 
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    console.error("[send-welcome-email] Error:", message);
+    console.error(`[send-welcome-email] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"} error=${message}`);
+    await logEdgeFunctionError({
+      functionName: "send-welcome-email",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "email",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
     return new Response(JSON.stringify({ error: message }), {
       status: 400,
       headers: { "Content-Type": "application/json" },

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { distributePlanActions } from '../lib/planActions';
 import type { AxisContext } from './usePlanGeneratorData';
 
@@ -99,7 +100,7 @@ export const usePlanGeneratorLogic = (
           if (existingPlan && existingPlan.generation_attempts >= 2) {
               clearInterval(loadingInterval);
               setPlan(existingPlan.content);
-              alert("Vous avez utilisé vos 2 essais. Voici votre plan final.");
+              alert("Tu as utilisé tes 2 essais. Voici ton plan final.");
               setStep('result');
               return; 
           }
@@ -114,13 +115,15 @@ export const usePlanGeneratorLogic = (
       }
 
       // Call AI with explicit error handling
+      const reqId = newRequestId();
       const { data, error } = await supabase.functions.invoke('generate-plan', {
         body: {
           inputs,
           currentAxis: activeAxis,
           userId: user.id,
           userProfile: { birth_date: profileInfo.birthDate, gender: profileInfo.gender }
-        }
+        },
+        headers: requestHeaders(reqId),
       });
 
       if (error) {

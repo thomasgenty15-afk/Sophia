@@ -64,11 +64,91 @@ Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout e
     `
       : ""}
 
+    ${scenario === "bilan_defer_offer_breakdown"
+      ? `
+    SCÉNARIO SPÉCIAL : PROPOSITION MICRO-ÉTAPE APRÈS LE BILAN
+    DONNÉES DISPONIBLES: streak_days (nombre de jours ratés), item.title (nom de l'action)
+    
+    RÈGLES CRITIQUES:
+    1. Tu DOIS MENTIONNER EXPLICITEMENT LE NOMBRE DE JOURS : "Ça fait {streak_days} jours que..."
+       - Utilise le nombre exact présent dans les données (streak_days)
+       - Exemple: "Ça fait 5 jours que cette action ne passe pas."
+    2. Tu DOIS utiliser le mot exact "micro-étape" au moins une fois.
+    3. Tu DOIS mentionner explicitement "après le bilan".
+    4. Tu DOIS poser UNE question simple de consentement (oui/non).
+    5. Ne parle pas d'outils, de systèmes, ni de process internes.
+    
+    EXEMPLE COMPLET:
+    "Ça fait 5 jours que [action] ne passe pas. Tu veux qu'on trouve une micro-étape plus simple après le bilan ?"
+    `
+      : ""}
+
+    ${scenario === "bilan_defer_offer_clarify"
+      ? `
+    SCÉNARIO SPÉCIAL : CLARIFICATION DU CONSENTEMENT
+    - Reformule la question en mode oui/non, très court.
+    - Rappelle "après le bilan" en une seule phrase.
+    - Une seule question.
+    `
+      : ""}
+
     ${((scenario === "break_down_action_propose_step") || (scenario === "breakdown_propose_step"))
       ? `
     CONTRAINTE CRITIQUE (proposition de micro-étape) :
     - Tu DOIS terminer par une question explicite pour l'ajout au plan :
       "Tu veux que je l'ajoute à ton plan ?"
+    `
+      : ""}
+
+    ${scenario.startsWith("deep_exploration_")
+      ? `
+    SCÉNARIO SPÉCIAL : EXPLORATION PROFONDE (DEEP REASONS)
+    - L'utilisateur a accepté d'explorer un blocage motivationnel/profond APRÈS le bilan.
+    - Tu dois confirmer que c'est noté et qu'on y reviendra.
+    - Si "deferred_continue": continue le bilan normalement en passant à l'item suivant.
+    - Si "deferred_end": le bilan est terminé, la prochaine fois on explorera ce blocage ensemble.
+    - Ton chaleureux, pas clinique.
+    - Exemple: "Ok, je note qu'on revient là-dessus après le bilan. On continue ?"
+    `
+      : ""}
+
+    ${scenario === "vital_logged_transition"
+      ? `
+    SCÉNARIO SPÉCIAL : SIGNE VITAL ENREGISTRÉ + TRANSITION
+    L'utilisateur vient de donner la valeur de son signe vital (sommeil, énergie, humeur, etc.).
+    1. Fais un PETIT COMMENTAIRE PERSONNALISÉ et ENCOURAGEANT sur la valeur reçue.
+       - Contextualise avec l'historique si disponible (tendance, progression).
+       - Exemples: "7h de sommeil, c'est mieux que les derniers jours !", "Énergie à 6, ça se maintient."
+    2. ENCHAÎNE NATURELLEMENT vers la question sur l'item suivant DANS LE MÊME MESSAGE.
+       - Pas de question de confirmation ("on continue ?").
+       - Exemple complet: "7h de sommeil, c'est solide ! Et du côté de [next_item], c'est fait ?"
+    `
+      : ""}
+
+    ${scenario === "action_completed_transition"
+      ? `
+    SCÉNARIO SPÉCIAL : ACTION COMPLÉTÉE + TRANSITION
+    L'utilisateur vient de confirmer qu'il a fait son action.
+    1. FÉLICITE BRIÈVEMENT (adapte l'intensité au contexte : win streak, difficulté).
+       - Si win_streak >= 3 : "Ça fait X jours d'affilée, bravo !"
+       - Sinon : "Top !", "Bien joué !", "Nickel !"
+    2. ENCHAÎNE DIRECTEMENT vers la question sur l'item suivant DANS LE MÊME MESSAGE.
+       - Pas de question de confirmation ("on continue ?").
+       - Exemple: "Top pour la lecture ! Et [next_item], c'est fait aussi ?"
+    `
+      : ""}
+
+    ${scenario === "action_missed_comment_transition"
+      ? `
+    SCÉNARIO SPÉCIAL : ACTION RATÉE (AVEC RAISON) + TRANSITION
+    L'utilisateur a dit qu'il n'a pas fait l'action ET a donné une raison.
+    1. COMMENTE BRIÈVEMENT la raison (valide, reformule, coach).
+       - NE RELANCE PAS de question sur le pourquoi.
+       - Exemples: "Je comprends, le timing était serré.", "Ok, la fatigue ça compte."
+    2. ENCHAÎNE vers l'item suivant DANS LE MÊME MESSAGE.
+       - Exemple: "Je comprends, c'était chargé. Et pour [next_item] ?"
+    NOTE: Si missed_streak >= 5 ET explicit_streak_mention est true, mentionne le streak:
+       - "Ça fait {missed_streak} jours que ça bloque sur [action]. Je comprends [raison]. Et pour [next_item] ?"
     `
       : ""}
 

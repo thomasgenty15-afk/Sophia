@@ -4,6 +4,16 @@ import { handleTracking } from "../lib/tracking.ts"
 import { logEdgeFunctionError } from "../../_shared/error-log.ts"
 import { getUserState, updateUserState } from "../state-manager.ts"
 import { upsertUserProfileFactWithEvent } from "../profile_facts.ts"
+import {
+  getProfileConfirmationState,
+  hasActiveProfileConfirmation,
+  getCurrentFactToConfirm,
+  upsertProfileConfirmation,
+  advanceProfileConfirmation,
+  closeProfileConfirmation,
+  updateProfileConfirmationPhase,
+  type ProfileFactToConfirm,
+} from "../supervisor.ts"
 
 export type CompanionModelOutput =
   | string
@@ -41,23 +51,32 @@ export function buildCompanionSystemPrompt(opts: {
     - Réponds d'abord à ce que l'utilisateur dit.
     - Ensuite, propose UNE relance utile (ou une micro-question) sans changer de sujet.
 
+    ADD-ONS / MACHINES (CRITIQUE) :
+    - Si le contexte contient "=== SESSION TOPIC ACTIVE ===", respecte la phase et reste sur le sujet.
+    - Si le contexte contient "=== ADDON BILAN", applique strictement l'instruction (1 question max).
+    - Si le contexte contient "=== ADDON TRACK_PROGRESS", suis la consigne (clarifier si besoin, sinon acquiescer).
+
     TRACKING :
     - Si l'utilisateur dit qu'il a FAIT une action/habitude: appelle l'outil track_progress (status=completed).
     - S'il dit qu'il ne l'a PAS faite: track_progress (status=missed, value=0).
 
-    USER MODEL (PRÉFÉRENCES) :
-    - Le contexte peut contenir un bloc "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
-    - Ces candidats ne sont PAS des faits: ils doivent être CONFIRMÉS avant d'être écrits.
-    - TU ES LE SEUL mode autorisé à poser ces questions (Companion).
-    - Si des facts existent (tone/verbosity/emojis/plan_push), adapte ton style sans le dire.
+    USER MODEL (PRÉFÉRENCES - 10 types) :
+    - Le contexte peut contenir "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
+    - TU ES LE SEUL mode autorise a poser ces questions (Companion).
+    
+    TYPES DE FAITS: conversation.tone, conversation.verbosity, conversation.use_emojis,
+    schedule.work_hours, schedule.energy_peaks, schedule.wake_time, schedule.sleep_time,
+    personal.job, personal.hobbies, personal.family
+    
+    - Si des facts existent, adapte ton style/timing sans le dire.
     - Si PENDING_CONFIRMATION est non-null:
-      - Interprète la réponse du user.
-      - Si c'est clair: appelle l'outil apply_profile_fact avec la clé + la valeur confirmée.
-      - Si ce n'est pas clair: repose UNE question courte pour clarifier (sans écrire de fact).
+      - Il peut contenir un "proposed_value" (valeur detectee a confirmer).
+      - Si l'utilisateur dit "oui/exact": appelle apply_profile_fact avec la cle + proposed_value.
+      - Si l'utilisateur corrige: appelle apply_profile_fact avec la cle + valeur corrigee.
+      - Si pas clair: repose UNE question courte pour clarifier.
     - Si PENDING_CONFIRMATION est null ET qu'il y a des CANDIDATES:
       - N'interromps pas une conversation importante.
-      - Si le user est dans un moment "low-stakes" (ok/merci/super) et que ta réponse n'a pas déjà une question,
-        tu peux poser UNE question de confirmation sur le candidat le plus important.
+      - Si moment "low-stakes", tu peux poser UNE question de confirmation.
       - Quand tu poses la question, appelle set_profile_confirm_pending (key, scope).
 
     DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 120)}..."
@@ -92,17 +111,38 @@ export function buildCompanionSystemPrompt(opts: {
       - Puis 1 question courte (oui/non ou A/B).
       - Interdiction des paragraphes longs.
 
-    USER MODEL (PRÉFÉRENCES) :
-    - Le contexte peut contenir un bloc "=== USER MODEL (FACTS) ===" et/ou "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
-    - Si des facts existent (tone/verbosity/emojis/plan_push), adapte ton style sans le dire.
+    ADD-ONS / MACHINES (CRITIQUE) :
+    - Si le contexte contient "=== SESSION TOPIC ACTIVE ===", respecte la phase et reste sur le sujet.
+    - Si le contexte contient "=== ADDON BILAN", applique strictement l'instruction (1 question max).
+    - Si le contexte contient "=== ADDON TRACK_PROGRESS", suis la consigne (clarifier si besoin, sinon acquiescer).
+
+    USER MODEL (PRÉFÉRENCES - 10 types) :
+    - Le contexte peut contenir "=== USER MODEL (FACTS) ===" et/ou "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
+    
+    TYPES DE FAITS PERSONNELS (10):
+    1. conversation.tone: ton de communication ("direct", "doux", "cash")
+    2. conversation.verbosity: longueur des reponses ("concis", "detaille")
+    3. conversation.use_emojis: preference emojis ("avec", "sans", "peu")
+    4. schedule.work_hours: horaires de travail ("9h-18h", "mi-temps")
+    5. schedule.energy_peaks: moments d'energie ("matin", "soir")
+    6. schedule.wake_time: heure de reveil ("6h30", "7h")
+    7. schedule.sleep_time: heure de coucher ("23h", "minuit")
+    8. personal.job: metier ("developpeur", "medecin")
+    9. personal.hobbies: loisirs ("course", "lecture")
+    10. personal.family: situation familiale ("2 enfants", "celibataire")
+    
+    - Si des facts existent, adapte ton style/timing sans le dire.
     - Si PENDING_CONFIRMATION est non-null:
-      - Interprète la réponse du user.
-      - Si c'est clair: appelle l'outil apply_profile_fact avec la clé + la valeur confirmée.
-      - Si ce n'est pas clair: repose UNE question courte pour clarifier (sans écrire de fact).
+      - Il peut contenir un "proposed_value" (valeur detectee a confirmer).
+      - Interprète la reponse du user par rapport a ce proposed_value.
+      - Si l'utilisateur dit "oui/exact/c'est ca": appelle apply_profile_fact avec la cle + proposed_value.
+      - Si l'utilisateur corrige: appelle apply_profile_fact avec la cle + valeur corrigee.
+      - Si pas clair: repose UNE question courte pour clarifier.
+      - EXEMPLE: Si pending = {key: "schedule.wake_time", proposed_value: "6h30"} et user dit "oui"
+        -> appelle apply_profile_fact(key="schedule.wake_time", value="6h30")
     - Si PENDING_CONFIRMATION est null ET qu'il y a des CANDIDATES:
       - N'interromps pas une conversation importante.
-      - Si le user est dans un moment "low-stakes" (ok/merci/super) et que ta réponse n'a pas déjà une question,
-        tu peux poser UNE question de confirmation sur le candidat le plus important.
+      - Si moment "low-stakes" (ok/merci/super), tu peux poser UNE question de confirmation.
       - Quand tu poses la question, appelle set_profile_confirm_pending (key, scope).
 
     ONBOARDING / CONTEXTE (CRITIQUE) :
@@ -116,8 +156,28 @@ export function buildCompanionSystemPrompt(opts: {
   return basePrompt
 }
 
+/**
+ * Options for retrieveContext
+ */
+export interface RetrieveContextOptions {
+  /** Maximum number of memory results (default: 5) */
+  maxResults?: number
+  /** Whether to include action history (default: true) */
+  includeActionHistory?: boolean
+}
+
 // RAG Helper EXPORTÉ (Utilisé par le router)
-export async function retrieveContext(supabase: SupabaseClient, userId: string, message: string): Promise<string> {
+export async function retrieveContext(
+  supabase: SupabaseClient, 
+  userId: string, 
+  message: string,
+  opts?: RetrieveContextOptions
+): Promise<string> {
+  const maxResults = opts?.maxResults ?? 5
+  const includeActionHistory = opts?.includeActionHistory ?? true
+  // For minimal mode (firefighter), we limit action history too
+  const actionResultsCount = maxResults <= 2 ? 1 : 3
+  
   let contextString = "";
   try {
     const embedding = await generateEmbedding(message);
@@ -131,14 +191,14 @@ export async function retrieveContext(supabase: SupabaseClient, userId: string, 
       target_user_id: userId,
       query_embedding: embedding,
       match_threshold: 0.65,
-      match_count: 5,
+      match_count: maxResults,
       filter_status: ["consolidated"],
     } as any);
     const { data: memoriesFallback } = memErr
       ? await supabase.rpc('match_memories', {
         query_embedding: embedding,
         match_threshold: 0.65,
-        match_count: 5,
+        match_count: maxResults,
         filter_status: ["consolidated"],
       } as any)
       : ({ data: null } as any);
@@ -154,29 +214,32 @@ export async function retrieveContext(supabase: SupabaseClient, userId: string, 
 
     // 2. Historique des Actions (Action Entries)
     // On cherche si des actions passées (réussites ou échecs) sont pertinentes pour la discussion
-    const { data: actionEntries, error: actErr } = await supabase.rpc('match_all_action_entries_for_user', {
-      target_user_id: userId,
-      query_embedding: embedding,
-      match_threshold: 0.60,
-      match_count: 3,
-    } as any);
-    const { data: actionEntriesFallback } = actErr
-      ? await supabase.rpc('match_all_action_entries', {
+    // Skip for minimal mode (firefighter) if explicitly disabled
+    if (includeActionHistory) {
+      const { data: actionEntries, error: actErr } = await supabase.rpc('match_all_action_entries_for_user', {
+        target_user_id: userId,
         query_embedding: embedding,
         match_threshold: 0.60,
-        match_count: 3,
-      } as any)
-      : ({ data: null } as any);
-    const effectiveActionEntries = (actErr ? actionEntriesFallback : actionEntries) as any[] | null;
+        match_count: actionResultsCount,
+      } as any);
+      const { data: actionEntriesFallback } = actErr
+        ? await supabase.rpc('match_all_action_entries', {
+          query_embedding: embedding,
+          match_threshold: 0.60,
+          match_count: actionResultsCount,
+        } as any)
+        : ({ data: null } as any);
+      const effectiveActionEntries = (actErr ? actionEntriesFallback : actionEntries) as any[] | null;
 
-    if (effectiveActionEntries && effectiveActionEntries.length > 0) {
-        contextString += "=== HISTORIQUE DES ACTIONS PERTINENTES ===\n"
-        contextString += effectiveActionEntries.map((e: any) => {
-             const dateStr = new Date(e.performed_at).toLocaleDateString('fr-FR');
-             const statusIcon = e.status === 'completed' ? '✅' : '❌';
-             return `[${dateStr}] ${statusIcon} ${e.action_title} : "${e.note || 'Pas de note'}"`;
-        }).join('\n');
-        contextString += "\n\n";
+      if (effectiveActionEntries && effectiveActionEntries.length > 0) {
+          contextString += "=== HISTORIQUE DES ACTIONS PERTINENTES ===\n"
+          contextString += effectiveActionEntries.map((e: any) => {
+               const dateStr = new Date(e.performed_at).toLocaleDateString('fr-FR');
+               const statusIcon = e.status === 'completed' ? '✅' : '❌';
+               return `[${dateStr}] ${statusIcon} ${e.action_title} : "${e.note || 'Pas de note'}"`;
+          }).join('\n');
+          contextString += "\n\n";
+      }
     }
 
     return contextString;
@@ -288,13 +351,55 @@ function normalizeProfileFactKey(rawKey: string): string {
   return k;
 }
 
+/**
+ * Map dispatcher profile fact types to database keys.
+ * Dispatcher uses simple types, DB uses prefixed keys.
+ */
+const PROFILE_FACT_TYPE_TO_DB_KEY: Record<string, string> = {
+  // Conversation preferences
+  "tone_preference": "conversation.tone",
+  "verbosity": "conversation.verbosity",
+  "emoji_preference": "conversation.use_emojis",
+  // Schedule & energy
+  "work_schedule": "schedule.work_hours",
+  "energy_peaks": "schedule.energy_peaks",
+  "wake_time": "schedule.wake_time",
+  "sleep_time": "schedule.sleep_time",
+  // Personal info
+  "job": "personal.job",
+  "hobbies": "personal.hobbies",
+  "family": "personal.family",
+}
+
+/**
+ * All 10 allowed profile fact keys (database format).
+ */
+const ALLOWED_PROFILE_FACT_KEYS = new Set([
+  // Conversation preferences (original 4)
+  "conversation.tone",
+  "conversation.verbosity",
+  "conversation.use_emojis",
+  "coaching.plan_push_allowed",
+  // Schedule & energy (new)
+  "schedule.work_hours",
+  "schedule.energy_peaks",
+  "schedule.wake_time",
+  "schedule.sleep_time",
+  // Personal info (new)
+  "personal.job",
+  "personal.hobbies",
+  "personal.family",
+])
+
 function isAllowedProfileFactKey(key: string): boolean {
-  return new Set([
-    "conversation.tone",
-    "conversation.verbosity",
-    "conversation.use_emojis",
-    "coaching.plan_push_allowed",
-  ]).has(String(key ?? "").trim());
+  return ALLOWED_PROFILE_FACT_KEYS.has(String(key ?? "").trim());
+}
+
+/**
+ * Convert dispatcher profile fact type to database key.
+ */
+function profileFactTypeToDbKey(factType: string): string | null {
+  return PROFILE_FACT_TYPE_TO_DB_KEY[factType] ?? null
 }
 
 export async function generateCompanionModelOutput(opts: {
@@ -389,26 +494,26 @@ export async function handleCompanionModelOutput(opts: {
         source: "sophia-brain:companion",
         metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, channel: meta?.channel ?? "web" },
       })
-      // Quality/ops log
+      // Best-effort eval trace (during eval runs only).
       try {
-        await supabase.from("conversation_judge_events").insert({
-          user_id: userId,
-          scope: null,
-          channel: meta?.channel ?? "web",
-          agent_used: "companion",
-          verifier_kind: "tool_execution_fallback",
-          request_id: meta?.requestId ?? null,
-          model: null,
-          ok: null,
-          rewritten: null,
-          issues: ["tool_execution_failed_unexpected"],
-          mechanical_violations: [],
-          draft_len: null,
-          final_len: null,
-          draft_hash: null,
-          final_hash: null,
-          metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, err: errMsg.slice(0, 240) },
-        } as any)
+        const { logVerifierEvalEvent } = await import("../lib/verifier_eval_log.ts")
+        const rid = String(meta?.requestId ?? "").trim()
+        if (rid) {
+          await logVerifierEvalEvent({
+            supabase: supabase as any,
+            requestId: rid,
+            source: "sophia-brain:verifier",
+            event: "verifier_tool_execution_fallback",
+            level: "warn",
+            payload: {
+              verifier_kind: "verifier_1:tool_execution_fallback",
+              agent_used: "companion",
+              channel: meta?.channel ?? "web",
+              tool_name: toolName,
+              err: errMsg.slice(0, 240),
+            },
+          })
+        }
       } catch {}
       return {
         text: `Ok, j’ai eu un souci technique en notant ça.\n\nDis “retente” et je réessaie.`,
@@ -425,22 +530,28 @@ export async function handleCompanionModelOutput(opts: {
     const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
     const resolvedScope = rawScope === "global" ? "global" : scope
     const reason = String(args?.reason ?? "")
+    const proposedValue = typeof (args as any)?.proposed_value === "string"
+      ? String((args as any)?.proposed_value)
+      : ""
     let toolExecution: "success" | "uncertain" = "success"
     if (key) {
       try {
         const st = await getUserState(supabase, userId, scope)
         const tm0 = (st as any)?.temp_memory ?? {}
-        const now = new Date().toISOString()
-        const confirm = (tm0 as any)?.user_profile_confirm ?? {}
-        const tmNext = {
-          ...tm0,
-          user_profile_confirm: {
-            ...(confirm ?? {}),
-            pending: { candidate_id: candidateId, key, scope: resolvedScope, asked_at: now, reason },
-            last_asked_at: now,
-          },
+        const now = new Date()
+        const fact: ProfileFactToConfirm = {
+          key,
+          proposed_value: proposedValue,
+          confidence: 0.6,
+          detected_at: now.toISOString(),
         }
-        await updateUserState(supabase, userId, scope, { temp_memory: tmNext })
+        const result = upsertProfileConfirmation({ tempMemory: tm0, factsToAdd: [fact], now })
+        const phaseResult = updateProfileConfirmationPhase({
+          tempMemory: result.tempMemory,
+          phase: "awaiting_confirm",
+          now,
+        })
+        await updateUserState(supabase, userId, scope, { temp_memory: phaseResult.tempMemory })
 
         // Mark candidate as "asked" (best-effort, by id if available)
         if (candidateId) {
@@ -548,14 +659,29 @@ export async function handleCompanionModelOutput(opts: {
           .neq("proposed_value", value as any)
           .in("status", ["pending", "asked"])
 
-        // Clear pending (state machine)
+        // Clear pending and advance profile confirmation machine
         const st = await getUserState(supabase, userId, scope)
         const tm0 = (st as any)?.temp_memory ?? {}
-        const confirm = (tm0 as any)?.user_profile_confirm ?? {}
-        const tmNext = {
-          ...tm0,
-          user_profile_confirm: { ...(confirm ?? {}), pending: null },
+        
+        // Check if we're using the new machine
+        const hasActiveMachine = hasActiveProfileConfirmation(tm0)
+        let tmNext = { ...tm0 }
+        
+        if (hasActiveMachine) {
+          // Advance to next fact in the machine
+          const advanceResult = advanceProfileConfirmation({ tempMemory: tmNext })
+          tmNext = advanceResult.tempMemory
+          
+          if (advanceResult.completed) {
+            // Machine completed - close it
+            const closeResult = closeProfileConfirmation({ tempMemory: tmNext })
+            tmNext = closeResult.tempMemory
+            console.log("[Companion] Profile confirmation machine completed")
+          } else if (advanceResult.nextFact) {
+            console.log(`[Companion] Profile confirmation machine advanced, next fact: ${advanceResult.nextFact.key}`)
+          }
         }
+        
         await updateUserState(supabase, userId, scope, { temp_memory: tmNext })
       } catch (e) {
         console.warn("[Companion] apply_profile_fact failed (non-blocking):", e)

@@ -1,4 +1,17 @@
 import { generateWithGemini } from "../../_shared/gemini.ts"
+import type { 
+  EnrichedDeferredTopic, 
+  DeepReasonsPattern,
+  DeepReasonsDeferredContext 
+} from "../agents/architect/deep_reasons_types.ts"
+import { 
+  createDeepReasonsDeferredTopic,
+  isDeepReasonsDeferredTopic 
+} from "../agents/architect/deep_reasons_types.ts"
+
+// Re-export types for convenience
+export type { EnrichedDeferredTopic, DeepReasonsPattern, DeepReasonsDeferredContext }
+export { createDeepReasonsDeferredTopic, isDeepReasonsDeferredTopic }
 
 /**
  * VALIDATE + FORMALIZE a potential deferred topic using AI.
@@ -278,41 +291,6 @@ export function isValidDeferredTopic(topic: string): boolean {
   // Or be long enough to likely be meaningful
   return hasRealSubject || t.length >= 15
 }
-
-export function appendDeferredTopicToState(currentState: any, topic: string): any {
-  const prev = currentState?.temp_memory?.deferred_topics ?? []
-  const t = String(topic ?? "").trim()
-  if (!t) return currentState
-  
-  // STRICT VALIDATION: reject invalid/noise topics
-  if (!isValidDeferredTopic(t)) {
-    console.warn(`[deferred_topics] Rejecting invalid topic: "${t.slice(0, 50)}"`)
-    return currentState
-  }
-  
-  const norm = (x: unknown) =>
-    String(x ?? "")
-      .toLowerCase()
-      .replace(/["""']/g, "")
-      .replace(/\s+/g, " ")
-      .trim()
-  const tN = norm(t)
-  
-  const exists =
-    Array.isArray(prev) &&
-    prev.some((x: any) => {
-      const xN = norm(x)
-      return xN === tN || xN.includes(tN) || tN.includes(xN)
-    })
-  const nextTopics = exists ? prev : [...(Array.isArray(prev) ? prev : []), t.slice(0, 120)]
-  // Keep the list bounded (avoid loops).
-  const bounded = Array.isArray(nextTopics) ? nextTopics.slice(-3) : nextTopics
-  return {
-    ...(currentState ?? {}),
-    temp_memory: { ...((currentState ?? {})?.temp_memory ?? {}), deferred_topics: bounded },
-  }
-}
-
 
 
 

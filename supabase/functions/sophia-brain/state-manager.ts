@@ -113,35 +113,262 @@ export async function getCoreIdentity(supabase: SupabaseClient, userId: string):
   return data.map(d => `[IDENTITÉ PROFONDE - ${d.week_id.toUpperCase()}]\n${d.content}`).join('\n\n')
 }
 
+// ============================================================================
+// CONTEXT MODULAIRE - Nouvelles fonctions granulaires
+// ============================================================================
+
+/**
+ * Métadonnées du plan actif (version légère, ~200 tokens)
+ */
+export interface PlanMetadataResult {
+  id: string
+  title: string | null
+  status: string
+  current_phase: number | null
+  deep_why: string | null
+  inputs_why: string | null
+  inputs_context: string | null
+  inputs_blockers: string | null
+  recraft_reason: string | null
+}
+
+export async function getPlanMetadata(
+  supabase: SupabaseClient, 
+  userId: string
+): Promise<PlanMetadataResult | null> {
+  const { data: activePlan } = await supabase
+    .from('user_plans')
+    .select('id, status, current_phase, title, deep_why, inputs_why, inputs_context, inputs_blockers, recraft_reason')
+    .eq('user_id', userId)
+    .in('status', ['active', 'in_progress', 'pending'])
+    .order('created_at', { ascending: false })
+    .limit(1)
+    .maybeSingle()
+
+  return activePlan as PlanMetadataResult | null
+}
+
+/**
+ * Formate les métadonnées du plan en string pour le prompt (~200 tokens)
+ */
+export function formatPlanMetadata(plan: PlanMetadataResult | null): string {
+  if (!plan) {
+    return `=== ÉTAT DU COMPTE ===\n- AUCUN PLAN DE TRANSFORMATION ACTIF.\n- L'utilisateur n'a pas encore fait son questionnaire ou activé un plan.\n`
+  }
+  
+  let ctx = `=== PLAN ACTUEL ===\n`
+  ctx += `Titre: ${plan.title || 'Sans titre'}\n`
+  ctx += `Statut: ${plan.status || 'unknown'}\n`
+  if (plan.current_phase != null) ctx += `Phase: ${plan.current_phase}\n`
+  ctx += `Pourquoi (Deep Why): ${plan.deep_why || plan.inputs_why || 'Non défini'}\n`
+  if (plan.inputs_context) ctx += `Contexte: ${plan.inputs_context}\n`
+  if (plan.inputs_blockers) ctx += `Blocages: ${plan.inputs_blockers}\n`
+  if (plan.recraft_reason) ctx += `Pivot récent: ${plan.recraft_reason}\n`
+  
+  return ctx
+}
+
+/**
+ * JSON complet du plan (lourd - à charger uniquement si nécessaire)
+ */
+export async function getPlanFullJson(
+  supabase: SupabaseClient, 
+  planId: string
+): Promise<object | null> {
+  const { data } = await supabase
+    .from('user_plans')
+    .select('content')
+    .eq('id', planId)
+    .maybeSingle()
+
+  return (data as any)?.content ?? null
+}
+
+/**
+ * Formate le JSON complet du plan pour le prompt
+ */
+export function formatPlanJson(content: object | null): string {
+  if (!content) return ""
+  return `DÉTAIL COMPLET DU PLAN (Structure JSON):\n${JSON.stringify(content, null, 2)}\n`
+}
+
+/**
+ * Résumé des actions (titres + status uniquement, ~100-300 tokens)
+ */
+export interface ActionSummary {
+  title: string
+  status: string
+  time_of_day?: string
+  type: string
+}
+
+export async function getActionsSummary(
+  supabase: SupabaseClient, 
+  userId: string, 
+  planId: string
+): Promise<{ actions: ActionSummary[], frameworks: ActionSummary[] }> {
+  const [{ data: actions }, { data: frameworks }] = await Promise.all([
+    supabase
+      .from('user_actions')
+      .select('title, status, time_of_day, type')
+      .eq('user_id', userId)
+      .eq('plan_id', planId)
+      .in('status', ['active', 'pending']),
+    supabase
+      .from('user_framework_tracking')
+      .select('title, status, type')
+      .eq('user_id', userId)
+      .eq('plan_id', planId)
+      .in('status', ['active', 'pending']),
+  ])
+
+  return {
+    actions: (actions ?? []) as ActionSummary[],
+    frameworks: (frameworks ?? []) as ActionSummary[],
+  }
+}
+
+/**
+ * Formate le résumé des actions pour le prompt (version légère)
+ */
+export function formatActionsSummary(
+  data: { actions: ActionSummary[], frameworks: ActionSummary[] }
+): string {
+  const { actions, frameworks } = data
+  
+  const activeA = actions.filter(a => a.status === 'active')
+  const pendingA = actions.filter(a => a.status === 'pending')
+  const activeF = frameworks.filter(f => f.status === 'active')
+  const pendingF = frameworks.filter(f => f.status === 'pending')
+  
+  const total = activeA.length + pendingA.length + activeF.length + pendingF.length
+  if (total === 0) return ""
+  
+  let ctx = `=== ACTIONS (${activeA.length + activeF.length} actives, ${pendingA.length + pendingF.length} pending) ===\n`
+  
+  if (activeA.length + activeF.length > 0) {
+    ctx += `Actives:\n`
+    for (const a of activeA) ctx += `- ${a.title}${a.time_of_day ? ` (${a.time_of_day})` : ''}\n`
+    for (const f of activeF) ctx += `- [F] ${f.title}\n`
+  }
+  
+  if (pendingA.length + pendingF.length > 0) {
+    ctx += `Pending:\n`
+    for (const a of pendingA) ctx += `- ${a.title}${a.time_of_day ? ` (${a.time_of_day})` : ''}\n`
+    for (const f of pendingF) ctx += `- [F] ${f.title}\n`
+  }
+  
+  return ctx
+}
+
+/**
+ * Détails complets des actions (pour opérations - plus lourd)
+ */
+export async function getActionsDetails(
+  supabase: SupabaseClient, 
+  userId: string, 
+  planId: string
+): Promise<string> {
+  const [{ data: actions }, { data: frameworks }] = await Promise.all([
+    supabase
+      .from('user_actions')
+      .select('title, status, time_of_day, type, tracking_type, description, scheduled_days, is_habit, target')
+      .eq('user_id', userId)
+      .eq('plan_id', planId)
+      .in('status', ['active', 'pending']),
+    supabase
+      .from('user_framework_tracking')
+      .select('title, status, type, tracking_type, description')
+      .eq('user_id', userId)
+      .eq('plan_id', planId)
+      .in('status', ['active', 'pending']),
+  ])
+
+  const activeA = (actions ?? []).filter((a: any) => a.status === 'active')
+  const pendingA = (actions ?? []).filter((a: any) => a.status === 'pending')
+  const activeF = (frameworks ?? []).filter((f: any) => f.status === 'active')
+  const pendingF = (frameworks ?? []).filter((f: any) => f.status === 'pending')
+
+  if (activeA.length + pendingA.length + activeF.length + pendingF.length === 0) return ""
+
+  let context = `=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\n`
+  context += `RÈGLES IMPORTANTES:\n`
+  context += `- Les frameworks comptent comme des actions côté utilisateur.\n`
+  context += `- "active" = activée et visible comme active dans l'app. "pending" = pas active.\n`
+  context += `- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\n`
+
+  context += `Actives (${activeA.length + activeF.length}):\n`
+  for (const a of activeA) {
+    context += `- [ACTION] ${a.title} (${(a as any).time_of_day})`
+    if ((a as any).scheduled_days?.length) context += ` - jours: ${(a as any).scheduled_days.join(', ')}`
+    if ((a as any).is_habit) context += ` - habitude: ${(a as any).target}×/sem`
+    context += `\n`
+  }
+  for (const f of activeF) context += `- [FRAMEWORK] ${f.title}\n`
+  context += `\n`
+
+  if (pendingA.length + pendingF.length > 0) {
+    context += `Non actives / pending (${pendingA.length + pendingF.length}):\n`
+    for (const a of pendingA) context += `- [ACTION] ${a.title} (${(a as any).time_of_day})\n`
+    for (const f of pendingF) context += `- [FRAMEWORK] ${f.title}\n`
+    context += `\n`
+  }
+
+  return context
+}
+
+/**
+ * Signes vitaux
+ */
+export async function getVitalSignsContext(
+  supabase: SupabaseClient, 
+  userId: string
+): Promise<string> {
+  const { data: vitals } = await supabase
+    .from('user_vital_signs')
+    .select('label, current_value, unit')
+    .eq('user_id', userId)
+    .eq('status', 'active')
+
+  if (!vitals || vitals.length === 0) return ""
+
+  let context = `=== SIGNES VITAUX ===\n`
+  for (const v of vitals) {
+    context += `- ${v.label}: ${v.current_value || '?'} ${v.unit || ''}\n`
+  }
+  return context
+}
+
+// ============================================================================
+// LEGACY - getDashboardContext (pour rétrocompatibilité)
+// ============================================================================
+
+/**
+ * @deprecated Utiliser les fonctions modulaires à la place
+ * Conservé pour rétrocompatibilité pendant la transition
+ */
 export async function getDashboardContext(supabase: SupabaseClient, userId: string): Promise<string> {
   let context = "";
 
   // 1. ACTIVE PLAN
-  const { data: activePlan } = await supabase
-    .from('user_plans')
-    .select('id, status, current_phase, title, deep_why, inputs_why, inputs_context, inputs_blockers, recraft_reason, content')
-    .eq('user_id', userId)
-    .in('status', ['active', 'in_progress', 'pending']) // Accepte tous les statuts "vivants"
-    .order('created_at', { ascending: false }) // Prend le plus récent si plusieurs
-    .limit(1)
-    .maybeSingle();
+  const planMeta = await getPlanMetadata(supabase, userId)
 
-  if (activePlan) {
+  if (planMeta) {
     context += `=== PLAN ACTUEL (Tableau de Bord) ===\n`;
-    context += `Titre: ${activePlan.title || 'Sans titre'}\n`;
-    context += `Statut: ${activePlan.status || 'unknown'}\n`;
-    if (activePlan.current_phase != null) context += `Phase courante (dashboard): ${activePlan.current_phase}\n`;
-    context += `Pourquoi (Deep Why): ${activePlan.deep_why || activePlan.inputs_why}\n`;
+    context += `Titre: ${planMeta.title || 'Sans titre'}\n`;
+    context += `Statut: ${planMeta.status || 'unknown'}\n`;
+    if (planMeta.current_phase != null) context += `Phase courante (dashboard): ${planMeta.current_phase}\n`;
+    context += `Pourquoi (Deep Why): ${planMeta.deep_why || planMeta.inputs_why}\n`;
     
-    if (activePlan.inputs_context) context += `Contexte Initial: ${activePlan.inputs_context}\n`;
-    if (activePlan.inputs_blockers) context += `Blocages identifiés: ${activePlan.inputs_blockers}\n`;
-    if (activePlan.recraft_reason) context += `Pivot récent: ${activePlan.recraft_reason}\n`;
+    if (planMeta.inputs_context) context += `Contexte Initial: ${planMeta.inputs_context}\n`;
+    if (planMeta.inputs_blockers) context += `Blocages identifiés: ${planMeta.inputs_blockers}\n`;
+    if (planMeta.recraft_reason) context += `Pivot récent: ${planMeta.recraft_reason}\n`;
 
-    // Injection intelligente du JSON Content
-    if (activePlan.content) {
+    // Injection intelligente du JSON Content (legacy behavior - toujours charger)
+    const planContent = await getPlanFullJson(supabase, planMeta.id)
+    if (planContent) {
         context += `DÉTAIL COMPLET DU PLAN (Structure JSON) :\n`;
-        // On envoie TOUT le contenu pour que l'IA ait une vision parfaite
-        context += JSON.stringify(activePlan.content, null, 2);
+        context += JSON.stringify(planContent, null, 2);
     }
     context += `\n`;
   } else {
@@ -151,65 +378,12 @@ export async function getDashboardContext(supabase: SupabaseClient, userId: stri
   }
 
   // 2. ACTIONS / FRAMEWORKS (live DB state)
-  // Important: frameworks are also "actions" in the user experience, but are stored separately in DB.
-  // Also: "active" vs "pending" must be taken from DB (dashboard is the only activation surface).
-  const planId = (activePlan as any)?.id as string | undefined
-  if (planId) {
-    const [{ data: actions }, { data: frameworks }] = await Promise.all([
-      supabase
-        .from('user_actions')
-        .select('title, status, time_of_day, type, tracking_type')
-        .eq('user_id', userId)
-        .eq('plan_id', planId)
-        .in('status', ['active', 'pending']),
-      supabase
-        .from('user_framework_tracking')
-        .select('title, status, type, tracking_type')
-        .eq('user_id', userId)
-        .eq('plan_id', planId)
-        .in('status', ['active', 'pending']),
-    ])
-
-    const activeA = (actions ?? []).filter((a: any) => a.status === 'active')
-    const pendingA = (actions ?? []).filter((a: any) => a.status === 'pending')
-    const activeF = (frameworks ?? []).filter((f: any) => f.status === 'active')
-    const pendingF = (frameworks ?? []).filter((f: any) => f.status === 'pending')
-
-    if (activeA.length + pendingA.length + activeF.length + pendingF.length > 0) {
-      context += `=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\n`
-      context += `RÈGLES IMPORTANTES:\n`
-      context += `- Les frameworks comptent comme des actions côté utilisateur.\n`
-      context += `- "active" = activée et visible comme active dans l'app. "pending" = pas active.\n`
-      context += `- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\n`
-
-      context += `Actives (${activeA.length + activeF.length}):\n`
-      for (const a of activeA) context += `- [ACTION] ${a.title} (${a.time_of_day})\n`
-      for (const f of activeF) context += `- [FRAMEWORK] ${f.title}\n`
-      context += `\n`
-
-      if (pendingA.length + pendingF.length > 0) {
-        context += `Non actives / pending (${pendingA.length + pendingF.length}):\n`
-        for (const a of pendingA) context += `- [ACTION] ${a.title} (${a.time_of_day})\n`
-        for (const f of pendingF) context += `- [FRAMEWORK] ${f.title}\n`
-        context += `\n`
-      }
-    }
+  if (planMeta?.id) {
+    context += await getActionsDetails(supabase, userId, planMeta.id)
   }
 
-  // 3. VITAL SIGNS (Derniers relevés)
-  // On récupère aussi le nom du vital sign via une jointure si possible, sinon on fera avec l'ID
-  const { data: vitals } = await supabase
-    .from('user_vital_signs')
-    .select('label, current_value, unit')
-    .eq('user_id', userId)
-    .eq('status', 'active');
-
-  if (vitals && vitals.length > 0) {
-      context += `=== SIGNES VITAUX (État Actuel) ===\n`;
-      vitals.forEach(v => {
-          context += `- ${v.label}: ${v.current_value || '?'} ${v.unit || ''}\n`;
-      });
-  }
+  // 3. VITAL SIGNS
+  context += await getVitalSignsContext(supabase, userId)
 
   return context;
 }

@@ -1,0 +1,84 @@
+{
+  "dataset_key": "state_machines_v2",
+  "id": "bilan_deferred_topic_v2_ai_user",
+  "description": "V2: Bilan avec deferred topic. User mentionne un sujet personnel pendant le checkup → capturé dans deferred_topics_v2 → relancé après le bilan. Teste l'identification de topic pendant machine active.",
+  "tags": ["bilan", "investigator", "deferred_topics", "v2", "state_machine", "ai_user"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 3,
+    "test_post_checkup_deferral": true,
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "frequency": 3,
+        "active": true
+      },
+      {
+        "title": "Lecture 20 pages",
+        "frequency": 5,
+        "active": true
+      },
+      {
+        "title": "Méditation 10 min",
+        "frequency": 7,
+        "active": true
+      }
+    ],
+    "preseed_action_entries": [
+      { "action_title": "Sport 30 min", "status": "done", "days_ago": 1 },
+      { "action_title": "Lecture 20 pages", "status": "skipped", "days_ago": 1 },
+      { "action_title": "Méditation 10 min", "status": "done", "days_ago": 1 }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur organisé avec digression RH",
+    "age_range": "30-45",
+    "style": "oral, naturel, fait des apartés pendant le bilan, revient au sujet",
+    "background": "Je fais mon bilan régulièrement. Aujourd'hui j'ai un problème avec mon manager qui me trotte dans la tête. Je vais le mentionner pendant le bilan mais je veux quand même finir mon check d'abord."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_with_deferred_topic_v2",
+      "spec": {
+        "deferred_topic": "problème avec mon manager au travail qui me met la pression",
+        "actions_status": {
+          "Sport 30 min": "done",
+          "Lecture 20 pages": "skipped",
+          "Méditation 10 min": "done"
+        },
+        "phase_sequence": [
+          "start_bilan",
+          "answer_action_1_done",
+          "mention_manager_topic_mid_bilan",
+          "accept_defer_continue_bilan",
+          "answer_action_2_skipped",
+          "answer_action_3_done",
+          "finish_bilan",
+          "expect_topic_resurface"
+        ],
+        "notes": "Le topic 'manager' doit être capturé pendant le bilan et relancé après. Sophia ne doit PAS explorer le topic pendant le bilan actif."
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["investigator"],
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "chat_state_temp_memory_paths_exist": [
+      "supervisor.updated_at"
+    ],
+    "assistant_must_match": [
+      "bilan|check",
+      "manager|travail"
+    ],
+    "scheduler_invariants": [
+      "bilan_active_implies_investigator",
+      "sessions_have_resume_brief"
+    ],
+    "completion_conditions": {
+      "deferred_topics_surfaced": true
+    }
+  }
+}
+

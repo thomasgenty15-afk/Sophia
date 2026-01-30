@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { ChevronDown, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { SophiaAssistantModal } from '../components/SophiaAssistantModal';
 import OnboardingProgress from '../components/OnboardingProgress';
@@ -66,6 +67,20 @@ const GlobalPlanFollow = () => {
     detailAnswers: {},
     otherAnswers: {},
   });
+
+  type AssistantContextV1 = {
+    version: 1;
+    mode: 'specific' | 'general';
+    input: {
+      improvement: string;
+      obstacles: string;
+      other: string;
+    };
+    output: any; // { recommendations, globalMessage, ... }
+    created_at: string;
+  };
+
+  const [assistantContext, setAssistantContext] = useState<AssistantContextV1 | null>(null);
 
   // --- CHARGEMENT & SAUVEGARDE PROGRESSION ---
   
@@ -199,7 +214,12 @@ const GlobalPlanFollow = () => {
                          }
                      }
                  }
-                 if (uiState.responses) setResponses(uiState.responses);
+                if (uiState.responses) setResponses(uiState.responses);
+                const restoredAssistant =
+                  (savedData as any)?.assistant_context ||
+                  (uiState as any)?.assistant_context ||
+                  (uiState as any)?.assistantContext;
+                if (restoredAssistant) setAssistantContext(restoredAssistant);
              }
         } else if (isNewGlobalMode) {
              // Si mode new mais pas de réponse trouvée (cas rare si Dashboard a bien fait son job, mais possible en direct)
@@ -366,8 +386,12 @@ const GlobalPlanFollow = () => {
               // Pour l'UI : État brut pour restauration facile
               ui_state: {
                   selectedAxisByTheme,
-                  responses
+                  responses,
+                  assistant_context: assistantContext
               },
+
+              // Mémoire Sophia (si utilisée)
+              assistant_context: assistantContext,
               
               // Méta
               last_updated: new Date().toISOString()
@@ -501,7 +525,7 @@ const GlobalPlanFollow = () => {
   // --- SOPHIA ASSISTANT LOGIC ---
   const [showAssistant, setShowAssistant] = useState(false);
 
-  const handleAssistantAnalysis = async ({ answers, setStep, setRecommendationResult }: any) => {
+  const handleAssistantAnalysis = async ({ answers, mode, setStep, setRecommendationResult }: any) => {
     setStep('loading');
     
     try {
@@ -518,20 +542,38 @@ const GlobalPlanFollow = () => {
         }));
 
         // 2. Appel Edge Function
+        const reqId = newRequestId();
         const { data, error } = await supabase.functions.invoke('recommend-transformations', {
             body: { 
                 userAnswers: answers,
                 availableTransformations: catalog
-            }
+            },
+            headers: requestHeaders(reqId),
         });
 
         if (error) throw error;
         if (!data || !data.recommendations) throw new Error("Format de réponse invalide");
 
+        // 2.5. Mémoriser (pondération élevée dans les prompts suivants)
+        setAssistantContext({
+            version: 1,
+            mode: mode === 'specific' || mode === 'general' ? mode : 'general',
+            input: {
+                improvement: String((answers as any)?.improvement ?? ''),
+                obstacles: String((answers as any)?.obstacles ?? ''),
+                other: String((answers as any)?.other ?? ''),
+            },
+            output: data,
+            created_at: new Date().toISOString(),
+        });
+
         // 3. Appliquer les changements (Magie)
-        const newAxisSelection = { ...selectedAxisByTheme };
-        let newProblemsIds = [...responses.selectedProblemsIds];
-        
+        // RESET : On repart d'une sélection vierge pour éviter de cumuler (ex: 1 manuel + 3 recommandés = 4)
+        const newAxisSelection: Record<string, string | null> = {};
+        // On garde les problèmes sélectionnés qui sont pertinents pour les nouveaux axes (ou on reset aussi ?)
+        // Pour être propre, on reset aussi les problèmes et on ne prend que ceux de l'IA.
+        let newProblemsIds: string[] = [];
+
         data.recommendations.forEach((rec: any) => {
             // A. Sélectionner l'axe
             if (rec.themeId && rec.axisId) {
@@ -580,21 +622,60 @@ const GlobalPlanFollow = () => {
         <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-visible scrollbar-hide w-full pb-1 md:pb-0">
           {displayedThemes.map(theme => {
             const isAxisSelectedInTheme = selectedAxisByTheme[theme.id] != null;
+            
+            // Vérification du statut "Rempli" (au moins 1 problème coché ET au moins 1 réponse donnée)
+            let isCompleted = false;
+            if (isAxisSelectedInTheme) {
+                const axisId = selectedAxisByTheme[theme.id];
+                const axis = theme.axes?.find(a => a.id === axisId);
+                if (axis) {
+                    const activeProblems = axis.problems.filter(p => responses.selectedProblemsIds.includes(p.id));
+                    
+                    if (activeProblems.length > 0) {
+                        const questionIds = activeProblems.flatMap(p => p.detailQuestions.map(q => q.id));
+                        
+                        if (questionIds.length === 0) {
+                            // Pas de sous-questions = Rempli dès la sélection
+                            isCompleted = true;
+                        } else {
+                            // Doit avoir répondu à au moins une question
+                            isCompleted = questionIds.some(qId => {
+                                const answer = responses.detailAnswers[qId];
+                                return answer && (Array.isArray(answer) ? answer.length > 0 : String(answer).trim() !== '');
+                            });
+                        }
+                    }
+                }
+            }
+
+            const isActive = currentTheme.id === theme.id;
+
             return (
               <button
                 key={theme.id}
                 onClick={() => setCurrentTheme(theme)}
-                className={`shrink-0 md:shrink md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-colors relative whitespace-nowrap ${currentTheme.id === theme.id
-                  ? "bg-blue-600 text-white shadow-md"
-                  : "hover:bg-gray-100 text-gray-600"
+                className={`shrink-0 md:shrink md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-all relative whitespace-nowrap 
+                  ${isActive
+                    ? "bg-blue-600 text-white shadow-md border-2 border-blue-600" // Actif = Bleu plein
+                    : isAxisSelectedInTheme 
+                        ? "bg-blue-50 text-blue-900 border-2 border-blue-600" // Sélectionné mais pas actif = Cadre bleu + fond léger
+                        : "hover:bg-gray-100 text-gray-600 border-2 border-transparent" // Rien = Gris
                   }`}
               >
                 <span className="text-lg md:text-xl">{theme.icon}</span>
                 <span className="font-medium text-sm md:text-base">{theme.shortTitle}</span>
 
-                {/* Indicateur si un axe est choisi dans ce thème */}
+                {/* Indicateur d'état */}
                 {isAxisSelectedInTheme && (
-                  <div className={`ml-2 md:absolute md:right-3 w-2 h-2 rounded-full ${currentTheme.id === theme.id ? 'bg-white' : 'bg-blue-500'}`} />
+                  <div className="ml-2 md:absolute md:right-3">
+                      {isCompleted ? (
+                          <div className={`rounded-full p-0.5 ${isActive ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'}`}>
+                              <Check className="w-3 h-3" strokeWidth={3} />
+                          </div>
+                      ) : (
+                          <div className={`w-4 h-4 rounded-full border-2 ${isActive ? 'border-white' : 'border-blue-600'}`} />
+                      )}
+                  </div>
                 )}
               </button>
             );
@@ -616,7 +697,7 @@ const GlobalPlanFollow = () => {
                 Nouveau Cycle de Transformation
               </h3>
               <p className="text-blue-800 text-sm mt-1">
-                   Pour être efficace, ne te disperse pas. Choisis <strong>3 transformations prioritaires</strong> au total (maximum 1 par thème) pour ce nouveau cycle.
+                   Pour être efficace, ne te disperse pas. Choisis jusqu'à <strong>3 transformations</strong> au total (maximum 1 par thème) pour ce nouveau cycle.
               </p>
             </div>
           </div>
@@ -775,6 +856,11 @@ const GlobalPlanFollow = () => {
 
           <button
             onClick={async () => {
+              if (totalSelectedAxes > MAX_AXES) {
+                alert(`Tu as sélectionné ${totalSelectedAxes} transformations. La limite est de ${MAX_AXES} pour garantir l'efficacité du plan. Désélectionnes-en une.`);
+                return;
+              }
+
               const data = prepareSelectionData();
               
               // CRITIQUE : On utilise le submissionId existant s'il y en a un (ce qui devrait être le cas via Dashboard)
@@ -797,7 +883,8 @@ const GlobalPlanFollow = () => {
                           submission_id: submissionId, // On s'assure qu'il est set
                           content: {
                               structured_data: structuredData,
-                              ui_state: { selectedAxisByTheme, responses },
+                              ui_state: { selectedAxisByTheme, responses, assistant_context: assistantContext },
+                              assistant_context: assistantContext,
                               last_updated: new Date().toISOString()
                           },
                           updated_at: new Date().toISOString(),

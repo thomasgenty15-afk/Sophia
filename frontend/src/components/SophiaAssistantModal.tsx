@@ -198,7 +198,7 @@ export const SophiaAssistantModal: React.FC<SophiaAssistantModalProps> = ({ onCl
                                 <div key={i} className="bg-white border border-slate-200 p-4 rounded-xl shadow-sm">
                                     <div className="flex justify-between items-start mb-2">
                                         <span className="text-xs font-bold uppercase text-slate-400 tracking-wider">
-                                            {rec.themeId}
+                                            {rec.axisTitle || rec.axisId}
                                         </span>
                                     </div>
                                     <p className="text-sm text-slate-600 italic">
@@ -224,7 +224,7 @@ export const SophiaAssistantModal: React.FC<SophiaAssistantModalProps> = ({ onCl
                      <button 
                         onClick={() => {
                             // On déclenche l'appel via la prop parente
-                            onApply({ answers, setStep, setRecommendationResult }); 
+                            onApply({ answers, mode, setStep, setRecommendationResult }); 
                         }}
                         disabled={!answers.improvement || !answers.obstacles}
                         className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold hover:bg-violet-600 transition-all shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"

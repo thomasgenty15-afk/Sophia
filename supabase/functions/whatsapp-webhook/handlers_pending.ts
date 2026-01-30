@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { generateWithGemini } from "../_shared/gemini.ts"
 import { fetchLatestPending, markPending } from "./wa_db.ts"
-import { sendWhatsAppText } from "./wa_whatsapp_api.ts"
+import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
 import { generateDynamicWhatsAppCheckinMessage } from "../_shared/scheduled_checkins.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 
@@ -9,13 +9,14 @@ export async function handlePendingActions(params: {
   admin: SupabaseClient
   userId: string
   fromE164: string
+  requestId: string
   isOptInYes: boolean
   isCheckinYes: boolean
   isCheckinLater: boolean
   isEchoYes: boolean
   isEchoLater: boolean
 }): Promise<boolean> {
-  const { admin, userId, fromE164 } = params
+  const { admin, userId, fromE164, requestId } = params
 
   // If user accepts a scheduled check-in template, send the actual draft_message immediately.
   if (params.isCheckinYes && !params.isOptInYes) {
@@ -50,15 +51,30 @@ export async function handlePendingActions(params: {
     }
 
     if (textToSend.trim()) {
-      const sendResp = await sendWhatsAppText(fromE164, textToSend)
+      const sendResp = await sendWhatsAppTextTracked({
+        admin,
+        requestId,
+        userId,
+        toE164: fromE164,
+        body: textToSend,
+        purpose: "scheduled_checkin",
+        isProactive: false,
+      })
       const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+      const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
       await admin.from("chat_messages").insert({
         user_id: userId,
         scope: "whatsapp",
         role: "assistant",
         content: textToSend,
         agent_used: "companion",
-        metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false, source: "scheduled_checkin" },
+        metadata: {
+          channel: "whatsapp",
+          wa_outbound_message_id: outId,
+          outbound_tracking_id: outboundTrackingId,
+          is_proactive: false,
+          source: "scheduled_checkin",
+        },
       })
     }
 
@@ -84,18 +100,27 @@ export async function handlePendingActions(params: {
         .from("scheduled_checkins")
         .update({ status: "pending", scheduled_for: new Date(Date.now() + 10 * 60 * 1000).toISOString() })
         .eq("id", (pending as any).scheduled_checkin_id)
-      await markPending(admin, (pending as any).id, "cancelled")
     }
+    await markPending(admin, (pending as any).id, "cancelled")
     const okMsg = "Ok, je te relance un peu plus tard 🙂"
-    const sendResp = await sendWhatsAppText(fromE164, okMsg)
+    const sendResp = await sendWhatsAppTextTracked({
+      admin,
+      requestId,
+      userId,
+      toE164: fromE164,
+      body: okMsg,
+      purpose: "scheduled_checkin",
+      isProactive: false,
+    })
     const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+    const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
     await admin.from("chat_messages").insert({
       user_id: userId,
       scope: "whatsapp",
       role: "assistant",
       content: okMsg,
       agent_used: "companion",
-      metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false },
+      metadata: { channel: "whatsapp", wa_outbound_message_id: outId, outbound_tracking_id: outboundTrackingId, is_proactive: false },
     })
     return true
   }
@@ -107,15 +132,24 @@ export async function handlePendingActions(params: {
     if (!pending) return false
 
     const intro = "Ok 🙂 Laisse-moi 2 secondes, je te retrouve ça…"
-    const introResp = await sendWhatsAppText(fromE164, intro)
+    const introResp = await sendWhatsAppTextTracked({
+      admin,
+      requestId,
+      userId,
+      toE164: fromE164,
+      body: intro,
+      purpose: "memory_echo",
+      isProactive: false,
+    })
     const introId = (introResp as any)?.messages?.[0]?.id ?? null
+    const introTrackingId = (introResp as any)?.outbound_tracking_id ?? null
     await admin.from("chat_messages").insert({
       user_id: userId,
       scope: "whatsapp",
       role: "assistant",
       content: intro,
       agent_used: "companion",
-      metadata: { channel: "whatsapp", wa_outbound_message_id: introId, is_proactive: false, source: "memory_echo" },
+      metadata: { channel: "whatsapp", wa_outbound_message_id: introId, outbound_tracking_id: introTrackingId, is_proactive: false, source: "memory_echo" },
     })
 
     const strategy = (pending.payload as any)?.strategy
@@ -134,15 +168,24 @@ export async function handlePendingActions(params: {
       `Génère un message bref, impactant et bienveillant qui reconnecte l'utilisateur à cet élément du passé.`
     const echo = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7)
 
-    const echoResp = await sendWhatsAppText(fromE164, String(echo))
+    const echoResp = await sendWhatsAppTextTracked({
+      admin,
+      requestId,
+      userId,
+      toE164: fromE164,
+      body: String(echo),
+      purpose: "memory_echo",
+      isProactive: false,
+    })
     const echoId = (echoResp as any)?.messages?.[0]?.id ?? null
+    const echoTrackingId = (echoResp as any)?.outbound_tracking_id ?? null
     await admin.from("chat_messages").insert({
       user_id: userId,
       scope: "whatsapp",
       role: "assistant",
       content: String(echo),
-      agent_used: "philosopher",
-      metadata: { channel: "whatsapp", wa_outbound_message_id: echoId, is_proactive: false, source: "memory_echo" },
+      agent_used: "companion",
+      metadata: { channel: "whatsapp", wa_outbound_message_id: echoId, outbound_tracking_id: echoTrackingId, is_proactive: false, source: "memory_echo" },
     })
 
     await markPending(admin, (pending as any).id, "done")
@@ -156,15 +199,24 @@ export async function handlePendingActions(params: {
 
     await markPending(admin, (pending as any).id, "cancelled")
     const okMsg = "Ok 🙂 Je garde ça sous le coude. Dis-moi quand tu veux."
-    const sendResp = await sendWhatsAppText(fromE164, okMsg)
+    const sendResp = await sendWhatsAppTextTracked({
+      admin,
+      requestId,
+      userId,
+      toE164: fromE164,
+      body: okMsg,
+      purpose: "memory_echo",
+      isProactive: false,
+    })
     const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+    const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
     await admin.from("chat_messages").insert({
       user_id: userId,
       scope: "whatsapp",
       role: "assistant",
       content: okMsg,
       agent_used: "companion",
-      metadata: { channel: "whatsapp", wa_outbound_message_id: outId, is_proactive: false },
+      metadata: { channel: "whatsapp", wa_outbound_message_id: outId, outbound_tracking_id: outboundTrackingId, is_proactive: false },
     })
     return true
   }

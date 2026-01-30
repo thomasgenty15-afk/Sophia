@@ -4,13 +4,14 @@ import { createLinkToken, extractLinkToken } from "./wa_linking.ts"
 import { getAccountEmailForProfile, looksLikeEmail, maybeSendEmail, normalizeEmail } from "./wa_email.ts"
 import { isPhoneUniqueViolation, normalizeFrom } from "./wa_phone.ts"
 import { isStopKeyword, isYesConfirm } from "./wa_text.ts"
-import { sendWhatsAppText } from "./wa_whatsapp_api.ts"
+import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
 
 export async function handleUnlinkedInbound(params: {
   admin: SupabaseClient
   msg: ExtractedInboundMessage
   fromE164: string
   ambiguous: boolean
+  requestId: string
   siteUrl: string
   supportEmail: string
   defaultWhatsappNumber: string
@@ -18,18 +19,26 @@ export async function handleUnlinkedInbound(params: {
   linkBlockNoticeCooldownMs: number
   linkMaxAttempts: number
 }): Promise<void> {
-  const { admin, msg, fromE164 } = params
+  const { admin, msg, fromE164, requestId } = params
+
+  const sendUnlinked = async (body: string) => {
+    await sendWhatsAppTextTracked({
+      admin,
+      requestId,
+      userId: null,
+      toE164: fromE164,
+      body,
+      purpose: "whatsapp_unlinked",
+      isProactive: false,
+      replyToWaMessageId: msg.wa_message_id,
+    })
+  }
 
   // Unknown number: ask for email to link, or link if the user sends an email.
   const tokenCandidate = extractLinkToken(msg.text ?? "")
   const emailCandidate = looksLikeEmail(msg.text ?? "")
   const nowIso = new Date().toISOString()
-  const isConfirm = isYesConfirm(msg.text ?? "") || /^(oui|yes)$/i.test((msg.interactive_title ?? "").trim())
-
-  // If they send STOP from an unlinked number, just acknowledge silently.
-  if (isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)) {
-    return
-  }
+  const isConfirm = isYesConfirm(msg.text ?? "") || isYesConfirm(msg.interactive_title ?? "")
 
   // Always log inbound from unknown numbers (no user_id yet), for support/debugging.
   // Idempotent on wa_message_id.
@@ -43,6 +52,11 @@ export async function handleUnlinkedInbound(params: {
     wa_profile_name: msg.profile_name ?? null,
     raw: msg as any,
   }, { onConflict: "wa_message_id", ignoreDuplicates: true })
+
+  // If they send STOP from an unlinked number, just acknowledge silently.
+  if (isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)) {
+    return
+  }
 
   const { data: linkReq, error: linkReqErr } = await admin
     .from("whatsapp_link_requests")
@@ -64,7 +78,7 @@ export async function handleUnlinkedInbound(params: {
       "On te débloque rapidement."
     const lastPromptTs = linkReq?.last_prompted_at ? new Date(linkReq.last_prompted_at).getTime() : 0
     const canNotify = !lastPromptTs || (Date.now() - lastPromptTs) > params.linkBlockNoticeCooldownMs
-    if (canNotify) await sendWhatsAppText(fromE164, msgTxt)
+    if (canNotify) await sendUnlinked(msgTxt)
     await admin.from("whatsapp_link_requests").upsert({
       phone_e164: fromE164,
       status: "support_required",
@@ -92,7 +106,7 @@ export async function handleUnlinkedInbound(params: {
       const msgTxt =
         "Oups — ce lien n'est plus valide.\n" +
         "Renvoie-moi l'email de ton compte Sophia et je te renverrai un email de validation."
-      await sendWhatsAppText(fromE164, msgTxt)
+      await sendUnlinked(msgTxt)
       return
     }
 
@@ -103,7 +117,7 @@ export async function handleUnlinkedInbound(params: {
       .maybeSingle()
     if (tErr) throw tErr
     if (!target) {
-      await sendWhatsAppText(fromE164, "Je ne retrouve pas le compte associé à ce lien. Réessaie depuis le site, ou renvoie ton email ici.")
+      await sendUnlinked("Je ne retrouve pas le compte associé à ce lien. Réessaie depuis le site, ou renvoie ton email ici.")
       return
     }
 
@@ -179,7 +193,7 @@ export async function handleUnlinkedInbound(params: {
       welcomeMsg += "J'ai pas vu de plan passer, est-ce que tu l'as bien configuré sur la plateforme ?"
     }
 
-    await sendWhatsAppText(fromE164, welcomeMsg)
+    await sendUnlinked(welcomeMsg)
     return
   }
 
@@ -215,7 +229,7 @@ export async function handleUnlinkedInbound(params: {
         )
 
       const nextStatus = isSecond ? "support_required" : "confirm_email"
-      await sendWhatsAppText(fromE164, msgTxt)
+      await sendUnlinked(msgTxt)
 
       await admin.from("whatsapp_link_requests").upsert({
         phone_e164: fromE164,
@@ -235,10 +249,9 @@ export async function handleUnlinkedInbound(params: {
 
     const targetEmail = await getAccountEmailForProfile(admin, (target as any).id)
     if (!targetEmail) {
-      await sendWhatsAppText(
-        fromE164,
+      await sendUnlinked(
         "Je retrouve ton compte, mais je n'arrive pas à t'envoyer l'email de validation.\n\n" +
-        `Écris à ${params.supportEmail} avec ton numéro WhatsApp (${fromE164}) et on règle ça.`,
+          `Écris à ${params.supportEmail} avec ton numéro WhatsApp (${fromE164}) et on règle ça.`,
       )
       await admin.from("whatsapp_link_requests").upsert({
         phone_e164: fromE164,
@@ -308,31 +321,29 @@ export async function handleUnlinkedInbound(params: {
     }, { onConflict: "phone_e164" })
 
     if (!sendRes.ok) {
-      await sendWhatsAppText(
-        fromE164,
+      await sendUnlinked(
         "Ok, je retrouve ton compte Sophia ✅\n\n" +
-        "Par contre, je n’arrive pas à t’envoyer l’email de validation pour le moment.\n" +
-        `Écris à ${params.supportEmail} avec:\n` +
-        `- ton numéro WhatsApp: ${fromE164}\n` +
-        `- ton email: ${emailNorm}\n\n` +
-        "On te débloque rapidement.",
+          "Par contre, je n’arrive pas à t’envoyer l’email de validation pour le moment.\n" +
+          `Écris à ${params.supportEmail} avec:\n` +
+          `- ton numéro WhatsApp: ${fromE164}\n` +
+          `- ton email: ${emailNorm}\n\n` +
+          "On te débloque rapidement.",
       )
       return
     }
 
-    await sendWhatsAppText(
-      fromE164,
+    await sendUnlinked(
       mismatch
         ? (
           "Ok, je retrouve ton compte Sophia ✅\n" +
-          "Par contre, il est associé à un autre numéro WhatsApp.\n\n" +
-          "Je t'envoie un email avec un lien qui ouvre WhatsApp avec un message pré-rempli.\n" +
-          "Important: garde le texte pré-rempli tel quel et envoie-le (sinon je ne pourrai pas faire la modification)."
+            "Par contre, il est associé à un autre numéro WhatsApp.\n\n" +
+            "Je t'envoie un email avec un lien qui ouvre WhatsApp avec un message pré-rempli.\n" +
+            "Important: garde le texte pré-rempli tel quel et envoie-le (sinon je ne pourrai pas faire la modification)."
         )
         : (
           "Ok, je retrouve ton compte Sophia ✅\n\n" +
-          "Je t'envoie un email avec un lien qui ouvre WhatsApp avec un message pré-rempli.\n" +
-          "Important: garde le texte pré-rempli tel quel et envoie-le pour valider."
+            "Je t'envoie un email avec un lien qui ouvre WhatsApp avec un message pré-rempli.\n" +
+            "Important: garde le texte pré-rempli tel quel et envoie-le pour valider."
         ),
     )
     return
@@ -356,7 +367,7 @@ export async function handleUnlinkedInbound(params: {
         "Peux-tu m'envoyer l'email de ton compte Sophia ?\n" +
         `(Si tu n'as pas encore de compte: ${params.siteUrl})`
       )
-    await sendWhatsAppText(fromE164, prompt)
+    await sendUnlinked(prompt)
     await admin.from("whatsapp_link_requests").upsert({
       phone_e164: fromE164,
       status: linkReq?.status ?? "pending",

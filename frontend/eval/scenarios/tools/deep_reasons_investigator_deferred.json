@@ -1,0 +1,66 @@
+{
+  "dataset_key": "state_machines",
+  "id": "deep_reasons_investigator_deferred",
+  "description": "Deep Reasons Exploration Entry Point 1: Investigator detects a motivational blocker during bilan, proposes exploration AFTER bilan, user accepts. After bilan ends, Architect resumes with re_consent phase.",
+  "tags": ["deep_reasons", "investigator", "deferred", "supervisor", "state_machine"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 2
+  },
+  "persona": {
+    "label": "Utilisateur démotivé",
+    "age_range": "25-35",
+    "style": "honnête, vulnérable mais pas en détresse; exprime un blocage motivationnel profond sur une action",
+    "background": "J'ai un plan mais je bloque sur la méditation. Je sais pas pourquoi je fais ça, j'ai la flemme chronique. Je suis ouvert à explorer si on me propose."
+  },
+  "turns": [
+    {
+      "user_message": "Salut Sophia, je suis prêt pour le bilan",
+      "expected_mode": "investigator",
+      "notes": "User initiates bilan"
+    },
+    {
+      "user_message": "Non, pas fait",
+      "expected_mode": "investigator",
+      "notes": "User reports missed action"
+    },
+    {
+      "user_message": "J'ai vraiment la flemme, je sais même pas pourquoi je fais ça. Ça me saoule cette action.",
+      "expected_mode": "investigator",
+      "notes": "User expresses motivational blocker - Investigator should propose exploration",
+      "assertions": {
+        "assistant_should_match": ["explor|profond|apr[èe]s\\s+le\\s+bilan"]
+      }
+    },
+    {
+      "user_message": "Oui, on peut explorer ça après",
+      "expected_mode": "investigator",
+      "notes": "User consents - Investigator should call defer_deep_exploration and continue bilan"
+    },
+    {
+      "user_message": "Oui fait",
+      "expected_mode": "investigator",
+      "notes": "User confirms second action, bilan ends"
+    }
+  ],
+  "mechanical_assertions": {
+    "chat_state_temp_memory_array_some_match": [
+      { "path": "deferred_topics", "match": { "type": "deep_reasons" } }
+    ],
+    "chat_state_temp_memory_paths_exist": [
+      "supervisor.updated_at"
+    ],
+    "scheduler_invariants": [
+      "sessions_have_resume_brief"
+    ]
+  },
+  "post_bilan_continuation": {
+    "description": "After bilan, the deep_reasons deferred topic should be resumed",
+    "expected_first_message_mode": "architect",
+    "expected_first_message_assertions": {
+      "assistant_should_match": ["revenir|reprendre|explor|blocage"]
+    }
+  }
+}
+
+

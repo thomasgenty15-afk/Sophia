@@ -310,10 +310,10 @@ export async function generateWithGemini(
 
   // Default model selection:
   // - If caller provides meta.model, respect it.
-  // - Otherwise, prefer env GEMINI_SOPHIA_CHAT_MODEL (so local/evals can start with 3-flash when desired).
+  // - Otherwise, prefer env GEMINI_SOPHIA_CHAT_MODEL.
   const envChatModel = (Deno.env.get("GEMINI_SOPHIA_CHAT_MODEL") ?? "").trim();
-  // Drastic default for eval-like traffic: start from 3-flash unless explicitly overridden.
-  const defaultModel = isEvalLikeRequest ? "gemini-3-flash-preview" : (envChatModel || "gemini-2.5-flash");
+  // Default to gpt-5-mini (stable, fast) for all traffic.
+  const defaultModel = envChatModel || "gpt-5-mini";
   let baseModel = (meta?.model ?? defaultModel).trim();
   const sourceLower = String(meta?.source ?? "").toLowerCase();
   const isEvalJudgeCall =
@@ -325,51 +325,17 @@ export async function generateWithGemini(
   // In eval-like calls, default stickiness is to go to 2.0 after first failure.
   let stickyModel: string | null = null;
 
-  // Fallback policy (as requested):
-  // - If starting with gemini-3-flash-preview:
-  //   attempt 1 => 3.0 flash (fast path)
-  //   attempt 2 => 2.5 flash (fallback)
-  //   attempt 3+ => 2.0 flash (final fallback)
+  // Fallback policy (simplified, stable):
+  // - Standard: gpt-5-mini → gemini-2.5-flash
+  // - Critical (gpt-5.2): gpt-5.2 → gemini-2.5-flash → gpt-5-mini
   //
-  // - If starting with gemini-3-pro-preview (eval-judge):
-  //   attempts 1-2 => 3-pro
-  //   attempts 3-6 => 3-flash
-  //   attempts 7-8 => 2.5
-  //   attempts 9+  => 2.0
-  //
-  // Note: we keep this deterministic and independent of env defaults so behavior is predictable.
-  // You can still override the total attempts via GEMINI_MAX_RETRIES.
-  const is25Flash = (m: string) => /\bgemini-2\.5-flash\b/i.test(String(m ?? "").trim());
-  const is30Flash = (m: string) => /\bgemini-3[-.]flash-preview\b/i.test(String(m ?? "").trim()) || /\bgemini-3[-.]flash\b/i.test(String(m ?? "").trim());
-  const is30Pro = (m: string) => /\bgemini-3[-.]pro-preview\b/i.test(String(m ?? "").trim()) || /\bgemini-3[-.]pro\b/i.test(String(m ?? "").trim());
+  // Note: We interleave providers (OpenAI ↔ Gemini) for better resilience.
+  // Removed: gemini-3-flash-preview, gemini-3-pro-preview (unstable), gpt-5-nano (unreliable), gemini-2.0-flash (deprecated).
+  const isGpt52 = (m: string) => /^\s*gpt-5\.2\b/i.test(String(m ?? "").trim());
 
   const pickModelForAttempt = (startModel: string, attempt: number): string => {
-    const a = Math.max(1, Math.floor(attempt));
-    // eval-judge often uses pro
-    if (is30Pro(startModel)) {
-      if (a <= 2) return "gemini-3-pro-preview";
-      if (a <= 6) return "gemini-3-flash-preview";
-      if (a <= 8) return "gemini-2.5-flash";
-      return "gemini-2.0-flash";
-    }
-    // starting with 3-flash
-    if (is30Flash(startModel)) {
-      if (a <= 1) return "gemini-3-flash-preview";
-      if (a <= 2) return "gemini-2.5-flash";
-      return "gemini-2.0-flash";
-    }
-    // default: starting with 2.5-flash (or anything else)
-    // IMPORTANT: In eval-like requests we avoid switching to gemini-3-flash-preview entirely
-    // (it often overloads/timeouts and causes edge "early termination" → run-evals looks like it restarts).
-    if (isEvalLikeRequest) {
-      // Drastic eval policy (per user request): start with 3-flash, then 2.5, then 2.0.
-      if (a <= 1) return is30Flash(startModel) ? "gemini-3-flash-preview" : startModel;
-      if (a <= 2) return "gemini-2.5-flash";
-      return "gemini-2.0-flash";
-    }
-    if (a <= 2) return is25Flash(startModel) ? "gemini-2.5-flash" : startModel;
-    if (a <= 6) return "gemini-3-flash-preview";
-    return "gemini-2.0-flash";
+    // Simple: always return the start model; fallback chain handles diversity.
+    return startModel;
   };
 
   // Per-model timeout caps: the 3.0 flash preview model can get overloaded and hang.
@@ -405,7 +371,8 @@ export async function generateWithGemini(
     const raw = (Deno.env.get("OPENAI_HTTP_TIMEOUT_MS") ?? "").trim();
     const n = Number(raw);
     if (Number.isFinite(n) && n > 0) return Math.floor(n);
-    return isEvalLikeRequest ? 90_000 : 60_000;
+    // Increased default to 120s to allow for long generations (plans) with gpt-5.2
+    return isEvalLikeRequest ? 120_000 : 120_000;
   })();
 
   // Even when callers set maxRetries=1 (common for "follow-up phrasing" steps),
@@ -413,36 +380,28 @@ export async function generateWithGemini(
   // (which looks like an "eval restart" when the runner retries).
   const pickFallbackChainForAttempt = (startModel: string, attempt: number): string[] => {
     const primary = stickyModel ? stickyModel : pickModelForAttempt(startModel, attempt);
-    // For stability, keep a short deterministic chain.
-    // Special-case: for eval-judge we want the explicit model progression:
-    //   3-pro -> 3-flash -> 2.5 -> 2.0
-    // so that judge doesn't "skip" 3-flash when 3-pro times out and maxRetries=1.
     const chain: string[] = [];
     const push = (m: string) => {
       const mm = String(m ?? "").trim();
       if (!mm) return;
       if (!chain.includes(mm)) chain.push(mm);
     };
-    // Fallback chain (eval + chat):
-    // gemini-3-flash -> gemini-2.5-flash -> gpt-5-mini -> gpt-5-nano -> gemini-2.0-flash
+    // Fallback chains (interleaved providers for resilience):
+    // - Critical (gpt-5.2): gpt-5.2 → gemini-2.5-flash → gpt-5-mini
+    // - Standard (gpt-5-mini or other): primary → gemini-2.5-flash
     //
     // Notes:
-    // - For eval-judge (pro), keep explicit Gemini progression.
+    // - Providers are interleaved: if OpenAI is down, we fall back to Gemini immediately.
     // - If OPENAI_API_KEY is missing, OpenAI models will be skipped at runtime.
     push(primary);
-    if (isEvalJudgeCall && is30Pro(startModel)) {
-      push("gemini-3-flash-preview");
+    if (isGpt52(startModel) || (isEvalJudgeCall && isGpt52(primary))) {
+      // Critical chain: gpt-5.2 → gemini-2.5-flash → gpt-5-mini
       push("gemini-2.5-flash");
-      push("gemini-2.0-flash");
+      push("gpt-5-mini");
       return chain;
     }
-    // Always include 2.5 as the first Gemini fallback (even if primary wasn't 3-flash).
+    // Standard chain: primary → gemini-2.5-flash
     push("gemini-2.5-flash");
-    // OpenAI fallbacks (best-effort). If key is missing, you'll see an explicit log and we skip at call time.
-    push("gpt-5-mini");
-    push("gpt-5-nano");
-    // Final stable Gemini fallback
-    push("gemini-2.0-flash");
     return chain;
   };
 
@@ -793,9 +752,8 @@ export async function generateWithGemini(
           });
           lastInnerErr = new Error(`Erreur Gemini: ${msg}`);
           if (response.status === 429 || response.status === 503) {
-            // After rate limiting / overload, avoid switching back up to 2.5 in eval-like requests.
-            // This reduces the ping-pong: 2.0(429) -> 2.5(503) -> 2.0(429)...
-            if (isEvalLikeRequest) stickyModel = "gemini-2.0-flash";
+            // After rate limiting / overload, stick to gemini-2.5-flash (most stable Gemini).
+            if (isEvalLikeRequest) stickyModel = "gemini-2.5-flash";
             openBreaker("gemini", model, 20_000, msg);
           }
           // Respect retry-after/backoff for rate limiting/overload BEFORE trying next model.

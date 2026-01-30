@@ -3,6 +3,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 function denoEnv(name: string): string | undefined {
   return (globalThis as any)?.Deno?.env?.get?.(name)
@@ -108,6 +110,7 @@ async function sendTemplate(toE164: string, name: string, language: string, full
 
 const serve = ((globalThis as any)?.Deno?.serve ?? null) as any
 serve(async (req: Request) => {
+  let ctx = getRequestContext(req)
   if (req.method === "OPTIONS") {
     return handleCorsOptions(req)
   }
@@ -116,7 +119,7 @@ serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req)
 
   try {
-    const requestId = crypto.randomUUID()
+    ctx = getRequestContext(req)
     const authHeader = req.headers.get("Authorization")
     if (!authHeader) {
       return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
@@ -140,6 +143,7 @@ serve(async (req: Request) => {
     }
 
     const userId = authData.user.id
+    ctx = getRequestContext(req, { user_id: userId })
 
     // Optional client overrides for template (useful for debugging misconfigured env vars).
     let overrides: { template_name?: string; template_lang?: string } = {}
@@ -169,7 +173,7 @@ serve(async (req: Request) => {
       const tier = await getEffectiveTierForUser(supabase as any, userId)
       if (tier !== "alliance" && tier !== "architecte") {
         return new Response(
-          JSON.stringify({ error: "Paywall: WhatsApp requires alliance or architecte", tier, in_trial: inTrial, request_id: requestId }),
+          JSON.stringify({ error: "Paywall: WhatsApp requires alliance or architecte", tier, in_trial: inTrial, request_id: ctx.requestId }),
           {
             status: 402,
             headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -213,18 +217,27 @@ serve(async (req: Request) => {
         template_name: templateName,
         wa_outbound_message_id: waOutboundId,
         to: toE164,
+        request_id: ctx.requestId,
       },
     })
 
     await supabase.from("profiles").update({ whatsapp_optin_sent_at: new Date().toISOString() }).eq("id", userId)
 
-    return new Response(JSON.stringify({ success: true, wa_outbound_message_id: waOutboundId }), {
+    return new Response(JSON.stringify({ success: true, wa_outbound_message_id: waOutboundId, request_id: ctx.requestId }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
-    console.error("[whatsapp-optin] error:", error)
-    return new Response(JSON.stringify({ error: message }), {
+    console.error(`[whatsapp-optin] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
+    await logEdgeFunctionError({
+      functionName: "whatsapp-optin",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "whatsapp",
+      metadata: { client_request_id: ctx.clientRequestId },
+    })
+    return new Response(JSON.stringify({ error: message, request_id: ctx.requestId }), {
       status: 500,
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     })

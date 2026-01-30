@@ -34,6 +34,7 @@ import { useNavigate } from 'react-router-dom';
 import { WEEKS_CONTENT } from '../data/weeksContent';
 import { WEEKS_PATHS } from '../data/weeksPaths';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 
 // --- TYPES ---
@@ -901,6 +902,7 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
       ].join('\n');
       const contextOverride = trunc(contextOverrideRaw, 20000);
 
+      const clientRequestId = newRequestId();
       const { data, error } = await supabase.functions.invoke('sophia-brain', {
         body: {
           message: userText,
@@ -917,7 +919,8 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
             immersion: isImmersive,
             moduleTitle: module.title,
           },
-        }
+        },
+        headers: requestHeaders(clientRequestId)
       });
 
       if (error) throw error;

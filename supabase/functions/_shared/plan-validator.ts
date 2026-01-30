@@ -32,7 +32,7 @@ const ActionSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
   mantra: z.string().optional(), // Parfois Gemini en met un
-  questType: z.string().optional(), // 'main' ou 'side'
+  questType: z.string().optional(), // 'main' ou 'side' (validated at plan-level)
   tips: z.string().optional(),
   rationale: z.string().optional(),
   
@@ -58,8 +58,8 @@ const PhaseSchema = z.object({
 const VitalSignalSchema = z.object({
   name: z.string(),
   unit: z.string().optional(),
-  startValue: z.string().optional(),
-  targetValue: z.string().optional(),
+  startValue: z.union([z.string(), z.number()]).transform((v) => String(v)).optional(),
+  targetValue: z.union([z.string(), z.number()]).transform((v) => String(v)).optional(),
   description: z.string().optional(),
   type: z.string(), // On laisse string large pour éviter les blocages bêtes, ou VitalTypeSchema
   tracking_type: TrackingTypeSchema.optional().default('counter'), // Default safety
@@ -118,6 +118,19 @@ export const PlanSchema = z.object({
         message: `Chaque phase doit contenir au moins 1 habitude (phase ${i + 1}, habitudes trouvées: ${habitudeCount}).`,
       });
     }
+
+    // Quests: exactly 1 main + 1 side (with 2 actions/phase, this makes the plan readable).
+    // We validate this at the phase level to keep ActionSchema permissive (helps model convergence),
+    // while still enforcing hard structure.
+    const mains = phase.actions.filter((a) => String((a as any)?.questType ?? "").toLowerCase().trim() === "main").length;
+    const sides = phase.actions.filter((a) => String((a as any)?.questType ?? "").toLowerCase().trim() === "side").length;
+    if (phase.actions.length === 2 && (mains !== 1 || sides !== 1)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["phases", i, "actions"],
+        message: `Chaque phase doit contenir exactement 1 quête principale (questType="main") et 1 quête secondaire (questType="side").`,
+      });
+    }
   }
 
   // Conditional requirements (keep it strict but practical)
@@ -135,13 +148,13 @@ export const PlanSchema = z.object({
           message: `Une action "habitude" doit définir targetReps.`,
         });
       }
-      // Habits: targetReps is weekly frequency (max 7).
+      // Habits: targetReps is weekly frequency (max 6).
       if ((t === "habitude" || t === "habit") && typeof action.targetReps === "number") {
-        if (action.targetReps < 1 || action.targetReps > 7) {
+        if (action.targetReps < 1 || action.targetReps > 6) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["phases", p, "actions", a, "targetReps"],
-            message: `Pour une "habitude", targetReps doit être entre 1 et 7 (fois / semaine).`,
+            message: `Pour une "habitude", targetReps doit être entre 1 et 6 (fois / semaine).`,
           });
         }
       }

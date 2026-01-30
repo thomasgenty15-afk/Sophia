@@ -534,5 +534,59 @@ export async function getItemHistory(
   return historyText || "Aucun historique disponible."
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// CHECKUP COMPLETION TRACKING
+// ═══════════════════════════════════════════════════════════════════════════════
 
+/**
+ * Check if the user has already completed a checkup today (in their timezone).
+ * Used to prevent duplicate checkups and route to track_progress instead.
+ */
+export async function wasCheckupDoneToday(
+  supabase: SupabaseClient,
+  userId: string
+): Promise<boolean> {
+  try {
+    // Get user's timezone for accurate "today" calculation
+    const tz = await getUserTimezone(supabase, userId)
+    const today = ymdInTz(new Date(), tz)
+    
+    const { data } = await supabase
+      .from("user_checkup_logs")
+      .select("id")
+      .eq("user_id", userId)
+      .gte("completed_at", `${today}T00:00:00`)
+      .limit(1)
+      .maybeSingle()
+    
+    return Boolean(data)
+  } catch (e) {
+    console.error("[Investigator] wasCheckupDoneToday failed:", e)
+    return false // Fail open: allow checkup if DB check fails
+  }
+}
+
+/**
+ * Log a completed checkup to the database.
+ * Called when investigation_state completes successfully.
+ */
+export async function logCheckupCompletion(
+  supabase: SupabaseClient,
+  userId: string,
+  stats: { items: number; completed: number; missed: number },
+  source: "chat" | "cron" | "manual" = "chat"
+): Promise<void> {
+  try {
+    await supabase.from("user_checkup_logs").insert({
+      user_id: userId,
+      items_count: stats.items,
+      completed_count: stats.completed,
+      missed_count: stats.missed,
+      source,
+    })
+    console.log(`[Investigator] Checkup logged: ${stats.completed}/${stats.items} completed, ${stats.missed} missed`)
+  } catch (e) {
+    console.error("[Investigator] logCheckupCompletion failed (non-blocking):", e)
+  }
+}
 
