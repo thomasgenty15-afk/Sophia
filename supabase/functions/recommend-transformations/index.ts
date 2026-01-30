@@ -8,7 +8,8 @@ const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
   // Important: frontend attaches x-sophia-client-request-id for tracing.
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sophia-client-request-id',
+  // Also allow x-request-id (sent by supabase-js functions.invoke).
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sophia-client-request-id, x-request-id',
 }
 
 type SeverityLevel = 1 | 2 | 3
