@@ -7,7 +7,7 @@ import { generateWithGemini } from "../../_shared/gemini.ts"
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type SafetyLevel = "NONE" | "FIREFIGHTER" | "SENTRY"
-export type UserIntentPrimary = "CHECKUP" | "PLAN" | "EMOTIONAL_SUPPORT" | "SMALL_TALK" | "PREFERENCE" | "BREAKDOWN" | "UNKNOWN"
+export type UserIntentPrimary = "CHECKUP" | "EMOTIONAL_SUPPORT" | "SMALL_TALK" | "PREFERENCE" | "UNKNOWN"
 export type InterruptKind = "NONE" | "EXPLICIT_STOP" | "BORED" | "SWITCH_TOPIC" | "DIGRESSION"
 export type FlowResolutionKind = "NONE" | "ACK_DONE" | "WANTS_RESUME" | "DECLINES_RESUME" | "WANTS_PAUSE"
 export type TopicDepth = "NONE" | "NEED_SUPPORT" | "SERIOUS" | "LIGHT"
@@ -37,10 +37,12 @@ export interface DispatcherSignals {
    * - NEED_SUPPORT: emotional support needed → firefighter
    * - SERIOUS: deep topic (psyche, problems, fears) → topic_exploration owner=architect
    * - LIGHT: casual topic (small talk, anecdotes) → topic_exploration owner=companion
+   * - plan_focus: true if the discussion is about the plan/objectives (not tool operations)
    */
   topic_depth: {
     value: TopicDepth
     confidence: number // 0..1
+    plan_focus?: boolean  // true if discussion is about plan/objectives (not tool operations)
   }
   /**
    * Deep reasons exploration signals:
@@ -136,6 +138,48 @@ export interface DispatcherSignals {
     confidence: number // 0..1
   }
   /**
+   * Track progress flow signals:
+   * - detected: user wants to log progress on an action (done, missed, partial)
+   * - target_hint: the action being tracked
+   * - status_hint: what happened (completed, missed, partial)
+   * - value_hint: optional numeric value
+   */
+  track_progress: {
+    detected: boolean
+    target_hint?: string                // "sport", "méditation", "lecture"
+    status_hint: "completed" | "missed" | "partial" | "unknown"
+    value_hint?: number                 // optional: 1 for done, 0 for missed
+    confidence: number // 0..1
+  }
+  /**
+   * Activate action flow signals:
+   * - detected: user wants to activate a dormant/future action from their plan
+   * - target_hint: the action to activate
+   * - exercise_type_hint: if it's a specific exercise (e.g., "attrape-reves")
+   */
+  activate_action: {
+    detected: boolean
+    target_hint?: string                // "sport", "méditation", "attrape-reves"
+    exercise_type_hint?: string         // specific exercise name if detected
+    confidence: number // 0..1
+  }
+  /**
+   * Safety resolution signals (for active safety flows):
+   * - user_confirms_safe: user explicitly confirms they are safe
+   * - stabilizing_signal: user shows signs of calming ("ça va mieux", "merci", etc.)
+   * - symptoms_still_present: user still mentions physical/emotional symptoms
+   * - external_help_mentioned: user mentions contacting help (SAMU, ami, médecin)
+   * - escalate_to_sentry: situation became life-threatening (firefighter → sentry)
+   */
+  safety_resolution: {
+    user_confirms_safe: boolean
+    stabilizing_signal: boolean
+    symptoms_still_present: boolean
+    external_help_mentioned: boolean
+    escalate_to_sentry: boolean
+    confidence: number // 0..1
+  }
+  /**
    * Deferred signal (computed by router when machine is active):
    * - should_defer: true if this signal should be deferred (machine active, not safety)
    * - machine_type: which machine type this signal would trigger
@@ -147,11 +191,21 @@ export interface DispatcherSignals {
   deferred_signal?: {
     should_defer: boolean
     machine_type: "deep_reasons" | "topic_light" | "topic_serious" | 
-                  "create_action" | "update_action" | "breakdown_action"
+                  "create_action" | "update_action" | "breakdown_action" |
+                  "track_progress" | "activate_action"
     action_target?: string
     summary: string
     deferred_action: "create" | "update" | "ignore"
     matching_deferred_id?: string
+  }
+  /**
+   * Consent to relaunch signal (when a pending relaunch consent exists):
+   * - value: true if user consents, false if user declines, "unclear" if ambiguous
+   * - This signal is PRIORITARY when a __pending_relaunch_consent exists
+   */
+  consent_to_relaunch?: {
+    value: true | false | "unclear"
+    confidence: number // 0..1
   }
   wants_tools: boolean
   risk_score: number // 0..10 (legacy compatibility)
@@ -302,6 +356,11 @@ export interface MachineSignals {
   insight_emerged?: boolean
   wants_to_stop?: boolean
   
+  // activate_action_flow
+  user_confirms_activation?: boolean | null
+  user_wants_different_action?: string | null
+  activation_ready?: boolean
+  
   // user_profile_confirmation (when machine is active)
   user_confirms_fact?: "yes" | "no" | "nuance" | null
   user_provides_correction?: string | null
@@ -317,6 +376,12 @@ export interface MachineSignals {
   create_action_intent?: boolean
   update_action_intent?: boolean
   user_consents_defer?: boolean
+  
+  // bilan/investigation (confirmation signals for deferred machines)
+  // These capture user's response to "tu veux qu'on en parle après le bilan ?"
+  confirm_deep_reasons?: boolean | null    // User confirms/declines deep reasons exploration after bilan
+  confirm_breakdown?: boolean | null       // User confirms/declines micro-step breakdown after bilan
+  confirm_topic?: boolean | null           // User confirms/declines topic exploration after bilan
   
   // Checkup flow signals
   checkup_intent?: {
@@ -340,6 +405,11 @@ export interface DispatcherOutputV2 {
   enrichments: SignalEnrichment[]
   /** NEW: Machine-specific signals (only present if a machine is active) */
   machine_signals?: MachineSignals
+  /** NEW: Enrichment for an existing deferred topic (instead of creating new signal) */
+  deferred_enrichment?: {
+    topic_id: string
+    new_brief: string
+  }
 }
 
 const DEFAULT_SIGNALS: DispatcherSignals = {
@@ -348,7 +418,7 @@ const DEFAULT_SIGNALS: DispatcherSignals = {
   user_intent_confidence: 0.5,
   interrupt: { kind: "NONE", confidence: 0.9 },
   flow_resolution: { kind: "NONE", confidence: 0.9 },
-  topic_depth: { value: "NONE", confidence: 0.9 },
+  topic_depth: { value: "NONE", confidence: 0.9, plan_focus: false },
   deep_reasons: { opportunity: false, action_mentioned: false, deferred_ready: false, in_bilan_context: false, confidence: 0.9 },
   needs_explanation: { value: false, confidence: 0.9 },
   user_engagement: { level: "MEDIUM", confidence: 0.5 },
@@ -373,6 +443,23 @@ const DEFAULT_SIGNALS: DispatcherSignals = {
     user_response: "none",
     confidence: 0.5,
   },
+  track_progress: {
+    detected: false,
+    status_hint: "unknown",
+    confidence: 0.5,
+  },
+  activate_action: {
+    detected: false,
+    confidence: 0.5,
+  },
+  safety_resolution: {
+    user_confirms_safe: false,
+    stabilizing_signal: false,
+    symptoms_still_present: false,
+    external_help_mentioned: false,
+    escalate_to_sentry: false,
+    confidence: 0.5,
+  },
   wants_tools: false,
   risk_score: 0,
 }
@@ -384,19 +471,35 @@ const DEFAULT_SIGNALS: DispatcherSignals = {
 /**
  * Mother signals - always analyzed regardless of active machine.
  * These are high-level signals that can trigger new state machines.
+ * RULE: Only ONE mother signal per message (except safety).
  */
 const MOTHER_SIGNALS_SECTION = `
-=== SIGNAUX MERE (toujours actifs) ===
-Ces signaux sont TOUJOURS analyses, meme si une machine a etat est active.
-Ils servent a detecter de nouvelles intentions qui seront mises en attente (deferred).
+=== SIGNAUX MERE ===
+Ces signaux detectent de nouvelles intentions (mises en attente si machine active).
 
-- safety: Detecte detresse/danger (sentry/firefighter)
-- create_action_intent: Signal mere pour creation d'action
-- update_action_intent: Signal mere pour modification d'action
-- breakdown_action_intent: Signal mere pour decomposition d'action
-- topic_exploration_intent: Signal mere pour exploration de sujet (serious/light)
-- deep_reasons_intent: Signal mere pour blocage motivationnel
-- checkup_intent: Signal mere pour demande de bilan/checkup quotidien
+╔════════════════════════════════════════════════════════════════════════════════╗
+║  REGLE D'OR: UN SEUL signal mere par message (hors safety)                     ║
+╠════════════════════════════════════════════════════════════════════════════════╣
+║  Si tu detectes plusieurs intentions, CHOISIS la plus pertinente selon:        ║
+║  1. L'impact emotionnel le plus fort                                           ║
+║  2. Ce qui repond le plus directement au message                               ║
+║  Les autres intentions seront detectees aux tours suivants si l'utilisateur    ║
+║  y revient.                                                                    ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+EXCEPTION ABSOLUE: safety (firefighter/sentry) est TOUJOURS detecte, meme si 
+un autre signal mere est present. La securite prime sur tout.
+
+SIGNAUX MERE DISPONIBLES (1 seul parmi ceux-ci):
+- create_action_intent: Intention de creer une action
+- update_action_intent: Intention de modifier une action existante
+- breakdown_action_intent: Intention de decomposer/simplifier une action
+- topic_exploration_intent: Envie de parler d'un sujet (serious ou light)
+- deep_reasons_intent: Blocage motivationnel profond detecte
+- checkup_intent: Demande de bilan/checkup quotidien
+- activate_action_intent: Veut activer une action dormante/future
+
+RAPPEL: Tu ne peux en flaguer qu'UN SEUL par message (+ safety si danger).
 `
 
 /**
@@ -490,20 +593,91 @@ REGLES ANTI-DUPLICATION:
 }
 
 /**
+ * Build the deferred topics section for dispatcher awareness.
+ * Shows the dispatcher what topics are waiting in the queue so it can:
+ * 1. Avoid re-flagging signals for topics that already exist
+ * 2. Produce enrichments for existing topics instead of new signals
+ */
+function buildDeferredTopicsSection(flowContext?: FlowContext): string {
+  const topics = flowContext?.deferredTopicsSummary
+  if (!topics || topics.length === 0) return ""
+  
+  const getMachineLabel = (type: string): string => {
+    switch (type) {
+      case "topic_serious": return "🎭 Sujet serieux"
+      case "topic_light": return "💬 Sujet leger"
+      case "deep_reasons": return "🔍 Exploration profonde"
+      case "create_action": return "➕ Creation action"
+      case "update_action": return "✏️ Modification action"
+      case "breakdown_action": return "📋 Decomposition action"
+      case "track_progress": return "📊 Suivi progres"
+      case "checkup": return "📝 Bilan"
+      default: return type
+    }
+  }
+  
+  let section = `
+
+=== SUJETS EN ATTENTE (deferred_topics) ===
+AVANT de flaguer un nouveau signal, VERIFIE si le sujet existe deja ci-dessous.
+
+`
+  
+  for (const t of topics) {
+    const briefsFormatted = t.briefs.slice(0, 3).map(b => `"${b.slice(0, 80)}"`).join(" / ")
+    section += `┌─ ${getMachineLabel(t.machine_type)}${t.action_target ? ` - "${t.action_target}"` : ""} ─┐
+│ ID: ${t.id}
+│ Briefs (${t.briefs.length}/3): ${briefsFormatted}
+│ Detections: ${t.trigger_count} | Age: ${t.age_hours}h
+└────────────────────────────────────────────────────┘
+
+`
+  }
+  
+  section += `╔════════════════════════════════════════════════════════════════════════════════╗
+║  REGLES DEFERRED TOPICS                                                        ║
+╠════════════════════════════════════════════════════════════════════════════════╣
+║  1. Si le message ENRICHIT un sujet existant ci-dessus:                        ║
+║     → Produis "deferred_enrichment" avec topic_id + new_brief                  ║
+║     → NE CREE PAS de nouveau signal                                            ║
+║  2. Si le message aborde un sujet VRAIMENT DIFFERENT:                          ║
+║     → Tu peux creer un nouveau signal (respecte la regle 1 signal max)         ║
+║  3. Le dispatcher NE MODIFIE JAMAIS directement les topics                     ║
+║     → Il produit des enrichissements que le router appliquera                  ║
+╚════════════════════════════════════════════════════════════════════════════════╝
+
+FORMAT pour enrichissement (dans la sortie JSON):
+{
+  "deferred_enrichment": {
+    "topic_id": "dt_xxx",
+    "new_brief": "Nouveau contexte apporte par ce message"
+  }
+}
+`
+  
+  return section
+}
+
+/**
  * Flow context for enriching machine-specific addons.
  */
 export interface FlowContext {
   /** For create_action_flow: the action being created */
   actionLabel?: string
   actionType?: string
-  actionStatus?: string
+  actionStatus?: string  // exploring | awaiting_confirm | previewing | created | abandoned
+  clarificationCount?: number
   /** For update_action_flow: the action being updated */
   targetActionTitle?: string
   proposedChanges?: string
+  updateStatus?: string  // exploring | previewing | updated | abandoned
+  updateClarificationCount?: number
   /** For breakdown_action_flow: the action being broken down */
   breakdownTarget?: string
   blocker?: string
   proposedStep?: string
+  breakdownStatus?: string  // exploring | previewing | applied | abandoned
+  breakdownClarificationCount?: number
   /** For topic exploration: the topic being explored */
   topicLabel?: string
   topicPhase?: string
@@ -517,16 +691,113 @@ export interface FlowContext {
   currentItemTitle?: string
   currentItemId?: string
   missedStreak?: number
+  missedStreaksByAction?: Record<string, number>
   isBilan?: boolean
   /** Checkup flow addons */
   checkupAddon?: "BILAN_ALREADY_DONE" | "CHECKUP_ENTRY_CONFIRM" | "CHECKUP_DEFERRED"
   checkupDeferredTopic?: string  // The topic that caused deferral
+  /** For safety flows (firefighter/sentry): crisis context */
+  isSafetyFlow?: boolean
+  safetyFlowType?: "firefighter" | "sentry"
+  safetyPhase?: "acute" | "stabilizing" | "confirming" | "resolved"
+  safetyTurnCount?: number
+  /** Firefighter-specific: counts of stabilization vs distress signals */
+  stabilizationSignals?: number
+  distressSignals?: number
+  lastTechnique?: string
+  /** Sentry-specific: safety confirmation status */
+  safetyConfirmed?: boolean
+  externalHelpMentioned?: boolean
+  /** Pending relaunch consent: if set, dispatcher must detect consent_to_relaunch */
+  pendingRelaunchConsent?: {
+    machine_type: string
+    action_target?: string
+    summaries: string[]
+  }
+  /** Deferred topics summary for dispatcher awareness */
+  deferredTopicsSummary?: Array<{
+    id: string
+    machine_type: string
+    action_target?: string
+    briefs: string[]        // signal_summaries (max 3)
+    trigger_count: number
+    age_hours: number
+  }>
+  /** For activate_action_flow: the action being activated */
+  activateActionTarget?: string
+  activateExerciseType?: string
+  activateStatus?: string  // exploring | confirming | activated | abandoned
+  /** For profile confirmation: additional context */
+  profileConfirmPhase?: string  // presenting | awaiting_confirm | processing | completed
+  profileConfirmQueueSize?: number
+  profileConfirmCurrentIndex?: number
 }
 
 /**
  * Build machine-specific addon with flow context.
  */
 function buildMachineAddonWithContext(activeMachine: string | null, flowContext?: FlowContext): string {
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // PENDING RELAUNCH CONSENT - HIGHEST PRIORITY
+  // If a consent question was asked, we must detect the user's response
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (flowContext?.pendingRelaunchConsent) {
+    const pending = flowContext.pendingRelaunchConsent
+    const machineLabel = (() => {
+      switch (pending.machine_type) {
+        case "breakdown_action": return "Simplification d'action"
+        case "create_action": return "Création d'action"
+        case "update_action": return "Modification d'action"
+        case "deep_reasons": return "Exploration profonde"
+        case "topic_serious": return "Sujet sérieux"
+        case "topic_light": return "Sujet de discussion"
+        case "checkup": return "Bilan"
+        default: return "Sujet en attente"
+      }
+    })()
+    
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+🎯 ANALYSE DE CONSENTEMENT DE REPRISE (PRIORITAIRE)
+═══════════════════════════════════════════════════════════════════════════════
+
+Sophia vient de demander à l'utilisateur s'il veut reprendre un sujet mis en attente.
+Tu dois analyser la réponse pour extraire le signal consent_to_relaunch.
+
+SUJET PROPOSÉ: ${machineLabel}
+${pending.action_target ? `CIBLE: "${pending.action_target}"` : ""}
+
+SIGNAL À EXTRAIRE (OBLIGATOIRE):
+{
+  "consent_to_relaunch": { "value": true | false | "unclear", "confidence": 0.0-1.0 }
+}
+
+RÈGLES D'INTERPRÉTATION:
+
+value = true si:
+• "oui", "ok", "d'accord", "vas-y", "go", "on y va", "allez"
+• "avec plaisir", "carrément", "volontiers", "bien sûr"
+• "c'est bon", "oui on fait ça", "ok on s'y met"
+• Réponse courte positive (< 30 caractères) avec "oui" ou "ok"
+
+value = false si:
+• "non", "nan", "nope", "pas maintenant", "plus tard"
+• "laisse", "pas envie", "une autre fois", "on verra"
+• "j'ai pas le temps", "pas aujourd'hui"
+• Réponse courte négative (< 40 caractères) avec "non" ou refus
+
+value = "unclear" si:
+• L'utilisateur parle d'autre chose sans répondre à la question
+• Réponse ambiguë qui n'est ni oui ni non
+• "je sais pas", "peut-être", "hmm"
+
+IMPORTANT:
+• Ce signal est PRIORITAIRE - analyse-le en PREMIER
+• Si la réponse est claire (oui/non), mets confidence >= 0.8
+• Si "unclear", mets confidence < 0.5 et continue l'analyse des autres signaux
+`
+  }
+
   const checkupAddon = (() => {
     if (flowContext?.checkupAddon === "BILAN_ALREADY_DONE") {
       return `
@@ -590,62 +861,508 @@ PAS DE SIGNAL SPECIFIQUE A PRODUIRE - ce contexte est juste informatif.
   
   if (!activeMachine) return checkupAddon
   
-  if (activeMachine === "create_action_flow") {
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // SAFETY FLOWS - HIGHEST PRIORITY
+  // These addons unlock specific signals for crisis resolution
+  // ═══════════════════════════════════════════════════════════════════════════════
+  
+  if (activeMachine === "safety_firefighter_flow") {
+    const phase = flowContext?.safetyPhase ?? "acute"
+    const turnCount = flowContext?.safetyTurnCount ?? 0
+    const stabilizationSignals = flowContext?.stabilizationSignals ?? 0
+    const distressSignals = flowContext?.distressSignals ?? 0
+    const lastTechnique = flowContext?.lastTechnique ?? "inconnu"
+    
+    // Build visual state machine representation
+    const phaseEmoji = (p: string, current: string) => p === current ? "▶" : (
+      ["acute", "stabilizing", "confirming", "resolved"].indexOf(p) < ["acute", "stabilizing", "confirming", "resolved"].indexOf(current) ? "✓" : "○"
+    )
+    
     let addon = `
-=== SIGNAUX SPECIFIQUES (create_action_flow actif) ===
-Tu es dans un flow de CREATION D'ACTION.
-`
-    if (flowContext?.actionLabel) {
-      addon += `
-CONTEXTE DU FLOW:
-- Action en cours de creation: "${flowContext.actionLabel}"
-- Type: ${flowContext.actionType ?? "non defini"}
-- Statut: ${flowContext.actionStatus ?? "en cours"}
-`
-    }
-    addon += `
-Analyse ces signaux en plus et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
+=== SIGNAUX SPECIFIQUES (safety_firefighter_flow actif) ===
+Tu es dans un flow de DESAMORCAGE DE CRISE EMOTIONNELLE.
 
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    MACHINE A ETAT - FIREFIGHTER                               ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  ${phaseEmoji("acute", phase)} ACUTE         →  ${phaseEmoji("stabilizing", phase)} STABILIZING  →  ${phaseEmoji("confirming", phase)} CONFIRMING  →  ${phaseEmoji("resolved", phase)} RESOLVED     ║
+║  (desamorcage)      (apaisement)      (verification)    (sortie)        ║
+║                                                                               ║
+║  ETAPE ACTUELLE: [ ${phase.toUpperCase()} ]                                              ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+REGLE FONDAMENTALE - VERROUILLAGE DES PALIERS:
+- Une fois un palier atteint, on NE REVIENT JAMAIS en arriere
+- Tant qu'il n'y a pas de signal EXPLICITE pour passer au palier suivant, ON RESTE sur le palier actuel
+- Le passage au palier suivant necessite des conditions STRICTES (voir ci-dessous)
+
+CONTEXTE DE LA CRISE:
+- Nombre de tours depuis le debut: ${turnCount}
+- Signaux de stabilisation cumules: ${stabilizationSignals}
+- Signaux de detresse cumules: ${distressSignals}
+- Derniere technique utilisee: ${lastTechnique}
+
+SIGNAUX A DETECTER (pour determiner si on peut avancer):
 {
   "machine_signals": {
-    "user_confirms_preview": "yes" | "no" | "modify" | "unclear" | null,
-    "action_type_clarified": "habit" | "mission" | "framework" | null,
-    "user_abandons": true | false,
-    "modification_requested": "string decrivant la modification" | null
+    "still_in_distress": true | false,
+    "physical_symptoms_present": true | false,
+    "calming_signs": true | false,
+    "user_confirms_safe": true | false,
+    "wants_to_continue_exercise": true | false,
+    "ready_for_next_phase": true | false,
+    "needs_different_approach": true | false,
+    "escalate_to_sentry": true | false
   }
 }
 
-Guide d'interpretation:
+CONDITIONS DE TRANSITION (strictes, non negociables):
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ACUTE → STABILIZING                                                         │
+│ Conditions TOUTES requises:                                                 │
+│   • calming_signs = true (premiers signes d'apaisement)                     │
+│   • escalate_to_sentry = false (pas de danger vital)                        │
+│   • L'utilisateur coopere avec au moins un exercice                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ STABILIZING → CONFIRMING                                                    │
+│ Conditions TOUTES requises:                                                 │
+│   • physical_symptoms_present = false (plus de symptomes physiques)         │
+│   • stabilizationSignals >= 2 (au moins 2 signaux de stabilisation)         │
+│   • still_in_distress = false                                               │
+│   • L'utilisateur dit explicitement que ca va mieux                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CONFIRMING → RESOLVED                                                       │
+│ Conditions TOUTES requises:                                                 │
+│   • user_confirms_safe = true (confirmation explicite)                      │
+│   • physical_symptoms_present = false                                       │
+│   • still_in_distress = false                                               │
+│   • L'utilisateur est pret a passer a autre chose                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+GUIDE D'INTERPRETATION PAR PHASE ACTUELLE:
+`
+    // Add phase-specific guidance
+    if (phase === "acute") {
+      addon += `
+--- TU ES EN PHASE ACUTE ---
+Objectif: Desamorcer la crise immediate, ancrer l'utilisateur dans le present.
+
+Signaux a surveiller:
+- still_in_distress: true si panique/angoisse actifs ("je panique", "je craque", coeur qui bat)
+- physical_symptoms_present: true si symptomes physiques ("tremblements", "souffle court", "vertige")
+- calming_signs: true si PREMIERS signes d'apaisement ("ok", "je respire", cooperation)
+- escalate_to_sentry: true si danger vital ("envie de me faire du mal", "idees noires")
+
+Pour passer a STABILIZING:
+- ready_for_next_phase = true SEULEMENT si calming_signs = true ET escalate_to_sentry = false
+- Sinon, on RESTE en ACUTE
+`
+    } else if (phase === "stabilizing") {
+      addon += `
+--- TU ES EN PHASE STABILIZING ---
+Objectif: Consolider l'apaisement, verifier que ca tient. NE PAS RUSHER.
+
+Signaux a surveiller:
+- still_in_distress: true si ENCORE des signes de crise (meme si "ca va mieux" + symptomes)
+- physical_symptoms_present: CRITIQUE - tant que present, on reste ici
+- calming_signs: true si retour au calme progressif ("ca va un peu mieux", "je respire mieux")
+- needs_different_approach: true si les exercices ne marchent pas
+
+Pour passer a CONFIRMING:
+- ready_for_next_phase = true SEULEMENT si:
+  * physical_symptoms_present = false
+  * still_in_distress = false  
+  * stabilizationSignals >= 2
+  * Message EXPLICITE de l'utilisateur que ca va mieux
+- Un simple "merci" ou "ok" N'EST PAS suffisant
+`
+    } else if (phase === "confirming") {
+      addon += `
+--- TU ES EN PHASE CONFIRMING ---
+Objectif: Verifier que l'utilisateur est vraiment stable avant de sortir.
+
+Signaux a surveiller:
+- user_confirms_safe: true UNIQUEMENT si confirmation EXPLICITE ("oui ca va", "je suis ok")
+- still_in_distress: si true, on RESTE en confirming (pas de retour arriere)
+- physical_symptoms_present: si true, on RESTE en confirming
+
+Pour passer a RESOLVED:
+- ready_for_next_phase = true SEULEMENT si:
+  * user_confirms_safe = true (confirmation explicite)
+  * physical_symptoms_present = false
+  * still_in_distress = false
+`
+    }
+
+    addon += `
+
+REGLE ANTI-RUSH (CRITIQUE):
+- NE JAMAIS mettre ready_for_next_phase = true si:
+  * physical_symptoms_present = true
+  * Le message contient ENCORE des mots de detresse
+- En cas de doute, privilegie still_in_distress = true et ready_for_next_phase = false
+- Le temps n'est pas un facteur - on avance UNIQUEMENT sur signaux explicites
+`
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
+  }
+  
+  if (activeMachine === "safety_sentry_flow") {
+    const phase = flowContext?.safetyPhase ?? "acute"
+    const turnCount = flowContext?.safetyTurnCount ?? 0
+    const safetyConfirmed = flowContext?.safetyConfirmed ?? false
+    const externalHelpMentioned = flowContext?.externalHelpMentioned ?? false
+    
+    // Build visual state machine representation
+    const phaseEmoji = (p: string, current: string) => p === current ? "▶" : (
+      ["acute", "stabilizing", "confirming", "resolved"].indexOf(p) < ["acute", "stabilizing", "confirming", "resolved"].indexOf(current) ? "✓" : "○"
+    )
+    
+    let addon = `
+=== SIGNAUX SPECIFIQUES (safety_sentry_flow actif) ===
+Tu es dans un flow de CRISE VITALE (danger de mort potentiel).
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                      MACHINE A ETAT - SENTRY                                  ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  ${phaseEmoji("acute", phase)} ACUTE         →  ${phaseEmoji("confirming", phase)} CONFIRMING   →  ${phaseEmoji("resolved", phase)} RESOLVED                    ║
+║  (danger actif)      (verification)      (securise)                     ║
+║                                                                               ║
+║  ETAPE ACTUELLE: [ ${phase.toUpperCase()} ]                                              ║
+║                                                                               ║
+║  ⚠️  FLOW CRITIQUE - SECURITE ABSOLUE                                        ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+REGLE FONDAMENTALE - VERROUILLAGE DES PALIERS:
+- Une fois un palier atteint, on NE REVIENT JAMAIS en arriere
+- Tant qu'il n'y a pas de signal EXPLICITE de securite, ON RESTE sur le palier actuel
+- En cas de DOUTE, on reste sur le palier le plus securitaire
+
+CONTEXTE DE LA CRISE:
+- Nombre de tours: ${turnCount}
+- Securite confirmee: ${safetyConfirmed ? "OUI" : "NON"}
+- Aide externe mentionnee: ${externalHelpMentioned ? "OUI" : "NON"}
+
+SIGNAUX A DETECTER (ULTRA-PRIORITAIRE):
+{
+  "machine_signals": {
+    "immediate_danger": true | false,
+    "user_confirms_safe": true | false,
+    "external_help_contacted": true | false,
+    "still_at_risk": true | false,
+    "ready_for_next_phase": true | false,
+    "de_escalate_to_firefighter": true | false
+  }
+}
+
+CONDITIONS DE TRANSITION (strictes, securite absolue):
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ ACUTE → CONFIRMING                                                          │
+│ Conditions TOUTES requises:                                                 │
+│   • immediate_danger = false (plus de danger immediat)                      │
+│   • user_confirms_safe = true OU external_help_contacted = true             │
+│   • L'utilisateur montre des signes de desescalade                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CONFIRMING → RESOLVED                                                       │
+│ Conditions TOUTES requises:                                                 │
+│   • user_confirms_safe = true (confirmation EXPLICITE)                      │
+│   • still_at_risk = false                                                   │
+│   • Engagement vers une aide externe OU plan de securite                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ TRANSITION SPECIALE: SENTRY → FIREFIGHTER                                   │
+│ de_escalate_to_firefighter = true si:                                       │
+│   • Danger vital ecarte ("je ne vais pas le faire")                         │
+│   • MAIS detresse emotionnelle presente                                     │
+│   • Passe en mode firefighter pour desamorcage emotionnel                   │
+└─────────────────────────────────────────────────────────────────────────────┘
+`
+    // Add phase-specific guidance
+    if (phase === "acute") {
+      addon += `
+--- TU ES EN PHASE ACUTE ---
+Objectif: Evaluer le danger immediat, securiser, orienter vers aide.
+
+Signaux a surveiller:
+- immediate_danger: true si action IMMINENTE ("je vais le faire", "j'ai un moyen")
+- user_confirms_safe: true UNIQUEMENT si EXPLICITE ("non je ne vais pas me faire de mal")
+- external_help_contacted: true si aide externe ("j'ai appele le 15", "quelqu'un est avec moi")
+- still_at_risk: true si pensees presentes mais pas d'action imminente
+
+Pour passer a CONFIRMING:
+- ready_for_next_phase = true SEULEMENT si:
+  * immediate_danger = false
+  * (user_confirms_safe = true OU external_help_contacted = true)
+- Sinon, on RESTE en ACUTE
+
+REGLE DE SECURITE: En cas de doute sur immediate_danger → true
+`
+    } else if (phase === "confirming") {
+      addon += `
+--- TU ES EN PHASE CONFIRMING ---
+Objectif: Verifier que la securite est etablie, planifier le suivi.
+
+Signaux a surveiller:
+- user_confirms_safe: confirmation explicite de securite
+- still_at_risk: si true, on RESTE en confirming
+- de_escalate_to_firefighter: si danger vital ecarte mais detresse presente
+
+Pour passer a RESOLVED:
+- ready_for_next_phase = true SEULEMENT si:
+  * user_confirms_safe = true
+  * still_at_risk = false
+  * Plan de suivi mentionne (aide externe, rendez-vous, etc.)
+`
+    }
+
+    addon += `
+
+REGLE DE SECURITE ABSOLUE:
+- En cas de doute sur immediate_danger, TOUJOURS mettre true
+- Ne JAMAIS mettre user_confirms_safe = true sans confirmation EXPLICITE textuelle
+- Ne JAMAIS mettre ready_for_next_phase = true si still_at_risk = true
+- Privilegier la securite a la fluidite de conversation
+`
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
+  }
+  
+  if (activeMachine === "create_action_flow") {
+    const status = flowContext?.actionStatus ?? "exploring"
+    const actionLabel = flowContext?.actionLabel ?? "action"
+    const actionType = flowContext?.actionType ?? "non défini"
+    const clarificationCount = flowContext?.clarificationCount ?? 0
+    
+    // Build visual state machine representation
+    const statusEmoji = (s: string, current: string) => {
+      const order = ["exploring", "awaiting_confirm", "previewing", "created", "abandoned"]
+      return s === current ? "▶" : (order.indexOf(s) < order.indexOf(current) ? "✓" : "○")
+    }
+    
+    let addon = `
+=== SIGNAUX SPECIFIQUES (create_action_flow actif) ===
+Tu es dans un flow de CREATION D'ACTION.
+
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    MACHINE A ETAT - CREATE ACTION                             ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  ${statusEmoji("exploring", status)} EXPLORING  →  ${statusEmoji("awaiting_confirm", status)} AWAITING  →  ${statusEmoji("previewing", status)} PREVIEWING  →  ${statusEmoji("created", status)} CREATED        ║
+║  (exploration)   (confirmation)  (validation)    (termine)        ║
+║                                        ↓                                      ║
+║                                   ${statusEmoji("abandoned", status)} ABANDONED (si refus/max clarif)          ║
+║                                                                               ║
+║  ETAPE ACTUELLE: [ ${status.toUpperCase()} ]                                             ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+REGLE FONDAMENTALE - VERROUILLAGE DES PALIERS:
+- Une fois un palier atteint, on NE REVIENT JAMAIS en arriere
+- Tant qu'il n'y a pas de signal EXPLICITE pour passer au palier suivant, ON RESTE sur le palier actuel
+- Maximum 1 clarification avant abandon gracieux
+
+CONTEXTE DU FLOW:
+- Action en cours: "${actionLabel}"
+- Type: ${actionType}
+- Clarifications: ${clarificationCount}/1 (max)
+
+SIGNAUX A DETECTER:
+{
+  "machine_signals": {
+    "user_confirms_intent": true | false | null,
+    "user_confirms_preview": "yes" | "no" | "modify" | "unclear" | null,
+    "action_type_clarified": "habit" | "mission" | "framework" | null,
+    "user_abandons": true | false,
+    "modification_requested": "string decrivant la modification" | null,
+    "ready_for_next_phase": true | false
+  }
+}
+
+CONDITIONS DE TRANSITION (strictes):
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ EXPLORING → AWAITING_CONFIRM                                                │
+│ Conditions:                                                                 │
+│   • Sophia a suggere une action (sophia_suggested = true)                   │
+│   • OU user exprime une intention implicite ("je devrais faire X")          │
+│   • ready_for_next_phase = true quand intention detectee                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ AWAITING_CONFIRM → PREVIEWING                                               │
+│ Conditions TOUTES requises:                                                 │
+│   • user_confirms_intent = true ("oui", "ok", "vas-y", "je veux")           │
+│   • user_abandons = false                                                   │
+│   • ready_for_next_phase = true quand confirmation explicite                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PREVIEWING → CREATED                                                        │
+│ Conditions TOUTES requises:                                                 │
+│   • user_confirms_preview = "yes" (acceptation claire)                      │
+│   • user_abandons = false                                                   │
+│   • ready_for_next_phase = true                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ PREVIEWING → PREVIEWING (clarification)                                     │
+│ Si user_confirms_preview = "modify":                                        │
+│   • Appliquer la modification                                               │
+│   • Re-montrer le preview                                                   │
+│   • clarification_count += 1                                                │
+│   • Si clarification_count >= 1 et ENCORE modify → ABANDONED                │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ * → ABANDONED                                                               │
+│ Si user_abandons = true OU (clarification_count >= 1 ET unclear/modify)     │
+│   • "laisse tomber", "on oublie", "non", "annule"                           │
+│   • Message gracieux, on peut reprendre plus tard                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+`
+
+    // Add phase-specific guidance
+    if (status === "exploring") {
+      addon += `
+--- TU ES EN PHASE EXPLORING ---
+L'utilisateur explore l'idee de creer une action, pas encore engage.
+
+Signaux a surveiller:
+- user_confirms_intent: true si "oui je veux", "ok on fait ca", acceptation claire
+- user_abandons: true si "non", "pas maintenant", "on verra"
+
+ready_for_next_phase = true SEULEMENT si intention claire detectee.
+`
+    } else if (status === "awaiting_confirm") {
+      addon += `
+--- TU ES EN PHASE AWAITING_CONFIRM ---
+Sophia a suggere une action, on attend la confirmation de l'utilisateur.
+
+Signaux a surveiller:
+- user_confirms_intent: true si "oui", "ok", "vas-y", "je veux bien"
+- user_abandons: true si "non", "pas envie", "laisse tomber"
+
+ready_for_next_phase = true SEULEMENT si acceptation claire de l'intention.
+`
+    } else if (status === "previewing") {
+      addon += `
+--- TU ES EN PHASE PREVIEWING ---
+Les parametres de l'action sont proposes, on attend la validation.
+
+Signaux a surveiller:
+- user_confirms_preview: 
+  * "yes" si "ok", "ca me va", "parfait", "c'est bon"
+  * "no" si refus clair sans alternative
+  * "modify" si "change X", "plutot Y", demande de modification
+  * "unclear" si ambigu, ni oui ni non clair
+- modification_requested: extraire la modification demandee (ex: "3 fois", "le matin")
+- user_abandons: true si abandon explicite
+
+ready_for_next_phase = true SEULEMENT si user_confirms_preview = "yes"
+`
+    }
+
+    addon += `
+
+GUIDE D'INTERPRETATION:
 - user_confirms_preview: "yes" si acceptation claire ("ok", "ca me va", "parfait"), "no" si refus, "modify" si demande de changement, "unclear" si ambigu
 - action_type_clarified: seulement si l'utilisateur mentionne explicitement le type
 - user_abandons: true si "laisse tomber", "on oublie", "non finalement", "annule"
-- modification_requested: texte de la modification demandee (ex: "changer le nom", "ajouter un rappel")
+- modification_requested: texte de la modification demandee (ex: "changer le nom", "3 fois par semaine")
 `
     return checkupAddon ? `${addon}\n${checkupAddon}` : addon
   }
   
   if (activeMachine === "update_action_flow") {
+    const status = flowContext?.updateStatus ?? "exploring"
+    const targetAction = flowContext?.targetActionTitle ?? "action"
+    const changes = flowContext?.proposedChanges ?? "en attente"
+    const clarificationCount = flowContext?.updateClarificationCount ?? 0
+    
+    const statusEmoji = (s: string, current: string) => {
+      const order = ["exploring", "previewing", "updated", "abandoned"]
+      return s === current ? "▶" : (order.indexOf(s) < order.indexOf(current) ? "✓" : "○")
+    }
+    
     let addon = `
 === SIGNAUX SPECIFIQUES (update_action_flow actif) ===
 Tu es dans un flow de MODIFICATION D'ACTION.
-`
-    if (flowContext?.targetActionTitle) {
-      addon += `
-CONTEXTE DU FLOW:
-- Action a modifier: "${flowContext.targetActionTitle}"
-- Changements proposes: ${flowContext.proposedChanges ?? "en attente"}
-`
-    }
-    addon += `
-Analyse ces signaux en plus et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
 
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    MACHINE A ETAT - UPDATE ACTION                             ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  ${statusEmoji("exploring", status)} EXPLORING  →  ${statusEmoji("previewing", status)} PREVIEWING  →  ${statusEmoji("updated", status)} UPDATED                       ║
+║  (clarification)  (validation)     (termine)                      ║
+║                        ↓                                                      ║
+║                   ${statusEmoji("abandoned", status)} ABANDONED (si refus)                               ║
+║                                                                               ║
+║  ETAPE ACTUELLE: [ ${status.toUpperCase()} ]                                             ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+REGLE FONDAMENTALE - VERROUILLAGE DES PALIERS:
+- Une fois un palier atteint, on NE REVIENT JAMAIS en arriere
+- Maximum 1 clarification avant abandon gracieux
+
+CONTEXTE DU FLOW:
+- Action a modifier: "${targetAction}"
+- Changements proposes: ${changes}
+- Clarifications: ${clarificationCount}/1
+
+SIGNAUX A DETECTER:
 {
   "machine_signals": {
     "user_confirms_change": "yes" | "no" | "modify" | "unclear" | null,
     "new_value_provided": "nouvelle valeur fournie par user" | null,
-    "user_abandons": true | false
+    "user_abandons": true | false,
+    "ready_for_next_phase": true | false
   }
 }
+
+CONDITIONS DE TRANSITION:
+- EXPLORING → PREVIEWING: quand on a la nouvelle valeur exacte
+- PREVIEWING → UPDATED: user_confirms_change = "yes"
+- PREVIEWING → PREVIEWING: user_confirms_change = "modify" (1 fois max)
+- * → ABANDONED: user_abandons = true OU max clarifications atteint
+`
+
+    if (status === "exploring") {
+      addon += `
+--- TU ES EN PHASE EXPLORING ---
+Objectif: Comprendre exactement ce que l'utilisateur veut modifier.
+
+Signaux a surveiller:
+- new_value_provided: la valeur exacte ("3 fois", "le matin", "lundi mercredi")
+- user_abandons: true si "laisse tomber", "finalement non"
+
+ready_for_next_phase = true SEULEMENT si nouvelle valeur fournie.
+`
+    } else if (status === "previewing") {
+      addon += `
+--- TU ES EN PHASE PREVIEWING ---
+Objectif: L'utilisateur doit valider la modification proposee.
+
+Signaux a surveiller:
+- user_confirms_change: "yes" si validation, "no" si refus, "modify" si ajustement
+- user_abandons: true si abandon
+
+ready_for_next_phase = true SEULEMENT si user_confirms_change = "yes"
+`
+    }
+
+    addon += `
 
 Guide d'interpretation:
 - user_confirms_change: "yes" si validation ("ok", "c'est bon"), "no" si refus, "modify" si autre modification
@@ -656,135 +1373,604 @@ Guide d'interpretation:
   }
   
   if (activeMachine === "breakdown_action_flow") {
+    const status = flowContext?.breakdownStatus ?? "exploring"
+    const targetAction = flowContext?.breakdownTarget ?? "action"
+    const blocker = flowContext?.blocker ?? "non précisé"
+    const proposedStep = flowContext?.proposedStep ?? "en génération"
+    const clarificationCount = flowContext?.breakdownClarificationCount ?? 0
+    
+    const statusEmoji = (s: string, current: string) => {
+      const order = ["exploring", "previewing", "applied", "abandoned"]
+      return s === current ? "▶" : (order.indexOf(s) < order.indexOf(current) ? "✓" : "○")
+    }
+    
     let addon = `
 === SIGNAUX SPECIFIQUES (breakdown_action_flow actif) ===
 Tu es dans un flow de DECOMPOSITION D'ACTION en micro-etape.
-`
-    if (flowContext?.breakdownTarget) {
-      addon += `
-CONTEXTE DU FLOW:
-- Action a decomposer: "${flowContext.breakdownTarget}"
-- Ce qui bloque: ${flowContext.blocker ?? "non precise"}
-- Micro-etape proposee: ${flowContext.proposedStep ?? "en generation"}
-`
-    }
-    addon += `
-Analyse ces signaux en plus et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
 
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    MACHINE A ETAT - BREAKDOWN ACTION                          ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  ${statusEmoji("exploring", status)} EXPLORING  →  ${statusEmoji("previewing", status)} PREVIEWING  →  ${statusEmoji("applied", status)} APPLIED                        ║
+║  (blocage)       (micro-etape)    (termine)                       ║
+║                        ↓                                                      ║
+║                   ${statusEmoji("abandoned", status)} ABANDONED (si refus)                               ║
+║                                                                               ║
+║  ETAPE ACTUELLE: [ ${status.toUpperCase()} ]                                             ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+REGLE FONDAMENTALE - VERROUILLAGE DES PALIERS:
+- Une fois un palier atteint, on NE REVIENT JAMAIS en arriere
+- Maximum 1 clarification avant abandon gracieux
+
+CONTEXTE DU FLOW:
+- Action a decomposer: "${targetAction}"
+- Ce qui bloque: ${blocker}
+- Micro-etape proposee: ${proposedStep}
+- Clarifications: ${clarificationCount}/1
+
+IMPORTANT - DISTINCTION BREAKDOWN vs DEEP_REASONS:
+- breakdown_action = blocage PRATIQUE (temps, oubli, organisation) → micro-etape
+- deep_reasons = blocage MOTIVATIONNEL (flemme, peur, sens) → exploration profonde
+Si le blocage semble MOTIVATIONNEL, signal deep_reasons_opportunity = true
+
+SIGNAUX A DETECTER:
 {
   "machine_signals": {
     "user_confirms_microstep": "yes" | "no" | null,
     "user_wants_different_step": true | false,
     "blocker_clarified": "description du blocage" | null,
-    "user_abandons": true | false
+    "user_abandons": true | false,
+    "deep_reasons_opportunity": true | false,
+    "ready_for_next_phase": true | false
   }
 }
+
+CONDITIONS DE TRANSITION:
+- EXPLORING → PREVIEWING: quand le blocage est compris et micro-etape generee
+- PREVIEWING → APPLIED: user_confirms_microstep = "yes"
+- PREVIEWING → PREVIEWING: user_wants_different_step = true (1 fois max)
+- * → ABANDONED: user_abandons = true OU max clarifications atteint
+`
+
+    if (status === "exploring") {
+      addon += `
+--- TU ES EN PHASE EXPLORING ---
+Objectif: Comprendre ce qui bloque l'utilisateur.
+
+Signaux a surveiller:
+- blocker_clarified: la raison du blocage ("pas le temps", "j'oublie", "trop long")
+- deep_reasons_opportunity: true si blocage MOTIVATIONNEL ("flemme", "pas envie", "je sais pas pourquoi")
+- user_abandons: true si "laisse tomber"
+
+ready_for_next_phase = true SEULEMENT si blocage PRATIQUE identifie.
+Si blocage MOTIVATIONNEL → deep_reasons_opportunity = true, pas de micro-etape.
+`
+    } else if (status === "previewing") {
+      addon += `
+--- TU ES EN PHASE PREVIEWING ---
+Objectif: L'utilisateur doit valider la micro-etape proposee.
+
+Signaux a surveiller:
+- user_confirms_microstep: "yes" si acceptation, "no" si refus
+- user_wants_different_step: true si "autre chose", "trop dur", "plus simple"
+- user_abandons: true si abandon
+
+ready_for_next_phase = true SEULEMENT si user_confirms_microstep = "yes"
+`
+    }
+
+    addon += `
 
 Guide d'interpretation:
 - user_confirms_microstep: "yes" si acceptation de la micro-etape, "no" si refus
 - user_wants_different_step: true si "autre chose", "trop dur", "plus simple"
 - blocker_clarified: texte du blocage si l'utilisateur explique ce qui le bloque
 - user_abandons: true si abandon
+- deep_reasons_opportunity: true si le blocage semble MOTIVATIONNEL (pas pratique)
 `
     return checkupAddon ? `${addon}\n${checkupAddon}` : addon
   }
   
   if (activeMachine === "topic_serious" || activeMachine === "topic_light") {
-    const topicType = activeMachine === "topic_serious" ? "SERIEUX" : "LEGER"
-    let addon = `
-=== SIGNAUX SPECIFIQUES (topic_exploration actif) ===
-Tu es dans un flow d'EXPLORATION DE SUJET ${topicType}.
-`
-    if (flowContext?.topicLabel) {
-      addon += `
-CONTEXTE DU FLOW:
-- Sujet explore: "${flowContext.topicLabel}"
-- Phase: ${flowContext.topicPhase ?? "opening"}
-`
+    const isSerious = activeMachine === "topic_serious"
+    const topicType = isSerious ? "SÉRIEUX" : "LÉGER"
+    const phase = flowContext?.topicPhase ?? "opening"
+    const topic = flowContext?.topicLabel ?? "sujet"
+    const turnCount = flowContext?.topicTurnCount ?? 0
+    const engagement = flowContext?.topicEngagement ?? "MEDIUM"
+    const maxTurns = isSerious ? 8 : 4
+    
+    // Build visual state machine representation
+    const phaseEmoji = (p: string, current: string) => {
+      const order = ["opening", "exploring", "converging", "closing"]
+      return p === current ? "▶" : (order.indexOf(p) < order.indexOf(current) ? "✓" : "○")
     }
-    addon += `
-Analyse ces signaux en plus et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
+    
+    let addon = `
+=== SIGNAUX SPECIFIQUES (${activeMachine} actif) ===
+Tu es dans un flow d'EXPLORATION DE SUJET ${topicType}.
 
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    MACHINE A ETAT - TOPIC ${topicType}                            ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  ${phaseEmoji("opening", phase)} OPENING     →  ${phaseEmoji("exploring", phase)} EXPLORING   →  ${phaseEmoji("converging", phase)} CONVERGING  →  ${phaseEmoji("closing", phase)} CLOSING       ║
+║  (accueil)       (exploration)   (convergence)    (cloture)        ║
+║                                                                               ║
+║  ETAPE ACTUELLE: [ ${phase.toUpperCase()} ]                                               ║
+║                                                                               ║
+║  ${isSerious ? "🎯 SUJET SÉRIEUX - Architect gère (max 8 tours)" : "💬 SUJET LÉGER - Companion gère (max 4 tours)"}                         ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+REGLE FONDAMENTALE - VERROUILLAGE DES PALIERS:
+- Une fois un palier atteint, on NE REVIENT JAMAIS en arriere
+- L'utilisateur peut TOUJOURS changer de sujet ou abandonner (user_abandons)
+- Engagement LOW persistant = accelerer vers closing
+
+CONTEXTE DU FLOW:
+- Sujet explore: "${topic}"
+- Tour: ${turnCount}/${maxTurns} (max)
+- Engagement actuel: ${engagement}
+- Agent proprietaire: ${isSerious ? "architect" : "companion"}
+
+SIGNAUX A DETECTER:
 {
   "machine_signals": {
     "user_engagement": "HIGH" | "MEDIUM" | "LOW" | "DISENGAGED",
-    "topic_satisfaction": { "detected": true | false },
+    "topic_satisfaction": true | false,
     "wants_to_change_topic": true | false,
-    "needs_deeper_exploration": true | false
+    "needs_deeper_exploration": true | false,
+    "user_abandons": true | false,
+    "ready_for_next_phase": true | false
   }
 }
 
-Guide d'interpretation:
-- user_engagement: HIGH si reponses longues/enthousiastes, LOW si reponses courtes/evasives, DISENGAGED si changement de sujet
-- topic_satisfaction: detected=true si "merci ca m'aide", "je comprends mieux"
-- wants_to_change_topic: true si l'utilisateur introduit un autre sujet
-- needs_deeper_exploration: true si emotions fortes ou sujet complexe non resolu
+CONDITIONS DE TRANSITION (strictes):
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ OPENING → EXPLORING                                                         │
+│ Conditions:                                                                 │
+│   • L'utilisateur a repondu et montre de l'interet (engagement != DISENGAGED)│
+│   • ready_for_next_phase = true apres premiere reponse engagee              │
+│   • Si DISENGAGED des le debut → CLOSING directement                        │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ EXPLORING → CONVERGING                                                      │
+│ Conditions TOUTES requises:                                                 │
+│   • turn_count >= ${Math.floor(maxTurns / 2)} (mi-parcours) OU topic_satisfaction = true           │
+│   • OU engagement passe a LOW (on accelere)                                 │
+│   • OU needs_deeper_exploration = false (sujet epuise)                      │
+│   • ready_for_next_phase = true quand pret a conclure                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CONVERGING → CLOSING                                                        │
+│ Conditions:                                                                 │
+│   • L'utilisateur reagit a la synthese/proposition de cloture               │
+│   • OU topic_satisfaction = true                                            │
+│   • OU turn_count >= ${maxTurns}                                                     │
+│   • ready_for_next_phase = true quand pret a fermer                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ * → CLOSING (acceleration)                                                  │
+│ Si a n'importe quel moment:                                                 │
+│   • wants_to_change_topic = true (l'utilisateur change de sujet)            │
+│   • user_engagement = DISENGAGED (desengagement total)                      │
+│   • user_abandons = true (abandon explicite)                                │
+│   → On ferme proprement et on passe a autre chose                           │
+└─────────────────────────────────────────────────────────────────────────────┘
+`
+
+    // Add phase-specific guidance
+    if (phase === "opening") {
+      addon += `
+--- TU ES EN PHASE OPENING ---
+Objectif: Accueillir le sujet, montrer de l'interet, poser le cadre.
+
+Signaux a surveiller:
+- user_engagement: PREMIER signal critique - HIGH/MEDIUM = bon, LOW/DISENGAGED = probleme
+- wants_to_change_topic: true si l'utilisateur rebondit ailleurs
+
+ready_for_next_phase = true APRES premiere reponse engagee de l'utilisateur.
+Si DISENGAGED → proposer de changer de sujet ou fermer.
+`
+    } else if (phase === "exploring") {
+      addon += `
+--- TU ES EN PHASE EXPLORING ---
+Objectif: Creuser le sujet, poser des questions, ecouter, apporter de la valeur.
+
+Signaux a surveiller:
+- user_engagement: suivre l'evolution (HIGH → bon, descente vers LOW → accelerer)
+- needs_deeper_exploration: true si le sujet merite plus, false si epuise
+- topic_satisfaction: true si l'utilisateur dit "ca m'aide", "je comprends"
+
+ready_for_next_phase = true si:
+- topic_satisfaction = true (objectif atteint)
+- OU engagement = LOW (on perd l'utilisateur, faut conclure)
+- OU turn_count >= ${Math.floor(maxTurns / 2)} et sujet bien explore
+`
+    } else if (phase === "converging") {
+      addon += `
+--- TU ES EN PHASE CONVERGING ---
+Objectif: Synthetiser, proposer une conclusion, preparer la sortie.
+
+Signaux a surveiller:
+- topic_satisfaction: true si l'utilisateur valide la synthese
+- wants_to_change_topic: true si l'utilisateur veut passer a autre chose
+- user_engagement: si remonte = bien, si reste bas = fermer
+
+ready_for_next_phase = true apres reaction a la synthese/conclusion.
+`
+    } else if (phase === "closing") {
+      addon += `
+--- TU ES EN PHASE CLOSING ---
+Objectif: Fermer proprement, proposer la suite, laisser une bonne impression.
+
+Signaux a surveiller:
+- wants_to_change_topic: le prochain sujet eventuel
+- user_abandons: si l'utilisateur veut juste arreter
+
+ready_for_next_phase = true - on peut fermer et passer a autre chose.
+Message de cloture: court, positif, porte ouverte pour revenir sur le sujet.
+`
+    }
+
+    addon += `
+
+GUIDE D'INTERPRETATION DES SIGNAUX:
+
+user_engagement:
+- HIGH: reponses longues, questions, enthousiasme, "interessant", "ah oui"
+- MEDIUM: reponses normales, suit la conversation
+- LOW: reponses courtes, "ok", "oui", "hmm", desinteret visible
+- DISENGAGED: changement de sujet, "bon...", "sinon...", ignorance du sujet
+
+topic_satisfaction:
+- true: "merci", "ca m'aide", "je comprends mieux", "c'est clair maintenant"
+- false: pas de signal de satisfaction
+
+wants_to_change_topic:
+- true: introduit un autre sujet, "au fait", "sinon", "autre chose"
+
+needs_deeper_exploration:
+- true: emotions fortes, complexite non resolue, questions profondes restantes
+- false: sujet bien couvert, pas de tension residuelle
+
+${isSerious ? `
+SPECIFICITE SUJET SERIEUX:
+- Plus de tours autorises (8 max)
+- Prise en charge par Architect (plus structuré)
+- Peut escalader vers Librarian si besoin de recherche
+- Emotions/problemes importants = prendre le temps
+` : `
+SPECIFICITE SUJET LEGER:
+- Moins de tours (4 max)
+- Prise en charge par Companion (plus decontracte)
+- Pas d'escalade vers Librarian normalement
+- Ton leger, pas besoin de resolution profonde
+`}
 `
     return addon
   }
   
   if (activeMachine === "deep_reasons_exploration") {
+    const phase = flowContext?.deepReasonsPhase ?? "re_consent"
+    const topic = flowContext?.deepReasonsTopic ?? "blocage motivationnel"
+    const turnCount = flowContext?.deepReasonsTurnCount ?? 0
+    const detectedPattern = flowContext?.deepReasonsPattern ?? "unknown"
+    
+    // Build visual state machine representation
+    const phaseEmoji = (p: string, current: string) => {
+      const order = ["re_consent", "clarify", "hypotheses", "resonance", "intervention", "closing"]
+      return p === current ? "▶" : (order.indexOf(p) < order.indexOf(current) ? "✓" : "○")
+    }
+    
     let addon = `
 === SIGNAUX SPECIFIQUES (deep_reasons_exploration actif) ===
 Tu es dans un flow d'EXPLORATION DES RAISONS PROFONDES d'un blocage motivationnel.
-`
-    if (flowContext?.deepReasonsTopic) {
-      addon += `
-CONTEXTE DU FLOW:
-- Sujet explore: "${flowContext.deepReasonsTopic}"
-- Phase: ${flowContext.deepReasonsPhase ?? "re_consent"}
-`
-    }
-    addon += `
-Analyse ces signaux en plus et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
 
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                    MACHINE A ETAT - DEEP REASONS                              ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  ${phaseEmoji("re_consent", phase)} RE_CONSENT  →  ${phaseEmoji("clarify", phase)} CLARIFY  →  ${phaseEmoji("hypotheses", phase)} HYPOTHESES  →  ${phaseEmoji("resonance", phase)} RESONANCE    ║
+║  (consentement)  (exploration)  (propositions)    (validation)       ║
+║                                        ↓                                      ║
+║                    ${phaseEmoji("intervention", phase)} INTERVENTION  →  ${phaseEmoji("closing", phase)} CLOSING                           ║
+║                     (accompagnement)    (micro-engagement)             ║
+║                                                                               ║
+║  ETAPE ACTUELLE: [ ${phase.toUpperCase()} ]                                               ║
+║                                                                               ║
+║  ⚡ FLOW SENSIBLE - EMPATHIE ET RESPECT ABSOLUS                              ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+
+REGLE FONDAMENTALE - VERROUILLAGE DES PALIERS:
+- Une fois un palier atteint, on NE REVIENT JAMAIS en arriere
+- L'utilisateur peut TOUJOURS abandonner (signal wants_to_stop)
+- Jamais forcer l'exploration si resistance detectee
+
+CONTEXTE DU FLOW:
+- Sujet explore: "${topic}"
+- Pattern detecte: ${detectedPattern}
+- Tour: ${turnCount}
+
+SIGNAUX A DETECTER:
 {
   "machine_signals": {
     "user_opens_up": true | false,
     "resistance_detected": true | false,
     "insight_emerged": true | false,
-    "wants_to_stop": true | false
+    "user_consents_exploration": true | false | null,
+    "user_abandons": true | false,
+    "ready_for_next_phase": true | false
   }
 }
 
-Guide d'interpretation:
-- user_opens_up: true si partage personnel, emotions, vecu
-- resistance_detected: true si "je sais pas", "c'est pas ca", deflection, changement de sujet
-- insight_emerged: true si "ah oui", "je realise", "en fait c'est parce que"
-- wants_to_stop: true si "on peut en rester la", "c'est bon", malaise explicite
+CONDITIONS DE TRANSITION (strictes):
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ RE_CONSENT → CLARIFY                                                        │
+│ Conditions TOUTES requises:                                                 │
+│   • user_consents_exploration = true ("oui", "ok", "je veux bien")          │
+│   • user_abandons = false                                                   │
+│   • ready_for_next_phase = true quand consentement clair                    │
+│ Si "non" ou "pas maintenant" → exploration annulee                          │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ CLARIFY → HYPOTHESES                                                        │
+│ Conditions:                                                                 │
+│   • L'utilisateur a partage quelque chose (user_opens_up = true)            │
+│   • OU resistance_detected = true (on avance quand meme avec prudence)      │
+│   • ready_for_next_phase = true apres partage ou 2 tours                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ HYPOTHESES → RESONANCE                                                      │
+│ Conditions:                                                                 │
+│   • L'utilisateur a reagi aux hypotheses                                    │
+│   • ready_for_next_phase = true apres reaction                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ RESONANCE → INTERVENTION                                                    │
+│ Conditions:                                                                 │
+│   • insight_emerged = true (l'utilisateur a identifie ce qui resonne)       │
+│   • ready_for_next_phase = true quand identification claire                 │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ INTERVENTION → CLOSING                                                      │
+│ Conditions:                                                                 │
+│   • L'utilisateur a reagi a l'intervention                                  │
+│   • ready_for_next_phase = true apres reaction                              │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ * → ABANDONNE (a tout moment)                                               │
+│ Si user_abandons = true:                                                    │
+│   • "stop", "arrete", "c'est bon", "trop dur", "pas envie d'en parler"      │
+│   • Message respectueux, porte ouverte pour plus tard                       │
+└─────────────────────────────────────────────────────────────────────────────┘
+`
+
+    // Add phase-specific guidance
+    if (phase === "re_consent") {
+      addon += `
+--- TU ES EN PHASE RE_CONSENT ---
+Objectif: Verifier que l'utilisateur veut bien explorer ce sujet sensible.
+
+Signaux a surveiller:
+- user_consents_exploration: true si "oui", "ok", "je veux bien", "vas-y"
+- user_abandons: true si "non", "pas maintenant", "plus tard", "c'est bon"
+
+ready_for_next_phase = true SEULEMENT si consentement EXPLICITE.
+Si pas de reponse claire, reposer la question une fois maximum.
+`
+    } else if (phase === "clarify") {
+      addon += `
+--- TU ES EN PHASE CLARIFY ---
+Objectif: Comprendre ce qui se passe pour l'utilisateur. Ecoute active.
+
+Signaux a surveiller:
+- user_opens_up: true si partage personnel, emotions, description du vecu
+- resistance_detected: true si "je sais pas", deflection, changement de sujet
+- user_abandons: true si malaise explicite, veut arreter
+
+ready_for_next_phase = true si:
+- user_opens_up = true (partage reel)
+- OU turn_count >= 2 (on avance meme avec peu d'infos)
+
+Si resistance_detected = true, ne pas insister. Avancer avec douceur.
+`
+    } else if (phase === "hypotheses") {
+      addon += `
+--- TU ES EN PHASE HYPOTHESES ---
+Objectif: Sophia propose des pistes possibles pour aider a identifier.
+
+Signaux a surveiller:
+- user_opens_up: true si reaction aux hypotheses
+- resistance_detected: true si rejet de toutes les hypotheses
+- user_abandons: true si veut arreter
+
+ready_for_next_phase = true apres reaction de l'utilisateur aux hypotheses.
+`
+    } else if (phase === "resonance") {
+      addon += `
+--- TU ES EN PHASE RESONANCE ---
+Objectif: L'utilisateur identifie ce qui lui parle le plus.
+
+Signaux a surveiller:
+- insight_emerged: true si "c'est ca", "effectivement", "ah oui", identification claire
+- resistance_detected: true si "rien de tout ca", "je sais pas"
+- user_abandons: true si veut arreter
+
+ready_for_next_phase = true si insight_emerged = true ou reaction claire.
+`
+    } else if (phase === "intervention") {
+      addon += `
+--- TU ES EN PHASE INTERVENTION ---
+Objectif: Sophia propose une intervention adaptee au pattern identifie.
+
+Signaux a surveiller:
+- user_opens_up: true si reaction positive/constructive
+- resistance_detected: true si rejet de l'intervention
+- user_abandons: true si veut arreter
+
+ready_for_next_phase = true apres reaction a l'intervention.
+`
+    } else if (phase === "closing") {
+      addon += `
+--- TU ES EN PHASE CLOSING ---
+Objectif: Proposer un micro-engagement et fermer l'exploration avec soin.
+
+Signaux a surveiller:
+- user_consents_exploration: true si accepte le micro-engagement
+- user_abandons: true si refuse ou veut arreter
+
+ready_for_next_phase = true quand l'exploration peut se conclure.
+Meme si l'utilisateur refuse le micro-engagement, fermer avec bienveillance.
+`
+    }
+
+    addon += `
+
+REGLE EMPATHIE (CRITIQUE):
+- NE JAMAIS forcer ou insister si resistance_detected = true
+- Toujours laisser une porte de sortie
+- Valider les emotions, pas les analyser cliniquement
+- Si user_abandons = true, respecter IMMEDIATEMENT
 `
     return addon
   }
   
-  if (activeMachine === "user_profile_confirmation") {
-    let addon = `
-=== SIGNAUX SPECIFIQUES (user_profile_confirmation actif) ===
-Tu es dans un flow de CONFIRMATION D'INFORMATION DE PROFIL.
-`
-    if (flowContext?.profileFactKey) {
-      addon += `
-CONTEXTE DU FLOW:
-- Information a confirmer: ${flowContext.profileFactKey}
-- Valeur proposee: ${flowContext.profileFactValue ?? "a determiner"}
-`
-    }
-    addon += `
-Analyse ces signaux en plus et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ACTIVATE ACTION FLOW - Action activation machine
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (activeMachine === "activate_action_flow") {
+    const target = flowContext?.activateActionTarget ?? "une action"
+    const exercise = flowContext?.activateExerciseType
+    
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+🎯 activate_action_flow ACTIF - Machine d'Activation d'Action
+═══════════════════════════════════════════════════════════════════════════════
 
+ACTION CIBLE: "${target}"
+${exercise ? `EXERCICE SPECIFIQUE: "${exercise}"` : ""}
+STATUT: ${flowContext?.activateStatus ?? "exploring"}
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  DIAGRAMME DE PHASES                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [exploring] ────► [confirming] ────► [activated] ✓                         │
+│       │                  │                                                  │
+│       │                  │                                                  │
+│       └──────────────────┴────────► [abandoned] ✗                           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TRANSITIONS:
+- exploring → confirming: L'utilisateur a identifie l'action a activer
+- confirming → activated: user_confirms_activation = true
+- * → abandoned: user_abandons = true OU user_wants_different_action detecte
+
+SIGNAUX A DETECTER (dans machine_signals):
+{
+  "machine_signals": {
+    "user_confirms_activation": true | false | null,
+    "user_wants_different_action": "nom de l'action alternative" | null,
+    "activation_ready": true | false,
+    "user_abandons": true | false
+  }
+}
+
+INTERPRETATION:
+- user_confirms_activation: true si "oui", "go", "on fait ca", "je m'y mets"
+- user_wants_different_action: si l'utilisateur veut activer une AUTRE action
+- activation_ready: true si l'action est clairement identifiee et prete a etre activee
+- user_abandons: true si "non", "laisse", "pas maintenant", "on verra"
+
+IMPORTANT:
+- L'activation concerne des actions DORMANTES ou FUTURES du plan
+- Ne pas confondre avec track_progress (qui enregistre une action FAITE)
+- Si l'utilisateur mentionne un exercice specifique (attrape-reves, etc.), le noter
+`
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // USER PROFILE CONFIRMATION - Profile fact confirmation machine
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (activeMachine === "user_profile_confirmation") {
+    const phase = flowContext?.profileConfirmPhase ?? "awaiting_confirm"
+    const queueSize = flowContext?.profileConfirmQueueSize ?? 1
+    const currentIdx = flowContext?.profileConfirmCurrentIndex ?? 0
+    const remaining = queueSize - currentIdx - 1
+    
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+📋 user_profile_confirmation ACTIF - Machine de Confirmation de Profil
+═══════════════════════════════════════════════════════════════════════════════
+
+FAIT EN COURS: "${flowContext?.profileFactKey ?? "inconnu"}" = "${flowContext?.profileFactValue ?? "?"}"
+PHASE ACTUELLE: ${phase}
+QUEUE: ${currentIdx + 1}/${queueSize} (${remaining > 0 ? `${remaining} restant(s)` : "dernier"})
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│  DIAGRAMME DE PHASES                                                        │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  [presenting] ────► [awaiting_confirm] ────► [processing]                   │
+│                            │                      │                         │
+│                            │                      ├──► [presenting] (next)  │
+│                            │                      └──► [completed] ✓        │
+│                            │                                                │
+│                            └──────────────────────► [abandoned] ✗           │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+TRANSITIONS STRICTES:
+- presenting → awaiting_confirm: Question de confirmation posee
+- awaiting_confirm → processing: Reponse de l'utilisateur recue (yes/no/nuance)
+- processing → presenting: Si queue non vide, passer au fait suivant
+- processing → completed: Si queue vide, terminer
+- * → abandoned: user_abandons = true
+
+SIGNAUX A DETECTER (dans machine_signals):
 {
   "machine_signals": {
     "user_confirms_fact": "yes" | "no" | "nuance" | null,
     "user_provides_correction": "correction fournie" | null,
-    "fact_type_detected": "work_schedule" | "energy_peaks" | "tone" | "verbosity" | "emojis" | "wake_time" | "sleep_time" | "job" | "hobbies" | "family" | null
+    "fact_type_detected": "work_schedule" | "energy_peaks" | ... | null,
+    "user_abandons": true | false
   }
 }
 
-Guide d'interpretation:
-- user_confirms_fact: "yes" si confirmation, "no" si refus, "nuance" si "oui mais..."
-- user_provides_correction: valeur corrigee si l'utilisateur rectifie
-- fact_type_detected: type de fait personnel detecte dans le message
+INTERPRETATION:
+- user_confirms_fact:
+  • "yes" = "oui", "c'est ca", "exact", "yep", "ouep"
+  • "no" = "non", "pas vraiment", "nan", "c'est pas ca"
+  • "nuance" = "oui mais...", "plutot...", "en fait c'est..."
+- user_provides_correction: la valeur corrigee si nuance
+- user_abandons: true si "laisse tomber", "on verra plus tard", "stop"
+
+TYPES DE FAITS:
+work_schedule, energy_peaks, wake_time, sleep_time, job, 
+hobbies, family, tone_preference, emoji_preference, verbosity
+
+IMPORTANT:
+- ${remaining > 0 ? `Il reste ${remaining} fait(s) a confirmer apres celui-ci` : "C'est le DERNIER fait"}
+- Ne pas forcer la confirmation
+- Accepter les corrections/nuances avec bienveillance
 `
-    return addon
   }
   
   // Bilan (investigation) active - detect signals for post-bilan processing
@@ -800,6 +1986,11 @@ CONTEXTE DU BILAN:
 - Jours rates consecutifs (missed_streak): ${flowContext.missedStreak ?? 0}
 `
     }
+    if (flowContext?.missedStreaksByAction && Object.keys(flowContext.missedStreaksByAction).length > 0) {
+      addon += `
+- Streaks par action: ${JSON.stringify(flowContext.missedStreaksByAction)}
+`
+    }
     addon += `
 IMPORTANT: Pendant le bilan, on NE LANCE PAS de nouvelles machines a etat.
 Les signaux detectes sont INFORMATIFS pour l'Investigator et seront STOCKES dans deferred_topics
@@ -813,17 +2004,34 @@ Analyse ces signaux et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
     "deep_reasons_opportunity": true | false,
     "create_action_intent": true | false,
     "update_action_intent": true | false,
-    "user_consents_defer": true | false
+    "user_consents_defer": true | false,
+    "confirm_deep_reasons": true | false | null,
+    "confirm_breakdown": true | false | null,
+    "confirm_topic": true | false | null
   }
 }
 
-Guide d'interpretation:
+Guide d'interpretation - SIGNAUX DE DETECTION:
 - breakdown_recommended: true si missed_streak >= 5 ET blocage PRATIQUE (oubli, temps, organisation, "trop dur")
 - deep_reasons_opportunity: true si blocage MOTIVATIONNEL (pas envie, peur, sens, flemme, "je sais pas pourquoi")
 - create_action_intent: true si l'utilisateur veut creer une NOUVELLE action (pas modifier l'actuelle)
 - update_action_intent: true si l'utilisateur veut modifier une action EXISTANTE (frequence, jours, horaire)
 - user_consents_defer: true si l'utilisateur dit "oui" a une proposition de faire quelque chose apres le bilan
   ("oui on fait ca apres", "ok apres le bilan", "oui je veux qu'on en parle", etc.)
+
+Guide d'interpretation - SIGNAUX DE CONFIRMATION (reponse a "tu veux qu'on en parle apres le bilan ?"):
+- confirm_deep_reasons: 
+  - true si l'utilisateur dit "oui" a une proposition d'explorer un blocage motivationnel apres le bilan
+  - false si l'utilisateur dit "non", "pas besoin", "ca va"
+  - null si pas de reponse a cette question specifique
+- confirm_breakdown:
+  - true si l'utilisateur dit "oui" a une proposition de micro-etape apres le bilan
+  - false si l'utilisateur dit "non", "ca va", "pas la peine"
+  - null si pas de reponse a cette question specifique
+- confirm_topic:
+  - true si l'utilisateur dit "oui" a une proposition de parler d'un sujet apres le bilan
+  - false si l'utilisateur dit "non", "pas maintenant"
+  - null si pas de reponse a cette question specifique
 
 DISTINCTION CRITIQUE (breakdown vs deep_reasons):
 - breakdown = blocage PRATIQUE: "j'oublie", "pas le temps", "trop fatigue le soir" -> micro-etape
@@ -862,6 +2070,9 @@ ETAT ACTUEL:
 
   // Add mother signals (always)
   prompt += MOTHER_SIGNALS_SECTION
+  
+  // Add deferred topics section (for dispatcher awareness of queued topics)
+  prompt += buildDeferredTopicsSection(flowContext)
   
   // Add checkup intent detection (always, unless already in bilan)
   // This allows users to trigger their daily checkup via LLM detection
@@ -953,12 +2164,13 @@ SIGNAUX À PRODUIRE (JSON strict):
 
 2. **user_intent_primary** — Intention principale?
    - "CHECKUP" (veut faire/continuer un bilan)
-   - "PLAN" (veut travailler sur son plan/actions)
    - "EMOTIONAL_SUPPORT" (veut parler émotions sans danger)
    - "SMALL_TALK" (bavardage, "salut", "ça va")
    - "PREFERENCE" (veut changer style/ton/emoji/préférences)
-   - "BREAKDOWN" (demande de découper une action, micro-étapes)
    - "UNKNOWN"
+   
+   NOTE: Les discussions sur le plan/objectifs passent par topic_depth (LIGHT ou SERIOUS selon profondeur).
+   Les demandes de création/modification d'action passent par create_action/update_action/breakdown_action.
 
 3. **user_intent_confidence**: 0.0 à 1.0
 
@@ -978,11 +2190,22 @@ RÈGLE SPÉCIALE (plan_confirm_pending):
 6. **topic_depth** — Profondeur du sujet abordé (pour topic_exploration)?
    - value: "NONE" | "NEED_SUPPORT" | "SERIOUS" | "LIGHT"
    - confidence: 0.0 à 1.0
+   - plan_focus: true/false (true si la discussion porte sur le plan/objectifs, false sinon)
    CRITÈRES:
    - "NEED_SUPPORT": L'utilisateur exprime un besoin de soutien émotionnel, de la vulnérabilité, de l'anxiété, du mal-être (sans danger vital). Détresse modérée.
    - "SERIOUS": Sujet profond qui touche la psyché — problèmes personnels, peurs, blocages, patterns de comportement, relations difficiles, introspection. PAS de détresse aiguë.
    - "LIGHT": Sujet léger — bavardage, anecdotes du quotidien, humour, discussions sans enjeu émotionnel profond.
-   - "NONE": Aucun des cas ci-dessus (ou le message concerne le plan/bilan/préférences).
+   - "NONE": Aucun des cas ci-dessus (bilan en cours, préférences techniques, ou opérations tools explicites).
+   
+   IMPORTANT - DISCUSSIONS SUR LE PLAN:
+   - Si l'utilisateur DISCUTE de son plan/objectifs (réflexion, clarification, questions sur le sens):
+     * Discussion légère (questions simples, clarifications) → "LIGHT" + plan_focus=true
+     * Discussion profonde (doutes, blocages, sens de l'objectif) → "SERIOUS" + plan_focus=true
+   - Si l'utilisateur demande une OPÉRATION outil (créer/modifier/supprimer action) → "NONE" (les tool signals gèrent)
+   - Exemples:
+     * "Je me demande si mon objectif est le bon" → SERIOUS + plan_focus=true
+     * "C'est quoi la prochaine étape ?" → LIGHT + plan_focus=true  
+     * "Ajoute-moi une action sport" → NONE (c'est une opération tool, pas une discussion)
 
 7. **wants_tools**: true si l'utilisateur demande explicitement d'activer/créer/modifier une action
 
@@ -1170,6 +2393,107 @@ RÈGLE SPÉCIALE (plan_confirm_pending):
    - "unclear": Réponse ambiguë
    - "none": Pas de contexte de réponse
 
+16. **track_progress** — Enregistrement de progression détecté?
+   - detected: true/false
+   - target_hint: string ou null (nom de l'action concernée)
+   - status_hint: "completed" | "missed" | "partial" | "unknown"
+   - value_hint: number ou null (valeur numérique si mentionnée)
+   - confidence: 0.0 à 1.0
+
+   RÈGLES detected:
+   - true SI l'utilisateur rapporte une progression sur une action
+     * "J'ai fait mon sport", "J'ai médité", "J'ai pas fait ma lecture"
+     * "J'ai raté/loupé/zappé X", "J'ai tenu", "J'ai réussi"
+     * "Fait !", "Done", "Validé", "Coché"
+     * "J'ai fait 3 fois cette semaine"
+   - false sinon
+
+   RÈGLES target_hint:
+   - Extrais le NOM de l'action mentionnée
+     * "j'ai fait mon sport" → target_hint = "sport"
+     * "j'ai médité ce matin" → target_hint = "méditation"
+   - null si pas clair ou action non mentionnée
+
+   RÈGLES status_hint:
+   - "completed": L'utilisateur a fait l'action
+     * "j'ai fait", "j'ai réussi", "fait !", "validé"
+   - "missed": L'utilisateur n'a pas fait l'action
+     * "j'ai pas fait", "j'ai raté", "j'ai loupé", "zappé"
+   - "partial": L'utilisateur a fait partiellement
+     * "j'ai fait à moitié", "un peu", "pas complètement"
+   - "unknown": Pas clair
+
+   RÈGLES value_hint:
+   - Extrais un nombre si mentionné
+     * "j'ai fait 3 fois" → value_hint = 3
+     * "j'ai bu 2 litres d'eau" → value_hint = 2
+   - null si pas de valeur numérique
+
+17. **activate_action** — Activation d'action détectée?
+   - detected: true/false
+   - target_hint: string ou null (nom de l'action à activer)
+   - exercise_type_hint: string ou null (type d'exercice si spécifique)
+   - confidence: 0.0 à 1.0
+
+   RÈGLES detected:
+   - true SI l'utilisateur veut ACTIVER une action dormante/future
+     * "Active-moi X", "Lance X", "Démarre X"
+     * "Je veux commencer X", "On active X ?"
+     * "Attrape-rêves go !", "Lance l'exercice"
+   - false sinon (création = signal 13, c'est différent)
+
+   RÈGLES target_hint:
+   - Extrais le NOM de l'action à activer
+     * "active le sport" → target_hint = "sport"
+     * "lance l'attrape-rêves" → target_hint = "attrape-rêves"
+   - null si pas clair
+
+   RÈGLES exercise_type_hint:
+   - Si c'est un exercice spécifique connu, extrais le type
+     * "attrape-rêves", "bilan quotidien", "journal de gratitude"
+   - null si c'est une action simple
+
+18. **safety_resolution** — Signaux de résolution de crise (si safety flow actif)?
+   - user_confirms_safe: true/false (l'utilisateur confirme être en sécurité)
+   - stabilizing_signal: true/false (signes d'apaisement)
+   - symptoms_still_present: true/false (symptômes physiques/émotionnels encore présents)
+   - external_help_mentioned: true/false (aide externe mentionnée)
+   - escalate_to_sentry: true/false (situation devient vitale)
+   - confidence: 0.0 à 1.0
+
+   RÈGLES user_confirms_safe:
+   - true SI l'utilisateur confirme EXPLICITEMENT être en sécurité
+     * "oui je suis en sécurité", "je suis chez moi", "je suis avec quelqu'un"
+     * "non je ne vais pas me faire de mal", "non pas de danger"
+   - false sinon
+
+   RÈGLES stabilizing_signal:
+   - true SI l'utilisateur montre des signes d'apaisement
+     * "ça va mieux", "je me calme", "merci", "je respire mieux"
+     * "ok j'ai fait l'exercice", "ça redescend"
+     * "c'est bon", "ça passe", "je gère"
+   - false sinon
+
+   RÈGLES symptoms_still_present:
+   - true SI l'utilisateur mentionne ENCORE des symptômes physiques/émotionnels
+     * "j'ai encore le cœur qui bat", "je tremble encore"
+     * "j'ai toujours du mal à respirer", "j'ai des vertiges"
+     * "je pleure encore", "j'ai toujours peur"
+   - false si aucun symptôme mentionné ou symptômes résolus
+
+   RÈGLES external_help_mentioned:
+   - true SI l'utilisateur mentionne avoir contacté/être avec de l'aide externe
+     * "j'ai appelé le SAMU", "je suis avec mon ami", "j'ai prévenu ma sœur"
+     * "je vais voir un médecin", "j'ai un rdv psy"
+   - false sinon
+
+   RÈGLES escalate_to_sentry:
+   - true SI la situation firefighter devient VITALE (danger de mort)
+     * "j'ai envie de me faire du mal", "j'ai des idées noires"
+     * "je veux mourir", "je vais sauter"
+     * TOUTE mention de danger vital alors qu'on était en crise émotionnelle
+   - false sinon (rester en firefighter)
+
 RÈGLES:
 - Produis UNIQUEMENT le JSON, pas de prose.
 - Sois conservateur sur safety (confidence >= 0.75 pour FIREFIGHTER/SENTRY).
@@ -1201,7 +2525,7 @@ Réponds UNIQUEMENT avec le JSON:`
       : "unknown"
 
     const intentPrimary = ([
-      "CHECKUP", "PLAN", "EMOTIONAL_SUPPORT", "SMALL_TALK", "PREFERENCE", "BREAKDOWN", "UNKNOWN"
+      "CHECKUP", "EMOTIONAL_SUPPORT", "SMALL_TALK", "PREFERENCE", "UNKNOWN"
     ] as UserIntentPrimary[]).includes(obj?.user_intent_primary)
       ? obj.user_intent_primary as UserIntentPrimary
       : "UNKNOWN"
@@ -1233,6 +2557,7 @@ Réponds UNIQUEMENT avec le JSON:`
       ? obj.topic_depth.value as TopicDepth
       : "NONE"
     const topicDepthConf = Math.max(0, Math.min(1, Number(obj?.topic_depth?.confidence ?? 0.9) || 0.9))
+    const topicDepthPlanFocus = Boolean(obj?.topic_depth?.plan_focus)
 
     // Parse deep_reasons signal
     const deepReasonsOpportunity = Boolean(obj?.deep_reasons?.opportunity)
@@ -1318,6 +2643,38 @@ Réponds UNIQUEMENT avec le JSON:`
       : "none"
     const breakdownActionConf = Math.max(0, Math.min(1, Number(obj?.breakdown_action?.confidence ?? 0.5) || 0.5))
 
+    // Parse track_progress signal
+    const trackProgressDetected = Boolean(obj?.track_progress?.detected)
+    const trackProgressTargetHint = (typeof obj?.track_progress?.target_hint === "string" && obj.track_progress.target_hint.trim())
+      ? obj.track_progress.target_hint.trim().slice(0, 80)
+      : undefined
+    const trackProgressStatusHintRaw = String(obj?.track_progress?.status_hint ?? "unknown").toLowerCase()
+    const trackProgressStatusHint = (["completed", "missed", "partial", "unknown"] as const).includes(trackProgressStatusHintRaw as any)
+      ? trackProgressStatusHintRaw as "completed" | "missed" | "partial" | "unknown"
+      : "unknown"
+    const trackProgressValueHint = (typeof obj?.track_progress?.value_hint === "number" && !isNaN(obj.track_progress.value_hint))
+      ? obj.track_progress.value_hint
+      : undefined
+    const trackProgressConf = Math.max(0, Math.min(1, Number(obj?.track_progress?.confidence ?? 0.5) || 0.5))
+
+    // Parse activate_action signal
+    const activateActionDetected = Boolean(obj?.activate_action?.detected)
+    const activateActionTargetHint = (typeof obj?.activate_action?.target_hint === "string" && obj.activate_action.target_hint.trim())
+      ? obj.activate_action.target_hint.trim().slice(0, 80)
+      : undefined
+    const activateActionExerciseHint = (typeof obj?.activate_action?.exercise_type_hint === "string" && obj.activate_action.exercise_type_hint.trim())
+      ? obj.activate_action.exercise_type_hint.trim().slice(0, 80)
+      : undefined
+    const activateActionConf = Math.max(0, Math.min(1, Number(obj?.activate_action?.confidence ?? 0.5) || 0.5))
+
+    // Parse safety_resolution signal
+    const safetyResolutionUserConfirmsSafe = Boolean(obj?.safety_resolution?.user_confirms_safe)
+    const safetyResolutionStabilizingSignal = Boolean(obj?.safety_resolution?.stabilizing_signal)
+    const safetyResolutionSymptomsStillPresent = Boolean(obj?.safety_resolution?.symptoms_still_present)
+    const safetyResolutionExternalHelpMentioned = Boolean(obj?.safety_resolution?.external_help_mentioned)
+    const safetyResolutionEscalateToSentry = Boolean(obj?.safety_resolution?.escalate_to_sentry)
+    const safetyResolutionConf = Math.max(0, Math.min(1, Number(obj?.safety_resolution?.confidence ?? 0.5) || 0.5))
+
     const wantsTools = Boolean(obj?.wants_tools)
     const riskScore = Math.max(0, Math.min(10, Number(obj?.risk_score ?? 0) || 0))
 
@@ -1331,7 +2688,7 @@ Réponds UNIQUEMENT avec le JSON:`
         deferred_topic_formalized: (interruptKind === "DIGRESSION" || interruptKind === "SWITCH_TOPIC") ? deferredTopicFormalized : undefined,
       },
       flow_resolution: { kind: flowKind, confidence: flowConf },
-      topic_depth: { value: topicDepthValue, confidence: topicDepthConf },
+      topic_depth: { value: topicDepthValue, confidence: topicDepthConf, plan_focus: topicDepthPlanFocus },
       deep_reasons: { 
         opportunity: deepReasonsOpportunity,
         action_mentioned: deepReasonsActionMentioned,
@@ -1377,6 +2734,27 @@ Réponds UNIQUEMENT avec le JSON:`
         sophia_suggested: breakdownActionSophiaSuggested,
         user_response: breakdownActionUserResponse,
         confidence: breakdownActionConf,
+      },
+      track_progress: {
+        detected: trackProgressDetected,
+        target_hint: trackProgressTargetHint,
+        status_hint: trackProgressStatusHint,
+        value_hint: trackProgressValueHint,
+        confidence: trackProgressConf,
+      },
+      activate_action: {
+        detected: activateActionDetected,
+        target_hint: activateActionTargetHint,
+        exercise_type_hint: activateActionExerciseHint,
+        confidence: activateActionConf,
+      },
+      safety_resolution: {
+        user_confirms_safe: safetyResolutionUserConfirmsSafe,
+        stabilizing_signal: safetyResolutionStabilizingSignal,
+        symptoms_still_present: safetyResolutionSymptomsStillPresent,
+        external_help_mentioned: safetyResolutionExternalHelpMentioned,
+        escalate_to_sentry: safetyResolutionEscalateToSentry,
+        confidence: safetyResolutionConf,
       },
       wants_tools: wantsTools,
       risk_score: riskScore,
@@ -1441,12 +2819,12 @@ ${contextMessages}
 === FORMAT DE SORTIE JSON ===
 {
   "signals": {
-    "safety": { "level": "NONE|FIREFIGHTER|SENTRY", "confidence": 0.0-1.0 },
-    "user_intent_primary": "CHECKUP|PLAN|EMOTIONAL_SUPPORT|SMALL_TALK|PREFERENCE|BREAKDOWN|UNKNOWN",
+    "safety": { "level": "NONE|FIREFIGHTER|SENTRY", "confidence": 0.0-1.0, "immediacy": "acute|non_acute|unknown" },
+    "user_intent_primary": "CHECKUP|EMOTIONAL_SUPPORT|SMALL_TALK|PREFERENCE|UNKNOWN",
     "user_intent_confidence": 0.0-1.0,
     "interrupt": { "kind": "NONE|EXPLICIT_STOP|BORED|SWITCH_TOPIC|DIGRESSION", "confidence": 0.0-1.0 },
     "flow_resolution": { "kind": "NONE|ACK_DONE|WANTS_RESUME|DECLINES_RESUME|WANTS_PAUSE", "confidence": 0.0-1.0 },
-    "topic_depth": { "value": "NONE|NEED_SUPPORT|SERIOUS|LIGHT", "confidence": 0.0-1.0 },
+    "topic_depth": { "value": "NONE|NEED_SUPPORT|SERIOUS|LIGHT", "confidence": 0.0-1.0, "plan_focus": bool },
     "deep_reasons": { "opportunity": bool, "action_mentioned": bool, "action_hint": string|null, "confidence": 0.0-1.0 },
     "needs_explanation": { "value": bool, "confidence": 0.0-1.0 },
     "user_engagement": { "level": "HIGH|MEDIUM|LOW|DISENGAGED", "confidence": 0.0-1.0 },
@@ -1454,6 +2832,9 @@ ${contextMessages}
     "create_action": { "intent_strength": "explicit|implicit|exploration|none", "sophia_suggested": bool, "user_response": "yes|no|modify|unclear|none", "action_type_hint": "habit|mission|framework|unknown", "confidence": 0.0-1.0 },
     "update_action": { "detected": bool, "target_hint": string|null, "change_type": "frequency|days|time|title|mixed|unknown", "user_response": "yes|no|modify|unclear|none", "confidence": 0.0-1.0 },
     "breakdown_action": { "detected": bool, "target_hint": string|null, "blocker_hint": string|null, "user_response": "yes|no|unclear|none", "confidence": 0.0-1.0 },
+    "track_progress": { "detected": bool, "target_hint": string|null, "status_hint": "completed|missed|partial|unknown", "value_hint": number|null, "confidence": 0.0-1.0 },
+    "activate_action": { "detected": bool, "target_hint": string|null, "exercise_type_hint": string|null, "confidence": 0.0-1.0 },
+    "safety_resolution": { "user_confirms_safe": bool, "stabilizing_signal": bool, "symptoms_still_present": bool, "external_help_mentioned": bool, "escalate_to_sentry": bool, "confidence": 0.0-1.0 },
     "wants_tools": bool,
     "risk_score": 0-10
   },
@@ -1497,7 +2878,7 @@ Reponds UNIQUEMENT avec le JSON:`
 
     // Parse intent
     const intentPrimary = ([
-      "CHECKUP", "PLAN", "EMOTIONAL_SUPPORT", "SMALL_TALK", "PREFERENCE", "BREAKDOWN", "UNKNOWN"
+      "CHECKUP", "EMOTIONAL_SUPPORT", "SMALL_TALK", "PREFERENCE", "UNKNOWN"
     ] as UserIntentPrimary[]).includes(signalsObj?.user_intent_primary)
       ? signalsObj.user_intent_primary as UserIntentPrimary
       : "UNKNOWN"
@@ -1530,6 +2911,7 @@ Reponds UNIQUEMENT avec le JSON:`
       ? signalsObj.topic_depth.value as TopicDepth
       : "NONE"
     const topicDepthConf = Math.max(0, Math.min(1, Number(signalsObj?.topic_depth?.confidence ?? 0.9) || 0.9))
+    const topicDepthPlanFocus = Boolean(signalsObj?.topic_depth?.plan_focus)
 
     // Parse deep_reasons
     const deepReasonsOpportunity = Boolean(signalsObj?.deep_reasons?.opportunity)
@@ -1613,6 +2995,38 @@ Reponds UNIQUEMENT avec le JSON:`
       ? breakdownActionUserResponseRaw as "yes" | "no" | "unclear" | "none"
       : "none"
     const breakdownActionConf = Math.max(0, Math.min(1, Number(signalsObj?.breakdown_action?.confidence ?? 0.5) || 0.5))
+
+    // Parse track_progress signal
+    const trackProgressDetected = Boolean(signalsObj?.track_progress?.detected)
+    const trackProgressTargetHint = (typeof signalsObj?.track_progress?.target_hint === "string" && signalsObj.track_progress.target_hint.trim())
+      ? signalsObj.track_progress.target_hint.trim().slice(0, 80)
+      : undefined
+    const trackProgressStatusHintRaw = String(signalsObj?.track_progress?.status_hint ?? "unknown").toLowerCase()
+    const trackProgressStatusHint = (["completed", "missed", "partial", "unknown"] as const).includes(trackProgressStatusHintRaw as any)
+      ? trackProgressStatusHintRaw as "completed" | "missed" | "partial" | "unknown"
+      : "unknown"
+    const trackProgressValueHint = (typeof signalsObj?.track_progress?.value_hint === "number" && !isNaN(signalsObj.track_progress.value_hint))
+      ? signalsObj.track_progress.value_hint
+      : undefined
+    const trackProgressConf = Math.max(0, Math.min(1, Number(signalsObj?.track_progress?.confidence ?? 0.5) || 0.5))
+
+    // Parse activate_action signal
+    const activateActionDetected = Boolean(signalsObj?.activate_action?.detected)
+    const activateActionTargetHint = (typeof signalsObj?.activate_action?.target_hint === "string" && signalsObj.activate_action.target_hint.trim())
+      ? signalsObj.activate_action.target_hint.trim().slice(0, 80)
+      : undefined
+    const activateActionExerciseHint = (typeof signalsObj?.activate_action?.exercise_type_hint === "string" && signalsObj.activate_action.exercise_type_hint.trim())
+      ? signalsObj.activate_action.exercise_type_hint.trim().slice(0, 80)
+      : undefined
+    const activateActionConf = Math.max(0, Math.min(1, Number(signalsObj?.activate_action?.confidence ?? 0.5) || 0.5))
+
+    // Parse safety_resolution signal
+    const safetyResolutionUserConfirmsSafe = Boolean(signalsObj?.safety_resolution?.user_confirms_safe)
+    const safetyResolutionStabilizingSignal = Boolean(signalsObj?.safety_resolution?.stabilizing_signal)
+    const safetyResolutionSymptomsStillPresent = Boolean(signalsObj?.safety_resolution?.symptoms_still_present)
+    const safetyResolutionExternalHelpMentioned = Boolean(signalsObj?.safety_resolution?.external_help_mentioned)
+    const safetyResolutionEscalateToSentry = Boolean(signalsObj?.safety_resolution?.escalate_to_sentry)
+    const safetyResolutionConf = Math.max(0, Math.min(1, Number(signalsObj?.safety_resolution?.confidence ?? 0.5) || 0.5))
 
     const wantsTools = Boolean(signalsObj?.wants_tools)
     const riskScore = Math.max(0, Math.min(10, Number(signalsObj?.risk_score ?? 0) || 0))
@@ -1733,6 +3147,19 @@ Reponds UNIQUEMENT avec le JSON:`
         machineSignals.wants_to_stop = Boolean(ms.wants_to_stop)
       }
       
+      // activate_action_flow signals
+      if (ms.user_confirms_activation !== undefined) {
+        machineSignals.user_confirms_activation = ms.user_confirms_activation === null ? null : Boolean(ms.user_confirms_activation)
+      }
+      if (ms.user_wants_different_action !== undefined) {
+        machineSignals.user_wants_different_action = typeof ms.user_wants_different_action === "string" 
+          ? ms.user_wants_different_action.slice(0, 100) 
+          : null
+      }
+      if (ms.activation_ready !== undefined) {
+        machineSignals.activation_ready = Boolean(ms.activation_ready)
+      }
+      
       // user_profile_confirmation signals
       if (ms.user_confirms_fact !== undefined) {
         const valid = ["yes", "no", "nuance", null]
@@ -1766,6 +3193,17 @@ Reponds UNIQUEMENT avec le JSON:`
       }
       if (ms.user_consents_defer !== undefined) {
         machineSignals.user_consents_defer = Boolean(ms.user_consents_defer)
+      }
+      
+      // bilan/investigation confirmation signals (response to "tu veux qu'on en parle après le bilan ?")
+      if (ms.confirm_deep_reasons !== undefined && ms.confirm_deep_reasons !== null) {
+        machineSignals.confirm_deep_reasons = Boolean(ms.confirm_deep_reasons)
+      }
+      if (ms.confirm_breakdown !== undefined && ms.confirm_breakdown !== null) {
+        machineSignals.confirm_breakdown = Boolean(ms.confirm_breakdown)
+      }
+      if (ms.confirm_topic !== undefined && ms.confirm_topic !== null) {
+        machineSignals.confirm_topic = Boolean(ms.confirm_topic)
       }
       
       // Checkup flow signals
@@ -1818,6 +3256,17 @@ Reponds UNIQUEMENT avec le JSON:`
       if (!hasAny) machineSignals = undefined
     }
 
+    // Parse deferred_enrichment (if dispatcher identified enrichment for existing deferred topic)
+    let deferredEnrichment: { topic_id: string; new_brief: string } | undefined = undefined
+    if (obj?.deferred_enrichment && typeof obj.deferred_enrichment === "object") {
+      const de = obj.deferred_enrichment
+      const topicId = typeof de.topic_id === "string" ? de.topic_id.trim() : ""
+      const newBrief = typeof de.new_brief === "string" ? de.new_brief.trim().slice(0, 150) : ""
+      if (topicId && newBrief) {
+        deferredEnrichment = { topic_id: topicId, new_brief: newBrief }
+      }
+    }
+
     return {
       signals: {
         safety: { level: safetyLevel, confidence: safetyConf, immediacy: safetyLevel !== "NONE" ? immediacy : undefined },
@@ -1829,7 +3278,7 @@ Reponds UNIQUEMENT avec le JSON:`
           deferred_topic_formalized: (interruptKind === "DIGRESSION" || interruptKind === "SWITCH_TOPIC") ? deferredTopicFormalized : undefined,
         },
         flow_resolution: { kind: flowKind, confidence: flowConf },
-        topic_depth: { value: topicDepthValue, confidence: topicDepthConf },
+        topic_depth: { value: topicDepthValue, confidence: topicDepthConf, plan_focus: topicDepthPlanFocus },
         deep_reasons: { 
           opportunity: deepReasonsOpportunity,
           action_mentioned: deepReasonsActionMentioned,
@@ -1876,12 +3325,47 @@ Reponds UNIQUEMENT avec le JSON:`
           user_response: breakdownActionUserResponse,
           confidence: breakdownActionConf,
         },
+        track_progress: {
+          detected: trackProgressDetected,
+          target_hint: trackProgressTargetHint,
+          status_hint: trackProgressStatusHint,
+          value_hint: trackProgressValueHint,
+          confidence: trackProgressConf,
+        },
+        activate_action: {
+          detected: activateActionDetected,
+          target_hint: activateActionTargetHint,
+          exercise_type_hint: activateActionExerciseHint,
+          confidence: activateActionConf,
+        },
+        safety_resolution: {
+          user_confirms_safe: safetyResolutionUserConfirmsSafe,
+          stabilizing_signal: safetyResolutionStabilizingSignal,
+          symptoms_still_present: safetyResolutionSymptomsStillPresent,
+          external_help_mentioned: safetyResolutionExternalHelpMentioned,
+          escalate_to_sentry: safetyResolutionEscalateToSentry,
+          confidence: safetyResolutionConf,
+        },
+        // Parse consent_to_relaunch (only present when pending consent exists)
+        consent_to_relaunch: (() => {
+          const ctr = signalsObj?.consent_to_relaunch ?? obj?.consent_to_relaunch
+          if (!ctr) return undefined
+          const valueRaw = ctr.value
+          const value = valueRaw === true || valueRaw === "true" ? true
+            : valueRaw === false || valueRaw === "false" ? false
+            : valueRaw === "unclear" ? "unclear"
+            : undefined
+          if (value === undefined) return undefined
+          const confidence = Math.max(0, Math.min(1, Number(ctr.confidence ?? 0.5) || 0.5))
+          return { value, confidence }
+        })(),
         wants_tools: wantsTools,
         risk_score: riskScore,
       },
       new_signals: newSignals,
       enrichments,
       machine_signals: machineSignals,
+      deferred_enrichment: deferredEnrichment,
     }
   } catch (e) {
     console.error("[Dispatcher v2 contextual] JSON parse error:", e)
@@ -1891,202 +3375,6 @@ Reponds UNIQUEMENT avec le JSON:`
       enrichments: [],
       machine_signals: undefined,
     }
-  }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// DISPATCHER V1 (LEGACY) — kept for backward compatibility
-// ═══════════════════════════════════════════════════════════════════════════════
-
-export async function analyzeIntentAndRisk(
-  message: string,
-  currentState: any,
-  lastAssistantMessage: string,
-  meta?: { requestId?: string; forceRealAi?: boolean; model?: string },
-): Promise<{ targetMode: AgentMode; riskScore: number; nCandidates: 1 | 3 }> {
-  // Multi-candidate is expensive (extra LLM calls). We only enable it for truly complex inputs.
-  // This is an enforced heuristic (not left to the model), to keep WhatsApp latency stable.
-  function isVeryComplexMessage(m: string): boolean {
-    const s = (m ?? "").toString().trim();
-    if (!s) return false;
-    const len = s.length;
-    const q = (s.match(/\?/g) ?? []).length;
-    const lines = s.split("\n").filter((x) => x.trim()).length;
-    const hasList = /(^|\n)\s*([-*]|\d+\.)\s+\S/.test(s);
-    const askedForDeep = /\b(en\s+d[ée]tail|d[ée]taille|guide|pas[- ]?à[- ]?pas|analyse|nuance|compar(?:e|aison)|avantages|inconv[ée]nients)\b/i.test(s);
-    // Strict thresholds:
-    // - long message OR multiple questions OR multi-line/list content OR explicit request for deep explanation.
-    return len >= 260 || q >= 2 || lines >= 4 || hasList || askedForDeep;
-  }
-
-  // NOTE: looksLikeCheckupIntent() was removed - checkup detection is now via LLM signals (checkup_intent)
-
-  function looksLikeBreakdownIntent(m: string): boolean {
-    const s = (m ?? "").toString().toLowerCase()
-    if (!s.trim()) return false
-    return /\b(micro[-\s]?etape|d[ée]compos|d[ée]coup|d[ée]taill|petit\s+pas|[ée]tape\s+minuscule|je\s+bloqu|j['’]y\s+arrive\s+pas|trop\s+dur|insurmontable)\b/i
-      .test(s)
-  }
-
-  // User preference confirmation intents should always route to Companion (unless safety overrides).
-  // This prevents the dispatcher from sending "plan" preference messages to Architect.
-  function looksLikePreferenceChangeIntent(m: string): boolean {
-    const s = (m ?? "").toString().toLowerCase().trim()
-    if (!s) return false
-    // Direct/soft tone
-    if (/\b(plus\s+direct|plut[oô]t\s+direct|sois\s+direct|ton\s+direct|direct\s+(?:avec|stp|s'il\s+te\s+pla[iî]t)|plut[oô]t\s+doux|plus\s+doux)\b/i.test(s)) return true
-    // Short/detailed verbosity
-    if (/\b(r[ée]ponses?\s+(?:plus\s+)?courtes?|r[ée]ponses?\s+courtes|fais\s+court|fais\s+des\s+r[ée]ponses?\s+courtes|r[ée]ponses?\s+br[èe]ves?|plus\s+concis|plus\s+succinct|moins\s+long|moins\s+d[ée]taill[ée])\b/i.test(s)) return true
-    // Emojis preference
-    if (/\b(emoji|emojis|smiley|smileys)\b/i.test(s)) return true
-    // Plan push preference (wording varies; keep broad but still "preference-y")
-    if (/\b(ne\s+me\s+ram[eè]ne\s+pas|arr[êe]te\s+de\s+me\s+ramener|[ée]vite\s+de\s+me\s+ramener)\b[\s\S]{0,40}\b(plan|objectifs?|actions?)\b/i.test(s)) return true
-    // Explicit confirmation framing
-    if (/\b(on\s+confirme|tu\s+peux\s+confirmer|je\s+valide|je\s+veux\s+valider)\b/i.test(s)) return true
-    return false
-  }
-
-  // Deterministic test mode: avoid LLM dependency and avoid writing invalid risk levels.
-  const mega =
-    (((globalThis as any)?.Deno?.env?.get?.("MEGA_TEST_MODE") ?? "") as string).trim() === "1" &&
-    !meta?.forceRealAi
-  if (mega) {
-    const m = (message ?? "").toString().toLowerCase()
-    // If an investigation is already active, ALWAYS keep investigator unless explicit stop.
-    const hasStop = /\b(stop|arr[êe]te|on arr[êe]te|pause)\b/i.test(message ?? "")
-    if (currentState?.investigation_state && !hasStop) return { targetMode: "investigator", riskScore: 0, nCandidates: 1 }
-    // Trigger investigator on common checkup intents.
-    if (/\b(check|checkup|bilan)\b/i.test(m)) return { targetMode: "investigator", riskScore: 0, nCandidates: 1 }
-    return { targetMode: "companion", riskScore: 0, nCandidates: 1 }
-  }
-
-  const basePrompt = `
-    Tu es le "Chef de Gare" (Dispatcher) du système Sophia.
-    Ton rôle est d'analyser le message de l'utilisateur pour décider QUEL AGENT doit répondre.
-    
-    DERNIER MESSAGE DE L'ASSISTANT (Contexte) :
-    "${lastAssistantMessage.substring(0, 200)}..."
-    
-    LES AGENTS DISPONIBLES :
-    1. sentry (DANGER VITAL) : Suicide, automutilation, violence immédiate. PRIORITÉ ABSOLUE.
-    2. firefighter (URGENCE ÉMOTIONNELLE) : Panique, angoisse, craving fort, pleurs.
-    3. investigator (DATA & BILAN) : L'utilisateur veut faire son bilan ("Check du soir", "Bilan") OU répond à un prompt de bilan/check.
-       IMPORTANT: hors bilan, ne déclenche PAS investigator juste parce que l'utilisateur parle d'une action ("j'ai fait / pas fait").
-       Dans ce cas, route plutôt companion (par défaut) ou architect si on doit ajuster le plan.
-    4. architect (DEEP WORK & AIDE MODULE) : L'utilisateur parle de ses Valeurs, Vision, Identité, ou demande de l'aide pour un exercice. C'est AUSSI lui qui gère la création/modification du plan.
-    5. librarian (EXPLICATION LONGUE) : L'utilisateur demande explicitement une explication détaillée, un mécanisme ("comment ça marche"), une réponse longue structurée, ou un guide pas-à-pas.
-       Exemples: "Explique-moi en détail", "Tu peux développer ?", "Décris le mécanisme", "Fais-moi un guide complet".
-    6. assistant (TECHNIQUE PUR) : BUGS DE L'APPLICATION (Crash, écran blanc, login impossible). ATTENTION : Si l'utilisateur dit "Tu n'as pas créé l'action" ou "Je ne vois pas le changement", C'EST ENCORE DU RESSORT DE L'ARCHITECTE. Ne passe à 'assistant' que si l'app est cassée techniquement.
-    7. companion (DÉFAUT) : Tout le reste. Discussion, "Salut", "Ça va", partage de journée.
-    
-    ÉTAT ACTUEL :
-    Mode en cours : "${currentState.current_mode}"
-    Checkup en cours : ${currentState.investigation_state ? "OUI" : "NON"}
-    Risque précédent : ${currentState.risk_level}
-    
-    RÈGLE DE STABILITÉ (CRITIQUE) :
-    1. Si un CHECKUP est en cours (investigation_state = OUI) :
-       - RESTE sur 'investigator' si l'utilisateur répond à la question, même s'il râle, se plaint du budget ou fait une remarque.
-       - L'investigateur doit finir son travail.
-       - Ne change de mode que si l'utilisateur demande EXPLICITEMENT d'arrêter ("Stop", "Je veux parler d'autre chose").
-
-    STABILITÉ CHECKUP (RENFORCÉE) :
-    - Si \`investigation_state\` est actif (bilan en cours), tu renvoies \`investigator\` dans 100% des cas.
-    - SEULE EXCEPTION: l’utilisateur demande explicitement d’arrêter le bilan / changer de sujet (ex: "stop le bilan", "arrête le check", "on arrête", "on change de sujet").
-    - "plus tard", "pas maintenant", "on en reparlera" NE sont PAS des stops.
-
-    POST-BILAN (PARKING LOT) :
-    RÈGLE "BESOIN DE DÉCOUPER" (HORS BILAN) :
-    - Si l'utilisateur exprime qu'il est bloqué sur une action / n'arrive pas à démarrer / que c'est trop dur
-      (ex: "je bloque", "j'y arrive pas", "c'est trop dur", "ça me demande trop d'effort", "insurmontable", "je repousse"),
-      OU s'il demande une version plus simple (ex: "un petit pas", "une étape minuscule", "encore plus simple"),
-      OU s'il demande explicitement de "découper / décomposer / micro-étape" une action,
-      ALORS route vers ARCHITECT (outil break_down_action) plutôt que companion.
-      Cela ne doit PAS être traité comme un bilan.
-
-    - Si \`investigation_state.status = post_checkup\`, le bilan est terminé.
-    - Tu ne dois JAMAIS proposer de "continuer/reprendre le bilan".
-    - Tu dois router vers l’agent adapté au sujet reporté (companion par défaut, architect si organisation/planning/priorités, firefighter si détresse).
-    
-    2. Si le mode en cours est 'architect' :
-       - RESTE en 'architect' sauf si c'est une URGENCE VITALE (Sentry).
-       - Même si l'utilisateur râle ("ça marche pas", "je ne vois rien"), l'Architecte est le mieux placé pour réessayer. L'assistant technique ne sert à rien pour le contenu du plan.
-    
-    MULTI-CANDIDATE (QUALITÉ PREMIUM) :
-    - Tu peux demander 3 candidates (nCandidates=3) UNIQUEMENT pour: companion, architect, librarian.
-    - RÈGLE DURCIE: nCandidates=3 UNIQUEMENT si le message est VRAIMENT complexe (très long, plusieurs questions, multi-sujets, ou demande explicite d'analyse/guide).
-    - Sinon nCandidates=1 (par défaut) pour limiter la latence.
-
-    SORTIE JSON ATTENDUE :
-    {
-      "targetMode": "le_nom_du_mode",
-      "riskScore": (0 = calme, 10 = danger vital),
-      "nCandidates": 1 ou 3
-    }
-  `
-
-  try {
-    const response = await generateWithGemini(basePrompt, message, 0.0, true, [], "auto", {
-      requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
-      source: "sophia-brain:dispatcher",
-    })
-    const obj = JSON.parse(response as string) as any
-    // IMPORTANT: dispatcher must never return internal worker modes (watcher/dispatcher).
-    const allowed: AgentMode[] = ["sentry", "firefighter", "investigator", "architect", "librarian", "assistant", "companion"]
-    const rawMode = String(obj?.targetMode ?? "").trim() as AgentMode
-    let targetMode = (allowed as string[]).includes(rawMode) ? rawMode : "companion"
-    const riskScore = Math.max(0, Math.min(10, Number(obj?.riskScore ?? 0) || 0))
-    const rawN = Number(obj?.nCandidates ?? 1)
-    const candidateAllowed = targetMode === "companion" || targetMode === "architect" || targetMode === "librarian"
-    const wantsMulti = candidateAllowed && rawN === 3
-    const nCandidates = (wantsMulti && isVeryComplexMessage(message)) ? 3 : 1
-
-    // HARD GUARD: if we're already in architect mode, keep architect unless there is acute distress (firefighter/sentry).
-    // This prevents mid-flow bouncing to companion which causes tool/consent loops.
-    //
-    // EXCEPTION: preference confirmations MUST route to companion, even if the current mode is architect.
-    // Otherwise user_profile_confirmation gets stuck (common when the preference mentions "plan").
-    if (currentState?.current_mode === "architect" && !looksLikePreferenceChangeIntent(message)) {
-      const acute = looksLikeAcuteDistress(message)
-      // NOTE: checkup_intent is now handled via LLM signals in V2 dispatcher
-      if (!acute && targetMode !== "architect") {
-        targetMode = "architect"
-      }
-    }
-
-    // NOTE: Explicit checkup forcing removed - checkup detection now via LLM checkup_intent signal.
-    // The router handles this in the V2 dispatcher flow.
-
-    // HARD FORCE: preference change / confirmation is Companion work (unless investigator/safety).
-    if (
-      targetMode !== "sentry" &&
-      targetMode !== "firefighter" &&
-      targetMode !== "investigator" &&
-      looksLikePreferenceChangeIntent(message)
-    ) {
-      targetMode = "companion"
-    }
-
-    // HARD GUARD: investigator is ONLY for active checkups.
-    // NOTE: checkup_intent is now detected via LLM signals in V2 dispatcher.
-    if (
-      targetMode === "investigator" &&
-      !currentState?.investigation_state
-    ) {
-      targetMode = "companion"
-    }
-
-    // If the user clearly asks for a micro-step breakdown and there is no acute distress,
-    // do not route to firefighter just because the message is emotional.
-    if (!looksLikeAcuteDistress(message) && looksLikeBreakdownIntent(message) && targetMode === "firefighter") {
-      targetMode = "architect"
-    }
-    return { targetMode, riskScore, nCandidates }
-  } catch (e) {
-    console.error("Erreur Dispatcher Gemini:", e)
-    // Fallback de sécurité
-    return { targetMode: "companion", riskScore: 0, nCandidates: 1 }
   }
 }
 

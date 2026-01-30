@@ -15,7 +15,7 @@ import {
   shouldAbandonBreakdownCandidate,
   hasProposedStep,
 } from "./breakdown_candidate_types.ts"
-import { looksLikeYesToProceed, looksLikeNoToCancel } from "./consent.ts"
+import { looksLikeYesToProceed, looksLikeNoToProceed } from "./consent.ts"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Message generation
@@ -120,7 +120,7 @@ export function looksLikeAbandonBreakdown(message: string): boolean {
   if (/^(non|nan|nope|pas maintenant|laisse|laisse tomber|oublie|annule|stop)/i.test(s)) return true
   if (/\b(pas envie|pas besoin|on arr[êe]te|c['']est bon)\b/i.test(s)) return true
   
-  return looksLikeNoToCancel(message)
+  return looksLikeNoToProceed(message)
 }
 
 /**

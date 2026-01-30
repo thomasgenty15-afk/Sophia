@@ -19,6 +19,10 @@ export type SupervisorSessionType =
   | "create_action_flow"             // Simplified action creation flow (v2)
   | "update_action_flow"             // Simplified action update flow (v2)
   | "breakdown_action_flow"          // Simplified action breakdown flow (v2)
+  | "track_progress_flow"            // Progress tracking flow (owner=architect)
+  | "activate_action_flow"           // Action activation flow (owner=architect)
+  | "safety_sentry_flow"             // Safety flow for vital danger (owner=sentry)
+  | "safety_firefighter_flow"        // Safety flow for emotional crisis (owner=firefighter)
 
 export type SupervisorSessionStatus = "active" | "paused"
 
@@ -33,18 +37,67 @@ export interface ProfileFactToConfirm {
 }
 
 /**
+ * Phase for the user_profile_confirmation machine.
+ * - presenting: About to present a fact for confirmation
+ * - awaiting_confirm: Waiting for user response
+ * - processing: Processing the user's response
+ * - completed: All facts confirmed/processed
+ */
+export type ProfileConfirmationPhase = "presenting" | "awaiting_confirm" | "processing" | "completed"
+
+/**
  * State for the user_profile_confirmation machine.
  * Stored in temp_memory.profile_confirmation_state
  */
 export interface UserProfileConfirmationState {
   facts_queue: ProfileFactToConfirm[]
   current_index: number
+  phase: ProfileConfirmationPhase  // Current phase in the confirmation flow
   status: "confirming" | "completed"
   started_at: string
   last_updated_at: string
 }
 
 export type TopicEngagementLevel = "high" | "medium" | "low" | "disengaged"
+
+/**
+ * Safety flow phase for structured crisis management.
+ * - acute: Initial crisis state, immediate intervention needed
+ * - grounding: Active grounding/breathing exercises in progress
+ * - stabilizing: User showing signs of calming, monitoring
+ * - confirming: Checking if user is stable/safe before handoff
+ * - resolved: Crisis passed, ready for handoff
+ */
+export type SafetyFlowPhase = "acute" | "grounding" | "stabilizing" | "confirming" | "resolved"
+
+/**
+ * State for the safety_sentry_flow machine.
+ * Handles vital danger situations with structured follow-up.
+ */
+export interface SafetySentryFlowState {
+  phase: SafetyFlowPhase
+  trigger_message: string           // The message that triggered sentry
+  safety_confirmed: boolean         // User confirmed they are safe
+  external_help_mentioned: boolean  // User mentioned contacting help (SAMU, etc.)
+  turn_count: number                // Number of turns in this safety flow
+  started_at: string
+  last_updated_at: string
+}
+
+/**
+ * State for the safety_firefighter_flow machine.
+ * Handles emotional crisis with grounding and de-escalation.
+ */
+export interface SafetyFirefighterFlowState {
+  phase: SafetyFlowPhase
+  trigger_message: string           // The message that triggered firefighter
+  technique_used?: string           // Last technique used (safety_check, guided_30s, etc.)
+  stabilization_signals: number     // Count of positive signals ("ça va mieux", etc.)
+  distress_signals: number          // Count of ongoing distress signals
+  turn_count: number
+  started_at: string
+  last_updated_at: string
+}
 
 export interface SupervisorSession {
   id: string
@@ -161,9 +214,6 @@ export function getActiveTopicLight(tempMemory: any): SupervisorSession | null {
   return String((last as any)?.type ?? "") === "topic_light" ? (last as SupervisorSession) : null
 }
 
-/** @deprecated Use getActiveTopicSession instead */
-export const getActiveTopicExploration = getActiveTopicSession
-
 function mkId(prefix: string, now?: Date): string {
   const t = nowIso(now).replace(/[:.]/g, "-")
   return `${prefix}_${t}`
@@ -267,13 +317,14 @@ export function upsertTopicSerious(opts: {
   escalateToLibrarian?: boolean
   handoffTo?: AgentMode
   handoffBrief?: string
+  focusMode?: "plan" | "discussion" | "mixed"
   now?: Date
 }): { tempMemory: any; changed: boolean } {
   return upsertTopicInternal({
     ...opts,
     sessionType: "topic_serious",
     ownerMode: "architect",
-    focusMode: "mixed",
+    focusMode: opts.focusMode ?? "mixed",
   })
 }
 
@@ -288,37 +339,16 @@ export function upsertTopicLight(opts: {
   escalateToLibrarian?: boolean
   handoffTo?: AgentMode
   handoffBrief?: string
+  focusMode?: "plan" | "discussion" | "mixed"
   now?: Date
 }): { tempMemory: any; changed: boolean } {
   return upsertTopicInternal({
     ...opts,
     sessionType: "topic_light",
     ownerMode: "companion",
-    focusMode: "discussion",
+    focusMode: opts.focusMode ?? "discussion",
   })
 }
-
-/** @deprecated Use upsertTopicSerious or upsertTopicLight instead */
-export function upsertTopicExploration(opts: {
-  tempMemory: any
-  topic: string
-  ownerMode: AgentMode
-  phase: "opening" | "exploring" | "converging" | "closing"
-  focusMode: "plan" | "discussion" | "mixed"
-  handoffTo?: AgentMode
-  handoffBrief?: string
-  now?: Date
-}): { tempMemory: any; changed: boolean } {
-  // Route to appropriate function based on ownerMode
-  if (opts.ownerMode === "architect") {
-    return upsertTopicSerious({ ...opts })
-  } else {
-    return upsertTopicLight({ ...opts })
-  }
-}
-
-/** @deprecated Use upsertTopicSerious or upsertTopicLight instead */
-export const upsertTopicSession = upsertTopicExploration
 
 /** Close any active topic session (topic_serious or topic_light) */
 export function closeTopicSession(opts: {
@@ -333,9 +363,6 @@ export function closeTopicSession(opts: {
   const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
   return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
 }
-
-/** @deprecated Use closeTopicSession instead */
-export const closeTopicExploration = closeTopicSession
 
 /** Increment the turn count for the active topic session */
 export function incrementTopicTurnCount(opts: {
@@ -758,6 +785,7 @@ export function upsertProfileConfirmation(opts: {
   let factsQueue: ProfileFactToConfirm[]
   let currentIndex: number
   let startedAt: string
+  let phase: ProfileConfirmationPhase
   
   if (existing && existing.status === "confirming") {
     // Append to existing queue (up to limit)
@@ -766,16 +794,19 @@ export function upsertProfileConfirmation(opts: {
     factsQueue = [...existing.facts_queue, ...toAdd]
     currentIndex = existing.current_index
     startedAt = existing.started_at
+    phase = existing.phase ?? "presenting"  // Keep current phase or default
   } else {
     // Create new session
     factsQueue = opts.factsToAdd.slice(0, MAX_FACTS)
     currentIndex = 0
     startedAt = now
+    phase = "presenting"  // Start with presenting the first fact
   }
   
   const state: UserProfileConfirmationState = {
     facts_queue: factsQueue,
     current_index: currentIndex,
+    phase,
     status: "confirming",
     started_at: startedAt,
     last_updated_at: now,
@@ -819,6 +850,7 @@ export function advanceProfileConfirmation(opts: {
   const newState: UserProfileConfirmationState = {
     ...state,
     current_index: nextIndex,
+    phase: completed ? "completed" : "presenting",  // Move to presenting next fact or completed
     status: completed ? "completed" : "confirming",
     last_updated_at: nowIso(opts.now),
   }
@@ -829,6 +861,34 @@ export function advanceProfileConfirmation(opts: {
   }
   
   return { tempMemory: tmNext, changed: true, completed, nextFact }
+}
+
+/**
+ * Update the phase of the profile confirmation machine.
+ */
+export function updateProfileConfirmationPhase(opts: {
+  tempMemory: any
+  phase: ProfileConfirmationPhase
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const state = getProfileConfirmationState(tm0)
+  if (!state || state.status !== "confirming") {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  const newState: UserProfileConfirmationState = {
+    ...state,
+    phase: opts.phase,
+    last_updated_at: nowIso(opts.now),
+  }
+  
+  const tmNext = {
+    ...(tm0 as any),
+    [PROFILE_CONFIRM_STATE_KEY]: newState,
+  }
+  
+  return { tempMemory: tmNext, changed: true }
 }
 
 /**
@@ -1024,9 +1084,6 @@ export function pruneStaleArchitectToolFlow(opts: {
   return { tempMemory: tm0, changed: false }
 }
 
-/**
- * Prune stale `temp_memory.user_profile_confirm.pending` if it's older than TTL.
- */
 // ═══════════════════════════════════════════════════════════════════════════════
 // RESUME BRIEF GENERATION (LLM-assisted)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -1415,6 +1472,186 @@ export function isBreakdownActionFlowStale(tempMemory: any, now?: Date): boolean
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// TRACK PROGRESS FLOW (v2)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const TTL_TRACK_PROGRESS_FLOW_MS = 5 * 60 * 1000  // 5 minutes
+
+/**
+ * Get active track_progress_flow session from the supervisor stack.
+ */
+export function getActiveTrackProgressFlow(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const session = stack.find((s: any) => String(s?.type ?? "") === "track_progress_flow" && s?.status === "active")
+  return session ? (session as SupervisorSession) : null
+}
+
+/**
+ * Upsert a track_progress_flow session.
+ */
+export function upsertTrackProgressFlow(opts: {
+  tempMemory: any
+  targetAction?: string
+  statusHint?: "completed" | "missed" | "partial" | "unknown"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+
+  // Remove any existing track_progress_flow sessions
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "track_progress_flow")
+
+  const targetAction = opts.targetAction ?? "une action"
+  const statusHint = opts.statusHint ?? "unknown"
+
+  const session: SupervisorSession = {
+    id: mkId("sess_track_progress", opts.now),
+    type: "track_progress_flow",
+    owner_mode: "architect",
+    status: "active",
+    started_at: nowIso(opts.now),
+    last_active_at: nowIso(opts.now),
+    topic: targetAction,
+    resume_brief: `On notait un progrès sur: ${targetAction}`,
+    meta: {
+      target_action: targetAction,
+      status_hint: statusHint,
+    },
+  }
+
+  filtered.push(session)
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Close the track_progress_flow session.
+ */
+export function closeTrackProgressFlow(opts: {
+  tempMemory: any
+  outcome: "logged" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "track_progress_flow")
+  if (filtered.length === stack0.length) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Check if track_progress_flow is stale (exceeded TTL).
+ */
+export function isTrackProgressFlowStale(tempMemory: any, now?: Date): boolean {
+  const session = getActiveTrackProgressFlow(tempMemory)
+  if (!session) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(session.last_active_at ?? session.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_TRACK_PROGRESS_FLOW_MS
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// ACTIVATE ACTION FLOW (v2)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const TTL_ACTIVATE_ACTION_FLOW_MS = 5 * 60 * 1000  // 5 minutes
+
+/**
+ * Get active activate_action_flow session from the supervisor stack.
+ */
+export function getActiveActivateActionFlow(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const session = stack.find((s: any) => String(s?.type ?? "") === "activate_action_flow" && s?.status === "active")
+  return session ? (session as SupervisorSession) : null
+}
+
+/**
+ * Upsert an activate_action_flow session.
+ */
+export function upsertActivateActionFlow(opts: {
+  tempMemory: any
+  targetAction?: string
+  exerciseType?: string
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+
+  // Remove any existing activate_action_flow sessions
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "activate_action_flow")
+
+  const targetAction = opts.targetAction ?? "une action"
+  const exerciseType = opts.exerciseType
+
+  const session: SupervisorSession = {
+    id: mkId("sess_activate_action", opts.now),
+    type: "activate_action_flow",
+    owner_mode: "architect",
+    status: "active",
+    started_at: nowIso(opts.now),
+    last_active_at: nowIso(opts.now),
+    topic: targetAction,
+    resume_brief: `On activait: ${targetAction}`,
+    meta: {
+      target_action: targetAction,
+      exercise_type: exerciseType,
+    },
+  }
+
+  filtered.push(session)
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Close the activate_action_flow session.
+ */
+export function closeActivateActionFlow(opts: {
+  tempMemory: any
+  outcome: "activated" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "activate_action_flow")
+  if (filtered.length === stack0.length) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Check if activate_action_flow is stale (exceeded TTL).
+ */
+export function isActivateActionFlowStale(tempMemory: any, now?: Date): boolean {
+  const session = getActiveActivateActionFlow(tempMemory)
+  if (!session) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(session.last_active_at ?? session.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_ACTIVATE_ACTION_FLOW_MS
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MACHINE PAUSE/RESUME FOR SENTRY/FIREFIGHTER PARENTHESIS
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1474,6 +1711,11 @@ export function pauseMachineForSafety(opts: {
     actionTarget = opts.session.topic ?? undefined
   } else if (opts.session.type === "deep_reasons_exploration") {
     actionTarget = opts.session.topic ?? undefined
+  } else if (opts.session.type === "user_profile_confirmation") {
+    // For profile confirmation, extract current fact as action_target
+    const profileState = getProfileConfirmationState(tm0)
+    const currentFact = profileState?.facts_queue?.[profileState.current_index]
+    actionTarget = currentFact ? `${currentFact.key}: ${currentFact.proposed_value}` : "confirmation profil"
   }
   
   // Generate resume context
@@ -1481,11 +1723,17 @@ export function pauseMachineForSafety(opts: {
     ? `On était en train de travailler sur: ${opts.session.topic}` 
     : `On était dans un flow de ${opts.session.type}`
   
+  // For profile confirmation, save the full state as candidate_snapshot
+  let candidateSnapshot = opts.candidate ?? (opts.session.meta as any)?.candidate
+  if (opts.session.type === "user_profile_confirmation") {
+    candidateSnapshot = getProfileConfirmationState(tm0)
+  }
+  
   const pausedState: PausedMachineStateV2 = {
     machine_type: opts.session.type,
     session_id: opts.session.id,
     action_target: actionTarget?.slice(0, 80),
-    candidate_snapshot: opts.candidate ?? (opts.session.meta as any)?.candidate,
+    candidate_snapshot: candidateSnapshot,
     paused_at: nowStr,
     reason: opts.reason,
     resume_context: resumeContext,
@@ -1511,6 +1759,10 @@ export function pauseMachineForSafety(opts: {
   } else if (sessionType === "topic_serious" || sessionType === "topic_light") {
     const closed = closeTopicSession({ tempMemory, now: opts.now })
     tempMemory = closed.tempMemory
+  } else if (sessionType === "user_profile_confirmation") {
+    // For profile confirmation, we don't close - we just store the current state
+    // The state is already in temp_memory and will be preserved with pausedState
+    // We'll restore it from candidate_snapshot on resume
   }
   
   return { tempMemory, pausedState }
@@ -1546,6 +1798,20 @@ export function resumePausedMachine(opts: {
   } else if (machineType === "breakdown_action_flow" && candidate) {
     const result = upsertBreakdownActionFlow({ tempMemory, candidate, now: opts.now })
     tempMemory = result.tempMemory
+  } else if (machineType === "track_progress_flow") {
+    const result = upsertTrackProgressFlow({
+      tempMemory,
+      targetAction: pausedState.action_target,
+      now: opts.now,
+    })
+    tempMemory = result.tempMemory
+  } else if (machineType === "activate_action_flow") {
+    const result = upsertActivateActionFlow({
+      tempMemory,
+      targetAction: pausedState.action_target,
+      now: opts.now,
+    })
+    tempMemory = result.tempMemory
   } else if (machineType === "deep_reasons_exploration") {
     // For deep_reasons, we need more context - just set a flag to indicate resume
     ;(tempMemory as any).__resume_deep_reasons = {
@@ -1568,6 +1834,16 @@ export function resumePausedMachine(opts: {
       now: opts.now,
     })
     tempMemory = result.tempMemory
+  } else if (machineType === "user_profile_confirmation") {
+    // Profile confirmation state is preserved in candidate_snapshot
+    // Restore it from there
+    if (pausedState.candidate_snapshot) {
+      ;(tempMemory as any).profile_confirmation_state = pausedState.candidate_snapshot
+    }
+    // Also set a flag to indicate we're resuming
+    ;(tempMemory as any).__resume_profile_confirmation = {
+      context: pausedState.resume_context,
+    }
   }
   
   // Clear paused state
@@ -1594,13 +1870,15 @@ export function clearPausedMachine(tempMemory: any): { tempMemory: any } {
 }
 
 /**
- * Get any active tool flow (create, update, or breakdown).
+ * Get any active tool flow (create, update, breakdown, track_progress, or activate).
  * Returns the session if one exists.
  */
 export function getAnyActiveToolFlow(tempMemory: any): SupervisorSession | null {
   return getActiveCreateActionFlow(tempMemory) 
     ?? getActiveUpdateActionFlow(tempMemory) 
     ?? getActiveBreakdownActionFlow(tempMemory)
+    ?? getActiveTrackProgressFlow(tempMemory)
+    ?? getActiveActivateActionFlow(tempMemory)
 }
 
 /**
@@ -1641,5 +1919,384 @@ export function getActiveToolFlowActionTarget(tempMemory: any): string | null {
     ?? candidate.target_action?.title 
     ?? session.topic 
     ?? null
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SAFETY SENTRY FLOW
+// State machine for vital danger situations (suicidal ideation, physical danger)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const SAFETY_SENTRY_KEY = "__safety_sentry_flow"
+const TTL_SAFETY_SENTRY_MS = 30 * 60 * 1000  // 30 minutes (safety flows have longer TTL)
+
+/**
+ * Get the active safety_sentry_flow state.
+ */
+export function getActiveSafetySentryFlow(tempMemory: any): SafetySentryFlowState | null {
+  const tm = safeObj(tempMemory)
+  const raw = (tm as any)[SAFETY_SENTRY_KEY]
+  if (!raw || typeof raw !== "object") return null
+  if (raw.phase === "resolved") return null  // Resolved flows are not active
+  
+  return {
+    phase: raw.phase as SafetyFlowPhase,
+    trigger_message: String(raw.trigger_message ?? ""),
+    safety_confirmed: Boolean(raw.safety_confirmed),
+    external_help_mentioned: Boolean(raw.external_help_mentioned),
+    turn_count: Number(raw.turn_count ?? 0),
+    started_at: String(raw.started_at ?? nowIso()),
+    last_updated_at: String(raw.last_updated_at ?? nowIso()),
+  }
+}
+
+/**
+ * Start or update the safety_sentry_flow.
+ */
+export function upsertSafetySentryFlow(opts: {
+  tempMemory: any
+  triggerMessage?: string
+  phase?: SafetyFlowPhase
+  safetyConfirmed?: boolean
+  externalHelpMentioned?: boolean
+  now?: Date
+}): { tempMemory: any; state: SafetySentryFlowState } {
+  const tm0 = safeObj(opts.tempMemory)
+  const existing = getActiveSafetySentryFlow(tm0)
+  const nowStr = nowIso(opts.now)
+  
+  const state: SafetySentryFlowState = {
+    phase: opts.phase ?? existing?.phase ?? "acute",
+    trigger_message: opts.triggerMessage ?? existing?.trigger_message ?? "",
+    safety_confirmed: opts.safetyConfirmed ?? existing?.safety_confirmed ?? false,
+    external_help_mentioned: opts.externalHelpMentioned ?? existing?.external_help_mentioned ?? false,
+    turn_count: (existing?.turn_count ?? 0) + (existing ? 1 : 0),
+    started_at: existing?.started_at ?? nowStr,
+    last_updated_at: nowStr,
+  }
+  
+  // Also add to supervisor stack for visibility
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "safety_sentry_flow")
+  
+  if (state.phase !== "resolved") {
+    const session: SupervisorSession = {
+      id: mkId("sess_safety_sentry", opts.now),
+      type: "safety_sentry_flow",
+      owner_mode: "sentry",
+      status: "active",
+      started_at: state.started_at,
+      last_active_at: nowStr,
+      topic: "Situation de danger",
+      turn_count: state.turn_count,
+      meta: {
+        phase: state.phase,
+        safety_confirmed: state.safety_confirmed,
+        external_help_mentioned: state.external_help_mentioned,
+      },
+    }
+    filtered.push(session)
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowStr }
+  const tempMemory = {
+    ...writeSupervisorRuntime(tm0, rtNext),
+    [SAFETY_SENTRY_KEY]: state,
+  }
+  
+  return { tempMemory, state }
+}
+
+/**
+ * Close the safety_sentry_flow.
+ */
+export function closeSafetySentryFlow(opts: {
+  tempMemory: any
+  outcome: "resolved_safe" | "escalated_external" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const existing = getActiveSafetySentryFlow(tm0)
+  
+  if (!existing) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  // Remove from supervisor stack
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "safety_sentry_flow")
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  const tempMemory = writeSupervisorRuntime(tm0, rtNext)
+  
+  // Clear the state
+  delete (tempMemory as any)[SAFETY_SENTRY_KEY]
+  
+  return { tempMemory, changed: true }
+}
+
+/**
+ * Check if safety_sentry_flow is stale.
+ */
+export function isSafetySentryFlowStale(tempMemory: any, now?: Date): boolean {
+  const state = getActiveSafetySentryFlow(tempMemory)
+  if (!state) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(state.last_updated_at ?? state.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_SAFETY_SENTRY_MS
+}
+
+/**
+ * Determine if sentry flow should advance to next phase based on signals.
+ */
+export function computeSentryNextPhase(
+  current: SafetySentryFlowState,
+  signals: {
+    user_confirms_safe?: boolean
+    external_help_mentioned?: boolean
+    still_in_danger?: boolean
+  }
+): SafetyFlowPhase {
+  // If user is still expressing danger, stay in acute
+  if (signals.still_in_danger) {
+    return "acute"
+  }
+  
+  // If user confirms they are safe, move to confirming/resolved
+  if (signals.user_confirms_safe || signals.external_help_mentioned) {
+    if (current.phase === "confirming") {
+      return "resolved"
+    }
+    return "confirming"
+  }
+  
+  // Natural progression based on turn count
+  if (current.phase === "acute" && current.turn_count >= 1) {
+    return "stabilizing"
+  }
+  
+  if (current.phase === "stabilizing" && current.turn_count >= 2) {
+    return "confirming"
+  }
+  
+  return current.phase
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SAFETY FIREFIGHTER FLOW
+// State machine for emotional crisis (panic, acute distress, need for support)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const SAFETY_FIREFIGHTER_KEY = "__safety_firefighter_flow"
+const TTL_SAFETY_FIREFIGHTER_MS = 20 * 60 * 1000  // 20 minutes
+
+/**
+ * Get the active safety_firefighter_flow state.
+ */
+export function getActiveSafetyFirefighterFlow(tempMemory: any): SafetyFirefighterFlowState | null {
+  const tm = safeObj(tempMemory)
+  const raw = (tm as any)[SAFETY_FIREFIGHTER_KEY]
+  if (!raw || typeof raw !== "object") return null
+  if (raw.phase === "resolved") return null  // Resolved flows are not active
+  
+  return {
+    phase: raw.phase as SafetyFlowPhase,
+    trigger_message: String(raw.trigger_message ?? ""),
+    technique_used: raw.technique_used ? String(raw.technique_used) : undefined,
+    stabilization_signals: Number(raw.stabilization_signals ?? 0),
+    distress_signals: Number(raw.distress_signals ?? 0),
+    turn_count: Number(raw.turn_count ?? 0),
+    started_at: String(raw.started_at ?? nowIso()),
+    last_updated_at: String(raw.last_updated_at ?? nowIso()),
+  }
+}
+
+/**
+ * Start or update the safety_firefighter_flow.
+ */
+export function upsertSafetyFirefighterFlow(opts: {
+  tempMemory: any
+  triggerMessage?: string
+  phase?: SafetyFlowPhase
+  techniqueUsed?: string
+  stabilizationSignalDelta?: number  // +1 for positive signal, -1 for negative
+  distressSignalDelta?: number       // +1 for distress signal
+  now?: Date
+}): { tempMemory: any; state: SafetyFirefighterFlowState } {
+  const tm0 = safeObj(opts.tempMemory)
+  const existing = getActiveSafetyFirefighterFlow(tm0)
+  const nowStr = nowIso(opts.now)
+  
+  const state: SafetyFirefighterFlowState = {
+    phase: opts.phase ?? existing?.phase ?? "acute",
+    trigger_message: opts.triggerMessage ?? existing?.trigger_message ?? "",
+    technique_used: opts.techniqueUsed ?? existing?.technique_used,
+    stabilization_signals: Math.max(0, (existing?.stabilization_signals ?? 0) + (opts.stabilizationSignalDelta ?? 0)),
+    distress_signals: Math.max(0, (existing?.distress_signals ?? 0) + (opts.distressSignalDelta ?? 0)),
+    turn_count: (existing?.turn_count ?? 0) + (existing ? 1 : 0),
+    started_at: existing?.started_at ?? nowStr,
+    last_updated_at: nowStr,
+  }
+  
+  // Also add to supervisor stack for visibility
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "safety_firefighter_flow")
+  
+  if (state.phase !== "resolved") {
+    const session: SupervisorSession = {
+      id: mkId("sess_safety_firefighter", opts.now),
+      type: "safety_firefighter_flow",
+      owner_mode: "firefighter",
+      status: "active",
+      started_at: state.started_at,
+      last_active_at: nowStr,
+      topic: "Crise émotionnelle",
+      turn_count: state.turn_count,
+      meta: {
+        phase: state.phase,
+        technique_used: state.technique_used,
+        stabilization_signals: state.stabilization_signals,
+        distress_signals: state.distress_signals,
+      },
+    }
+    filtered.push(session)
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowStr }
+  const tempMemory = {
+    ...writeSupervisorRuntime(tm0, rtNext),
+    [SAFETY_FIREFIGHTER_KEY]: state,
+  }
+  
+  return { tempMemory, state }
+}
+
+/**
+ * Close the safety_firefighter_flow.
+ */
+export function closeSafetyFirefighterFlow(opts: {
+  tempMemory: any
+  outcome: "stabilized" | "escalated_sentry" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const existing = getActiveSafetyFirefighterFlow(tm0)
+  
+  if (!existing) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  // Remove from supervisor stack
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "safety_firefighter_flow")
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  const tempMemory = writeSupervisorRuntime(tm0, rtNext)
+  
+  // Clear the state
+  delete (tempMemory as any)[SAFETY_FIREFIGHTER_KEY]
+  
+  return { tempMemory, changed: true }
+}
+
+/**
+ * Check if safety_firefighter_flow is stale.
+ */
+export function isSafetyFirefighterFlowStale(tempMemory: any, now?: Date): boolean {
+  const state = getActiveSafetyFirefighterFlow(tempMemory)
+  if (!state) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(state.last_updated_at ?? state.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_SAFETY_FIREFIGHTER_MS
+}
+
+/**
+ * Determine if firefighter flow should advance to next phase based on signals.
+ * This is the core logic for structured crisis resolution.
+ */
+export function computeFirefighterNextPhase(
+  current: SafetyFirefighterFlowState,
+  signals: {
+    user_stabilizing?: boolean     // "ça va mieux", "merci", calm tone
+    symptoms_still_present?: boolean  // physical symptoms still mentioned
+    user_wants_to_continue?: boolean  // explicit "continue", doesn't want to stop
+    escalate_to_sentry?: boolean     // situation became life-threatening
+  }
+): SafetyFlowPhase {
+  // Escalation to sentry takes priority
+  if (signals.escalate_to_sentry) {
+    return "acute"  // Will trigger sentry handoff in router
+  }
+  
+  // If physical symptoms still present, stay in grounding/stabilizing
+  if (signals.symptoms_still_present) {
+    if (current.phase === "acute") {
+      return "grounding"
+    }
+    return "stabilizing"
+  }
+  
+  // If user shows stabilization signals
+  if (signals.user_stabilizing) {
+    const newStabilizationCount = current.stabilization_signals + 1
+    
+    // Need 2+ stabilization signals to move to confirming
+    if (newStabilizationCount >= 2 && current.phase !== "confirming") {
+      return "confirming"
+    }
+    
+    // In confirming phase with another stabilization signal = resolved
+    if (current.phase === "confirming") {
+      return "resolved"
+    }
+    
+    // Move from acute/grounding to stabilizing
+    if (current.phase === "acute" || current.phase === "grounding") {
+      return "stabilizing"
+    }
+  }
+  
+  // Natural progression based on technique and turn count
+  if (current.phase === "acute") {
+    return "grounding"
+  }
+  
+  if (current.phase === "grounding" && current.turn_count >= 2) {
+    return "stabilizing"
+  }
+  
+  return current.phase
+}
+
+/**
+ * Get any active safety flow (sentry or firefighter).
+ */
+export function getActiveSafetyFlow(tempMemory: any): {
+  type: "sentry" | "firefighter"
+  state: SafetySentryFlowState | SafetyFirefighterFlowState
+} | null {
+  const sentry = getActiveSafetySentryFlow(tempMemory)
+  if (sentry) return { type: "sentry", state: sentry }
+  
+  const firefighter = getActiveSafetyFirefighterFlow(tempMemory)
+  if (firefighter) return { type: "firefighter", state: firefighter }
+  
+  return null
+}
+
+/**
+ * Check if a safety flow is active.
+ */
+export function hasActiveSafetyFlow(tempMemory: any): boolean {
+  return getActiveSafetyFlow(tempMemory) !== null
 }
 

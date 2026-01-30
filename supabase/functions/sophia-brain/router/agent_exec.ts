@@ -4,8 +4,9 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 import type { AgentMode } from "../state-manager.ts"
 import { getUserState, updateUserState } from "../state-manager.ts"
-import { runSentry } from "../agents/sentry.ts"
-import { runFirefighter } from "../agents/firefighter.ts"
+import { runSentry, type SentryFlowContext } from "../agents/sentry.ts"
+import { runFirefighter, type FirefighterFlowContext } from "../agents/firefighter.ts"
+import { getActiveSafetyFirefighterFlow, getActiveSafetySentryFlow } from "../supervisor.ts"
 import { runInvestigator } from "../agents/investigator.ts"
 import { logCheckupCompletion } from "../agents/investigator/db.ts"
 import { buildArchitectSystemPromptLite, generateArchitectModelOutput, getArchitectTools, handleArchitectModelOutput, runArchitect } from "../agents/architect.ts"
@@ -39,9 +40,10 @@ export async function runAgentAndVerify(opts: {
   isPostCheckup: boolean
   outageTemplate: string
   sophiaChatModel: string
+  tempMemory?: any
   /** Pre-formalized deferred topic from dispatcher (avoids extra AI call) */
   dispatcherDeferredTopic?: string | null
-}): Promise<{ responseContent: string; nextMode: AgentMode }> {
+}): Promise<{ responseContent: string; nextMode: AgentMode; tempMemory?: any }> {
   const {
     supabase,
     userId,
@@ -62,6 +64,7 @@ export async function runAgentAndVerify(opts: {
 
   let responseContent = ""
   let nextMode: AgentMode = targetMode
+  let tempMemory = opts.tempMemory ?? {}
   // Used by the global anti-claim verifier (outside bilan too).
   let executedTools: string[] = []
   let toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain" = "none"
@@ -103,7 +106,7 @@ export async function runAgentAndVerify(opts: {
     if (n === "break_down_action") return "Seulement quand une action bloque et que l'utilisateur accepte explicitement de la découper en micro-étape."
     if (n === "create_simple_action" || n === "create_framework") return "Seulement si un plan actif existe ET que l'utilisateur demande clairement d'ajouter un élément."
     if (n === "update_action_structure") return "Seulement si l'utilisateur demande un changement sur une action existante."
-    if (n === "activate_plan_action") return "Seulement si l'utilisateur demande d'activer une action future (interdit pendant guard onboarding WhatsApp)."
+    if (n === "activate_plan_action") return "Seulement si l'utilisateur demande d'activer une action future."
     if (n === "archive_plan_action") return "Seulement si l'utilisateur veut arrêter/archiver une action."
     return "Seulement si nécessaire et conforme au contexte."
   }
@@ -118,7 +121,7 @@ export async function runAgentAndVerify(opts: {
       .filter((t) => t.name.length > 0)
   }
 
-  function toolsAvailableForMode(args: { mode: AgentMode; inWhatsAppGuard24h: boolean }): ToolDescriptor[] {
+  function toolsAvailableForMode(args: { mode: AgentMode }): ToolDescriptor[] {
     if (args.mode === "companion") {
       return [
         { name: "track_progress", description: "Enregistre une progression ou un raté.", usage_when: toolUsageWhen("track_progress") },
@@ -127,7 +130,7 @@ export async function runAgentAndVerify(opts: {
       ]
     }
     if (args.mode === "architect") {
-      return buildToolDescriptorsFromToolDefs(getArchitectTools({ inWhatsAppGuard24h: args.inWhatsAppGuard24h }))
+      return buildToolDescriptorsFromToolDefs(getArchitectTools())
     }
     // For now: librarian/assistant/firefighter/sentry do not expose tool definitions to the judge.
     return []
@@ -138,14 +141,12 @@ export async function runAgentAndVerify(opts: {
     tool: string
     toolArgs: any
     allowedTools: string[]
-    inWhatsAppGuard24h: boolean
   }): string[] {
     const v: string[] = []
     const tool = String(args.tool ?? "").trim()
     if (!tool) return ["tool_call_missing_tool"]
     if (!args.allowedTools.includes(tool)) v.push("tool_call_tool_not_allowed")
     if (args.toolArgs == null || (typeof args.toolArgs === "object" && Object.keys(args.toolArgs).length === 0)) v.push("tool_call_missing_args")
-    if (args.inWhatsAppGuard24h && tool === "activate_plan_action") v.push("tool_call_blocked_by_whatsapp_onboarding_guard")
     return v
   }
 
@@ -165,8 +166,6 @@ export async function runAgentAndVerify(opts: {
     const candidatesRaw: CandidateRaw[] = []
     let toolsAvailable: ToolDescriptor[] = []
     let allowedTools: string[] = []
-    let inWhatsAppGuard24h = false
-
     if (targetMode === "companion") {
       const systemPrompt = buildCompanionSystemPrompt({
         isWhatsApp: channel === "whatsapp",
@@ -174,7 +173,7 @@ export async function runAgentAndVerify(opts: {
         context,
         userState: state,
       })
-      toolsAvailable = toolsAvailableForMode({ mode: "companion", inWhatsAppGuard24h: false })
+      toolsAvailable = toolsAvailableForMode({ mode: "companion" })
       allowedTools = toolsAvailable.map((t) => t.name)
       for (const t of temps) {
         const out = await generateCompanionModelOutput({ systemPrompt, message: userMessage, history, meta: { ...(meta ?? {}), model: sophiaChatModel, temperature: t } })
@@ -182,7 +181,6 @@ export async function runAgentAndVerify(opts: {
         else candidatesRaw.push({ kind: "tool", tool: String((out as any)?.tool ?? ""), args: (out as any)?.args, preview: `(tool_call) ${(out as any)?.tool ?? ""} ${(out as any)?.args ? JSON.stringify((out as any).args).slice(0, 220) : ""}` })
       }
     } else if (targetMode === "architect") {
-      inWhatsAppGuard24h = channel === "whatsapp" && /WHATSAPP_ONBOARDING_GUARD_24H=true/i.test(context ?? "")
       const systemPrompt = buildArchitectSystemPromptLite({ channel, lastAssistantMessage: String(lastAssistantMessage ?? ""), context })
       const isModuleUi = String(context ?? "").includes("=== CONTEXTE MODULE (UI) ===")
       function looksLikeExplicitPlanOperationRequest(msg: string): boolean {
@@ -194,7 +192,7 @@ export async function runAgentAndVerify(opts: {
         if (/\b(modifie|modifier|change|changer|mets|mettre|supprime|supprimer|archive|archiver|d[ée]sactive|d[ée]sactiver|active|activer|fr[ée]quence)\b/i.test(msg)) return true
         return false
       }
-      const baseToolDefs = getArchitectTools({ inWhatsAppGuard24h })
+      const baseToolDefs = getArchitectTools()
       // In Module (UI) conversations, default to discussion-first: no tools unless explicitly requested.
       const toolDefs = (isModuleUi && !looksLikeExplicitPlanOperationRequest(userMessage)) ? [] : baseToolDefs
       toolsAvailable = buildToolDescriptorsFromToolDefs(toolDefs)
@@ -233,11 +231,10 @@ export async function runAgentAndVerify(opts: {
           tools_executed: false,
           executed_tools: [],
           tool_execution: "none",
-          whatsapp_guard_24h: inWhatsAppGuard24h,
         })
         return { label: `c${idx}`, text: txt, mechanical_violations: v }
       }
-      const v = toolCallViolations({ agent: targetMode, tool: c.tool, toolArgs: c.args, allowedTools, inWhatsAppGuard24h })
+      const v = toolCallViolations({ agent: targetMode, tool: c.tool, toolArgs: c.args, allowedTools })
       return { label: `c${idx}`, text: c.preview, mechanical_violations: v }
     })
 
@@ -322,7 +319,6 @@ export async function runAgentAndVerify(opts: {
           userId,
           message: userMessage,
           response: { tool: chosen.tool, args: chosen.args } as any,
-          inWhatsAppGuard24h,
           context,
           meta: { ...(meta ?? {}), model: sophiaChatModel },
         })
@@ -443,16 +439,45 @@ export async function runAgentAndVerify(opts: {
 
   switch (targetMode) {
     case "sentry":
-      responseContent = await runSentry(userMessage, meta)
-      // IMPORTANT: do not "lock" the conversation in sentry mode (prevents loops).
-      // After the safety message is delivered, continue in companion by default.
-      nextMode = "companion"
+      {
+        // Build flow context from tempMemory for phase-specific prompting
+        const sentryFlowState = tempMemory ? getActiveSafetySentryFlow(tempMemory) : null
+        const sentryFlowContext: SentryFlowContext | undefined = sentryFlowState ? {
+          phase: sentryFlowState.phase as SentryFlowContext["phase"],
+          turnCount: sentryFlowState.turn_count,
+          safetyConfirmed: sentryFlowState.safety_confirmed,
+          externalHelpMentioned: sentryFlowState.external_help_mentioned,
+        } : undefined
+        
+        responseContent = await runSentry(userMessage, meta, sentryFlowContext)
+        // NOTE: nextMode is now managed by safety_sentry_flow state machine in run.ts
+        // The machine tracks crisis phases (acute → confirming → resolved) and handles handoff.
+        // We don't set nextMode here - the router will determine it based on flow state.
+      }
       break
     case "firefighter":
       try {
-        const ffResult = await runFirefighter(userMessage, history, context, meta)
+        // Build flow context from tempMemory for phase-specific prompting
+        const firefighterFlowState = tempMemory ? getActiveSafetyFirefighterFlow(tempMemory) : null
+        const firefighterFlowContext: FirefighterFlowContext | undefined = firefighterFlowState ? {
+          phase: firefighterFlowState.phase as FirefighterFlowContext["phase"],
+          turnCount: firefighterFlowState.turn_count,
+          stabilizationSignals: firefighterFlowState.stabilization_signals,
+          distressSignals: firefighterFlowState.distress_signals,
+          lastTechnique: firefighterFlowState.technique_used,
+        } : undefined
+        
+        const ffResult = await runFirefighter(userMessage, history, context, meta, firefighterFlowContext)
         responseContent = ffResult.content
-        if (ffResult.crisisResolved) nextMode = "companion"
+        // NOTE: ffResult.crisisResolved is still produced by firefighter for backward compatibility,
+        // but the actual crisis resolution is now determined by safety_firefighter_flow state machine
+        // in run.ts, which uses structured safety_resolution signals from the dispatcher.
+        // This provides multi-turn tracking with stabilization signal counting.
+        
+        // Store technique used for state machine context (if available)
+        if (ffResult.technique && tempMemory) {
+          (tempMemory as any).__last_firefighter_technique = ffResult.technique
+        }
       } catch (e) {
         console.error("[Router] firefighter failed:", e)
         const emergency = await tryEmergencyAiReply({
@@ -479,7 +504,6 @@ export async function runAgentAndVerify(opts: {
           })
           responseContent = outageTemplate
         }
-        nextMode = "companion"
       }
       break
     case "investigator":
@@ -772,9 +796,7 @@ export async function runAgentAndVerify(opts: {
         created_at: (m as any)?.created_at ?? null,
         agent_used: (m as any)?.agent_used ?? null,
       }))
-      const inWhatsAppGuard24h =
-        channel === "whatsapp" && /WHATSAPP_ONBOARDING_GUARD_24H=true/i.test((context ?? "").toString())
-      const tools_available = toolsAvailableForMode({ mode: targetMode, inWhatsAppGuard24h })
+      const tools_available = toolsAvailableForMode({ mode: targetMode })
       const draftBefore = responseContent
       const verified = await verifyConversationAgentMessage({
         draft: responseContent,
@@ -791,7 +813,6 @@ export async function runAgentAndVerify(opts: {
           tools_executed: executedTools.length > 0,
           executed_tools: executedTools,
           tool_execution: toolExecution,
-          whatsapp_guard_24h: inWhatsAppGuard24h,
         },
         meta: {
           requestId: meta?.requestId,
@@ -838,11 +859,12 @@ export async function runAgentAndVerify(opts: {
       if (topicToStore && topicToStore.length >= 3) {
         // Store in deferred_topics_v2 as topic_light (will auto-relaunch after bilan)
         const deferResult = deferSignal({
-          tempMemory: opts.tempMemory ?? {},
+          tempMemory,
           machine_type: "topic_light",
           action_target: topicToStore.slice(0, 80),
           summary: topicToStore.slice(0, 100),
         })
+        tempMemory = deferResult.tempMemory
         // Note: tempMemory update handled by caller (router) via returned state
         console.log(`[Router] Assistant defer captured to deferred_topics_v2: "${topicToStore}" (from=${formalizedFromDispatcher ? "dispatcher" : "fallback"})`)
       } else {
@@ -856,7 +878,7 @@ export async function runAgentAndVerify(opts: {
   // --- BILAN VERIFIER (global) ---
   if (checkupActive && !stopCheckup && targetMode !== "sentry" && targetMode !== "investigator") {
     try {
-      if (targetMode === "watcher") return { responseContent, nextMode }
+      if (targetMode === "watcher") return { responseContent, nextMode, tempMemory }
       const recentHistory = (history ?? []).slice(-15).map((m: any) => ({
         role: m?.role,
         content: m?.content,
@@ -925,7 +947,7 @@ export async function runAgentAndVerify(opts: {
   // --- POST-CHECKUP VERIFIER ---
   if (isPostCheckup && targetMode !== "sentry") {
     try {
-      if (targetMode === "watcher") return { responseContent, nextMode }
+      if (targetMode === "watcher") return { responseContent, nextMode, tempMemory }
       await traceV("brain:verifier_start", "verifier", {
         verifier_kind: "verifier_1:post_checkup",
         agent: targetMode,
@@ -975,5 +997,5 @@ export async function runAgentAndVerify(opts: {
     tool_execution: toolExecution,
   }, "debug")
 
-  return { responseContent, nextMode }
+  return { responseContent, nextMode, tempMemory }
 }

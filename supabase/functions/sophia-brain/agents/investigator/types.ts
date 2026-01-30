@@ -29,6 +29,44 @@ export interface DeepReasonsDeferred {
 }
 
 /**
+ * Consents for machines that will be launched after the bilan.
+ * Each machine has its own indicator for whether the user confirmed.
+ */
+export interface BilanDeferConsents {
+  /** Deep reasons exploration consent */
+  explore_deep_reasons?: {
+    action_id: string
+    action_title: string
+    user_words?: string
+    confirmed: boolean | null  // null = awaiting confirmation
+  }
+  /** Breakdown action consent (one per action) */
+  breakdown_action?: {
+    [action_id: string]: {
+      action_title: string
+      streak_days: number
+      confirmed: boolean | null
+    }
+  }
+  /** Topic exploration consent */
+  topic_exploration?: {
+    topic_hint: string
+    confirmed: boolean | null
+  }
+}
+
+/**
+ * Pending defer question to be asked in the next investigator message.
+ */
+export interface PendingDeferQuestion {
+  machine_type: "deep_reasons" | "breakdown" | "topic"
+  action_id?: string
+  action_title?: string
+  streak_days?: number
+  topic_hint?: string
+}
+
+/**
  * Extended temp_memory type for InvestigationState
  * 
  * NOTE: Several fields are deprecated as of the Investigator Deferred Unification refactor:
@@ -63,6 +101,12 @@ export interface InvestigationTempMemory {
     last_note?: string
     last_item_log?: unknown
   }
+  /** Cache of missed streaks by action id for the current bilan */
+  missed_streaks_by_action?: Record<string, number>
+  /** Consents collected during bilan for machines to launch after */
+  bilan_defer_consents?: BilanDeferConsents
+  /** Pending defer question to inject into next investigator prompt */
+  pending_defer_question?: PendingDeferQuestion
   /** Other fields... */
   [key: string]: unknown
 }

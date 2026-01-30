@@ -5,7 +5,12 @@ import type { CheckupItem, InvestigationState, InvestigatorTurnResult } from "./
 import { investigatorSay } from "./copy.ts"
 import { isMegaTestMode } from "./utils.ts"
 import { logItem } from "./db.ts"
-import { checkAndHandleLevelUp, maybeHandleStreakAfterLog } from "./streaks.ts"
+import {
+  checkAndHandleLevelUp,
+  maybeHandleStreakAfterLog,
+  getCompletedStreakDays,
+  getMissedStreakDaysForCheckupItem,
+} from "./streaks.ts"
 import { logEdgeFunctionError } from "../../../_shared/error-log.ts"
 // NOTE: Tool handlers for break_down_action, defer_deep_exploration, activate_plan_action,
 // archive_plan_action have been removed. These are now handled post-bilan via deferred_topics_v2.
@@ -23,6 +28,13 @@ export async function handleInvestigatorModelOutput(opts: {
 }): Promise<InvestigatorTurnResult> {
   const { supabase, userId, message, history, currentState, currentItem, meta } = opts
   let response: any = opts.response
+
+  function updateMissedStreakCache(actionId: string, streak: number) {
+    const tm = currentState.temp_memory ?? {}
+    const existing = (tm as any).missed_streaks_by_action ?? {}
+    const next = { ...existing, [String(actionId)]: Math.max(0, Math.floor(Number(streak) || 0)) }
+    currentState.temp_memory = { ...(tm as any), missed_streaks_by_action: next }
+  }
 
   async function logToolFallback(args: { tool_name: string; error: unknown }) {
     const errMsg = args.error instanceof Error ? args.error.message : String(args.error)
@@ -118,7 +130,7 @@ export async function handleInvestigatorModelOutput(opts: {
         const errMsg = e instanceof Error ? e.message : String(e)
         console.error("[Investigator] auto-log maybeHandleStreakAfterLog failed (unexpected):", errMsg)
       }
-      // Move to next item (same as normal log path)
+      // Move to next item with enriched transition (comment on reason + next question)
       const nextIndex = currentState.current_item_index + 1
       const nextState = { ...currentState, current_item_index: nextIndex }
       if (nextIndex >= currentState.pending_items.length) {
@@ -137,17 +149,44 @@ export async function handleInvestigatorModelOutput(opts: {
         return { content: base, investigationComplete: true, newState: null }
       }
       const nextItem = currentState.pending_items[nextIndex]
-      const transitionOut = await investigatorSay(
-        "transition_to_next_item",
-        {
-          user_message: message,
-          last_item_log: argsWithId,
-          next_item: nextItem,
-          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
-          deferred_topic: null,
-        },
-        meta,
-      )
+      
+      // Get missed streak for context
+      let missedStreak = 0
+      try {
+        missedStreak = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
+      } catch {}
+      updateMissedStreakCache(currentItem.id, missedStreak)
+      
+      const note = String(argsWithId.note ?? "").trim()
+      const hasReason = note.length > 2 && !/^(pas\s+fait|non|rat[ée]?|pas\s+r[eé]ussi)$/i.test(note)
+      
+      // Use enriched scenario only if a reason is provided
+      const transitionOut = hasReason
+        ? await investigatorSay(
+          "action_missed_comment_transition",
+          {
+            user_message: message,
+            missed_item: currentItem,
+            reason_given: note,
+            last_item_log: argsWithId,
+            next_item: nextItem,
+            missed_streak: missedStreak,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+            channel: meta?.channel,
+          },
+          meta,
+        )
+        : await investigatorSay(
+          "transition_to_next_item",
+          {
+            user_message: message,
+            last_item_log: argsWithId,
+            next_item: nextItem,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+            deferred_topic: null,
+          },
+          meta,
+        )
       return { content: transitionOut, investigationComplete: false, newState: nextState }
     }
   }
@@ -169,6 +208,49 @@ export async function handleInvestigatorModelOutput(opts: {
       console.error("[Investigator] log_action_execution failed (unexpected):", errMsg)
       await logToolFallback({ tool_name: "log_action_execution", error: e })
       return { content: fallbackUserMessage(), investigationComplete: false, newState: currentState }
+    }
+
+    if (currentItem.type === "action" && argsWithId.status === "completed") {
+      updateMissedStreakCache(currentItem.id, 0)
+    }
+
+    // --- VITAL SIGN: Personalized reaction + transition ---
+    if (currentItem.type === "vital") {
+      const nextIndex = currentState.current_item_index + 1
+      const nextState = { ...currentState, current_item_index: nextIndex }
+
+      if (nextIndex >= currentState.pending_items.length) {
+        // Last item was a vital sign
+        const endMsg = await investigatorSay(
+          "end_checkup_after_last_log",
+          {
+            user_message: message,
+            channel: meta?.channel,
+            recent_history: history.slice(-15),
+            last_item: currentItem,
+            last_item_log: argsWithId,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          },
+          meta,
+        )
+        return { content: endMsg, investigationComplete: true, newState: null }
+      }
+
+      const nextItem = currentState.pending_items[nextIndex]
+      const transitionMsg = await investigatorSay(
+        "vital_logged_transition",
+        {
+          user_message: message,
+          vital_title: currentItem.title,
+          vital_value: argsWithId.value ?? argsWithId.status,
+          vital_unit: currentItem.unit,
+          next_item: nextItem,
+          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          channel: meta?.channel,
+        },
+        meta,
+      )
+      return { content: transitionMsg, investigationComplete: false, newState: nextState }
     }
 
     // --- WEEKLY HABIT TARGET CONGRATS (immediate) ---
@@ -285,6 +367,75 @@ export async function handleInvestigatorModelOutput(opts: {
     console.log(`[Investigator] Next item: ${nextItem.title}`)
     const deferred = Boolean(currentState?.temp_memory?.deferred_topic)
 
+    // Use enriched scenario for action completed (félicitation + transition in same message)
+    if (currentItem.type === "action" && argsWithId.status === "completed") {
+      // Get win streak for context (already checked for >= 3 earlier, but we pass it anyway)
+      let winStreak = 0
+      try {
+        winStreak = await getCompletedStreakDays(supabase, userId, currentItem.id)
+      } catch {}
+
+      const transitionOut = await investigatorSay(
+        "action_completed_transition",
+        {
+          user_message: message,
+          completed_item: currentItem,
+          last_item_log: argsWithId,
+          next_item: nextItem,
+          win_streak: winStreak,
+          day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+          channel: meta?.channel,
+        },
+        meta,
+      )
+      return {
+        content: weeklyCongrats ? `${weeklyCongrats}\n\n${transitionOut}` : transitionOut,
+        investigationComplete: false,
+        newState: nextState,
+      }
+    }
+
+    // Handle missed actions with enriched transition (comment on reason + next question)
+    if (currentItem.type === "action" && argsWithId.status === "missed") {
+      let missedStreak = 0
+      try {
+        missedStreak = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
+      } catch {}
+      updateMissedStreakCache(currentItem.id, missedStreak)
+
+      const note = String(argsWithId.note ?? "").trim()
+      const hasReason = note.length > 2 && !/^(pas\s+fait|non|rat[ée]?|pas\s+r[eé]ussi)$/i.test(note)
+
+      const transitionOut = hasReason
+        ? await investigatorSay(
+          "action_missed_comment_transition",
+          {
+            user_message: message,
+            missed_item: currentItem,
+            reason_given: note,
+            last_item_log: argsWithId,
+            next_item: nextItem,
+            missed_streak: missedStreak,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+            channel: meta?.channel,
+          },
+          meta,
+        )
+        : await investigatorSay(
+          "transition_to_next_item",
+          {
+            user_message: message,
+            last_item_log: argsWithId,
+            next_item: nextItem,
+            day_scope: String(currentState?.temp_memory?.day_scope ?? "yesterday"),
+            deferred_topic: deferred ? "planning/organisation" : null,
+          },
+          meta,
+        )
+      return { content: transitionOut, investigationComplete: false, newState: nextState }
+    }
+
+    // Default transition for other cases (frameworks, etc.)
     const transitionOut = await investigatorSay(
       "transition_to_next_item",
       {

@@ -38,12 +38,7 @@ export async function handleUnlinkedInbound(params: {
   const tokenCandidate = extractLinkToken(msg.text ?? "")
   const emailCandidate = looksLikeEmail(msg.text ?? "")
   const nowIso = new Date().toISOString()
-  const isConfirm = isYesConfirm(msg.text ?? "") || /^(oui|yes)$/i.test((msg.interactive_title ?? "").trim())
-
-  // If they send STOP from an unlinked number, just acknowledge silently.
-  if (isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)) {
-    return
-  }
+  const isConfirm = isYesConfirm(msg.text ?? "") || isYesConfirm(msg.interactive_title ?? "")
 
   // Always log inbound from unknown numbers (no user_id yet), for support/debugging.
   // Idempotent on wa_message_id.
@@ -57,6 +52,11 @@ export async function handleUnlinkedInbound(params: {
     wa_profile_name: msg.profile_name ?? null,
     raw: msg as any,
   }, { onConflict: "wa_message_id", ignoreDuplicates: true })
+
+  // If they send STOP from an unlinked number, just acknowledge silently.
+  if (isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)) {
+    return
+  }
 
   const { data: linkReq, error: linkReqErr } = await admin
     .from("whatsapp_link_requests")

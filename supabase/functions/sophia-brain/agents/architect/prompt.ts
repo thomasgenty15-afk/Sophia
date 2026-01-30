@@ -34,8 +34,11 @@ OUTILS (si proposés):
   → Si OUI: appelle "start_deep_exploration" avec detected_pattern et user_words
   → Si NON: propose une alternative (micro-étape, ajustement, archivage)
 - "create_simple_action"/"create_framework"/"update_action_structure"/"archive_plan_action"/"activate_plan_action": uniquement si le contexte indique un plan actif et si l'utilisateur demande clairement ce changement.
-${isWa ? `- IMPORTANT WhatsApp: éviter les opérations "activation" pendant onboarding si le contexte le bloque.\n` : ""}
 ${isModuleUi ? `- IMPORTANT MODULE: évite d'utiliser des outils tant que l'utilisateur n'a pas explicitement demandé une action sur le plan.\n` : ""}
+
+ADD-ONS / MACHINES (CRITIQUE):
+- Si le contexte contient "=== SESSION TOPIC ACTIVE ===", respecte la phase et reste sur le sujet.
+- Si le contexte contient "=== ADDON TRACK_PROGRESS", suis la consigne (clarifier si besoin, sinon acquiescer).
 
 DISTINCTION IMPORTANTE (breakdown vs deep_exploration):
 - "break_down_action" = blocage PRATIQUE → on découpe l'action en micro-étape

@@ -42,7 +42,12 @@ export function extractMessages(payload: WaInbound): ExtractedInboundMessage[] {
         let interactive_id: string | undefined = undefined
         let interactive_title: string | undefined = undefined
         if (type === "text") text = m.text?.body ?? ""
-        else if (type === "button") text = m.button?.text ?? m.button?.payload ?? ""
+        else if (type === "button") {
+          // Normalize button payloads as interactive ids for consistent routing
+          interactive_id = m.button?.payload ?? undefined
+          interactive_title = m.button?.text ?? undefined
+          text = interactive_title ?? interactive_id ?? ""
+        }
         else if (type === "interactive") {
           const br = m.interactive?.button_reply
           const lr = m.interactive?.list_reply

@@ -50,6 +50,11 @@ export function buildCompanionSystemPrompt(opts: {
     - Réponds d'abord à ce que l'utilisateur dit.
     - Ensuite, propose UNE relance utile (ou une micro-question) sans changer de sujet.
 
+    ADD-ONS / MACHINES (CRITIQUE) :
+    - Si le contexte contient "=== SESSION TOPIC ACTIVE ===", respecte la phase et reste sur le sujet.
+    - Si le contexte contient "=== ADDON BILAN", applique strictement l'instruction (1 question max).
+    - Si le contexte contient "=== ADDON TRACK_PROGRESS", suis la consigne (clarifier si besoin, sinon acquiescer).
+
     TRACKING :
     - Si l'utilisateur dit qu'il a FAIT une action/habitude: appelle l'outil track_progress (status=completed).
     - S'il dit qu'il ne l'a PAS faite: track_progress (status=missed, value=0).
@@ -105,6 +110,11 @@ export function buildCompanionSystemPrompt(opts: {
       - Puis 1 question courte (oui/non ou A/B).
       - Interdiction des paragraphes longs.
 
+    ADD-ONS / MACHINES (CRITIQUE) :
+    - Si le contexte contient "=== SESSION TOPIC ACTIVE ===", respecte la phase et reste sur le sujet.
+    - Si le contexte contient "=== ADDON BILAN", applique strictement l'instruction (1 question max).
+    - Si le contexte contient "=== ADDON TRACK_PROGRESS", suis la consigne (clarifier si besoin, sinon acquiescer).
+
     USER MODEL (PRÉFÉRENCES - 10 types) :
     - Le contexte peut contenir "=== USER MODEL (FACTS) ===" et/ou "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
     
@@ -145,8 +155,28 @@ export function buildCompanionSystemPrompt(opts: {
   return basePrompt
 }
 
+/**
+ * Options for retrieveContext
+ */
+export interface RetrieveContextOptions {
+  /** Maximum number of memory results (default: 5) */
+  maxResults?: number
+  /** Whether to include action history (default: true) */
+  includeActionHistory?: boolean
+}
+
 // RAG Helper EXPORTÉ (Utilisé par le router)
-export async function retrieveContext(supabase: SupabaseClient, userId: string, message: string): Promise<string> {
+export async function retrieveContext(
+  supabase: SupabaseClient, 
+  userId: string, 
+  message: string,
+  opts?: RetrieveContextOptions
+): Promise<string> {
+  const maxResults = opts?.maxResults ?? 5
+  const includeActionHistory = opts?.includeActionHistory ?? true
+  // For minimal mode (firefighter), we limit action history too
+  const actionResultsCount = maxResults <= 2 ? 1 : 3
+  
   let contextString = "";
   try {
     const embedding = await generateEmbedding(message);
@@ -160,14 +190,14 @@ export async function retrieveContext(supabase: SupabaseClient, userId: string, 
       target_user_id: userId,
       query_embedding: embedding,
       match_threshold: 0.65,
-      match_count: 5,
+      match_count: maxResults,
       filter_status: ["consolidated"],
     } as any);
     const { data: memoriesFallback } = memErr
       ? await supabase.rpc('match_memories', {
         query_embedding: embedding,
         match_threshold: 0.65,
-        match_count: 5,
+        match_count: maxResults,
         filter_status: ["consolidated"],
       } as any)
       : ({ data: null } as any);
@@ -183,29 +213,32 @@ export async function retrieveContext(supabase: SupabaseClient, userId: string, 
 
     // 2. Historique des Actions (Action Entries)
     // On cherche si des actions passées (réussites ou échecs) sont pertinentes pour la discussion
-    const { data: actionEntries, error: actErr } = await supabase.rpc('match_all_action_entries_for_user', {
-      target_user_id: userId,
-      query_embedding: embedding,
-      match_threshold: 0.60,
-      match_count: 3,
-    } as any);
-    const { data: actionEntriesFallback } = actErr
-      ? await supabase.rpc('match_all_action_entries', {
+    // Skip for minimal mode (firefighter) if explicitly disabled
+    if (includeActionHistory) {
+      const { data: actionEntries, error: actErr } = await supabase.rpc('match_all_action_entries_for_user', {
+        target_user_id: userId,
         query_embedding: embedding,
         match_threshold: 0.60,
-        match_count: 3,
-      } as any)
-      : ({ data: null } as any);
-    const effectiveActionEntries = (actErr ? actionEntriesFallback : actionEntries) as any[] | null;
+        match_count: actionResultsCount,
+      } as any);
+      const { data: actionEntriesFallback } = actErr
+        ? await supabase.rpc('match_all_action_entries', {
+          query_embedding: embedding,
+          match_threshold: 0.60,
+          match_count: actionResultsCount,
+        } as any)
+        : ({ data: null } as any);
+      const effectiveActionEntries = (actErr ? actionEntriesFallback : actionEntries) as any[] | null;
 
-    if (effectiveActionEntries && effectiveActionEntries.length > 0) {
-        contextString += "=== HISTORIQUE DES ACTIONS PERTINENTES ===\n"
-        contextString += effectiveActionEntries.map((e: any) => {
-             const dateStr = new Date(e.performed_at).toLocaleDateString('fr-FR');
-             const statusIcon = e.status === 'completed' ? '✅' : '❌';
-             return `[${dateStr}] ${statusIcon} ${e.action_title} : "${e.note || 'Pas de note'}"`;
-        }).join('\n');
-        contextString += "\n\n";
+      if (effectiveActionEntries && effectiveActionEntries.length > 0) {
+          contextString += "=== HISTORIQUE DES ACTIONS PERTINENTES ===\n"
+          contextString += effectiveActionEntries.map((e: any) => {
+               const dateStr = new Date(e.performed_at).toLocaleDateString('fr-FR');
+               const statusIcon = e.status === 'completed' ? '✅' : '❌';
+               return `[${dateStr}] ${statusIcon} ${e.action_title} : "${e.note || 'Pas de note'}"`;
+          }).join('\n');
+          contextString += "\n\n";
+      }
     }
 
     return contextString;

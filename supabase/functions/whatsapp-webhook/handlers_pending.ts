@@ -100,8 +100,8 @@ export async function handlePendingActions(params: {
         .from("scheduled_checkins")
         .update({ status: "pending", scheduled_for: new Date(Date.now() + 10 * 60 * 1000).toISOString() })
         .eq("id", (pending as any).scheduled_checkin_id)
-      await markPending(admin, (pending as any).id, "cancelled")
     }
+    await markPending(admin, (pending as any).id, "cancelled")
     const okMsg = "Ok, je te relance un peu plus tard 🙂"
     const sendResp = await sendWhatsAppTextTracked({
       admin,
@@ -184,7 +184,7 @@ export async function handlePendingActions(params: {
       scope: "whatsapp",
       role: "assistant",
       content: String(echo),
-      agent_used: "philosopher",
+      agent_used: "companion",
       metadata: { channel: "whatsapp", wa_outbound_message_id: echoId, outbound_tracking_id: echoTrackingId, is_proactive: false, source: "memory_echo" },
     })
 

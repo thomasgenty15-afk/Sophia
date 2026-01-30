@@ -199,7 +199,7 @@ const START_DEEP_EXPLORATION_TOOL: ToolDef = {
   },
 }
 
-export function getArchitectTools(opts: { inWhatsAppGuard24h: boolean }): ToolDef[] {
+export function getArchitectTools(): ToolDef[] {
   const baseTools = [
     CREATE_ACTION_TOOL, 
     CREATE_FRAMEWORK_TOOL, 
@@ -209,10 +209,8 @@ export function getArchitectTools(opts: { inWhatsAppGuard24h: boolean }): ToolDe
     ARCHIVE_ACTION_TOOL,
     START_DEEP_EXPLORATION_TOOL,
   ]
-  
-  return opts.inWhatsAppGuard24h
-    ? baseTools
-    : [...baseTools, ACTIVATE_ACTION_TOOL]
+
+  return [...baseTools, ACTIVATE_ACTION_TOOL]
 }
 
 

@@ -4,31 +4,33 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 import {
   AgentMode,
-  getCoreIdentity,
-  getDashboardContext,
   getUserState,
   logMessage,
   normalizeScope,
   updateUserState,
 } from "../state-manager.ts"
 import { runCompanion, retrieveContext } from "../agents/companion.ts"
+import {
+  loadContextForMode,
+  buildContextString,
+  type OnDemandTriggers,
+} from "../context/loader.ts"
+import { getVectorResultsCount, getContextProfile } from "../context/types.ts"
 import { runWatcher } from "../agents/watcher.ts"
 import { normalizeChatText } from "../chat_text.ts"
 import { generateWithGemini } from "../../_shared/gemini.ts"
 import { getUserTimeContext } from "../../_shared/user_time_context.ts"
 import { getEffectiveTierForUser } from "../../_shared/billing-tier.ts"
 import { logBrainTrace, type BrainTracePhase } from "../../_shared/brain-trace.ts"
-import {
-  formatUserProfileFactsForPrompt,
-  getUserProfileFacts,
-} from "../profile_facts.ts"
+import { handleTracking } from "../lib/tracking.ts"
+// NOTE: getUserProfileFacts and formatUserProfileFactsForPrompt are now handled by context/loader.ts
 import {
   countNoPlanBlockerMentions,
   isExplicitStopCheckup,
   lastAssistantAskedForStepConfirmation,
   lastAssistantAskedForMotivation,
   looksLikeActionProgress,
-  looksLikeAttrapeRevesActivation,
+  // looksLikeAttrapeRevesActivation removed - now handled via activate_action signal
   looksLikeDailyBilanAnswer,
   looksLikeExplicitResumeCheckupIntent,
   looksLikeHowToExerciseQuestion,
@@ -40,28 +42,33 @@ import {
 } from "./classifiers.ts"
 import {
   analyzeSignals,
-  analyzeSignalsV2,
   looksLikeAcuteDistress, 
-  detectMachineTypeFromSignals,
-  generateDeferredSignalSummary,
-  isSafetySignal,
-  shouldInterruptForSafety,
   type DispatcherSignals,
-  type DispatcherInputV2,
   type DispatcherOutputV2,
-  type SignalHistoryEntry,
   type NewSignalEntry,
   type SignalEnrichment,
-  type FlowContext,
   type DeferredMachineType,
 } from "./dispatcher.ts"
+import {
+  buildDispatcherStateSnapshot,
+  buildLastAssistantInfo,
+  runContextualDispatcherV2,
+} from "./dispatcher_flow.ts"
+import {
+  normalizeLoose,
+  pickToolflowSummary,
+  pickSupervisorSummary,
+  pickDeferredSummary,
+  pickProfileConfirmSummary,
+} from "./router_helpers.ts"
+import {
+  getSignalHistory,
+  updateSignalHistory,
+} from "./signal_history.ts"
 import {
   // NOTE: appendDeferredTopicToState removed - parking lot replaced by deferred_topics_v2
   extractDeferredTopicFromUserMessage,
   userExplicitlyDefersTopic,
-  getDeepReasonsDeferredTopic,
-  hasDeepReasonsDeferredTopic,
-  removeDeepReasonsDeferredTopic,
 } from "./deferred_topics.ts"
 import {
   generateDeferredAckWithTopic,
@@ -72,9 +79,11 @@ import {
 import { debounceAndBurstMerge } from "./debounce.ts"
 import { runAgentAndVerify } from "./agent_exec.ts"
 import { maybeInjectGlobalDeferredNudge, pruneGlobalDeferredTopics, shouldStoreGlobalDeferredFromUserMessage, storeGlobalDeferredTopic } from "./global_deferred.ts"
+import { applyDeterministicRouting } from "./routing_decision.ts"
+import { applyDeepReasonsFlow } from "./deep_reasons_flow.ts"
+import { handleSignalDeferral } from "./deferral_handling.ts"
 import {
   closeTopicSession,
-  closeTopicExploration,  // deprecated alias
   enqueueSupervisorIntent,
   getActiveSupervisorSession,
   getActiveTopicSession,
@@ -85,19 +94,14 @@ import {
   syncLegacyArchitectToolFlowSession,
   upsertTopicSerious,
   upsertTopicLight,
-  upsertTopicExploration,  // deprecated alias
   incrementTopicTurnCount,
   updateTopicEngagement,
-  setTopicLibrarianEscalation,
   shouldConvergeTopic,
-  shouldEscalateToLibrarian,
   computeNextTopicPhase,
   upsertDeepReasonsExploration,
   closeDeepReasonsExploration,
   getActiveDeepReasonsExploration,
-  pauseDeepReasonsExploration,
   resumeDeepReasonsExplorationSession,
-  getPausedDeepReasonsExploration,
   // Create Action Flow v2
   getActiveCreateActionFlow,
   upsertCreateActionFlow,
@@ -116,18 +120,23 @@ import {
   closeBreakdownActionFlow,
   getBreakdownCandidateFromFlow,
   isBreakdownActionFlowStale,
+  // Track Progress Flow v2
+  getActiveTrackProgressFlow,
+  upsertTrackProgressFlow,
+  closeTrackProgressFlow,
+  isTrackProgressFlowStale,
+  // Activate Action Flow v2
+  getActiveActivateActionFlow,
+  upsertActivateActionFlow,
+  closeActivateActionFlow,
+  isActivateActionFlowStale,
   writeSupervisorRuntime,
   // Machine pause/resume for safety parenthesis
   getPausedMachine,
-  pauseMachineForSafety,
   resumePausedMachine,
-  hasPausedMachine,
   clearPausedMachine,
-  getAnyActiveToolFlow,
-  getAnyActiveMachine,
   hasActiveToolFlow,
   hasAnyActiveMachine,
-  getActiveToolFlowActionTarget,
   type TopicEngagementLevel,
   type PausedMachineStateV2,
   // Profile confirmation machine
@@ -138,44 +147,53 @@ import {
   advanceProfileConfirmation,
   closeProfileConfirmation,
   type ProfileFactToConfirm,
+  // Safety flow machines
+  getActiveSafetySentryFlow,
+  upsertSafetySentryFlow,
+  closeSafetySentryFlow,
+  isSafetySentryFlowStale,
+  computeSentryNextPhase,
+  getActiveSafetyFirefighterFlow,
+  upsertSafetyFirefighterFlow,
+  closeSafetyFirefighterFlow,
+  isSafetyFirefighterFlowStale,
+  computeFirefighterNextPhase,
+  getActiveSafetyFlow,
+  hasActiveSafetyFlow,
+  type SafetyFlowPhase,
+  type SafetySentryFlowState,
+  type SafetyFirefighterFlowState,
 } from "../supervisor.ts"
 import {
   // Deferred Topics V2
   deferSignal,
   getDeferredTopicsV2,
-  getNextDeferredToProcess,
-  removeDeferredTopicV2,
-  pruneExpiredDeferredTopics,
   pauseAllDeferredTopics,
   isDeferredPaused,
   clearDeferredPause,
   hasPendingDeferredTopics,
-  findMatchingDeferred,
   isToolMachine,
   machineTypeToSessionType,
   MAX_PROFILE_FACTS_PER_SESSION,
   type DeferredTopicV2,
 } from "./deferred_topics_v2.ts"
 import {
-  generateAcknowledgmentPrefix,
-  generateSubtleUpdateAck,
   generatePostParenthesisQuestion,
   generateDeclineResumeMessage,
   generateResumeMessage,
-  generateAutoRelaunchIntro,
   looksLikeWantsToResume,
   looksLikeWantsToRest,
   lastAssistantAskedResumeQuestion,
 } from "./deferred_messages.ts"
-import {
-  runDeepReasonsExploration,
-  resumeDeepReasonsFromDeferred,
-  detectDeepReasonsPattern,
-} from "../agents/architect/deep_reasons.ts"
+import { runDeepReasonsExploration } from "../agents/architect/deep_reasons.ts"
 import type { DeepReasonsState } from "../agents/architect/deep_reasons_types.ts"
-import { createActionCandidate } from "../agents/architect/action_candidate_types.ts"
-import { createUpdateCandidate } from "../agents/architect/update_action_candidate_types.ts"
-import { createBreakdownCandidate } from "../agents/architect/breakdown_candidate_types.ts"
+import { 
+  applyAutoRelaunchFromDeferred, 
+  processRelaunchConsentResponse,
+  getPendingRelaunchConsent,
+} from "./deferred_relaunch.ts"
+import { buildRelaunchConsentAgentAddon } from "./relaunch_consent_addons.ts"
+import { buildResumeFromSafetyAddon } from "./resume_from_safety_addons.ts"
 
 const SOPHIA_CHAT_MODEL =
   (
@@ -226,6 +244,8 @@ Est-ce que ça t'intéresse ? Réponds **oui** ou **non**.
 
 On se retrouve demain matin, reposé·e ! 💜`;
 
+const PROFILE_CONFIRM_DEFERRED_KEY = "__profile_confirm_deferred_facts";
+
 // Dispatcher v2 is now the only dispatcher (v1 legacy removed)
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -236,265 +256,42 @@ const SIGNAL_HISTORY_KEY = "signal_history_v1"
 const MAX_SIGNAL_HISTORY_TURNS = 5  // Keep signals from last 5 turns
 const MIN_SIGNAL_HISTORY_TURN_INDEX = -(MAX_SIGNAL_HISTORY_TURNS - 1)
 
-interface SignalHistoryState {
-  entries: SignalHistoryEntry[]
-  last_turn_index: number
-}
-
-/**
- * Get signal history from temp_memory.
- */
-function getSignalHistory(tempMemory: any): SignalHistoryEntry[] {
-  const state = (tempMemory as any)?.[SIGNAL_HISTORY_KEY] as SignalHistoryState | undefined
-  return state?.entries ?? []
-}
-
-/**
- * Update signal history with new signals and enrichments.
- * Ages existing entries and prunes old ones.
- */
-function updateSignalHistory(opts: {
-  tempMemory: any
-  newSignals: NewSignalEntry[]
-  enrichments: SignalEnrichment[]
-  activeMachine: string | null
-}): { tempMemory: any; prunedCount: number } {
-  const state = (opts.tempMemory as any)?.[SIGNAL_HISTORY_KEY] as SignalHistoryState | undefined
-  const current = state?.entries ?? []
-  const turnIndex = (state?.last_turn_index ?? 0) + 1
-  
-  // Age existing entries (decrement turn_index)
-  let entries = current.map(e => ({ ...e, turn_index: e.turn_index - 1 }))
-  
-  // Prune old entries (keep last N turns)
-  const beforeCount = entries.length
-  entries = entries.filter(e => e.turn_index >= MIN_SIGNAL_HISTORY_TURN_INDEX)
-  const prunedCount = beforeCount - entries.length
-  
-  // Apply enrichments to existing entries
-  for (const enrich of opts.enrichments) {
-    const existing = entries.find(e => e.signal_type === enrich.existing_signal_type)
-    if (existing) {
-      existing.brief = enrich.updated_brief.slice(0, 100)
+function mergeDeferredProfileFacts(
+  existing: ProfileFactToConfirm[],
+  incoming: ProfileFactToConfirm[],
+  maxFacts: number,
+): ProfileFactToConfirm[] {
+  const map = new Map<string, ProfileFactToConfirm>()
+  const add = (fact: ProfileFactToConfirm) => {
+    const key = `${fact.key}::${fact.proposed_value}`
+    const prev = map.get(key)
+    if (!prev) {
+      map.set(key, fact)
+      return
+    }
+    const prevConf = Number(prev.confidence ?? 0)
+    const nextConf = Number(fact.confidence ?? 0)
+    const prevTs = Date.parse(String(prev.detected_at ?? ""))
+    const nextTs = Date.parse(String(fact.detected_at ?? ""))
+    if (nextConf > prevConf || (nextConf === prevConf && nextTs > prevTs)) {
+      map.set(key, fact)
     }
   }
-  
-  // Add new signals at turn_index = 0
-  for (const sig of opts.newSignals) {
-    // Don't add duplicates
-    const alreadyExists = entries.some(e => 
-      e.signal_type === sig.signal_type && 
-      (e.action_target === sig.action_target || (!e.action_target && !sig.action_target))
-    )
-    if (!alreadyExists) {
-      entries.push({
-        signal_type: sig.signal_type,
-        turn_index: 0,
-        brief: sig.brief.slice(0, 100),
-        status: opts.activeMachine ? "deferred" : "pending",
-        action_target: sig.action_target,
-        detected_at: new Date().toISOString(),
-      })
-    }
+  for (const fact of existing) {
+    if (fact && fact.key && fact.proposed_value) add(fact)
   }
-  
-  // Update status for signals that match the active machine
-  if (opts.activeMachine) {
-    for (const e of entries) {
-      if (machineMatchesSignalType(opts.activeMachine, e.signal_type)) {
-        e.status = "in_machine"
-      }
-    }
+  for (const fact of incoming) {
+    if (fact && fact.key && fact.proposed_value) add(fact)
   }
-  
-  return {
-    tempMemory: {
-      ...opts.tempMemory,
-      [SIGNAL_HISTORY_KEY]: { entries, last_turn_index: turnIndex }
-    },
-    prunedCount,
-  }
-}
-
-/**
- * Mark a signal as resolved (when its machine completes).
- */
-function resolveSignalInHistory(opts: {
-  tempMemory: any
-  signalType: string
-  actionTarget?: string
-}): { tempMemory: any } {
-  const state = (opts.tempMemory as any)?.[SIGNAL_HISTORY_KEY] as SignalHistoryState | undefined
-  if (!state?.entries) return { tempMemory: opts.tempMemory }
-  
-  const entries = state.entries.map(e => {
-    if (e.signal_type === opts.signalType && 
-        (e.action_target === opts.actionTarget || (!e.action_target && !opts.actionTarget))) {
-      return { ...e, status: "resolved" as const }
-    }
-    return e
-  })
-  
-  return {
-    tempMemory: {
-      ...opts.tempMemory,
-      [SIGNAL_HISTORY_KEY]: { ...state, entries }
-    }
-  }
-}
-
-/**
- * Check if a machine type matches a signal type.
- * Used to update signal status when entering a machine.
- */
-function machineMatchesSignalType(machineType: string | null, signalType: string): boolean {
-  if (!machineType || !signalType) return false
-  const mappings: Record<string, string[]> = {
-    "create_action_flow": ["create_action_intent", "create_action"],
-    "update_action_flow": ["update_action_intent", "update_action"],
-    "breakdown_action_flow": ["breakdown_action_intent", "breakdown_action", "breakdown_intent"],
-    "topic_serious": ["topic_exploration_intent", "topic_serious"],
-    "topic_light": ["topic_exploration_intent", "topic_light"],
-    "deep_reasons_exploration": ["deep_reasons_intent", "deep_reasons"],
-    "user_profile_confirmation": ["profile_info_detected", "profile_confirmation"],
-  }
-  return mappings[machineType]?.includes(signalType) ?? false
-}
-
-/**
- * Get the currently active machine type from temp_memory.
- */
-function getActiveMachineType(tempMemory: any): string | null {
-  // Check tool flows first
-  if ((tempMemory as any)?.create_action_flow) return "create_action_flow"
-  if ((tempMemory as any)?.update_action_flow) return "update_action_flow"
-  if ((tempMemory as any)?.breakdown_action_flow) return "breakdown_action_flow"
-  
-  // Check topic sessions
-  const topicSession = getActiveTopicSession(tempMemory)
-  if (topicSession?.type === "topic_serious") return "topic_serious"
-  if (topicSession?.type === "topic_light") return "topic_light"
-  
-  // Check deep reasons
-  if ((tempMemory as any)?.deep_reasons_state) return "deep_reasons_exploration"
-  
-  // Check profile confirmation
-  if (hasActiveProfileConfirmation(tempMemory)) return "user_profile_confirmation"
-  
-  return null
-}
-
-/**
- * Build the flow context for the active machine.
- * This enriches the dispatcher prompt with details about what's happening in the flow.
- */
-function buildFlowContext(tempMemory: any, state?: any): FlowContext | undefined {
-  const tm = tempMemory as any
-  const checkupAddon =
-    tm?.__checkup_entry_pending ? "CHECKUP_ENTRY_CONFIRM"
-    : tm?.__bilan_already_done_pending ? "BILAN_ALREADY_DONE"
-    : tm?.__checkup_deferred_topic ? "CHECKUP_DEFERRED"
-    : undefined
-  const withCheckup = (ctx: FlowContext): FlowContext =>
-    checkupAddon
-      ? { ...ctx, checkupAddon, checkupDeferredTopic: tm?.__checkup_deferred_topic }
-      : ctx
-  
-  // Bilan (investigation) active - highest priority
-  const invState = state?.investigation_state
-  if (invState && invState.status !== "post_checkup") {
-    const currentIndex = invState.current_item_index ?? 0
-    const currentItem = invState.pending_items?.[currentIndex]
-    const pendingOffer = invState.temp_memory?.bilan_defer_offer
-    
-    // Get missed streak from pending offer or legacy breakdown state if available
-    const missedStreak =
-      pendingOffer?.streak_days ??
-      invState.temp_memory?.breakdown?.streak_days ??
-      0
-    
-    return withCheckup({
-      isBilan: true,
-      currentItemTitle: pendingOffer?.action_title ?? currentItem?.title,
-      currentItemId: pendingOffer?.action_id ?? currentItem?.id,
-      missedStreak,
+  return Array.from(map.values())
+    .sort((a, b) => {
+      const confDiff = Number(b.confidence ?? 0) - Number(a.confidence ?? 0)
+      if (confDiff !== 0) return confDiff
+      return Date.parse(String(b.detected_at ?? "")) - Date.parse(String(a.detected_at ?? ""))
     })
-  }
-  
-  // Create action flow
-  if (tm?.create_action_flow) {
-    const candidate = tm.create_action_flow.candidate
-    if (candidate) {
-      return withCheckup({
-        actionLabel: candidate.label,
-        actionType: candidate.type,
-        actionStatus: candidate.status,
-      })
-    }
-  }
-  
-  // Update action flow
-  if (tm?.update_action_flow) {
-    const candidate = tm.update_action_flow.candidate
-    if (candidate) {
-      const changes: string[] = []
-      if (candidate.proposed_changes?.new_reps) changes.push(`freq: ${candidate.proposed_changes.new_reps}x`)
-      if (candidate.proposed_changes?.new_days) changes.push(`jours: ${candidate.proposed_changes.new_days.join(", ")}`)
-      if (candidate.proposed_changes?.new_time_of_day) changes.push(`moment: ${candidate.proposed_changes.new_time_of_day}`)
-      if (candidate.proposed_changes?.new_title) changes.push(`titre: ${candidate.proposed_changes.new_title}`)
-      return withCheckup({
-        targetActionTitle: candidate.target_action?.title,
-        proposedChanges: changes.length > 0 ? changes.join(", ") : undefined,
-      })
-    }
-  }
-  
-  // Breakdown action flow
-  if (tm?.breakdown_action_flow) {
-    const candidate = tm.breakdown_action_flow.candidate
-    if (candidate) {
-      return withCheckup({
-        breakdownTarget: candidate.target_action?.title,
-        blocker: candidate.blocker,
-        proposedStep: candidate.proposed_step?.title,
-      })
-    }
-  }
-  
-  // Topic exploration
-  const topicSession = getActiveTopicSession(tempMemory)
-  if (topicSession) {
-    return withCheckup({
-      topicLabel: topicSession.topic,
-      topicPhase: topicSession.phase,
-    })
-  }
-  
-  // Deep reasons exploration
-  if (tm?.deep_reasons_state) {
-    return withCheckup({
-      deepReasonsTopic: tm.deep_reasons_state.topic,
-      deepReasonsPhase: tm.deep_reasons_state.phase,
-    })
-  }
-  
-  // Profile confirmation
-  if (hasActiveProfileConfirmation(tempMemory)) {
-    const pending = getCurrentFactToConfirm(tempMemory)
-    if (pending) {
-      return withCheckup({
-        profileFactKey: pending.key,
-        profileFactValue: pending.proposed_value,
-      })
-    }
-  }
-  
-  if (checkupAddon) {
-    return { checkupAddon, checkupDeferredTopic: tm?.__checkup_deferred_topic }
-  }
-  
-  return undefined
+    .slice(0, maxFacts)
 }
+
 
 // Feature flag for contextual dispatcher
 const ENABLE_CONTEXTUAL_DISPATCHER_V1 =
@@ -565,74 +362,6 @@ export async function processMessage(
     user_message_len: String(userMessage ?? "").length,
     history_len: Array.isArray(history) ? history.length : null,
   })
-
-  function normalizeLoose(s: string): string {
-    return String(s ?? "")
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-z0-9\s?]/g, " ")
-      .replace(/\s+/g, " ")
-      .trim()
-  }
-
-  function pickToolflowSummary(tm: any): { active: boolean; kind?: string; stage?: string } {
-    const flow = (tm as any)?.architect_tool_flow
-    if (!flow || typeof flow !== "object") return { active: false }
-    const kind = typeof (flow as any).kind === "string" ? String((flow as any).kind) : undefined
-    const stage = typeof (flow as any).stage === "string" ? String((flow as any).stage) : undefined
-    return { active: true, kind, stage }
-  }
-
-  function pickSupervisorSummary(tm: any): {
-    stack_top_type?: string
-    stack_top_owner?: string
-    stack_top_status?: string
-    topic_exploration?: { topic?: string; phase?: string; focus_mode?: string; handoff_to?: string }
-    queue_size?: number
-    queue_reasons_tail?: string[]
-    queue_pending_reasons?: string[]
-  } {
-    const sess = getActiveSupervisorSession(tm)
-    const rt = (tm as any)?.global_machine ?? (tm as any)?.supervisor
-    const q = Array.isArray((rt as any)?.queue) ? (rt as any).queue : []
-    const queueSize = q.length || undefined
-    const reasons = q.map((x: any) => String(x?.reason ?? "")).filter((x: string) => x.trim())
-    const tail = reasons.slice(-5)
-    const pending = tail.filter((r: string) => r.startsWith("pending:"))
-    const out: any = {
-      stack_top_type: sess?.type ? String(sess.type) : undefined,
-      stack_top_owner: sess?.owner_mode ? String(sess.owner_mode) : undefined,
-      stack_top_status: sess?.status ? String(sess.status) : undefined,
-      queue_size: queueSize,
-      queue_reasons_tail: tail.length ? tail : undefined,
-      queue_pending_reasons: pending.length ? pending : undefined,
-    }
-    if (sess?.type === "topic_exploration") {
-      out.topic_exploration = {
-        topic: sess.topic ? String(sess.topic).slice(0, 160) : undefined,
-        phase: sess.phase ? String(sess.phase) : undefined,
-        focus_mode: sess.focus_mode ? String(sess.focus_mode) : undefined,
-        handoff_to: sess.handoff_to ? String(sess.handoff_to) : undefined,
-      }
-    }
-    return out
-  }
-
-  function pickDeferredSummary(tm: any): { has_items: boolean; last_topic?: string } {
-    const st = (tm as any)?.global_deferred_topics
-    const items = Array.isArray((st as any)?.items) ? (st as any).items : []
-    const last = items.length ? items[items.length - 1] : null
-    const topic = last && typeof last === "object" ? String((last as any).topic ?? "").trim() : ""
-    return { has_items: items.length > 0, last_topic: topic ? topic.slice(0, 160) : undefined }
-  }
-
-  function pickProfileConfirmSummary(tm: any): { pending: boolean; key?: string } {
-    const pending = getCurrentFactToConfirm(tm)
-    if (!pending || typeof pending !== "object") return { pending: false }
-    const key = typeof pending.key === "string" ? String(pending.key).slice(0, 80) : undefined
-    return { pending: true, key }
-  }
 
   function buildRouterDecisionV1(args: {
     requestId?: string
@@ -903,37 +632,6 @@ SORTIE JSON STRICTE:
     }
   }
 
-  function extractLastQuestionFingerprint(text: string): string | null {
-    const t = String(text ?? "").trim()
-    if (!t) return null
-    // Grab last sentence containing a "?" as the question.
-    const parts = t.split("\n").join(" ").split("?")
-    if (parts.length < 2) return null
-    const before = parts[parts.length - 2] ?? ""
-    const q = (before.split(/[.!]/).pop() ?? before).trim() + "?"
-    const fp = normalizeLoose(q).slice(0, 120)
-    return fp || null
-  }
-
-  function inferPlanFocusFromUser(m: string): boolean | null {
-    const s = normalizeLoose(m)
-    if (!s) return null
-    // If the user is venting / emotional, default away from plan-focus.
-    // NOTE: keep this conservative: only clear "down-regulation / overwhelmed" language.
-    // Otherwise we may wrongly disable plan-focus for normal planning conversations.
-    if (
-      looksLikeWorkPressureVenting(m) ||
-      looksLikeAcuteDistress(m) ||
-      /\b(submerg[ée]?\b|d[ée]bord[ée]?\b|micro[-\s]?pause\b|pause\s+ensemble\b|j(?:e|')\s+veux\s+juste\s+respirer\b|j(?:e|')\s+veux\s+juste\s+que\s+[çc]a\s+s['’]arr[êe]te\b|redescendre\b|pas\s+de\s+(?:plan|tableau\s+de\s+bord|dashboard|objectifs?)\b)\b/i
-        .test(s)
-    ) return false
-    // Plan / actions / dashboard intent
-    if (/\b(plan|phase|objectif|objectifs|action|actions|exercice|exercices|dashboard|plateforme|activer|activation|debloquer|deblocage)\b/i.test(m)) return true
-    // "Et après ?" usually means "next step"; treat as plan-focus but NOT "goals-focus".
-    if (/\b(et\s+apres|la\s+suite|on\s+fait\s+quoi\s+maintenant|next)\b/i.test(s)) return true
-    return null
-  }
-
   function looksLikeUserBoredOrWantsToStop(m: string): boolean {
     const s = normalizeLoose(m)
     if (!s) return false
@@ -992,17 +690,6 @@ SORTIE JSON STRICTE:
     return "conversation"
   }
 
-  function extractObjective(m: string): string | null {
-    const raw = String(m ?? "").trim()
-    if (!raw) return null
-    // Common French patterns: "mon objectif c'est ...", "objectif: ..."
-    const m1 = raw.match(/mon\s+objectif\s+(?:c['’]est|cest|=|:)?\s*(.+)$/i)
-    if (m1?.[1]) return String(m1[1]).trim().slice(0, 220) || null
-    const m2 = raw.match(/\bobjectif\s*(?:=|:)\s*(.+)$/i)
-    if (m2?.[1]) return String(m2[1]).trim().slice(0, 220) || null
-    return null
-  }
-
   function looksLikeDigressionRequest(m: string): boolean {
     const s = String(m ?? "").toLowerCase()
     if (!s.trim()) return false
@@ -1054,49 +741,17 @@ SORTIE JSON STRICTE:
     return null
   }
 
-  function buildArchitectLoopGuard(args: {
-    planFocus: boolean
-    currentObjective: string | null
-    loopCount: number
-  }): string {
-    const obj = (args.currentObjective ?? "").trim()
-    const strictness = Math.min(3, Math.max(0, args.loopCount))
-    return (
-      `=== ARCHITECT_LOOP_GUARD ===\n` +
-      `plan_focus=${args.planFocus ? "true" : "false"}\n` +
-      `current_objective=${obj ? JSON.stringify(obj) : "null"}\n` +
-      `loop_count=${args.loopCount}\n\n` +
-      `RÈGLES (priorité absolue):\n` +
-      `- Interdiction de reposer une question déjà posée (même reformulée).\n` +
-      `- Interdiction de repartir sur "objectifs / pourquoi / vision" si ce n'est pas explicitement demandé par l'utilisateur.\n` +
-      `- Interdiction d'introduire un 2e objectif si un objectif existe déjà.\n` +
-      `- Si plan_focus=false: ne parle pas du plan, avance sur le problème concret + émotion du moment.\n` +
-      `- Si plan_focus=true: reste sur UNE piste et passe en exécution.\n` +
-      `- Anti-boucle utilisateur (obligatoire si répétition 2+ fois): fais un meta-turn ("On tourne en rond" ou équivalent),\n` +
-      `  puis CONVERGE: 1 micro-action concrète à faire maintenant + termine par UNE question oui/non.\n` +
-      `  IMPORTANT: ne répète pas la même question oui/non mot pour mot sur 2 tours d'affilée.\n` +
-      `  Exemples de questions oui/non (à alterner):\n` +
-      `  - "Tu peux le faire maintenant ? (oui/non)"\n` +
-      `  - "Tu veux que je te guide pas à pas, là, tout de suite ? (oui/non)"\n` +
-      `  - "Tu veux qu’on fixe un moment précis (ce soir/demain) ? (oui/non)"\n` +
-      (strictness >= 1
-        ? `- Anti-boucle: limite à 2 étapes max. Résume ce qui est décidé, puis donne 1 prochaine étape concrète.\n`
-        : "") +
-      (strictness >= 2
-        ? `- Interdiction de proposer A/B. Converge: "voici ce qu'on fait" + 1 question oui/non.\n`
-        : "") +
-      (strictness >= 3
-        ? `- Zéro diagnostic. Zéro nouveaux objectifs. Donne la prochaine action, point.\n`
-        : "") +
-      ``
-    ).trim()
-  }
-
   const isEvalParkingLotTest =
     Boolean(opts?.contextOverride && String(opts.contextOverride).includes("MODE TEST PARKING LOT")) ||
     Boolean(opts?.contextOverride && String(opts.contextOverride).includes("CONSIGNE TEST PARKING LOT"));
   const disableForcedRouting = Boolean(opts?.disableForcedRouting)
   const channel = meta?.channel ?? "web"
+  // Ensure all replies use real AI responses.
+  meta = {
+    ...(meta ?? {}),
+    channel,
+    forceRealAi: true,
+  }
   const scope = normalizeScope(meta?.scope, channel === "whatsapp" ? "whatsapp" : "web")
   const nowIso = new Date().toISOString()
   const userTime = await getUserTimeContext({ supabase, userId }).catch(() => null as any)
@@ -1349,18 +1004,14 @@ SORTIE JSON STRICTE:
   }
   // ---------------------------------
 
+  // NOTE: Relaunch consent handling moved to AFTER dispatcher (uses consent_to_relaunch signal)
+  let relaunchConsentHandled = false
+  let relaunchConsentNextMode: AgentMode | undefined
+  let relaunchDeclineMessage: string | undefined
+
   // 3. Analyse du Chef de Gare (Dispatcher)
   // On récupère le dernier message de l'assistant pour le contexte
-  const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
-  const lastAssistantAgentRaw = history.filter((m: any) => m.role === 'assistant').pop()?.agent_used || null;
-  const normalizeAgentUsed = (raw: unknown): string | null => {
-    const s = String(raw ?? "").trim()
-    if (!s) return null
-    // DB often stores "sophia.architect" / "sophia.companion" etc.
-    const m = s.match(/\b(sentry|firefighter|investigator|architect|companion|librarian)\b/i)
-    return m ? m[1]!.toLowerCase() : s.toLowerCase()
-  }
-  const lastAssistantAgent = normalizeAgentUsed(lastAssistantAgentRaw)
+  const { lastAssistantMessage, lastAssistantAgent } = buildLastAssistantInfo(history)
   
   // --- DISPATCHER: Signal-based routing ---
   // Structured signals → deterministic policies instead of LLM choosing the mode directly.
@@ -1370,94 +1021,83 @@ SORTIE JSON STRICTE:
   let checkupConfirmedThisTurn = false
 
   // Build state snapshot for dispatcher
-  const topicSession = getActiveTopicSession(tempMemory)
-  const stateSnapshot = {
-    current_mode: state?.current_mode,
-    investigation_active: Boolean(state?.investigation_state),
-    investigation_status: state?.investigation_state?.status,
-    toolflow_active: Boolean((tempMemory as any)?.architect_tool_flow),
-    toolflow_kind: (tempMemory as any)?.architect_tool_flow?.kind,
-    profile_confirm_pending: hasActiveProfileConfirmation(tempMemory),
-    plan_confirm_pending: Boolean((tempMemory as any)?.__wa_plan_confirm_pending),
-    topic_exploration_phase: topicSession ? topicSession.phase : undefined,
-    topic_exploration_type: topicSession?.type,  // "topic_serious" or "topic_light"
-    risk_level: state?.risk_level,
-  }
+  const stateSnapshot = buildDispatcherStateSnapshot({ tempMemory, state })
 
   // --- CONTEXTUAL DISPATCHER V2 (with signal history) ---
   let dispatcherSignals: DispatcherSignals
+  let dispatcherResult: DispatcherOutputV2 | null = null
   let newSignalsDetected: NewSignalEntry[] = []
   let signalEnrichments: SignalEnrichment[] = []
   
   if (ENABLE_CONTEXTUAL_DISPATCHER_V1) {
-    // Get signal history and active machine
-    const signalHistory = getSignalHistory(tempMemory)
-    const activeMachine = getActiveMachineType(tempMemory)
-    
-    // Build last 10 messages (5 turns) for context
-    // A turn = 1 user message + 1 assistant message = 2 messages
-    const last5TurnsMessages = (history ?? []).slice(-10).map((m: any) => ({
-      role: String(m?.role ?? "user"),
-      content: String(m?.content ?? "").slice(0, 300),
-    }))
-    
-    // Build flow context for enriching machine-specific prompts
-    const flowContext = buildFlowContext(tempMemory, state)
-    
-    // Build V2 input
-    const dispatcherInputV2: DispatcherInputV2 = {
+    const contextual = await runContextualDispatcherV2({
       userMessage,
       lastAssistantMessage,
-      last5Messages: last5TurnsMessages,
-      signalHistory,
-      activeMachine,
-      stateSnapshot,
-      flowContext,
-    }
-    
-    // Call contextual dispatcher
-    const dispatcherResult = await analyzeSignalsV2(dispatcherInputV2, meta)
-    dispatcherSignals = dispatcherResult.signals
-    newSignalsDetected = dispatcherResult.new_signals
-    signalEnrichments = dispatcherResult.enrichments
-    
-    // Update signal history with new signals and enrichments
-    const historyUpdate = updateSignalHistory({
+      history,
       tempMemory,
-      newSignals: newSignalsDetected,
-      enrichments: signalEnrichments,
-      activeMachine,
+      state,
+      meta,
+      stateSnapshot,
+      signalHistoryKey: SIGNAL_HISTORY_KEY,
+      minTurnIndex: MIN_SIGNAL_HISTORY_TURN_INDEX,
+      trace,
+      traceV,
     })
-    tempMemory = historyUpdate.tempMemory
+    dispatcherResult = contextual.dispatcherResult
+    dispatcherSignals = contextual.dispatcherSignals
+    newSignalsDetected = contextual.newSignalsDetected
+    signalEnrichments = contextual.signalEnrichments
+    tempMemory = contextual.tempMemory
+    const flowContext = contextual.flowContext
+    const activeMachine = contextual.activeMachine
     
-    // Trace dispatcher context
-    await traceV("brain:dispatcher_contextual", "dispatcher", {
-      active_machine: activeMachine,
-      signal_history_count: signalHistory.length,
-      new_signals_count: newSignalsDetected.length,
-      enrichments_count: signalEnrichments.length,
-      pruned_count: historyUpdate.prunedCount,
-    })
-    
-    // Trace new signals detected
-    if (newSignalsDetected.length > 0) {
-      await trace("brain:new_signals_detected", "dispatcher", {
-        signals: newSignalsDetected.map(s => ({
-          type: s.signal_type,
-          brief: s.brief.slice(0, 50),
-          action_target: s.action_target,
-        })),
+    // ═══════════════════════════════════════════════════════════════════════════
+    // RELAUNCH CONSENT HANDLING (uses dispatcher's consent_to_relaunch signal)
+    // If we asked the user to confirm relaunch of a deferred topic, process their response
+    // ═══════════════════════════════════════════════════════════════════════════
+    const pendingRelaunchConsent = getPendingRelaunchConsent(tempMemory)
+    if (pendingRelaunchConsent) {
+      // Get consent signal from dispatcher (if detected)
+      const dispatcherConsentSignal = dispatcherSignals.consent_to_relaunch
+      
+      const consentResult = processRelaunchConsentResponse({
+        tempMemory,
+        userMessage,
+        profileConfirmDeferredKey: PROFILE_CONFIRM_DEFERRED_KEY,
+        dispatcherConsentSignal,
       })
-    }
-    
-    // Trace enrichments
-    if (signalEnrichments.length > 0) {
-      await traceV("brain:signal_briefs_enriched", "dispatcher", {
-        enrichments: signalEnrichments.map(e => ({
-          signal: e.existing_signal_type,
-          brief: e.updated_brief.slice(0, 50),
-        })),
-      })
+      
+      if (consentResult.handled) {
+        tempMemory = consentResult.tempMemory
+        relaunchConsentHandled = true
+        
+        if (consentResult.shouldInitMachine && consentResult.nextMode) {
+          // User consented - machine is now initialized
+          relaunchConsentNextMode = consentResult.nextMode
+          await trace("brain:relaunch_consent_accepted", "routing", {
+            machine_type: consentResult.machineType,
+            action_target: consentResult.actionTarget,
+            next_mode: consentResult.nextMode,
+            from_dispatcher: Boolean(dispatcherConsentSignal),
+          })
+          console.log(`[Router] Relaunch consent ACCEPTED: ${consentResult.machineType} → ${consentResult.nextMode} (dispatcher=${Boolean(dispatcherConsentSignal)})`)
+        } else if (consentResult.declineMessage) {
+          // User declined - store message to prepend
+          relaunchDeclineMessage = consentResult.declineMessage
+          await trace("brain:relaunch_consent_declined", "routing", {
+            machine_type: pendingRelaunchConsent.machine_type,
+            action_target: pendingRelaunchConsent.action_target,
+            from_dispatcher: Boolean(dispatcherConsentSignal),
+          })
+          console.log(`[Router] Relaunch consent DECLINED: ${pendingRelaunchConsent.machine_type}`)
+        } else {
+          // Unclear response - topic dropped silently
+          await trace("brain:relaunch_consent_unclear", "routing", {
+            machine_type: pendingRelaunchConsent.machine_type,
+          })
+          console.log(`[Router] Relaunch consent UNCLEAR - topic dropped`)
+        }
+      }
     }
     
     // ═══════════════════════════════════════════════════════════════════════════
@@ -1466,7 +1106,173 @@ SORTIE JSON STRICTE:
     const bilanActive = flowContext?.isBilan && stateSnapshot.investigation_active
     const machineSignals = dispatcherResult.machine_signals
     
-    if (bilanActive && machineSignals?.user_consents_defer) {
+    // Process confirmation signals during bilan
+    if (bilanActive && machineSignals) {
+      const invState = state?.investigation_state
+      const currentItemTitle = flowContext?.currentItemTitle
+      const currentItemId = flowContext?.currentItemId
+      const missedStreak = flowContext?.missedStreak ?? 0
+      
+      // Check for pending defer question and process confirmations
+      const pendingQuestion = invState?.temp_memory?.pending_defer_question
+      
+      // Process confirm_deep_reasons signal
+      if (machineSignals.confirm_deep_reasons !== undefined && machineSignals.confirm_deep_reasons !== null) {
+        const confirmed = Boolean(machineSignals.confirm_deep_reasons)
+        
+        // Update bilan_defer_consents
+        const existingConsents = invState?.temp_memory?.bilan_defer_consents ?? {}
+        const newConsents = {
+          ...existingConsents,
+          explore_deep_reasons: {
+            action_id: pendingQuestion?.action_id ?? currentItemId ?? "",
+            action_title: pendingQuestion?.action_title ?? currentItemTitle ?? "",
+            confirmed,
+          },
+        }
+        
+        // Update investigation state
+        if (invState) {
+          invState.temp_memory = {
+            ...(invState.temp_memory ?? {}),
+            bilan_defer_consents: newConsents,
+            pending_defer_question: undefined, // Clear pending question
+          }
+        }
+        
+        // If confirmed, defer the signal
+        if (confirmed) {
+          const deferResult = deferSignal({
+      tempMemory,
+            machine_type: "deep_reasons",
+            action_target: currentItemTitle,
+            summary: `Explorer blocage sur ${currentItemTitle ?? "une action"}`,
+          })
+          tempMemory = deferResult.tempMemory
+          console.log(`[Router] Bilan: deep_reasons confirmed for "${currentItemTitle}"`)
+        } else {
+          console.log(`[Router] Bilan: deep_reasons declined for "${currentItemTitle}"`)
+        }
+      }
+      
+      // Process confirm_breakdown signal
+      if (machineSignals.confirm_breakdown !== undefined && machineSignals.confirm_breakdown !== null) {
+        const confirmed = Boolean(machineSignals.confirm_breakdown)
+        const actionId = pendingQuestion?.action_id ?? currentItemId ?? ""
+        
+        // Update bilan_defer_consents
+        const existingConsents = invState?.temp_memory?.bilan_defer_consents ?? {}
+        const existingBreakdowns = (existingConsents as any).breakdown_action ?? {}
+        const newConsents = {
+          ...existingConsents,
+          breakdown_action: {
+            ...existingBreakdowns,
+            [actionId]: {
+              action_title: pendingQuestion?.action_title ?? currentItemTitle ?? "",
+              streak_days: pendingQuestion?.streak_days ?? missedStreak,
+              confirmed,
+            },
+          },
+        }
+        
+        // Update investigation state
+        if (invState) {
+          invState.temp_memory = {
+            ...(invState.temp_memory ?? {}),
+            bilan_defer_consents: newConsents,
+            pending_defer_question: undefined, // Clear pending question
+          }
+        }
+        
+        // If confirmed, defer the signal
+        if (confirmed) {
+          const deferResult = deferSignal({
+            tempMemory,
+            machine_type: "breakdown_action",
+            action_target: currentItemTitle,
+            summary: `Micro-étape pour ${currentItemTitle ?? "une action"}`,
+          })
+          tempMemory = deferResult.tempMemory
+          console.log(`[Router] Bilan: breakdown confirmed for "${currentItemTitle}"`)
+        } else {
+          console.log(`[Router] Bilan: breakdown declined for "${currentItemTitle}"`)
+        }
+      }
+      
+      // Process confirm_topic signal
+      if (machineSignals.confirm_topic !== undefined && machineSignals.confirm_topic !== null) {
+        const confirmed = Boolean(machineSignals.confirm_topic)
+        
+        // Update bilan_defer_consents
+        const existingConsents = invState?.temp_memory?.bilan_defer_consents ?? {}
+        const newConsents = {
+          ...existingConsents,
+          topic_exploration: {
+            topic_hint: pendingQuestion?.topic_hint ?? "",
+            confirmed,
+          },
+        }
+        
+        // Update investigation state
+        if (invState) {
+          invState.temp_memory = {
+            ...(invState.temp_memory ?? {}),
+            bilan_defer_consents: newConsents,
+            pending_defer_question: undefined, // Clear pending question
+          }
+        }
+        
+        // If confirmed, defer the signal
+        if (confirmed) {
+          const deferResult = deferSignal({
+            tempMemory,
+            machine_type: "topic_light",
+            action_target: pendingQuestion?.topic_hint,
+            summary: pendingQuestion?.topic_hint ?? "Sujet à explorer",
+          })
+          tempMemory = deferResult.tempMemory
+          console.log(`[Router] Bilan: topic exploration confirmed`)
+        } else {
+          console.log(`[Router] Bilan: topic exploration declined`)
+        }
+      }
+      
+      // Set pending_defer_question when signals are detected (for investigator to ask)
+      // Only set if no pending question already exists
+      if (!pendingQuestion && invState) {
+        if (machineSignals.deep_reasons_opportunity && !invState.temp_memory?.bilan_defer_consents?.explore_deep_reasons) {
+          invState.temp_memory = {
+            ...(invState.temp_memory ?? {}),
+            pending_defer_question: {
+              machine_type: "deep_reasons",
+              action_id: currentItemId,
+              action_title: currentItemTitle,
+            },
+          }
+          console.log(`[Router] Bilan: setting pending_defer_question for deep_reasons on "${currentItemTitle}"`)
+        } else if (machineSignals.breakdown_recommended && missedStreak >= 5) {
+          const existingBreakdowns = (invState.temp_memory?.bilan_defer_consents as any)?.breakdown_action ?? {}
+          if (!existingBreakdowns[currentItemId ?? ""]) {
+            invState.temp_memory = {
+              ...(invState.temp_memory ?? {}),
+              pending_defer_question: {
+                machine_type: "breakdown",
+                action_id: currentItemId,
+                action_title: currentItemTitle,
+                streak_days: missedStreak,
+              },
+            }
+            console.log(`[Router] Bilan: setting pending_defer_question for breakdown on "${currentItemTitle}" (streak: ${missedStreak})`)
+          }
+        }
+      }
+    }
+    
+    const hasExplicitConfirm =
+      machineSignals?.confirm_deep_reasons !== undefined ||
+      machineSignals?.confirm_breakdown !== undefined ||
+      machineSignals?.confirm_topic !== undefined
+    if (bilanActive && machineSignals?.user_consents_defer && !hasExplicitConfirm) {
       // User consented to defer something during bilan - store in deferred_topics_v2
       const currentItemTitle = flowContext?.currentItemTitle ?? undefined
       
@@ -1505,7 +1311,7 @@ SORTIE JSON STRICTE:
         })
         tempMemory = deferResult.tempMemory
         
-        await trace("brain:bilan_signal_deferred", "investigator", {
+        await trace("brain:bilan_signal_deferred", "dispatcher", {
           machine_type: machineType,
           action_target: currentItemTitle,
           summary: summary.slice(0, 50),
@@ -1577,9 +1383,22 @@ SORTIE JSON STRICTE:
               summary: `${factsToConfirm.length} fait(s) a confirmer`,
             })
             tempMemory = deferResult.tempMemory
+            const existingDeferredFacts = Array.isArray((tempMemory as any)?.[PROFILE_CONFIRM_DEFERRED_KEY])
+              ? (tempMemory as any)[PROFILE_CONFIRM_DEFERRED_KEY] as ProfileFactToConfirm[]
+              : []
+            const mergedFacts = mergeDeferredProfileFacts(
+              existingDeferredFacts,
+              factsToConfirm,
+              MAX_PROFILE_FACTS_PER_SESSION,
+            )
+            tempMemory = { ...(tempMemory ?? {}), [PROFILE_CONFIRM_DEFERRED_KEY]: mergedFacts }
+            if (deferResult.cancelled?.machine_type === "user_profile_confirmation") {
+              const next = { ...(tempMemory ?? {}) }
+              delete next[PROFILE_CONFIRM_DEFERRED_KEY]
+              tempMemory = next
+            }
             
-            // Store facts in the deferred topic's metadata (for later use)
-            // Note: facts will be re-detected when machine starts, so this is just for tracing
+            // Persist facts for deferred profile confirmation (used when auto-relaunching).
             await trace("brain:profile_facts_deferred", "dispatcher", {
               count: factsToConfirm.length,
               current_machine: activeMachine,
@@ -1763,6 +1582,66 @@ SORTIE JSON STRICTE:
   
   riskScore = dispatcherSignals.risk_score
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // TRACK_PROGRESS PARALLEL (non-blocking) - do not interrupt active machines
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    const track = dispatcherSignals.track_progress
+    const trackStatus = String(track?.status_hint ?? "unknown")
+    const trackTarget = String(track?.target_hint ?? "").trim()
+    const canTrack =
+      !state?.investigation_state &&
+      track?.detected === true &&
+      (track?.confidence ?? 0) >= 0.8 &&
+      trackTarget.length >= 2 &&
+      (trackStatus === "completed" || trackStatus === "missed" || trackStatus === "partial")
+    const alreadyLogged =
+      (tempMemory as any)?.__track_progress_parallel?.source_message_id &&
+      loggedMessageId &&
+      (tempMemory as any).__track_progress_parallel.source_message_id === loggedMessageId
+
+    if (canTrack && !alreadyLogged) {
+      try {
+        const trackingMsg = await handleTracking(
+          supabase,
+          userId,
+          {
+            target_name: trackTarget,
+            value: trackStatus === "missed" ? 0 : 1,
+            operation: "add",
+            status: trackStatus as any,
+          },
+          { source: channel },
+        )
+        const raw = String(trackingMsg ?? "")
+        if (raw.startsWith("INFO_POUR_AGENT:")) {
+          ;(tempMemory as any).__track_progress_parallel = {
+            mode: "needs_clarify",
+            message: raw.replace(/^INFO_POUR_AGENT:\s*/i, "").trim(),
+            source_message_id: loggedMessageId ?? null,
+          }
+        } else {
+          ;(tempMemory as any).__track_progress_parallel = {
+            mode: "logged",
+            message: raw,
+            target: trackTarget,
+            status: trackStatus,
+            source_message_id: loggedMessageId ?? null,
+          }
+        }
+        await traceV("brain:track_progress_parallel", "dispatcher", {
+          detected: track?.detected,
+          confidence: track?.confidence,
+          target: trackTarget,
+          status: trackStatus,
+          mode: (tempMemory as any)?.__track_progress_parallel?.mode,
+        })
+      } catch (e) {
+        console.warn("[Router] parallel track_progress failed (non-blocking):", e)
+      }
+    }
+  }
+
   // Tracing flags for topic exploration (reported in RouterDecisionV1)
   let topicSessionClosedThisTurn = false
   let topicSessionHandoffThisTurn = false
@@ -1782,12 +1661,15 @@ SORTIE JSON STRICTE:
     const topicDepth = dispatcherSignals?.topic_depth?.value ?? "NONE"
     const topicDepthConf = dispatcherSignals?.topic_depth?.confidence ?? 0
 
-    // Should trigger topic machine: SERIOUS or LIGHT topic + interruption (or continuing existing)
-    const shouldTrigger =
-      (topicDepth === "SERIOUS" || topicDepth === "LIGHT") &&
-      topicDepthConf >= 0.6 &&
+    // Should trigger topic machine:
+    // - SERIOUS/LIGHT + digression/switch topic
+    // - OR plan-focused discussion (even without explicit digression)
+    const isTopicDepthTrigger = (topicDepth === "SERIOUS" || topicDepth === "LIGHT") && topicDepthConf >= 0.6
+    const isInterruptTrigger =
       (interrupt?.kind === "DIGRESSION" || interrupt?.kind === "SWITCH_TOPIC") &&
       (Number(interrupt?.confidence ?? 0) >= 0.6)
+    const isPlanFocusTrigger = Boolean(dispatcherSignals?.topic_depth?.plan_focus) && isTopicDepthTrigger
+    const shouldTrigger = isTopicDepthTrigger && (isInterruptTrigger || isPlanFocusTrigger)
 
     const bored = looksLikeUserBoredOrWantsToStop(userMessage)
 
@@ -1861,19 +1743,27 @@ SORTIE JSON STRICTE:
 
       // Increment turn count for existing sessions
       const turnCount = (existing?.turn_count ?? 0) + (hasExistingTopic ? 1 : 0)
+      
+      // Determine focus mode (plan discussions route through topic machines)
+      const planFocus = Boolean(dispatcherSignals?.topic_depth?.plan_focus)
+      const existingFocusMode = (hasExistingTopic && existing?.focus_mode)
+        ? (existing.focus_mode as "plan" | "discussion" | "mixed")
+        : undefined
+      const focusMode: "plan" | "discussion" | "mixed" = planFocus
+        ? "plan"
+        : (existingFocusMode ?? "discussion")
 
       // Route to appropriate machine based on topic_depth
+      // NOTE: escalateToLibrarian is no longer used - librarian overlay handles this transversally
       if (topicDepth === "SERIOUS" || (hasExistingTopic && existing?.type === "topic_serious")) {
         const updated = upsertTopicSerious({
-        tempMemory: tm0,
-        topic,
-        phase,
+          tempMemory: tm0,
+          topic,
+          phase,
           turnCount,
           engagement,
           satisfaction,
-          escalateToLibrarian: shouldEscalateToLibrarian(existing, {
-            needs_explanation: dispatcherSignals?.needs_explanation,
-          }),
+          focusMode: planFocus ? "plan" : (existingFocusMode ?? "mixed"),
         })
         if (updated.changed) tempMemory = updated.tempMemory
       } else if (topicDepth === "LIGHT" || (hasExistingTopic && existing?.type === "topic_light")) {
@@ -1884,161 +1774,27 @@ SORTIE JSON STRICTE:
           turnCount,
           engagement,
           satisfaction,
-          escalateToLibrarian: shouldEscalateToLibrarian(existing, {
-            needs_explanation: dispatcherSignals?.needs_explanation,
-          }),
-      })
-      if (updated.changed) tempMemory = updated.tempMemory
+          focusMode,
+        })
+        if (updated.changed) tempMemory = updated.tempMemory
       }
     }
   } catch {
     // best-effort
   }
 
-  // --- DEEP REASONS EXPLORATION ---
-  // Two entry points:
-  // 1. DEFERRED: Investigator created a deep_reasons deferred topic during bilan → resume after bilan
-  // 2. DIRECT: Dispatcher detects motivational blocker outside bilan → Architect can launch directly
-  let deepReasonsActiveSession = getActiveDeepReasonsExploration(tempMemory)
-  let deepReasonsStateFromTm = (tempMemory as any)?.deep_reasons_state as DeepReasonsState | undefined
-  
-  try {
-    const checkupActive = Boolean(state?.investigation_state && state.investigation_state.status !== "post_checkup")
-    const hasDeepReasonsDeferred = hasDeepReasonsDeferredTopic(tempMemory)
-    const deepReasonsOpportunity = dispatcherSignals?.deep_reasons?.opportunity ?? false
-    const deepReasonsConf = dispatcherSignals?.deep_reasons?.confidence ?? 0
-    const inBilanContext = dispatcherSignals?.deep_reasons?.in_bilan_context ?? checkupActive
-    
-    // Enrich dispatcherSignals with deferred_ready (computed from state)
-    if (dispatcherSignals?.deep_reasons) {
-      dispatcherSignals.deep_reasons.deferred_ready = hasDeepReasonsDeferred && !checkupActive
-    }
-    
-    // Entry Point 1: Resume deferred deep_reasons topic AFTER bilan ends
-    if (hasDeepReasonsDeferred && !checkupActive && !deepReasonsActiveSession && !deepReasonsStateFromTm) {
-      const deferredTopic = getDeepReasonsDeferredTopic(tempMemory)
-      if (deferredTopic) {
-        // Create the deep_reasons state from deferred topic
-        const state0 = resumeDeepReasonsFromDeferred(deferredTopic)
-        // Store in temp_memory
-        ;(tempMemory as any).deep_reasons_state = state0
-        deepReasonsStateFromTm = state0
-        
-        // Create supervisor session
-        const sessionCreated = upsertDeepReasonsExploration({
+  let deepReasonsActiveSession: any | null = null
+  let deepReasonsStateFromTm: DeepReasonsState | undefined
+  {
+    const deepReasons = applyDeepReasonsFlow({
           tempMemory,
-          topic: deferredTopic.topic,
-          phase: state0.phase,
-          pattern: state0.detected_pattern,
-          actionTitle: deferredTopic.context?.action_title,
-          source: "deferred",
-        })
-        if (sessionCreated.changed) tempMemory = sessionCreated.tempMemory
-        deepReasonsActiveSession = getActiveDeepReasonsExploration(tempMemory)
-        
-        // Remove the deferred topic (it's now active)
-        const removed = removeDeepReasonsDeferredTopic({ temp_memory: tempMemory })
-        if (removed?.temp_memory) tempMemory = removed.temp_memory
-        
-        console.log(`[Router] Deep reasons exploration resumed from deferred topic: ${deferredTopic.topic}`)
-      }
-    }
-    
-    // Entry Point 2: Direct opportunity detected by dispatcher (outside bilan)
-    // The Architect will handle proposing and potentially launching via start_deep_exploration tool
-    // We just need to ensure routing goes to Architect when opportunity is detected
-    if (deepReasonsOpportunity && !inBilanContext && deepReasonsConf >= 0.65 && !deepReasonsActiveSession && !checkupActive) {
-      // Add a routing hint for Architect
-      ;(tempMemory as any).__deep_reasons_opportunity = {
-        detected: true,
-        pattern: detectDeepReasonsPattern(userMessage) ?? "unknown",
-        user_words: String(userMessage ?? "").slice(0, 200),
-      }
-      console.log(`[Router] Deep reasons opportunity detected (confidence: ${deepReasonsConf.toFixed(2)}), will route to Architect`)
-    }
-  } catch (e) {
-    console.error("[Router] Deep reasons handling error:", e)
-  }
-
-  // --- INTERCONNECTION: topic_serious ↔ deep_reasons ---
-  // 1. topic_serious → deep_reasons: if during topic_serious, user mentions blocker on specific action
-  // 2. deep_reasons → topic_serious: if during deep_reasons, user wants to explore broader topic
-  try {
-    const activeTopicForInterconnect = getActiveTopicSession(tempMemory)
-    const deepReasonsForInterconnect = getActiveDeepReasonsExploration(tempMemory)
-    const pausedDeepReasons = getPausedDeepReasonsExploration(tempMemory)
-    const deepReasonsOpportunity = dispatcherSignals?.deep_reasons?.opportunity ?? false
-    const deepReasonsActionMentioned = dispatcherSignals?.deep_reasons?.action_mentioned ?? false
-    const deepReasonsActionHint = dispatcherSignals?.deep_reasons?.action_hint
-    const topicDepth = dispatcherSignals?.topic_depth?.value ?? "NONE"
-    const topicDepthConf = dispatcherSignals?.topic_depth?.confidence ?? 0
-
-    // Case 1: topic_serious active + blocker on specific action detected → transition to deep_reasons
-    if (
-      activeTopicForInterconnect?.type === "topic_serious" &&
-      deepReasonsOpportunity &&
-      deepReasonsActionMentioned &&
-      (dispatcherSignals?.deep_reasons?.confidence ?? 0) >= 0.65
-    ) {
-      // Close topic_serious and mark for deep_reasons transition
-      const closed = closeTopicSession({ tempMemory })
-      if (closed.changed) {
-        tempMemory = closed.tempMemory
-        // Store the transition info for the architect to launch deep_reasons
-        ;(tempMemory as any).__deep_reasons_from_topic = {
-          from_topic: activeTopicForInterconnect.topic,
-          action_hint: deepReasonsActionHint,
-          pattern: detectDeepReasonsPattern(userMessage) ?? "unknown",
-          user_words: String(userMessage ?? "").slice(0, 200),
-        }
-        // Also set the opportunity flag
-        ;(tempMemory as any).__deep_reasons_opportunity = {
-          detected: true,
-          from_topic_serious: true,
-          action_hint: deepReasonsActionHint,
-          pattern: detectDeepReasonsPattern(userMessage) ?? "unknown",
-          user_words: String(userMessage ?? "").slice(0, 200),
-        }
-        console.log(`[Router] Transition: topic_serious → deep_reasons (action: ${deepReasonsActionHint})`)
-      }
-    }
-
-    // Case 2: deep_reasons active + user wants to explore broader topic → pause deep_reasons for topic_serious
-    if (
-      deepReasonsForInterconnect &&
-      deepReasonsForInterconnect.status === "active" &&
-      topicDepth === "SERIOUS" &&
-      topicDepthConf >= 0.65 &&
-      !deepReasonsActionMentioned  // Must be about a broader topic, not another action
-    ) {
-      // Pause deep_reasons
-      const paused = pauseDeepReasonsExploration({ tempMemory })
-      if (paused.changed) {
-        tempMemory = paused.tempMemory
-        // Track the pause for potential resume
-        ;(tempMemory as any).__deep_reasons_paused_for_topic = {
-          paused_at: new Date().toISOString(),
-          resume_brief: paused.pausedSession?.resume_brief,
-        }
-        console.log(`[Router] Paused deep_reasons for broader topic_serious exploration`)
-      }
-    }
-
-    // Case 3: topic_serious closes normally + there's a paused deep_reasons → offer to resume
-    if (
-      !activeTopicForInterconnect &&
-      pausedDeepReasons &&
-      !deepReasonsForInterconnect  // No active deep_reasons
-    ) {
-      // Set a flag for the architect to offer resume
-      ;(tempMemory as any).__deep_reasons_resume_available = {
-        topic: pausedDeepReasons.topic,
-        resume_brief: pausedDeepReasons.resume_brief,
-        phase: pausedDeepReasons.phase,
-      }
-    }
-  } catch (e) {
-    console.error("[Router] Topic/DeepReasons interconnection error:", e)
+      state,
+      userMessage,
+      dispatcherSignals,
+    })
+    tempMemory = deepReasons.tempMemory
+    deepReasonsActiveSession = deepReasons.deepReasonsActiveSession
+    deepReasonsStateFromTm = deepReasons.deepReasonsStateFromTm
   }
 
   // --- DETERMINISTIC POLICY: Signal → targetMode ---
@@ -2050,183 +1806,21 @@ SORTIE JSON STRICTE:
   // 5. topic_light (companion)
   // 6. Plan focus (architect tools) - can coexist
   // 7. Default (companion)
-
-  // Track preemption for resume handling
-  let topicPreemptedBySafety = false
-  let machinePreemptedBySafety = false
-  const activeTopicForPreemption = getActiveTopicSession(tempMemory)
-  const activeMachineForPreemption = getAnyActiveMachine(tempMemory)
-
-  // 1. Safety override (threshold: confidence >= 0.75)
-  // IMPORTANT: Safety signals can PAUSE active machines (parenthesis pattern)
-  if (dispatcherSignals.safety.level === "SENTRY" && dispatcherSignals.safety.confidence >= 0.75) {
-    targetMode = "sentry"
-    
-    // PAUSE any active machine (tool flow, topic, deep_reasons)
-    if (activeMachineForPreemption && !hasPausedMachine(tempMemory)) {
-      const candidate = activeMachineForPreemption.meta?.candidate
-      const pauseResult = pauseMachineForSafety({
+  {
+    const routing = await applyDeterministicRouting({
+      dispatcherSignals,
         tempMemory,
-        session: activeMachineForPreemption,
-        candidate,
-        reason: "sentry",
-      })
-      tempMemory = pauseResult.tempMemory
-      machinePreemptedBySafety = true
-      
-      await trace("brain:machine_paused", "routing", {
-        machine_type: activeMachineForPreemption.type,
-        action_target: pauseResult.pausedState.action_target,
-        reason: "sentry",
-      })
-    }
-    
-    // Track if a topic session was preempted (legacy)
-    if (activeTopicForPreemption) {
-      topicPreemptedBySafety = true
-      ;(tempMemory as any).__topic_preempted_by_safety = {
-        topic_type: activeTopicForPreemption.type,
-        topic: activeTopicForPreemption.topic,
-        phase: activeTopicForPreemption.phase,
-        turn_count: activeTopicForPreemption.turn_count,
-      }
-    }
-  } else if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.75) {
-    targetMode = "firefighter"
-    
-    // PAUSE any active machine (tool flow, topic, deep_reasons)
-    if (activeMachineForPreemption && !hasPausedMachine(tempMemory)) {
-      const candidate = activeMachineForPreemption.meta?.candidate
-      const pauseResult = pauseMachineForSafety({
-        tempMemory,
-        session: activeMachineForPreemption,
-        candidate,
-        reason: "firefighter",
-      })
-      tempMemory = pauseResult.tempMemory
-      machinePreemptedBySafety = true
-      
-      await trace("brain:machine_paused", "routing", {
-        machine_type: activeMachineForPreemption.type,
-        action_target: pauseResult.pausedState.action_target,
-        reason: "firefighter",
-      })
-    }
-    
-    // Track if a topic session was preempted (legacy)
-    if (activeTopicForPreemption) {
-      topicPreemptedBySafety = true
-      ;(tempMemory as any).__topic_preempted_by_safety = {
-        topic_type: activeTopicForPreemption.type,
-        topic: activeTopicForPreemption.topic,
-        phase: activeTopicForPreemption.phase,
-        turn_count: activeTopicForPreemption.turn_count,
-      }
-    }
-  }
-  // 2. Checkup confirmed by user - start investigation
-  else if (checkupConfirmedThisTurn) {
-    targetMode = "investigator"
-    // The investigator will create investigation_state on first run
-    console.log("[Router] Starting checkup after user confirmation")
-  }
-  // 2b. Ask checkup confirmation (no active machine)
-  else if ((tempMemory as any)?.__ask_checkup_confirmation) {
-    // Clear the flag - the confirmation question will be asked via companion
-    delete (tempMemory as any).__ask_checkup_confirmation
-    targetMode = "companion"
-    // Companion will ask "Tu veux qu'on fasse le bilan maintenant?"
-    ;(tempMemory as any).__checkup_addon = "CHECKUP_ENTRY_CONFIRM"
-    console.log("[Router] Routing to companion to ask checkup confirmation")
-  }
-  // 2c. Propose track_progress when bilan already done
-  else if ((tempMemory as any)?.__propose_track_progress) {
-    delete (tempMemory as any).__propose_track_progress
-    targetMode = "companion"
-    ;(tempMemory as any).__checkup_addon = "BILAN_ALREADY_DONE"
-    console.log("[Router] Routing to companion to propose track_progress")
-  }
-  // 2d. Do track_progress directly (no active machine, user accepted)
-  else if ((tempMemory as any)?.__track_progress_from_bilan_done) {
-    delete (tempMemory as any).__track_progress_from_bilan_done
-    targetMode = "architect"
-    console.log("[Router] Routing to architect for track_progress")
-  }
-  // 3. Active bilan hard guard (unless explicit stop)
-  else if (
-    state?.investigation_state &&
-    state?.investigation_state?.status !== "post_checkup" &&
-    dispatcherSignals.interrupt.kind !== "EXPLICIT_STOP"
-  ) {
-    targetMode = "investigator"
-  }
-  // 4. Intent-based routing
-  else {
-    const intent = dispatcherSignals.user_intent_primary
-    const intentConf = dispatcherSignals.user_intent_confidence
-
-    if (intent === "PLAN" && intentConf >= 0.6) {
-      targetMode = "architect"
-    } else if (intent === "BREAKDOWN" && intentConf >= 0.6) {
-      targetMode = "architect"
-    } else if (intent === "PREFERENCE" && intentConf >= 0.6) {
-      targetMode = "companion"
-    } else if (intent === "EMOTIONAL_SUPPORT") {
-      // EMOTIONAL_SUPPORT + topic_depth.NEED_SUPPORT → firefighter
-      // Otherwise, companion handles mild emotional talk
-      const topicDepth = dispatcherSignals.topic_depth?.value ?? "NONE"
-      const topicDepthConf = dispatcherSignals.topic_depth?.confidence ?? 0
-      if (topicDepth === "NEED_SUPPORT" && topicDepthConf >= 0.6) {
-        targetMode = "firefighter"
-      } else if (dispatcherSignals.safety.level === "FIREFIGHTER" && dispatcherSignals.safety.confidence >= 0.5) {
-        targetMode = "firefighter"
-      } else {
-        targetMode = "companion"
-      }
-    } else if (dispatcherSignals.topic_depth?.value === "NEED_SUPPORT" && dispatcherSignals.topic_depth?.confidence >= 0.6) {
-      // Catch-all: if NEED_SUPPORT is detected regardless of intent, route to firefighter
-      targetMode = "firefighter"
-    } else {
-      // Default: companion
-      targetMode = "companion"
-    }
-  }
-
-  // 4. Force mode override (module conversation, etc.)
-  if (!disableForcedRouting && opts?.forceMode && targetMode !== "sentry" && targetMode !== "firefighter") {
-    await traceV("brain:forced_routing_override", "routing", {
-      from: targetMode,
-      to: opts.forceMode,
-      reason: "opts.forceMode",
+      state,
+      checkupConfirmedThisTurn,
       disableForcedRouting,
+      forceMode: opts?.forceMode,
+      deepReasonsActiveSession,
+      deepReasonsStateFromTm,
+      trace,
+      traceV,
     })
-    targetMode = opts.forceMode
-  }
-
-  // 5. Deep Reasons Exploration routing
-  // If there's an active deep_reasons session or opportunity, route to Architect
-  if (
-    !state?.investigation_state &&
-    targetMode !== "sentry" &&
-    targetMode !== "firefighter" &&
-    targetMode !== "investigator"
-  ) {
-    // Active deep_reasons session takes priority
-    if (deepReasonsActiveSession || deepReasonsStateFromTm) {
-      targetMode = "architect"
-      await traceV("brain:deep_reasons_routing", "routing", {
-        reason: "active_deep_reasons_session",
-        phase: deepReasonsStateFromTm?.phase ?? deepReasonsActiveSession?.phase,
-      })
-    }
-    // Deep reasons opportunity (dispatcher detected motivational blocker outside bilan)
-    else if ((tempMemory as any)?.__deep_reasons_opportunity?.detected) {
-      targetMode = "architect"
-      await traceV("brain:deep_reasons_routing", "routing", {
-        reason: "deep_reasons_opportunity",
-        pattern: (tempMemory as any)?.__deep_reasons_opportunity?.pattern,
-      })
-    }
+    targetMode = routing.targetMode
+    tempMemory = routing.tempMemory
   }
 
   // 5.5. Create Action Flow v2 routing
@@ -2390,167 +1984,226 @@ SORTIE JSON STRICTE:
     })
   }
 
+  // 5.8. Track Progress Flow v2 routing
+  // If there's an active track_progress_flow session, route to Architect
+  const activeTrackProgressSession = getActiveTrackProgressFlow(tempMemory)
+  if (
+    activeTrackProgressSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    targetMode = "architect"
+    await traceV("brain:track_progress_flow_routing", "routing", {
+      reason: "active_track_progress_flow",
+      target_action: (activeTrackProgressSession.meta as any)?.target_action,
+    })
+  }
+  
+  // Prune stale track_progress_flow sessions
+  if (isTrackProgressFlowStale(tempMemory)) {
+    const pruned = closeTrackProgressFlow({ tempMemory, outcome: "abandoned" })
+    if (pruned.changed) {
+      tempMemory = pruned.tempMemory
+      console.log("[Router] Pruned stale track_progress_flow session")
+    }
+  }
+
+  // Handle track_progress signals from dispatcher
+  const trackProgressSignal = dispatcherSignals?.track_progress
+  if (
+    trackProgressSignal &&
+    trackProgressSignal.detected &&
+    trackProgressSignal.confidence >= 0.6 &&
+    !activeTrackProgressSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    // Create track_progress_flow machine and route to architect
+    const flowResult = upsertTrackProgressFlow({
+      tempMemory,
+      targetAction: trackProgressSignal.target_hint,
+      statusHint: trackProgressSignal.status_hint,
+    })
+    tempMemory = flowResult.tempMemory
+    targetMode = "architect"
+    
+    // Store the signal info for architect to use
+    ;(tempMemory as any).__track_progress_signal = {
+      detected: trackProgressSignal.detected,
+      target_hint: trackProgressSignal.target_hint,
+      status_hint: trackProgressSignal.status_hint,
+      value_hint: trackProgressSignal.value_hint,
+    }
+    await traceV("brain:track_progress_signal_routing", "routing", {
+      reason: "track_progress_signal",
+      target_hint: trackProgressSignal.target_hint,
+      status_hint: trackProgressSignal.status_hint,
+    })
+  }
+
+  // 5.9. Activate Action Flow v2 routing
+  // If there's an active activate_action_flow session, route to Architect
+  const activeActivateActionSession = getActiveActivateActionFlow(tempMemory)
+  if (
+    activeActivateActionSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    targetMode = "architect"
+    await traceV("brain:activate_action_flow_routing", "routing", {
+      reason: "active_activate_action_flow",
+      target_action: (activeActivateActionSession.meta as any)?.target_action,
+    })
+  }
+  
+  // Prune stale activate_action_flow sessions
+  if (isActivateActionFlowStale(tempMemory)) {
+    const pruned = closeActivateActionFlow({ tempMemory, outcome: "abandoned" })
+    if (pruned.changed) {
+      tempMemory = pruned.tempMemory
+      console.log("[Router] Pruned stale activate_action_flow session")
+    }
+  }
+
+  // Handle activate_action signals from dispatcher
+  const activateActionSignal = dispatcherSignals?.activate_action
+  if (
+    activateActionSignal &&
+    activateActionSignal.detected &&
+    activateActionSignal.confidence >= 0.6 &&
+    !activeActivateActionSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    // Create activate_action_flow machine and route to architect
+    const flowResult = upsertActivateActionFlow({
+      tempMemory,
+      targetAction: activateActionSignal.target_hint,
+      exerciseType: activateActionSignal.exercise_type_hint,
+    })
+    tempMemory = flowResult.tempMemory
+    targetMode = "architect"
+    
+    // Store the signal info for architect to use
+    ;(tempMemory as any).__activate_action_signal = {
+      detected: activateActionSignal.detected,
+      target_hint: activateActionSignal.target_hint,
+      exercise_type_hint: activateActionSignal.exercise_type_hint,
+    }
+    await traceV("brain:activate_action_signal_routing", "routing", {
+      reason: "activate_action_signal",
+      target_hint: activateActionSignal.target_hint,
+      exercise_type_hint: activateActionSignal.exercise_type_hint,
+    })
+  }
+
+  // 5.10. User Profile Confirmation Flow routing
+  // If there's an active user_profile_confirmation session, route to Companion
+  const activeProfileConfirmSession = hasActiveProfileConfirmation(tempMemory)
+  if (
+    activeProfileConfirmSession &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator"
+  ) {
+    targetMode = "companion"
+    const currentFact = getCurrentFactToConfirm(tempMemory)
+    await traceV("brain:profile_confirmation_flow_routing", "routing", {
+      reason: "active_profile_confirmation",
+      current_fact_key: currentFact?.key,
+      facts_remaining: getProfileConfirmationState(tempMemory)?.facts_queue?.length ?? 0,
+    })
+  }
+
   // ═══════════════════════════════════════════════════════════════════════════════
-  // 5.8. SIGNAL DEFERRAL DURING ACTIVE MACHINE
+  // 5.10.5. USER ABANDONS - Close active machine if user explicitly wants to stop
+  // Dispatcher detects "laisse tomber", "annule", "non finalement", etc.
+  // ═══════════════════════════════════════════════════════════════════════════════
+  const userAbandons = dispatcherResult?.machine_signals?.user_abandons === true
+  if (userAbandons) {
+    let abandonedMachine: string | null = null
+    let abandonMessage = ""
+    
+    // Check which machine is active and close it
+    if (getActiveCreateActionFlow(tempMemory)) {
+      const closed = closeCreateActionFlow({ tempMemory, outcome: "abandoned" })
+      tempMemory = closed.tempMemory
+      abandonedMachine = "create_action_flow"
+      abandonMessage = "Ok, on laisse tomber la création. Tu pourras me redemander quand tu veux."
+    } else if (getActiveUpdateActionFlow(tempMemory)) {
+      const closed = closeUpdateActionFlow({ tempMemory, outcome: "abandoned" })
+      tempMemory = closed.tempMemory
+      abandonedMachine = "update_action_flow"
+      abandonMessage = "Ok, je ne modifie rien. Tu pourras me redemander quand tu veux."
+    } else if (getActiveBreakdownActionFlow(tempMemory)) {
+      const closed = closeBreakdownActionFlow({ tempMemory, outcome: "abandoned" })
+      tempMemory = closed.tempMemory
+      abandonedMachine = "breakdown_action_flow"
+      abandonMessage = "Ok, on laisse ça pour l'instant. Tu pourras me redemander quand tu veux."
+    } else if (getActiveTrackProgressFlow(tempMemory)) {
+      const closed = closeTrackProgressFlow({ tempMemory, outcome: "abandoned" })
+      tempMemory = closed.tempMemory
+      abandonedMachine = "track_progress_flow"
+      abandonMessage = "Ok, pas de souci."
+    } else if (getActiveActivateActionFlow(tempMemory)) {
+      const closed = closeActivateActionFlow({ tempMemory, outcome: "abandoned" })
+      tempMemory = closed.tempMemory
+      abandonedMachine = "activate_action_flow"
+      abandonMessage = "Ok, on laisse ça pour l'instant."
+    } else if (getActiveTopicSession(tempMemory)) {
+      const closed = closeTopicSession({ tempMemory })
+      tempMemory = closed.tempMemory
+      abandonedMachine = "topic_session"
+      abandonMessage = "Ok, on change de sujet."
+    } else if (getActiveDeepReasonsExploration(tempMemory)) {
+      const closed = closeDeepReasonsExploration({ tempMemory, outcome: "user_stop" })
+      tempMemory = closed.tempMemory
+      abandonedMachine = "deep_reasons_exploration"
+      abandonMessage = "Ok, on laisse ça pour l'instant. Tu pourras en reparler quand tu veux."
+    }
+    
+    if (abandonedMachine) {
+      // Store the abandon message to prepend to response
+      ;(tempMemory as any).__abandon_message = abandonMessage
+      // Route back to companion for natural conversation
+      targetMode = "companion"
+      
+      await trace("brain:user_abandons_machine", "routing", {
+        abandoned_machine: abandonedMachine,
+      })
+      console.log(`[Router] User abandoned ${abandonedMachine} via user_abandons signal`)
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // 5.11. SIGNAL DEFERRAL DURING ACTIVE MACHINE
   // Only SENTRY/FIREFIGHTER can interrupt; other signals are deferred
   // ═══════════════════════════════════════════════════════════════════════════════
-  
-  let deferredAckPrefix = ""  // Will be prepended to agent response if signal was deferred
-  
-  // Prune expired deferred topics first
   {
-    const pruneResult = pruneExpiredDeferredTopics({ tempMemory })
-    if (pruneResult.pruned.length > 0) {
-      tempMemory = pruneResult.tempMemory
-      for (const expired of pruneResult.pruned) {
-        await trace("brain:deferred_expired", "cleanup", {
-          topic_id: expired.id,
-          machine_type: expired.machine_type,
-          action_target: expired.action_target,
-          age_hours: Math.round((Date.now() - new Date(expired.created_at).getTime()) / (60 * 60 * 1000)),
-        })
-      }
-    }
-  }
-  
-  // Check if any state machine is currently active
-  const anyActiveMachine = getAnyActiveMachine(tempMemory)
-  const anyActiveToolFlow = getAnyActiveToolFlow(tempMemory)
-  const activeToolFlowTarget = anyActiveToolFlow ? getActiveToolFlowActionTarget(tempMemory) : null
-  
-  // Detect if dispatcher signals would trigger a NEW machine
-  const newMachineSignal = detectMachineTypeFromSignals(dispatcherSignals)
-  
-  // SIGNAL DEFERRAL LOGIC
-  if (anyActiveMachine && newMachineSignal) {
-    // Check if it's the SAME machine type and SAME action (not a deferral case)
-    const isSameMachineType = (() => {
-      const activeType = anyActiveMachine.type
-      // Map session types to deferred machine types for comparison
-      const activeAsMachineType = 
-        activeType === "create_action_flow" ? "create_action" :
-        activeType === "update_action_flow" ? "update_action" :
-        activeType === "breakdown_action_flow" ? "breakdown_action" :
-        activeType === "deep_reasons_exploration" ? "deep_reasons" :
-        activeType
-      return activeAsMachineType === newMachineSignal.machine_type
-    })()
-    
-    const isSameAction = (() => {
-      if (!isSameMachineType) return false
-      // For non-tool machines (topics, deep_reasons), same machine type is enough
-      if (!isToolMachine(newMachineSignal.machine_type)) return true
-      // For tool machines, require matching action targets
-      return Boolean(
-        activeToolFlowTarget &&
-        newMachineSignal.action_target &&
-        activeToolFlowTarget.toLowerCase().includes(newMachineSignal.action_target.toLowerCase())
-      )
-    })()
-    
-    // If it's NOT sentry/firefighter AND (different machine OR different action), DEFER
-    if (!shouldInterruptForSafety(dispatcherSignals) && (!isSameMachineType || !isSameAction)) {
-      // Generate summary for the deferred signal
-      const summary = generateDeferredSignalSummary({
-        signals: dispatcherSignals,
+    const deferral = await handleSignalDeferral({
+      tempMemory,
+      dispatcherSignals,
         userMessage,
-        machine_type: newMachineSignal.machine_type,
-        action_target: newMachineSignal.action_target,
-      })
-      
-      // Check if matching deferred exists (for UPDATE logic)
-      const existingDeferred = findMatchingDeferred({
-        tempMemory,
-        machine_type: newMachineSignal.machine_type,
-        action_target: newMachineSignal.action_target,
-      })
-      
-      // Defer the signal
-      const deferResult = deferSignal({
-        tempMemory,
-        machine_type: newMachineSignal.machine_type,
-        action_target: newMachineSignal.action_target,
-        summary,
-      })
-      tempMemory = deferResult.tempMemory
-      
-      // Generate acknowledgment prefix
-      if (deferResult.action === "created") {
-        deferredAckPrefix = generateAcknowledgmentPrefix({
-          machine_type: newMachineSignal.machine_type,
-          action_target: newMachineSignal.action_target,
-          isUpdate: false,
-        })
-      } else {
-        // UPDATE case - subtle or silent acknowledgment
-        const subtleAck = generateSubtleUpdateAck({
-          machine_type: newMachineSignal.machine_type,
-          action_target: newMachineSignal.action_target,
-          triggerCount: deferResult.topic.trigger_count,
-        })
-        deferredAckPrefix = subtleAck
-      }
-      
-      // Log the deferral with specific event type
-      if (deferResult.action === "created") {
-        await trace("brain:deferred_created", "routing", {
-          topic_id: deferResult.topic.id,
-          machine_type: newMachineSignal.machine_type,
-          action_target: newMachineSignal.action_target,
-          summary,
-          active_machine: anyActiveMachine.type,
-          active_machine_target: activeToolFlowTarget,
-        })
-      } else {
-        await trace("brain:deferred_updated", "routing", {
-          topic_id: deferResult.topic.id,
-          machine_type: newMachineSignal.machine_type,
-          action_target: newMachineSignal.action_target,
-          trigger_count: deferResult.topic.trigger_count,
-          new_summary: summary,
-        })
-      }
-      
-      // Also log the generic signal_deferred event
-      await trace("brain:signal_deferred", "routing", {
-        machine_type: newMachineSignal.machine_type,
-        action_target: newMachineSignal.action_target,
-        deferred_action: deferResult.action,
-        summary,
-        active_machine: anyActiveMachine.type,
-        active_machine_target: activeToolFlowTarget,
-      })
-      
-      // Log if cancelled an old topic due to limit
-      if (deferResult.cancelled) {
-        await trace("brain:deferred_cancelled_limit", "routing", {
-          cancelled_id: deferResult.cancelled.id,
-          cancelled_type: deferResult.cancelled.machine_type,
-          cancelled_target: deferResult.cancelled.action_target,
-        })
-      }
-      
-      // Clear any signals that would have triggered the new machine
-      // (so the current machine continues uninterrupted)
-      if (newMachineSignal.machine_type === "breakdown_action") {
-        delete (tempMemory as any).__breakdown_action_signal
-      } else if (newMachineSignal.machine_type === "create_action") {
-        delete (tempMemory as any).__create_action_signal
-      } else if (newMachineSignal.machine_type === "update_action") {
-        delete (tempMemory as any).__update_action_signal
-      } else if (newMachineSignal.machine_type === "deep_reasons") {
-        delete (tempMemory as any).__deep_reasons_opportunity
-      }
+      profileConfirmDeferredKey: PROFILE_CONFIRM_DEFERRED_KEY,
+      trace,
+    })
+    tempMemory = deferral.tempMemory
+    if (deferral.deferredAckPrefix) {
+      ;(tempMemory as any).__deferred_ack_prefix = deferral.deferredAckPrefix
     }
-  }
-  
-  // Store the deferred ack prefix for agent to prepend
-  if (deferredAckPrefix) {
-    ;(tempMemory as any).__deferred_ack_prefix = deferredAckPrefix
+    // Store intelligent add-on for the conversational agent
+    if (deferral.deferredSignalAddon) {
+      ;(tempMemory as any).__deferred_signal_addon = deferral.deferredSignalAddon
+    }
   }
   
   // 6. Topic Machine routing (topic_serious / topic_light)
-  // If there's an active topic session, route based on owner_mode with librarian escalation
+  // If there's an active topic session, route based on owner_mode
+  // NOTE: Librarian escalation is now handled by the transversal "librarian overlay" (see below)
   const activeTopicSession = getActiveTopicSession(tempMemory)
   if (
     activeTopicSession &&
@@ -2561,47 +2214,8 @@ SORTIE JSON STRICTE:
     const isSerious = activeTopicSession.type === "topic_serious"
     const isLight = activeTopicSession.type === "topic_light"
     
-    // Check for librarian escalation
-    if (activeTopicSession.escalate_to_librarian) {
-      // Check if librarian just responded (so we should return to owner)
-      const lastAgent = String(state?.current_mode ?? "").toLowerCase()
-      if (lastAgent === "librarian") {
-        // Librarian has responded, clear escalation and return to owner
-        const cleared = setTopicLibrarianEscalation({ tempMemory, escalate: false })
-        if (cleared.changed) tempMemory = cleared.tempMemory
-        
-        targetMode = isSerious ? "architect" : "companion"
-        topicSessionHandoffThisTurn = true
-        await traceV("brain:topic_librarian_return", "routing", {
-          topic_type: activeTopicSession.type,
-          returning_to: targetMode,
-        })
-      } else {
-        // Escalation requested, route to librarian
-        targetMode = "librarian"
-        await traceV("brain:topic_librarian_escalation", "routing", {
-          topic_type: activeTopicSession.type,
-          reason: "needs_explanation",
-        })
-      }
-    }
-    // New escalation detected this turn
-    else if (
-      dispatcherSignals.needs_explanation?.value &&
-      (dispatcherSignals.needs_explanation.confidence ?? 0) >= 0.7
-    ) {
-      // Set escalation flag and route to librarian
-      const updated = setTopicLibrarianEscalation({ tempMemory, escalate: true })
-      if (updated.changed) tempMemory = updated.tempMemory
-      
-      targetMode = "librarian"
-      await traceV("brain:topic_librarian_escalation", "routing", {
-        topic_type: activeTopicSession.type,
-        reason: dispatcherSignals.needs_explanation.reason ?? "needs_explanation",
-      })
-    }
-    // Normal routing based on topic type
-    else if (isSerious) {
+    // Route to owner based on topic type
+    if (isSerious) {
       targetMode = "architect"
       await traceV("brain:topic_serious_routing", "routing", {
         phase: activeTopicSession.phase,
@@ -2880,23 +2494,9 @@ SORTIE JSON STRICTE:
     }
   }
 
-  // Hard guard: if the user references a specific plan item by quoted title, keep Architect.
-  // Librarian doesn't have plan context; plan-item questions need Architect.
-  if (
-    !state?.investigation_state &&
-    targetMode !== "sentry" &&
-    targetMode !== "firefighter" &&
-    (targetMode === "companion" || targetMode === "librarian")
-  ) {
-    // Accept quotes with ", “ ”, « », and also simple apostrophes '...'
-    const hasQuoted = /["“«']\s*[^"”»']{2,80}\s*["”»']/.test(userMessage ?? "")
-    const mentionsPlanOrNext =
-      /\b(mon\s+plan|dans\s+mon\s+plan|phase|action|actions|et\s+apr[eè]s|la\s+suite|prochaine\s+[ée]tape|prochaine\s+chose|la\s+prochaine|pour\s+avancer|on\s+fait\s+quoi|je\s+dois\s+faire\s+quoi|qu['’]est[-\s]?ce\s+que\s+je\s+dois\s+faire|c['’]est\s+quoi\s+(exactement|concr[eè]tement)|c['’]est\s+quoi)\b/i
-        .test(userMessage ?? "")
-    if (hasQuoted && mentionsPlanOrNext) {
-      targetMode = "architect"
-    }
-  }
+  // NOTE: General plan discussions now go through topic machines with plan_focus=true.
+  // The dispatcher sets topic_depth (LIGHT/SERIOUS) with plan_focus when user discusses their plan.
+  // Only tool operations (create/update/breakdown actions) route directly to Architect via tool signals.
 
   // Force Architect for explicit plan/action updates (frequency/days/rename), to ensure tools fire reliably.
   // This also prevents Companion from answering "update" intents with generic encouragement.
@@ -2913,22 +2513,16 @@ SORTIE JSON STRICTE:
     }
   }
 
-  // Activation / "what's next in my plan" should NOT go to Librarian:
-  // Librarian is for long-form generic explanations; plan item questions need plan context + tools (Architect).
-  if (
-    !state?.investigation_state &&
-    targetMode === "companion" &&
-    /\b(mon\s+plan|dans\s+mon\s+plan|phase|action|actions|et\s+apr[eè]s|la\s+suite|qu['’]?est[-\s]?ce\s+qui\s+vient\s+apr[eè]s|prochaine\s+[ée]tape)\b/i.test(userMessage ?? "")
-  ) {
-    targetMode = "architect"
-  }
+  // NOTE: "what's next in my plan" questions now go through topic machines with plan_focus=true.
+  // If dispatcher detects plan discussion, topic_depth will be set (LIGHT/SERIOUS) with plan_focus.
+  // topic_serious routes to Architect, topic_light routes to Companion.
 
-  // Plan-building continuity: avoid "ping-pong" Companion <-> Architect while an action/habit is being defined.
-  // If the user message clearly relates to plan parameters (frequency/days/dashboard/add), keep Architect.
+  // Plan-building continuity: avoid "ping-pong" while a tool flow is active.
+  // Only force Architect if a tool flow is actually running.
   if (
     !state?.investigation_state &&
     targetMode === "companion" &&
-    (lastAssistantAgent === "architect" || (state?.current_mode ?? "companion") === "architect" || Boolean((tempMemory as any)?.architect_tool_flow)) &&
+    toolFlowActiveGlobal &&
     /\b(fois\s+par\s+semaine|x\s*par\s+semaine|\/\s*semaine|ajust(e|er)|modifi(e|er)|enl[eè]ve|retire|supprime|ajout(e|er)|ajoute|mon\s+plan|plan|habitude|action|dashboard|tableau\s+de\s+bord|jours?\s+fixes?|jours?\s+planifi[ée]s?|planifi[ée]s?|lundis?|mardis?|mercredis?|jeudis?|vendredis?|samedis?|dimanches?|lun|mar|mer|jeu|ven|sam|dim|mon|tue|wed|thu|fri|sat|sun|au\s+feeling|libre)\b/i
       .test(userMessage ?? "")
   ) {
@@ -2956,19 +2550,6 @@ SORTIE JSON STRICTE:
     targetMode = "architect"
   }
 
-  // WhatsApp routing guardrails:
-  // When Architect is running an onboarding "micro-sequence" (motivation score -> first concrete step),
-  // do not let the dispatcher fall back to Companion on short numeric replies.
-  if ((meta?.channel ?? "web") === "whatsapp" && meta?.whatsappMode === "onboarding") {
-    if (
-      looksLikeMotivationScoreAnswer(userMessage) &&
-      lastAssistantAskedForMotivation(lastAssistantMessage) &&
-      lastAssistantAgent === "architect"
-    ) {
-      targetMode = "architect";
-    }
-  }
-
   // WhatsApp plan execution guardrail:
   // If Architect just asked for a step confirmation ("C'est fait ?") and the user confirms,
   // keep Architect to close the loop cleanly (avoid Companion "vibes" + re-introducing the same action).
@@ -2990,60 +2571,6 @@ SORTIE JSON STRICTE:
     // New rule: keep Firefighter only when risk is meaningfully elevated; otherwise use Companion.
     if (targetMode === "firefighter" && looksLikeWorkPressureVenting(userMessage) && !looksLikeAcuteDistress(userMessage)) {
       targetMode = riskScore >= 6 ? "firefighter" : "companion";
-    }
-  }
-
-  // Architect -> Companion handoff (anti-stuck / anti-"always plan" mode):
-  // The dispatcher has a stability rule that often keeps "architect" once entered. That's useful,
-  // but it can make the architect overstay when the user is no longer in plan/objectives mode.
-  // We correct that here with a conservative heuristic.
-  if (targetMode === "architect" && (state?.current_mode ?? "companion") === "architect") {
-    const inferredPlanFocus = inferPlanFocusFromUser(userMessage)
-    const memPlanFocus = Boolean((tempMemory as any)?.architect?.plan_focus ?? false)
-    const planFocus = inferredPlanFocus == null ? memPlanFocus : inferredPlanFocus
-
-    const s = normalizeLoose(userMessage)
-    const looksLikeShortAck =
-      s.length <= 24 && /\b(ok|oui|merci|daccord|ça marche|cest bon|ok merci|parfait|top)\b/i.test(userMessage ?? "")
-
-    const explicitlyAsksForPlanOrSteps =
-      /\b(plan|action|actions|phase|objectif|objectifs|et\s+apres|la\s+suite|on\s+fait\s+quoi|par\s+quoi|comment)\b/i
-        .test(userMessage ?? "")
-
-    const toolFlowActive = Boolean((tempMemory as any)?.architect_tool_flow)
-    const userConfused =
-      /\b(je\s+suis\s+un\s+peu\s+perdu|je\s+suis\s+perdu|tu\s+peux\s+reformuler|reformule|j['’]ai\s+pas\s+compris)\b/i
-        .test(userMessage ?? "")
-
-    // If the user doesn't want plan-focus, and isn't explicitly asking for structured plan help,
-    // hand off to Companion to avoid over-architecting / looping on "why/how".
-    // Do NOT hand off away from Architect when we're in a confirmation micro-step.
-    const confirmationMicroStep =
-      (meta?.channel ?? "web") === "whatsapp" &&
-      lastAssistantAgent === "architect" &&
-      lastAssistantAskedForStepConfirmation(lastAssistantMessage) &&
-      looksLikeUserConfirmsStep(userMessage)
-
-    // Also do NOT hand off away from Architect when it just asked "which day to remove"
-    // and the user is replying with the removal choice (common in tool eval flows).
-    const removeDayMicroStep =
-      lastAssistantAgent === "architect" &&
-      /\bquel(le)?\s+jour\b/i.test(lastAssistantMessage ?? "") &&
-      /\b(enl[eè]ve|retire|supprime)\b/i.test(userMessage ?? "")
-    
-    // If the user is explicitly editing habit structure (frequency/days), never hand off away from Architect.
-    const explicitHabitStructureEdit =
-      /\b(fois\s+par\s+semaine|x\s*par\s+semaine|\/\s*semaine|fr[ée]quence|jours?\s+planifi[ée]s?|lun(di)?|mar(di)?|mer(credi)?|jeu(di)?|ven(dredi)?|sam(edi)?|dim(anche)?|mon|tue|wed|thu|fri|sat|sun)\b/i
-        .test(userMessage ?? "")
-
-    // Also: if a tool flow is in progress (create/update action), keep Architect stable even if the user digresses/confused.
-    if (confirmationMicroStep || removeDayMicroStep || explicitHabitStructureEdit || toolFlowActive || userConfused) {
-      targetMode = "architect"
-    } else if (planFocus === false && !explicitlyAsksForPlanOrSteps) {
-      targetMode = "companion"
-    } else if (looksLikeShortAck && !explicitlyAsksForPlanOrSteps) {
-      // Short acknowledgements should not keep the architect "locked" unless the user asks to continue.
-      targetMode = "companion"
     }
   }
 
@@ -3104,35 +2631,8 @@ SORTIE JSON STRICTE:
     }
   }
 
-  // Firefighter continuity:
-  // If the last assistant message was in Firefighter mode (panic grounding / safety check),
-  // do NOT bounce back to investigator immediately just because the user mentions a checkup item.
-  // Keep firefighter for at least one more turn to close the loop and hand off cleanly.
-  const firefighterJustSpoke = lastAssistantAgent === "firefighter" || (state?.current_mode ?? "") === "firefighter";
-  if (firefighterJustSpoke && !stopCheckup) {
-    const lastFF = (lastAssistantMessage ?? "").toString().toLowerCase();
-    const u = (userMessage ?? "").toString().toLowerCase();
-    const userChoseAB =
-      (/\bA\)\b/.test(lastAssistantMessage ?? "") && /\bB\)\b/.test(lastAssistantMessage ?? "")) &&
-      /\b(a|b)\b/i.test((userMessage ?? "").toString().trim());
-    const userAnsweringFFPrompt =
-      /\b(comment tu te sens|tu te sens comment|es-tu en s[eé]curit[eé]|tu es en s[eé]curit[eé]|es-tu seul|tu es seul|on va faire|inspire|expire|respire|4\s*secondes|7\s*secondes|8\s*secondes)\b/i
-        .test(lastAssistantMessage ?? "");
-    const userStillPhysicallyActivated =
-      /\b(j['’]arrive\s+pas\s+[àa]\s+respirer|respir(er|e)\s+mal|coeur|c[œoe]ur|palpit|oppress|panique|angoiss|trembl|vertige)\b/i
-        .test(userMessage ?? "");
-    const userReportsPartialRelief =
-      /\b([çc]a\s+va\s+(un\s+peu\s+)?mieux|un\s+peu\s+mieux|[çc]a\s+aide|merci)\b/i.test(userMessage ?? "");
-    const userStillEmotionallyOverwhelmed =
-      /\b(j['’]ai\s+l['’]impression\s+de\s+(?:craquer|exploser)|[àa]\s+bout|pas\s+à\s+la\s+hauteur|n['’]y\s+arrive\s+plus|je\s+suis\s+(?:vid[ée]e?|epuis[ée]e?)|[ée]puis[ée]e|trop\s+dur)\b/i
-        .test(userMessage ?? "");
-
-    // If the user is still in the firefighter "thread" (answering the prompt, still activated, or just recovering),
-    // keep firefighter for this turn. Firefighter can then explicitly hand off back to the bilan.
-    if (userChoseAB || userAnsweringFFPrompt || userStillPhysicallyActivated || userReportsPartialRelief || userStillEmotionallyOverwhelmed) {
-      targetMode = "firefighter";
-    }
-  }
+  // NOTE: Legacy firefighter continuity block removed.
+  // Safety flow resolution is now handled by safety_firefighter_flow state machine.
 
   if (checkupActive && !stopCheckup && targetMode === "firefighter" && riskScore <= 1 && !looksLikeAcuteDistress(userMessage)) {
     targetMode = "investigator";
@@ -3161,11 +2661,9 @@ SORTIE JSON STRICTE:
     targetMode = "investigator"
   }
 
-  // Deterministic routing for specific exercise activations (important on WhatsApp).
-  // This avoids the message being treated as small-talk and ensures the framework can be created.
-  if (targetMode !== "sentry" && targetMode !== "firefighter" && looksLikeAttrapeRevesActivation(userMessage)) {
-    targetMode = "architect"
-  }
+  // NOTE: Hard guard for looksLikeAttrapeRevesActivation removed.
+  // This is now handled by the activate_action signal from the dispatcher,
+  // which creates an activate_action_flow machine (owner: architect).
 
   // Start checkup/investigator only when it makes sense:
   // - If a checkup is already active, the hard guard below keeps investigator stable.
@@ -3237,293 +2735,261 @@ SORTIE JSON STRICTE:
     await updateUserState(supabase, userId, scope, { risk_level: riskScore })
   }
 
-  // 4.5 RAG Retrieval (Forge Memory)
+  // 4.1 SAFETY FLOW MACHINE MANAGEMENT
+  // This replaces the ad-hoc "resolved" detection in agents.
+  // We use state machines to track crisis progression and determine when to hand off.
+  {
+    const activeSentryFlow = getActiveSafetySentryFlow(tempMemory)
+    const activeFirefighterFlow = getActiveSafetyFirefighterFlow(tempMemory)
+    const safetyResolution = dispatcherSignals.safety_resolution
+    const safetyResolutionConfident = (safetyResolution?.confidence ?? 0) >= 0.6
+    const safetyResolutionSignals = safetyResolutionConfident ? {
+      user_confirms_safe: safetyResolution?.user_confirms_safe,
+      stabilizing_signal: safetyResolution?.stabilizing_signal,
+      symptoms_still_present: safetyResolution?.symptoms_still_present,
+      external_help_mentioned: safetyResolution?.external_help_mentioned,
+      escalate_to_sentry: safetyResolution?.escalate_to_sentry,
+    } : {
+      user_confirms_safe: false,
+      stabilizing_signal: false,
+      symptoms_still_present: false,
+      external_help_mentioned: false,
+      escalate_to_sentry: false,
+    }
+    
+    // ─── SENTRY FLOW MANAGEMENT ───
+    if (activeSentryFlow) {
+      // Update the flow state based on safety_resolution signals
+      const nextPhase = computeSentryNextPhase(activeSentryFlow, {
+        user_confirms_safe: safetyResolutionSignals.user_confirms_safe,
+        external_help_mentioned: safetyResolutionSignals.external_help_mentioned,
+        still_in_danger: dispatcherSignals.safety.level === "SENTRY" && dispatcherSignals.safety.confidence >= 0.6,
+      })
+      
+      if (nextPhase === "resolved") {
+        // Crisis resolved - close the flow and hand off to companion
+        const closed = closeSafetySentryFlow({ tempMemory, outcome: "resolved_safe" })
+        tempMemory = closed.tempMemory
+        
+        const pausedMachine = getPausedMachine(tempMemory)
+        if (targetMode !== "firefighter") {
+          targetMode = "companion"
+        }
+        
+        await trace("brain:safety_sentry_resolved", "routing", {
+          phase: nextPhase,
+          turn_count: activeSentryFlow.turn_count,
+          paused_machine: pausedMachine?.machine_type ?? null,
+        })
+      } else if (nextPhase !== activeSentryFlow.phase) {
+        // Phase changed - update the flow
+        const updated = upsertSafetySentryFlow({
+          tempMemory,
+          phase: nextPhase,
+          safetyConfirmed: safetyResolutionSignals.user_confirms_safe,
+          externalHelpMentioned: safetyResolutionSignals.external_help_mentioned,
+        })
+        tempMemory = updated.tempMemory
+        
+        await traceV("brain:safety_sentry_phase_change", "routing", {
+          from: activeSentryFlow.phase,
+          to: nextPhase,
+          turn_count: updated.state.turn_count,
+        })
+      } else {
+        // Same phase - just increment turn count
+        const updated = upsertSafetySentryFlow({ tempMemory })
+        tempMemory = updated.tempMemory
+      }
+      
+      // Keep routing to sentry unless resolved
+      if (nextPhase !== "resolved") {
+        targetMode = "sentry"
+      }
+    }
+    // ─── FIREFIGHTER FLOW MANAGEMENT ───
+    else if (activeFirefighterFlow) {
+      // Check for escalation to sentry
+      if (safetyResolutionSignals.escalate_to_sentry || 
+          (dispatcherSignals.safety.level === "SENTRY" && dispatcherSignals.safety.confidence >= 0.75)) {
+        // Escalate: close firefighter flow, create sentry flow
+        const closed = closeSafetyFirefighterFlow({ tempMemory, outcome: "escalated_sentry" })
+        tempMemory = closed.tempMemory
+        
+        const created = upsertSafetySentryFlow({
+          tempMemory,
+          triggerMessage: userMessage,
+          phase: "acute",
+        })
+        tempMemory = created.tempMemory
+        targetMode = "sentry"
+        
+        await trace("brain:safety_escalated_to_sentry", "routing", {
+          from_phase: activeFirefighterFlow.phase,
+          trigger: "safety_resolution_or_signal",
+        })
+      } else {
+        // Update the flow state based on safety_resolution signals
+        const nextPhase = computeFirefighterNextPhase(activeFirefighterFlow, {
+          user_stabilizing: safetyResolutionSignals.stabilizing_signal,
+          symptoms_still_present: safetyResolutionSignals.symptoms_still_present,
+          escalate_to_sentry: false,
+        })
+        
+        if (nextPhase === "resolved") {
+          // Crisis resolved - close the flow and hand off to companion
+          const closed = closeSafetyFirefighterFlow({ tempMemory, outcome: "stabilized" })
+          tempMemory = closed.tempMemory
+          
+          const pausedMachine = getPausedMachine(tempMemory)
+          if (targetMode !== "sentry") {
+            targetMode = "companion"
+          }
+          
+          await trace("brain:safety_firefighter_resolved", "routing", {
+            phase: nextPhase,
+            turn_count: activeFirefighterFlow.turn_count,
+            stabilization_signals: activeFirefighterFlow.stabilization_signals,
+            paused_machine: pausedMachine?.machine_type ?? null,
+          })
+        } else {
+          // Update phase and signal counters
+          const stabilizationDelta = safetyResolutionSignals.stabilizing_signal ? 1 : 0
+          const distressDelta = safetyResolutionSignals.symptoms_still_present ? 1 : 0
+          
+          const updated = upsertSafetyFirefighterFlow({
+            tempMemory,
+            phase: nextPhase,
+            stabilizationSignalDelta: stabilizationDelta,
+            distressSignalDelta: distressDelta,
+          })
+          tempMemory = updated.tempMemory
+          
+          if (nextPhase !== activeFirefighterFlow.phase) {
+            await traceV("brain:safety_firefighter_phase_change", "routing", {
+              from: activeFirefighterFlow.phase,
+              to: nextPhase,
+              stabilization_signals: updated.state.stabilization_signals,
+              distress_signals: updated.state.distress_signals,
+            })
+          }
+          
+          // Keep routing to firefighter unless resolved
+          targetMode = "firefighter"
+        }
+      }
+    }
+    // ─── NEW SAFETY FLOW CREATION ───
+    // Only create if no active safety flow and we're routing to sentry/firefighter
+    else if (targetMode === "sentry" && !activeSentryFlow) {
+      const created = upsertSafetySentryFlow({
+        tempMemory,
+        triggerMessage: userMessage,
+        phase: "acute",
+      })
+      tempMemory = created.tempMemory
+      
+      await trace("brain:safety_sentry_started", "routing", {
+        trigger: "safety_signal",
+        safety_level: dispatcherSignals.safety.level,
+        confidence: dispatcherSignals.safety.confidence,
+      })
+    }
+    else if (targetMode === "firefighter" && !activeFirefighterFlow) {
+      const created = upsertSafetyFirefighterFlow({
+        tempMemory,
+        triggerMessage: userMessage,
+        phase: "acute",
+      })
+      tempMemory = created.tempMemory
+      
+      await trace("brain:safety_firefighter_started", "routing", {
+        trigger: "safety_signal_or_need_support",
+        safety_level: dispatcherSignals.safety.level,
+        topic_depth: dispatcherSignals.topic_depth.value,
+      })
+    }
+    
+    // ─── STALE SAFETY FLOW CLEANUP ───
+    // Safety flows should not persist indefinitely - clean up if stale
+    if (isSafetySentryFlowStale(tempMemory)) {
+      const closed = closeSafetySentryFlow({ tempMemory, outcome: "abandoned" })
+      tempMemory = closed.tempMemory
+      await traceV("brain:safety_sentry_stale", "routing", { reason: "TTL_exceeded" })
+    }
+    if (isSafetyFirefighterFlowStale(tempMemory)) {
+      const closed = closeSafetyFirefighterFlow({ tempMemory, outcome: "abandoned" })
+      tempMemory = closed.tempMemory
+      await traceV("brain:safety_firefighter_stale", "routing", { reason: "TTL_exceeded" })
+    }
+  }
+
+  // 4.5 Context Loading (Modular - profile-based)
   // Build a shared context string used by agent prompts.
-  // We always inject temporal context (timezone-aware), and we add heavy RAG context only for selected modes.
+  // Each agent mode has a ContextProfile that specifies exactly what context it needs.
   const injectedContext = context
   context = ""
 
-  // Minimal temporal context: always include (except for sentry, which should be short and deterministic).
-  const timeBlock =
-    targetMode !== "sentry" && userTime?.prompt_block
-      ? `=== REPÈRES TEMPORELS ===\n${userTime.prompt_block}\n(Adapte tes salutations/conseils à ce moment de la journée)\n\n`
-      : ""
-  if (timeBlock) context += timeBlock
+  // Build on-demand triggers from dispatcher signals
+  // These triggers determine whether to load heavy context (plan JSON, action details)
+  const onDemandTriggers: OnDemandTriggers = {
+    create_action_intent: dispatcherSignals.create_action?.intent_strength === "explicit" || 
+                          dispatcherSignals.create_action?.intent_strength === "implicit",
+    update_action_intent: dispatcherSignals.update_action?.detected ?? false,
+    plan_discussion_intent: dispatcherSignals.topic_depth?.plan_focus ?? false,
+    breakdown_recommended: dispatcherSignals.breakdown_action?.detected ?? false,
+    topic_depth: dispatcherSignals.topic_depth?.value === "SERIOUS" ? "deep" : 
+                 dispatcherSignals.topic_depth?.value === "LIGHT" ? "shallow" : undefined,
+  }
 
-  // Modes that need context loading (investigator gets minimal context for efficiency)
-  const needsFullContext = ['architect', 'companion', 'firefighter'].includes(targetMode)
-  const needsDashboardOnly = targetMode === 'investigator'
+  // Use modular context loader based on agent profile
+  const contextProfile = getContextProfile(targetMode)
+  const needsContextLoading = targetMode !== "sentry" && targetMode !== "watcher" && targetMode !== "dispatcher"
 
-  if (needsFullContext || needsDashboardOnly) {
-    const __ctxStart = Date.now()
-    // C. Dashboard Context (Live Data) - loaded for ALL context-aware modes including investigator
-    const dashboardContext = await getDashboardContext(supabase, userId);
+  if (needsContextLoading) {
+    const contextLoadResult = await loadContextForMode({
+      supabase,
+      userId,
+      mode: targetMode,
+      message: userMessage,
+      history,
+      state,
+      scope,
+      tempMemory,
+      userTime,
+      triggers: onDemandTriggers,
+      injectedContext: opts?.contextOverride,
+      deferredUserPrefContext,
+    })
 
-    // Heavy context only for full-context modes (not investigator - keep it lightweight)
-    let vectorContext = ""
-    let identityContext = ""
-    let recentTurns = ""
-    let shortTerm = ""
-
-    if (needsFullContext) {
-    // Recent transcript (raw turns) to complement the Watcher short-term summary ("fil rouge").
-    // We keep it bounded to avoid huge prompts.
-      recentTurns = (history ?? []).slice(-15).map((m: any) => {
-      const role = String(m?.role ?? "").trim() || "unknown"
-      const content = String(m?.content ?? "").trim().slice(0, 420)
-      const ts = String((m as any)?.created_at ?? "").trim()
-      return ts ? `[${ts}] ${role}: ${content}` : `${role}: ${content}`
-    }).join("\n")
-
-    // Short-term "fil rouge" maintained by Watcher (when available).
-      shortTerm = (state?.short_term_context ?? "").toString().trim()
-    // A. Vector Memory
-      vectorContext = await retrieveContext(supabase, userId, userMessage);
-    
-    // B. Core Identity (Temple)
-      identityContext = await getCoreIdentity(supabase, userId);
-    }
-
-    // D. User model (structured facts) - only for full context modes
-    let factsContext = ""
-    if (needsFullContext) {
-    try {
-      const factRows = await getUserProfileFacts({ supabase, userId, scopes: ["global", scope] })
-      factsContext = formatUserProfileFactsForPrompt(factRows, scope)
-    } catch (e) {
-      console.warn("[Context] failed to load user_profile_facts (non-blocking):", e)
+    // Load vectors separately (with maxResults based on profile)
+    // Firefighter gets minimal vectors (2), others get full (5)
+    const vectorMaxResults = getVectorResultsCount(contextProfile)
+    if (vectorMaxResults > 0) {
+      const isMinimalMode = vectorMaxResults <= 2
+      const vectorContext = await retrieveContext(supabase, userId, userMessage, {
+        maxResults: vectorMaxResults,
+        includeActionHistory: !isMinimalMode, // Skip action history for firefighter
+      })
+      if (vectorContext) {
+        contextLoadResult.context.vectors = vectorContext
+        contextLoadResult.metrics.elements_loaded.push("vectors")
       }
     }
 
-    // F. User model confirmation state (for Companion only; no inference in router)
-    let prefConfirmContext = ""
-    if (targetMode === "companion") {
-      try {
-        // Candidates are stored in DB (user_profile_fact_candidates) and only injected here.
-        const { data: candRows, error: candErr } = await supabase
-          .from("user_profile_fact_candidates")
-          .select("id, key, scope, proposed_value, confidence, hits, reason, evidence, last_seen_at, last_asked_at, asked_count, status")
-          .eq("user_id", userId)
-          .in("scope", ["global", scope])
-          .in("status", ["pending", "asked"])
-          .limit(30)
-        if (candErr) throw candErr
+    // Build final context string
+    context = buildContextString(contextLoadResult.context)
 
-        function scoreCandidate(r: any): number {
-          const conf = Math.max(0, Math.min(1, Number(r?.confidence ?? 0)))
-          const hits = Math.max(1, Number(r?.hits ?? 1))
-          const askedCount = Math.max(0, Number(r?.asked_count ?? 0))
-          const lastSeen = Date.parse(String(r?.last_seen_at ?? ""))
-          const lastAsked = Date.parse(String(r?.last_asked_at ?? ""))
-          const ageDays = Number.isFinite(lastSeen) ? (Date.now() - lastSeen) / (24 * 60 * 60 * 1000) : 999
-          const recency = Math.exp(-ageDays / 7) // half-life-ish
-          const hitFactor = Math.min(2.0, 1 + Math.log1p(hits) / Math.log(6))
-          // Anti-spam: if asked in last 24h, heavily penalize.
-          const askedRecently = Number.isFinite(lastAsked) && (Date.now() - lastAsked) < 24 * 60 * 60 * 1000
-          const askPenalty = askedRecently ? 0.15 : 1.0
-          const fatiguePenalty = Math.max(0.3, 1.0 - 0.15 * askedCount)
-          return conf * recency * hitFactor * askPenalty * fatiguePenalty
-        }
-
-        const candSorted = (candRows ?? [])
-          .map((r: any) => ({ ...r, _score: scoreCandidate(r) }))
-          .sort((a: any, b: any) => Number(b?._score ?? 0) - Number(a?._score ?? 0))
-          .slice(0, 6)
-
-        // Pull pending confirmation from the profile confirmation machine
-        const profileConfirmState = getProfileConfirmationState(tempMemory)
-        const currentFactFromMachine = profileConfirmState ? getCurrentFactToConfirm(tempMemory) : null
-        
-        // Convert machine fact to pending format for prompt compatibility
-        const pending = currentFactFromMachine ? {
-          key: currentFactFromMachine.key,
-          proposed_value: currentFactFromMachine.proposed_value,
-          scope: "current",
-          asked_at: currentFactFromMachine.detected_at,
-          reason: "dispatcher_detection",
-          confidence: currentFactFromMachine.confidence,
-          _from_machine: true,  // Flag to indicate this comes from the machine
-          _machine_queue_size: profileConfirmState?.facts_queue.length ?? 1,
-          _machine_current_index: profileConfirmState?.current_index ?? 0,
-        } : null
-        
-        if (pending || (Array.isArray(candRows) && candRows.length > 0)) {
-          const safeCandidates = candSorted
-          prefConfirmContext =
-            `=== USER MODEL (CANDIDATES / CONFIRMATION) ===\n` +
-            `RÈGLE: ne JAMAIS écrire de facts sans confirmation explicite.\n` +
-            `PENDING_CONFIRMATION: ${pending ? JSON.stringify(pending) : "null"}\n` +
-            `CANDIDATES: ${safeCandidates.length > 0 ? JSON.stringify(safeCandidates) : "[]"}\n`
-        }
-      } catch (e) {
-        console.warn("[Context] failed to build user model candidates context (non-blocking):", e)
-      }
-    }
-
-    context = ""
-    if (deferredUserPrefContext) context += `${deferredUserPrefContext}\n\n`
-    if (injectedContext) context += `${injectedContext}\n\n`
-    if (timeBlock) context += timeBlock
-    if (factsContext) context += `${factsContext}\n\n`
-    if (prefConfirmContext) context += `${prefConfirmContext}\n\n`
-    if (shortTerm) context += `=== FIL ROUGE (CONTEXTE COURT TERME) ===\n${shortTerm}\n\n`
-    if (recentTurns) context += `=== HISTORIQUE RÉCENT (15 DERNIERS MESSAGES) ===\n${recentTurns}\n\n`
-    if (dashboardContext) context += `${dashboardContext}\n\n`; 
-    if (identityContext) context += `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identityContext}\n\n`;
-    if (vectorContext) context += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${vectorContext}`;
-    
-    // CHECKUP ADDON for Companion (prompt-level instruction)
-    const checkupAddon = (tempMemory as any)?.__checkup_addon
-    if (targetMode === "companion" && checkupAddon) {
-      if (checkupAddon === "CHECKUP_ENTRY_CONFIRM") {
-        context += `\n\n=== ADDON BILAN (CONFIRMATION) ===\n- L'utilisateur a demande un bilan.\n- Tu dois poser la question: \"Tu veux qu'on fasse le bilan maintenant?\"\n- Message personnalise, 1 question max.\n`
-      } else if (checkupAddon === "BILAN_ALREADY_DONE") {
-        context += `\n\n=== ADDON BILAN (DEJA FAIT) ===\n- Le bilan du jour est deja fait.\n- Dis-le gentiment et propose: \"Tu veux noter un progres sur une action?\"\n- 1 question max.\n`
-      }
-    }
-    
-    if (context) {
-      const loadedParts = needsFullContext 
-        ? "Dashboard + Identity + Vectors" 
-        : "Dashboard only (investigator)"
-      console.log(`[Context] Loaded ${loadedParts}`);
+    // Log metrics
+    console.log(`[Context] Loaded profile=${targetMode}, elements=${contextLoadResult.metrics.elements_loaded.join(",")}, tokens~${contextLoadResult.metrics.estimated_tokens}`)
       await trace("brain:context_loaded", "context", {
         target_mode: targetMode,
-        needs_full_context: needsFullContext,
-        needs_dashboard_only: needsDashboardOnly,
-        loaded_parts: loadedParts,
-        load_ms: Date.now() - __ctxStart,
-        // lengths only (avoid duplicating sensitive content)
-        len: {
-          dashboard: String(dashboardContext ?? "").length,
-          identity: String(identityContext ?? "").length,
-          vectors: String(vectorContext ?? "").length,
-          facts: String(factsContext ?? "").length,
-          short_term: String(shortTerm ?? "").length,
-          recent_turns: String(recentTurns ?? "").length,
-          pref_candidates: String(prefConfirmContext ?? "").length,
-          total_context: String(context ?? "").length,
-        },
+      profile_used: targetMode,
+      elements_loaded: contextLoadResult.metrics.elements_loaded,
+      load_ms: contextLoadResult.metrics.load_ms,
+      estimated_tokens: contextLoadResult.metrics.estimated_tokens,
+      triggers: onDemandTriggers,
       }, "info")
-    }
-  }
-  if (opts?.contextOverride) {
-    context = `=== CONTEXTE MODULE (UI) ===\n${opts.contextOverride}\n\n${context}`.trim()
-  }
-
-  // --- Architect anti-loop / plan-focus state (lightweight state machine) ---
-  // Goal: prevent the Architect from looping on objectives, asking the same question twice, or expanding into multiple objectives.
-  // NOTE: plan_focus should reflect user intent even if we temporarily route to firefighter/companion.
-  // Otherwise it can get "stuck" (ex: user asks for a micro-pause -> routed to firefighter, but plan_focus stays true).
-  {
-    const inferred = inferPlanFocusFromUser(userMessage)
-    if (inferred != null) {
-      await traceV("brain:plan_focus_updated", "routing", { plan_focus: inferred }, "info")
-      const tm = (tempMemory ?? {}) as any
-      const arch0 = (tm.architect ?? {}) as any
-      tempMemory = {
-        ...(tm ?? {}),
-        architect: {
-          ...arch0,
-          plan_focus: inferred,
-          last_updated_at: new Date().toISOString(),
-        },
-      }
-    }
-  }
-
-  if (targetMode === "architect") {
-    const tm = (tempMemory ?? {}) as any
-    const arch = (tm.architect ?? {}) as any
-
-    const inferred = inferPlanFocusFromUser(userMessage)
-    const planFocus = inferred == null ? Boolean(arch.plan_focus ?? false) : inferred
-    const objective = extractObjective(userMessage)
-    const currentObjective = objective ? objective : (typeof arch.current_objective === "string" ? arch.current_objective : "")
-
-    const lastQfps = Array.isArray(arch.last_q_fps) ? arch.last_q_fps : []
-    // Detect repeated questions in the recent Architect turns (same fingerprint appears twice).
-    const recentAssistant = history.filter((m: any) => m?.role === "assistant").slice(-6)
-    const recentQfps = recentAssistant
-      .map((m: any) => extractLastQuestionFingerprint(String(m?.content ?? "")))
-      .filter(Boolean) as string[]
-    const dup = (() => {
-      const seen = new Set<string>()
-      for (const fp of recentQfps) {
-        if (seen.has(fp)) return true
-        seen.add(fp)
-      }
-      return false
-    })()
-    const objectiveTalk = recentAssistant
-      .map((m: any) => String(m?.content ?? ""))
-      .join("\n")
-    const objectiveOverTalk = /\b(objectif|pourquoi|prioritaire|vision|identit[eé]|deep\s*why)\b/i.test(objectiveTalk) &&
-      recentQfps.length >= 2
-
-    // Also detect repeated user intents (common failure mode: the user repeats the same sentence and the assistant keeps proposing variants).
-    const userMsgs = [...history.filter((m: any) => m?.role === "user").map((m: any) => String(m?.content ?? "")), String(userMessage ?? "")]
-      .slice(-3)
-      .map(normalizeLoose)
-      .filter(Boolean)
-    const looksLikeReadingLoop = (() => {
-      // Heuristic for the common loop: "lecture 10 min, 3 fois/semaine, peur que ça pèse / échec"
-      if (userMsgs.length < 2) return false
-      const hits = userMsgs.map((s) =>
-        /\blecture\b/i.test(s) &&
-        /\b10\b/.test(s) &&
-        (/\b3\b/.test(s) || /\btrois\b/i.test(s)) &&
-        /\b(semaine|fois)\b/i.test(s) &&
-        /\b(peur|angoiss|corv[ée]e|pression|[ée]chec)\b/i.test(s),
-      )
-      return hits.filter(Boolean).length >= 2
-    })()
-    const userRepeats =
-      userMsgs.length >= 2 &&
-      (userMsgs[userMsgs.length - 1] === userMsgs[userMsgs.length - 2] ||
-        (userMsgs.length >= 3 && userMsgs[userMsgs.length - 1] === userMsgs[userMsgs.length - 3]))
-
-    // User can explicitly flag we're looping even if the wording changes.
-    const userSignalsLoop = /\b(tourne en rond|on tourne en rond|tu\s+me\s+reposes?\s+pas|tu\s+me\s+reposes?\s+la\s+meme\s+question|la\s+meme\s+question|tu\s+me\s+redemandes?)\b/i
-      .test(normalizeLoose(userMessage))
-
-    const loopHit = dup || objectiveOverTalk || userRepeats || looksLikeReadingLoop || userSignalsLoop
-    const prevLoopCount = Number(arch.loop_count ?? 0) || 0
-    const loopCount = loopHit ? Math.min(5, prevLoopCount + 1) : Math.max(0, prevLoopCount - 1)
-
-    // Update memory
-    const nextArch = {
-      ...arch,
-      plan_focus: planFocus,
-      current_objective: currentObjective || null,
-      last_q_fps: Array.from(new Set([...lastQfps, ...recentQfps])).slice(-8),
-      loop_count: loopCount,
-      last_updated_at: new Date().toISOString(),
-    }
-    tempMemory = { ...(tm ?? {}), architect: nextArch }
-
-    // Inject a guardrail when we detect a loop OR when plan_focus is false (to prevent plan-obsession bleeding into emotional chats).
-    if (loopHit || planFocus === false) {
-      await traceV("brain:anti_loop_guardrail", "routing", {
-        loopHit,
-        reasons: {
-          dup,
-          objectiveOverTalk,
-          userRepeats,
-          looksLikeReadingLoop,
-          userSignalsLoop,
-        },
-        loopCount,
-        planFocus,
-        currentObjective: currentObjective || null,
-      }, "info")
-      const guard = buildArchitectLoopGuard({
-        planFocus,
-        currentObjective: currentObjective || null,
-        loopCount,
-      })
-      context = `${guard}\n\n${context}`.trim()
-    }
   }
 
   // 5. Exécution de l'Agent Choisi
@@ -3671,13 +3137,83 @@ SORTIE JSON STRICTE:
     }
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // LIBRARIAN OVERLAY: Can intercept ANY machine for detailed explanations
+  // The Librarian responds this turn, but the active machine state is NOT modified.
+  // Next turn, routing returns to the machine's owner agent automatically.
+  // ═══════════════════════════════════════════════════════════════════════════════
+  let librarianOverlayActive = false
+  let librarianOverlayOriginalTarget: AgentMode | null = null
+  
+  if (
+    dispatcherSignals.needs_explanation?.value &&
+    (dispatcherSignals.needs_explanation.confidence ?? 0) >= 0.7 &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "investigator" &&
+    targetMode !== "librarian"  // Not already librarian
+  ) {
+    // Save original target for tracing
+    librarianOverlayOriginalTarget = targetMode
+    librarianOverlayActive = true
+    targetMode = "librarian"
+    
+    await traceV("brain:librarian_overlay", "routing", {
+      original_target: librarianOverlayOriginalTarget,
+      reason: dispatcherSignals.needs_explanation.reason ?? "needs_explanation",
+      active_machine: (() => {
+        if ((tempMemory as any)?.create_action_flow) return "create_action_flow"
+        if ((tempMemory as any)?.update_action_flow) return "update_action_flow"
+        if ((tempMemory as any)?.breakdown_action_flow) return "breakdown_action_flow"
+        if ((tempMemory as any)?.deep_reasons_state) return "deep_reasons_exploration"
+        const topic = getActiveTopicSession(tempMemory)
+        if (topic) return topic.type
+        return null
+      })(),
+      confidence: dispatcherSignals.needs_explanation.confidence,
+    })
+    
+    console.log(`[Router] Librarian overlay activated (original: ${librarianOverlayOriginalTarget}, reason: ${dispatcherSignals.needs_explanation.reason ?? "needs_explanation"})`)
+  }
+
   const selectedChatModel = selectChatModel(targetMode, riskScore)
   await trace("brain:model_selected", "agent", {
     target_mode: targetMode,
     risk_score: riskScore,
     selected_model: selectedChatModel,
     default_model: SOPHIA_CHAT_MODEL,
+    librarian_overlay: librarianOverlayActive,
   }, selectedChatModel === SOPHIA_CHAT_MODEL ? "debug" : "info")
+
+  // Inject deferred signal add-on into context (guides agent to personalize acknowledgment)
+  const deferredSignalAddon = (tempMemory as any)?.__deferred_signal_addon ?? ""
+  if (deferredSignalAddon) {
+    context = `${context}\n\n${deferredSignalAddon}`
+    // Clear after injection (one-time use)
+    try { delete (tempMemory as any).__deferred_signal_addon } catch {}
+  }
+
+  // Inject resume from safety add-on into context (guides agent for smooth transition after firefighter/sentry)
+  const resumeSafetyAddon = (tempMemory as any)?.__resume_safety_addon ?? ""
+  if (resumeSafetyAddon) {
+    context = `${context}\n\n${resumeSafetyAddon}`
+    // Clear after injection (one-time use)
+    try { delete (tempMemory as any).__resume_safety_addon } catch {}
+  }
+
+  // Inject relaunch consent add-on into context (guides agent to ask consent question)
+  const askRelaunchConsent = (tempMemory as any)?.__ask_relaunch_consent
+  if (askRelaunchConsent) {
+    const consentAddon = buildRelaunchConsentAgentAddon({
+      machine_type: askRelaunchConsent.machine_type,
+      action_target: askRelaunchConsent.action_target,
+      summaries: askRelaunchConsent.summaries ?? [],
+    })
+    context = `${context}\n\n${consentAddon}`
+    // Clear after injection (one-time use)
+    try { delete (tempMemory as any).__ask_relaunch_consent } catch {}
+    console.log(`[Router] Injected relaunch consent agent add-on for ${askRelaunchConsent.machine_type}`)
+  }
 
   const agentOut = await runAgentAndVerify({
             supabase,
@@ -3695,6 +3231,7 @@ SORTIE JSON STRICTE:
     stopCheckup,
     isPostCheckup,
     outageTemplate,
+    tempMemory,
     sophiaChatModel: (() => {
       if (selectedChatModel !== SOPHIA_CHAT_MODEL) {
         console.log(`[Model] Using PRO model (${selectedChatModel}) for ${targetMode} (risk=${riskScore})`);
@@ -3707,6 +3244,9 @@ SORTIE JSON STRICTE:
 
   responseContent = agentOut.responseContent
   nextMode = agentOut.nextMode
+  if (agentOut.tempMemory) {
+    tempMemory = agentOut.tempMemory
+  }
   await trace("brain:agent_done", "agent", {
     target_mode: targetMode,
     next_mode: nextMode,
@@ -3723,9 +3263,13 @@ SORTIE JSON STRICTE:
     // Preserve router-only keys that may not be in latest
     const routerKeys = [
       "__deferred_ack_prefix",
+      "__deferred_signal_addon",
       "__resume_message_prefix",
+      "__resume_safety_addon",
+      "__track_progress_parallel",
       "deferred_topics_v2",
       "__paused_machine_v2",
+      PROFILE_CONFIRM_DEFERRED_KEY,
     ]
     const merged: any = { ...(tmLatest ?? {}) }
     for (const key of routerKeys) {
@@ -3745,103 +3289,48 @@ SORTIE JSON STRICTE:
     try { delete (tempMemory as any).__deferred_ack_prefix } catch {}
     try { delete (tempMemory as any).__resume_message_prefix } catch {}
   }
+  
+  // Inject relaunch decline message if user declined relaunch consent
+  if (relaunchDeclineMessage && relaunchConsentHandled) {
+    responseContent = `${relaunchDeclineMessage}\n\n${String(responseContent ?? "")}`.trim()
+  }
+  
+  // Inject abandon message if user abandoned a machine
+  const abandonMessage = (tempMemory as any)?.__abandon_message ?? ""
+  if (abandonMessage) {
+    responseContent = `${abandonMessage}\n\n${String(responseContent ?? "")}`.trim()
+    try { delete (tempMemory as any).__abandon_message } catch {}
+  }
   // Clear one-off checkup addon flags after response
   try { delete (tempMemory as any).__checkup_addon } catch {}
   try { delete (tempMemory as any).__checkup_deferred_topic } catch {}
+  try { delete (tempMemory as any).__track_progress_parallel } catch {}
 
   // AUTO-RELAUNCH FROM DEFERRED (after a flow closes normally)
-  const flowJustClosed = (tempMemory as any)?.__flow_just_closed_normally
-  if (flowJustClosed) {
-    try { delete (tempMemory as any).__flow_just_closed_normally } catch {}
-
-    if (!isDeferredPaused(tempMemory) && hasPendingDeferredTopics(tempMemory)) {
-      const nextDeferred = getNextDeferredToProcess(tempMemory)
-      if (nextDeferred) {
-        const intro = generateAutoRelaunchIntro({ topic: nextDeferred })
-        responseContent = `${String(responseContent ?? "").trim()}\n\n${intro}`.trim()
-
-        // Remove from deferred (we're about to process it)
-        const removeResult = removeDeferredTopicV2({ tempMemory, topicId: nextDeferred.id })
-        tempMemory = removeResult.tempMemory
-
-        // Initialize the next machine immediately
-        if (nextDeferred.machine_type === "breakdown_action") {
-          const candidate = createBreakdownCandidate({
-            target_action: nextDeferred.action_target ? { title: nextDeferred.action_target } : undefined,
-          })
-          const updated = upsertBreakdownActionFlow({ tempMemory, candidate })
-          tempMemory = updated.tempMemory
-          nextMode = "architect"
-        } else if (nextDeferred.machine_type === "update_action") {
-          const candidate = createUpdateCandidate({
-            target_action: { title: nextDeferred.action_target ?? "une action" },
-            proposed_changes: {},
-          })
-          const updated = upsertUpdateActionFlow({ tempMemory, candidate })
-          tempMemory = updated.tempMemory
-          nextMode = "architect"
-        } else if (nextDeferred.machine_type === "track_progress") {
-          // No specific candidate; just route to Architect to log progress
-          nextMode = "architect"
-        } else if (nextDeferred.machine_type === "create_action") {
-          const candidate = createActionCandidate({
-            label: nextDeferred.action_target ?? "Nouvelle action",
-            proposed_by: "sophia",
-            status: "awaiting_confirm",
-          })
-          const updated = upsertCreateActionFlow({ tempMemory, candidate })
-          tempMemory = updated.tempMemory
-          nextMode = "architect"
-        } else if (nextDeferred.machine_type === "topic_light") {
-          const topic = nextDeferred.action_target ?? nextDeferred.signal_summaries[0]?.summary ?? "un sujet"
-          const updated = upsertTopicLight({ tempMemory, topic, phase: "opening" })
-          tempMemory = updated.tempMemory
-          nextMode = "companion"
-        } else if (nextDeferred.machine_type === "topic_serious") {
-          const topic = nextDeferred.action_target ?? nextDeferred.signal_summaries[0]?.summary ?? "un sujet important"
-          const updated = upsertTopicSerious({ tempMemory, topic, phase: "opening" })
-          tempMemory = updated.tempMemory
-          nextMode = "architect"
-        } else if (nextDeferred.machine_type === "deep_reasons") {
-          const topic = nextDeferred.action_target ?? nextDeferred.signal_summaries[0]?.summary ?? "un blocage motivationnel"
-          const updated = upsertDeepReasonsExploration({
+  {
+    const relaunch = await applyAutoRelaunchFromDeferred({
             tempMemory,
-            topic,
-            phase: "re_consent",
-            source: "deferred",
-          })
-          tempMemory = updated.tempMemory
-          nextMode = "architect"
-        } else if (nextDeferred.machine_type === "user_profile_confirmation") {
-          // Profile facts will be re-detected by dispatcher when companion runs
-          // Just set flag to prompt companion to ask confirmation
-          ;(tempMemory as any).__profile_confirm_from_deferred = true
-          nextMode = "companion"
-        } else if (nextDeferred.machine_type === "checkup") {
-          // Checkup was deferred - ask confirmation before starting
-          ;(tempMemory as any).__checkup_entry_pending = true
-          ;(tempMemory as any).__ask_checkup_confirmation = true
-          nextMode = "companion"
-        }
-
-        await trace("brain:auto_relaunch", "routing", {
-          machine_type: nextDeferred.machine_type,
-          action_target: nextDeferred.action_target,
-          from_deferred_id: nextDeferred.id,
-          trigger_count: nextDeferred.trigger_count,
-        })
-      }
-    }
+      responseContent,
+      nextMode,
+      profileConfirmDeferredKey: PROFILE_CONFIRM_DEFERRED_KEY,
+      trace,
+    })
+    tempMemory = relaunch.tempMemory
+    responseContent = relaunch.responseContent
+    nextMode = relaunch.nextMode
   }
 
   // Lightweight global proactivity: occasionally remind a deferred topic (max 1/day, and only if we won't add a 2nd question).
-  const nudged = maybeInjectGlobalDeferredNudge({ tempMemory, userMessage, responseText: responseContent })
+  let nudged = { tempMemory, responseText: responseContent, changed: false }
+  if (!hasAnyActiveMachine(tempMemory)) {
+    nudged = maybeInjectGlobalDeferredNudge({ tempMemory, userMessage, responseText: responseContent })
   if (nudged.changed) {
     tempMemory = nudged.tempMemory
     responseContent = nudged.responseText
     await traceV("brain:global_deferred_nudge_injected", "routing", {
       reason: "maybeInjectGlobalDeferredNudge",
     })
+    }
   }
 
   // --- PR4: deterministic pending nudge (supervisor.queue-driven), behind flag ---
@@ -3966,11 +3455,18 @@ SORTIE JSON STRICTE:
       tempMemory = resumeResult.tempMemory
       
       if (resumeResult.resumed && resumeResult.machineType) {
-        // Generate resume message
-        const resumeMsg = generateResumeMessage({ pausedMachine: pausedMachineV2 })
+        // Calculate parenthesis duration for context
+        const parenthesisDurationMs = Date.now() - new Date(pausedMachineV2.paused_at).getTime()
         
-        // Store for agent to prepend
-        ;(tempMemory as any).__resume_message_prefix = resumeMsg
+        // Generate AI-driven resume addon (guides agent for smooth transition)
+        const resumeSafetyAddon = buildResumeFromSafetyAddon({
+          pausedMachine: pausedMachineV2,
+          safetyType: pausedMachineV2.reason,
+          parenthesisDurationMs,
+        })
+        
+        // Store addon for agent context injection (one-shot)
+        ;(tempMemory as any).__resume_safety_addon = resumeSafetyAddon
         
         // Route to appropriate owner
         if (resumeResult.machineType === "topic_light") {
@@ -3981,7 +3477,7 @@ SORTIE JSON STRICTE:
         
         await trace("brain:machine_resumed", "routing", {
           machine_type: resumeResult.machineType,
-          paused_duration_ms: Date.now() - new Date(pausedMachineV2.paused_at).getTime(),
+          paused_duration_ms: parenthesisDurationMs,
           reason: pausedMachineV2.reason,
         })
       }

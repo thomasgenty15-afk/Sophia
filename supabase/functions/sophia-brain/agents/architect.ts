@@ -28,7 +28,6 @@ export async function runArchitect(
 ): Promise<{ text: string; executed_tools: string[]; tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain" }> {
   const lastAssistantMessage = history.filter((m: any) => m.role === "assistant").pop()?.content || ""
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
-  const inWhatsAppGuard24h = isWhatsApp && /WHATSAPP_ONBOARDING_GUARD_24H=true/i.test(context ?? "")
   const isModuleUi = String(context ?? "").includes("=== CONTEXTE MODULE (UI) ===")
 
   function looksLikeExplicitPlanOperationRequest(msg: string): boolean {
@@ -166,7 +165,7 @@ export async function runArchitect(
     - break_down_action: si une action bloque ET que l'utilisateur accepte explicitement qu'on la découpe en micro-étape (2 min).
     - update_action_structure: si l'utilisateur demande un changement sur une action existante.
     - create_simple_action / create_framework: uniquement si un plan actif existe (sinon refuse).
-    - activate_plan_action: pour activer une action future (sauf si guard onboarding 24h).
+    - activate_plan_action: pour activer une action future.
 
     RÈGLES CRITIQUES :
     - N'invente jamais un changement ("j'ai activé/créé") sans preuve (outil + succès).
@@ -375,7 +374,7 @@ export async function runArchitect(
     : ""
 
   const systemPrompt = `${basePrompt}${flowContext}`.trim()
-  const baseTools = getArchitectTools({ inWhatsAppGuard24h })
+  const baseTools = getArchitectTools()
   // In Module (UI) conversations, default to discussion-first: no tools unless the user explicitly asks.
   const tools = (isModuleUi && !looksLikeExplicitPlanOperationRequest(message)) ? [] : baseTools
 
@@ -395,7 +394,6 @@ export async function runArchitect(
         metadata: {
           channel: meta?.channel ?? null,
           scope,
-          in_whatsapp_guard_24h: !!inWhatsAppGuard24h,
           is_module_ui: !!isModuleUi,
           has_active_flow: !!existingFlow,
           tools: toolNames,
@@ -406,7 +404,7 @@ export async function runArchitect(
 
   const response = await generateArchitectModelOutput({ systemPrompt, message, history, tools, meta })
   // NOTE: tool-call ledger is logged inside the tool handler (handleArchitectModelOutput) to avoid duplicate events.
-  return await handleArchitectModelOutput({ supabase, userId, message, history, response, inWhatsAppGuard24h, context, meta, userState, scope })
+  return await handleArchitectModelOutput({ supabase, userId, message, history, response, context, meta, userState, scope })
 }
 
 

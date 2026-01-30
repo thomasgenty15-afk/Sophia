@@ -329,7 +329,6 @@ function buildAntiClaimViolations(text: string, ctx: {
   tools_executed?: boolean;
   executed_tools?: string[];
   tool_execution?: "none" | "blocked" | "success" | "failed" | "uncertain" | string;
-  whatsapp_guard_24h?: boolean;
 }): string[] {
   const v: string[] = []
   const s = String(text ?? "")
@@ -366,13 +365,6 @@ function buildAntiClaimViolations(text: string, ctx: {
     v.push("unsupported_capability_claim_whatsapp")
   }
 
-  // C) WhatsApp onboarding guard: never promise activation from WhatsApp.
-  if (channel === "whatsapp" && ctx.whatsapp_guard_24h) {
-    if (/\bje\s+peux\b/i.test(s) && /\b(activer|activer\s+une\s+action|lancer\s+une\s+action)\b/i.test(s)) {
-      v.push("whatsapp_onboarding_guard_capability_claim")
-    }
-  }
-
   return v
 }
 
@@ -385,7 +377,6 @@ export function buildConversationAgentViolations(text: string, ctx: {
   tools_executed?: boolean;
   executed_tools?: string[];
   tool_execution?: "none" | "blocked" | "success" | "failed" | "uncertain" | string;
-  whatsapp_guard_24h?: boolean;
 }): string[] {
   const v: string[] = [];
   const cleaned = (text ?? "").toString();
@@ -447,7 +438,6 @@ export function buildConversationAgentViolations(text: string, ctx: {
     tools_executed: ctx.tools_executed,
     executed_tools: ctx.executed_tools,
     tool_execution: ctx.tool_execution,
-    whatsapp_guard_24h: ctx.whatsapp_guard_24h,
   }));
 
   return v;
@@ -551,7 +541,6 @@ export async function verifyConversationAgentMessage(opts: {
     tools_executed: Boolean((data as any)?.tools_executed),
     executed_tools: Array.isArray((data as any)?.executed_tools) ? (data as any).executed_tools : [],
     tool_execution: String((data as any)?.tool_execution ?? "none"),
-    whatsapp_guard_24h: Boolean((data as any)?.whatsapp_guard_24h),
   });
 
   // Semantic anti-loop (prod): detect assistant repeating the same idea as recent assistant messages.

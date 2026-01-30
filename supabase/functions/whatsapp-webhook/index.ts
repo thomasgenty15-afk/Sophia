@@ -16,10 +16,17 @@ import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 import { handleUnlinkedInbound } from "./handlers_unlinked.ts"
 import { handleStopOptOut } from "./handlers_optout.ts"
 import { handlePendingActions } from "./handlers_pending.ts"
-import { handleOnboardingState } from "./handlers_onboarding.ts"
+import {
+  handleOnboardingState,
+  handleDeferredMotivationAnswer,
+  handleDeferredPersonalFactAnswer,
+  handleDeferredOnboardingSteps,
+} from "./handlers_onboarding.ts"
 import { computeOptInAndBilanContext, handleOptInAndDailyBilanActions } from "./handlers_optin_bilan.ts"
 import { handleWrongNumber } from "./handlers_wrong_number.ts"
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts"
+import { analyzeSignals } from "../sophia-brain/router/dispatcher.ts"
+import { getDeferredOnboardingSteps } from "./onboarding_helpers.ts"
 
 const LINK_PROMPT_COOLDOWN_MS = Number.parseInt(
   (Deno.env.get("WHATSAPP_LINK_PROMPT_COOLDOWN_MS") ?? "").trim() || String(10 * 60 * 1000),
@@ -469,6 +476,24 @@ Deno.serve(async (req) => {
         }
       }
 
+      // If user just opted out, send a single confirmation message (once), then stop.
+      if (isStop) {
+        const enabled = (Deno.env.get("WHATSAPP_STOP_CONFIRMATION_ENABLED") ?? "true").trim().toLowerCase() !== "false"
+        const alreadyConfirmed = Boolean(profile.whatsapp_optout_confirmed_at)
+        await handleStopOptOut({
+          admin,
+          userId: profile.id,
+          fromE164,
+          alreadyConfirmed,
+          enabled,
+          nowIso,
+          replyWithBrain,
+          requestId: processId,
+          replyToWaMessageId: msg.wa_message_id,
+        })
+        continue
+      }
+
       // Paywall notice: if user messages on WhatsApp but is out of trial and not on Alliance/Architecte,
       // answer with a helpful upgrade message instead of running the coaching flows.
       // This avoids confusing "silent" failures when WhatsApp is gated by plan.
@@ -529,24 +554,6 @@ Deno.serve(async (req) => {
         }
       }
 
-      // If user just opted out, send a single confirmation message (once), then stop.
-      if (isStop) {
-        const enabled = (Deno.env.get("WHATSAPP_STOP_CONFIRMATION_ENABLED") ?? "true").trim().toLowerCase() !== "false"
-        const alreadyConfirmed = Boolean(profile.whatsapp_optout_confirmed_at)
-        await handleStopOptOut({
-          admin,
-          userId: profile.id,
-          fromE164,
-          alreadyConfirmed,
-          enabled,
-          nowIso,
-          replyWithBrain,
-          requestId: processId,
-          replyToWaMessageId: msg.wa_message_id,
-        })
-        continue
-      }
-
       // Opt-in + daily bilan fast paths (may send messages / update state) AFTER inbound is logged.
       const didHandleOptInOrBilan = await handleOptInAndDailyBilanActions({
         admin,
@@ -561,6 +568,7 @@ Deno.serve(async (req) => {
         replyWithBrain,
         requestId: processId,
         waMessageId: msg.wa_message_id,
+        inboundText: msg.text ?? "",
       })
       if (didHandleOptInOrBilan) continue
 
@@ -580,10 +588,43 @@ Deno.serve(async (req) => {
       // Mini state-machine for a lively first WhatsApp onboarding (post opt-in).
       // We intercept these states BEFORE calling the AI brain.
       if (profile.whatsapp_state) {
+        const waState = String(profile.whatsapp_state || "")
+
+        // Handle deferred states (motivation/personal_fact asked later)
+        if (waState === "awaiting_deferred_motivation") {
+          const didHandle = await handleDeferredMotivationAnswer({
+            admin,
+            userId: profile.id,
+            fromE164,
+            requestId: processId,
+            waMessageId: msg.wa_message_id,
+            text: msg.text ?? "",
+            siteUrl: SITE_URL,
+            replyWithBrain,
+            stripFirstMotivationScore,
+          })
+          if (didHandle) continue
+        }
+
+        if (waState === "awaiting_deferred_personal_fact") {
+          const didHandle = await handleDeferredPersonalFactAnswer({
+            admin,
+            userId: profile.id,
+            fromE164,
+            requestId: processId,
+            waMessageId: msg.wa_message_id,
+            text: msg.text ?? "",
+            siteUrl: SITE_URL,
+            replyWithBrain,
+          })
+          if (didHandle) continue
+        }
+
+        // Standard onboarding states
         const didHandleOnboarding = await handleOnboardingState({
           admin,
           userId: profile.id,
-          whatsappState: String(profile.whatsapp_state || ""),
+          whatsappState: waState,
           fromE164,
           requestId: processId,
           waMessageId: msg.wa_message_id,
@@ -597,6 +638,37 @@ Deno.serve(async (req) => {
           hasWhatsappPersonalFact,
         })
         if (didHandleOnboarding) continue
+      }
+
+      // Deferred onboarding steps (only when no active onboarding state)
+      if (!profile.whatsapp_state) {
+        const deferredSteps = await getDeferredOnboardingSteps(admin, profile.id)
+        if (deferredSteps.length > 0) {
+          let signals: any = null
+          try {
+            signals = await analyzeSignals(
+              (msg.text ?? "").trim() || "Ok",
+              { current_mode: "companion" },
+              "",
+              { requestId: processId },
+            )
+          } catch (e) {
+            console.warn("[whatsapp-webhook] analyzeSignals failed for deferred steps:", e)
+          }
+
+          const deferredHandled = await handleDeferredOnboardingSteps({
+            admin,
+            userId: profile.id,
+            fromE164,
+            requestId: processId,
+            waMessageId: msg.wa_message_id,
+            text: msg.text ?? "",
+            siteUrl: SITE_URL,
+            signals: signals ?? {},
+            replyWithBrain,
+          })
+          if (deferredHandled.handled) continue
+        }
       }
 
       // Default: call Sophia brain (no auto logging) then send reply

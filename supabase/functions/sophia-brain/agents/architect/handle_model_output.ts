@@ -163,13 +163,12 @@ export async function handleArchitectModelOutput(opts: {
   message: string
   history?: any[]
   response: ArchitectModelOutput
-  inWhatsAppGuard24h: boolean
   context?: string
   meta?: { requestId?: string; evalRunId?: string | null; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string }
   userState?: any
   scope?: string
 }): Promise<{ text: string; executed_tools: string[]; tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain" }> {
-  const { supabase, userId, message, response, inWhatsAppGuard24h, meta } = opts
+  const { supabase, userId, message, response, meta } = opts
   const scope = normalizeScope(opts.scope ?? meta?.scope ?? (meta?.channel === "whatsapp" ? "whatsapp" : "web"), "web")
   const tm0 = ((opts.userState as any)?.temp_memory ?? {}) as any
   const currentFlow = tm0?.architect_tool_flow ?? null
@@ -1672,7 +1671,6 @@ FORMAT :
         metadata: {
           channel: meta?.channel ?? null,
           scope,
-          in_whatsapp_guard_24h: !!inWhatsAppGuard24h,
           flow: currentFlow ? { kind: (currentFlow as any)?.kind ?? null, stage: (currentFlow as any)?.stage ?? null } : null,
           ...(evt.metadata ?? {}),
         },
@@ -1683,18 +1681,6 @@ FORMAT :
       console.log(`[Architect] Args:`, JSON.stringify((response as any).args))
 
       await trace({ event: "tool_call_attempted", level: "debug" })
-
-      if (inWhatsAppGuard24h && toolName === "activate_plan_action") {
-        await trace({
-          event: "tool_call_blocked",
-          metadata: { reason: "whatsapp_onboarding_guard_24h" },
-        })
-        return {
-          text: "Je peux te guider, mais pendant l’onboarding WhatsApp je ne peux pas activer d’actions depuis ici.\n\nVa sur le dashboard pour l’activer, et dis-moi quand c’est fait.",
-          executed_tools: [toolName],
-          tool_execution: "blocked",
-        }
-      }
 
       if (toolName === "track_progress") {
         const flowAwaiting =

@@ -7,9 +7,10 @@ import { isAffirmative, isExplicitStopBilan, isNegative } from "./utils.ts"
 import { investigatorSay } from "./copy.ts"
 import { getItemHistory, getPendingItems, getYesterdayCheckupSummary } from "./db.ts"
 // NOTE: Breakdown flow removed - signals are now deferred to post-bilan via deferred_topics_v2
-import { buildMainItemSystemPrompt } from "./prompt.ts"
+import { buildMainItemSystemPrompt, buildDeferQuestionAddon } from "./prompt.ts"
 import { INVESTIGATOR_TOOLS } from "./tools.ts"
 import { handleInvestigatorModelOutput } from "./turn.ts"
+import { getMissedStreakDaysForCheckupItem } from "./streaks.ts"
 
 export async function runInvestigator(
   supabase: SupabaseClient,
@@ -57,12 +58,36 @@ export async function runInvestigator(
     const localHour = Number(timeCtx?.user_local_hour)
     const initialDayScope = Number.isFinite(localHour) && localHour >= 17 ? "today" : "yesterday"
 
+    // Precompute missed streaks for all action/framework items (cache for the bilan)
+    const actionItems = items.filter((i) => i.type === "action" || i.type === "framework")
+    const missedStreaksByAction: Record<string, number> = {}
+    if (actionItems.length > 0) {
+      try {
+        const streakPairs = await Promise.all(
+          actionItems.map(async (item) => {
+            const streak = await getMissedStreakDaysForCheckupItem(supabase, userId, item).catch(() => 0)
+            return [String(item.id), Number.isFinite(streak) ? streak : 0] as [string, number]
+          }),
+        )
+        for (const [actionId, streak] of streakPairs) {
+          missedStreaksByAction[actionId] = streak
+        }
+      } catch (e) {
+        console.error("[Investigator] missed streak cache build failed:", e)
+      }
+    }
+
     currentState = {
       status: "checking",
       pending_items: items,
       current_item_index: 0,
       // locked_pending_items avoids pulling extra items mid-checkup (more stable UX).
-      temp_memory: { opening_done: false, locked_pending_items: true, day_scope: initialDayScope },
+      temp_memory: {
+        opening_done: false,
+        locked_pending_items: true,
+        day_scope: initialDayScope,
+        missed_streaks_by_action: missedStreaksByAction,
+      },
     }
   }
 
@@ -215,7 +240,11 @@ export async function runInvestigator(
   const itemHistory = await getItemHistory(supabase, userId, currentItem.id, currentItem.type)
   const generalContext = await retrieveContext(supabase, userId, message)
 
-  const systemPrompt = buildMainItemSystemPrompt({
+  // Build defer question addon if there's a pending question to ask
+  const pendingDeferQuestion = currentState?.temp_memory?.pending_defer_question
+  const deferAddon = buildDeferQuestionAddon({ pendingDeferQuestion })
+
+  const basePrompt = buildMainItemSystemPrompt({
     currentItem,
     itemHistory,
     generalContext,
@@ -223,6 +252,9 @@ export async function runInvestigator(
     message,
     timeContextBlock: timeCtx?.prompt_block ? `=== REPÈRES TEMPORELS ===\n${timeCtx.prompt_block}\n` : "",
   })
+  
+  // Combine base prompt with defer addon if present
+  const systemPrompt = deferAddon ? `${basePrompt}\n\n${deferAddon}` : basePrompt
 
   console.log(`[Investigator] Generating response for item: ${currentItem.title}`)
 

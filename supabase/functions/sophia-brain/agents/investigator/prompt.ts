@@ -1,4 +1,77 @@
-import type { CheckupItem } from "./types.ts"
+import type { CheckupItem, PendingDeferQuestion } from "./types.ts"
+
+/**
+ * Build a dynamic addon for the investigator prompt when there's a pending defer question.
+ * This injects instructions to ask the user if they want to explore something after the bilan.
+ */
+export function buildDeferQuestionAddon(opts: {
+  pendingDeferQuestion?: PendingDeferQuestion | null
+}): string {
+  if (!opts.pendingDeferQuestion) return ""
+  
+  const { machine_type, action_title, streak_days, topic_hint } = opts.pendingDeferQuestion
+  
+  if (machine_type === "deep_reasons") {
+    return `
+    === ADD-ON CRITIQUE (EXPLORATION PROFONDE) ===
+    L'utilisateur a exprimé un blocage MOTIVATIONNEL sur "${action_title || "une action"}".
+    
+    Dans la PREMIÈRE PARTIE de ton message, tu DOIS :
+    1. Reconnaître brièvement ce qui a été dit (empathie)
+    2. Poser une question pour savoir si l'utilisateur veut explorer ce sujet APRÈS le bilan
+    
+    Exemple de formulation :
+    "Je sens qu'il y a quelque chose de plus profond derrière. Tu veux qu'on en parle après le bilan ?"
+    ou
+    "C'est pas juste une question de temps visiblement. Tu veux qu'on creuse ça ensemble après le bilan ?"
+    
+    IMPORTANT : 
+    - Pose une question oui/non claire
+    - Ne force pas l'exploration
+    - Après la réponse de l'utilisateur, continue le bilan normalement
+    `
+  }
+  
+  if (machine_type === "breakdown") {
+    const streakMention = streak_days && streak_days >= 5 
+      ? `Ça fait ${streak_days} jours que ça bloque sur "${action_title}".` 
+      : `"${action_title}" a du mal à passer.`
+    
+    return `
+    === ADD-ON CRITIQUE (MICRO-ÉTAPE) ===
+    ${streakMention}
+    
+    Dans la PREMIÈRE PARTIE de ton message, tu DOIS :
+    1. Faire remarquer le pattern (plusieurs jours que ça bloque)
+    2. Proposer de découper l'action en micro-étape APRÈS le bilan
+    
+    Exemple de formulation :
+    "Ça fait ${streak_days || "plusieurs"} jours que ${action_title || "cette action"} ne passe pas. Tu veux qu'on trouve une version plus simple après le bilan ?"
+    ou
+    "Je vois que ça coince sur ${action_title || "cette action"} depuis un moment. On pourrait trouver une micro-étape plus accessible après le bilan, ça t'intéresse ?"
+    
+    IMPORTANT :
+    - Mentionne EXPLICITEMENT le nombre de jours si disponible
+    - Utilise le mot "micro-étape"
+    - Mentionne "après le bilan"
+    - Pose une question oui/non claire
+    `
+  }
+  
+  if (machine_type === "topic") {
+    return `
+    === ADD-ON (TOPIC) ===
+    L'utilisateur a mentionné un sujet intéressant : "${topic_hint || "un sujet"}".
+    
+    Demande brièvement s'il veut en parler après le bilan :
+    "Tu as mentionné [sujet]. Tu veux qu'on en parle après le bilan ?"
+    
+    IMPORTANT : Question oui/non simple, puis continue le bilan.
+    `
+  }
+  
+  return ""
+}
 
 export function buildMainItemSystemPrompt(opts: {
   currentItem: CheckupItem
