@@ -679,36 +679,72 @@ export async function handleOnboardingState(params: {
       return true
     }
 
-    await replyWithBrain({
-      admin,
-      userId,
-      fromE164,
-      inboundText: raw || `${score}/10`,
-      requestId,
-      replyToWaMessageId: waMessageId,
-      purpose: "awaiting_plan_motivation_score_to_personal_fact_prompt",
-      forceMode: "companion",
-      whatsappMode: "onboarding",
-      contextOverride:
-        buildWhatsAppOnboardingContext({
-          state: "awaiting_personal_fact",
-          siteUrl,
-          supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
-          planPolicy: "plan_active",
-          phase: "onboarding",
-          profileFacts: onboardingCtx.profileFacts,
-          memories: onboardingCtx.memories,
-          isReturningUser: onboardingCtx.isReturning,
-        }) +
-        `\n\nCONSIGNE DE TOUR:\n` +
-        `- Le user a donné ${score}/10.\n` +
-        `- Réponds court, sans markdown.\n` +
-        `- Ta réponse DOIT contenir: "merci" (n'importe où), "${score}/10", et "1 truc".\n` +
-        `- Pose UNE seule question demandant 1 fait perso simple.\n` +
-        `- IMPORTANT: favorise un fait ultra-facile à répondre en 1 message WhatsApp.\n` +
-        `- Exemple recommandé (privilégier celui-ci): "Tu es plutôt du matin ou du soir en général ?"\n` +
-        `- Ne démarre pas l'exécution du plan tant que le fait perso n'est pas capturé.\n`,
-    })
+    // Deterministic prompt (avoid LLM drifting into "créneaux horaires" / ambiguous questions).
+    // If sending fails, fall back to replyWithBrain.
+    try {
+      const body =
+        `Merci pour ton ${score}/10 — c’est une bonne base.\n` +
+        `J’ai besoin d’1 truc pour adapter: tu es plutôt du matin ou du soir en général ?`
+      const sendResp = await sendWhatsAppTextTracked({
+        admin,
+        requestId,
+        userId,
+        toE164: fromE164,
+        body,
+        purpose: "awaiting_plan_motivation_score_to_personal_fact_prompt_deterministic",
+        isProactive: false,
+        replyToWaMessageId: waMessageId,
+        metadata: { score },
+      })
+      const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+      const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+      await admin.from("chat_messages").insert({
+        user_id: userId,
+        scope: "whatsapp",
+        role: "assistant",
+        content: body,
+        agent_used: "companion",
+        metadata: {
+          channel: "whatsapp",
+          wa_outbound_message_id: outId,
+          outbound_tracking_id: outboundTrackingId,
+          is_proactive: false,
+          reply_to_wa_message_id: waMessageId,
+          purpose: "awaiting_plan_motivation_score_to_personal_fact_prompt_deterministic",
+          score,
+        },
+      } as any)
+    } catch (e) {
+      console.warn("[handlers_onboarding] deterministic personal_fact prompt failed, falling back to brain:", e)
+      await replyWithBrain({
+        admin,
+        userId,
+        fromE164,
+        inboundText: raw || `${score}/10`,
+        requestId,
+        replyToWaMessageId: waMessageId,
+        purpose: "awaiting_plan_motivation_score_to_personal_fact_prompt",
+        forceMode: "companion",
+        whatsappMode: "onboarding",
+        contextOverride:
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_personal_fact",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "plan_active",
+            phase: "onboarding",
+            profileFacts: onboardingCtx.profileFacts,
+            memories: onboardingCtx.memories,
+            isReturningUser: onboardingCtx.isReturning,
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Le user a donné ${score}/10.\n` +
+          `- Réponds court, sans markdown.\n` +
+          `- Ta réponse DOIT contenir: "merci" (n'importe où), "${score}/10", et "1 truc".\n` +
+          `- Pose UNE seule question demandant 1 fait perso simple (idéalement: matin vs soir).\n` +
+          `- Ne démarre pas l'exécution du plan tant que le fait perso n'est pas capturé.\n`,
+      })
+    }
 
     await admin.from("profiles").update({
       whatsapp_state: "awaiting_personal_fact",
@@ -769,36 +805,68 @@ export async function handleOnboardingState(params: {
       } as any)
     }
 
-    await replyWithBrain({
-      admin,
-      userId,
-      fromE164,
-      inboundText: fact || "Ok",
-      requestId,
-      replyToWaMessageId: waMessageId,
-      purpose: "personal_fact_ack_ai",
-      whatsappMode: "onboarding",
-      forceMode: "companion",
-      contextOverride:
-        buildWhatsAppOnboardingContext({
-          state: "awaiting_personal_fact",
-          siteUrl,
-          supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
-          planPolicy: "unknown",
-          phase: "onboarding",
-          profileFacts: onboardingCtx.profileFacts,
-          memories: onboardingCtx.memories,
-          isReturningUser: onboardingCtx.isReturning,
-        }) +
-        `\n\nCONSIGNE DE TOUR:\n` +
-        `- Réponds en WhatsApp (court).\n` +
-        `- Accuse réception de façon humaine (pas robotique), et ta réponse DOIT contenir "Merci".\n` +
-        `- Fais une transition naturelle (ex: "Top", "Parfait", "Ça marche").\n` +
-        `- Puis termine par une question ouverte, très simple, du type:\n` +
-        `  "Et là, tout de suite : tu as envie qu'on parle de quoi ?"\n` +
-        (fact ? `- Le fait partagé est: "${fact}".` : "") +
-        `\n`,
-    })
+    // Deterministic ack (avoid robotic "Ok c'est noté" + ensure smooth transition).
+    try {
+      const body = `Parfait, merci — je note.\nEt là, tout de suite : tu as envie qu'on parle de quoi ?`
+      const sendResp = await sendWhatsAppTextTracked({
+        admin,
+        requestId,
+        userId,
+        toE164: fromE164,
+        body,
+        purpose: "personal_fact_ack_deterministic",
+        isProactive: false,
+        replyToWaMessageId: waMessageId,
+        metadata: { fact: fact.slice(0, 240) },
+      })
+      const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+      const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+      await admin.from("chat_messages").insert({
+        user_id: userId,
+        scope: "whatsapp",
+        role: "assistant",
+        content: body,
+        agent_used: "companion",
+        metadata: {
+          channel: "whatsapp",
+          wa_outbound_message_id: outId,
+          outbound_tracking_id: outboundTrackingId,
+          is_proactive: false,
+          reply_to_wa_message_id: waMessageId,
+          purpose: "personal_fact_ack_deterministic",
+        },
+      } as any)
+    } catch (e) {
+      console.warn("[handlers_onboarding] deterministic personal_fact ack failed, falling back to brain:", e)
+      await replyWithBrain({
+        admin,
+        userId,
+        fromE164,
+        inboundText: fact || "Ok",
+        requestId,
+        replyToWaMessageId: waMessageId,
+        purpose: "personal_fact_ack_ai",
+        whatsappMode: "onboarding",
+        forceMode: "companion",
+        contextOverride:
+          buildWhatsAppOnboardingContext({
+            state: "awaiting_personal_fact",
+            siteUrl,
+            supportEmail: (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim(),
+            planPolicy: "unknown",
+            phase: "onboarding",
+            profileFacts: onboardingCtx.profileFacts,
+            memories: onboardingCtx.memories,
+            isReturningUser: onboardingCtx.isReturning,
+          }) +
+          `\n\nCONSIGNE DE TOUR:\n` +
+          `- Réponds en WhatsApp (court).\n` +
+          `- Accuse réception de façon humaine (pas robotique), et ta réponse DOIT contenir "Merci".\n` +
+          `- Puis pose une question ouverte très simple ("Et là, tout de suite: tu as envie qu'on parle de quoi ?").\n` +
+          (fact ? `- Le fait partagé est: "${fact}".` : "") +
+          `\n`,
+      })
+    }
 
     await admin.from("profiles").update({
       whatsapp_state: null,
