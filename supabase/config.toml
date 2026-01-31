@@ -384,6 +384,8 @@ verify_jwt = false
 verify_jwt = false
 [functions.process-checkins]
 verify_jwt = false
+[functions.trigger-proactive-scheduler]
+verify_jwt = false
 [functions.trigger-memory-echo]
 verify_jwt = false
 
