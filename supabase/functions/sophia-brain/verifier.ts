@@ -529,7 +529,13 @@ export async function verifyConversationAgentMessage(opts: {
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; userId?: string };
 }): Promise<{ text: string; rewritten: boolean; violations: string[] }> {
   const { draft, agent, data, meta } = opts;
-  const base = collapseBlankLines(normalizeChatText(draft));
+  // Normalize first (blank lines, whitespace, etc.), then apply lightweight "output hygiene" guards.
+  // We keep this conservative and agent-scoped to avoid unintended side-effects on other modes.
+  let base = collapseBlankLines(normalizeChatText(draft));
+  if (agent === "architect") {
+    // Users reported frequent "diamond" glyphs (◊/◇/◆) in web module replies. Strip them deterministically.
+    base = base.replace(/[◊◇◆]/g, "").replace(/\s{2,}/g, " ");
+  }
   const channel = ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp";
   if (isMegaTestMode(meta)) return { text: base, rewritten: false, violations: [] };
   const violations = buildConversationAgentViolations(base, {

@@ -41,6 +41,7 @@ import ResumeOnboardingView from '../components/ResumeOnboardingView';
 import UserProfile from '../components/UserProfile';
 import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
 import { FeedbackModal, type FeedbackData } from '../components/dashboard/FeedbackModal';
+import { CreateActionModal } from '../components/dashboard/CreateActionModal';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -103,6 +104,8 @@ const Dashboard = () => {
   const [historyFrameworkAction, setHistoryFrameworkAction] = useState<Action | null>(null);
   const [habitSettingsAction, setHabitSettingsAction] = useState<Action | null>(null);
   const [habitSettingsMode, setHabitSettingsMode] = useState<'activate' | 'edit'>('edit');
+  const [createActionPhaseIndex, setCreateActionPhaseIndex] = useState<number | null>(null);
+  const [editingAction, setEditingAction] = useState<Action | null>(null);
 
   // 2. LOGIC HOOK : Récupère tous les handlers (Actions, Reset, Save...)
   const logic = useDashboardLogic({
@@ -662,6 +665,8 @@ const Dashboard = () => {
                                         onIncrementHabit={logic.handleIncrementHabit}
                                         onMasterHabit={logic.handleMasterHabit}
                                         onOpenHabitSettings={(action) => openHabitSettings(action, 'edit')}
+                                        onCreateAction={() => setCreateActionPhaseIndex(index)}
+                                        onEditAction={(action) => setEditingAction(action)}
                                     />
                                 );
                             });
@@ -756,6 +761,28 @@ const Dashboard = () => {
           onSave={async ({ targetReps, scheduledDays, activateIfPending }) => {
             if (!habitSettingsAction) return;
             await logic.handleSaveHabitSettings(habitSettingsAction, { targetReps, scheduledDays, activateIfPending });
+          }}
+        />
+
+        <CreateActionModal
+          isOpen={createActionPhaseIndex !== null}
+          onClose={() => setCreateActionPhaseIndex(null)}
+          onSubmit={async (actionData) => {
+            if (createActionPhaseIndex === null) return;
+            await logic.handleCreateAction(createActionPhaseIndex, actionData);
+            setCreateActionPhaseIndex(null);
+          }}
+        />
+
+        <CreateActionModal
+          isOpen={!!editingAction}
+          onClose={() => setEditingAction(null)}
+          mode="edit"
+          initialValues={editingAction || undefined}
+          onSubmit={async (actionData) => {
+            if (!editingAction) return;
+            await logic.handleUpdateAction(editingAction, actionData);
+            setEditingAction(null);
           }}
         />
       </main>

@@ -1,0 +1,29 @@
+-- Seed/repair environment-specific config rows used by DB triggers/crons.
+--
+-- Usage:
+-- - Copy this file to `scripts/seed_app_config_env.sql` (keep it out of git if you want).
+-- - Replace the placeholders below.
+-- - Run it in the Supabase SQL Editor for the target project (staging or prod).
+--
+-- IMPORTANT:
+-- - `supabase_project_ref` MUST match the current project.
+-- - `edge_functions_base_url` MUST be `https://<project-ref>.supabase.co` for hosted envs.
+-- - `edge_functions_anon_key` MUST be the anon key for THIS project.
+
+-- >>> FILL ME <<<
+-- Example:
+--   \set project_ref 'ybyqxwnwjvuxckolsddn'
+--   \set anon_key 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....'
+
+-- If your SQL editor doesn't support variables, just replace the strings directly.
+
+insert into public.app_config (key, value)
+values
+  ('supabase_project_ref', '<PROJECT_REF>'),
+  ('edge_functions_base_url', 'https://<PROJECT_REF>.supabase.co'),
+  ('edge_functions_anon_key', '<ANON_KEY>')
+on conflict (key) do update
+set value = excluded.value,
+    updated_at = now();
+
+

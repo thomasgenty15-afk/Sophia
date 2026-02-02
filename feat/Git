@@ -1,6 +1,42 @@
-git add -A
-git commit -m "M"
-git push origin main
+
+ 
+ git add A
+ 
+ git commit 
+ git push origin main
+ 
+ 
+ 
+ 
+  with cfg as (
+    select
+      coalesce(
+        (select value from public.app_config where key = 'edge_functions_base_url' limit 1),
+        'https://ybyqxwnwjvuxckolsddn.supabase.co'
+      ) as base_url,
+      coalesce(
+        (select value from public.app_config where key = 'edge_functions_anon_key' limit 1),
+        ''
+      ) as anon_key,
+      coalesce(
+        (select decrypted_secret from vault.decrypted_secrets where name='INTERNAL_FUNCTION_SECRET' limit 1),
+        ''
+      ) as internal_secret
+  )
+  select
+    net.http_post(
+      url := (select base_url from cfg) || '/functions/v1/trigger-proactive-scheduler',
+      headers := jsonb_build_object(
+        'content-type', 'application/json',
+        'apikey', (select anon_key from cfg),
+        'authorization', 'Bearer ' || (select anon_key from cfg),
+        'x-internal-secret', (select internal_secret from cfg)
+      ),
+      body b:= '{}'::jsonb
+    ) as request_id
+  from cfg
+  where (select anon_key from cfg) <> '' and (select internal_secret from cfg) <> '';
+  
 
 SUPABASE_URL=http://host.docker.internal:54321
 SUPABASE_ANON_KEY=sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH

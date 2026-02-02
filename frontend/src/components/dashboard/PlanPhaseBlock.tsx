@@ -1,4 +1,4 @@
-import { Check, Lock } from 'lucide-react';
+import { Check, Lock, Plus } from 'lucide-react';
 import type { PlanPhase, Action } from '../../types/dashboard';
 import { PlanActionCard } from './PlanActionCard';
 
@@ -14,7 +14,9 @@ export const PlanPhaseBlock = ({
     onToggleMission,
     onIncrementHabit,
     onMasterHabit,
-    onOpenHabitSettings
+    onOpenHabitSettings,
+    onCreateAction,
+    onEditAction
 }: { 
     phase: PlanPhase, 
     isLast: boolean, 
@@ -27,7 +29,9 @@ export const PlanPhaseBlock = ({
     onToggleMission?: (action: Action) => void,
     onIncrementHabit?: (action: Action) => void,
     onMasterHabit?: (action: Action) => void,
-    onOpenHabitSettings?: (action: Action) => void
+    onOpenHabitSettings?: (action: Action) => void,
+    onCreateAction?: () => void,
+    onEditAction?: (action: Action) => void
 }) => {
   const isPhaseLocked = phase.status === 'locked'; // Le verrouillage de phase global
   const isActive = phase.status === 'active';
@@ -106,9 +110,23 @@ export const PlanPhaseBlock = ({
                     onIncrementHabit={onIncrementHabit}
                     onMasterHabit={onMasterHabit}
                     onOpenHabitSettings={onOpenHabitSettings}
+                    onEdit={onEditAction}
                 />
             );
         })}
+
+        {/* Bouton Créer Action */}
+        {onCreateAction && !isPhaseLocked && (
+            <button
+                onClick={onCreateAction}
+                className="w-full py-3 rounded-xl border-2 border-dashed border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/50 text-slate-400 hover:text-indigo-600 font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all group"
+            >
+                <div className="p-1 rounded-full bg-slate-100 group-hover:bg-indigo-100 transition-colors">
+                    <Plus className="w-3 h-3" />
+                </div>
+                Ajouter une action
+            </button>
+        )}
       </div>
     </div>
   );

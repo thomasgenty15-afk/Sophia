@@ -700,7 +700,101 @@ export const useDashboardLogic = ({
     handleSaveHabitSettings,
     handleSaveFramework,
     handleGenerateStep,
-    handleUpdateVitalSign
+    handleUpdateVitalSign,
+    handleCreateAction: async (phaseIndex: number, actionData: Partial<Action>) => {
+        if (!activePlan || !activePlanId || !user) return;
+    
+        const newActionId = crypto.randomUUID();
+        // Default to 'active' so it's usable immediately (unless phase is locked visually)
+        const newAction: Action = {
+          id: newActionId,
+          type: actionData.type || 'mission',
+          title: actionData.title || 'Nouvelle action',
+          description: actionData.description || '',
+          isCompleted: false,
+          status: 'active', 
+          currentReps: 0,
+          ...actionData,
+        } as Action;
+    
+        // 1. Update Local State
+        const newPhases = [...activePlan.phases];
+        if (!newPhases[phaseIndex]) return;
+        
+        newPhases[phaseIndex] = {
+            ...newPhases[phaseIndex],
+            actions: [...newPhases[phaseIndex].actions, newAction]
+        };
+    
+        const newPlan = { ...activePlan, phases: newPhases };
+        const prevPlan = activePlan;
+        setActivePlan(newPlan);
+    
+        try {
+            // 2. Update Plan Content in DB (This persists all fields including tips, rationale, questType)
+            await supabase.from('user_plans').update({ content: newPlan }).eq('id', activePlanId);
+    
+            // 3. Insert into user_actions table (For tracking/analytics)
+            let dbType = 'mission';
+            if (newAction.type === 'habitude' || newAction.type === 'habit') dbType = 'habit';
+    
+            await supabase.from('user_actions').insert({
+                 user_id: user.id,
+                 plan_id: activePlanId,
+                 submission_id: activeSubmissionId,
+                 type: dbType,
+                 title: newAction.title,
+                 description: newAction.description,
+                 target_reps: newAction.targetReps || 1,
+                 current_reps: 0,
+                 status: 'active'
+            });
+    
+        } catch (err) {
+            console.error("Error creating action:", err);
+            alert("Erreur lors de la création de l'action.");
+            setActivePlan(prevPlan);
+        }
+      },
+
+    handleUpdateAction: async (originalAction: Action, updatedFields: Partial<Action>) => {
+        if (!activePlan || !activePlanId) return;
+        
+        const prevPlan = activePlan;
+        
+        // 1. Update Local State
+        const newPhases = activePlan.phases.map(p => ({
+            ...p,
+            actions: p.actions.map(a => a.id === originalAction.id ? { ...a, ...updatedFields } : a)
+        }));
+        
+        const newPlan = { ...activePlan, phases: newPhases };
+        setActivePlan(newPlan);
+        
+        try {
+            // 2. Update Plan Content in DB
+            await supabase.from('user_plans').update({ content: newPlan }).eq('id', activePlanId);
+            
+            // 3. Update user_actions table (using original title to find the record)
+            // Note: If title changed, we update it here too.
+            const updates: any = {};
+            if (updatedFields.title) updates.title = updatedFields.title;
+            if (updatedFields.description) updates.description = updatedFields.description;
+            if (updatedFields.targetReps) updates.target_reps = updatedFields.targetReps;
+            
+            if (Object.keys(updates).length > 0) {
+                 await supabase.from('user_actions')
+                    .update(updates)
+                    .eq('plan_id', activePlanId)
+                    .eq('title', originalAction.title);
+            }
+            
+        } catch (err) {
+            console.error("Error updating action:", err);
+            setActivePlan(prevPlan);
+            alert("Erreur lors de la modification.");
+        }
+    }
   };
 };
 
