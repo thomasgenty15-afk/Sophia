@@ -736,7 +736,8 @@ export const useDashboardLogic = ({
     
             // 3. Insert into user_actions table (For tracking/analytics)
             let dbType = 'mission';
-            if (newAction.type === 'habitude' || newAction.type === 'habit') dbType = 'habit';
+            // UI action type is in French ('habitude'); DB expects 'habit'
+            if (newAction.type === 'habitude') dbType = 'habit';
     
             await supabase.from('user_actions').insert({
                  user_id: user.id,

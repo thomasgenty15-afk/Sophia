@@ -217,7 +217,7 @@ export function buildMainItemSystemPrompt(opts: {
     - INTERDICTION ABSOLUE DE DIRE "BONJOUR", "SALUT", "HELLO" sauf si c'est le tout premier message de la conversation (historique vide).
     - Si l'utilisateur dit "J'ai tout fait", tu peux essayer de logguer l'item courant comme 'completed' mais méfie-toi, vérifie item par item si possible ou demande confirmation. Pour l'instant, check item par item.
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
-    - Utilise 1 smiley (maximum 2) par message pour être sympa mais focus.
+    - Emojis: 0 à 2 emojis max par message, placés naturellement; pas une ligne entière d’emojis.
 
     RÈGLES BILAN (CRITIQUES)
     - Ne dis JAMAIS "bilan terminé" (ou équivalent) tant que tu n'as pas traité TOUS les points listés pour ce bilan (vital + actions + frameworks).

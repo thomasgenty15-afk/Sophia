@@ -377,7 +377,7 @@ ${phaseAddon}
     - WhatsApp: 2 à 6 lignes max.
     - Si "ab_choice": exactement deux lignes "A) " et "B) ", puis UNE question.
     - Si "guided_30s": max 8 lignes, pas de poésie.
-    - Pas d'emojis.
+    - Emojis: 0 à 2 emojis max par message, placés naturellement; pas une ligne entière d’emojis.
 
     CONTEXTE CRISE :
     ${context ? `${context}\n(Cherche les déclencheurs ici)` : ""}
