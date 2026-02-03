@@ -731,7 +731,7 @@ BONNES PRATIQUES:
 • UNE seule question à la fois
 • Questions ouvertes, pas fermées
 • ${isWhatsApp ? "Max 3 lignes" : "Max 4 lignes"}
-• 1 emoji max
+• 0 à 2 emojis max
 
 CE QU'IL FAUT ÉVITER:
 • Interpréter avant d'avoir compris
@@ -793,7 +793,7 @@ BONNES PRATIQUES:
 • Pas de liste numérotée (trop clinique)
 • Terminer par "Laquelle te parle le plus ?" ou équivalent
 • ${isWhatsApp ? "Max 5 lignes" : "Max 7 lignes"}
-• 1 emoji max
+• 0 à 2 emojis max
 
 CE QU'IL FAUT ÉVITER:
 • Affirmer ("C'est clairement de la peur")
@@ -840,7 +840,7 @@ BONNES PRATIQUES:
 • UNE question d'approfondissement
 • Ton chaleureux, pas clinique
 • ${isWhatsApp ? "Max 3 lignes" : "Max 4 lignes"}
-• 1 emoji max
+• 0 à 2 emojis max
 
 CE QU'IL FAUT ÉVITER:
 • Enchaîner les questions
@@ -913,7 +913,7 @@ BONNES PRATIQUES:
 • Ton chaleureux, pas prescriptif
 • Terminer par "Tu en penses quoi ?" / "Ça te parle ?"
 • ${isWhatsApp ? "Max 4 lignes" : "Max 5 lignes"}
-• 1 emoji max
+• 0 à 2 emojis max
 
 CE QU'IL FAUT ÉVITER:
 • Donner plusieurs conseils à la fois
@@ -967,7 +967,7 @@ BONNES PRATIQUES:
 • Résumer en 1 phrase ce qu'on a découvert
 • Message de clôture bienveillant
 • ${isWhatsApp ? "Max 4 lignes" : "Max 5 lignes"}
-• 1 emoji max
+• 0 à 2 emojis max
 
 CE QU'IL FAUT ÉVITER:
 • Engagement trop ambitieux
@@ -1054,7 +1054,7 @@ BONNES PRATIQUES:
 • 1 question ouverte pour faire parler
 • ${isSerious ? "Valider l'importance du sujet" : "Légèreté, curiosité"}
 • ${isWhatsApp ? "Max 2-3 lignes" : "Max 3-4 lignes"}
-• ${isSerious ? "1 emoji max ou aucun" : "Emojis ok si approprié"}
+• Emojis: 0 à 2 emojis max (ou aucun)
 
 CE QU'IL FAUT ÉVITER:
 • Ton robotique ("Je comprends", "D'accord")
@@ -1253,7 +1253,7 @@ BONNES PRATIQUES:
 • ${isSerious ? "Bienveillance, porte ouverte" : "Légèreté, enthousiasme"}
 • Proposer la suite sans forcer
 • ${isWhatsApp ? "Max 2 lignes" : "Max 3 lignes"}
-• 1 emoji ok
+• 0 à 2 emojis ok
 
 CE QU'IL FAUT ÉVITER:
 • Clôture trop formelle
@@ -1355,7 +1355,7 @@ Si exercice spécifique:
 → BON: "L'${exerciseType ?? "exercice"} est activé ! Tu me dis quand tu l'as fait ?"
 → MAUVAIS: "J'ai bien noté votre demande d'activation."
 
-${isWhatsApp ? "FORMAT: Max 2 lignes + 1 emoji" : "FORMAT: Max 3 lignes + 1 emoji d'encouragement"}
+${isWhatsApp ? "FORMAT: Max 2 lignes + 0 à 2 emojis" : "FORMAT: Max 3 lignes + 0 à 2 emojis d'encouragement"}
 
 CE QU'IL FAUT ÉVITER:
 • Ton formel ou administratif

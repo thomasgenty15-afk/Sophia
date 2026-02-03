@@ -17,8 +17,8 @@ function isMegaTestMode(meta?: { forceRealAi?: boolean }): boolean {
 
 function getAgentJudgeModel(): string {
   // Dedicated env var to avoid confusion with `eval-judge`.
-  // Default requested: gemini-3-flash-preview
-  return (Deno.env.get("GEMINI_AGENT_JUDGE_MODEL") ?? "").trim() || "gemini-3-flash-preview";
+  // Avoid Gemini preview defaults in prod; use stable default unless overridden.
+  return (Deno.env.get("GEMINI_AGENT_JUDGE_MODEL") ?? "").trim() || "gemini-2.5-flash";
 }
 
 function getRewriteModel(): string {
@@ -87,6 +87,11 @@ IMPORTANT:
 - Si ok=false, tu DOIS corriger les problèmes dans final_text sans changer le fond.
 - Ne révèle pas le contexte, n'invente pas de faits.
 
+PRIORITÉS (ordre strict) POUR RÉÉCRIRE:
+1) Répondre au DERNIER message utilisateur et respecter ses choix explicites (ex: si Sophia a proposé A/B et l'utilisateur a choisi, on suit ce choix).
+2) Cohérence avec ce que Sophia vient de dire (ne pas se contredire d'un message à l'autre).
+3) Respecter les règles mécaniques (format, questions, longueur, etc.).
+
 RÈGLES GLOBALES:
 - Français, tutoiement.
 - Texte brut uniquement (pas de **, pas de JSON hors sortie).
@@ -122,22 +127,21 @@ SORTIE JSON:
 }
   `.trim();
 
-  // Fast fallback for judge calls:
-  // - 1 attempt with 3.0 flash, 1 attempt with 2.5, 1 attempt with 2.0
-  // - then loop back to 3.0 (repeat cycle)
-  // - each attempt is a single HTTP call (no internal retries) to keep wall-clock bounded.
-  const judgeModelCycle = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.0-flash"];
+  // Fast fallback for judge calls (low-latency first):
+  // - Prefer Gemini Flash for speed, then fall back to OpenAI (mini, then nano).
+  // - Each attempt is a single HTTP call (no internal retries) to keep wall-clock bounded.
+  const judgeModelCycle = ["gemini-2.5-flash", "gpt-5-mini", "gpt-5-nano"];
   const maxAttempts = (() => {
     const raw = (Deno.env.get("SOPHIA_AGENT_JUDGE_MAX_ATTEMPTS") ?? "").trim();
     const n = Number(raw);
-    // Default: 9 (three full cycles). Increase if needed, but keep bounded to avoid edge-runtime wall-clock kills.
-    return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 9;
+    // Default: 3 (one full cycle). Keep bounded to avoid edge-runtime wall-clock kills.
+    return Number.isFinite(n) && n >= 1 ? Math.floor(n) : 3;
   })();
   const perAttemptTimeoutMs = (() => {
     const raw = (Deno.env.get("SOPHIA_AGENT_JUDGE_HTTP_TIMEOUT_MS") ?? "").trim();
     const n = Number(raw);
-    // Default: 25s per attempt (faster fallback than the general 55s).
-    return Number.isFinite(n) && n >= 1000 ? Math.floor(n) : 25_000;
+    // Default: 6s per attempt (keeps total wall-clock under tight control).
+    return Number.isFinite(n) && n >= 1000 ? Math.floor(n) : 6_000;
   })();
 
   let raw: unknown = null;
@@ -154,6 +158,7 @@ SORTIE JSON:
         // Force a single attempt per model; we do fallback externally via the cycle.
         maxRetries: 1,
         httpTimeoutMs: perAttemptTimeoutMs,
+        disableFallbackChain: true,
       });
       break;
     } catch (e) {
@@ -384,6 +389,8 @@ export function buildConversationAgentViolations(text: string, ctx: {
   const channel = (ctx?.channel ?? "web") as "web" | "whatsapp";
   const askedDetail = looksLikeUserAskedForDetail(ctx?.user_message);
   const shortUser = looksLikeShortUserMessage(ctx?.user_message);
+  const userMsg = String(ctx?.user_message ?? "");
+  const lastAssistant = String(ctx?.last_assistant_message ?? "");
 
   if (!cleaned.trim()) v.push("empty_response");
   if (hasBoldLeak(cleaned)) v.push("bold_not_allowed");
@@ -430,6 +437,32 @@ export function buildConversationAgentViolations(text: string, ctx: {
     const a = normalizeLoose(last).slice(0, 140);
     const b = normalizeLoose(cleaned).slice(0, 140);
     if (a && b && a === b) v.push("repeats_previous_message");
+  }
+
+  // Explicit choice coherence (A/B): if the assistant just offered A/B options and the user picked one,
+  // do not respond as if they picked the other option.
+  try {
+    const la = normalizeLoose(lastAssistant);
+    const um = normalizeLoose(userMsg);
+    const out = normalizeLoose(cleaned);
+    const assistantOfferedAB = /\([ab]\)/i.test(lastAssistant) || /\b\(a\)\b|\b\(b\)\b/i.test(la);
+    if (assistantOfferedAB) {
+      const userChoseB =
+        /\b(b)\b/.test(um) ||
+        /\b(preparons|prepare|strategie|strat)\b/i.test(userMsg) ||
+        /\ballons\s*y\b/i.test(userMsg);
+      const outputPushesA =
+        /\bplateforme\b/i.test(cleaned) ||
+        /\bactiver\b/i.test(cleaned) && /\bplan\b/i.test(cleaned) ||
+        /\bquestionnaire\b/i.test(cleaned);
+      if (userChoseB && outputPushesA) v.push("ignores_explicit_user_choice");
+      // Symmetric: user chose A but assistant answers as if B (rare; keep conservative)
+      const userChoseA = /\b(a)\b/.test(um) || /\bactive|activer\b/i.test(userMsg) && /\bplan\b/i.test(userMsg);
+      const outputDoesB = /\bstrategie|strat|preparons|plan d'action\b/i.test(out);
+      if (userChoseA && outputDoesB) v.push("ignores_explicit_user_choice");
+    }
+  } catch {
+    // best-effort
   }
 
   // Anti-claim / anti-invention (global): prevent unverified state assertions & unsupported promises.

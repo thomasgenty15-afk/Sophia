@@ -25,7 +25,7 @@ import {
 import { computeOptInAndBilanContext, handleOptInAndDailyBilanActions } from "./handlers_optin_bilan.ts"
 import { handleWrongNumber } from "./handlers_wrong_number.ts"
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts"
-import { analyzeSignals } from "../sophia-brain/router/dispatcher.ts"
+import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts"
 import { getDeferredOnboardingSteps } from "./onboarding_helpers.ts"
 
 const LINK_PROMPT_COOLDOWN_MS = Number.parseInt(
@@ -71,6 +71,22 @@ function decodeJwtAlg(jwt: string) {
   } catch {
     return "parse_failed"
   }
+}
+
+async function analyzeSignalsForWhatsApp(text: string, requestId: string) {
+  const raw = (text ?? "").trim()
+  const result = await analyzeSignalsV2(
+    {
+      userMessage: raw,
+      lastAssistantMessage: "",
+      last5Messages: [{ role: "user", content: raw }],
+      signalHistory: [],
+      activeMachine: null,
+      stateSnapshot: { current_mode: "companion" },
+    },
+    { requestId },
+  )
+  return result.signals
 }
 
 function base64Url(bytes: Uint8Array) {
@@ -646,14 +662,9 @@ Deno.serve(async (req) => {
         if (deferredSteps.length > 0) {
           let signals: any = null
           try {
-            signals = await analyzeSignals(
-              (msg.text ?? "").trim() || "Ok",
-              { current_mode: "companion" },
-              "",
-              { requestId: processId },
-            )
+            signals = await analyzeSignalsForWhatsApp((msg.text ?? "").trim() || "Ok", processId)
           } catch (e) {
-            console.warn("[whatsapp-webhook] analyzeSignals failed for deferred steps:", e)
+            console.warn("[whatsapp-webhook] dispatcher signals failed for deferred steps:", e)
           }
 
           const deferredHandled = await handleDeferredOnboardingSteps({

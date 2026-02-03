@@ -29,12 +29,15 @@ FORMAT (TRÈS IMPORTANT):
 - Pas de "Bonjour/Salut" au milieu d'une conversation.
 - Ne mentionne jamais "je suis une IA" ni des rôles internes.
 - Ne mentionne pas de termes techniques internes (logs/database/json/api/etc).
-- Emojis: 0 à 2 emojis max par message, placés naturellement; pas une ligne entière d’emojis.
+- N'invente JAMAIS de limitations techniques fictives (ex: "ma bibliothèque d'emojis est limitée", "je n'ai pas accès à X"). Si tu ne sais pas, dis-le simplement.
+- Emojis: 0 à 2 emojis max par message, placés naturellement; pas une ligne entière d'emojis. Tu peux utiliser N'IMPORTE quel emoji Unicode.
 
 DISCIPLINE:
 - Commence par répondre directement au besoin.
-- Ensuite: 2–4 sections max (pas 10).
+- Ensuite: 2 sections max (pas 10).
 - Termine par un mini-résumé (3 lignes max).
+- Longueur: vise court et utile (120–180 mots max / ~1200–1500 caractères). Ne fais pas de pavé.
+- Si tu as envie de détailler davantage: propose une seule question de précision à la fin.
 
 CONTEXTE:
 - channel=${channel}
@@ -51,5 +54,10 @@ ${context ? `\n=== CONTEXTE OPÉRATIONNEL ===\n${context}\n` : ""}
   })
 
   if (typeof resp !== "string") return JSON.stringify(resp)
-  return resp.replace(/\*\*/g, "")
+  const cleaned = resp.replace(/\*\*/g, "").trim()
+  // Hard safety cap to avoid wall-clock + UX issues when the model ignores instructions.
+  const HARD_MAX_CHARS = 1500
+  if (cleaned.length <= HARD_MAX_CHARS) return cleaned
+  const cut = cleaned.slice(0, HARD_MAX_CHARS - 80).trimEnd()
+  return `${cut}\n\nSi tu veux, dis-moi ce que tu veux que je détaille en priorité.`
 }

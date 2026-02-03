@@ -1,0 +1,54 @@
+{
+  "dataset_key": "state_machines",
+  "id": "deep_reasons_confidence_10_turns",
+  "description": "Deep Reasons (10 turns, harder): fixed seeded action + deterministic simulate-user script around lack of confidence. Validates clean entry + phase progression + clean exit (deep_reasons_state cleared).",
+  "tags": ["deep_reasons", "architect", "simulate_user", "confidence", "state_machine"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0,
+    "preseed_actions": [
+      {
+        "title": "Prendre la parole en réunion (2 min)",
+        "description": "Partager une idée / poser une question en réunion. Objectif: oser prendre la parole même si ce n'est pas parfait.",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "time_of_day": "any_time",
+        "scheduled_days": ["mon", "tue", "wed", "thu", "fri"],
+        "status": "active"
+      }
+    ],
+    "preseed_action_entries": [
+      { "title": "Prendre la parole en réunion (2 min)", "status": "missed", "days": 3, "note": "J'ai évité / j'ai pas osé." }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur bloqué (manque de confiance)",
+    "age_range": "25-45",
+    "style": "honnête, concret, pas dramatique; explique qu'il évite par peur du jugement; veut comprendre",
+    "background": "A un plan actif. Bloqué sur une action liée à la prise de parole. Pas de crise, juste évitement et manque de confiance."
+  },
+  "objectives": [
+    {
+      "kind": "deep_reasons_confidence_realistic",
+      "action_title": "Prendre la parole en réunion (2 min)",
+      "core_belief_hint": "peur du jugement / pas à la hauteur",
+      "must_avoid": ["panique", "suicide", "crise"]
+    }
+  ],
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"],
+    "must_include_agent": ["architect"],
+    "state_machine_flow": "clarify -> hypotheses -> resonance -> intervention -> closing"
+  },
+  "mechanical_assertions": {
+    "chat_state_temp_memory_paths_not_exist": [
+      "deep_reasons_state"
+    ],
+    "scheduler_invariants": [
+      "sessions_have_resume_brief"
+    ]
+  }
+}
+
+
+

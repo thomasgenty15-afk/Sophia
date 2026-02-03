@@ -7,8 +7,8 @@ import crypto from "node:crypto";
 
 function parseArgs(argv) {
   const out = {
-    // Default: test 3.0 flash first (as requested).
-    model: "gemini-3-flash-preview",
+    // Default: stable default (same as global platform default).
+    model: "gpt-5-mini",
     turns: 6,
     scenario: null,
     // Optional: when a scenario file contains `variants`, pick:
@@ -16,6 +16,8 @@ function parseArgs(argv) {
     // - "all": expand into all variants
     // - "<variant_id>": pick a specific variant
     variant: null,
+    // Optional: stable run id for deterministic resumes/plan bank selection.
+    runId: null,
   };
   for (let i = 0; i < argv.length; i++) {
     const a = argv[i];
@@ -23,6 +25,7 @@ function parseArgs(argv) {
     else if (a === "--turns") out.turns = Number(argv[++i] ?? "6") || 6;
     else if (a === "--scenario") out.scenario = String(argv[++i] ?? "").trim() || null;
     else if (a === "--variant") out.variant = String(argv[++i] ?? "").trim() || null;
+    else if (a === "--run-id") out.runId = String(argv[++i] ?? "").trim() || null;
   }
   out.turns = Math.max(1, Math.min(50, Math.floor(out.turns)));
   return out;
@@ -323,7 +326,10 @@ async function main() {
       return materializeScenarioVariants({ scenario, filePath, variant: args.variant });
     })
     .flat();
-  const runRequestId = crypto.randomUUID();
+  // Deterministic run id helps:
+  // - plan template selection from the plan bank
+  // - resume/idempotency across WORKER_LIMIT / local restarts
+  const runRequestId = args.runId || (args.scenario ? `tool_eval:${args.scenario}` : crypto.randomUUID());
   // #region agent log
   fetch('http://127.0.0.1:7242/ingest/f0e4cdf2-e090-4c26-80a9-306daf5df797',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:runRequestId,hypothesisId:'H2',location:'run_tool_evals.mjs:main:scenarios',message:'scenarios loaded',data:{scenarios_count:scenarios.length,scenario_ids:scenarios.slice(0,5).map((s)=>s?.id ?? s?.name ?? s?.scenario_name ?? 'unknown')},timestamp:Date.now()})}).catch(()=>{});
   // #endregion
@@ -388,8 +394,22 @@ async function main() {
     // #region agent log
     fetch('http://127.0.0.1:7242/ingest/f0e4cdf2-e090-4c26-80a9-306daf5df797',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:runRequestId,hypothesisId:'H3',location:'run_tool_evals.mjs:main:invoke',message:'run-evals response chunk',data:{iteration:i,partial:Boolean(data?.partial),resume:Boolean(data?.resume),has_results_array:Array.isArray(data?.results),results_len:Array.isArray(data?.results)?data.results.length:null,keys:Object.keys(data ?? {}).slice(0,12)},timestamp:Date.now()})}).catch(()=>{});
     // #endregion
+    {
+      const msg = String(data?.message ?? data?.error?.message ?? "");
+      const isWorkerLimit =
+        String(data?.code ?? "").toUpperCase() === "WORKER_LIMIT" ||
+        /WORKER_LIMIT|resource limit/i.test(msg);
+      if (isWorkerLimit) {
+        const backoffMs = Math.min(12_000, 800 + i * 700);
+        console.warn(`[Runner] WORKER_LIMIT (retrying in ${backoffMs}ms): ${msg || "resource limit"}`);
+        await new Promise((r) => setTimeout(r, backoffMs));
+        continue;
+      }
+    }
+
     if (data?.partial === true || data?.resume === true) {
-      // Chunked: continue.
+      // Chunked: continue (same request id) until results are ready.
+      await new Promise((r) => setTimeout(r, 650));
       continue;
     }
     if (!Array.isArray(data?.results) && isTransientUpstreamFailure(data)) {

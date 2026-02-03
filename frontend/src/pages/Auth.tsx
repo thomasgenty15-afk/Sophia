@@ -103,10 +103,20 @@ const Auth = () => {
   }, [prelaunchLockdown, isSignUp]);
 
   useEffect(() => {
-    if (forbidden) {
-      setError("Accès restreint (pré-lancement). Seul le compte master_admin peut se connecter.");
+    const msg = "Accès restreint (pré-lancement). Seul le compte master_admin peut se connecter.";
+    if (!forbidden) {
+      // Clear stale "prelaunch forbidden" message if user navigated away from forbidden state.
+      if (error === msg) setError(null);
+      return;
     }
-  }, [forbidden]);
+    // Only show this message when prelaunch lockdown is actually enabled; otherwise it's misleading
+    // (ex: user toggled env var off but still has /auth?forbidden=1 in the URL).
+    if (prelaunchLockdown) {
+      setError(msg);
+    } else {
+      if (error === msg) setError(null);
+    }
+  }, [forbidden, prelaunchLockdown, error]);
 
   useEffect(() => {
     // Prefill timezone from browser when opening signup (non-destructive if user already typed something else).

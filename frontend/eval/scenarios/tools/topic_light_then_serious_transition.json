@@ -1,0 +1,75 @@
+{
+  "dataset_key": "state_machines",
+  "id": "topic_light_then_serious_transition",
+  "description": "Conversation normale: un topic LIGHT apparaît puis un topic SERIOUS prend l’ascendant. Objectif: déclenchement fluide, préemption topic_light -> topic_serious, transitions propres.",
+  "tags": ["topic_light", "topic_serious", "transition", "state_machine"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur conversationnel",
+    "age_range": "25-45",
+    "style": "naturel, messages courts, switch de sujet progressif",
+    "background": "Discussion normale; commence par un sujet léger, puis introduit un sujet plus sérieux (sans détresse aiguë)."
+  },
+  "steps": [
+    {
+      "user": "Salut ! Petite question légère: t’es plutôt café ou thé ?",
+      "expected_mode": "companion",
+      "notes": "Warmup small-talk"
+    },
+    {
+      "user": "Au fait, j’ai regardé une série hier: tu as une reco rapide (un truc fun, pas trop prise de tête) ?",
+      "expected_mode": "companion",
+      "notes": "SWITCH_TOPIC + topic_depth=LIGHT should start topic_light"
+    },
+    {
+      "user": "Ouais carrément. Plutôt comédie. Et un truc pas trop long.",
+      "expected_mode": "companion",
+      "notes": "Stay in topic_light"
+    },
+    {
+      "user": "Ok cool. Bon… je change de sujet: au boulot je me sens un peu à côté, j’ose pas trop parler en réunion.",
+      "expected_mode": "architect",
+      "notes": "SWITCH_TOPIC + topic_depth=SERIOUS should preempt topic_light and start topic_serious"
+    },
+    {
+      "user": "C’est pas une crise hein, juste je sens que ça me bloque et ça m’énerve.",
+      "expected_mode": "architect",
+      "notes": "SERIOUS without NEED_SUPPORT"
+    },
+    {
+      "user": "En gros j’ai peur d’avoir l’air bête. Du coup je me tais et après je m’en veux.",
+      "expected_mode": "architect",
+      "notes": "Deepen serious topic"
+    },
+    {
+      "user": "Ok, si on devait résumer: c’est surtout la peur du jugement.",
+      "expected_mode": "architect",
+      "notes": "Maintain topic_serious"
+    },
+    {
+      "user": "Merci. On peut revenir à un truc léger maintenant. Une reco de série courte ?",
+      "expected_mode": "companion",
+      "notes": "User requests to switch back; should close serious session and allow light"
+    },
+    {
+      "user": "Top. Merci :)",
+      "expected_mode": "companion",
+      "notes": "Closing"
+    }
+  ],
+  "mechanical_assertions": {
+    "scheduler_invariants": [
+      "sessions_have_resume_brief",
+      "topic_session_meaningful_topic"
+    ]
+  },
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"]
+  }
+}
+
+
+

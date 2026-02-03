@@ -21,6 +21,9 @@ export async function consolidateMemories(opts: {
   userId: string
   maxRaw?: number
 }) {
+  const gardenerDisabled = (Deno.env.get("SOPHIA_GARDENER_DISABLED") ?? "").trim() === "1"
+  if (gardenerDisabled) return
+
   const { supabase, userId } = opts
   const maxRaw = Math.max(1, Math.min(50, Number(opts.maxRaw ?? 10) || 10))
 
@@ -156,6 +159,7 @@ JSON:
   `.trim()
 
   const raw = await generateWithGemini(prompt, "", 0.0, true, [], "json", {
+    // Rely on global default (gemini-2.5-flash) unless explicitly overridden.
     model: "gemini-2.5-flash",
     source: "sophia-brain:gardener_arbitration",
   })

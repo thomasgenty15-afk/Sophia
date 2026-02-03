@@ -22,7 +22,7 @@ import {
 } from "./lib/utils.ts";
 
 const EVAL_MODEL = "gemini-2.5-flash";
-const DEFAULT_JUDGE_MODEL = "gemini-3-pro-preview";
+const DEFAULT_JUDGE_MODEL = "gpt-5.2";
 
 function summarizeTranscriptRoleRuns(transcript: any[]): { role_runs: number; max_run: number; examples: Array<{ role: string; count: number; at: number }> } {
   const msgs = Array.isArray(transcript) ? transcript : [];
@@ -293,13 +293,25 @@ export function serveRunEvals() {
         try {
           const { data: existing } = await admin
             .from("conversation_eval_runs")
-            .select("id,status,config,state_before")
+            .select("id,status,config,state_before,created_at")
             // request_id is stored in config (jsonb) for this table.
             .eq("config->>request_id", scenarioRequestId)
+            .order("created_at", { ascending: false })
+            .limit(1)
             .maybeSingle();
-          existingRunId = existing?.id ?? null;
-          testUserId = (existing as any)?.config?.test_user_id ?? null;
-          resumeFromDb = Boolean(existingRunId && testUserId && String(existing?.status ?? "") !== "completed");
+          const existingStatus = String((existing as any)?.status ?? "").trim().toLowerCase();
+          // If a completed run already exists for this deterministic request id, treat this as a NEW run.
+          // This preserves the "resume on worker limit" behavior for running/partial runs, but avoids
+          // surprising cross-session replays when the user re-runs the same command later.
+          if (existingStatus === "completed") {
+            existingRunId = null;
+            testUserId = null;
+            resumeFromDb = false;
+          } else {
+            existingRunId = existing?.id ?? null;
+            testUserId = (existing as any)?.config?.test_user_id ?? null;
+            resumeFromDb = Boolean(existingRunId && testUserId && existingStatus !== "completed");
+          }
         } catch {
           // Non-blocking: if this lookup fails, we fall back to fresh run behavior.
           existingRunId = null;
@@ -472,6 +484,11 @@ export function serveRunEvals() {
             for (const m of (msgsExisting ?? [])) {
               history.push({ role: m.role, content: m.content, agent_used: (m as any).agent_used ?? null });
             }
+            // Trim trailing user message without assistant response (can happen if worker was killed mid-turn).
+            // The runner will re-send that user message on the next iteration.
+            while (history.length > 0 && history[history.length - 1].role === "user") {
+              history.pop();
+            }
           }
           // UI control is the single source of truth for turn count.
           // (Scenario JSON used to carry max_turns, but it's intentionally ignored to avoid ambiguity.)
@@ -570,6 +587,26 @@ export function serveRunEvals() {
                   "Si l'utilisateur insiste 2 fois sur le même sujet, propose explicitement: \"on met le bilan en pause 2 minutes pour en parler maintenant, ou tu préfères qu'on finisse vite le bilan puis on y revient ?\"",
               }
               : {}),
+          };
+
+          // Eval reliability: enforce "1 user → 1 assistant" per turn.
+          // The router can legitimately return { aborted: true } / empty content due to debounce/burst logic.
+          // For evals (especially deep_reasons), this creates consecutive user messages and breaks machine coverage.
+          // We therefore retry a few times with small backoff before failing.
+          const processMessageWithRetry = async (userMsg: string, label: string) => {
+            const maxAttempts = 4;
+            for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+              // Keep each step bounded (avoid edge worker wall clock).
+              (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
+              const resp = await processMessage(admin as any, testUserId, userMsg, history, meta, sophiaRunnerOpts);
+              const ok = resp && !resp.aborted && String(resp.content ?? "").trim().length > 0;
+              if (ok) return resp;
+              // Backoff and retry (debounce window)
+              const backoff = Math.min(1500, 200 + attempt * 250);
+              console.log(`[Eval] ${label}: processMessage returned ${resp?.aborted ? "aborted" : "empty"} (attempt ${attempt}/${maxAttempts}); retrying in ${backoff}ms`);
+              await sleep(backoff);
+            }
+            throw new Error(`${label}:processMessage_no_content_after_retries`);
           };
 
           // BILAN kickoff:
@@ -910,10 +947,12 @@ export function serveRunEvals() {
                   continue;
               }
 
-              (meta as any).httpTimeoutMs = Math.min(stepHttpTimeoutMsCap, Math.max(10_000, remainingBudgetMs() - 5_000));
-              const resp = await processMessage(admin as any, testUserId, step.user, history, meta, sophiaRunnerOpts);
+              const resp = await processMessageWithRetry(String(step.user ?? ""), "steps");
               history.push({ role: "user", content: step.user });
               history.push({ role: "assistant", content: resp.content, agent_used: resp.mode });
+              // Throttle between steps: give brain time to fully persist state before next turn.
+              // Also helps avoid CPU time soft limits by spacing out requests.
+              await sleep(1500);
               await logEvalEvent({
                 supabase: admin as any,
                 evalRunId: existingRunId,
@@ -1150,47 +1189,32 @@ export function serveRunEvals() {
                 nextDone = Boolean(simJson?.done);
               }
 
-              let resp: any;
-              try {
-                resp = await withTimeout(
-                  processMessage(admin as any, testUserId, userMsg, history, meta, sophiaRunnerOpts),
-                  Math.min(45_000, Math.max(10_000, remainingBudgetMs() - 2_000)),
-                  "processMessage",
-                );
-              } catch (e) {
-                const msg = String((e as any)?.message ?? e);
-                if (msg.includes("timeout:processMessage")) {
-                  return await persistAndReturnPartial("timeout_processMessage");
-                }
-                throw e;
-              }
-              // In eval runner mode, an aborted response means debounce/burst logic fired unexpectedly.
-              // Treat it as an infra-level failure: the runner expects 1 assistant response per simulated turn.
-              if (resp?.aborted || !String(resp?.content ?? "").trim()) {
-                const why = resp?.aborted ? "processMessage_aborted" : "processMessage_empty";
+              // In eval runner mode, enforce 1 user -> 1 assistant per simulated turn.
+              // If debounce causes aborted/empty, retry a few times before marking partial.
+              let resp: any = null;
+              const maxAttempts = 4;
+              for (let attempt = 1; attempt <= maxAttempts; attempt++) {
                 try {
-                  if (existingRunId) {
-                    await admin
-                      .from("conversation_eval_runs")
-                      .update({
-                        status: "failed",
-                        error: why,
-                        metrics: {
-                          judge_async: false,
-                          judge_pending: false,
-                          manual_judge: manualJudge,
-                          turns_executed: history.filter((m) => m?.role === "user").length,
-                          max_turns: maxTurns,
-                          completed_reason: why,
-                          completed_at: new Date().toISOString(),
-                        },
-                      } as any)
-                      .eq("id", existingRunId);
+                  resp = await withTimeout(
+                    processMessage(admin as any, testUserId, userMsg, history, meta, sophiaRunnerOpts),
+                    Math.min(45_000, Math.max(10_000, remainingBudgetMs() - 2_000)),
+                    "processMessage",
+                  );
+                } catch (e) {
+                  const msg = String((e as any)?.message ?? e);
+                  if (msg.includes("timeout:processMessage")) {
+                    return await persistAndReturnPartial("timeout_processMessage");
                   }
-                } catch {
-                  // ignore
+                  throw e;
                 }
-                throw new Error(why);
+                const ok = resp && !resp.aborted && String(resp.content ?? "").trim().length > 0;
+                if (ok) break;
+                const backoff = Math.min(1500, 200 + attempt * 250);
+                console.log(`[Eval] simulated: processMessage returned ${resp?.aborted ? "aborted" : "empty"} (attempt ${attempt}/${maxAttempts}); retrying in ${backoff}ms`);
+                await sleep(backoff);
+              }
+              if (!resp || resp.aborted || !String(resp.content ?? "").trim()) {
+                return await persistAndReturnPartial(resp?.aborted ? "processMessage_aborted" : "processMessage_empty");
               }
               // GUARD: Only add user message if history doesn't already end with this exact user message
               const lastMsg = history[history.length - 1];
@@ -1257,7 +1281,7 @@ export function serveRunEvals() {
               turn += 1;
 
               // Throttle between turns to avoid 429 bursts (simulate-user + sophia-brain + judge).
-              await sleep(350);
+              await sleep(900);
             }
           }
 

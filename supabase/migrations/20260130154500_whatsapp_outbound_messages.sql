@@ -65,3 +65,4 @@ create unique index if not exists whatsapp_outbound_status_events_dedup_key
   on public.whatsapp_outbound_status_events (provider_message_id, status, status_timestamp);
 
 
+

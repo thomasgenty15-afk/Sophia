@@ -461,12 +461,14 @@ Deno.serve(async (req) => {
       // This prevents creating two "tests" for a single command when the edge worker is cancelled/restarted.
       const { data: existing, error: existingErr } = await admin
         .from("conversation_eval_runs")
-        .select("id")
+        .select("id,created_at")
         .eq("dataset_key", body.dataset_key)
         .eq("scenario_key", body.scenario_key)
         .eq("created_by", userId)
         // PostgREST JSON filter (jsonb ->> text). We keep it in config for early availability.
         .eq("config->>request_id", requestId)
+        .order("created_at", { ascending: false })
+        .limit(1)
         .maybeSingle();
       if (existingErr) throw existingErr;
       if (existing?.id) runId = existing.id as string;

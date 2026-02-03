@@ -74,11 +74,11 @@ export async function runContextualDispatcherV2(opts: {
   const signalHistory = getSignalHistory(opts.tempMemory, opts.signalHistoryKey)
   const activeMachine = getActiveMachineType(opts.tempMemory)
 
-  // Build last 10 messages (5 turns) for context
+  // Build last 6 messages (3 turns) for context (latency-sensitive; keep small).
   // A turn = 1 user message + 1 assistant message = 2 messages
-  const last5TurnsMessages = (opts.history ?? []).slice(-10).map((m: any) => ({
+  const last3TurnsMessages = (opts.history ?? []).slice(-6).map((m: any) => ({
     role: String(m?.role ?? "user"),
-    content: String(m?.content ?? "").slice(0, 300),
+    content: String(m?.content ?? "").slice(0, 220),
   }))
 
   // Build flow context for enriching machine-specific prompts
@@ -88,7 +88,7 @@ export async function runContextualDispatcherV2(opts: {
   const dispatcherInputV2: DispatcherInputV2 = {
     userMessage: opts.userMessage,
     lastAssistantMessage: opts.lastAssistantMessage,
-    last5Messages: last5TurnsMessages,
+    last5Messages: last3TurnsMessages,
     signalHistory,
     activeMachine,
     stateSnapshot: opts.stateSnapshot,
@@ -96,7 +96,7 @@ export async function runContextualDispatcherV2(opts: {
   }
 
   // Call contextual dispatcher
-  const dispatcherResult = await analyzeSignalsV2(dispatcherInputV2, opts.meta)
+  const dispatcherResult = await analyzeSignalsV2(dispatcherInputV2, { ...(opts.meta ?? {}) })
   const dispatcherSignals = dispatcherResult.signals
   const newSignalsDetected = dispatcherResult.new_signals
   const signalEnrichments = dispatcherResult.enrichments

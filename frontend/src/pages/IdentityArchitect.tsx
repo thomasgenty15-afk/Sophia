@@ -161,6 +161,32 @@ const IdentityArchitect = () => {
   const [archivesData, setArchivesData] = useState<any[]>([]); // Données d'archives chargées
   const [isLoadingArchives, setIsLoadingArchives] = useState(false);
 
+  // UI hygiene: the "diamond with ?" often corresponds to the Unicode replacement char (U+FFFD)
+  // or other problematic "specials" (U+FFF0–U+FFFF). We strip them for display.
+  // IMPORTANT: We must NOT strip valid surrogate pairs (emojis) — only LONE surrogates.
+  const sanitizeBrokenGlyphs = (s: string) =>
+    s
+      // U+FFFD replacement char, U+FFFC object replacement, and the rest of the specials block
+      .replace(/[\uFFFC-\uFFFF]/g, "")
+      // Lone HIGH surrogate NOT followed by a LOW surrogate
+      .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "")
+      // Lone LOW surrogate NOT preceded by a HIGH surrogate
+      .replace(/(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "")
+      // Trim trailing whitespace
+      .trimEnd();
+
+  const displayChatText = (t: unknown) => sanitizeBrokenGlyphs(String(t ?? ""));
+
+  const TypingDot = () => (
+    <span className="inline-flex items-center gap-2">
+      <span
+        className="inline-block w-2 h-2 rounded-full bg-emerald-200/90 animate-pulse"
+        aria-hidden="true"
+      />
+      <span className="sr-only">Sophia est en train d’écrire…</span>
+    </span>
+  );
+
   // --- CHARGEMENT DES ARCHIVES ---
   const handleOpenArchives = async (questionId: string) => {
       setShowArchives(questionId);
@@ -417,7 +443,9 @@ const IdentityArchitect = () => {
 
       if (error) throw error;
 
-      const assistantText = (data?.content ?? "").toString().trim() || "Je n'ai pas réussi à répondre. Réessaie ?";
+      const rawText = (data?.content ?? "").toString().trim() || "Je n'ai pas réussi à répondre. Réessaie ?";
+      // Sanitize immediately when receiving (defense in depth, also cleaned on display)
+      const assistantText = sanitizeBrokenGlyphs(rawText);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: assistantText }]);
     } catch (e: any) {
       console.error("[IdentityArchitect] Chat error:", e);
@@ -588,14 +616,14 @@ const IdentityArchitect = () => {
                                   ? 'bg-emerald-600 text-white rounded-br-none' 
                                   : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
                               }`}>
-                                  {msg.text}
+                                  {displayChatText(msg.text)}
                               </div>
                           </div>
                       ))}
                       {isChatLoading && (
                         <div className="flex justify-start">
                           <div className="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
-                            ...
+                            <TypingDot />
                           </div>
                         </div>
                       )}
@@ -762,14 +790,14 @@ const IdentityArchitect = () => {
                       ? 'bg-emerald-600 text-white rounded-br-none' 
                       : 'bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
                   }`}>
-                    {msg.text}
+                  {displayChatText(msg.text)}
                   </div>
                 </div>
               ))}
               {isChatLoading && (
                 <div className="flex justify-start animate-fade-in-up">
                   <div className="max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
-                    ...
+                    <TypingDot />
                   </div>
                 </div>
               )}
@@ -954,14 +982,14 @@ const IdentityArchitect = () => {
                                     ? 'bg-emerald-600 text-white rounded-br-none' 
                                     : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
                                 }`}>
-                                    {msg.text}
+                                    {displayChatText(msg.text)}
                                 </div>
                             </div>
                         ))}
                         {isChatLoading && (
                           <div className="flex justify-start">
                             <div className="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
-                              ...
+                              <TypingDot />
                             </div>
                           </div>
                         )}
@@ -1178,14 +1206,14 @@ const IdentityArchitect = () => {
                     ? 'bg-emerald-600 text-white rounded-br-none' 
                     : 'bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
                 }`}>
-                  {msg.text}
+                    {displayChatText(msg.text)}
                 </div>
               </div>
             ))}
             {isChatLoading && (
               <div className="flex justify-start animate-fade-in-up">
                 <div className="max-w-[85%] p-4 rounded-2xl text-sm leading-relaxed shadow-sm bg-emerald-800/50 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
-                  ...
+                  <TypingDot />
                 </div>
               </div>
             )}

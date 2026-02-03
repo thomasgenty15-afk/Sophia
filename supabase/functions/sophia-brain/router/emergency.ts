@@ -65,7 +65,7 @@ CONTEXTE:
     const model =
       ((((globalThis as any)?.Deno?.env?.get?.("GEMINI_FALLBACK_MODEL") ?? "") as string).trim()) ||
       // Last resort: stable model name
-      "gemini-2.0-flash"
+      "gpt-5-mini"
 
     const out = await generateWithGemini(emergencySystem, userMessage, 0.2, false, [], "auto", {
       requestId: opts.requestId,

@@ -41,7 +41,6 @@ import {
   shouldBypassCheckupLockForDeepWork,
 } from "./classifiers.ts"
 import {
-  analyzeSignals,
   looksLikeAcuteDistress, 
   type DispatcherSignals,
   type DispatcherOutputV2,
@@ -200,13 +199,20 @@ import { findNextSameTypeTopic, buildNextTopicProposalAddon, type PendingNextTop
 const SOPHIA_CHAT_MODEL =
   (
     ((globalThis as any)?.Deno?.env?.get?.("GEMINI_SOPHIA_CHAT_MODEL") ?? "") as string
-  ).trim() || "gpt-5-mini";
+  ).trim() || "gemini-2.5-flash";
 
 // Premium model for critical modes (sentry, firefighter high-risk, architect)
 const SOPHIA_CHAT_MODEL_PRO =
   (
     ((globalThis as any)?.Deno?.env?.get?.("GEMINI_SOPHIA_CHAT_MODEL_PRO") ?? "") as string
-  ).trim() || "gpt-5.2";
+  ).trim() || "gemini-2.5-flash";
+
+// Dedicated model for the safety-router (kept deterministic and fast).
+// Note: this is *not* the same as the safety agent models; it's only the classifier that decides sentry routing.
+const SOPHIA_SAFETY_ROUTER_MODEL =
+  (
+    ((globalThis as any)?.Deno?.env?.get?.("SOPHIA_SAFETY_ROUTER_MODEL") ?? "") as string
+  ).trim() || "gemini-2.5-flash";
 
 // Model routing: use pro model for critical situations
 function selectChatModel(targetMode: AgentMode, riskScore: number): string {
@@ -248,13 +254,21 @@ On se retrouve demain matin, reposé·e ! 💜`;
 
 const PROFILE_CONFIRM_DEFERRED_KEY = "__profile_confirm_deferred_facts";
 
-// Dispatcher v2 is now the only dispatcher (v1 legacy removed)
+// Dispatcher v2 is now the only dispatcher
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SIGNAL HISTORY V1: Storage and management in temp_memory
+// HEAVY BACKGROUND JOB FLAGS (useful for tests / local CPU budget)
+// Defaults: enabled (set *_DISABLED=1 to skip)
+// ═══════════════════════════════════════════════════════════════════════════════
+const WATCHER_DISABLED =
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_WATCHER_DISABLED") ?? "") as string).trim() === "1" ||
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_VEILLEUR_DISABLED") ?? "") as string).trim() === "1"
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// SIGNAL HISTORY: Storage and management in temp_memory
 // ═══════════════════════════════════════════════════════════════════════════════
 
-const SIGNAL_HISTORY_KEY = "signal_history_v1"
+const SIGNAL_HISTORY_KEY = "signal_history"
 const MAX_SIGNAL_HISTORY_TURNS = 5  // Keep signals from last 5 turns
 const MIN_SIGNAL_HISTORY_TURN_INDEX = -(MAX_SIGNAL_HISTORY_TURNS - 1)
 
@@ -294,10 +308,6 @@ function mergeDeferredProfileFacts(
     .slice(0, maxFacts)
 }
 
-
-// Feature flag for contextual dispatcher
-const ENABLE_CONTEXTUAL_DISPATCHER_V1 =
-  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_CONTEXTUAL_DISPATCHER_V1") ?? "") as string).trim() === "1"
 
 export async function processMessage(
   supabase: SupabaseClient, 
@@ -534,12 +544,28 @@ export async function processMessage(
   function looksLikeLongFormExplanationRequest(m: string): boolean {
     const s = normalizeLoose(m)
     if (!s) return false
-    // Strong explicit requests for detail / explanation / mechanisms.
-    if (/\b(explique|explique moi|detail|details|detaille|developpe|developper|precise|precision|mecanisme|comment ca marche|comment ca fonctionne|guide|pas a pas|step by step|cours)\b/i.test(s)) {
-      return true
-    }
-    // Also treat "tu peux me faire un truc long" / "réponse longue" type requests.
-    if (/\b(reponse\s+longue|longue\s+explication|explication\s+longue)\b/i.test(s)) return true
+    // Avoid false positives like "j'ai fait mon premier cours de salsa".
+    // We only want this when the user is explicitly ASKING for an explanation.
+    const looksLikeNarration =
+      /\b(j['’]ai\s+fait|j['’]ai\s+eu|je\s+viens\s+de|mon\s+premier|premier)\b/i.test(s) &&
+      /\b(cours|cours\s+de)\b/i.test(s)
+    if (looksLikeNarration) return false
+
+    // Strong explicit requests for detail / explanation / mechanisms (ask forms).
+    // Require an intent marker (question mark OR "tu peux" / "peux-tu" / "j'aimerais" / "je veux") so nouns like "cours"
+    // don't accidentally route to librarian.
+    const hasAskMarker =
+      /\?/.test(s) ||
+      /\b(peux\s*-?\s*tu|tu\s+peux|j['’]aimerais|je\s+veux|je\s+voudrais)\b/i.test(s)
+
+    const asksForExplanation =
+      /\b(explique|explique\s+moi|pourquoi|comment|m[ée]canisme|comment\s+ca\s+marche|comment\s+ca\s+fonctionne|clarifie|clarifier|d[ée]tail|d[ée]tails|d[ée]taille|d[ée]veloppe|d[ée]velopper|pr[ée]cise|pr[ée]cision|guide|pas\s+[aà]\s+pas|step\s+by\s+step)\b/i
+        .test(s)
+
+    if (hasAskMarker && asksForExplanation) return true
+
+    // Also treat explicit "réponse longue / explication longue" requests.
+    if (/\b(r[ée]ponse\s+longue|longue\s+explication|explication\s+longue)\b/i.test(s)) return true
     return false
   }
 
@@ -602,7 +628,7 @@ SORTIE JSON STRICTE:
     try {
       const raw = await generateWithGemini(systemPrompt, `User: ${opts.userMessage}\n\nLastAssistant: ${opts.lastAssistantMessage}`, 0.0, true, [], "auto", {
         requestId: opts.requestId,
-        model: "gemini-2.5-flash",
+        model: SOPHIA_SAFETY_ROUTER_MODEL,
         source: "sophia-brain:safety_router",
         forceRealAi: opts.forceRealAi,
       })
@@ -924,7 +950,7 @@ SORTIE JSON STRICTE:
   }
 
   // --- SUPERVISOR (global runtime: stack/queue) ---
-  // Keep supervisor runtime in sync with legacy multi-turn flows.
+  // Keep supervisor runtime in sync with existing multi-turn flows.
   // (Today we sync the Architect tool flow; other sessions can be added progressively.)
   const syncedSupervisor = syncLegacyArchitectToolFlowSession({ tempMemory })
   if (syncedSupervisor.changed) tempMemory = syncedSupervisor.tempMemory
@@ -995,7 +1021,7 @@ SORTIE JSON STRICTE:
   let msgCount = (state.unprocessed_msg_count || 0) + 1
   let lastProcessed = state.last_processed_at || new Date().toISOString()
 
-  if (msgCount >= 15 && !isEvalParkingLotTest) {
+  if (!WATCHER_DISABLED && msgCount >= 15 && !isEvalParkingLotTest) {
     // Trigger watcher analysis (best effort).
     // IMPORTANT: do NOT block the user response on watcher work (it can add significant wall-clock time).
     runWatcher(supabase, userId, scope, lastProcessed, meta).catch((e) => {
@@ -1032,50 +1058,49 @@ SORTIE JSON STRICTE:
   let signalEnrichments: SignalEnrichment[] = []
   let primaryMotherSignal: string | null = null
   
-  if (ENABLE_CONTEXTUAL_DISPATCHER_V1) {
-    const contextual = await runContextualDispatcherV2({
-      userMessage,
-      lastAssistantMessage,
-      history,
+  const contextual = await runContextualDispatcherV2({
+    userMessage,
+    lastAssistantMessage,
+    history,
+    tempMemory,
+    state,
+    meta,
+    stateSnapshot,
+    signalHistoryKey: SIGNAL_HISTORY_KEY,
+    minTurnIndex: MIN_SIGNAL_HISTORY_TURN_INDEX,
+    trace,
+    traceV,
+  })
+  dispatcherResult = contextual.dispatcherResult
+  dispatcherSignals = contextual.dispatcherSignals
+  newSignalsDetected = contextual.newSignalsDetected
+  signalEnrichments = contextual.signalEnrichments
+  tempMemory = contextual.tempMemory
+  const flowContext = contextual.flowContext
+  const activeMachine = contextual.activeMachine
+  
+  // ═══════════════════════════════════════════════════════════════════════════
+  // DEFERRED ENRICHMENT: Apply enrichment to existing deferred topic
+  // Dispatcher identified that user's message enriches an existing topic
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (dispatcherResult.deferred_enrichment) {
+    const { topic_id, new_brief } = dispatcherResult.deferred_enrichment
+    const enrichResult = updateDeferredTopicV2({
       tempMemory,
-      state,
-      meta,
-      stateSnapshot,
-      signalHistoryKey: SIGNAL_HISTORY_KEY,
-      minTurnIndex: MIN_SIGNAL_HISTORY_TURN_INDEX,
-      trace,
-      traceV,
+      topicId: topic_id,
+      summary: new_brief,
     })
-    dispatcherResult = contextual.dispatcherResult
-    dispatcherSignals = contextual.dispatcherSignals
-    newSignalsDetected = contextual.newSignalsDetected
-    signalEnrichments = contextual.signalEnrichments
-    tempMemory = contextual.tempMemory
-    const flowContext = contextual.flowContext
-    const activeMachine = contextual.activeMachine
-    
-    // ═══════════════════════════════════════════════════════════════════════════
-    // DEFERRED ENRICHMENT: Apply enrichment to existing deferred topic
-    // Dispatcher identified that user's message enriches an existing topic
-    // ═══════════════════════════════════════════════════════════════════════════
-    if (dispatcherResult.deferred_enrichment) {
-      const { topic_id, new_brief } = dispatcherResult.deferred_enrichment
-      const enrichResult = updateDeferredTopicV2({
-        tempMemory,
-        topicId: topic_id,
-        summary: new_brief,
+    if (enrichResult.updated) {
+      tempMemory = enrichResult.tempMemory
+      await traceV("brain:deferred_enrichment_applied", "routing", {
+        topic_id,
+        new_brief,
+        total_summaries: enrichResult.topic?.signal_summaries.length ?? 0,
       })
-      if (enrichResult.updated) {
-        tempMemory = enrichResult.tempMemory
-        await traceV("brain:deferred_enrichment_applied", "routing", {
-          topic_id,
-          new_brief,
-          total_summaries: enrichResult.topic?.signal_summaries.length ?? 0,
-        })
-      }
     }
-    
-    // ═══════════════════════════════════════════════════════════════════════════
+  }
+  
+  // ═══════════════════════════════════════════════════════════════════════════
     // SINGLE MOTHER SIGNAL ENFORCEMENT
     // Keep only ONE mother signal (except safety) even if dispatcher detected many
     // ═══════════════════════════════════════════════════════════════════════════
@@ -1434,6 +1459,7 @@ SORTIE JSON STRICTE:
     // ═══════════════════════════════════════════════════════════════════════════
     const profileFacts = dispatcherResult.machine_signals?.profile_facts_detected
     const profileConfirmActive = hasActiveProfileConfirmation(tempMemory)
+    const pendingCheckupEntryForProfileFacts = Boolean((tempMemory as any)?.__checkup_entry_pending)
     
     // Only process if facts detected, no active confirmation machine, and not in safety mode
     if (profileFacts && !profileConfirmActive && !bilanActive) {
@@ -1453,8 +1479,26 @@ SORTIE JSON STRICTE:
       
       // Collect ALL high-confidence facts (up to MAX_PROFILE_FACTS_PER_SESSION)
       const factEntries = Object.entries(profileFacts) as [string, { value: string; confidence: number }][]
+      const userMsgNorm = normalizeLoose(userMessage)
+      const looksLikeStableHobbyMention = (() => {
+        // Require stable statements ("j'aime", "je fais", "passion") to treat as hobbies.
+        if (!userMsgNorm) return false
+        return /\b(j['’]aime|j'adore|je\s+fais|je\s+pratique|ma\s+passion|mon\s+loisir|je\s+suis\s+fan\s+de)\b/i.test(userMsgNorm)
+      })()
+      const hobbyMinConfidence = looksLikeStableHobbyMention ? 0.7 : 0.88
       const highConfFacts = factEntries
-        .filter(([_, f]) => f && f.confidence >= 0.7)
+        .filter(([factType, f]) => {
+          if (!f) return false
+          const conf = Number(f.confidence ?? 0) || 0
+          // Prevent one-off activity narration ("j'ai fait un cours de salsa") from starting profile confirmation.
+          if (factType === "hobbies") {
+            if (!looksLikeStableHobbyMention && /\b(cours|premier|j['’]ai\s+fait|je\s+viens\s+de)\b/i.test(userMsgNorm)) {
+              return false
+            }
+            return conf >= hobbyMinConfidence
+          }
+          return conf >= 0.7
+        })
         .sort((a, b) => b[1].confidence - a[1].confidence)
         .slice(0, MAX_PROFILE_FACTS_PER_SESSION)
       
@@ -1478,11 +1522,17 @@ SORTIE JSON STRICTE:
         
         if (factsToConfirm.length > 0) {
           // Check if another machine is active (not profile confirmation)
-          const otherMachineActive = activeMachine && activeMachine !== "user_profile_confirmation"
+          const otherMachineActive =
+            (activeMachine && activeMachine !== "user_profile_confirmation") ||
+            // Do NOT interrupt checkup entry: defer profile confirmations until after the bilan starts/completes.
+            pendingCheckupEntryForProfileFacts
           
           if (otherMachineActive) {
             // Defer to after current machine completes
-            const currentTopicLabel = flowContext?.topicLabel || flowContext?.actionLabel || flowContext?.breakdownTarget || "le sujet actuel"
+            const currentTopicLabel =
+              pendingCheckupEntryForProfileFacts
+                ? "ton bilan"
+                : (flowContext?.topicLabel || flowContext?.actionLabel || flowContext?.breakdownTarget || "le sujet actuel")
             const deferResult = deferSignal({
               tempMemory,
               machine_type: "user_profile_confirmation",
@@ -1563,28 +1613,44 @@ SORTIE JSON STRICTE:
     const allowCheckupIntent = !primaryMotherSignal || primaryMotherSignal === "checkup"
     
     // --- Handle response to "tu veux faire le bilan?" question ---
-    if (pendingCheckupEntry && wantsToCheckup !== undefined) {
-      // Clear the pending flag
-      tempMemory = {
-        ...(tempMemory ?? {}),
-        __checkup_entry_pending: undefined,
-      }
-      
-      if (wantsToCheckup) {
-        // User wants to do the bilan - will be handled below in routing
-        // Mark that we should start investigation
-        checkupConfirmedThisTurn = true
-        await trace("brain:checkup_confirmed", "dispatcher", { confirmed: true })
-        console.log("[Router] Checkup confirmed by user, will start investigation")
-      } else {
-        // User declined - no DB update, just continue
-        await trace("brain:checkup_declined", "dispatcher", { confirmed: false })
-        console.log("[Router] Checkup declined by user")
-        // Check if there are deferred topics to process
-        const deferredTopics = getDeferredTopicsV2(tempMemory)
-        if (deferredTopics.length > 0) {
-          // Will auto-relaunch in the normal flow
-          console.log(`[Router] Checkup declined, ${deferredTopics.length} deferred topics pending`)
+    if (pendingCheckupEntry) {
+      // Deterministic fallback: do not depend on dispatcher.machine_signals to parse a simple yes/no.
+      // This fixes cases where the dispatcher omits machine_signals when no machine is active.
+      const s = normalizeLoose(userMessage)
+      const yes =
+        /\b(oui|ok|daccord|d'accord|vas\s*y|go|on\s*y\s+va|carr[eé]ment|volontiers|bien\s+s[uû]r)\b/i.test(s) &&
+        s.length <= 40
+      const no =
+        /\b(non|pas\s+maintenant|plus\s+tard|laisse|une\s+autre\s+fois|on\s+verra|pas\s+aujourd['’]hui)\b/i.test(s) &&
+        s.length <= 60
+
+      const resolved =
+        wantsToCheckup !== undefined
+          ? { kind: wantsToCheckup ? "yes" : "no", via: "dispatcher" as const }
+          : yes
+            ? { kind: "yes", via: "deterministic" as const }
+            : no
+              ? { kind: "no", via: "deterministic" as const }
+              : null
+
+      if (resolved) {
+        // Clear the pending flag only when we actually resolved the answer.
+        tempMemory = {
+          ...(tempMemory ?? {}),
+          __checkup_entry_pending: undefined,
+        }
+
+        if (resolved.kind === "yes") {
+          checkupConfirmedThisTurn = true
+          await trace("brain:checkup_confirmed", "dispatcher", { confirmed: true, via: resolved.via })
+          console.log("[Router] Checkup confirmed by user, will start investigation")
+        } else {
+          await trace("brain:checkup_declined", "dispatcher", { confirmed: false, via: resolved.via })
+          console.log("[Router] Checkup declined by user")
+          const deferredTopics = getDeferredTopicsV2(tempMemory)
+          if (deferredTopics.length > 0) {
+            console.log(`[Router] Checkup declined, ${deferredTopics.length} deferred topics pending`)
+          }
         }
       }
     }
@@ -1705,11 +1771,6 @@ SORTIE JSON STRICTE:
         }
       }
     }
-  } else {
-    // Fallback to legacy dispatcher (V2 without signal history)
-    dispatcherSignals = await analyzeSignals(userMessage, stateSnapshot, lastAssistantMessage, meta)
-  }
-  
   riskScore = dispatcherSignals.risk_score
 
   // ═══════════════════════════════════════════════════════════════════════════
@@ -1791,6 +1852,9 @@ SORTIE JSON STRICTE:
     const interrupt = dispatcherSignals?.interrupt
     const topicDepth = dispatcherSignals?.topic_depth?.value ?? "NONE"
     const topicDepthConf = dispatcherSignals?.topic_depth?.confidence ?? 0
+    const deepReasonsOpportunity =
+      Boolean(dispatcherSignals?.deep_reasons?.opportunity) &&
+      (Number(dispatcherSignals?.deep_reasons?.confidence ?? 0) >= 0.65)
 
     // Should trigger topic machine:
     // - SERIOUS/LIGHT + digression/switch topic
@@ -1800,16 +1864,22 @@ SORTIE JSON STRICTE:
       (interrupt?.kind === "DIGRESSION" || interrupt?.kind === "SWITCH_TOPIC") &&
       (Number(interrupt?.confidence ?? 0) >= 0.6)
     const isPlanFocusTrigger = Boolean(dispatcherSignals?.topic_depth?.plan_focus) && isTopicDepthTrigger
-    const shouldTrigger = isTopicDepthTrigger && (isInterruptTrigger || isPlanFocusTrigger)
+    // Sticky sessions: if the dispatcher is confident about LIGHT/SERIOUS, start a topic session
+    // even when interrupt confidence is borderline. Otherwise the next turns can "fall out" of the topic machine.
+    const isDirectTopicTrigger = isTopicDepthTrigger && !hasExistingTopic && topicDepthConf >= 0.8
+    const shouldTrigger = isTopicDepthTrigger && (isInterruptTrigger || isPlanFocusTrigger || isDirectTopicTrigger)
 
     const bored = looksLikeUserBoredOrWantsToStop(userMessage)
 
     // PREEMPTION RULE: topic_serious preempts topic_light
-    // If a SERIOUS topic is detected and there's an active topic_light, close the light topic
+    // If a SERIOUS topic is detected and there's an active topic_light, close the light topic.
+    // Exception: if deep_reasons opportunity is detected, keep topic_light in the stack so it can resume
+    // after deep_reasons closes (deep_reasons acts like a temporary overlay/intervention).
     if (
       topicDepth === "SERIOUS" && 
       topicDepthConf >= 0.6 && 
-      existing?.type === "topic_light"
+      existing?.type === "topic_light" &&
+      !deepReasonsOpportunity
     ) {
       closedTopicType = existing?.type === "topic_light" ? "topic_light" : null
       const closed = closeTopicSession({ tempMemory: tm0 })
@@ -1893,7 +1963,11 @@ SORTIE JSON STRICTE:
 
       // Route to appropriate machine based on topic_depth
       // NOTE: escalateToLibrarian is no longer used - librarian overlay handles this transversally
-      if (topicDepth === "SERIOUS" || (hasExistingTopic && existing?.type === "topic_serious")) {
+      const shouldTreatSeriousAsTopicSession =
+        topicDepth === "SERIOUS" &&
+        !(deepReasonsOpportunity && existing?.type === "topic_light")
+
+      if (shouldTreatSeriousAsTopicSession || (hasExistingTopic && existing?.type === "topic_serious")) {
         const updated = upsertTopicSerious({
           tempMemory: tm0,
           topic,
@@ -2364,6 +2438,40 @@ SORTIE JSON STRICTE:
       ;(tempMemory as any).__deferred_signal_addon = deferral.deferredSignalAddon
     }
   }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // 5.12. WANTS_RESUME HANDLING - User wants to discuss a recently deferred topic
+  // If user says "je veux en parler" / "maintenant" after a topic was deferred,
+  // do NOT force a safety mode by itself. Actual routing to safety is handled by:
+  // - dispatcherSignals.safety
+  // - topic_depth=NEED_SUPPORT
+  // - safety state machines (safety_firefighter_flow / safety_sentry_flow)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  {
+    const flowResolution = dispatcherSignals.flow_resolution
+    const wantsResume = flowResolution.kind === "WANTS_RESUME" && flowResolution.confidence >= 0.6
+    
+    // Also detect via regex fallback (dispatcher might miss nuanced "non je veux")
+    const wantsResumeRegex = /\b(je\s+veux|j['']?veux|veux\s+en\s+parler|parler\s+maintenant|en\s+parler\s+maintenant|bah\s+je\s+veux|bah\s+oui|mais\s+si|non\s+je\s+veux)\b/i.test(userMessage)
+    
+    if (wantsResume || wantsResumeRegex) {
+      const hasDeferredTopic = (tempMemory as any)?.__checkup_deferred_topic ||
+        (history.slice(-3).some((m: any) => 
+          m?.role === "assistant" && 
+          /j['']ai\s+not[ée]|on\s+y\s+reviendra|on\s+en\s+reparlera/i.test(String(m?.content ?? ""))
+        ))
+      
+      // We log the user's intention to resume, but we do NOT force firefighter here.
+      // If the resumed topic truly requires support, the dispatcher will emit NEED_SUPPORT / safety
+      // and the safety state machines will take over deterministically.
+      await trace("brain:wants_resume_detected", "routing", {
+        has_deferred_topic: Boolean(hasDeferredTopic),
+        flow_resolution_kind: flowResolution.kind,
+        flow_resolution_conf: flowResolution.confidence,
+        regex_fallback: wantsResumeRegex && !wantsResume,
+      })
+    }
+  }
   
   // 6. Topic Machine routing (topic_serious / topic_light)
   // If there's an active topic session, route based on owner_mode
@@ -2395,7 +2503,7 @@ SORTIE JSON STRICTE:
   }
 
   dispatcherTargetMode = targetMode
-  const nCandidates = 1 // Multi-candidate generation disabled (was only used for complex messages in legacy v1)
+  const nCandidates = 1 // Multi-candidate generation disabled (was only used for complex messages)
   console.log(`[Dispatcher] Signals: safety=${dispatcherSignals.safety.level}(${dispatcherSignals.safety.confidence.toFixed(2)}), intent=${dispatcherSignals.user_intent_primary}(${dispatcherSignals.user_intent_confidence.toFixed(2)}), interrupt=${dispatcherSignals.interrupt.kind}, topic_depth=${dispatcherSignals.topic_depth.value}(${dispatcherSignals.topic_depth.confidence.toFixed(2)}) → targetMode=${targetMode}`)
   await trace("brain:dispatcher_result", "dispatcher", {
     risk_score: riskScore,
@@ -2417,6 +2525,20 @@ SORTIE JSON STRICTE:
       confidence: dispatcherSignals.user_intent_confidence,
     },
     interrupt: dispatcherSignals.interrupt,
+    // Include full dispatcher signals so eval bundles can be audited turn-by-turn.
+    flow_resolution: dispatcherSignals.flow_resolution,
+    topic_depth: dispatcherSignals.topic_depth,
+    deep_reasons: dispatcherSignals.deep_reasons,
+    needs_explanation: dispatcherSignals.needs_explanation,
+    user_engagement: dispatcherSignals.user_engagement,
+    topic_satisfaction: dispatcherSignals.topic_satisfaction,
+    create_action: dispatcherSignals.create_action,
+    update_action: dispatcherSignals.update_action,
+    breakdown_action: dispatcherSignals.breakdown_action,
+    track_progress: dispatcherSignals.track_progress,
+    activate_action: dispatcherSignals.activate_action,
+    safety_resolution: dispatcherSignals.safety_resolution,
+    wants_tools: dispatcherSignals.wants_tools,
     last_assistant_agent: lastAssistantAgent ?? null,
     state_snapshot: stateSnapshot,
   }, "info")
@@ -2882,7 +3004,7 @@ SORTIE JSON STRICTE:
   // triggers auto-relaunch of deferred topics from deferred_topics_v2.
   // This provides a cleaner, unified approach that works with all state machines.
 
-  // Clean up any legacy post_checkup state
+  // Clean up any post_checkup state
   if (isPostCheckup) {
     console.log("[Router] Legacy post_checkup state detected - clearing")
         await updateUserState(supabase, userId, scope, { investigation_state: null })
@@ -3325,10 +3447,17 @@ SORTIE JSON STRICTE:
   // ═══════════════════════════════════════════════════════════════════════════════
   let librarianOverlayActive = false
   let librarianOverlayOriginalTarget: AgentMode | null = null
+  const looksLikeExplanationAsk = (() => {
+    const s = normalizeLoose(userMessage)
+    if (!s) return false
+    // Only allow overlay on explicit "explain/why/how/what does it mean" user asks.
+    return /\b(pourquoi|comment|explique|explique\s+moi|peux\s*-?\s*tu\s+expliquer|tu\s+peux\s+expliquer|clarifie|clarifier|c['’]est\s+quoi|ca\s+veut\s+dire\s+quoi|ça\s+veut\s+dire\s+quoi|comment\s+ca\s+marche|comment\s+ca\s+fonctionne|reformule|reformuler)\b/i.test(s)
+  })()
   
   if (
     dispatcherSignals.needs_explanation?.value &&
     (dispatcherSignals.needs_explanation.confidence ?? 0) >= 0.7 &&
+    looksLikeExplanationAsk &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator" &&

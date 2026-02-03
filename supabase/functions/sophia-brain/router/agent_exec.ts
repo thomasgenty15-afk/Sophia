@@ -820,7 +820,7 @@ export async function runAgentAndVerify(opts: {
           channel: meta?.channel,
           model:
             ((((globalThis as any)?.Deno?.env?.get?.("GEMINI_FALLBACK_MODEL") ?? "") as string).trim()) ||
-            "gemini-2.5-flash",
+            "gpt-5-mini",
           userId,
         },
       })

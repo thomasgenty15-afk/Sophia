@@ -149,7 +149,14 @@ export async function applyDeterministicRouting(opts: {
       // Otherwise, companion handles mild emotional talk
       const topicDepth = opts.dispatcherSignals.topic_depth?.value ?? "NONE"
       const topicDepthConf = opts.dispatcherSignals.topic_depth?.confidence ?? 0
-      if (topicDepth === "NEED_SUPPORT" && topicDepthConf >= 0.6) {
+      const riskScore = Number(opts.dispatcherSignals.risk_score ?? 0) || 0
+      // Guardrail: NEED_SUPPORT alone is often too sensitive (e.g., "peur du jugement").
+      // Only route to firefighter when risk is meaningfully elevated OR safety explicitly indicates firefighter.
+      if (
+        topicDepth === "NEED_SUPPORT" &&
+        topicDepthConf >= 0.6 &&
+        (riskScore >= 4 || (opts.dispatcherSignals.safety.level === "FIREFIGHTER" && opts.dispatcherSignals.safety.confidence >= 0.5))
+      ) {
         targetMode = "firefighter"
       } else if (opts.dispatcherSignals.safety.level === "FIREFIGHTER" && opts.dispatcherSignals.safety.confidence >= 0.5) {
         targetMode = "firefighter"
@@ -157,8 +164,13 @@ export async function applyDeterministicRouting(opts: {
         targetMode = "companion"
       }
     } else if (opts.dispatcherSignals.topic_depth?.value === "NEED_SUPPORT" && opts.dispatcherSignals.topic_depth?.confidence >= 0.6) {
-      // Catch-all: if NEED_SUPPORT is detected regardless of intent, route to firefighter
-      targetMode = "firefighter"
+      const riskScore = Number(opts.dispatcherSignals.risk_score ?? 0) || 0
+      // Catch-all guardrail: only route to firefighter if risk is elevated or safety explicitly says so.
+      if (riskScore >= 4 || (opts.dispatcherSignals.safety.level === "FIREFIGHTER" && opts.dispatcherSignals.safety.confidence >= 0.5)) {
+        targetMode = "firefighter"
+      } else {
+        targetMode = "companion"
+      }
     } else {
       // Default: companion
       targetMode = "companion"

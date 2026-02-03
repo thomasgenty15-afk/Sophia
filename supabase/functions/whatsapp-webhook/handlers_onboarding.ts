@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { buildWhatsAppOnboardingContext, buildAdaptiveOnboardingContext } from "./onboarding_context.ts"
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
-import { analyzeSignals } from "../sophia-brain/router/dispatcher.ts"
+import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts"
 import {
   loadOnboardingContext,
   getDeferredOnboardingSteps,
@@ -40,6 +40,35 @@ async function countRecentAssistantPurpose(params: {
   return Number(count ?? 0) || 0
 }
 
+async function analyzeSignalsForWhatsApp(params: {
+  text: string
+  lastAssistantMessage?: string
+  requestId: string
+  stateSnapshot?: {
+    current_mode?: string
+    plan_confirm_pending?: boolean
+  }
+}) {
+  const raw = (params.text ?? "").trim()
+  const lastAssistant = params.lastAssistantMessage ?? ""
+  const last5Messages = lastAssistant
+    ? [{ role: "assistant", content: lastAssistant }, { role: "user", content: raw }]
+    : [{ role: "user", content: raw }]
+
+  const result = await analyzeSignalsV2(
+    {
+      userMessage: raw,
+      lastAssistantMessage: lastAssistant,
+      last5Messages,
+      signalHistory: [],
+      activeMachine: null,
+      stateSnapshot: params.stateSnapshot ?? { current_mode: "companion" },
+    },
+    { requestId: params.requestId },
+  )
+  return result.signals
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // AI-BASED FOCUS CHOICE DETECTION
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -68,12 +97,12 @@ async function detectFocusChoice(
   }
 
   try {
-    const signals = await analyzeSignals(
-      raw,
-      { current_mode: "companion" },
-      lastAssistant,
-      { requestId },
-    )
+    const signals = await analyzeSignalsForWhatsApp({
+      text: raw,
+      lastAssistantMessage: lastAssistant,
+      requestId,
+      stateSnapshot: { current_mode: "companion" },
+    })
 
     // User wants to talk about the plan
     // NOTE: Dispatcher does not expose a "PLAN" user_intent_primary.
@@ -207,12 +236,12 @@ export async function handleOnboardingState(params: {
 
     if (!saysDoneFast && raw) {
       const lastAssistant = await getLastAssistantMessage(admin, userId).catch(() => "")
-      signals = await analyzeSignals(
-        raw,
-        { current_mode: "companion", plan_confirm_pending: true },
-        lastAssistant,
-        { requestId },
-      )
+      signals = await analyzeSignalsForWhatsApp({
+        text: raw,
+        lastAssistantMessage: lastAssistant,
+        requestId,
+        stateSnapshot: { current_mode: "companion", plan_confirm_pending: true },
+      })
       const ack = Number(signals?.flow_resolution?.confidence ?? 0)
       const isAck = String(signals?.flow_resolution?.kind ?? "NONE") === "ACK_DONE"
       const planConf = Number(signals?.user_intent_confidence ?? 0)

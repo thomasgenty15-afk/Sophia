@@ -18,6 +18,9 @@ export async function generateWithGemini(
     userId?: string;
     maxRetries?: number;
     httpTimeoutMs?: number;
+    // If true, do not append our internal provider/model fallback chain.
+    // Useful when the caller already implements an external model cycle (e.g. judge loops).
+    disableFallbackChain?: boolean;
     // Eval-only: when present, we emit structured runtime trace events into conversation_eval_events.
     evalRunId?: string | null;
   }
@@ -207,9 +210,6 @@ export async function generateWithGemini(
   }
 
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
-  if (!GEMINI_API_KEY) {
-    throw new Error('Clé API Gemini manquante')
-  }
 
   const OPENAI_API_KEY = (Deno.env.get("OPENAI_API_KEY") ?? "").trim();
   const OPENAI_BASE_URL = (Deno.env.get("OPENAI_BASE_URL") ?? "https://api.openai.com").trim().replace(/\/+$/g, "");
@@ -312,8 +312,8 @@ export async function generateWithGemini(
   // - If caller provides meta.model, respect it.
   // - Otherwise, prefer env GEMINI_SOPHIA_CHAT_MODEL.
   const envChatModel = (Deno.env.get("GEMINI_SOPHIA_CHAT_MODEL") ?? "").trim();
-  // Default to gpt-5-mini (stable, fast) for all traffic.
-  const defaultModel = envChatModel || "gpt-5-mini";
+  // Default to gemini-2.5-flash (fast) for all traffic.
+  const defaultModel = envChatModel || "gemini-2.5-flash";
   let baseModel = (meta?.model ?? defaultModel).trim();
   const sourceLower = String(meta?.source ?? "").toLowerCase();
   const isEvalJudgeCall =
@@ -325,12 +325,12 @@ export async function generateWithGemini(
   // In eval-like calls, default stickiness is to go to 2.0 after first failure.
   let stickyModel: string | null = null;
 
-  // Fallback policy (simplified, stable):
-  // - Standard: gpt-5-mini → gemini-2.5-flash
-  // - Critical (gpt-5.2): gpt-5.2 → gemini-2.5-flash → gpt-5-mini
+  // Fallback policy (interleaved providers for resilience):
+  // - Standard: gemini-2.5-flash → gpt-5-mini → gpt-5-nano
+  // - Critical (gpt-5.2): gpt-5.2 → gemini-2.5-flash → gpt-5-mini → gpt-5-nano
   //
   // Note: We interleave providers (OpenAI ↔ Gemini) for better resilience.
-  // Removed: gemini-3-flash-preview, gemini-3-pro-preview (unstable), gpt-5-nano (unreliable), gemini-2.0-flash (deprecated).
+  // Removed: gemini preview models (unstable), gemini-2.0-flash (deprecated).
   const isGpt52 = (m: string) => /^\s*gpt-5\.2\b/i.test(String(m ?? "").trim());
 
   const pickModelForAttempt = (startModel: string, attempt: number): string => {
@@ -386,22 +386,30 @@ export async function generateWithGemini(
       if (!mm) return;
       if (!chain.includes(mm)) chain.push(mm);
     };
+    // If the caller asked to disable the fallback chain, only try the primary model once.
+    if (Boolean(meta?.disableFallbackChain)) {
+      push(primary);
+      return chain;
+    }
     // Fallback chains (interleaved providers for resilience):
-    // - Critical (gpt-5.2): gpt-5.2 → gemini-2.5-flash → gpt-5-mini
-    // - Standard (gpt-5-mini or other): primary → gemini-2.5-flash
+    // - Critical (gpt-5.2): gpt-5.2 → gemini-2.5-flash → gpt-5-mini → gpt-5-nano
+    // - Standard: primary → gpt-5-mini → gpt-5-nano
     //
     // Notes:
     // - Providers are interleaved: if OpenAI is down, we fall back to Gemini immediately.
     // - If OPENAI_API_KEY is missing, OpenAI models will be skipped at runtime.
     push(primary);
-    if (isGpt52(startModel) || (isEvalJudgeCall && isGpt52(primary))) {
-      // Critical chain: gpt-5.2 → gemini-2.5-flash → gpt-5-mini
+    const isCritical = isGpt52(startModel) || (isEvalJudgeCall && isGpt52(primary));
+    if (isCritical) {
       push("gemini-2.5-flash");
       push("gpt-5-mini");
+      push("gpt-5-nano");
       return chain;
     }
-    // Standard chain: primary → gemini-2.5-flash
-    push("gemini-2.5-flash");
+    // Standard: prefer staying on Gemini as primary; if it fails, fall back to OpenAI.
+    // If primary is not Gemini, still keep the OpenAI fallbacks to increase success chance.
+    push("gpt-5-mini");
+    push("gpt-5-nano");
     return chain;
   };
 
@@ -518,7 +526,11 @@ export async function generateWithGemini(
             lastInnerErr = new Error("OPENAI_API_KEY missing");
             continue;
           }
-          const timeoutMs = OPENAI_HTTP_TIMEOUT_MS;
+          const timeoutMs =
+            Number.isFinite(Number(meta?.httpTimeoutMs)) && Number(meta?.httpTimeoutMs) > 0
+              ? Math.floor(Number(meta?.httpTimeoutMs))
+              : OPENAI_HTTP_TIMEOUT_MS;
+          const t0 = Date.now();
           try {
             const { resp, json } = await callOpenAI({
               model,
@@ -531,6 +543,7 @@ export async function generateWithGemini(
               requestId: meta?.requestId ?? "n/a",
               timeoutMs,
             });
+            const durationMs = Date.now() - t0;
             console.log(JSON.stringify({
               tag: "openai_http",
               request_id: meta?.requestId ?? null,
@@ -538,6 +551,10 @@ export async function generateWithGemini(
               model,
               status: resp.status,
               ok: resp.ok,
+              duration_ms: durationMs,
+              timeout_ms: timeoutMs,
+              attempt,
+              chain_index: i,
             }));
             if (retryableStatuses.has(resp.status)) {
               const msg = String(json?.error?.message ?? resp.statusText ?? "Retryable error");
@@ -581,6 +598,8 @@ export async function generateWithGemini(
                 has_tools: Array.isArray(tools) && tools.length > 0,
                 outcome: "tool_call",
                 tool: toolName || null,
+                attempt,
+                chain_index: i,
               }));
               return { tool: toolName, args: argsObj };
             }
@@ -598,6 +617,8 @@ export async function generateWithGemini(
               tool_choice: toolChoice,
               has_tools: Array.isArray(tools) && tools.length > 0,
               outcome: "text",
+              attempt,
+              chain_index: i,
             }));
             return jsonMode ? text.replace(/```json\n?|```/g, '').trim() : text;
           } catch (e) {
@@ -609,6 +630,12 @@ export async function generateWithGemini(
             lastInnerErr = e;
             continue;
           }
+        }
+
+        // Gemini provider requires a Gemini API key. If missing, skip to the next model in the chain.
+        if (!isOpenAiModel(model) && !GEMINI_API_KEY) {
+          lastInnerErr = new Error("Clé API Gemini manquante");
+          continue;
         }
 
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`

@@ -119,3 +119,4 @@ export function findNextSameTypeTopic(
   return deferredTopics.find(t => t.machine_type === targetType) ?? null
 }
 
+

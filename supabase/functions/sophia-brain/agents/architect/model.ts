@@ -5,7 +5,9 @@ import { looksLikeExplicitCreateActionRequest } from "./consent.ts"
 export const defaultArchitectModelForRequestId = (requestId?: string): string => {
   const rid = String(requestId ?? "")
   const isEvalLike = rid.includes(":tools:") || rid.includes(":eval")
-  return isEvalLike ? "gemini-2.5-flash" : "gemini-3-flash-preview"
+  // Avoid Gemini preview defaults in prod; rely on global default (gemini-2.5-flash) unless overridden.
+  // Keep eval/tooling stable on gemini-2.5-flash.
+  return isEvalLike ? "gemini-2.5-flash" : "gemini-2.5-flash"
 }
 
 export async function generateArchitectModelOutput(opts: {

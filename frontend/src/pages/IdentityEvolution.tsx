@@ -861,6 +861,29 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
   const [isChatLoading, setIsChatLoading] = useState(false);
   const [chatError, setChatError] = useState<string | null>(null);
 
+  // UI hygiene: strip broken glyphs (U+FFFD, etc.) for clean display
+  // IMPORTANT: We must NOT strip valid surrogate pairs (emojis) — only LONE surrogates.
+  const sanitizeBrokenGlyphs = (s: string) =>
+    s
+      .replace(/[\uFFFC-\uFFFF]/g, "")
+      // Lone HIGH surrogate NOT followed by a LOW surrogate
+      .replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "")
+      // Lone LOW surrogate NOT preceded by a HIGH surrogate
+      .replace(/(?<![\uD800-\uDBFF])[\uDC00-\uDFFF]/g, "")
+      .trimEnd();
+
+  const displayChatText = (t: unknown) => sanitizeBrokenGlyphs(String(t ?? ""));
+
+  const TypingDot = () => (
+    <span className="inline-flex items-center gap-2">
+      <span
+        className="inline-block w-2 h-2 rounded-full bg-emerald-200/90 animate-pulse"
+        aria-hidden="true"
+      />
+      <span className="sr-only">Sophia est en train d’écrire…</span>
+    </span>
+  );
+
   const handleSendMessage = async () => {
     const userText = inputMessage.trim();
     if (!userText || isChatLoading) return;
@@ -925,7 +948,8 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
 
       if (error) throw error;
 
-      const assistantText = (data?.content ?? "").toString().trim() || "Je n'ai pas réussi à répondre. Réessaie ?";
+      const rawText = (data?.content ?? "").toString().trim() || "Je n'ai pas réussi à répondre. Réessaie ?";
+      const assistantText = sanitizeBrokenGlyphs(rawText);
       setMessages(prev => [...prev, { id: Date.now() + 1, sender: 'ai', text: assistantText }]);
     } catch (e: any) {
       console.error("[IdentityEvolution] Chat error:", e);
@@ -1177,14 +1201,14 @@ const EvolutionForge = ({ module, onClose, onSave }: { module: SystemModule, onC
                     <div className={`max-w-[85%] p-2 md:p-3 rounded-2xl text-xs md:text-sm leading-relaxed whitespace-pre-line ${
                       msg.sender === 'user' ? 'bg-emerald-600 text-white' : 'bg-emerald-900 text-emerald-100 border border-emerald-800'
                     }`}>
-                      {msg.text}
+                      {displayChatText(msg.text)}
                     </div>
                   </div>
                 ))}
                 {isChatLoading && (
                   <div className="flex justify-start">
                     <div className="max-w-[85%] p-2 md:p-3 rounded-2xl text-xs md:text-sm leading-relaxed bg-emerald-900 text-emerald-100 border border-emerald-800">
-                      ...
+                      <TypingDot />
                     </div>
                   </div>
                 )}

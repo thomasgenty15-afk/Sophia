@@ -1,0 +1,46 @@
+{
+  "dataset_key": "state_machines_v2",
+  "id": "bilan_entry_confirm_then_salsa_no_librarian",
+  "description": "Regression: user asks for bilan, confirms, then mentions a 'cours de salsa'. Must start investigator (bilan) and must NOT route to librarian due to the word 'cours'. Also must not start profile confirmation during checkup entry.",
+  "tags": ["bilan", "investigator", "router", "librarian", "regression", "v2"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 3,
+    "preseed_actions": [
+      { "title": "Sport 30 min", "frequency": 3, "active": true },
+      { "title": "Lecture 20 pages", "frequency": 5, "active": true },
+      { "title": "Méditation 10 min", "frequency": 7, "active": true }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur chill",
+    "age_range": "25-40",
+    "style": "oral, réponses courtes",
+    "background": "Veut faire son bilan puis parle de sa journée (cours de salsa)."
+  },
+  "steps": [
+    { "user": "Salut" },
+    { "user": "Pas grand chose de particulier mais j'aimerais bien faire mon bilan" },
+    { "user": "Oui je veux bien" },
+    { "user": "Euh alors je dirai que je suis plutôt de bonne humeur en vrai" },
+    { "user": "Bah j'ai fait mon premier cours de danse de salsa donc très cool" },
+    { "user": "Yes exactement" }
+  ],
+  "assertions": {
+    "must_include_agent": ["investigator"],
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|checkup|faire le point|état d'esprit|etat d'esprit|un seul mot|humeur"
+    ],
+    "assistant_must_not_match": [
+      "Pourquoi c'est si gratifiant",
+      "Le fonctionnement du premier cours",
+      "L'aspect social"
+    ]
+  }
+}
+
+
+

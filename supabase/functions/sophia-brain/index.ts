@@ -85,6 +85,7 @@ Deno.serve(async (req) => {
     let history: any[] = []
     try {
       const scopeResolved = (scope ?? (channel === "whatsapp" ? "whatsapp" : "web")).toString()
+      const t0 = Date.now()
       const { data: rows } = await supabaseClient
         .from("chat_messages")
         .select("role, content, created_at, agent_used")
@@ -92,6 +93,15 @@ Deno.serve(async (req) => {
         .eq("scope", scopeResolved)
         .order("created_at", { ascending: false })
         .limit(20)
+      const durationMs = Date.now() - t0
+      console.log(JSON.stringify({
+        tag: "db_history_load",
+        request_id: requestId,
+        user_id: user.id,
+        scope: scopeResolved,
+        rows: Array.isArray(rows) ? rows.length : null,
+        duration_ms: durationMs,
+      }))
       history = (rows ?? []).slice().reverse().map((r: any) => ({
         role: r.role,
         content: r.content,

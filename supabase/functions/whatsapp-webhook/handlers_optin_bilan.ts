@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { analyzeSignals } from "../sophia-brain/router/dispatcher.ts"
+import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts"
 import {
   loadOnboardingContext,
   setDeferredOnboardingSteps,
@@ -78,6 +78,22 @@ interface AdaptiveFlowResult {
   forceMode?: "companion" | "firefighter" | "sentry"
 }
 
+async function analyzeSignalsForWhatsApp(text: string, requestId: string) {
+  const raw = (text ?? "").trim()
+  const result = await analyzeSignalsV2(
+    {
+      userMessage: raw,
+      lastAssistantMessage: "",
+      last5Messages: [{ role: "user", content: raw }],
+      signalHistory: [],
+      activeMachine: null,
+      stateSnapshot: { current_mode: "companion" },
+    },
+    { requestId },
+  )
+  return result.signals
+}
+
 async function detectAdaptiveFlow(
   inboundText: string,
   requestId: string,
@@ -92,12 +108,7 @@ async function detectAdaptiveFlow(
   if (!text) return defaultResult
 
   try {
-    const signals = await analyzeSignals(
-      inboundText,
-      { current_mode: "companion" },
-      "", // no last assistant message at opt-in
-      { requestId },
-    )
+    const signals = await analyzeSignalsForWhatsApp(inboundText, requestId)
 
     // SCENARIO A: Urgency detected (safety or NEED_SUPPORT)
     const isUrgent =

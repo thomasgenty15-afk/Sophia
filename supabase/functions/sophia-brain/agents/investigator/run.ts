@@ -267,7 +267,8 @@ export async function runInvestigator(
     "auto",
     {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-3-flash-preview",
+      // Avoid Gemini preview defaults in prod; rely on global default (gpt-5-mini) unless overridden.
+      model: meta?.model,
       source: "sophia-brain:investigator",
       forceRealAi: meta?.forceRealAi,
     },

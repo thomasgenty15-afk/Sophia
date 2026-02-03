@@ -1,0 +1,91 @@
+{
+  "dataset_key": "state_machines",
+  "id": "topic_light_deep_reasons_then_back_to_light",
+  "description": "Start in topic_light (companion). A motivational blocker is detected (deep_reasons) and takes over (architect). After deep_reasons is stopped/closed, the conversation returns to topic_light (companion).",
+  "tags": ["topic_light", "deep_reasons", "transition", "state_machine"],
+  "setup": {
+    "seed_plan": true,
+    "bilan_actions_count": 0
+  },
+  "persona": {
+    "label": "Utilisateur en discussion légère puis blocage motivationnel",
+    "age_range": "25-45",
+    "style": "léger au début, puis honnête; pas dramatique; met une limite puis revient au léger",
+    "background": "Commence en small talk (séries), puis évoque un blocage motivationnel sur une action de son plan. Consent à explorer, puis stoppe et revient aux séries."
+  },
+  "steps": [
+    {
+      "user": "Salut ! Une reco rapide de série fun (20-30 minutes), pas trop prise de tête ?",
+      "expected_mode": "companion",
+      "notes": "Start LIGHT topic (topic_light)"
+    },
+    {
+      "user": "Ok cool. Je préfère les comédies.",
+      "expected_mode": "companion",
+      "notes": "Stay in topic_light"
+    },
+    {
+      "user": "Petit aparté: j'arrive vraiment pas à méditer. J'ai la flemme chronique, je repousse tout le temps sans raison. C’est pas une crise, juste ça m’agace.",
+      "expected_mode": "architect",
+      "notes": "Deep reasons opportunity should be detected; route to architect and propose exploration"
+    },
+    {
+      "user": "Oui, allons-y, on peut explorer.",
+      "expected_mode": "architect",
+      "notes": "User consents; deep_reasons should start (state machine)"
+    },
+    {
+      "user": "Quand j’y pense, j’ai l’impression que ça sert à rien et que je vais perdre du temps. Et je sens une résistance, comme si je fuyais un truc.",
+      "expected_mode": "architect",
+      "notes": "Deep reasons continues"
+    },
+    {
+      "user": "Si je suis honnête, c’est surtout que j’ai peur de faire l’effort et de ne rien ressentir. Et du coup je me juge derrière.",
+      "expected_mode": "architect",
+      "notes": "Deep reasons: add one more turn of emotional/motivational blocker detail"
+    },
+    {
+      "user": "Et en même temps, j’ai envie d’arrêter de me saboter. Je sais juste pas comment me mettre en mouvement.",
+      "expected_mode": "architect",
+      "notes": "Deep reasons: keep exploration active a bit longer before intervention"
+    },
+    {
+      "user": "Oui ça me parle. Ok je peux tester ton micro-truc.",
+      "expected_mode": "architect",
+      "notes": "Move towards intervention/closing"
+    },
+    {
+      "user": "Ok merci, on s’arrête là pour aujourd’hui, stop.",
+      "expected_mode": "architect",
+      "notes": "Close deep_reasons cleanly on user stop"
+    },
+    {
+      "user": "Bon, on revient aux séries: une reco courte et drôle ?",
+      "expected_mode": "companion",
+      "notes": "Return to LIGHT topic (topic_light)"
+    },
+    {
+      "user": "Top merci :)",
+      "expected_mode": "companion",
+      "notes": "Wrap"
+    }
+  ],
+  "mechanical_assertions": {
+    "chat_state_temp_memory_paths_not_exist": [
+      "deep_reasons_state"
+    ],
+    "chat_state_temp_memory_array_some_match": [
+      { "path": "supervisor.stack", "match": { "type": "topic_light" } }
+    ],
+    "scheduler_invariants": [
+      "sessions_have_resume_brief",
+      "topic_session_meaningful_topic"
+    ]
+  },
+  "assertions": {
+    "assistant_must_not_match": ["\\*\\*"],
+    "must_include_agent": ["architect", "companion"]
+  }
+}
+
+

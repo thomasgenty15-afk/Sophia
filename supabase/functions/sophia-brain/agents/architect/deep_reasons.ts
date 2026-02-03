@@ -93,8 +93,11 @@ export function userWantsToStopExploration(message: string): boolean {
  */
 export function userConsentsToExploration(message: string): boolean {
   const m = String(message ?? "").toLowerCase().trim()
-  return /\b(oui|ok|d['']?accord|vas[-\s]?y|go|on\s+y\s+va|je\s+veux\s+bien|pourquoi\s+pas|allons[-\s]?y|c['']?est\s+parti)\b/i.test(m) &&
-    !userWantsToStopExploration(message)
+  // Explicit consent patterns
+  const hasConsent = /\b(oui|ok|d['']?accord|vas[-\s]?y|go|on\s+y\s+va|je\s+veux\s+bien|pourquoi\s+pas|allons[-\s]?y|c['']?est\s+parti)\b/i.test(m)
+  // User expresses they WANT to talk now (even if starting with "non")
+  const wantsToTalkNow = /\b(je\s+veux|j['']?veux|veux\s+en\s+parler|parler\s+maintenant|en\s+parler\s+maintenant|on\s+en\s+parle|bah\s+je\s+veux|bah\s+oui|mais\s+si)\b/i.test(m)
+  return (hasConsent || wantsToTalkNow) && !userWantsToStopExploration(message)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -182,11 +185,24 @@ async function handleReConsentPhase(
   }
 
   // If user declines or is ambiguous
-  if (/\b(non|pas\s+maintenant|plus\s+tard)\b/i.test(message.toLowerCase())) {
+  // BUT not if they express wanting to continue (e.g. "non je veux en parler maintenant")
+  const declinePattern = /\b(non|pas\s+maintenant|plus\s+tard)\b/i.test(message.toLowerCase())
+  const wantsToTalk = /\b(je\s+veux|j['']?veux|veux\s+en\s+parler|parler\s+maintenant|en\s+parler|bah\s+je\s+veux|bah\s+oui|mais\s+si|maintenant)\b/i.test(message.toLowerCase())
+  
+  if (declinePattern && !wantsToTalk) {
     return {
       content: "Pas de souci, on garde ça pour plus tard. Tu me fais signe quand tu veux. 🙂",
       newState: null,
       outcome: "defer_continue",
+    }
+  }
+  
+  // User says "non" but wants to talk now → treat as consent
+  if (wantsToTalk) {
+    const nextState: DeepReasonsState = { ...state, phase: "clarify" }
+    return {
+      content: await generateClarifyPrompt(state, channel, meta),
+      newState: nextState,
     }
   }
 
@@ -332,7 +348,7 @@ RÈGLES:
 Génère uniquement ta réponse:`
 
   try {
-    const response = await generateWithGemini(prompt, "", 0.7, true, [], "auto", {
+    const response = await generateWithGemini(prompt, "", 0.7, false, [], "auto", {
       requestId: meta?.requestId,
       model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:deep_reasons:clarify",
@@ -377,7 +393,7 @@ RÈGLES:
 Génère uniquement ta réponse:`
 
   try {
-    const response = await generateWithGemini(prompt, "", 0.7, true, [], "auto", {
+    const response = await generateWithGemini(prompt, "", 0.7, false, [], "auto", {
       requestId: meta?.requestId,
       model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:deep_reasons:hypotheses",
@@ -424,7 +440,7 @@ RÈGLES:
 Génère uniquement ta réponse:`
 
   try {
-    const response = await generateWithGemini(prompt, "", 0.7, true, [], "auto", {
+    const response = await generateWithGemini(prompt, "", 0.7, false, [], "auto", {
       requestId: meta?.requestId,
       model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:deep_reasons:resonance",
@@ -472,7 +488,7 @@ RÈGLES:
 Génère uniquement ta réponse:`
 
   try {
-    const response = await generateWithGemini(prompt, "", 0.7, true, [], "auto", {
+    const response = await generateWithGemini(prompt, "", 0.7, false, [], "auto", {
       requestId: meta?.requestId,
       model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:deep_reasons:intervention",
@@ -519,7 +535,7 @@ RÈGLES:
 Génère uniquement ta réponse:`
 
   try {
-    const response = await generateWithGemini(prompt, "", 0.7, true, [], "auto", {
+    const response = await generateWithGemini(prompt, "", 0.7, false, [], "auto", {
       requestId: meta?.requestId,
       model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:deep_reasons:closing",

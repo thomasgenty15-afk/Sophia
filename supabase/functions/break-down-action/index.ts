@@ -168,7 +168,8 @@ serve(async (req) => {
       forceRealAi: true,
       maxRetries: 6,
       httpTimeoutMs: 12_000,
-      model: "gemini-3-flash-preview",
+      // Avoid Gemini preview defaults in prod; rely on stable default.
+      model: "gemini-2.5-flash",
     } as any)
     const newActionData = typeof raw === "string" ? JSON.parse(raw) : (raw as any)
 

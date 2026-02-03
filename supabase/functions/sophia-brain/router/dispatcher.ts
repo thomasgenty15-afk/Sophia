@@ -208,11 +208,11 @@ export interface DispatcherSignals {
     confidence: number // 0..1
   }
   wants_tools: boolean
-  risk_score: number // 0..10 (legacy compatibility)
+  risk_score: number // 0..10 (compatibility)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// SIGNAL HISTORY V1: Contextual Dispatcher with deduplication
+// SIGNAL HISTORY: Contextual Dispatcher with deduplication
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type SignalHistoryStatus = "pending" | "in_machine" | "deferred" | "resolved"
@@ -465,7 +465,7 @@ const DEFAULT_SIGNALS: DispatcherSignals = {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// CONTEXTUAL DISPATCHER V1: Dynamic prompt building
+// CONTEXTUAL DISPATCHER: Dynamic prompt building
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
@@ -500,6 +500,130 @@ SIGNAUX MERE DISPONIBLES (1 seul parmi ceux-ci):
 - activate_action_intent: Veut activer une action dormante/future
 
 RAPPEL: Tu ne peux en flaguer qu'UN SEUL par message (+ safety si danger).
+`
+
+/**
+ * Flow resolution detection - detect user's intent to resume, pause, or finish a topic.
+ */
+const FLOW_RESOLUTION_SECTION = `
+=== DETECTION FLOW_RESOLUTION ===
+Detecte si l'utilisateur veut REPRENDRE, PAUSER ou TERMINER un sujet.
+
+VALEURS POSSIBLES:
+- "WANTS_RESUME": L'utilisateur veut REPRENDRE un sujet defere ou mis de cote
+  * "je veux en parler maintenant", "non mais je veux en parler", "bah je veux !"
+  * "on peut en parler ?", "j'aimerais qu'on en discute", "revenons-y"
+  * "non je veux" (= pas un refus, c'est une demande de reprendre!)
+- "DECLINES_RESUME": L'utilisateur REFUSE de reprendre un sujet propose
+  * "non", "plus tard", "pas maintenant", "on verra"
+- "ACK_DONE": L'utilisateur confirme avoir TERMINE quelque chose
+  * "c'est fait", "j'ai fini", "ok c'est bon"
+- "WANTS_PAUSE": L'utilisateur veut faire une PAUSE
+  * "pause", "on fait une pause", "je reviens"
+- "NONE": Aucun des cas ci-dessus
+
+REGLE CRITIQUE - ATTENTION AU "NON" SUIVI DE "JE VEUX":
+- "non" seul = DECLINES_RESUME
+- "non je veux en parler" = WANTS_RESUME (l'utilisateur VEUT discuter!)
+- "bah je veux" = WANTS_RESUME
+- "mais si" = WANTS_RESUME
+
+SORTIE JSON:
+{
+  "flow_resolution": { "kind": "NONE|ACK_DONE|WANTS_RESUME|DECLINES_RESUME|WANTS_PAUSE", "confidence": 0.0-1.0 }
+}
+`
+
+/**
+ * Topic depth detection - distinguish light vs serious vs needs immediate support.
+ */
+const TOPIC_DEPTH_SECTION = `
+=== DETECTION TOPIC_DEPTH ===
+Objectif: classer le SUJET du message (si topic_exploration) en:
+- "LIGHT": discussion légère (small-talk, anecdotes, recommandations, humour, séries, etc.)
+- "SERIOUS": sujet sérieux (problèmes, peurs, travail, relations, confiance, stress) MAIS sans urgence
+- "NEED_SUPPORT": l'utilisateur a besoin d'un soutien émotionnel IMMÉDIAT (sans forcément danger vital)
+- "NONE": pas de sujet à explorer
+
+plan_focus (bool):
+- true UNIQUEMENT si l'utilisateur parle de SON PLAN / objectifs / phases / règles / actions (discussion sur le plan, pas une opération outil)
+- false sinon (travail, relations, émotions, séries, etc.)
+Exemples plan_focus=true: "dans mon plan", "ma phase 2", "mes actions", "mon grimoire", "mon objectif", "je doute de la stratégie"
+Exemples plan_focus=false: "au boulot…", "j'ose pas parler", "j'ai peur du jugement", "reco de série"
+
+RÈGLE CLÉ (anti-surclassement):
+- "NEED_SUPPORT" = seulement si le message indique une détresse/overwhelm actuelle et un besoin d'être soutenu maintenant.
+- Sinon, par défaut, préfère "SERIOUS" (pas firefighter).
+
+CRITÈRES "NEED_SUPPORT" (exemples):
+- panique/angoisse présente, souffle court, "je craque", "je suis au bout", "je n'en peux plus"
+- pleurs incontrôlables / crise émotionnelle en cours
+- demande explicite de soutien: "j'ai besoin d'aide", "aide-moi là", "j'ai besoin qu'on parle maintenant"
+- sentiment d'insécurité émotionnelle immédiate (mais sans éléments de danger vital → safety reste séparé)
+
+CRITÈRES "SERIOUS" (exemples):
+- peur du jugement, manque de confiance, stress au travail, "j'ose pas parler en réunion"
+- tristesse ou inquiétude exprimée calmement, sans urgence
+- problèmes relationnels / décisions importantes / blocages
+
+IMPORTANT:
+- "peur d'avoir l'air bête", "peur du jugement", "manque de confiance" = SERIOUS (PAS NEED_SUPPORT).
+- Si l'utilisateur dit explicitement "c'est pas une crise", c'est un signal fort pour SERIOUS (PAS NEED_SUPPORT).
+
+SORTIE JSON:
+{
+  "topic_depth": { "value": "NONE|NEED_SUPPORT|SERIOUS|LIGHT", "confidence": 0.0-1.0, "plan_focus": bool }
+}
+`
+
+const NEEDS_EXPLANATION_SECTION = `
+=== DETECTION NEEDS_EXPLANATION ===
+But: activer "needs_explanation" UNIQUEMENT si l'utilisateur demande explicitement une explication/clarification.
+
+METTRE true (exemples):
+- "Pourquoi tu dis ça ?"
+- "Tu peux expliquer / détailler ?"
+- "Comment ça marche ?"
+- "C'est quoi exactement X ?" / "Ça veut dire quoi ?"
+- "Reformule, j'ai pas compris."
+
+METTRE false (exemples):
+- expression émotionnelle simple ("ça m'énerve", "je suis stressé") sans demande d'explication
+- discussion SERIOUS normale ("c'est pas une crise") → PAS besoin d'overlay
+- préférence de longueur implicite non demandée (ne pas deviner)
+
+SORTIE JSON:
+{
+  "needs_explanation": { "value": bool, "confidence": 0.0-1.0, "reason": "string (optionnel, <=100)" }
+}
+`
+
+const WANTS_TOOLS_SECTION = `
+=== DETECTION WANTS_TOOLS ===
+But: "wants_tools" indique si l'utilisateur veut une OPERATION outil (CRUD plan/actions), pas une discussion.
+
+METTRE wants_tools=true UNIQUEMENT si le message demande explicitement une action/outillage, ex:
+- "ajoute une action", "crée une habitude", "mets-le dans mon plan"
+- "modifie la fréquence", "change l'heure", "renomme", "supprime"
+- "fais le bilan", "note ce progrès", "active un exercice"
+
+METTRE wants_tools=false dans ces cas (même si le sujet est SERIOUS):
+- l'utilisateur raconte un problème / émotion / contexte ("ça me bloque", "j'ai peur du jugement")
+- demande de conseils / stratégie / discussion sans opération
+- "c'est pas une crise" / "je veux en parler"
+`
+
+const SAFETY_RESOLUTION_SECTION = `
+=== DETECTION SAFETY_RESOLUTION ===
+But: "safety_resolution" ne sert QUE si un sujet de SÉCURITÉ est actif dans le message (ou si safety.level != NONE).
+
+RÈGLE DURE:
+- Si safety.level == "NONE" => safety_resolution doit rester neutre:
+  user_confirms_safe=false, stabilizing_signal=false, symptoms_still_present=false,
+  external_help_mentioned=false, escalate_to_sentry=false, confidence <= 0.3
+
+METTRE des valeurs non-neutres uniquement si safety.level est FIREFIGHTER ou SENTRY
+et que l'utilisateur dit explicitement qu'il va mieux / pas mieux / symptômes / aide externe.
 `
 
 /**
@@ -681,9 +805,13 @@ export interface FlowContext {
   /** For topic exploration: the topic being explored */
   topicLabel?: string
   topicPhase?: string
+  topicTurnCount?: number
+  topicEngagement?: string
   /** For deep_reasons: the exploration context */
   deepReasonsPhase?: string
   deepReasonsTopic?: string
+  deepReasonsTurnCount?: number
+  deepReasonsPattern?: string
   /** For profile confirmation: the fact being confirmed */
   profileFactKey?: string
   profileFactValue?: string
@@ -2054,11 +2182,15 @@ function buildDispatcherPromptV2(opts: {
   flowContext?: FlowContext
 }): string {
   const { activeMachine, signalHistory, stateSnapshot, lastAssistantMessage, flowContext } = opts
+  const hasDeferredTopics = Boolean(flowContext?.deferredTopicsSummary && flowContext.deferredTopicsSummary.length > 0)
+  const hasPendingRelaunchConsent = Boolean(flowContext?.pendingRelaunchConsent)
+  const hasAnyDeferredOrConsent = hasDeferredTopics || hasPendingRelaunchConsent
+  const hasActiveMachine = Boolean(activeMachine)
   
   let prompt = `Tu es le Dispatcher de Sophia (V2 contextuel). Ton role est d'analyser le message utilisateur et produire des SIGNAUX structures.
 
 DERNIER MESSAGE ASSISTANT:
-"${(lastAssistantMessage ?? "").slice(0, 300)}"
+"${(lastAssistantMessage ?? "").slice(0, 220)}"
 
 ETAT ACTUEL:
 - Mode en cours: ${stateSnapshot.current_mode ?? "unknown"}
@@ -2071,8 +2203,32 @@ ETAT ACTUEL:
   // Add mother signals (always)
   prompt += MOTHER_SIGNALS_SECTION
   
-  // Add deferred topics section (for dispatcher awareness of queued topics)
-  prompt += buildDeferredTopicsSection(flowContext)
+  // Add flow resolution detection only when it's actionable:
+  // - active machine exists OR there are deferred topics / pending consent.
+  // (Otherwise it's mostly noise + latency.)
+  if (hasActiveMachine || hasAnyDeferredOrConsent) {
+    prompt += FLOW_RESOLUTION_SECTION
+  }
+  
+  // Add topic depth detection guidance (always - avoid over-triggering NEED_SUPPORT)
+  prompt += TOPIC_DEPTH_SECTION
+
+  // Add needs_explanation guidance (always - only explicit asks)
+  prompt += NEEDS_EXPLANATION_SECTION
+
+  // wants_tools is only useful outside active tool/machine flows.
+  // Inside a machine, intent is already tracked by the machine state.
+  if (!hasActiveMachine) {
+    prompt += WANTS_TOOLS_SECTION
+  }
+
+  // Add safety_resolution guidance (always - only when safety != NONE)
+  prompt += SAFETY_RESOLUTION_SECTION
+  
+  // Add deferred topics section only when there is something to reference.
+  if (hasAnyDeferredOrConsent) {
+    prompt += buildDeferredTopicsSection(flowContext)
+  }
   
   // Add checkup intent detection (always, unless already in bilan)
   // This allows users to trigger their daily checkup via LLM detection
@@ -2082,7 +2238,7 @@ ETAT ACTUEL:
   
   // Add profile facts detection (only when no profile confirmation is pending)
   // This allows direct detection of 10 fact types without a mother signal
-  if (!stateSnapshot.profile_confirm_pending) {
+  if (!stateSnapshot.profile_confirm_pending && !hasActiveMachine) {
     prompt += PROFILE_FACTS_DETECTION_SECTION
   }
   
@@ -2112,657 +2268,6 @@ function machineMatchesSignalType(machineType: string | null, signalType: string
     "investigation": ["checkup_intent", "checkup", "bilan"],
   }
   return mappings[machineType]?.includes(signalType) ?? false
-}
-
-/**
- * Dispatcher v2: produces structured signals instead of directly choosing a mode.
- * The supervisor then applies deterministic policies based on these signals.
- */
-export async function analyzeSignals(
-  message: string,
-  stateSnapshot: {
-    current_mode?: string
-    investigation_active?: boolean
-    investigation_status?: string
-    toolflow_active?: boolean
-    toolflow_kind?: string
-    profile_confirm_pending?: boolean
-    plan_confirm_pending?: boolean
-    topic_exploration_phase?: string
-    risk_level?: string
-  },
-  lastAssistantMessage: string,
-  meta?: { requestId?: string; forceRealAi?: boolean; model?: string },
-): Promise<DispatcherSignals> {
-  // Deterministic test mode
-  const mega =
-    (((globalThis as any)?.Deno?.env?.get?.("MEGA_TEST_MODE") ?? "") as string).trim() === "1" &&
-    !meta?.forceRealAi
-  if (mega) {
-    return { ...DEFAULT_SIGNALS }
-  }
-
-  const prompt = `Tu es le Dispatcher de Sophia. Ton rôle est d'analyser le message utilisateur et produire des SIGNAUX structurés (pas de décision de routage).
-
-DERNIER MESSAGE ASSISTANT:
-"${(lastAssistantMessage ?? "").slice(0, 300)}"
-
-ÉTAT ACTUEL (snapshot):
-- Mode en cours: ${stateSnapshot.current_mode ?? "unknown"}
-- Bilan actif: ${stateSnapshot.investigation_active ? "OUI" : "NON"}${stateSnapshot.investigation_status ? ` (${stateSnapshot.investigation_status})` : ""}
-- Toolflow actif: ${stateSnapshot.toolflow_active ? `OUI (${stateSnapshot.toolflow_kind ?? "unknown"})` : "NON"}
-- Confirmation profil en attente: ${stateSnapshot.profile_confirm_pending ? "OUI" : "NON"}
-- Confirmation plan en attente (WhatsApp onboarding): ${stateSnapshot.plan_confirm_pending ? "OUI" : "NON"}
-- Topic exploration phase: ${stateSnapshot.topic_exploration_phase ?? "none"}
-
-SIGNAUX À PRODUIRE (JSON strict):
-
-1. **safety** — Détresse/danger?
-   - level: "NONE" | "FIREFIGHTER" (détresse émotionnelle aiguë) | "SENTRY" (danger vital)
-   - confidence: 0.0 à 1.0
-   - immediacy: "acute" | "non_acute" | "unknown" (si safety != NONE)
-
-2. **user_intent_primary** — Intention principale?
-   - "CHECKUP" (veut faire/continuer un bilan)
-   - "EMOTIONAL_SUPPORT" (veut parler émotions sans danger)
-   - "SMALL_TALK" (bavardage, "salut", "ça va")
-   - "PREFERENCE" (veut changer style/ton/emoji/préférences)
-   - "UNKNOWN"
-   
-   NOTE: Les discussions sur le plan/objectifs passent par topic_depth (LIGHT ou SERIOUS selon profondeur).
-   Les demandes de création/modification d'action passent par create_action/update_action/breakdown_action.
-
-3. **user_intent_confidence**: 0.0 à 1.0
-
-4. **interrupt** — L'utilisateur interrompt le flow actuel?
-   - kind: "NONE" | "EXPLICIT_STOP" | "BORED" | "SWITCH_TOPIC" | "DIGRESSION"
-   - confidence: 0.0 à 1.0
-   - deferred_topic_formalized: SI kind="DIGRESSION" ou "SWITCH_TOPIC", extrait le VRAI sujet (pas "je sais pas") et reformule-le en 3-8 mots avec "ton/ta/tes" (ex: "la situation avec ton boss", "ton stress au travail"). Si le message ne contient pas de vrai sujet concret, mets null.
-
-5. **flow_resolution** — L'utilisateur indique un état de flow?
-   - kind: "NONE" | "ACK_DONE" (confirme avoir fini) | "WANTS_RESUME" | "DECLINES_RESUME" | "WANTS_PAUSE"
-   - confidence: 0.0 à 1.0
-
-RÈGLE SPÉCIALE (plan_confirm_pending):
-- Si "Confirmation plan en attente" = OUI, utilise ACK_DONE UNIQUEMENT si l'utilisateur confirme avoir finalisé/activé son plan sur le site/dashboard.
-- Si tu n'es pas sûr que ça parle du plan (ex: "j'ai fini ma journée", "ok" ambigu), laisse flow_resolution.kind="NONE".
-
-6. **topic_depth** — Profondeur du sujet abordé (pour topic_exploration)?
-   - value: "NONE" | "NEED_SUPPORT" | "SERIOUS" | "LIGHT"
-   - confidence: 0.0 à 1.0
-   - plan_focus: true/false (true si la discussion porte sur le plan/objectifs, false sinon)
-   CRITÈRES:
-   - "NEED_SUPPORT": L'utilisateur exprime un besoin de soutien émotionnel, de la vulnérabilité, de l'anxiété, du mal-être (sans danger vital). Détresse modérée.
-   - "SERIOUS": Sujet profond qui touche la psyché — problèmes personnels, peurs, blocages, patterns de comportement, relations difficiles, introspection. PAS de détresse aiguë.
-   - "LIGHT": Sujet léger — bavardage, anecdotes du quotidien, humour, discussions sans enjeu émotionnel profond.
-   - "NONE": Aucun des cas ci-dessus (bilan en cours, préférences techniques, ou opérations tools explicites).
-   
-   IMPORTANT - DISCUSSIONS SUR LE PLAN:
-   - Si l'utilisateur DISCUTE de son plan/objectifs (réflexion, clarification, questions sur le sens):
-     * Discussion légère (questions simples, clarifications) → "LIGHT" + plan_focus=true
-     * Discussion profonde (doutes, blocages, sens de l'objectif) → "SERIOUS" + plan_focus=true
-   - Si l'utilisateur demande une OPÉRATION outil (créer/modifier/supprimer action) → "NONE" (les tool signals gèrent)
-   - Exemples:
-     * "Je me demande si mon objectif est le bon" → SERIOUS + plan_focus=true
-     * "C'est quoi la prochaine étape ?" → LIGHT + plan_focus=true  
-     * "Ajoute-moi une action sport" → NONE (c'est une opération tool, pas une discussion)
-
-7. **wants_tools**: true si l'utilisateur demande explicitement d'activer/créer/modifier une action
-
-8. **risk_score**: 0 (calme) à 10 (danger vital)
-
-9. **deep_reasons** — Blocage motivationnel détecté?
-   - opportunity: true si le message exprime un blocage MOTIVATIONNEL (pas pratique):
-     * "j'ai pas envie", "j'y crois pas", "je sais pas pourquoi je fais ça"
-     * "ça me saoule", "flemme chronique", "aucune motivation"
-     * "j'évite", "je repousse sans raison", "j'arrive vraiment pas"
-     * "ça me fait peur", "je me sens nul", "c'est trop pour moi"
-     * "une partie de moi veut pas", "je suis pas fait pour ça"
-   - action_mentioned: true si le blocage concerne une ACTION SPÉCIFIQUE (méditation, sport, sommeil, etc.)
-     * "j'arrive pas à faire ma méditation" → action_mentioned=true, action_hint="méditation"
-     * "j'ai la flemme en général" → action_mentioned=false
-     * "c'est trop dur le sport" → action_mentioned=true, action_hint="sport"
-   - action_hint: si action_mentioned=true, extrais le nom de l'action (ex: "méditation", "sport", "lecture")
-   - deferred_ready: laisse à false (sera déterminé côté router avec l'état)
-   - in_bilan_context: true si "Bilan actif" = OUI ci-dessus
-   - confidence: 0.0 à 1.0
-
-   NOTE: opportunity=true pour blocages MOTIVATIONNELS uniquement.
-   PAS pour blocages pratiques (oubli, temps, organisation) → ceux-ci restent dans BREAKDOWN.
-
-10. **needs_explanation** — Besoin d'explication détaillée?
-   - value: true si l'utilisateur pose une question complexe qui nécessite une explication structurée
-   - confidence: 0.0 à 1.0
-   - reason: raison courte (ex: "question sur mécanisme", "demande de guide")
-   EXEMPLES déclencheurs:
-   - "Comment ça marche exactement ?"
-   - "Tu peux m'expliquer en détail ?"
-   - "Pourquoi c'est comme ça ?"
-   - "C'est quoi la différence entre X et Y ?"
-   - Toute question qui demande une réponse structurée de plusieurs paragraphes.
-
-11. **user_engagement** — Niveau d'engagement utilisateur?
-   - level: "HIGH" | "MEDIUM" | "LOW" | "DISENGAGED"
-   - confidence: 0.0 à 1.0
-   CRITÈRES:
-   - "HIGH": Enthousiaste, pose des questions de suivi, réponses longues, curiosité.
-   - "MEDIUM": Engagé mais neutre, répond normalement.
-   - "LOW": Réponses courtes, intérêt déclinant, "ok", "ouais".
-   - "DISENGAGED": Monosyllabes, veut passer à autre chose, "bref", "bon".
-
-12. **topic_satisfaction** — Satisfaction sur le sujet?
-   - detected: true si l'utilisateur semble satisfait/a compris
-   - confidence: 0.0 à 1.0
-   EXEMPLES déclencheurs:
-   - "Merci, je comprends mieux"
-   - "Ok ça m'aide"
-   - "Je vois"
-   - "Parfait, c'est clair"
-   - Toute expression de gratitude ou compréhension après explication.
-
-13. **create_action** — Création d'action détectée?
-   - intent_strength: "explicit" | "implicit" | "exploration" | "none"
-   - sophia_suggested: true/false
-   - user_response: "yes" | "no" | "modify" | "unclear" | "none"
-   - modification_info: "available" | "missing" | "none"
-   - action_type_hint: "habit" | "mission" | "framework" | "unknown"
-   - action_label_hint: string ou null (label de l'action si détecté)
-   - confidence: 0.0 à 1.0
-
-   RÈGLES intent_strength:
-   - "explicit": L'utilisateur demande explicitement de créer/ajouter une action
-     * "Crée-moi une action pour...", "Ajoute ça à mon plan", "Mets X dans mon plan"
-     * Contient un verbe de création + mention du plan/action
-   - "implicit": L'utilisateur répond positivement à une suggestion de Sophia
-     * Sophia a suggéré une action ET user dit "oui", "ok", "d'accord", "ça marche"
-     * NE PAS confondre avec un simple acquiescement sans contexte d'action
-   - "exploration": L'utilisateur explore une idée mais n'est pas engagé
-     * "Ce serait bien de...", "J'y pense", "Tu en penses quoi ?", "Et si je faisais..."
-     * Contient de l'hésitation ou une question ouverte
-   - "none": Pas de signal de création d'action
-
-   RÈGLES sophia_suggested:
-   - true SI le DERNIER MESSAGE ASSISTANT contient une proposition d'action/habitude
-     * "Tu veux que je l'ajoute ?", "On la crée ?", "Je te propose de créer..."
-     * Mention explicite d'une action avec question de confirmation
-   - false sinon
-
-   RÈGLES user_response (si sophia_suggested=true OU on est dans un flow de création):
-   - "yes": L'utilisateur accepte clairement
-     * "oui", "ok", "vas-y", "d'accord", "ça marche", "parfait"
-   - "no": L'utilisateur refuse clairement
-     * "non", "pas maintenant", "laisse tomber", "on oublie"
-   - "modify": L'utilisateur veut modifier les paramètres
-     * "oui mais...", "plutôt X fois", "non le soir plutôt", "change ça"
-   - "unclear": Réponse ambiguë
-     * "hmm", "bof", "je sais pas", "peut-être"
-   - "none": Pas de contexte de réponse
-
-   RÈGLES modification_info (si user_response="modify" ou "no"):
-   - "available": L'utilisateur a donné une info précise pour modifier
-     * "plutôt 3 fois par semaine", "le matin pas le soir", "change le nom en X"
-   - "missing": L'utilisateur a refusé/modifié sans donner de détails
-     * "non ça va pas", "change ça" (sans précision)
-   - "none": Pas applicable
-
-   RÈGLES action_type_hint:
-   - "habit": Action récurrente (sport, méditation, lecture quotidienne)
-   - "mission": Action one-shot (acheter X, appeler Y, finir un projet)
-   - "framework": Exercice de réflexion/journaling
-   - "unknown": Pas clair
-
-14. **update_action** — Modification d'action existante détectée?
-   - detected: true/false
-   - target_hint: string ou null (nom de l'action à modifier)
-   - change_type: "frequency" | "days" | "time" | "title" | "mixed" | "unknown"
-   - new_value_hint: string ou null (nouvelle valeur proposée)
-   - user_response: "yes" | "no" | "modify" | "unclear" | "none"
-   - confidence: 0.0 à 1.0
-
-   RÈGLES detected:
-   - true SI l'utilisateur demande de MODIFIER une action EXISTANTE
-     * "passe lecture à 5 fois", "change sport en 3x/semaine"
-     * "mets méditation le matin", "renomme l'action en X"
-     * "enlève le vendredi", "ajoute le lundi"
-   - false sinon (création = signal 13, pas update)
-
-   RÈGLES target_hint:
-   - Extrais le NOM de l'action mentionnée
-     * "passe lecture à 5x" → target_hint = "lecture"
-     * "change sport" → target_hint = "sport"
-   - null si pas clair
-
-   RÈGLES change_type:
-   - "frequency": changement de fréquence (X fois/semaine)
-   - "days": changement de jours (lundi, mercredi...)
-   - "time": changement de moment (matin, soir...)
-   - "title": renommage de l'action
-   - "mixed": plusieurs changements à la fois
-   - "unknown": pas clair
-
-   RÈGLES new_value_hint:
-   - Extrais la NOUVELLE VALEUR demandée
-     * "5 fois" → "5x"
-     * "lundi et mercredi" → "lundi, mercredi"
-     * "le matin" → "matin"
-   - null si pas clair
-
-   RÈGLES user_response (si Sophia a proposé une modification):
-   - "yes": Accepte la modification proposée
-   - "no": Refuse la modification
-   - "modify": Veut une autre valeur
-   - "unclear": Réponse ambiguë
-   - "none": Pas de contexte de réponse à une proposition
-
-15. **breakdown_action** — Décomposition d'action en micro-étapes détectée?
-   - detected: true/false
-   - target_hint: string ou null (nom de l'action à débloquer)
-   - blocker_hint: string ou null (ce qui bloque l'utilisateur)
-   - sophia_suggested: true/false (Sophia a proposé de décomposer)
-   - user_response: "yes" | "no" | "unclear" | "none"
-   - confidence: 0.0 à 1.0
-
-   RÈGLES detected:
-   - true SI l'utilisateur veut DÉBLOQUER ou DÉCOMPOSER une action
-     * "je bloque sur X", "j'arrive pas à faire X", "X c'est trop dur"
-     * "micro-étape pour X", "découpe X", "simplifie X"
-     * "insurmontable", "je repousse", "je procrastine sur X"
-   - false sinon (création = signal 13, modification = signal 14)
-
-   RÈGLES target_hint:
-   - Extrais le NOM de l'action mentionnée
-     * "je bloque sur le sport" → target_hint = "sport"
-     * "j'arrive pas à méditer" → target_hint = "méditation"
-   - null si pas clair
-
-   RÈGLES blocker_hint:
-   - Extrais la RAISON du blocage si mentionnée
-     * "trop fatigué le soir" → blocker_hint = "trop fatigué le soir"
-     * "pas assez de temps" → blocker_hint = "manque de temps"
-   - null si pas mentionné
-
-   RÈGLES sophia_suggested:
-   - true SI le DERNIER MESSAGE ASSISTANT contient une proposition de décomposition
-     * "Tu veux qu'on la découpe ?", "Je te propose une micro-étape"
-     * "On simplifie ?", "Tu veux une version plus facile ?"
-   - false sinon
-
-   RÈGLES user_response (si sophia_suggested=true OU en flow de breakdown):
-   - "yes": L'utilisateur accepte la micro-étape proposée
-   - "no": L'utilisateur refuse
-   - "unclear": Réponse ambiguë
-   - "none": Pas de contexte de réponse
-
-16. **track_progress** — Enregistrement de progression détecté?
-   - detected: true/false
-   - target_hint: string ou null (nom de l'action concernée)
-   - status_hint: "completed" | "missed" | "partial" | "unknown"
-   - value_hint: number ou null (valeur numérique si mentionnée)
-   - confidence: 0.0 à 1.0
-
-   RÈGLES detected:
-   - true SI l'utilisateur rapporte une progression sur une action
-     * "J'ai fait mon sport", "J'ai médité", "J'ai pas fait ma lecture"
-     * "J'ai raté/loupé/zappé X", "J'ai tenu", "J'ai réussi"
-     * "Fait !", "Done", "Validé", "Coché"
-     * "J'ai fait 3 fois cette semaine"
-   - false sinon
-
-   RÈGLES target_hint:
-   - Extrais le NOM de l'action mentionnée
-     * "j'ai fait mon sport" → target_hint = "sport"
-     * "j'ai médité ce matin" → target_hint = "méditation"
-   - null si pas clair ou action non mentionnée
-
-   RÈGLES status_hint:
-   - "completed": L'utilisateur a fait l'action
-     * "j'ai fait", "j'ai réussi", "fait !", "validé"
-   - "missed": L'utilisateur n'a pas fait l'action
-     * "j'ai pas fait", "j'ai raté", "j'ai loupé", "zappé"
-   - "partial": L'utilisateur a fait partiellement
-     * "j'ai fait à moitié", "un peu", "pas complètement"
-   - "unknown": Pas clair
-
-   RÈGLES value_hint:
-   - Extrais un nombre si mentionné
-     * "j'ai fait 3 fois" → value_hint = 3
-     * "j'ai bu 2 litres d'eau" → value_hint = 2
-   - null si pas de valeur numérique
-
-17. **activate_action** — Activation d'action détectée?
-   - detected: true/false
-   - target_hint: string ou null (nom de l'action à activer)
-   - exercise_type_hint: string ou null (type d'exercice si spécifique)
-   - confidence: 0.0 à 1.0
-
-   RÈGLES detected:
-   - true SI l'utilisateur veut ACTIVER une action dormante/future
-     * "Active-moi X", "Lance X", "Démarre X"
-     * "Je veux commencer X", "On active X ?"
-     * "Attrape-rêves go !", "Lance l'exercice"
-   - false sinon (création = signal 13, c'est différent)
-
-   RÈGLES target_hint:
-   - Extrais le NOM de l'action à activer
-     * "active le sport" → target_hint = "sport"
-     * "lance l'attrape-rêves" → target_hint = "attrape-rêves"
-   - null si pas clair
-
-   RÈGLES exercise_type_hint:
-   - Si c'est un exercice spécifique connu, extrais le type
-     * "attrape-rêves", "bilan quotidien", "journal de gratitude"
-   - null si c'est une action simple
-
-18. **safety_resolution** — Signaux de résolution de crise (si safety flow actif)?
-   - user_confirms_safe: true/false (l'utilisateur confirme être en sécurité)
-   - stabilizing_signal: true/false (signes d'apaisement)
-   - symptoms_still_present: true/false (symptômes physiques/émotionnels encore présents)
-   - external_help_mentioned: true/false (aide externe mentionnée)
-   - escalate_to_sentry: true/false (situation devient vitale)
-   - confidence: 0.0 à 1.0
-
-   RÈGLES user_confirms_safe:
-   - true SI l'utilisateur confirme EXPLICITEMENT être en sécurité
-     * "oui je suis en sécurité", "je suis chez moi", "je suis avec quelqu'un"
-     * "non je ne vais pas me faire de mal", "non pas de danger"
-   - false sinon
-
-   RÈGLES stabilizing_signal:
-   - true SI l'utilisateur montre des signes d'apaisement
-     * "ça va mieux", "je me calme", "merci", "je respire mieux"
-     * "ok j'ai fait l'exercice", "ça redescend"
-     * "c'est bon", "ça passe", "je gère"
-   - false sinon
-
-   RÈGLES symptoms_still_present:
-   - true SI l'utilisateur mentionne ENCORE des symptômes physiques/émotionnels
-     * "j'ai encore le cœur qui bat", "je tremble encore"
-     * "j'ai toujours du mal à respirer", "j'ai des vertiges"
-     * "je pleure encore", "j'ai toujours peur"
-   - false si aucun symptôme mentionné ou symptômes résolus
-
-   RÈGLES external_help_mentioned:
-   - true SI l'utilisateur mentionne avoir contacté/être avec de l'aide externe
-     * "j'ai appelé le SAMU", "je suis avec mon ami", "j'ai prévenu ma sœur"
-     * "je vais voir un médecin", "j'ai un rdv psy"
-   - false sinon
-
-   RÈGLES escalate_to_sentry:
-   - true SI la situation firefighter devient VITALE (danger de mort)
-     * "j'ai envie de me faire du mal", "j'ai des idées noires"
-     * "je veux mourir", "je vais sauter"
-     * TOUTE mention de danger vital alors qu'on était en crise émotionnelle
-   - false sinon (rester en firefighter)
-
-RÈGLES:
-- Produis UNIQUEMENT le JSON, pas de prose.
-- Sois conservateur sur safety (confidence >= 0.75 pour FIREFIGHTER/SENTRY).
-- "stop", "arrête", "on arrête" = EXPLICIT_STOP (confidence élevée).
-- "ok.", "bon.", réponses très courtes après question = potentiellement BORED.
-- "plus tard", "pas maintenant" = DIGRESSION ou WANTS_PAUSE, PAS un stop.
-- Pour topic_depth: si intent est PLAN/CHECKUP/BREAKDOWN/PREFERENCE, mets "NONE". Analyse le sujet UNIQUEMENT si c'est une digression ou un changement de sujet.
-
-MESSAGE UTILISATEUR:
-"${(message ?? "").slice(0, 800)}"
-
-Réponds UNIQUEMENT avec le JSON:`
-
-  try {
-    const response = await generateWithGemini(prompt, "", 0.0, true, [], "auto", {
-      requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
-      source: "sophia-brain:dispatcher-v2",
-    })
-    const obj = JSON.parse(response as string) as any
-
-    // Parse and validate signals
-    const safetyLevel = (["NONE", "FIREFIGHTER", "SENTRY"] as SafetyLevel[]).includes(obj?.safety?.level)
-      ? obj.safety.level as SafetyLevel
-      : "NONE"
-    const safetyConf = Math.max(0, Math.min(1, Number(obj?.safety?.confidence ?? 0.9) || 0.9))
-    const immediacy = (["acute", "non_acute", "unknown"] as const).includes(obj?.safety?.immediacy)
-      ? obj.safety.immediacy
-      : "unknown"
-
-    const intentPrimary = ([
-      "CHECKUP", "EMOTIONAL_SUPPORT", "SMALL_TALK", "PREFERENCE", "UNKNOWN"
-    ] as UserIntentPrimary[]).includes(obj?.user_intent_primary)
-      ? obj.user_intent_primary as UserIntentPrimary
-      : "UNKNOWN"
-    const intentConf = Math.max(0, Math.min(1, Number(obj?.user_intent_confidence ?? 0.5) || 0.5))
-
-    const interruptKind = (["NONE", "EXPLICIT_STOP", "BORED", "SWITCH_TOPIC", "DIGRESSION"] as InterruptKind[])
-      .includes(obj?.interrupt?.kind)
-      ? obj.interrupt.kind as InterruptKind
-      : "NONE"
-    const interruptConf = Math.max(0, Math.min(1, Number(obj?.interrupt?.confidence ?? 0.9) || 0.9))
-    // Extract formalized deferred topic if present (for DIGRESSION/SWITCH_TOPIC)
-    const deferredTopicRaw = obj?.interrupt?.deferred_topic_formalized
-    const deferredTopicFormalized = (
-      typeof deferredTopicRaw === "string" && 
-      deferredTopicRaw.trim().length >= 3 && 
-      deferredTopicRaw.trim().length <= 120 &&
-      !/^(je\s+sais?\s+pas|null|undefined|none)$/i.test(deferredTopicRaw.trim())
-    ) ? deferredTopicRaw.trim() : null
-
-    const flowKind = (["NONE", "ACK_DONE", "WANTS_RESUME", "DECLINES_RESUME", "WANTS_PAUSE"] as FlowResolutionKind[])
-      .includes(obj?.flow_resolution?.kind)
-      ? obj.flow_resolution.kind as FlowResolutionKind
-      : "NONE"
-    const flowConf = Math.max(0, Math.min(1, Number(obj?.flow_resolution?.confidence ?? 0.9) || 0.9))
-
-    // Parse topic_depth signal
-    const topicDepthValue = (["NONE", "NEED_SUPPORT", "SERIOUS", "LIGHT"] as TopicDepth[])
-      .includes(obj?.topic_depth?.value)
-      ? obj.topic_depth.value as TopicDepth
-      : "NONE"
-    const topicDepthConf = Math.max(0, Math.min(1, Number(obj?.topic_depth?.confidence ?? 0.9) || 0.9))
-    const topicDepthPlanFocus = Boolean(obj?.topic_depth?.plan_focus)
-
-    // Parse deep_reasons signal
-    const deepReasonsOpportunity = Boolean(obj?.deep_reasons?.opportunity)
-    const deepReasonsActionMentioned = Boolean(obj?.deep_reasons?.action_mentioned)
-    const deepReasonsActionHint = (typeof obj?.deep_reasons?.action_hint === "string" && obj.deep_reasons.action_hint.trim())
-      ? obj.deep_reasons.action_hint.trim().slice(0, 50)
-      : undefined
-    const deepReasonsInBilanContext = Boolean(obj?.deep_reasons?.in_bilan_context) || Boolean(stateSnapshot.investigation_active)
-    const deepReasonsConf = Math.max(0, Math.min(1, Number(obj?.deep_reasons?.confidence ?? 0.5) || 0.5))
-    // deferred_ready is computed at router level, not by LLM
-
-    // Parse needs_explanation signal
-    const needsExplanationValue = Boolean(obj?.needs_explanation?.value)
-    const needsExplanationConf = Math.max(0, Math.min(1, Number(obj?.needs_explanation?.confidence ?? 0.5) || 0.5))
-    const needsExplanationReason = typeof obj?.needs_explanation?.reason === "string" 
-      ? obj.needs_explanation.reason.slice(0, 100) 
-      : undefined
-
-    // Parse user_engagement signal
-    const engagementLevelRaw = String(obj?.user_engagement?.level ?? "MEDIUM").toUpperCase()
-    const engagementLevel = (["HIGH", "MEDIUM", "LOW", "DISENGAGED"] as UserEngagementLevel[]).includes(engagementLevelRaw as UserEngagementLevel)
-      ? engagementLevelRaw as UserEngagementLevel
-      : "MEDIUM"
-    const engagementConf = Math.max(0, Math.min(1, Number(obj?.user_engagement?.confidence ?? 0.5) || 0.5))
-
-    // Parse topic_satisfaction signal
-    const satisfactionDetected = Boolean(obj?.topic_satisfaction?.detected)
-    const satisfactionConf = Math.max(0, Math.min(1, Number(obj?.topic_satisfaction?.confidence ?? 0.5) || 0.5))
-
-    // Parse create_action signal
-    const createActionIntentRaw = String(obj?.create_action?.intent_strength ?? "none").toLowerCase()
-    const createActionIntent = (["explicit", "implicit", "exploration", "none"] as const).includes(createActionIntentRaw as any)
-      ? createActionIntentRaw as "explicit" | "implicit" | "exploration" | "none"
-      : "none"
-    const createActionSophiaSuggested = Boolean(obj?.create_action?.sophia_suggested)
-    const createActionUserResponseRaw = String(obj?.create_action?.user_response ?? "none").toLowerCase()
-    const createActionUserResponse = (["yes", "no", "modify", "unclear", "none"] as const).includes(createActionUserResponseRaw as any)
-      ? createActionUserResponseRaw as "yes" | "no" | "modify" | "unclear" | "none"
-      : "none"
-    const createActionModInfoRaw = String(obj?.create_action?.modification_info ?? "none").toLowerCase()
-    const createActionModInfo = (["available", "missing", "none"] as const).includes(createActionModInfoRaw as any)
-      ? createActionModInfoRaw as "available" | "missing" | "none"
-      : "none"
-    const createActionTypeRaw = String(obj?.create_action?.action_type_hint ?? "unknown").toLowerCase()
-    const createActionType = (["habit", "mission", "framework", "unknown"] as const).includes(createActionTypeRaw as any)
-      ? createActionTypeRaw as "habit" | "mission" | "framework" | "unknown"
-      : "unknown"
-    const createActionLabel = (typeof obj?.create_action?.action_label_hint === "string" && obj.create_action.action_label_hint.trim())
-      ? obj.create_action.action_label_hint.trim().slice(0, 120)
-      : undefined
-    const createActionConf = Math.max(0, Math.min(1, Number(obj?.create_action?.confidence ?? 0.5) || 0.5))
-
-    // Parse update_action signal
-    const updateActionDetected = Boolean(obj?.update_action?.detected)
-    const updateActionTargetHint = (typeof obj?.update_action?.target_hint === "string" && obj.update_action.target_hint.trim())
-      ? obj.update_action.target_hint.trim().slice(0, 80)
-      : undefined
-    const updateActionChangeTypeRaw = String(obj?.update_action?.change_type ?? "unknown").toLowerCase()
-    const updateActionChangeType = (["frequency", "days", "time", "title", "mixed", "unknown"] as const).includes(updateActionChangeTypeRaw as any)
-      ? updateActionChangeTypeRaw as "frequency" | "days" | "time" | "title" | "mixed" | "unknown"
-      : "unknown"
-    const updateActionNewValueHint = (typeof obj?.update_action?.new_value_hint === "string" && obj.update_action.new_value_hint.trim())
-      ? obj.update_action.new_value_hint.trim().slice(0, 80)
-      : undefined
-    const updateActionUserResponseRaw = String(obj?.update_action?.user_response ?? "none").toLowerCase()
-    const updateActionUserResponse = (["yes", "no", "modify", "unclear", "none"] as const).includes(updateActionUserResponseRaw as any)
-      ? updateActionUserResponseRaw as "yes" | "no" | "modify" | "unclear" | "none"
-      : "none"
-    const updateActionConf = Math.max(0, Math.min(1, Number(obj?.update_action?.confidence ?? 0.5) || 0.5))
-
-    // Parse breakdown_action signal
-    const breakdownActionDetected = Boolean(obj?.breakdown_action?.detected)
-    const breakdownActionTargetHint = (typeof obj?.breakdown_action?.target_hint === "string" && obj.breakdown_action.target_hint.trim())
-      ? obj.breakdown_action.target_hint.trim().slice(0, 80)
-      : undefined
-    const breakdownActionBlockerHint = (typeof obj?.breakdown_action?.blocker_hint === "string" && obj.breakdown_action.blocker_hint.trim())
-      ? obj.breakdown_action.blocker_hint.trim().slice(0, 200)
-      : undefined
-    const breakdownActionSophiaSuggested = Boolean(obj?.breakdown_action?.sophia_suggested)
-    const breakdownActionUserResponseRaw = String(obj?.breakdown_action?.user_response ?? "none").toLowerCase()
-    const breakdownActionUserResponse = (["yes", "no", "unclear", "none"] as const).includes(breakdownActionUserResponseRaw as any)
-      ? breakdownActionUserResponseRaw as "yes" | "no" | "unclear" | "none"
-      : "none"
-    const breakdownActionConf = Math.max(0, Math.min(1, Number(obj?.breakdown_action?.confidence ?? 0.5) || 0.5))
-
-    // Parse track_progress signal
-    const trackProgressDetected = Boolean(obj?.track_progress?.detected)
-    const trackProgressTargetHint = (typeof obj?.track_progress?.target_hint === "string" && obj.track_progress.target_hint.trim())
-      ? obj.track_progress.target_hint.trim().slice(0, 80)
-      : undefined
-    const trackProgressStatusHintRaw = String(obj?.track_progress?.status_hint ?? "unknown").toLowerCase()
-    const trackProgressStatusHint = (["completed", "missed", "partial", "unknown"] as const).includes(trackProgressStatusHintRaw as any)
-      ? trackProgressStatusHintRaw as "completed" | "missed" | "partial" | "unknown"
-      : "unknown"
-    const trackProgressValueHint = (typeof obj?.track_progress?.value_hint === "number" && !isNaN(obj.track_progress.value_hint))
-      ? obj.track_progress.value_hint
-      : undefined
-    const trackProgressConf = Math.max(0, Math.min(1, Number(obj?.track_progress?.confidence ?? 0.5) || 0.5))
-
-    // Parse activate_action signal
-    const activateActionDetected = Boolean(obj?.activate_action?.detected)
-    const activateActionTargetHint = (typeof obj?.activate_action?.target_hint === "string" && obj.activate_action.target_hint.trim())
-      ? obj.activate_action.target_hint.trim().slice(0, 80)
-      : undefined
-    const activateActionExerciseHint = (typeof obj?.activate_action?.exercise_type_hint === "string" && obj.activate_action.exercise_type_hint.trim())
-      ? obj.activate_action.exercise_type_hint.trim().slice(0, 80)
-      : undefined
-    const activateActionConf = Math.max(0, Math.min(1, Number(obj?.activate_action?.confidence ?? 0.5) || 0.5))
-
-    // Parse safety_resolution signal
-    const safetyResolutionUserConfirmsSafe = Boolean(obj?.safety_resolution?.user_confirms_safe)
-    const safetyResolutionStabilizingSignal = Boolean(obj?.safety_resolution?.stabilizing_signal)
-    const safetyResolutionSymptomsStillPresent = Boolean(obj?.safety_resolution?.symptoms_still_present)
-    const safetyResolutionExternalHelpMentioned = Boolean(obj?.safety_resolution?.external_help_mentioned)
-    const safetyResolutionEscalateToSentry = Boolean(obj?.safety_resolution?.escalate_to_sentry)
-    const safetyResolutionConf = Math.max(0, Math.min(1, Number(obj?.safety_resolution?.confidence ?? 0.5) || 0.5))
-
-    const wantsTools = Boolean(obj?.wants_tools)
-    const riskScore = Math.max(0, Math.min(10, Number(obj?.risk_score ?? 0) || 0))
-
-    return {
-      safety: { level: safetyLevel, confidence: safetyConf, immediacy: safetyLevel !== "NONE" ? immediacy : undefined },
-      user_intent_primary: intentPrimary,
-      user_intent_confidence: intentConf,
-      interrupt: { 
-        kind: interruptKind, 
-        confidence: interruptConf,
-        deferred_topic_formalized: (interruptKind === "DIGRESSION" || interruptKind === "SWITCH_TOPIC") ? deferredTopicFormalized : undefined,
-      },
-      flow_resolution: { kind: flowKind, confidence: flowConf },
-      topic_depth: { value: topicDepthValue, confidence: topicDepthConf, plan_focus: topicDepthPlanFocus },
-      deep_reasons: { 
-        opportunity: deepReasonsOpportunity,
-        action_mentioned: deepReasonsActionMentioned,
-        action_hint: deepReasonsActionHint,
-        deferred_ready: false, // Computed at router level
-        in_bilan_context: deepReasonsInBilanContext,
-        confidence: deepReasonsConf,
-      },
-      needs_explanation: {
-        value: needsExplanationValue,
-        confidence: needsExplanationConf,
-        reason: needsExplanationReason,
-      },
-      user_engagement: {
-        level: engagementLevel,
-        confidence: engagementConf,
-      },
-      topic_satisfaction: {
-        detected: satisfactionDetected,
-        confidence: satisfactionConf,
-      },
-      create_action: {
-        intent_strength: createActionIntent,
-        sophia_suggested: createActionSophiaSuggested,
-        user_response: createActionUserResponse,
-        modification_info: createActionModInfo,
-        action_type_hint: createActionType,
-        action_label_hint: createActionLabel,
-        confidence: createActionConf,
-      },
-      update_action: {
-        detected: updateActionDetected,
-        target_hint: updateActionTargetHint,
-        change_type: updateActionChangeType,
-        new_value_hint: updateActionNewValueHint,
-        user_response: updateActionUserResponse,
-        confidence: updateActionConf,
-      },
-      breakdown_action: {
-        detected: breakdownActionDetected,
-        target_hint: breakdownActionTargetHint,
-        blocker_hint: breakdownActionBlockerHint,
-        sophia_suggested: breakdownActionSophiaSuggested,
-        user_response: breakdownActionUserResponse,
-        confidence: breakdownActionConf,
-      },
-      track_progress: {
-        detected: trackProgressDetected,
-        target_hint: trackProgressTargetHint,
-        status_hint: trackProgressStatusHint,
-        value_hint: trackProgressValueHint,
-        confidence: trackProgressConf,
-      },
-      activate_action: {
-        detected: activateActionDetected,
-        target_hint: activateActionTargetHint,
-        exercise_type_hint: activateActionExerciseHint,
-        confidence: activateActionConf,
-      },
-      safety_resolution: {
-        user_confirms_safe: safetyResolutionUserConfirmsSafe,
-        stabilizing_signal: safetyResolutionStabilizingSignal,
-        symptoms_still_present: safetyResolutionSymptomsStillPresent,
-        external_help_mentioned: safetyResolutionExternalHelpMentioned,
-        escalate_to_sentry: safetyResolutionEscalateToSentry,
-        confidence: safetyResolutionConf,
-      },
-      wants_tools: wantsTools,
-      risk_score: riskScore,
-    }
-  } catch (e) {
-    console.error("[Dispatcher v2] JSON parse error:", e)
-    return { ...DEFAULT_SIGNALS }
-  }
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -2814,7 +2319,7 @@ export async function analyzeSignalsV2(
 ${contextMessages}
 
 === MESSAGE A ANALYSER (dernier message utilisateur) ===
-"${(input.userMessage ?? "").slice(0, 800)}"
+"${(input.userMessage ?? "").slice(0, 500)}"
 
 === FORMAT DE SORTIE JSON ===
 {
@@ -2857,14 +2362,27 @@ REGLES:
 Reponds UNIQUEMENT avec le JSON:`
 
   try {
+    const dispatcherModel =
+      ((globalThis as any)?.Deno?.env?.get?.("GEMINI_DISPATCHER_MODEL") ?? "").toString().trim() ||
+      "gemini-2.5-flash"
+    // Helpful runtime breadcrumb (lets us confirm quickly in logs that the override is active).
+    try {
+      console.log(JSON.stringify({
+        tag: "dispatcher_model_selected",
+        request_id: meta?.requestId ?? null,
+        model: dispatcherModel,
+      }))
+    } catch { /* ignore */ }
     const response = await generateWithGemini(fullPrompt, "", 0.0, true, [], "auto", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      // Dispatcher: prioritize low-latency routing. Hard-force Gemini Flash by default.
+      // (We intentionally ignore meta.model here to avoid accidentally inheriting chat model config.)
+      model: dispatcherModel,
       source: "sophia-brain:dispatcher-v2-contextual",
     })
     const obj = JSON.parse(response as string) as any
     
-    // Parse the classic signals (reuse existing parsing logic from analyzeSignals)
+    // Parse the classic signals (reuse existing parsing logic)
     const signalsObj = obj?.signals ?? obj
     
     // Parse safety
@@ -2914,13 +2432,35 @@ Reponds UNIQUEMENT avec le JSON:`
     const topicDepthPlanFocus = Boolean(signalsObj?.topic_depth?.plan_focus)
 
     // Parse deep_reasons
-    const deepReasonsOpportunity = Boolean(signalsObj?.deep_reasons?.opportunity)
-    const deepReasonsActionMentioned = Boolean(signalsObj?.deep_reasons?.action_mentioned)
-    const deepReasonsActionHint = (typeof signalsObj?.deep_reasons?.action_hint === "string" && signalsObj.deep_reasons.action_hint.trim())
+    let deepReasonsOpportunity = Boolean(signalsObj?.deep_reasons?.opportunity)
+    let deepReasonsActionMentioned = Boolean(signalsObj?.deep_reasons?.action_mentioned)
+    let deepReasonsActionHint = (typeof signalsObj?.deep_reasons?.action_hint === "string" && signalsObj.deep_reasons.action_hint.trim())
       ? signalsObj.deep_reasons.action_hint.trim().slice(0, 50)
       : undefined
     const deepReasonsInBilanContext = Boolean(signalsObj?.deep_reasons?.in_bilan_context) || Boolean(input.stateSnapshot.investigation_active)
-    const deepReasonsConf = Math.max(0, Math.min(1, Number(signalsObj?.deep_reasons?.confidence ?? 0.5) || 0.5))
+    let deepReasonsConf = Math.max(0, Math.min(1, Number(signalsObj?.deep_reasons?.confidence ?? 0.5) || 0.5))
+
+    // Heuristic fallback (critical): deep_reasons is a high-priority state machine.
+    // In practice, the LLM dispatcher can under-fire on obvious motivational blockers (e.g., "flemme", "je repousse", "ça sert à rien").
+    // To keep routing stable and to properly exercise deep_reasons scenarios, we enforce a lightweight pattern detector.
+    if (!deepReasonsInBilanContext && !deepReasonsOpportunity) {
+      const msg = String(input.userMessage ?? "");
+      const m = msg.toLowerCase();
+      const hasBlocker =
+        /(flemme|procrastin|repouss|pas envie|j['’]arrive[^\\n]{0,40}pas|je n['’]arrive[^\\n]{0,40}pas|sans raison|je sais pas pourquoi|résistance|ça sert à rien|ca sert a rien|perdre du temps)/i
+          .test(msg);
+      const hasSelfAction =
+        /(m[ée]dit|routine|habitude|plan|action)/i.test(msg);
+      if (hasBlocker && (hasSelfAction || /(j['’]arrive[^\\n]{0,40}pas|je n['’]arrive[^\\n]{0,40}pas)/i.test(msg))) {
+        deepReasonsOpportunity = true;
+        deepReasonsConf = Math.max(deepReasonsConf, 0.75);
+        // Best-effort action hint
+        if (!deepReasonsActionHint) {
+          if (/\bm[ée]dit/i.test(m)) deepReasonsActionHint = "méditation";
+        }
+        deepReasonsActionMentioned = deepReasonsActionMentioned || Boolean(deepReasonsActionHint);
+      }
+    }
 
     // Parse needs_explanation
     const needsExplanationValue = Boolean(signalsObj?.needs_explanation?.value)
@@ -3021,14 +2561,35 @@ Reponds UNIQUEMENT avec le JSON:`
     const activateActionConf = Math.max(0, Math.min(1, Number(signalsObj?.activate_action?.confidence ?? 0.5) || 0.5))
 
     // Parse safety_resolution signal
-    const safetyResolutionUserConfirmsSafe = Boolean(signalsObj?.safety_resolution?.user_confirms_safe)
-    const safetyResolutionStabilizingSignal = Boolean(signalsObj?.safety_resolution?.stabilizing_signal)
-    const safetyResolutionSymptomsStillPresent = Boolean(signalsObj?.safety_resolution?.symptoms_still_present)
-    const safetyResolutionExternalHelpMentioned = Boolean(signalsObj?.safety_resolution?.external_help_mentioned)
-    const safetyResolutionEscalateToSentry = Boolean(signalsObj?.safety_resolution?.escalate_to_sentry)
-    const safetyResolutionConf = Math.max(0, Math.min(1, Number(signalsObj?.safety_resolution?.confidence ?? 0.5) || 0.5))
+    let safetyResolutionUserConfirmsSafe = Boolean(signalsObj?.safety_resolution?.user_confirms_safe)
+    let safetyResolutionStabilizingSignal = Boolean(signalsObj?.safety_resolution?.stabilizing_signal)
+    let safetyResolutionSymptomsStillPresent = Boolean(signalsObj?.safety_resolution?.symptoms_still_present)
+    let safetyResolutionExternalHelpMentioned = Boolean(signalsObj?.safety_resolution?.external_help_mentioned)
+    let safetyResolutionEscalateToSentry = Boolean(signalsObj?.safety_resolution?.escalate_to_sentry)
+    let safetyResolutionConf = Math.max(0, Math.min(1, Number(signalsObj?.safety_resolution?.confidence ?? 0.5) || 0.5))
 
-    const wantsTools = Boolean(signalsObj?.wants_tools)
+    // Hard guard: safety_resolution is only meaningful when safety != NONE.
+    if (safetyLevel === "NONE") {
+      safetyResolutionUserConfirmsSafe = false
+      safetyResolutionStabilizingSignal = false
+      safetyResolutionSymptomsStillPresent = false
+      safetyResolutionExternalHelpMentioned = false
+      safetyResolutionEscalateToSentry = false
+      safetyResolutionConf = Math.min(safetyResolutionConf, 0.3)
+    }
+
+    let wantsTools = Boolean(signalsObj?.wants_tools)
+    // Hard guard: do not set wants_tools=true unless there is actual tool intent evidence.
+    // This prevents "wants_tools" from flipping on emotional support turns.
+    const anyToolIntentDetected =
+      (signalsObj?.create_action?.intent_strength && String(signalsObj.create_action.intent_strength) !== "none") ||
+      Boolean(signalsObj?.update_action?.detected) ||
+      Boolean(signalsObj?.breakdown_action?.detected) ||
+      Boolean(signalsObj?.track_progress?.detected) ||
+      Boolean(signalsObj?.activate_action?.detected)
+    if (wantsTools && !anyToolIntentDetected) {
+      wantsTools = false
+    }
     const riskScore = Math.max(0, Math.min(10, Number(signalsObj?.risk_score ?? 0) || 0))
 
     // Parse new_signals

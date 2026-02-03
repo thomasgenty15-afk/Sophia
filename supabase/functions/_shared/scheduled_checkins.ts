@@ -71,7 +71,8 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
 
   const out = await generateWithGemini(systemPrompt, transcript || "(pas d'historique)", 0.4, false, [], "auto", {
     requestId: params.requestId,
-    model: "gemini-3-flash-preview",
+    // Avoid Gemini preview defaults in prod; rely on stable default.
+    model: "gemini-2.5-flash",
     source: "scheduled_checkins:dynamic_whatsapp",
     forceRealAi: true,
   })

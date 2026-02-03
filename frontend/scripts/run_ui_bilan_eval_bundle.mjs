@@ -279,6 +279,19 @@ async function fetchEvalRun({ url, serviceRoleKey, evalRunId }) {
   return data;
 }
 
+async function fetchEvalRunIdByScenarioRequestId({ url, serviceRoleKey, scenarioRequestId }) {
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const { data, error } = await admin
+    .from("conversation_eval_runs")
+    .select("id,created_at,status,config")
+    .eq("config->>request_id", String(scenarioRequestId ?? ""))
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  return data?.id ?? null;
+}
+
 async function fetchSystemErrorLogs({ url, serviceRoleKey, sinceIso, requestIdPrefix }) {
   const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
   let q = admin
@@ -441,6 +454,7 @@ async function main() {
   // If run-evals is retried (WORKER_LIMIT / edge worker cancellation / local hot-reload),
   // a stable request id keeps logs and DB writes grouped, and allows downstream idempotency.
   const stableRequestId = `bilan_eval_bundle:${scenario.id}`;
+  const scenarioRequestId = `${stableRequestId}:${scenario.dataset_key}:${scenario.id}`;
 
   // Persist inflight marker early so manual reruns can resume after a crash.
   writeJsonAtomic(inflightFile, { started_at: startIso, scenario_id: scenario.id, request_id: stableRequestId });
@@ -459,7 +473,39 @@ async function main() {
   const durationMs = Date.now() - startMs;
   const requestId = runData?.request_id ?? null;
   const res0 = Array.isArray(runData?.results) ? runData.results[0] : null;
-  const evalRunId = res0?.eval_run_id ?? null;
+  // Backward compatibility:
+  // - Old run-evals returned results[0].eval_run_id
+  // - New run-evals may return partial/resume with results=[] but still creates conversation_eval_runs early.
+  let evalRunId = res0?.eval_run_id ?? null;
+  if (!evalRunId) {
+    evalRunId = await fetchEvalRunIdByScenarioRequestId({ url, serviceRoleKey, scenarioRequestId });
+  }
+  // If the edge worker returns a chunked response (partial/resume), we must call run-evals again to resume.
+  // In some cases, WORKER_LIMIT can cause an early "partial" response before results are emitted.
+  const isChunked = Boolean(runData?.partial) && Boolean(runData?.resume);
+  if (!evalRunId && isChunked) {
+    const maxResumeAttempts = 8;
+    for (let i = 0; i < maxResumeAttempts && !evalRunId; i++) {
+      const backoffMs = 800 + i * 600;
+      console.warn(`[Runner] run-evals chunked response (partial/resume). Retrying to resume (attempt ${i + 1}/${maxResumeAttempts}) after ${backoffMs}ms...`);
+      await new Promise((r) => setTimeout(r, backoffMs));
+      const runData2 = await invokeWithRetry({
+        url,
+        anonKey,
+        accessToken,
+        fnName: "run-evals",
+        body: { scenarios: [scenario], limits },
+        timeoutMs: args.timeoutMs,
+        maxAttempts: 4,
+        requestId: stableRequestId,
+      });
+      const res1 = Array.isArray(runData2?.results) ? runData2.results[0] : null;
+      evalRunId = res1?.eval_run_id ?? null;
+      if (!evalRunId) {
+        evalRunId = await fetchEvalRunIdByScenarioRequestId({ url, serviceRoleKey, scenarioRequestId });
+      }
+    }
+  }
   if (!evalRunId) {
     console.error("run-evals raw response:", JSON.stringify(runData, null, 2));
     throw new Error("Missing eval_run_id in run-evals response");
@@ -521,7 +567,7 @@ async function main() {
   const kongLogsText = fs.existsSync(kongLogFile) ? fs.readFileSync(kongLogFile, "utf8") : "";
 
   // Quick filtered views (super handy during debugging).
-  const filterNeedles = [String(requestId ?? ""), String(evalRunId), String(scenario.id)];
+  const filterNeedles = [String(requestId ?? ""), String(scenarioRequestId), String(evalRunId), String(scenario.id)];
   const filterText = (txt) => {
     const lines = String(txt ?? "").split("\n");
     return lines

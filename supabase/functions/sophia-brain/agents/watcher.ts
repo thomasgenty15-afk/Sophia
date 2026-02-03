@@ -10,6 +10,11 @@ export async function runWatcher(
   lastProcessedAt: string,
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string }
 ) {
+  const watcherDisabled =
+    (Deno.env.get("SOPHIA_WATCHER_DISABLED") ?? "").trim() === "1" ||
+    (Deno.env.get("SOPHIA_VEILLEUR_DISABLED") ?? "").trim() === "1"
+  if (watcherDisabled) return
+
   const channel = meta?.channel ?? "web"
   const scope = normalizeScope(scopeRaw ?? meta?.scope, channel === "whatsapp" ? "whatsapp" : "web")
   console.log(`[Veilleur] Triggered for user ${userId} scope=${scope}`)
@@ -126,7 +131,8 @@ export async function runWatcher(
   try {
     const jsonStr = await generateWithGemini(systemPrompt, transcript, 0.3, true, [], "auto", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      // Do not force Gemini here; rely on global default (gpt-5-mini) unless explicitly overridden.
+      model: meta?.model,
       source: "sophia-brain:watcher",
       forceRealAi: meta?.forceRealAi,
     })
@@ -246,6 +252,9 @@ export async function runWatcher(
 
     // E. Trigger Memory Consolidation (Fire & Forget)
     try {
+      const gardenerDisabled = (Deno.env.get("SOPHIA_GARDENER_DISABLED") ?? "").trim() === "1"
+      if (gardenerDisabled) return
+
       // Don't await, let it run in background (if runtime allows) or just await it if we want safety.
       // Deno Deploy edge functions usually kill async tasks after response is sent if not awaited, 
       // but here we are inside a background task (watcher) which is already decoupled from user response.

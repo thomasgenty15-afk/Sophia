@@ -1341,6 +1341,42 @@ function stubNextMessage(
   }
 }
 
+function scriptedDeepReasonsConfidenceNextMessage(params: {
+  objective: any
+  turn: number
+  difficulty: Difficulty
+}): { next_message: string; done: boolean; satisfied: string[] } {
+  const o = params.objective ?? {}
+  const actionTitle = String(o?.action_title ?? o?.action ?? "une action").trim() || "une action"
+  const tone = (params.difficulty === "hard") ? "sec et lucide" : "honnête et nuancé"
+  const t = params.turn
+  const msgs: string[] = [
+    // 0: trigger deep reasons opportunity (outside bilan)
+    `Je bloque complètement sur "${actionTitle}". J'ai pas de vraie raison, mais je repousse tout le temps. Je pense que c'est un manque de confiance.`,
+    // 1: consent
+    `Oui, on peut creuser. Mais vas-y doucement.`,
+    // 2: symptom / context
+    `Quand je me dis "je vais le faire", j'ai direct une petite boule au ventre et je me dis que je vais être nul(le) / ridicule.`,
+    // 3: deeper belief
+    `Je crois que j'ai peur qu'on voie que je suis pas à la hauteur. Du coup j'évite pour ne pas me confronter au jugement.`,
+    // 4: origin-ish (without trauma dumping)
+    `Ça me rappelle des moments où on s'est moqué de moi quand je me trompais. Depuis, je préfère ne pas essayer que de rater.`,
+    // 5: resonance / naming
+    `Oui, c'est exactement ça. C'est comme une protection: si je ne fais pas, je ne peux pas échouer.`,
+    // 6: intervention acceptance
+    `Ok. Si on reformule comme "j'apprends" au lieu de "je dois réussir", ça me détend déjà un peu.`,
+    // 7: micro-commitment
+    `Je peux faire une version mini: 2 minutes aujourd'hui, juste pour me prouver que je peux commencer.`,
+    // 8: closing signal
+    `Ça me va. Je me sens plus clair sur le vrai blocage (peur du jugement).`,
+    // 9: clean exit
+    `Merci, c'est bon pour moi. On peut clôturer.`
+  ]
+  const next_message = msgs[Math.min(t, msgs.length - 1)]
+  const done = t >= 9
+  return { next_message, done, satisfied: ["deep_reasons_confidence_realistic", tone] }
+}
+
 const BodySchema = z.object({
   // When simulate-user is invoked by run-evals, we propagate the eval_run_id to enable structured tracing
   // (conversation_eval_events) from both simulate-user and the Gemini wrapper.
@@ -1441,6 +1477,24 @@ console.log("simulate-user: Function initialized");
       }
     } catch {
       // ignore
+    }
+
+    const deepReasonsObj =
+      findObjective(body.objectives ?? [], "deep_reasons_confidence_realistic") ??
+      findObjective(body.objectives ?? [], "deep_reasons_confidence_long") ??
+      findObjective(body.objectives ?? [], "deep_reasons_exploration_confidence_realistic");
+    if (deepReasonsObj) {
+      const out = scriptedDeepReasonsConfidenceNextMessage({
+        objective: deepReasonsObj,
+        turn: body.turn_index,
+        difficulty: body.difficulty as Difficulty,
+      })
+      return jsonResponse(req, {
+        success: true,
+        request_id: requestId,
+        ...out,
+        done: out.done || body.turn_index + 1 >= body.max_turns,
+      })
     }
 
     // Tool eval objectives (AI-user state machines)
@@ -1730,9 +1784,9 @@ ${transcriptText || "(vide)"}
       lastSystemPrompt = systemPrompt;
       lastUserMessage = userMessage;
 
-      // Drastic (per request): always start simulate-user from gemini-3-flash-preview unless the caller overrides.
+      // Drastic (per request): always start simulate-user from a stable default unless the caller overrides.
       // Fallback order is handled inside gemini.ts.
-      const requestedModel = String((body as any).model ?? "").trim() || "gemini-3-flash-preview";
+      const requestedModel = String((body as any).model ?? "").trim() || "gpt-5-mini";
 
       const simMaxRetries = (() => {
         const raw = String((globalThis as any)?.Deno?.env?.get?.("SIMULATE_USER_LLM_MAX_RETRIES") ?? "").trim();
