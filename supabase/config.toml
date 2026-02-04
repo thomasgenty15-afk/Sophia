@@ -414,6 +414,9 @@ verify_jwt = false
 [functions.process-whatsapp-outbound-retries]
 verify_jwt = false
 
+[functions.process-whatsapp-optin-recovery]
+verify_jwt = false
+
 [functions.process-eval-judge-jobs]
 verify_jwt = false
 
