@@ -775,6 +775,11 @@ export async function runAgentAndVerify(opts: {
   const conversationVerifierEnabled = (() => {
     const raw = (Deno.env.get("SOPHIA_CONVERSATION_VERIFIER") ?? "").trim().toLowerCase()
     if (raw === "0" || raw === "false" || raw === "off") return false
+    // Latency guard: default OFF on WhatsApp (too expensive). Opt-in via env.
+    if (channel === "whatsapp") {
+      const wa = (Deno.env.get("SOPHIA_CONVERSATION_VERIFIER_WHATSAPP") ?? "").trim().toLowerCase()
+      if (!(wa === "1" || wa === "true" || wa === "on")) return false
+    }
     return true
   })()
   if (
