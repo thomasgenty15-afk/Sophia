@@ -14,6 +14,8 @@ export interface CheckupItem {
   is_scheduled_day?: boolean
   day_scope?: "today" | "yesterday"
   is_habit?: boolean
+  // Moment de la journée pour l'action (utilisé pour calculer day_scope)
+  time_of_day?: string  // "morning" | "afternoon" | "evening" | "night" | "any_time"
 }
 
 /**
@@ -67,6 +69,42 @@ export interface PendingDeferQuestion {
 }
 
 /**
+ * Phase of an individual item in the checkup state machine.
+ * Progression is strictly monotone (no backward transitions allowed).
+ * 
+ * Flow: not_started -> awaiting_answer -> (awaiting_reason) -> logged
+ * With optional "parenthesis" states for breakdown offers.
+ */
+export type ItemPhase = 
+  | "not_started"
+  | "awaiting_answer"
+  | "awaiting_reason"
+  | "logged"
+  | "breakdown_offer_pending"
+
+/**
+ * Progress state for an individual checkup item.
+ * Stored in investigation_state.temp_memory.item_progress[item_id]
+ */
+export interface ItemProgress {
+  /** Current phase in the item's state machine */
+  phase: ItemPhase
+  /** Type of the last question asked (for context) */
+  last_question_kind?: "did_it" | "vital_value" | "ask_reason" | "clarify"
+  /** Number of digressions absorbed while in awaiting_answer */
+  digression_count: number
+  /** ISO timestamp when the item was logged (for idempotency) */
+  logged_at?: string
+  /** Status that was logged (completed/missed/value) */
+  logged_status?: string
+}
+
+/**
+ * Map of item_id to its progress state.
+ */
+export type ItemProgressMap = Record<string, ItemProgress>
+
+/**
  * Extended temp_memory type for InvestigationState
  * 
  * NOTE: Several fields are deprecated as of the Investigator Deferred Unification refactor:
@@ -107,6 +145,12 @@ export interface InvestigationTempMemory {
   bilan_defer_consents?: BilanDeferConsents
   /** Pending defer question to inject into next investigator prompt */
   pending_defer_question?: PendingDeferQuestion
+  /** 
+   * Per-item progress state for the checkup state machine.
+   * Tracks phase, digression count, and logged status for each item.
+   * Ensures monotone progression (no backward transitions).
+   */
+  item_progress?: ItemProgressMap
   /** Other fields... */
   [key: string]: unknown
 }

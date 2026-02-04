@@ -1,4 +1,79 @@
-import type { CheckupItem, PendingDeferQuestion } from "./types.ts"
+import type { CheckupItem, PendingDeferQuestion, ItemProgress } from "./types.ts"
+
+/**
+ * Build an addon that injects the current item's state machine phase into the prompt.
+ * This gives the AI explicit instructions based on where we are in the item's lifecycle.
+ */
+export function buildItemProgressAddon(opts: {
+  currentItem: CheckupItem
+  itemProgress: ItemProgress
+}): string {
+  const { currentItem, itemProgress } = opts
+  const { phase, digression_count, last_question_kind } = itemProgress
+
+  // If already logged, don't add any addon (shouldn't happen normally)
+  if (phase === "logged") {
+    return ""
+  }
+
+  // Build instruction based on phase
+  let phaseInstruction = ""
+  
+  switch (phase) {
+    case "not_started":
+      // First time asking about this item
+      if (currentItem.type === "vital") {
+        phaseInstruction = `Tu n'as pas encore posé la question sur cet item.
+INSTRUCTION : Pose directement la question pour connaître la valeur. Ex: "Combien de ${currentItem.unit || "unités"} ?" ou "Tu dirais combien ?"`
+      } else {
+        phaseInstruction = `Tu n'as pas encore posé la question sur cet item.
+INSTRUCTION : Demande simplement si c'est fait. Ex: "Tu l'as fait(e) hier/aujourd'hui ?"`
+      }
+      break
+
+    case "awaiting_answer":
+      if (digression_count > 0) {
+        phaseInstruction = `La question a été posée. L'utilisateur a digressé ${digression_count} fois sans répondre à l'item.
+INSTRUCTION CRITIQUE : Réponds BRIÈVEMENT à sa digression (1 phrase max), puis REPOSE la question sur l'item.
+${digression_count >= 2 ? "ATTENTION: Plusieurs digressions. Sois plus direct pour recentrer." : ""}
+INTERDIT : Appeler log_action_execution tant que tu n'as pas une réponse claire sur l'item.`
+      } else {
+        phaseInstruction = `La question a été posée (type: ${last_question_kind || "unknown"}). En attente de la réponse.
+INSTRUCTION : Interprète la réponse de l'utilisateur.
+- Si "fait/oui/ok/fini" → appelle log_action_execution avec status='completed'
+- Si "pas fait/non/raté" → demande ce qui a coincé (phase suivante: awaiting_reason)
+- Si digression/hors-sujet → réponds brièvement puis repose la question`
+      }
+      break
+
+    case "awaiting_reason":
+      phaseInstruction = `L'utilisateur a dit ne pas avoir fait l'item. Tu attends la RAISON.
+INSTRUCTION : 
+- Si l'utilisateur donne une raison (même courte) → appelle log_action_execution avec status='missed' et la raison dans note
+- Si l'utilisateur coupe court ("note-le", "passe") → log immédiatement avec status='missed'
+- Si blocage pratique (oubli, temps) → propose micro-étape après bilan
+- Si blocage motivationnel (pas envie, peur) → propose exploration après bilan
+INTERDIT : Redemander "qu'est-ce qui t'a bloqué ?" si l'utilisateur a déjà répondu.`
+      break
+
+    case "breakdown_offer_pending":
+      phaseInstruction = `Tu as proposé une micro-étape ou exploration après le bilan. En attente de la réponse oui/non.
+INSTRUCTION :
+- Si "oui/ok/d'accord" → Confirme "Parfait, j'ai noté" puis log l'item et passe à la suite
+- Si "non/pas besoin" → Accepte "Ok, pas de souci" puis log l'item et passe à la suite
+- Si réponse floue → Clarifie une fois, puis continue`
+      break
+  }
+
+  return `=== ÉTAT ITEM (MACHINE À ÉTAT) ===
+Item courant: "${currentItem.title}"
+Phase: ${phase}
+${digression_count > 0 ? `Digressions: ${digression_count}` : ""}
+
+${phaseInstruction}
+
+RÈGLE ANTI-BOUCLE: Progression OBLIGATOIRE. Tu ne peux pas revenir en arrière dans les phases.`
+}
 
 /**
  * Build a dynamic addon for the investigator prompt when there's a pending defer question.
@@ -127,6 +202,11 @@ export function buildMainItemSystemPrompt(opts: {
     2. Si l'utilisateur a répondu (même avec un commentaire ou une question rhétorique) :
        -> APPELLE L'OUTIL "log_action_execution" IMMÉDIATEMENT SI C'EST FAIT.
        -> Interprète intelligemment : "Fait", "En entier", "Oui", "C'est bon" => status='completed'.
+
+       IMPORTANT (ANTI-FAUX POSITIFS) :
+       - Si le message de l'utilisateur NE RÉPOND PAS à l'item (ex: small talk "et toi ça va ?", question sur Sophia, blague, digression sans lien),
+         alors tu DOIS répondre brièvement (1 phrase) puis REPOSER la question sur l'item.
+       - Dans ce cas, INTERDICTION d'appeler "log_action_execution".
        
        -> CAS D'ÉCHEC ("Non pas fait") :
           - C'EST LE MOMENT CLÉ DU BILAN. INTERDICTION DE PASSER VITE.

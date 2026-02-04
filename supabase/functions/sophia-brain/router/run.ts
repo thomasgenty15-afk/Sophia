@@ -60,6 +60,7 @@ import {
   pickDeferredSummary,
   pickProfileConfirmSummary,
 } from "./router_helpers.ts"
+import { resolveCheckupEntryConfirmation } from "./checkup_entry.ts"
 import {
   getSignalHistory,
   updateSignalHistory,
@@ -1614,24 +1615,10 @@ SORTIE JSON STRICTE:
     
     // --- Handle response to "tu veux faire le bilan?" question ---
     if (pendingCheckupEntry) {
-      // Deterministic fallback: do not depend on dispatcher.machine_signals to parse a simple yes/no.
-      // This fixes cases where the dispatcher omits machine_signals when no machine is active.
-      const s = normalizeLoose(userMessage)
-      const yes =
-        /\b(oui|ok|daccord|d'accord|vas\s*y|go|on\s*y\s+va|carr[eé]ment|volontiers|bien\s+s[uû]r)\b/i.test(s) &&
-        s.length <= 40
-      const no =
-        /\b(non|pas\s+maintenant|plus\s+tard|laisse|une\s+autre\s+fois|on\s+verra|pas\s+aujourd['’]hui)\b/i.test(s) &&
-        s.length <= 60
-
-      const resolved =
-        wantsToCheckup !== undefined
-          ? { kind: wantsToCheckup ? "yes" : "no", via: "dispatcher" as const }
-          : yes
-            ? { kind: "yes", via: "deterministic" as const }
-            : no
-              ? { kind: "no", via: "deterministic" as const }
-              : null
+      const resolved = resolveCheckupEntryConfirmation({
+        userMessage,
+        wantsToCheckupFromDispatcher: wantsToCheckup,
+      })
 
       if (resolved) {
         // Clear the pending flag only when we actually resolved the answer.
@@ -1760,14 +1747,35 @@ SORTIE JSON STRICTE:
           })
           console.log(`[Router] Checkup deferred, current machine: ${activeMachine}`)
         } else {
-          // No active machine - ask confirmation before starting
-          ;(tempMemory as any).__checkup_entry_pending = true
-          ;(tempMemory as any).__ask_checkup_confirmation = true
-          await trace("brain:checkup_entry_pending", "dispatcher", {
-            trigger_phrase: checkupIntentSignal.trigger_phrase,
-            confidence: checkupIntentSignal.confidence,
+          // No active machine - start immediately if consent is already explicit in the same user message.
+          // Example: "Yes fais le bilan stp" should not require an extra confirmation turn.
+          const immediate = resolveCheckupEntryConfirmation({
+            userMessage,
+            wantsToCheckupFromDispatcher: undefined,
           })
-          console.log("[Router] Checkup entry pending confirmation")
+          const canStartImmediately =
+            (immediate?.kind === "yes") ||
+            (Number(checkupIntentSignal.confidence ?? 0) >= 0.88)
+          if (canStartImmediately) {
+            checkupConfirmedThisTurn = true
+            await trace("brain:checkup_confirmed", "dispatcher", {
+              confirmed: true,
+              via: immediate?.via ?? "deterministic",
+              immediate: true,
+              trigger_phrase: checkupIntentSignal.trigger_phrase,
+              confidence: checkupIntentSignal.confidence,
+            })
+            console.log("[Router] Checkup confirmed immediately from user message, will start investigation")
+          } else {
+            // Ask confirmation before starting (avoid accidental launches).
+            ;(tempMemory as any).__checkup_entry_pending = true
+            ;(tempMemory as any).__ask_checkup_confirmation = true
+            await trace("brain:checkup_entry_pending", "dispatcher", {
+              trigger_phrase: checkupIntentSignal.trigger_phrase,
+              confidence: checkupIntentSignal.confidence,
+            })
+            console.log("[Router] Checkup entry pending confirmation")
+          }
         }
       }
     }
@@ -2059,6 +2067,17 @@ SORTIE JSON STRICTE:
     })
     targetMode = routing.targetMode
     tempMemory = routing.tempMemory
+  }
+
+  // If the user accepted a deferred-topic relaunch consent, honor the initialized machine's requested mode
+  // (e.g., checkup → investigator, action flows → architect). Safety modes still win.
+  if (
+    relaunchConsentHandled &&
+    relaunchConsentNextMode &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter"
+  ) {
+    targetMode = relaunchConsentNextMode
   }
 
   // 5.5. Create Action Flow v2 routing

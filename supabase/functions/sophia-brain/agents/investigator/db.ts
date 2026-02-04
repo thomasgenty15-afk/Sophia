@@ -145,6 +145,26 @@ export async function getYesterdayCheckupSummary(
   return { completed, missed, lastWinTitle, topBlocker }
 }
 
+/**
+ * Compute the day_scope for an action based on its time_of_day and the current local hour.
+ * - Before 16h: always "yesterday" (morning bilan = checking yesterday)
+ * - After 16h: depends on the action's time_of_day
+ *   - Evening/night actions → "yesterday" (asking about last night)
+ *   - Morning/afternoon actions → "today" (asking about today)
+ */
+function computeActionDayScope(timeOfDay: string | null | undefined, localHour: number): "today" | "yesterday" {
+  // Before 16h = always "yesterday" (morning bilan)
+  if (!Number.isFinite(localHour) || localHour < 16) return "yesterday"
+  
+  // After 16h: evening/night actions → "yesterday", others → "today"
+  const eveningKeywords = ["evening", "night", "soir", "nuit"]
+  const tod = String(timeOfDay ?? "").toLowerCase().trim()
+  if (eveningKeywords.some(k => tod.includes(k))) {
+    return "yesterday"  // Action du soir/nuit → on demande pour hier soir
+  }
+  return "today"  // Action de journée → on demande pour aujourd'hui
+}
+
 export async function getPendingItems(supabase: SupabaseClient, userId: string): Promise<CheckupItem[]> {
   // Bilan = on check les items actifs du PLAN COURANT (pas des anciens plans),
   // et on applique une logique "dernier check il y a >18h" pour éviter de re-demander.
@@ -154,9 +174,10 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
   // Day scope based on user's LOCAL hour (timezone-aware).
   const tz = await getUserTimezone(supabase, userId)
   const localHour = localHourInTz(new Date(), tz)
-  const dayScope: "today" | "yesterday" = Number.isFinite(localHour) && localHour >= 17 ? "today" : "yesterday"
+  // Global day scope for vitals/frameworks (fallback)
+  const globalDayScope: "today" | "yesterday" = Number.isFinite(localHour) && localHour >= 16 ? "today" : "yesterday"
   const localTodayYmd = ymdInTz(new Date(), tz)
-  const localDayYmd = dayScope === "today" ? localTodayYmd : addDays(localTodayYmd, -1)
+  const localDayYmd = globalDayScope === "today" ? localTodayYmd : addDays(localTodayYmd, -1)
   const weekdayKey = weekdayKeyFromYmd(localDayYmd)
 
   // Règle des 18h : Si last_performed_at / last_checked_at > 18h ago, on doit checker.
@@ -208,6 +229,9 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
       // If habit already achieved for the week, no need to ask during bilan.
       if (isHabit && target > 0 && weekReps >= target) return
 
+      // Compute day_scope per action based on time_of_day
+      const actionDayScope = computeActionDayScope(a.time_of_day, localHour)
+      
       pending.push({
         id: a.id,
         type: "action",
@@ -218,8 +242,9 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
         current: isHabit ? weekReps : undefined,
         scheduled_days: scheduledDays.length > 0 ? scheduledDays : undefined,
         is_scheduled_day: isScheduledDay,
-        day_scope: dayScope,
+        day_scope: actionDayScope,
         is_habit: isHabit,
+        time_of_day: a.time_of_day ?? undefined,
       })
     }
   })
@@ -233,6 +258,7 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
         title: v.label || v.name,
         tracking_type: "counter",
         unit: v.unit,
+        day_scope: globalDayScope,  // Vitals use global day_scope
       })
     }
   })
@@ -245,6 +271,7 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
         type: "framework",
         title: f.title,
         tracking_type: "boolean", // Usually frameworks are boolean completion for daily check
+        day_scope: globalDayScope,  // Frameworks use global day_scope
       })
     }
   })
@@ -275,6 +302,45 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
   const now = new Date()
 
   if (item_type === "action") {
+    // Idempotency / correction guard (all statuses):
+    // If we already logged this action recently, avoid inserting duplicate entries.
+    // - If the status differs, update the latest recent entry (supports "oops finalement je l'ai fait").
+    // - If status is the same, skip.
+    {
+      const eighteenHoursAgoIso = new Date(now.getTime() - 18 * 60 * 60 * 1000).toISOString()
+      const { data: recent } = await supabase
+        .from("user_action_entries")
+        .select("id, status, performed_at")
+        .eq("user_id", userId)
+        .eq("action_id", item_id)
+        .gte("performed_at", eighteenHoursAgoIso)
+        .order("performed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
+      if (recent?.id) {
+        const prevStatus = String((recent as any).status ?? "")
+        const nextStatus = String(status ?? "")
+        if (prevStatus === nextStatus) {
+          console.log(
+            `[Investigator] Recent action entry exists for ${item_id} (${prevStatus}), skipping duplicate insert.`,
+          )
+          return "Logged (Skipped duplicate)"
+        }
+        // Status changed within the same 18h window → update latest entry instead of inserting a new one.
+        await supabase.from("user_action_entries").update({
+          status: status,
+          value: value,
+          note: note,
+          performed_at: now.toISOString(),
+          embedding: embedding,
+        }).eq("id", (recent as any).id)
+        console.log(
+          `[Investigator] Updated recent action entry for ${item_id}: ${prevStatus} -> ${nextStatus}`,
+        )
+        // If it's now completed, also update action stats as usual below.
+      }
+    }
+
     // Update Action Stats & Log Entry
     if (status === "completed") {
       // 1. Fetch current state to check 18h rule & increment reps
@@ -312,8 +378,19 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
 
       console.log(`[Investigator] Incremented reps for ${item_id} to ${newReps}`)
     }
-    // Log Entry
-    const { error: logError } = await supabase.from("user_action_entries").insert({
+    // Log Entry (only if we didn't update a recent one above)
+    // NOTE: If a recent row existed with different status, we updated it and should not insert.
+    const { data: already } = await supabase
+      .from("user_action_entries")
+      .select("id, performed_at")
+      .eq("user_id", userId)
+      .eq("action_id", item_id)
+      .gte("performed_at", new Date(now.getTime() - 10 * 1000).toISOString()) // 10s: intra-request safety
+      .order("performed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    const shouldInsert = !already?.id
+    const { error: logError } = shouldInsert ? await supabase.from("user_action_entries").insert({
       user_id: userId,
       action_id: item_id,
       action_title: item_title,
@@ -322,12 +399,12 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
       note: note,
       performed_at: now.toISOString(),
       embedding: embedding,
-    })
+    }) : ({ error: null } as any)
 
     if (logError) {
       console.error("[Investigator] ❌ Log Entry Error:", logError)
     } else {
-      console.log("[Investigator] ✅ Entry logged successfully")
+      if (shouldInsert) console.log("[Investigator] ✅ Entry logged successfully")
     }
   } else if (item_type === "vital") {
     // Vital Sign

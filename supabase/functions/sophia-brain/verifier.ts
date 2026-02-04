@@ -6,6 +6,20 @@ declare const Deno: {
   env: { get(name: string): string | undefined };
 };
 
+function verifierDisabledForChannel(channel: "web" | "whatsapp", meta?: { forceRealAi?: boolean }): boolean {
+  // Never disable in mega-test override mode unless explicitly forced to use real AI.
+  // (Mega tests rely on deterministic stubs, not the judge.)
+  if (isMegaTestMode(meta as any)) return true;
+  const rawWeb = (Deno.env.get("SOPHIA_VERIFIER_DISABLE_WEB") ?? "").trim().toLowerCase();
+  const rawWa = (Deno.env.get("SOPHIA_VERIFIER_DISABLE_WHATSAPP") ?? "").trim().toLowerCase();
+  const on = (s: string) => s === "1" || s === "true" || s === "on" || s === "yes";
+  // Product decision: web verifier is latency-heavy; default OFF unless explicitly enabled.
+  // - If SOPHIA_VERIFIER_DISABLE_WEB is unset/empty => disabled.
+  // - Set SOPHIA_VERIFIER_DISABLE_WEB=0 to re-enable on web.
+  if (channel === "web") return rawWeb === "" ? true : on(rawWeb);
+  return on(rawWa);
+}
+
 function isMegaTestMode(meta?: { forceRealAi?: boolean }): boolean {
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
@@ -571,6 +585,7 @@ export async function verifyConversationAgentMessage(opts: {
   }
   const channel = ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp";
   if (isMegaTestMode(meta)) return { text: base, rewritten: false, violations: [] };
+  if (verifierDisabledForChannel(channel, meta)) return { text: base, rewritten: false, violations: [] };
   const violations = buildConversationAgentViolations(base, {
     agent,
     channel,
@@ -743,6 +758,10 @@ export async function verifyInvestigatorMessage(opts: {
   const { draft, scenario, data, meta } = opts;
 
   const base = collapseBlankLines(normalizeChatText(draft));
+  {
+    const channel = ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp";
+    if (verifierDisabledForChannel(channel, meta)) return { text: base, rewritten: false, violations: [] };
+  }
   const violations = buildInvestigatorCopyViolations(base, { scenario });
   if (violations.length === 0) return { text: base, rewritten: false, violations: [] };
 
@@ -825,6 +844,10 @@ export async function verifyBilanAgentMessage(opts: {
   const { draft, agent, data, meta } = opts;
   const base = collapseBlankLines(normalizeChatText(draft));
   if (isMegaTestMode(meta)) return { text: base, rewritten: false, violations: [] };
+  {
+    const channel = ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp";
+    if (verifierDisabledForChannel(channel, meta)) return { text: base, rewritten: false, violations: [] };
+  }
   const violations = buildBilanAgentViolations(base, { agent, user_message: (data as any)?.user_message });
   const one = await oneShotJudgeAndRewrite({
     kind: "bilan",
@@ -897,6 +920,10 @@ export async function verifyPostCheckupAgentMessage(opts: {
 }): Promise<{ text: string; rewritten: boolean; violations: string[] }> {
   const { draft, agent, data, meta } = opts;
   const base = collapseBlankLines(normalizeChatText(draft));
+  {
+    const channel = ((data as any)?.channel ?? meta?.channel ?? "web") as "web" | "whatsapp";
+    if (verifierDisabledForChannel(channel, meta)) return { text: base, rewritten: false, violations: [] };
+  }
   const violations = buildPostCheckupViolations(base);
   if (violations.length === 0) return { text: base, rewritten: false, violations: [] };
 

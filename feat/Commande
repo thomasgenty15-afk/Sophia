@@ -396,3 +396,51 @@ npm run eval:tools -- --scenario tools_create_action
 Chargé bon environnement : 
 
 cd "/Users/ahmedamara/Dev/Sophia 2" && supabase functions serve --env-file supabase/.env
+
+
+-- ═══════════════════════════════════════════════════════════════════════════════
+-- RESET COMPLET POUR REFAIRE LE BILAN (J-2)
+-- Exécute tout d'un coup, et remplace le UUID UNE SEULE FOIS dans p_user_id
+-- ═══════════════════════════════════════════════════════════════════════════════
+
+DO $$
+DECLARE
+  p_user_id uuid := '00000000-0000-0000-0000-000000000000'; -- <- remplace UNIQUEMENT ça
+  p_past timestamptz := now() - interval '2 days';
+BEGIN
+  -- 1) Reset le log du bilan d'aujourd'hui à J-2 (au lieu de supprimer)
+  -- Note: si tu as plusieurs logs "aujourd'hui", ils seront tous repoussés à J-2.
+  UPDATE public.user_checkup_logs
+  SET completed_at = p_past
+  WHERE user_id = p_user_id
+    AND completed_at::date = CURRENT_DATE;
+
+  -- 2) Reset updated_at de user_chat_states (trigger le remet à NOW() sinon)
+  ALTER TABLE public.user_chat_states DISABLE TRIGGER update_user_chat_states_modtime;
+  UPDATE public.user_chat_states
+  SET updated_at = p_past
+  WHERE user_id = p_user_id;
+  ALTER TABLE public.user_chat_states ENABLE TRIGGER update_user_chat_states_modtime;
+
+  -- 3) Reset actions actives (clé réelle pour le bilan: last_performed_at)
+  UPDATE public.user_actions
+  SET last_performed_at = p_past,
+      updated_at = p_past
+  WHERE user_id = p_user_id
+    AND status = 'active';
+
+  -- 4) Reset vital signs actifs (clé réelle pour le bilan: last_checked_at)
+  UPDATE public.user_vital_signs
+  SET last_checked_at = p_past,
+      updated_at = p_past
+  WHERE user_id = p_user_id
+    AND status = 'active';
+
+  -- 5) (Optionnel) Reset frameworks aussi
+  UPDATE public.user_framework_tracking
+  SET last_performed_at = p_past,
+      updated_at = p_past
+  WHERE user_id = p_user_id
+    AND status = 'active';
+END;
+$$;

@@ -37,6 +37,7 @@ function htmlEscape(raw: string): string {
 function buildRecoveryEmail(opts: {
   firstName: string
   whatsappLink: string
+  whatsappNumberE164: string
   supportEmail: string
 }): { subject: string; html: string } {
   const name = opts.firstName ? ` ${opts.firstName}` : ""
@@ -46,7 +47,7 @@ function buildRecoveryEmail(opts: {
       <p style="margin:0 0 14px;">Hello${htmlEscape(name)},</p>
 
       <p style="margin:0 0 14px;">
-        J’ai essayé de t’écrire sur WhatsApp, mais parfois certaines configurations empêchent Sophia d’envoyer le <strong>tout premier message</strong>.
+        J’ai essayé de t’écrire sur WhatsApp, mais parfois certaines configurations m’empêchent d’envoyer le <strong>tout premier message</strong>.
       </p>
 
       <div style="background:#f8fafc; border:1px solid #e2e8f0; border-radius:12px; padding:14px 16px; margin:16px 0;">
@@ -60,6 +61,10 @@ function buildRecoveryEmail(opts: {
         <a href="${opts.whatsappLink}" style="display:inline-block; background:#111827; color:#ffffff; padding:12px 18px; border-radius:10px; text-decoration:none; font-weight:700;">
           Ouvrir WhatsApp et m’écrire
         </a>
+      </p>
+
+      <p style="margin:0 0 14px;">
+        Le numéro de Sophia : <strong>${htmlEscape(opts.whatsappNumberE164)}</strong>
       </p>
 
       <p style="margin:0 0 14px; color:#475569; font-size:13px;">
@@ -120,9 +125,11 @@ Deno.serve(async (req) => {
       if (!byUser.has(uid)) byUser.set(uid, r)
     }
 
-    const supportEmail = (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? Deno.env.get("SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim()
+    // Keep support email stable for UX (avoid accidental overrides via generic env vars).
+    const supportEmail = (Deno.env.get("WHATSAPP_SUPPORT_EMAIL") ?? "sophia@sophia-coach.ai").trim()
     const senderEmail = (Deno.env.get("SENDER_EMAIL") ?? "Sophia <sophia@sophia-coach.ai>").trim()
     const waNumberDigits = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? "33674637278").trim().replace(/^\+/, "")
+    const waNumberE164 = `+${waNumberDigits}`
     const waLink = `https://wa.me/${waNumberDigits}?text=${encodeURIComponent("ping")}`
 
     let considered = 0
@@ -216,6 +223,7 @@ Deno.serve(async (req) => {
       const { subject, html } = buildRecoveryEmail({
         firstName: firstNameFromFullName((profile as any)?.full_name),
         whatsappLink: waLink,
+        whatsappNumberE164: waNumberE164,
         supportEmail,
       })
 

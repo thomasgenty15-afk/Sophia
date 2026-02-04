@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import type { CheckupItem, InvestigationState } from "./types.ts"
+import type { CheckupItem, InvestigationState, ItemProgress } from "./types.ts"
 import { addDays } from "./utils.ts"
 import { investigatorSay } from "./copy.ts"
+import { getItemProgress, updateItemProgress } from "./item_progress.ts"
 
 function toYmd(d: Date): string {
   return d.toISOString().slice(0, 10)
@@ -126,24 +127,12 @@ export async function getMissedStreakDaysForCheckupItem(
   userId: string,
   item: CheckupItem,
 ): Promise<number> {
-  if (item.type === "framework") {
-    return await getMissedStreakDaysFromActivation({
-      supabase,
-      userId,
-      table: "user_framework_tracking",
-      itemId: item.id,
-    })
-  }
   if (item.type === "action") {
-    if (item.is_habit) {
-      return await getMissedStreakDays(supabase, userId, item.id)
-    }
-    return await getMissedStreakDaysFromActivation({
-      supabase,
-      userId,
-      table: "user_actions",
-      itemId: item.id,
-    })
+    // IMPORTANT: We only count what we have actually logged in `user_action_entries`.
+    // Using `user_actions.created_at` as a proxy for activation is incorrect because actions can be created long
+    // before being activated (e.g., plan activated today). That produced huge fake streaks and premature
+    // breakdown offers after a single miss.
+    return await getMissedStreakDays(supabase, userId, item.id)
   }
   return 0
 }
@@ -219,7 +208,7 @@ export async function maybeHandleStreakAfterLog(opts: {
       const winStreak = await getCompletedStreakDays(supabase, userId, currentItem.id)
       if (winStreak >= 3) {
         const nextIndex = currentState.current_item_index + 1
-        const nextState = {
+        let nextState = {
           ...currentState,
           current_item_index: nextIndex,
         }
@@ -243,6 +232,13 @@ export async function maybeHandleStreakAfterLog(opts: {
         }
 
         const nextItem = currentState.pending_items[nextIndex]
+        
+        // Update next item to awaiting_answer
+        nextState = updateItemProgress(nextState, nextItem.id, {
+          phase: "awaiting_answer",
+          last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
+        })
+        
         return {
           content: await investigatorSay(
             "win_streak_continue",
@@ -280,10 +276,15 @@ export async function maybeHandleStreakAfterLog(opts: {
       // - classic: missed streak >= 5 days
       // - OR: user language clearly indicates being stuck / needing a smaller step
       if (streak >= 5 || explicitBreakdownRequest || explicitBlockerSignal) {
-        const nextState = {
-          ...currentState,
+        // Update item progress to breakdown_offer_pending
+        let nextState = updateItemProgress(currentState, currentItem.id, {
+          phase: "breakdown_offer_pending",
+        })
+        
+        nextState = {
+          ...nextState,
           temp_memory: {
-            ...(currentState.temp_memory || {}),
+            ...(nextState.temp_memory || {}),
             bilan_defer_offer: {
               stage: "awaiting_consent",
               kind: "breakdown",
