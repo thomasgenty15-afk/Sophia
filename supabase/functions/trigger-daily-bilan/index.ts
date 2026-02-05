@@ -94,7 +94,7 @@ async function buildPersonalizedDailyBilanMessage(admin: ReturnType<typeof creat
   const { data: msgs } = await admin
     .from("chat_messages")
     .select("role, content, created_at, metadata")
-    .eq("user_id", userId)
+    .eq("user_id", args.userId)
     .filter("metadata->>channel", "eq", "whatsapp")
     .order("created_at", { ascending: false })
     .limit(maxContext)
@@ -113,7 +113,7 @@ async function buildPersonalizedDailyBilanMessage(admin: ReturnType<typeof creat
   const { data: plan } = await admin
     .from("user_plans")
     .select("title")
-    .eq("user_id", userId)
+    .eq("user_id", args.userId)
     .eq("status", "active")
     .order("updated_at", { ascending: false })
     .limit(1)
@@ -147,12 +147,19 @@ ${history.length > 0 ? history.join("\n") : "(vide)"}
   `.trim()
 
   const model = (Deno.env.get("DAILY_BILAN_MODEL") ?? "gemini-2.5-flash").trim()
-  const res = await generateWithGemini(systemPrompt, "Écris le message.", 0.4, false, [], "auto", {
-    requestId: args.requestId,
-    model,
-    source: "trigger-daily-bilan:copy",
-    userId: args.userId,
-  })
+  let res = ""
+  try {
+    res = await generateWithGemini(systemPrompt, "Écris le message.", 0.4, false, [], "auto", {
+      requestId: args.requestId,
+      model,
+      source: "trigger-daily-bilan:copy",
+      userId: args.userId,
+    })
+  } catch {
+    // Never fail the nightly send because the LLM is temporarily unavailable.
+    // Fall back to a deterministic, safe message.
+    return fallbackDailyBilanMessage()
+  }
 
   const out = normalizeChatText(res)
   // Safety net: ensure we always include the two questions.
