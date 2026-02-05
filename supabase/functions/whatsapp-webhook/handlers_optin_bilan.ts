@@ -371,6 +371,7 @@ function buildOptInTurnInstructions(opts: {
     "- Message court, chaleureux, pro (WhatsApp).",
     "- Explique que tu ne vois pas encore de plan actif.",
     `- Demande de finaliser sur le site: ${siteUrl}`,
+    `- IMPORTANT: quand tu mentionnes le site, colle exactement ce lien (${siteUrl}). N'utilise aucun autre domaine.`,
     `- Termine par une question simple de confirmation (pas de phrase exacte).`,
     `- Exemple: "Dis-moi quand c'est fait et je continue ici."`,
     "- N'ajoute pas de markdown.",

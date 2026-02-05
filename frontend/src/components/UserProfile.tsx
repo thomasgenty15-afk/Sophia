@@ -180,16 +180,39 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         return;
       }
 
+      // Friendly pre-check: block numbers already used by a verified / WhatsApp-active account.
+      // (DB also enforces this in some paths, but this gives a better UX.)
+      try {
+        const { data: inUse, error: inUseErr } = await supabase.rpc('is_verified_phone_in_use', {
+          p_phone: nextPhoneStr,
+        });
+        if (inUseErr) throw inUseErr;
+        if (inUse) {
+          throw new Error("Ce numéro est déjà utilisé par un autre compte.");
+        }
+      } catch (precheckErr) {
+        // Best-effort: if the precheck fails due to permissions/network, we don't hard-block,
+        // but we still let the DB constraints/logic protect us.
+        console.warn('Phone in-use precheck failed (non-blocking):', precheckErr);
+      }
+
+      const nowIso = new Date().toISOString();
       const updatePayload: any = {
         phone_number: nextPhone,
-        // Reset WhatsApp flags
+        // Reset phone verification marker (new number must be re-validated)
+        phone_verified_at: null,
+        // Reset WhatsApp flags/state for the new number
         whatsapp_opted_in: false,
         whatsapp_bilan_opted_in: false,
+        whatsapp_last_inbound_at: null,
+        whatsapp_last_outbound_at: null,
+        whatsapp_state: null,
+        whatsapp_state_updated_at: nowIso,
         phone_invalid: false,
         whatsapp_optin_sent_at: null,
         whatsapp_opted_out_at: null,
         whatsapp_optout_reason: null,
-        whatsapp_optout_confirmed_at: null
+        whatsapp_optout_confirmed_at: null,
       };
 
       const { data, error } = await supabase
@@ -205,6 +228,18 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         setProfile((prev: any) => ({ ...prev, phone_number: data.phone_number }));
         setOriginalPhone(data.phone_number ?? "");
         setPhoneDraft(data.phone_number ?? "");
+      }
+
+      // Best-effort: notify user by email about the phone number change.
+      try {
+        const notifyReqId = newRequestId();
+        const { error: notifyErr } = await supabase.functions.invoke('notify-profile-change', {
+          body: { kind: 'phone_changed', old_phone: prevPhone || null, new_phone: nextPhoneStr || null },
+          headers: requestHeaders(notifyReqId),
+        });
+        if (notifyErr) console.warn('Phone change notify failed (non-blocking):', notifyErr);
+      } catch (e) {
+        console.warn('Phone change notify failed (non-blocking):', e);
       }
 
       // Best-effort: (re)send WhatsApp opt-in template for the new number.
@@ -279,8 +314,22 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
         setEmailEditOpen(false);
         return;
       }
-      const { error } = await supabase.auth.updateUser({ email: nextEmail });
+      const { error } = await supabase.auth.updateUser(
+        { email: nextEmail },
+        { emailRedirectTo: window.location.origin + "/dashboard" },
+      );
       if (error) throw error;
+      // Best-effort: notify current email about the email change request.
+      try {
+        const notifyReqId = newRequestId();
+        const { error: notifyErr } = await supabase.functions.invoke('notify-profile-change', {
+          body: { kind: 'email_change_requested', old_email: (displayEmail || null), new_email: nextEmail },
+          headers: requestHeaders(notifyReqId),
+        });
+        if (notifyErr) console.warn('Email change notify failed (non-blocking):', notifyErr);
+      } catch (e) {
+        console.warn('Email change notify failed (non-blocking):', e);
+      }
       setEmailSuccess("Demande envoyée. Vérifie tes emails pour confirmer le changement.");
       setEmailEditOpen(false);
     } catch (err: any) {

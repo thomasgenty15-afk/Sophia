@@ -60,6 +60,7 @@ const Auth = () => {
   const redirectTo = new URLSearchParams(location.search).get('redirect');
   const forbidden = new URLSearchParams(location.search).get('forbidden') === '1';
   const debug = new URLSearchParams(location.search).get('debug') === '1';
+  const view = new URLSearchParams(location.search).get('view') || '';
   const prelaunchLockdown = isPrelaunchLockdownEnabled();
   const prelaunchRaw = debug ? getPrelaunchLockdownRawValue() : "";
   
@@ -98,6 +99,15 @@ const Auth = () => {
   }, [timezone]);
 
   useEffect(() => {
+    // Backward-compat: old password reset links used /auth?view=update_password.
+    // Redirect to the dedicated page while preserving query+hash tokens.
+    if ((view || "").trim() === "update_password") {
+      const target = `${window.location.origin}/reset-password${window.location.search || ""}${window.location.hash || ""}`;
+      window.location.replace(target);
+    }
+  }, [view]);
+
+  useEffect(() => {
     // En pré-lancement, on force le mode connexion (inscription interdite)
     if (prelaunchLockdown && isSignUp) setIsSignUp(false);
   }, [prelaunchLockdown, isSignUp]);
@@ -134,7 +144,7 @@ const Auth = () => {
     try {
       // Note: Le mock doit supporter resetPasswordForEmail si on veut tester la simulation
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + '/auth?view=update_password',
+        redirectTo: window.location.origin + '/reset-password',
       });
 
       if (error) throw error;

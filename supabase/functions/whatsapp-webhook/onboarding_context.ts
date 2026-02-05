@@ -33,6 +33,7 @@ export function buildWhatsAppOnboardingContext(params: {
     "RÈGLES CRITIQUES:",
     "- WhatsApp: messages courts, pas de markdown, pas de **gras**, 1 question max.",
     "- Anti-hallucination UI: tu ne vois pas l'écran. Interdiction d'inventer des boutons/menus/positions. Utilise des formulations génériques + lien.",
+    "- Liens/URLs: quand tu mentionnes le site, copie-colle EXACTEMENT le lien fourni sur la ligne `Lien:` ci-dessous. Ne le reformule pas, ne raccourcis pas le domaine, n'invente pas d'autre URL.",
     "- Anti-boucle: si ça tourne en rond (plan non visible / latence), propose support et avance hors-app.",
     "- Support: email + capture. Ne demande pas d'envoyer une capture ici.",
   ].join("\n")
