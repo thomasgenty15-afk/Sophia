@@ -4,8 +4,6 @@ import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.
 import { processMessage } from './router.ts'
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 
-console.log("Sophia Brain: Function initialized")
-
 Deno.serve(async (req) => {
   // Gestion du CORS
   if (req.method === 'OPTIONS') {
@@ -66,8 +64,6 @@ Deno.serve(async (req) => {
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
     if (authError || !user) throw new Error('Unauthorized')
     authedUserId = user.id
-
-    console.log(`Processing message for user ${user.id}: "${message.substring(0, 50)}..."`)
 
     function sanitizeHistory(raw: any[]): any[] {
       const rows = Array.isArray(raw) ? raw : []

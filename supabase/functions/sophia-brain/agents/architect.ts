@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 
 import { normalizeScope } from "../state-manager.ts"
+import { getAnyActiveToolFlow } from "../supervisor.ts"
 
 // Public API (router/agent_exec.ts depends on these exports)
 export type { ArchitectModelOutput } from "./architect/types.ts"
@@ -203,7 +204,7 @@ export async function runArchitect(
     - Tu ne développes longuement QUE si l'utilisateur demande explicitement des détails ("explique", "pourquoi", "comment", "plus de détail").
     - Si tu as plusieurs idées, propose 1 option claire + 1 question (au lieu d'un long exposé).
     - Interdiction d'utiliser les glyphes ◊ ◇ ◆ (zéro puces décoratives).
-    - Emojis: 0 à 2 emojis max par message, placés naturellement; pas une ligne entière d'emojis. Tu peux utiliser n'importe quel emoji Unicode.
+    - Emojis: 1 à 2 emojis max par message (minimum 1), placés naturellement; pas une ligne entière d'emojis. Tu peux utiliser n'importe quel emoji Unicode.
     - N'invente JAMAIS de limitations techniques fictives. Si tu ne sais pas, dis-le simplement.
     
     DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 100)}..."
@@ -334,7 +335,7 @@ export async function runArchitect(
     - Si l'utilisateur demande "tu l'as créé ?", et que tu n'as pas cette preuve :
       - Réponds honnêtement ("je ne le vois pas"), propose de retenter, et renvoie vers le dashboard pour vérifier.
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut uniquement.
-    - Emojis: 0 à 2 emojis max par message, placés naturellement; pas une ligne entière d'emojis. Tu peux utiliser n'importe quel emoji Unicode.
+    - Emojis: 1 à 2 emojis max par message (minimum 1), placés naturellement; pas une ligne entière d'emojis. Tu peux utiliser n'importe quel emoji Unicode.
     - N'invente JAMAIS de limitations techniques fictives. Si tu ne sais pas, dis-le simplement.
     - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
     - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
@@ -369,14 +370,13 @@ export async function runArchitect(
     - Termine par "C’est bon pour ce point ?" UNIQUEMENT si tu as fini ton explication ou ton conseil. Ne le répète pas à chaque message intermédiaire.
   `
 
-  // ---- Lightweight tool state (prod): store multi-turn create/update intent in user_chat_states.temp_memory
-  // This is a real state machine in production (unlike simulate-user's eval state machine).
+  // ---- Tool flow state: now managed via supervisor machines (create_action_flow, update_action_flow, etc.)
   const scope = normalizeScope(meta?.scope ?? (meta?.channel === "whatsapp" ? "whatsapp" : "web"), "web")
   const tm0 = (userState as any)?.temp_memory ?? {}
-  const existingFlow = (tm0 as any)?.architect_tool_flow ?? null
-  const flowStr = existingFlow ? JSON.stringify(existingFlow, null, 2) : ""
-  const flowContext = existingFlow
-    ? `\n\n=== ARCHITECT TOOL FLOW (STATE MACHINE) ===\n${flowStr}\n\nRÈGLES FLOW:\n- Si un flow est actif, réponds brièvement à la digression puis REVIENS au flow.\n- Tu peux annuler si l'utilisateur dit explicitement "annule / laisse tomber / stop".\n- Si c'est un flow de création: ne crée rien sans consentement explicite ("ok vas-y", "tu peux l'ajouter").\n- Si c'est une habitude: propose jours fixes vs au feeling; ne dis pas "j'ai programmé" sans choix.\n`
+  const activeToolFlow = getAnyActiveToolFlow(tm0)
+  const flowStr = activeToolFlow ? JSON.stringify({ type: activeToolFlow.type, meta: activeToolFlow.meta }, null, 2) : ""
+  const flowContext = activeToolFlow
+    ? `\n\n=== TOOL FLOW ACTIF (${activeToolFlow.type}) ===\n${flowStr}\n\nRÈGLES FLOW:\n- Si un flow est actif, réponds brièvement à la digression puis REVIENS au flow.\n- Tu peux annuler si l'utilisateur dit explicitement "annule / laisse tomber / stop".\n- Si c'est un flow de création: ne crée rien sans consentement explicite ("ok vas-y", "tu peux l'ajouter").\n- Si c'est une habitude: propose jours fixes vs au feeling; ne dis pas "j'ai programmé" sans choix.\n`
     : ""
 
   const systemPrompt = `${basePrompt}${flowContext}`.trim()
@@ -401,7 +401,7 @@ export async function runArchitect(
           channel: meta?.channel ?? null,
           scope,
           is_module_ui: !!isModuleUi,
-          has_active_flow: !!existingFlow,
+          has_active_flow: !!activeToolFlow,
           tools: toolNames,
         },
       })

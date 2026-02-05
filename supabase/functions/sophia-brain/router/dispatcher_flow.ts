@@ -41,7 +41,7 @@ export function buildDispatcherStateSnapshot(opts: {
     investigation_active: Boolean(opts.state?.investigation_state),
     investigation_status: opts.state?.investigation_state?.status,
     toolflow_active: Boolean(activeToolFlow),
-    toolflow_kind: activeToolFlow?.type ?? (opts.tempMemory as any)?.architect_tool_flow?.kind,
+    toolflow_kind: activeToolFlow?.type,
     profile_confirm_pending: hasActiveProfileConfirmation(opts.tempMemory),
     plan_confirm_pending: Boolean((opts.tempMemory as any)?.__wa_plan_confirm_pending),
     topic_exploration_phase: topicSession ? topicSession.phase : undefined,

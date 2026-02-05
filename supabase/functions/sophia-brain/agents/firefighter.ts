@@ -301,8 +301,6 @@ function lastAssistantOfferedGuidedText(lastAssistantMessage: string): boolean {
 
 export interface FirefighterResult {
   content: string
-  /** @deprecated Use safety_resolution signals from dispatcher instead. Kept for backward compatibility. */
-  crisisResolved: boolean
   /** Technique used in this turn (for state machine context) */
   technique: FirefighterTechnique | null
 }
@@ -415,14 +413,12 @@ ${phaseAddon}
     
     return {
       content: result.response.replace(/\*\*/g, ''),
-      crisisResolved: result.resolved,
       technique,
     }
   } catch (e) {
     console.error("Erreur parsing Pompier:", e)
     return {
       content: 'Je suis là. On fait simple: pose tes pieds au sol, expire lentement 6 secondes. Fais-le 3 fois, puis dis-moi juste "ok".',
-      crisisResolved: false,
       technique: null,
     }
   }

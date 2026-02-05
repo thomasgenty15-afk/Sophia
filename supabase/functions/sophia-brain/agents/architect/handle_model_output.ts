@@ -2,7 +2,6 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 
 import { getUserState, normalizeScope, updateUserState } from "../../state-manager.ts"
 import { 
-  setArchitectToolFlowInTempMemory,
   getActiveCreateActionFlow,
   upsertCreateActionFlow,
   closeCreateActionFlow,
@@ -15,6 +14,7 @@ import {
   upsertBreakdownActionFlow,
   closeBreakdownActionFlow,
   getBreakdownCandidateFromFlow,
+  getAnyActiveToolFlow,
 } from "../../supervisor.ts"
 import { generateWithGemini } from "../../../_shared/gemini.ts"
 import { handleTracking } from "../../lib/tracking.ts"
@@ -171,7 +171,7 @@ export async function handleArchitectModelOutput(opts: {
   const { supabase, userId, message, response, meta } = opts
   const scope = normalizeScope(opts.scope ?? meta?.scope ?? (meta?.channel === "whatsapp" ? "whatsapp" : "web"), "web")
   const tm0 = ((opts.userState as any)?.temp_memory ?? {}) as any
-  const currentFlow = tm0?.architect_tool_flow ?? null
+  const currentFlow = getAnyActiveToolFlow(tm0)
 
   function markFlowJustClosed(tempMemory: any, flowType: "create_action_flow" | "update_action_flow" | "breakdown_action_flow") {
     return {
@@ -183,11 +183,42 @@ export async function handleArchitectModelOutput(opts: {
     }
   }
 
+  async function closeCurrentFlow() {
+    const latest = await getUserState(supabase, userId, scope).catch(() => null as any)
+    const tmLatest = ((latest as any)?.temp_memory ?? (tm0 ?? {})) as any
+    const activeFlow = getAnyActiveToolFlow(tmLatest)
+    if (!activeFlow) return
+    let updated = tmLatest
+    if (activeFlow.type === "create_action_flow") {
+      updated = closeCreateActionFlow({ tempMemory: tmLatest, outcome: "abandoned" }).tempMemory
+    } else if (activeFlow.type === "update_action_flow") {
+      updated = closeUpdateActionFlow({ tempMemory: tmLatest, outcome: "abandoned" }).tempMemory
+    } else if (activeFlow.type === "breakdown_action_flow") {
+      updated = closeBreakdownActionFlow({ tempMemory: tmLatest, outcome: "abandoned" }).tempMemory
+    }
+    await updateUserState(supabase, userId, scope, { temp_memory: updated } as any)
+  }
+
+  // MIGRATION: setFlow stores minimal state for "awaiting_remove_day" edge case
+  // This replaces the legacy architect_tool_flow. Should be fully migrated to proper machines in the future.
   async function setFlow(next: any | null) {
     const latest = await getUserState(supabase, userId, scope).catch(() => null as any)
     const tmLatest = ((latest as any)?.temp_memory ?? (tm0 ?? {})) as any
-    const updated = setArchitectToolFlowInTempMemory({ tempMemory: tmLatest, nextFlow: next })
-    await updateUserState(supabase, userId, scope, { temp_memory: updated.tempMemory } as any)
+    let updated: any = { ...(tmLatest ?? {}) }
+    if (next === null) {
+      // Clear any flow stage markers
+      delete updated.__update_flow_stage
+    } else if (next?.kind && next?.stage) {
+      // Store minimal stage info for edge cases like "awaiting_remove_day"
+      updated.__update_flow_stage = {
+        kind: next.kind,
+        stage: next.stage,
+        draft: next.draft ?? null,
+        started_at: next.started_at,
+        updated_at: next.updated_at,
+      }
+    }
+    await updateUserState(supabase, userId, scope, { temp_memory: updated } as any)
   }
 
   function looksLikeCancel(s: string): boolean {
@@ -198,7 +229,7 @@ export async function handleArchitectModelOutput(opts: {
   const isModuleUi = String(opts.context ?? "").includes("=== CONTEXTE MODULE (UI) ===")
 
   if (currentFlow && looksLikeCancel(message)) {
-    try { await setFlow(null) } catch {}
+    try { await closeCurrentFlow() } catch {}
     const cancelOnly = (() => {
       const s = String(message ?? "").toLowerCase()
       const cleaned = s
@@ -1233,12 +1264,41 @@ FORMAT :
   }
 
   function looksConfusedUserMessage(s: string): boolean {
-    const t = String(s ?? "").toLowerCase()
-    // IMPORTANT: keep conservative.
-    // "Je suis perdu" can mean "I don't know what to do next" (a planning question), NOT confusion about the assistant's last message.
-    // We only treat it as confusion if the user explicitly signals misunderstanding / asks for a reformulation.
-    return /\b(je\s+comprends\s+pas|j['’]ai\s+pas\s+compris|tu\s+peux\s+reformuler|reformule)\b/i
-      .test(t)
+    const raw = String(s ?? "")
+    const t = raw.toLowerCase()
+
+    const asksReformulate = /\b(tu\s+peux\s+reformuler|reformule)\b/i.test(t)
+    const saysDidntUnderstand = /\b(je\s+comprends\s+pas|j['’]ai\s+pas\s+compris)\b/i.test(t)
+    if (!asksReformulate && !saysDidntUnderstand) return false
+
+    // Guard: "je comprends pas" often appears in TECH/debug contexts ("j'ai une erreur 406 que je comprends pas").
+    // In those cases we must NOT force a "reformulation rapide" of plan settings.
+    const looksLikeTechDebug = (() => {
+      // HTTP/status codes + error context
+      if (/\b(4\d{2}|5\d{2})\b/.test(t) && /\b(erreur|error|http|status|code)\b/i.test(t)) return true
+      if (/\b(401|403|404|406|409|422|429|500|502|503|504)\b/.test(t)) return true
+      // Common engineering keywords
+      if (/\b(api|endpoint|request|response|fetch|axios|cors|jwt|token|auth|permission|rls)\b/i.test(t)) return true
+      if (/\b(supabase|postgres|sql|db|database|base\s+de\s+donn[ée]es?)\b/i.test(t)) return true
+      if (/\b(console|stack\s*trace|trace|exception|crash|runtime)\b/i.test(t)) return true
+      return false
+    })()
+    if (looksLikeTechDebug) return false
+
+    // If the user explicitly asks "reformule", we accept (unless tech-debug, handled above).
+    if (asksReformulate) return true
+
+    // If they just say "je comprends pas", only treat it as confusion about the *plan/tool* context
+    // when the last assistant message looks like plan settings.
+    const lastAssistant = Array.isArray(opts.history)
+      ? [...opts.history].reverse().find((m: any) => m?.role === "assistant" && typeof m?.content === "string")
+      : null
+    const last = String(lastAssistant?.content ?? "").toLowerCase()
+    const lastLooksLikePlanTalk =
+      /\b(r[ée]glages|jours?\s+fixes?|au\s+feeling|fois\s+par\s+semaine|x\s*\/\s*semaine|habitude|action|plan|dashboard|tableau\s+de\s+bord)\b/i
+        .test(last)
+
+    return lastLooksLikePlanTalk
   }
 
   function simplifyForConfusion(original: string): string {

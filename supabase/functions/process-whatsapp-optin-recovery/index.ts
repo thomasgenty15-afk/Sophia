@@ -86,6 +86,9 @@ Deno.serve(async (req) => {
 
     const body = await req.json().catch(() => ({}))
     const limit = clampInt(body?.limit, DEFAULT_LIMIT, 1, MAX_LIMIT)
+    const forceUserIdRaw = String(body?.user_id ?? body?.userId ?? "").trim()
+    const force = Boolean(body?.force)
+    const isTargeted = Boolean(forceUserIdRaw)
 
     const url = Deno.env.get("SUPABASE_URL") ?? ""
     const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
@@ -103,26 +106,36 @@ Deno.serve(async (req) => {
     const now = Date.now()
     const olderThanIso = new Date(now - FAIL_GRACE_MS).toISOString()
 
-    // Find failed opt-in template sends (V2) older than grace window.
-    const { data: failed, error: failedErr } = await admin
-      .from("whatsapp_outbound_messages")
-      .select("id,created_at,user_id,to_e164,provider_message_id,last_error_code,last_error_message,metadata")
-      .eq("status", "failed")
-      .not("user_id", "is", null)
-      .lte("created_at", olderThanIso)
-      .filter("metadata->>purpose", "eq", "optin")
-      .order("created_at", { ascending: false })
-      .limit(limit)
-
-    if (failedErr) throw failedErr
-
-    const rows = Array.isArray(failed) ? failed : []
-    // De-dupe: pick latest per user.
+    // If user_id is provided, run in targeted mode (debug/manual send).
+    // Otherwise scan failed opt-in template sends older than grace window.
     const byUser = new Map<string, any>()
-    for (const r of rows) {
-      const uid = String((r as any)?.user_id ?? "")
-      if (!uid) continue
-      if (!byUser.has(uid)) byUser.set(uid, r)
+    if (forceUserIdRaw) {
+      byUser.set(forceUserIdRaw, {
+        id: null,
+        provider_message_id: null,
+        last_error_code: "manual",
+        last_error_message: "manual_trigger",
+      })
+    } else {
+      const { data: failed, error: failedErr } = await admin
+        .from("whatsapp_outbound_messages")
+        .select("id,created_at,user_id,to_e164,provider_message_id,last_error_code,last_error_message,metadata")
+        .eq("status", "failed")
+        .not("user_id", "is", null)
+        .lte("created_at", olderThanIso)
+        .filter("metadata->>purpose", "eq", "optin")
+        .order("created_at", { ascending: false })
+        .limit(limit)
+
+      if (failedErr) throw failedErr
+
+      const rows = Array.isArray(failed) ? failed : []
+      // De-dupe: pick latest per user.
+      for (const r of rows) {
+        const uid = String((r as any)?.user_id ?? "")
+        if (!uid) continue
+        if (!byUser.has(uid)) byUser.set(uid, r)
+      }
     }
 
     // Keep support email stable for UX (avoid accidental overrides via generic env vars).
@@ -162,34 +175,54 @@ Deno.serve(async (req) => {
         continue
       }
 
-      // Ensure recovery row exists / stays pending (do NOT resolve here).
       const nowIso = new Date().toISOString()
-      await admin.from("whatsapp_optin_recovery").upsert({
-        user_id: userId,
-        status: "pending",
-        provider_message_id: (job as any)?.provider_message_id ?? null,
-        error_code: (job as any)?.last_error_code ?? null,
-        error_message: (job as any)?.last_error_message ?? null,
-        updated_at: nowIso,
-      } as any, { onConflict: "user_id" })
+      // Targeted + force mode is used for manual/debug email sending.
+      // In that mode, avoid hard dependency on the `whatsapp_optin_recovery` table
+      // (useful when testing before DB migrations are applied).
+      let recoveryStatus = ""
+      let lastEmailSentAt = 0
+      if (!isTargeted || !force) {
+        // Read recovery state first (do NOT overwrite resolved/cancelled).
+        const { data: rec, error: recErr } = await admin
+          .from("whatsapp_optin_recovery")
+          .select("status,email_sent_at")
+          .eq("user_id", userId)
+          .maybeSingle()
+        if (recErr) throw recErr
 
-      const { data: rec, error: recErr } = await admin
-        .from("whatsapp_optin_recovery")
-        .select("status,email_sent_at")
-        .eq("user_id", userId)
-        .maybeSingle()
-      if (recErr) throw recErr
+        recoveryStatus = String((rec as any)?.status ?? "")
+        if (!force && recoveryStatus && recoveryStatus !== "pending") {
+          skipped += 1
+          continue
+        }
 
-      const status = String((rec as any)?.status ?? "")
-      if (status && status !== "pending") {
-        skipped += 1
-        continue
-      }
+        // Ensure recovery row exists / stays pending (do NOT resolve here).
+        if (!recoveryStatus) {
+          await admin.from("whatsapp_optin_recovery").insert({
+            user_id: userId,
+            status: "pending",
+            provider_message_id: (job as any)?.provider_message_id ?? null,
+            error_code: (job as any)?.last_error_code ?? null,
+            error_message: (job as any)?.last_error_message ?? null,
+            first_detected_at: nowIso,
+            updated_at: nowIso,
+          } as any)
+        } else if (recoveryStatus === "pending" || force) {
+          await admin.from("whatsapp_optin_recovery").update({
+            // Keep status as-is unless forcing.
+            ...(force ? { status: "pending" } : {}),
+            provider_message_id: (job as any)?.provider_message_id ?? null,
+            error_code: (job as any)?.last_error_code ?? null,
+            error_message: (job as any)?.last_error_message ?? null,
+            updated_at: nowIso,
+          } as any).eq("user_id", userId)
+        }
 
-      const lastEmailSentAt = (rec as any)?.email_sent_at ? new Date((rec as any).email_sent_at).getTime() : 0
-      if (lastEmailSentAt && (now - lastEmailSentAt) < EMAIL_COOLDOWN_MS) {
-        skipped += 1
-        continue
+        lastEmailSentAt = (rec as any)?.email_sent_at ? new Date((rec as any).email_sent_at).getTime() : 0
+        if (lastEmailSentAt && (now - lastEmailSentAt) < EMAIL_COOLDOWN_MS) {
+          skipped += 1
+          continue
+        }
       }
 
       // Metrics: signal that opt-in template was not delivered.
@@ -252,10 +285,12 @@ Deno.serve(async (req) => {
       }
 
       emailed += 1
-      await admin.from("whatsapp_optin_recovery").update({
-        email_sent_at: nowIso,
-        updated_at: nowIso,
-      } as any).eq("user_id", userId)
+      if (!isTargeted || !force) {
+        await admin.from("whatsapp_optin_recovery").update({
+          email_sent_at: nowIso,
+          updated_at: nowIso,
+        } as any).eq("user_id", userId)
+      }
     }
 
     return new Response(JSON.stringify({
@@ -263,7 +298,7 @@ Deno.serve(async (req) => {
       considered,
       emailed,
       skipped,
-      scanned: rows.length,
+      scanned: forceUserIdRaw ? 1 : byUser.size,
       request_id: requestId,
     }), { headers: { "Content-Type": "application/json" } })
   } catch (error) {

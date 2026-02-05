@@ -13,14 +13,6 @@ export function normalizeLoose(s: string): string {
     .trim()
 }
 
-export function pickToolflowSummary(tm: any): { active: boolean; kind?: string; stage?: string } {
-  const flow = (tm as any)?.architect_tool_flow
-  if (!flow || typeof flow !== "object") return { active: false }
-  const kind = typeof (flow as any).kind === "string" ? String((flow as any).kind) : undefined
-  const stage = typeof (flow as any).stage === "string" ? String((flow as any).stage) : undefined
-  return { active: true, kind, stage }
-}
-
 export function pickSupervisorSummary(tm: any): {
   stack_top_type?: string
   stack_top_owner?: string

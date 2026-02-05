@@ -18,7 +18,6 @@ import {
 import { getVectorResultsCount, getContextProfile } from "../context/types.ts"
 import { runWatcher } from "../agents/watcher.ts"
 import { normalizeChatText } from "../chat_text.ts"
-import { generateWithGemini } from "../../_shared/gemini.ts"
 import { getUserTimeContext } from "../../_shared/user_time_context.ts"
 import { getEffectiveTierForUser } from "../../_shared/billing-tier.ts"
 import { logBrainTrace, type BrainTracePhase } from "../../_shared/brain-trace.ts"
@@ -26,22 +25,12 @@ import { handleTracking } from "../lib/tracking.ts"
 // NOTE: getUserProfileFacts and formatUserProfileFactsForPrompt are now handled by context/loader.ts
 import {
   countNoPlanBlockerMentions,
-  isExplicitStopCheckup,
   lastAssistantAskedForStepConfirmation,
   lastAssistantAskedForMotivation,
-  looksLikeActionProgress,
-  // looksLikeAttrapeRevesActivation removed - now handled via activate_action signal
   looksLikeDailyBilanAnswer,
-  looksLikeExplicitResumeCheckupIntent,
-  looksLikeHowToExerciseQuestion,
-  looksLikeMotivationScoreAnswer,
-  looksLikeUserConfirmsStep,
-  looksLikeUserClaimsPlanIsDone,
-  looksLikeWorkPressureVenting,
   shouldBypassCheckupLockForDeepWork,
 } from "./classifiers.ts"
 import {
-  looksLikeAcuteDistress, 
   type DispatcherSignals,
   type DispatcherOutputV2,
   type NewSignalEntry,
@@ -55,7 +44,6 @@ import {
 } from "./dispatcher_flow.ts"
 import {
   normalizeLoose,
-  pickToolflowSummary,
   pickSupervisorSummary,
   pickDeferredSummary,
   pickProfileConfirmSummary,
@@ -78,6 +66,134 @@ import {
 } from "../agents/investigator/db.ts"
 import { debounceAndBurstMerge } from "./debounce.ts"
 import { runAgentAndVerify } from "./agent_exec.ts"
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// TURN METRICS - Consolidated per-turn debugging
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface TurnMetrics {
+  request_id: string | null
+  user_id: string
+  channel: "web" | "whatsapp"
+  scope: string
+  ts_start: number
+  latency_ms: {
+    total?: number
+    dispatcher?: number
+    context?: number
+    agent?: number
+  }
+  dispatcher: {
+    model?: string
+    signals?: {
+      safety: string
+      intent: string
+      intent_conf: number
+      interrupt: string
+      topic_depth: string
+      flow_resolution?: string
+    }
+  }
+  context: {
+    profile?: string
+    elements?: string[]
+    tokens?: number
+  }
+  routing: {
+    target_dispatcher?: string
+    target_initial?: string
+    target_final?: string
+    risk_score?: number
+  }
+  agent: {
+    model?: string
+    outcome?: "text" | "tool_call"
+    tool?: string
+  }
+  state_flags: {
+    checkup_active?: boolean
+    toolflow_active?: boolean
+    supervisor_stack_top?: string
+  }
+  aborted?: boolean
+  abort_reason?: string
+}
+
+function createTurnMetrics(requestId: string | null, userId: string, channel: "web" | "whatsapp", scope: string): TurnMetrics {
+  return {
+    request_id: requestId,
+    user_id: userId,
+    channel,
+    scope,
+    ts_start: Date.now(),
+    latency_ms: {},
+    dispatcher: {},
+    context: {},
+    routing: {},
+    agent: {},
+    state_flags: {},
+  }
+}
+
+function emitTurnSummary(metrics: TurnMetrics, supabase?: any): void {
+  metrics.latency_ms.total = Date.now() - metrics.ts_start
+  try {
+    console.log(JSON.stringify({
+      tag: "turn_summary",
+      request_id: metrics.request_id,
+      user_id: metrics.user_id,
+      channel: metrics.channel,
+      scope: metrics.scope,
+      ts: new Date().toISOString(),
+      latency_ms: metrics.latency_ms,
+      dispatcher: metrics.dispatcher,
+      context: metrics.context,
+      routing: metrics.routing,
+      agent: metrics.agent,
+      state_flags: metrics.state_flags,
+      ...(metrics.aborted ? { aborted: true, abort_reason: metrics.abort_reason } : {}),
+    }))
+  } catch { /* ignore */ }
+  
+  // Optional DB persistence (non-blocking)
+  const dbEnabled = (((globalThis as any)?.Deno?.env?.get?.("TURN_SUMMARY_DB_ENABLED") ?? "") as string).trim() === "1"
+  if (dbEnabled && supabase) {
+    try {
+      supabase.from("turn_summary_logs").insert({
+        request_id: metrics.request_id,
+        user_id: metrics.user_id,
+        channel: metrics.channel,
+        scope: metrics.scope,
+        latency_total_ms: metrics.latency_ms.total,
+        latency_dispatcher_ms: metrics.latency_ms.dispatcher,
+        latency_context_ms: metrics.latency_ms.context,
+        latency_agent_ms: metrics.latency_ms.agent,
+        dispatcher_model: metrics.dispatcher.model,
+        dispatcher_safety: metrics.dispatcher.signals?.safety,
+        dispatcher_intent: metrics.dispatcher.signals?.intent,
+        dispatcher_intent_conf: metrics.dispatcher.signals?.intent_conf,
+        dispatcher_interrupt: metrics.dispatcher.signals?.interrupt,
+        dispatcher_topic_depth: metrics.dispatcher.signals?.topic_depth,
+        dispatcher_flow_resolution: metrics.dispatcher.signals?.flow_resolution,
+        context_profile: metrics.context.profile,
+        context_elements: metrics.context.elements,
+        context_tokens: metrics.context.tokens,
+        target_dispatcher: metrics.routing.target_dispatcher,
+        target_initial: metrics.routing.target_initial,
+        target_final: metrics.routing.target_final,
+        risk_score: metrics.routing.risk_score,
+        agent_model: metrics.agent.model,
+        agent_outcome: metrics.agent.outcome,
+        agent_tool: metrics.agent.tool,
+        checkup_active: metrics.state_flags.checkup_active,
+        toolflow_active: metrics.state_flags.toolflow_active,
+        supervisor_stack_top: metrics.state_flags.supervisor_stack_top,
+        aborted: metrics.aborted ?? false,
+        abort_reason: metrics.abort_reason,
+      }).then(() => {}).catch(() => {}) // Fire and forget
+    } catch { /* ignore */ }
+  }
+}
 import { maybeInjectGlobalDeferredNudge, pruneGlobalDeferredTopics, shouldStoreGlobalDeferredFromUserMessage, storeGlobalDeferredTopic } from "./global_deferred.ts"
 import { applyDeterministicRouting } from "./routing_decision.ts"
 import { applyDeepReasonsFlow } from "./deep_reasons_flow.ts"
@@ -88,10 +204,7 @@ import {
   getActiveSupervisorSession,
   getActiveTopicSession,
   getSupervisorRuntime,
-  pruneStaleArchitectToolFlow,
   pruneStaleSupervisorState,
-  setArchitectToolFlowInTempMemory,
-  syncLegacyArchitectToolFlowSession,
   upsertTopicSerious,
   upsertTopicLight,
   incrementTopicTurnCount,
@@ -137,6 +250,7 @@ import {
   clearPausedMachine,
   hasActiveToolFlow,
   hasAnyActiveMachine,
+  getAnyActiveToolFlow,
   type TopicEngagementLevel,
   type PausedMachineStateV2,
   // Profile confirmation machine
@@ -182,8 +296,7 @@ import {
   generatePostParenthesisQuestion,
   generateDeclineResumeMessage,
   generateResumeMessage,
-  looksLikeWantsToResume,
-  looksLikeWantsToRest,
+  // NOTE: looksLikeWantsToResume/Rest replaced by flow_resolution signals
   lastAssistantAskedResumeQuestion,
 } from "./deferred_messages.ts"
 import { runDeepReasonsExploration } from "../agents/architect/deep_reasons.ts"
@@ -206,13 +319,6 @@ const SOPHIA_CHAT_MODEL =
 const SOPHIA_CHAT_MODEL_PRO =
   (
     ((globalThis as any)?.Deno?.env?.get?.("GEMINI_SOPHIA_CHAT_MODEL_PRO") ?? "") as string
-  ).trim() || "gemini-2.5-flash";
-
-// Dedicated model for the safety-router (kept deterministic and fast).
-// Note: this is *not* the same as the safety agent models; it's only the classifier that decides sentry routing.
-const SOPHIA_SAFETY_ROUTER_MODEL =
-  (
-    ((globalThis as any)?.Deno?.env?.get?.("SOPHIA_SAFETY_ROUTER_MODEL") ?? "") as string
   ).trim() || "gemini-2.5-flash";
 
 // Model routing: use pro model for critical situations
@@ -420,14 +526,21 @@ export async function processMessage(
     if (args.topic_exploration_closed) reasonCodes.push("TOPIC_EXPLORATION_CLOSED")
     if (args.topic_exploration_handoff) reasonCodes.push("TOPIC_EXPLORATION_HANDOFF")
 
+    const buildToolflowSummary = (tm: any): { active: boolean; kind?: string; stage?: string } => {
+      const flow = getAnyActiveToolFlow(tm)
+      if (!flow) return { active: false }
+      const kind = flow.type ? String(flow.type) : undefined
+      const stage = (flow.meta as any)?.stage ? String((flow.meta as any).stage) : undefined
+      return { active: true, kind, stage }
+    }
     const snapshotBefore = {
-      toolflow: pickToolflowSummary(args.temp_memory_before),
+      toolflow: buildToolflowSummary(args.temp_memory_before),
       profile_confirm: pickProfileConfirmSummary(args.temp_memory_before),
       global_deferred: pickDeferredSummary(args.temp_memory_before),
       supervisor: pickSupervisorSummary(args.temp_memory_before),
     }
     const snapshotAfter = {
-      toolflow: pickToolflowSummary(args.temp_memory_after),
+      toolflow: buildToolflowSummary(args.temp_memory_after),
       profile_confirm: pickProfileConfirmSummary(args.temp_memory_after),
       global_deferred: pickDeferredSummary(args.temp_memory_after),
       supervisor: pickSupervisorSummary(args.temp_memory_after),
@@ -542,107 +655,7 @@ export async function processMessage(
     return { tempMemory: writeSupervisorRuntime(opts.tempMemory, rt1 as any), changed: true }
   }
 
-  function looksLikeLongFormExplanationRequest(m: string): boolean {
-    const s = normalizeLoose(m)
-    if (!s) return false
-    // Avoid false positives like "j'ai fait mon premier cours de salsa".
-    // We only want this when the user is explicitly ASKING for an explanation.
-    const looksLikeNarration =
-      /\b(j['’]ai\s+fait|j['’]ai\s+eu|je\s+viens\s+de|mon\s+premier|premier)\b/i.test(s) &&
-      /\b(cours|cours\s+de)\b/i.test(s)
-    if (looksLikeNarration) return false
-
-    // Strong explicit requests for detail / explanation / mechanisms (ask forms).
-    // Require an intent marker (question mark OR "tu peux" / "peux-tu" / "j'aimerais" / "je veux") so nouns like "cours"
-    // don't accidentally route to librarian.
-    const hasAskMarker =
-      /\?/.test(s) ||
-      /\b(peux\s*-?\s*tu|tu\s+peux|j['’]aimerais|je\s+veux|je\s+voudrais)\b/i.test(s)
-
-    const asksForExplanation =
-      /\b(explique|explique\s+moi|pourquoi|comment|m[ée]canisme|comment\s+ca\s+marche|comment\s+ca\s+fonctionne|clarifie|clarifier|d[ée]tail|d[ée]tails|d[ée]taille|d[ée]veloppe|d[ée]velopper|pr[ée]cise|pr[ée]cision|guide|pas\s+[aà]\s+pas|step\s+by\s+step)\b/i
-        .test(s)
-
-    if (hasAskMarker && asksForExplanation) return true
-
-    // Also treat explicit "réponse longue / explication longue" requests.
-    if (/\b(r[ée]ponse\s+longue|longue\s+explication|explication\s+longue)\b/i.test(s)) return true
-    return false
-  }
-
-  function looksLikeSentryCandidate(m: string): boolean {
-    const s = normalizeLoose(m)
-    if (!s) return false
-    // Suicide / self-harm cues (candidate only; confirmed by LLM).
-    if (/\b(suicide|me\s+suicider|me\s+tuer|me\s+faire\s+du\s+mal|m['’]automutiler|automutilation)\b/i.test(s)) return true
-
-    // Acute medical red flags (candidate only; confirmed by LLM).
-    if (/\b(j['’]?arrive\s+pas\s+a\s+respirer|j['’]?ai\s+du\s+mal\s+a\s+respirer|je\s+suffoque|essouffl|oppression|douleur\s+poitrine|douleur\s+thorac|malaise|je\s+tourne\s+de\s+l['’]oeil|syncope|perte\s+de\s+connaissance|l[eè]vres\s+bleues?)\b/i
-      .test(s)) return true
-    if (/\b(allergie|choc\s+anaphylactique|gonfl[eé]\s+(?:visage|l[eè]vres|langue)|urticaire)\b/i.test(s)) return true
-    if (/\b(avc|paralysie|visage\s+qui\s+tombe|difficult[eé]\s+a\s+parler|troubles\s+de\s+la\s+parole)\b/i.test(s)) return true
-
-    return false
-  }
-
-  async function confirmRouteToSentry(opts: {
-    userMessage: string
-    lastAssistantMessage: string
-    requestId?: string
-    forceRealAi?: boolean
-  }): Promise<{ route: boolean; category: string; confidence: number }> {
-    // Deterministic mode: keep it conservative.
-    const mega =
-      (((globalThis as any)?.Deno?.env?.get?.("MEGA_TEST_MODE") ?? "") as string).trim() === "1" &&
-      !opts.forceRealAi
-    if (mega) {
-      const s = normalizeLoose(opts.userMessage)
-      if (/\b(jarrive pas a respirer|du mal a respirer|douleur poitrine|me suicider|suicide)\b/i.test(s)) {
-        return { route: true, category: "mega_candidate", confidence: 0.9 }
-      }
-      return { route: false, category: "mega_none", confidence: 0.0 }
-    }
-
-    const systemPrompt = `
-Tu es un "Safety Router" pour Sophia.
-Ta mission: décider si le message utilisateur décrit une URGENCE qui doit être routée vers SENTRY.
-
-IMPORTANT:
-- Ne réagis pas juste à des mots. Distingue: citation / blague / hypothèse / métaphore VS situation réelle.
-- Si c'est ambigu, préfère NE PAS router vers sentry (route=false).
-
-Route vers SENTRY (route=true) si et seulement si:
-- risque d'automutilation/suicide imminent OU demande d'aide urgente pour ça
-- OU symptôme médical potentiellement grave (ex: difficulté à respirer, douleur thoracique, malaise, lèvres bleues, anaphylaxie)
-
-Sinon:
-- route=false
-
-SORTIE JSON STRICTE:
-{
-  "route": true/false,
-  "category": "self_harm|breathing|chest_pain|anaphylaxis|stroke|other|none",
-  "confidence": 0.0-1.0
-}
-    `.trim()
-
-    try {
-      const raw = await generateWithGemini(systemPrompt, `User: ${opts.userMessage}\n\nLastAssistant: ${opts.lastAssistantMessage}`, 0.0, true, [], "auto", {
-        requestId: opts.requestId,
-        model: SOPHIA_SAFETY_ROUTER_MODEL,
-        source: "sophia-brain:safety_router",
-        forceRealAi: opts.forceRealAi,
-      })
-      const obj = JSON.parse(String(raw ?? "{}"))
-      return {
-        route: Boolean(obj?.route),
-        category: String(obj?.category ?? "none"),
-        confidence: Math.max(0, Math.min(1, Number(obj?.confidence ?? 0) || 0)),
-      }
-    } catch {
-      return { route: false, category: "parse_failed", confidence: 0 }
-    }
-  }
+  // NOTE: looksLikeLongFormExplanationRequest replaced by dispatcherSignals.needs_explanation
 
   async function sentrySentRecently(args: { withinMs: number }): Promise<boolean> {
     try {
@@ -661,23 +674,8 @@ SORTIE JSON STRICTE:
     }
   }
 
-  function looksLikeUserBoredOrWantsToStop(m: string): boolean {
-    const s = normalizeLoose(m)
-    if (!s) return false
-    if (/\b(stop|arrete|arr[êe]te|laisse\s+tomber|on\s+arrete|on\s+change|passe\s+a\s+autre\s+chose|bref|on\s+a\s+fait\s+le\s+tour|on\s+a\s+fini|c['']est\s+bon\s+pour\s+moi)\b/i.test(s)) return true
-    // Very short "ok." / "..." / "bon." replies are often fatigue signals.
-    if (s.length <= 4 && /\b(ok|ok\?|bon)\b/i.test(s)) return true
-    return false
-  }
-
-  // Detect breakdown/micro-step intent: user is blocked and wants to split an action into smaller steps.
-  // This should route to architect (break_down_action tool), NOT firefighter.
-  function looksLikeBreakdownIntent(m: string): boolean {
-    const s = (m ?? "").toString().toLowerCase()
-    if (!s.trim()) return false
-    return /\b(micro[-\s]?etape|d[ée]compos|d[ée]coup|d[ée]taill|petit\s+pas|[ée]tape\s+minuscule|je\s+bloqu|j['']y\s+arrive\s+pas|trop\s+dur|insurmontable|plus\s+simple|simplifi|version\s+light|version\s+facile)\b/i
-      .test(s)
-  }
+  // NOTE: looksLikeUserBoredOrWantsToStop replaced by dispatcherSignals.interrupt
+  // NOTE: looksLikeBreakdownIntent replaced by dispatcherSignals.breakdown_action
 
   function guessTopicLabel(m: string): string {
     const s = normalizeLoose(m)
@@ -719,17 +717,7 @@ SORTIE JSON STRICTE:
     return "conversation"
   }
 
-  function looksLikeDigressionRequest(m: string): boolean {
-    const s = String(m ?? "").toLowerCase()
-    if (!s.trim()) return false
-    return (
-      /\b(on\s+peut|j['’]ai\s+besoin\s+de|je\s+veux|j['’]ai\s+envie\s+de)\s+(?:te\s+)?parler\b/i.test(s) ||
-      /\bparler\s+(?:de|du|des|d['’])\b/i.test(s) ||
-      /\ben\s+parler\b/i.test(s) ||
-      /\bau\s+fait\b/i.test(s) ||
-      /\bd['’]?ailleurs\b/i.test(s)
-    )
-  }
+  // NOTE: looksLikeDigressionRequest replaced by dispatcherSignals.interrupt (DIGRESSION, SWITCH_TOPIC)
 
   function extractTopicFromUserDigression(m: string): string {
     const raw = String(m ?? "").trim()
@@ -785,6 +773,9 @@ SORTIE JSON STRICTE:
   const nowIso = new Date().toISOString()
   const userTime = await getUserTimeContext({ supabase, userId }).catch(() => null as any)
 
+  // Initialize turn metrics accumulator for consolidated logging
+  const turnMetrics = createTurnMetrics(meta?.requestId ?? null, userId, channel, scope)
+
   const logMessages = opts?.logMessages !== false
   // 1. Log le message user
   let loggedMessageId: string | null = null
@@ -811,6 +802,9 @@ SORTIE JSON STRICTE:
     // Important: when aborted, do not emit an assistant message (prevents double-assistant / empty assistant entries).
     if (debounced.aborted) {
       await traceV("brain:debounce_aborted", "io", { reason: "debounceAndBurstMerge" }, "debug")
+      turnMetrics.aborted = true
+      turnMetrics.abort_reason = "debounce"
+      emitTurnSummary(turnMetrics, supabase)
       return { content: "", mode: "companion", aborted: true }
     }
     userMessage = debounced.userMessage
@@ -877,6 +871,9 @@ SORTIE JSON STRICTE:
       }
 
       await traceV("brain:soft_cap_response", "soft_cap", { kind: "answer_recorded", interested: isUpgradeYes }, "info")
+      turnMetrics.aborted = true
+      turnMetrics.abort_reason = "soft_cap_answer"
+      emitTurnSummary(turnMetrics, supabase)
       return { content: responseContent, mode: "companion" as AgentMode }
     }
 
@@ -895,6 +892,9 @@ SORTIE JSON STRICTE:
         })
       }
       await traceV("brain:soft_cap_response", "soft_cap", { kind: "blocked", hasAnsweredUpgrade }, "info")
+      turnMetrics.aborted = true
+      turnMetrics.abort_reason = "soft_cap_blocked"
+      emitTurnSummary(turnMetrics, supabase)
       return { content: blockResponse, mode: "companion" as AgentMode }
     }
 
@@ -921,6 +921,9 @@ SORTIE JSON STRICTE:
       }
 
       await traceV("brain:soft_cap_response", "soft_cap", { kind: "prompted" }, "info")
+      turnMetrics.aborted = true
+      turnMetrics.abort_reason = "soft_cap_triggered"
+      emitTurnSummary(turnMetrics, supabase)
       return { content: SOFT_CAP_RESPONSE_TEMPLATE, mode: "companion" as AgentMode }
     }
 
@@ -943,18 +946,9 @@ SORTIE JSON STRICTE:
   // Run early so that stale state doesn't affect routing decisions.
   const staleCleaned: string[] = []
   {
-    const c1 = pruneStaleArchitectToolFlow({ tempMemory })
-    if (c1.changed) { tempMemory = c1.tempMemory; staleCleaned.push("architect_tool_flow") }
-
     const c2 = pruneStaleSupervisorState({ tempMemory })
     if (c2.changed) { tempMemory = c2.tempMemory; staleCleaned.push(...c2.cleaned) }
   }
-
-  // --- SUPERVISOR (global runtime: stack/queue) ---
-  // Keep supervisor runtime in sync with existing multi-turn flows.
-  // (Today we sync the Architect tool flow; other sessions can be added progressively.)
-  const syncedSupervisor = syncLegacyArchitectToolFlowSession({ tempMemory })
-  if (syncedSupervisor.changed) tempMemory = syncedSupervisor.tempMemory
   // Capture explicit user deferrals outside bilan too.
   if (shouldStoreGlobalDeferredFromUserMessage(userMessage)) {
     const extracted = extractDeferredTopicFromUserMessage(userMessage)
@@ -1059,6 +1053,7 @@ SORTIE JSON STRICTE:
   let signalEnrichments: SignalEnrichment[] = []
   let primaryMotherSignal: string | null = null
   
+  const dispatcherT0 = Date.now()
   const contextual = await runContextualDispatcherV2({
     userMessage,
     lastAssistantMessage,
@@ -1072,6 +1067,7 @@ SORTIE JSON STRICTE:
     trace,
     traceV,
   })
+  turnMetrics.latency_ms.dispatcher = Date.now() - dispatcherT0
   dispatcherResult = contextual.dispatcherResult
   dispatcherSignals = contextual.dispatcherSignals
   newSignalsDetected = contextual.newSignalsDetected
@@ -1079,6 +1075,17 @@ SORTIE JSON STRICTE:
   tempMemory = contextual.tempMemory
   const flowContext = contextual.flowContext
   const activeMachine = contextual.activeMachine
+
+  // Capture dispatcher metrics for turn summary
+  turnMetrics.dispatcher.model = dispatcherResult.model_used
+  turnMetrics.dispatcher.signals = {
+    safety: dispatcherSignals.safety.level,
+    intent: dispatcherSignals.user_intent_primary,
+    intent_conf: dispatcherSignals.user_intent_confidence,
+    interrupt: dispatcherSignals.interrupt.kind,
+    topic_depth: dispatcherSignals.topic_depth.value,
+    flow_resolution: dispatcherSignals.flow_resolution.kind,
+  }
   
   // ═══════════════════════════════════════════════════════════════════════════
   // DEFERRED ENRICHMENT: Apply enrichment to existing deferred topic
@@ -1877,7 +1884,7 @@ SORTIE JSON STRICTE:
     const isDirectTopicTrigger = isTopicDepthTrigger && !hasExistingTopic && topicDepthConf >= 0.8
     const shouldTrigger = isTopicDepthTrigger && (isInterruptTrigger || isPlanFocusTrigger || isDirectTopicTrigger)
 
-    const bored = looksLikeUserBoredOrWantsToStop(userMessage)
+    const bored = dispatcherSignals.interrupt.kind === "BORED" || dispatcherSignals.interrupt.kind === "EXPLICIT_STOP"
 
     // PREEMPTION RULE: topic_serious preempts topic_light
     // If a SERIOUS topic is detected and there's an active topic_light, close the light topic.
@@ -2116,8 +2123,16 @@ SORTIE JSON STRICTE:
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
   ) {
-    // Route to architect when create_action intent is detected
-    if (createActionSignal.intent_strength === "explicit" || createActionSignal.intent_strength === "implicit") {
+    // Route to architect ONLY when create_action intent is truly explicit.
+    // Rationale: avoid unsolicited "add an action" pivots caused by weak/implicit detection.
+    // Implicit intents are allowed only when Sophia suggested an action and the user clearly accepted.
+    const allowImplicit =
+      createActionSignal.intent_strength === "implicit" &&
+      createActionSignal.sophia_suggested === true &&
+      (createActionSignal.user_response === "yes" || createActionSignal.user_response === "modify") &&
+      createActionSignal.confidence >= 0.75
+
+    if (createActionSignal.intent_strength === "explicit" || allowImplicit) {
       targetMode = "architect"
       // Store the signal info for architect to use
       ;(tempMemory as any).__create_action_signal = {
@@ -2563,14 +2578,14 @@ SORTIE JSON STRICTE:
   }, "info")
 
   const targetModeInitial = targetMode
-  let toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
-  const stopCheckup = isExplicitStopCheckup(userMessage);
-  // Signal-based interrupt detection
+  let toolFlowActiveGlobal = hasActiveToolFlow(tempMemory)
+  // Use dispatcher signals for explicit stop/bored detection
+  const stopCheckup = dispatcherSignals.interrupt.kind === "EXPLICIT_STOP" && dispatcherSignals.interrupt.confidence >= 0.6
   const boredOrStopFromSignals = (
     (dispatcherSignals.interrupt.kind === "EXPLICIT_STOP" && dispatcherSignals.interrupt.confidence >= 0.65) ||
     (dispatcherSignals.interrupt.kind === "BORED" && dispatcherSignals.interrupt.confidence >= 0.65)
   )
-  const boredOrStop = boredOrStopFromSignals || looksLikeUserBoredOrWantsToStop(userMessage) || stopCheckup
+  const boredOrStop = boredOrStopFromSignals  // Now fully based on dispatcher signals
   await traceV("brain:interrupt_detection", "routing", {
     stopCheckup,
     boredOrStopFromSignals,
@@ -2580,16 +2595,34 @@ SORTIE JSON STRICTE:
   let toolflowCancelledOnStop = false
   let resumeActionV1: "prompted" | "accepted" | "declined" | null = null
 
-  // --- Scheduler v1 (minimal): explicit stop/boredom cancels any active Architect toolflow.
+  // --- Scheduler v1 (minimal): explicit stop/boredom cancels any active tool flow.
   // Toolflows are transactional; they should not block handoffs (topic_exploration) nor hijack emotional/safety turns.
   if (boredOrStop && toolFlowActiveGlobal) {
-    const cleared = setArchitectToolFlowInTempMemory({ tempMemory, nextFlow: null })
-    if (cleared.changed) {
-      tempMemory = cleared.tempMemory
-      toolFlowActiveGlobal = Boolean((tempMemory as any)?.architect_tool_flow)
+    // Close whichever tool flow is active
+    const activeFlow = getAnyActiveToolFlow(tempMemory)
+    if (activeFlow) {
+      const flowType = activeFlow.type
+      if (flowType === "create_action_flow") {
+        const r = closeCreateActionFlow({ tempMemory, outcome: "abandoned" })
+        tempMemory = r.tempMemory
+      } else if (flowType === "update_action_flow") {
+        const r = closeUpdateActionFlow({ tempMemory, outcome: "abandoned" })
+        tempMemory = r.tempMemory
+      } else if (flowType === "breakdown_action_flow") {
+        const r = closeBreakdownActionFlow({ tempMemory, outcome: "abandoned" })
+        tempMemory = r.tempMemory
+      } else if (flowType === "track_progress_flow") {
+        const r = closeTrackProgressFlow({ tempMemory, outcome: "abandoned" })
+        tempMemory = r.tempMemory
+      } else if (flowType === "activate_action_flow") {
+        const r = closeActivateActionFlow({ tempMemory, outcome: "abandoned" })
+        tempMemory = r.tempMemory
+      }
+      toolFlowActiveGlobal = hasActiveToolFlow(tempMemory)
       toolflowCancelledOnStop = true
       await trace("brain:toolflow_cancelled", "routing", {
         reason: boredOrStopFromSignals ? "dispatcher_interrupt" : "heuristic_stop",
+        flow_type: flowType,
         interrupt: dispatcherSignals.interrupt,
       })
     }
@@ -2605,7 +2638,7 @@ SORTIE JSON STRICTE:
     const s = normalizeLoose(userMessage)
     const yes = /\b(oui|ok|daccord|vas\s*y|go)\b/i.test(s) && s.length <= 24
     const no = /\b(non|pas\s+maintenant|laisse|laisse\s+tomber|on\s+s'en\s+fout|plus\s+tard)\b/i.test(s) && s.length <= 40
-    if (kind === "architect_toolflow" && !expired && (yes || no)) {
+    if (kind === "toolflow" && !expired && (yes || no)) {
       // Clear marker either way
       try { delete (tempMemory as any).__router_resume_prompt_v1 } catch {}
       if (yes) {
@@ -2624,9 +2657,9 @@ SORTIE JSON STRICTE:
         routed_to: yes ? targetMode : null,
       }, "info")
       // Remove the queued resume intent so we don't nag again.
-      const removed = removeSupervisorQueueByReasonPrefix({ tempMemory, prefix: "queued_due_to_irrelevant_active_session:architect_tool_flow" })
+      const removed = removeSupervisorQueueByReasonPrefix({ tempMemory, prefix: "queued_due_to_irrelevant_active_session:toolflow" })
       if (removed.changed) tempMemory = removed.tempMemory
-    } else if (kind === "architect_toolflow" && expired) {
+    } else if (kind === "toolflow" && expired) {
       // Stale marker: clear silently.
       try { delete (tempMemory as any).__router_resume_prompt_v1 } catch {}
       await traceV("brain:resume_prompt_expired", "routing", { kind }, "debug")
@@ -2694,20 +2727,18 @@ SORTIE JSON STRICTE:
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
   ) {
-    // IMPORTANT: Use toolFlowActiveGlobal (checks temp_memory.architect_tool_flow directly)
-    // because topic_exploration is always pushed after architect_tool_flow in the stack,
-    // so getActiveSupervisorSession would return topic_exploration, not architect_tool_flow.
-    const hasActiveArchitectToolFlow = toolFlowActiveGlobal && !toolflowCancelledOnStop
+    // Check if there's an active tool flow that should maintain continuity
+    const hasActiveToolFlowSession = toolFlowActiveGlobal && !toolflowCancelledOnStop
     // If this is a preference-confirmation moment, do NOT let active sessions hijack.
     if (forcedPref || forcedPendingConfirm) {
       // Keep targetMode as-is (already forced to companion above).
-    } else if (hasActiveArchitectToolFlow && !userLooksLikeToolFlowContinuation) {
+    } else if (hasActiveToolFlowSession && !userLooksLikeToolFlowContinuation) {
       // User is off-topic relative to toolflow: let them talk, and keep the toolflow "waiting".
       // (We enqueue the architect continuation as non-urgent follow-up instead of hijacking.)
       const queued = enqueueSupervisorIntent({
         tempMemory,
         requestedMode: "architect",
-        reason: `queued_due_to_irrelevant_active_session:architect_tool_flow`,
+        reason: `queued_due_to_irrelevant_active_session:toolflow`,
         messageExcerpt: String(userMessage ?? "").slice(0, 180),
       })
       if (queued.changed) tempMemory = queued.tempMemory
@@ -2730,15 +2761,15 @@ SORTIE JSON STRICTE:
   // Hard guard for Architect multi-turn tool flows:
   // If Architect just asked "which day to remove", ALWAYS keep Architect for the next user reply,
   // regardless of what the dispatcher says (tool tests rely on this continuity).
-  const archFlow = (tempMemory as any)?.architect_tool_flow ?? null
-  const archFlowAwaitingRemoveDay =
-    archFlow &&
-    String((archFlow as any)?.kind ?? "") === "update_action_structure" &&
-    String((archFlow as any)?.stage ?? "") === "awaiting_remove_day"
+  const activeUpdateFlow = getActiveUpdateActionFlow(tempMemory)
+  const updateFlowStage = (tempMemory as any)?.__update_flow_stage
+  const updateFlowAwaitingRemoveDay =
+    (activeUpdateFlow && String((activeUpdateFlow as any)?.meta?.stage ?? "") === "awaiting_remove_day") ||
+    (updateFlowStage?.stage === "awaiting_remove_day")
   const lastAskedWhichDay =
     lastAssistantAgent === "architect" &&
     /\bquel(le)?\s+jour\b/i.test(lastAssistantMessage ?? "")
-  if (!state?.investigation_state && (archFlowAwaitingRemoveDay || lastAskedWhichDay)) {
+  if (!state?.investigation_state && (updateFlowAwaitingRemoveDay || lastAskedWhichDay)) {
     targetMode = "architect"
   }
 
@@ -2750,39 +2781,35 @@ SORTIE JSON STRICTE:
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
   ) {
-    // Do NOT force Architect if the user is currently doing preference confirmations or off-topic chit-chat.
-    const s = normalizeLoose(userMessage)
-    const looksLikeChitChat = s.length <= 80 && /\b(met[eé]o|soleil|temps|journ[ée]e|salut|hello|[çc]a\s+va)\b/i.test(s)
-    if (!forcedPref && !forcedPendingConfirm && (userLooksLikeToolFlowContinuation || !looksLikeChitChat)) {
-    targetMode = "architect"
+    // Do NOT force Architect when the user's message is unrelated to the flow.
+    // We only keep Architect when the user *actually* continues the toolflow,
+    // otherwise we let the dispatcher-selected mode handle the turn and keep the flow waiting.
+    if (!forcedPref && !forcedPendingConfirm && userLooksLikeToolFlowContinuation) {
+      targetMode = "architect"
     }
   }
 
-  // Safety escalation (candidate -> LLM confirmation) to avoid keyword false positives.
-  // We do this BEFORE other routing heuristics, but still allow safety/active-checkup rules below.
-  if (targetMode !== "sentry" && looksLikeSentryCandidate(userMessage)) {
-    const conf = await confirmRouteToSentry({
-      userMessage,
-      lastAssistantMessage,
-      requestId: meta?.requestId,
-      forceRealAi: meta?.forceRealAi,
-    })
-    if (conf.route && conf.confidence >= 0.55) {
-      // Anti-loop: if we already sent a sentry message recently, don't repeat it.
-      const recently = await sentrySentRecently({ withinMs: 10 * 60 * 1000 })
-      targetMode = recently ? "firefighter" : "sentry"
-    }
+  // Safety escalation based on dispatcher signals (no extra LLM call).
+  if (
+    targetMode !== "sentry" &&
+    dispatcherSignals.safety.level === "SENTRY" &&
+    (dispatcherSignals.safety.confidence ?? 0) >= 0.65
+  ) {
+    // Anti-loop: if we already sent a sentry message recently, don't repeat it.
+    const recently = await sentrySentRecently({ withinMs: 10 * 60 * 1000 })
+    targetMode = recently ? "firefighter" : "sentry"
   }
 
   // Long-form explainer routing:
   // If the user explicitly asks for a detailed explanation, route to Librarian.
   // Keep safety + active checkup priority.
+  const needsExplanationFromDispatcher = dispatcherSignals.needs_explanation?.value && (dispatcherSignals.needs_explanation.confidence ?? 0) >= 0.65
   if (
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     !state?.investigation_state &&
     targetMode === "companion" &&
-    looksLikeLongFormExplanationRequest(userMessage)
+    needsExplanationFromDispatcher
   ) {
     // If the user asks for a "reformulation" right after Architect just configured something,
     // keep Architect so it can clarify its own parameters (avoid librarian contradictions).
@@ -2791,8 +2818,8 @@ SORTIE JSON STRICTE:
         .test(userMessage ?? "")
     // Never route to Librarian for "je suis perdu / reformule" (that needs plan-context, not a generic explainer).
     if (looksConfused) {
-      targetMode = (lastAssistantAgent === "architect" || Boolean((tempMemory as any)?.architect_tool_flow)) ? "architect" : "companion"
-    } else if (lastAssistantAgent === "architect" || Boolean((tempMemory as any)?.architect_tool_flow)) {
+      targetMode = (lastAssistantAgent === "architect" || toolFlowActiveGlobal) ? "architect" : "companion"
+    } else if (lastAssistantAgent === "architect" || toolFlowActiveGlobal) {
       targetMode = "architect"
     } else {
       targetMode = "librarian"
@@ -2849,7 +2876,7 @@ SORTIE JSON STRICTE:
   if (
     !state?.investigation_state &&
     targetMode === "companion" &&
-    (lastAssistantAgent === "architect" || (state?.current_mode ?? "companion") === "architect" || Boolean((tempMemory as any)?.architect_tool_flow)) &&
+    (lastAssistantAgent === "architect" || (state?.current_mode ?? "companion") === "architect" || toolFlowActiveGlobal) &&
     /\b(livre|lecture|roman|oreiller|table\s+de\s+chevet|canap[ée])\b/i.test(userMessage ?? "")
   ) {
     targetMode = "architect"
@@ -2859,14 +2886,22 @@ SORTIE JSON STRICTE:
   // If Architect just asked for a step confirmation ("C'est fait ?") and the user confirms,
   // keep Architect to close the loop cleanly (avoid Companion "vibes" + re-introducing the same action).
   if ((meta?.channel ?? "web") === "whatsapp") {
-    if (lastAssistantAgent === "architect" && lastAssistantAskedForStepConfirmation(lastAssistantMessage) && looksLikeUserConfirmsStep(userMessage)) {
+    const userConfirmsStep = dispatcherSignals.flow_resolution.kind === "ACK_DONE" && dispatcherSignals.flow_resolution.confidence >= 0.6
+    if (lastAssistantAgent === "architect" && lastAssistantAskedForStepConfirmation(lastAssistantMessage) && userConfirmsStep) {
       targetMode = "architect"
     }
   }
 
+  const isAcuteDistress =
+    dispatcherSignals.safety.level !== "NONE" &&
+    (dispatcherSignals.safety.immediacy === "acute" || dispatcherSignals.safety.level === "SENTRY") &&
+    (dispatcherSignals.safety.confidence ?? 0) >= 0.6
+
   // WhatsApp (general) routing heuristics (not onboarding-specific).
   if ((meta?.channel ?? "web") === "whatsapp") {
-    if (looksLikeHowToExerciseQuestion(userMessage)) {
+    // Use needs_explanation signal for "how-to" questions about exercises/actions
+    const howToQuestion = dispatcherSignals.needs_explanation?.value && (dispatcherSignals.needs_explanation.confidence ?? 0) >= 0.6
+    if (howToQuestion) {
       // Prefer Architect for "how-to" instructions about concrete exercises/actions.
       targetMode = "architect";
     }
@@ -2874,7 +2909,12 @@ SORTIE JSON STRICTE:
     // Previously we often downgraded Firefighter → Investigator (structured assessment).
     // But this frequently felt cold / "bilan-y" for users who are simply overwhelmed.
     // New rule: keep Firefighter only when risk is meaningfully elevated; otherwise use Companion.
-    if (targetMode === "firefighter" && looksLikeWorkPressureVenting(userMessage) && !looksLikeAcuteDistress(userMessage)) {
+    // Use topic_depth "LIGHT" or "NEED_SUPPORT" + low safety as indicator of work venting vs acute distress
+    const isWorkVenting = 
+      dispatcherSignals.topic_depth.value !== "SERIOUS" &&
+      dispatcherSignals.safety.level !== "SENTRY" &&
+      dispatcherSignals.safety.confidence < 0.7
+    if (targetMode === "firefighter" && isWorkVenting && !isAcuteDistress) {
       targetMode = riskScore >= 6 ? "firefighter" : "companion";
     }
   }
@@ -2892,7 +2932,7 @@ SORTIE JSON STRICTE:
     const digressionSignal =
       (dispatcherSignals.interrupt.kind === "DIGRESSION" || dispatcherSignals.interrupt.kind === "SWITCH_TOPIC") &&
       dispatcherSignals.interrupt.confidence >= 0.6
-    const shouldCaptureDigression = digressionSignal || looksLikeDigressionRequest(userMessage)
+    const shouldCaptureDigression = digressionSignal  // Now fully based on dispatcher interrupt signals
     if (shouldCaptureDigression) {
       try {
           // USE DISPATCHER'S FORMALIZED TOPIC (no extra AI call!)
@@ -2939,22 +2979,26 @@ SORTIE JSON STRICTE:
   // NOTE: Legacy firefighter continuity block removed.
   // Safety flow resolution is now handled by safety_firefighter_flow state machine.
 
-  if (checkupActive && !stopCheckup && targetMode === "firefighter" && riskScore <= 1 && !looksLikeAcuteDistress(userMessage)) {
+  if (checkupActive && !stopCheckup && targetMode === "firefighter" && riskScore <= 1 && !isAcuteDistress) {
     targetMode = "investigator";
   }
 
   // HARD GUARD: If the user asks for a micro-step breakdown and there is no acute distress,
   // do not route to firefighter just because the message sounds emotional.
   // "je bloque", "j'y arrive pas", "c'est trop dur" → architect (break_down_action), NOT firefighter.
-  if (!looksLikeAcuteDistress(userMessage) && looksLikeBreakdownIntent(userMessage) && targetMode === "firefighter") {
+  const breakdownIntentFromDispatcher = dispatcherSignals.breakdown_action?.detected && (dispatcherSignals.breakdown_action.confidence ?? 0) >= 0.6
+  if (!isAcuteDistress && breakdownIntentFromDispatcher && targetMode === "firefighter") {
     targetMode = "architect"
   }
 
   // Manual checkup resumption:
   // If the user explicitly asks to finish/resume the bilan while we are in post-bilan,
   // exit post-bilan state and route to investigator so the checkup can be restarted cleanly.
+  const wantsResumeCheckup = 
+    (dispatcherSignals.flow_resolution.kind === "WANTS_RESUME" && dispatcherSignals.flow_resolution.confidence >= 0.6) ||
+    (checkupIntentSignal?.detected && checkupIntentSignal.confidence >= 0.6)
   if (
-    looksLikeExplicitResumeCheckupIntent(userMessage) &&
+    wantsResumeCheckup &&
     (state?.investigation_state?.status === "post_checkup" || state?.investigation_state?.status === "post_checkup_done")
   ) {
     try {
@@ -3252,6 +3296,7 @@ SORTIE JSON STRICTE:
   const needsContextLoading = targetMode !== "sentry" && targetMode !== "watcher" && targetMode !== "dispatcher"
 
   if (needsContextLoading) {
+    const contextT0 = Date.now()
     const contextLoadResult = await loadContextForMode({
       supabase,
       userId,
@@ -3284,6 +3329,12 @@ SORTIE JSON STRICTE:
 
     // Build final context string
     context = buildContextString(contextLoadResult.context)
+    
+    // Capture context metrics for turn summary
+    turnMetrics.latency_ms.context = Date.now() - contextT0
+    turnMetrics.context.profile = targetMode
+    turnMetrics.context.elements = contextLoadResult.metrics.elements_loaded
+    turnMetrics.context.tokens = contextLoadResult.metrics.estimated_tokens
 
     // Log metrics
     console.log(`[Context] Loaded profile=${targetMode}, elements=${contextLoadResult.metrics.elements_loaded.join(",")}, tokens~${contextLoadResult.metrics.estimated_tokens}`)
@@ -3302,6 +3353,13 @@ SORTIE JSON STRICTE:
   let nextMode = targetMode
 
   console.log(`[Router] User: "${userMessage}" -> Dispatch: ${targetMode} (Risk: ${riskScore})`)
+  
+  // Capture routing metrics for turn summary
+  turnMetrics.routing.target_dispatcher = dispatcherTargetMode
+  turnMetrics.routing.target_initial = targetModeInitial
+  turnMetrics.routing.target_final = targetMode
+  turnMetrics.routing.risk_score = riskScore
+  
   const targetModeFinalBeforeExec = targetMode
 
   // Anti-loop (plan non détecté): on évite le "computer says no".
@@ -3325,12 +3383,16 @@ SORTIE JSON STRICTE:
     }
   }
 
+  // Use onboarding_status signals from dispatcher
+  const onboardingStatus = dispatcherResult.machine_signals?.onboarding_status
+  const onboardingClaimsDone = Boolean(onboardingStatus?.claims_done) && (onboardingStatus?.confidence ?? 0) >= 0.6
+  const onboardingReportsBug = Boolean(onboardingStatus?.reports_bug) && (onboardingStatus?.confidence ?? 0) >= 0.6
   if (
     (meta?.channel ?? "web") === "whatsapp" &&
     meta?.whatsappMode === "onboarding" &&
     !noPlanEscalatedRecently &&
     targetMode === "architect" &&
-    looksLikeUserClaimsPlanIsDone(userMessage) &&
+    (onboardingClaimsDone || onboardingReportsBug) &&
     countNoPlanBlockerMentions(history) >= 1
   ) {
     responseContent =
@@ -3385,6 +3447,9 @@ SORTIE JSON STRICTE:
       console.log("[RouterDecisionV1]", JSON.stringify(md?.router_decision_v1 ?? {}))
       await logMessage(supabase, userId, scope, "assistant", responseContent, "architect", md);
     } catch {}
+    turnMetrics.state_flags.checkup_active = Boolean(checkupActive)
+    turnMetrics.state_flags.toolflow_active = Boolean(toolFlowActiveGlobal)
+    emitTurnSummary(turnMetrics, supabase)
     return { content: normalizeChatText(responseContent), mode: nextMode, aborted: false };
   }
 
@@ -3452,6 +3517,9 @@ SORTIE JSON STRICTE:
         }
       }
       
+      turnMetrics.state_flags.checkup_active = Boolean(checkupActive)
+      turnMetrics.state_flags.toolflow_active = Boolean(toolFlowActiveGlobal)
+      emitTurnSummary(turnMetrics, supabase)
       return { content: normalizeChatText(contentOut), mode: "architect" as AgentMode, aborted: false }
     } catch (e) {
       console.error("[Router] Deep reasons execution failed:", e)
@@ -3716,20 +3784,20 @@ SORTIE JSON STRICTE:
   ) {
     const rt = getSupervisorRuntime(tempMemory)
     const hasQueuedToolflow = Array.isArray(rt.queue) && rt.queue.some((q: any) =>
-      String(q?.reason ?? "") === "queued_due_to_irrelevant_active_session:architect_tool_flow"
+      String(q?.reason ?? "") === "queued_due_to_irrelevant_active_session:toolflow"
     )
     if (hasQueuedToolflow) {
       resumeActionV1 = "prompted"
       ;(tempMemory as any).__router_resume_prompt_v1 = {
-        kind: "architect_toolflow",
+        kind: "toolflow",
         asked_at: new Date().toISOString(),
       }
       responseContent =
         `${String(responseContent ?? "").trim()}\n\n` +
         `Au fait: tu veux qu'on reprenne la mise à jour du plan qu'on avait commencée, ou on laisse tomber ?`
       await traceV("brain:resume_prompt_prompted", "routing", {
-        kind: "architect_toolflow",
-        reason: "queued_due_to_irrelevant_active_session:architect_tool_flow",
+        kind: "toolflow",
+        reason: "queued_due_to_irrelevant_active_session:toolflow",
       }, "info")
     }
   }
@@ -3742,7 +3810,7 @@ SORTIE JSON STRICTE:
     !toolflowCancelledOnStop
   ) {
     ;(tempMemory as any).__router_safety_preempted_v1 = {
-      preempted_flow: "architect_tool_flow",
+      preempted_flow: "toolflow",
       preempted_at: new Date().toISOString(),
       safety_mode: nextMode,
     }
@@ -3764,7 +3832,7 @@ SORTIE JSON STRICTE:
     const preemptedAt = Date.parse(String(safetyMarker?.preempted_at ?? ""))
     const expired = !Number.isFinite(preemptedAt) || (Date.now() - preemptedAt) > 30 * 60 * 1000 // 30 min TTL
     
-    if (preemptedFlow === "architect_tool_flow" && !expired && toolFlowActiveGlobal) {
+    if (preemptedFlow === "toolflow" && !expired && toolFlowActiveGlobal) {
       resumeActionV1 = "prompted"
       ;(tempMemory as any).__router_resume_prompt_v1 = {
         kind: "safety_recovery",
@@ -3789,9 +3857,10 @@ SORTIE JSON STRICTE:
   const pausedMachineV2 = getPausedMachine(tempMemory)
   
   // If the last assistant message asked the resume question, handle user's answer
+  // Use flow_resolution signals from dispatcher
   if (pausedMachineV2 && lastAssistantAskedResumeQuestion(lastAssistantMessage ?? "")) {
-    const wantsResume = looksLikeWantsToResume(userMessage)
-    const wantsRest = looksLikeWantsToRest(userMessage)
+    const wantsResume = dispatcherSignals.flow_resolution.kind === "WANTS_RESUME" && dispatcherSignals.flow_resolution.confidence >= 0.5
+    const wantsRest = dispatcherSignals.flow_resolution.kind === "WANTS_PAUSE" && dispatcherSignals.flow_resolution.confidence >= 0.5
     
     if (wantsResume) {
       // User wants to resume - restore the machine
@@ -3915,12 +3984,7 @@ SORTIE JSON STRICTE:
       // Paused machine state (for safety parenthesis)
       if ((tempMemory as any).__paused_machine_v2) (mergedTempMemory as any).__paused_machine_v2 = (tempMemory as any).__paused_machine_v2
     }
-    // Scheduler override: if we explicitly cancelled a toolflow on stop/boredom, ensure it stays cleared.
-    if (toolflowCancelledOnStop) {
-      try {
-        delete (mergedTempMemory as any).architect_tool_flow
-      } catch {}
-    }
+    // Note: toolflow cancellation is now handled via proper close functions (closeCreateActionFlow, etc.)
   } catch {}
 
   await updateUserState(supabase, userId, scope, {
@@ -3960,6 +4024,15 @@ SORTIE JSON STRICTE:
       console.log("[RouterDecisionV1]", JSON.stringify(md?.router_decision_v1 ?? {}))
     await logMessage(supabase, userId, scope, 'assistant', responseContent, targetMode, md)
   }
+
+  // Capture final state flags and emit turn summary
+  turnMetrics.state_flags.checkup_active = Boolean(checkupActive)
+  turnMetrics.state_flags.toolflow_active = Boolean(toolFlowActiveGlobal)
+  const supervisorRuntime = getSupervisorRuntime(mergedTempMemory)
+  if (supervisorRuntime?.stack?.[0]) {
+    turnMetrics.state_flags.supervisor_stack_top = supervisorRuntime.stack[0].type
+  }
+  emitTurnSummary(turnMetrics, supabase)
 
   return {
     content: responseContent,

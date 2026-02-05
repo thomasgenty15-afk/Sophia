@@ -347,28 +347,6 @@ export function generateSimpleMergedSummary(summaries: string[]): string {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Check if user's response to post-parenthesis question is "yes" (wants to resume).
- */
-export function looksLikeWantsToResume(message: string): boolean {
-  const s = String(message ?? "").trim().toLowerCase()
-  if (!s) return false
-  
-  // Positive signals
-  return /\b(oui|ok|d['']accord|vas[-\s]?y|go|on\s+reprend|on\s+continue|je\s+veux\s+reprendre|allez|c['']est\s+bon)\b/i.test(s)
-}
-
-/**
- * Check if user's response to post-parenthesis question is "no" (wants to rest).
- */
-export function looksLikeWantsToRest(message: string): boolean {
-  const s = String(message ?? "").trim().toLowerCase()
-  if (!s) return false
-  
-  // Negative signals / want to rest
-  return /\b(non|pas\s+maintenant|plus\s+tard|je\s+souffle|je\s+me\s+repose|je\s+préfère\s+(?:souffler|me\s+reposer|attendre)|laisse\s+tomber|on\s+verra|une\s+autre\s+fois)\b/i.test(s)
-}
-
-/**
  * Check if last assistant message asked the resume question.
  */
 export function lastAssistantAskedResumeQuestion(lastAssistantMessage: string): boolean {

@@ -469,10 +469,6 @@ export async function runAgentAndVerify(opts: {
         
         const ffResult = await runFirefighter(userMessage, history, context, meta, firefighterFlowContext)
         responseContent = ffResult.content
-        // NOTE: ffResult.crisisResolved is still produced by firefighter for backward compatibility,
-        // but the actual crisis resolution is now determined by safety_firefighter_flow state machine
-        // in run.ts, which uses structured safety_resolution signals from the dispatcher.
-        // This provides multi-turn tracking with stabilization signal counting.
         
         // Store technique used for state machine context (if available)
         if (ffResult.technique && tempMemory) {
@@ -764,6 +760,8 @@ export async function runAgentAndVerify(opts: {
   if (typeof responseContent === "string" && responseContent.trim()) {
     responseContent = responseContent
       .replace(/\bj[’']ai\s+programm[eé]\b/gi, "c’est calé")
+      // Conversation copy rule: the recap/checkup is always "today's" conversation, even when referring to yesterday's events.
+      .replace(/\bbilan\s+d['’]hier\b/gi, "bilan du jour")
       .replace(/\*\*/g, "");
   }
 
@@ -991,6 +989,28 @@ export async function runAgentAndVerify(opts: {
     } catch (e) {
       console.error("[Router] post_checkup verifier failed (non-blocking):", e)
       await traceV("brain:verifier_error", "verifier", { verifier_kind: "verifier_1:post_checkup", message: String((e as any)?.message ?? e ?? "unknown").slice(0, 800) }, "warn")
+    }
+  }
+
+  // Final lightweight style guards (after verifiers) for the user-facing message.
+  // - Ensure "bilan du jour" phrasing (never "bilan d'hier")
+  // - Ensure 1–2 emojis for most agents (exception: librarian + safety flows)
+  if (typeof responseContent === "string" && responseContent.trim()) {
+    // Re-apply wording guard in case a verifier rewrite reintroduced it.
+    responseContent = responseContent.replace(/\bbilan\s+d['’]hier\b/gi, "bilan du jour")
+
+    const agentForEmoji = targetMode
+    const shouldEnforceEmoji =
+      agentForEmoji !== "librarian" &&
+      agentForEmoji !== "sentry" &&
+      agentForEmoji !== "firefighter"
+
+    if (shouldEnforceEmoji) {
+      const emojiRe = /\p{Extended_Pictographic}/gu
+      const hasEmoji = emojiRe.test(responseContent)
+      if (!hasEmoji) {
+        responseContent = `${responseContent.trim()} 🙂`
+      }
     }
   }
 

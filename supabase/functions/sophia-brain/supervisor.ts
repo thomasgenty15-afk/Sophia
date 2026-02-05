@@ -7,11 +7,9 @@ import { generateWithGemini } from "../_shared/gemini.ts"
  * Design goals:
  * - Keep it lightweight and additive (doesn't break existing temp_memory keys).
  * - Enable stack (LIFO) + queue (non-urgent scheduling) primitives.
- * - Provide sync helpers for existing "legacy" state machines (e.g. architect_tool_flow).
  */
 
 export type SupervisorSessionType =
-  | "architect_tool_flow"
   | "user_profile_confirmation"      // Proper state machine for profile fact confirmation
   | "topic_serious"                  // Deep topics (owner=architect): introspection, personal issues
   | "topic_light"                    // Casual topics (owner=companion): small talk, anecdotes
@@ -907,74 +905,12 @@ export function closeProfileConfirmation(opts: {
   return { tempMemory: tmNext, changed: true }
 }
 
-/**
- * Keep the supervisor stack in sync with the legacy Architect multi-turn toolflow stored at
- * `temp_memory.architect_tool_flow`.
- *
- * This is intentionally conservative:
- * - If architect_tool_flow exists -> ensure there's a top-of-stack session for it.
- * - If architect_tool_flow is cleared -> remove any stack sessions of this type.
- */
-export function syncLegacyArchitectToolFlowSession(opts: {
-  tempMemory: any
-  now?: Date
-}): { tempMemory: any; changed: boolean } {
-  const tm0 = safeObj(opts.tempMemory)
-  const flow = (tm0 as any).architect_tool_flow ?? null
-  const rt0 = getSupervisorRuntime(tm0, opts.now)
-  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
-
-  const filtered = stack0.filter((s) => String((s as any)?.type ?? "") !== "architect_tool_flow")
-  let changed = filtered.length !== stack0.length
-
-  if (flow) {
-    const kind = String((flow as any)?.kind ?? "")
-    const stage = String((flow as any)?.stage ?? "")
-    const resume = kind
-      ? `On reprenait une mise à jour du plan (${kind}${stage ? ` / ${stage}` : ""}).`
-      : "On reprenait une mise à jour du plan."
-
-    const session: SupervisorSession = {
-      id: mkId("sess_arch_flow", opts.now),
-      type: "architect_tool_flow",
-      owner_mode: "architect",
-      status: "active",
-      started_at: nowIso(opts.now),
-      last_active_at: nowIso(opts.now),
-      resume_brief: resume,
-      meta: { kind, stage },
-    }
-    filtered.push(session)
-    changed = true
-  }
-
-  if (!changed) return { tempMemory: tm0, changed: false }
-  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
-  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
-}
-
-/**
- * Canonical helper to set/clear the Architect toolflow, while keeping the supervisor runtime synced.
- */
-export function setArchitectToolFlowInTempMemory(opts: {
-  tempMemory: any
-  nextFlow: any | null
-  now?: Date
-}): { tempMemory: any; changed: boolean } {
-  const tm0 = safeObj(opts.tempMemory)
-  const tm1: any = { ...(tm0 as any) }
-  if (opts.nextFlow == null) delete tm1.architect_tool_flow
-  else tm1.architect_tool_flow = opts.nextFlow
-  const synced = syncLegacyArchitectToolFlowSession({ tempMemory: tm1, now: opts.now })
-  return { tempMemory: synced.tempMemory, changed: true }
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TTL / STALE CLEANUP
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /** TTL constants (ms) */
-const TTL_ARCHITECT_TOOL_FLOW_MS = 60 * 60 * 1000        // 60 min
 const TTL_TOPIC_SERIOUS_MS = 2 * 60 * 60 * 1000          // 2 hours (deep topics need more time)
 const TTL_TOPIC_LIGHT_MS = 30 * 60 * 1000                // 30 min (casual topics expire faster)
 const TTL_DEEP_REASONS_EXPLORATION_MS = 30 * 60 * 1000   // 30 min (keep shorter, sensitive context)
@@ -1003,10 +939,6 @@ export function pruneStaleSupervisorState(opts: {
     const age = nowMs - lastActive
     const type = String(s.type ?? "")
 
-    if (type === "architect_tool_flow" && age > TTL_ARCHITECT_TOOL_FLOW_MS) {
-      cleaned.push(`stack:architect_tool_flow:stale`)
-      return false
-    }
     if (type === "topic_serious" && age > TTL_TOPIC_SERIOUS_MS) {
       cleaned.push(`stack:topic_serious:stale`)
       return false
@@ -1061,28 +993,6 @@ export function pruneStaleSupervisorState(opts: {
   return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true, cleaned }
 }
 
-/**
- * Prune stale `temp_memory.architect_tool_flow` (legacy key) if it's older than TTL.
- */
-export function pruneStaleArchitectToolFlow(opts: {
-  tempMemory: any
-  now?: Date
-}): { tempMemory: any; changed: boolean } {
-  const tm0 = safeObj(opts.tempMemory)
-  const flow = (tm0 as any).architect_tool_flow ?? null
-  if (!flow) return { tempMemory: tm0, changed: false }
-
-  const nowMs = (opts.now ?? new Date()).getTime()
-  const startedAt = typeof (flow as any)?.started_at === "string"
-    ? new Date((flow as any).started_at).getTime()
-    : 0
-  const age = startedAt > 0 ? nowMs - startedAt : Infinity
-
-  if (age > TTL_ARCHITECT_TOOL_FLOW_MS) {
-    return setArchitectToolFlowInTempMemory({ tempMemory: tm0, nextFlow: null, now: opts.now })
-  }
-  return { tempMemory: tm0, changed: false }
-}
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // RESUME BRIEF GENERATION (LLM-assisted)

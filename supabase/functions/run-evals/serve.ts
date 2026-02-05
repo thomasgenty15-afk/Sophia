@@ -2,7 +2,6 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { getRequestId, jsonResponse, parseJsonBody, serverError } from "../_shared/http.ts";
 import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { processMessage } from "../sophia-brain/router.ts";
-import { getDashboardContext } from "../sophia-brain/state-manager.ts";
 
 import { BodySchema, type RunEvalsBody } from "./schemas.ts";
 import { buildMechanicalIssues } from "./lib/mechanical.ts";
@@ -23,6 +22,21 @@ import {
 
 const EVAL_MODEL = "gemini-2.5-flash";
 const DEFAULT_JUDGE_MODEL = "gpt-5.2";
+
+function buildDashboardContextFromPlanSnapshot(planSnapshot: any): string {
+  if (!planSnapshot) return "";
+  const planContent = (planSnapshot as any)?.plan?.content;
+  if (typeof planContent === "string" && planContent.trim()) return planContent.trim();
+  try {
+    const safe = {
+      plan: (planSnapshot as any)?.plan ?? null,
+      actions: (planSnapshot as any)?.actions ?? [],
+    };
+    return JSON.stringify(safe, null, 2).slice(0, 6000);
+  } catch {
+    return "";
+  }
+}
 
 function summarizeTranscriptRoleRuns(transcript: any[]): { role_runs: number; max_run: number; examples: Array<{ role: string; count: number; at: number }> } {
   const msgs = Array.isArray(transcript) ? transcript : [];
@@ -423,8 +437,8 @@ export function serveRunEvals() {
           if ((stBefore as any)?.investigation_state) {
             console.log(`[Eval] state_before.investigation_state: ${JSON.stringify((stBefore as any).investigation_state)}`);
           }
-          const dashboardContext = await getDashboardContext(admin as any, testUserId);
           const planSnapshot = await fetchPlanSnapshot(admin as any, testUserId);
+          const dashboardContext = buildDashboardContextFromPlanSnapshot(planSnapshot);
           const profileBefore = await fetchProfileSnapshot(admin as any, testUserId);
 
           // Create or update the eval run row early so retries can resume mid-run.
@@ -1342,8 +1356,8 @@ export function serveRunEvals() {
           // simulate plan activation mid-run (e.g. when the user says "C'est bon").
           // Without this, the bundled/judge plan_snapshot can incorrectly show "no plan"
           // even though a plan was seeded during the run.
-          const dashboardContextAfter = await getDashboardContext(admin as any, testUserId);
           const planSnapshotAfter = await fetchPlanSnapshot(admin as any, testUserId);
+          const dashboardContextAfter = buildDashboardContextFromPlanSnapshot(planSnapshotAfter ?? planSnapshot);
           // Verifier logs are now persisted into conversation_eval_events during eval runs.
           // Pull eval trace events (conversation_eval_events) for this run id (includes verifier_issues).
           let evalEvents: any[] = [];

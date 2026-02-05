@@ -391,6 +391,13 @@ export interface MachineSignals {
   }
   wants_to_checkup?: boolean  // User response to "tu veux faire le bilan?"
   track_from_bilan_done_ok?: boolean  // User wants track_progress when bilan already done
+  
+  // Onboarding status signals (WhatsApp onboarding mode)
+  onboarding_status?: {
+    claims_done: boolean     // User claims onboarding is done ("c'est bon", "j'ai fini", "j'ai validé")
+    reports_bug: boolean     // User reports a bug/issue ("ça bug", "ça marche pas")
+    confidence: number
+  }
 }
 
 /**
@@ -410,6 +417,8 @@ export interface DispatcherOutputV2 {
     topic_id: string
     new_brief: string
   }
+  /** Model used for dispatch analysis */
+  model_used?: string
 }
 
 const DEFAULT_SIGNALS: DispatcherSignals = {
@@ -630,6 +639,35 @@ et que l'utilisateur dit explicitement qu'il va mieux / pas mieux / symptômes /
  * Checkup intent detection - detect when user wants to do their daily checkup.
  * This is a mother signal that triggers the checkup flow.
  */
+const ONBOARDING_STATUS_DETECTION_SECTION = `
+=== DETECTION ONBOARDING_STATUS ===
+Detecte si l'utilisateur communique sur l'etat de son onboarding (inscription, creation de plan).
+
+SIGNAUX A DETECTER:
+1. claims_done: L'utilisateur affirme avoir fini une etape
+   - "c'est bon", "j'ai fini", "j'ai valide", "j'ai clique", "j'ai soumis", "c'est fait"
+   - "j'ai cree mon compte", "j'ai rempli le questionnaire", "j'ai termine"
+   
+2. reports_bug: L'utilisateur signale un probleme technique
+   - "ca bug", "ca marche pas", "ca ne fonctionne pas", "erreur", "probleme"
+   - "le site bug", "je vois rien", "ca bloque", "ca charge pas", "page blanche"
+   - "406", "404", "HTTP", "serveur"
+
+ATTENTION - NE PAS CONFONDRE:
+- "c'est bon pour moi" apres une action = flow_resolution ACK_DONE, PAS onboarding
+- "ok" simple = confirmation generale, PAS onboarding_status (sauf si contexte clair)
+
+SORTIE JSON (dans machine_signals):
+{
+  "onboarding_status": {
+    "claims_done": true | false,
+    "reports_bug": true | false,
+    "confidence": 0.0-1.0
+  }
+}
+// Ou omis si aucun signal d'onboarding detecte
+`
+
 const CHECKUP_INTENT_DETECTION_SECTION = `
 === DETECTION CHECKUP_INTENT ===
 Detecte si l'utilisateur veut faire son BILAN (checkup quotidien).
@@ -2236,6 +2274,10 @@ ETAT ACTUEL:
     prompt += CHECKUP_INTENT_DETECTION_SECTION
   }
   
+  // Add onboarding status detection (always)
+  // This helps detect when user claims to be done with onboarding or reports bugs
+  prompt += ONBOARDING_STATUS_DETECTION_SECTION
+  
   // Add profile facts detection (only when no profile confirmation is pending)
   // This allows direct detection of 10 fact types without a mother signal
   if (!stateSnapshot.profile_confirm_pending && !hasActiveMachine) {
@@ -2785,6 +2827,16 @@ Reponds UNIQUEMENT avec le JSON:`
         machineSignals.track_from_bilan_done_ok = Boolean(ms.track_from_bilan_done_ok)
       }
       
+      // Onboarding status (WhatsApp onboarding mode)
+      if (ms.onboarding_status && typeof ms.onboarding_status === "object") {
+        const os = ms.onboarding_status
+        machineSignals.onboarding_status = {
+          claims_done: Boolean(os.claims_done),
+          reports_bug: Boolean(os.reports_bug),
+          confidence: Math.min(1, Math.max(0, Number(os.confidence ?? 0.5))),
+        }
+      }
+      
       // Profile facts detection (direct, 10 types)
       if (ms.profile_facts_detected && typeof ms.profile_facts_detected === "object") {
         const pf = ms.profile_facts_detected
@@ -2927,25 +2979,21 @@ Reponds UNIQUEMENT avec le JSON:`
       enrichments,
       machine_signals: machineSignals,
       deferred_enrichment: deferredEnrichment,
+      model_used: dispatcherModel,
     }
   } catch (e) {
     console.error("[Dispatcher v2 contextual] JSON parse error:", e)
+    const dispatcherModel =
+      ((globalThis as any)?.Deno?.env?.get?.("GEMINI_DISPATCHER_MODEL") ?? "").toString().trim() ||
+      "gemini-2.5-flash"
     return { 
       signals: { ...DEFAULT_SIGNALS },
       new_signals: [],
       enrichments: [],
       machine_signals: undefined,
+      model_used: dispatcherModel,
     }
   }
-}
-
-export function looksLikeAcuteDistress(message: string): boolean {
-  const s = (message ?? "").toString().toLowerCase()
-  if (!s.trim()) return false
-  // Keep conservative: route to firefighter on clear acute distress signals (panic/overwhelm/physical stress cues),
-  // but avoid over-triggering on generic "stress" talk.
-  return /\b(panique|crise|je\s+craque|je\s+n['']en\s+peux\s+plus|au\s+bout|d[ée]tresse|angoisse\s+(?:forte|intense)|aide\s+vite|urgence|envie\s+de\s+pleurer|j['']ai\s+envie\s+de\s+pleurer|boule\s+au\s+ventre|poitrine\s+serr[ée]e|serrement\s+dans\s+la\s+poitrine|difficile\s+de\s+respirer|mal\s+à\s+respirer|souffle\s+court|c[œo]ur\s+qui\s+s['']emballe|c[œo]ur\s+qui\s+cogne|submerg[ée]?|d[ée]bord[ée]?|je\s+n['']arrive\s+plus\s+à\s+me\s+concentrer|j['']arrive\s+pas\s+à\s+me\s+concentrer|pression\s+non\s+stop|pression\s+impossible)\b/i
-    .test(s)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

@@ -125,34 +125,39 @@ export async function runInvestigator(
         .trim()
     }
 
-    function keywordsFromTitle(title: string): string[] {
-      const stop = new Set([
-        "de", "du", "des", "la", "le", "les", "un", "une", "et", "ou", "a", "au", "aux",
-        "en", "pour", "avec", "sans", "sur", "dans", "entre", "vers", "plus", "moins",
-        "temps", "mode", "operation",
-      ])
-      const toks = normalizeLite(title).split(" ").filter((t) => t.length >= 5 && !stop.has(t))
-      // Prefer the most discriminative words
-      return Array.from(new Set(toks)).slice(0, 3)
-    }
-
     const fallbackFirstQuestion = (() => {
       // Use the item's own day_scope (based on time_of_day), fallback to global
       const dayScope = String(currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ?? "yesterday")
       const dayRef = dayScope === "today" ? "aujourd'hui" : "hier"
+      const title = String(currentItem0.title ?? "").trim() || "ce point"
+      const titleNorm = normalizeLite(title)
+      
       if (currentItem0.type === "vital") {
-        const title = String(currentItem0.title ?? "").trim() || "ce point"
         const unit = String((currentItem0 as any)?.unit ?? "").trim()
-        if (/tete\s+sur\s+l.?oreiller|endormissement|temps\s+entre/i.test(normalizeLite(title))) {
-          return `Pour commencer: en ce moment, il te faut environ combien de minutes pour t'endormir ?`
+        // Sommeil / endormissement
+        if (/tete\s+sur\s+l.?oreiller|endormissement|temps\s+(entre|pour)/i.test(titleNorm)) {
+          return `En ce moment, il te faut combien de temps pour t'endormir à peu près ?`
         }
+        // Écran / screen time
+        if (/ecran|screen/i.test(titleNorm)) {
+          return `Côté écrans ${dayRef}, tu dirais combien de temps à peu près ?`
+        }
+        // Sommeil heures
+        if (/sommeil|dormi|nuit/i.test(titleNorm)) {
+          return `T'as dormi combien ${dayRef} ?`
+        }
+        // Énergie / humeur
+        if (/energie|humeur|moral|forme/i.test(titleNorm)) {
+          return `Comment tu te sens niveau énergie ${dayRef} ?`
+        }
+        // Default vital - plus naturel
         return unit
-          ? `Pour commencer: ${title} — tu dirais combien (en ${unit}) ?`
-          : `Pour commencer: ${title} — tu dirais combien ?`
+          ? `${dayRef === "hier" ? "Hier" : "Aujourd'hui"}, tu dirais combien pour ça ? (en ${unit})`
+          : `Tu dirais combien pour ça ${dayRef} ?`
       }
-      if (currentItem0.type === "action") return `Pour commencer: "${currentItem0.title}" — tu l'as faite ${dayRef} ?`
-      if (currentItem0.type === "framework") return `Pour commencer: "${currentItem0.title}" — tu l'as fait ${dayRef} ?`
-      return `Pour commencer: ${currentItem0.title}.`
+      if (currentItem0.type === "action") return `C'est fait ${dayRef} ?`
+      if (currentItem0.type === "framework") return `Tu l'as fait ${dayRef} ?`
+      return `On commence par ça ?`
     })()
 
     try {
@@ -171,20 +176,27 @@ export async function runInvestigator(
         meta,
       )
 
-      // Guardrail: if the opening doesn't reference the first item at all, fall back (rare).
+      // Guardrail: only fall back if there's no question at all (very rare).
+      // We no longer check for exact keywords since we ask the AI to REFORMULATE the title.
       const outNorm = normalizeLite(openingText)
-      const keys = keywordsFromTitle(String(currentItem0.title ?? ""))
-      const mentionsFirst = keys.length === 0 ? true : keys.some((k) => outNorm.includes(k))
       const hasQ = outNorm.includes("?")
-      if (!mentionsFirst || !hasQ) {
-        const safe = `Ok, on fait le bilan.\n\n${fallbackFirstQuestion}`
+      // Minimum length check to avoid empty/broken responses
+      const isReasonableLength = openingText.length >= 15
+      if (!hasQ || !isReasonableLength) {
+        console.log("[Investigator] Opening guardrail triggered: no question or too short")
+        // Vary the intro a bit
+        const intros = ["Allez, on fait le point.", "Ok, petit bilan.", "C'est parti pour le bilan."]
+        const intro = intros[Math.floor(Math.random() * intros.length)]
+        const safe = `${intro}\n\n${fallbackFirstQuestion}`
         return { content: safe, investigationComplete: false, newState: nextState }
       }
 
       return { content: openingText, investigationComplete: false, newState: nextState }
     } catch (e) {
       console.error("[Investigator] opening summary failed:", e)
-      const safe = `Ok, on fait le bilan.\n\n${fallbackFirstQuestion}`
+      const intros = ["Allez, on fait le point.", "Ok, petit bilan.", "C'est parti pour le bilan."]
+      const intro = intros[Math.floor(Math.random() * intros.length)]
+      const safe = `${intro}\n\n${fallbackFirstQuestion}`
       return { content: safe, investigationComplete: false, newState: nextState }
     }
   }
