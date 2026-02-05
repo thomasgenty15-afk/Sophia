@@ -9,6 +9,8 @@ import { runFirefighter, type FirefighterFlowContext } from "../agents/firefight
 import { getActiveSafetyFirefighterFlow, getActiveSafetySentryFlow } from "../supervisor.ts"
 import { runInvestigator } from "../agents/investigator.ts"
 import { logCheckupCompletion } from "../agents/investigator/db.ts"
+import { investigatorSay } from "../agents/investigator/copy.ts"
+import { computeCheckupStatsFromInvestigationState } from "../agents/investigator/checkup_stats.ts"
 import { buildArchitectSystemPromptLite, generateArchitectModelOutput, getArchitectTools, handleArchitectModelOutput, runArchitect } from "../agents/architect.ts"
 import { runLibrarian } from "../agents/librarian.ts"
 import { buildCompanionSystemPrompt, generateCompanionModelOutput, handleCompanionModelOutput, runCompanion } from "../agents/companion.ts"
@@ -97,6 +99,57 @@ export async function runAgentAndVerify(opts: {
     nCandidates: opts.nCandidates ?? 1,
     sophiaChatModel,
   }, "debug")
+
+  // ────────────────────────────────────────────────────────────────────────────
+  // FORCED CHECKUP STOP (router-level): if dispatcher detected an explicit stop
+  // while a bilan is active, we must (1) clear investigation_state and (2) log a
+  // checkup entry even if items are still pending/unanswered.
+  // 
+  // Without this, the router can route away from the Investigator (because the
+  // hard guard is disabled on stop), producing a "goodbye" message while the
+  // investigation_state remains populated and no user_checkup_logs row is written.
+  // ────────────────────────────────────────────────────────────────────────────
+  {
+    const activeSentryFlow = getActiveSafetySentryFlow(tempMemory)
+    const activeFirefighterFlow = getActiveSafetyFirefighterFlow(tempMemory)
+    const shouldForceStop = checkupActive && stopCheckup && !activeSentryFlow && !activeFirefighterFlow
+    if (shouldForceStop) {
+      const invState = (state as any)?.investigation_state
+      const stats = computeCheckupStatsFromInvestigationState(invState, { fillUnloggedAsMissed: true })
+
+      await trace("brain:checkup_forced_stop", "agent", {
+        items: stats.items,
+        completed: stats.completed,
+        missed: stats.missed,
+        logged: stats.logged,
+      }, "info")
+
+      // Log checkup completion (ended early). Non-blocking.
+      try {
+        await logCheckupCompletion(
+          supabase,
+          userId,
+          { items: stats.items, completed: stats.completed, missed: stats.missed },
+          "chat_stop",
+        )
+      } catch {}
+
+      // Clear state and prevent auto-relaunch chaining.
+      const tm0 = (state as any)?.temp_memory ?? tempMemory ?? {}
+      const tm1: any = { ...(tm0 ?? {}), __flow_just_closed_aborted: true, __flow_just_closed_normally: false }
+      try { delete tm1.__flow_just_closed_normally } catch {}
+      await updateUserState(supabase, userId, scope, { investigation_state: null, temp_memory: tm1 } as any)
+      tempMemory = tm1
+
+      responseContent = await investigatorSay(
+        "user_stopped_checkup",
+        { user_message: userMessage, channel: opts.channel, recent_history: (history ?? []).slice(-15) },
+        meta as any,
+      )
+      nextMode = "companion"
+      return { responseContent, nextMode, tempMemory }
+    }
+  }
 
   function toolUsageWhen(name: string): string {
     const n = String(name ?? "").trim()
@@ -522,15 +575,14 @@ export async function runAgentAndVerify(opts: {
           // The auto-relaunch mechanism in run.ts will handle them
           
           // Log checkup completion to DB
-          const items = state?.investigation_state?.pending_items ?? []
-          const completedCount = items.filter((i: any) => i?.logged_status === "completed").length
-          const missedCount = items.filter((i: any) => i?.logged_status === "missed").length
-          
-          await logCheckupCompletion(supabase, userId, {
-            items: items.length,
-            completed: completedCount,
-            missed: missedCount,
-          }, "chat")
+          const invState = (state as any)?.investigation_state
+          const stats = computeCheckupStatsFromInvestigationState(invState)
+          await logCheckupCompletion(
+            supabase,
+            userId,
+            { items: stats.items, completed: stats.completed, missed: stats.missed },
+            "chat",
+          )
           
           const tm = (state as any)?.temp_memory ?? {}
           await updateUserState(supabase, userId, scope, { 
@@ -538,7 +590,7 @@ export async function runAgentAndVerify(opts: {
             temp_memory: { ...tm, __flow_just_closed_normally: true },
           })
           nextMode = "companion"
-          console.log(`[Router] Bilan complete. Logged: ${completedCount}/${items.length} completed, ${missedCount} missed. Auto-relaunch flagged.`)
+          console.log(`[Router] Bilan complete. Logged: ${stats.completed}/${stats.items} completed, ${stats.missed} missed. Auto-relaunch flagged.`)
         } else {
           // Bilan continues - save the new state
           await updateUserState(supabase, userId, scope, { investigation_state: invResult.newState })

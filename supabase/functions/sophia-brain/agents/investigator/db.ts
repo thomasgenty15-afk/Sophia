@@ -266,11 +266,13 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
   frameworks?.forEach((f: any) => {
     const lastPerformedDate = f.last_performed_at ? new Date(f.last_performed_at) : null
     if (!lastPerformedDate || lastPerformedDate < eighteenHoursAgo) {
+      const fwTrackingType = String(f.tracking_type ?? "boolean").toLowerCase().trim()
+      const trackingType = (fwTrackingType === "counter" ? "counter" : "boolean") as "boolean" | "counter"
       pending.push({
         id: f.id,
         type: "framework",
         title: f.title,
-        tracking_type: "boolean", // Usually frameworks are boolean completion for daily check
+        tracking_type: trackingType,
         day_scope: globalDayScope,  // Frameworks use global day_scope
       })
     }
@@ -432,7 +434,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
     if (status === "completed") {
       const { data: fw } = await supabase
         .from("user_framework_tracking")
-        .select("last_performed_at, current_reps, action_id, plan_id, title")
+        .select("last_performed_at, current_reps, target_reps, type, action_id, plan_id, title")
         .eq("id", item_id)
         .single()
 
@@ -444,11 +446,17 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
         return "Logged (Skipped duplicate)"
       }
 
-      const newReps = (fw?.current_reps || 0) + 1
+      const currReps = Number(fw?.current_reps || 0)
+      const newReps = currReps + 1
+      const target = Math.max(1, Number(fw?.target_reps ?? 1) || 1)
+      // Mark completed when target reached (one_shot usually has target=1)
+      const shouldComplete = newReps >= target
+      const nextStatus = shouldComplete ? "completed" : "active"
 
       await supabase.from("user_framework_tracking").update({
         last_performed_at: now.toISOString(),
         current_reps: newReps,
+        status: nextStatus,
       }).eq("id", item_id)
 
       await supabase.from("user_framework_entries").insert({
@@ -651,7 +659,7 @@ export async function logCheckupCompletion(
   supabase: SupabaseClient,
   userId: string,
   stats: { items: number; completed: number; missed: number },
-  source: "chat" | "cron" | "manual" = "chat"
+  source: "chat" | "chat_stop" | "cron" | "manual" = "chat"
 ): Promise<void> {
   try {
     await supabase.from("user_checkup_logs").insert({

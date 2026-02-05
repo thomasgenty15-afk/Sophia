@@ -24,7 +24,7 @@ export function isExplicitStopBilan(text: string): boolean {
   // IMPORTANT: Do NOT treat "plus tard / pas maintenant" as a stop.
   // Those are deferrals of a topic or an item and should be handled inside the checkup flow (parking-lot),
   // not as a cancellation of the whole bilan.
-  return /\b(?:stop|pause|arr[êe]te|arr[êe]tons|annule|annulons|on\s+arr[êe]te|on\s+peut\s+arr[êe]ter|je\s+veux\s+arr[êe]ter|c['’]est\s+trop|c['’]est\s+lourd|arr[êe]te\s+le\s+bilan|stop\s+le\s+bilan|pas\s+de\s+bilan|on\s+arr[êe]te\s+le\s+bilan)\b/i
+  return /\b(?:stop|pause|arr[êe]te|arr[êe]tons|annule|annulons|on\s+arr[êe]te|on\s+arr[êe]te\s+l[aà]|on\s+peut\s+arr[êe]ter|je\s+veux\s+arr[êe]ter|c['’]est\s+trop|c['’]est\s+lourd|arr[êe]te\s+le\s+bilan|stop\s+le\s+bilan|pas\s+de\s+bilan|on\s+arr[êe]te\s+le\s+bilan|on\s+s['’]arr[êe]te|on\s+s['’]arr[êe]te\s+l[aà]|on\s+en\s+reste\s+l[aà]|je\s+dois\s+y\s+aller|je\s+te\s+laisse|au\s+revoir|a\s+demain|à\s+demain|bonne\s+nuit)\b/i
     .test(m)
 }
 

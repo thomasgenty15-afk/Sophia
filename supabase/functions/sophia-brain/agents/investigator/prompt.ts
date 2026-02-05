@@ -51,7 +51,6 @@ INSTRUCTION : Interprète la réponse de l'utilisateur.
 INSTRUCTION : 
 - Si l'utilisateur donne une raison (même courte) → appelle log_action_execution avec status='missed' et la raison dans note
 - Si l'utilisateur coupe court ("note-le", "passe") → log immédiatement avec status='missed'
-- Si blocage pratique (oubli, temps) → propose micro-étape après bilan
 - Si blocage motivationnel (pas envie, peur) → propose exploration après bilan
 INTERDIT : Redemander "qu'est-ce qui t'a bloqué ?" si l'utilisateur a déjà répondu.`
       break
@@ -249,13 +248,9 @@ export function buildMainItemSystemPrompt(opts: {
     -> Ne dis pas juste "Je note". Dis "Je comprends que c'est lourd" ou "C'est normal d'être à plat après ça".
     -> Montre que tu as entendu l'humain derrière la data. Mais reste bref pour garder le rythme.
 
-    RÈGLE "BLOCAGE PRATIQUE" (PROPOSITION MICRO-ÉTAPE) :
-    - Si l'item courant est une ACTION et que l'historique contient "MISSED_STREAK_DAYS: N" avec N >= 5,
-      OU si l'utilisateur exprime un blocage PRATIQUE (oubli, temps, organisation, "trop dur", "j'oublie") :
-      - Propose: "Ok, ça bloque depuis un moment. Tu veux qu'on mette en place une micro-étape plus simple après le bilan ?"
-      - Si l'utilisateur dit OUI: réponds "Parfait, j'ai noté. On s'en occupe juste après le bilan."
-        (Le système stocke automatiquement cette demande pour la traiter après.)
-      - Si l'utilisateur dit NON: "Ok, pas de souci." et continue le bilan.
+    RÈGLE "MICRO-ÉTAPE" (STRICTE) :
+    - Tu ne proposes une micro-étape APRÈS le bilan QUE si l'historique contient "MISSED_STREAK_DAYS: N" avec N >= 5.
+    - Sinon (streak < 5), tu te contentes de noter la raison et tu continues le bilan (pas de micro-étape).
     - NE PAS appeler d'outil de breakdown pendant le bilan.
     - Le découpage sera fait par l'Architecte APRÈS le bilan.
 

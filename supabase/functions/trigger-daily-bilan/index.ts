@@ -27,6 +27,26 @@ function envBool(name: string, fallback: boolean): boolean {
   return fallback
 }
 
+async function logComm(admin: ReturnType<typeof createClient>, args: {
+  user_id: string
+  channel: "whatsapp" | "email" | "sms"
+  type: string
+  status: string
+  metadata?: Record<string, unknown>
+}) {
+  try {
+    await admin.from("communication_logs").insert({
+      user_id: args.user_id,
+      channel: args.channel,
+      type: args.type,
+      status: args.status,
+      metadata: args.metadata ?? {},
+    } as any)
+  } catch {
+    // best-effort
+  }
+}
+
 function backoffMs(attempt: number): number {
   const base = 800
   const max = 20_000
@@ -179,6 +199,31 @@ function isHttp429Message(msg: string): boolean {
   return m.includes("(429)") || m.includes(" 429") || m.toLowerCase().includes("resource exhausted") || m.toLowerCase().includes("throttle")
 }
 
+function classifyWhatsappSendFailure(msg: string): { kind: "skip"; reason: string } | { kind: "error" } {
+  const m = String(msg ?? "")
+  const match = m.match(/whatsapp-send failed \((\d{3})\):\s*(\{[\s\S]*\})\s*$/)
+  const status = match ? Number(match[1]) : NaN
+  let data: any = null
+  if (match?.[2]) {
+    try {
+      data = JSON.parse(match[2])
+    } catch {
+      data = null
+    }
+  }
+  const err = String(data?.error ?? "").toLowerCase()
+  // Permanent-ish gating failures: do not retry all evening.
+  if (status === 402) return { kind: "skip", reason: "paywall" }
+  if (status === 404) return { kind: "skip", reason: "profile_not_found" }
+  if (status === 409) {
+    if (err.includes("phone")) return { kind: "skip", reason: "phone_invalid" }
+    if (err.includes("opted")) return { kind: "skip", reason: "not_opted_in" }
+    return { kind: "skip", reason: "conflict_409" }
+  }
+  if (status === 400) return { kind: "skip", reason: "bad_request" }
+  return { kind: "error" }
+}
+
 async function callWhatsappSendWithRetry(payload: unknown, opts: { maxAttempts: number; throttleMs: number }) {
   const maxAttempts = Math.max(1, Math.min(10, opts.maxAttempts))
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -220,9 +265,13 @@ Deno.serve(async (req) => {
       .eq("phone_invalid", false)
       .not("phone_number", "is", null)
 
+    // Batch cap guard: the previous hard limit(200) could silently exclude eligible users
+    // when the scheduler doesn't pass explicit user_ids. Keep it configurable and high by default.
+    const profileLimit = Math.max(0, Math.min(5000, envInt("DAILY_BILAN_PROFILE_LIMIT", 2000)))
+
     const { data: profiles, error } = userIdsOverride.length > 0
       ? await q.in("id", userIdsOverride)
-      : await q.limit(200)
+      : (profileLimit > 0 ? await q.limit(profileLimit) : await q)
 
     if (error) throw error
     const userIds = (profiles ?? []).map((p) => p.id)
@@ -230,12 +279,15 @@ Deno.serve(async (req) => {
       return jsonResponse(req, { message: "No opted-in users", request_id: requestId }, { includeCors: false })
     }
 
-    // Optional: restrict to users with an active plan.
+    // Optional: restrict to users with an active-ish plan.
+    // IMPORTANT: scope this query to the current candidate user IDs.
+    // Previously this query was unscoped + limited, which could randomly exclude eligible users
+    // (especially when called by the scheduler with user_ids), leading to infinite retries with no send.
     const { data: plans, error: planErr } = await admin
       .from("user_plans")
       .select("user_id")
+      .in("user_id", userIds)
       .in("status", ["active", "in_progress", "pending"])
-      .limit(1000)
 
     if (planErr) throw planErr
     const allowed = new Set((plans ?? []).map((p) => p.user_id))
@@ -245,12 +297,14 @@ Deno.serve(async (req) => {
     // These envs are optional and safe defaults apply.
     const throttleMs = Math.max(0, envInt("DAILY_BILAN_THROTTLE_MS", 300))
     const maxAttempts = Math.max(1, envInt("DAILY_BILAN_MAX_SEND_ATTEMPTS", 5))
+    const logSkips = envBool("DAILY_BILAN_LOG_SKIPS", false)
 
     let sent = 0
     let skipped = 0
     const errors: Array<{ user_id: string; error: string }> = []
     const sentUserIds: string[] = []
     const skippedUserIds: string[] = []
+    const skippedReasons: Record<string, string> = {}
 
     const profilesById = new Map((profiles ?? []).map((p) => [p.id, p]))
 
@@ -281,6 +335,17 @@ Deno.serve(async (req) => {
           if ((resp as any)?.skipped) {
             skipped++
             skippedUserIds.push(userId)
+            const reason = String((resp as any)?.skip_reason ?? "skipped")
+            skippedReasons[userId] = reason
+            if (logSkips) {
+              await logComm(admin, {
+                user_id: userId,
+                channel: "whatsapp",
+                type: "daily_bilan_skipped",
+                status: "skipped",
+                metadata: { reason, request_id: requestId, mode: "template_optin" },
+              })
+            }
           } else {
             sent++
             sentUserIds.push(userId)
@@ -303,6 +368,17 @@ Deno.serve(async (req) => {
           if ((resp as any)?.skipped) {
             skipped++
             skippedUserIds.push(userId)
+            const reason = String((resp as any)?.skip_reason ?? "skipped")
+            skippedReasons[userId] = reason
+            if (logSkips) {
+              await logComm(admin, {
+                user_id: userId,
+                channel: "whatsapp",
+                type: "daily_bilan_skipped",
+                status: "skipped",
+                metadata: { reason, request_id: requestId, mode: "text_prompt" },
+              })
+            }
           } else {
             sent++
             sentUserIds.push(userId)
@@ -314,8 +390,36 @@ Deno.serve(async (req) => {
         if (msg.includes("Proactive throttle")) {
           skipped++
           skippedUserIds.push(userId)
+          skippedReasons[userId] = "proactive_throttle_2_per_10h"
+          if (logSkips) {
+            await logComm(admin, {
+              user_id: userId,
+              channel: "whatsapp",
+              type: "daily_bilan_skipped",
+              status: "skipped",
+              metadata: { reason: "proactive_throttle_2_per_10h", request_id: requestId },
+            })
+          }
         }
-        else errors.push({ user_id: userId, error: msg })
+        else {
+          const cls = classifyWhatsappSendFailure(msg)
+          if (cls.kind === "skip") {
+            skipped++
+            skippedUserIds.push(userId)
+            skippedReasons[userId] = cls.reason
+            if (logSkips) {
+              await logComm(admin, {
+                user_id: userId,
+                channel: "whatsapp",
+                type: "daily_bilan_skipped",
+                status: "skipped",
+                metadata: { reason: cls.reason, request_id: requestId, mode: "whatsapp_send_failure" },
+              })
+            }
+          } else {
+            errors.push({ user_id: userId, error: msg })
+          }
+        }
       }
     }
 
@@ -327,6 +431,7 @@ Deno.serve(async (req) => {
         skipped,
         sent_user_ids: sentUserIds,
         skipped_user_ids: skippedUserIds,
+        skipped_reasons: skippedReasons,
         errors,
         throttle_ms: throttleMs,
         max_send_attempts: maxAttempts,

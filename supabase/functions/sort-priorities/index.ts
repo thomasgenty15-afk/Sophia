@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { generateWithGemini } from "../_shared/gemini.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"

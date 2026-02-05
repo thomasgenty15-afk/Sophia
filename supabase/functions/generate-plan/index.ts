@@ -98,7 +98,10 @@ serve(async (req) => {
           id: idx + 1,
           title: `MEGA_TEST_STUB: Phase ${idx + 1} (${mode ?? "standard"})`,
           subtitle: pacingCfg.subtitles[idx]!,
-          status: idx === 0 ? "active" : "pending",
+          // Status convention used by Dashboard:
+          // - Phase 1 is active
+          // - Other phases are locked until unlocked by progression
+          status: idx === 0 ? "active" : "locked",
           actions: mkActions(idx + 1),
         })),
       };
@@ -171,6 +174,11 @@ serve(async (req) => {
              => Si le rythme change, mets à jour estimatedDuration + sous-titres des phases + nombre de phases + actions par phase pour respecter ces contraintes.
           6. Renvoie UNIQUEMENT le JSON complet mis à jour.
           7. Assure-toi que chaque action a bien un "tracking_type" ('boolean' ou 'counter').
+
+          STATUTS / VERROUILLAGE (CRITIQUE) :
+          - Tu DOIS mettre exactement 1 phase en "active" : la phase 1.
+          - Les phases 2 à 4 DOIVENT être "locked".
+          - Tu NE DOIS PAS activer des phases futures. Le déblocage se fait plus tard via la progression.
         `;
 
         userPrompt = `
@@ -238,6 +246,11 @@ serve(async (req) => {
           - Tu DOIS produire EXACTEMENT 4 phases (ni plus, ni moins).
           - Tu DOIS produire EXACTEMENT 2 actions par phase (donc 8 actions au total).
           - CHAQUE PHASE DOIT contenir EXACTEMENT 1 habitude. C'est NON-NÉGOCIABLE.
+
+          STATUTS / VERROUILLAGE (CRITIQUE) :
+          - Tu DOIS mettre exactement 1 phase en "active" : la phase 1.
+          - Les phases 2 à 4 DOIVENT être "locked".
+          - Ne mets PAS plusieurs phases en "active".
 
           RÈGLES DE CONTENU (PERSONNALISÉ) :
           1. **Titres des phases** : Créatifs, personnalisés, évocateurs (pas de "Phase 1" générique).
@@ -423,6 +436,11 @@ serve(async (req) => {
           - Tu DOIS produire EXACTEMENT 4 phases (ni plus, ni moins).
           - Tu DOIS produire EXACTEMENT 2 actions par phase (donc 8 actions au total).
           - CHAQUE PHASE DOIT contenir EXACTEMENT 1 habitude. C'est NON-NÉGOCIABLE.
+
+          STATUTS / VERROUILLAGE (CRITIQUE) :
+          - Tu DOIS mettre exactement 1 phase en "active" : la phase 1.
+          - Les phases 2 à 4 DOIVENT être "locked".
+          - Ne mets PAS plusieurs phases en "active".
 
           RÈGLES DE CONTENU (PERSONNALISÉ) :
           1. **Titres des phases** : Créatifs, personnalisés, évocateurs (pas de "Phase 1" générique).
@@ -624,6 +642,11 @@ serve(async (req) => {
         for (let p = 0; p < plan.phases.length; p++) {
           const phase = plan.phases[p] ?? {};
           if (!phase.id) phase.id = String(p + 1);
+          // Canonical status policy:
+          // - Phase 1 is active
+          // - Other phases are locked until progression unlocks them
+          // This prevents LLM from accidentally "activating" future phases and leaking active rows into DB.
+          phase.status = p === 0 ? "active" : "locked";
           if (!Array.isArray(phase.actions)) continue;
 
           // Quest types: enforce exactly 1 main + 1 side for the 2 actions in the phase.

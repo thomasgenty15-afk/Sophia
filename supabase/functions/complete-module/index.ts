@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts";
 import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
 import { processCoreIdentity } from "../_shared/identity-manager.ts";

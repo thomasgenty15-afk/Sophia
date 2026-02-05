@@ -266,16 +266,9 @@ export async function maybeHandleStreakAfterLog(opts: {
       if (declined) return null;
 
       const streak = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
-      const note = String(argsWithId.note ?? message ?? "").trim().toLowerCase()
-      const explicitBreakdownRequest =
-        /\b(d[ée]coupe|d[ée]composer|un\s+petit\s+pas|[ée]tape\s+minuscule|plus\s+simple|d[ée]bloqu)\b/i.test(note)
-      const explicitBlockerSignal =
-        /\b(bloqu[ée]?|j['’]y\s+arrive\s+pas|trop\s+dur|insurmontable|me\s+demande\s+trop|je\s+repousse|procrastin)\b/i.test(note)
-
-      // Trigger post-bilan deferral offer when:
-      // - classic: missed streak >= 5 days
-      // - OR: user language clearly indicates being stuck / needing a smaller step
-      if (streak >= 5 || explicitBreakdownRequest || explicitBlockerSignal) {
+      // Trigger post-bilan deferral offer ONLY when missed streak >= 5 days.
+      // Rationale: prevent proposing micro-steps after a single miss (false positives).
+      if (streak >= 5) {
         // Update item progress to breakdown_offer_pending
         let nextState = updateItemProgress(currentState, currentItem.id, {
           phase: "breakdown_offer_pending",

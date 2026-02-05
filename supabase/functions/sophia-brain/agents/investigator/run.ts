@@ -125,22 +125,46 @@ export async function runInvestigator(
         .trim()
     }
 
+    function spokenLabelForItem(item: any): string {
+      const rawTitle = String(item?.title ?? "").trim()
+      const rawDesc = String(item?.description ?? "").trim()
+      const title = rawTitle || rawDesc || ""
+      if (!title) return "ce point"
+      const t = normalizeLite(title)
+
+      // Vitals: prefer natural spoken labels
+      if (item?.type === "vital") {
+        if (/ecran|screen|scroll|tiktok|instagram|youtube/i.test(t)) return "les écrans"
+        if (/sommeil|dormi|nuit|coucher|reveil|réveil/i.test(t)) return "ta nuit"
+        if (/endormissement|tete\s+sur\s+l.?oreiller|oreiller/i.test(t)) return "t'endormir"
+        if (/energie|humeur|moral|forme|batterie/i.test(t)) return "ton énergie"
+        if (/stress|anxieux|anxi[eé]t[eé]/i.test(t)) return "ton stress"
+      }
+
+      // Actions/frameworks: keep it short, but avoid "pour ça"
+      // Use the first 6-ish words, strip extra spaces.
+      const words = title.split(/\s+/).filter(Boolean)
+      const short = words.slice(0, 6).join(" ").trim()
+      return short || "ce point"
+    }
+
     const fallbackFirstQuestion = (() => {
       // Use the item's own day_scope (based on time_of_day), fallback to global
       const dayScope = String(currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ?? "yesterday")
       const dayRef = dayScope === "today" ? "aujourd'hui" : "hier"
-      const title = String(currentItem0.title ?? "").trim() || "ce point"
-      const titleNorm = normalizeLite(title)
+      const label = spokenLabelForItem(currentItem0)
+      const titleNorm = normalizeLite(label)
       
       if (currentItem0.type === "vital") {
         const unit = String((currentItem0 as any)?.unit ?? "").trim()
+        const unitSuffix = unit ? ` (en ${unit})` : ""
         // Sommeil / endormissement
         if (/tete\s+sur\s+l.?oreiller|endormissement|temps\s+(entre|pour)/i.test(titleNorm)) {
           return `En ce moment, il te faut combien de temps pour t'endormir à peu près ?`
         }
         // Écran / screen time
         if (/ecran|screen/i.test(titleNorm)) {
-          return `Côté écrans ${dayRef}, tu dirais combien de temps à peu près ?`
+          return `Côté écrans ${dayRef}, tu dirais combien de temps à peu près ?${unitSuffix}`
         }
         // Sommeil heures
         if (/sommeil|dormi|nuit/i.test(titleNorm)) {
@@ -150,13 +174,13 @@ export async function runInvestigator(
         if (/energie|humeur|moral|forme/i.test(titleNorm)) {
           return `Comment tu te sens niveau énergie ${dayRef} ?`
         }
-        // Default vital - plus naturel
-        return unit
-          ? `${dayRef === "hier" ? "Hier" : "Aujourd'hui"}, tu dirais combien pour ça ? (en ${unit})`
-          : `Tu dirais combien pour ça ${dayRef} ?`
+        // Default vital - always mention the label (never "pour ça")
+        // Keep it spoken: "Et {label} {dayRef}, tu dirais combien ?"
+        const prefix = dayRef === "hier" ? "Et" : "Et"
+        return `${prefix} ${label} ${dayRef}, tu dirais combien ?${unitSuffix}`
       }
-      if (currentItem0.type === "action") return `C'est fait ${dayRef} ?`
-      if (currentItem0.type === "framework") return `Tu l'as fait ${dayRef} ?`
+      if (currentItem0.type === "action") return `${label} — c'est fait ${dayRef} ?`
+      if (currentItem0.type === "framework") return `${label} — tu l'as fait ${dayRef} ?`
       return `On commence par ça ?`
     })()
 
@@ -176,21 +200,8 @@ export async function runInvestigator(
         meta,
       )
 
-      // Guardrail: only fall back if there's no question at all (very rare).
-      // We no longer check for exact keywords since we ask the AI to REFORMULATE the title.
-      const outNorm = normalizeLite(openingText)
-      const hasQ = outNorm.includes("?")
-      // Minimum length check to avoid empty/broken responses
-      const isReasonableLength = openingText.length >= 15
-      if (!hasQ || !isReasonableLength) {
-        console.log("[Investigator] Opening guardrail triggered: no question or too short")
-        // Vary the intro a bit
-        const intros = ["Allez, on fait le point.", "Ok, petit bilan.", "C'est parti pour le bilan."]
-        const intro = intros[Math.floor(Math.random() * intros.length)]
-        const safe = `${intro}\n\n${fallbackFirstQuestion}`
-        return { content: safe, investigationComplete: false, newState: nextState }
-      }
-
+      // IMPORTANT: keep the AI's opening whenever the call succeeds.
+      // Deterministic fallback is reserved for network/LLM failures (catch block).
       return { content: openingText, investigationComplete: false, newState: nextState }
     } catch (e) {
       console.error("[Investigator] opening summary failed:", e)

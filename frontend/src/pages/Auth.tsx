@@ -158,7 +158,22 @@ const Auth = () => {
       setIsResettingPassword(false);
     } catch (err: unknown) {
       console.error("Reset error:", err);
-      setError(getErrorMessage(err, "Erreur lors de l'envoi."));
+      const msg = getErrorMessage(err, "Erreur lors de l'envoi.");
+      // Supabase Auth returns a generic error when the mailer (SMTP) is misconfigured or unavailable.
+      // Make it actionable for ops.
+      if (typeof msg === "string" && msg.toLowerCase().includes("recovery email")) {
+        setError(
+          "Impossible d’envoyer l’email de réinitialisation.\n\n" +
+          "À vérifier dans Supabase Dashboard → Auth → SMTP:\n" +
+          "- custom SMTP activé mais incomplet / mauvais identifiants\n" +
+          "- sender/domain non vérifié\n\n" +
+          "Et dans Auth → URL Configuration:\n" +
+          `- Redirect URL allowlist: ${window.location.origin}/reset-password\n\n` +
+          `Détail: ${msg}`,
+        );
+      } else {
+        setError(msg);
+      }
     } finally {
       setLoading(false);
     }
@@ -330,16 +345,10 @@ const Auth = () => {
         if (error) throw error;
 
         if (data.user) {
-            // Retry WhatsApp opt-in template on first login (best-effort)
-            try {
-              const waReqId = newRequestId();
-              const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {}, headers: requestHeaders(waReqId) });
-              if (waErr) {
-                console.warn("WhatsApp opt-in send failed on login (non-blocking):", waErr, waData);
-              }
-            } catch (e) {
-              console.warn("WhatsApp opt-in send failed on login (non-blocking):", e);
-            }
+            // IMPORTANT:
+            // Do NOT auto-send WhatsApp opt-in on login.
+            // Login can happen for many reasons (password change, session refresh, etc.) and we don't want to spam templates.
+            // Opt-in should be sent on signup (when we just collected the phone) or explicitly (e.g. in profile when user changes phone).
             navigate(redirectTo || '/dashboard');
         }
       }

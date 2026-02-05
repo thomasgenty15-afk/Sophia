@@ -128,6 +128,111 @@ describe("integration: distributePlanActions()", () => {
     expect(vitals[0].status).toBe("active");
     expect(vitals[0].label).toContain("Sommeil");
   });
+
+  it("force pending pour toute action/framework d'une phase locked (même si le JSON dit active)", async () => {
+    const planContent: GeneratedPlan = {
+      grimoireTitle: "Test Plan 2",
+      strategy: "Test Strategy",
+      phases: [
+        {
+          id: 1,
+          title: "Phase 1",
+          subtitle: "Sub",
+          status: "active",
+          actions: [
+            {
+              id: "p1_a1",
+              type: "habitude",
+              title: "P1 Habitude",
+              description: "Desc",
+              isCompleted: false,
+              tracking_type: "boolean",
+              time_of_day: "morning",
+              targetReps: 3,
+            },
+            {
+              id: "p1_a2",
+              type: "mission",
+              title: "P1 Mission",
+              description: "Desc",
+              isCompleted: false,
+              tracking_type: "boolean",
+              time_of_day: "any_time",
+            },
+          ],
+        },
+        {
+          id: 2,
+          title: "Phase 2",
+          subtitle: "Sub",
+          status: "locked",
+          actions: [
+            {
+              id: "p2_a1",
+              type: "habitude",
+              title: "P2 Habitude (should be pending)",
+              description: "Desc",
+              isCompleted: false,
+              status: "active", // malicious / buggy upstream
+              tracking_type: "boolean",
+              time_of_day: "evening",
+              targetReps: 3,
+            } as any,
+            {
+              id: "p2_fw1",
+              type: "framework",
+              title: "P2 Framework (should be pending)",
+              description: "Desc",
+              isCompleted: false,
+              status: "active", // malicious / buggy upstream
+              tracking_type: "boolean",
+              time_of_day: "evening",
+              targetReps: 1,
+              frameworkDetails: { type: "one_shot", intro: "Intro", sections: [{ id: "s1", label: "Q", inputType: "text" }] },
+            } as any,
+          ],
+        },
+      ],
+      vitalSignal: {
+        name: "Sommeil (heures)",
+        unit: "h",
+        startValue: "7",
+        targetValue: "8",
+        tracking_type: "counter",
+        type: "number",
+      },
+    };
+
+    const { data: planRow, error: planErr } = await client
+      .from("user_plans")
+      .insert({ user_id: userId, content: planContent, status: "active", title: "Test Plan 2" })
+      .select("id")
+      .single();
+    if (planErr) throw planErr;
+    const planId = planRow.id as string;
+
+    await distributePlanActions(userId, planId, null, planContent);
+
+    const { data: actionRows, error: actionsErr } = await client
+      .from("user_actions")
+      .select("title,status")
+      .eq("plan_id", planId);
+    if (actionsErr) throw actionsErr;
+
+    const byTitle = new Map((actionRows ?? []).map((r: any) => [r.title, r.status]));
+    expect(byTitle.get("P1 Habitude")).toBe("active");
+    expect(byTitle.get("P1 Mission")).toBe("active");
+    expect(byTitle.get("P2 Habitude (should be pending)")).toBe("pending");
+
+    const { data: fwRows, error: fwErr } = await client
+      .from("user_framework_tracking")
+      .select("title,status,action_id")
+      .eq("plan_id", planId);
+    if (fwErr) throw fwErr;
+
+    const fwByTitle = new Map((fwRows ?? []).map((r: any) => [r.title, r.status]));
+    expect(fwByTitle.get("P2 Framework (should be pending)")).toBe("pending");
+  });
 });
 
 

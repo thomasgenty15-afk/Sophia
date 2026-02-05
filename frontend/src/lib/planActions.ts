@@ -116,12 +116,21 @@ export const distributePlanActions = async (
     action: any,
     actionIndex: number,
   ): 'active' | 'pending' | 'completed' => {
+    // Hard invariant at distribution time:
+    // - If the phase is not unlocked (locked/pending/unknown), its actions MUST NOT be active in DB.
+    // This defends against any accidental "active" statuses coming from plan JSON generation/refine.
+    const phaseStatus = normalizeStatus(phase?.status);
+    const isPhaseUnlocked = phaseStatus === 'active' || phaseStatus === 'completed';
+
+    if (!isPhaseUnlocked && phaseIndex > 0) return 'pending';
+
     const actionStatus = normalizeStatus(action?.status);
     if (actionStatus === 'active' || actionStatus === 'pending' || actionStatus === 'completed') {
+      // Never allow action-level status to "override" a locked phase.
+      if (!isPhaseUnlocked) return 'pending';
       return actionStatus as any;
     }
 
-    const phaseStatus = normalizeStatus(phase?.status);
     if (phaseStatus === 'locked') return 'pending';
     if (phaseStatus === 'active' || phaseStatus === 'completed') return 'active';
 
@@ -225,6 +234,30 @@ export const distributePlanActions = async (
   // 3. Exécution des requêtes (en parallèle pour la vitesse)
   const promises = [];
 
+  // Safety pass targets: actions/frameworks that belong to phases which are NOT unlocked must remain pending in DB.
+  // (We run this AFTER insert as a last line of defense against any accidental 'active'.)
+  const lockedPhaseActionTitles: string[] = [];
+  const lockedPhaseFrameworkIds: string[] = [];
+  try {
+    planContent.phases.forEach((phase: any, phaseIndex: number) => {
+      const phaseStatus = normalizeStatus(phase?.status);
+      const isUnlocked = phaseStatus === 'active' || phaseStatus === 'completed';
+      if (phaseIndex === 0) return; // Phase 1 can be active by design
+      if (isUnlocked) return; // If unlocked, don't force pending
+      (phase.actions || []).forEach((action: any) => {
+        if (action?.type === 'framework') {
+          const id = String(action?.id ?? '').trim();
+          if (id) lockedPhaseFrameworkIds.push(id);
+        } else {
+          const t = String(action?.title ?? '').trim();
+          if (t) lockedPhaseActionTitles.push(t);
+        }
+      });
+    });
+  } catch (e) {
+    console.warn("⚠️ Locked-phase safety targets build failed (non-blocking):", e);
+  }
+
   if (actionsToInsert.length > 0) {
     console.log(`📝 Insertion de ${actionsToInsert.length} actions...`, actionsToInsert[0]); // Log sample
     promises.push(
@@ -248,6 +281,44 @@ export const distributePlanActions = async (
 
   // On attend que tout soit fini
   const results = await Promise.all(promises);
+
+  // 3.B. Post-insert verification: downgrade any "active" rows that belong to locked phases back to "pending".
+  // This is a guard against any upstream bugs (bad statuses in JSON, race conditions, etc.).
+  // We keep it best-effort and do not fail the whole distribution if it errors.
+  try {
+    const safetyOps: any[] = [];
+    if (lockedPhaseActionTitles.length > 0) {
+      safetyOps.push(
+        supabase
+          .from('user_actions')
+          .update({ status: 'pending' })
+          .eq('plan_id', planId)
+          .in('title', Array.from(new Set(lockedPhaseActionTitles)).slice(0, 200))
+          .eq('status', 'active')
+      );
+    }
+    if (lockedPhaseFrameworkIds.length > 0) {
+      safetyOps.push(
+        supabase
+          .from('user_framework_tracking')
+          .update({ status: 'pending' })
+          .eq('plan_id', planId)
+          .in('action_id', Array.from(new Set(lockedPhaseFrameworkIds)).slice(0, 200))
+          .eq('status', 'active')
+      );
+    }
+    if (safetyOps.length > 0) {
+      const safetyRes = await Promise.all(safetyOps);
+      const safetyErrs = safetyRes.filter(r => (r as any)?.error).map(r => (r as any).error);
+      if (safetyErrs.length > 0) {
+        console.warn("⚠️ Safety downgrade produced errors (non-blocking):", safetyErrs);
+      } else {
+        console.log("🛡️ Safety downgrade applied for locked phases (active → pending).");
+      }
+    }
+  } catch (e) {
+    console.warn("⚠️ Safety downgrade failed (non-blocking):", e);
+  }
   
   // Vérification des erreurs
   const errors = results.filter(r => r.error).map(r => r.error);

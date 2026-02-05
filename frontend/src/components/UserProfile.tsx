@@ -245,7 +245,8 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
       // Best-effort: (re)send WhatsApp opt-in template for the new number.
       try {
         const waReqId = newRequestId();
-        const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {}, headers: requestHeaders(waReqId) });
+        // Force send: changing phone number is an explicit user action; we want to resend even if an opt-in was sent before.
+        const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: { force: true }, headers: requestHeaders(waReqId) });
         if (waErr) {
           console.warn("WhatsApp opt-in send failed (non-blocking):", waErr, waData);
         }

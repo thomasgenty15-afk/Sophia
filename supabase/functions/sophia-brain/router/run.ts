@@ -1420,7 +1420,7 @@ export async function processMessage(
       let summary = ""
       let actionTarget: string | undefined = currentItemTitle
       
-      if (machineSignals.breakdown_recommended) {
+      if (machineSignals.breakdown_recommended && missedStreak >= 5) {
         machineType = "breakdown_action"
         summary = currentItemTitle 
           ? `Micro-etape pour ${currentItemTitle}` 

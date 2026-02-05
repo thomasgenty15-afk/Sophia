@@ -146,7 +146,7 @@ serve(async (req: Request) => {
     ctx = getRequestContext(req, { user_id: userId })
 
     // Optional client overrides for template (useful for debugging misconfigured env vars).
-    let overrides: { template_name?: string; template_lang?: string } = {}
+    let overrides: { template_name?: string; template_lang?: string; force?: boolean } = {}
     try {
       if (req.headers.get("content-type")?.toLowerCase().includes("application/json")) {
         overrides = (await req.json()) ?? {}
@@ -158,13 +158,19 @@ serve(async (req: Request) => {
 
     const { data: profile, error: profErr } = await supabase
       .from("profiles")
-      .select("full_name, phone_number, phone_invalid, whatsapp_optin_sent_at, trial_end")
+      .select("full_name, phone_number, phone_invalid, whatsapp_optin_sent_at, whatsapp_opted_in, whatsapp_opted_out_at, trial_end")
       .eq("id", userId)
       .maybeSingle()
 
     if (profErr) throw profErr
     if (!profile) throw new Error("Profile not found")
     if (profile.phone_invalid) throw new Error("Phone marked invalid")
+    // If the user already opted in (or opted out), never send opt-in templates.
+    if (Boolean((profile as any).whatsapp_opted_in) || Boolean((profile as any).whatsapp_opted_out_at)) {
+      return new Response(JSON.stringify({ skipped: true, reason: "already_opted_in_or_opted_out" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
 
     // Gating: allow opt-in send during trial (or in MEGA test mode), otherwise require paid tier.
     const mega = isMegaTestMode()
@@ -185,14 +191,12 @@ serve(async (req: Request) => {
     const toE164 = normalizeToE164(profile.phone_number ?? "")
     if (!toE164) throw new Error("Missing phone number")
 
-    // Idempotent: if we already sent an opt-in in the last 24h, skip
-    if (profile.whatsapp_optin_sent_at) {
-      const last = new Date(profile.whatsapp_optin_sent_at).getTime()
-      if (!Number.isNaN(last) && Date.now() - last < 24 * 60 * 60 * 1000) {
-        return new Response(JSON.stringify({ skipped: true, reason: "already_sent_recently" }), {
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-        })
-      }
+    // Idempotent (strict): only send ONCE unless explicitly forced by the client (e.g. user changed phone).
+    const force = Boolean((overrides as any)?.force)
+    if (!force && (profile as any).whatsapp_optin_sent_at) {
+      return new Response(JSON.stringify({ skipped: true, reason: "already_sent_once" }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
     }
 
     const templateName = (String(overrides.template_name ?? "").trim() ||
