@@ -15,6 +15,10 @@ import {
   closeBreakdownActionFlow,
   getBreakdownCandidateFromFlow,
   getAnyActiveToolFlow,
+  getActiveActivateActionFlow,
+  upsertActivateActionFlow,
+  closeActivateActionFlow,
+  getActivateActionFlowPhase,
 } from "../../supervisor.ts"
 import { generateWithGemini } from "../../../_shared/gemini.ts"
 import { handleTracking } from "../../lib/tracking.ts"
@@ -34,9 +38,7 @@ import {
   looksLikeExplicitTrackProgressRequest,
   looksLikeExplicitUpdateActionRequest,
   looksLikeExploringActionIdea,
-  looksLikeNoToProceed,
   looksLikeUserAsksToAddToPlanLoosely,
-  looksLikeYesToProceed,
   parseQuotedActionTitle,
 } from "./consent.ts"
 import { 
@@ -172,6 +174,10 @@ export async function handleArchitectModelOutput(opts: {
   const scope = normalizeScope(opts.scope ?? meta?.scope ?? (meta?.channel === "whatsapp" ? "whatsapp" : "web"), "web")
   const tm0 = ((opts.userState as any)?.temp_memory ?? {}) as any
   const currentFlow = getAnyActiveToolFlow(tm0)
+  // MIGRATION NOTE:
+  // Some "awaiting consent" or edge-case stages are stored as a minimal marker in temp_memory.__update_flow_stage.
+  // This is separate from supervisor toolflows (currentFlow) and must be checked explicitly.
+  const stageFlow = (tm0 as any)?.__update_flow_stage ?? null
 
   function markFlowJustClosed(tempMemory: any, flowType: "create_action_flow" | "update_action_flow" | "breakdown_action_flow") {
     return {
@@ -455,8 +461,17 @@ FORMAT :
   if (activeCreateActionFlow) {
     const candidate = getActionCandidateFromFlow(tm0) as ActionCandidate | null
     if (candidate && candidate.status === "previewing") {
-      // Process user response to preview
-      const flowResult = processPreviewResponse(candidate, message)
+      // AI-driven classification: pass dispatcher flags to flow handler
+      const createAiSignals = {
+        confirmed: Boolean((tm0 as any)?.__create_action_confirmed),
+        abandoned: Boolean((tm0 as any)?.__create_action_abandoned),
+        modify: Boolean((tm0 as any)?.__create_action_modify),
+      }
+      // Clean up flags after reading
+      delete (tm0 as any).__create_action_confirmed
+      delete (tm0 as any).__create_action_abandoned
+      delete (tm0 as any).__create_action_modify
+      const flowResult = processPreviewResponse(candidate, message, createAiSignals)
       
       if (flowResult.shouldAbandon) {
         // Close the flow and return abandonment message
@@ -527,8 +542,16 @@ FORMAT :
   if (activeUpdateActionFlow) {
     const updateCandidate = getUpdateCandidateFromFlow(tm0) as UpdateActionCandidate | null
     if (updateCandidate && updateCandidate.status === "awaiting_confirm") {
-      // Process user response to preview
-      const flowResult = processUpdatePreviewResponse(updateCandidate, message)
+      // AI-driven classification: pass dispatcher flags to flow handler
+      const updateAiSignals = {
+        confirmed: Boolean((tm0 as any)?.__update_action_confirmed),
+        abandoned: Boolean((tm0 as any)?.__update_action_abandoned),
+        modify: Boolean((tm0 as any)?.__update_action_modify),
+      }
+      delete (tm0 as any).__update_action_confirmed
+      delete (tm0 as any).__update_action_abandoned
+      delete (tm0 as any).__update_action_modify
+      const flowResult = processUpdatePreviewResponse(updateCandidate, message, updateAiSignals)
       
       if (flowResult.shouldAbandon) {
         // Close the flow and return abandonment message
@@ -881,7 +904,16 @@ FORMAT :
     
     // Status: previewing - Process user response
     if (breakdownCandidate && breakdownCandidate.status === "previewing") {
-      const flowResult = processBreakdownPreviewResponse(breakdownCandidate, message)
+      // AI-driven classification: pass dispatcher flags to flow handler
+      const breakdownAiSignals = {
+        confirmed: Boolean((tm0 as any)?.__breakdown_action_confirmed),
+        abandoned: Boolean((tm0 as any)?.__breakdown_action_abandoned),
+        differentStep: Boolean((tm0 as any)?.__breakdown_action_different),
+      }
+      delete (tm0 as any).__breakdown_action_confirmed
+      delete (tm0 as any).__breakdown_action_abandoned
+      delete (tm0 as any).__breakdown_action_different
+      const flowResult = processBreakdownPreviewResponse(breakdownCandidate, message, breakdownAiSignals)
       
       if (flowResult.shouldAbandon) {
         const closed = closeBreakdownActionFlow({ tempMemory: tm0, outcome: "abandoned" })
@@ -1055,9 +1087,9 @@ FORMAT :
   {
     const day = parseDayToRemoveFromUserMessage(message)
     const flowAwaiting =
-      currentFlow &&
-      String((currentFlow as any)?.kind ?? "") === "update_action_structure" &&
-      String((currentFlow as any)?.stage ?? "") === "awaiting_remove_day"
+      stageFlow &&
+      String((stageFlow as any)?.kind ?? "") === "update_action_structure" &&
+      String((stageFlow as any)?.stage ?? "") === "awaiting_remove_day"
     const askedRecently = recentAssistantAskedWhichDayToRemove()
     if (day && (flowAwaiting || askedRecently.asked)) {
       try {
@@ -1068,12 +1100,12 @@ FORMAT :
           .eq("status", "active")
           .maybeSingle()
         const planId = (plan as any)?.id as string | undefined
-        const targetName = String((currentFlow as any)?.draft?.target_name ?? "Lecture")
+        const targetName = String((stageFlow as any)?.draft?.target_name ?? "Lecture")
         const newTarget =
-          Number((currentFlow as any)?.draft?.new_target_reps ?? askedRecently.targetReps ?? 3) || 3
+          Number((stageFlow as any)?.draft?.new_target_reps ?? askedRecently.targetReps ?? 3) || 3
         if (planId) {
           // Prefer candidate days captured from the conflict question (most reliable).
-          const draftDays = (currentFlow as any)?.draft?.candidate_days
+          const draftDays = (stageFlow as any)?.draft?.candidate_days
           let existingDays: string[] = Array.isArray(draftDays) ? draftDays : []
           // Fall back to plan JSON scheduledDays / scheduled_days.
           if (existingDays.length === 0) {
@@ -1116,39 +1148,50 @@ FORMAT :
     }
   }
 
-  // Deterministic resolution: activation consent flow.
+  // Deterministic resolution: activation via activate_action_flow machine (AI-driven consent).
+  // When the router has confirmed (phase = "activated" via dispatcher LLM signal),
+  // __activate_action_confirmed is set. We call the tool directly.
   {
-    const flowAwaiting =
-      currentFlow &&
-      String((currentFlow as any)?.kind ?? "") === "activate_plan_action" &&
-      String((currentFlow as any)?.stage ?? "") === "awaiting_consent"
-    if (flowAwaiting && looksLikeYesToProceed(message)) {
-      try {
-        const actionTitleOrId = String((currentFlow as any)?.draft?.action_title_or_id ?? "").trim()
-        if (actionTitleOrId) {
-          const activationResult = await handleActivateAction(supabase, userId, { action_title_or_id: actionTitleOrId })
-          try { await setFlow(null) } catch {}
+    const confirmedSignal = (tm0 as any)?.__activate_action_confirmed
+    if (confirmedSignal) {
+      const actionTarget = String(confirmedSignal.action ?? "").trim()
+      if (actionTarget) {
+        try {
+          const activationResult = await handleActivateAction(supabase, userId, { action_title_or_id: actionTarget })
+          // Clean up: close the machine and remove the confirmed flag
+          const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+          let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+          const closed = closeActivateActionFlow({ tempMemory: tmClean, outcome: "activated" })
+          tmClean = closed.tempMemory
+          delete tmClean.__activate_action_confirmed
+          await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
           return {
             text: activationResult,
             executed_tools: ["activate_plan_action"],
             tool_execution: "success",
           }
+        } catch {
+          // fall back to model output below
         }
-      } catch {
-        // fall back to model output below
       }
     }
   }
 
-  // Deterministic resolution: tracking consent flow (no silent writes).
+  // Deterministic resolution: tracking consent flow (AI-driven via dispatcher signals).
   {
     const flowAwaiting =
-      currentFlow &&
-      String((currentFlow as any)?.kind ?? "") === "track_progress" &&
-      String((currentFlow as any)?.stage ?? "") === "awaiting_consent"
-    if (flowAwaiting && looksLikeYesToProceed(message)) {
+      stageFlow &&
+      String((stageFlow as any)?.kind ?? "") === "track_progress" &&
+      String((stageFlow as any)?.stage ?? "") === "awaiting_consent"
+    const trackConfirmed = Boolean((tm0 as any)?.__track_progress_confirmed)
+    const trackDeclined = Boolean((tm0 as any)?.__track_progress_declined)
+    // Clean up flags
+    delete (tm0 as any).__track_progress_confirmed
+    delete (tm0 as any).__track_progress_declined
+
+    if (flowAwaiting && trackConfirmed) {
       try {
-        const args = (currentFlow as any)?.draft ?? null
+        const args = (stageFlow as any)?.draft ?? null
         if (args && typeof args === "object") {
           const trackingResult = await handleTracking(supabase, userId, args as any, { source: meta?.channel ?? "chat" })
           try { await setFlow(null) } catch {}
@@ -1162,7 +1205,7 @@ FORMAT :
         // fall back to normal logic below
       }
     }
-    if (flowAwaiting && (looksLikeNoToProceed(message) || looksLikeCancel(message))) {
+    if (flowAwaiting && (trackDeclined || looksLikeCancel(message))) {
       try { await setFlow(null) } catch {}
       return {
         text: "Ok — je ne note rien.",
@@ -1472,7 +1515,16 @@ FORMAT :
 
         const updFlowStage = String((currentFlow as any)?.stage ?? "")
         const hasExplicitUpdate = looksLikeExplicitUpdateActionRequest(message)
-        const hasConsentInFlow = updFlowStage === "awaiting_consent" ? looksLikeYesToProceed(message) : false
+        // AI-driven consent: use dispatcher flag instead of regex
+        const hasConsentInFlow = updFlowStage === "awaiting_consent" ? Boolean((tm0 as any)?.__update_action_old_confirmed) : false
+        if (hasConsentInFlow) { delete (tm0 as any).__update_action_old_confirmed }
+        // AI-driven decline
+        const hasDeclineInFlow = updFlowStage === "awaiting_consent" ? Boolean((tm0 as any)?.__update_action_old_declined) : false
+        if (hasDeclineInFlow) {
+          delete (tm0 as any).__update_action_old_declined
+          try { await setFlow(null) } catch {}
+          return { text: "Ok — je ne modifie rien.", executed_tools: [], tool_execution: "none" }
+        }
         if (!(hasExplicitUpdate || hasConsentInFlow)) {
           const reps = (upd.new_target_reps !== undefined && upd.new_target_reps !== null) ? Number(upd.new_target_reps) : null
           const days = Array.isArray(upd.new_scheduled_days) ? upd.new_scheduled_days : null
@@ -1653,52 +1705,8 @@ FORMAT :
       }
     } catch {}
 
-    try {
-      const t = String(message ?? "").toLowerCase()
-      const mentionsPending = /\b(pending|plus\s+tard|en\s+attente)\b/i.test(t)
-      const mentionsActivate = /\b(activer|active)\b/i.test(t)
-      const asksWhatToDo = looksLikePlanStepQuestion(message)
-      const quoted = parseQuotedActionTitle(message)
-      if (!currentFlow && !isModuleUi && quoted && (mentionsPending || mentionsActivate || asksWhatToDo) && !looksLikeExplicitActivateActionRequest(message)) {
-        await setFlow({
-          kind: "activate_plan_action",
-          stage: "awaiting_consent",
-          draft: { action_title_or_id: quoted },
-          started_at: new Date().toISOString(),
-          updated_at: new Date().toISOString(),
-        })
-        if (asksWhatToDo && cleaned.trim().length < 40) {
-          try {
-            const { data: plan } = await supabase
-              .from("user_plans")
-              .select("content")
-              .eq("user_id", userId)
-              .eq("status", "active")
-              .maybeSingle()
-            const content = (plan as any)?.content
-            let desc = ""
-            const phases = (content as any)?.phases ?? []
-            for (const ph of phases) {
-              const actions = (ph as any)?.actions ?? []
-              for (const a of actions) {
-                const titleA = String((a as any)?.title ?? "")
-                if (titleA.toLowerCase() === quoted.toLowerCase()) {
-                  desc = String((a as any)?.description ?? "")
-                  break
-                }
-              }
-              if (desc) break
-            }
-            const firstStep = String(desc ?? "").trim().split("\n")[0]?.trim() || "une micro-action très simple"
-            return {
-              text: `“${quoted}”, c’est juste ça: ${firstStep}\n\nTu veux que je l’active maintenant ?`,
-              executed_tools: [],
-              tool_execution: "none",
-            }
-          } catch {}
-        }
-      }
-    } catch {}
+    // NOTE: activate_plan_action soft-detection (quoted title + "activer/pending") is now handled
+    // by the dispatcher signal + activate_action_flow machine. No more __update_flow_stage here.
     return { text: applyOutputGuards(cleaned), executed_tools: [], tool_execution: "none" }
   }
 
@@ -1744,9 +1752,9 @@ FORMAT :
 
       if (toolName === "track_progress") {
         const flowAwaiting =
-          currentFlow &&
-          String((currentFlow as any)?.kind ?? "") === "track_progress" &&
-          String((currentFlow as any)?.stage ?? "") === "awaiting_consent"
+          stageFlow &&
+          String((stageFlow as any)?.kind ?? "") === "track_progress" &&
+          String((stageFlow as any)?.stage ?? "") === "awaiting_consent"
         if (!looksLikeExplicitTrackProgressRequest(message) && !flowAwaiting) {
           const a = ((response as any)?.args ?? {}) as any
           const target = String(a?.target_name ?? "").trim() || "cette action"
@@ -2047,8 +2055,8 @@ FORMAT :
         const hasExplicitUpdate = looksLikeExplicitUpdateActionRequest(message)
         const hasActiveUpdateFlow = Boolean(getActiveUpdateActionFlow(tm0))
         
-        // If no active flow and user hasn't explicitly confirmed, start preview flow
-        if (!hasActiveUpdateFlow && !looksLikeYesToProceed(message)) {
+        // If no active flow, always start preview flow (AI-driven: no regex shortcut)
+        if (!hasActiveUpdateFlow) {
           // Fetch current action data to show diff
           const targetName = String(args.target_name ?? "").trim()
           const { data: currentAction } = await supabase
@@ -2169,31 +2177,86 @@ FORMAT :
       }
 
       if (toolName === "activate_plan_action") {
-        if (!looksLikeExplicitActivateActionRequest(message)) {
-          const askedTitle = String((response as any)?.args?.action_title_or_id ?? "").trim()
-          const title = askedTitle || parseQuotedActionTitle(message) || "cette action"
-          await setFlow({
-            kind: "activate_plan_action",
-            stage: "awaiting_consent",
-            draft: { action_title_or_id: title },
-            started_at: new Date().toISOString(),
-            updated_at: new Date().toISOString(),
+        // ═══ ACTIVATE ACTION FLOW v2 (machine-driven, AI consent) ═══
+        // Phase transitions are driven by the dispatcher LLM signals in the router.
+        // Here we only need to:
+        // 1. If machine is in "activated" phase → call tool (user already confirmed via dispatcher)
+        // 2. If explicit request from user → call tool directly
+        // 3. Otherwise → enter "confirming" phase, ask for consent (architect addon handles the ask)
+
+        const activateSession = getActiveActivateActionFlow(tm0)
+        const activatePhase = getActivateActionFlowPhase(tm0)
+        const args = (response as any).args ?? {}
+        const askedTitle = String(args?.action_title_or_id ?? "").trim()
+        const activateTarget = (activateSession?.meta as any)?.target_action
+
+        // Case 1: Machine already confirmed (user said yes, detected by dispatcher LLM)
+        if (activatePhase === "activated") {
+          const titleToActivate = askedTitle || activateTarget || "cette action"
+          const activationResult = await handleActivateAction(supabase, userId, {
+            ...args,
+            action_title_or_id: titleToActivate,
           })
-          await trace({ event: "tool_call_blocked", metadata: { reason: "missing_user_consent" } })
+          await trace({ event: "tool_call_succeeded", toolResult: activationResult })
+          // Close the machine
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeActivateActionFlow({ tempMemory: tmClean, outcome: "activated" })
+            tmClean = closed.tempMemory
+            delete tmClean.__activate_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
           return {
-            text: `Ok.\n\nTu veux que j’active “${title}” maintenant ?`,
+            text: activationResult,
             executed_tools: [toolName],
-            tool_execution: "blocked",
+            tool_execution: "success",
           }
         }
 
-        const activationResult = await handleActivateAction(supabase, userId, (response as any).args)
-        await trace({ event: "tool_call_succeeded", toolResult: activationResult })
-        try { if (currentFlow) await setFlow(null) } catch {}
+        // Case 2: User explicitly asked to activate (strong signal, no consent needed)
+        if (looksLikeExplicitActivateActionRequest(message)) {
+          const titleToActivate = askedTitle || activateTarget || parseQuotedActionTitle(message) || "cette action"
+          const activationResult = await handleActivateAction(supabase, userId, {
+            ...args,
+            action_title_or_id: titleToActivate,
+          })
+          await trace({ event: "tool_call_succeeded", toolResult: activationResult })
+          // Close machine if it exists
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeActivateActionFlow({ tempMemory: tmClean, outcome: "activated" })
+            tmClean = closed.tempMemory
+            delete tmClean.__activate_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          return {
+            text: activationResult,
+            executed_tools: [toolName],
+            tool_execution: "success",
+          }
+        }
+
+        // Case 3: No explicit request & not confirmed → enter "confirming" phase
+        // The machine will ask for consent, dispatcher will detect the response next turn
+        const title = askedTitle || activateTarget || parseQuotedActionTitle(message) || "cette action"
+        try {
+          const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+          const tmLatest = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+          const updated = upsertActivateActionFlow({
+            tempMemory: tmLatest,
+            targetAction: title,
+            exerciseType: (activateSession?.meta as any)?.exercise_type,
+            phase: "confirming",
+          })
+          await updateUserState(supabase, userId, scope, { temp_memory: updated.tempMemory } as any)
+        } catch {}
+        await trace({ event: "tool_call_blocked", metadata: { reason: "awaiting_ai_consent", phase: "confirming" } })
         return {
-          text: activationResult,
+          text: `Tu veux que j'active "${title}" maintenant ?`,
           executed_tools: [toolName],
-          tool_execution: "success",
+          tool_execution: "blocked",
         }
       }
 
@@ -2244,8 +2307,8 @@ STYLE :
           }
         }
 
-        // If Sophia suggested and user hasn't explicitly confirmed, start preview flow
-        if (!hasActiveFlow && !looksLikeYesToProceed(message)) {
+        // If no active flow, always start preview flow (AI-driven: no regex shortcut)
+        if (!hasActiveFlow) {
           // Create a new ActionCandidate and show preview
           const candidate = createCandidateFromToolArgs({
             title: rawArgs.title,

@@ -286,12 +286,14 @@ async function handleInterventionPhase(
   meta?: any,
 ): Promise<DeepReasonsRunResult> {
   // User is receiving intervention, move to closing
-  const nextState: DeepReasonsState = { ...state, phase: "closing" }
-
-  return {
-    content: await generateClosingPrompt(state, message, channel, meta),
-    newState: nextState,
+  const closing = await generateClosingPrompt(state, message, channel, meta)
+  const nextState: DeepReasonsState = {
+    ...state,
+    phase: "closing",
+    micro_commitment_proposed: closing.proposedCommitment,
   }
+
+  return { content: closing.message, newState: nextState }
 }
 
 async function handleClosingPhase(
@@ -301,9 +303,8 @@ async function handleClosingPhase(
   meta?: any,
 ): Promise<DeepReasonsRunResult> {
   // User is responding to micro-commitment proposal
-  const accepted = userConsentsToExploration(message)
-  
-  const microCommitment = accepted ? message.slice(0, 150) : undefined
+  const accepted = userAcceptsMicroCommitment(message)
+  const microCommitment = accepted ? (state.micro_commitment_proposed?.slice(0, 160) || undefined) : undefined
   const finalState: DeepReasonsState = {
     ...state,
     micro_commitment: microCommitment,
@@ -314,6 +315,17 @@ async function handleClosingPhase(
     newState: null,
     outcome: accepted ? "resolved" : "defer_continue",
   }
+}
+
+function userAcceptsMicroCommitment(message: string): boolean {
+  const m = String(message ?? "").toLowerCase().trim()
+  if (!m) return false
+  // If user is asking a new question / request, don't treat it as an "acceptance" token.
+  if (m.includes("?")) return false
+  if (/\b(peux\s*-?\s*tu|est[-\s]?ce\s+que|tu\s+peux|cr[eé]e|créer|ajouter|action)\b/i.test(m)) return false
+  // Accept only short confirmations.
+  if (m.length > 60) return false
+  return /\b(oui|ok|d['’]?accord|vas[-\s]?y|go|allons[-\s]?y|c['’]?est\s+parti|ça\s+marche|on\s+part\s+l[àa][- ]dessus|partons)\b/i.test(m)
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -514,7 +526,7 @@ async function generateClosingPrompt(
   userResponse: string,
   channel: "web" | "whatsapp",
   meta?: any,
-): Promise<string> {
+): Promise<{ message: string; proposedCommitment?: string }> {
   const isWhatsApp = channel === "whatsapp"
 
   const prompt = `Tu es Sophia, coach bienveillant. L'utilisateur a répondu à ton intervention:
@@ -525,14 +537,18 @@ Ta mission: proposer un micro-engagement très concret pour les prochaines 24-48
 - Pas d'obligation, juste une proposition
 - Reformule ce qu'on a découvert ensemble (1 phrase)
 
-RÈGLES:
+IMPORTANT: tu dois répondre en JSON STRICT (pas de texte autour), avec:
+- "message": le texte à envoyer à l'utilisateur
+- "commitment": une phrase courte (max 80 caractères) qui décrit l'engagement proposé
+
+RÈGLES POUR "message":
 - Ton chaleureux, encourageant
 - ${isWhatsApp ? "Max 4 lignes" : "Max 5 lignes"}
 - Termine par une question simple ("Tu veux essayer ?" ou "On part là-dessus ?")
 - Pas de ** (texte brut)
 - 1 emoji max
 
-Génère uniquement ta réponse:`
+Réponds UNIQUEMENT avec le JSON:`
 
   try {
     const response = await generateWithGemini(prompt, "", 0.7, false, [], "auto", {
@@ -540,9 +556,25 @@ Génère uniquement ta réponse:`
       model: meta?.model ?? "gemini-2.5-flash",
       source: "sophia-brain:deep_reasons:closing",
     })
-    return String(response ?? "").trim() || "Ok. Et si demain, tu faisais juste la version la plus mini possible, 2 minutes ? Juste pour voir. Tu veux essayer ? 🙂"
+    const raw = String(response ?? "").trim()
+    const parsed = JSON.parse(raw)
+    const messageOut = String(parsed?.message ?? "").trim()
+    const commitmentOut = String(parsed?.commitment ?? "").trim()
+    if (messageOut) {
+      return {
+        message: messageOut,
+        proposedCommitment: commitmentOut ? commitmentOut.slice(0, 120) : undefined,
+      }
+    }
+    return {
+      message: "Ok. Et si demain, tu faisais juste la version la plus mini possible, 2 minutes ? Juste pour voir. Tu veux essayer ? 🙂",
+      proposedCommitment: "Version mini 2 minutes demain",
+    }
   } catch {
-    return "Ok. Et si demain, tu faisais juste la version la plus mini possible, 2 minutes ? Juste pour voir. Tu veux essayer ? 🙂"
+    return {
+      message: "Ok. Et si demain, tu faisais juste la version la plus mini possible, 2 minutes ? Juste pour voir. Tu veux essayer ? 🙂",
+      proposedCommitment: "Version mini 2 minutes demain",
+    }
   }
 }
 
@@ -552,13 +584,51 @@ async function generateClosingMessage(
   channel: "web" | "whatsapp",
   meta?: any,
 ): Promise<string> {
-  const messages: Record<DeepReasonsOutcome, string> = {
-    resolved: `Super. On a fait du bon travail ensemble. ${state.micro_commitment ? `Tu vas essayer "${state.micro_commitment.slice(0, 50)}..."` : "Tu as un petit pas pour la suite."} Je suis là si tu veux en reparler. 🙂`,
-    defer_continue: "Pas de souci, on garde ça pour plus tard. Tu me fais signe quand tu veux. 🙂",
-    user_stop: "Ok, on arrête là. C'est déjà bien d'avoir osé regarder ça. Je suis là si tu veux reprendre. 🙂",
-    needs_human_support: "Je sens que c'est un sujet important pour toi. Si tu ressens le besoin d'en parler à quelqu'un, n'hésite pas à te tourner vers un professionnel. Je reste disponible pour t'accompagner sur le reste. 💙",
+  const isWhatsApp = channel === "whatsapp"
+  const actionTitle = state.action_context?.title ?? "ce sujet"
+  const micro = state.micro_commitment ?? state.micro_commitment_proposed ?? ""
+
+  const prompt = `Tu es Sophia. Tu dois écrire le message de clôture d'une mini exploration ("deep reasons").
+
+Contexte:
+- Sujet: "${actionTitle}"
+- Outcome: ${outcome}
+- Micro-engagement (si présent): "${micro.slice(0, 120)}"
+
+RÈGLES:
+- Ton naturel, chaleureux, pas robotique
+- Ne cite PAS la phrase de l'utilisateur entre guillemets
+- Pas de "On a fait du bon travail ensemble"
+- ${isWhatsApp ? "Max 3 lignes" : "Max 4 lignes"}
+- Pas de ** (texte brut)
+- 1 emoji max
+- Si outcome=resolved: rappelle l'engagement en mots simples + mini encouragement + ouverture douce
+- Si outcome=defer_continue: ok on garde pour plus tard, sans culpabiliser
+- Si outcome=user_stop: respecte l'arrêt, propose de reprendre quand il veut
+
+Réponds uniquement avec le texte à envoyer:`
+
+  try {
+    const response = await generateWithGemini(prompt, "", 0.4, false, [], "auto", {
+      requestId: meta?.requestId,
+      model: meta?.model ?? "gemini-2.5-flash",
+      source: "sophia-brain:deep_reasons:closing_message",
+    })
+    const out = String(response ?? "").trim()
+    if (out) return out
+  } catch {}
+
+  // Fallbacks (best-effort)
+  if (outcome === "resolved") {
+    return micro
+      ? `Ok, on part là-dessus: ${micro}. Tiens-moi au courant demain. 🙂`
+      : "Ok, tu as un petit pas simple pour la suite. Tiens-moi au courant. 🙂"
   }
-  return messages[outcome]
+  if (outcome === "user_stop") return "Ok, on s'arrête là. Si tu veux, on reprendra quand ce sera le bon moment. 🙂"
+  if (outcome === "needs_human_support") {
+    return "Je sens que c'est important. Si tu en ressens le besoin, n'hésite pas à en parler à un professionnel. Je suis là. 🙂"
+  }
+  return "Ok, on garde ça pour plus tard. Tu me dis quand tu veux qu'on y revienne. 🙂"
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════

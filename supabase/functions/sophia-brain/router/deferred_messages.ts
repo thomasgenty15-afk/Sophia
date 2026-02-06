@@ -49,6 +49,11 @@ export function generateAcknowledgmentPrefix(opts: {
         ? `J'ai noté la modif pour ${target}, on fait ça ensuite ! `
         : `J'ai noté la modification, on s'en occupe juste après ! `
     
+    case "activate_action":
+      return target
+        ? `J'ai noté pour activer ${target}, on s'en occupe juste après ! `
+        : `J'ai noté, on s'occupe de l'activation juste après ! `
+    
     case "track_progress":
       return `J'ai noté pour le suivi, on s'en occupe juste après ! `
     

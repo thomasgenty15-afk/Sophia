@@ -21,6 +21,7 @@ import { normalizeChatText } from "../chat_text.ts"
 import { getUserTimeContext } from "../../_shared/user_time_context.ts"
 import { getEffectiveTierForUser } from "../../_shared/billing-tier.ts"
 import { logBrainTrace, type BrainTracePhase } from "../../_shared/brain-trace.ts"
+import { generateWithGemini } from "../../_shared/gemini.ts"
 import { handleTracking } from "../lib/tracking.ts"
 // NOTE: getUserProfileFacts and formatUserProfileFactsForPrompt are now handled by context/loader.ts
 import {
@@ -243,6 +244,7 @@ import {
   upsertActivateActionFlow,
   closeActivateActionFlow,
   isActivateActionFlowStale,
+  getActivateActionFlowPhase,
   writeSupervisorRuntime,
   // Machine pause/resume for safety parenthesis
   getPausedMachine,
@@ -1223,12 +1225,18 @@ export async function processMessage(
         } else if (consentResult.declineMessage) {
           // User declined - store message to prepend
           relaunchDeclineMessage = consentResult.declineMessage
+          // Re-set flag so applyAutoRelaunchFromDeferred proposes the NEXT topic
+          ;(tempMemory as any).__flow_just_closed_normally = {
+            flow_type: "relaunch_declined",
+            closed_at: new Date().toISOString(),
+          }
           await trace("brain:relaunch_consent_declined", "routing", {
             machine_type: pendingRelaunchConsent.machine_type,
             action_target: pendingRelaunchConsent.action_target,
             from_dispatcher: Boolean(dispatcherConsentSignal),
+            will_try_next: true,
           })
-          console.log(`[Router] Relaunch consent DECLINED: ${pendingRelaunchConsent.machine_type}`)
+          console.log(`[Router] Relaunch consent DECLINED: ${pendingRelaunchConsent.machine_type} → will try next deferred topic`)
         } else {
           // Unclear response - topic dropped silently
           await trace("brain:relaunch_consent_unclear", "routing", {
@@ -1405,6 +1413,71 @@ export async function processMessage(
           }
         }
       }
+      
+      // ─────────────────────────────────────────────────────────────────────────
+      // IMMEDIATE DEFERRAL for action-related intents during bilan
+      // These are deferred WITHOUT waiting for user_consents_defer because:
+      // 1. The Investigator acknowledges automatically ("J'ai noté, on s'en occupe après")
+      // 2. create/update/activate intents don't go through the pending_defer_question flow
+      // ─────────────────────────────────────────────────────────────────────────
+      if (machineSignals.create_action_intent) {
+        const deferResult = deferSignal({
+          tempMemory,
+          machine_type: "create_action",
+          action_target: undefined, // No specific target yet
+          summary: "Créer une nouvelle action",
+        })
+        tempMemory = deferResult.tempMemory
+        await trace("brain:bilan_signal_deferred", "dispatcher", {
+          machine_type: "create_action",
+          action_target: undefined,
+          summary: "Créer une nouvelle action",
+          trigger: "immediate_intent",
+          trigger_count: deferResult.topic.trigger_count,
+        })
+        console.log(`[Router] Bilan: immediately deferred create_action intent`)
+      }
+      
+      if (machineSignals.update_action_intent) {
+        const deferResult = deferSignal({
+          tempMemory,
+          machine_type: "update_action",
+          action_target: currentItemTitle,
+          summary: currentItemTitle 
+            ? `Modifier ${currentItemTitle}`.slice(0, 100) 
+            : "Modifier une action",
+        })
+        tempMemory = deferResult.tempMemory
+        await trace("brain:bilan_signal_deferred", "dispatcher", {
+          machine_type: "update_action",
+          action_target: currentItemTitle,
+          summary: currentItemTitle ? `Modifier ${currentItemTitle}` : "Modifier une action",
+          trigger: "immediate_intent",
+          trigger_count: deferResult.topic.trigger_count,
+        })
+        console.log(`[Router] Bilan: immediately deferred update_action intent for "${currentItemTitle}"`)
+      }
+      
+      if (machineSignals.activate_action_intent) {
+        const activateTarget = dispatcherSignals?.activate_action?.target_hint ?? undefined
+        const deferResult = deferSignal({
+          tempMemory,
+          machine_type: "activate_action",
+          action_target: activateTarget,
+          summary: activateTarget 
+            ? `Activer ${activateTarget}`.slice(0, 100) 
+            : "Activer une action dormante",
+        })
+        tempMemory = deferResult.tempMemory
+        await trace("brain:bilan_signal_deferred", "dispatcher", {
+          machine_type: "activate_action",
+          action_target: activateTarget,
+          summary: activateTarget ? `Activer ${activateTarget}` : "Activer une action dormante",
+          trigger: "immediate_intent",
+          trigger_count: deferResult.topic.trigger_count,
+        })
+        console.log(`[Router] Bilan: immediately deferred activate_action intent for "${activateTarget}"`)
+      }
     }
     
     const hasExplicitConfirm =
@@ -1413,9 +1486,11 @@ export async function processMessage(
       machineSignals?.confirm_topic !== undefined
     if (bilanActive && machineSignals?.user_consents_defer && !hasExplicitConfirm) {
       // User consented to defer something during bilan - store in deferred_topics_v2
+      // This handles breakdown/deep_reasons consent (the "oui on en parle après" response)
       const currentItemTitle = flowContext?.currentItemTitle ?? undefined
       
       // Determine which machine type to defer based on detected signals
+      // NOTE: create_action/update_action/activate_action are handled above (immediate deferral)
       let machineType: DeferredMachineType | null = null
       let summary = ""
       let actionTarget: string | undefined = currentItemTitle
@@ -1430,15 +1505,6 @@ export async function processMessage(
         summary = currentItemTitle 
           ? `Explorer blocage sur ${currentItemTitle}` 
           : "Explorer blocage motivationnel"
-      } else if (machineSignals.create_action_intent) {
-        machineType = "create_action"
-        actionTarget = undefined
-        summary = "Creer une nouvelle action"
-      } else if (machineSignals.update_action_intent) {
-        machineType = "update_action"
-        summary = currentItemTitle 
-          ? `Modifier ${currentItemTitle}` 
-          : "Modifier une action"
       }
       
       if (machineType) {
@@ -1454,6 +1520,7 @@ export async function processMessage(
           machine_type: machineType,
           action_target: currentItemTitle,
           summary: summary.slice(0, 50),
+          trigger: "user_consents_defer",
           trigger_count: deferResult.topic.trigger_count,
         })
         
@@ -2103,6 +2170,39 @@ export async function processMessage(
     })
   }
   
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CREATE ACTION FLOW: Phase transitions driven by dispatcher machine_signals
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (activeCreateActionSession) {
+    const createMachineSignals = dispatcherResult.machine_signals
+    const createCandidate = (activeCreateActionSession.meta as any)?.candidate
+    const createCandidateStatus = createCandidate?.status
+
+    // previewing → confirmed: user said YES (detected by LLM)
+    if (createCandidateStatus === "previewing" && createMachineSignals?.user_confirms_preview === "yes") {
+      ;(tempMemory as any).__create_action_confirmed = true
+      await traceV("brain:create_action_phase_change", "routing", {
+        from: "previewing", to: "confirmed", signal: "user_confirms_preview=yes",
+      })
+    }
+
+    // previewing → modify: user wants changes
+    if (createCandidateStatus === "previewing" && createMachineSignals?.user_confirms_preview === "modify") {
+      ;(tempMemory as any).__create_action_modify = true
+      await traceV("brain:create_action_phase_change", "routing", {
+        from: "previewing", to: "modify", signal: "user_confirms_preview=modify",
+      })
+    }
+
+    // previewing → abandoned: user said NO
+    if (createCandidateStatus === "previewing" && createMachineSignals?.user_confirms_preview === "no") {
+      ;(tempMemory as any).__create_action_abandoned = true
+      await traceV("brain:create_action_phase_change", "routing", {
+        from: "previewing", to: "abandoned", signal: "user_confirms_preview=no",
+      })
+    }
+  }
+
   // Prune stale create_action_flow sessions
   if (isCreateActionFlowStale(tempMemory)) {
     const pruned = closeCreateActionFlow({ tempMemory, outcome: "abandoned" })
@@ -2166,6 +2266,39 @@ export async function processMessage(
     })
   }
   
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // UPDATE ACTION FLOW: Phase transitions driven by dispatcher machine_signals
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (activeUpdateActionSession) {
+    const updateMachineSignals = dispatcherResult.machine_signals
+    const updateCandidate = (activeUpdateActionSession.meta as any)?.candidate
+    const updateCandidateStatus = updateCandidate?.status
+
+    // awaiting_confirm → confirmed: user said YES
+    if (updateCandidateStatus === "awaiting_confirm" && updateMachineSignals?.user_confirms_change === "yes") {
+      ;(tempMemory as any).__update_action_confirmed = true
+      await traceV("brain:update_action_phase_change", "routing", {
+        from: "awaiting_confirm", to: "confirmed", signal: "user_confirms_change=yes",
+      })
+    }
+
+    // awaiting_confirm → modify: user wants adjustments
+    if (updateCandidateStatus === "awaiting_confirm" && updateMachineSignals?.user_confirms_change === "modify") {
+      ;(tempMemory as any).__update_action_modify = true
+      await traceV("brain:update_action_phase_change", "routing", {
+        from: "awaiting_confirm", to: "modify", signal: "user_confirms_change=modify",
+      })
+    }
+
+    // awaiting_confirm → abandoned: user said NO
+    if (updateCandidateStatus === "awaiting_confirm" && updateMachineSignals?.user_confirms_change === "no") {
+      ;(tempMemory as any).__update_action_abandoned = true
+      await traceV("brain:update_action_phase_change", "routing", {
+        from: "awaiting_confirm", to: "abandoned", signal: "user_confirms_change=no",
+      })
+    }
+  }
+
   // Prune stale update_action_flow sessions
   if (isUpdateActionFlowStale(tempMemory)) {
     const pruned = closeUpdateActionFlow({ tempMemory, outcome: "abandoned" })
@@ -2219,6 +2352,39 @@ export async function processMessage(
     })
   }
   
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // BREAKDOWN ACTION FLOW: Phase transitions driven by dispatcher machine_signals
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (activeBreakdownActionSession) {
+    const breakdownMachineSignals = dispatcherResult.machine_signals
+    const breakdownCandidate = (activeBreakdownActionSession.meta as any)?.candidate
+    const breakdownCandidateStatus = breakdownCandidate?.status
+
+    // previewing → confirmed: user said YES to micro-step
+    if (breakdownCandidateStatus === "previewing" && breakdownMachineSignals?.user_confirms_microstep === "yes") {
+      ;(tempMemory as any).__breakdown_action_confirmed = true
+      await traceV("brain:breakdown_action_phase_change", "routing", {
+        from: "previewing", to: "confirmed", signal: "user_confirms_microstep=yes",
+      })
+    }
+
+    // previewing → different step: user wants a different proposal
+    if (breakdownCandidateStatus === "previewing" && breakdownMachineSignals?.user_wants_different_step === true) {
+      ;(tempMemory as any).__breakdown_action_different = true
+      await traceV("brain:breakdown_action_phase_change", "routing", {
+        from: "previewing", to: "different_step", signal: "user_wants_different_step=true",
+      })
+    }
+
+    // previewing → abandoned: user said NO
+    if (breakdownCandidateStatus === "previewing" && breakdownMachineSignals?.user_confirms_microstep === "no") {
+      ;(tempMemory as any).__breakdown_action_abandoned = true
+      await traceV("brain:breakdown_action_phase_change", "routing", {
+        from: "previewing", to: "abandoned", signal: "user_confirms_microstep=no",
+      })
+    }
+  }
+
   // Prune stale breakdown_action_flow sessions
   if (isBreakdownActionFlowStale(tempMemory)) {
     const pruned = closeBreakdownActionFlow({ tempMemory, outcome: "abandoned" })
@@ -2272,6 +2438,52 @@ export async function processMessage(
     })
   }
   
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // TRACK PROGRESS + LEGACY CONSENT: Phase transitions driven by dispatcher signals
+  // ═══════════════════════════════════════════════════════════════════════════════
+  {
+    const tpMachineSignals = dispatcherResult.machine_signals
+    const legacyStage = (tempMemory as any)?.__update_flow_stage
+    const isTrackProgressConsent = legacyStage &&
+      String(legacyStage.kind ?? "") === "track_progress" &&
+      String(legacyStage.stage ?? "") === "awaiting_consent"
+    const isUpdateActionConsent = legacyStage &&
+      String(legacyStage.kind ?? "") === "update_action_structure" &&
+      String(legacyStage.stage ?? "") === "awaiting_consent"
+
+    // Track progress consent: user said YES/NO (detected by LLM)
+    if (isTrackProgressConsent && tpMachineSignals?.user_confirms_tracking === true) {
+      ;(tempMemory as any).__track_progress_confirmed = true
+      await traceV("brain:track_progress_consent", "routing", {
+        signal: "user_confirms_tracking=true",
+        target: legacyStage.draft?.target_name,
+      })
+    }
+    if (isTrackProgressConsent && tpMachineSignals?.user_confirms_tracking === false) {
+      ;(tempMemory as any).__track_progress_declined = true
+      await traceV("brain:track_progress_consent", "routing", {
+        signal: "user_confirms_tracking=false",
+        target: legacyStage.draft?.target_name,
+      })
+    }
+
+    // Legacy update_action_structure consent: user said YES/NO
+    if (isUpdateActionConsent && tpMachineSignals?.user_confirms_change === "yes") {
+      ;(tempMemory as any).__update_action_old_confirmed = true
+      await traceV("brain:update_action_old_consent", "routing", {
+        signal: "user_confirms_change=yes",
+        target: legacyStage.draft?.target_name,
+      })
+    }
+    if (isUpdateActionConsent && (tpMachineSignals?.user_confirms_change === "no")) {
+      ;(tempMemory as any).__update_action_old_declined = true
+      await traceV("brain:update_action_old_consent", "routing", {
+        signal: "user_confirms_change=no",
+        target: legacyStage.draft?.target_name,
+      })
+    }
+  }
+
   // Prune stale track_progress_flow sessions
   if (isTrackProgressFlowStale(tempMemory)) {
     const pruned = closeTrackProgressFlow({ tempMemory, outcome: "abandoned" })
@@ -2337,6 +2549,86 @@ export async function processMessage(
     if (pruned.changed) {
       tempMemory = pruned.tempMemory
       console.log("[Router] Pruned stale activate_action_flow session")
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // ACTIVATE ACTION FLOW: Phase transitions driven by dispatcher machine_signals
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (activeActivateActionSession) {
+    const activateMachineSignals = dispatcherResult.machine_signals
+    const userConfirmsActivation = activateMachineSignals?.user_confirms_activation
+    const activationReady = activateMachineSignals?.activation_ready
+    const userWantsDifferent = activateMachineSignals?.user_wants_different_action
+    const currentActivatePhase = getActivateActionFlowPhase(tempMemory) ?? "exploring"
+    const activateTarget = (activeActivateActionSession.meta as any)?.target_action
+    const activateExercise = (activeActivateActionSession.meta as any)?.exercise_type
+
+    // exploring → confirming: action clearly identified and ready
+    if (currentActivatePhase === "exploring" && activationReady) {
+      const updated = upsertActivateActionFlow({
+        tempMemory,
+        targetAction: activateTarget,
+        exerciseType: activateExercise,
+        phase: "confirming",
+      })
+      tempMemory = updated.tempMemory
+      await traceV("brain:activate_action_phase_change", "routing", {
+        from: "exploring",
+        to: "confirming",
+        target: activateTarget,
+      })
+    }
+
+    // confirming → activated: user said YES (any form of yes, detected by LLM)
+    if (currentActivatePhase === "confirming" && userConfirmsActivation === true) {
+      const updated = upsertActivateActionFlow({
+        tempMemory,
+        targetAction: activateTarget,
+        exerciseType: activateExercise,
+        phase: "activated",
+      })
+      tempMemory = updated.tempMemory
+      // Store confirmed flag so architect calls the tool directly
+      ;(tempMemory as any).__activate_action_confirmed = {
+        action: activateTarget,
+        exercise_type: activateExercise,
+      }
+      await traceV("brain:activate_action_phase_change", "routing", {
+        from: "confirming",
+        to: "activated",
+        target: activateTarget,
+      })
+    }
+
+    // confirming → abandoned: user said NO
+    if (currentActivatePhase === "confirming" && userConfirmsActivation === false) {
+      const closed = closeActivateActionFlow({ tempMemory, outcome: "abandoned" })
+      tempMemory = closed.tempMemory
+      await traceV("brain:activate_action_phase_change", "routing", {
+        from: "confirming",
+        to: "abandoned",
+        target: activateTarget,
+        reason: "user_declined",
+      })
+    }
+
+    // user wants a different action → restart with new target
+    if (userWantsDifferent && typeof userWantsDifferent === "string") {
+      const updated = upsertActivateActionFlow({
+        tempMemory,
+        targetAction: userWantsDifferent,
+        exerciseType: undefined,
+        phase: "exploring",
+      })
+      tempMemory = updated.tempMemory
+      await traceV("brain:activate_action_phase_change", "routing", {
+        from: currentActivatePhase,
+        to: "exploring",
+        old_target: activateTarget,
+        new_target: userWantsDifferent,
+        reason: "user_wants_different_action",
+      })
     }
   }
 
@@ -2485,24 +2777,18 @@ export async function processMessage(
     const flowResolution = dispatcherSignals.flow_resolution
     const wantsResume = flowResolution.kind === "WANTS_RESUME" && flowResolution.confidence >= 0.6
     
-    // Also detect via regex fallback (dispatcher might miss nuanced "non je veux")
-    const wantsResumeRegex = /\b(je\s+veux|j['']?veux|veux\s+en\s+parler|parler\s+maintenant|en\s+parler\s+maintenant|bah\s+je\s+veux|bah\s+oui|mais\s+si|non\s+je\s+veux)\b/i.test(userMessage)
-    
-    if (wantsResume || wantsResumeRegex) {
+    // 100% AI-driven: no regex fallback, rely solely on dispatcher LLM signal
+    if (wantsResume) {
       const hasDeferredTopic = (tempMemory as any)?.__checkup_deferred_topic ||
         (history.slice(-3).some((m: any) => 
           m?.role === "assistant" && 
           /j['']ai\s+not[ée]|on\s+y\s+reviendra|on\s+en\s+reparlera/i.test(String(m?.content ?? ""))
         ))
       
-      // We log the user's intention to resume, but we do NOT force firefighter here.
-      // If the resumed topic truly requires support, the dispatcher will emit NEED_SUPPORT / safety
-      // and the safety state machines will take over deterministically.
       await trace("brain:wants_resume_detected", "routing", {
         has_deferred_topic: Boolean(hasDeferredTopic),
         flow_resolution_kind: flowResolution.kind,
         flow_resolution_conf: flowResolution.confidence,
-        regex_fallback: wantsResumeRegex && !wantsResume,
       })
     }
   }
@@ -3455,6 +3741,42 @@ export async function processMessage(
 
   // --- DEEP REASONS STATE MACHINE EXECUTION ---
   // If there's an active deep_reasons state, run the state machine instead of normal agent flow
+  // Preemption: if user message is an explicit tool intent (create/update/breakdown/track/activate),
+  // we should NOT consume the turn inside deep_reasons closing loop. We close deep_reasons and let
+  // the normal routing/toolflow handle the intent this turn.
+  const shouldPreemptDeepReasons = (() => {
+    const ca = dispatcherSignals?.create_action
+    const ua = dispatcherSignals?.update_action
+    const ba = dispatcherSignals?.breakdown_action
+    const tp = dispatcherSignals?.track_progress
+    const aa = dispatcherSignals?.activate_action
+    const createExplicit = Boolean(ca && ca.intent_strength === "explicit" && (ca.confidence ?? 0) >= 0.6)
+    const updateDetected = Boolean(ua && ua.detected && (ua.confidence ?? 0) >= 0.6)
+    const breakdownDetected = Boolean(ba && ba.detected && (ba.confidence ?? 0) >= 0.6)
+    const trackDetected = Boolean(tp && tp.detected && (tp.confidence ?? 0) >= 0.6)
+    const activateDetected = Boolean(aa && aa.detected && (aa.confidence ?? 0) >= 0.6)
+    return createExplicit || updateDetected || breakdownDetected || trackDetected || activateDetected
+  })()
+
+  if (targetMode === "architect" && deepReasonsStateFromTm && shouldPreemptDeepReasons) {
+    try {
+      const closed = closeDeepReasonsExploration({
+        tempMemory,
+        outcome: "defer_continue",
+      })
+      if (closed.changed) tempMemory = closed.tempMemory
+      // Ensure local variable doesn't keep the state alive for this turn
+      deepReasonsStateFromTm = undefined as any
+      await traceV("brain:deep_reasons_preempted_by_tool_intent", "routing", {
+        reason: "tool_intent_detected",
+      }, "info")
+    } catch (e) {
+      console.warn("[Router] Failed to preempt deep_reasons for tool intent:", e)
+      try { delete (tempMemory as any).deep_reasons_state } catch {}
+      deepReasonsStateFromTm = undefined as any
+    }
+  }
+
   if (targetMode === "architect" && deepReasonsStateFromTm) {
     try {
       const drResult = await runDeepReasonsExploration({
@@ -3492,7 +3814,13 @@ export async function processMessage(
         ...((state?.temp_memory ?? {}) as any),
         ...((tempMemory ?? {}) as any),
       }
-      await updateUserState(supabase, userId, scope, { temp_memory: mergedTempMemory })
+      // IMPORTANT: deletions don't survive `{...a, ...b}`. If deep_reasons ended this turn,
+      // force-remove the key so we don't resurrect a stale closing loop.
+      if (!drResult.newState) {
+        try { delete (mergedTempMemory as any).deep_reasons_state } catch {}
+      }
+      const modeOut: AgentMode = drResult.newState ? "architect" : "companion"
+      await updateUserState(supabase, userId, scope, { temp_memory: mergedTempMemory, current_mode: modeOut })
       
       await trace("brain:deep_reasons_turn", "agent", {
         phase: drResult.newState?.phase ?? "ended",
@@ -3508,7 +3836,35 @@ export async function processMessage(
         const nextTopic = findNextSameTypeTopic(deferredTopics, "deep_reasons_exploration")
         if (nextTopic) {
           const brief = nextTopic.signal_summaries?.[0]?.summary ?? nextTopic.action_target ?? "un autre point"
-          contentOut = `${contentOut}\n\nAu fait, tu avais aussi mentionné \"${brief}\". On le creuse maintenant ou plus tard ?`
+          // Generate a natural transition (no brittle template/quotes).
+          try {
+            const prompt = `Tu es Sophia. Tu dois ajouter UNE transition naturelle en fin de message.
+
+CONTEXTE: on vient de terminer une exploration courte.
+SUJET SUIVANT EN ATTENTE: ${String(brief).slice(0, 140)}
+
+RÈGLES:
+- 1 à 2 phrases max
+- Ton naturel, pas administratif
+- Laisse le choix (maintenant / plus tard)
+- Ne mets pas le sujet entre guillemets
+- 1 emoji max
+
+Réponds uniquement avec la transition:`
+            const transition = await generateWithGemini(prompt, "", 0.4, false, [], "auto", {
+              requestId: meta?.requestId,
+              model: meta?.model ?? "gemini-2.5-flash",
+              source: "sophia-brain:router:deep_reasons_auto_chain",
+            })
+            const t = String(transition ?? "").trim()
+            if (t) {
+              contentOut = `${contentOut}\n\n${t}`.trim()
+            } else {
+              contentOut = `${contentOut}\n\nAu fait, tu avais aussi mentionné ${brief}. On le creuse maintenant ou plus tard ?`.trim()
+            }
+          } catch {
+            contentOut = `${contentOut}\n\nAu fait, tu avais aussi mentionné ${brief}. On le creuse maintenant ou plus tard ?`.trim()
+          }
           await traceV("brain:auto_chaining_injected", "routing", {
             closed_type: "deep_reasons_exploration",
             next_topic_id: nextTopic.id,
@@ -3520,7 +3876,7 @@ export async function processMessage(
       turnMetrics.state_flags.checkup_active = Boolean(checkupActive)
       turnMetrics.state_flags.toolflow_active = Boolean(toolFlowActiveGlobal)
       emitTurnSummary(turnMetrics, supabase)
-      return { content: normalizeChatText(contentOut), mode: "architect" as AgentMode, aborted: false }
+      return { content: normalizeChatText(contentOut), mode: modeOut, aborted: false }
     } catch (e) {
       console.error("[Router] Deep reasons execution failed:", e)
       // Fall through to normal agent execution

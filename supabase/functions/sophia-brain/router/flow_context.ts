@@ -6,6 +6,7 @@ import {
   getActiveCreateActionFlow,
   getActiveUpdateActionFlow,
   getActiveBreakdownActionFlow,
+  getActiveTrackProgressFlow,
   getActiveSafetyFirefighterFlow,
   getActiveSafetySentryFlow,
   getActiveActivateActionFlow,
@@ -23,6 +24,10 @@ export function machineMatchesSignalType(machineType: string | null, signalType:
     "create_action_flow": ["create_action_intent", "create_action"],
     "update_action_flow": ["update_action_intent", "update_action"],
     "breakdown_action_flow": ["breakdown_action_intent", "breakdown_action", "breakdown_intent"],
+    "activate_action_flow": ["activate_action_intent", "activate_action"],
+    "track_progress_flow": ["track_progress"],
+    "track_progress_consent": ["track_progress"],
+    "update_action_consent": ["update_action"],
     "topic_serious": ["topic_exploration_intent", "topic_serious"],
     "topic_light": ["topic_exploration_intent", "topic_light"],
     "deep_reasons_exploration": ["deep_reasons_intent", "deep_reasons"],
@@ -52,6 +57,17 @@ export function getActiveMachineType(tempMemory: any): string | null {
 
   // Check activate_action_flow
   if (getActiveActivateActionFlow(tempMemory)) return "activate_action_flow"
+
+  // Check track_progress_flow (supervisor) or legacy __update_flow_stage awaiting consent
+  if (getActiveTrackProgressFlow(tempMemory)) return "track_progress_flow"
+  {
+    const legacyStage = (tempMemory as any)?.__update_flow_stage
+    if (legacyStage && String(legacyStage.stage ?? "") === "awaiting_consent") {
+      const kind = String(legacyStage.kind ?? "")
+      if (kind === "track_progress") return "track_progress_consent"
+      if (kind === "update_action_structure") return "update_action_consent"
+    }
+  }
 
   // Check topic sessions
   const topicSession = getActiveTopicSession(tempMemory)
@@ -223,7 +239,44 @@ export function buildFlowContext(tempMemory: any, state?: any): FlowContext | un
       return withCheckup({
         activateActionTarget: meta?.target_action,
         activateExerciseType: meta?.exercise_type,
-        activateStatus: "exploring", // Default status for now
+        activateStatus: meta?.phase ?? "exploring",
+      })
+    }
+  }
+
+  // Track progress flow (supervisor-based or legacy awaiting consent)
+  {
+    const tpSession = getActiveTrackProgressFlow(tempMemory)
+    if (tpSession) {
+      const meta = tpSession.meta as any
+      const legacyStage = tm?.__update_flow_stage
+      const isAwaitingConsent = legacyStage &&
+        String(legacyStage.kind ?? "") === "track_progress" &&
+        String(legacyStage.stage ?? "") === "awaiting_consent"
+      return withCheckup({
+        trackProgressTarget: meta?.target_action ?? legacyStage?.draft?.target_name,
+        trackProgressStatusHint: meta?.status_hint ?? legacyStage?.draft?.status,
+        trackProgressAwaiting: isAwaitingConsent ?? false,
+      })
+    }
+    // Legacy-only track_progress consent (no supervisor session)
+    const legacyStage = tm?.__update_flow_stage
+    if (legacyStage &&
+        String(legacyStage.kind ?? "") === "track_progress" &&
+        String(legacyStage.stage ?? "") === "awaiting_consent") {
+      return withCheckup({
+        trackProgressTarget: legacyStage.draft?.target_name,
+        trackProgressStatusHint: legacyStage.draft?.status,
+        trackProgressAwaiting: true,
+      })
+    }
+    // Legacy update_action_structure consent
+    if (legacyStage &&
+        String(legacyStage.kind ?? "") === "update_action_structure" &&
+        String(legacyStage.stage ?? "") === "awaiting_consent") {
+      return withCheckup({
+        updateActionOldTarget: legacyStage.draft?.target_name,
+        updateActionOldAwaiting: true,
       })
     }
   }

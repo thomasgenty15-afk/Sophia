@@ -131,6 +131,7 @@ export async function runAgentAndVerify(opts: {
           userId,
           { items: stats.items, completed: stats.completed, missed: stats.missed },
           "chat_stop",
+          "partial",
         )
       } catch {}
 
@@ -582,12 +583,16 @@ export async function runAgentAndVerify(opts: {
             userId,
             { items: stats.items, completed: stats.completed, missed: stats.missed },
             "chat",
+            "full",
           )
           
           const tm = (state as any)?.temp_memory ?? {}
           await updateUserState(supabase, userId, scope, { 
             investigation_state: null,
-            temp_memory: { ...tm, __flow_just_closed_normally: true },
+            temp_memory: { ...tm, __flow_just_closed_normally: {
+              flow_type: "bilan_complete",
+              closed_at: new Date().toISOString(),
+            } },
           })
           nextMode = "companion"
           console.log(`[Router] Bilan complete. Logged: ${stats.completed}/${stats.items} completed, ${stats.missed} missed. Auto-relaunch flagged.`)

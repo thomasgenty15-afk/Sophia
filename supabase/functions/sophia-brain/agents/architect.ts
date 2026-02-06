@@ -1,7 +1,8 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 
 import { normalizeScope } from "../state-manager.ts"
-import { getAnyActiveToolFlow } from "../supervisor.ts"
+import { getAnyActiveToolFlow, getActiveActivateActionFlow, getActivateActionFlowPhase } from "../supervisor.ts"
+import { buildActivateActionFlowAddon } from "./architect/tool_flow_prompts.ts"
 
 // Public API (router/agent_exec.ts depends on these exports)
 export type { ArchitectModelOutput } from "./architect/types.ts"
@@ -379,7 +380,19 @@ export async function runArchitect(
     ? `\n\n=== TOOL FLOW ACTIF (${activeToolFlow.type}) ===\n${flowStr}\n\nRÈGLES FLOW:\n- Si un flow est actif, réponds brièvement à la digression puis REVIENS au flow.\n- Tu peux annuler si l'utilisateur dit explicitement "annule / laisse tomber / stop".\n- Si c'est un flow de création: ne crée rien sans consentement explicite ("ok vas-y", "tu peux l'ajouter").\n- Si c'est une habitude: propose jours fixes vs au feeling; ne dis pas "j'ai programmé" sans choix.\n`
     : ""
 
-  const systemPrompt = `${basePrompt}${flowContext}`.trim()
+  // ---- Activate action flow addon (machine-driven, phase-specific guidance)
+  const activateSession = getActiveActivateActionFlow(tm0)
+  const activatePhase = getActivateActionFlowPhase(tm0)
+  const activateFlowAddon = (activateSession && activatePhase)
+    ? `\n\n${buildActivateActionFlowAddon({
+        targetAction: (activateSession.meta as any)?.target_action ?? "une action",
+        exerciseType: (activateSession.meta as any)?.exercise_type,
+        phase: activatePhase as "exploring" | "confirming" | "activated" | "abandoned",
+        isWhatsApp,
+      })}`
+    : ""
+
+  const systemPrompt = `${basePrompt}${flowContext}${activateFlowAddon}`.trim()
   const baseTools = getArchitectTools()
   // In Module (UI) conversations, default to discussion-first: no tools unless the user explicitly asks.
   const tools = (isModuleUi && !looksLikeExplicitPlanOperationRequest(message)) ? [] : baseTools

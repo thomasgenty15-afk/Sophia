@@ -19,10 +19,7 @@ import {
   hasActualChanges,
   getChangeType,
 } from "./update_action_candidate_types.ts"
-import {
-  looksLikeYesToProceed,
-  looksLikeNoToProceed,
-} from "./consent.ts"
+// Consent detection is now AI-driven via dispatcher signals (no regex imports needed)
 import { formatDaysFrench } from "./dates.ts"
 import { logToolLedgerEvent } from "../../lib/tool_ledger.ts"
 
@@ -133,35 +130,6 @@ export function generateUpdateAbandonmentMessage(candidate: UpdateActionCandidat
 }
 
 /**
- * Detect if user wants to modify the proposed changes.
- */
-export function looksLikeUpdateModificationRequest(message: string): boolean {
-  const s = String(message ?? "").trim().toLowerCase()
-  if (!s) return false
-
-  // "oui mais..." or "ok mais..." patterns
-  const yesBut = /^(oui|ok|d['']accord|ça\s+marche)\s+(mais|sauf|par\s+contre)\b/i.test(s)
-  if (yesBut) return true
-
-  // "non, plutôt..." or "non, je préfère..." patterns
-  const noPrefer = /^non[\s,]+(plut[oô]t|je\s+pr[ée]f[èe]re|je\s+voudrais|mets|change)/i.test(s)
-  if (noPrefer) return true
-
-  // Explicit modification verbs with parameter context
-  const hasModVerb = /\b(change|modifie|ajuste|mets|met|passe|préfère|voudrais|plutôt)\b/i.test(s)
-  const hasParamContext = /\b(fréquence|fois|jour|jours|matin|soir|nuit|après[-\s]?midi|semaine|titre|nom)\b/i.test(s)
-  if (hasModVerb && hasParamContext) return true
-
-  // Specific frequency change patterns
-  if (/\b(\d+)\s*(fois|x)\s*(par\s+semaine|\/\s*semaine)?\b/i.test(s)) {
-    const notJustNumber = s.length > 10 || /\b(plutôt|préfère|change|mets|met)\b/i.test(s)
-    if (notJustNumber) return true
-  }
-
-  return false
-}
-
-/**
  * Extract modification info from user message for updates.
  */
 export function extractUpdateModificationInfo(message: string): {
@@ -215,29 +183,9 @@ export function extractUpdateModificationInfo(message: string): {
     return { field: "days", value: mentionedDays, raw_modification: mentionedDays.join(", ") }
   }
 
-  // If we detect modification intent but can't extract specific info
-  if (looksLikeUpdateModificationRequest(message)) {
-    return { raw_modification: s.slice(0, 100) }
-  }
-
-  return null
-}
-
-/**
- * Detect if user is abandoning the update flow.
- */
-export function looksLikeAbandonUpdate(message: string): boolean {
-  const s = String(message ?? "").trim().toLowerCase()
-  if (!s) return false
-
-  const abandonPatterns = [
-    /^(non|nan|nope)\s*[.!]?\s*$/i,
-    /\b(laisse\s+tomber|oublie|on\s+oublie|pas\s+maintenant|annule|laisse\s+comme\s+[çc]a)\b/i,
-    /\b(je\s+veux\s+pas|je\s+ne\s+veux\s+pas|touche\s+pas)\b/i,
-    /\b(finalement\s+non|en\s+fait\s+non|non\s+merci)\b/i,
-  ]
-
-  return abandonPatterns.some((p) => p.test(s))
+  // In this flow, "modify" intent is already AI-classified by dispatcher.
+  // If we can't extract a specific field, return a raw snippet for logging/clarification prompts.
+  return { raw_modification: s.slice(0, 100) }
 }
 
 /**
@@ -275,12 +223,40 @@ export function applyUpdateModification(
 /**
  * Process user response in the preview phase.
  */
+/**
+ * Process user response in the preview phase.
+ * Classification (yes/no/modify/abandon) is AI-driven via dispatcher signals.
+ * Only structured extraction (field, value) uses deterministic parsing.
+ */
 export function processUpdatePreviewResponse(
   candidate: UpdateActionCandidate,
-  userMessage: string
+  userMessage: string,
+  aiSignals?: { confirmed?: boolean; abandoned?: boolean; modify?: boolean }
 ): UpdateActionFlowResult {
-  // Check for abandonment first
-  if (looksLikeAbandonUpdate(userMessage)) {
+  // ── AI-driven classification (dispatcher machine_signals) ──────────────
+
+  // User confirmed → apply update
+  if (aiSignals?.confirmed) {
+    if (!hasActualChanges(candidate)) {
+      return {
+        response: generateUpdateAbandonmentMessage(candidate, "no_changes"),
+        candidate: updateUpdateCandidate(candidate, { status: "abandoned" }),
+        shouldApply: false,
+        shouldAbandon: true,
+        toolExecution: "none",
+      }
+    }
+    return {
+      response: "",
+      candidate: updateUpdateCandidate(candidate, { status: "applied" }),
+      shouldApply: true,
+      shouldAbandon: false,
+      toolExecution: "success",
+    }
+  }
+
+  // User abandoned → graceful exit
+  if (aiSignals?.abandoned) {
     return {
       response: generateUpdateAbandonmentMessage(candidate, "user_declined"),
       candidate: updateUpdateCandidate(candidate, { status: "abandoned" }),
@@ -290,11 +266,10 @@ export function processUpdatePreviewResponse(
     }
   }
 
-  // Check for modification request
-  if (looksLikeUpdateModificationRequest(userMessage)) {
+  // User wants a modification → extract structured data then re-show preview
+  if (aiSignals?.modify) {
     const modInfo = extractUpdateModificationInfo(userMessage)
 
-    // Check if max clarifications reached
     if (shouldAbandonUpdateCandidate(candidate)) {
       return {
         response: generateUpdateAbandonmentMessage(candidate, "max_clarifications"),
@@ -305,10 +280,8 @@ export function processUpdatePreviewResponse(
       }
     }
 
-    // Apply modification if available
     if (modInfo?.field) {
       const updatedCandidate = applyUpdateModification(candidate, modInfo)
-      // Re-show preview with new changes
       return {
         response: generateUpdatePreviewMessage(updatedCandidate),
         candidate: updateUpdateCandidate(updatedCandidate, {
@@ -321,7 +294,6 @@ export function processUpdatePreviewResponse(
       }
     }
 
-    // No specific modification info, ask for clarification
     return {
       response: generateUpdateClarificationQuestion(candidate),
       candidate: updateUpdateCandidate(candidate, {
@@ -334,29 +306,8 @@ export function processUpdatePreviewResponse(
     }
   }
 
-  // Check for positive response
-  if (looksLikeYesToProceed(userMessage)) {
-    // Verify there are actual changes
-    if (!hasActualChanges(candidate)) {
-      return {
-        response: generateUpdateAbandonmentMessage(candidate, "no_changes"),
-        candidate: updateUpdateCandidate(candidate, { status: "abandoned" }),
-        shouldApply: false,
-        shouldAbandon: true,
-        toolExecution: "none",
-      }
-    }
+  // ── No AI signal (unclear) ─────────────────────────────────────────────
 
-    return {
-      response: "", // Will be filled by caller after DB update
-      candidate: updateUpdateCandidate(candidate, { status: "applied" }),
-      shouldApply: true,
-      shouldAbandon: false,
-      toolExecution: "success",
-    }
-  }
-
-  // Unclear response - ask for confirmation if first time
   if (candidate.clarification_count === 0) {
     return {
       response: "Je suis pas sûr de comprendre. Tu veux que je fasse cette modification, oui ou non ?",
@@ -369,7 +320,7 @@ export function processUpdatePreviewResponse(
     }
   }
 
-  // Second unclear response - abandon gracefully
+  // Max clarifications → abandon gracefully
   return {
     response: generateUpdateAbandonmentMessage(candidate, "max_clarifications"),
     candidate: updateUpdateCandidate(candidate, { status: "abandoned" }),

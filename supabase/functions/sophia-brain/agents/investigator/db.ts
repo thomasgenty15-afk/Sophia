@@ -640,6 +640,9 @@ export async function wasCheckupDoneToday(
       .from("user_checkup_logs")
       .select("id")
       .eq("user_id", userId)
+      // Only count FULL checkups as "done today".
+      // Partial (user-aborted) checkups are logged but should not block a restart later the same day.
+      .eq("completion_kind", "full")
       .gte("completed_at", `${today}T00:00:00`)
       .limit(1)
       .maybeSingle()
@@ -659,7 +662,8 @@ export async function logCheckupCompletion(
   supabase: SupabaseClient,
   userId: string,
   stats: { items: number; completed: number; missed: number },
-  source: "chat" | "chat_stop" | "cron" | "manual" = "chat"
+  source: "chat" | "chat_stop" | "cron" | "manual" = "chat",
+  completionKind: "full" | "partial" = "full",
 ): Promise<void> {
   try {
     await supabase.from("user_checkup_logs").insert({
@@ -668,6 +672,7 @@ export async function logCheckupCompletion(
       completed_count: stats.completed,
       missed_count: stats.missed,
       source,
+      completion_kind: completionKind,
     })
     console.log(`[Investigator] Checkup logged: ${stats.completed}/${stats.items} completed, ${stats.missed} missed`)
   } catch (e) {

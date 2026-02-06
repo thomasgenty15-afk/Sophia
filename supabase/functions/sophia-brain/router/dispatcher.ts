@@ -375,6 +375,7 @@ export interface MachineSignals {
   deep_reasons_opportunity?: boolean
   create_action_intent?: boolean
   update_action_intent?: boolean
+  activate_action_intent?: boolean
   user_consents_defer?: boolean
   
   // bilan/investigation (confirmation signals for deferred machines)
@@ -540,6 +541,37 @@ REGLE CRITIQUE - ATTENTION AU "NON" SUIVI DE "JE VEUX":
 SORTIE JSON:
 {
   "flow_resolution": { "kind": "NONE|ACK_DONE|WANTS_RESUME|DECLINES_RESUME|WANTS_PAUSE", "confidence": 0.0-1.0 }
+}
+`
+
+/**
+ * Interrupt detection - user explicitly wants to stop/pause the current flow or change topic.
+ * Used by the router for hard-guard interruptions (notably active checkup/bilan).
+ */
+const INTERRUPT_SECTION = `
+=== DETECTION INTERRUPT ===
+But: detecter si l'utilisateur veut ARRETER net / FAIRE UNE PAUSE / CHANGER DE SUJET.
+
+VALEURS POSSIBLES:
+- "EXPLICIT_STOP": l'utilisateur demande explicitement d'arreter / stop / "on s'arrete la"
+  Exemples: "arrête", "stop", "on arrête", "on s'arrête là", "je veux arrêter"
+  ⚠️ IMPORTANT (bilan/checkup): si un bilan est ACTIF, considerer aussi comme EXPLICIT_STOP
+  les demandes de REPORT explicites du bilan, ex:
+  - "je veux le faire plus tard"
+  - "je veux le faire ce soir"
+  - "je veux le faire demain"
+  - "on fera ça ce soir/demain", "on le fait plus tard"
+  (meme si le mot "bilan" n'est pas répété, si le contexte est clairement le bilan en cours)
+  ⚠️ ANTI-FAUX-POSITIFS: ne pas mettre EXPLICIT_STOP si "arrête de ..." vise autre chose
+  (ex: "arrête de me tutoyer", "arrête de me poser des questions") sauf si l'utilisateur dit clairement qu'il veut arrêter le BILAN.
+- "BORED": desinteret/ennui ("bof", "ok...", "laisse tomber", "on s'en fout") sans forcement changer de sujet
+- "SWITCH_TOPIC": l'utilisateur introduit un autre sujet ("sinon", "au fait") → nouveau sujet clair
+- "DIGRESSION": petit ecart temporaire (anecdote, question rapide) sans intention de changer durablement
+- "NONE": aucun des cas
+
+SORTIE JSON:
+{
+  "interrupt": { "kind": "NONE|EXPLICIT_STOP|BORED|SWITCH_TOPIC|DIGRESSION", "confidence": 0.0-1.0 }
 }
 `
 
@@ -893,6 +925,13 @@ export interface FlowContext {
   activateActionTarget?: string
   activateExerciseType?: string
   activateStatus?: string  // exploring | confirming | activated | abandoned
+  /** For track_progress: consent flow context */
+  trackProgressTarget?: string
+  trackProgressStatusHint?: string
+  trackProgressAwaiting?: boolean
+  /** For legacy update_action_structure consent */
+  updateActionOldTarget?: string
+  updateActionOldAwaiting?: boolean
   /** For profile confirmation: additional context */
   profileConfirmPhase?: string  // presenting | awaiting_confirm | processing | completed
   profileConfirmQueueSize?: number
@@ -1639,6 +1678,58 @@ Guide d'interpretation:
 `
     return checkupAddon ? `${addon}\n${checkupAddon}` : addon
   }
+
+  if (activeMachine === "track_progress_flow" || activeMachine === "track_progress_consent") {
+    const target = flowContext?.trackProgressTarget ?? "une action"
+    const statusHint = flowContext?.trackProgressStatusHint ?? "inconnu"
+    const awaiting = flowContext?.trackProgressAwaiting ?? false
+
+    let addon = `
+=== SIGNAUX SPECIFIQUES (track_progress en cours) ===
+Sophia a proposé de noter le suivi d'une action, et attend la réponse.
+
+Action: "${target}"
+Statut proposé: ${statusHint}
+En attente de consentement: ${awaiting ? "OUI" : "non"}
+
+SIGNAUX A DETECTER:
+{
+  "machine_signals": {
+    "user_confirms_tracking": true | false | null
+  }
+}
+
+GUIDE:
+- user_confirms_tracking = true si "oui", "ok", "vas-y", "note-le", "c'est bon", "ouais", "exact", "oui c'est fait", toute forme d'accord
+- user_confirms_tracking = false si "non", "en fait non", "laisse", "annule", "pas vraiment", toute forme de refus
+- user_confirms_tracking = null si ambigu, hors-sujet, ou pas clair
+`
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
+  }
+
+  if (activeMachine === "update_action_consent") {
+    const target = flowContext?.updateActionOldTarget ?? "une action"
+
+    let addon = `
+=== SIGNAUX SPECIFIQUES (update_action en attente de consentement) ===
+Sophia a proposé de modifier une action, et attend la confirmation.
+
+Action à modifier: "${target}"
+
+SIGNAUX A DETECTER:
+{
+  "machine_signals": {
+    "user_confirms_change": "yes" | "no" | null
+  }
+}
+
+GUIDE:
+- user_confirms_change = "yes" si "oui", "ok", "vas-y", "fais-le", "c'est bon", toute forme d'accord
+- user_confirms_change = "no" si "non", "en fait non", "annule", toute forme de refus
+- user_confirms_change = null si ambigu ou pas clair
+`
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
+  }
   
   if (activeMachine === "topic_serious" || activeMachine === "topic_light") {
     const isSerious = activeMachine === "topic_serious"
@@ -2023,7 +2114,44 @@ REGLE EMPATHIE (CRITIQUE):
   if (activeMachine === "activate_action_flow") {
     const target = flowContext?.activateActionTarget ?? "une action"
     const exercise = flowContext?.activateExerciseType
+    const currentPhase = flowContext?.activateStatus ?? "exploring"
     
+    const phaseSpecificGuidance = currentPhase === "confirming"
+      ? `
+PHASE ACTUELLE: CONFIRMING (en attente de confirmation)
+═══════════════════════════════════════════════════════════════════════════════
+⚠️ CRITIQUE: On a demandé à l'utilisateur s'il veut activer "${target}".
+On attend sa réponse OUI ou NON.
+
+DETECTION PRIORITAIRE:
+- user_confirms_activation = true si l'utilisateur dit OUI de quelque manière que ce soit:
+  "oui", "ouii", "ouais", "ui", "ok", "go", "vas-y", "on fait ça", "je veux",
+  "je m'y mets", "active", "active-la", "let's go", "yep", "ouep", "carrément",
+  "bien sûr", "évidemment", "ok go", "parfait", "d'accord", "c'est parti",
+  ou tout message qui ressemble à un accord/consentement de près ou de loin.
+- user_confirms_activation = false si l'utilisateur dit NON:
+  "non", "pas maintenant", "plus tard", "laisse", "annule", "non merci"
+- user_confirms_activation = null si le message n'est ni oui ni non
+  (question, digression, autre sujet)
+
+IMPORTANT: Sois TRÈS PERMISSIF pour le "oui". Tout ce qui n'est pas un refus
+explicite et qui suit une question de confirmation = oui.
+`
+      : currentPhase === "exploring"
+      ? `
+PHASE ACTUELLE: EXPLORING (identification de l'action)
+═══════════════════════════════════════════════════════════════════════════════
+On cherche quelle action l'utilisateur veut activer.
+
+DETECTION:
+- activation_ready = true si l'action est clairement identifiée et prête
+- user_wants_different_action = "nom" si l'utilisateur veut une AUTRE action
+- user_abandons = true si l'utilisateur ne veut plus ("laisse", "pas maintenant")
+`
+      : `
+PHASE ACTUELLE: ${currentPhase.toUpperCase()}
+`
+
     return `
 ═══════════════════════════════════════════════════════════════════════════════
 🎯 activate_action_flow ACTIF - Machine d'Activation d'Action
@@ -2031,7 +2159,8 @@ REGLE EMPATHIE (CRITIQUE):
 
 ACTION CIBLE: "${target}"
 ${exercise ? `EXERCICE SPECIFIQUE: "${exercise}"` : ""}
-STATUT: ${flowContext?.activateStatus ?? "exploring"}
+
+${phaseSpecificGuidance}
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
 │  DIAGRAMME DE PHASES                                                        │
@@ -2044,11 +2173,6 @@ STATUT: ${flowContext?.activateStatus ?? "exploring"}
 │                                                                             │
 └─────────────────────────────────────────────────────────────────────────────┘
 
-TRANSITIONS:
-- exploring → confirming: L'utilisateur a identifie l'action a activer
-- confirming → activated: user_confirms_activation = true
-- * → abandoned: user_abandons = true OU user_wants_different_action detecte
-
 SIGNAUX A DETECTER (dans machine_signals):
 {
   "machine_signals": {
@@ -2058,12 +2182,6 @@ SIGNAUX A DETECTER (dans machine_signals):
     "user_abandons": true | false
   }
 }
-
-INTERPRETATION:
-- user_confirms_activation: true si "oui", "go", "on fait ca", "je m'y mets"
-- user_wants_different_action: si l'utilisateur veut activer une AUTRE action
-- activation_ready: true si l'action est clairement identifiee et prete a etre activee
-- user_abandons: true si "non", "laisse", "pas maintenant", "on verra"
 
 IMPORTANT:
 - L'activation concerne des actions DORMANTES ou FUTURES du plan
@@ -2170,6 +2288,7 @@ Analyse ces signaux et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
     "deep_reasons_opportunity": true | false,
     "create_action_intent": true | false,
     "update_action_intent": true | false,
+    "activate_action_intent": true | false,
     "user_consents_defer": true | false,
     "confirm_deep_reasons": true | false | null,
     "confirm_breakdown": true | false | null,
@@ -2182,6 +2301,7 @@ Guide d'interpretation - SIGNAUX DE DETECTION:
 - deep_reasons_opportunity: true si blocage MOTIVATIONNEL (pas envie, peur, sens, flemme, "je sais pas pourquoi")
 - create_action_intent: true si l'utilisateur veut creer une NOUVELLE action (pas modifier l'actuelle)
 - update_action_intent: true si l'utilisateur veut modifier une action EXISTANTE (frequence, jours, horaire)
+- activate_action_intent: true si l'utilisateur veut ACTIVER une action dormante/future ("je veux commencer le sport", "active la meditation")
 - user_consents_defer: true si l'utilisateur dit "oui" a une proposition de faire quelque chose apres le bilan
   ("oui on fait ca apres", "ok apres le bilan", "oui je veux qu'on en parle", etc.)
 
@@ -2240,6 +2360,9 @@ ETAT ACTUEL:
 
   // Add mother signals (always)
   prompt += MOTHER_SIGNALS_SECTION
+
+  // Add interrupt detection guidance (always) - used by router hard guards (notably active bilan/checkup).
+  prompt += INTERRUPT_SECTION
   
   // Add flow resolution detection only when it's actionable:
   // - active machine exists OR there are deferred topics / pending consent.
@@ -2794,6 +2917,9 @@ Reponds UNIQUEMENT avec le JSON:`
       if (ms.update_action_intent !== undefined) {
         machineSignals.update_action_intent = Boolean(ms.update_action_intent)
       }
+      if (ms.activate_action_intent !== undefined) {
+        machineSignals.activate_action_intent = Boolean(ms.activate_action_intent)
+      }
       if (ms.user_consents_defer !== undefined) {
         machineSignals.user_consents_defer = Boolean(ms.user_consents_defer)
       }
@@ -3000,8 +3126,8 @@ Reponds UNIQUEMENT avec le JSON:`
 // DEFERRED SIGNAL HELPERS
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type DeferredMachineType = "deep_reasons" | "topic_light" | "topic_serious" | 
-                                   "create_action" | "update_action" | "breakdown_action"
+// DeferredMachineType imported from deferred_topics_v2.ts (single source of truth)
+import type { DeferredMachineType } from "./deferred_topics_v2.ts"
 
 /**
  * Determine which machine type a signal would trigger (if any).
@@ -3025,7 +3151,18 @@ export function detectMachineTypeFromSignals(signals: DispatcherSignals): {
     }
   }
   
-  // 2. Create action
+  // 2. Activate action (dormant/future action)
+  if (signals.activate_action.detected && signals.activate_action.confidence >= 0.6) {
+    return {
+      machine_type: "activate_action",
+      action_target: signals.activate_action.target_hint,
+      summary_hint: signals.activate_action.target_hint
+        ? `Veut activer ${signals.activate_action.target_hint}`
+        : "Veut activer une action dormante",
+    }
+  }
+  
+  // 3. Create action
   if (signals.create_action.intent_strength === "explicit" || 
       signals.create_action.intent_strength === "implicit") {
     if (signals.create_action.confidence >= 0.6) {
@@ -3039,7 +3176,7 @@ export function detectMachineTypeFromSignals(signals: DispatcherSignals): {
     }
   }
   
-  // 3. Update action
+  // 4. Update action
   if (signals.update_action.detected && signals.update_action.confidence >= 0.6) {
     const changeDesc = signals.update_action.change_type !== "unknown" 
       ? ` (${signals.update_action.change_type})`
@@ -3053,7 +3190,7 @@ export function detectMachineTypeFromSignals(signals: DispatcherSignals): {
     }
   }
   
-  // 4. Deep reasons
+  // 5. Deep reasons
   if (signals.deep_reasons.opportunity && signals.deep_reasons.confidence >= 0.6) {
     return {
       machine_type: "deep_reasons",
@@ -3064,7 +3201,7 @@ export function detectMachineTypeFromSignals(signals: DispatcherSignals): {
     }
   }
   
-  // 5. Topic exploration (serious or light)
+  // 6. Topic exploration (serious or light)
   if (signals.topic_depth.value !== "NONE" && signals.topic_depth.confidence >= 0.6) {
     if (signals.topic_depth.value === "SERIOUS" || signals.topic_depth.value === "NEED_SUPPORT") {
       return {

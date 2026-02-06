@@ -61,6 +61,8 @@ ou rester silencieux si c'est redondant. Continue ensuite avec le sujet en cours
       return buildCreateActionAddon(ctx)
     case "update_action":
       return buildUpdateActionAddon(ctx)
+    case "activate_action":
+      return buildActivateActionAddon(ctx)
     case "track_progress":
       return buildTrackProgressAddon(ctx)
     case "checkup":
@@ -243,6 +245,42 @@ Si user dit "3 fois par semaine c'est trop, je veux réduire":
 CE QU'IL FAUT ÉVITER:
 • Commencer la modification maintenant
 • Juger le changement demandé
+
+Après l'acquittement, continue NORMALEMENT avec ${ctx.currentMachineTarget || "le sujet en cours"}.
+`
+}
+
+function buildActivateActionAddon(ctx: DeferredSignalAddonContext): string {
+  return `
+═══════════════════════════════════════════════════════════════════════════════
+⏸️ SIGNAL DIFFÉRÉ: ACTIVATE_ACTION (Activation d'action dormante)
+═══════════════════════════════════════════════════════════════════════════════
+
+Le dispatcher a détecté une INTENTION D'ACTIVER UNE ACTION dans ce message:
+"${ctx.userMessage.slice(0, 200)}${ctx.userMessage.length > 200 ? "..." : ""}"
+
+CE QUI A DÉCLENCHÉ LE SIGNAL:
+L'utilisateur veut activer ou commencer une action dormante/future de son plan.
+
+${ctx.action_target ? `Action cible: "${ctx.action_target}"` : ""}
+
+TA MISSION:
+Au DÉBUT de ta réponse, acquitte ce signal de manière PERSONNALISÉE:
+1. Identifie l'action que l'utilisateur veut activer
+2. Confirme que tu as noté
+3. Indique qu'on s'en occupe après ${ctx.currentMachineTarget || "le sujet en cours"}
+
+EXEMPLES DE BONNES FORMULATIONS:
+
+Si user dit "je veux commencer le sport":
+→ "Le sport, noté. On s'occupe de l'activer juste après [sujet en cours]."
+
+Si user dit "active la méditation":
+→ "Ok pour la méditation, on fait ça après [sujet en cours]."
+
+CE QU'IL FAUT ÉVITER:
+• Commencer à activer l'action maintenant
+• Demander des détails sur l'activation maintenant
 
 Après l'acquittement, continue NORMALEMENT avec ${ctx.currentMachineTarget || "le sujet en cours"}.
 `

@@ -32,6 +32,7 @@ export type DeferredMachineType =
   | "create_action"
   | "update_action"
   | "breakdown_action"
+  | "activate_action"  // Activate a dormant/future action
   | "checkup"  // User-initiated bilan request
   | "track_progress"  // Log action progress after current flow
   | "user_profile_confirmation"  // Confirm detected user profile facts
@@ -523,9 +524,11 @@ export function isToolMachine(machineType: DeferredMachineType | SupervisorSessi
   return machineType === "create_action_flow" ||
          machineType === "update_action_flow" ||
          machineType === "breakdown_action_flow" ||
+         machineType === "activate_action_flow" ||
          machineType === "create_action" ||
          machineType === "update_action" ||
-         machineType === "breakdown_action"
+         machineType === "breakdown_action" ||
+         machineType === "activate_action"
 }
 
 /**
@@ -539,6 +542,8 @@ export function sessionTypeToMachineType(sessionType: SupervisorSessionType): De
       return "update_action"
     case "breakdown_action_flow":
       return "breakdown_action"
+    case "activate_action_flow":
+      return "activate_action"
     case "deep_reasons_exploration":
       return "deep_reasons"
     case "topic_serious":
@@ -561,6 +566,8 @@ export function machineTypeToSessionType(machineType: DeferredMachineType): Supe
       return "update_action_flow"
     case "breakdown_action":
       return "breakdown_action_flow"
+    case "activate_action":
+      return "activate_action_flow"
     case "track_progress":
       return null
     case "deep_reasons":

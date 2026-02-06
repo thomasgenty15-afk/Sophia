@@ -176,6 +176,7 @@ export async function handleSignalDeferral(opts: {
         activeType === "create_action_flow" ? "create_action" :
         activeType === "update_action_flow" ? "update_action" :
         activeType === "breakdown_action_flow" ? "breakdown_action" :
+        activeType === "activate_action_flow" ? "activate_action" :
         activeType === "deep_reasons_exploration" ? "deep_reasons" :
         activeType
       return activeAsMachineType === newMachineSignal.machine_type
@@ -288,6 +289,8 @@ export async function handleSignalDeferral(opts: {
         delete (tempMemory as any).__create_action_signal
       } else if (newMachineSignal.machine_type === "update_action") {
         delete (tempMemory as any).__update_action_signal
+      } else if (newMachineSignal.machine_type === "activate_action") {
+        delete (tempMemory as any).__activate_action_signal
       } else if (newMachineSignal.machine_type === "deep_reasons") {
         delete (tempMemory as any).__deep_reasons_opportunity
       }

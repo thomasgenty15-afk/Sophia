@@ -12,6 +12,7 @@ import {
   upsertBreakdownActionFlow,
   upsertUpdateActionFlow,
   upsertCreateActionFlow,
+  upsertActivateActionFlow,
   upsertTopicLight,
   upsertTopicSerious,
   upsertDeepReasonsExploration,
@@ -140,6 +141,11 @@ export function generateRelaunchConsentQuestion(topic: DeferredTopicV2): string 
       return target
         ? `Tu voulais modifier "${target}". On fait ça maintenant ?`
         : `Tu voulais modifier une action. Tu veux qu'on s'en occupe ?`
+
+    case "activate_action":
+      return target
+        ? `Tu voulais activer "${target}". On s'y met maintenant ?`
+        : `Tu voulais activer une action. Tu veux qu'on s'en occupe ?`
 
     case "track_progress":
       return `Tu voulais noter un progrès. On le fait maintenant ?`
@@ -319,6 +325,7 @@ function generateDeclineRelaunchMessage(pending: PendingRelaunchConsent): string
     case "breakdown_action":
     case "update_action":
     case "create_action":
+    case "activate_action":
       return target
         ? `Ok, pas de souci. Tu pourras me redemander pour "${target}" quand tu veux.`
         : `Ok, pas de souci. Tu pourras me redemander quand tu veux.`
@@ -382,6 +389,17 @@ function initializeMachineFromConsent(opts: {
         status: "exploring", // Start in exploring, not awaiting_confirm
       })
       const updated = upsertCreateActionFlow({ tempMemory, candidate })
+      tempMemory = updated.tempMemory
+      nextMode = "architect"
+      break
+    }
+
+    case "activate_action": {
+      const updated = upsertActivateActionFlow({
+        tempMemory,
+        targetAction: opts.actionTarget ?? "une action",
+        phase: "exploring",
+      })
       tempMemory = updated.tempMemory
       nextMode = "architect"
       break

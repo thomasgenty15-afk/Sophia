@@ -1488,12 +1488,22 @@ export function getActiveActivateActionFlow(tempMemory: any): SupervisorSession 
 }
 
 /**
+ * Phase for the activate_action_flow machine.
+ * - exploring: Identifying which action to activate
+ * - confirming: Action identified, awaiting user confirmation (oui/non)
+ * - activated: User confirmed, tool will be called
+ * - abandoned: User declined or stopped
+ */
+export type ActivateActionPhase = "exploring" | "confirming" | "activated" | "abandoned"
+
+/**
  * Upsert an activate_action_flow session.
  */
 export function upsertActivateActionFlow(opts: {
   tempMemory: any
   targetAction?: string
   exerciseType?: string
+  phase?: ActivateActionPhase
   now?: Date
 }): { tempMemory: any; changed: boolean } {
   const tm0 = safeObj(opts.tempMemory)
@@ -1505,6 +1515,7 @@ export function upsertActivateActionFlow(opts: {
 
   const targetAction = opts.targetAction ?? "une action"
   const exerciseType = opts.exerciseType
+  const phase: ActivateActionPhase = opts.phase ?? "exploring"
 
   const session: SupervisorSession = {
     id: mkId("sess_activate_action", opts.now),
@@ -1518,12 +1529,22 @@ export function upsertActivateActionFlow(opts: {
     meta: {
       target_action: targetAction,
       exercise_type: exerciseType,
+      phase,
     },
   }
 
   filtered.push(session)
   const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
   return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Get the current phase of the activate_action_flow machine.
+ */
+export function getActivateActionFlowPhase(tempMemory: any): ActivateActionPhase | null {
+  const session = getActiveActivateActionFlow(tempMemory)
+  if (!session) return null
+  return (session.meta as any)?.phase ?? "exploring"
 }
 
 /**

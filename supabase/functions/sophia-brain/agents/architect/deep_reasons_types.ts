@@ -71,6 +71,8 @@ export interface DeepReasonsState {
   selected_hypothesis?: string
   /** Type of intervention chosen based on resonance */
   intervention_type?: DeepReasonsInterventionType
+  /** Micro-commitment proposed by Sophia during closing prompt (normalized short form) */
+  micro_commitment_proposed?: string
   /** Micro-commitment proposed during closing */
   micro_commitment?: string
   /** Source of the exploration (deferred from bilan or direct) */

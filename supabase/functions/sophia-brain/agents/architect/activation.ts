@@ -37,6 +37,12 @@ export async function handleActivateAction(
 
   const phases = plan.content.phases || []
 
+  const normalizeTitle = (raw: unknown): string =>
+    String(raw ?? "")
+      .toLowerCase()
+      .trim()
+      .replace(/\s+/g, " ")
+
   // 2. Find target action & its phase
   let targetAction: any = null
   let targetPhaseIndex = -1
@@ -65,44 +71,118 @@ export async function handleActivateAction(
   if (targetPhaseIndex > 0) {
     const prevPhaseIndex = targetPhaseIndex - 1
     const prevPhase = phases[prevPhaseIndex]
-    const prevPhaseActionTitles = prevPhase.actions.map((a: any) => a.title)
+    const prevPhaseActions = Array.isArray(prevPhase?.actions) ? prevPhase.actions : []
+    const prevPhaseTitles = prevPhaseActions
+      .map((a: any) => String(a?.title ?? "").trim())
+      .filter((t: string) => t.length > 0)
 
-    const { data: dbActions } = await supabase
-      .from("user_actions")
-      .select("title, status")
-      .eq("plan_id", plan.id)
-      .in("title", prevPhaseActionTitles)
+    // Fetch all "activated" items for this plan.
+    // IMPORTANT:
+    // - previous phase may include frameworks (stored in user_framework_tracking, not user_actions)
+    // - titles may differ slightly (case/whitespace), so we match on normalized titles
+    // - statuses: treat active/pending as "activated"; ignore archived
+    const [{ data: dbActions }, { data: dbFrameworks }] = await Promise.all([
+      supabase
+        .from("user_actions")
+        .select("title, status")
+        .eq("plan_id", plan.id)
+        .neq("status", "archived"),
+      supabase
+        .from("user_framework_tracking")
+        .select("title, status")
+        .eq("plan_id", plan.id)
+        .neq("status", "archived"),
+    ])
 
-    const activatedCount = dbActions?.length || 0
-    const totalInPrevPhase = prevPhase.actions.length
-    if (activatedCount < totalInPrevPhase) {
-      const missingCount = totalInPrevPhase - activatedCount
-      return `REFUS_ACTIVATION_RAISON: "Murs avant toit".\n` +
-        `Explique à l'utilisateur qu'il reste ${missingCount} action(s) à activer dans la phase précédente ("${prevPhase.title}") avant de pouvoir lancer celle-ci.\n` +
-        `Sois pédagogue : "On construit solide, finissons les fondations d'abord."`
+    const activatedTitleSet = new Set<string>()
+    for (const row of (dbActions ?? [])) {
+      const st = String((row as any)?.status ?? "")
+      if (st && st !== "archived") activatedTitleSet.add(normalizeTitle((row as any)?.title))
+    }
+    for (const row of (dbFrameworks ?? [])) {
+      const st = String((row as any)?.status ?? "")
+      if (st && st !== "archived") activatedTitleSet.add(normalizeTitle((row as any)?.title))
+    }
+
+    const missingTitles = prevPhaseTitles.filter((t) => !activatedTitleSet.has(normalizeTitle(t)))
+    if (missingTitles.length > 0) {
+      const missingCount = missingTitles.length
+      const phaseTitle = String(prevPhase?.title ?? `Phase ${prevPhaseIndex + 1}`).trim()
+      const sample = missingTitles.slice(0, 3).map((t) => `- ${t}`).join("\n")
+      const more = missingCount > 3 ? `\n(et ${missingCount - 3} autre(s))` : ""
+      return [
+        `Je peux activer “${targetAction.title}”, mais avant il reste ${missingCount} action(s) à activer dans la phase précédente (“${phaseTitle}”).`,
+        sample ? `\n${sample}${more}` : "",
+        `\nOn construit solide — on finit les fondations d’abord. Tu veux que je t’aide à activer l’action manquante ?`,
+      ].join("\n").trim()
     }
   }
 
   // 4. Activate if not already active
-  const { data: existing } = await supabase
-    .from("user_actions")
-    .select("id, status")
-    .eq("plan_id", plan.id)
-    .ilike("title", targetAction.title)
-    .maybeSingle()
-
-  if (existing) {
-    const step = String(targetAction?.description ?? "").trim()
-    const firstStep = step ? step.split("\n")[0] : ""
-    return [
-      `“${targetAction.title}” est déjà active.`,
-      firstStep ? `Première étape: ${firstStep}` : "",
-      `Tu veux la garder au feeling, ou la caler à un repère (ex: après le dîner) ?`,
-    ].filter(Boolean).join("\n")
-  }
-
   const rawType = String((targetAction as any)?.type ?? "").toLowerCase().trim()
   const isFramework = rawType === "framework"
+  const step = String(targetAction?.description ?? "").trim()
+  const firstStep = step ? step.split("\n")[0] : ""
+
+  if (isFramework) {
+    const { data: existingFw } = await supabase
+      .from("user_framework_tracking")
+      .select("id, status")
+      .eq("plan_id", plan.id)
+      .ilike("title", targetAction.title)
+      .maybeSingle()
+
+    if (existingFw) {
+      const st = String((existingFw as any)?.status ?? "")
+      if (st === "active") {
+        return [
+          `“${targetAction.title}” est déjà active.`,
+          firstStep ? `Première étape: ${firstStep}` : "",
+          `Tu veux la garder au feeling, ou la caler à un repère (ex: après le dîner) ?`,
+        ].filter(Boolean).join("\n")
+      }
+      // Re-activate / promote pending → active
+      await supabase.from("user_framework_tracking").update({ status: "active" }).eq("id", (existingFw as any).id)
+      return [
+        `C’est bon — j’ai activé “${targetAction.title}”.`,
+        firstStep ? `Première étape: ${firstStep}` : "",
+        `Tu préfères la faire au feeling, ou on fixe des jours ? (Si on “cale” un moment, c’est juste un repère dans le plan — pas une notification automatique.)`,
+      ].filter(Boolean).join("\n")
+    }
+  } else {
+    const { data: existing } = await supabase
+      .from("user_actions")
+      .select("id, status")
+      .eq("plan_id", plan.id)
+      .ilike("title", targetAction.title)
+      .maybeSingle()
+
+    if (existing) {
+      const st = String((existing as any)?.status ?? "")
+      if (st === "active") {
+        return [
+          `“${targetAction.title}” est déjà active.`,
+          firstStep ? `Première étape: ${firstStep}` : "",
+          `Tu veux la garder au feeling, ou la caler à un repère (ex: après le dîner) ?`,
+        ].filter(Boolean).join("\n")
+      }
+      // Re-activate / promote pending → active
+      await supabase.from("user_actions").update({ status: "active" }).eq("id", (existing as any).id)
+      const isHabit = rawType === "habitude" || rawType === "habit"
+      if (isHabit) {
+        return [
+          `C’est bon — j’ai activé “${targetAction.title}”.`,
+          firstStep ? `Première étape: ${firstStep}` : "",
+          `Tu préfères la faire au feeling, ou on fixe des jours ? (Si on “cale” un moment, c’est juste un repère dans le plan — pas une notification automatique.)`,
+        ].filter(Boolean).join("\n")
+      }
+      return [
+        `C’est bon — j’ai activé “${targetAction.title}”.`,
+        firstStep ? `Première étape: ${firstStep}` : "",
+        `Tu veux la caler à un moment précis (juste un repère dans le plan — pas une notification), ou tu préfères la garder au feeling ?`,
+      ].filter(Boolean).join("\n")
+    }
+  }
 
   if (isFramework) {
     const fwType = String(targetAction.frameworkDetails?.type ?? "one_shot")
@@ -150,8 +230,6 @@ export async function handleActivateAction(
   }
 
   const isHabit = rawType === "habitude" || rawType === "habit"
-  const step = String(targetAction?.description ?? "").trim()
-  const firstStep = step ? step.split("\n")[0] : ""
   if (isHabit) {
     return [
       `C’est bon — j’ai activé “${targetAction.title}”.`,

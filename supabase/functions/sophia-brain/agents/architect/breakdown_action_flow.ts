@@ -15,7 +15,7 @@ import {
   shouldAbandonBreakdownCandidate,
   hasProposedStep,
 } from "./breakdown_candidate_types.ts"
-import { looksLikeYesToProceed, looksLikeNoToProceed } from "./consent.ts"
+// Consent detection is now AI-driven via dispatcher signals (no regex imports needed)
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Message generation
@@ -110,91 +110,18 @@ export interface BreakdownFlowResult {
 }
 
 /**
- * Detect if user wants to abandon the breakdown
- */
-export function looksLikeAbandonBreakdown(message: string): boolean {
-  const s = String(message ?? "").trim().toLowerCase()
-  if (!s) return false
-  
-  // Explicit abandonment
-  if (/^(non|nan|nope|pas maintenant|laisse|laisse tomber|oublie|annule|stop)/i.test(s)) return true
-  if (/\b(pas envie|pas besoin|on arr[êe]te|c['']est bon)\b/i.test(s)) return true
-  
-  return looksLikeNoToProceed(message)
-}
-
-/**
- * Detect if user wants a different micro-step
- */
-export function looksLikeWantsDifferentStep(message: string): boolean {
-  const s = String(message ?? "").trim().toLowerCase()
-  if (!s) return false
-  
-  // "non mais..." or "ok mais..." patterns
-  const yesBut = /^(oui|ok|d['']accord)\s+(mais|sauf|par\s+contre)\b/i.test(s)
-  if (yesBut) return true
-  
-  // "non, plutôt..." patterns
-  const noPrefer = /^non[\s,]+(plut[oô]t|je\s+pr[ée]f[èe]re|je\s+voudrais|autre)/i.test(s)
-  if (noPrefer) return true
-  
-  // Explicit different request
-  if (/\b(autre\s+chose|diff[ée]rent|autrement|plus\s+simple|encore\s+plus\s+petit)\b/i.test(s)) return true
-  
-  return false
-}
-
-/**
- * Process user response to the preview
+ * Process user response to the preview.
+ * Classification (yes/no/different/abandon) is AI-driven via dispatcher signals.
  */
 export function processBreakdownPreviewResponse(
   candidate: BreakdownCandidate,
-  userMessage: string
+  userMessage: string,
+  aiSignals?: { confirmed?: boolean; abandoned?: boolean; differentStep?: boolean }
 ): BreakdownFlowResult {
-  // Check for abandonment first
-  if (looksLikeAbandonBreakdown(userMessage)) {
-    return {
-      response: generateBreakdownAbandonmentMessage(candidate, "user_declined"),
-      candidate: updateBreakdownCandidate(candidate, { status: "abandoned" }),
-      shouldApply: false,
-      shouldAbandon: true,
-      needsNewProposal: false,
-      toolExecution: "none",
-    }
-  }
+  // ── AI-driven classification (dispatcher machine_signals) ──────────────
 
-  // Check for modification request (wants different step)
-  if (looksLikeWantsDifferentStep(userMessage)) {
-    // Check if max clarifications reached
-    if (shouldAbandonBreakdownCandidate(candidate)) {
-      return {
-        response: generateBreakdownAbandonmentMessage(candidate, "max_clarifications"),
-        candidate: updateBreakdownCandidate(candidate, { status: "abandoned" }),
-        shouldApply: false,
-        shouldAbandon: true,
-        needsNewProposal: false,
-        toolExecution: "none",
-      }
-    }
-
-    // Ask for clarification and request new proposal
-    return {
-      response: generateBreakdownClarificationQuestion(candidate),
-      candidate: updateBreakdownCandidate(candidate, {
-        clarification_count: candidate.clarification_count + 1,
-        last_clarification_reason: userMessage.slice(0, 200),
-        status: "awaiting_blocker", // Go back to collect new blocker
-      }),
-      shouldApply: false,
-      shouldAbandon: false,
-      needsNewProposal: true,
-      toolExecution: "blocked",
-    }
-  }
-
-  // Check for positive response
-  if (looksLikeYesToProceed(userMessage)) {
-    // Verify we have a proposed step
+  // User confirmed the micro-step → apply
+  if (aiSignals?.confirmed) {
     if (!hasProposedStep(candidate)) {
       return {
         response: generateBreakdownAbandonmentMessage(candidate, "no_step_generated"),
@@ -205,9 +132,8 @@ export function processBreakdownPreviewResponse(
         toolExecution: "none",
       }
     }
-
     return {
-      response: "", // Will be filled by caller after DB insert
+      response: "",
       candidate: updateBreakdownCandidate(candidate, { status: "applied" }),
       shouldApply: true,
       shouldAbandon: false,
@@ -216,7 +142,46 @@ export function processBreakdownPreviewResponse(
     }
   }
 
-  // Unclear response - ask for confirmation if first time
+  // User abandoned → graceful exit
+  if (aiSignals?.abandoned) {
+    return {
+      response: generateBreakdownAbandonmentMessage(candidate, "user_declined"),
+      candidate: updateBreakdownCandidate(candidate, { status: "abandoned" }),
+      shouldApply: false,
+      shouldAbandon: true,
+      needsNewProposal: false,
+      toolExecution: "none",
+    }
+  }
+
+  // User wants a different step → request new proposal
+  if (aiSignals?.differentStep) {
+    if (shouldAbandonBreakdownCandidate(candidate)) {
+      return {
+        response: generateBreakdownAbandonmentMessage(candidate, "max_clarifications"),
+        candidate: updateBreakdownCandidate(candidate, { status: "abandoned" }),
+        shouldApply: false,
+        shouldAbandon: true,
+        needsNewProposal: false,
+        toolExecution: "none",
+      }
+    }
+    return {
+      response: generateBreakdownClarificationQuestion(candidate),
+      candidate: updateBreakdownCandidate(candidate, {
+        clarification_count: candidate.clarification_count + 1,
+        last_clarification_reason: userMessage.slice(0, 200),
+        status: "awaiting_blocker",
+      }),
+      shouldApply: false,
+      shouldAbandon: false,
+      needsNewProposal: true,
+      toolExecution: "blocked",
+    }
+  }
+
+  // ── No AI signal (unclear) ─────────────────────────────────────────────
+
   if (candidate.clarification_count === 0) {
     return {
       response: "Je suis pas sûr de comprendre. Tu veux que j'ajoute cette micro-étape, oui ou non ?",
@@ -230,7 +195,7 @@ export function processBreakdownPreviewResponse(
     }
   }
 
-  // Second unclear response - abandon gracefully
+  // Max clarifications → abandon gracefully
   return {
     response: generateBreakdownAbandonmentMessage(candidate, "max_clarifications"),
     candidate: updateBreakdownCandidate(candidate, { status: "abandoned" }),

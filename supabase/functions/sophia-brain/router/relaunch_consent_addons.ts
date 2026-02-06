@@ -85,6 +85,7 @@ function getMachineTypeLabel(machineType: DeferredMachineType): string {
     case "breakdown_action": return "Simplification d'action (micro-étape)"
     case "create_action": return "Création d'action"
     case "update_action": return "Modification d'action"
+    case "activate_action": return "Activation d'action"
     case "track_progress": return "Suivi de progression"
     case "deep_reasons": return "Exploration profonde (blocage motivationnel)"
     case "topic_serious": return "Sujet sérieux"

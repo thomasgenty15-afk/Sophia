@@ -18,11 +18,7 @@ import {
   formatCandidatePreview,
 } from "./action_candidate_types.ts"
 import {
-  looksLikeYesToProceed,
-  looksLikeModificationRequest,
   extractModificationInfo,
-  looksLikeAbandonActionCreation,
-  detectPositiveResponseStrength,
 } from "./consent.ts"
 import { logToolLedgerEvent } from "../../lib/tool_ledger.ts"
 
@@ -147,14 +143,29 @@ export function applyModificationToCandidate(
 
 /**
  * Process user response in the preview phase.
- * Returns updated candidate and response to send.
+ * Classification (yes/no/modify/abandon) is AI-driven via dispatcher signals.
+ * Only structured extraction (field, value) uses deterministic parsing.
  */
 export function processPreviewResponse(
   candidate: ActionCandidate,
-  userMessage: string
+  userMessage: string,
+  aiSignals?: { confirmed?: boolean; abandoned?: boolean; modify?: boolean }
 ): CreateActionFlowResult {
-  // Check for abandonment first
-  if (looksLikeAbandonActionCreation(userMessage)) {
+  // ── AI-driven classification (dispatcher machine_signals) ──────────────
+
+  // User confirmed the preview → create
+  if (aiSignals?.confirmed) {
+    return {
+      response: "",
+      candidate: updateActionCandidate(candidate, { status: "created" }),
+      shouldCreate: true,
+      shouldAbandon: false,
+      toolExecution: "success",
+    }
+  }
+
+  // User abandoned → graceful exit
+  if (aiSignals?.abandoned) {
     return {
       response: generateAbandonmentMessage(candidate, "user_declined"),
       candidate: updateActionCandidate(candidate, { status: "abandoned" }),
@@ -164,11 +175,10 @@ export function processPreviewResponse(
     }
   }
 
-  // Check for modification request
-  if (looksLikeModificationRequest(userMessage)) {
+  // User wants a modification → extract structured data then re-show preview
+  if (aiSignals?.modify) {
     const modInfo = extractModificationInfo(userMessage)
-    
-    // Check if max clarifications reached (unless user provides concrete modification after unclear)
+
     if (shouldAbandonCandidate(candidate) && candidate.last_clarification_reason !== "unclear" && !modInfo?.field) {
       return {
         response: generateAbandonmentMessage(candidate, "max_clarifications"),
@@ -179,11 +189,8 @@ export function processPreviewResponse(
       }
     }
 
-    // Apply modification if available
-    let updatedCandidate = candidate
     if (modInfo?.field) {
-      updatedCandidate = applyModificationToCandidate(candidate, modInfo)
-      // Re-show preview with new params
+      const updatedCandidate = applyModificationToCandidate(candidate, modInfo)
       return {
         response: generatePreviewMessage(updatedCandidate),
         candidate: updateActionCandidate(updatedCandidate, {
@@ -196,7 +203,6 @@ export function processPreviewResponse(
       }
     }
 
-    // No specific modification info, ask for clarification
     return {
       response: generateClarificationQuestion(candidate, modInfo),
       candidate: updateActionCandidate(candidate, {
@@ -210,22 +216,9 @@ export function processPreviewResponse(
     }
   }
 
-  // Check for positive response
-  const positiveStrength = detectPositiveResponseStrength(userMessage)
-  if (positiveStrength || looksLikeYesToProceed(userMessage)) {
-    return {
-      response: "", // Will be filled by caller after DB insert
-      candidate: updateActionCandidate(candidate, { status: "created" }),
-      shouldCreate: true,
-      shouldAbandon: false,
-      toolExecution: "success",
-    }
-  }
+  // ── No AI signal (unclear) ─────────────────────────────────────────────
 
-  // Unclear response - treat as weak yes if in preview phase
-  // (User didn't say no explicitly, so we proceed cautiously)
   if (candidate.status === "previewing" && candidate.clarification_count === 0) {
-    // First unclear response - ask for confirmation
     return {
       response: "Je suis pas sûr de comprendre. Tu veux que je crée cette action, oui ou non ?",
       candidate: updateActionCandidate(candidate, {
@@ -238,7 +231,7 @@ export function processPreviewResponse(
     }
   }
 
-  // Second unclear response - abandon gracefully
+  // Max clarifications → abandon gracefully
   return {
     response: generateAbandonmentMessage(candidate, "max_clarifications"),
     candidate: updateActionCandidate(candidate, { status: "abandoned" }),
