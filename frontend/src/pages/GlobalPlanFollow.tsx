@@ -520,7 +520,45 @@ const GlobalPlanFollow = () => {
     return selectedItems;
   };
 
+  // --- LOGIQUE DE SCROLL & NAVIGATION ---
+  
+  // 1. Auto-scroll du MENU (Horizontal) pour centrer le thème actif
+  useEffect(() => {
+    const themeBtn = document.getElementById(`theme-btn-${currentTheme.id}`);
+    if (themeBtn) {
+      themeBtn.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
+    }
+  }, [currentTheme]);
+
+  // 2. Auto-scroll de la PAGE (Vertical) vers la transformation sélectionnée
+  useEffect(() => {
+    const selectedAxisId = selectedAxisByTheme[currentTheme.id];
+    if (selectedAxisId) {
+      // Petit délai pour laisser le temps au DOM de s'afficher si changement d'onglet
+      setTimeout(() => {
+        const axisEl = document.getElementById(`axis-${selectedAxisId}`);
+        if (axisEl) {
+          // On scrolle pour mettre l'élément au centre de l'écran (plus visible que 'start')
+          axisEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 150);
+    } else {
+       // Si rien de sélectionné, on remonte en haut de la liste (sous le header)
+       window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }, [currentTheme, selectedAxisByTheme]);
+
   const displayedThemes = DATA;
+
+  // 3. Calcul des indicateurs de direction (Radar)
+  const currentThemeIndex = displayedThemes.findIndex(t => t.id === currentTheme.id);
+  // On cherche les index des thèmes qui ont une sélection active
+  const selectedThemeIndices = displayedThemes
+    .map((t, i) => selectedAxisByTheme[t.id] ? i : -1)
+    .filter(i => i !== -1);
+  
+  const hasSelectionLeft = selectedThemeIndices.some(i => i < currentThemeIndex);
+  const hasSelectionRight = selectedThemeIndices.some(i => i > currentThemeIndex);
 
   // --- SOPHIA ASSISTANT LOGIC ---
   const [showAssistant, setShowAssistant] = useState(false);
@@ -596,6 +634,17 @@ const GlobalPlanFollow = () => {
             selectedProblemsIds: newProblemsIds
         }));
 
+        // 3.5. Basculer sur le premier thème recommandé
+        if (data.recommendations.length > 0) {
+            const firstRec = data.recommendations[0];
+            if (firstRec.themeId) {
+                const targetTheme = DATA.find(t => t.id === firstRec.themeId);
+                if (targetTheme) {
+                    setCurrentTheme(targetTheme);
+                }
+            }
+        }
+
         // 4. Afficher le résultat
         setRecommendationResult(data);
         setStep('result');
@@ -619,67 +668,90 @@ const GlobalPlanFollow = () => {
       {/* Sidebar */}
       <aside className="w-full md:w-64 bg-white border-b md:border-b-0 md:border-r border-gray-200 p-4 md:p-6 sticky top-0 h-auto md:h-screen z-40 flex flex-col gap-3 md:gap-0">
         <h2 className="text-lg md:text-xl font-bold mb-0 md:mb-6">Thèmes</h2>
-        <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-visible scrollbar-hide w-full pb-1 md:pb-0">
-          {displayedThemes.map(theme => {
-            const isAxisSelectedInTheme = selectedAxisByTheme[theme.id] != null;
-            
-            // Vérification du statut "Rempli" (au moins 1 problème coché ET au moins 1 réponse donnée)
-            let isCompleted = false;
-            if (isAxisSelectedInTheme) {
-                const axisId = selectedAxisByTheme[theme.id];
-                const axis = theme.axes?.find(a => a.id === axisId);
-                if (axis) {
-                    const activeProblems = axis.problems.filter(p => responses.selectedProblemsIds.includes(p.id));
-                    
-                    if (activeProblems.length > 0) {
-                        const questionIds = activeProblems.flatMap(p => p.detailQuestions.map(q => q.id));
+        
+        {/* Conteneur relatif pour les indicateurs visuels */}
+        <div className="relative w-full">
+            {/* Indicateur GAUCHE */}
+            {hasSelectionLeft && (
+                <div className="md:hidden absolute left-0 top-0 bottom-1 z-20 flex items-center pointer-events-none">
+                    <div className="h-full w-8 bg-gradient-to-r from-white via-white/80 to-transparent flex items-center justify-start">
+                        <div className="h-4/5 w-1.5 bg-blue-500 rounded-r-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                    </div>
+                </div>
+            )}
+
+            {/* Indicateur DROITE */}
+            {hasSelectionRight && (
+                <div className="md:hidden absolute right-0 top-0 bottom-1 z-20 flex items-center pointer-events-none">
+                    <div className="h-full w-8 bg-gradient-to-l from-white via-white/80 to-transparent flex items-center justify-end">
+                        <div className="h-4/5 w-1.5 bg-blue-500 rounded-l-full animate-pulse shadow-[0_0_8px_rgba(59,130,246,0.6)]" />
+                    </div>
+                </div>
+            )}
+
+            <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-visible scrollbar-hide w-full pb-1 md:pb-0 px-1">
+            {displayedThemes.map(theme => {
+                const isAxisSelectedInTheme = selectedAxisByTheme[theme.id] != null;
+                
+                // Vérification du statut "Rempli" (au moins 1 problème coché ET au moins 1 réponse donnée)
+                let isCompleted = false;
+                if (isAxisSelectedInTheme) {
+                    const axisId = selectedAxisByTheme[theme.id];
+                    const axis = theme.axes?.find(a => a.id === axisId);
+                    if (axis) {
+                        const activeProblems = axis.problems.filter(p => responses.selectedProblemsIds.includes(p.id));
                         
-                        if (questionIds.length === 0) {
-                            // Pas de sous-questions = Rempli dès la sélection
-                            isCompleted = true;
-                        } else {
-                            // Doit avoir répondu à au moins une question
-                            isCompleted = questionIds.some(qId => {
-                                const answer = responses.detailAnswers[qId];
-                                return answer && (Array.isArray(answer) ? answer.length > 0 : String(answer).trim() !== '');
-                            });
+                        if (activeProblems.length > 0) {
+                            const questionIds = activeProblems.flatMap(p => p.detailQuestions.map(q => q.id));
+                            
+                            if (questionIds.length === 0) {
+                                // Pas de sous-questions = Rempli dès la sélection
+                                isCompleted = true;
+                            } else {
+                                // Doit avoir répondu à au moins une question
+                                isCompleted = questionIds.some(qId => {
+                                    const answer = responses.detailAnswers[qId];
+                                    return answer && (Array.isArray(answer) ? answer.length > 0 : String(answer).trim() !== '');
+                                });
+                            }
                         }
                     }
                 }
-            }
 
-            const isActive = currentTheme.id === theme.id;
+                const isActive = currentTheme.id === theme.id;
 
-            return (
-              <button
-                key={theme.id}
-                onClick={() => setCurrentTheme(theme)}
-                className={`shrink-0 md:shrink md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-all relative whitespace-nowrap 
-                  ${isActive
-                    ? "bg-blue-600 text-white shadow-md border-2 border-blue-600" // Actif = Bleu plein
-                    : isAxisSelectedInTheme 
-                        ? "bg-blue-50 text-blue-900 border-2 border-blue-600" // Sélectionné mais pas actif = Cadre bleu + fond léger
-                        : "hover:bg-gray-100 text-gray-600 border-2 border-transparent" // Rien = Gris
-                  }`}
-              >
-                <span className="text-lg md:text-xl">{theme.icon}</span>
-                <span className="font-medium text-sm md:text-base">{theme.shortTitle}</span>
+                return (
+                <button
+                    key={theme.id}
+                    id={`theme-btn-${theme.id}`} // ID pour le scroll automatique
+                    onClick={() => setCurrentTheme(theme)}
+                    className={`shrink-0 md:shrink md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-all relative whitespace-nowrap 
+                    ${isActive
+                        ? "bg-blue-600 text-white shadow-md border-2 border-blue-600" // Actif = Bleu plein
+                        : isAxisSelectedInTheme 
+                            ? "bg-blue-50 text-blue-900 border-2 border-blue-600" // Sélectionné mais pas actif = Cadre bleu + fond léger
+                            : "hover:bg-gray-100 text-gray-600 border-2 border-transparent" // Rien = Gris
+                    }`}
+                >
+                    <span className="text-lg md:text-xl">{theme.icon}</span>
+                    <span className="font-medium text-sm md:text-base">{theme.shortTitle}</span>
 
-                {/* Indicateur d'état */}
-                {isAxisSelectedInTheme && (
-                  <div className="ml-2 md:absolute md:right-3">
-                      {isCompleted ? (
-                          <div className={`rounded-full p-0.5 ${isActive ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'}`}>
-                              <Check className="w-3 h-3" strokeWidth={3} />
-                          </div>
-                      ) : (
-                          <div className={`w-4 h-4 rounded-full border-2 ${isActive ? 'border-white' : 'border-blue-600'}`} />
-                      )}
-                  </div>
-                )}
-              </button>
-            );
-          })}
+                    {/* Indicateur d'état */}
+                    {isAxisSelectedInTheme && (
+                    <div className="ml-2 md:absolute md:right-3">
+                        {isCompleted ? (
+                            <div className={`rounded-full p-0.5 ${isActive ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'}`}>
+                                <Check className="w-3 h-3" strokeWidth={3} />
+                            </div>
+                        ) : (
+                            <div className={`w-4 h-4 rounded-full border-2 ${isActive ? 'border-white' : 'border-blue-600'}`} />
+                        )}
+                    </div>
+                    )}
+                </button>
+                );
+            })}
+            </div>
         </div>
       </aside>
 
@@ -706,19 +778,19 @@ const GlobalPlanFollow = () => {
           <div className="mb-8">
             <button 
                 onClick={() => setShowAssistant(true)}
-                className="w-full bg-gradient-to-r from-slate-900 to-slate-800 text-white p-1 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
+                className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white p-0.5 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
             >
-                <div className="bg-slate-900 rounded-xl p-4 flex items-center justify-between border border-slate-700 group-hover:bg-slate-800 transition-colors">
+                <div className="bg-white rounded-xl p-4 flex items-center justify-between group-hover:bg-violet-50 transition-colors">
                     <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-full bg-gradient-to-br from-violet-500 to-fuchsia-600 flex items-center justify-center text-white shadow-inner">
                             <Sparkles className="w-6 h-6 animate-pulse" />
                         </div>
                         <div className="text-left">
-                            <h3 className="font-bold text-lg text-white">Besoin d'aide pour choisir ?</h3>
-                            <p className="text-slate-400 text-sm">Laisse Sophia analyser tes besoins et te proposer un plan sur-mesure.</p>
+                            <h3 className="font-bold text-base md:text-lg text-slate-900">Besoin d'aide pour choisir ?</h3>
+                            <p className="text-slate-500 text-xs md:text-sm">Laisse Sophia analyser tes besoins et te proposer un plan sur-mesure.</p>
                         </div>
                     </div>
-                    <div className="bg-slate-800 p-2 rounded-full text-violet-400 group-hover:bg-slate-700 group-hover:text-white transition-all">
+                    <div className="bg-violet-100 p-2 rounded-full text-violet-600 group-hover:bg-violet-200 transition-all">
                             <ArrowRight className="w-5 h-5" />
                     </div>
                 </div>
@@ -726,8 +798,8 @@ const GlobalPlanFollow = () => {
           </div>
 
           <div className="flex items-center gap-3 mb-2">
-            <span className="text-3xl md:text-4xl">{currentTheme.icon}</span>
-            <h1 className="text-2xl md:text-3xl font-bold">{currentTheme.title}</h1>
+            <span className="text-2xl md:text-4xl">{currentTheme.icon}</span>
+            <h1 className="text-xl md:text-3xl font-bold">{currentTheme.title}</h1>
           </div>
           <p className="text-gray-500 text-base md:text-lg">Sélectionne une transformation pour commencer.</p>
         </header>
@@ -737,7 +809,7 @@ const GlobalPlanFollow = () => {
             const isSelected = selectedAxisByTheme[currentTheme.id] === axis.id;
 
             return (
-              <div key={axis.id} className={`bg-white rounded-xl border transition-all ${isSelected ? 'border-blue-500 ring-1 ring-blue-500 shadow-lg' : 'border-gray-200 hover:border-gray-300'}`}>
+              <div key={axis.id} id={`axis-${axis.id}`} className={`bg-white rounded-xl border transition-all ${isSelected ? 'border-blue-500 ring-1 ring-blue-500 shadow-lg' : 'border-gray-200 hover:border-gray-300'}`}>
                 <button
                   onClick={() => toggleAxis(currentTheme.id, axis.id)}
                   className="flex items-center justify-between w-full text-left p-6"

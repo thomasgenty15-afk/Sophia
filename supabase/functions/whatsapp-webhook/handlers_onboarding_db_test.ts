@@ -256,7 +256,7 @@ Deno.test("onboarding_helpers: setDeferredOnboardingSteps and getDeferredOnboard
 
 Deno.test("onboarding_context: buildWhatsAppOnboardingContext includes profile facts", () => {
   const context = buildWhatsAppOnboardingContext({
-    state: "awaiting_plan_motivation",
+    state: "onboarding_q1",
     siteUrl: "https://sophia-coach.ai",
     supportEmail: "sophia@sophia-coach.ai",
     planPolicy: "plan_active",

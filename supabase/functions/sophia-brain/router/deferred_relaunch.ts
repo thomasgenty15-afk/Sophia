@@ -21,6 +21,7 @@ import {
 import { createActionCandidate } from "../agents/architect/action_candidate_types.ts"
 import { createUpdateCandidate } from "../agents/architect/update_action_candidate_types.ts"
 import { createBreakdownCandidate } from "../agents/architect/breakdown_candidate_types.ts"
+import { startDeepReasonsExploration } from "../agents/architect/deep_reasons.ts"
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PENDING RELAUNCH CONSENT STATE
@@ -31,6 +32,7 @@ export interface PendingRelaunchConsent {
   action_target?: string
   summaries: string[]
   created_at: string
+  unclear_reask_count?: number
 }
 
 /**
@@ -45,6 +47,7 @@ export function setPendingRelaunchConsent(opts: {
     action_target: opts.topic.action_target,
     summaries: opts.topic.signal_summaries.map(s => s.summary),
     created_at: new Date().toISOString(),
+    unclear_reask_count: 0,
   }
   return {
     tempMemory: {
@@ -238,7 +241,7 @@ export async function applyAutoRelaunchFromDeferred(opts: {
  * 
  * Returns:
  * - { handled: true, ... } if consent was processed
- * - { handled: false } if no pending consent or response unclear
+ * - { handled: false } if no pending consent
  */
 export function processRelaunchConsentResponse(opts: {
   tempMemory: any
@@ -254,14 +257,15 @@ export function processRelaunchConsentResponse(opts: {
   actionTarget?: string
   nextMode?: AgentMode
   declineMessage?: string
+  unclearReaskScheduled?: boolean
+  droppedAfterUnclear?: boolean
 } {
   const pending = getPendingRelaunchConsent(opts.tempMemory)
   if (!pending) {
     return { handled: false, tempMemory: opts.tempMemory, shouldInitMachine: false }
   }
 
-  // Clear pending state
-  let tempMemory = clearPendingRelaunchConsent(opts.tempMemory).tempMemory
+  let tempMemory = opts.tempMemory
 
   // Determine consent: use dispatcher signal if available, otherwise fallback to regex
   const consentValue = (() => {
@@ -278,6 +282,7 @@ export function processRelaunchConsentResponse(opts: {
   // Process based on consent value
   if (consentValue === true) {
     // User says YES → initialize the machine
+    tempMemory = clearPendingRelaunchConsent(tempMemory).tempMemory
     const initResult = initializeMachineFromConsent({
       tempMemory,
       machineType: pending.machine_type,
@@ -297,6 +302,7 @@ export function processRelaunchConsentResponse(opts: {
 
   if (consentValue === false) {
     // User says NO → don't initialize, provide graceful decline
+    tempMemory = clearPendingRelaunchConsent(tempMemory).tempMemory
     return {
       handled: true,
       tempMemory,
@@ -305,13 +311,39 @@ export function processRelaunchConsentResponse(opts: {
     }
   }
 
-  // Unclear response → treat as implicit decline, let conversation flow naturally
-  // The pending is already cleared, so the topic is dropped
+  // Unclear response:
+  // - First time: keep pending and ask once again.
+  // - Second time: drop gracefully to avoid endless relaunch loops.
+  const unclearCount = Math.max(0, Math.floor(Number(pending.unclear_reask_count ?? 0)))
+  if (unclearCount < 1) {
+    const updatedPending: PendingRelaunchConsent = {
+      ...pending,
+      unclear_reask_count: unclearCount + 1,
+    }
+    tempMemory = {
+      ...(tempMemory ?? {}),
+      __pending_relaunch_consent: updatedPending,
+      __ask_relaunch_consent: {
+        machine_type: pending.machine_type,
+        action_target: pending.action_target,
+        summaries: pending.summaries,
+      },
+    }
+    return {
+      handled: true,
+      tempMemory,
+      shouldInitMachine: false,
+      unclearReaskScheduled: true,
+    }
+  }
+
+  tempMemory = clearPendingRelaunchConsent(tempMemory).tempMemory
   return {
     handled: true,
     tempMemory,
     shouldInitMachine: false,
-    // No decline message - just continue naturally with whatever user said
+    declineMessage: generateDeclineRelaunchMessage(pending),
+    droppedAfterUnclear: true,
   }
 }
 
@@ -428,13 +460,24 @@ function initializeMachineFromConsent(opts: {
 
     case "deep_reasons": {
       const topic = opts.actionTarget ?? opts.summaries[0] ?? "un blocage motivationnel"
+      const deepReasonsState = startDeepReasonsExploration({
+        action_title: opts.actionTarget,
+        detected_pattern: "unknown",
+        user_words: topic,
+        source: "deferred",
+        // User has already accepted the relaunch consent question.
+        skip_re_consent: true,
+      })
       const updated = upsertDeepReasonsExploration({
         tempMemory,
         topic,
-        phase: "exploring", // User already consented, go to exploring
+        phase: deepReasonsState.phase,
         source: "deferred",
       })
-      tempMemory = updated.tempMemory
+      tempMemory = {
+        ...(updated.tempMemory ?? {}),
+        deep_reasons_state: deepReasonsState,
+      }
       nextMode = "architect"
       break
     }

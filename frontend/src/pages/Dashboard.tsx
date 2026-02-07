@@ -711,15 +711,12 @@ const Dashboard = () => {
                       <h2 className="text-xs min-[350px]:text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                         <Tv className="w-4 h-4" /> Vidéos pour t'aider
                       </h2>
-                      <div className="flex md:flex-col gap-3 overflow-x-auto pb-4 md:pb-0">
-                        <div className="min-w-[200px] md:min-w-0 bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow cursor-pointer">
-                          <h3 className="font-bold text-sm min-[350px]:text-base text-gray-900 leading-tight">Comprendre la Dopamine</h3>
-                          <p className="text-xs min-[350px]:text-sm text-gray-400 mt-1">6 min • Neurosc.</p>
-                        </div>
-                        <div className="min-w-[200px] md:min-w-0 bg-white border border-gray-200 rounded-xl p-3 hover:shadow-md transition-shadow cursor-pointer">
-                          <h3 className="font-bold text-sm min-[350px]:text-base text-gray-900 leading-tight">La règle des 2 minutes</h3>
-                          <p className="text-xs min-[350px]:text-sm text-gray-400 mt-1">3 min • Prod.</p>
-                        </div>
+                      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center flex flex-col items-center justify-center">
+                          <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 text-gray-400">
+                              <Tv className="w-6 h-6" />
+                          </div>
+                          <h3 className="font-bold text-gray-900 text-sm mb-1">À venir</h3>
+                          <p className="text-xs text-gray-500">Cette section sera bientôt disponible.</p>
                       </div>
                     </section>
 

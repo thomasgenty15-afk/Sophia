@@ -8,6 +8,7 @@ import {
   hasPausedMachine,
   pauseMachineForSafety,
 } from "../supervisor.ts"
+import { getActiveMachineType } from "./flow_context.ts"
 
 export async function applyDeterministicRouting(opts: {
   dispatcherSignals: DispatcherSignals
@@ -97,6 +98,13 @@ export async function applyDeterministicRouting(opts: {
       }
     }
   }
+  // 1b. Onboarding flow (WhatsApp) — force companion (safety already handled above)
+  else if (getActiveMachineType(tempMemory) === "whatsapp_onboarding_flow") {
+    targetMode = "companion"
+    await opts.traceV("brain:onboarding_force_companion", "routing", {
+      step: (tempMemory as any)?.__onboarding_flow?.step,
+    })
+  }
   // 2. Checkup confirmed by user - start investigation
   else if (opts.checkupConfirmedThisTurn) {
     targetMode = "investigator"
@@ -178,7 +186,13 @@ export async function applyDeterministicRouting(opts: {
   }
 
   // 4. Force mode override (module conversation, etc.)
-  if (!opts.disableForcedRouting && opts.forceMode && targetMode !== "sentry" && targetMode !== "firefighter") {
+  if (
+    !opts.disableForcedRouting &&
+    opts.forceMode &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    getActiveMachineType(tempMemory) !== "whatsapp_onboarding_flow"
+  ) {
     await opts.traceV("brain:forced_routing_override", "routing", {
       from: targetMode,
       to: opts.forceMode,
@@ -194,7 +208,8 @@ export async function applyDeterministicRouting(opts: {
     !opts.state?.investigation_state &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
-    targetMode !== "investigator"
+    targetMode !== "investigator" &&
+    getActiveMachineType(tempMemory) !== "whatsapp_onboarding_flow"
   ) {
     // Active deep_reasons session takes priority
     if (opts.deepReasonsActiveSession || opts.deepReasonsStateFromTm) {
@@ -221,4 +236,3 @@ export async function applyDeterministicRouting(opts: {
 
   return { targetMode, tempMemory }
 }
-

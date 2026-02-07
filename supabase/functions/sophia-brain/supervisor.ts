@@ -703,31 +703,6 @@ export function pauseDeepReasonsExploration(opts: {
 }
 
 /**
- * Resume a paused deep_reasons exploration.
- */
-export function resumeDeepReasonsExplorationSession(opts: {
-  tempMemory: any
-  now?: Date
-}): { tempMemory: any; changed: boolean } {
-  const tm0 = safeObj(opts.tempMemory)
-  const rt0 = getSupervisorRuntime(tm0, opts.now)
-  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
-  
-  const idx = stack0.findIndex((s: any) => 
-    String(s?.type ?? "") === "deep_reasons_exploration" && s?.status === "paused"
-  )
-  if (idx < 0) return { tempMemory: tm0, changed: false }
-  
-  const session = { ...stack0[idx] } as SupervisorSession
-  session.status = "active"
-  session.last_active_at = nowIso(opts.now)
-  stack0[idx] = session
-  
-  const rtNext: SupervisorRuntime = { ...rt0, stack: stack0, updated_at: nowIso(opts.now) }
-  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
-}
-
-/**
  * Check if there's a paused deep_reasons exploration that can be resumed.
  */
 export function getPausedDeepReasonsExploration(tempMemory: any): SupervisorSession | null {
@@ -1658,6 +1633,9 @@ export function pauseMachineForSafety(opts: {
   let candidateSnapshot = opts.candidate ?? (opts.session.meta as any)?.candidate
   if (opts.session.type === "user_profile_confirmation") {
     candidateSnapshot = getProfileConfirmationState(tm0)
+  } else if (opts.session.type === "deep_reasons_exploration") {
+    // Preserve deep_reasons state so resume can restore the phase accurately.
+    candidateSnapshot = (tm0 as any)?.deep_reasons_state ?? candidateSnapshot
   }
   
   const pausedState: PausedMachineStateV2 = {
@@ -1746,10 +1724,36 @@ export function resumePausedMachine(opts: {
     })
     tempMemory = result.tempMemory
   } else if (machineType === "deep_reasons_exploration") {
-    // For deep_reasons, we need more context - just set a flag to indicate resume
-    ;(tempMemory as any).__resume_deep_reasons = {
-      action_target: pausedState.action_target,
-      context: pausedState.resume_context,
+    const state = pausedState.candidate_snapshot
+    const restoredState = state && typeof state === "object" ? state : null
+    const topic = String(
+      restoredState?.action_context?.title ??
+      pausedState.action_target ??
+      "blocage motivationnel"
+    ).trim().slice(0, 160)
+    const rawPhase = String(restoredState?.phase ?? "clarify")
+    const validDeepReasonsPhases = [
+      "re_consent",
+      "clarify",
+      "hypotheses",
+      "resonance",
+      "intervention",
+      "closing",
+    ] as const
+    const phase = (validDeepReasonsPhases.includes(rawPhase as any) ? rawPhase : "clarify") as
+      "re_consent" | "clarify" | "hypotheses" | "resonance" | "intervention" | "closing"
+    const result = upsertDeepReasonsExploration({
+      tempMemory,
+      topic,
+      phase,
+      pattern: restoredState?.detected_pattern,
+      actionTitle: restoredState?.action_context?.title,
+      source: restoredState?.source === "deferred" ? "deferred" : "direct",
+      now: opts.now,
+    })
+    tempMemory = result.tempMemory
+    if (restoredState) {
+      ;(tempMemory as any).deep_reasons_state = restoredState
     }
   } else if (machineType === "topic_serious") {
     const result = upsertTopicSerious({
@@ -2232,4 +2236,3 @@ export function getActiveSafetyFlow(tempMemory: any): {
 export function hasActiveSafetyFlow(tempMemory: any): boolean {
   return getActiveSafetyFlow(tempMemory) !== null
 }
-

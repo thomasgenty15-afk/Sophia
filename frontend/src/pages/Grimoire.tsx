@@ -319,7 +319,7 @@ export default function Grimoire() {
             onClick={() => navigate('/dashboard')}
             className="w-8 h-8 min-[350px]:w-10 min-[350px]:h-10 rounded-full bg-gray-200 flex items-center justify-center font-bold text-xs min-[350px]:text-base text-gray-500 border-2 border-white shadow-sm cursor-pointer hover:bg-gray-300 transition-colors"
           >
-            Ah
+            {/* Initials placeholder */}
           </div>
         </div>
       </header>

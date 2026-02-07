@@ -36,6 +36,11 @@ export function buildDispatcherStateSnapshot(opts: {
 }): DispatcherInputV2["stateSnapshot"] {
   const topicSession = getActiveTopicSession(opts.tempMemory)
   const activeToolFlow = getAnyActiveToolFlow(opts.tempMemory)
+  // Onboarding flow state (WhatsApp)
+  const onbFlow = (opts.tempMemory as any)?.__onboarding_flow
+  const onboarding_active = Boolean(onbFlow)
+  const onboarding_step = onbFlow?.step as string | undefined
+
   return {
     current_mode: opts.state?.current_mode,
     investigation_active: Boolean(opts.state?.investigation_state),
@@ -47,6 +52,8 @@ export function buildDispatcherStateSnapshot(opts: {
     topic_exploration_phase: topicSession ? topicSession.phase : undefined,
     topic_exploration_type: topicSession?.type,
     risk_level: opts.state?.risk_level,
+    onboarding_active,
+    onboarding_step,
   }
 }
 

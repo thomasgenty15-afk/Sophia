@@ -107,16 +107,31 @@ export const DEFER_DEEP_EXPLORATION_TOOL = {
   },
 }
 
+export const INCREASE_WEEK_TARGET_TOOL = {
+  name: "increase_week_target",
+  description:
+    "Augmente de 1 l'objectif hebdomadaire (target_reps) d'une habitude. Max 7×/semaine. À appeler uniquement après confirmation explicite de l'utilisateur.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_id: { type: "STRING", description: "L'ID de l'action habitude dont on augmente la cible." },
+      confirmed: { type: "BOOLEAN", description: "True si l'utilisateur a explicitement confirmé vouloir augmenter." },
+    },
+    required: ["action_id", "confirmed"],
+  },
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // INVESTIGATOR TOOLS
 // 
-// The Investigator now only uses log_action_execution.
+// The Investigator uses log_action_execution + increase_week_target.
 // All other tools (breakdown, activate, archive) are handled POST-bilan via
 // the deferred_topics_v2 system, which routes to the Architect.
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export const INVESTIGATOR_TOOLS = [
   LOG_ACTION_TOOL,
+  INCREASE_WEEK_TARGET_TOOL,
   // Other tools removed - signals are now deferred to post-bilan:
   // - breakdown_action → deferred_topics_v2 + auto-relaunch to Architect
   // - defer_deep_exploration → deferred_topics_v2 + auto-relaunch to Architect

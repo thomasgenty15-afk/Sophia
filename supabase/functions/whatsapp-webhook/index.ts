@@ -7,26 +7,19 @@ import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { extractMessages, extractStatuses, type WaInbound } from "./wa_parse.ts"
 import { verifyXHubSignature } from "./wa_security.ts"
 import { e164ToFrenchLocal, normalizeFrom } from "./wa_phone.ts"
-import { extractAfterDonePhrase, isDonePhrase, isStopKeyword, stripFirstMotivationScore } from "./wa_text.ts"
+import { extractAfterDonePhrase, isDonePhrase, isStopKeyword } from "./wa_text.ts"
 import { sendWhatsAppText, sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
-import { hasWhatsappPersonalFact } from "./wa_db.ts"
 import { replyWithBrain } from "./wa_reply.ts"
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 
 import { handleUnlinkedInbound } from "./handlers_unlinked.ts"
 import { handleStopOptOut } from "./handlers_optout.ts"
 import { handlePendingActions } from "./handlers_pending.ts"
-import {
-  handleOnboardingState,
-  handleDeferredMotivationAnswer,
-  handleDeferredPersonalFactAnswer,
-  handleDeferredOnboardingSteps,
-} from "./handlers_onboarding.ts"
+import { handleOnboardingState } from "./handlers_onboarding.ts"
 import { computeOptInAndBilanContext, handleOptInAndDailyBilanActions } from "./handlers_optin_bilan.ts"
 import { handleWrongNumber } from "./handlers_wrong_number.ts"
 import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts"
 import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts"
-import { getDeferredOnboardingSteps } from "./onboarding_helpers.ts"
 
 const LINK_PROMPT_COOLDOWN_MS = Number.parseInt(
   (Deno.env.get("WHATSAPP_LINK_PROMPT_COOLDOWN_MS") ?? "").trim() || String(10 * 60 * 1000),
@@ -485,8 +478,6 @@ Deno.serve(async (req) => {
             sendWhatsAppText,
             isDonePhrase,
             extractAfterDonePhrase,
-            stripFirstMotivationScore,
-            hasWhatsappPersonalFact,
           })
           if (didHandleOnboarding) continue
         }
@@ -606,37 +597,6 @@ Deno.serve(async (req) => {
       if (profile.whatsapp_state) {
         const waState = String(profile.whatsapp_state || "")
 
-        // Handle deferred states (motivation/personal_fact asked later)
-        if (waState === "awaiting_deferred_motivation") {
-          const didHandle = await handleDeferredMotivationAnswer({
-            admin,
-            userId: profile.id,
-            fromE164,
-            requestId: processId,
-            waMessageId: msg.wa_message_id,
-            text: msg.text ?? "",
-            siteUrl: SITE_URL,
-            replyWithBrain,
-            stripFirstMotivationScore,
-          })
-          if (didHandle) continue
-        }
-
-        if (waState === "awaiting_deferred_personal_fact") {
-          const didHandle = await handleDeferredPersonalFactAnswer({
-            admin,
-            userId: profile.id,
-            fromE164,
-            requestId: processId,
-            waMessageId: msg.wa_message_id,
-            text: msg.text ?? "",
-            siteUrl: SITE_URL,
-            replyWithBrain,
-          })
-          if (didHandle) continue
-        }
-
-        // Standard onboarding states
         const didHandleOnboarding = await handleOnboardingState({
           admin,
           userId: profile.id,
@@ -650,36 +610,8 @@ Deno.serve(async (req) => {
           sendWhatsAppText,
           isDonePhrase,
           extractAfterDonePhrase,
-          stripFirstMotivationScore,
-          hasWhatsappPersonalFact,
         })
         if (didHandleOnboarding) continue
-      }
-
-      // Deferred onboarding steps (only when no active onboarding state)
-      if (!profile.whatsapp_state) {
-        const deferredSteps = await getDeferredOnboardingSteps(admin, profile.id)
-        if (deferredSteps.length > 0) {
-          let signals: any = null
-          try {
-            signals = await analyzeSignalsForWhatsApp((msg.text ?? "").trim() || "Ok", processId)
-          } catch (e) {
-            console.warn("[whatsapp-webhook] dispatcher signals failed for deferred steps:", e)
-          }
-
-          const deferredHandled = await handleDeferredOnboardingSteps({
-            admin,
-            userId: profile.id,
-            fromE164,
-            requestId: processId,
-            waMessageId: msg.wa_message_id,
-            text: msg.text ?? "",
-            siteUrl: SITE_URL,
-            signals: signals ?? {},
-            replyWithBrain,
-          })
-          if (deferredHandled.handled) continue
-        }
       }
 
       // Default: call Sophia brain (no auto logging) then send reply

@@ -5,9 +5,9 @@ import { getUserTimeContext } from "../../../_shared/user_time_context.ts"
 import type { InvestigationState, InvestigatorTurnResult } from "./types.ts"
 import { isAffirmative, isExplicitStopBilan, isNegative } from "./utils.ts"
 import { investigatorSay } from "./copy.ts"
-import { getItemHistory, getPendingItems, getYesterdayCheckupSummary } from "./db.ts"
+import { getItemHistory, getPendingItems, getYesterdayCheckupSummary, increaseWeekTarget } from "./db.ts"
 // NOTE: Breakdown flow removed - signals are now deferred to post-bilan via deferred_topics_v2
-import { buildMainItemSystemPrompt, buildDeferQuestionAddon, buildItemProgressAddon } from "./prompt.ts"
+import { buildMainItemSystemPrompt, buildDeferQuestionAddon, buildItemProgressAddon, buildTargetExceededAddon, buildVitalProgressionAddon } from "./prompt.ts"
 import { INVESTIGATOR_TOOLS } from "./tools.ts"
 import { handleInvestigatorModelOutput } from "./turn.ts"
 import { getMissedStreakDaysForCheckupItem } from "./streaks.ts"
@@ -47,6 +47,10 @@ export async function runInvestigator(
     }
   }
 
+  // NOTE: Bilan auto-expiry (4h timeout) is handled silently at the router level
+  // (processMessage in run.ts). The investigation_state is cleaned up before we even
+  // reach this function, so no "expired" message is ever sent to the user.
+
   // Start: load items
   if (currentState.status === "init") {
     const items = await getPendingItems(supabase, userId)
@@ -82,16 +86,28 @@ export async function runInvestigator(
       }
     }
 
+    const vitalProgression: Record<string, { previous_value?: string; target_value?: string }> = {}
+    for (const item of items) {
+      if (item.type !== "vital") continue
+      if (!item.previous_vital_value && !item.target_vital_value) continue
+      vitalProgression[item.id] = {
+        ...(item.previous_vital_value ? { previous_value: item.previous_vital_value } : {}),
+        ...(item.target_vital_value ? { target_value: item.target_vital_value } : {}),
+      }
+    }
+
     currentState = {
       status: "checking",
       pending_items: items,
       current_item_index: 0,
+      started_at: new Date().toISOString(),
       // locked_pending_items avoids pulling extra items mid-checkup (more stable UX).
       temp_memory: {
         opening_done: false,
         locked_pending_items: true,
         day_scope: initialDayScope,
         missed_streaks_by_action: missedStreaksByAction,
+        vital_progression: vitalProgression,
         item_progress: initializeItemProgress(items),
       },
     }
@@ -246,9 +262,19 @@ export async function runInvestigator(
   }
 
   // 3. CURRENT ITEM
-  const currentItem = currentState.pending_items[currentState.current_item_index]
+  let currentItem = currentState.pending_items[currentState.current_item_index]
+  if (currentItem?.type === "vital") {
+    const vitalProgression = (currentState?.temp_memory as any)?.vital_progression?.[String(currentItem.id)] ?? null
+    if (vitalProgression) {
+      currentItem = {
+        ...currentItem,
+        previous_vital_value: currentItem.previous_vital_value ?? vitalProgression.previous_value,
+        target_vital_value: currentItem.target_vital_value ?? vitalProgression.target_value,
+      }
+    }
+  }
 
-  // Handle pending post-bilan offer (micro-étape / deep reasons) before normal flow
+  // Handle pending post-bilan offer (micro-étape / deep reasons / increase target / activate action) before normal flow
   const pendingOffer = (currentState as any)?.temp_memory?.bilan_defer_offer
   if (pendingOffer?.stage === "awaiting_consent") {
     const userSaysYes = isAffirmative(message)
@@ -256,6 +282,17 @@ export async function runInvestigator(
     if (userSaysYes || userSaysNo) {
       const offerItemId = String(pendingOffer?.action_id ?? currentItem?.id ?? "")
       const offerLoggedStatus = String(pendingOffer?.last_item_log?.status ?? "missed")
+
+      // --- INCREASE TARGET: execute the DB update if confirmed ---
+      let increaseResult: { success: boolean; old_target: number; new_target: number; error?: string } | null = null
+      if (pendingOffer.kind === "increase_target" && userSaysYes) {
+        try {
+          increaseResult = await increaseWeekTarget(supabase, userId, offerItemId)
+        } catch (e) {
+          console.error("[Investigator] increaseWeekTarget call failed:", e)
+        }
+      }
+
       // Ensure the offer item is marked as logged before moving on.
       let nextState = updateItemProgress(currentState, offerItemId, {
         phase: "logged",
@@ -269,11 +306,49 @@ export async function runInvestigator(
         temp_memory: {
           ...(nextState.temp_memory || {}),
           bilan_defer_offer: undefined,
-          breakdown_declined_action_ids: userSaysNo
+          breakdown_declined_action_ids: userSaysNo && (pendingOffer.kind === "breakdown" || pendingOffer.kind === "deep_reasons")
             ? Array.from(new Set([...(nextState.temp_memory?.breakdown_declined_action_ids ?? []), pendingOffer.action_id]))
             : nextState.temp_memory?.breakdown_declined_action_ids,
         },
       }
+
+      // Build fallback prefix based on offer kind.
+      // Primary path uses investigatorSay scenarios for consistency with copy rules.
+      let prefix: string
+      if (pendingOffer.kind === "increase_target") {
+        if (userSaysYes && increaseResult?.success) {
+          prefix = `C'est fait, objectif passé à ${increaseResult.new_target}×/semaine. `
+        } else if (userSaysYes && !increaseResult?.success) {
+          prefix = `${increaseResult?.error ?? "Pas pu augmenter."} `
+        } else {
+          prefix = "Ok, on garde l'objectif actuel. "
+        }
+      } else if (pendingOffer.kind === "activate_action") {
+        prefix = userSaysYes ? "Parfait, on s'en occupe après le bilan. " : "Ok, pas de souci. "
+      } else {
+        prefix = userSaysYes ? "Parfait, j'ai noté. " : "Ok, pas de souci. "
+      }
+
+      // Determine the scenario for the copy
+      const scenario = pendingOffer.kind === "increase_target"
+        ? (userSaysYes && increaseResult?.success ? "increase_target_confirmed" : userSaysNo ? "increase_target_declined" : null)
+        : pendingOffer.kind === "activate_action"
+          ? (userSaysYes ? "weekly_target_reached_activate_confirmed" : "weekly_target_reached_activate_declined")
+          : null
+      const scenarioAck = scenario
+        ? await investigatorSay(
+          scenario,
+          {
+            user_message: message,
+            channel: meta?.channel,
+            action_title: String(pendingOffer?.action_title ?? currentItem?.title ?? ""),
+            current_target: Number(pendingOffer?.current_target ?? currentItem?.target ?? 1),
+            ...(increaseResult ? { increase_result: increaseResult } : {}),
+          },
+          meta,
+        )
+        : null
+      const lead = scenarioAck ? `${scenarioAck}\n\n` : prefix
 
       if (nextIndex >= currentState.pending_items.length) {
         const base = await investigatorSay(
@@ -284,13 +359,12 @@ export async function runInvestigator(
             recent_history: history.slice(-15),
             last_item: currentItem,
             last_item_log: pendingOffer.last_item_log ?? null,
-            // Use item's own day_scope
             day_scope: String(currentItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
+            ...(increaseResult ? { increase_result: increaseResult } : {}),
           },
           meta,
         )
-        const prefix = userSaysYes ? "Parfait, j'ai noté. " : "Ok, pas de souci. "
-        return { content: `${prefix}${base}`.trim(), investigationComplete: true, newState: null }
+        return { content: `${lead}${base}`.trim(), investigationComplete: true, newState: null }
       }
 
       const nextItem = currentState.pending_items[nextIndex]
@@ -305,21 +379,23 @@ export async function runInvestigator(
           user_message: message,
           last_item_log: pendingOffer.last_item_log ?? null,
           next_item: nextItem,
-          // Use next item's day_scope
           day_scope: String(nextItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
-          deferred_topic: userSaysYes ? "micro-étape après le bilan" : null,
+          deferred_topic: userSaysYes && (pendingOffer.kind === "breakdown" || pendingOffer.kind === "deep_reasons")
+            ? "micro-étape après le bilan"
+            : userSaysYes && pendingOffer.kind === "activate_action"
+              ? "activation d'action après le bilan"
+              : null,
         },
         meta,
       )
-      const prefix = userSaysYes ? "Parfait, j'ai noté. " : "Ok, pas de souci. "
-      return { content: `${prefix}${transitionOut}`.trim(), investigationComplete: false, newState: nextState }
+      return { content: `${lead}${transitionOut}`.trim(), investigationComplete: false, newState: nextState }
     }
 
     // User response unclear: clarify once, then continue bilan
     return {
       content: await investigatorSay(
         "bilan_defer_offer_clarify",
-        { user_message: message, item: currentItem },
+        { user_message: message, item: currentItem, offer_kind: pendingOffer.kind },
         meta,
       ),
       investigationComplete: false,
@@ -330,6 +406,95 @@ export async function runInvestigator(
   // NOTE: Breakdown/deep_reasons flows are now handled post-bilan via deferred_topics_v2.
   // The Investigator only proposes these actions; if user consents, the Dispatcher
   // stores the signal and auto-relaunches the appropriate machine after the bilan.
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // CASE 2: Habit that already exceeded weekly target → congratulate + propose increase
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (
+    currentItem.type === "action" &&
+    currentItem.is_habit &&
+    (currentItem.weekly_target_status === "exceeded" || currentItem.weekly_target_status === "at_target")
+  ) {
+    const currentTarget = Number(currentItem.target ?? 1)
+    const currentReps = Number(currentItem.current ?? 0)
+
+    // Generate congratulation + increase target offer
+    const congratsMsg = await investigatorSay(
+      "target_exceeded_congrats",
+      {
+        user_message: message,
+        channel: meta?.channel,
+        action_title: currentItem.title,
+        current_reps: currentReps,
+        current_target: currentTarget,
+        can_increase: currentTarget < 7,
+      },
+      meta,
+    )
+
+    if (currentTarget < 7) {
+      // Store pending offer for increase_target
+      const nextState: InvestigationState = {
+        ...currentState,
+        temp_memory: {
+          ...(currentState.temp_memory || {}),
+          bilan_defer_offer: {
+            stage: "awaiting_consent",
+            kind: "increase_target",
+            action_id: currentItem.id,
+            action_title: currentItem.title,
+            current_target: currentTarget,
+            last_item_log: { status: "completed", item_type: "action" },
+          },
+        },
+      }
+      return { content: congratsMsg, investigationComplete: false, newState: nextState }
+    }
+
+    // Already at max (7×/semaine): congratulate and continue/close normally.
+    let nextState = updateItemProgress(currentState, currentItem.id, {
+      phase: "logged",
+      logged_at: new Date().toISOString(),
+      logged_status: "completed",
+    })
+    const nextIndex = currentState.current_item_index + 1
+    nextState = { ...nextState, current_item_index: nextIndex }
+
+    if (nextIndex >= currentState.pending_items.length) {
+      const endMsg = await investigatorSay(
+        "end_checkup_after_last_log",
+        {
+          user_message: message,
+          channel: meta?.channel,
+          recent_history: history.slice(-15),
+          last_item: currentItem,
+          last_item_log: { status: "completed", item_type: "action" },
+          day_scope: String(currentItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
+        },
+        meta,
+      )
+      return { content: `${congratsMsg}\n\n${endMsg}`.trim(), investigationComplete: true, newState: null }
+    }
+
+    const nextItem = currentState.pending_items[nextIndex]
+    nextState = updateItemProgress(nextState, nextItem.id, {
+      phase: "awaiting_answer",
+      last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
+    })
+
+    const transitionOut = await investigatorSay(
+      "transition_to_next_item",
+      {
+        user_message: message,
+        last_item_log: { status: "completed" },
+        next_item: nextItem,
+        day_scope: String(nextItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
+        deferred_topic: null,
+      },
+      meta,
+    )
+    return { content: `${congratsMsg}\n\n${transitionOut}`, investigationComplete: false, newState: nextState }
+  }
 
   // RAG : history for this item + general context
   const itemHistoryRaw = await getItemHistory(supabase, userId, currentItem.id, currentItem.type)
@@ -355,10 +520,16 @@ export async function runInvestigator(
     timeContextBlock: timeCtx?.prompt_block ? `=== REPÈRES TEMPORELS ===\n${timeCtx.prompt_block}\n` : "",
   })
   
+  // Build additional addons for target exceeded habits and vital progression
+  const targetExceededAddon = buildTargetExceededAddon({ currentItem })
+  const vitalProgressionAddon = buildVitalProgressionAddon({ currentItem })
+
   // Combine base prompt with addons
   let systemPrompt = basePrompt
   if (progressAddon) systemPrompt += `\n\n${progressAddon}`
   if (deferAddon) systemPrompt += `\n\n${deferAddon}`
+  if (targetExceededAddon) systemPrompt += `\n\n${targetExceededAddon}`
+  if (vitalProgressionAddon) systemPrompt += `\n\n${vitalProgressionAddon}`
 
   console.log(`[Investigator] Generating response for item: ${currentItem.title}`)
 
@@ -390,5 +561,3 @@ export async function runInvestigator(
     meta,
   })
 }
-
-

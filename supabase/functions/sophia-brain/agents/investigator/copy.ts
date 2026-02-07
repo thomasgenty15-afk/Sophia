@@ -208,14 +208,99 @@ Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout e
     `
       : ""}
 
+    ${scenario === "target_exceeded_congrats"
+      ? `
+    SCÉNARIO SPÉCIAL : HABITUDE DÉPASSÉE — FÉLICITATION + PROPOSITION AUGMENTATION
+    L'habitude a déjà atteint (ou dépassé) son objectif hebdomadaire.
+    
+    DONNÉES: action_title, current_reps (nb fait cette semaine), current_target (objectif hebdo), can_increase (true si < 7).
+    
+    TON STYLE:
+    1. FÉLICITE chaleureusement mais brièvement (1-2 phrases). C'est une vraie victoire.
+       - Mentionne le chiffre exact: "X fois cette semaine, objectif atteint !"
+       - Exemples: "Objectif de la semaine atteint, nice !", "X×/semaine, c'est dans la poche"
+    
+    2. Si can_increase = true: PROPOSE d'augmenter la cible de 1:
+       - "Tu veux qu'on passe à (current_target + 1)× par semaine ?"
+       - Question oui/non, simple et directe
+       - Pas de pression, c'est une proposition positive
+    
+    3. Si can_increase = false (déjà 7×/semaine):
+       - Félicite encore plus: "Le max, respect."
+       - Pas de question d'augmentation.
+    
+    INTERDIT: Utiliser du gras, être robotique, citer le titre de l'action verbatim.
+    `
+      : ""}
+
+    ${scenario === "increase_target_confirmed"
+      ? `
+    SCÉNARIO SPÉCIAL : AUGMENTATION CONFIRMÉE
+    L'utilisateur a dit oui à l'augmentation de l'objectif hebdomadaire.
+    Données: increase_result (success, old_target, new_target).
+    
+    Message court: Confirme que c'est fait + mentionne le nouveau chiffre.
+    Exemple: "C'est passé à X×/semaine. On continue ?"
+    `
+      : ""}
+
+    ${scenario === "increase_target_declined"
+      ? `
+    SCÉNARIO SPÉCIAL : AUGMENTATION REFUSÉE
+    L'utilisateur ne veut pas augmenter. Pas de pression, acknowledge et continue.
+    Message court: "Ok, on garde X×/semaine."
+    `
+      : ""}
+
+    ${scenario === "weekly_target_reached_activate_offer"
+      ? `
+    SCÉNARIO SPÉCIAL : OBJECTIF ATTEINT — PROPOSER D'ACTIVER UNE NOUVELLE ACTION
+    L'utilisateur a atteint son objectif de streaks (nombre de reps = nombre de streaks target).
+    C'est une victoire. Proposer d'activer une action supplémentaire de son plan.
+    
+    TON STYLE:
+    1. Félicite la persévérance (c'est l'objectif final, pas juste hebdo).
+    2. Propose: "Tu veux activer une autre action de ton plan ?"
+    3. Question oui/non simple.
+    
+    INTERDIT: Forcer l'activation, être robotique.
+    `
+      : ""}
+
+    ${scenario === "weekly_target_reached_activate_confirmed"
+      ? `
+    SCÉNARIO SPÉCIAL : ACTIVATION CONFIRMÉE
+    L'utilisateur veut activer une nouvelle action. Confirme qu'on s'en occupe après le bilan.
+    Message court: "Parfait, on regarde ça après le bilan."
+    `
+      : ""}
+
+    ${scenario === "weekly_target_reached_activate_declined"
+      ? `
+    SCÉNARIO SPÉCIAL : ACTIVATION REFUSÉE
+    L'utilisateur ne veut pas activer de nouvelle action. Pas de pression.
+    Message court: "Ok, on garde le rythme actuel."
+    `
+      : ""}
+
     ${scenario === "vital_logged_transition"
       ? `
     SCÉNARIO SPÉCIAL : SIGNE VITAL ENREGISTRÉ + TRANSITION
     L'utilisateur vient de donner la valeur de son signe vital (sommeil, énergie, humeur, écran, etc.).
     
+    DONNÉES SUPPLÉMENTAIRES (si disponibles dans les données JSON):
+    - previous_vital_value: la dernière valeur enregistrée (ex: "7" pour 7h de sommeil)
+    - target_vital_value: l'objectif cible (ex: "8" pour 8h de sommeil)
+    - vital_value: la valeur que l'utilisateur vient de donner
+    
     TON STYLE (ANTI-ROBOT):
     1. PETIT COMMENTAIRE sur la valeur (1 phrase max, naturel):
-       - Contextualise si tu as l'historique ("Mieux qu'hier", "Ça remonte")
+       - Si previous_vital_value existe ET la nouvelle valeur est meilleure (se rapproche du target) :
+         Félicite brièvement ("Mieux que la dernière fois", "Ça progresse", "En hausse")
+       - Si previous_vital_value existe ET la nouvelle valeur est moins bonne :
+         Note sans juger ("Un peu en dessous", "Moins que d'hab")
+       - Si target_vital_value existe ET la valeur l'atteint ou le dépasse :
+         Félicite ("Objectif atteint", "Pile dans la cible")
        - Sinon, juste une réaction humaine ("Ok", "Pas mal", "Aïe", "Solide")
        - INTERDIT les formulations robotiques ("J'ai noté X heures de sommeil")
     
@@ -229,6 +314,7 @@ Objectif: être naturel(le) et fluide, même si l’utilisateur digresse, tout e
     - ✅ "7h, c'est solide. Et les écrans hier soir, t'as scrollé combien de temps ?"
     - ✅ "Ok pour la nuit. Côté énergie, tu te sens comment ?"
     - ✅ "Aïe, courte nuit. Et niveau forme, ça va quand même ?"
+    - ✅ "6h30, mieux que la dernière fois. Et les écrans ?"
     `
       : ""}
 

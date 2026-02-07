@@ -215,7 +215,6 @@ import {
   upsertDeepReasonsExploration,
   closeDeepReasonsExploration,
   getActiveDeepReasonsExploration,
-  resumeDeepReasonsExplorationSession,
   // Create Action Flow v2
   getActiveCreateActionFlow,
   upsertCreateActionFlow,
@@ -817,6 +816,147 @@ export async function processMessage(
   // Global parking-lot lives in user_chat_states.temp_memory (independent from investigation_state).
   let tempMemory = (state as any)?.temp_memory ?? {}
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // SILENT BILAN EXPIRY: If the investigation has been active for over 4 hours,
+  // clean it up silently before processing the user's message. No message is sent;
+  // the user's message is handled normally (companion, architect, etc.).
+  // A summary is kept in temp_memory so Sophia has context if the user mentions it.
+  // ═══════════════════════════════════════════════════════════════════════════
+  const BILAN_MAX_DURATION_MS = 4 * 60 * 60 * 1000 // 4 hours
+  {
+    const invState = (state as any)?.investigation_state
+    const invStatus = String(invState?.status ?? "")
+    const startedAt = invState?.started_at ? new Date(invState.started_at).getTime() : 0
+    if (invState && invStatus === "checking" && startedAt > 0) {
+      const elapsed = Date.now() - startedAt
+      if (elapsed > BILAN_MAX_DURATION_MS) {
+        console.log(`[Router] Silent bilan expiry: ${Math.round(elapsed / 60000)}min elapsed. Cleaning up.`)
+
+        // Build a lightweight summary for context
+        const pendingItems = Array.isArray(invState.pending_items) ? invState.pending_items : []
+        const currentIdx = Number(invState.current_item_index ?? 0)
+        const itemProgress = invState.temp_memory?.item_progress ?? {}
+
+        const itemsDone: string[] = []
+        const itemsSkipped: string[] = []
+        let lastItemDiscussed: string | null = null
+
+        for (let i = 0; i < pendingItems.length; i++) {
+          const item = pendingItems[i]
+          const title = String(item?.title ?? "").trim()
+          const progress = itemProgress[String(item?.id ?? "")]
+          const phase = String(progress?.phase ?? "not_started")
+          if (phase === "logged") {
+            itemsDone.push(title)
+          } else {
+            itemsSkipped.push(title)
+          }
+          if (i < currentIdx || (i === currentIdx && phase !== "not_started")) {
+            lastItemDiscussed = title
+          }
+        }
+
+        // Log as partial completion
+        try {
+          const { computeCheckupStatsFromInvestigationState } = await import("../agents/investigator/checkup_stats.ts")
+          const { logCheckupCompletion } = await import("../agents/investigator/db.ts")
+          const stats = computeCheckupStatsFromInvestigationState(invState, { fillUnloggedAsMissed: true })
+          await logCheckupCompletion(
+            supabase,
+            userId,
+            { items: stats.items, completed: stats.completed, missed: stats.missed },
+            "chat_stop",
+            "partial",
+          )
+          console.log(`[Router] Expired bilan logged: ${stats.completed}/${stats.items} completed, ${stats.missed} missed.`)
+        } catch (e) {
+          console.error("[Router] Failed to log expired bilan (non-blocking):", e)
+        }
+
+        // Store summary in temp_memory for context
+        const expiredSummary = {
+          expired_at: new Date().toISOString(),
+          started_at: invState.started_at,
+          items_done: itemsDone,
+          items_skipped: itemsSkipped,
+          last_item_discussed: lastItemDiscussed,
+          elapsed_minutes: Math.round(elapsed / 60000),
+        }
+
+        tempMemory = {
+          ...tempMemory,
+          __expired_bilan_summary: expiredSummary,
+        }
+
+        // Clear investigation_state
+        await updateUserState(supabase, userId, scope, {
+          investigation_state: null,
+          temp_memory: tempMemory,
+        })
+        state = { ...(state ?? {}), investigation_state: null, temp_memory: tempMemory }
+
+        await trace("brain:bilan_silent_expiry", "state", {
+          elapsed_minutes: expiredSummary.elapsed_minutes,
+          items_done: itemsDone.length,
+          items_skipped: itemsSkipped.length,
+        }, "info")
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
+  // WHATSAPP ONBOARDING FLOW: Read whatsapp_state, init/increment __onboarding_flow
+  // The onboarding machine is forced after plan confirmation (whatsapp_state = onboarding_q*)
+  // and managed entirely by the dispatcher/router (not webhook interceptors).
+  // ═══════════════════════════════════════════════════════════════════════════
+  let isOnboardingActive = false
+  let onboardingCompletedThisTurn = false
+  if (channel === "whatsapp") {
+    const { data: onbProfile } = await supabase
+      .from("profiles")
+      .select("whatsapp_state")
+      .eq("id", userId)
+      .maybeSingle()
+    const waState = String((onbProfile as any)?.whatsapp_state ?? "").trim()
+    const isOnbState = /^onboarding_q[123]$/.test(waState)
+    if (isOnbState) {
+      isOnboardingActive = true
+      const stepNum = waState.replace("onboarding_q", "")
+      const expectedStep = `q${stepNum}`
+      const existingFlow = (tempMemory as any)?.__onboarding_flow
+      if (existingFlow) {
+        // Keep DB whatsapp_state as source of truth if ever desynced.
+        if (existingFlow.step !== expectedStep) {
+          existingFlow.step = expectedStep
+          existingFlow.turn_count = 0
+        } else {
+          // Increment turn count (user sent a new message)
+          existingFlow.turn_count = (existingFlow.turn_count ?? 0) + 1
+        }
+      } else {
+        // Initialize: first time processMessage sees this onboarding state
+        // Read plan title for context
+        const { data: plan } = await supabase
+          .from("user_plans")
+          .select("title")
+          .eq("user_id", userId)
+          .eq("status", "active")
+          .order("updated_at", { ascending: false })
+          .limit(1)
+          .maybeSingle()
+        const planTitle = String((plan as any)?.title ?? "").trim() || "Mon plan"
+        ;(tempMemory as any).__onboarding_flow = {
+          step: expectedStep,
+          turn_count: 0,
+          plan_title: planTitle,
+        }
+      }
+    } else if ((tempMemory as any)?.__onboarding_flow) {
+      // Defensive cleanup: onboarding machine must only live while whatsapp_state is onboarding_q*.
+      try { delete (tempMemory as any).__onboarding_flow } catch {}
+    }
+  }
+
   // --- SOFT CAP: Daily message limit to protect margins on power users ---
   // Skip for evals and for Architect tier (unlimited messages)
   const userTier = SOFT_CAP_ENABLED ? await getEffectiveTierForUser(supabase, userId).catch(() => "none" as const) : "none"
@@ -1235,14 +1375,21 @@ export async function processMessage(
             action_target: pendingRelaunchConsent.action_target,
             from_dispatcher: Boolean(dispatcherConsentSignal),
             will_try_next: true,
+            dropped_after_unclear: Boolean(consentResult.droppedAfterUnclear),
           })
           console.log(`[Router] Relaunch consent DECLINED: ${pendingRelaunchConsent.machine_type} → will try next deferred topic`)
+        } else if (consentResult.unclearReaskScheduled) {
+          await trace("brain:relaunch_consent_unclear_reask", "routing", {
+            machine_type: pendingRelaunchConsent.machine_type,
+            action_target: pendingRelaunchConsent.action_target,
+          })
+          console.log(`[Router] Relaunch consent UNCLEAR: re-asking once for ${pendingRelaunchConsent.machine_type}`)
         } else {
-          // Unclear response - topic dropped silently
+          // Unclear response with no re-ask scheduled (defensive fallback)
           await trace("brain:relaunch_consent_unclear", "routing", {
             machine_type: pendingRelaunchConsent.machine_type,
           })
-          console.log(`[Router] Relaunch consent UNCLEAR - topic dropped`)
+          console.log(`[Router] Relaunch consent UNCLEAR`)
         }
       }
     }
@@ -1383,6 +1530,18 @@ export async function processMessage(
           console.log(`[Router] Bilan: topic exploration declined`)
         }
       }
+
+      // Process confirm_increase_target signal
+      if (machineSignals.confirm_increase_target !== undefined && machineSignals.confirm_increase_target !== null) {
+        const confirmed = Boolean(machineSignals.confirm_increase_target)
+        // The increase_week_target DB call is handled directly in the Investigator (run.ts / turn.ts).
+        // Here we just log for tracing purposes.
+        if (confirmed) {
+          console.log(`[Router] Bilan: increase_target confirmed for "${currentItemTitle}"`)
+        } else {
+          console.log(`[Router] Bilan: increase_target declined for "${currentItemTitle}"`)
+        }
+      }
       
       // Set pending_defer_question when signals are detected (for investigator to ask)
       // Only set if no pending question already exists
@@ -1483,7 +1642,8 @@ export async function processMessage(
     const hasExplicitConfirm =
       machineSignals?.confirm_deep_reasons !== undefined ||
       machineSignals?.confirm_breakdown !== undefined ||
-      machineSignals?.confirm_topic !== undefined
+      machineSignals?.confirm_topic !== undefined ||
+      machineSignals?.confirm_increase_target !== undefined
     if (bilanActive && machineSignals?.user_consents_defer && !hasExplicitConfirm) {
       // User consented to defer something during bilan - store in deferred_topics_v2
       // This handles breakdown/deep_reasons consent (the "oui on en parle après" response)
@@ -1856,6 +2016,84 @@ export async function processMessage(
   riskScore = dispatcherSignals.risk_score
 
   // ═══════════════════════════════════════════════════════════════════════════
+  // WHATSAPP ONBOARDING FLOW: Process machine signals for state transitions
+  // Handles Q1→Q2, Q2→Q3, Q3→exit based on dispatcher machine_signals.
+  // ═══════════════════════════════════════════════════════════════════════════
+  if (isOnboardingActive && dispatcherResult?.machine_signals) {
+    const ms = dispatcherResult.machine_signals
+    const onbFlow = (tempMemory as any)?.__onboarding_flow
+    if (onbFlow) {
+      const stepAtTurnStart = String(onbFlow.step ?? "")
+      const turnCountAtTurnStart = Number(onbFlow.turn_count ?? 0)
+
+      // Q1 or Q2: check if ready to advance
+      if (ms.onboarding_ready_to_advance === true && turnCountAtTurnStart > 0) {
+        if (stepAtTurnStart === "q1") {
+          // Advance Q1 → Q2
+          onbFlow.step = "q2"
+          onbFlow.turn_count = 0
+          await supabase.from("profiles").update({
+            whatsapp_state: "onboarding_q2",
+            whatsapp_state_updated_at: new Date().toISOString(),
+          }).eq("id", userId)
+          await trace("brain:onboarding_advance", "routing", { from: "q1", to: "q2" })
+          console.log("[Router] Onboarding: Q1 → Q2")
+        } else if (stepAtTurnStart === "q2") {
+          // Store the "why" response as memory (valuable coaching context)
+          if (userMessage.trim().length > 0) {
+            await supabase.from("memories").insert({
+              user_id: userId,
+              content: `Pendant l'onboarding WhatsApp, l'utilisateur explique pourquoi le développement personnel est important pour lui maintenant: ${userMessage}`,
+              type: "whatsapp_personal_fact",
+              metadata: { channel: "whatsapp", captured_from: "onboarding_why" },
+              source_type: "whatsapp",
+            } as any)
+          }
+          onbFlow.q2_memory_stored = true
+          // Advance Q2 → Q3
+          onbFlow.step = "q3"
+          onbFlow.turn_count = 0
+          await supabase.from("profiles").update({
+            whatsapp_state: "onboarding_q3",
+            whatsapp_state_updated_at: new Date().toISOString(),
+          }).eq("id", userId)
+          await trace("brain:onboarding_advance", "routing", { from: "q2", to: "q3" })
+          console.log("[Router] Onboarding: Q2 → Q3")
+        }
+      }
+
+      // Q3: check if score detected
+      if (stepAtTurnStart === "q3" && turnCountAtTurnStart > 0 && ms.onboarding_score_detected != null) {
+        const score = Number(ms.onboarding_score_detected)
+        if (!isNaN(score) && score >= 0 && score <= 10) {
+          onbFlow.score = score
+          onbFlow.completed = true
+          // Store score as memory
+          await supabase.from("memories").insert({
+            user_id: userId,
+            content: `Pendant l'onboarding WhatsApp, l'utilisateur donne un score de motivation de ${score}/10.`,
+            type: "whatsapp_personal_fact",
+            metadata: { channel: "whatsapp", captured_from: "onboarding_score", score },
+            source_type: "whatsapp",
+          } as any)
+          // Clear whatsapp_state (onboarding is done)
+          await supabase.from("profiles").update({
+            whatsapp_state: null,
+            whatsapp_state_updated_at: new Date().toISOString(),
+          }).eq("id", userId)
+          onboardingCompletedThisTurn = true
+          ;(tempMemory as any).__flow_just_closed_normally = {
+            flow_type: "onboarding_completed",
+            closed_at: new Date().toISOString(),
+          }
+          await trace("brain:onboarding_completed", "routing", { score })
+          console.log(`[Router] Onboarding: completed with score ${score}/10`)
+        }
+      }
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════
   // TRACK_PROGRESS PARALLEL (non-blocking) - do not interrupt active machines
   // ═══════════════════════════════════════════════════════════════════════════
   {
@@ -2100,6 +2338,13 @@ export async function processMessage(
         next_topic_id: nextTopic.id,
         next_topic_type: nextTopic.machine_type,
       })
+    } else {
+      // No same-type topic to chain → flag flow as closed so deferred topics
+      // (including proactive bilan) can auto-relaunch at end of turn.
+      ;(tempMemory as any).__flow_just_closed_normally = {
+        flow_type: `${closedTopicType}_closed`,
+        closed_at: new Date().toISOString(),
+      }
     }
   }
 
@@ -2159,6 +2404,7 @@ export async function processMessage(
   const activeCreateActionSession = getActiveCreateActionFlow(tempMemory)
   if (
     activeCreateActionSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2219,6 +2465,7 @@ export async function processMessage(
     createActionSignal.intent_strength !== "none" &&
     createActionSignal.confidence >= 0.6 &&
     !activeCreateActionSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2255,6 +2502,7 @@ export async function processMessage(
   const activeUpdateActionSession = getActiveUpdateActionFlow(tempMemory)
   if (
     activeUpdateActionSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2315,6 +2563,7 @@ export async function processMessage(
     updateActionSignal.detected &&
     updateActionSignal.confidence >= 0.6 &&
     !activeUpdateActionSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2341,6 +2590,7 @@ export async function processMessage(
   const activeBreakdownActionSession = getActiveBreakdownActionFlow(tempMemory)
   if (
     activeBreakdownActionSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2401,6 +2651,7 @@ export async function processMessage(
     breakdownActionSignal.detected &&
     breakdownActionSignal.confidence >= 0.6 &&
     !activeBreakdownActionSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2427,6 +2678,7 @@ export async function processMessage(
   const activeTrackProgressSession = getActiveTrackProgressFlow(tempMemory)
   if (
     activeTrackProgressSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2500,6 +2752,7 @@ export async function processMessage(
     trackProgressSignal.detected &&
     trackProgressSignal.confidence >= 0.6 &&
     !activeTrackProgressSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2532,6 +2785,7 @@ export async function processMessage(
   const activeActivateActionSession = getActiveActivateActionFlow(tempMemory)
   if (
     activeActivateActionSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2639,6 +2893,7 @@ export async function processMessage(
     activateActionSignal.detected &&
     activateActionSignal.confidence >= 0.6 &&
     !activeActivateActionSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2670,6 +2925,7 @@ export async function processMessage(
   const activeProfileConfirmSession = hasActiveProfileConfirmation(tempMemory)
   if (
     activeProfileConfirmSession &&
+    !isOnboardingActive &&
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     targetMode !== "investigator"
@@ -2733,6 +2989,11 @@ export async function processMessage(
     if (abandonedMachine) {
       // Store the abandon message to prepend to response
       ;(tempMemory as any).__abandon_message = abandonMessage
+      // Flag flow as closed so deferred topics (e.g. proactive bilan) can auto-relaunch.
+      ;(tempMemory as any).__flow_just_closed_normally = {
+        flow_type: `${abandonedMachine}_abandoned`,
+        closed_at: new Date().toISOString(),
+      }
       // Route back to companion for natural conversation
       targetMode = "companion"
       
@@ -3559,6 +3820,24 @@ export async function processMessage(
     }
   }
 
+  // Hard guard: while WhatsApp onboarding is active, keep routing in companion
+  // unless a safety flow explicitly takes over.
+  if (
+    isOnboardingActive &&
+    !onboardingCompletedThisTurn &&
+    (tempMemory as any)?.__onboarding_flow &&
+    targetMode !== "sentry" &&
+    targetMode !== "firefighter" &&
+    targetMode !== "companion"
+  ) {
+    await traceV("brain:onboarding_routing_guard", "routing", {
+      from: targetMode,
+      to: "companion",
+      step: (tempMemory as any)?.__onboarding_flow?.step,
+    })
+    targetMode = "companion"
+  }
+
   // 4.5 Context Loading (Modular - profile-based)
   // Build a shared context string used by agent prompts.
   // Each agent mode has a ContextProfile that specifies exactly what context it needs.
@@ -3807,6 +4086,11 @@ export async function processMessage(
           outcome: drResult.outcome,
         })
         if (closed.changed) tempMemory = closed.tempMemory
+        // Flag flow as closed so deferred topics (e.g. proactive bilan) can auto-relaunch.
+        ;(tempMemory as any).__flow_just_closed_normally = {
+          flow_type: "deep_reasons_closed",
+          closed_at: new Date().toISOString(),
+        }
       }
       
       // Merge temp_memory updates back to state
@@ -4034,6 +4318,8 @@ Réponds uniquement avec la transition:`
       "__resume_message_prefix",
       "__resume_safety_addon",
       "__track_progress_parallel",
+      "__flow_just_closed_normally",
+      "__deferred_bilan_pending",
       "deferred_topics_v2",
       "__paused_machine_v2",
       "__pending_next_topic",
@@ -4073,6 +4359,42 @@ Réponds uniquement avec la transition:`
   try { delete (tempMemory as any).__checkup_addon } catch {}
   try { delete (tempMemory as any).__checkup_deferred_topic } catch {}
   try { delete (tempMemory as any).__track_progress_parallel } catch {}
+  // Expired bilan summary is consumed once (companion has seen it), no need to persist
+  try { delete (tempMemory as any).__expired_bilan_summary } catch {}
+
+  // Release deferred proactive bilan when all blocking machines are closed.
+  // Trigger sets __deferred_bilan_pending while a machine is active.
+  // As soon as the user returns to a free turn, convert it into a normal close marker
+  // so applyAutoRelaunchFromDeferred can ask consent once.
+  {
+    const pendingDeferredBilan = (tempMemory as any)?.__deferred_bilan_pending
+    if (pendingDeferredBilan && !(tempMemory as any)?.__flow_just_closed_normally) {
+      const investigationStatus = String(state?.investigation_state?.status ?? "")
+      const investigationMachineActive = Boolean(state?.investigation_state) &&
+        investigationStatus !== "post_checkup" &&
+        investigationStatus !== "post_checkup_done"
+      const blockingMachineActive =
+        investigationMachineActive ||
+        hasAnyActiveMachine(tempMemory) ||
+        Boolean(getActiveSafetySentryFlow(tempMemory)) ||
+        Boolean(getActiveSafetyFirefighterFlow(tempMemory)) ||
+        Boolean((tempMemory as any)?.__onboarding_flow) ||
+        hasActiveProfileConfirmation(tempMemory) ||
+        Boolean((tempMemory as any)?.__pending_relaunch_consent)
+
+      if (!blockingMachineActive) {
+        ;(tempMemory as any).__flow_just_closed_normally = {
+          flow_type: "deferred_bilan_release",
+          closed_at: new Date().toISOString(),
+        }
+        try { delete (tempMemory as any).__deferred_bilan_pending } catch {}
+        await traceV("brain:deferred_bilan_release_ready", "routing", {
+          source: (pendingDeferredBilan as any)?.source ?? "unknown",
+          blocked_by_machine: (pendingDeferredBilan as any)?.blocked_by_machine ?? "unknown",
+        })
+      }
+    }
+  }
 
   // AUTO-RELAUNCH FROM DEFERRED (after a flow closes normally)
   {
@@ -4337,11 +4659,45 @@ Réponds uniquement avec la transition:`
       if ((tempMemory as any).architect) (mergedTempMemory as any).architect = (tempMemory as any).architect
       // V2 deferred topics
       if ((tempMemory as any).deferred_topics_v2) (mergedTempMemory as any).deferred_topics_v2 = (tempMemory as any).deferred_topics_v2
+      // Deferred proactive bilan marker (must survive while a machine is still active)
+      if ((tempMemory as any).__deferred_bilan_pending) {
+        (mergedTempMemory as any).__deferred_bilan_pending = (tempMemory as any).__deferred_bilan_pending
+      }
       // Paused machine state (for safety parenthesis)
       if ((tempMemory as any).__paused_machine_v2) (mergedTempMemory as any).__paused_machine_v2 = (tempMemory as any).__paused_machine_v2
+      // Onboarding flow state (router-owned)
+      if ((tempMemory as any).__onboarding_flow) {
+        (mergedTempMemory as any).__onboarding_flow = (tempMemory as any).__onboarding_flow
+      }
     }
     // Note: toolflow cancellation is now handled via proper close functions (closeCreateActionFlow, etc.)
   } catch {}
+
+  // Clean up onboarding flow when completed this turn
+  if (onboardingCompletedThisTurn) {
+    try { delete (mergedTempMemory as any).__onboarding_flow } catch {}
+  }
+
+  // Defensive cleanup: remove one-shot keys that must NEVER persist across turns.
+  // These are injected during a single request and consumed before agent execution or response injection.
+  // If any leak through (edge cases, agent DB writes, merge ordering), this ensures they don't
+  // cause infinite loops (e.g., repeated "J'ai noté ton idée d'action" prefix on every turn).
+  {
+    const oneOffKeys = [
+      "__deferred_ack_prefix",
+      "__deferred_signal_addon",
+      "__resume_message_prefix",
+      "__resume_safety_addon",
+      "__ask_relaunch_consent",
+      "__abandon_message",
+      "__checkup_addon",
+      "__checkup_deferred_topic",
+      "__track_progress_parallel",
+    ]
+    for (const key of oneOffKeys) {
+      try { delete (mergedTempMemory as any)[key] } catch {}
+    }
+  }
 
   await updateUserState(supabase, userId, scope, {
     current_mode: nextMode,
@@ -4392,6 +4748,6 @@ Réponds uniquement avec la transition:`
 
   return {
     content: responseContent,
-    mode: targetMode
+    mode: nextMode
   }
 }

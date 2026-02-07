@@ -69,9 +69,8 @@ function normalizeChatText(text: unknown): string {
 
 function fallbackDailyBilanMessage(): string {
   return (
-    "Bonsoir 🙂 Petit bilan rapide ?\n\n" +
-    "1) Un truc dont tu es fier(e) aujourd’hui ?\n" +
-    "2) Un truc à ajuster pour demain ?"
+    "Bonsoir 🙂 C'est le moment du bilan ! Tu es dispo pour qu'on fasse le point sur ta journée ?\n\n" +
+    "Un truc dont tu es fier(e) aujourd'hui ?"
   )
 }
 
@@ -124,19 +123,27 @@ async function buildPersonalizedDailyBilanMessage(admin: ReturnType<typeof creat
   const tctx = buildUserTimeContextFromValues({ timezone: args.timezone ?? null, locale: args.locale ?? null })
 
   const systemPrompt = `
-Tu es Sophia. Tu envoies un message WhatsApp proactif de bilan du soir.
+Tu es Sophia. Tu envoies un message WhatsApp proactif pour INVITER l'utilisateur à faire son bilan du soir.
 
-Objectif: écrire une intro courte (1-2 phrases) qui fait le lien avec le contexte récent (si dispo), puis poser exactement 2 questions:
-1) "Un truc dont tu es fier(e) aujourd’hui ?"
-2) "Un truc à ajuster pour demain ?"
+IMPORTANT: Ce message est une INVITATION au bilan. Tu dois:
+1. Faire comprendre clairement que c'est le moment de faire le bilan de la journée
+2. Demander si l'utilisateur est disponible pour faire le point maintenant
+3. Glisser naturellement la question: "Un truc dont tu es fier(e) aujourd'hui ?" pour amorcer
+
+Objectif: écrire un message court (2-3 phrases max) qui:
+- Indique clairement que c'est l'heure du bilan / du point de la journée
+- Demande si l'utilisateur est dispo pour en parler
+- Fait le lien avec le contexte récent (si dispo)
+- Mentionne "un truc dont tu es fier(e) aujourd'hui" pour donner envie
 
 Contraintes:
 - Texte brut uniquement. Pas de JSON.
 - Max 420 caractères.
 - 0 à 1 emoji (max).
 - Ne mens pas: si le contexte est vide, fais une intro générique.
-- Évite toute info sensible / médicale. Ne “diagnostique” rien.
+- Évite toute info sensible / médicale. Ne "diagnostique" rien.
 - Tutoiement.
+- NE pose PAS la question "un truc à ajuster pour demain" — elle viendra plus tard dans le bilan.
 
 Infos:
 - Repères temporels (critiques):\n${tctx.prompt_block}
@@ -162,10 +169,10 @@ ${history.length > 0 ? history.join("\n") : "(vide)"}
   }
 
   const out = normalizeChatText(res)
-  // Safety net: ensure we always include the two questions.
-  const hasQ1 = out.includes("1)") || out.toLowerCase().includes("un truc dont tu es fier")
-  const hasQ2 = out.includes("2)") || out.toLowerCase().includes("un truc à ajuster")
-  if (!out || !hasQ1 || !hasQ2) return fallbackDailyBilanMessage()
+  // Safety net: ensure the message mentions the bilan/point and something to be proud of.
+  const mentionsBilan = /\b(bilan|point|journée|soir)\b/i.test(out)
+  const mentionsFier = out.toLowerCase().includes("fier") || out.toLowerCase().includes("fière")
+  if (!out || (!mentionsBilan && !mentionsFier)) return fallbackDailyBilanMessage()
   return out.length > 700 ? out.slice(0, 700).trim() : out
 }
 
@@ -229,6 +236,201 @@ function classifyWhatsappSendFailure(msg: string): { kind: "skip"; reason: strin
   }
   if (status === 400) return { kind: "skip", reason: "bad_request" }
   return { kind: "error" }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// STATE MACHINE CHECK: Determine if user has an active conversation machine
+// ═══════════════════════════════════════════════════════════════════════════════
+
+/**
+ * Lightweight check for active state machines from raw user_chat_states data.
+ * Mirrors the logic in flow_context.ts getActiveMachineType() but works on raw DB rows.
+ */
+function hasActiveStateMachine(chatState: any): { active: boolean; machineLabel: string | null } {
+  if (!chatState) return { active: false, machineLabel: null }
+
+  // 1. Investigation (bilan) already in progress
+  const inv = chatState.investigation_state
+  if (inv && inv.status && inv.status !== "post_checkup" && inv.status !== "post_checkup_done") {
+    return { active: true, machineLabel: "bilan_in_progress" }
+  }
+
+  // 2. Check temp_memory for active flows
+  const tm = chatState.temp_memory
+  if (!tm || typeof tm !== "object") return { active: false, machineLabel: null }
+
+  // Safety flows
+  if (tm.__safety_sentry_flow && tm.__safety_sentry_flow.phase !== "resolved") {
+    return { active: true, machineLabel: "safety_sentry" }
+  }
+  if (tm.__safety_firefighter_flow && tm.__safety_firefighter_flow.phase !== "resolved") {
+    return { active: true, machineLabel: "safety_firefighter" }
+  }
+
+  // Onboarding flow
+  if (tm.__onboarding_flow) return { active: true, machineLabel: "onboarding" }
+
+  // Legacy tool flow keys (pre-supervisor)
+  if (tm.create_action_flow) return { active: true, machineLabel: "create_action" }
+  if (tm.update_action_flow) return { active: true, machineLabel: "update_action" }
+  if (tm.breakdown_action_flow) return { active: true, machineLabel: "breakdown_action" }
+
+  // Supervisor stack flows
+  const supervisorStack = tm.supervisor?.stack
+  if (Array.isArray(supervisorStack)) {
+    for (const session of supervisorStack) {
+      const t = session?.type
+      if (
+        t === "create_action_flow" ||
+        t === "update_action_flow" ||
+        t === "breakdown_action_flow" ||
+        t === "activate_action_flow" ||
+        t === "track_progress_flow" ||
+        t === "topic_serious" ||
+        t === "topic_light" ||
+        t === "deep_reasons_exploration"
+      ) {
+        return { active: true, machineLabel: t }
+      }
+    }
+  }
+
+  // Legacy update flow stage (awaiting consent)
+  if (tm.__update_flow_stage?.stage === "awaiting_consent") {
+    return { active: true, machineLabel: "update_consent" }
+  }
+
+  // Deep reasons (legacy key)
+  if (tm.deep_reasons_state) return { active: true, machineLabel: "deep_reasons" }
+
+  // Profile confirmation
+  const profileConfirm = tm.__profile_confirmation_state ?? tm.profile_confirmation_state
+  if (profileConfirm?.status === "confirming") {
+    return { active: true, machineLabel: "profile_confirmation" }
+  }
+
+  // Pending relaunch consent
+  if (tm.__pending_relaunch_consent) return { active: true, machineLabel: "relaunch_consent" }
+
+  return { active: false, machineLabel: null }
+}
+
+/**
+ * Defer the bilan by writing a "checkup" deferred topic to the user's temp_memory.
+ * When the current state machine closes, applyAutoRelaunchFromDeferred will pick it up.
+ */
+async function deferBilanToTopics(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  machineLabel: string,
+): Promise<boolean> {
+  try {
+    // Read current state
+    const { data: chatState, error } = await admin
+      .from("user_chat_states")
+      .select("temp_memory")
+      .eq("user_id", userId)
+      .eq("scope", "whatsapp")
+      .maybeSingle()
+
+    if (error) {
+      console.error(`[trigger-daily-bilan] Failed to read chat state for ${userId}:`, error)
+      return false
+    }
+
+    const tm = (chatState?.temp_memory && typeof chatState.temp_memory === "object")
+      ? { ...chatState.temp_memory }
+      : {}
+
+    // Build deferred topic entry (mirrors deferred_topics_v2.ts createDeferredTopicV2)
+    const now = new Date()
+    const nowStr = now.toISOString()
+    const rand = Math.random().toString(36).slice(2, 8)
+    const topicId = `def_bilan_${nowStr.replace(/[:.]/g, "-")}_${rand}`
+    const ttlMs = 48 * 60 * 60 * 1000 // 48h
+    const deferredMarker = {
+      source: "trigger-daily-bilan",
+      created_at: nowStr,
+      blocked_by_machine: machineLabel,
+      topic_id: topicId,
+    }
+
+    const newTopic = {
+      id: topicId,
+      machine_type: "checkup",
+      signal_summaries: [{
+        summary: "Bilan du soir (proactif, différé car machine active)",
+        timestamp: nowStr,
+      }],
+      created_at: nowStr,
+      last_updated_at: nowStr,
+      trigger_count: 1,
+      expires_at: new Date(now.getTime() + ttlMs).toISOString(),
+    }
+
+    // Read existing deferred state
+    const deferredState = (tm as any).deferred_topics_v2 ?? { topics: [] }
+    const existingTopics = Array.isArray(deferredState.topics) ? deferredState.topics : []
+
+    // Check if a checkup deferred already exists (avoid duplicates)
+    const alreadyHasCheckup = existingTopics.some(
+      (t: any) => t.machine_type === "checkup" && new Date(t.expires_at).getTime() > now.getTime()
+    )
+    if (alreadyHasCheckup) {
+      const updatedTm = {
+        ...tm,
+        __deferred_bilan_pending: deferredMarker,
+      }
+      const { data: existingWrite, error: existingWriteErr } = await admin
+        .from("user_chat_states")
+        .update({ temp_memory: updatedTm })
+        .eq("user_id", userId)
+        .eq("scope", "whatsapp")
+        .select("user_id")
+        .maybeSingle()
+      if (existingWriteErr || !existingWrite) {
+        console.error(`[trigger-daily-bilan] Failed to update deferred marker for ${userId}:`, existingWriteErr ?? "no chat_state row")
+        return false
+      }
+      console.log(`[trigger-daily-bilan] Checkup already deferred for ${userId}, marker refreshed.`)
+      return true
+    }
+
+    // Add new topic (max 5, FIFO)
+    let updatedTopics = [...existingTopics, newTopic]
+    if (updatedTopics.length > 5) {
+      updatedTopics = updatedTopics.slice(-5)
+    }
+
+    const updatedTm = {
+      ...tm,
+      __deferred_bilan_pending: deferredMarker,
+      deferred_topics_v2: {
+        ...deferredState,
+        topics: updatedTopics,
+      },
+    }
+
+    // Write back
+    const { data: writeData, error: writeErr } = await admin
+      .from("user_chat_states")
+      .update({ temp_memory: updatedTm })
+      .eq("user_id", userId)
+      .eq("scope", "whatsapp")
+      .select("user_id")
+      .maybeSingle()
+
+    if (writeErr || !writeData) {
+      console.error(`[trigger-daily-bilan] Failed to write deferred bilan for ${userId}:`, writeErr ?? "no chat_state row")
+      return false
+    }
+
+    console.log(`[trigger-daily-bilan] Bilan deferred for ${userId} (active machine: ${machineLabel})`)
+    return true
+  } catch (e) {
+    console.error(`[trigger-daily-bilan] deferBilanToTopics error for ${userId}:`, e)
+    return false
+  }
 }
 
 async function callWhatsappSendWithRetry(payload: unknown, opts: { maxAttempts: number; throttleMs: number }) {
@@ -315,14 +517,62 @@ Deno.serve(async (req) => {
 
     const profilesById = new Map((profiles ?? []).map((p) => [p.id, p]))
 
+    // ═══════════════════════════════════════════════════════════════════════════
+    // BATCH FETCH: Load chat states for all users to check for active machines.
+    // If a user already has an active state machine, we defer the bilan instead
+    // of interrupting the current conversation.
+    // ═══════════════════════════════════════════════════════════════════════════
+    const chatStatesById = new Map<string, any>()
+    let deferred = 0
+    const deferredUserIds: string[] = []
+    try {
+      const { data: chatStates } = await admin
+        .from("user_chat_states")
+        .select("user_id, investigation_state, temp_memory")
+        .eq("scope", "whatsapp")
+        .in("user_id", filtered)
+
+      for (const cs of (chatStates ?? [])) {
+        chatStatesById.set(cs.user_id, cs)
+      }
+    } catch (e) {
+      // Non-blocking: if we can't read chat states, proceed without the check.
+      console.error("[trigger-daily-bilan] Failed to batch-read chat states:", e)
+    }
+
     for (let idx = 0; idx < filtered.length; idx++) {
       const userId = filtered[idx]
       try {
         const p = profilesById.get(userId) as any
         const hasBilanOptIn = Boolean(p?.whatsapp_bilan_opted_in)
+        const chatState = chatStatesById.get(userId)
+        const machineCheck = hasActiveStateMachine(chatState)
 
         // Smooth out bursts (skip the first)
         if (throttleMs > 0 && idx > 0) await sleep(throttleMs)
+
+        // STATE MACHINE CHECK (all proactive sends):
+        // while a machine is active, avoid injecting proactive prompts.
+        if (machineCheck.active && !hasBilanOptIn) {
+          skipped++
+          skippedUserIds.push(userId)
+          skippedReasons[userId] = `active_state_machine:${machineCheck.machineLabel}`
+          if (logSkips) {
+            await logComm(admin, {
+              user_id: userId,
+              channel: "whatsapp",
+              type: "daily_bilan_skipped",
+              status: "skipped",
+              metadata: {
+                reason: "active_state_machine",
+                active_machine: machineCheck.machineLabel,
+                request_id: requestId,
+                mode: "template_optin",
+              },
+            })
+          }
+          continue
+        }
 
         if (!hasBilanOptIn) {
           // Send a template to ask for explicit opt-in to the daily bilan.
@@ -358,6 +608,35 @@ Deno.serve(async (req) => {
             sentUserIds.push(userId)
           }
         } else {
+          // ═══════════════════════════════════════════════════════════════════
+          // STATE MACHINE CHECK: If user has an active state machine, defer
+          // the bilan to deferred_topics_v2 instead of interrupting.
+          // The bilan will auto-relaunch when the current machine closes.
+          // ═══════════════════════════════════════════════════════════════════
+          if (machineCheck.active) {
+            const didDefer = await deferBilanToTopics(admin, userId, machineCheck.machineLabel!)
+            if (didDefer) {
+              deferred++
+              deferredUserIds.push(userId)
+              skippedReasons[userId] = `deferred:active_machine:${machineCheck.machineLabel}`
+              if (logSkips) {
+                await logComm(admin, {
+                  user_id: userId,
+                  channel: "whatsapp",
+                  type: "daily_bilan_deferred",
+                  status: "deferred",
+                  metadata: {
+                    reason: "active_state_machine",
+                    active_machine: machineCheck.machineLabel,
+                    request_id: requestId,
+                  },
+                })
+              }
+              continue // Skip sending, bilan is deferred
+            }
+            // If deferral failed, fall through and try to send anyway.
+          }
+
           const bilanMessage = await buildPersonalizedDailyBilanMessage(admin, {
             userId,
             fullName: String(p?.full_name ?? ""),
@@ -436,8 +715,10 @@ Deno.serve(async (req) => {
         success: true,
         sent,
         skipped,
+        deferred,
         sent_user_ids: sentUserIds,
         skipped_user_ids: skippedUserIds,
+        deferred_user_ids: deferredUserIds,
         skipped_reasons: skippedReasons,
         errors,
         throttle_ms: throttleMs,
@@ -452,5 +733,4 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-
 

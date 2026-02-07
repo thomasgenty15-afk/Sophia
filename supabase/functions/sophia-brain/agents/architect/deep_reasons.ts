@@ -15,7 +15,6 @@ import type {
   DeepReasonsPattern,
   DeepReasonsOutcome,
   DeepReasonsInterventionType,
-  EnrichedDeferredTopic,
 } from "./deep_reasons_types.ts"
 import {
   createDeepReasonsState,
@@ -683,20 +682,5 @@ export function startDeepReasonsExploration(opts: {
   })
 }
 
-/**
- * Resume a deep reasons exploration from a deferred topic.
- */
-export function resumeDeepReasonsFromDeferred(
-  deferredTopic: EnrichedDeferredTopic,
-): DeepReasonsState {
-  const ctx = deferredTopic.context
-  return createDeepReasonsState({
-    phase: "re_consent",
-    action_context: ctx?.action_title ? { id: ctx.action_id, title: ctx.action_title } : undefined,
-    detected_pattern: ctx?.detected_pattern ?? "unknown",
-    user_words: ctx?.user_words ?? deferredTopic.topic,
-    source: "deferred",
-  })
-}
 
 

@@ -16,6 +16,11 @@ export interface CheckupItem {
   is_habit?: boolean
   // Moment de la journée pour l'action (utilisé pour calculer day_scope)
   time_of_day?: string  // "morning" | "afternoon" | "evening" | "night" | "any_time"
+  // Weekly target status for habits (set during getPendingItems)
+  weekly_target_status?: "below" | "at_target" | "exceeded"
+  // Vital signs progression context
+  previous_vital_value?: string
+  target_vital_value?: string
 }
 
 /**
@@ -129,18 +134,21 @@ export interface InvestigationTempMemory {
   breakdown_declined_action_ids?: string[]
   /** @deprecated Use deferred_topics_v2 with machine_type="deep_reasons" instead */
   deep_reasons_deferred?: DeepReasonsDeferred
-  /** Pending post-bilan consent offer (micro-étape / exploration) */
+  /** Pending post-bilan consent offer (micro-étape / exploration / increase target / activate action) */
   bilan_defer_offer?: {
     stage: "awaiting_consent"
-    kind: "breakdown" | "deep_reasons"
+    kind: "breakdown" | "deep_reasons" | "increase_target" | "activate_action"
     action_id: string
     action_title?: string
     streak_days?: number
+    current_target?: number
     last_note?: string
     last_item_log?: unknown
   }
   /** Cache of missed streaks by action id for the current bilan */
   missed_streaks_by_action?: Record<string, number>
+  /** Snapshot of vital progression context captured at bilan start */
+  vital_progression?: Record<string, { previous_value?: string; target_value?: string }>
   /** Consents collected during bilan for machines to launch after */
   bilan_defer_consents?: BilanDeferConsents
   /** Pending defer question to inject into next investigator prompt */
@@ -160,6 +168,8 @@ export interface InvestigationState {
   pending_items: CheckupItem[]
   current_item_index: number
   temp_memory: InvestigationTempMemory
+  /** ISO timestamp of when the bilan was started (used for auto-expiration). */
+  started_at?: string
 }
 
 export type InvestigatorTurnResult = {
@@ -167,6 +177,5 @@ export type InvestigatorTurnResult = {
   investigationComplete: boolean
   newState: any
 }
-
 
 

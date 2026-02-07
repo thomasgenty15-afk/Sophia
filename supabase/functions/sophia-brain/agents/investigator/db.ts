@@ -226,8 +226,20 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
       const weekLast = lastPerformedDate ? isoWeekStartYmdInTz(lastPerformedDate, tz) : null
       const weekReps = weekLast && weekLast === weekNow ? Number(a.current_reps ?? 0) : 0
       const target = Number(a.target_reps ?? 1)
-      // If habit already achieved for the week, no need to ask during bilan.
-      if (isHabit && target > 0 && weekReps >= target) return
+
+      // Compute weekly_target_status for habits
+      let weeklyTargetStatus: "below" | "at_target" | "exceeded" | undefined
+      if (isHabit && target > 0) {
+        if (weekReps < target) {
+          weeklyTargetStatus = "below"
+        } else if (weekReps === target) {
+          weeklyTargetStatus = "at_target"
+        } else {
+          weeklyTargetStatus = "exceeded"
+        }
+        // Habits that already met/exceeded target: 50% chance of inclusion (to propose increase)
+        if (weekReps >= target && Math.random() >= 0.5) return
+      }
 
       // Compute day_scope per action based on time_of_day
       const actionDayScope = computeActionDayScope(a.time_of_day, localHour)
@@ -245,9 +257,38 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
         day_scope: actionDayScope,
         is_habit: isHabit,
         time_of_day: a.time_of_day ?? undefined,
+        weekly_target_status: weeklyTargetStatus,
       })
     }
   })
+
+  // Fetch latest vital sign entry per vital for progression context.
+  const vitalIds = (vitals ?? []).map((v: any) => v.id)
+  const vitalEntriesMap = new Map<string, string>()
+  if (vitalIds.length > 0) {
+    try {
+      const latestRows = await Promise.all(
+        vitalIds.map(async (vitalId) => {
+          const { data } = await supabase
+            .from("user_vital_sign_entries")
+            .select("value")
+            .eq("user_id", userId)
+            .eq("vital_sign_id", vitalId)
+            .order("recorded_at", { ascending: false })
+            .limit(1)
+            .maybeSingle()
+          return [String(vitalId), data ? String((data as any).value ?? "") : ""] as const
+        }),
+      )
+      for (const [vitalId, value] of latestRows) {
+        if (value.trim().length > 0) {
+          vitalEntriesMap.set(vitalId, value)
+        }
+      }
+    } catch (e) {
+      console.error("[Investigator] Failed to fetch vital sign entries for progression:", e)
+    }
+  }
 
   vitals?.forEach((v: any) => {
     const lastCheckedDate = v.last_checked_at ? new Date(v.last_checked_at) : null
@@ -259,6 +300,8 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
         tracking_type: "counter",
         unit: v.unit,
         day_scope: globalDayScope,  // Vitals use global day_scope
+        previous_vital_value: vitalEntriesMap.get(v.id) ?? undefined,
+        target_vital_value: v.target_value !== null && v.target_value !== undefined ? String(v.target_value) : undefined,
       })
     }
   })
@@ -494,6 +537,58 @@ export async function megaTestLogItem(supabase: SupabaseClient, userId: string, 
   return await logItem(supabase, userId, args)
 }
 
+/**
+ * Increase the weekly target (target_reps) for a habit action by 1, up to max 7.
+ * Returns the old and new target, or an error message if already at max.
+ */
+export async function increaseWeekTarget(
+  supabase: SupabaseClient,
+  userId: string,
+  actionId: string,
+): Promise<{ success: boolean; old_target: number; new_target: number; error?: string }> {
+  const { data: action, error: fetchError } = await supabase
+    .from("user_actions")
+    .select("id, title, target_reps, type, status")
+    .eq("id", actionId)
+    .eq("user_id", userId)
+    .maybeSingle()
+
+  if (fetchError || !action) {
+    return { success: false, old_target: 0, new_target: 0, error: "Action introuvable." }
+  }
+
+  if (String((action as any).type ?? "") !== "habit") {
+    return { success: false, old_target: 0, new_target: 0, error: "Cette action n'est pas une habitude." }
+  }
+  if (String((action as any).status ?? "") !== "active") {
+    return { success: false, old_target: 0, new_target: 0, error: "Cette action n'est plus active." }
+  }
+
+  const oldTarget = Math.max(1, Number((action as any).target_reps ?? 1) || 1)
+  if (oldTarget >= 7) {
+    return { success: false, old_target: oldTarget, new_target: oldTarget, error: "Déjà au maximum (7×/semaine)." }
+  }
+
+  const newTarget = oldTarget + 1
+  const { data: updated, error: updateError } = await supabase
+    .from("user_actions")
+    .update({ target_reps: newTarget })
+    .eq("id", actionId)
+    .eq("user_id", userId)
+    .eq("type", "habit")
+    .eq("status", "active")
+    .select("id")
+    .limit(1)
+
+  if (updateError || !updated || updated.length === 0) {
+    console.error("[Investigator] increaseWeekTarget update failed:", updateError)
+    return { success: false, old_target: oldTarget, new_target: oldTarget, error: "Erreur technique." }
+  }
+
+  console.log(`[Investigator] Increased target_reps for ${actionId}: ${oldTarget} -> ${newTarget}`)
+  return { success: true, old_target: oldTarget, new_target: newTarget }
+}
+
 export async function handleArchiveAction(
   supabase: SupabaseClient,
   userId: string,
@@ -679,4 +774,3 @@ export async function logCheckupCompletion(
     console.error("[Investigator] logCheckupCompletion failed (non-blocking):", e)
   }
 }
-

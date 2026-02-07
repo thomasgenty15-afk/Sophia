@@ -17,7 +17,7 @@ export function pickSupervisorSummary(tm: any): {
   stack_top_type?: string
   stack_top_owner?: string
   stack_top_status?: string
-  topic_exploration?: { topic?: string; phase?: string; focus_mode?: string; handoff_to?: string }
+  topic_exploration?: { topic?: string; phase?: string; focus_mode?: string; handoff_to?: string; topic_type?: string }
   queue_size?: number
   queue_reasons_tail?: string[]
   queue_pending_reasons?: string[]
@@ -37,12 +37,13 @@ export function pickSupervisorSummary(tm: any): {
     queue_reasons_tail: tail.length ? tail : undefined,
     queue_pending_reasons: pending.length ? pending : undefined,
   }
-  if (sess?.type === "topic_exploration") {
+  if (sess?.type === "topic_serious" || sess?.type === "topic_light") {
     out.topic_exploration = {
       topic: sess.topic ? String(sess.topic).slice(0, 160) : undefined,
       phase: sess.phase ? String(sess.phase) : undefined,
       focus_mode: sess.focus_mode ? String(sess.focus_mode) : undefined,
       handoff_to: sess.handoff_to ? String(sess.handoff_to) : undefined,
+      topic_type: String(sess.type),
     }
   }
   return out
@@ -62,6 +63,5 @@ export function pickProfileConfirmSummary(tm: any): { pending: boolean; key?: st
   const key = typeof pending.key === "string" ? String(pending.key).slice(0, 80) : undefined
   return { pending: true, key }
 }
-
 
 

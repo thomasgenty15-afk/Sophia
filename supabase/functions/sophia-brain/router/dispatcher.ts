@@ -261,7 +261,9 @@ export interface DispatcherInputV2 {
     plan_confirm_pending?: boolean
     topic_exploration_phase?: string
     topic_exploration_type?: string
-    risk_level?: string
+    risk_level?: number
+    onboarding_active?: boolean
+    onboarding_step?: string
   }
   /** Flow context for enriching machine-specific prompts */
   flowContext?: FlowContext
@@ -383,6 +385,7 @@ export interface MachineSignals {
   confirm_deep_reasons?: boolean | null    // User confirms/declines deep reasons exploration after bilan
   confirm_breakdown?: boolean | null       // User confirms/declines micro-step breakdown after bilan
   confirm_topic?: boolean | null           // User confirms/declines topic exploration after bilan
+  confirm_increase_target?: boolean | null // User confirms/declines increasing weekly habit target
   
   // Checkup flow signals
   checkup_intent?: {
@@ -399,6 +402,10 @@ export interface MachineSignals {
     reports_bug: boolean     // User reports a bug/issue ("ça bug", "ça marche pas")
     confidence: number
   }
+
+  // WhatsApp onboarding flow signals (Q1/Q2/Q3 warm questions)
+  onboarding_ready_to_advance?: boolean    // Q1/Q2: user has clearly answered the question
+  onboarding_score_detected?: number | null // Q3: extracted motivation score (0-10), null if not detected
 }
 
 /**
@@ -897,7 +904,7 @@ export interface FlowContext {
   /** For safety flows (firefighter/sentry): crisis context */
   isSafetyFlow?: boolean
   safetyFlowType?: "firefighter" | "sentry"
-  safetyPhase?: "acute" | "stabilizing" | "confirming" | "resolved"
+  safetyPhase?: "acute" | "grounding" | "stabilizing" | "confirming" | "resolved"
   safetyTurnCount?: number
   /** Firefighter-specific: counts of stabilization vs distress signals */
   stabilizationSignals?: number
@@ -936,6 +943,10 @@ export interface FlowContext {
   profileConfirmPhase?: string  // presenting | awaiting_confirm | processing | completed
   profileConfirmQueueSize?: number
   profileConfirmCurrentIndex?: number
+  /** For WhatsApp onboarding flow: Q1/Q2/Q3 warm questions */
+  onboardingStep?: string       // "q1" | "q2" | "q3"
+  onboardingTurnCount?: number  // 0 = first entry (ask), 1+ = converse
+  onboardingPlanTitle?: string  // title of the user's active plan
 }
 
 /**
@@ -1080,7 +1091,8 @@ PAS DE SIGNAL SPECIFIQUE A PRODUIRE - ce contexte est juste informatif.
     
     // Build visual state machine representation
     const phaseEmoji = (p: string, current: string) => p === current ? "▶" : (
-      ["acute", "stabilizing", "confirming", "resolved"].indexOf(p) < ["acute", "stabilizing", "confirming", "resolved"].indexOf(current) ? "✓" : "○"
+      ["acute", "grounding", "stabilizing", "confirming", "resolved"].indexOf(p) <
+        ["acute", "grounding", "stabilizing", "confirming", "resolved"].indexOf(current) ? "✓" : "○"
     )
     
     let addon = `
@@ -1091,8 +1103,8 @@ Tu es dans un flow de DESAMORCAGE DE CRISE EMOTIONNELLE.
 ║                    MACHINE A ETAT - FIREFIGHTER                               ║
 ╠═══════════════════════════════════════════════════════════════════════════════╣
 ║                                                                               ║
-║  ${phaseEmoji("acute", phase)} ACUTE         →  ${phaseEmoji("stabilizing", phase)} STABILIZING  →  ${phaseEmoji("confirming", phase)} CONFIRMING  →  ${phaseEmoji("resolved", phase)} RESOLVED     ║
-║  (desamorcage)      (apaisement)      (verification)    (sortie)        ║
+║  ${phaseEmoji("acute", phase)} ACUTE         →  ${phaseEmoji("grounding", phase)} GROUNDING   →  ${phaseEmoji("stabilizing", phase)} STABILIZING  →  ${phaseEmoji("confirming", phase)} CONFIRMING  →  ${phaseEmoji("resolved", phase)} RESOLVED     ║
+║  (desamorcage)      (ancrage)         (apaisement)      (verification)    (sortie)        ║
 ║                                                                               ║
 ║  ETAPE ACTUELLE: [ ${phase.toUpperCase()} ]                                              ║
 ║                                                                               ║
@@ -1126,11 +1138,18 @@ SIGNAUX A DETECTER (pour determiner si on peut avancer):
 CONDITIONS DE TRANSITION (strictes, non negociables):
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
-│ ACUTE → STABILIZING                                                         │
+│ ACUTE → GROUNDING                                                           │
 │ Conditions TOUTES requises:                                                 │
 │   • calming_signs = true (premiers signes d'apaisement)                     │
 │   • escalate_to_sentry = false (pas de danger vital)                        │
 │   • L'utilisateur coopere avec au moins un exercice                         │
+└─────────────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ GROUNDING → STABILIZING                                                     │
+│ Conditions TOUTES requises:                                                 │
+│   • calming_signs = true (la respiration / le ton redescendent)             │
+│   • L'utilisateur suit toujours l'accompagnement                            │
 └─────────────────────────────────────────────────────────────────────────────┘
 
 ┌─────────────────────────────────────────────────────────────────────────────┐
@@ -1165,9 +1184,23 @@ Signaux a surveiller:
 - calming_signs: true si PREMIERS signes d'apaisement ("ok", "je respire", cooperation)
 - escalate_to_sentry: true si danger vital ("envie de me faire du mal", "idees noires")
 
-Pour passer a STABILIZING:
+Pour passer a GROUNDING:
 - ready_for_next_phase = true SEULEMENT si calming_signs = true ET escalate_to_sentry = false
 - Sinon, on RESTE en ACUTE
+`
+    } else if (phase === "grounding") {
+      addon += `
+--- TU ES EN PHASE GROUNDING ---
+Objectif: Maintenir l'ancrage corporel (respiration, sensations, present) jusqu'a stabilisation.
+
+Signaux a surveiller:
+- physical_symptoms_present: vrai si symptomes physiques encore nets
+- calming_signs: vrai si la respiration et le ton redescendent
+- still_in_distress: vrai si la crise reste dominante
+
+Pour passer a STABILIZING:
+- ready_for_next_phase = true SEULEMENT si calming_signs = true
+- Si symptoms forts persistent, rester en GROUNDING
 `
     } else if (phase === "stabilizing") {
       addon += `
@@ -1764,7 +1797,8 @@ Tu es dans un flow d'EXPLORATION DE SUJET ${topicType}.
 ╚═══════════════════════════════════════════════════════════════════════════════╝
 
 REGLE FONDAMENTALE - VERROUILLAGE DES PALIERS:
-- Une fois un palier atteint, on NE REVIENT JAMAIS en arriere
+- En general, on avance vers la cloture sans revenir en arriere
+- Exception: si l'utilisateur se re-engage fortement en CONVERGING, un retour vers EXPLORING est possible
 - L'utilisateur peut TOUJOURS changer de sujet ou abandonner (user_abandons)
 - Engagement LOW persistant = accelerer vers closing
 
@@ -2292,7 +2326,8 @@ Analyse ces signaux et AJOUTE-LES dans ta reponse JSON sous "machine_signals":
     "user_consents_defer": true | false,
     "confirm_deep_reasons": true | false | null,
     "confirm_breakdown": true | false | null,
-    "confirm_topic": true | false | null
+    "confirm_topic": true | false | null,
+    "confirm_increase_target": true | false | null
   }
 }
 
@@ -2318,11 +2353,199 @@ Guide d'interpretation - SIGNAUX DE CONFIRMATION (reponse a "tu veux qu'on en pa
   - true si l'utilisateur dit "oui" a une proposition de parler d'un sujet apres le bilan
   - false si l'utilisateur dit "non", "pas maintenant"
   - null si pas de reponse a cette question specifique
+- confirm_increase_target:
+  - true si l'utilisateur dit "oui" a une proposition d'augmenter la cible hebdomadaire d'une habitude
+  - false si l'utilisateur dit "non", "on garde", "ca me va comme ca"
+  - null si pas de reponse a cette question specifique
 
 DISTINCTION CRITIQUE (breakdown vs deep_reasons):
 - breakdown = blocage PRATIQUE: "j'oublie", "pas le temps", "trop fatigue le soir" -> micro-etape
 - deep_reasons = blocage MOTIVATIONNEL: "j'ai pas envie", "je sais pas pourquoi", "ca me saoule" -> exploration profonde
 `
+    return checkupAddon ? `${addon}\n${checkupAddon}` : addon
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // WHATSAPP ONBOARDING FLOW (Q1/Q2/Q3 warm questions)
+  // Forced one-shot machine after plan confirmation. 6 add-ons (2 per question).
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (activeMachine === "whatsapp_onboarding_flow") {
+    const step = flowContext?.onboardingStep ?? "q1"
+    const turn = flowContext?.onboardingTurnCount ?? 0
+    const planTitle = flowContext?.onboardingPlanTitle ?? "son plan"
+    const isFirstEntry = turn === 0
+
+    // Build deferred topics awareness (same as other machines)
+    const deferredBlock = flowContext?.deferredTopicsSummary && flowContext.deferredTopicsSummary.length > 0
+      ? `\nSujets differes stockes: ${flowContext.deferredTopicsSummary.map(t => `"${t.briefs[0] ?? t.machine_type}"`).join(", ")}` +
+        `\nSi l'utilisateur digresse, note le sujet dans deferred_signal et reviens a l'onboarding.`
+      : `\nSi l'utilisateur digresse, note le sujet dans deferred_signal (interrupt.kind=DIGRESSION) et reviens a l'onboarding.`
+
+    let addon = ""
+
+    // ─── Q1: "Comment ca s'est passe de construire ton plan ?" ───
+    if (step === "q1") {
+      if (isFirstEntry) {
+        // Q1_ask: first entry, question not yet asked
+        addon = `
+=== SIGNAUX SPECIFIQUES (whatsapp_onboarding_flow actif — Q1_ask) ===
+Tu es dans le flow d'onboarding WhatsApp (Q1 — PREMIERE ENTREE).
+Plan actif: "${planTitle}"
+
+L'utilisateur vient de confirmer son plan. Sophia va celebrer brievement et poser Q1:
+"Comment ca s'est passe pour toi de construire ton plan ?"
+
+C'est le PREMIER tour: la question n'a PAS encore ete posee.
+→ onboarding_ready_to_advance: false (systematiquement, la question n'est pas encore posee)
+→ onboarding_score_detected: null
+${deferredBlock}
+
+Analyse et AJOUTE dans "machine_signals":
+{
+  "machine_signals": {
+    "onboarding_ready_to_advance": false,
+    "onboarding_score_detected": null
+  }
+}
+`
+      } else {
+        // Q1_converse: user responded, detect if Q1 was answered
+        addon = `
+=== SIGNAUX SPECIFIQUES (whatsapp_onboarding_flow actif — Q1_converse) ===
+Tu es dans le flow d'onboarding WhatsApp (Q1 — CONVERSATION, tour ${turn}).
+Plan actif: "${planTitle}"
+
+La question "Comment ca s'est passe de construire ton plan ?" a ete posee.
+L'utilisateur a repondu. Detecte si la reponse constitue un vrai retour sur l'experience de construction du plan.
+
+IMPORTANT: meme une reponse courte ("bien", "cool", "long mais bien") compte comme reponse valide.
+Seules les digressions totales (changement de sujet) ou les non-reponses ne comptent pas.
+${deferredBlock}
+
+Analyse et AJOUTE dans "machine_signals":
+{
+  "machine_signals": {
+    "onboarding_ready_to_advance": true | false,
+    "onboarding_score_detected": null
+  }
+}
+
+Guide:
+- onboarding_ready_to_advance: true si l'utilisateur a repondu a la question (meme brievement)
+- onboarding_ready_to_advance: false si digression ou non-reponse
+`
+      }
+    }
+
+    // ─── Q2: "Pourquoi le dev perso est important pour toi maintenant ?" ───
+    else if (step === "q2") {
+      if (isFirstEntry) {
+        // Q2_ask: transition from Q1, question not yet asked
+        addon = `
+=== SIGNAUX SPECIFIQUES (whatsapp_onboarding_flow actif — Q2_ask) ===
+Tu es dans le flow d'onboarding WhatsApp (Q2 — PREMIERE ENTREE).
+Plan actif: "${planTitle}"
+
+L'utilisateur a repondu a Q1 (experience du plan). Sophia va accuser reception et poser Q2:
+"Pourquoi c'est important pour toi maintenant de te lancer la-dedans ?"
+
+C'est le PREMIER tour de Q2: la question n'a PAS encore ete posee.
+→ onboarding_ready_to_advance: false
+→ onboarding_score_detected: null
+${deferredBlock}
+
+Analyse et AJOUTE dans "machine_signals":
+{
+  "machine_signals": {
+    "onboarding_ready_to_advance": false,
+    "onboarding_score_detected": null
+  }
+}
+`
+      } else {
+        // Q2_converse: user responded, detect if Q2 was answered
+        addon = `
+=== SIGNAUX SPECIFIQUES (whatsapp_onboarding_flow actif — Q2_converse) ===
+Tu es dans le flow d'onboarding WhatsApp (Q2 — CONVERSATION, tour ${turn}).
+Plan actif: "${planTitle}"
+
+La question "Pourquoi le dev perso est important pour toi maintenant ?" a ete posee.
+L'utilisateur a repondu. Detecte si la reponse exprime une motivation, un "pourquoi" personnel.
+
+IMPORTANT: meme une reponse courte ou vague ("je veux changer", "j'en ai marre de stagner") est valide.
+Seules les digressions totales ou non-reponses ne comptent pas.
+${deferredBlock}
+
+Analyse et AJOUTE dans "machine_signals":
+{
+  "machine_signals": {
+    "onboarding_ready_to_advance": true | false,
+    "onboarding_score_detected": null
+  }
+}
+
+Guide:
+- onboarding_ready_to_advance: true si l'utilisateur a partage une raison/motivation (meme brieve)
+- onboarding_ready_to_advance: false si digression ou non-reponse
+`
+      }
+    }
+
+    // ─── Q3: "Score de motivation sur 10 ?" ───
+    else if (step === "q3") {
+      if (isFirstEntry) {
+        // Q3_ask: transition from Q2, question not yet asked
+        addon = `
+=== SIGNAUX SPECIFIQUES (whatsapp_onboarding_flow actif — Q3_ask) ===
+Tu es dans le flow d'onboarding WhatsApp (Q3 — PREMIERE ENTREE).
+Plan actif: "${planTitle}"
+
+L'utilisateur a repondu a Q2 (motivation). Sophia va accuser reception et poser Q3:
+"Et si tu devais mettre un chiffre, ta motivation la tout de suite, sur 10 ?"
+
+C'est le PREMIER tour de Q3: la question n'a PAS encore ete posee.
+→ onboarding_ready_to_advance: false
+→ onboarding_score_detected: null
+${deferredBlock}
+
+Analyse et AJOUTE dans "machine_signals":
+{
+  "machine_signals": {
+    "onboarding_ready_to_advance": false,
+    "onboarding_score_detected": null
+  }
+}
+`
+      } else {
+        // Q3_converse: user responded, detect score
+        addon = `
+=== SIGNAUX SPECIFIQUES (whatsapp_onboarding_flow actif — Q3_converse) ===
+Tu es dans le flow d'onboarding WhatsApp (Q3 — CONVERSATION, tour ${turn}).
+Plan actif: "${planTitle}"
+
+La question du score de motivation (0-10) a ete posee.
+L'utilisateur a repondu. Cherche un chiffre entre 0 et 10 dans sa reponse.
+
+Exemples de scores valides: "8", "8/10", "un 7", "sept", "je dirais 6", "8 sur 10"
+Si le message contient un chiffre clair entre 0 et 10, extrais-le.
+Si pas de chiffre clair (digression, refus, ambiguite), renvoie null.
+${deferredBlock}
+
+Analyse et AJOUTE dans "machine_signals":
+{
+  "machine_signals": {
+    "onboarding_ready_to_advance": false,
+    "onboarding_score_detected": <number 0-10> | null
+  }
+}
+
+Guide:
+- onboarding_score_detected: le chiffre extrait (0-10) ou null si pas de score clair
+- onboarding_ready_to_advance: false (seul le score fait avancer Q3)
+`
+      }
+    }
+
     return checkupAddon ? `${addon}\n${checkupAddon}` : addon
   }
   
@@ -2934,6 +3157,9 @@ Reponds UNIQUEMENT avec le JSON:`
       if (ms.confirm_topic !== undefined && ms.confirm_topic !== null) {
         machineSignals.confirm_topic = Boolean(ms.confirm_topic)
       }
+      if (ms.confirm_increase_target !== undefined && ms.confirm_increase_target !== null) {
+        machineSignals.confirm_increase_target = Boolean(ms.confirm_increase_target)
+      }
       
       // Checkup flow signals
       if (ms.checkup_intent && typeof ms.checkup_intent === "object") {
@@ -2960,6 +3186,21 @@ Reponds UNIQUEMENT avec le JSON:`
           claims_done: Boolean(os.claims_done),
           reports_bug: Boolean(os.reports_bug),
           confidence: Math.min(1, Math.max(0, Number(os.confidence ?? 0.5))),
+        }
+      }
+      // WhatsApp onboarding flow signals (Q1/Q2/Q3 transitions)
+      if (ms.onboarding_ready_to_advance !== undefined) {
+        machineSignals.onboarding_ready_to_advance = Boolean(ms.onboarding_ready_to_advance)
+      }
+      if (ms.onboarding_score_detected !== undefined) {
+        if (ms.onboarding_score_detected === null) {
+          machineSignals.onboarding_score_detected = null
+        } else {
+          const parsedScore = Number(ms.onboarding_score_detected)
+          machineSignals.onboarding_score_detected =
+            Number.isFinite(parsedScore) && parsedScore >= 0 && parsedScore <= 10
+              ? parsedScore
+              : null
         }
       }
       
@@ -3310,5 +3551,3 @@ export function shouldInterruptForSafety(signals: DispatcherSignals): boolean {
   }
   return false
 }
-
-

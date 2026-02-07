@@ -35,6 +35,8 @@ export function machineMatchesSignalType(machineType: string | null, signalType:
     // Safety flows - they handle safety_resolution signals
     "safety_firefighter_flow": ["safety_resolution", "firefighter_resolution", "crisis_resolution"],
     "safety_sentry_flow": ["safety_resolution", "sentry_resolution", "vital_danger_resolution"],
+    // Onboarding flow (WhatsApp) - no mother signal, forced entry only
+    "whatsapp_onboarding_flow": ["onboarding_ready", "onboarding_score"],
   }
   return mappings[machineType]?.includes(signalType) ?? false
 }
@@ -49,6 +51,9 @@ export function getActiveMachineType(tempMemory: any): string | null {
   
   const firefighterFlow = getActiveSafetyFirefighterFlow(tempMemory)
   if (firefighterFlow && firefighterFlow.phase !== "resolved") return "safety_firefighter_flow"
+
+  // ONBOARDING FLOW (WhatsApp) - forced, one-shot, right after safety
+  if ((tempMemory as any)?.__onboarding_flow) return "whatsapp_onboarding_flow"
 
   // Check tool flows
   if ((tempMemory as any)?.create_action_flow) return "create_action_flow"
@@ -151,6 +156,16 @@ export function buildFlowContext(tempMemory: any, state?: any): FlowContext | un
       stabilizationSignals: firefighterFlow.stabilization_signals,
       distressSignals: firefighterFlow.distress_signals,
       lastTechnique: firefighterFlow.technique_used,
+    })
+  }
+
+  // ONBOARDING FLOW (WhatsApp) - forced, one-shot, right after safety
+  const onbFlow = (tm as any)?.__onboarding_flow
+  if (onbFlow) {
+    return withCheckup({
+      onboardingStep: onbFlow.step,
+      onboardingTurnCount: Number(onbFlow.turn_count ?? 0),
+      onboardingPlanTitle: onbFlow.plan_title,
     })
   }
 
@@ -292,9 +307,17 @@ export function buildFlowContext(tempMemory: any, state?: any): FlowContext | un
 
   // Deep reasons exploration
   if (tm?.deep_reasons_state) {
+    const dr = tm.deep_reasons_state
+    const deepTopic = String(
+      dr?.action_context?.title ??
+      dr?.user_words ??
+      "blocage motivationnel"
+    ).trim().slice(0, 160)
     return withCheckup({
-      deepReasonsTopic: tm.deep_reasons_state.topic,
-      deepReasonsPhase: tm.deep_reasons_state.phase,
+      deepReasonsTopic: deepTopic,
+      deepReasonsPhase: dr?.phase,
+      deepReasonsTurnCount: Number(dr?.turn_count ?? 0),
+      deepReasonsPattern: dr?.detected_pattern,
     })
   }
 
@@ -320,4 +343,3 @@ export function buildFlowContext(tempMemory: any, state?: any): FlowContext | un
 
   return undefined
 }
-

@@ -82,6 +82,7 @@ export interface LoadedContext {
   trackProgressAddon?: string
   deferredUserPref?: string
   injectedContext?: string
+  expiredBilanContext?: string
 }
 
 /**

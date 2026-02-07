@@ -1427,7 +1427,7 @@ export function serveRunEvals() {
                     profile_whatsapp_state_before: (profileBefore as any)?.whatsapp_state ?? null,
                     profile_whatsapp_state_after: (profileAfter as any)?.whatsapp_state ?? null,
                     notes:
-                      "WhatsApp onboarding uses a lightweight profile.whatsapp_state machine. In particular, when profile.whatsapp_state='awaiting_personal_fact', the webhook may send a Companion-style acknowledgement (e.g. 'Merci, je note…') and open the floor ('tu as envie qu’on parle de quoi ?') while clearing the state. This is expected and is NOT a routing violation.",
+                      "WhatsApp onboarding uses a profile.whatsapp_state machine (awaiting_plan_finalization → onboarding_q1 → onboarding_q2 → onboarding_q3 → null). The Q1/Q2/Q3 states are managed by the dispatcher/router (not webhook interceptors). At the end of onboarding, the dispatcher generates a Companion-style acknowledgement and opens the floor. This is expected and is NOT a routing violation.",
                   }
                 : null,
               notes:

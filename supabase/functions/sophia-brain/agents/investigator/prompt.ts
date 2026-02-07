@@ -147,6 +147,55 @@ export function buildDeferQuestionAddon(opts: {
   return ""
 }
 
+/**
+ * Build an addon for habits that have exceeded their weekly target.
+ * Instructs the AI to congratulate and propose increasing the target.
+ */
+export function buildTargetExceededAddon(opts: {
+  currentItem: CheckupItem
+}): string {
+  const { currentItem } = opts
+  if (!currentItem.is_habit || !currentItem.weekly_target_status) return ""
+  if (currentItem.weekly_target_status !== "exceeded" && currentItem.weekly_target_status !== "at_target") return ""
+
+  const currentReps = Number(currentItem.current ?? 0)
+  const target = Number(currentItem.target ?? 1)
+  const canIncrease = target < 7
+
+  return `=== ADD-ON : OBJECTIF HEBDO ATTEINT/DÉPASSÉ ===
+Cette habitude a DÉJÀ atteint son objectif cette semaine : ${currentReps}/${target} répétitions.
+NE DEMANDE PAS si c'est fait. L'objectif est déjà atteint.
+
+INSTRUCTION :
+1. Félicite brièvement (c'est une victoire réelle).
+${canIncrease ? `2. Propose d'augmenter l'objectif de 1 : "Tu veux passer à ${target + 1}×/semaine ?"
+3. Attends la réponse oui/non.` : `2. Objectif max (7×/semaine) atteint. Juste féliciter.`}
+
+INTERDIT : Demander "tu l'as fait ?" — c'est déjà fait.`
+}
+
+/**
+ * Build an addon for vital signs with previous value and target (progression context).
+ */
+export function buildVitalProgressionAddon(opts: {
+  currentItem: CheckupItem
+}): string {
+  const { currentItem } = opts
+  if (currentItem.type !== "vital") return ""
+  if (!currentItem.previous_vital_value && !currentItem.target_vital_value) return ""
+
+  let addon = "=== CONTEXTE PROGRESSION (SIGNE VITAL) ===\n"
+  if (currentItem.previous_vital_value) {
+    addon += `Dernière valeur enregistrée : ${currentItem.previous_vital_value}${currentItem.unit ? ` ${currentItem.unit}` : ""}\n`
+  }
+  if (currentItem.target_vital_value) {
+    addon += `Objectif cible : ${currentItem.target_vital_value}${currentItem.unit ? ` ${currentItem.unit}` : ""}\n`
+  }
+  addon += `\nINSTRUCTION : Si la nouvelle valeur s'améliore (se rapproche du target ou est mieux que la dernière), félicite brièvement ("Ça s'améliore", "Mieux qu'avant"). Si ça stagne ou recule, ne juge pas, note simplement.`
+
+  return addon
+}
+
 export function buildMainItemSystemPrompt(opts: {
   currentItem: CheckupItem
   itemHistory: string
@@ -273,7 +322,8 @@ export function buildMainItemSystemPrompt(opts: {
          (Le système stocke automatiquement cette demande pour la traiter après.)
       5) Si l'utilisateur dit NON: "Ok, on n'y touche pas." et passe à la suite
     
-    - NE PAS appeler d'outil pendant le bilan.
+    - Pendant cette proposition, N'APPELLE AUCUN outil d'exploration/breakdown.
+    - Seul l'outil log_action_execution est autorisé pour logger l'item courant.
     - NE FORCE JAMAIS l'exploration. Le consentement est crucial.
     - L'exploration se fait APRÈS le bilan (pas pendant) pour ne pas casser le flow.
 
@@ -293,8 +343,8 @@ export function buildMainItemSystemPrompt(opts: {
     Si le message de l'utilisateur contient "fait", "fini", "ok", "bien", "oui", "réussi", "plitot", "plutôt" (même avec des fautes) :
     -> TU N'AS PAS LE CHOIX : APPELLE L'OUTIL "log_action_execution".
     -> NE RÉPONDS PAS PAR DU TEXTE. APPELLE L'OUTIL.
-    -> Si tu as un doute, LOGGUE EN "completed".
-    -> C'est mieux de logguer par erreur que de bloquer l'utilisateur.
+    -> Si tu as un doute, pose UNE clarification courte avant de logger.
+    -> Ne force pas "completed" sans signal suffisamment clair.
 
     RÈGLES :
     - Ne pose qu'une question à la fois.
@@ -314,5 +364,4 @@ export function buildMainItemSystemPrompt(opts: {
     - Ton seul objectif: finir le bilan en loggant tous les items.
   `
 }
-
 

@@ -688,8 +688,26 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
                     <Shield className="w-5 h-5" />
                   </div>
                   <div>
-                    <h4 className={`font-bold text-sm ${isArchitect ? "text-amber-200" : "text-amber-900"}`}>Niveau : Initié</h4>
-                    <p className={`text-xs ${isArchitect ? "text-amber-500/80" : "text-amber-700/70"}`}>Membre depuis 12 jours</p>
+                    {(() => {
+                        const createdAt = user?.created_at ? new Date(user.created_at) : new Date();
+                        const daysSinceCreation = Math.floor((Date.now() - createdAt.getTime()) / (1000 * 60 * 60 * 24));
+
+                        let level = "Initié";
+                        if (daysSinceCreation >= 365) level = "Maître d'Œuvre";
+                        else if (daysSinceCreation >= 180) level = "Architecte";
+                        else if (daysSinceCreation >= 90) level = "Bâtisseur";
+                        else if (daysSinceCreation >= 30) level = "Compagnon";
+                        else if (daysSinceCreation >= 15) level = "Apprenti";
+
+                        return (
+                            <>
+                                <h4 className={`font-bold text-sm ${isArchitect ? "text-amber-200" : "text-amber-900"}`}>Niveau : {level}</h4>
+                                <p className={`text-xs ${isArchitect ? "text-amber-500/80" : "text-amber-700/70"}`}>
+                                    Membre depuis {daysSinceCreation} jour{daysSinceCreation > 1 ? 's' : ''}
+                                </p>
+                            </>
+                        );
+                    })()}
                   </div>
                 </div>
               </div>

@@ -266,6 +266,22 @@ export async function loadContextForMode(
     if (context.trackProgressAddon) elementsLoaded.push("track_progress_addon")
   }
 
+  // 16. Expired bilan summary (silent expiry context for companion)
+  const expiredBilanSummary = (opts.tempMemory as any)?.__expired_bilan_summary
+  if (expiredBilanSummary && (opts.mode === "companion" || opts.mode === "architect")) {
+    const done = Array.isArray(expiredBilanSummary.items_done) ? expiredBilanSummary.items_done : []
+    const skipped = Array.isArray(expiredBilanSummary.items_skipped) ? expiredBilanSummary.items_skipped : []
+    const elapsed = expiredBilanSummary.elapsed_minutes ?? "?"
+    let block = `=== CONTEXTE : BILAN PRÉCÉDENT NON TERMINÉ ===\n`
+    block += `Le bilan du jour a été lancé il y a ~${elapsed} minutes mais n'a pas été terminé.\n`
+    if (done.length > 0) block += `Items traités : ${done.join(", ")}.\n`
+    if (skipped.length > 0) block += `Items non traités : ${skipped.join(", ")}.\n`
+    block += `Tu n'as PAS besoin de mentionner l'expiration sauf si l'utilisateur en parle.\n`
+    block += `Si l'utilisateur demande à reprendre le bilan ou mentionne le bilan, dis-lui qu'on pourra en refaire un au prochain créneau.\n\n`
+    context.expiredBilanContext = block
+    elementsLoaded.push("expired_bilan_context")
+  }
+
   // Calculate metrics
   const totalLength = Object.values(context)
     .filter(Boolean)
@@ -308,6 +324,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.topicSession) ctx += loaded.topicSession
   if (loaded.checkupAddon) ctx += loaded.checkupAddon
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon
+  if (loaded.expiredBilanContext) ctx += loaded.expiredBilanContext
   
   return ctx.trim()
 }

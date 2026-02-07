@@ -287,8 +287,13 @@ export function findMatchingDeferred(opts: {
         if (targetLower.includes(topicTargetLower) || topicTargetLower.includes(targetLower)) {
           return topic
         }
+      } else if (!opts.action_target && !topic.action_target) {
+        // Both have no specific target → match by machine_type alone
+        // This prevents creating duplicate deferred topics for the same machine type
+        // (e.g., multiple "create_action" without a label) which causes prefix loops.
+        return topic
       }
-      // If no action_target specified, no match for tool machines
+      // One has a target and the other doesn't, or targets don't match → no match
       continue
     }
 

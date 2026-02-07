@@ -198,9 +198,10 @@ export async function handleOptInAndDailyBilanActions(params: {
         `=== CONTEXTE WHATSAPP ===\n` +
         `L'utilisateur accepte de faire le bilan (daily bilan).\n\n` +
         `CONSIGNE DE TOUR:\n` +
-        `- Pose exactement 2 questions courtes (format WhatsApp):\n` +
-        `  1) Une victoire aujourd'hui ?\n` +
-        `  2) Un truc à ajuster pour demain ?\n`,
+        `- Fais comprendre clairement que vous démarrez le bilan du jour maintenant.\n` +
+        `- Démarre le bilan avec une question courte (format WhatsApp):\n` +
+        `  1) Un truc dont tu es fier(e) aujourd'hui ?\n` +
+        `- Ne pose PAS encore de question sur "ajuster pour demain" — ça viendra plus tard dans le bilan.\n`,
     })
     return true
   }
@@ -281,6 +282,15 @@ export async function handleOptInAndDailyBilanActions(params: {
       detectedTopic: adaptiveFlow.detectedTopic,
     })
 
+    // Determine next state based on flow and plan
+    // IMPORTANT: set BEFORE replyWithBrain so that processMessage sees onboarding_q1
+    // and the dispatcher Q1_ask add-on generates the first Q1 question.
+    const nextState = determineNextState(adaptiveFlow.flow, Boolean(planTitle))
+    await params.admin.from("profiles").update({
+      whatsapp_state: nextState,
+      whatsapp_state_updated_at: new Date().toISOString(),
+    }).eq("id", params.userId)
+
     await params.replyWithBrain({
       admin: params.admin,
       userId: params.userId,
@@ -293,13 +303,6 @@ export async function handleOptInAndDailyBilanActions(params: {
       forceMode: adaptiveFlow.forceMode ?? "companion",
       contextOverride: `${contextBase}\n\n${turnInstructions}`,
     })
-
-    // Determine next state based on flow and plan
-    const nextState = determineNextState(adaptiveFlow.flow, Boolean(planTitle))
-    await params.admin.from("profiles").update({
-      whatsapp_state: nextState,
-      whatsapp_state_updated_at: new Date().toISOString(),
-    }).eq("id", params.userId)
 
     return true
   }
@@ -332,9 +335,8 @@ function buildOptInTurnInstructions(opts: {
       welcomeStyle,
       "- L'utilisateur arrive avec un besoin urgent.",
       "- Réponds d'abord à son besoin/souci avec empathie.",
-      "- PAS de question motivation/score maintenant.",
+      "- PAS de question onboarding maintenant.",
       "- 1 question max pour clarifier ou avancer.",
-      "- On reviendra à l'onboarding plus tard.",
     ].join("\n")
   }
 
@@ -346,12 +348,14 @@ function buildOptInTurnInstructions(opts: {
       detectedTopic ? `- Sujet détecté: "${detectedTopic}"` : "",
       "- L'utilisateur a un sujet important à discuter.",
       "- Accueille, puis ouvre sur son sujet avec 1 question.",
-      "- PAS de question motivation maintenant (on la posera plus tard).",
+      "- PAS de question onboarding maintenant.",
       "- Sois présent et à l'écoute.",
     ].filter(Boolean).join("\n")
   }
 
   // FLOW: NORMAL (with or without plan)
+  // When a plan exists, the dispatcher's Q1_ask add-on handles the onboarding question.
+  // The welcome just provides warm context — no need to duplicate Q1 here.
   if (planTitle) {
     return [
       "CONSIGNE DE TOUR (NORMAL + PLAN):",
@@ -359,7 +363,6 @@ function buildOptInTurnInstructions(opts: {
       `- Prénom: "${prenom}".`,
       `- Plan actif: "${planTitle}".`,
       "- Message court, chaleureux, pro (WhatsApp).",
-      `- Demande un score de motivation SUR 10 (inclure les mots "sur 10" et "motivation").`,
     ].join("\n")
   }
 
@@ -388,6 +391,6 @@ function determineNextState(flow: OnboardingFlow, hasPlan: boolean): string | nu
     return null
   }
 
-  // Normal flow: standard onboarding states
-  return hasPlan ? "awaiting_plan_motivation" : "awaiting_plan_finalization"
+  // Normal flow: warm onboarding (Q1 experience) or plan finalization
+  return hasPlan ? "onboarding_q1" : "awaiting_plan_finalization"
 }

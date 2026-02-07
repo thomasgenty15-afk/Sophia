@@ -3,6 +3,7 @@ import { verifyInvestigatorMessage } from "../../verifier.ts"
 import { normalizeChatText } from "../../chat_text.ts"
 import type { CheckupItem, InvestigationState, InvestigatorTurnResult, ItemProgress } from "./types.ts"
 import { investigatorSay } from "./copy.ts"
+// NOTE: investigatorSay is used both in run.ts and here for the weekly target flow.
 import { isMegaTestMode } from "./utils.ts"
 import { logItem } from "./db.ts"
 import {
@@ -289,6 +290,8 @@ export async function handleInvestigatorModelOutput(opts: {
           vital_title: currentItem.title,
           vital_value: argsWithId.value ?? argsWithId.status,
           vital_unit: currentItem.unit,
+          previous_vital_value: currentItem.previous_vital_value ?? null,
+          target_vital_value: currentItem.target_vital_value ?? null,
           next_item: nextItem,
           // Use next item's day_scope for the transition question
           day_scope: String(nextItem.day_scope ?? stateWithLog?.temp_memory?.day_scope ?? "yesterday"),
@@ -299,10 +302,10 @@ export async function handleInvestigatorModelOutput(opts: {
       return { content: transitionMsg, investigationComplete: false, newState: nextState }
     }
 
-    // --- WEEKLY HABIT TARGET CONGRATS (immediate) ---
+    // --- WEEKLY HABIT TARGET REACHED: Interactive flow (Case 3) ---
     // For habits, target_reps is a weekly frequency. When current_reps reaches target_reps (within the ISO week),
-    // we congratulate right away (no extra storage required).
-    let weeklyCongrats: string | null = null
+    // we congratulate AND offer to activate another action.
+    // This returns early, so the flow below (level up, streak, transition) only runs for non-target-reached cases.
     if (currentItem.type === "action" && argsWithId.status === "completed") {
       try {
         const { data: a } = await supabase
@@ -314,11 +317,39 @@ export async function handleInvestigatorModelOutput(opts: {
           const curr = Number((a as any).current_reps ?? 0)
           const target = Number((a as any).target_reps ?? 1)
           if (target > 0 && curr === target) {
-            weeklyCongrats = `Bravo. Objectif atteint : ${target}× cette semaine — "${String((a as any).title ?? currentItem.title)}".`
+            // Generate interactive congrats + activate offer
+            const congratsMsg = await investigatorSay(
+              "weekly_target_reached_activate_offer",
+              {
+                user_message: message,
+                channel: meta?.channel,
+                action_title: String((a as any).title ?? currentItem.title),
+                current_reps: curr,
+                current_target: target,
+              },
+              meta,
+            )
+
+            // Store pending offer for activate_action
+            const nextStateWithOffer: InvestigationState = {
+              ...stateWithLog,
+              temp_memory: {
+                ...(stateWithLog.temp_memory || {}),
+                bilan_defer_offer: {
+                  stage: "awaiting_consent",
+                  kind: "activate_action",
+                  action_id: currentItem.id,
+                  action_title: String((a as any).title ?? currentItem.title),
+                  current_target: target,
+                  last_item_log: argsWithId,
+                },
+              },
+            }
+            return { content: congratsMsg, investigationComplete: false, newState: nextStateWithOffer }
           }
         }
       } catch (e) {
-        console.error("[Investigator] weekly habit congrats check failed:", e)
+        console.error("[Investigator] weekly habit target check failed:", e)
       }
     }
 
@@ -352,14 +383,14 @@ export async function handleInvestigatorModelOutput(opts: {
 
           if (nextIndex >= stateWithLog.pending_items.length) {
             return {
-              content: weeklyCongrats ? `${weeklyCongrats}\n\n${levelUpMsg}` : levelUpMsg,
+              content: levelUpMsg,
               investigationComplete: true,
               newState: nextState,
             }
           }
 
           return {
-            content: weeklyCongrats ? `${weeklyCongrats}\n\n${levelUpMsg}` : levelUpMsg,
+            content: levelUpMsg,
             investigationComplete: false,
             newState: nextState,
           }
@@ -380,9 +411,7 @@ export async function handleInvestigatorModelOutput(opts: {
         meta,
       })
       if (streakIntercept) {
-        return weeklyCongrats
-          ? { ...streakIntercept, content: `${weeklyCongrats}\n\n${streakIntercept.content}` }
-          : streakIntercept
+        return streakIntercept
       }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e)
@@ -413,7 +442,7 @@ export async function handleInvestigatorModelOutput(opts: {
         meta,
       )
       return {
-        content: weeklyCongrats ? `${weeklyCongrats}\n\n${base}` : base,
+        content: base,
         investigationComplete: true,
         newState: null,
       }
@@ -453,7 +482,7 @@ export async function handleInvestigatorModelOutput(opts: {
         meta,
       )
       return {
-        content: weeklyCongrats ? `${weeklyCongrats}\n\n${transitionOut}` : transitionOut,
+        content: transitionOut,
         investigationComplete: false,
         newState: nextState,
       }
@@ -516,9 +545,82 @@ export async function handleInvestigatorModelOutput(opts: {
     )
 
     return {
-      content: weeklyCongrats ? `${weeklyCongrats}\n\n${transitionOut}` : transitionOut,
+      content: transitionOut,
       investigationComplete: false,
       newState: nextState,
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════════════════════
+  // TOOL: increase_week_target
+  // Called when the AI decides to increase the weekly target (from prompt addon)
+  // ═══════════════════════════════════════════════════════════════════════════════
+  if (typeof response === "object" && response?.tool === "increase_week_target") {
+    const { action_id, confirmed } = response.args ?? {}
+    const targetActionId = String(action_id ?? currentItem.id)
+
+    if (!confirmed) {
+      // AI called the tool with confirmed=false, just acknowledge
+      const ackMsg = await investigatorSay(
+        "increase_target_declined",
+        { user_message: message, channel: meta?.channel, action_title: currentItem.title },
+        meta,
+      )
+      const nextIndex = currentState.current_item_index + 1
+      let nextState = updateItemProgress(currentState, currentItem.id, {
+        phase: "logged",
+        logged_at: new Date().toISOString(),
+        logged_status: "completed",
+      })
+      nextState = { ...nextState, current_item_index: nextIndex }
+      if (nextIndex >= currentState.pending_items.length) {
+        return { content: ackMsg, investigationComplete: true, newState: null }
+      }
+      const nextItem = currentState.pending_items[nextIndex]
+      nextState = updateItemProgress(nextState, nextItem.id, {
+        phase: "awaiting_answer",
+        last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
+      })
+      return { content: ackMsg, investigationComplete: false, newState: nextState }
+    }
+
+    // Execute the increase
+    try {
+      const { increaseWeekTarget } = await import("./db.ts")
+      const result = await increaseWeekTarget(supabase, userId, targetActionId)
+      const confirmMsg = await investigatorSay(
+        "increase_target_confirmed",
+        {
+          user_message: message,
+          channel: meta?.channel,
+          action_title: currentItem.title,
+          increase_result: result,
+        },
+        meta,
+      )
+      const nextIndex = currentState.current_item_index + 1
+      let nextState = updateItemProgress(currentState, currentItem.id, {
+        phase: "logged",
+        logged_at: new Date().toISOString(),
+        logged_status: "completed",
+      })
+      nextState = { ...nextState, current_item_index: nextIndex }
+      if (nextIndex >= currentState.pending_items.length) {
+        return { content: confirmMsg, investigationComplete: true, newState: null }
+      }
+      const nextItem = currentState.pending_items[nextIndex]
+      nextState = updateItemProgress(nextState, nextItem.id, {
+        phase: "awaiting_answer",
+        last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
+      })
+      return { content: confirmMsg, investigationComplete: false, newState: nextState }
+    } catch (e) {
+      console.error("[Investigator] increase_week_target failed:", e)
+      return {
+        content: "Oups, souci technique. On continue le bilan.",
+        investigationComplete: false,
+        newState: currentState,
+      }
     }
   }
 
