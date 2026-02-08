@@ -137,7 +137,7 @@ export interface InvestigationTempMemory {
   /** Pending post-bilan consent offer (micro-étape / exploration / increase target / activate action) */
   bilan_defer_offer?: {
     stage: "awaiting_consent"
-    kind: "breakdown" | "deep_reasons" | "increase_target" | "activate_action"
+    kind: "breakdown" | "deep_reasons" | "increase_target" | "activate_action" | "delete_action" | "deactivate_action"
     action_id: string
     action_title?: string
     streak_days?: number

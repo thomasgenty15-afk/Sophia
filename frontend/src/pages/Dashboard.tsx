@@ -95,6 +95,16 @@ const Dashboard = () => {
     modules
   } = useDashboardData();
 
+  // Debug/local: allow forcing onboarding to happen in /chat instead of the classic questionnaire resume.
+  const envForceOnboardingChat = String((import.meta as any)?.env?.VITE_FORCE_ONBOARDING_CHAT ?? "").trim().toLowerCase();
+  const forceOnboardingChat = envForceOnboardingChat === "1" || envForceOnboardingChat === "true" || envForceOnboardingChat === "yes";
+  useEffect(() => {
+    if (!forceOnboardingChat) return;
+    if (authLoading || loading) return;
+    if (!user) return;
+    navigate("/chat?onboarding=1&scope=web_onboarding", { replace: true });
+  }, [forceOnboardingChat, authLoading, loading, user, navigate]);
+
   // State local pour les modales (purement UI)
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
@@ -667,6 +677,8 @@ const Dashboard = () => {
                                         onOpenHabitSettings={(action) => openHabitSettings(action, 'edit')}
                                         onCreateAction={() => setCreateActionPhaseIndex(index)}
                                         onEditAction={(action) => setEditingAction(action)}
+                                        onDeleteAction={logic.handleDeleteAction}
+                                        onDeactivateAction={logic.handleDeactivateAction}
                                     />
                                 );
                             });

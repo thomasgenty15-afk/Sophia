@@ -57,6 +57,7 @@ Puis dans ton DNS (registrar):
 - Frontend local:
   - copie `frontend/env.example` vers `frontend/.env.local` (non commité)
   - démarre: `npm run dev`
+  - debug onboarding (web → chat): mets `VITE_FORCE_ONBOARDING_CHAT=1` dans `frontend/.env.local` puis ouvre `/dashboard` (tu seras redirigé vers `/chat?onboarding=1&scope=web_onboarding`)
 
 ### Production (Vercel + Supabase Cloud)
 

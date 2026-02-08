@@ -1,6 +1,8 @@
+import type { PendingResolutionSignal } from "./pending_resolution.ts";
+
 export type CheckupEntryResolution =
   | { kind: "yes"; via: "dispatcher" | "deterministic" }
-  | { kind: "no"; via: "dispatcher" | "deterministic" }
+  | { kind: "no"; via: "dispatcher" | "deterministic" };
 
 function normalizeLoose(s: string): string {
   return String(s ?? "")
@@ -9,7 +11,7 @@ function normalizeLoose(s: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9\s?]/g, " ")
     .replace(/\s+/g, " ")
-    .trim()
+    .trim();
 }
 
 /**
@@ -21,29 +23,50 @@ function normalizeLoose(s: string): string {
  * Returns null when the answer is unclear (so we keep waiting).
  */
 export function resolveCheckupEntryConfirmation(opts: {
-  userMessage: string
+  userMessage: string;
   /** Signal from dispatcher (preferred when available) */
-  wantsToCheckupFromDispatcher?: boolean | undefined
+  wantsToCheckupFromDispatcher?: boolean | undefined;
+  /** Structured pending resolution from dispatcher (hybrid model) */
+  pendingResolutionSignal?: PendingResolutionSignal | undefined;
 }): CheckupEntryResolution | null {
-  const wants = opts.wantsToCheckupFromDispatcher
-  if (wants !== undefined) {
-    return { kind: wants ? "yes" : "no", via: "dispatcher" }
+  const pending = opts.pendingResolutionSignal;
+  if (pending?.pending_type === "checkup_entry") {
+    if (
+      pending.status === "resolved" &&
+      pending.confidence >= 0.65
+    ) {
+      if (pending.decision_code === "checkup.accept") {
+        return { kind: "yes", via: "dispatcher" };
+      }
+      if (
+        pending.decision_code === "checkup.decline" ||
+        pending.decision_code === "checkup.defer" ||
+        pending.decision_code === "common.defer"
+      ) {
+        return { kind: "no", via: "dispatcher" };
+      }
+    }
   }
 
-  const s = normalizeLoose(opts.userMessage)
-  if (!s) return null
+  const wants = opts.wantsToCheckupFromDispatcher;
+  if (wants !== undefined) {
+    return { kind: wants ? "yes" : "no", via: "dispatcher" };
+  }
+
+  const s = normalizeLoose(opts.userMessage);
+  if (!s) return null;
 
   // Keep deterministic fallback strict to avoid false positives on long messages.
   const yes =
-    /\b(oui|ok|yes|yep|yeah|d\s*accord|vas\s*y|go|on\s*y\s+va|carr[eé]ment|volontiers|bien\s+s[uû]r)\b/i.test(s) &&
-    s.length <= 60
+    /\b(oui|ok|yes|yep|yeah|d\s*accord|vas\s*y|go|on\s*y\s+va|carr[eé]ment|volontiers|bien\s+s[uû]r)\b/i
+      .test(s) &&
+    s.length <= 60;
   const no =
-    /\b(non|no|nope|pas\s+maintenant|plus\s+tard|laisse|une\s+autre\s+fois|on\s+verra|pas\s+aujourd\s*hui)\b/i.test(s) &&
-    s.length <= 80
+    /\b(non|no|nope|pas\s+maintenant|plus\s+tard|laisse|une\s+autre\s+fois|on\s+verra|pas\s+aujourd\s*hui)\b/i
+      .test(s) &&
+    s.length <= 80;
 
-  if (yes) return { kind: "yes", via: "deterministic" }
-  if (no) return { kind: "no", via: "deterministic" }
-  return null
+  if (yes) return { kind: "yes", via: "deterministic" };
+  if (no) return { kind: "no", via: "deterministic" };
+  return null;
 }
-
-

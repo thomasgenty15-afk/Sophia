@@ -3,10 +3,18 @@ import { Send, User, Bot, AlertTriangle, FileText, Heart, Shield, Trash2, X } fr
 import { useChat } from '../hooks/useChat';
 import type { Message } from '../hooks/useChat';
 
-export const ChatInterface: React.FC = () => {
-  const { messages, sendMessage, deleteMessage, isLoading, error } = useChat();
+export const ChatInterface: React.FC<{
+  scope?: string;
+  forceOnboardingFlow?: boolean;
+  autostartMessage?: string;
+}> = ({ scope, forceOnboardingFlow, autostartMessage }) => {
+  const { messages, sendMessage, deleteMessage, isLoading, error } = useChat({
+    scope,
+    forceOnboardingFlow,
+  });
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const autostartedRef = useRef(false);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -15,6 +23,16 @@ export const ChatInterface: React.FC = () => {
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
+
+  // Autostart (debug/onboarding): send a first message once, to trigger the flow.
+  useEffect(() => {
+    if (autostartedRef.current) return;
+    if (!autostartMessage) return;
+    if (isLoading) return;
+    if (messages.length > 0) return;
+    autostartedRef.current = true;
+    sendMessage(autostartMessage);
+  }, [autostartMessage, isLoading, messages.length, sendMessage]);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

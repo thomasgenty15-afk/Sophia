@@ -795,7 +795,81 @@ export const useDashboardLogic = ({
             setActivePlan(prevPlan);
             alert("Erreur lors de la modification.");
         }
+    },
+
+    handleDeactivateAction: async (action: Action) => {
+        if (!activePlan || !activePlanId) return;
+        
+        const prevPlan = activePlan;
+        
+        // 1. Update Local State: mark action status as "pending" (paused/deactivated)
+        const newPhases = activePlan.phases.map(p => ({
+            ...p,
+            actions: p.actions.map(a => a.id === action.id ? { ...a, status: 'pending' as const } : a)
+        }));
+        
+        const newPlan = { ...activePlan, phases: newPhases };
+        setActivePlan(newPlan);
+        
+        try {
+            // 2. Update Plan Content in DB
+            await supabase.from('user_plans').update({ content: newPlan }).eq('id', activePlanId);
+            
+            // 3. Update tracking table status to "pending"
+            const normalizedType = String(action.type ?? "").toLowerCase().trim();
+            if (normalizedType === 'framework') {
+                await supabase.from('user_framework_tracking').update({ status: 'pending' }).eq('plan_id', activePlanId).eq('action_id', action.id);
+            } else {
+                if (action.dbId) {
+                    await supabase.from('user_actions').update({ status: 'pending' }).eq('id', action.dbId);
+                } else {
+                    await supabase.from('user_actions').update({ status: 'pending' }).eq('plan_id', activePlanId).eq('title', action.title);
+                }
+            }
+        } catch (err) {
+            console.error("Error deactivating action:", err);
+            setActivePlan(prevPlan);
+            alert("Erreur lors de la mise en pause.");
+        }
+    },
+
+    handleDeleteAction: async (action: Action) => {
+        if (!activePlan || !activePlanId) return;
+        
+        const prevPlan = activePlan;
+        
+        // 1. Update Local State
+        const newPhases = activePlan.phases.map(p => ({
+            ...p,
+            actions: p.actions.filter(a => a.id !== action.id)
+        }));
+        
+        const newPlan = { ...activePlan, phases: newPhases };
+        setActivePlan(newPlan);
+        
+        try {
+            // 2. Update Plan Content in DB (Remove from JSON)
+            await supabase.from('user_plans').update({ content: newPlan }).eq('id', activePlanId);
+            
+            // 3. Delete from tracking tables
+            const normalizedType = String(action.type ?? "").toLowerCase().trim();
+            if (normalizedType === 'framework') {
+                // For frameworks, action.id corresponds to action_id in user_framework_tracking
+                await supabase.from('user_framework_tracking').delete().eq('plan_id', activePlanId).eq('action_id', action.id);
+            } else {
+                // For regular actions
+                if (action.dbId) {
+                     await supabase.from('user_actions').delete().eq('id', action.dbId);
+                } else {
+                     // Fallback: delete by title and plan_id
+                     await supabase.from('user_actions').delete().eq('plan_id', activePlanId).eq('title', action.title);
+                }
+            }
+        } catch (err) {
+            console.error("Error deleting action:", err);
+            setActivePlan(prevPlan);
+            alert("Erreur lors de la suppression.");
+        }
     }
   };
 };
-

@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { 
   Sword, Shield, Zap, FileText, CheckCircle2, Sparkles, 
-  FastForward, PlusCircle, Check, LifeBuoy, Edit3, Lock, Settings
+  FastForward, PlusCircle, Check, LifeBuoy, Edit3, Lock, Settings, Trash2, PauseCircle
 } from 'lucide-react';
 import type { Action } from '../../types/dashboard';
 import { isSameIsoWeekLocal } from '../../lib/isoWeek';
 
-export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true, onHelp, onOpenFramework, onOpenHistory, onUnlock, onToggleMission, onIncrementHabit, onMasterHabit, onOpenHabitSettings, onEdit }: { 
+export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true, onHelp, onOpenFramework, onOpenHistory, onUnlock, onToggleMission, onIncrementHabit, onMasterHabit, onOpenHabitSettings, onEdit, onDelete, onDeactivate }: { 
     action: Action, 
     isLocked: boolean, 
     isPending?: boolean, 
@@ -19,7 +19,9 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
     onIncrementHabit?: (action: Action) => void,
     onMasterHabit?: (action: Action) => void,
     onOpenHabitSettings?: (action: Action) => void,
-    onEdit?: (action: Action) => void
+    onEdit?: (action: Action) => void,
+    onDelete?: (action: Action) => void,
+    onDeactivate?: (action: Action) => void
 }) => {
   const isHabit = action.type?.toLowerCase().trim() === 'habitude' || action.type?.toLowerCase().trim() === 'habit';
   const lastPerformed = action.lastPerformedAt ? new Date(action.lastPerformedAt) : null;
@@ -31,6 +33,8 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
   const progress = Math.min((currentReps / targetReps) * 100, 100); // Cap visual progress at 100%
   const [isChecked, setIsChecked] = useState(action.isCompleted);
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
+  const [isDeactivateConfirmOpen, setIsDeactivateConfirmOpen] = useState(false);
 
   // Sync state with props when they change (e.g. after DB update)
   useEffect(() => {
@@ -265,9 +269,93 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
                             Modifier l'action
                         </button>
                     )}
+                    
+                    {onDeactivate && (
+                        <button
+                            onClick={() => {
+                                setIsDeactivateConfirmOpen(true);
+                                setIsMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-amber-50 text-slate-600 hover:text-amber-600 text-xs font-bold flex items-center gap-2 transition-colors"
+                        >
+                            <PauseCircle className="w-3.5 h-3.5" />
+                            Mettre en pause
+                        </button>
+                    )}
+
+                    {onDelete && (
+                        <button
+                            onClick={() => {
+                                setIsDeleteConfirmOpen(true);
+                                setIsMenuOpen(false);
+                            }}
+                            className="w-full text-left px-3 py-2 rounded-lg hover:bg-red-50 text-slate-600 hover:text-red-600 text-xs font-bold flex items-center gap-2 transition-colors"
+                        >
+                            <Trash2 className="w-3.5 h-3.5" />
+                            Supprimer l'action
+                        </button>
+                    )}
                 </div>
             </>
           )}
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMATION DÉSACTIVATION */}
+      {isDeactivateConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Mettre en pause cette action ?</h3>
+                <p className="text-sm text-slate-500 mb-6">
+                    L'action sera désactivée temporairement. Tu pourras la réactiver quand tu voudras.
+                </p>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setIsDeactivateConfirmOpen(false)}
+                        className="flex-1 py-2.5 px-4 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (onDeactivate) onDeactivate(action);
+                            setIsDeactivateConfirmOpen(false);
+                        }}
+                        className="flex-1 py-2.5 px-4 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-200 transition-colors"
+                    >
+                        Mettre en pause
+                    </button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* MODAL DE CONFIRMATION SUPPRESSION */}
+      {isDeleteConfirmOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
+            <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Supprimer cette action ?</h3>
+                <p className="text-sm text-slate-500 mb-6">
+                    Cette action sera retirée de votre plan. Cette opération est irréversible.
+                </p>
+                <div className="flex gap-3">
+                    <button
+                        onClick={() => setIsDeleteConfirmOpen(false)}
+                        className="flex-1 py-2.5 px-4 rounded-xl font-bold text-slate-600 hover:bg-slate-100 transition-colors"
+                    >
+                        Annuler
+                    </button>
+                    <button
+                        onClick={() => {
+                            if (onDelete) onDelete(action);
+                            setIsDeleteConfirmOpen(false);
+                        }}
+                        className="flex-1 py-2.5 px-4 rounded-xl font-bold text-white bg-red-600 hover:bg-red-700 shadow-lg shadow-red-200 transition-colors"
+                    >
+                        Supprimer
+                    </button>
+                </div>
+            </div>
         </div>
       )}
     </div>

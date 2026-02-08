@@ -142,12 +142,24 @@ const ACTIVATE_ACTION_TOOL: ToolDef = {
 
 const ARCHIVE_ACTION_TOOL: ToolDef = {
   name: "archive_plan_action",
-  description: "Archive (désactive/supprime) une action du plan. À utiliser si l'utilisateur dit 'j'arrête le sport', 'supprime cette tâche', 'je ne veux plus faire ça'.",
+  description: "Archive (supprime définitivement) une action du plan. À utiliser si l'utilisateur dit 'j'arrête le sport', 'supprime cette tâche', 'je ne veux plus faire ça'.",
   parameters: {
     type: "OBJECT",
     properties: {
       action_title_or_id: { type: "STRING", description: "Titre ou ID de l'action à archiver." },
       reason: { type: "STRING", description: "Raison de l'arrêt (ex: 'trop difficile', 'plus pertinent', 'n'aime pas'). Utile pour l'analyse future." },
+    },
+    required: ["action_title_or_id"],
+  },
+}
+
+const DEACTIVATE_ACTION_TOOL: ToolDef = {
+  name: "deactivate_plan_action",
+  description: "Désactive (met en pause) une action active du plan. L'action reste dans le plan mais passe en status 'pending'. Réversible. À utiliser si l'utilisateur dit 'mets en pause le sport', 'désactive la méditation', 'j'arrête temporairement'.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      action_title_or_id: { type: "STRING", description: "Titre ou ID de l'action à désactiver." },
     },
     required: ["action_title_or_id"],
   },
@@ -210,7 +222,7 @@ export function getArchitectTools(): ToolDef[] {
     START_DEEP_EXPLORATION_TOOL,
   ]
 
-  return [...baseTools, ACTIVATE_ACTION_TOOL]
+  return [...baseTools, ACTIVATE_ACTION_TOOL, DEACTIVATE_ACTION_TOOL]
 }
 
 

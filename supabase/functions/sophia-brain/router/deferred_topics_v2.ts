@@ -33,6 +33,8 @@ export type DeferredMachineType =
   | "update_action"
   | "breakdown_action"
   | "activate_action"  // Activate a dormant/future action
+  | "delete_action"    // Delete/archive an existing action
+  | "deactivate_action"  // Deactivate/pause an active action
   | "checkup"  // User-initiated bilan request
   | "track_progress"  // Log action progress after current flow
   | "user_profile_confirmation"  // Confirm detected user profile facts
@@ -530,10 +532,14 @@ export function isToolMachine(machineType: DeferredMachineType | SupervisorSessi
          machineType === "update_action_flow" ||
          machineType === "breakdown_action_flow" ||
          machineType === "activate_action_flow" ||
+         machineType === "delete_action_flow" ||
+         machineType === "deactivate_action_flow" ||
          machineType === "create_action" ||
          machineType === "update_action" ||
          machineType === "breakdown_action" ||
-         machineType === "activate_action"
+         machineType === "activate_action" ||
+         machineType === "delete_action" ||
+         machineType === "deactivate_action"
 }
 
 /**
@@ -549,6 +555,10 @@ export function sessionTypeToMachineType(sessionType: SupervisorSessionType): De
       return "breakdown_action"
     case "activate_action_flow":
       return "activate_action"
+    case "delete_action_flow":
+      return "delete_action"
+    case "deactivate_action_flow":
+      return "deactivate_action"
     case "deep_reasons_exploration":
       return "deep_reasons"
     case "topic_serious":
@@ -573,6 +583,10 @@ export function machineTypeToSessionType(machineType: DeferredMachineType): Supe
       return "breakdown_action_flow"
     case "activate_action":
       return "activate_action_flow"
+    case "delete_action":
+      return "delete_action_flow"
+    case "deactivate_action":
+      return "deactivate_action_flow"
     case "track_progress":
       return null
     case "deep_reasons":

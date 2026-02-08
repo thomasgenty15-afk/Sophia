@@ -25,6 +25,13 @@ Deno.serve(async (req) => {
     const messageMetadata = (body?.messageMetadata ?? body?.message_metadata ?? body?.metadata) as Record<string, unknown> | undefined
     const channel = (body?.channel as ("web" | "whatsapp") | undefined) ?? "web"
     const scope = (body?.scope ?? body?.conversationScope ?? body?.conversation_scope ?? body?.chat_scope) as string | undefined
+    const forceOnboardingFlow =
+      Boolean(
+        body?.forceOnboardingFlow ??
+          body?.force_onboarding_flow ??
+          body?.debug_force_onboarding_flow ??
+          body?.debug?.force_onboarding_flow
+      )
     // Backward compatibility: some frontend calls used { mode, context } without { message }.
     // We synthesize a user message and a textual context override, and force the appropriate agent.
     const legacyMode = (body?.mode ?? "").toString().trim()
@@ -122,6 +129,7 @@ Deno.serve(async (req) => {
           : undefined,
         contextOverride: contextOverride ? contextOverride.toString() : undefined,
         messageMetadata: messageMetadata ?? undefined,
+        forceOnboardingFlow,
       }
     )
 

@@ -325,6 +325,10 @@ export async function runInvestigator(
         }
       } else if (pendingOffer.kind === "activate_action") {
         prefix = userSaysYes ? "Parfait, on s'en occupe après le bilan. " : "Ok, pas de souci. "
+      } else if (pendingOffer.kind === "delete_action") {
+        prefix = userSaysYes ? "Noté, on gère ça après le bilan. " : "Ok, on la garde pour l'instant. "
+      } else if (pendingOffer.kind === "deactivate_action") {
+        prefix = userSaysYes ? "Noté, on gère la mise en pause après le bilan. " : "Ok, on la garde active pour l'instant. "
       } else {
         prefix = userSaysYes ? "Parfait, j'ai noté. " : "Ok, pas de souci. "
       }
@@ -334,7 +338,11 @@ export async function runInvestigator(
         ? (userSaysYes && increaseResult?.success ? "increase_target_confirmed" : userSaysNo ? "increase_target_declined" : null)
         : pendingOffer.kind === "activate_action"
           ? (userSaysYes ? "weekly_target_reached_activate_confirmed" : "weekly_target_reached_activate_declined")
-          : null
+          : pendingOffer.kind === "delete_action"
+            ? null  // No dedicated investigator scenario for delete_action yet – use prefix fallback
+            : pendingOffer.kind === "deactivate_action"
+              ? null  // No dedicated investigator scenario for deactivate_action yet – use prefix fallback
+              : null
       const scenarioAck = scenario
         ? await investigatorSay(
           scenario,
@@ -384,7 +392,11 @@ export async function runInvestigator(
             ? "micro-étape après le bilan"
             : userSaysYes && pendingOffer.kind === "activate_action"
               ? "activation d'action après le bilan"
-              : null,
+              : userSaysYes && pendingOffer.kind === "delete_action"
+                ? "suppression d'action après le bilan"
+                : userSaysYes && pendingOffer.kind === "deactivate_action"
+                  ? "désactivation d'action après le bilan"
+                  : null,
         },
         meta,
       )

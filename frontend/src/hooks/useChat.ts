@@ -10,11 +10,12 @@ export type Message = {
   created_at: string;
 };
 
-export function useChat() {
+export function useChat(opts?: { scope?: string; forceOnboardingFlow?: boolean }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const scope = "web";
+  const scope = opts?.scope ?? "web";
+  const forceOnboardingFlow = opts?.forceOnboardingFlow === true;
 
   // Charger l'historique au montage
   useEffect(() => {
@@ -41,7 +42,7 @@ export function useChat() {
       }
     }
     loadHistory();
-  }, []);
+  }, [scope]);
 
   const sendMessage = useCallback(async (content: string) => {
     try {
@@ -63,7 +64,14 @@ export function useChat() {
 
       // 2. Appel à la Edge Function
       const { data, error: fnError } = await supabase.functions.invoke('sophia-brain', {
-        body: { message: content, history: messages.slice(-10), channel: "web", scope, client_request_id: clientRequestId },
+        body: {
+          message: content,
+          history: messages.slice(-10),
+          channel: "web",
+          scope,
+          client_request_id: clientRequestId,
+          force_onboarding_flow: forceOnboardingFlow,
+        },
         headers: requestHeaders(clientRequestId)
       });
 
@@ -97,7 +105,7 @@ export function useChat() {
     } finally {
       setIsLoading(false);
     }
-  }, [messages]);
+  }, [messages, scope, forceOnboardingFlow]);
 
   const deleteMessage = useCallback(async (id: string) => {
     try {

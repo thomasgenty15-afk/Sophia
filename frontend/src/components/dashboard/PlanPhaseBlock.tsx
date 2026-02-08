@@ -16,7 +16,9 @@ export const PlanPhaseBlock = ({
     onMasterHabit,
     onOpenHabitSettings,
     onCreateAction,
-    onEditAction
+    onEditAction,
+    onDeleteAction,
+    onDeactivateAction
 }: { 
     phase: PlanPhase, 
     isLast: boolean, 
@@ -31,7 +33,9 @@ export const PlanPhaseBlock = ({
     onMasterHabit?: (action: Action) => void,
     onOpenHabitSettings?: (action: Action) => void,
     onCreateAction?: () => void,
-    onEditAction?: (action: Action) => void
+    onEditAction?: (action: Action) => void,
+    onDeleteAction?: (action: Action) => void,
+    onDeactivateAction?: (action: Action) => void
 }) => {
   const isPhaseLocked = phase.status === 'locked'; // Le verrouillage de phase global
   const isActive = phase.status === 'active';
@@ -111,6 +115,8 @@ export const PlanPhaseBlock = ({
                     onMasterHabit={onMasterHabit}
                     onOpenHabitSettings={onOpenHabitSettings}
                     onEdit={onEditAction}
+                    onDelete={onDeleteAction}
+                    onDeactivate={onDeactivateAction}
                 />
             );
         })}

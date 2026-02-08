@@ -83,6 +83,7 @@ export interface LoadedContext {
   deferredUserPref?: string
   injectedContext?: string
   expiredBilanContext?: string
+  onboardingAddon?: string
 }
 
 /**

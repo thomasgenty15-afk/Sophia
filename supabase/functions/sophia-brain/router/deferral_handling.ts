@@ -1,32 +1,33 @@
-import type { BrainTracePhase } from "../../_shared/brain-trace.ts"
-import type { DispatcherSignals } from "./dispatcher.ts"
+import type { BrainTracePhase } from "../../_shared/brain-trace.ts";
+import type { DispatcherSignals } from "./dispatcher.ts";
 import {
   deferSignal,
   isToolMachine,
   pruneExpiredDeferredTopics,
-} from "./deferred_topics_v2.ts"
+} from "./deferred_topics_v2.ts";
 import {
   generateAcknowledgmentPrefix,
   generateSubtleUpdateAck,
-} from "./deferred_messages.ts"
-import { buildDeferredSignalAddon } from "./deferred_signal_addons.ts"
+} from "./deferred_messages.ts";
+import { buildDeferredSignalAddon } from "./deferred_signal_addons.ts";
+import { isToolMotherSignal } from "./dual_tool_handling.ts";
 import {
+  getActiveToolFlowActionTarget,
   getAnyActiveMachine,
   getAnyActiveToolFlow,
-  getActiveToolFlowActionTarget,
-} from "../supervisor.ts"
+} from "../supervisor.ts";
 import {
   detectMachineTypeFromSignals,
   generateDeferredSignalSummary,
   shouldInterruptForSafety,
-} from "./dispatcher.ts"
+} from "./dispatcher.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SINGLE MOTHER SIGNAL FILTER
 // Ensures only ONE mother signal is processed per message (except safety)
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type MotherSignalType = 
+export type MotherSignalType =
   | "create_action"
   | "update_action"
   | "breakdown_action"
@@ -34,12 +35,14 @@ export type MotherSignalType =
   | "deep_reasons"
   | "checkup"
   | "activate_action"
-  | "track_progress"
+  | "delete_action"
+  | "deactivate_action"
+  | "track_progress";
 
 /**
  * Priority order for mother signals when multiple are detected.
  * Higher priority = lower index.
- * 
+ *
  * Rationale:
  * 1. topic_exploration - Direct emotional/conversational need
  * 2. deep_reasons - Important motivational blocker
@@ -56,153 +59,229 @@ const MOTHER_SIGNAL_PRIORITY: MotherSignalType[] = [
   "breakdown_action",
   "create_action",
   "update_action",
+  "delete_action",
+  "deactivate_action",
   "activate_action",
   "track_progress",
   "checkup",
-]
+];
 
 /**
  * Filter dispatcher signals to keep only ONE mother signal (highest priority).
  * Safety signals (firefighter/sentry) are NEVER filtered - they always pass through.
- * 
+ *
+ * DUAL-TOOL EXCEPTION: If at least 2 tool signals are detected (both from the tool set:
+ * create_action, update_action, delete_action, deactivate_action, activate_action, breakdown_action),
+ * the highest-priority secondary tool is returned in `secondaryToolSignal` instead of being discarded.
+ *
  * @returns primarySignal - The single mother signal to process (or null if none)
+ * @returns secondaryToolSignal - Second tool signal if dual-tool case (or null)
  * @returns filtered - Array of signals that were filtered out (for logging)
  */
 export function filterToSingleMotherSignal(
-  signals: DispatcherSignals
-): { primarySignal: MotherSignalType | null; filtered: MotherSignalType[] } {
-  const detected: MotherSignalType[] = []
-  
+  signals: DispatcherSignals,
+): {
+  primarySignal: MotherSignalType | null;
+  secondaryToolSignal: MotherSignalType | null;
+  filtered: MotherSignalType[];
+} {
+  const detected: MotherSignalType[] = [];
+
   // Collect all detected mother signals (excluding safety)
-  if (signals.create_action?.intent_strength !== "none" && signals.create_action?.intent_strength !== undefined) {
-    detected.push("create_action")
+  if (
+    signals.create_action?.intent_strength !== "none" &&
+    signals.create_action?.intent_strength !== undefined
+  ) {
+    detected.push("create_action");
   }
   if (signals.update_action?.detected) {
-    detected.push("update_action")
+    detected.push("update_action");
   }
   if (signals.breakdown_action?.detected) {
-    detected.push("breakdown_action")
+    detected.push("breakdown_action");
   }
-  if (signals.topic_depth?.value !== "NONE" && signals.topic_depth?.value !== undefined) {
-    detected.push("topic_exploration")
+  if (
+    signals.topic_depth?.value !== "NONE" &&
+    signals.topic_depth?.value !== undefined
+  ) {
+    detected.push("topic_exploration");
   }
   if (signals.deep_reasons?.opportunity) {
-    detected.push("deep_reasons")
+    detected.push("deep_reasons");
   }
   if (signals.track_progress?.detected) {
-    detected.push("track_progress")
+    detected.push("track_progress");
   }
   if (signals.activate_action?.detected) {
-    detected.push("activate_action")
+    detected.push("activate_action");
+  }
+  if (signals.delete_action?.detected) {
+    detected.push("delete_action");
+  }
+  if (signals.deactivate_action?.detected) {
+    detected.push("deactivate_action");
   }
   // Note: checkup_intent is in machine_signals, handled separately
-  
+
   // If 0 or 1 signal, no filtering needed
   if (detected.length <= 1) {
-    return { primarySignal: detected[0] ?? null, filtered: [] }
+    return {
+      primarySignal: detected[0] ?? null,
+      secondaryToolSignal: null,
+      filtered: [],
+    };
   }
-  
+
   // Sort by priority (lower index = higher priority)
   const sorted = [...detected].sort((a, b) => {
-    const aIndex = MOTHER_SIGNAL_PRIORITY.indexOf(a)
-    const bIndex = MOTHER_SIGNAL_PRIORITY.indexOf(b)
+    const aIndex = MOTHER_SIGNAL_PRIORITY.indexOf(a);
+    const bIndex = MOTHER_SIGNAL_PRIORITY.indexOf(b);
     // If not in priority list, put at end
-    const aFinal = aIndex === -1 ? 999 : aIndex
-    const bFinal = bIndex === -1 ? 999 : bIndex
-    return aFinal - bFinal
-  })
-  
-  return {
-    primarySignal: sorted[0] ?? null,
-    filtered: sorted.slice(1),
+    const aFinal = aIndex === -1 ? 999 : aIndex;
+    const bFinal = bIndex === -1 ? 999 : bIndex;
+    return aFinal - bFinal;
+  });
+
+  const primary = sorted[0] ?? null;
+  const rest = sorted.slice(1);
+
+  // DUAL-TOOL DETECTION: if primary is a tool signal and at least one additional
+  // tool signal exists, keep the highest-priority one as secondaryToolSignal.
+  let secondaryToolSignal: MotherSignalType | null = null;
+  if (primary && isToolMotherSignal(primary)) {
+    const toolsInRest = rest.filter((s) => isToolMotherSignal(s));
+    if (toolsInRest.length >= 1) {
+      // Take the highest-priority tool from rest
+      secondaryToolSignal = toolsInRest[0]!;
+    }
   }
+
+  // filtered = everything except primary AND secondaryToolSignal
+  const filtered = secondaryToolSignal
+    ? rest.filter((s) => s !== secondaryToolSignal)
+    : rest;
+
+  return {
+    primarySignal: primary,
+    secondaryToolSignal,
+    filtered,
+  };
 }
 
 /**
  * Check if multiple mother signals were detected (for logging/tracing).
  */
 export function hasMultipleMotherSignals(signals: DispatcherSignals): boolean {
-  const { primarySignal, filtered } = filterToSingleMotherSignal(signals)
-  return primarySignal !== null && filtered.length > 0
+  const { primarySignal, filtered } = filterToSingleMotherSignal(signals);
+  return primarySignal !== null && filtered.length > 0;
 }
 
 export async function handleSignalDeferral(opts: {
-  tempMemory: any
-  dispatcherSignals: DispatcherSignals
-  userMessage: string
-  profileConfirmDeferredKey: string
-  trace: (event: string, phase: BrainTracePhase, payload?: Record<string, unknown>, level?: "debug" | "info" | "warn" | "error") => Promise<void>
-}): Promise<{ tempMemory: any; deferredAckPrefix: string; deferredSignalAddon: string }> {
-  let { tempMemory } = opts
-  let deferredAckPrefix = ""
-  let deferredSignalAddon = ""
+  tempMemory: any;
+  dispatcherSignals: DispatcherSignals;
+  userMessage: string;
+  profileConfirmDeferredKey: string;
+  trace: (
+    event: string,
+    phase: BrainTracePhase,
+    payload?: Record<string, unknown>,
+    level?: "debug" | "info" | "warn" | "error",
+  ) => Promise<void>;
+}): Promise<
+  { tempMemory: any; deferredAckPrefix: string; deferredSignalAddon: string }
+> {
+  let { tempMemory } = opts;
+  let deferredAckPrefix = "";
+  let deferredSignalAddon = "";
 
   // Prune expired deferred topics first
   {
-    const pruneResult = pruneExpiredDeferredTopics({ tempMemory })
+    const pruneResult = pruneExpiredDeferredTopics({ tempMemory });
     if (pruneResult.pruned.length > 0) {
-      tempMemory = pruneResult.tempMemory
+      tempMemory = pruneResult.tempMemory;
       for (const expired of pruneResult.pruned) {
         await opts.trace("brain:deferred_expired", "cleanup", {
           topic_id: expired.id,
           machine_type: expired.machine_type,
           action_target: expired.action_target,
-          age_hours: Math.round((Date.now() - new Date(expired.created_at).getTime()) / (60 * 60 * 1000)),
-        })
+          age_hours: Math.round(
+            (Date.now() - new Date(expired.created_at).getTime()) /
+              (60 * 60 * 1000),
+          ),
+        });
       }
-      if (pruneResult.pruned.some((t) => t.machine_type === "user_profile_confirmation")) {
-        const next = { ...(tempMemory ?? {}) }
-        delete next[opts.profileConfirmDeferredKey]
-        tempMemory = next
+      if (
+        pruneResult.pruned.some((t) =>
+          t.machine_type === "user_profile_confirmation"
+        )
+      ) {
+        const next = { ...(tempMemory ?? {}) };
+        delete next[opts.profileConfirmDeferredKey];
+        tempMemory = next;
       }
     }
   }
 
   // Check if any state machine is currently active
-  const anyActiveMachine = getAnyActiveMachine(tempMemory)
-  const anyActiveToolFlow = getAnyActiveToolFlow(tempMemory)
-  const activeToolFlowTarget = anyActiveToolFlow ? getActiveToolFlowActionTarget(tempMemory) : null
+  const anyActiveMachine = getAnyActiveMachine(tempMemory);
+  const anyActiveToolFlow = getAnyActiveToolFlow(tempMemory);
+  const activeToolFlowTarget = anyActiveToolFlow
+    ? getActiveToolFlowActionTarget(tempMemory)
+    : null;
 
   // Detect if dispatcher signals would trigger a NEW machine
-  const newMachineSignal = detectMachineTypeFromSignals(opts.dispatcherSignals)
+  const newMachineSignal = detectMachineTypeFromSignals(opts.dispatcherSignals);
 
   // SIGNAL DEFERRAL LOGIC
   if (anyActiveMachine && newMachineSignal) {
     // Check if it's the SAME machine type and SAME action (not a deferral case)
     const isSameMachineType = (() => {
-      const activeType = anyActiveMachine.type
+      const activeType = anyActiveMachine.type;
       // Map session types to deferred machine types for comparison
-      const activeAsMachineType =
-        activeType === "create_action_flow" ? "create_action" :
-        activeType === "update_action_flow" ? "update_action" :
-        activeType === "breakdown_action_flow" ? "breakdown_action" :
-        activeType === "activate_action_flow" ? "activate_action" :
-        activeType === "deep_reasons_exploration" ? "deep_reasons" :
-        activeType
-      return activeAsMachineType === newMachineSignal.machine_type
-    })()
+      const activeAsMachineType = activeType === "create_action_flow"
+        ? "create_action"
+        : activeType === "update_action_flow"
+        ? "update_action"
+        : activeType === "breakdown_action_flow"
+        ? "breakdown_action"
+        : activeType === "activate_action_flow"
+        ? "activate_action"
+        : activeType === "delete_action_flow"
+        ? "delete_action"
+        : activeType === "deactivate_action_flow"
+        ? "deactivate_action"
+        : activeType === "deep_reasons_exploration"
+        ? "deep_reasons"
+        : activeType;
+      return activeAsMachineType === newMachineSignal.machine_type;
+    })();
 
     const isSameAction = (() => {
-      if (!isSameMachineType) return false
+      if (!isSameMachineType) return false;
       // For non-tool machines (topics, deep_reasons), same machine type is enough
-      if (!isToolMachine(newMachineSignal.machine_type)) return true
+      if (!isToolMachine(newMachineSignal.machine_type)) return true;
       // For tool machines, require matching action targets
       return Boolean(
         activeToolFlowTarget &&
-        newMachineSignal.action_target &&
-        activeToolFlowTarget.toLowerCase().includes(newMachineSignal.action_target.toLowerCase())
-      )
-    })()
+          newMachineSignal.action_target &&
+          activeToolFlowTarget.toLowerCase().includes(
+            newMachineSignal.action_target.toLowerCase(),
+          ),
+      );
+    })();
 
     // If it's NOT sentry/firefighter AND (different machine OR different action), DEFER
-    if (!shouldInterruptForSafety(opts.dispatcherSignals) && (!isSameMachineType || !isSameAction)) {
+    if (
+      !shouldInterruptForSafety(opts.dispatcherSignals) &&
+      (!isSameMachineType || !isSameAction)
+    ) {
       // Generate summary for the deferred signal
       const summary = generateDeferredSignalSummary({
         signals: opts.dispatcherSignals,
         userMessage: opts.userMessage,
         machine_type: newMachineSignal.machine_type,
         action_target: newMachineSignal.action_target,
-      })
+      });
 
       // Check if matching deferred exists (for UPDATE logic)
       // Defer the signal
@@ -211,8 +290,8 @@ export async function handleSignalDeferral(opts: {
         machine_type: newMachineSignal.machine_type,
         action_target: newMachineSignal.action_target,
         summary,
-      })
-      tempMemory = deferResult.tempMemory
+      });
+      tempMemory = deferResult.tempMemory;
 
       // Generate acknowledgment prefix (legacy - kept for fallback)
       if (deferResult.action === "created") {
@@ -220,15 +299,15 @@ export async function handleSignalDeferral(opts: {
           machine_type: newMachineSignal.machine_type,
           action_target: newMachineSignal.action_target,
           isUpdate: false,
-        })
+        });
       } else {
         // UPDATE case - subtle or silent acknowledgment
         const subtleAck = generateSubtleUpdateAck({
           machine_type: newMachineSignal.machine_type,
           action_target: newMachineSignal.action_target,
           triggerCount: deferResult.topic.trigger_count,
-        })
-        deferredAckPrefix = subtleAck
+        });
+        deferredAckPrefix = subtleAck;
       }
 
       // Generate intelligent add-on for the conversational agent
@@ -240,7 +319,7 @@ export async function handleSignalDeferral(opts: {
         currentMachineTarget: activeToolFlowTarget ?? undefined,
         isUpdate: deferResult.action === "updated",
         triggerCount: deferResult.topic.trigger_count,
-      })
+      });
 
       // Log the deferral with specific event type
       if (deferResult.action === "created") {
@@ -251,7 +330,7 @@ export async function handleSignalDeferral(opts: {
           summary,
           active_machine: anyActiveMachine.type,
           active_machine_target: activeToolFlowTarget,
-        })
+        });
       } else {
         await opts.trace("brain:deferred_updated", "routing", {
           topic_id: deferResult.topic.id,
@@ -259,7 +338,7 @@ export async function handleSignalDeferral(opts: {
           action_target: newMachineSignal.action_target,
           trigger_count: deferResult.topic.trigger_count,
           new_summary: summary,
-        })
+        });
       }
 
       // Also log the generic signal_deferred event
@@ -270,7 +349,7 @@ export async function handleSignalDeferral(opts: {
         summary,
         active_machine: anyActiveMachine.type,
         active_machine_target: activeToolFlowTarget,
-      })
+      });
 
       // Log if cancelled an old topic due to limit
       if (deferResult.cancelled) {
@@ -278,25 +357,28 @@ export async function handleSignalDeferral(opts: {
           cancelled_id: deferResult.cancelled.id,
           cancelled_type: deferResult.cancelled.machine_type,
           cancelled_target: deferResult.cancelled.action_target,
-        })
+        });
       }
 
       // Clear any signals that would have triggered the new machine
       // (so the current machine continues uninterrupted)
       if (newMachineSignal.machine_type === "breakdown_action") {
-        delete (tempMemory as any).__breakdown_action_signal
+        delete (tempMemory as any).__breakdown_action_signal;
       } else if (newMachineSignal.machine_type === "create_action") {
-        delete (tempMemory as any).__create_action_signal
+        delete (tempMemory as any).__create_action_signal;
       } else if (newMachineSignal.machine_type === "update_action") {
-        delete (tempMemory as any).__update_action_signal
+        delete (tempMemory as any).__update_action_signal;
       } else if (newMachineSignal.machine_type === "activate_action") {
-        delete (tempMemory as any).__activate_action_signal
+        delete (tempMemory as any).__activate_action_signal;
+      } else if (newMachineSignal.machine_type === "delete_action") {
+        delete (tempMemory as any).__delete_action_signal;
+      } else if (newMachineSignal.machine_type === "deactivate_action") {
+        delete (tempMemory as any).__deactivate_action_signal;
       } else if (newMachineSignal.machine_type === "deep_reasons") {
-        delete (tempMemory as any).__deep_reasons_opportunity
+        delete (tempMemory as any).__deep_reasons_opportunity;
       }
     }
   }
 
-  return { tempMemory, deferredAckPrefix, deferredSignalAddon }
+  return { tempMemory, deferredAckPrefix, deferredSignalAddon };
 }
-

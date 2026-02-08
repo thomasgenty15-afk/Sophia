@@ -244,6 +244,123 @@ export async function handleActivateAction(
   ].filter(Boolean).join("\n")
 }
 
+export async function handleDeactivateAction(
+  supabase: SupabaseClient,
+  userId: string,
+  args: any,
+): Promise<string> {
+  const { action_title_or_id } = args
+  const rawInput = String(action_title_or_id ?? "").trim()
+  const searchTerm = rawInput.toLowerCase()
+  if (!searchTerm) {
+    return "Je n'ai pas compris quelle action tu veux mettre en pause."
+  }
+
+  const plan = await getActivePlanForUser(supabase, userId)
+  if (!plan) return "Je ne trouve pas de plan actif pour désactiver cette action."
+
+  let action: any = null
+  // 1. Try by ID in user_actions
+  {
+    const { data } = await supabase
+      .from("user_actions")
+      .select("id, title, status")
+      .eq("plan_id", plan.id)
+      .eq("id", rawInput)
+      .maybeSingle()
+    if (data) action = data
+  }
+  // 2. Try exact title (case-insensitive)
+  if (!action) {
+    const { data } = await supabase
+      .from("user_actions")
+      .select("id, title, status")
+      .eq("plan_id", plan.id)
+      .ilike("title", rawInput)
+      .maybeSingle()
+    if (data) action = data
+  }
+  // 3. Try partial title fallback
+  if (!action) {
+    const { data } = await supabase
+      .from("user_actions")
+      .select("id, title, status")
+      .eq("plan_id", plan.id)
+      .ilike("title", `%${rawInput}%`)
+      .limit(1)
+      .maybeSingle()
+    if (data) action = data
+  }
+
+  if (action) {
+    const st = String((action as any)?.status ?? "")
+    if (st === "pending") {
+      return `"${(action as any).title}" est déjà en pause (status pending).`
+    }
+    if (st === "archived") {
+      return `"${(action as any).title}" a été supprimée. Tu veux la réactiver ?`
+    }
+    await supabase.from("user_actions").update({ status: "pending" }).eq("id", (action as any).id)
+    return `C'est fait. J'ai mis en pause "${(action as any).title}". Tu pourras la réactiver quand tu veux.`
+  }
+
+  let fw: any = null
+  // 4. Try framework by DB row id
+  {
+    const { data } = await supabase
+      .from("user_framework_tracking")
+      .select("id, action_id, title, status")
+      .eq("plan_id", plan.id)
+      .eq("id", rawInput)
+      .maybeSingle()
+    if (data) fw = data
+  }
+  // 5. Try framework by action_id (plan JSON action id)
+  if (!fw) {
+    const { data } = await supabase
+      .from("user_framework_tracking")
+      .select("id, action_id, title, status")
+      .eq("plan_id", plan.id)
+      .eq("action_id", rawInput)
+      .maybeSingle()
+    if (data) fw = data
+  }
+  // 6. Try framework by title exact/partial
+  if (!fw) {
+    const { data } = await supabase
+      .from("user_framework_tracking")
+      .select("id, action_id, title, status")
+      .eq("plan_id", plan.id)
+      .ilike("title", rawInput)
+      .maybeSingle()
+    if (data) fw = data
+  }
+  if (!fw) {
+    const { data } = await supabase
+      .from("user_framework_tracking")
+      .select("id, action_id, title, status")
+      .eq("plan_id", plan.id)
+      .ilike("title", `%${rawInput}%`)
+      .limit(1)
+      .maybeSingle()
+    if (data) fw = data
+  }
+
+  if (fw) {
+    const st = String((fw as any)?.status ?? "")
+    if (st === "pending") {
+      return `"${(fw as any).title}" est déjà en pause (status pending).`
+    }
+    if (st === "archived") {
+      return `"${(fw as any).title}" a été supprimé. Tu veux le réactiver ?`
+    }
+    await supabase.from("user_framework_tracking").update({ status: "pending" }).eq("id", (fw as any).id)
+    return `C'est fait. J'ai mis en pause "${(fw as any).title}". Tu pourras le réactiver quand tu veux.`
+  }
+
+  return `Je ne trouve pas l'action "${rawInput}" dans ton plan.`
+}
+
 export async function handleArchiveAction(
   supabase: SupabaseClient,
   userId: string,
@@ -283,5 +400,4 @@ export async function handleArchiveAction(
 
   return `Je ne trouve pas l'action "${action_title_or_id}" dans ton plan.`
 }
-
 

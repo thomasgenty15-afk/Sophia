@@ -144,8 +144,9 @@ export async function geminiEmbed(text: string, requestId: string = crypto.rando
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) throw new Error("Clé API Gemini manquante");
 
+  const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "text-embedding-004").trim() || "text-embedding-004";
   const url =
-    `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GEMINI_API_KEY}`;
+    `https://generativelanguage.googleapis.com/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`;
 
   const MAX_RETRIES = 6;
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
@@ -154,7 +155,7 @@ export async function geminiEmbed(text: string, requestId: string = crypto.rando
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          model: "models/text-embedding-004",
+          model: `models/${model}`,
           content: { parts: [{ text }] },
         }),
       });

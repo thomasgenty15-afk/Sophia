@@ -282,6 +282,15 @@ export async function loadContextForMode(
     elementsLoaded.push("expired_bilan_context")
   }
 
+  // 17. Onboarding addon (Q1/Q2/Q3 warm questions) — applies when __onboarding_flow is active.
+  // The dispatcher uses this machine to decide transitions; the agent still needs explicit instructions
+  // to ask the right question in natural language.
+  const onbFlow = (opts.tempMemory as any)?.__onboarding_flow
+  if (onbFlow && opts.mode === "companion") {
+    context.onboardingAddon = formatOnboardingAddon(onbFlow)
+    if (context.onboardingAddon) elementsLoaded.push("onboarding_addon")
+  }
+
   // Calculate metrics
   const totalLength = Object.values(context)
     .filter(Boolean)
@@ -323,6 +332,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.vectors) ctx += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${loaded.vectors}\n\n`
   if (loaded.topicSession) ctx += loaded.topicSession
   if (loaded.checkupAddon) ctx += loaded.checkupAddon
+  if (loaded.onboardingAddon) ctx += loaded.onboardingAddon
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon
   if (loaded.expiredBilanContext) ctx += loaded.expiredBilanContext
   
@@ -470,6 +480,49 @@ function formatTrackProgressAddon(addon: any): string {
     return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le user a dit avoir progressé mais aucune action n'a pu être matchée.\n- Demande une précision courte (quelle action ?), puis tu pourras tracker.\n- Indice interne: ${msg}\n`
   }
   return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le progrès a été loggé automatiquement (ne relance pas le tool).\n- Tu peux continuer le flow normalement et acquiescer si besoin.\n- Résultat: ${msg}\n`
+}
+
+/**
+ * Format onboarding addon (Q1/Q2/Q3) for the Companion agent.
+ * This is used for both WhatsApp and debug-web onboarding, as the state is stored in temp_memory.__onboarding_flow.
+ */
+function formatOnboardingAddon(onbFlow: any): string {
+  const step = String(onbFlow?.step ?? "q1").trim() || "q1"
+  const turn = Number(onbFlow?.turn_count ?? 0) || 0
+  const planTitle = String(onbFlow?.plan_title ?? "ton plan").trim() || "ton plan"
+  const isFirstEntry = turn === 0
+
+  // The question must be asked only on first entry for a step; subsequent turns should help the user answer.
+  const q1 = `Comment ça s'est passé pour toi de construire ton plan ?`
+  const q2 = `Pourquoi c'est important pour toi maintenant de te lancer là-dedans ?`
+  const q3 = `Et si tu devais mettre un chiffre, ta motivation là tout de suite, sur 10 ?`
+
+  let instructions = ""
+  if (step === "q1") {
+    instructions = isFirstEntry
+      ? `Tu es en onboarding (Q1). L'utilisateur vient de démarrer l'onboarding. Célèbre brièvement, puis pose la question:\n"${q1}"`
+      : `Tu es en onboarding (Q1). Aide l'utilisateur à répondre à la question, puis reste sur Q1.\nRappelle la question si besoin:\n"${q1}"`
+  } else if (step === "q2") {
+    instructions = isFirstEntry
+      ? `Tu es en onboarding (Q2). Accuse réception de sa réponse précédente en 1 phrase max, puis pose:\n"${q2}"`
+      : `Tu es en onboarding (Q2). Aide l'utilisateur à préciser son "pourquoi", puis reste sur Q2.\nRappelle la question si besoin:\n"${q2}"`
+  } else {
+    // q3
+    instructions = isFirstEntry
+      ? `Tu es en onboarding (Q3). Accuse réception en 1 phrase max, puis pose:\n"${q3}"`
+      : `Tu es en onboarding (Q3). Objectif: obtenir un chiffre clair entre 0 et 10. Si pas clair, repose la question simplement:\n"${q3}"`
+  }
+
+  return (
+    `\n\n=== ADDON ONBOARDING (Q1/Q2/Q3) ===\n` +
+    `Plan: "${planTitle}"\n` +
+    `Step: ${step} | turn_count: ${turn}\n` +
+    `RÈGLES:\n` +
+    `- Une seule question.\n` +
+    `- Reste naturel(le) et chaleureux(se).\n` +
+    `- Ne sors pas de l'onboarding (sauf urgence/safety).\n\n` +
+    `${instructions}\n`
+  )
 }
 
 // Re-export types for convenience

@@ -340,6 +340,33 @@ export function extractUpdateTargetHint(message: string): string | null {
  * - "micro-étape pour la lecture"
  * - "découpe l'action sport"
  */
+export function looksLikeExplicitDeleteActionRequest(message: string): boolean {
+  const t = String(message ?? "").toLowerCase()
+  const hasVerb =
+    /\b(supprime|supprimer|retire|retirer|enl[eè]ve|enlever|arr[eê]te|arr[eê]ter|vire|virer|supprime[-\s]?la|retire[-\s]?la|enl[eè]ve[-\s]?la)\b/i.test(t) ||
+    /\b(je\s+veux\s+(?:supprimer|retirer|enlever|arr[eê]ter)|tu\s+peux\s+(?:supprimer|retirer|enlever)|on\s+peut\s+(?:supprimer|retirer|enlever))\b/i.test(t)
+  const hasActionContext =
+    /\b(action|habitude|plan|mon\s+plan)\b/i.test(t) ||
+    /(?:\"|«|")[^\"»"]{2,120}(?:\"|»|")/.test(message ?? "")
+  const hasImperative =
+    /\b(vas[-\s]?y|stp|s['']il\s+te\s+pla[iî]t|maintenant|tout\s+de\s+suite)\b/i.test(t)
+  return hasVerb && (hasActionContext || hasImperative)
+}
+
+export function looksLikeExplicitDeactivateActionRequest(message: string): boolean {
+  const t = String(message ?? "").toLowerCase()
+  const hasVerb =
+    /\b(d[ée]sactive|d[ée]sactiver|mets?\s+en\s+pause|mettre\s+en\s+pause|pause|stoppe|stopper|suspends?|suspendre)\b/i.test(t) ||
+    /\b(je\s+veux\s+(?:d[ée]sactiver|mettre\s+en\s+pause|suspendre)|tu\s+peux\s+(?:d[ée]sactiver|mettre\s+en\s+pause)|on\s+peut\s+(?:d[ée]sactiver|mettre\s+en\s+pause))\b/i.test(t) ||
+    /\b(arr[eê]te\s+temporairement|arr[eê]ter\s+temporairement|pause\s+(?:le|la|l['']|sur))\b/i.test(t)
+  const hasActionContext =
+    /\b(action|habitude|plan|mon\s+plan)\b/i.test(t) ||
+    /(?:\"|«|")[^\"»"]{2,120}(?:\"|»|")/.test(message ?? "")
+  const hasImperative =
+    /\b(vas[-\s]?y|stp|s['']il\s+te\s+pla[iî]t|maintenant|tout\s+de\s+suite)\b/i.test(t)
+  return hasVerb && (hasActionContext || hasImperative)
+}
+
 export function looksLikeExplicitBreakdownIntent(message: string): boolean {
   const s = String(message ?? "").trim().toLowerCase()
   if (!s) return false

@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 
 import { normalizeScope } from "../state-manager.ts"
-import { getAnyActiveToolFlow, getActiveActivateActionFlow, getActivateActionFlowPhase } from "../supervisor.ts"
-import { buildActivateActionFlowAddon } from "./architect/tool_flow_prompts.ts"
+import { getAnyActiveToolFlow, getActiveActivateActionFlow, getActivateActionFlowPhase, getActiveDeleteActionFlow, getDeleteActionFlowPhase, getActiveDeactivateActionFlow, getDeactivateActionFlowPhase } from "../supervisor.ts"
+import { buildActivateActionFlowAddon, buildDeleteActionFlowAddon, buildDeactivateActionFlowAddon } from "./architect/tool_flow_prompts.ts"
 
 // Public API (router/agent_exec.ts depends on these exports)
 export type { ArchitectModelOutput } from "./architect/types.ts"
@@ -392,7 +392,31 @@ export async function runArchitect(
       })}`
     : ""
 
-  const systemPrompt = `${basePrompt}${flowContext}${activateFlowAddon}`.trim()
+  // ---- Delete action flow addon (machine-driven, phase-specific guidance)
+  const deleteSession = getActiveDeleteActionFlow(tm0)
+  const deletePhase = getDeleteActionFlowPhase(tm0)
+  const deleteFlowAddon = (deleteSession && deletePhase)
+    ? `\n\n${buildDeleteActionFlowAddon({
+        targetAction: (deleteSession.meta as any)?.target_action ?? "une action",
+        reason: (deleteSession.meta as any)?.reason,
+        phase: deletePhase as "exploring" | "confirming" | "deleted" | "abandoned",
+        isWhatsApp,
+      })}`
+    : ""
+
+  // ---- Deactivate action flow addon (machine-driven, phase-specific guidance)
+  const deactivateSession = getActiveDeactivateActionFlow(tm0)
+  const deactivatePhase = getDeactivateActionFlowPhase(tm0)
+  const deactivateFlowAddon = (deactivateSession && deactivatePhase)
+    ? `\n\n${buildDeactivateActionFlowAddon({
+        targetAction: (deactivateSession.meta as any)?.target_action ?? "une action",
+        reason: (deactivateSession.meta as any)?.reason,
+        phase: deactivatePhase as "exploring" | "confirming" | "deactivated" | "abandoned",
+        isWhatsApp,
+      })}`
+    : ""
+
+  const systemPrompt = `${basePrompt}${flowContext}${activateFlowAddon}${deleteFlowAddon}${deactivateFlowAddon}`.trim()
   const baseTools = getArchitectTools()
   // In Module (UI) conversations, default to discussion-first: no tools unless the user explicitly asks.
   const tools = (isModuleUi && !looksLikeExplicitPlanOperationRequest(message)) ? [] : baseTools

@@ -975,13 +975,177 @@ export async function generateWithGemini(
   return jsonMode ? text.replace(/```json\n?|```/g, '').trim() : text
 }
 
-export async function generateEmbedding(text: string, meta?: { userId?: string; forceRealAi?: boolean }): Promise<number[]> {
-  // Test mode: deterministic stub embedding (vector(768)).
+/**
+ * Search the web using Gemini's built-in Google Search Grounding.
+ * Returns structured snippets and source URLs for injection into agent context.
+ *
+ * This is a dedicated, lightweight function (does NOT go through the full
+ * generateWithGemini retry/fallback chain) to keep latency predictable.
+ */
+export async function searchWithGeminiGrounding(
+  query: string,
+  meta?: { requestId?: string; model?: string; timeoutMs?: number },
+): Promise<{ text: string; snippets: string[]; sources: string[]; raw?: any }> {
+  const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+  if (!GEMINI_API_KEY) {
+    console.warn("[Research] GEMINI_API_KEY missing – skipping grounding search");
+    return { text: "", snippets: [], sources: [] };
+  }
+
+  // Test mode: deterministic stub (no network).
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
     (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
     (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000");
-  const megaEnabled = megaRaw === "1" || (megaRaw === "" && isLocalSupabase);
+  if (megaRaw === "1" || (megaRaw === "" && isLocalSupabase)) {
+    return { text: `MEGA_TEST_STUB: recherche pour "${query}"`, snippets: [`Stub result for: ${query}`], sources: ["stub://test"] };
+  }
+
+  const model = (meta?.model ?? "gemini-2.5-flash").trim();
+  const timeoutMs = Math.max(3_000, Math.floor(meta?.timeoutMs ?? 8_000));
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
+
+  const payload = {
+    contents: [{
+      role: "user",
+      parts: [{ text: query }],
+    }],
+    systemInstruction: {
+      parts: [{ text: "Réponds factuellement et de manière concise à cette question. Cite tes sources. Si tu ne trouves pas d'information fiable, dis-le clairement." }],
+    },
+    tools: [{ google_search: {} }],
+    generationConfig: {
+      temperature: 0.2,
+    },
+  };
+
+  // Timeout signal
+  const controller = new AbortController();
+  const timerId = setTimeout(() => controller.abort(new Error("Research grounding timeout")), timeoutMs);
+
+  try {
+    const t0 = Date.now();
+    const response = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+      signal: controller.signal,
+    });
+    const durationMs = Date.now() - t0;
+
+    if (!response.ok) {
+      const errBody = await response.json().catch(() => ({}));
+      console.warn(`[Research] Grounding call failed status=${response.status} duration=${durationMs}ms request_id=${meta?.requestId ?? "n/a"}`, errBody);
+      return { text: "", snippets: [], sources: [] };
+    }
+
+    const data = await response.json();
+
+    // Usage metadata (best effort telemetry): grounding calls bypass generateWithGemini.
+    try {
+      const usage = (data as any)?.usageMetadata;
+      const promptTokens = usage?.promptTokenCount;
+      const outputTokens = usage?.candidatesTokenCount;
+      const totalTokens = usage?.totalTokenCount;
+      if (typeof promptTokens === "number" || typeof totalTokens === "number") {
+        const { computeCostUsd, logLlmUsageEvent } = await import("./llm-usage.ts");
+        const costUsd = await computeCostUsd("gemini", model, promptTokens, outputTokens);
+        await logLlmUsageEvent({
+          user_id: null,
+          request_id: meta?.requestId ?? null,
+          source: "sophia-brain:research_grounding",
+          provider: "gemini",
+          model,
+          kind: "generate",
+          prompt_tokens: typeof promptTokens === "number" ? promptTokens : null,
+          output_tokens: typeof outputTokens === "number" ? outputTokens : null,
+          total_tokens: typeof totalTokens === "number" ? totalTokens : null,
+          cost_usd: costUsd,
+          metadata: {
+            grounding: true,
+            query: String(query ?? "").slice(0, 120),
+          },
+        });
+      }
+    } catch {
+      // Telemetry failures must never block response path.
+    }
+
+    // Extract text response
+    const parts = data?.candidates?.[0]?.content?.parts ?? [];
+    const textPart = parts.find((p: any) => typeof p?.text === "string")?.text ?? "";
+
+    // Extract grounding metadata (snippets + sources)
+    const groundingMeta = data?.candidates?.[0]?.groundingMetadata;
+    const snippets: string[] = [];
+    const sources: string[] = [];
+    const seenSnippets = new Set<string>();
+    const seenSources = new Set<string>();
+    const pushSnippet = (value: unknown) => {
+      const s = String(value ?? "").trim().replace(/\s+/g, " ").slice(0, 260);
+      if (!s) return;
+      const key = s.toLowerCase();
+      if (seenSnippets.has(key)) return;
+      seenSnippets.add(key);
+      snippets.push(s);
+    };
+    const pushSource = (value: unknown) => {
+      const s = String(value ?? "").trim();
+      if (!s) return;
+      if (seenSources.has(s)) return;
+      seenSources.add(s);
+      sources.push(s);
+    };
+
+    if (groundingMeta) {
+      // groundingChunks contains the web results
+      const chunks = Array.isArray(groundingMeta.groundingChunks) ? groundingMeta.groundingChunks : [];
+      for (const chunk of chunks.slice(0, 8)) {
+        const web = chunk?.web;
+        if (web?.title || web?.uri) {
+          if (web.title) pushSnippet(web.title);
+          if (web.uri) pushSource(web.uri);
+        }
+      }
+
+      // searchEntryPoint may contain rendered HTML snippets
+      const supportChunks = Array.isArray(groundingMeta.groundingSupports) ? groundingMeta.groundingSupports : [];
+      for (const support of supportChunks.slice(0, 6)) {
+        const seg = support?.segment?.text;
+        if (typeof seg === "string" && seg.trim()) {
+          pushSnippet(seg);
+        }
+      }
+    }
+
+    console.log(JSON.stringify({
+      tag: "research_grounding",
+      request_id: meta?.requestId ?? null,
+      model,
+      query: query.slice(0, 120),
+      duration_ms: durationMs,
+      snippets_count: snippets.length,
+      sources_count: sources.length,
+      has_text: Boolean(textPart),
+    }));
+
+    return { text: textPart, snippets, sources, raw: groundingMeta };
+  } catch (e) {
+    const msg = String((e as any)?.message ?? e ?? "");
+    console.warn(`[Research] Grounding search failed request_id=${meta?.requestId ?? "n/a"}: ${msg.slice(0, 200)}`);
+    return { text: "", snippets: [], sources: [] };
+  } finally {
+    clearTimeout(timerId);
+  }
+}
+
+export async function generateEmbedding(text: string, meta?: { userId?: string; forceRealAi?: boolean }): Promise<number[]> {
+  // Test mode: deterministic stub embedding (vector(768)).
+  // NOTE: We do NOT stub just because we're on local Supabase; if a developer has a GEMINI_API_KEY
+  // they usually want embeddings to work locally (RAG, memories, etc.). Use MEGA_TEST_MODE=1 explicitly
+  // for offline/stubbed runs.
+  const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
+  const megaEnabled = megaRaw === "1";
 
   if (megaEnabled && !meta?.forceRealAi) {
     // Postgres expects exact dimension for vector(768).
@@ -991,7 +1155,10 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
   if (!GEMINI_API_KEY) throw new Error('Clé API Gemini manquante')
 
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GEMINI_API_KEY}`
+  const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "text-embedding-004").trim() || "text-embedding-004"
+  const base = "https://generativelanguage.googleapis.com"
+  const urlV1 = `${base}/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`
+  const urlV1beta = `${base}/v1beta/models/${model}:embedContent?key=${GEMINI_API_KEY}`
 
   const parseTimeoutMs = (raw: string | undefined, fallback: number) => {
     const n = Number(String(raw ?? "").trim());
@@ -1008,20 +1175,47 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
     return { signal: controller.signal, cancel: () => clearTimeout(id) };
   };
   const { signal, cancel } = makeTimeoutSignal(GEMINI_HTTP_TIMEOUT_MS);
-  const response = await fetch(url, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: "models/text-embedding-004",
-      content: { parts: [{ text }] }
-    }),
-    signal,
-  }).finally(() => cancel())
+  const body = JSON.stringify({
+    // Gemini expects this "models/..." prefix in the payload (even though the URL also includes the model).
+    model: `models/${model}`,
+    content: { parts: [{ text }] },
+  })
+
+  async function doFetch(url: string): Promise<Response> {
+    return await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body,
+      signal,
+    })
+  }
+
+  // Prefer v1 (more stable). Only fall back to v1beta when explicitly allowed.
+  let response: Response
+  let lastErrPayload: any = null
+  try {
+    response = await doFetch(urlV1)
+    if (!response.ok) {
+      lastErrPayload = await response.json().catch(() => ({}))
+      const allowV1beta = (Deno.env.get("GEMINI_ALLOW_V1BETA") ?? "").trim() === "1"
+      const message = String(lastErrPayload?.error?.message ?? "")
+      const looksLikeVersionMismatch =
+        message.includes("API version v1") ||
+        message.includes("not supported for embedContent") ||
+        message.includes("not found")
+      if (allowV1beta && looksLikeVersionMismatch) {
+        response = await doFetch(urlV1beta)
+      }
+    }
+  } finally {
+    cancel()
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}));
-    console.error("Gemini Embedding Error:", errorData);
-    throw new Error(`Erreur Embedding: ${response.statusText}`)
+    console.error("Gemini Embedding Error:", errorData || lastErrPayload);
+    const msg = errorData?.error?.message || lastErrPayload?.error?.message || response.statusText || "Unknown error"
+    throw new Error(`Erreur Embedding: ${msg}`)
   }
 
   const data = await response.json()
@@ -1032,13 +1226,13 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
     const totalTokens = usage?.totalTokenCount;
     if (typeof promptTokens === "number" || typeof totalTokens === "number") {
       const { computeCostUsd, logLlmUsageEvent } = await import("./llm-usage.ts");
-      const costUsd = await computeCostUsd("gemini", "text-embedding-004", promptTokens, 0);
+      const costUsd = await computeCostUsd("gemini", model, promptTokens, 0);
       await logLlmUsageEvent({
         user_id: meta?.userId ?? null,
         request_id: null,
         source: null,
         provider: "gemini",
-        model: "text-embedding-004",
+        model,
         kind: "embed",
         prompt_tokens: typeof promptTokens === "number" ? promptTokens : null,
         output_tokens: 0,

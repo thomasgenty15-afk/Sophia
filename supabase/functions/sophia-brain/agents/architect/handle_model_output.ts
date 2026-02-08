@@ -19,6 +19,14 @@ import {
   upsertActivateActionFlow,
   closeActivateActionFlow,
   getActivateActionFlowPhase,
+  getActiveDeleteActionFlow,
+  upsertDeleteActionFlow,
+  closeDeleteActionFlow,
+  getDeleteActionFlowPhase,
+  getActiveDeactivateActionFlow,
+  upsertDeactivateActionFlow,
+  closeDeactivateActionFlow,
+  getDeactivateActionFlowPhase,
 } from "../../supervisor.ts"
 import { generateWithGemini } from "../../../_shared/gemini.ts"
 import { handleTracking } from "../../lib/tracking.ts"
@@ -31,9 +39,11 @@ import { formatDaysFrench, dayTokenToFrench } from "./dates.ts"
 import { handleBreakDownAction, findActionInPlanContent } from "./breakdown.ts"
 import { injectActionIntoPlanJson, planJsonHasAction, verifyActionCreated } from "./plan_json.ts"
 import { handleUpdateAction } from "./update_action.ts"
-import { handleActivateAction, handleArchiveAction } from "./activation.ts"
+import { handleActivateAction, handleArchiveAction, handleDeactivateAction } from "./activation.ts"
 import {
   looksLikeExplicitActivateActionRequest,
+  looksLikeExplicitDeleteActionRequest,
+  looksLikeExplicitDeactivateActionRequest,
   looksLikeExplicitCreateActionRequest,
   looksLikeExplicitTrackProgressRequest,
   looksLikeExplicitUpdateActionRequest,
@@ -2261,9 +2271,166 @@ FORMAT :
       }
 
       if (toolName === "archive_plan_action") {
-        const txt = await handleArchiveAction(supabase, userId, (response as any).args)
-        await trace({ event: "tool_call_succeeded", toolResult: txt })
-        return { text: txt, executed_tools: [toolName], tool_execution: "success" }
+        // ═══ DELETE ACTION FLOW v2 (machine-driven, AI consent) ═══
+        // Phase transitions are driven by the dispatcher LLM signals in the router.
+        // Here we only need to:
+        // 1. If machine is in "deleted" phase → call tool (user already confirmed via dispatcher)
+        // 2. If explicit request from user → call tool directly
+        // 3. Otherwise → enter "confirming" phase, ask for consent
+
+        const deleteSession = getActiveDeleteActionFlow(tm0)
+        const deletePhase = getDeleteActionFlowPhase(tm0)
+        const args = (response as any).args ?? {}
+        const askedTitle = String(args?.action_title_or_id ?? "").trim()
+        const deleteTarget = (deleteSession?.meta as any)?.target_action
+
+        // Case 1: Machine already confirmed (user said yes, detected by dispatcher LLM)
+        if (deletePhase === "deleted") {
+          const titleToDelete = askedTitle || deleteTarget || "cette action"
+          const deleteResult = await handleArchiveAction(supabase, userId, {
+            ...args,
+            action_title_or_id: titleToDelete,
+          })
+          await trace({ event: "tool_call_succeeded", toolResult: deleteResult })
+          // Close the machine
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
+            tmClean = closed.tempMemory
+            delete tmClean.__delete_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          return {
+            text: deleteResult,
+            executed_tools: [toolName],
+            tool_execution: "success",
+          }
+        }
+
+        // Case 2: User explicitly asked to delete (strong signal, no consent needed)
+        if (looksLikeExplicitDeleteActionRequest(message)) {
+          const titleToDelete = askedTitle || deleteTarget || parseQuotedActionTitle(message) || "cette action"
+          const deleteResult = await handleArchiveAction(supabase, userId, {
+            ...args,
+            action_title_or_id: titleToDelete,
+          })
+          await trace({ event: "tool_call_succeeded", toolResult: deleteResult })
+          // Close machine if it exists
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
+            tmClean = closed.tempMemory
+            delete tmClean.__delete_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          return {
+            text: deleteResult,
+            executed_tools: [toolName],
+            tool_execution: "success",
+          }
+        }
+
+        // Case 3: No explicit request & not confirmed → enter "confirming" phase
+        // The machine will ask for consent, dispatcher will detect the response next turn
+        const title = askedTitle || deleteTarget || parseQuotedActionTitle(message) || "cette action"
+        try {
+          const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+          const tmLatest = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+          const updated = upsertDeleteActionFlow({
+            tempMemory: tmLatest,
+            targetAction: title,
+            reason: (deleteSession?.meta as any)?.reason,
+            phase: "confirming",
+          })
+          await updateUserState(supabase, userId, scope, { temp_memory: updated.tempMemory } as any)
+        } catch {}
+        await trace({ event: "tool_call_blocked", metadata: { reason: "awaiting_ai_consent", phase: "confirming" } })
+        return {
+          text: `Tu es sûr de vouloir retirer "${title}" de ton plan ?`,
+          executed_tools: [toolName],
+          tool_execution: "blocked",
+        }
+      }
+
+      if (toolName === "deactivate_plan_action") {
+        // ═══ DEACTIVATE ACTION FLOW v2 (machine-driven, AI consent) ═══
+        // Phase transitions are driven by the dispatcher LLM signals in the router.
+        // Same pattern as delete_action_flow.
+
+        const deactivateSession = getActiveDeactivateActionFlow(tm0)
+        const deactivatePhase = getDeactivateActionFlowPhase(tm0)
+        const args = (response as any).args ?? {}
+        const askedTitle = String(args?.action_title_or_id ?? "").trim()
+        const deactivateTarget = (deactivateSession?.meta as any)?.target_action
+
+        // Case 1: Machine already confirmed (user said yes, detected by dispatcher LLM)
+        if (deactivatePhase === "deactivated") {
+          const titleToDeactivate = askedTitle || deactivateTarget || "cette action"
+          const deactivateResult = await handleDeactivateAction(supabase, userId, {
+            ...args,
+            action_title_or_id: titleToDeactivate,
+          })
+          await trace({ event: "tool_call_succeeded", toolResult: deactivateResult })
+          // Close the machine
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
+            tmClean = closed.tempMemory
+            delete tmClean.__deactivate_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          return {
+            text: deactivateResult,
+            executed_tools: [toolName],
+            tool_execution: "success",
+          }
+        }
+
+        // Case 2: User explicitly asked to deactivate (strong signal, no consent needed)
+        if (looksLikeExplicitDeactivateActionRequest(message)) {
+          const titleToDeactivate = askedTitle || deactivateTarget || parseQuotedActionTitle(message) || "cette action"
+          const deactivateResult = await handleDeactivateAction(supabase, userId, {
+            ...args,
+            action_title_or_id: titleToDeactivate,
+          })
+          await trace({ event: "tool_call_succeeded", toolResult: deactivateResult })
+          // Close machine if it exists
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
+            tmClean = closed.tempMemory
+            delete tmClean.__deactivate_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          return {
+            text: deactivateResult,
+            executed_tools: [toolName],
+            tool_execution: "success",
+          }
+        }
+
+        // Case 3: No explicit request & not confirmed → enter "confirming" phase
+        const title = askedTitle || deactivateTarget || parseQuotedActionTitle(message) || "cette action"
+        try {
+          const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+          const tmLatest = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+          const updated = upsertDeactivateActionFlow({
+            tempMemory: tmLatest,
+            targetAction: title,
+            phase: "confirming",
+          })
+          await updateUserState(supabase, userId, scope, { temp_memory: updated.tempMemory } as any)
+        } catch {}
+        await trace({ event: "tool_call_blocked", metadata: { reason: "awaiting_ai_consent", phase: "confirming" } })
+        return {
+          text: `Tu es sûr de vouloir mettre en pause "${title}" ?`,
+          executed_tools: [toolName],
+          tool_execution: "blocked",
+        }
       }
 
       if (toolName === "create_simple_action") {

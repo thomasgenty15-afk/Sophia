@@ -294,8 +294,8 @@ export async function getActionsDetails(
   let context = `=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\n`
   context += `RÈGLES IMPORTANTES:\n`
   context += `- Les frameworks comptent comme des actions côté utilisateur.\n`
-  context += `- "active" = activée et visible comme active dans l'app. "pending" = pas active.\n`
-  context += `- On n'active/désactive pas via WhatsApp: la seule manière d'activer/désactiver, c'est depuis le dashboard.\n\n`
+  context += `- "active" = activée et visible comme active dans l'app. "pending" = désactivée / en attente (réactivable).\n`
+  context += `- On peut activer/désactiver/supprimer via conversation OU depuis le dashboard.\n\n`
 
   context += `Actives (${activeA.length + activeF.length}):\n`
   for (const a of activeA) {
@@ -338,4 +338,3 @@ export async function getVitalSignsContext(
   }
   return context
 }
-

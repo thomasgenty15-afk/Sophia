@@ -1,0 +1,19 @@
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend" && \
+SOPHIA_EVAL_REMOTE=1 \
+SOPHIA_SUPABASE_URL="https://iabxchanerdkczbxyjgg.supabase.co" \
+SOPHIA_SUPABASE_ANON_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYnhjaGFuZXJka2N6Ynh5amdnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjYxNDIwNjAsImV4cCI6MjA4MTcxODA2MH0.oewoYgh7Bv5iCKfO1bZbXY3jwzn6qa2eEFdKlA1sFtg" \
+SOPHIA_SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlhYnhjaGFuZXJka2N6Ynh5amdnIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjE0MjA2MCwiZXhwIjoyMDgxNzE4MDYwfQ.KC-eT-V3AiJmLzebArd7TolXeFlLXfGkdvMot5xifXQ" \
+SUPABASE_ACCESS_TOKEN="sbp_588125345ac586c5ee34680d48414386c42defbb" \
+SOPHIA_RUN_EVALS_HTTP_TIMEOUT_MS=600000 \
+npm run eval:tools -- --scenario stress_test_ultimate_full_flow --turns 50 --model gemini-3-flash-preview
+
+Reunitialiser un email : 
+cd "/Users/ahmedamara/Dev/Sophia 2/frontend"
+
+SUPABASE_URL="https://ybyqxwnwjvuxckolsddn.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlieXF4d253anZ1eGNrb2xzZGRuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjAwMTM2MywiZXhwIjoyMDgxNTc3MzYzfQ.ldGZq8wQcXpDeCcO49FL73kedTef5_sVSl8YBeuVjlQ" \
+node scripts/update-auth-email.mjs "0020514b-00e8-4a8d-94a9-319dcad18b74" "fagenty@gmail.com"
+OK {
+  id: '0020514b-00e8-4a8d-94a9-319dcad18b74',
+  email: 'fagenty@gmail.com'
+}

@@ -2,6 +2,7 @@ export type ActionType = 'habitude' | 'mission' | 'framework';
 
 export interface Action {
   id: string;
+  dbId?: string; // ID en base de données (pour user_actions)
   type: ActionType;
   title: string;
   description: string;

@@ -188,6 +188,7 @@ export const useDashboardData = () => {
                             if (track) {
                                 return {
                                     ...a,
+                                    dbId: track.id, // ID de la table user_actions (undefined pour frameworks car pas sélectionné)
                                     currentReps: track.current_reps,
                                     targetReps: track.target_reps,
                                     status: track.status,

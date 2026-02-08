@@ -19,6 +19,8 @@ export type SupervisorSessionType =
   | "breakdown_action_flow"          // Simplified action breakdown flow (v2)
   | "track_progress_flow"            // Progress tracking flow (owner=architect)
   | "activate_action_flow"           // Action activation flow (owner=architect)
+  | "delete_action_flow"             // Action deletion/archive flow (owner=architect)
+  | "deactivate_action_flow"         // Action deactivation flow (owner=architect)
   | "safety_sentry_flow"             // Safety flow for vital danger (owner=sentry)
   | "safety_firefighter_flow"        // Safety flow for emotional crisis (owner=firefighter)
 
@@ -1558,6 +1560,225 @@ export function isActivateActionFlowStale(tempMemory: any, now?: Date): boolean 
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// DELETE ACTION FLOW (v2)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const TTL_DELETE_ACTION_FLOW_MS = 5 * 60 * 1000  // 5 minutes
+
+/**
+ * Get active delete_action_flow session from the supervisor stack.
+ */
+export function getActiveDeleteActionFlow(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const session = stack.find((s: any) => String(s?.type ?? "") === "delete_action_flow" && s?.status === "active")
+  return session ? (session as SupervisorSession) : null
+}
+
+/**
+ * Phase for the delete_action_flow machine.
+ * - exploring: Identifying which action to delete
+ * - confirming: Action identified, awaiting user confirmation (oui/non)
+ * - deleted: User confirmed, tool will be called
+ * - abandoned: User declined or stopped
+ */
+export type DeleteActionPhase = "exploring" | "confirming" | "deleted" | "abandoned"
+
+/**
+ * Upsert a delete_action_flow session.
+ */
+export function upsertDeleteActionFlow(opts: {
+  tempMemory: any
+  targetAction?: string
+  reason?: string
+  phase?: DeleteActionPhase
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+
+  // Remove any existing delete_action_flow sessions
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "delete_action_flow")
+
+  const targetAction = opts.targetAction ?? "une action"
+  const reason = opts.reason
+  const phase: DeleteActionPhase = opts.phase ?? "exploring"
+
+  const session: SupervisorSession = {
+    id: mkId("sess_delete_action", opts.now),
+    type: "delete_action_flow",
+    owner_mode: "architect",
+    status: "active",
+    started_at: nowIso(opts.now),
+    last_active_at: nowIso(opts.now),
+    topic: targetAction,
+    resume_brief: `On supprimait: ${targetAction}`,
+    meta: {
+      target_action: targetAction,
+      reason,
+      phase,
+    },
+  }
+
+  filtered.push(session)
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Get the current phase of the delete_action_flow machine.
+ */
+export function getDeleteActionFlowPhase(tempMemory: any): DeleteActionPhase | null {
+  const session = getActiveDeleteActionFlow(tempMemory)
+  if (!session) return null
+  return (session.meta as any)?.phase ?? "exploring"
+}
+
+/**
+ * Close the delete_action_flow session.
+ */
+export function closeDeleteActionFlow(opts: {
+  tempMemory: any
+  outcome: "deleted" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "delete_action_flow")
+  if (filtered.length === stack0.length) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Check if delete_action_flow is stale (exceeded TTL).
+ */
+export function isDeleteActionFlowStale(tempMemory: any, now?: Date): boolean {
+  const session = getActiveDeleteActionFlow(tempMemory)
+  if (!session) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(session.last_active_at ?? session.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_DELETE_ACTION_FLOW_MS
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DEACTIVATE ACTION FLOW (v2)
+// ═══════════════════════════════════════════════════════════════════════════════
+
+const TTL_DEACTIVATE_ACTION_FLOW_MS = 5 * 60 * 1000  // 5 minutes
+
+/**
+ * Get active deactivate_action_flow session from the supervisor stack.
+ */
+export function getActiveDeactivateActionFlow(tempMemory: any): SupervisorSession | null {
+  const rt = getSupervisorRuntime(tempMemory)
+  const stack = Array.isArray(rt.stack) ? rt.stack : []
+  const session = stack.find((s: any) => String(s?.type ?? "") === "deactivate_action_flow" && s?.status === "active")
+  return session ? (session as SupervisorSession) : null
+}
+
+/**
+ * Phase for the deactivate_action_flow machine.
+ * - exploring: Identifying which action to deactivate
+ * - confirming: Action identified, awaiting user confirmation (oui/non)
+ * - deactivated: User confirmed, tool will be called
+ * - abandoned: User declined or stopped
+ */
+export type DeactivateActionPhase = "exploring" | "confirming" | "deactivated" | "abandoned"
+
+/**
+ * Upsert a deactivate_action_flow session.
+ */
+export function upsertDeactivateActionFlow(opts: {
+  tempMemory: any
+  targetAction?: string
+  phase?: DeactivateActionPhase
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+
+  // Remove any existing deactivate_action_flow sessions
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "deactivate_action_flow")
+
+  const targetAction = opts.targetAction ?? "une action"
+  const phase: DeactivateActionPhase = opts.phase ?? "exploring"
+
+  const session: SupervisorSession = {
+    id: mkId("sess_deactivate_action", opts.now),
+    type: "deactivate_action_flow",
+    owner_mode: "architect",
+    status: "active",
+    started_at: nowIso(opts.now),
+    last_active_at: nowIso(opts.now),
+    topic: targetAction,
+    resume_brief: `On désactivait: ${targetAction}`,
+    meta: {
+      target_action: targetAction,
+      phase,
+    },
+  }
+
+  filtered.push(session)
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Get the current phase of the deactivate_action_flow machine.
+ */
+export function getDeactivateActionFlowPhase(tempMemory: any): DeactivateActionPhase | null {
+  const session = getActiveDeactivateActionFlow(tempMemory)
+  if (!session) return null
+  return (session.meta as any)?.phase ?? "exploring"
+}
+
+/**
+ * Close the deactivate_action_flow session.
+ */
+export function closeDeactivateActionFlow(opts: {
+  tempMemory: any
+  outcome: "deactivated" | "abandoned"
+  now?: Date
+}): { tempMemory: any; changed: boolean } {
+  const tm0 = safeObj(opts.tempMemory)
+  const rt0 = getSupervisorRuntime(tm0, opts.now)
+  const stack0 = Array.isArray(rt0.stack) ? [...rt0.stack] : []
+  
+  const filtered = stack0.filter((s: any) => String(s?.type ?? "") !== "deactivate_action_flow")
+  if (filtered.length === stack0.length) {
+    return { tempMemory: tm0, changed: false }
+  }
+  
+  const rtNext: SupervisorRuntime = { ...rt0, stack: filtered, updated_at: nowIso(opts.now) }
+  return { tempMemory: writeSupervisorRuntime(tm0, rtNext), changed: true }
+}
+
+/**
+ * Check if deactivate_action_flow is stale (exceeded TTL).
+ */
+export function isDeactivateActionFlowStale(tempMemory: any, now?: Date): boolean {
+  const session = getActiveDeactivateActionFlow(tempMemory)
+  if (!session) return false
+  
+  const nowMs = (now ?? new Date()).getTime()
+  const lastActive = new Date(session.last_active_at ?? session.started_at ?? 0).getTime()
+  const age = nowMs - lastActive
+  
+  return age > TTL_DEACTIVATE_ACTION_FLOW_MS
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // MACHINE PAUSE/RESUME FOR SENTRY/FIREFIGHTER PARENTHESIS
 // ═══════════════════════════════════════════════════════════════════════════════
 
@@ -1613,6 +1834,12 @@ export function pauseMachineForSafety(opts: {
       opts.session.type === "breakdown_action_flow") {
     const candidate = opts.candidate ?? (opts.session.meta as any)?.candidate
     actionTarget = candidate?.label ?? candidate?.target_action?.title ?? opts.session.topic
+  } else if (
+    opts.session.type === "activate_action_flow" ||
+    opts.session.type === "delete_action_flow" ||
+    opts.session.type === "deactivate_action_flow"
+  ) {
+    actionTarget = String((opts.session.meta as any)?.target_action ?? opts.session.topic ?? "").trim() || undefined
   } else if (opts.session.type === "topic_serious" || opts.session.type === "topic_light") {
     actionTarget = opts.session.topic ?? undefined
   } else if (opts.session.type === "deep_reasons_exploration") {
@@ -1636,6 +1863,13 @@ export function pauseMachineForSafety(opts: {
   } else if (opts.session.type === "deep_reasons_exploration") {
     // Preserve deep_reasons state so resume can restore the phase accurately.
     candidateSnapshot = (tm0 as any)?.deep_reasons_state ?? candidateSnapshot
+  } else if (
+    opts.session.type === "activate_action_flow" ||
+    opts.session.type === "delete_action_flow" ||
+    opts.session.type === "deactivate_action_flow"
+  ) {
+    // Preserve phase/metadata to resume the machine at the right step.
+    candidateSnapshot = opts.session.meta ?? candidateSnapshot
   }
   
   const pausedState: PausedMachineStateV2 = {
@@ -1661,6 +1895,15 @@ export function pauseMachineForSafety(opts: {
     tempMemory = closed.tempMemory
   } else if (sessionType === "breakdown_action_flow") {
     const closed = closeBreakdownActionFlow({ tempMemory, outcome: "abandoned", now: opts.now })
+    tempMemory = closed.tempMemory
+  } else if (sessionType === "activate_action_flow") {
+    const closed = closeActivateActionFlow({ tempMemory, outcome: "abandoned", now: opts.now })
+    tempMemory = closed.tempMemory
+  } else if (sessionType === "delete_action_flow") {
+    const closed = closeDeleteActionFlow({ tempMemory, outcome: "abandoned", now: opts.now })
+    tempMemory = closed.tempMemory
+  } else if (sessionType === "deactivate_action_flow") {
+    const closed = closeDeactivateActionFlow({ tempMemory, outcome: "abandoned", now: opts.now })
     tempMemory = closed.tempMemory
   } else if (sessionType === "deep_reasons_exploration") {
     const closed = closeDeepReasonsExploration({ tempMemory, outcome: "defer_continue", now: opts.now })
@@ -1717,9 +1960,43 @@ export function resumePausedMachine(opts: {
     })
     tempMemory = result.tempMemory
   } else if (machineType === "activate_action_flow") {
+    const meta = candidate && typeof candidate === "object" ? candidate : {}
+    const rawPhase = String((meta as any)?.phase ?? "exploring")
+    const activatePhase = (["exploring", "confirming", "activated", "abandoned"] as const).includes(rawPhase as any)
+      ? (rawPhase as "exploring" | "confirming" | "activated" | "abandoned")
+      : "exploring"
     const result = upsertActivateActionFlow({
       tempMemory,
       targetAction: pausedState.action_target,
+      exerciseType: typeof (meta as any)?.exercise_type === "string" ? String((meta as any).exercise_type) : undefined,
+      phase: activatePhase,
+      now: opts.now,
+    })
+    tempMemory = result.tempMemory
+  } else if (machineType === "delete_action_flow") {
+    const meta = candidate && typeof candidate === "object" ? candidate : {}
+    const rawPhase = String((meta as any)?.phase ?? "exploring")
+    const deletePhase = (["exploring", "confirming", "deleted", "abandoned"] as const).includes(rawPhase as any)
+      ? (rawPhase as "exploring" | "confirming" | "deleted" | "abandoned")
+      : "exploring"
+    const result = upsertDeleteActionFlow({
+      tempMemory,
+      targetAction: pausedState.action_target,
+      reason: typeof (meta as any)?.reason === "string" ? String((meta as any).reason) : undefined,
+      phase: deletePhase,
+      now: opts.now,
+    })
+    tempMemory = result.tempMemory
+  } else if (machineType === "deactivate_action_flow") {
+    const meta = candidate && typeof candidate === "object" ? candidate : {}
+    const rawPhase = String((meta as any)?.phase ?? "exploring")
+    const deactivatePhase = (["exploring", "confirming", "deactivated", "abandoned"] as const).includes(rawPhase as any)
+      ? (rawPhase as "exploring" | "confirming" | "deactivated" | "abandoned")
+      : "exploring"
+    const result = upsertDeactivateActionFlow({
+      tempMemory,
+      targetAction: pausedState.action_target,
+      phase: deactivatePhase,
       now: opts.now,
     })
     tempMemory = result.tempMemory
@@ -1807,7 +2084,7 @@ export function clearPausedMachine(tempMemory: any): { tempMemory: any } {
 }
 
 /**
- * Get any active tool flow (create, update, breakdown, track_progress, or activate).
+ * Get any active tool flow (create, update, breakdown, track_progress, activate, delete, deactivate).
  * Returns the session if one exists.
  */
 export function getAnyActiveToolFlow(tempMemory: any): SupervisorSession | null {
@@ -1816,6 +2093,8 @@ export function getAnyActiveToolFlow(tempMemory: any): SupervisorSession | null 
     ?? getActiveBreakdownActionFlow(tempMemory)
     ?? getActiveTrackProgressFlow(tempMemory)
     ?? getActiveActivateActionFlow(tempMemory)
+    ?? getActiveDeleteActionFlow(tempMemory)
+    ?? getActiveDeactivateActionFlow(tempMemory)
 }
 
 /**

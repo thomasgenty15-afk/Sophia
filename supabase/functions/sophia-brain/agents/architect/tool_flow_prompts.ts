@@ -1423,6 +1423,335 @@ ${isWhatsApp ? "FORMAT: Max 2 lignes" : "FORMAT: Max 2-3 lignes, bienveillant"}
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
+// DELETE ACTION FLOW - Add-ons conversationnels par phase
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface DeleteActionFlowContext {
+  targetAction: string
+  reason?: string
+  phase: "exploring" | "confirming" | "deleted" | "abandoned"
+  isWhatsApp: boolean
+}
+
+/**
+ * Build conversational addon for delete_action_flow based on current phase.
+ */
+export function buildDeleteActionFlowAddon(ctx: DeleteActionFlowContext): string {
+  const { targetAction, reason, phase, isWhatsApp } = ctx
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 1: EXPLORING - Identifier l'action à supprimer
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (phase === "exploring") {
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+PHASE: EXPLORING (Identification de l'action à supprimer)
+Action cible: "${targetAction}"${reason ? ` | Raison: ${reason}` : ""}
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF DE CETTE PHASE:
+Comprendre quelle action l'utilisateur veut supprimer et pourquoi.
+
+CONTEXTE:
+• La suppression concerne des actions ACTIVES du plan de l'utilisateur
+• L'utilisateur veut retirer quelque chose de son plan
+• Ce n'est PAS un track_progress ou une modification (update_action)
+
+POINTS D'ATTENTION:
+• Clarifier l'action exacte si pas clair
+• Comprendre la raison (trop difficile, plus pertinent, changement de priorité)
+• Ne pas juger ni essayer de convaincre de garder l'action
+• Être bienveillant et respectueux du choix de l'utilisateur
+
+EXEMPLES DE BONNES RÉACTIONS:
+
+User: "Je veux enlever le sport de mon plan"
+→ BON: "Ok, tu veux retirer l'action sport. C'est parce que ça ne te convient plus ?"
+→ MAUVAIS: "Tu es sûr ? Le sport c'est important !"
+
+User: "La lecture ça marche pas, enlève-la"
+→ BON: "Entendu, la lecture. Je comprends. Tu veux qu'on la retire ?"
+→ MAUVAIS: "Peut-être qu'on pourrait simplifier plutôt que supprimer ?"
+
+User: "J'ai trop d'actions, faut que j'en enlève"
+→ BON: "Ok, laquelle tu veux retirer ? Dis-moi celle qui te pèse le plus."
+→ MAUVAIS: "Il faut pas réduire, il faut persévérer !"
+
+${isWhatsApp ? "FORMAT: Max 2 lignes + 1 question" : "FORMAT: Max 3 lignes + 1 question clarificatrice"}
+
+CE QU'IL FAUT ÉVITER:
+• Juger ou culpabiliser
+• Essayer de convaincre de garder l'action
+• Confondre avec update_action (modifier) ou breakdown (simplifier)
+• Proposer des alternatives sans que l'utilisateur le demande
+`
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 2: CONFIRMING - Confirmer la suppression
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (phase === "confirming") {
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+PHASE: CONFIRMING (Confirmation de la suppression)
+Action: "${targetAction}"${reason ? ` | Raison: ${reason}` : ""}
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF DE CETTE PHASE:
+L'action est identifiée. On attend la confirmation de l'utilisateur pour supprimer.
+
+POINTS D'ATTENTION:
+• Demander une confirmation CLAIRE et bienveillante
+• Résumer ce qui va être retiré
+• L'utilisateur doit dire OUI ou NON
+• Pas de jugement, pas de tentative de convaincre
+
+EXEMPLES DE BONNES RÉACTIONS:
+
+Si action claire:
+→ BON: "Ok, je retire '${targetAction}' de ton plan. Tu confirmes ?"
+→ MAUVAIS: "Es-tu vraiment sûr de vouloir procéder à la suppression ?"
+
+Si raison donnée:
+→ BON: "Je comprends. Tu veux que j'enlève '${targetAction}' alors ?"
+→ MAUVAIS: "Tu pourrais peut-être essayer autrement avant de supprimer..."
+
+${isWhatsApp ? "FORMAT: Max 2 lignes" : "FORMAT: Max 2-3 lignes, simple et direct"}
+
+CE QU'IL FAUT ÉVITER:
+• Ton formel ou administratif
+• Culpabiliser ("tu es sûr ?", "c'est dommage")
+• Proposer des alternatives non demandées
+• Messages trop longs
+`
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 3: DELETED - Action supprimée
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (phase === "deleted") {
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+PHASE: DELETED (Action supprimée - fermeture)
+Action: "${targetAction}" ✓ retirée
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF DE CETTE PHASE:
+L'action est supprimée. Fermer proprement avec bienveillance.
+
+POINTS D'ATTENTION:
+• Confirmer que c'est fait
+• Message bienveillant, pas de jugement
+• Proposer de passer à autre chose
+• Normaliser le choix de l'utilisateur
+
+EXEMPLES:
+→ BON: "C'est fait, j'ai retiré '${targetAction}' de ton plan. Tu veux faire autre chose ?"
+→ BON: "Enlevé ! C'est ok de réajuster son plan. Autre chose en tête ?"
+→ BON (WhatsApp): "Retiré ✓ Autre chose ?"
+→ MAUVAIS: "L'action a été supprimée avec succès de votre plan."
+→ MAUVAIS: "C'est dommage, mais c'est fait."
+
+${isWhatsApp ? "FORMAT: Max 2 lignes" : "FORMAT: Max 3 lignes"}
+`
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 4: ABANDONED - Suppression annulée
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (phase === "abandoned") {
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+PHASE: ABANDONED (Suppression annulée)
+Action: "${targetAction}" - conservée dans le plan
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF DE CETTE PHASE:
+L'utilisateur ne veut plus supprimer l'action. Fermer sans jugement.
+
+POINTS D'ATTENTION:
+• Respecter le choix sans insister
+• Confirmer que l'action est conservée
+• Proposer autre chose ou clôturer
+
+EXEMPLES:
+→ BON: "Ok, je garde '${targetAction}' dans ton plan. Autre chose ?"
+→ BON: "Pas de souci, on laisse ça. Tu me dis si tu changes d'avis 😊"
+→ MAUVAIS: "Bien ! Tu as bien fait de garder cette action."
+
+${isWhatsApp ? "FORMAT: Max 2 lignes" : "FORMAT: Max 2-3 lignes, bienveillant"}
+`
+  }
+  
+  return ""
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
+// DEACTIVATE ACTION FLOW - Add-ons conversationnels par phase
+// ═══════════════════════════════════════════════════════════════════════════════
+
+export interface DeactivateActionFlowContext {
+  targetAction: string
+  reason?: string
+  phase: "exploring" | "confirming" | "deactivated" | "abandoned"
+  isWhatsApp: boolean
+}
+
+/**
+ * Build conversational addon for deactivate_action_flow based on current phase.
+ */
+export function buildDeactivateActionFlowAddon(ctx: DeactivateActionFlowContext): string {
+  const { targetAction, reason, phase, isWhatsApp } = ctx
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 1: EXPLORING - Identifier l'action à désactiver
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (phase === "exploring") {
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+PHASE: EXPLORING (Identification de l'action à désactiver)
+Action cible: "${targetAction}"${reason ? ` | Raison: ${reason}` : ""}
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF DE CETTE PHASE:
+Comprendre quelle action l'utilisateur veut mettre en pause et pourquoi.
+
+CONTEXTE:
+• La désactivation met l'action EN PAUSE — elle reste dans le plan mais n'est plus suivie
+• L'utilisateur pourra la réactiver quand il voudra
+• Ce n'est PAS une suppression (l'action reste dans le plan)
+• Ce n'est PAS un track_progress ou une modification
+
+POINTS D'ATTENTION:
+• Clarifier l'action exacte si pas clair
+• Comprendre la raison (surcharge, besoin de repos, pas le bon moment)
+• Ne pas juger ni essayer de convaincre de garder l'action active
+• Rassurer: c'est temporaire, on peut réactiver
+
+EXEMPLES DE BONNES RÉACTIONS:
+
+User: "Je veux mettre le sport en pause"
+→ BON: "Ok, tu veux mettre le sport en pause. C'est parce que c'est trop en ce moment ?"
+→ MAUVAIS: "Tu es sûr ? Le sport c'est important pour toi !"
+
+User: "J'ai trop de trucs, je veux désactiver la lecture"
+→ BON: "Je comprends, parfois il faut alléger. Je mets la lecture en pause ?"
+→ MAUVAIS: "Peut-être qu'on pourrait juste réduire la fréquence ?"
+
+User: "Pause sur la méditation"
+→ BON: "Ok, je mets la méditation en pause. Tu pourras la reprendre quand tu voudras."
+→ MAUVAIS: "La méditation aide pourtant avec le stress..."
+
+${isWhatsApp ? "FORMAT: Max 2 lignes + 1 question" : "FORMAT: Max 3 lignes + 1 question clarificatrice"}
+
+CE QU'IL FAUT ÉVITER:
+• Juger ou culpabiliser
+• Essayer de convaincre de garder l'action active
+• Confondre avec supprimer (delete) — ici c'est une PAUSE
+• Proposer des alternatives non demandées
+`
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 2: CONFIRMING - Confirmer la désactivation
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (phase === "confirming") {
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+PHASE: CONFIRMING (Confirmation de la désactivation)
+Action: "${targetAction}"${reason ? ` | Raison: ${reason}` : ""}
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF DE CETTE PHASE:
+L'action est identifiée. On attend la confirmation pour mettre en pause.
+
+POINTS D'ATTENTION:
+• Demander une confirmation CLAIRE et bienveillante
+• Bien préciser que c'est une PAUSE (réversible)
+• L'utilisateur doit dire OUI ou NON
+• Pas de jugement, pas de tentative de convaincre
+
+EXEMPLES DE BONNES RÉACTIONS:
+
+Si action claire:
+→ BON: "Ok, je mets '${targetAction}' en pause. Tu pourras la réactiver quand tu veux. On fait ça ?"
+→ MAUVAIS: "Es-tu vraiment sûr de vouloir désactiver cette action ?"
+
+Si raison donnée:
+→ BON: "Je comprends. Je mets '${targetAction}' en pause alors ?"
+→ MAUVAIS: "Tu pourrais peut-être juste réduire la fréquence..."
+
+${isWhatsApp ? "FORMAT: Max 2 lignes" : "FORMAT: Max 2-3 lignes, simple et direct"}
+
+CE QU'IL FAUT ÉVITER:
+• Ton formel ou administratif
+• Culpabiliser ("tu es sûr ?", "c'est dommage")
+• Proposer des alternatives non demandées
+• Oublier de mentionner que c'est réversible
+`
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 3: DEACTIVATED - Action désactivée
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (phase === "deactivated") {
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+PHASE: DEACTIVATED (Action mise en pause - fermeture)
+Action: "${targetAction}" ✓ en pause
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF DE CETTE PHASE:
+L'action est en pause. Fermer proprement avec bienveillance.
+
+POINTS D'ATTENTION:
+• Confirmer que c'est fait
+• Rassurer que c'est réversible
+• Normaliser le choix
+• Proposer de passer à autre chose
+
+EXEMPLES:
+→ BON: "C'est fait, '${targetAction}' est en pause. Tu pourras la réactiver quand tu voudras. Autre chose ?"
+→ BON: "En pause ✓ C'est ok de s'accorder du répit. Tu me dis quand tu veux la reprendre."
+→ BON (WhatsApp): "En pause ✓ Tu pourras la réactiver quand tu veux. Autre chose ?"
+→ MAUVAIS: "L'action a été désactivée avec succès."
+→ MAUVAIS: "C'est dommage, mais c'est fait."
+
+${isWhatsApp ? "FORMAT: Max 2 lignes" : "FORMAT: Max 3 lignes"}
+`
+  }
+  
+  // ─────────────────────────────────────────────────────────────────────────────
+  // PHASE 4: ABANDONED - Désactivation annulée
+  // ─────────────────────────────────────────────────────────────────────────────
+  if (phase === "abandoned") {
+    return `
+═══════════════════════════════════════════════════════════════════════════════
+PHASE: ABANDONED (Désactivation annulée)
+Action: "${targetAction}" - reste active
+═══════════════════════════════════════════════════════════════════════════════
+
+OBJECTIF DE CETTE PHASE:
+L'utilisateur ne veut plus désactiver l'action. Fermer sans jugement.
+
+POINTS D'ATTENTION:
+• Respecter le choix sans insister
+• Confirmer que l'action reste active
+• Proposer autre chose ou clôturer
+
+EXEMPLES:
+→ BON: "Ok, '${targetAction}' reste active. Autre chose ?"
+→ BON: "Pas de souci, on garde ça. Tu me dis si tu changes d'avis 😊"
+→ MAUVAIS: "Bien ! Tu as bien fait de garder cette action active."
+
+${isWhatsApp ? "FORMAT: Max 2 lignes" : "FORMAT: Max 2-3 lignes, bienveillant"}
+`
+  }
+  
+  return ""
+}
+
+// ═══════════════════════════════════════════════════════════════════════════════
 // PROFILE CONFIRMATION FLOW - Add-ons conversationnels par phase
 // ═══════════════════════════════════════════════════════════════════════════════
 
