@@ -24,6 +24,36 @@ function parseBoolEnv(v: string | undefined): boolean {
   return s === "1" || s === "true" || s === "yes" || s === "y" || s === "on";
 }
 
+function truncateDeep(
+  input: unknown,
+  opts?: { maxLen?: number; maxDepth?: number; maxKeys?: number; maxArray?: number },
+): unknown {
+  const maxLen = Math.max(64, Math.floor(opts?.maxLen ?? 1400));
+  const maxDepth = Math.max(1, Math.floor(opts?.maxDepth ?? 8));
+  const maxKeys = Math.max(10, Math.floor(opts?.maxKeys ?? 200));
+  const maxArray = Math.max(10, Math.floor(opts?.maxArray ?? 50));
+  const seen = new WeakSet<object>();
+
+  const clamp = (s: string) => (s.length > maxLen ? s.slice(0, maxLen) + "…" : s);
+  const rec = (v: any, depth: number): any => {
+    if (v == null) return v;
+    const t = typeof v;
+    if (t === "string") return clamp(v);
+    if (t === "number" || t === "boolean") return v;
+    if (t !== "object") return clamp(String(v));
+    if (depth >= maxDepth) return "[truncated_depth]";
+    if (seen.has(v)) return "[circular]";
+    seen.add(v);
+    if (Array.isArray(v)) return v.slice(0, maxArray).map((x) => rec(x, depth + 1));
+    const out: Record<string, unknown> = {};
+    for (const k of Object.keys(v).slice(0, maxKeys)) {
+      out[k] = rec(v[k], depth + 1);
+    }
+    return out;
+  };
+  return rec(input, 0);
+}
+
 export function shouldBrainTrace(meta?: BrainTraceMeta): boolean {
   if (meta?.forceBrainTrace) return true;
   // Primary mode: eval runs (run-evals passes meta.evalRunId)
@@ -48,6 +78,12 @@ export async function logBrainTrace(opts: {
   try {
     if (!shouldBrainTrace(opts.meta)) return;
     if (!event) return;
+    if (!requestId) return;
+
+    const safePayload = truncateDeep({
+      phase: opts.phase ?? null,
+      ...(opts.payload ? { payload: opts.payload } : {}),
+    });
 
     // Canonical stream (for bundling): always write into conversation_eval_events during eval runs.
     // This table is already consumed by the eval bundle and is the most reliable place to persist
@@ -60,7 +96,7 @@ export async function logBrainTrace(opts: {
           source: "brain-trace",
           level: String(opts.level ?? "info"),
           event,
-          payload: { phase: opts.phase ?? null, ...(opts.payload ? { payload: opts.payload } : {}) },
+          payload: safePayload,
         });
       } catch {
         // ignore
@@ -69,12 +105,12 @@ export async function logBrainTrace(opts: {
 
     // One-time ping (per isolate + request_id) to confirm tracing is active and evalRunId is wired.
     try {
-      if (evalRunId && requestId) {
-        const anyGlobalThis = globalThis as any;
-        if (!anyGlobalThis.__sophiaBrainTracePinged) anyGlobalThis.__sophiaBrainTracePinged = new Set();
-        const key = `${evalRunId}:${requestId}`;
-        if (!anyGlobalThis.__sophiaBrainTracePinged.has(key)) {
-          anyGlobalThis.__sophiaBrainTracePinged.add(key);
+      const anyGlobalThis = globalThis as any;
+      if (!anyGlobalThis.__sophiaBrainTracePinged) anyGlobalThis.__sophiaBrainTracePinged = new Set();
+      const key = `${evalRunId ?? "no_eval"}:${requestId}`;
+      if (!anyGlobalThis.__sophiaBrainTracePinged.has(key)) {
+        anyGlobalThis.__sophiaBrainTracePinged.add(key);
+        if (evalRunId) {
           await (opts.supabase as any).from("conversation_eval_events").insert({
             eval_run_id: evalRunId,
             request_id: requestId,
@@ -90,19 +126,21 @@ export async function logBrainTrace(opts: {
     }
   } catch (e) {
     // If something throws (serialization/fetch), try to surface it into the eval event stream for debugging.
-    if (evalRunId && requestId) {
-      try {
+    try {
+      const msg = String((e as any)?.message ?? e ?? "unknown").slice(0, 1200);
+      const exceptionPayload = { event, phase: opts.phase ?? null, message: msg };
+      if (evalRunId && requestId) {
         await (opts.supabase as any).from("conversation_eval_events").insert({
           eval_run_id: evalRunId,
           request_id: requestId,
           source: "brain-trace",
           level: "error",
           event: "brain_trace_exception",
-          payload: { event, phase: opts.phase ?? null, message: String((e as any)?.message ?? e ?? "unknown").slice(0, 1200) },
+          payload: exceptionPayload,
         });
-      } catch {
-        // ignore
       }
+    } catch {
+      // ignore
     }
   }
 }

@@ -411,7 +411,21 @@ export async function handleOnboardingState(params: {
 
     const planTitle = String((activePlan as any)?.title ?? "").trim()
     if (planTitle) {
-      // Plan detected — transition to onboarding Q1 (managed by dispatcher/router)
+      // Plan detected — check if user already completed onboarding before transitioning to Q1.
+      const { data: obCheck } = await admin
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", userId)
+        .maybeSingle()
+      if ((obCheck as any)?.onboarding_completed) {
+        // Already onboarded — clear stale state and fall through to normal brain pipeline.
+        await admin.from("profiles").update({
+          whatsapp_state: null,
+          whatsapp_state_updated_at: new Date().toISOString(),
+        }).eq("id", userId)
+        return false
+      }
+      // Transition to onboarding Q1 (managed by dispatcher/router)
       await admin.from("profiles").update({
         whatsapp_state: "onboarding_q1",
         whatsapp_state_updated_at: new Date().toISOString(),

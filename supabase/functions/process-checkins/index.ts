@@ -202,17 +202,20 @@ Deno.serve(async (req) => {
       if (!bodyText.trim()) {
         bodyText = "Petit check-in: comment ça va depuis tout à l'heure ?"
       }
+      // Needed for purpose tagging in both WhatsApp and fallback logging paths.
+      const isBilanReschedule = String(checkin.event_context ?? "") === "daily_bilan_reschedule"
 
       try {
         const resp = await callWhatsappSend({
           user_id: checkin.user_id,
           message: { type: "text", body: bodyText },
-          purpose: "scheduled_checkin",
+          purpose: isBilanReschedule ? "daily_bilan" : "scheduled_checkin",
           require_opted_in: true,
           metadata_extra: {
             source: "scheduled_checkin",
             event_context: checkin.event_context,
             original_checkin_id: checkin.id,
+            purpose: isBilanReschedule ? "daily_bilan" : "scheduled_checkin",
           },
         })
         usedTemplate = Boolean((resp as any)?.used_template)
@@ -268,6 +271,10 @@ Deno.serve(async (req) => {
         }
       }
 
+      // For bilan reschedules: log with purpose "daily_bilan" so the user's response
+      // gets intercepted by the bilan flow (hasBilanContext checks for this purpose).
+      const checkinPurpose = isBilanReschedule ? "daily_bilan" : "scheduled_checkin"
+
       if (!sentViaWhatsapp) {
         // Use bodyText (which includes dynamically generated message) instead of draft_message
         const { error: msgError } = await supabaseAdmin
@@ -275,12 +282,14 @@ Deno.serve(async (req) => {
           .insert({
             user_id: checkin.user_id,
             role: 'assistant',
-            content: bodyText,  // ← FIX: was checkin.draft_message which is null for dynamic checkins
+            content: bodyText,
             agent_used: 'companion',
             metadata: {
+              channel: "whatsapp",
               source: 'scheduled_checkin',
               event_context: checkin.event_context,
-              original_checkin_id: checkin.id
+              original_checkin_id: checkin.id,
+              purpose: checkinPurpose,
             }
           })
 
@@ -330,4 +339,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

@@ -273,7 +273,7 @@ Deno.serve(async (req) => {
 
         const { data: candidates, error: profErr } = await admin
           .from("profiles")
-          .select("id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end")
+          .select("id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end, onboarding_completed")
           // NOTE: users may have stored phone_number as "+33..." OR "33..." OR "06..." (legacy/manual input).
           // We try a small set of safe variants to avoid false "unknown number" prompts.
           .in("phone_number", [fromE164, fromDigits, frLocal].filter(Boolean))
@@ -344,15 +344,6 @@ Deno.serve(async (req) => {
 
         const isStop = isStopKeyword(msg.text ?? "", msg.interactive_id ?? null)
 
-      // Daily bilan template buttons:
-      // - IMPORTANT: be strict here. A generic "oui"/"ok" can refer to *anything* and was incorrectly
-      //   interpreted as "yes to bilan", which triggers the "Parfait. En 2 lignes..." kickoff.
-      const isBilanYes = /carr[ée]ment/i.test(textLower) || /^(go\s*!?)$/i.test(textLower)
-      const isBilanLater =
-        /pas\s*tout\s*de\s*suite/i.test(textLower) ||
-        /on\s*fera\s*[çc]a\s*demain/i.test(textLower) ||
-        /^(plus\s*tard\s*!?)$/i.test(textLower)
-
       // Opt-in: strict yes token only.
       const isOptInYesText = /^(oui|yes|absolument)\s*!?$/i.test(textLower)
 
@@ -382,8 +373,6 @@ Deno.serve(async (req) => {
         textLower,
         actionId,
         isOptInYesText,
-        isBilanYes,
-        isBilanLater,
       })
 
       const nowIso = new Date().toISOString()
@@ -446,7 +435,8 @@ Deno.serve(async (req) => {
 
       // If user is messaging us but has no active plan, put them in the onboarding state-machine
       // so we don't spam the same generic "no plan" reply over and over.
-      if (!profile.whatsapp_state) {
+      // GUARD: never push already-onboarded users back into the onboarding funnel.
+      if (!profile.whatsapp_state && !profile.onboarding_completed) {
         const { data: activePlan, error: planErr } = await admin
           .from("user_plans")
           .select("title, updated_at")
@@ -561,24 +551,7 @@ Deno.serve(async (req) => {
         }
       }
 
-      // Opt-in + daily bilan fast paths (may send messages / update state) AFTER inbound is logged.
-      const didHandleOptInOrBilan = await handleOptInAndDailyBilanActions({
-        admin,
-        userId: profile.id,
-        fromE164,
-        fullName: String(profile.full_name ?? ""),
-        isOptInYes,
-        isBilanYes,
-        isBilanLater,
-        hasBilanContext,
-        siteUrl: SITE_URL,
-        replyWithBrain,
-        requestId: processId,
-        waMessageId: msg.wa_message_id,
-        inboundText: msg.text ?? "",
-      })
-      if (didHandleOptInOrBilan) continue
-
+      // Pending actions first: they are explicit outstanding asks and must win over generic bilan context.
       const didHandlePending = await handlePendingActions({
         admin,
         userId: profile.id,
@@ -589,12 +562,42 @@ Deno.serve(async (req) => {
         isCheckinLater,
         isEchoYes,
         isEchoLater,
+        inboundText: msg.text ?? "",
       })
       if (didHandlePending) continue
 
+      // Opt-in + daily bilan fast paths (may send messages / update state) AFTER inbound is logged.
+      const didHandleOptInOrBilan = await handleOptInAndDailyBilanActions({
+        admin,
+        userId: profile.id,
+        fromE164,
+        fullName: String(profile.full_name ?? ""),
+        isOptInYes,
+        hasBilanContext,
+        siteUrl: SITE_URL,
+        replyWithBrain,
+        requestId: processId,
+        waMessageId: msg.wa_message_id,
+        inboundText: msg.text ?? "",
+      })
+      if (didHandleOptInOrBilan) continue
+
       // Mini state-machine for a lively first WhatsApp onboarding (post opt-in).
       // We intercept these states BEFORE calling the AI brain.
-      if (profile.whatsapp_state) {
+      // GUARD: if user already completed onboarding but has a stale whatsapp_state
+      // pointing to an onboarding step, clear it and skip.
+      if (profile.whatsapp_state && profile.onboarding_completed) {
+        const staleWa = String(profile.whatsapp_state || "")
+        if (/^(onboarding_q[123]|awaiting_plan_finalization|awaiting_plan_finalization_support|awaiting_onboarding_focus_choice|awaiting_plan_motivation|awaiting_plan_motivation_followup|awaiting_personal_fact)$/.test(staleWa)) {
+          await admin.from("profiles").update({
+            whatsapp_state: null,
+            whatsapp_state_updated_at: new Date().toISOString(),
+          }).eq("id", profile.id)
+          console.log(`[WhatsApp] Cleared stale onboarding whatsapp_state="${staleWa}" for already-onboarded user ${profile.id}`)
+          // Fall through to normal brain pipeline
+        }
+      }
+      if (profile.whatsapp_state && !profile.onboarding_completed) {
         const waState = String(profile.whatsapp_state || "")
 
         const didHandleOnboarding = await handleOnboardingState({
@@ -664,5 +667,4 @@ Deno.serve(async (req) => {
     ;(globalThis as any).__SOPHIA_WA_LOOPBACK = prevLoopback
   }
 })
-
 

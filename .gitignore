@@ -28,6 +28,12 @@ node_modules
 coverage
 frontend/test-results
 frontend/test-results/**
+test-results
+test-results/**
+playwright-report
+playwright-report/**
+frontend/playwright-report
+frontend/playwright-report/**
 **/supabase_status.json
 
 # --- BUILD OUTPUTS ---
@@ -38,6 +44,8 @@ dist-ssr
 # --- FRONTEND SPECIFIC ---
 frontend/logs
 frontend/*.local
+frontend/temp_frontend
+frontend/temp_frontend/**
 
 # --- SUPABASE SPECIFIC ---
 supabase/.branches

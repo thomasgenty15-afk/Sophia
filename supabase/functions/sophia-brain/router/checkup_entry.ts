@@ -2,7 +2,8 @@ import type { PendingResolutionSignal } from "./pending_resolution.ts";
 
 export type CheckupEntryResolution =
   | { kind: "yes"; via: "dispatcher" | "deterministic" }
-  | { kind: "no"; via: "dispatcher" | "deterministic" };
+  | { kind: "no"; via: "dispatcher" | "deterministic" }
+  | { kind: "defer"; via: "dispatcher" | "deterministic" };
 
 function normalizeLoose(s: string): string {
   return String(s ?? "")
@@ -39,10 +40,12 @@ export function resolveCheckupEntryConfirmation(opts: {
         return { kind: "yes", via: "dispatcher" };
       }
       if (
-        pending.decision_code === "checkup.decline" ||
         pending.decision_code === "checkup.defer" ||
         pending.decision_code === "common.defer"
       ) {
+        return { kind: "defer", via: "dispatcher" };
+      }
+      if (pending.decision_code === "checkup.decline") {
         return { kind: "no", via: "dispatcher" };
       }
     }
@@ -61,12 +64,17 @@ export function resolveCheckupEntryConfirmation(opts: {
     /\b(oui|ok|yes|yep|yeah|d\s*accord|vas\s*y|go|on\s*y\s+va|carr[eé]ment|volontiers|bien\s+s[uû]r)\b/i
       .test(s) &&
     s.length <= 60;
+  const defer =
+    /\b(plus\s+tard|tout\s+a\s+l\s*heure|dans\s+\d+\s*(h|min|heure|heures|minutes?)|pas\s+tout\s+de\s+suite|pas\s+dispo|pas\s+maintenant|refais.*dans|relance.*dans)\b/i
+      .test(s) &&
+    s.length <= 120;
   const no =
-    /\b(non|no|nope|pas\s+maintenant|plus\s+tard|laisse|une\s+autre\s+fois|on\s+verra|pas\s+aujourd\s*hui)\b/i
+    /\b(non|no|nope|laisse|une\s+autre\s+fois|on\s+verra|pas\s+aujourd\s*hui)\b/i
       .test(s) &&
     s.length <= 80;
 
   if (yes) return { kind: "yes", via: "deterministic" };
+  if (defer) return { kind: "defer", via: "deterministic" };
   if (no) return { kind: "no", via: "deterministic" };
   return null;
 }

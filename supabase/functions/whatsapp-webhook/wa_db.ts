@@ -27,7 +27,7 @@ export async function hasWhatsappPersonalFact(admin: SupabaseClient, userId: str
   return Boolean((data as any)?.id)
 }
 
-export async function fetchLatestPending(admin: SupabaseClient, userId: string, kind: "scheduled_checkin" | "memory_echo") {
+export async function fetchLatestPending(admin: SupabaseClient, userId: string, kind: "scheduled_checkin" | "memory_echo" | "bilan_reschedule") {
   const { data, error } = await admin
     .from("whatsapp_pending_actions")
     .select("id, kind, status, scheduled_checkin_id, payload, created_at")
@@ -41,7 +41,7 @@ export async function fetchLatestPending(admin: SupabaseClient, userId: string, 
   return (data ?? [])[0] ?? null
 }
 
-export async function markPending(admin: SupabaseClient, id: string, status: "done" | "cancelled") {
+export async function markPending(admin: SupabaseClient, id: string, status: "done" | "cancelled" | "expired") {
   await admin
     .from("whatsapp_pending_actions")
     .update({ status, processed_at: new Date().toISOString() })

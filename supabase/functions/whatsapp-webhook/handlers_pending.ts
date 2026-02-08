@@ -4,6 +4,7 @@ import { fetchLatestPending, markPending } from "./wa_db.ts"
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
 import { generateDynamicWhatsAppCheckinMessage } from "../_shared/scheduled_checkins.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
+import { classifyBilanResponse, scheduleBilanReschedule, formatDelay } from "./handlers_optin_bilan.ts"
 
 export async function handlePendingActions(params: {
   admin: SupabaseClient
@@ -15,6 +16,7 @@ export async function handlePendingActions(params: {
   isCheckinLater: boolean
   isEchoYes: boolean
   isEchoLater: boolean
+  inboundText: string
 }): Promise<boolean> {
   const { admin, userId, fromE164, requestId } = params
 
@@ -28,6 +30,9 @@ export async function handlePendingActions(params: {
     const scheduledId = (pending as any)?.scheduled_checkin_id ?? null
     const payload = (pending as any)?.payload ?? {}
     const mode = String((payload as any)?.message_mode ?? "static").trim().toLowerCase()
+    const payloadEventContext = String((payload as any)?.event_context ?? "")
+    let outboundEventContext = payloadEventContext
+    let outboundPurpose = payloadEventContext === "daily_bilan_reschedule" ? "daily_bilan" : "scheduled_checkin"
     const draft = (payload as any)?.draft_message
     let textToSend = typeof draft === "string" ? draft.trim() : ""
     if (scheduledId && mode === "dynamic") {
@@ -38,16 +43,22 @@ export async function handlePendingActions(params: {
           .eq("id", scheduledId)
           .maybeSingle()
         const p2 = (row as any)?.message_payload ?? {}
+        const rowEventContext = String((row as any)?.event_context ?? payloadEventContext)
+        outboundEventContext = rowEventContext || payloadEventContext
+        outboundPurpose = outboundEventContext === "daily_bilan_reschedule" ? "daily_bilan" : "scheduled_checkin"
         textToSend = await generateDynamicWhatsAppCheckinMessage({
           admin,
           userId,
-          eventContext: String((row as any)?.event_context ?? (payload as any)?.event_context ?? "check-in"),
+          eventContext: rowEventContext || "check-in",
           instruction: String((p2 as any)?.instruction ?? (payload as any)?.message_payload?.instruction ?? ""),
         })
       } catch {
         // best-effort fallback
         textToSend = textToSend || "Petit check-in: comment ça va depuis tout à l’heure ?"
       }
+    }
+    if (!textToSend.trim()) {
+      textToSend = "Petit check-in: comment ça va depuis tout à l'heure ?"
     }
 
     if (textToSend.trim()) {
@@ -57,7 +68,7 @@ export async function handlePendingActions(params: {
         userId,
         toE164: fromE164,
         body: textToSend,
-        purpose: "scheduled_checkin",
+        purpose: outboundPurpose,
         isProactive: false,
       })
       const outId = (sendResp as any)?.messages?.[0]?.id ?? null
@@ -74,6 +85,8 @@ export async function handlePendingActions(params: {
           outbound_tracking_id: outboundTrackingId,
           is_proactive: false,
           source: "scheduled_checkin",
+          purpose: outboundPurpose,
+          event_context: outboundEventContext || null,
         },
       })
     }
@@ -221,7 +234,109 @@ export async function handlePendingActions(params: {
     return true
   }
 
+  // ═══════════════════════════════════════════════════════════════════════════
+  // BILAN RESCHEDULE: user is responding to "dans combien de temps ?"
+  // ═══════════════════════════════════════════════════════════════════════════
+  {
+    const pending = await fetchLatestPending(admin, userId, "bilan_reschedule")
+    if (pending) {
+      const retryCount = Number((pending.payload as any)?.retry_count ?? 0)
+      const inboundText = params.inboundText ?? ""
+
+      // Use the classifier to extract a delay from the user's message
+      const classification = await classifyBilanResponse(inboundText, [], requestId)
+      console.log(`[handlers_pending] bilan_reschedule classification: intent=${classification.intent} delay=${classification.delay_minutes}`)
+
+      // If user no longer defers (accept/decline), release pending and let normal bilan flow handle this turn.
+      if (classification.intent !== "defer") {
+        await markPending(admin, (pending as any).id, "expired")
+        return false
+      }
+
+      // If we got a delay, schedule and confirm
+      if (classification.delay_minutes && classification.delay_minutes > 0) {
+        // Deduplicate: check no existing pending reschedule checkin
+        const { data: existingReschedule } = await admin
+          .from("scheduled_checkins")
+          .select("id")
+          .eq("user_id", userId)
+          .eq("event_context", "daily_bilan_reschedule")
+          .eq("status", "pending")
+          .limit(1)
+          .maybeSingle()
+
+        if (!(existingReschedule as any)?.id) {
+          await scheduleBilanReschedule({
+            admin,
+            userId,
+            delayMinutes: classification.delay_minutes,
+          })
+        }
+
+        await markPending(admin, (pending as any).id, "done")
+
+        const delayText = formatDelay(classification.delay_minutes)
+        const confirmMsg = `C'est noté, je te relance dans ${delayText} 🙂`
+        const sendResp = await sendWhatsAppTextTracked({
+          admin,
+          requestId,
+          userId,
+          toE164: fromE164,
+          body: confirmMsg,
+          purpose: "bilan_reschedule_confirmed",
+          isProactive: false,
+        })
+        const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+        const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+        await admin.from("chat_messages").insert({
+          user_id: userId,
+          scope: "whatsapp",
+          role: "assistant",
+          content: confirmMsg,
+          agent_used: "companion",
+          metadata: { channel: "whatsapp", wa_outbound_message_id: outId, outbound_tracking_id: outboundTrackingId, is_proactive: false, source: "bilan_reschedule" },
+        })
+        return true
+      }
+
+      // No delay extracted — retry up to 2 times, then expire
+      if (retryCount < 2) {
+        // Update retry count
+        await admin
+          .from("whatsapp_pending_actions")
+          .update({
+            payload: { ...(pending.payload as any), retry_count: retryCount + 1 },
+          })
+          .eq("id", (pending as any).id)
+
+        const retryMsg = "J'ai pas bien compris 😅 Tu veux que je te relance dans combien de temps ? (ex: \"dans 2h\", \"dans 30 min\")"
+        const sendResp = await sendWhatsAppTextTracked({
+          admin,
+          requestId,
+          userId,
+          toE164: fromE164,
+          body: retryMsg,
+          purpose: "bilan_reschedule_retry",
+          isProactive: false,
+        })
+        const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+        const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+        await admin.from("chat_messages").insert({
+          user_id: userId,
+          scope: "whatsapp",
+          role: "assistant",
+          content: retryMsg,
+          agent_used: "companion",
+          metadata: { channel: "whatsapp", wa_outbound_message_id: outId, outbound_tracking_id: outboundTrackingId, is_proactive: false, source: "bilan_reschedule" },
+        })
+        return true
+      }
+
+      // Max retries reached: expire the pending and let the message fall through to the brain
+      await markPending(admin, (pending as any).id, "expired")
+      // Don't return true — let the message be processed normally by the brain
+    }
+  }
+
   return false
 }
-
-

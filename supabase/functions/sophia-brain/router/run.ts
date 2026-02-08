@@ -192,20 +192,27 @@ function truncateStringsDeep(
 
 function withTimeout<T>(p: Promise<T>, ms: number): Promise<T> {
   const timeoutMs = Math.max(1, Math.floor(ms));
-  return Promise.race([
-    p,
-    new Promise<T>((_, reject) =>
-      setTimeout(
-        () => reject(new Error(`turn_summary_db_timeout_${timeoutMs}ms`)),
-        timeoutMs,
-      )
-    ),
-  ]);
+  let t: number | undefined = undefined;
+  const timeoutP = new Promise<T>((_, reject) => {
+    t = setTimeout(
+      () => reject(new Error(`turn_summary_db_timeout_${timeoutMs}ms`)),
+      timeoutMs,
+    );
+  });
+  return Promise.race([p, timeoutP]).finally(() => {
+    if (t !== undefined) clearTimeout(t);
+  });
 }
 
 async function emitTurnSummary(
   metrics: TurnMetrics,
   supabase?: any,
+  overrides?: {
+    dbEnabled?: boolean;
+    awaitEnabled?: boolean;
+    timeoutMs?: number;
+    retries?: number;
+  },
 ): Promise<void> {
   metrics.latency_ms.total = Date.now() - metrics.ts_start;
   try {
@@ -231,17 +238,17 @@ async function emitTurnSummary(
   } catch { /* ignore */ }
 
   // Optional DB persistence
-  const dbEnabled = parseBoolEnv(
+  const dbEnabled = overrides?.dbEnabled ?? parseBoolEnv(
     (globalThis as any)?.Deno?.env?.get?.("TURN_SUMMARY_DB_ENABLED"),
   );
-  const awaitEnabled = parseBoolEnv(
+  const awaitEnabled = overrides?.awaitEnabled ?? parseBoolEnv(
     (globalThis as any)?.Deno?.env?.get?.("TURN_SUMMARY_DB_AWAIT"),
   );
-  const timeoutMs = parseIntEnv(
+  const timeoutMs = overrides?.timeoutMs ?? parseIntEnv(
     (globalThis as any)?.Deno?.env?.get?.("TURN_SUMMARY_DB_TIMEOUT_MS"),
     800,
   );
-  const retries = parseIntEnv(
+  const retries = overrides?.retries ?? parseIntEnv(
     (globalThis as any)?.Deno?.env?.get?.("TURN_SUMMARY_DB_RETRIES"),
     1,
   );
@@ -269,14 +276,43 @@ async function emitTurnSummary(
       } as Record<string, unknown>;
 
       const writeOnce = async () => {
-        // Prefer server-side event stream writer (bypasses RLS safely under user auth).
-        const res = await (supabase as any).rpc("log_conversation_event", {
-          p_eval_run_id: null,
+        // Persist into public.turn_summary_logs (prod debugging table) via security-definer RPC.
+        const res = await (supabase as any).rpc("log_turn_summary_log", {
           p_request_id: metrics.request_id,
-          p_source: "turn_summary",
-          p_event: "turn_summary",
-          p_level: (metrics.aborted ? "warn" : "info"),
+          p_user_id: metrics.user_id,
+          p_channel: metrics.channel,
+          p_scope: metrics.scope,
           p_payload: payload,
+          p_latency_total_ms: metrics.latency_ms.total ?? null,
+          p_latency_dispatcher_ms: metrics.latency_ms.dispatcher ?? null,
+          p_latency_context_ms: metrics.latency_ms.context ?? null,
+          p_latency_agent_ms: metrics.latency_ms.agent ?? null,
+          p_dispatcher_model: metrics.dispatcher.model ?? null,
+          p_dispatcher_safety: metrics.dispatcher.signals?.safety ?? null,
+          p_dispatcher_intent: metrics.dispatcher.signals?.intent ?? null,
+          p_dispatcher_intent_conf: metrics.dispatcher.signals?.intent_conf ??
+            null,
+          p_dispatcher_interrupt: metrics.dispatcher.signals?.interrupt ?? null,
+          p_dispatcher_topic_depth: metrics.dispatcher.signals?.topic_depth ??
+            null,
+          p_dispatcher_flow_resolution:
+            metrics.dispatcher.signals?.flow_resolution ?? null,
+          p_context_profile: metrics.context.profile ?? null,
+          p_context_elements: metrics.context.elements ?? null,
+          p_context_tokens: metrics.context.tokens ?? null,
+          p_target_dispatcher: metrics.routing.target_dispatcher ?? null,
+          p_target_initial: metrics.routing.target_initial ?? null,
+          p_target_final: metrics.routing.target_final ?? null,
+          p_risk_score: metrics.routing.risk_score ?? null,
+          p_agent_model: metrics.agent.model ?? null,
+          p_agent_outcome: metrics.agent.outcome ?? null,
+          p_agent_tool: metrics.agent.tool ?? null,
+          p_checkup_active: metrics.state_flags.checkup_active ?? null,
+          p_toolflow_active: metrics.state_flags.toolflow_active ?? null,
+          p_supervisor_stack_top: metrics.state_flags.supervisor_stack_top ??
+            null,
+          p_aborted: Boolean(metrics.aborted),
+          p_abort_reason: metrics.abort_reason ?? null,
         });
         if (res?.error) throw res.error;
       };
@@ -311,6 +347,9 @@ async function emitTurnSummary(
     } catch { /* ignore */ }
   }
 }
+
+// Exported for unit tests (turn summary persistence).
+
 import {
   maybeInjectGlobalDeferredNudge,
   pruneGlobalDeferredTopics,
@@ -582,6 +621,29 @@ function mergeDeferredProfileFacts(
     .slice(0, maxFacts);
 }
 
+/**
+ * Extract a delay in minutes from a user message like "dans 2h", "30 min", "1 heure", "dans 2 heures".
+ * Returns null if no recognizable delay is found.
+ */
+function extractDelayMinutes(text: string): number | null {
+  const s = String(text ?? "").toLowerCase().trim();
+  // Match patterns like "dans 2h", "2 heures", "30 min", "1h30", "dans 45 minutes"
+  const patterns: Array<{ re: RegExp; toMin: (m: RegExpMatchArray) => number }> = [
+    { re: /(\d+)\s*h\s*(\d+)/i, toMin: (m) => Number(m[1]) * 60 + Number(m[2]) },
+    { re: /(\d+)\s*(?:h(?:eure)?s?)\b/i, toMin: (m) => Number(m[1]) * 60 },
+    { re: /(\d+)\s*(?:min(?:ute)?s?)\b/i, toMin: (m) => Number(m[1]) },
+    { re: /(?:demain|tomorrow)/i, toMin: () => 24 * 60 },
+  ];
+  for (const { re, toMin } of patterns) {
+    const m = s.match(re);
+    if (m) {
+      const mins = toMin(m);
+      if (mins > 0 && mins <= 48 * 60) return mins; // cap at 48h
+    }
+  }
+  return null;
+}
+
 export async function processMessage(
   supabase: SupabaseClient,
   userId: string,
@@ -614,9 +676,120 @@ export async function processMessage(
     forceOnboardingFlow?: boolean;
   },
 ) {
+  const channel = meta?.channel ?? "web";
+  // Ensure all replies use real AI responses.
+  meta = {
+    ...(meta ?? {}),
+    channel,
+    forceRealAi: true,
+  };
+  const scope = normalizeScope(
+    meta?.scope,
+    channel === "whatsapp" ? "whatsapp" : "web",
+  );
+  // Initialize turn metrics accumulator for consolidated logging early
+  // (needed by the trace buffer before later sections run).
+  const turnMetrics = createTurnMetrics(
+    meta?.requestId ?? null,
+    userId,
+    channel,
+    scope,
+  );
+
   const TRACE_VERBOSE =
     (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_BRAIN_TRACE_VERBOSE") ??
       "") as string).trim() === "1";
+
+  // When TURN_SUMMARY_DB_ENABLED is on, we also buffer trace events in-memory and attach them
+  // to the persisted turn summary payload (so prod debugging doesn't depend on eval tooling).
+  const CAPTURE_TURN_TRACE = parseBoolEnv(
+    (globalThis as any)?.Deno?.env?.get?.("TURN_SUMMARY_DB_ENABLED"),
+  );
+  const traceCompactRaw = (globalThis as any)?.Deno?.env?.get?.(
+    "TURN_SUMMARY_TRACE_COMPACT",
+  );
+  // Default true; allow disabling by explicitly setting 0/false/off.
+  const TRACE_COMPACT = (traceCompactRaw == null ||
+      String(traceCompactRaw).trim() === "")
+    ? true
+    : parseBoolEnv(traceCompactRaw);
+  const TRACE_MAX_EVENTS = parseIntEnv(
+    (globalThis as any)?.Deno?.env?.get?.("TURN_SUMMARY_TRACE_MAX_EVENTS"),
+    220,
+  );
+  const pick = (obj: any, keys: string[]) => {
+    const out: Record<string, unknown> = {};
+    for (const k of keys) {
+      if (obj && Object.prototype.hasOwnProperty.call(obj, k)) out[k] = obj[k];
+    }
+    return out;
+  };
+  const compactTracePayload = (event: string, payload: Record<string, unknown>) => {
+    const p: any = payload ?? {};
+    if (!TRACE_COMPACT) return payload;
+    switch (String(event ?? "")) {
+      case "brain:request_start":
+        return pick(p, ["channel", "scope", "whatsappMode", "user_message_len", "history_len"]);
+      case "brain:dispatcher_result":
+        return {
+          ...pick(p, ["risk_score", "target_mode", "target_mode_reason", "wants_tools", "last_assistant_agent"]),
+          safety: p.safety ? pick(p.safety, ["level", "confidence"]) : p.safety,
+          intent: p.intent ? pick(p.intent, ["primary", "confidence"]) : p.intent,
+          interrupt: p.interrupt ? pick(p.interrupt, ["kind", "confidence"]) : p.interrupt,
+          flow_resolution: p.flow_resolution ? pick(p.flow_resolution, ["kind", "confidence"]) : p.flow_resolution,
+          topic_depth: p.topic_depth ? pick(p.topic_depth, ["value", "confidence", "plan_focus"]) : p.topic_depth,
+          deep_reasons: p.deep_reasons ? pick(p.deep_reasons, ["opportunity", "deferred_ready", "action_mentioned", "in_bilan_context", "confidence"]) : p.deep_reasons,
+          needs_research: p.needs_research ? pick(p.needs_research, ["value", "confidence"]) : p.needs_research,
+          needs_explanation: p.needs_explanation ? pick(p.needs_explanation, ["value", "confidence"]) : p.needs_explanation,
+          user_engagement: p.user_engagement ? pick(p.user_engagement, ["level", "confidence"]) : p.user_engagement,
+          topic_satisfaction: p.topic_satisfaction ? pick(p.topic_satisfaction, ["detected", "confidence"]) : p.topic_satisfaction,
+          // Keep only minimal action/tool hints (avoid huge nested objects)
+          create_action: p.create_action ? pick(p.create_action, ["intent_strength", "confidence"]) : p.create_action,
+          update_action: p.update_action ? pick(p.update_action, ["detected", "confidence", "change_type"]) : p.update_action,
+          breakdown_action: p.breakdown_action ? pick(p.breakdown_action, ["detected", "confidence"]) : p.breakdown_action,
+          track_progress: p.track_progress ? pick(p.track_progress, ["detected", "confidence", "status_hint"]) : p.track_progress,
+          activate_action: p.activate_action ? pick(p.activate_action, ["detected", "confidence"]) : p.activate_action,
+          safety_resolution: p.safety_resolution ? pick(p.safety_resolution, ["escalate_to_sentry", "confidence"]) : p.safety_resolution,
+          state_snapshot: p.state_snapshot ? pick(p.state_snapshot, [
+            "risk_level",
+            "current_mode",
+            "toolflow_active",
+            "onboarding_active",
+            "investigation_active",
+            "plan_confirm_pending",
+            "profile_confirm_pending",
+          ]) : p.state_snapshot,
+        };
+      case "brain:context_loaded":
+        return pick(p, ["target_mode", "profile_used", "elements_loaded", "estimated_tokens", "load_ms", "triggers"]);
+      case "brain:model_selected":
+        return pick(p, ["target_mode", "risk_score", "selected_model", "default_model", "librarian_overlay"]);
+      case "brain:agent_done":
+        return pick(p, ["target_mode", "next_mode", "response_len", "aborted", "rewritten"]);
+      default:
+        return payload;
+    }
+  };
+  const turnTraceEvents: Array<
+    {
+      ts: string;
+      event: string;
+      phase: BrainTracePhase;
+      level: "debug" | "info" | "warn" | "error";
+      payload?: unknown;
+    }
+  > = [];
+  if (CAPTURE_TURN_TRACE) {
+    turnMetrics.details = {
+      ...(turnMetrics.details ?? {}),
+      brain_trace_events: turnTraceEvents,
+      brain_trace_meta: {
+        max_events: TRACE_MAX_EVENTS,
+        verbose_enabled: TRACE_VERBOSE,
+        compact: TRACE_COMPACT,
+      },
+    };
+  }
 
   const trace = async (
     event: string,
@@ -624,6 +797,28 @@ export async function processMessage(
     payload: Record<string, unknown> = {},
     level: "debug" | "info" | "warn" | "error" = "info",
   ) => {
+    if (CAPTURE_TURN_TRACE) {
+      // Keep bounded + safe (avoid huge payloads / circular refs).
+      try {
+        if (turnTraceEvents.length >= TRACE_MAX_EVENTS) {
+          // Drop oldest.
+          turnTraceEvents.shift();
+        }
+        turnTraceEvents.push({
+          ts: new Date().toISOString(),
+          event,
+          phase,
+          level,
+          payload: truncateStringsDeep(
+            compactTracePayload(event, payload),
+            240,
+            { maxDepth: 10 },
+          ),
+        });
+      } catch {
+        // ignore
+      }
+    }
     await logBrainTrace({
       supabase,
       userId,
@@ -1051,28 +1246,9 @@ export async function processMessage(
         String(opts.contextOverride).includes("CONSIGNE TEST PARKING LOT"),
     );
   const disableForcedRouting = Boolean(opts?.disableForcedRouting);
-  const channel = meta?.channel ?? "web";
-  // Ensure all replies use real AI responses.
-  meta = {
-    ...(meta ?? {}),
-    channel,
-    forceRealAi: true,
-  };
-  const scope = normalizeScope(
-    meta?.scope,
-    channel === "whatsapp" ? "whatsapp" : "web",
-  );
   const nowIso = new Date().toISOString();
   const userTime = await getUserTimeContext({ supabase, userId }).catch(() =>
     null as any
-  );
-
-  // Initialize turn metrics accumulator for consolidated logging
-  const turnMetrics = createTurnMetrics(
-    meta?.requestId ?? null,
-    userId,
-    channel,
-    scope,
   );
 
   const logMessages = opts?.logMessages !== false;
@@ -1241,6 +1417,9 @@ export async function processMessage(
   // ═══════════════════════════════════════════════════════════════════════════
   let isOnboardingActive = false;
   let onboardingCompletedThisTurn = false;
+  // Track whether the user already completed onboarding (fetched lazily).
+  // When true, the onboarding machine MUST NEVER be (re)activated.
+  let userAlreadyOnboarded: boolean | null = null; // null = not yet checked
   // Allow forcing onboarding on WEB for local testing only.
   // We gate on "local Supabase" signals to avoid enabling a prod escape hatch.
   const isLocalSupabase = (() => {
@@ -1307,12 +1486,28 @@ export async function processMessage(
   } else if (channel === "whatsapp") {
     const { data: onbProfile } = await supabase
       .from("profiles")
-      .select("whatsapp_state")
+      .select("whatsapp_state, onboarding_completed")
       .eq("id", userId)
       .maybeSingle();
+    userAlreadyOnboarded = Boolean((onbProfile as any)?.onboarding_completed);
     const waState = String((onbProfile as any)?.whatsapp_state ?? "").trim();
     const isOnbState = /^onboarding_q[123]$/.test(waState);
-    if (isOnbState) {
+
+    // HARD GUARD: never (re)activate onboarding for already-onboarded users.
+    // If whatsapp_state is stale, clean it up silently.
+    if (isOnbState && userAlreadyOnboarded) {
+      await supabase.from("profiles").update({
+        whatsapp_state: null,
+        whatsapp_state_updated_at: new Date().toISOString(),
+      }).eq("id", userId);
+      if ((tempMemory as any)?.__onboarding_flow) {
+        try { delete (tempMemory as any).__onboarding_flow; } catch {}
+      }
+      await traceV("brain:onboarding_blocked_already_completed", "routing", {
+        waState,
+        reason: "onboarding_completed_is_true",
+      });
+    } else if (isOnbState) {
       isOnboardingActive = true;
       const stepNum = waState.replace("onboarding_q", "");
       const expectedStep = `q${stepNum}`;
@@ -1359,20 +1554,39 @@ export async function processMessage(
   // above didn't fire (e.g. isLocalSupabase detection failed, or the client
   // forgot to resend force_onboarding_flow).  Re-activate automatically so the
   // flow is never silently lost.
+  // HARD GUARD: never re-activate for already-onboarded users.
   if (
     !isOnboardingActive &&
     (tempMemory as any)?.__onboarding_flow &&
     typeof (tempMemory as any).__onboarding_flow === "object"
   ) {
-    isOnboardingActive = true;
-    const existingFlow = (tempMemory as any).__onboarding_flow;
-    existingFlow.turn_count = (existingFlow.turn_count ?? 0) + 1;
-    await traceV("brain:onboarding_flow_resumed_from_temp_memory", "routing", {
-      step: existingFlow.step,
-      turn_count: existingFlow.turn_count,
-      forced_from: existingFlow.forced_from ?? "unknown",
-      channel,
-    });
+    // Lazy-fetch onboarding_completed if not already known (e.g. web channel)
+    if (userAlreadyOnboarded === null) {
+      const { data: obCheck } = await supabase
+        .from("profiles")
+        .select("onboarding_completed")
+        .eq("id", userId)
+        .maybeSingle();
+      userAlreadyOnboarded = Boolean((obCheck as any)?.onboarding_completed);
+    }
+    if (userAlreadyOnboarded) {
+      // Stale flow in temp_memory for an already-onboarded user — clean up.
+      try { delete (tempMemory as any).__onboarding_flow; } catch {}
+      await traceV("brain:onboarding_catchall_blocked_already_completed", "routing", {
+        channel,
+        reason: "onboarding_completed_is_true",
+      });
+    } else {
+      isOnboardingActive = true;
+      const existingFlow = (tempMemory as any).__onboarding_flow;
+      existingFlow.turn_count = (existingFlow.turn_count ?? 0) + 1;
+      await traceV("brain:onboarding_flow_resumed_from_temp_memory", "routing", {
+        step: existingFlow.step,
+        turn_count: existingFlow.turn_count,
+        forced_from: existingFlow.forced_from ?? "unknown",
+        channel,
+      });
+    }
   }
 
   // --- SOFT CAP: Daily message limit to protect margins on power users ---
@@ -2819,6 +3033,14 @@ export async function processMessage(
         console.log(
           "[Router] Checkup confirmed by user, will start investigation",
         );
+      } else if (resolved.kind === "defer") {
+        // User wants to defer the bilan — set a flag so the companion asks "dans combien de temps ?"
+        (tempMemory as any).__bilan_defer_pending = true;
+        await trace("brain:checkup_deferred", "dispatcher", {
+          deferred: true,
+          via: resolved.via,
+        });
+        console.log("[Router] Checkup deferred by user, will ask for delay");
       } else {
         await trace("brain:checkup_declined", "dispatcher", {
           confirmed: false,
@@ -2833,6 +3055,55 @@ export async function processMessage(
         }
       }
     }
+  }
+
+  // --- Handle bilan defer: extract delay from user's response ---
+  const bilanDeferPending = (tempMemory as any)?.__bilan_defer_pending;
+  if (bilanDeferPending && !pendingCheckupEntry) {
+    // Try to extract a delay from the user's message (e.g. "dans 2h", "30 min", "1 heure")
+    const delayMinutes = extractDelayMinutes(userMessage);
+    if (delayMinutes && delayMinutes > 0) {
+      // Schedule the bilan reschedule via scheduled_checkins
+      try {
+        const scheduledFor = new Date(Date.now() + delayMinutes * 60 * 1000).toISOString();
+        await supabase
+          .from("scheduled_checkins")
+          .insert({
+            user_id: userId,
+            status: "pending",
+            scheduled_for: scheduledFor,
+            event_context: "daily_bilan_reschedule",
+            message_mode: "dynamic",
+            message_payload: {
+              type: "daily_bilan_reschedule",
+              original_bilan_time: new Date().toISOString(),
+              instruction: "L'utilisateur avait demandé à être relancé pour son bilan du soir. Propose-lui de faire le point maintenant de manière chaleureuse et naturelle.",
+            },
+            draft_message: null,
+          });
+
+        // Clear the defer flag and set a confirmation addon
+        tempMemory = { ...(tempMemory ?? {}) };
+        delete (tempMemory as any).__bilan_defer_pending;
+        const delayText = delayMinutes < 60
+          ? `${delayMinutes} min`
+          : delayMinutes % 60 === 0
+            ? `${Math.floor(delayMinutes / 60)} heure${Math.floor(delayMinutes / 60) > 1 ? "s" : ""}`
+            : `${Math.floor(delayMinutes / 60)}h${String(delayMinutes % 60).padStart(2, "0")}`;
+        (tempMemory as any).__bilan_defer_confirm_addon =
+          `L'utilisateur a demandé à être relancé pour son bilan dans ${delayText}. ` +
+          `Confirme-lui de manière naturelle et chaleureuse que tu le relanceras dans ${delayText}. ` +
+          `Ne pose pas de question additionnelle.`;
+        await trace("brain:bilan_defer_scheduled", "dispatcher", {
+          delay_minutes: delayMinutes,
+        });
+        console.log(`[Router] Bilan defer scheduled in ${delayMinutes} minutes`);
+      } catch (e) {
+        console.error("[Router] Failed to schedule bilan reschedule:", e);
+      }
+    }
+    // If no delay extracted, the addon from the previous turn will still be injected
+    // to keep asking the user for a delay.
   }
 
   // --- Handle response to "tu veux noter un progres?" when bilan already done ---
@@ -3080,6 +3351,89 @@ export async function processMessage(
           };
           await trace("brain:onboarding_completed", "routing", { score });
           console.log(`[Router] Onboarding: completed with score ${score}/10`);
+        }
+      }
+
+      // ── Auto-advance: max 2 turns per question ──────────────────────────
+      // turn 0 = Sophia asks the question (first entry)
+      // turn 1 = user's 1st answer opportunity
+      // turn 2 = user's 2nd answer — if still no advancement, force-advance
+      // This prevents the onboarding from feeling stuck/annoying.
+      const stepAfterSignals = String(onbFlow.step ?? "");
+      const didAdvanceThisTurn = stepAfterSignals !== stepAtTurnStart ||
+        onbFlow.completed === true;
+      if (!didAdvanceThisTurn && turnCountAtTurnStart >= 2) {
+        if (stepAtTurnStart === "q1") {
+          // Auto Q1 → Q2
+          onbFlow.step = "q2";
+          onbFlow.turn_count = 0;
+          onbFlow.q1_auto_advanced = true;
+          if (channel === "whatsapp") {
+            await supabase.from("profiles").update({
+              whatsapp_state: "onboarding_q2",
+              whatsapp_state_updated_at: new Date().toISOString(),
+            }).eq("id", userId);
+          }
+          await trace("brain:onboarding_auto_advance", "routing", {
+            from: "q1",
+            to: "q2",
+            reason: "max_turns",
+          });
+          console.log(
+            "[Router] Onboarding: Q1 → Q2 (auto-advance, max turns reached)",
+          );
+        } else if (stepAtTurnStart === "q2") {
+          // Store whatever was said as context even without dispatcher signal
+          if (userMessage.trim().length > 0 && !onbFlow.q2_memory_stored) {
+            await supabase.from("memories").insert({
+              user_id: userId,
+              content:
+                `Pendant l'onboarding, l'utilisateur partage: ${userMessage}`,
+              type: "whatsapp_personal_fact",
+              metadata: { channel, captured_from: "onboarding_q2_auto" },
+              source_type: channel,
+            } as any);
+            onbFlow.q2_memory_stored = true;
+          }
+          // Auto Q2 → Q3
+          onbFlow.step = "q3";
+          onbFlow.turn_count = 0;
+          onbFlow.q2_auto_advanced = true;
+          if (channel === "whatsapp") {
+            await supabase.from("profiles").update({
+              whatsapp_state: "onboarding_q3",
+              whatsapp_state_updated_at: new Date().toISOString(),
+            }).eq("id", userId);
+          }
+          await trace("brain:onboarding_auto_advance", "routing", {
+            from: "q2",
+            to: "q3",
+            reason: "max_turns",
+          });
+          console.log(
+            "[Router] Onboarding: Q2 → Q3 (auto-advance, max turns reached)",
+          );
+        } else if (stepAtTurnStart === "q3") {
+          // Q3 without score: auto-complete the onboarding gracefully
+          onbFlow.completed = true;
+          onbFlow.q3_auto_completed = true;
+          if (channel === "whatsapp") {
+            await supabase.from("profiles").update({
+              whatsapp_state: null,
+              whatsapp_state_updated_at: new Date().toISOString(),
+            }).eq("id", userId);
+          }
+          onboardingCompletedThisTurn = true;
+          (tempMemory as any).__flow_just_closed_normally = {
+            flow_type: "onboarding_completed",
+            closed_at: new Date().toISOString(),
+          };
+          await trace("brain:onboarding_auto_complete", "routing", {
+            reason: "max_turns_q3_no_score",
+          });
+          console.log(
+            "[Router] Onboarding: Q3 auto-completed (max turns, no score detected)",
+          );
         }
       }
     }
@@ -4338,7 +4692,20 @@ export async function processMessage(
     let abandonMessage = "";
 
     // Check which machine is active and close it
-    if (getActiveCreateActionFlow(tempMemory)) {
+    // Onboarding flow (highest priority — user must always be able to quit)
+    if ((tempMemory as any)?.__onboarding_flow) {
+      try { delete (tempMemory as any).__onboarding_flow; } catch {}
+      isOnboardingActive = false;
+      if (channel === "whatsapp") {
+        await supabase.from("profiles").update({
+          whatsapp_state: null,
+          whatsapp_state_updated_at: new Date().toISOString(),
+        }).eq("id", userId);
+      }
+      abandonedMachine = "onboarding_flow";
+      abandonMessage =
+        "Ok, pas de souci — on continue la conversation normalement.";
+    } else if (getActiveCreateActionFlow(tempMemory)) {
       const closed = closeCreateActionFlow({
         tempMemory,
         outcome: "abandoned",
@@ -6046,6 +6413,18 @@ Réponds uniquement avec la transition:`;
     } catch {}
   }
 
+  // Inject bilan defer add-on: ask user for delay or confirm scheduling
+  const bilanDeferConfirmAddon = (tempMemory as any)?.__bilan_defer_confirm_addon ?? "";
+  if (bilanDeferConfirmAddon) {
+    context = `${context}\n\n=== BILAN DEFER CONFIRMATION ===\n${bilanDeferConfirmAddon}`;
+    // Clear after injection (one-time use)
+    try {
+      delete (tempMemory as any).__bilan_defer_confirm_addon;
+    } catch {}
+  } else if ((tempMemory as any)?.__bilan_defer_pending) {
+    context = `${context}\n\n=== BILAN DEFER ===\nL'utilisateur a demandé à reporter son bilan. Demande-lui dans combien de temps il veut être relancé, de manière naturelle et chaleureuse. Exemples: "dans 1h", "dans 30 min", "demain". Ne pose qu'une seule question.`;
+  }
+
   // Inject resume from safety add-on into context (guides agent for smooth transition after firefighter/sentry)
   const resumeSafetyAddon = (tempMemory as any)?.__resume_safety_addon ?? "";
   if (resumeSafetyAddon) {
@@ -6163,6 +6542,8 @@ Réponds uniquement avec la transition:`;
       "__track_progress_parallel",
       "__flow_just_closed_normally",
       "__deferred_bilan_pending",
+      "__bilan_defer_pending",
+      "__bilan_defer_confirm_addon",
       "deferred_topics_v2",
       "__paused_machine_v2",
       "__pending_next_topic",
@@ -6601,6 +6982,8 @@ Réponds uniquement avec la transition:`;
         "__router_resume_prompt_v1",
         "__router_safety_preempted_v1",
         "__pending_next_topic",
+        "__bilan_defer_pending",
+        "__bilan_defer_confirm_addon",
         PROFILE_CONFIRM_DEFERRED_KEY,
       ];
       for (const key of preserveRouterKeys) {
@@ -6635,6 +7018,7 @@ Réponds uniquement avec la transition:`;
       "__checkup_addon",
       "__checkup_deferred_topic",
       "__track_progress_parallel",
+      "__bilan_defer_confirm_addon",
     ];
     for (const key of oneOffKeys) {
       try {
