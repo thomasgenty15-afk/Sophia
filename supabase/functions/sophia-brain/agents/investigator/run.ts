@@ -398,6 +398,7 @@ export async function runInvestigator(
       const offerLoggedStatus = String(
         pendingOffer?.last_item_log?.status ?? "missed",
       );
+      const declinedActionId = String(pendingOffer?.action_id ?? "").trim();
 
       // --- INCREASE TARGET: execute the DB update if confirmed ---
       let increaseResult: {
@@ -429,12 +430,13 @@ export async function runInvestigator(
         ...(nextState.temp_memory || {}),
         breakdown_declined_action_ids: userSaysNo &&
             (pendingOffer.kind === "breakdown" ||
-              pendingOffer.kind === "deep_reasons")
+              pendingOffer.kind === "deep_reasons") &&
+            declinedActionId
           ? Array.from(
             new Set([
               ...(nextState.temp_memory?.breakdown_declined_action_ids ??
                 []),
-              pendingOffer.action_id,
+              declinedActionId,
             ]),
           )
           : nextState.temp_memory?.breakdown_declined_action_ids,

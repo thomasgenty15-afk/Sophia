@@ -1155,7 +1155,7 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
   if (!GEMINI_API_KEY) throw new Error('Clé API Gemini manquante')
 
-  const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "text-embedding-004").trim() || "text-embedding-004"
+  const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "text-embedding-005").trim() || "text-embedding-005"
   const base = "https://generativelanguage.googleapis.com"
   const urlV1 = `${base}/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`
   const urlV1beta = `${base}/v1beta/models/${model}:embedContent?key=${GEMINI_API_KEY}`

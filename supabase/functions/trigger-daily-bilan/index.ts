@@ -6,6 +6,7 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { generateWithGemini } from "../_shared/gemini.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 import { whatsappLangFromLocale } from "../_shared/locale.ts"
+import { hasActiveStateMachine } from "./state_machine_check.ts"
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
@@ -236,83 +237,6 @@ function classifyWhatsappSendFailure(msg: string): { kind: "skip"; reason: strin
   }
   if (status === 400) return { kind: "skip", reason: "bad_request" }
   return { kind: "error" }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// STATE MACHINE CHECK: Determine if user has an active conversation machine
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Lightweight check for active state machines from raw user_chat_states data.
- * Mirrors the logic in flow_context.ts getActiveMachineType() but works on raw DB rows.
- */
-function hasActiveStateMachine(chatState: any): { active: boolean; machineLabel: string | null } {
-  if (!chatState) return { active: false, machineLabel: null }
-
-  // 1. Investigation (bilan) already in progress
-  const inv = chatState.investigation_state
-  if (inv && inv.status && inv.status !== "post_checkup" && inv.status !== "post_checkup_done") {
-    return { active: true, machineLabel: "bilan_in_progress" }
-  }
-
-  // 2. Check temp_memory for active flows
-  const tm = chatState.temp_memory
-  if (!tm || typeof tm !== "object") return { active: false, machineLabel: null }
-
-  // Safety flows
-  if (tm.__safety_sentry_flow && tm.__safety_sentry_flow.phase !== "resolved") {
-    return { active: true, machineLabel: "safety_sentry" }
-  }
-  if (tm.__safety_firefighter_flow && tm.__safety_firefighter_flow.phase !== "resolved") {
-    return { active: true, machineLabel: "safety_firefighter" }
-  }
-
-  // Onboarding flow
-  if (tm.__onboarding_flow) return { active: true, machineLabel: "onboarding" }
-
-  // Legacy tool flow keys (pre-supervisor)
-  if (tm.create_action_flow) return { active: true, machineLabel: "create_action" }
-  if (tm.update_action_flow) return { active: true, machineLabel: "update_action" }
-  if (tm.breakdown_action_flow) return { active: true, machineLabel: "breakdown_action" }
-
-  // Supervisor stack flows
-  const supervisorStack = tm.supervisor?.stack
-  if (Array.isArray(supervisorStack)) {
-    for (const session of supervisorStack) {
-      const t = session?.type
-      if (
-        t === "create_action_flow" ||
-        t === "update_action_flow" ||
-        t === "breakdown_action_flow" ||
-        t === "activate_action_flow" ||
-        t === "track_progress_flow" ||
-        t === "topic_serious" ||
-        t === "topic_light" ||
-        t === "deep_reasons_exploration"
-      ) {
-        return { active: true, machineLabel: t }
-      }
-    }
-  }
-
-  // Legacy update flow stage (awaiting consent)
-  if (tm.__update_flow_stage?.stage === "awaiting_consent") {
-    return { active: true, machineLabel: "update_consent" }
-  }
-
-  // Deep reasons (legacy key)
-  if (tm.deep_reasons_state) return { active: true, machineLabel: "deep_reasons" }
-
-  // Profile confirmation
-  const profileConfirm = tm.__profile_confirmation_state ?? tm.profile_confirmation_state
-  if (profileConfirm?.status === "confirming") {
-    return { active: true, machineLabel: "profile_confirmation" }
-  }
-
-  // Pending relaunch consent
-  if (tm.__pending_relaunch_consent) return { active: true, machineLabel: "relaunch_consent" }
-
-  return { active: false, machineLabel: null }
 }
 
 /**
@@ -733,4 +657,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

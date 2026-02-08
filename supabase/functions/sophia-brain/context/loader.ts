@@ -492,6 +492,23 @@ function formatOnboardingAddon(onbFlow: any): string {
   const planTitle = String(onbFlow?.plan_title ?? "ton plan").trim() || "ton plan"
   const isFirstEntry = turn === 0
 
+  // If onboarding just completed (score detected this turn), give transition instructions
+  // instead of the normal Q3 instructions.
+  if (onbFlow?.completed) {
+    const score = onbFlow?.score ?? "?"
+    return (
+      `\n\n=== ADDON ONBOARDING (TERMINÉ — TRANSITION) ===\n` +
+      `Plan: "${planTitle}"\n` +
+      `Score de motivation: ${score}/10\n` +
+      `L'onboarding est TERMINÉ. Le score a été détecté.\n\n` +
+      `INSTRUCTIONS (STRICTES):\n` +
+      `- Accuse réception du score en 1 phrase max (ex: "Top, ${score}/10 c'est super !" + 1 emoji).\n` +
+      `- INTERDICTION de poser une question de suivi sur le score (PAS de "qu'est-ce qui te fait dire ${score} ?", PAS de "pourquoi pas plus/moins ?", PAS d'entretien motivationnel).\n` +
+      `- Enchaîne DIRECTEMENT avec: "T'as envie de parler de quoi ? Si t'as pas d'idée on peut parler un peu de ton plan 🙂"\n` +
+      `- C'est ta SEULE mission pour ce message. Rien d'autre.\n`
+    )
+  }
+
   // The question must be asked only on first entry for a step; subsequent turns should help the user answer.
   const q1 = `Comment ça s'est passé pour toi de construire ton plan ?`
   const q2 = `Pourquoi c'est important pour toi maintenant de te lancer là-dedans ?`

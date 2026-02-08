@@ -179,6 +179,52 @@ Deno.test("processRelaunchConsentResponse: yes after first unclear initializes m
   assertEquals(pending, null, "pending cleared after accept");
 });
 
+Deno.test("processRelaunchConsentResponse: checkup accept does not recreate entry pending", () => {
+  const topic = makeTopic({
+    machine_type: "checkup",
+    action_target: undefined,
+  });
+  const { tempMemory: tm0 } = setPendingRelaunchConsent({
+    tempMemory: {
+      __checkup_entry_pending: true,
+      __ask_checkup_confirmation: true,
+    },
+    topic,
+  });
+
+  const result = processRelaunchConsentResponse({
+    tempMemory: tm0,
+    userMessage: "oui vas-y",
+    profileConfirmDeferredKey: "__profile_deferred",
+    pendingResolutionSignal: {
+      status: "resolved",
+      pending_type: "relaunch_consent",
+      decision_code: "relaunch.accept",
+      confidence: 0.95,
+      reason_short: "accepted",
+    },
+  });
+
+  assertEquals(result.handled, true, "handled");
+  assertEquals(result.shouldInitMachine, true, "machine initialized");
+  assertEquals(result.machineType, "checkup", "correct machine type");
+  assertEquals(
+    result.nextMode,
+    "investigator",
+    "checkup routes to investigator",
+  );
+  assertEquals(
+    (result.tempMemory as any).__checkup_entry_pending,
+    undefined,
+    "entry pending cleared",
+  );
+  assertEquals(
+    (result.tempMemory as any).__ask_checkup_confirmation,
+    undefined,
+    "entry ask flag cleared",
+  );
+});
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // NO after first unclear → decline
 // ═══════════════════════════════════════════════════════════════════════════════

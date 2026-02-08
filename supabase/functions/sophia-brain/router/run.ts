@@ -2097,6 +2097,25 @@ export async function processMessage(
 
     // Check for pending defer question and process confirmations
     const pendingQuestion = invState?.temp_memory?.pending_defer_question;
+    const pendingQuestionType = String(pendingQuestion?.machine_type ?? "");
+    const pendingOfferKind = String(pendingOffer?.kind ?? "");
+    const topicHintForDefer = String(
+      pendingQuestion?.topic_hint ??
+        dispatcherSignals?.interrupt?.deferred_topic_formalized ??
+        "",
+    ).trim();
+    const hasPendingDeepReasons = pendingQuestionType === "deep_reasons" ||
+      pendingOfferKind === "deep_reasons";
+    const hasPendingBreakdown = pendingQuestionType === "breakdown" ||
+      pendingOfferKind === "breakdown";
+    const hasPendingTopic = pendingQuestionType === "topic" ||
+      topicHintForDefer.length >= 2;
+    const hasPendingIncreaseTarget = pendingOfferKind === "increase_target";
+    const hasPendingDeleteAction = pendingOfferKind === "delete_action" ||
+      machineSignals.delete_action_intent === true;
+    const hasPendingDeactivateAction =
+      pendingOfferKind === "deactivate_action" ||
+      machineSignals.deactivate_action_intent === true;
 
     // Hybrid bridge: if Investigator has a pending offer awaiting consent,
     // prefer dispatcher-confirmation signals over regex parsing in Investigator.
@@ -2132,6 +2151,7 @@ export async function processMessage(
 
     // Process confirm_deep_reasons signal
     if (
+      hasPendingDeepReasons &&
       machineSignals.confirm_deep_reasons !== undefined &&
       machineSignals.confirm_deep_reasons !== null
     ) {
@@ -2179,6 +2199,7 @@ export async function processMessage(
 
     // Process confirm_breakdown signal
     if (
+      hasPendingBreakdown &&
       machineSignals.confirm_breakdown !== undefined &&
       machineSignals.confirm_breakdown !== null
     ) {
@@ -2233,6 +2254,7 @@ export async function processMessage(
 
     // Process confirm_topic signal
     if (
+      hasPendingTopic &&
       machineSignals.confirm_topic !== undefined &&
       machineSignals.confirm_topic !== null
     ) {
@@ -2244,7 +2266,7 @@ export async function processMessage(
       const newConsents = {
         ...existingConsents,
         topic_exploration: {
-          topic_hint: pendingQuestion?.topic_hint ?? "",
+          topic_hint: topicHintForDefer,
           confirmed,
         },
       };
@@ -2263,8 +2285,8 @@ export async function processMessage(
         const deferResult = deferSignal({
           tempMemory,
           machine_type: "topic_light",
-          action_target: pendingQuestion?.topic_hint,
-          summary: pendingQuestion?.topic_hint ?? "Sujet à explorer",
+          action_target: topicHintForDefer || undefined,
+          summary: topicHintForDefer || "Sujet à explorer",
         });
         tempMemory = deferResult.tempMemory;
         console.log(`[Router] Bilan: topic exploration confirmed`);
@@ -2275,6 +2297,7 @@ export async function processMessage(
 
     // Process confirm_increase_target signal
     if (
+      hasPendingIncreaseTarget &&
       machineSignals.confirm_increase_target !== undefined &&
       machineSignals.confirm_increase_target !== null
     ) {
@@ -2294,6 +2317,7 @@ export async function processMessage(
 
     // Process confirm_delete_action signal
     if (
+      hasPendingDeleteAction &&
       machineSignals.confirm_delete_action !== undefined &&
       machineSignals.confirm_delete_action !== null
     ) {
@@ -2322,6 +2346,7 @@ export async function processMessage(
 
     // Process confirm_deactivate_action signal
     if (
+      hasPendingDeactivateAction &&
       machineSignals.confirm_deactivate_action !== undefined &&
       machineSignals.confirm_deactivate_action !== null
     ) {
@@ -5849,12 +5874,8 @@ Réponds uniquement avec la transition:`;
   // Enriches context with live web results before agent execution.
   // Does NOT change targetMode or machine state.
   // ═══════════════════════════════════════════════════════════════════════════════
-  const researchOverlayEnabled =
-    ((globalThis as any)?.Deno?.env?.get?.("RESEARCH_OVERLAY_ENABLED") ?? "")
-      .trim() === "1";
   let researchContext = "";
   if (
-    researchOverlayEnabled &&
     dispatcherSignals.needs_research?.value &&
     (dispatcherSignals.needs_research.confidence ?? 0) >= 0.7 &&
     targetMode !== "sentry" &&

@@ -569,8 +569,8 @@ function initializeMachineFromConsent(opts: {
     }
 
     case "checkup": {
-      (tempMemory as any).__checkup_entry_pending = true;
-      // Consent already obtained for relaunch: ensure no redundant confirmation prompt.
+      // Consent already obtained for relaunch: start bilan directly (no entry confirmation pending).
+      delete (tempMemory as any).__checkup_entry_pending;
       delete (tempMemory as any).__ask_checkup_confirmation;
       nextMode = "investigator";
       break;
