@@ -454,26 +454,5 @@ Il faut que tu identifies les bugs et les incohérences, et qu. tu procèdes au 
 
 
 Commande pour lancer onboarding web :
-export SUPABASE_URL="http://127.0.0.1:54321"
-export SUPABASE_ANON_KEY="sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH"
-export EMAIL="i@i.com"
-export PASSWORD="1234567"
-
-TOKEN="$(
-  curl -s "$SUPABASE_URL/auth/v1/token?grant_type=password" \
-    -H "apikey: $SUPABASE_ANON_KEY" \
-    -H "Content-Type: application/json" \
-    -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" \
-  | python3 -c 'import sys,json; print(json.load(sys.stdin)["access_token"])'
-)"
-
-curl -s "$SUPABASE_URL/functions/v1/sophia-brain" \
-  -H "apikey: $SUPABASE_ANON_KEY" \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "Ok, on commence l’onboarding.",
-    "channel": "web",
-    "scope": "web_onboarding",
-    "force_onboarding_flow": true
-  }'
+# 1-liner (clean + launch) — remplace EMAIL/PASSWORD si besoin
+SUPABASE_URL="http://127.0.0.1:54321" SUPABASE_ANON_KEY="sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" EMAIL="i@i.com" PASSWORD="1234567" USER_ID="2e4eba1c-a49c-43e1-a308-8dc6362e5d33" TOKEN="$(curl -s "$SUPABASE_URL/auth/v1/token?grant_type=password" -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("access_token",""))')" && curl -s -X DELETE "$SUPABASE_URL/rest/v1/chat_messages?user_id=eq.$USER_ID&scope=eq.web_onboarding" -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $TOKEN" -H "Prefer: return=minimal" && curl -s "$SUPABASE_URL/functions/v1/sophia-brain" -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"message":"Ok, on commence l'\''onboarding.","channel":"web","scope":"web_onboarding","force_onboarding_flow":true}'

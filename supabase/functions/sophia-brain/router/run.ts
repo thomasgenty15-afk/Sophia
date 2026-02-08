@@ -1250,12 +1250,17 @@ export async function processMessage(
       const internalPort = (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "")
         .trim();
       if (internalPort === "54321") return true;
-      const u = (Deno.env.get("SUPABASE_URL") ?? "").trim();
-      return (
-        u.includes("http://kong:8000") ||
-        u.includes("http://127.0.0.1:54321") ||
-        u.includes("http://localhost:54321")
-      );
+      const u = (Deno.env.get("SUPABASE_URL") ?? "").trim().toLowerCase();
+      // Docker-internal URLs (kong, supabase_kong_*), localhost, 127.0.0.1
+      if (
+        u.includes("kong:8000") ||
+        u.includes("127.0.0.1") ||
+        u.includes("localhost")
+      ) return true;
+      // Production Supabase is always HTTPS. Local dev is always HTTP.
+      // Accept any plain-HTTP URL as "local" (covers custom docker setups).
+      if (u.startsWith("http://")) return true;
+      return false;
     } catch {
       return false;
     }
@@ -1264,7 +1269,9 @@ export async function processMessage(
     opts?.forceOnboardingFlow === true;
 
   // Debug trace: help diagnose activation failures in local dev
-  if (channel === "web" && opts?.forceOnboardingFlow === true && !isLocalSupabase) {
+  if (
+    channel === "web" && opts?.forceOnboardingFlow === true && !isLocalSupabase
+  ) {
     await traceV("brain:onboarding_local_gate_blocked", "routing", {
       isLocalSupabase,
       supabaseUrl: (Deno.env.get("SUPABASE_URL") ?? "").slice(0, 60),
@@ -2086,9 +2093,42 @@ export async function processMessage(
     const currentItemTitle = flowContext?.currentItemTitle;
     const currentItemId = flowContext?.currentItemId;
     const missedStreak = flowContext?.missedStreak ?? 0;
+    const pendingOffer = invState?.temp_memory?.bilan_defer_offer;
 
     // Check for pending defer question and process confirmations
     const pendingQuestion = invState?.temp_memory?.pending_defer_question;
+
+    // Hybrid bridge: if Investigator has a pending offer awaiting consent,
+    // prefer dispatcher-confirmation signals over regex parsing in Investigator.
+    if (invState && pendingOffer?.stage === "awaiting_consent") {
+      const overrideConfirmed = (() => {
+        switch (pendingOffer.kind) {
+          case "deep_reasons":
+            return machineSignals.confirm_deep_reasons;
+          case "breakdown":
+            return machineSignals.confirm_breakdown;
+          case "increase_target":
+            return machineSignals.confirm_increase_target;
+          case "delete_action":
+            return machineSignals.confirm_delete_action;
+          case "deactivate_action":
+            return machineSignals.confirm_deactivate_action;
+          default:
+            return undefined;
+        }
+      })();
+      if (typeof overrideConfirmed === "boolean") {
+        invState.temp_memory = {
+          ...(invState.temp_memory ?? {}),
+          bilan_offer_resolution_override: {
+            kind: pendingOffer.kind,
+            confirmed: overrideConfirmed,
+            source: "dispatcher",
+            set_at: new Date().toISOString(),
+          },
+        };
+      }
+    }
 
     // Process confirm_deep_reasons signal
     if (
@@ -2742,10 +2782,8 @@ export async function processMessage(
 
     if (resolved) {
       // Clear the pending flag only when we actually resolved the answer.
-      tempMemory = {
-        ...(tempMemory ?? {}),
-        __checkup_entry_pending: undefined,
-      };
+      tempMemory = { ...(tempMemory ?? {}) };
+      delete (tempMemory as any).__checkup_entry_pending;
 
       if (resolved.kind === "yes") {
         checkupConfirmedThisTurn = true;
@@ -2775,10 +2813,8 @@ export async function processMessage(
   // --- Handle response to "tu veux noter un progres?" when bilan already done ---
   if (pendingBilanAlreadyDone && trackFromBilanDoneOk !== undefined) {
     // Clear the pending flag
-    tempMemory = {
-      ...(tempMemory ?? {}),
-      __bilan_already_done_pending: undefined,
-    };
+    tempMemory = { ...(tempMemory ?? {}) };
+    delete (tempMemory as any).__bilan_already_done_pending;
 
     if (trackFromBilanDoneOk) {
       // User wants to track progress
@@ -4568,7 +4604,7 @@ export async function processMessage(
     }
   }
 
-  // --- PR5: deterministic resume acceptance/decline for a queued toolflow resume prompt ---
+  // --- PR5: deterministic resume acceptance/decline for queued resume prompts ---
   // If we previously prompted and the user answers "oui/non", act deterministically.
   {
     const marker = (tempMemory as any)?.__router_resume_prompt_v1 ?? null;
@@ -4580,7 +4616,9 @@ export async function processMessage(
       : true;
 
     const structuredResumeDecision = (() => {
-      if (pendingResolutionSignal?.pending_type !== "resume_prompt") return null;
+      if (pendingResolutionSignal?.pending_type !== "resume_prompt") {
+        return null;
+      }
       if (
         pendingResolutionSignal.status !== "resolved" ||
         pendingResolutionSignal.confidence < 0.65
@@ -4629,7 +4667,9 @@ export async function processMessage(
         answer: yes ? "yes" : "no",
         action: resumeActionV1,
         routed_to: yes ? targetMode : null,
-        source: structuredResumeDecision ? "pending_resolution" : "regex_fallback",
+        source: structuredResumeDecision
+          ? "pending_resolution"
+          : "regex_fallback",
       }, "info");
       // Remove the queued resume intent so we don't nag again.
       if (kind === "toolflow") {
@@ -6088,6 +6128,14 @@ Réponds uniquement avec la transition:`;
       "__deferred_signal_addon",
       "__dual_tool_addon",
       "__pending_dual_tool",
+      "__pending_relaunch_consent",
+      "__checkup_entry_pending",
+      "__ask_checkup_confirmation",
+      "__bilan_already_done_pending",
+      "__propose_track_progress",
+      "__track_progress_from_bilan_done",
+      "__router_resume_prompt_v1",
+      "__router_safety_preempted_v1",
       "__router_turn_counter",
       "__resume_message_prefix",
       "__resume_safety_addon",
@@ -6097,6 +6145,7 @@ Réponds uniquement avec la transition:`;
       "deferred_topics_v2",
       "__paused_machine_v2",
       "__pending_next_topic",
+      "__onboarding_flow",
       PROFILE_CONFIRM_DEFERRED_KEY,
     ];
     const merged: any = { ...(tmLatest ?? {}) };
@@ -6517,6 +6566,26 @@ Réponds uniquement avec la transition:`;
       if ((tempMemory as any).__onboarding_flow) {
         (mergedTempMemory as any).__onboarding_flow =
           (tempMemory as any).__onboarding_flow;
+      }
+
+      // Preserve pending/router markers that may not yet be persisted in latestTm.
+      const preserveRouterKeys = [
+        "__pending_dual_tool",
+        "__pending_relaunch_consent",
+        "__checkup_entry_pending",
+        "__ask_checkup_confirmation",
+        "__bilan_already_done_pending",
+        "__propose_track_progress",
+        "__track_progress_from_bilan_done",
+        "__router_resume_prompt_v1",
+        "__router_safety_preempted_v1",
+        "__pending_next_topic",
+        PROFILE_CONFIRM_DEFERRED_KEY,
+      ];
+      for (const key of preserveRouterKeys) {
+        if (Object.prototype.hasOwnProperty.call(tempMemory as any, key)) {
+          (mergedTempMemory as any)[key] = (tempMemory as any)[key];
+        }
       }
     }
     // Note: toolflow cancellation is now handled via proper close functions (closeCreateActionFlow, etc.)

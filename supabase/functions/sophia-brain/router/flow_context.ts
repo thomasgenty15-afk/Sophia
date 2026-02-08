@@ -494,8 +494,8 @@ export function buildFlowContext(
     }
   }
 
-  // Return context if we have checkup addon or pending relaunch consent
-  if (checkupAddon || pendingRelaunchConsent) {
+  // Return context if we have any passive addon/pending context even without active machine.
+  if (checkupAddon || pendingRelaunchConsent || pendingSignalResolution) {
     return withCheckup({});
   }
 

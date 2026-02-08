@@ -1,20 +1,35 @@
-import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { generateWithGemini } from "../../../_shared/gemini.ts"
-import { retrieveContext } from "../companion.ts"
-import { getUserTimeContext } from "../../../_shared/user_time_context.ts"
-import type { InvestigationState, InvestigatorTurnResult } from "./types.ts"
-import { isAffirmative, isExplicitStopBilan, isNegative } from "./utils.ts"
-import { investigatorSay } from "./copy.ts"
-import { getItemHistory, getPendingItems, getYesterdayCheckupSummary, increaseWeekTarget } from "./db.ts"
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
+import { generateWithGemini } from "../../../_shared/gemini.ts";
+import { retrieveContext } from "../companion.ts";
+import { getUserTimeContext } from "../../../_shared/user_time_context.ts";
+import type { InvestigationState, InvestigatorTurnResult } from "./types.ts";
+import { isExplicitStopBilan, resolveBinaryConsent } from "./utils.ts";
+import { investigatorSay } from "./copy.ts";
+import {
+  getItemHistory,
+  getPendingItems,
+  getYesterdayCheckupSummary,
+  increaseWeekTarget,
+} from "./db.ts";
 // NOTE: Breakdown flow removed - signals are now deferred to post-bilan via deferred_topics_v2
-import { buildMainItemSystemPrompt, buildDeferQuestionAddon, buildItemProgressAddon, buildTargetExceededAddon, buildVitalProgressionAddon } from "./prompt.ts"
-import { INVESTIGATOR_TOOLS } from "./tools.ts"
-import { handleInvestigatorModelOutput } from "./turn.ts"
-import { getMissedStreakDaysForCheckupItem } from "./streaks.ts"
-import { getItemProgress, updateItemProgress, initializeItemProgress } from "./item_progress.ts"
+import {
+  buildDeferQuestionAddon,
+  buildItemProgressAddon,
+  buildMainItemSystemPrompt,
+  buildTargetExceededAddon,
+  buildVitalProgressionAddon,
+} from "./prompt.ts";
+import { INVESTIGATOR_TOOLS } from "./tools.ts";
+import { handleInvestigatorModelOutput } from "./turn.ts";
+import { getMissedStreakDaysForCheckupItem } from "./streaks.ts";
+import {
+  getItemProgress,
+  initializeItemProgress,
+  updateItemProgress,
+} from "./item_progress.ts";
 
 // Re-export for backward compatibility
-export { getItemProgress, updateItemProgress } from "./item_progress.ts"
+export { getItemProgress, updateItemProgress } from "./item_progress.ts";
 
 export async function runInvestigator(
   supabase: SupabaseClient,
@@ -22,9 +37,16 @@ export async function runInvestigator(
   message: string,
   history: any[],
   state: any,
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string },
+  meta?: {
+    requestId?: string;
+    forceRealAi?: boolean;
+    channel?: "web" | "whatsapp";
+    model?: string;
+  },
 ): Promise<InvestigatorTurnResult> {
-  const timeCtx = await getUserTimeContext({ supabase, userId }).catch(() => null as any)
+  const timeCtx = await getUserTimeContext({ supabase, userId }).catch(() =>
+    null as any
+  );
 
   // 1. INIT STATE
   let currentState: InvestigationState = state || {
@@ -32,19 +54,23 @@ export async function runInvestigator(
     pending_items: [],
     current_item_index: 0,
     temp_memory: {},
-  }
+  };
 
   // If the user explicitly wants to stop the bilan, comply immediately (no persuasion).
   if (currentState?.status === "checking" && isExplicitStopBilan(message)) {
     return {
       content: await investigatorSay(
         "user_stopped_checkup",
-        { user_message: message, channel: meta?.channel, recent_history: history.slice(-15) },
+        {
+          user_message: message,
+          channel: meta?.channel,
+          recent_history: history.slice(-15),
+        },
         meta,
       ),
       investigationComplete: true,
       newState: null,
-    }
+    };
   }
 
   // NOTE: Bilan auto-expiry (4h timeout) is handled silently at the router level
@@ -53,47 +79,68 @@ export async function runInvestigator(
 
   // Start: load items
   if (currentState.status === "init") {
-    const items = await getPendingItems(supabase, userId)
+    const items = await getPendingItems(supabase, userId);
     if (items.length === 0) {
       return {
-        content: await investigatorSay("no_pending_items", { user_message: message, channel: meta?.channel }, meta),
+        content: await investigatorSay("no_pending_items", {
+          user_message: message,
+          channel: meta?.channel,
+        }, meta),
         investigationComplete: true,
         newState: null,
-      }
+      };
     }
 
     // Day scope from user's LOCAL hour (timezone-aware).
     // Note: Each item now has its own day_scope based on time_of_day, but we keep a global fallback.
-    const localHour = Number(timeCtx?.user_local_hour)
-    const initialDayScope = Number.isFinite(localHour) && localHour >= 16 ? "today" : "yesterday"
+    const localHour = Number(timeCtx?.user_local_hour);
+    const initialDayScope = Number.isFinite(localHour) && localHour >= 16
+      ? "today"
+      : "yesterday";
 
     // Precompute missed streaks for all action/framework items (cache for the bilan)
-    const actionItems = items.filter((i) => i.type === "action" || i.type === "framework")
-    const missedStreaksByAction: Record<string, number> = {}
+    const actionItems = items.filter((i) =>
+      i.type === "action" || i.type === "framework"
+    );
+    const missedStreaksByAction: Record<string, number> = {};
     if (actionItems.length > 0) {
       try {
         const streakPairs = await Promise.all(
           actionItems.map(async (item) => {
-            const streak = await getMissedStreakDaysForCheckupItem(supabase, userId, item).catch(() => 0)
-            return [String(item.id), Number.isFinite(streak) ? streak : 0] as [string, number]
+            const streak = await getMissedStreakDaysForCheckupItem(
+              supabase,
+              userId,
+              item,
+            ).catch(() => 0);
+            return [String(item.id), Number.isFinite(streak) ? streak : 0] as [
+              string,
+              number,
+            ];
           }),
-        )
+        );
         for (const [actionId, streak] of streakPairs) {
-          missedStreaksByAction[actionId] = streak
+          missedStreaksByAction[actionId] = streak;
         }
       } catch (e) {
-        console.error("[Investigator] missed streak cache build failed:", e)
+        console.error("[Investigator] missed streak cache build failed:", e);
       }
     }
 
-    const vitalProgression: Record<string, { previous_value?: string; target_value?: string }> = {}
+    const vitalProgression: Record<
+      string,
+      { previous_value?: string; target_value?: string }
+    > = {};
     for (const item of items) {
-      if (item.type !== "vital") continue
-      if (!item.previous_vital_value && !item.target_vital_value) continue
+      if (item.type !== "vital") continue;
+      if (!item.previous_vital_value && !item.target_vital_value) continue;
       vitalProgression[item.id] = {
-        ...(item.previous_vital_value ? { previous_value: item.previous_vital_value } : {}),
-        ...(item.target_vital_value ? { target_value: item.target_vital_value } : {}),
-      }
+        ...(item.previous_vital_value
+          ? { previous_value: item.previous_vital_value }
+          : {}),
+        ...(item.target_vital_value
+          ? { target_value: item.target_vital_value }
+          : {}),
+      };
     }
 
     currentState = {
@@ -110,7 +157,7 @@ export async function runInvestigator(
         vital_progression: vitalProgression,
         item_progress: initializeItemProgress(items),
       },
-    }
+    };
   }
 
   // Soft, personalized opening (before the very first question)
@@ -119,17 +166,19 @@ export async function runInvestigator(
     currentState.current_item_index === 0 &&
     currentState?.temp_memory?.opening_done !== true
   ) {
-    const currentItem0 = currentState.pending_items[0]
+    const currentItem0 = currentState.pending_items[0];
 
     // Update item progress: first item is now awaiting_answer
     let nextState = updateItemProgress(currentState, currentItem0.id, {
       phase: "awaiting_answer",
-      last_question_kind: currentItem0.type === "vital" ? "vital_value" : "did_it",
-    })
+      last_question_kind: currentItem0.type === "vital"
+        ? "vital_value"
+        : "did_it",
+    });
     nextState = {
       ...nextState,
       temp_memory: { ...(nextState.temp_memory || {}), opening_done: true },
-    }
+    };
 
     function normalizeLite(s: string): string {
       return String(s ?? "")
@@ -138,70 +187,89 @@ export async function runInvestigator(
         .replace(/[\u0300-\u036f]/g, "")
         .replace(/[^a-z0-9\s]/g, " ")
         .replace(/\s+/g, " ")
-        .trim()
+        .trim();
     }
 
     function spokenLabelForItem(item: any): string {
-      const rawTitle = String(item?.title ?? "").trim()
-      const rawDesc = String(item?.description ?? "").trim()
-      const title = rawTitle || rawDesc || ""
-      if (!title) return "ce point"
-      const t = normalizeLite(title)
+      const rawTitle = String(item?.title ?? "").trim();
+      const rawDesc = String(item?.description ?? "").trim();
+      const title = rawTitle || rawDesc || "";
+      if (!title) return "ce point";
+      const t = normalizeLite(title);
 
       // Vitals: prefer natural spoken labels
       if (item?.type === "vital") {
-        if (/ecran|screen|scroll|tiktok|instagram|youtube/i.test(t)) return "les écrans"
-        if (/sommeil|dormi|nuit|coucher|reveil|réveil/i.test(t)) return "ta nuit"
-        if (/endormissement|tete\s+sur\s+l.?oreiller|oreiller/i.test(t)) return "t'endormir"
-        if (/energie|humeur|moral|forme|batterie/i.test(t)) return "ton énergie"
-        if (/stress|anxieux|anxi[eé]t[eé]/i.test(t)) return "ton stress"
+        if (/ecran|screen|scroll|tiktok|instagram|youtube/i.test(t)) {
+          return "les écrans";
+        }
+        if (/sommeil|dormi|nuit|coucher|reveil|réveil/i.test(t)) {
+          return "ta nuit";
+        }
+        if (/endormissement|tete\s+sur\s+l.?oreiller|oreiller/i.test(t)) {
+          return "t'endormir";
+        }
+        if (/energie|humeur|moral|forme|batterie/i.test(t)) {
+          return "ton énergie";
+        }
+        if (/stress|anxieux|anxi[eé]t[eé]/i.test(t)) return "ton stress";
       }
 
       // Actions/frameworks: keep it short, but avoid "pour ça"
       // Use the first 6-ish words, strip extra spaces.
-      const words = title.split(/\s+/).filter(Boolean)
-      const short = words.slice(0, 6).join(" ").trim()
-      return short || "ce point"
+      const words = title.split(/\s+/).filter(Boolean);
+      const short = words.slice(0, 6).join(" ").trim();
+      return short || "ce point";
     }
 
     const fallbackFirstQuestion = (() => {
       // Use the item's own day_scope (based on time_of_day), fallback to global
-      const dayScope = String(currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ?? "yesterday")
-      const dayRef = dayScope === "today" ? "aujourd'hui" : "hier"
-      const label = spokenLabelForItem(currentItem0)
-      const titleNorm = normalizeLite(label)
-      
+      const dayScope = String(
+        currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ??
+          "yesterday",
+      );
+      const dayRef = dayScope === "today" ? "aujourd'hui" : "hier";
+      const label = spokenLabelForItem(currentItem0);
+      const titleNorm = normalizeLite(label);
+
       if (currentItem0.type === "vital") {
-        const unit = String((currentItem0 as any)?.unit ?? "").trim()
-        const unitSuffix = unit ? ` (en ${unit})` : ""
+        const unit = String((currentItem0 as any)?.unit ?? "").trim();
+        const unitSuffix = unit ? ` (en ${unit})` : "";
         // Sommeil / endormissement
-        if (/tete\s+sur\s+l.?oreiller|endormissement|temps\s+(entre|pour)/i.test(titleNorm)) {
-          return `En ce moment, il te faut combien de temps pour t'endormir à peu près ?`
+        if (
+          /tete\s+sur\s+l.?oreiller|endormissement|temps\s+(entre|pour)/i.test(
+            titleNorm,
+          )
+        ) {
+          return `En ce moment, il te faut combien de temps pour t'endormir à peu près ?`;
         }
         // Écran / screen time
         if (/ecran|screen/i.test(titleNorm)) {
-          return `Côté écrans ${dayRef}, tu dirais combien de temps à peu près ?${unitSuffix}`
+          return `Côté écrans ${dayRef}, tu dirais combien de temps à peu près ?${unitSuffix}`;
         }
         // Sommeil heures
         if (/sommeil|dormi|nuit/i.test(titleNorm)) {
-          return `T'as dormi combien ${dayRef} ?`
+          return `T'as dormi combien ${dayRef} ?`;
         }
         // Énergie / humeur
         if (/energie|humeur|moral|forme/i.test(titleNorm)) {
-          return `Comment tu te sens niveau énergie ${dayRef} ?`
+          return `Comment tu te sens niveau énergie ${dayRef} ?`;
         }
         // Default vital - always mention the label (never "pour ça")
         // Keep it spoken: "Et {label} {dayRef}, tu dirais combien ?"
-        const prefix = dayRef === "hier" ? "Et" : "Et"
-        return `${prefix} ${label} ${dayRef}, tu dirais combien ?${unitSuffix}`
+        const prefix = dayRef === "hier" ? "Et" : "Et";
+        return `${prefix} ${label} ${dayRef}, tu dirais combien ?${unitSuffix}`;
       }
-      if (currentItem0.type === "action") return `${label} — c'est fait ${dayRef} ?`
-      if (currentItem0.type === "framework") return `${label} — tu l'as fait ${dayRef} ?`
-      return `On commence par ça ?`
-    })()
+      if (currentItem0.type === "action") {
+        return `${label} — c'est fait ${dayRef} ?`;
+      }
+      if (currentItem0.type === "framework") {
+        return `${label} — tu l'as fait ${dayRef} ?`;
+      }
+      return `On commence par ça ?`;
+    })();
 
     try {
-      const summary = await getYesterdayCheckupSummary(supabase, userId)
+      const summary = await getYesterdayCheckupSummary(supabase, userId);
       const openingText = await investigatorSay(
         "opening_first_item",
         {
@@ -211,20 +279,35 @@ export async function runInvestigator(
           first_item: currentItem0,
           recent_history: history.slice(-15),
           // Use the item's own day_scope (based on time_of_day)
-          day_scope: String(currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ?? "yesterday"),
+          day_scope: String(
+            currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ??
+              "yesterday",
+          ),
         },
         meta,
-      )
+      );
 
       // IMPORTANT: keep the AI's opening whenever the call succeeds.
       // Deterministic fallback is reserved for network/LLM failures (catch block).
-      return { content: openingText, investigationComplete: false, newState: nextState }
+      return {
+        content: openingText,
+        investigationComplete: false,
+        newState: nextState,
+      };
     } catch (e) {
-      console.error("[Investigator] opening summary failed:", e)
-      const intros = ["Allez, on fait le point.", "Ok, petit bilan.", "C'est parti pour le bilan."]
-      const intro = intros[Math.floor(Math.random() * intros.length)]
-      const safe = `${intro}\n\n${fallbackFirstQuestion}`
-      return { content: safe, investigationComplete: false, newState: nextState }
+      console.error("[Investigator] opening summary failed:", e);
+      const intros = [
+        "Allez, on fait le point.",
+        "Ok, petit bilan.",
+        "C'est parti pour le bilan.",
+      ];
+      const intro = intros[Math.floor(Math.random() * intros.length)];
+      const safe = `${intro}\n\n${fallbackFirstQuestion}`;
+      return {
+        content: safe,
+        investigationComplete: false,
+        newState: nextState,
+      };
     }
   }
 
@@ -234,62 +317,104 @@ export async function runInvestigator(
       return {
         content: await investigatorSay(
           "end_checkup_no_more_items",
-          { user_message: message, channel: meta?.channel, recent_history: history.slice(-15) },
+          {
+            user_message: message,
+            channel: meta?.channel,
+            recent_history: history.slice(-15),
+          },
           meta,
         ),
         investigationComplete: true,
         newState: null,
-      }
+      };
     }
 
     // Otherwise (legacy behavior): scan for new pending items.
-    console.log("[Investigator] End of list reached. Scanning for new pending items...")
-    const freshItems = await getPendingItems(supabase, userId)
+    console.log(
+      "[Investigator] End of list reached. Scanning for new pending items...",
+    );
+    const freshItems = await getPendingItems(supabase, userId);
     if (freshItems.length > 0) {
-      console.log(`[Investigator] Found ${freshItems.length} new items. Extending session.`)
-      currentState.pending_items = [...currentState.pending_items, ...freshItems]
+      console.log(
+        `[Investigator] Found ${freshItems.length} new items. Extending session.`,
+      );
+      currentState.pending_items = [
+        ...currentState.pending_items,
+        ...freshItems,
+      ];
     } else {
       return {
         content: await investigatorSay(
           "end_checkup_no_more_items",
-          { user_message: message, channel: meta?.channel, recent_history: history.slice(-15) },
+          {
+            user_message: message,
+            channel: meta?.channel,
+            recent_history: history.slice(-15),
+          },
           meta,
         ),
         investigationComplete: true,
         newState: null,
-      }
+      };
     }
   }
 
   // 3. CURRENT ITEM
-  let currentItem = currentState.pending_items[currentState.current_item_index]
+  let currentItem = currentState.pending_items[currentState.current_item_index];
   if (currentItem?.type === "vital") {
-    const vitalProgression = (currentState?.temp_memory as any)?.vital_progression?.[String(currentItem.id)] ?? null
+    const vitalProgression =
+      (currentState?.temp_memory as any)?.vital_progression
+        ?.[String(currentItem.id)] ?? null;
     if (vitalProgression) {
       currentItem = {
         ...currentItem,
-        previous_vital_value: currentItem.previous_vital_value ?? vitalProgression.previous_value,
-        target_vital_value: currentItem.target_vital_value ?? vitalProgression.target_value,
-      }
+        previous_vital_value: currentItem.previous_vital_value ??
+          vitalProgression.previous_value,
+        target_vital_value: currentItem.target_vital_value ??
+          vitalProgression.target_value,
+      };
     }
   }
 
   // Handle pending post-bilan offer (micro-étape / deep reasons / increase target / activate action) before normal flow
-  const pendingOffer = (currentState as any)?.temp_memory?.bilan_defer_offer
+  const pendingOffer = (currentState as any)?.temp_memory?.bilan_defer_offer;
   if (pendingOffer?.stage === "awaiting_consent") {
-    const userSaysYes = isAffirmative(message)
-    const userSaysNo = isNegative(message)
+    const override = (currentState as any)?.temp_memory
+      ?.bilan_offer_resolution_override;
+    const overrideConfirmed = override &&
+        override.kind === pendingOffer.kind &&
+        typeof override.confirmed === "boolean"
+      ? Boolean(override.confirmed)
+      : undefined;
+    const consent = resolveBinaryConsent(message, {
+      overrideConfirmed,
+    });
+    const userSaysYes = consent === "yes";
+    const userSaysNo = consent === "no";
     if (userSaysYes || userSaysNo) {
-      const offerItemId = String(pendingOffer?.action_id ?? currentItem?.id ?? "")
-      const offerLoggedStatus = String(pendingOffer?.last_item_log?.status ?? "missed")
+      const offerItemId = String(
+        pendingOffer?.action_id ?? currentItem?.id ?? "",
+      );
+      const offerLoggedStatus = String(
+        pendingOffer?.last_item_log?.status ?? "missed",
+      );
 
       // --- INCREASE TARGET: execute the DB update if confirmed ---
-      let increaseResult: { success: boolean; old_target: number; new_target: number; error?: string } | null = null
+      let increaseResult: {
+        success: boolean;
+        old_target: number;
+        new_target: number;
+        error?: string;
+      } | null = null;
       if (pendingOffer.kind === "increase_target" && userSaysYes) {
         try {
-          increaseResult = await increaseWeekTarget(supabase, userId, offerItemId)
+          increaseResult = await increaseWeekTarget(
+            supabase,
+            userId,
+            offerItemId,
+          );
         } catch (e) {
-          console.error("[Investigator] increaseWeekTarget call failed:", e)
+          console.error("[Investigator] increaseWeekTarget call failed:", e);
         }
       }
 
@@ -298,65 +423,92 @@ export async function runInvestigator(
         phase: "logged",
         logged_at: new Date().toISOString(),
         logged_status: offerLoggedStatus,
-      })
-      const nextIndex = currentState.current_item_index + 1
+      });
+      const nextIndex = currentState.current_item_index + 1;
+      const nextTempMemory: Record<string, unknown> = {
+        ...(nextState.temp_memory || {}),
+        breakdown_declined_action_ids: userSaysNo &&
+            (pendingOffer.kind === "breakdown" ||
+              pendingOffer.kind === "deep_reasons")
+          ? Array.from(
+            new Set([
+              ...(nextState.temp_memory?.breakdown_declined_action_ids ??
+                []),
+              pendingOffer.action_id,
+            ]),
+          )
+          : nextState.temp_memory?.breakdown_declined_action_ids,
+      };
+      delete nextTempMemory.bilan_defer_offer;
+      delete nextTempMemory.bilan_offer_resolution_override;
       nextState = {
         ...nextState,
         current_item_index: nextIndex,
-        temp_memory: {
-          ...(nextState.temp_memory || {}),
-          bilan_defer_offer: undefined,
-          breakdown_declined_action_ids: userSaysNo && (pendingOffer.kind === "breakdown" || pendingOffer.kind === "deep_reasons")
-            ? Array.from(new Set([...(nextState.temp_memory?.breakdown_declined_action_ids ?? []), pendingOffer.action_id]))
-            : nextState.temp_memory?.breakdown_declined_action_ids,
-        },
-      }
+        temp_memory: nextTempMemory as any,
+      };
 
       // Build fallback prefix based on offer kind.
       // Primary path uses investigatorSay scenarios for consistency with copy rules.
-      let prefix: string
+      let prefix: string;
       if (pendingOffer.kind === "increase_target") {
         if (userSaysYes && increaseResult?.success) {
-          prefix = `C'est fait, objectif passé à ${increaseResult.new_target}×/semaine. `
+          prefix =
+            `C'est fait, objectif passé à ${increaseResult.new_target}×/semaine. `;
         } else if (userSaysYes && !increaseResult?.success) {
-          prefix = `${increaseResult?.error ?? "Pas pu augmenter."} `
+          prefix = `${increaseResult?.error ?? "Pas pu augmenter."} `;
         } else {
-          prefix = "Ok, on garde l'objectif actuel. "
+          prefix = "Ok, on garde l'objectif actuel. ";
         }
       } else if (pendingOffer.kind === "activate_action") {
-        prefix = userSaysYes ? "Parfait, on s'en occupe après le bilan. " : "Ok, pas de souci. "
+        prefix = userSaysYes
+          ? "Parfait, on s'en occupe après le bilan. "
+          : "Ok, pas de souci. ";
       } else if (pendingOffer.kind === "delete_action") {
-        prefix = userSaysYes ? "Noté, on gère ça après le bilan. " : "Ok, on la garde pour l'instant. "
+        prefix = userSaysYes
+          ? "Noté, on gère ça après le bilan. "
+          : "Ok, on la garde pour l'instant. ";
       } else if (pendingOffer.kind === "deactivate_action") {
-        prefix = userSaysYes ? "Noté, on gère la mise en pause après le bilan. " : "Ok, on la garde active pour l'instant. "
+        prefix = userSaysYes
+          ? "Noté, on gère la mise en pause après le bilan. "
+          : "Ok, on la garde active pour l'instant. ";
       } else {
-        prefix = userSaysYes ? "Parfait, j'ai noté. " : "Ok, pas de souci. "
+        prefix = userSaysYes ? "Parfait, j'ai noté. " : "Ok, pas de souci. ";
       }
 
       // Determine the scenario for the copy
       const scenario = pendingOffer.kind === "increase_target"
-        ? (userSaysYes && increaseResult?.success ? "increase_target_confirmed" : userSaysNo ? "increase_target_declined" : null)
+        ? (userSaysYes && increaseResult?.success
+          ? "increase_target_confirmed"
+          : userSaysNo
+          ? "increase_target_declined"
+          : null)
         : pendingOffer.kind === "activate_action"
-          ? (userSaysYes ? "weekly_target_reached_activate_confirmed" : "weekly_target_reached_activate_declined")
-          : pendingOffer.kind === "delete_action"
-            ? null  // No dedicated investigator scenario for delete_action yet – use prefix fallback
-            : pendingOffer.kind === "deactivate_action"
-              ? null  // No dedicated investigator scenario for deactivate_action yet – use prefix fallback
-              : null
+        ? (userSaysYes
+          ? "weekly_target_reached_activate_confirmed"
+          : "weekly_target_reached_activate_declined")
+        : pendingOffer.kind === "delete_action"
+        ? null // No dedicated investigator scenario for delete_action yet – use prefix fallback
+        : pendingOffer.kind === "deactivate_action"
+        ? null // No dedicated investigator scenario for deactivate_action yet – use prefix fallback
+        : null;
       const scenarioAck = scenario
         ? await investigatorSay(
           scenario,
           {
             user_message: message,
             channel: meta?.channel,
-            action_title: String(pendingOffer?.action_title ?? currentItem?.title ?? ""),
-            current_target: Number(pendingOffer?.current_target ?? currentItem?.target ?? 1),
+            action_title: String(
+              pendingOffer?.action_title ?? currentItem?.title ?? "",
+            ),
+            current_target: Number(
+              pendingOffer?.current_target ?? currentItem?.target ?? 1,
+            ),
             ...(increaseResult ? { increase_result: increaseResult } : {}),
           },
           meta,
         )
-        : null
-      const lead = scenarioAck ? `${scenarioAck}\n\n` : prefix
+        : null;
+      const lead = scenarioAck ? `${scenarioAck}\n\n` : prefix;
 
       if (nextIndex >= currentState.pending_items.length) {
         const base = await investigatorSay(
@@ -367,52 +519,74 @@ export async function runInvestigator(
             recent_history: history.slice(-15),
             last_item: currentItem,
             last_item_log: pendingOffer.last_item_log ?? null,
-            day_scope: String(currentItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
+            day_scope: String(
+              currentItem.day_scope ?? nextState?.temp_memory?.day_scope ??
+                "yesterday",
+            ),
             ...(increaseResult ? { increase_result: increaseResult } : {}),
           },
           meta,
-        )
-        return { content: `${lead}${base}`.trim(), investigationComplete: true, newState: null }
+        );
+        return {
+          content: `${lead}${base}`.trim(),
+          investigationComplete: true,
+          newState: null,
+        };
       }
 
-      const nextItem = currentState.pending_items[nextIndex]
+      const nextItem = currentState.pending_items[nextIndex];
       // Mark next item as awaiting_answer since we're asking about it now.
       nextState = updateItemProgress(nextState, nextItem.id, {
         phase: "awaiting_answer",
-        last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
-      })
+        last_question_kind: nextItem.type === "vital"
+          ? "vital_value"
+          : "did_it",
+      });
       const transitionOut = await investigatorSay(
         "transition_to_next_item",
         {
           user_message: message,
           last_item_log: pendingOffer.last_item_log ?? null,
           next_item: nextItem,
-          day_scope: String(nextItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
-          deferred_topic: userSaysYes && (pendingOffer.kind === "breakdown" || pendingOffer.kind === "deep_reasons")
+          day_scope: String(
+            nextItem.day_scope ?? nextState?.temp_memory?.day_scope ??
+              "yesterday",
+          ),
+          deferred_topic: userSaysYes &&
+              (pendingOffer.kind === "breakdown" ||
+                pendingOffer.kind === "deep_reasons")
             ? "micro-étape après le bilan"
             : userSaysYes && pendingOffer.kind === "activate_action"
-              ? "activation d'action après le bilan"
-              : userSaysYes && pendingOffer.kind === "delete_action"
-                ? "suppression d'action après le bilan"
-                : userSaysYes && pendingOffer.kind === "deactivate_action"
-                  ? "désactivation d'action après le bilan"
-                  : null,
+            ? "activation d'action après le bilan"
+            : userSaysYes && pendingOffer.kind === "delete_action"
+            ? "suppression d'action après le bilan"
+            : userSaysYes && pendingOffer.kind === "deactivate_action"
+            ? "désactivation d'action après le bilan"
+            : null,
         },
         meta,
-      )
-      return { content: `${lead}${transitionOut}`.trim(), investigationComplete: false, newState: nextState }
+      );
+      return {
+        content: `${lead}${transitionOut}`.trim(),
+        investigationComplete: false,
+        newState: nextState,
+      };
     }
 
     // User response unclear: clarify once, then continue bilan
     return {
       content: await investigatorSay(
         "bilan_defer_offer_clarify",
-        { user_message: message, item: currentItem, offer_kind: pendingOffer.kind },
+        {
+          user_message: message,
+          item: currentItem,
+          offer_kind: pendingOffer.kind,
+        },
         meta,
       ),
       investigationComplete: false,
       newState: currentState,
-    }
+    };
   }
 
   // NOTE: Breakdown/deep_reasons flows are now handled post-bilan via deferred_topics_v2.
@@ -425,10 +599,11 @@ export async function runInvestigator(
   if (
     currentItem.type === "action" &&
     currentItem.is_habit &&
-    (currentItem.weekly_target_status === "exceeded" || currentItem.weekly_target_status === "at_target")
+    (currentItem.weekly_target_status === "exceeded" ||
+      currentItem.weekly_target_status === "at_target")
   ) {
-    const currentTarget = Number(currentItem.target ?? 1)
-    const currentReps = Number(currentItem.current ?? 0)
+    const currentTarget = Number(currentItem.target ?? 1);
+    const currentReps = Number(currentItem.current ?? 0);
 
     // Generate congratulation + increase target offer
     const congratsMsg = await investigatorSay(
@@ -442,7 +617,7 @@ export async function runInvestigator(
         can_increase: currentTarget < 7,
       },
       meta,
-    )
+    );
 
     if (currentTarget < 7) {
       // Store pending offer for increase_target
@@ -459,8 +634,12 @@ export async function runInvestigator(
             last_item_log: { status: "completed", item_type: "action" },
           },
         },
-      }
-      return { content: congratsMsg, investigationComplete: false, newState: nextState }
+      };
+      return {
+        content: congratsMsg,
+        investigationComplete: false,
+        newState: nextState,
+      };
     }
 
     // Already at max (7×/semaine): congratulate and continue/close normally.
@@ -468,9 +647,9 @@ export async function runInvestigator(
       phase: "logged",
       logged_at: new Date().toISOString(),
       logged_status: "completed",
-    })
-    const nextIndex = currentState.current_item_index + 1
-    nextState = { ...nextState, current_item_index: nextIndex }
+    });
+    const nextIndex = currentState.current_item_index + 1;
+    nextState = { ...nextState, current_item_index: nextIndex };
 
     if (nextIndex >= currentState.pending_items.length) {
       const endMsg = await investigatorSay(
@@ -481,18 +660,25 @@ export async function runInvestigator(
           recent_history: history.slice(-15),
           last_item: currentItem,
           last_item_log: { status: "completed", item_type: "action" },
-          day_scope: String(currentItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
+          day_scope: String(
+            currentItem.day_scope ?? nextState?.temp_memory?.day_scope ??
+              "yesterday",
+          ),
         },
         meta,
-      )
-      return { content: `${congratsMsg}\n\n${endMsg}`.trim(), investigationComplete: true, newState: null }
+      );
+      return {
+        content: `${congratsMsg}\n\n${endMsg}`.trim(),
+        investigationComplete: true,
+        newState: null,
+      };
     }
 
-    const nextItem = currentState.pending_items[nextIndex]
+    const nextItem = currentState.pending_items[nextIndex];
     nextState = updateItemProgress(nextState, nextItem.id, {
       phase: "awaiting_answer",
       last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
-    })
+    });
 
     const transitionOut = await investigatorSay(
       "transition_to_next_item",
@@ -500,28 +686,41 @@ export async function runInvestigator(
         user_message: message,
         last_item_log: { status: "completed" },
         next_item: nextItem,
-        day_scope: String(nextItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
+        day_scope: String(
+          nextItem.day_scope ?? nextState?.temp_memory?.day_scope ??
+            "yesterday",
+        ),
         deferred_topic: null,
       },
       meta,
-    )
-    return { content: `${congratsMsg}\n\n${transitionOut}`, investigationComplete: false, newState: nextState }
+    );
+    return {
+      content: `${congratsMsg}\n\n${transitionOut}`,
+      investigationComplete: false,
+      newState: nextState,
+    };
   }
 
   // RAG : history for this item + general context
-  const itemHistoryRaw = await getItemHistory(supabase, userId, currentItem.id, currentItem.type)
-  const generalContextRaw = await retrieveContext(supabase, userId, message)
+  const itemHistoryRaw = await getItemHistory(
+    supabase,
+    userId,
+    currentItem.id,
+    currentItem.type,
+  );
+  const generalContextRaw = await retrieveContext(supabase, userId, message);
   // Prompt-size guardrails (latency/cost): keep only the most useful parts.
-  const itemHistory = String(itemHistoryRaw ?? "").trim().slice(0, 1800)
-  const generalContext = String(generalContextRaw ?? "").trim().slice(0, 1200)
+  const itemHistory = String(itemHistoryRaw ?? "").trim().slice(0, 1800);
+  const generalContext = String(generalContextRaw ?? "").trim().slice(0, 1200);
 
   // Build defer question addon if there's a pending question to ask
-  const pendingDeferQuestion = currentState?.temp_memory?.pending_defer_question
-  const deferAddon = buildDeferQuestionAddon({ pendingDeferQuestion })
+  const pendingDeferQuestion = currentState?.temp_memory
+    ?.pending_defer_question;
+  const deferAddon = buildDeferQuestionAddon({ pendingDeferQuestion });
 
   // Get current item progress for state machine context
-  const itemProgress = getItemProgress(currentState, currentItem.id)
-  const progressAddon = buildItemProgressAddon({ currentItem, itemProgress })
+  const itemProgress = getItemProgress(currentState, currentItem.id);
+  const progressAddon = buildItemProgressAddon({ currentItem, itemProgress });
 
   const basePrompt = buildMainItemSystemPrompt({
     currentItem,
@@ -529,21 +728,25 @@ export async function runInvestigator(
     generalContext,
     history,
     message,
-    timeContextBlock: timeCtx?.prompt_block ? `=== REPÈRES TEMPORELS ===\n${timeCtx.prompt_block}\n` : "",
-  })
-  
+    timeContextBlock: timeCtx?.prompt_block
+      ? `=== REPÈRES TEMPORELS ===\n${timeCtx.prompt_block}\n`
+      : "",
+  });
+
   // Build additional addons for target exceeded habits and vital progression
-  const targetExceededAddon = buildTargetExceededAddon({ currentItem })
-  const vitalProgressionAddon = buildVitalProgressionAddon({ currentItem })
+  const targetExceededAddon = buildTargetExceededAddon({ currentItem });
+  const vitalProgressionAddon = buildVitalProgressionAddon({ currentItem });
 
   // Combine base prompt with addons
-  let systemPrompt = basePrompt
-  if (progressAddon) systemPrompt += `\n\n${progressAddon}`
-  if (deferAddon) systemPrompt += `\n\n${deferAddon}`
-  if (targetExceededAddon) systemPrompt += `\n\n${targetExceededAddon}`
-  if (vitalProgressionAddon) systemPrompt += `\n\n${vitalProgressionAddon}`
+  let systemPrompt = basePrompt;
+  if (progressAddon) systemPrompt += `\n\n${progressAddon}`;
+  if (deferAddon) systemPrompt += `\n\n${deferAddon}`;
+  if (targetExceededAddon) systemPrompt += `\n\n${targetExceededAddon}`;
+  if (vitalProgressionAddon) systemPrompt += `\n\n${vitalProgressionAddon}`;
 
-  console.log(`[Investigator] Generating response for item: ${currentItem.title}`)
+  console.log(
+    `[Investigator] Generating response for item: ${currentItem.title}`,
+  );
 
   const response = await generateWithGemini(
     systemPrompt,
@@ -559,7 +762,7 @@ export async function runInvestigator(
       source: "sophia-brain:investigator",
       forceRealAi: meta?.forceRealAi,
     },
-  )
+  );
 
   return await handleInvestigatorModelOutput({
     supabase,
@@ -571,5 +774,5 @@ export async function runInvestigator(
     response,
     systemPrompt,
     meta,
-  })
+  });
 }

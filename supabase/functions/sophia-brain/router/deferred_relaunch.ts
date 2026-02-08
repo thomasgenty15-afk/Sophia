@@ -570,7 +570,8 @@ function initializeMachineFromConsent(opts: {
 
     case "checkup": {
       (tempMemory as any).__checkup_entry_pending = true;
-      (tempMemory as any).__ask_checkup_confirmation = false; // Already got consent
+      // Consent already obtained for relaunch: ensure no redundant confirmation prompt.
+      delete (tempMemory as any).__ask_checkup_confirmation;
       nextMode = "investigator";
       break;
     }
