@@ -3,6 +3,11 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 import { normalizeScope } from "../state-manager.ts"
 import { getAnyActiveToolFlow, getActiveActivateActionFlow, getActivateActionFlowPhase, getActiveDeleteActionFlow, getDeleteActionFlowPhase, getActiveDeactivateActionFlow, getDeactivateActionFlowPhase } from "../supervisor.ts"
 import { buildActivateActionFlowAddon, buildDeleteActionFlowAddon, buildDeactivateActionFlowAddon } from "./architect/tool_flow_prompts.ts"
+import {
+  buildToolAckContract,
+  type ToolAckContract,
+  type ToolExecutionStatus,
+} from "../tool_ack.ts"
 
 // Public API (router/agent_exec.ts depends on these exports)
 export type { ArchitectModelOutput } from "./architect/types.ts"
@@ -27,7 +32,12 @@ export async function runArchitect(
   userState: any,
   context: string = "",
   meta?: { requestId?: string; evalRunId?: string | null; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string },
-): Promise<{ text: string; executed_tools: string[]; tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain" }> {
+): Promise<{
+  text: string
+  executed_tools: string[]
+  tool_execution: ToolExecutionStatus
+  tool_ack?: ToolAckContract
+}> {
   const lastAssistantMessage = history.filter((m: any) => m.role === "assistant").pop()?.content || ""
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
   const isModuleUi = String(context ?? "").includes("=== CONTEXTE MODULE (UI) ===")
@@ -140,9 +150,25 @@ export async function runArchitect(
 
     // If the framework couldn't be created (no active plan), be honest but still deliver the exercise.
     if (creationFailed) {
-      return { text: `${steps}\n\n(Je peux te le mettre dans ton plan dès que tu as un plan actif.)`, executed_tools: [], tool_execution: "none" }
+      return {
+        text: `${steps}\n\n(Je peux te le mettre dans ton plan dès que tu as un plan actif.)`,
+        executed_tools: [],
+        tool_execution: "none",
+        tool_ack: buildToolAckContract({
+          status: "none",
+          executedTools: [],
+        }),
+      }
     }
-    return { text: steps, executed_tools: ["create_framework"], tool_execution: creationDuplicate ? "uncertain" : "success" }
+    return {
+      text: steps,
+      executed_tools: ["create_framework"],
+      tool_execution: creationDuplicate ? "uncertain" : "success",
+      tool_ack: buildToolAckContract({
+        status: creationDuplicate ? "uncertain" : "success",
+        executedTools: ["create_framework"],
+      }),
+    }
   }
 
   const basePrompt = isWhatsApp ? `
@@ -450,7 +476,13 @@ export async function runArchitect(
 
   const response = await generateArchitectModelOutput({ systemPrompt, message, history, tools, meta })
   // NOTE: tool-call ledger is logged inside the tool handler (handleArchitectModelOutput) to avoid duplicate events.
-  return await handleArchitectModelOutput({ supabase, userId, message, history, response, context, meta, userState, scope })
+  const out = await handleArchitectModelOutput({ supabase, userId, message, history, response, context, meta, userState, scope })
+  return {
+    ...out,
+    tool_ack: out.tool_ack ?? buildToolAckContract({
+      status: out.tool_execution,
+      executedTools: out.executed_tools,
+    }),
+  }
 }
-
 

@@ -262,7 +262,6 @@ export async function runAgentAndVerify(opts: {
     const n = opts.nCandidates ?? 1
     if (n !== 3) return { ran: false, responseText: "" }
     if (!(targetMode === "companion" || targetMode === "architect" || targetMode === "librarian")) return { ran: false, responseText: "" }
-    if (targetMode === "sentry" || targetMode === "investigator") return { ran: false, responseText: "" }
 
     const lastAssistantMessage = (history ?? []).filter((m: any) => m?.role === "assistant").slice(-1)[0]?.content ?? ""
     const temps = targetMode === "librarian" ? [0.35, 0.5, 0.2] : [0.55, 0.75, 0.9]
@@ -387,6 +386,7 @@ export async function runAgentAndVerify(opts: {
         const out = await handleCompanionModelOutput({
           supabase,
           userId,
+          scope,
           message: userMessage,
           response: { tool: chosen.tool, args: chosen.args } as any,
           meta: { ...(meta ?? {}), model: sophiaChatModel },
@@ -935,7 +935,7 @@ export async function runAgentAndVerify(opts: {
           last_assistant_message: lastAssistantMessage,
           history_len: Array.isArray(history) ? history.length : 0,
           now_iso: new Date().toISOString(),
-          context_used: (context ?? "").toString().slice(0, 6000),
+          context_excerpt: (context ?? "").toString().slice(0, 6000),
           recent_history: recentHistory,
           tools_available,
           tools_executed: executedTools.length > 0,

@@ -32,6 +32,11 @@ import { generateWithGemini } from "../../../_shared/gemini.ts"
 import { handleTracking } from "../../lib/tracking.ts"
 import { logToolLedgerEvent } from "../../lib/tool_ledger.ts"
 import { logEdgeFunctionError } from "../../../_shared/error-log.ts"
+import {
+  buildToolAckContract,
+  type ToolAckContract,
+  type ToolExecutionStatus,
+} from "../../tool_ack.ts"
 
 import type { ArchitectModelOutput } from "./types.ts"
 import { defaultArchitectModelForRequestId } from "./model.ts"
@@ -197,7 +202,12 @@ export async function handleArchitectModelOutput(opts: {
   meta?: { requestId?: string; evalRunId?: string | null; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string }
   userState?: any
   scope?: string
-}): Promise<{ text: string; executed_tools: string[]; tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain" }> {
+}): Promise<{
+  text: string
+  executed_tools: string[]
+  tool_execution: ToolExecutionStatus
+  tool_ack?: ToolAckContract
+}> {
   const { supabase, userId, message, response, meta } = opts
   const scope = normalizeScope(opts.scope ?? meta?.scope ?? (meta?.channel === "whatsapp" ? "whatsapp" : "web"), "web")
   const tm0 = ((opts.userState as any)?.temp_memory ?? {}) as any
@@ -206,6 +216,53 @@ export async function handleArchitectModelOutput(opts: {
   // Some "awaiting consent" or edge-case stages are stored as a minimal marker in temp_memory.__update_flow_stage.
   // This is separate from supervisor toolflows (currentFlow) and must be checked explicitly.
   const stageFlow = (tm0 as any)?.__update_flow_stage ?? null
+  const requestId = String(meta?.requestId ?? "").trim()
+  const requestStartedAt = Date.now()
+  const defaultToolName = typeof response === "object"
+    ? String((response as any)?.tool ?? "").trim() || undefined
+    : undefined
+  const trace = async (evt: {
+    event: "tool_call_attempted" | "tool_call_blocked" | "tool_call_succeeded" | "tool_call_failed"
+    level?: "debug" | "info" | "warn" | "error"
+    toolName?: string
+    toolArgs?: any
+    toolResult?: any
+    error?: unknown
+    latencyMs?: number
+    metadata?: any
+  }) => {
+    if (!requestId) return
+    await logToolLedgerEvent({
+      supabase,
+      requestId,
+      evalRunId: meta?.evalRunId ?? null,
+      userId,
+      source: "sophia-brain:architect",
+      event: evt.event,
+      level: evt.level ??
+        (evt.event === "tool_call_failed"
+          ? "error"
+          : (evt.event === "tool_call_blocked" ? "warn" : "info")),
+      toolName: evt.toolName ?? defaultToolName,
+      toolArgs: evt.toolArgs ?? ((response as any)?.args),
+      toolResult: evt.toolResult,
+      error: evt.error,
+      latencyMs: Number.isFinite(Number(evt.latencyMs))
+        ? Math.max(0, Math.floor(Number(evt.latencyMs)))
+        : (Date.now() - requestStartedAt),
+      metadata: {
+        channel: meta?.channel ?? null,
+        scope,
+        flow: currentFlow
+          ? {
+            kind: (currentFlow as any)?.kind ?? null,
+            stage: (currentFlow as any)?.stage ?? null,
+          }
+          : null,
+        ...(evt.metadata ?? {}),
+      },
+    })
+  }
 
   function markFlowJustClosed(tempMemory: any, flowType: "create_action_flow" | "update_action_flow" | "breakdown_action_flow") {
     return {
@@ -509,7 +566,7 @@ FORMAT :
         await logCreateActionFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: "flow_abandoned",
           candidate: flowResult.candidate!,
@@ -530,7 +587,7 @@ FORMAT :
         await logCreateActionFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: "flow_completed",
           candidate: flowResult.candidate!,
@@ -548,7 +605,7 @@ FORMAT :
         await logCreateActionFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: eventType,
           candidate: flowResult.candidate!,
@@ -589,7 +646,7 @@ FORMAT :
         await logUpdateActionFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: "flow_abandoned",
           candidate: flowResult.candidate!,
@@ -668,7 +725,7 @@ FORMAT :
             await logUpdateActionFlowEvent({
               supabase,
               requestId: meta?.requestId,
-              evalRunId: meta?.evalRunId,
+              evalRunId: meta?.evalRunId ?? undefined,
               userId,
               event: "flow_abandoned",
               candidate: flowResult.candidate!,
@@ -689,7 +746,7 @@ FORMAT :
             await logUpdateActionFlowEvent({
               supabase,
               requestId: meta?.requestId,
-              evalRunId: meta?.evalRunId,
+              evalRunId: meta?.evalRunId ?? undefined,
               userId,
               event: "flow_abandoned",
               candidate: flowResult.candidate!,
@@ -709,7 +766,7 @@ FORMAT :
           await logUpdateActionFlowEvent({
             supabase,
             requestId: meta?.requestId,
-            evalRunId: meta?.evalRunId,
+            evalRunId: meta?.evalRunId ?? undefined,
             userId,
             event: "flow_completed",
             candidate: flowResult.candidate!,
@@ -726,7 +783,7 @@ FORMAT :
           await logUpdateActionFlowEvent({
             supabase,
             requestId: meta?.requestId,
-            evalRunId: meta?.evalRunId,
+            evalRunId: meta?.evalRunId ?? undefined,
             userId,
             event: "flow_abandoned",
             candidate: flowResult.candidate!,
@@ -749,7 +806,7 @@ FORMAT :
         await logUpdateActionFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: eventType,
           candidate: flowResult.candidate!,
@@ -784,7 +841,7 @@ FORMAT :
         await logBreakdownFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: "target_collected",
           candidate: updated,
@@ -840,7 +897,7 @@ FORMAT :
             await logBreakdownFlowEvent({
               supabase,
               requestId: meta?.requestId,
-              evalRunId: meta?.evalRunId,
+              evalRunId: meta?.evalRunId ?? undefined,
               userId,
               event: "clarification_asked",
               candidate: updated,
@@ -898,7 +955,7 @@ FORMAT :
           await logBreakdownFlowEvent({
             supabase,
             requestId: meta?.requestId,
-            evalRunId: meta?.evalRunId,
+            evalRunId: meta?.evalRunId ?? undefined,
             userId,
             event: "preview_shown",
             candidate: updated,
@@ -950,7 +1007,7 @@ FORMAT :
         await logBreakdownFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: "flow_abandoned",
           candidate: flowResult.candidate,
@@ -991,7 +1048,7 @@ FORMAT :
           await logBreakdownFlowEvent({
             supabase,
             requestId: meta?.requestId,
-            evalRunId: meta?.evalRunId,
+            evalRunId: meta?.evalRunId ?? undefined,
             userId,
             event: "flow_completed",
             candidate: flowResult.candidate,
@@ -1021,7 +1078,7 @@ FORMAT :
         await logBreakdownFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: "clarification_asked",
           candidate: flowResult.candidate,
@@ -1740,43 +1797,11 @@ FORMAT :
 
   if (typeof response === "object") {
     const toolName = String((response as any).tool ?? "").trim()
-    const requestId = String(meta?.requestId ?? "").trim()
-    const tAttempt0 = Date.now()
-    const trace = async (evt: {
-      event: "tool_call_attempted" | "tool_call_blocked" | "tool_call_succeeded" | "tool_call_failed"
-      level?: "debug" | "info" | "warn" | "error"
-      toolArgs?: any
-      toolResult?: any
-      error?: unknown
-      metadata?: any
-    }) => {
-      if (!requestId) return
-      await logToolLedgerEvent({
-        supabase,
-        requestId,
-        evalRunId: meta?.evalRunId ?? null,
-        userId,
-        source: "sophia-brain:architect",
-        event: evt.event,
-        level: evt.level ?? (evt.event === "tool_call_failed" ? "error" : (evt.event === "tool_call_blocked" ? "warn" : "info")),
-        toolName,
-        toolArgs: evt.toolArgs ?? (response as any).args,
-        toolResult: evt.toolResult,
-        error: evt.error,
-        latencyMs: Date.now() - tAttempt0,
-        metadata: {
-          channel: meta?.channel ?? null,
-          scope,
-          flow: currentFlow ? { kind: (currentFlow as any)?.kind ?? null, stage: (currentFlow as any)?.stage ?? null } : null,
-          ...(evt.metadata ?? {}),
-        },
-      })
-    }
     try {
       console.log(`[Architect] 🛠️ Tool Call: ${toolName}`)
       console.log(`[Architect] Args:`, JSON.stringify((response as any).args))
 
-      await trace({ event: "tool_call_attempted", level: "debug" })
+      await trace({ event: "tool_call_attempted", level: "debug", toolName })
 
       if (toolName === "track_progress") {
         const flowAwaiting =
@@ -1915,7 +1940,7 @@ FORMAT :
               await logBreakdownFlowEvent({
           supabase,
                 requestId: meta?.requestId,
-                evalRunId: meta?.evalRunId,
+                evalRunId: meta?.evalRunId ?? undefined,
           userId,
                 event: "clarification_asked",
                 candidate: updatedCandidate,
@@ -1973,7 +1998,7 @@ FORMAT :
             await logBreakdownFlowEvent({
               supabase,
               requestId: meta?.requestId,
-              evalRunId: meta?.evalRunId,
+              evalRunId: meta?.evalRunId ?? undefined,
               userId,
               event: "preview_shown",
               candidate: updatedCandidate,
@@ -2002,7 +2027,7 @@ FORMAT :
         await logBreakdownFlowEvent({
           supabase,
           requestId: meta?.requestId,
-          evalRunId: meta?.evalRunId,
+          evalRunId: meta?.evalRunId ?? undefined,
           userId,
           event: "flow_started",
           candidate,
@@ -2121,7 +2146,7 @@ FORMAT :
           await logUpdateActionFlowEvent({
             supabase,
             requestId: meta?.requestId,
-            evalRunId: meta?.evalRunId,
+            evalRunId: meta?.evalRunId ?? undefined,
             userId,
             event: "flow_started",
             candidate: updateCandidate,
@@ -2129,7 +2154,7 @@ FORMAT :
           await logUpdateActionFlowEvent({
             supabase,
             requestId: meta?.requestId,
-            evalRunId: meta?.evalRunId,
+            evalRunId: meta?.evalRunId ?? undefined,
             userId,
             event: "preview_shown",
             candidate: updateCandidate,
@@ -2576,7 +2601,7 @@ STYLE :
           await logCreateActionFlowEvent({
             supabase,
             requestId: meta?.requestId,
-            evalRunId: meta?.evalRunId,
+            evalRunId: meta?.evalRunId ?? undefined,
             userId,
             event: "flow_started",
             candidate,
@@ -2584,7 +2609,7 @@ STYLE :
           await logCreateActionFlowEvent({
             supabase,
             requestId: meta?.requestId,
-            evalRunId: meta?.evalRunId,
+            evalRunId: meta?.evalRunId ?? undefined,
             userId,
             event: "preview_shown",
             candidate,

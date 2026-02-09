@@ -38,7 +38,6 @@ import {
   shouldBypassCheckupLockForDeepWork,
 } from "./classifiers.ts";
 import {
-  type DeferredMachineType,
   type DispatcherOutputV2,
   type DispatcherSignals,
   type NewSignalEntry,
@@ -3220,7 +3219,10 @@ export async function processMessage(
     let summary = "";
     let actionTarget: string | undefined = currentItemTitle;
 
-    if (machineSignals.breakdown_recommended && missedStreak >= 5) {
+    if (
+      machineSignals.breakdown_recommended &&
+      (flowContext?.missedStreak ?? 0) >= 5
+    ) {
       machineType = "breakdown_action";
       summary = currentItemTitle
         ? `Micro-etape pour ${currentItemTitle}`
@@ -4603,7 +4605,10 @@ export async function processMessage(
     // Track progress consent: user said YES/NO (detected by LLM)
     if (
       isTrackProgressConsent &&
-      tpMachineSignals?.user_confirms_tracking === true
+      (
+        (tpMachineSignals as any)?.user_confirms_tracking === true ||
+        tpMachineSignals?.user_confirms_change === "yes"
+      )
     ) {
       (tempMemory as any).__track_progress_confirmed = true;
       await traceV("brain:track_progress_consent", "routing", {
@@ -4613,7 +4618,10 @@ export async function processMessage(
     }
     if (
       isTrackProgressConsent &&
-      tpMachineSignals?.user_confirms_tracking === false
+      (
+        (tpMachineSignals as any)?.user_confirms_tracking === false ||
+        tpMachineSignals?.user_confirms_change === "no"
+      )
     ) {
       (tempMemory as any).__track_progress_declined = true;
       await traceV("brain:track_progress_consent", "routing", {
