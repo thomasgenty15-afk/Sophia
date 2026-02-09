@@ -563,6 +563,7 @@ import {
 } from "../supervisor.ts";
 import {
   clearDeferredPause,
+  type DeferredMachineType,
   type DeferredTopicV2,
   // Deferred Topics V2
   deferSignal,
@@ -598,6 +599,7 @@ import {
   getPendingRelaunchConsent,
   processRelaunchConsentResponse,
 } from "./deferred_relaunch.ts";
+import { buildToolAckContract } from "../tool_ack.ts";
 import { buildRelaunchConsentAgentAddon } from "./relaunch_consent_addons.ts";
 import { buildResumeFromSafetyAddon } from "./resume_from_safety_addons.ts";
 import {
@@ -7141,10 +7143,23 @@ Réponds uniquement avec la transition:`;
   const agentExecutedTools = Array.isArray(agentOut.executedTools)
     ? agentOut.executedTools
     : [];
+  const agentToolAck = agentOut.toolAck ?? buildToolAckContract({
+    status: agentToolExecution,
+    executedTools: agentExecutedTools,
+  });
   if (agentOut.tempMemory) {
     tempMemory = agentOut.tempMemory;
   }
   (tempMemory as any).__router_turn_counter = routerTurnCounter;
+  await trace("tool_ack", "agent", {
+    version: agentToolAck.version,
+    status: agentToolAck.status,
+    attempted: agentToolAck.attempted,
+    success_confirmed: agentToolAck.success_confirmed,
+    allow_success_claim: agentToolAck.allow_success_claim,
+    tool_name: agentToolAck.tool_name,
+    executed_tools: agentToolAck.executed_tools.slice(0, 3),
+  }, agentToolAck.success_confirmed ? "info" : "debug");
   await trace("brain:agent_done", "agent", {
     target_mode: targetMode,
     next_mode: nextMode,
@@ -7696,13 +7711,12 @@ Réponds uniquement avec la transition:`;
         ? Math.max(0, Number(prevGuard.repeat_count ?? 0)) + 1
         : 1)
       : 0;
-    const nonSuccessfulTool = agentToolExecution !== "success";
     const inToolSensitiveContext =
       agentExecutedTools.length > 0 ||
       toolFlowActiveGlobal ||
       targetMode === "architect";
     const falseSuccessClaim =
-      nonSuccessfulTool &&
+      !agentToolAck.allow_success_claim &&
       looksLikeActionAppliedClaim(String(responseContent ?? "")) &&
       inToolSensitiveContext;
 
@@ -7788,6 +7802,8 @@ ${agentExecutedTools.slice(0, 5).join(", ")}
         false_success_claim: falseSuccessClaim,
         target_mode: targetMode,
         tool_execution: agentToolExecution,
+        tool_ack_status: agentToolAck.status,
+        tool_ack_success_confirmed: agentToolAck.success_confirmed,
         executed_tools: agentExecutedTools.slice(0, 3),
       }, "warn");
     }

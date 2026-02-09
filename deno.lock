@@ -3,8 +3,10 @@
   "specifiers": {
     "jsr:@std/assert@1": "1.0.16",
     "jsr:@std/internal@^1.0.12": "1.0.12",
+    "jsr:@supabase/functions-js@*": "2.87.3",
     "jsr:@supabase/functions-js@^0.0.0-automated": "0.0.0-jsr-test.1",
     "jsr:@supabase/supabase-js@2": "2.87.3",
+    "jsr:@supabase/supabase-js@2.87.3": "2.87.3",
     "npm:supabase@^2.67.1": "2.75.3"
   },
   "jsr": {
@@ -20,10 +22,13 @@
     "@supabase/functions-js@0.0.0-jsr-test.1": {
       "integrity": "b1b37924af1f0011b4753201e1585a37b030e996c6682492e02575eb27d902b2"
     },
+    "@supabase/functions-js@2.87.3": {
+      "integrity": "ca7b3f77fa2efcbf41ef13bdabca0aa6ec82e07e52c33d08eddc0a290fe7a40a"
+    },
     "@supabase/supabase-js@2.87.3": {
       "integrity": "da2c3f8df0ec52957159e1329a7269c260b6c4163e6c33ddfe2b0c3527884318",
       "dependencies": [
-        "jsr:@supabase/functions-js"
+        "jsr:@supabase/functions-js@^0.0.0-automated"
       ]
     }
   },

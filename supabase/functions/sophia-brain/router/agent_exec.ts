@@ -24,6 +24,11 @@ import { logEvalEvent } from "../../run-evals/lib/eval_trace.ts"
 import { logBrainTrace } from "../../_shared/brain-trace.ts"
 import { logVerifierEvalEvent } from "../lib/verifier_eval_log.ts"
 import { logToolLedgerEvent } from "../lib/tool_ledger.ts"
+import {
+  buildToolAckContract,
+  type ToolAckContract,
+  type ToolExecutionStatus,
+} from "../tool_ack.ts"
 
 export async function runAgentAndVerify(opts: {
   supabase: SupabaseClient
@@ -54,8 +59,9 @@ export async function runAgentAndVerify(opts: {
   responseContent: string
   nextMode: AgentMode
   tempMemory?: any
-  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain"
+  toolExecution: ToolExecutionStatus
   executedTools: string[]
+  toolAck: ToolAckContract
 }> {
   const {
     supabase,
@@ -80,7 +86,15 @@ export async function runAgentAndVerify(opts: {
   let tempMemory = opts.tempMemory ?? {}
   // Used by the global anti-claim verifier (outside bilan too).
   let executedTools: string[] = []
-  let toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain" = "none"
+  let toolExecution: ToolExecutionStatus = "none"
+  let explicitToolAck: ToolAckContract | null = null
+  const computeToolAck = (): ToolAckContract => {
+    if (explicitToolAck) return explicitToolAck
+    return buildToolAckContract({
+      status: toolExecution,
+      executedTools,
+    })
+  }
 
   const TRACE_VERBOSE =
     (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_BRAIN_TRACE_VERBOSE") ?? "") as string).trim() === "1"
@@ -165,6 +179,7 @@ export async function runAgentAndVerify(opts: {
         tempMemory,
         toolExecution,
         executedTools,
+        toolAck: computeToolAck(),
       }
     }
   }
@@ -708,6 +723,7 @@ export async function runAgentAndVerify(opts: {
           responseContent = out.text
           executedTools = out.executed_tools ?? []
           toolExecution = out.tool_execution ?? "uncertain"
+          explicitToolAck = (out as any)?.tool_ack ?? null
           await traceArchitectToolResultStatus({
             source: "router_run_architect",
             latencyMs: Date.now() - t0,
@@ -938,9 +954,6 @@ export async function runAgentAndVerify(opts: {
           context_excerpt: (context ?? "").toString().slice(0, 6000),
           recent_history: recentHistory,
           tools_available,
-          tools_executed: executedTools.length > 0,
-          executed_tools: executedTools,
-          tool_execution: toolExecution,
         },
         meta: {
           requestId: meta?.requestId,
@@ -1013,6 +1026,7 @@ export async function runAgentAndVerify(opts: {
           tempMemory,
           toolExecution,
           executedTools,
+          toolAck: computeToolAck(),
         }
       }
       const recentHistory = (history ?? []).slice(-15).map((m: any) => ({
@@ -1090,6 +1104,7 @@ export async function runAgentAndVerify(opts: {
           tempMemory,
           toolExecution,
           executedTools,
+          toolAck: computeToolAck(),
         }
       }
       await traceV("brain:verifier_start", "verifier", {
@@ -1169,5 +1184,6 @@ export async function runAgentAndVerify(opts: {
     tempMemory,
     toolExecution,
     executedTools,
+    toolAck: computeToolAck(),
   }
 }
