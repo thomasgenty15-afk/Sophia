@@ -16,7 +16,7 @@ import {
   type OnDemandTriggers,
 } from "../context/loader.ts";
 import { getContextProfile, getVectorResultsCount } from "../context/types.ts";
-import { runWatcher } from "../agents/watcher.ts";
+// NOTE: runWatcher is no longer called inline; it runs via the trigger-watcher-batch cron.
 import { normalizeChatText } from "../chat_text.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
 import { getEffectiveTierForUser } from "../../_shared/billing-tier.ts";
@@ -171,6 +171,52 @@ function detectShortBinaryReply(
   if (yes && !no) return "yes";
   if (no && !yes) return "no";
   return null;
+}
+
+function safeIsoMs(value: unknown): number {
+  const ms = Date.parse(String(value ?? ""));
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function normalizeRepeatGuardText(value: string): string {
+  return normalizeLoose(String(value ?? ""))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function repeatGuardSimilarity(aRaw: string, bRaw: string): number {
+  const a = normalizeRepeatGuardText(aRaw);
+  const b = normalizeRepeatGuardText(bRaw);
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  if (a.includes(b) || b.includes(a)) return 0.96;
+  const aTokens = a.split(" ").filter(Boolean);
+  const bTokens = b.split(" ").filter(Boolean);
+  if (aTokens.length === 0 || bTokens.length === 0) return 0;
+  const bSet = new Set(bTokens);
+  let overlap = 0;
+  for (const tok of aTokens) {
+    if (bSet.has(tok)) overlap++;
+  }
+  const precision = overlap / aTokens.length;
+  const recall = overlap / bTokens.length;
+  if (precision + recall === 0) return 0;
+  return (2 * precision * recall) / (precision + recall);
+}
+
+function looksLikeActionAppliedClaim(value: string): boolean {
+  const s = normalizeRepeatGuardText(value);
+  if (!s) return false;
+  if (/\btu\s+es\s+sur\b/.test(s)) return false;
+  if (/\best[-\s]?ce\s+que\b/.test(s)) return false;
+  const patterns = [
+    /\bc[' ]est\s+fait\b/,
+    /\bj[' ]ai\s+bien\s+note\b.*\b(accord|validation)\b/,
+    /\best\s+bien\s+(desactivee?|activee?|archivee?|supprimee?|retiree?|mise\s+en\s+pause)\b/,
+    /\b(action|habitude)\b.*\b(desactivee?|activee?|archivee?|supprimee?|retiree?|mise\s+en\s+pause)\b/,
+    /\btu\s+n[' ]auras\s+plus\s+de\s+rappels\b/,
+  ];
+  return patterns.some((re) => re.test(s));
 }
 
 function looksLikeSophiaSupportContactRequest(userMessage: string): boolean {
@@ -600,15 +646,8 @@ const ENABLE_TESTER_MAGIC_RESET =
 
 // Dispatcher v2 is now the only dispatcher
 
-// ═══════════════════════════════════════════════════════════════════════════════
-// HEAVY BACKGROUND JOB FLAGS (useful for tests / local CPU budget)
-// Defaults: enabled (set *_DISABLED=1 to skip)
-// ═══════════════════════════════════════════════════════════════════════════════
-const WATCHER_DISABLED =
-  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_WATCHER_DISABLED") ??
-      "") as string).trim() === "1" ||
-  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_VEILLEUR_DISABLED") ??
-      "") as string).trim() === "1";
+// NOTE: WATCHER_DISABLED removed — watcher now runs via trigger-watcher-batch cron,
+// which checks the env flag itself.
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIGNAL HISTORY: Storage and management in temp_memory
@@ -2123,18 +2162,10 @@ export async function processMessage(
     "Je te réponds dès que je peux, je dois gérer une urgence pour le moment.";
 
   // --- LOGIC VEILLEUR (Watcher) ---
+  // The watcher now runs via a dedicated cron (trigger-watcher-batch, every ~10 min).
+  // The router only increments the counter so the cron knows there are unprocessed messages.
   let msgCount = (state.unprocessed_msg_count || 0) + 1;
   let lastProcessed = state.last_processed_at || new Date().toISOString();
-
-  if (!WATCHER_DISABLED && msgCount >= 15 && !isEvalParkingLotTest) {
-    // Trigger watcher analysis (best effort).
-    // IMPORTANT: do NOT block the user response on watcher work (it can add significant wall-clock time).
-    runWatcher(supabase, userId, scope, lastProcessed, meta).catch((e) => {
-      console.error("[Router] watcher failed (non-blocking):", e);
-    });
-    msgCount = 0;
-    lastProcessed = new Date().toISOString();
-  }
   // ---------------------------------
 
   // NOTE: Relaunch consent handling moved to AFTER dispatcher (uses consent_to_relaunch signal)
@@ -7072,6 +7103,10 @@ Réponds uniquement avec la transition:`;
 
   responseContent = agentOut.responseContent;
   nextMode = agentOut.nextMode;
+  const agentToolExecution = agentOut.toolExecution ?? "none";
+  const agentExecutedTools = Array.isArray(agentOut.executedTools)
+    ? agentOut.executedTools
+    : [];
   if (agentOut.tempMemory) {
     tempMemory = agentOut.tempMemory;
   }
@@ -7500,12 +7535,26 @@ Réponds uniquement avec la transition:`;
     // Keep latestTm as base (preserve agent-written changes), but re-apply router-owned supervisor runtime.
     mergedTempMemory = { ...(latestTm ?? {}) };
     if (tempMemory && typeof tempMemory === "object") {
+      const latestSupervisorTs = safeIsoMs(
+        getSupervisorRuntime(latestTm).updated_at,
+      );
+      const routerSupervisorTs = safeIsoMs(
+        getSupervisorRuntime(tempMemory).updated_at,
+      );
+      // Only override supervisor/global_machine if router state is clearly newer.
+      // This prevents stale in-memory snapshots from rolling back toolflow phase transitions
+      // persisted by agent handlers mid-turn.
+      const shouldUseRouterSupervisor = routerSupervisorTs > latestSupervisorTs;
       if ((tempMemory as any).global_machine) {
-        (mergedTempMemory as any).global_machine =
-          (tempMemory as any).global_machine;
+        if (shouldUseRouterSupervisor) {
+          (mergedTempMemory as any).global_machine =
+            (tempMemory as any).global_machine;
+        }
       }
       if ((tempMemory as any).supervisor) {
-        (mergedTempMemory as any).supervisor = (tempMemory as any).supervisor;
+        if (shouldUseRouterSupervisor) {
+          (mergedTempMemory as any).supervisor = (tempMemory as any).supervisor;
+        }
       }
       if ((tempMemory as any).global_deferred_topics) {
         (mergedTempMemory as any).global_deferred_topics =
@@ -7594,6 +7643,113 @@ Réponds uniquement avec la transition:`;
         delete (mergedTempMemory as any)[key];
       } catch {}
     }
+  }
+
+  // Anti-repeat guard (conversation safety):
+  // If we are about to send a near-duplicate assistant reply in an active toolflow,
+  // force a rewritten response to avoid user-facing loops.
+  {
+    const REPEAT_GUARD_KEY = "__assistant_repeat_guard_v1";
+    const lastAssistantNorm = normalizeRepeatGuardText(lastAssistantMessage ?? "");
+    const draftNorm = normalizeRepeatGuardText(String(responseContent ?? ""));
+    const prevGuard = ((mergedTempMemory as any)?.[REPEAT_GUARD_KEY] ?? {}) as {
+      last_norm?: string;
+      repeat_count?: number;
+    };
+    const prevNorm = normalizeRepeatGuardText(String(prevGuard.last_norm ?? ""));
+    const similarity = repeatGuardSimilarity(draftNorm, lastAssistantNorm);
+    const nearDuplicate = draftNorm.length >= 24 && similarity >= 0.92;
+    const repeatCount = nearDuplicate
+      ? (prevNorm === draftNorm
+        ? Math.max(0, Number(prevGuard.repeat_count ?? 0)) + 1
+        : 1)
+      : 0;
+    const nonSuccessfulTool = agentToolExecution !== "success";
+    const falseSuccessClaim =
+      nonSuccessfulTool &&
+      looksLikeActionAppliedClaim(String(responseContent ?? "")) &&
+      (toolFlowActiveGlobal || targetMode === "architect");
+
+    const shouldRewriteForRepeat =
+      nearDuplicate &&
+      repeatCount >= 2 &&
+      targetMode !== "sentry" &&
+      targetMode !== "firefighter" &&
+      (agentToolExecution === "blocked" ||
+        (toolFlowActiveGlobal && targetMode === "architect"));
+    const shouldRewrite = shouldRewriteForRepeat || falseSuccessClaim;
+
+    if (shouldRewrite) {
+      let rewritten = "";
+      try {
+        const rewriteSystem = `
+Tu es Sophia (coach WhatsApp, français).
+Réécris la réponse assistant pour éviter une répétition de boucle.
+
+Contraintes STRICTES:
+- 1 à 2 phrases max.
+- Ton humain, direct, sans jargon.
+- Ne répète PAS la même question que le message précédent.
+- N'affirme pas qu'une action est faite si ce n'est pas explicitement confirmé.
+- Pas d'emojis obligatoires.
+`.trim();
+        const rewriteUser = `
+Message utilisateur:
+${String(userMessage ?? "").slice(0, 500)}
+
+Dernière réponse assistant (à éviter de répéter):
+${String(lastAssistantMessage ?? "").slice(0, 500)}
+
+Brouillon actuel:
+${String(responseContent ?? "").slice(0, 500)}
+`.trim();
+        const rewriteOut = await generateWithGemini(
+          rewriteSystem,
+          rewriteUser,
+          0.35,
+          false,
+          [],
+          "auto",
+          {
+            requestId: meta?.requestId,
+            model: selectedChatModel,
+            source: "sophia-brain:repeat_guard_rewrite",
+            forceRealAi: meta?.forceRealAi,
+            maxRetries: 1,
+            httpTimeoutMs: 10_000,
+          } as any,
+        );
+        if (typeof rewriteOut === "string") {
+          rewritten = normalizeChatText(rewriteOut).trim();
+        }
+      } catch (e) {
+        console.warn("[Router] repeat-guard rewrite failed (non-blocking):", e);
+      }
+      if (!rewritten) {
+        rewritten =
+          "Je t'entends. Je ne vais pas te reposer la même question: j'ai bien noté ton accord et je continue.";
+      }
+      responseContent = rewritten;
+      await trace("brain:repeat_guard_applied", "routing", {
+        reason: shouldRewriteForRepeat
+          ? "near_duplicate_assistant_reply"
+          : "non_success_tool_false_success_claim",
+        similarity,
+        repeat_count: repeatCount,
+        false_success_claim: falseSuccessClaim,
+        target_mode: targetMode,
+        tool_execution: agentToolExecution,
+        executed_tools: agentExecutedTools.slice(0, 3),
+      }, "warn");
+    }
+
+    const finalNorm = normalizeRepeatGuardText(String(responseContent ?? ""));
+    (mergedTempMemory as any)[REPEAT_GUARD_KEY] = {
+      last_norm: finalNorm.slice(0, 320),
+      repeat_count: shouldRewrite ? 0 : repeatCount,
+      similarity_to_last_assistant: Number(similarity.toFixed(3)),
+      updated_at: new Date().toISOString(),
+    };
   }
 
   const machineStateFinal = getMachineStateSnapshot(

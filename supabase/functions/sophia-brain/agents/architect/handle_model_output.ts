@@ -48,6 +48,8 @@ import {
   looksLikeExplicitTrackProgressRequest,
   looksLikeExplicitUpdateActionRequest,
   looksLikeExploringActionIdea,
+  looksLikeNoToProceed,
+  looksLikeYesToProceed,
   looksLikeUserAsksToAddToPlanLoosely,
   parseQuotedActionTitle,
 } from "./consent.ts"
@@ -339,7 +341,7 @@ export async function handleArchitectModelOutput(opts: {
                   title: titleNeedle,
                   description: description ?? null,
                   type: type || "habit",
-                  target_reps: Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1,
+                  target_reps: (() => { const r = Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1; const t = String(type || "habit").toLowerCase(); return (t === "habit" || t === "habitude") ? Math.max(1, Math.min(7, r)) : r; })(),
                   time_of_day: normalizedTod || "any_time",
                   status: "active",
                   tracking_type: "boolean",
@@ -389,7 +391,7 @@ export async function handleArchitectModelOutput(opts: {
       title: finalTitle,
       description,
       type: type || "habit",
-      target_reps: Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1,
+      target_reps: (() => { const r = Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1; const t = String(type || "habit").toLowerCase(); return (t === "habit" || t === "habitude") ? Math.max(1, Math.min(7, r)) : r; })(),
       status: "active",
       tracking_type: "boolean",
       time_of_day: normalizedTod || "any_time",
@@ -2394,9 +2396,34 @@ FORMAT :
         const args = (response as any).args ?? {}
         const askedTitle = String(args?.action_title_or_id ?? "").trim()
         const deactivateTarget = (deactivateSession?.meta as any)?.target_action
+        const yesInConfirming = deactivatePhase === "confirming" &&
+          looksLikeYesToProceed(message) &&
+          !looksLikeNoToProceed(message)
+        const noInConfirming = deactivatePhase === "confirming" &&
+          looksLikeNoToProceed(message) &&
+          !looksLikeYesToProceed(message)
+
+        if (noInConfirming) {
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "abandoned" })
+            tmClean = closed.tempMemory
+            delete tmClean.__deactivate_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          await trace({ event: "tool_call_blocked", metadata: { reason: "user_declined_deactivation", phase: "confirming" } })
+          return {
+            text: `Ok, je laisse "${deactivateTarget || askedTitle || "cette action"}" active. Dis-moi si tu veux autre chose.`,
+            executed_tools: [toolName],
+            tool_execution: "blocked",
+          }
+        }
 
         // Case 1: Machine already confirmed (user said yes, detected by dispatcher LLM)
-        if (deactivatePhase === "deactivated") {
+        // Fallback: if we're still in confirming phase but user clearly says YES,
+        // proceed directly to avoid consent loops caused by stale phase propagation.
+        if (deactivatePhase === "deactivated" || yesInConfirming) {
           const titleToDeactivate = askedTitle || deactivateTarget || "cette action"
           const deactivateResult = await handleDeactivateAction(supabase, userId, {
             ...args,
@@ -2643,7 +2670,7 @@ STYLE :
                       title: titleNeedle,
                       description: description ?? null,
                       type: type || "habit",
-                      target_reps: Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1,
+                      target_reps: (() => { const r = Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1; const t = String(type || "habit").toLowerCase(); return (t === "habit" || t === "habitude") ? Math.max(1, Math.min(7, r)) : r; })(),
                       time_of_day: normalizedTod || "any_time",
                       status: "active",
                       tracking_type: "boolean",
@@ -2694,7 +2721,7 @@ STYLE :
           title: finalTitle,
           description,
           type: type || "habit",
-          target_reps: Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1,
+          target_reps: (() => { const r = Number.isFinite(Number(targetReps)) ? Number(targetReps) : 1; const t = String(type || "habit").toLowerCase(); return (t === "habit" || t === "habitude") ? Math.max(1, Math.min(7, r)) : r; })(),
           status: "active",
           tracking_type: "boolean",
           time_of_day: normalizedTod || "any_time",

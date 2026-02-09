@@ -173,6 +173,7 @@ export async function runArchitect(
     RÈGLES CRITIQUES :
     - N'invente jamais un changement ("j'ai activé/créé") sans preuve (outil + succès).
     - Distingue active vs pending quand tu parles d'actions.
+    - ACTIONS COMPLETED : ne parle JAMAIS d'une action "completed" sauf si l'utilisateur en parle en premier.
     - Si le contexte contient ARCHITECT_LOOP_GUARD, tu obéis.
 
     DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 120)}..."
@@ -250,9 +251,11 @@ export async function runArchitect(
     - Quand tu parles d'actions/exercices du plan, distingue toujours :
       - "active" = à faire maintenant (priorité)
       - "pending" = plus tard / pas encore lancé
+      - "completed" = terminée (mission accomplie)
     - Si l'utilisateur demande "quoi faire" ou "par quoi commencer" : répond d'abord avec les actions "active".
     - Tu peux mentionner une action "pending" UNIQUEMENT en la présentant explicitement comme "plus tard".
     - Ne fais jamais croire qu'une action est active si elle est pending.
+    - ACTIONS COMPLETED : NE PARLE JAMAIS d'une action "completed" de toi-même. Tu n'y fais référence QUE si l'utilisateur en parle en premier.
 
     DIRECTIVE FLOW (IMPORTANT) :
     - INTERDICTION: après avoir lancé un protocole/phase OU validé un score (motivation), ne pose JAMAIS une question générique

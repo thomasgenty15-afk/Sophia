@@ -182,7 +182,9 @@ export const distributePlanActions = async (
         // Handle targetReps logic cleanly
         let targetReps = null;
         if (dbType === 'habit') {
-            targetReps = typeof action.targetReps === 'number' ? action.targetReps : 1;
+            // Habits: weekly frequency capped at 7 (generation caps at 6, increase_week_target allows up to 7)
+            const raw = typeof action.targetReps === 'number' ? action.targetReps : 1;
+            targetReps = Math.max(1, Math.min(7, raw));
         } else {
             // Missions usually default to 1, but let's be explicit. Null means N/A? No, for mission it is usually 1.
             targetReps = 1;

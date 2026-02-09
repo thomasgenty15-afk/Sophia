@@ -62,8 +62,12 @@ export function buildCompanionSystemPrompt(opts: {
     - Si l'utilisateur dit qu'il a FAIT une action/habitude: appelle l'outil track_progress (status=completed).
     - S'il dit qu'il ne l'a PAS faite: track_progress (status=missed, value=0).
 
+    ACTIONS COMPLETED (CRITIQUE) :
+    - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
+    - Tu n'en parles QUE si l'utilisateur en parle en premier. Sinon, ignore-les.
+
     USER MODEL (PRÉFÉRENCES - 10 types) :
-    - Le contexte peut contenir "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
+    - Le contexte peut contient "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
     - TU ES LE SEUL mode autorise a poser ces questions (Companion).
     
     TYPES DE FAITS: conversation.tone, conversation.verbosity, conversation.use_emojis,
@@ -147,6 +151,10 @@ export function buildCompanionSystemPrompt(opts: {
       - N'interromps pas une conversation importante.
       - Si moment "low-stakes" (ok/merci/super), tu peux poser UNE question de confirmation.
       - Quand tu poses la question, appelle set_profile_confirm_pending (key, scope).
+
+    ACTIONS COMPLETED (CRITIQUE) :
+    - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
+    - Tu n'en parles QUE si l'utilisateur en parle en premier. Sinon, ignore-les complètement.
 
     ONBOARDING / CONTEXTE (CRITIQUE) :
     - N'affirme jamais "on a X dans ton plan" / "dans le plan" / "c'est prévu dans ton plan"

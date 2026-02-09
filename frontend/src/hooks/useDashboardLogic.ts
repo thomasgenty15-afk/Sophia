@@ -739,6 +739,10 @@ export const useDashboardLogic = ({
             // UI action type is in French ('habitude'); DB expects 'habit'
             if (newAction.type === 'habitude') dbType = 'habit';
     
+            const rawReps = newAction.targetReps || 1;
+            // Habits: weekly frequency capped at 7
+            const safeReps = dbType === 'habit' ? Math.max(1, Math.min(7, rawReps)) : rawReps;
+
             await supabase.from('user_actions').insert({
                  user_id: user.id,
                  plan_id: activePlanId,
@@ -746,7 +750,7 @@ export const useDashboardLogic = ({
                  type: dbType,
                  title: newAction.title,
                  description: newAction.description,
-                 target_reps: newAction.targetReps || 1,
+                 target_reps: safeReps,
                  current_reps: 0,
                  status: 'active'
             });

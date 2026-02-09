@@ -50,7 +50,13 @@ export async function runAgentAndVerify(opts: {
     payload: Record<string, unknown>
     level: "debug" | "info" | "warn" | "error"
   }) => Promise<void> | void
-}): Promise<{ responseContent: string; nextMode: AgentMode; tempMemory?: any }> {
+}): Promise<{
+  responseContent: string
+  nextMode: AgentMode
+  tempMemory?: any
+  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain"
+  executedTools: string[]
+}> {
   const {
     supabase,
     userId,
@@ -153,7 +159,13 @@ export async function runAgentAndVerify(opts: {
         meta as any,
       )
       nextMode = "companion"
-      return { responseContent, nextMode, tempMemory }
+      return {
+        responseContent,
+        nextMode,
+        tempMemory,
+        toolExecution,
+        executedTools,
+      }
     }
   }
 
@@ -681,12 +693,15 @@ export async function runAgentAndVerify(opts: {
       try {
         if (!responseContent) {
           const t0 = Date.now()
+          const stateForArchitect = (tempMemory && typeof tempMemory === "object")
+            ? { ...(state ?? {}), temp_memory: tempMemory }
+            : state
           const out = await runArchitect(
           supabase,
           userId,
           userMessage,
           history,
-          state,
+          stateForArchitect,
           context,
           { ...(meta ?? {}), model: sophiaChatModel, scope },
           )
@@ -991,7 +1006,15 @@ export async function runAgentAndVerify(opts: {
   // --- BILAN VERIFIER (global) ---
   if (checkupActive && !stopCheckup && targetMode !== "sentry" && targetMode !== "investigator") {
     try {
-      if (targetMode === "watcher") return { responseContent, nextMode, tempMemory }
+      if (targetMode === "watcher") {
+        return {
+          responseContent,
+          nextMode,
+          tempMemory,
+          toolExecution,
+          executedTools,
+        }
+      }
       const recentHistory = (history ?? []).slice(-15).map((m: any) => ({
         role: m?.role,
         content: m?.content,
@@ -1060,7 +1083,15 @@ export async function runAgentAndVerify(opts: {
   // --- POST-CHECKUP VERIFIER ---
   if (isPostCheckup && targetMode !== "sentry") {
     try {
-      if (targetMode === "watcher") return { responseContent, nextMode, tempMemory }
+      if (targetMode === "watcher") {
+        return {
+          responseContent,
+          nextMode,
+          tempMemory,
+          toolExecution,
+          executedTools,
+        }
+      }
       await traceV("brain:verifier_start", "verifier", {
         verifier_kind: "verifier_1:post_checkup",
         agent: targetMode,
@@ -1132,5 +1163,11 @@ export async function runAgentAndVerify(opts: {
     tool_execution: toolExecution,
   }, "debug")
 
-  return { responseContent, nextMode, tempMemory }
+  return {
+    responseContent,
+    nextMode,
+    tempMemory,
+    toolExecution,
+    executedTools,
+  }
 }

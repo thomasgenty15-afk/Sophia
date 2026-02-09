@@ -80,28 +80,24 @@ export async function handleActivateAction(
     // IMPORTANT:
     // - previous phase may include frameworks (stored in user_framework_tracking, not user_actions)
     // - titles may differ slightly (case/whitespace), so we match on normalized titles
-    // - statuses: treat active/pending as "activated"; ignore archived
+    // - statuses: treat active/pending as "activated"; deleted rows no longer exist
     const [{ data: dbActions }, { data: dbFrameworks }] = await Promise.all([
       supabase
         .from("user_actions")
         .select("title, status")
-        .eq("plan_id", plan.id)
-        .neq("status", "archived"),
+        .eq("plan_id", plan.id),
       supabase
         .from("user_framework_tracking")
         .select("title, status")
-        .eq("plan_id", plan.id)
-        .neq("status", "archived"),
+        .eq("plan_id", plan.id),
     ])
 
     const activatedTitleSet = new Set<string>()
     for (const row of (dbActions ?? [])) {
-      const st = String((row as any)?.status ?? "")
-      if (st && st !== "archived") activatedTitleSet.add(normalizeTitle((row as any)?.title))
+      activatedTitleSet.add(normalizeTitle((row as any)?.title))
     }
     for (const row of (dbFrameworks ?? [])) {
-      const st = String((row as any)?.status ?? "")
-      if (st && st !== "archived") activatedTitleSet.add(normalizeTitle((row as any)?.title))
+      activatedTitleSet.add(normalizeTitle((row as any)?.title))
     }
 
     const missingTitles = prevPhaseTitles.filter((t) => !activatedTitleSet.has(normalizeTitle(t)))
@@ -200,14 +196,19 @@ export async function handleActivateAction(
       last_performed_at: null,
     })
   } else {
+    const rawType = targetAction.type || "mission"
+    const rawReps = Number(targetAction.targetReps) || 1
+    // Habits: weekly frequency capped at 7
+    const safeReps = (rawType === "habit" || rawType === "habitude") ? Math.max(1, Math.min(7, rawReps)) : rawReps
+
     await supabase.from("user_actions").insert({
       user_id: userId,
       plan_id: plan.id,
       submission_id: plan.submission_id,
       title: targetAction.title,
       description: targetAction.description,
-      type: targetAction.type || "mission",
-      target_reps: targetAction.targetReps || 1,
+      type: rawType,
+      target_reps: safeReps,
       status: "active",
       tracking_type: targetAction.tracking_type || "boolean",
       time_of_day: targetAction.time_of_day || "any_time",
@@ -297,9 +298,6 @@ export async function handleDeactivateAction(
     if (st === "pending") {
       return `"${(action as any).title}" est déjà en pause (status pending).`
     }
-    if (st === "archived") {
-      return `"${(action as any).title}" a été supprimée. Tu veux la réactiver ?`
-    }
     await supabase.from("user_actions").update({ status: "pending" }).eq("id", (action as any).id)
     return `C'est fait. J'ai mis en pause "${(action as any).title}". Tu pourras la réactiver quand tu veux.`
   }
@@ -351,9 +349,6 @@ export async function handleDeactivateAction(
     if (st === "pending") {
       return `"${(fw as any).title}" est déjà en pause (status pending).`
     }
-    if (st === "archived") {
-      return `"${(fw as any).title}" a été supprimé. Tu veux le réactiver ?`
-    }
     await supabase.from("user_framework_tracking").update({ status: "pending" }).eq("id", (fw as any).id)
     return `C'est fait. J'ai mis en pause "${(fw as any).title}". Tu pourras le réactiver quand tu veux.`
   }
@@ -369,8 +364,29 @@ export async function handleArchiveAction(
   const { action_title_or_id } = args
   const searchTerm = (action_title_or_id || "").trim().toLowerCase()
 
-  const plan = await getActivePlanForUser(supabase, userId)
-  if (!plan) return "Je ne trouve pas de plan actif pour effectuer cette suppression."
+  // Fetch plan with content so we can also remove the action from the plan JSON
+  const { data: plan, error: planError } = await supabase
+    .from("user_plans")
+    .select("id, submission_id, content")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .single()
+
+  if (planError || !plan) return "Je ne trouve pas de plan actif pour effectuer cette suppression."
+
+  // Helper: remove action from plan JSON phases by title (case-insensitive)
+  const removeFromPlanJson = async (title: string) => {
+    if (!plan.content?.phases) return
+    const normalizedTitle = title.toLowerCase().trim()
+    const updatedPhases = plan.content.phases.map((p: any) => ({
+      ...p,
+      actions: (p.actions || []).filter(
+        (a: any) => String(a.title || "").toLowerCase().trim() !== normalizedTitle,
+      ),
+    }))
+    const updatedContent = { ...plan.content, phases: updatedPhases }
+    await supabase.from("user_plans").update({ content: updatedContent }).eq("id", plan.id)
+  }
 
   // 1. Try finding in user_actions
   const { data: action } = await supabase
@@ -381,21 +397,29 @@ export async function handleArchiveAction(
     .maybeSingle()
 
   if (action) {
-    await supabase.from("user_actions").update({ status: "archived" }).eq("id", (action as any).id)
-    return `C'est fait. J'ai retiré l'action "${(action as any).title}" de ton plan actif.`
+    const title = (action as any).title
+    await Promise.all([
+      supabase.from("user_actions").delete().eq("id", (action as any).id),
+      removeFromPlanJson(title),
+    ])
+    return `C'est fait. J'ai supprimé l'action "${title}" de ton plan.`
   }
 
   // 2. Try framework
   const { data: fw } = await supabase
     .from("user_framework_tracking")
-    .select("id, title, status")
+    .select("id, action_id, title, status")
     .eq("plan_id", plan.id)
     .ilike("title", searchTerm)
     .maybeSingle()
 
   if (fw) {
-    await supabase.from("user_framework_tracking").update({ status: "archived" }).eq("id", (fw as any).id)
-    return `C'est fait. J'ai retiré l'exercice "${(fw as any).title}" de ton plan actif.`
+    const title = (fw as any).title
+    await Promise.all([
+      supabase.from("user_framework_tracking").delete().eq("id", (fw as any).id),
+      removeFromPlanJson(title),
+    ])
+    return `C'est fait. J'ai supprimé l'exercice "${title}" de ton plan.`
   }
 
   return `Je ne trouve pas l'action "${action_title_or_id}" dans ton plan.`

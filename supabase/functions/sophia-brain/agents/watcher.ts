@@ -182,7 +182,7 @@ export async function runWatcher(
     if (newContext) {
         await updateUserState(supabase, userId, scope, {
           short_term_context: newContext
-          // Note: unprocessed_msg_count is reset by the router, not here
+          // Note: unprocessed_msg_count is acknowledged by trigger-watcher-batch, not here
         })
         console.log(`[Veilleur] Short Term Context Updated.`);
     }

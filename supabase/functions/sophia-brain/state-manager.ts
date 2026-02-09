@@ -213,13 +213,13 @@ export async function getActionsSummary(
       .select('title, status, time_of_day, type')
       .eq('user_id', userId)
       .eq('plan_id', planId)
-      .in('status', ['active', 'pending']),
+      .in('status', ['active', 'pending', 'completed']),
     supabase
       .from('user_framework_tracking')
       .select('title, status, type')
       .eq('user_id', userId)
       .eq('plan_id', planId)
-      .in('status', ['active', 'pending']),
+      .in('status', ['active', 'pending', 'completed']),
   ])
 
   return {
@@ -238,13 +238,15 @@ export function formatActionsSummary(
   
   const activeA = actions.filter(a => a.status === 'active')
   const pendingA = actions.filter(a => a.status === 'pending')
+  const completedA = actions.filter(a => a.status === 'completed')
   const activeF = frameworks.filter(f => f.status === 'active')
   const pendingF = frameworks.filter(f => f.status === 'pending')
+  const completedF = frameworks.filter(f => f.status === 'completed')
   
-  const total = activeA.length + pendingA.length + activeF.length + pendingF.length
+  const total = activeA.length + pendingA.length + completedA.length + activeF.length + pendingF.length + completedF.length
   if (total === 0) return ""
   
-  let ctx = `=== ACTIONS (${activeA.length + activeF.length} actives, ${pendingA.length + pendingF.length} pending) ===\n`
+  let ctx = `=== ACTIONS (${activeA.length + activeF.length} actives, ${pendingA.length + pendingF.length} pending, ${completedA.length + completedF.length} completed) ===\n`
   
   if (activeA.length + activeF.length > 0) {
     ctx += `Actives:\n`
@@ -256,6 +258,12 @@ export function formatActionsSummary(
     ctx += `Pending:\n`
     for (const a of pendingA) ctx += `- ${a.title}${a.time_of_day ? ` (${a.time_of_day})` : ''}\n`
     for (const f of pendingF) ctx += `- [F] ${f.title}\n`
+  }
+
+  if (completedA.length + completedF.length > 0) {
+    ctx += `Completed (ne pas en parler sauf si l'utilisateur les mentionne):\n`
+    for (const a of completedA) ctx += `- ${a.title} [completed]\n`
+    for (const f of completedF) ctx += `- [F] ${f.title} [completed]\n`
   }
   
   return ctx
@@ -275,26 +283,29 @@ export async function getActionsDetails(
       .select('title, status, time_of_day, type, tracking_type, description, scheduled_days, is_habit, target')
       .eq('user_id', userId)
       .eq('plan_id', planId)
-      .in('status', ['active', 'pending']),
+      .in('status', ['active', 'pending', 'completed']),
     supabase
       .from('user_framework_tracking')
       .select('title, status, type, tracking_type, description')
       .eq('user_id', userId)
       .eq('plan_id', planId)
-      .in('status', ['active', 'pending']),
+      .in('status', ['active', 'pending', 'completed']),
   ])
 
   const activeA = (actions ?? []).filter((a: any) => a.status === 'active')
   const pendingA = (actions ?? []).filter((a: any) => a.status === 'pending')
+  const completedA = (actions ?? []).filter((a: any) => a.status === 'completed')
   const activeF = (frameworks ?? []).filter((f: any) => f.status === 'active')
   const pendingF = (frameworks ?? []).filter((f: any) => f.status === 'pending')
+  const completedF = (frameworks ?? []).filter((f: any) => f.status === 'completed')
 
-  if (activeA.length + pendingA.length + activeF.length + pendingF.length === 0) return ""
+  if (activeA.length + pendingA.length + completedA.length + activeF.length + pendingF.length + completedF.length === 0) return ""
 
   let context = `=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\n`
   context += `RÈGLES IMPORTANTES:\n`
   context += `- Les frameworks comptent comme des actions côté utilisateur.\n`
   context += `- "active" = activée et visible comme active dans l'app. "pending" = désactivée / en attente (réactivable).\n`
+  context += `- "completed" = terminée (mission accomplie). NE PAS en parler sauf si l'utilisateur les mentionne.\n`
   context += `- On peut activer/désactiver/supprimer via conversation OU depuis le dashboard.\n\n`
 
   context += `Actives (${activeA.length + activeF.length}):\n`
@@ -311,6 +322,13 @@ export async function getActionsDetails(
     context += `Non actives / pending (${pendingA.length + pendingF.length}):\n`
     for (const a of pendingA) context += `- [ACTION] ${a.title} (${(a as any).time_of_day})\n`
     for (const f of pendingF) context += `- [FRAMEWORK] ${f.title}\n`
+    context += `\n`
+  }
+
+  if (completedA.length + completedF.length > 0) {
+    context += `Completed (${completedA.length + completedF.length}) — titre uniquement, ne pas en parler sauf si l'utilisateur les mentionne:\n`
+    for (const a of completedA) context += `- ${a.title} [completed]\n`
+    for (const f of completedF) context += `- ${f.title} [completed]\n`
     context += `\n`
   }
 

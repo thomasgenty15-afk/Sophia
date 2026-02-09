@@ -2,7 +2,8 @@
 --
 -- Schedules:
 -- - detect-future-events: every day at 04:00
--- - process-checkins: every day at 21:00
+-- - process-checkins: every 3 minutes
+-- - trigger-watcher-batch: every 10 minutes
 -- - trigger-daily-bilan: every day at 21:01
 -- - trigger-memory-echo: every other Sunday at 10:00 (based on week number parity)
 --
@@ -37,6 +38,11 @@ begin
   if existing_jobid is not null then
     perform cron.unschedule(existing_jobid);
   end if;
+
+  select jobid into existing_jobid from cron.job where jobname = 'trigger-watcher-batch' limit 1;
+  if existing_jobid is not null then
+    perform cron.unschedule(existing_jobid);
+  end if;
 end $$;
 
 -- Local Edge Functions URL (from inside Postgres container)
@@ -59,10 +65,10 @@ select cron.schedule(
   $$
 );
 
--- 2) Process checkins: daily 21:00
+-- 2) Process checkins: every 3 minutes
 select cron.schedule(
   'process-checkins',
-  '0 21 * * *',
+  '*/3 * * * *',
   $$
   select
     net.http_post(
@@ -107,6 +113,24 @@ select cron.schedule(
   select
     net.http_post(
       url := 'http://host.docker.internal:54321/functions/v1/trigger-daily-bilan',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'X-Internal-Secret', (select decrypted_secret from vault.decrypted_secrets where name='INTERNAL_FUNCTION_SECRET' limit 1)
+      ),
+      body := '{}'::jsonb
+    ) as request_id;
+  $$
+);
+
+-- 5) Watcher batch: every 10 minutes
+-- Runs the Veilleur (context/memory analysis) for users with unprocessed messages.
+select cron.schedule(
+  'trigger-watcher-batch',
+  '*/10 * * * *',
+  $$
+  select
+    net.http_post(
+      url := 'http://host.docker.internal:54321/functions/v1/trigger-watcher-batch',
       headers := jsonb_build_object(
         'Content-Type', 'application/json',
         'X-Internal-Secret', (select decrypted_secret from vault.decrypted_secrets where name='INTERNAL_FUNCTION_SECRET' limit 1)

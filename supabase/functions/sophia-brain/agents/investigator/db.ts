@@ -600,6 +600,27 @@ export async function handleArchiveAction(
   const { action_title_or_id } = args
   const searchTerm = (action_title_or_id || "").trim()
 
+  // Fetch plan content so we can also remove the action from the plan JSON
+  const { data: planData } = await supabase
+    .from("user_plans")
+    .select("content")
+    .eq("id", planRow.id)
+    .single()
+
+  // Helper: remove action from plan JSON phases by title (case-insensitive)
+  const removeFromPlanJson = async (title: string) => {
+    if (!planData?.content?.phases) return
+    const normalizedTitle = title.toLowerCase().trim()
+    const updatedPhases = planData.content.phases.map((p: any) => ({
+      ...p,
+      actions: (p.actions || []).filter(
+        (a: any) => String(a.title || "").toLowerCase().trim() !== normalizedTitle,
+      ),
+    }))
+    const updatedContent = { ...planData.content, phases: updatedPhases }
+    await supabase.from("user_plans").update({ content: updatedContent }).eq("id", planRow.id)
+  }
+
   const { data: action } = await supabase
     .from("user_actions")
     .select("id, title")
@@ -608,8 +629,11 @@ export async function handleArchiveAction(
     .maybeSingle()
 
   if (action) {
-    await supabase.from("user_actions").update({ status: "archived" }).eq("id", action.id)
-    return `C'est fait. J'ai retiré l'action "${action.title}" du plan.`
+    await Promise.all([
+      supabase.from("user_actions").delete().eq("id", action.id),
+      removeFromPlanJson(action.title),
+    ])
+    return `C'est fait. J'ai supprimé l'action "${action.title}" du plan.`
   }
 
   const { data: fw } = await supabase
@@ -620,8 +644,11 @@ export async function handleArchiveAction(
     .maybeSingle()
 
   if (fw) {
-    await supabase.from("user_framework_tracking").update({ status: "archived" }).eq("id", fw.id)
-    return `C'est fait. J'ai retiré l'exercice "${fw.title}" du plan.`
+    await Promise.all([
+      supabase.from("user_framework_tracking").delete().eq("id", fw.id),
+      removeFromPlanJson(fw.title),
+    ])
+    return `C'est fait. J'ai supprimé l'exercice "${fw.title}" du plan.`
   }
 
   return `Je ne trouve pas "${action_title_or_id}" dans ton plan.`

@@ -16,14 +16,19 @@ export async function megaToolCreateSimpleAction(supabase: SupabaseClient, userI
   const { title, description, type, targetReps, tips, time_of_day } = args
   const actionId = `act_${Date.now()}`
 
+  const resolvedType = type || "habit"
+  const rawReps = Number(targetReps) || 1
+  // Habits: weekly frequency capped at 7
+  const safeReps = (resolvedType === "habit" || resolvedType === "habitude") ? Math.max(1, Math.min(7, rawReps)) : rawReps
+
   await supabase.from("user_actions").insert({
     user_id: userId,
     plan_id: plan.id,
     submission_id: plan.submission_id,
     title,
     description,
-    type: type || "habit",
-    target_reps: targetReps || 1,
+    type: resolvedType,
+    target_reps: safeReps,
     status: "active",
     tracking_type: "boolean",
     time_of_day: time_of_day || "any_time",
@@ -31,11 +36,11 @@ export async function megaToolCreateSimpleAction(supabase: SupabaseClient, userI
 
   const newActionJson = {
     id: actionId,
-    type: type || "habit",
+    type: resolvedType,
     title: title,
     description: description,
     questType: "side",
-    targetReps: targetReps || 1,
+    targetReps: safeReps,
     tips: tips || "",
     rationale: "Ajouté via discussion avec Sophia.",
     tracking_type: "boolean",

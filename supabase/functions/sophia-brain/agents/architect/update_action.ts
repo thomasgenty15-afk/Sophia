@@ -94,8 +94,10 @@ export async function handleUpdateAction(
       matchedAction.description = new_description
     }
     if (new_target_reps !== undefined) {
-      console.log(`[Architect] Updating targetReps: ${matchedAction.targetReps} -> ${new_target_reps}`)
-      matchedAction.targetReps = new_target_reps
+      const isHabitJson = String(matchedAction.type ?? "").toLowerCase() === "habit" || String(matchedAction.type ?? "").toLowerCase() === "habitude"
+      const safeJsonReps = isHabitJson ? Math.max(1, Math.min(7, Number(new_target_reps) || 1)) : new_target_reps
+      console.log(`[Architect] Updating targetReps: ${matchedAction.targetReps} -> ${safeJsonReps}`)
+      matchedAction.targetReps = safeJsonReps
     }
     if (Array.isArray(new_scheduled_days)) {
       matchedAction.scheduledDays = new_scheduled_days
@@ -123,7 +125,11 @@ export async function handleUpdateAction(
   const updates: any = {}
   if (new_title) updates.title = new_title
   if (new_description) updates.description = new_description
-  if (new_target_reps !== undefined) updates.target_reps = new_target_reps
+  if (new_target_reps !== undefined) {
+    // Habits: weekly frequency capped at 7
+    const isHabitRow = matchedAction && (String(matchedAction.type ?? "").toLowerCase() === "habit" || String(matchedAction.type ?? "").toLowerCase() === "habitude")
+    updates.target_reps = isHabitRow ? Math.max(1, Math.min(7, Number(new_target_reps) || 1)) : new_target_reps
+  }
   if (Array.isArray(new_scheduled_days)) updates.scheduled_days = new_scheduled_days
   if (new_time_of_day) updates.time_of_day = new_time_of_day
 

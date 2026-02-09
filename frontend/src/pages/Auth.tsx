@@ -15,7 +15,8 @@ import {
   AlertCircle,
   Loader2,
   Eye,
-  EyeOff
+  EyeOff,
+  CheckCircle2
 } from 'lucide-react';
 import { getThemeLabelById } from '../data/onboarding/registry';
 import { clearGuestPlanFlowState, loadGuestPlanFlowState, saveGuestPlanFlowState } from '../lib/guestPlanFlowCache';
@@ -82,6 +83,9 @@ const Auth = () => {
   const [isResettingPassword, setIsResettingPassword] = useState(false); // Pour la demande de reset MDP
   const [timezone, setTimezone] = useState<string>(DEFAULT_TIMEZONE);
   const [tzFollowDevice, setTzFollowDevice] = useState<boolean>(false);
+  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'checking' | 'verified'>('idle');
+  const [resendCooldown, setResendCooldown] = useState(0);
+  const emailVerifiedLanding = new URLSearchParams(location.search).get('email_verified') === '1';
 
   // Keep guest flow state in sessionStorage so "back" / refresh doesn't wipe the plan data.
   useEffect(() => {
@@ -135,6 +139,140 @@ const Auth = () => {
     const detected = detectBrowserTimezone();
     if (detected) setTimezone(detected);
   }, [isSignUp, prelaunchLockdown]);
+
+  // ---------------------------------------------------------------------------
+  // EMAIL VERIFICATION POLLING
+  // Quand l'utilisateur est sur l'écran "Vérifiez votre email", on tente un
+  // signInWithPassword toutes les ~5 s. Dès que l'email est confirmé, le sign-in
+  // réussit et on enchaîne le flow post-inscription (backfill, navigate) sans
+  // jamais quitter l'onglet → le sessionStorage/cache est intact.
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!confirmationPending || !email || !password) return;
+
+    let cancelled = false;
+    let pollTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const attemptSignIn = async () => {
+      if (cancelled) return;
+      setVerificationStatus('checking');
+      try {
+        const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        });
+        if (cancelled) return;
+
+        if (signInData?.session && signInData?.user && !signInError) {
+          // ✅ Email confirmé ! On lance le post-signup flow.
+          setVerificationStatus('verified');
+
+          // WhatsApp opt-in (best-effort, non-blocking)
+          try {
+            const waReqId = newRequestId();
+            await supabase.functions.invoke('whatsapp-optin', {
+              body: {},
+              headers: requestHeaders(waReqId),
+            });
+          } catch (e) {
+            console.warn('WhatsApp opt-in send failed (non-blocking):', e);
+          }
+
+          // Backfill des réponses guest → nouveau compte
+          if (isRegistrationFlow && planData?.fullAnswers) {
+            try {
+              const answersPayload = planData.fullAnswers;
+              const submissionId = planData.submissionId || crypto.randomUUID();
+              const contentToSave = answersPayload.ui_state
+                ? answersPayload
+                : {
+                    structured_data: answersPayload,
+                    ui_state: {},
+                    last_updated: new Date().toISOString(),
+                  };
+              await supabase.from('user_answers').insert({
+                user_id: signInData.user.id,
+                questionnaire_type: 'onboarding',
+                submission_id: submissionId,
+                content: contentToSave,
+                status: 'completed',
+                sorting_attempts: 1,
+              });
+            } catch (err) {
+              console.error('Erreur backfill:', err);
+            }
+          }
+
+          clearGuestPlanFlowState();
+
+          // Petite pause pour montrer l'état "vérifié" avant de naviguer
+          await new Promise((r) => setTimeout(r, 1500));
+          if (cancelled) return;
+
+          if (isRegistrationFlow) {
+            navigate('/plan-generator', { state: planData });
+          } else if (redirectTo) {
+            navigate(redirectTo);
+          } else {
+            navigate('/global-plan');
+          }
+          return;
+        }
+
+        // Pas encore vérifié → on replanifie
+        setVerificationStatus('idle');
+        if (!cancelled) pollTimer = setTimeout(attemptSignIn, 5000);
+      } catch {
+        // Erreur réseau ou rate-limit → back-off
+        if (!cancelled) {
+          setVerificationStatus('idle');
+          pollTimer = setTimeout(attemptSignIn, 10000);
+        }
+      }
+    };
+
+    // Premier essai après 3 s (laisse le temps à l'user de voir l'écran)
+    pollTimer = setTimeout(attemptSignIn, 3000);
+
+    // Quand l'user revient sur cet onglet (mobile), on vérifie immédiatement
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible' && !cancelled) {
+        if (pollTimer) clearTimeout(pollTimer);
+        attemptSignIn();
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibility);
+
+    return () => {
+      cancelled = true;
+      if (pollTimer) clearTimeout(pollTimer);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
+  }, [confirmationPending, email, password]);
+
+  // Resend cooldown countdown
+  useEffect(() => {
+    if (resendCooldown <= 0) return;
+    const timer = setTimeout(() => setResendCooldown((c) => c - 1), 1000);
+    return () => clearTimeout(timer);
+  }, [resendCooldown]);
+
+  const handleResendConfirmation = async () => {
+    if (resendCooldown > 0) return;
+    try {
+      const { error: resendErr } = await supabase.auth.resend({
+        type: 'signup',
+        email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth?email_verified=1`,
+        },
+      });
+      if (resendErr) throw resendErr;
+      setResendCooldown(60);
+    } catch (err) {
+      console.error('Resend error:', err);
+    }
+  };
 
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -248,7 +386,10 @@ const Auth = () => {
                 locale: DEFAULT_LOCALE,
                 timezone: (timezone || "").trim() || DEFAULT_TIMEZONE,
                 tz_follow_device: tzFollowDevice
-            } 
+            },
+            // Redirect vers une page "email vérifié" dans un NOUVEL onglet.
+            // L'onglet original reste sur /auth avec le cache intact et poll pour détecter la vérification.
+            emailRedirectTo: `${window.location.origin}/auth?email_verified=1`
           }
         });
 
@@ -360,26 +501,102 @@ const Auth = () => {
     }
   };
 
-  // VUE "VÉRIFIEZ VOS EMAILS"
+  // ---------------------------------------------------------------------------
+  // LANDING PAGE : Nouvel onglet après clic sur le lien de vérification email.
+  // L'email est déjà confirmé côté Supabase ; on affiche juste un message
+  // demandant de retourner sur l'onglet d'origine (celui qui poll).
+  // ---------------------------------------------------------------------------
+  if (emailVerifiedLanding) {
+    return (
+      <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-900">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center animate-fade-in-up">
+          <div className="mx-auto w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
+            <CheckCircle2 className="w-8 h-8" />
+          </div>
+          <h2 className="text-3xl font-bold text-slate-900 mb-4">
+            Email vérifié !
+          </h2>
+          <p className="text-slate-600 mb-8 max-w-sm mx-auto">
+            Votre adresse email a bien été confirmée.<br />
+            <strong>Retournez sur l'onglet précédent</strong> — tout se met à jour automatiquement.
+          </p>
+          <p className="text-xs text-slate-400">
+            Vous pouvez fermer cet onglet.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  // ---------------------------------------------------------------------------
+  // VUE "VÉRIFIEZ VOS EMAILS" (onglet d'origine, avec polling automatique)
+  // ---------------------------------------------------------------------------
   if (confirmationPending) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-900">
         <div className="sm:mx-auto sm:w-full sm:max-w-md text-center animate-fade-in-up">
-          <div className="mx-auto w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
-            <Mail className="w-8 h-8" />
-          </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">
-            Vérifiez votre boîte mail.
-          </h2>
-          <p className="text-slate-600 mb-8 max-w-sm mx-auto">
-            Un lien de confirmation a été envoyé à <strong>{email}</strong>. Cliquez dessus pour activer votre compte et accéder à votre plan.
-          </p>
-          <button 
-            onClick={() => window.location.reload()} // Simule un "J'ai vérifié"
-            className="text-sm font-bold text-slate-900 hover:text-indigo-600 underline decoration-dotted"
-          >
-            J'ai cliqué sur le lien
-          </button>
+          {verificationStatus === 'verified' ? (
+            <>
+              <div className="mx-auto w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
+                <CheckCircle2 className="w-8 h-8" />
+              </div>
+              <h2 className="text-3xl font-bold text-emerald-600 mb-4">
+                Email vérifié !
+              </h2>
+              <p className="text-slate-600 mb-4">
+                Préparation de votre espace…
+              </p>
+              <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
+            </>
+          ) : (
+            <>
+              <div className="relative mx-auto w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
+                <Mail className="w-8 h-8" />
+                {verificationStatus === 'checking' && (
+                  <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-indigo-500" />
+                  </span>
+                )}
+              </div>
+              <h2 className="text-3xl font-bold text-slate-900 mb-4">
+                Vérifiez votre boîte mail.
+              </h2>
+              <p className="text-slate-600 mb-6 max-w-sm mx-auto">
+                Un lien de confirmation a été envoyé à <strong>{email}</strong>.<br />
+                Cliquez dessus puis revenez ici — la page se met à jour toute seule.
+              </p>
+
+              <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-8">
+                <Loader2 className="w-4 h-4 animate-spin" />
+                <span>En attente de vérification…</span>
+              </div>
+
+              <div className="space-y-3">
+                <button
+                  onClick={handleResendConfirmation}
+                  disabled={resendCooldown > 0}
+                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                >
+                  {resendCooldown > 0
+                    ? `Renvoyer l'email (${resendCooldown}s)`
+                    : "Renvoyer l'email de confirmation"}
+                </button>
+                <div>
+                  <button
+                    onClick={() => {
+                      setConfirmationPending(false);
+                      setVerificationStatus('idle');
+                      setError(null);
+                    }}
+                    className="text-xs text-slate-400 hover:text-slate-600 underline decoration-dotted transition-colors"
+                  >
+                    Modifier mon adresse email
+                  </button>
+                </div>
+              </div>
+            </>
+          )}
         </div>
       </div>
     );

@@ -518,6 +518,7 @@ Pour chaque `id`:
 - low: polish, micro-optimisations, wording
 
 Commence par lire tous les bundles. Ensuite produis A, B, puis C.
+NB: abracadabra (dans un seul message) est une commande communiquer pour réinitaliser toutes les machines à état des user tests pour éviter qu'ils se retrouvent dans une boucle.
 Nom du fichier qui inclu bundles à analyser :
 
 

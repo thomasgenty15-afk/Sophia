@@ -329,7 +329,7 @@ export function createCandidateFromToolArgs(args: {
     params: {
       title: args.title,
       description: args.description,
-      target_reps: args.targetReps ?? (args.type === "mission" ? 1 : 3),
+      target_reps: (() => { const r = args.targetReps ?? (args.type === "mission" ? 1 : 3); const t = String(args.type ?? "habit").toLowerCase(); return (t === "habit" || t === "habitude") ? Math.max(1, Math.min(7, r)) : r; })(),
       time_of_day: args.time_of_day as ActionCandidateParams["time_of_day"],
       tips: args.tips,
     },
