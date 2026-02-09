@@ -1,6 +1,6 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { CheckCircle2, ArrowRight } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
+import { CheckCircle2 } from 'lucide-react';
 
 export default function EmailVerified() {
   const location = useLocation();
@@ -20,19 +20,7 @@ export default function EmailVerified() {
           <span className="font-medium text-slate-900">Tu peux maintenant retourner sur l’onglet d’origine</span> pour continuer ton parcours.
         </p>
 
-        <div className="space-y-4 max-w-xs mx-auto">
-          <Link
-            to="/"
-            className="w-full inline-flex justify-center py-4 px-6 rounded-2xl shadow-lg shadow-indigo-200 text-base font-bold text-white bg-slate-900 hover:bg-indigo-600 hover:shadow-indigo-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all items-center gap-2 group"
-          >
-            Retourner à l'accueil <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-          </Link>
-          <Link to="/auth" className="block text-center text-sm font-semibold text-indigo-600 hover:text-indigo-500 transition-colors py-2">
-            Ou me connecter directement
-          </Link>
-        </div>
-
-        <p className="text-xs text-slate-400 mt-12 font-medium">
+        <p className="text-xs text-slate-400 mt-8 font-medium">
           {hasCode
             ? "Tu peux fermer cet onglet."
             : "Si tu viens de cliquer sur le lien, tu peux fermer cet onglet."}
