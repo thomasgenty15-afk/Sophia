@@ -456,3 +456,117 @@ Il faut que tu identifies les bugs et les incohérences, et qu. tu procèdes au 
 Commande pour lancer onboarding web :
 # 1-liner (clean + launch) — remplace EMAIL/PASSWORD si besoin
 SUPABASE_URL="http://127.0.0.1:54321" SUPABASE_ANON_KEY="sb_publishable_ACJWlzQHlZjBrEguHvfOxg_3BJgxAaH" EMAIL="i@i.com" PASSWORD="1234567" USER_ID="2e4eba1c-a49c-43e1-a308-8dc6362e5d33" TOKEN="$(curl -s "$SUPABASE_URL/auth/v1/token?grant_type=password" -H "apikey: $SUPABASE_ANON_KEY" -H "Content-Type: application/json" -d "{\"email\":\"$EMAIL\",\"password\":\"$PASSWORD\"}" | python3 -c 'import sys,json; print(json.load(sys.stdin).get("access_token",""))')" && curl -s -X DELETE "$SUPABASE_URL/rest/v1/chat_messages?user_id=eq.$USER_ID&scope=eq.web_onboarding" -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $TOKEN" -H "Prefer: return=minimal" && curl -s "$SUPABASE_URL/functions/v1/sophia-brain" -H "apikey: $SUPABASE_ANON_KEY" -H "Authorization: Bearer $TOKEN" -H "Content-Type: application/json" -d '{"message":"Ok, on commence l'\''onboarding.","channel":"web","scope":"web_onboarding","force_onboarding_flow":true}'
+
+
+
+
+Prompt 1 — Analyse des bundles (transcripts + brain trace) + priorisation :--------------------------------------------------------------------------
+
+Tu es un expert senior en conversation IA, machines à états, systèmes hybrides (LLM + règles), et debugging prod.
+Ta mission: analyser des bundles extraits de prod (un dossier par conversation) et produire un rapport actionnable pour améliorer Sophia.
+
+## Entrées
+Je te fournis une liste de dossiers "bundle", chacun contient exactement:
+- `conversation_transcript.txt` (transcript horodaté, avec role et request_id)
+- `brain_trace.jsonl` (1 ligne JSON par turn; contient `{ ts_db, payload }` où `payload.details.brain_trace_events` est la trace)
+
+Bundles à analyser:
+- Voir à la fin 
+
+## Contraintes & hygiène
+- Ne jamais ré-imprimer de PII (téléphone, email, noms complets, adresses). Si présent dans les transcripts, anonymise: `<PHONE>`, `<EMAIL>`, `<NAME>`.
+- Si une cause n’est pas prouvable avec les fichiers fournis, formule-la comme hypothèse et ajoute “comment vérifier”.
+- Important: toute détection de signaux doit être HYBRIDE: LLM (interprétation) + règles/regex (validation/garde-fous). Jamais “regex seule” comme logique principale.
+
+## Objectif
+1) Identifier les blocages/problèmes/loops/erreurs conversationnelles (UX, ton, timing, compréhension, safety, routing, toolflow, onboarding, etc.)
+2) Pour chaque problème, recouper avec la brain trace pour expliquer “comment le cerveau y est arrivé”.
+3) Prioriser les problèmes par sévérité ET fréquence (répétition chez les usagers / dans les bundles).
+4) Proposer une solution rapide (overview) par item, orientée “patch minimal, testable”.
+
+## Format de sortie (STRICT)
+### A. Résumé exécutif (10 lignes max)
+- 3-7 problèmes majeurs
+- 3 métriques simples: nb bundles, nb turns analysés, top 3 catégories de panne
+
+### B. Tableau de priorisation (trié du plus important au moins important)
+Pour chaque ligne (un problème), retourne exactement ces colonnes:
+- `id`
+- `sévérité` (critical|high|medium|low)
+- `fréquence` (nb bundles impactés / nb occurrences)
+- `symptôme user` (1 phrase)
+- `cause probable (1-2)` (pas plus)
+- `preuves transcript` (2 extraits MAX avec timestamp + role + request_id)
+- `preuves trace` (2 extraits MAX avec request_id + event + phase + 1 champ clé du payload)
+- `solution proposée (overview)` (1-3 bullets)
+- `risque de régression` (low|med|high + pourquoi en 1 phrase)
+
+### C. Détail par problème (dans l’ordre du tableau)
+Pour chaque `id`:
+1) Contexte et impact
+2) Analyse conversationnelle (humain)
+3) Analyse “cerveau” (routing / dispatcher / context / agent / flow_resolution / interrupts / toolflow)
+4) Hypothèses alternatives (si ambigu) + comment trancher
+5) Fix proposé (design)
+6) “Signal detection” hybride recommandé (LLM + regex/garde-fou + fallback)
+7) Tests/validation recommandés (prod-safe)
+
+## Rubrique de sévérité (à appliquer)
+- critical: bug bloquant, boucle dure, safety, ou dégradation majeure de confiance
+- high: confusion récurrente, réponses incorrectes importantes, routing souvent mauvais
+- medium: incohérences, friction UX, ton, manque de clarté
+- low: polish, micro-optimisations, wording
+
+Commence par lire tous les bundles. Ensuite produis A, B, puis C.
+Nom du fichier qui inclu bundles à analyser :
+
+
+Prompt 2 — Implémenter les fixes (sans régression) + patch plan : -------------------------------------------------------------------
+
+Tu es un ingénieur principal responsable d’améliorer le système conversationnel Sophia, sans régression.
+Tu reçois une liste priorisée de problèmes (issue backlog) basée sur des bundles prod + traces.
+
+## Entrées
+- Repo code Sophia (Edge Functions + frontend + SQL migrations)
+- Tout ce qui s'ets dit dans notre précédente conversation en terme de pacth solution problème, disucssion ect..
+
+## Principes non négociables
+- Corriger d’abord: critical → high → medium → low.
+- Changements minimaux, ciblés, réversibles.
+- Toute détection de signaux = HYBRIDE: LLM propose/interprète + regex/règles valident/contraignent (pas regex seule).
+- Pas de “refactor global” sauf nécessité prouvée.
+- Ne pas casser WhatsApp vs web, ni scopes modules.
+
+## Workflow attendu (STRICT)
+### 1) Reconnaissance ciblée
+Pour chaque issue (dans l’ordre):
+- Où dans le code ça vit (fichiers / fonctions / state machine)
+- Quels comportements voisins risquent d’être impactés
+- Quel est le “contrat” actuel (inputs/outputs, invariants)
+
+### 2) Plan de patch
+Pour chaque issue:
+- Changement exact (1-3 bullets)
+- Fichiers touchés
+- Stratégie hybride (LLM + validation règles)
+- Stratégie de compat/rétro-compat (si schéma/metadata)
+- Risques & mitigations
+
+### 3) Implémentation
+- Applique les changements.
+- Ajoute/ajuste les tests pertinents (unit/int) ou, si pas possible, des checks prod-safe (logging/guards).
+- Si tu modifies le routing/dispatcher: ajoute au moins un garde-fou anti-loop.
+
+### 4) Vérification non-régression
+- Vérifie localement (ou via tests existants) que les flows critiques ne cassent pas.
+- Ajoute une checklist “avant/après” par issue (comportement attendu).
+
+## Format de sortie (STRICT)
+- `Changelog` (par issue)
+- `Diff summary` (liste de fichiers + intention)
+- `Tests/Checks` (ce qui a été exécuté + ce que ça couvre)
+- `Rollout plan` (si pertinent: feature flags, logs, monitoring)
+- `Follow-ups` (dettes techniques / améliorations futures)
+
+Commence par la 1ère issue critical et avance séquentiellement.
+Si une issue demande une décision produit (copy/ton), propose 2 variantes et choisis la plus sûre. 

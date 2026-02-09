@@ -28,6 +28,10 @@ import { createActionCandidate } from "../agents/architect/action_candidate_type
 import { createUpdateCandidate } from "../agents/architect/update_action_candidate_types.ts";
 import { createBreakdownCandidate } from "../agents/architect/breakdown_candidate_types.ts";
 import { startDeepReasonsExploration } from "../agents/architect/deep_reasons.ts";
+import {
+  looksLikeNoToProceed,
+  looksLikeYesToProceed,
+} from "../agents/architect/consent.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // PENDING RELAUNCH CONSENT STATE
@@ -303,6 +307,10 @@ export function processRelaunchConsentResponse(opts: {
     ) {
       return opts.dispatcherConsentSignal.value;
     }
+    // Hybrid fallback: only as guardrail when LLM confidence is missing/low.
+    // This prevents repeated relaunch re-asks on explicit short confirmations.
+    if (looksLikeYesToProceed(opts.userMessage)) return true;
+    if (looksLikeNoToProceed(opts.userMessage)) return false;
     return "unclear";
   })();
 

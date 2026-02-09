@@ -1,0 +1,84 @@
+[2026-02-09T13:52:04.526649+00:00] [whatsapp] assistant (request_id=2bc29f93-ba3d-46cc-b501-92da8f3fe7cd):
+[TEMPLATE:sophia_optin_v2]
+
+[2026-02-09T13:55:34.991663+00:00] [whatsapp] user (request_id=3da95b7e-c08b-41bb-bf03-f14a529a4534):
+Absolument !
+
+[2026-02-09T13:55:58.828801+00:00] [whatsapp] assistant:
+Super ! Parfois, il y a un petit délai pour que le plan s'affiche. Tu peux essayer de rafraîchir la page ou d'attendre 2 minutes. Est-ce que tu le vois maintenant ? 🤔
+
+[2026-02-09T13:56:23.72647+00:00] [whatsapp] user (request_id=f10ec9bd-b1e6-4403-9c4d-017878e0fe5b):
+Oui c’est bon !
+
+[2026-02-09T13:56:33.340582+00:00] [whatsapp] assistant:
+Ok, je te crois — là ça ressemble à un souci de synchro/bug.
+
+Pour ne pas tourner en rond: écris à sophia@sophia-coach.ai avec:
+- l'email de ton compte
+- une capture de ton dashboard
+- ton téléphone + navigateur (ex: iPhone/Safari)
+
+En attendant: dis-moi ton objectif #1 en 1 phrase et je te propose un premier pas simple aujourd'hui.
+
+[2026-02-09T14:00:53.369473+00:00] [whatsapp] user (request_id=7d719bd1-82a2-403c-b89d-e34f0f003300):
+C’est bon j’ai mon plan tout marche bien !
+
+[2026-02-09T14:01:13.845482+00:00] [whatsapp] assistant:
+Super ! Je suis contente que tout soit rentré dans l'ordre. Maintenant que ton plan est là, les deux premières actions pour cette semaine sont :
+* Micro-Exposition (Imparfaite) — 3 publications (le soir)
+* Plages Focus (Pomodoro Créatif) — 5 sessions (le matin) As-tu une question sur ces premières actions, ou veux-tu que l'on regarde comment démarrer l'une d'elles ? 🙂
+
+[2026-02-09T14:03:37.689398+00:00] [whatsapp] user (request_id=6b7bd8f5-e089-4290-b34c-3ddddf6d96d5):
+Yes je vais faire ça ! J’ai quelques photos qui sont déjà prête à être publié cette semaine donc ça devrait aller 
+Mais j’ai un projet et il faut que je m’améliore en montage sur DaVinci avant de pour voir vraiment donner vie à mon projet donc il faut que mes sessions travaille soit vraiment tourner sur le montage vidéo
+
+[2026-02-09T14:04:01.042177+00:00] [whatsapp] assistant:
+Super ! C'est une excellente idée de dédier tes sessions "Plages Focus" au montage vidéo sur DaVinci. L'action "Plages Focus (Pomodoro Créatif)" est justement conçue pour ça : tu peux choisir une tâche concrète avant de lancer le chrono. Par exemple, "monter 30s de vidéo" ou "apprendre un nouveau raccourci DaVinci". Ça te convient comme ça ? 🙂
+
+[2026-02-09T14:06:27.620135+00:00] [whatsapp] user (request_id=f1bc07a1-13d3-469a-9397-05c629707a03):
+Oui c’est très bien ! Peut être qu’on peut faire des sessions un peu plus longue que 25 min ?
+
+[2026-02-09T14:06:42.458287+00:00] [whatsapp] assistant:
+C'est une bonne idée d'adapter la durée à tes besoins ! L'action "Plages Focus (Pomodoro Créatif)" est flexible. Je peux mettre à jour la description pour indiquer que tu peux prolonger les sessions au-delà des 25 minutes si tu es lancé. Par exemple, je pourrais ajouter : "Tu peux bien sûr prolonger si tu es lancé(e), mais l'important est de démarrer avec un objectif clair." Est-ce que ça te convient comme modification ? 🙂
+
+[2026-02-09T14:07:06.931602+00:00] [whatsapp] user (request_id=eee87f57-642c-4bb4-a0cb-7da91d469b72):
+Oui c’est très bien !
+
+[2026-02-09T14:07:23.02501+00:00] [whatsapp] assistant:
+Je n'ai pas de modification à faire sur "Plages Focus (Pomodoro Créatif)".
+
+Tu voulais changer quoi exactement ? 🙂
+
+[2026-02-09T14:10:18.322871+00:00] [whatsapp] user (request_id=1cdf6573-7f84-460c-8bdc-755106ba0420):
+J’ai des idées assez claire sur ce que je dois faire j’ai 1 vidéos à monter sur des vacances en Indonésie 
+Je dois faire une vidéo un peu tournée sur la liberté en moto avec un voix off de mon road trip en moto dans les Alpes 
+Et ensuite j’ai envie de faire une vidéo sur la paix mais pour celle ci il faut que j’aille dehors pour me faire de la matière première 
+Et ensuite je veux créer une mini série sur ma vie mais réalisé vraiment en mode film avec des épisode de 2-3 min sur comment devenir une artiste
+
+[2026-02-09T14:10:40.144681+00:00] [whatsapp] user (request_id=4c5d62e2-4c56-4513-8184-c3354a6f0189):
+Non non restons sur 25 min et au pire on en fera plus !
+
+[2026-02-09T14:10:47.094555+00:00] [whatsapp] assistant:
+J'ai noté ce sujet, on y reviendra après. Je suis pas sûr de comprendre. Tu veux que je fasse cette modification, oui ou non ? 🙂
+
+[2026-02-09T14:10:59.085645+00:00] [whatsapp] assistant:
+Je suis pas sûr de comprendre. Tu veux que je fasse cette modification, oui ou non ? 🙂
+
+[2026-02-09T14:16:21.805917+00:00] [whatsapp] user (request_id=d2ad6b25-135f-4a6e-8dc7-e0e12a421079):
+Non non !
+
+[2026-02-09T14:16:41.073383+00:00] [whatsapp] assistant:
+J'ai noté la modif pour modification, on fait ça ensuite ! Ok, on laisse "Plages Focus (Pomodoro Créatif)" tel quel. Dis-moi "modifie Plages Focus (Pomodoro Créatif)" quand tu seras prêt. 🙂
+
+[2026-02-09T14:23:45.020196+00:00] [whatsapp] user (request_id=a54d6c5d-4465-44dc-b635-6c411f82b8bb):
+Yes
+
+[2026-02-09T14:23:54.205906+00:00] [whatsapp] user (request_id=895d9566-48d1-4104-802a-2dde0ea888ec):
+Je suis prête à faire une session focus maintenant
+
+[2026-02-09T14:24:11.147317+00:00] [whatsapp] assistant:
+Super ! Lance-toi dans ta session focus dès maintenant. Au fait, tu voulais qu'on modifie quelque chose sur "Plages Focus (Pomodoro Créatif)". On s'en occupe maintenant ? 🙂
+
+[2026-02-09T14:24:13.308506+00:00] [whatsapp] assistant:
+J'ai noté la modif pour Plages Focus (Pomodoro Créatif), on fait ça ensuite ! Content de te retrouver ici, Mathilde ! Super que tu sois prête pour une session focus. Pour commencer, quelle tâche concrète (trier des photos, monter une vidéo, écrire un script...) as-tu choisie pour ces 25 minutes ? 🙂
+

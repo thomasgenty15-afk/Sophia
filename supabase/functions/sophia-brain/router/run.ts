@@ -161,6 +161,28 @@ function parseIntEnv(v: unknown, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
 }
 
+function detectShortBinaryReply(
+  userMessage: string,
+): "yes" | "no" | null {
+  const s = normalizeLoose(userMessage);
+  if (!s || s.length > 80) return null;
+  const yes = looksLikeYesToProceed(s);
+  const no = looksLikeNoToProceed(s);
+  if (yes && !no) return "yes";
+  if (no && !yes) return "no";
+  return null;
+}
+
+function looksLikeSophiaSupportContactRequest(userMessage: string): boolean {
+  const s = normalizeLoose(userMessage);
+  if (!s) return false;
+  const asksContact =
+    /\b(mail|email|adresse|contact|support|joindre|ecrire|ecris|contacter)\b/i
+      .test(s);
+  const mentionsSophia = /\bsophia\b/i.test(s);
+  return asksContact && mentionsSophia;
+}
+
 function truncateStringsDeep(
   input: unknown,
   maxLen: number,
@@ -489,10 +511,19 @@ import {
   // NOTE: looksLikeWantsToResume/Rest replaced by flow_resolution signals
   lastAssistantAskedResumeQuestion,
 } from "./deferred_messages.ts";
+import {
+  clearMachineStateTempMemory,
+  detectMagicResetCommand,
+} from "./magic_reset.ts";
 import { runDeepReasonsExploration } from "../agents/architect/deep_reasons.ts";
 import type { DeepReasonsState } from "../agents/architect/deep_reasons_types.ts";
 import {
+  looksLikeNoToProceed,
+  looksLikeYesToProceed,
+} from "../agents/architect/consent.ts";
+import {
   applyAutoRelaunchFromDeferred,
+  clearPendingRelaunchConsent,
   getPendingRelaunchConsent,
   processRelaunchConsentResponse,
 } from "./deferred_relaunch.ts";
@@ -563,6 +594,9 @@ Est-ce que ça t'intéresse ? Réponds **oui** ou **non**.
 On se retrouve demain matin, reposé·e ! 💜`;
 
 const PROFILE_CONFIRM_DEFERRED_KEY = "__profile_confirm_deferred_facts";
+const ENABLE_TESTER_MAGIC_RESET =
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_TESTER_MAGIC_RESET_ENABLED") ??
+      "") as string).trim() === "1";
 
 // Dispatcher v2 is now the only dispatcher
 
@@ -766,6 +800,58 @@ export async function processMessage(
         return pick(p, ["target_mode", "risk_score", "selected_model", "default_model", "librarian_overlay"]);
       case "brain:agent_done":
         return pick(p, ["target_mode", "next_mode", "response_len", "aborted", "rewritten"]);
+      case "routing_decision_summary":
+        return pick(p, [
+          "target_mode",
+          "reason_code",
+          "primary_mother_signal",
+          "secondary_tool_signal",
+          "filtered_mother_signals",
+          "dual_tool_skip_routing",
+          "active_machine_type",
+          "pending_resolution_type",
+          "pending_resolution_decision",
+          "pending_resolution_confidence",
+          "request_id",
+        ]);
+      case "machine_transition":
+        return {
+          ...pick(p, ["reason_code", "request_id"]),
+          from_state: p.from_state ? pick(p.from_state as Record<string, unknown>, ["machine_type", "machine_phase", "session_id"]) : null,
+          to_state: p.to_state ? pick(p.to_state as Record<string, unknown>, ["machine_type", "machine_phase", "session_id"]) : null,
+        };
+      case "pending_resolution_decision":
+        return pick(p, [
+          "pending_type",
+          "decision_code",
+          "status",
+          "confidence",
+          "outcome",
+          "fallback_used",
+          "source",
+          "request_id",
+        ]);
+      case "deferral_decision":
+        return pick(p, [
+          "deferred",
+          "reason_code",
+          "machine_type",
+          "action_target",
+          "active_machine",
+          "is_same_machine_type",
+          "is_same_action",
+          "interrupted_for_safety",
+        ]);
+      case "tool_result_status":
+        return pick(p, [
+          "agent",
+          "source",
+          "tool_execution",
+          "tool_name",
+          "executed_count",
+          "latency_ms",
+          "error_code",
+        ]);
       default:
         return payload;
     }
@@ -842,6 +928,116 @@ export async function processMessage(
   ) => {
     if (!TRACE_VERBOSE) return;
     await trace(event, phase, payload, level);
+  };
+
+  type MachineStateSnapshot = {
+    machine_type: string | null;
+    machine_phase: string | null;
+    session_id: string | null;
+  };
+
+  const getMachineStateSnapshot = (
+    tm: any,
+    investigationState?: any,
+  ): MachineStateSnapshot => {
+    const sentry = getActiveSafetySentryFlow(tm);
+    if (sentry && sentry.phase !== "resolved") {
+      return {
+        machine_type: "safety_sentry_flow",
+        machine_phase: String(sentry.phase ?? "unknown"),
+        session_id: null,
+      };
+    }
+
+    const firefighter = getActiveSafetyFirefighterFlow(tm);
+    if (firefighter && firefighter.phase !== "resolved") {
+      return {
+        machine_type: "safety_firefighter_flow",
+        machine_phase: String(firefighter.phase ?? "unknown"),
+        session_id: null,
+      };
+    }
+
+    if ((tm as any)?.__onboarding_flow) {
+      return {
+        machine_type: "whatsapp_onboarding_flow",
+        machine_phase: String((tm as any)?.__onboarding_flow?.step ?? "unknown"),
+        session_id: null,
+      };
+    }
+
+    const active = getAnyActiveMachine(tm);
+    if (active) {
+      const phase = String(
+        (active as any)?.phase ??
+          (active as any)?.meta?.candidate_status ??
+          (active as any)?.status ??
+          "active",
+      );
+      return {
+        machine_type: String(active.type ?? "unknown"),
+        machine_phase: phase,
+        session_id: String((active as any)?.id ?? "") || null,
+      };
+    }
+
+    const invStatus = String(investigationState?.status ?? "");
+    if (
+      investigationState &&
+      invStatus &&
+      invStatus !== "post_checkup_done"
+    ) {
+      return {
+        machine_type: "investigation",
+        machine_phase: invStatus,
+        session_id: String(investigationState?.started_at ?? "") || null,
+      };
+    }
+
+    return { machine_type: null, machine_phase: null, session_id: null };
+  };
+
+  const sameMachineState = (
+    a: MachineStateSnapshot,
+    b: MachineStateSnapshot,
+  ): boolean =>
+    a.machine_type === b.machine_type &&
+    a.machine_phase === b.machine_phase &&
+    a.session_id === b.session_id;
+
+  const traceMachineTransitionIfChanged = async (args: {
+    from: MachineStateSnapshot;
+    to: MachineStateSnapshot;
+    reasonCode: string;
+  }) => {
+    if (sameMachineState(args.from, args.to)) return;
+    await trace("machine_transition", "state", {
+      from_state: args.from,
+      to_state: args.to,
+      reason_code: args.reasonCode,
+      request_id: meta?.requestId ?? null,
+    }, "info");
+  };
+
+  const tracePendingResolutionDecision = async (args: {
+    pendingType: string;
+    decisionCode?: string | null;
+    status?: string | null;
+    confidence?: number | null;
+    outcome: string;
+    fallbackUsed: boolean;
+    source: string;
+  }) => {
+    await trace("pending_resolution_decision", "routing", {
+      pending_type: args.pendingType,
+      decision_code: args.decisionCode ?? null,
+      status: args.status ?? null,
+      confidence: args.confidence ?? null,
+      outcome: args.outcome,
+      fallback_used: args.fallbackUsed,
+      source: args.source,
+      request_id: meta?.requestId ?? null,
+    }, args.fallbackUsed ? "warn" : "info");
   };
 
   // Start-of-request trace (awaited so staging/evals reliably persist it)
@@ -1291,6 +1487,11 @@ export async function processMessage(
   let state = await getUserState(supabase, userId, scope);
   // Global parking-lot lives in user_chat_states.temp_memory (independent from investigation_state).
   let tempMemory = (state as any)?.temp_memory ?? {};
+  const machineStateAtTurnStart = getMachineStateSnapshot(
+    tempMemory,
+    (state as any)?.investigation_state,
+  );
+  let machineStateBeforeAgent = machineStateAtTurnStart;
   const routerTurnCounter =
     Number((tempMemory as any)?.__router_turn_counter ?? 0) + 1;
   (tempMemory as any).__router_turn_counter = routerTurnCounter;
@@ -1589,6 +1790,94 @@ export async function processMessage(
     }
   }
 
+  // Tester-only emergency reset of all conversational machines.
+  // Triggered only when message is exactly "abracadabra"/"abrakadabra" (single word).
+  {
+    const magicResetVariant = ENABLE_TESTER_MAGIC_RESET
+      ? detectMagicResetCommand(userMessage)
+      : null;
+    if (magicResetVariant) {
+      const before = getMachineStateSnapshot(
+        tempMemory,
+        (state as any)?.investigation_state,
+      );
+      const resetResult = clearMachineStateTempMemory({
+        tempMemory,
+        profileConfirmDeferredKey: PROFILE_CONFIRM_DEFERRED_KEY,
+      });
+      tempMemory = resetResult.tempMemory;
+      const after = getMachineStateSnapshot(tempMemory, null);
+
+      await trace("routing_decision_summary", "routing", {
+        target_mode: "companion",
+        reason_code: "magic_reset_command",
+        primary_mother_signal: null,
+        secondary_tool_signal: null,
+        filtered_mother_signals: [],
+        dual_tool_skip_routing: false,
+        active_machine_type: before.machine_type,
+        pending_resolution_type: null,
+        pending_resolution_decision: null,
+        pending_resolution_confidence: null,
+        request_id: meta?.requestId ?? null,
+      }, "warn");
+
+      await trace("machine_transition", "state", {
+        from_state: before,
+        to_state: after,
+        reason_code: "magic_reset_command",
+        request_id: meta?.requestId ?? null,
+      }, "warn");
+
+      await trace("brain:magic_reset_command", "routing", {
+        variant: magicResetVariant,
+        cleared_keys: resetResult.clearedKeys,
+        cleared_count: resetResult.clearedKeys.length,
+      }, "warn");
+
+      const responseContent =
+        "C'est fait. J'ai réinitialisé les machines en cours. On repart de zéro.";
+      const nextMode: AgentMode = "companion";
+      const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
+      const nextLastProcessed = (state as any)?.last_processed_at ??
+        new Date().toISOString();
+
+      await updateUserState(supabase, userId, scope, {
+        current_mode: nextMode,
+        unprocessed_msg_count: nextMsgCount,
+        last_processed_at: nextLastProcessed,
+        investigation_state: null,
+        temp_memory: tempMemory,
+      });
+
+      if (logMessages) {
+        await logMessage(
+          supabase,
+          userId,
+          scope,
+          "assistant",
+          responseContent,
+          "companion",
+          {
+            ...(opts?.messageMetadata ?? {}),
+            source: "magic_reset_command",
+            magic_reset_variant: magicResetVariant,
+          },
+        );
+      }
+
+      turnMetrics.routing.target_initial = "companion";
+      turnMetrics.routing.target_final = "companion";
+      turnMetrics.agent.outcome = "text";
+      turnMetrics.state_flags.checkup_active = false;
+      turnMetrics.state_flags.toolflow_active = false;
+      turnMetrics.state_flags.supervisor_stack_top = undefined;
+      await emitTurnSummary(turnMetrics, supabase);
+
+      return { content: responseContent, mode: nextMode };
+    }
+  }
+
   // --- SOFT CAP: Daily message limit to protect margins on power users ---
   // Skip for evals and for Architect tier (unlimited messages)
   const userTier = SOFT_CAP_ENABLED
@@ -1875,6 +2164,8 @@ export async function processMessage(
   let newSignalsDetected: NewSignalEntry[] = [];
   let signalEnrichments: SignalEnrichment[] = [];
   let primaryMotherSignal: string | null = null;
+  let filteredMotherSignals: string[] = [];
+  let secondaryToolMotherSignal: string | null = null;
 
   const dispatcherT0 = Date.now();
   const contextual = await runContextualDispatcherV2({
@@ -1971,6 +2262,26 @@ export async function processMessage(
         });
       tempMemory = tm;
       pendingDualStillActive = Boolean(getPendingDualTool(tempMemory));
+      if (
+        pendingResolutionSignal?.pending_type === "dual_tool" ||
+        dualResult.outcome !== "dropped"
+      ) {
+        await tracePendingResolutionDecision({
+          pendingType: "dual_tool",
+          decisionCode: pendingResolutionSignal?.pending_type === "dual_tool"
+            ? pendingResolutionSignal.decision_code
+            : null,
+          status: pendingResolutionSignal?.pending_type === "dual_tool"
+            ? pendingResolutionSignal.status
+            : null,
+          confidence: pendingResolutionSignal?.pending_type === "dual_tool"
+            ? Number(pendingResolutionSignal.confidence ?? 0)
+            : null,
+          outcome: dualResult.outcome,
+          fallbackUsed: pendingResolutionSignal?.pending_type !== "dual_tool",
+          source: "dual_tool_handler",
+        });
+      }
 
       if (dualResult.outcome === "unclear" && dualResult.reask) {
         // Re-ask: inject reask add-on, skip normal routing
@@ -2059,6 +2370,8 @@ export async function processMessage(
       const { primarySignal, secondaryToolSignal, filtered } =
         filterToSingleMotherSignal(dispatcherSignals);
       primaryMotherSignal = primarySignal;
+      secondaryToolMotherSignal = secondaryToolSignal;
+      filteredMotherSignals = filtered;
 
       // --- STEP C: Dual-tool detection ---
       let dualToolHandled = false;
@@ -2226,6 +2539,23 @@ export async function processMessage(
   // ═══════════════════════════════════════════════════════════════════════════
   const pendingRelaunchConsent = getPendingRelaunchConsent(tempMemory);
   if (pendingRelaunchConsent) {
+    const interruptKind = String(dispatcherSignals.interrupt?.kind ?? "NONE");
+    const interruptConfidence = Number(
+      dispatcherSignals.interrupt?.confidence ?? 0,
+    );
+    const interruptCancelsRelaunchConsent =
+      (interruptKind === "EXPLICIT_STOP" && interruptConfidence >= 0.65) ||
+      (interruptKind === "SWITCH_TOPIC" && interruptConfidence >= 0.75);
+
+    if (interruptCancelsRelaunchConsent) {
+      tempMemory = clearPendingRelaunchConsent(tempMemory).tempMemory;
+      await trace("brain:relaunch_consent_cancelled_interrupt", "routing", {
+        machine_type: pendingRelaunchConsent.machine_type,
+        action_target: pendingRelaunchConsent.action_target,
+        interrupt_kind: interruptKind,
+        interrupt_confidence: interruptConfidence,
+      });
+    } else {
     // Get consent signals from dispatcher (structured pending_resolution + legacy consent_to_relaunch)
     const dispatcherConsentSignal = dispatcherSignals.consent_to_relaunch;
 
@@ -2236,6 +2566,58 @@ export async function processMessage(
       dispatcherConsentSignal,
       pendingResolutionSignal,
     });
+
+    if (
+      pendingResolutionSignal?.pending_type === "relaunch_consent" ||
+      dispatcherConsentSignal ||
+      consentResult.handled
+    ) {
+      const outcome = consentResult.shouldInitMachine
+        ? "accepted"
+        : consentResult.declineMessage
+        ? "declined"
+        : consentResult.unclearReaskScheduled
+        ? "unclear_reask"
+        : consentResult.droppedAfterUnclear
+        ? "dropped_after_unclear"
+        : consentResult.handled
+        ? "unclear"
+        : "unhandled";
+      const decisionCode = pendingResolutionSignal?.pending_type ===
+          "relaunch_consent"
+        ? pendingResolutionSignal.decision_code
+        : dispatcherConsentSignal
+        ? dispatcherConsentSignal.value === true
+          ? "dispatcher.accept"
+          : dispatcherConsentSignal.value === false
+          ? "dispatcher.decline"
+          : "dispatcher.unclear"
+        : null;
+      const confidence = pendingResolutionSignal?.pending_type ===
+          "relaunch_consent"
+        ? Number(pendingResolutionSignal.confidence ?? 0)
+        : dispatcherConsentSignal
+        ? Number(dispatcherConsentSignal.confidence ?? 0)
+        : null;
+      await tracePendingResolutionDecision({
+        pendingType: "relaunch_consent",
+        decisionCode,
+        status: pendingResolutionSignal?.pending_type === "relaunch_consent"
+          ? pendingResolutionSignal.status
+          : null,
+        confidence,
+        outcome,
+        fallbackUsed:
+          pendingResolutionSignal?.pending_type !== "relaunch_consent" &&
+          !dispatcherConsentSignal &&
+          consentResult.handled,
+        source: pendingResolutionSignal?.pending_type === "relaunch_consent"
+          ? "pending_resolution"
+          : dispatcherConsentSignal
+          ? "legacy_consent_signal"
+          : "local_binary_fallback",
+      });
+    }
 
     if (consentResult.handled) {
       tempMemory = consentResult.tempMemory;
@@ -2291,6 +2673,7 @@ export async function processMessage(
         });
         console.log(`[Router] Relaunch consent UNCLEAR`);
       }
+    }
     }
   }
 
@@ -3018,6 +3401,31 @@ export async function processMessage(
       wantsToCheckupFromDispatcher: wantsToCheckup,
       pendingResolutionSignal,
     });
+    if (resolved || pendingResolutionSignal?.pending_type === "checkup_entry") {
+      await tracePendingResolutionDecision({
+        pendingType: "checkup_entry",
+        decisionCode: pendingResolutionSignal?.pending_type === "checkup_entry"
+          ? pendingResolutionSignal.decision_code
+          : wantsToCheckup !== undefined
+          ? wantsToCheckup
+            ? "dispatcher.accept"
+            : "dispatcher.decline"
+          : null,
+        status: pendingResolutionSignal?.pending_type === "checkup_entry"
+          ? pendingResolutionSignal.status
+          : null,
+        confidence: pendingResolutionSignal?.pending_type === "checkup_entry"
+          ? Number(pendingResolutionSignal.confidence ?? 0)
+          : null,
+        outcome: resolved?.kind ?? "unresolved",
+        fallbackUsed: resolved?.via === "deterministic",
+        source: resolved?.via === "dispatcher"
+          ? "dispatcher_signal"
+          : resolved?.via === "deterministic"
+          ? "deterministic_guard"
+          : "unresolved",
+      });
+    }
 
     if (resolved) {
       // Clear the pending flag only when we actually resolved the answer.
@@ -4261,6 +4669,17 @@ export async function processMessage(
       ?.user_wants_different_action;
     const currentActivatePhase = getActivateActionFlowPhase(tempMemory) ??
       "exploring";
+    const activationBinaryFallback = currentActivatePhase === "confirming"
+      ? detectShortBinaryReply(userMessage)
+      : null;
+    const resolvedUserConfirmsActivation = typeof userConfirmsActivation ===
+        "boolean"
+      ? userConfirmsActivation
+      : activationBinaryFallback === "yes"
+      ? true
+      : activationBinaryFallback === "no"
+      ? false
+      : undefined;
     const activateTarget = (activeActivateActionSession.meta as any)
       ?.target_action;
     const activateExercise = (activeActivateActionSession.meta as any)
@@ -4284,7 +4703,8 @@ export async function processMessage(
 
     // confirming → activated: user said YES (any form of yes, detected by LLM)
     if (
-      currentActivatePhase === "confirming" && userConfirmsActivation === true
+      currentActivatePhase === "confirming" &&
+      resolvedUserConfirmsActivation === true
     ) {
       const updated = upsertActivateActionFlow({
         tempMemory,
@@ -4306,7 +4726,8 @@ export async function processMessage(
 
     // confirming → abandoned: user said NO
     if (
-      currentActivatePhase === "confirming" && userConfirmsActivation === false
+      currentActivatePhase === "confirming" &&
+      resolvedUserConfirmsActivation === false
     ) {
       const closed = closeActivateActionFlow({
         tempMemory,
@@ -4408,6 +4829,17 @@ export async function processMessage(
       ?.user_wants_different_action;
     const currentDeletePhase = getDeleteActionFlowPhase(tempMemory) ??
       "exploring";
+    const deleteBinaryFallback = currentDeletePhase === "confirming"
+      ? detectShortBinaryReply(userMessage)
+      : null;
+    const resolvedUserConfirmsDeletion = typeof userConfirmsDeletion ===
+        "boolean"
+      ? userConfirmsDeletion
+      : deleteBinaryFallback === "yes"
+      ? true
+      : deleteBinaryFallback === "no"
+      ? false
+      : undefined;
     const deleteTarget = (activeDeleteActionSession.meta as any)?.target_action;
     const deleteReason = (activeDeleteActionSession.meta as any)?.reason;
 
@@ -4428,7 +4860,10 @@ export async function processMessage(
     }
 
     // confirming → deleted: user said YES (any form of yes, detected by LLM)
-    if (currentDeletePhase === "confirming" && userConfirmsDeletion === true) {
+    if (
+      currentDeletePhase === "confirming" &&
+      resolvedUserConfirmsDeletion === true
+    ) {
       const updated = upsertDeleteActionFlow({
         tempMemory,
         targetAction: deleteTarget,
@@ -4448,7 +4883,10 @@ export async function processMessage(
     }
 
     // confirming → abandoned: user said NO
-    if (currentDeletePhase === "confirming" && userConfirmsDeletion === false) {
+    if (
+      currentDeletePhase === "confirming" &&
+      resolvedUserConfirmsDeletion === false
+    ) {
       const closed = closeDeleteActionFlow({
         tempMemory,
         outcome: "abandoned",
@@ -4554,6 +4992,17 @@ export async function processMessage(
       ?.user_wants_different_action;
     const currentDeactivatePhase = getDeactivateActionFlowPhase(tempMemory) ??
       "exploring";
+    const deactivateBinaryFallback = currentDeactivatePhase === "confirming"
+      ? detectShortBinaryReply(userMessage)
+      : null;
+    const resolvedUserConfirmsDeactivation =
+      typeof userConfirmsDeactivation === "boolean"
+        ? userConfirmsDeactivation
+        : deactivateBinaryFallback === "yes"
+        ? true
+        : deactivateBinaryFallback === "no"
+        ? false
+        : undefined;
     const deactivateTarget = (activeDeactivateActionSession.meta as any)
       ?.target_action;
 
@@ -4575,7 +5024,7 @@ export async function processMessage(
     // confirming → deactivated: user said YES
     if (
       currentDeactivatePhase === "confirming" &&
-      userConfirmsDeactivation === true
+      resolvedUserConfirmsDeactivation === true
     ) {
       const updated = upsertDeactivateActionFlow({
         tempMemory,
@@ -4596,7 +5045,7 @@ export async function processMessage(
     // confirming → abandoned: user said NO
     if (
       currentDeactivatePhase === "confirming" &&
-      userConfirmsDeactivation === false
+      resolvedUserConfirmsDeactivation === false
     ) {
       const closed = closeDeactivateActionFlow({
         tempMemory,
@@ -5037,6 +5486,33 @@ export async function processMessage(
       ? structuredResumeDecision === "no"
       : (/\b(non|pas\s+maintenant|laisse|laisse\s+tomber|on\s+s'en\s+fout|plus\s+tard)\b/i
         .test(s) && s.length <= 40);
+    if (
+      isResumeKind &&
+      (structuredResumeDecision !== null || yes || no ||
+        pendingResolutionSignal?.pending_type === "resume_prompt")
+    ) {
+      await tracePendingResolutionDecision({
+        pendingType: "resume_prompt",
+        decisionCode: pendingResolutionSignal?.pending_type === "resume_prompt"
+          ? pendingResolutionSignal.decision_code
+          : yes
+          ? "regex.accept"
+          : no
+          ? "regex.decline"
+          : null,
+        status: pendingResolutionSignal?.pending_type === "resume_prompt"
+          ? pendingResolutionSignal.status
+          : null,
+        confidence: pendingResolutionSignal?.pending_type === "resume_prompt"
+          ? Number(pendingResolutionSignal.confidence ?? 0)
+          : null,
+        outcome: yes ? "accepted" : no ? "declined" : "unresolved",
+        fallbackUsed: structuredResumeDecision === null && (yes || no),
+        source: structuredResumeDecision
+          ? "pending_resolution"
+          : "regex_fallback",
+      });
+    }
     if (isResumeKind && !expired && (yes || no)) {
       // Clear marker either way
       try {
@@ -6241,6 +6717,25 @@ Réponds uniquement avec la transition:`;
   // Enriches context with live web results before agent execution.
   // Does NOT change targetMode or machine state.
   // ═══════════════════════════════════════════════════════════════════════════════
+  const supportContactRequestHybrid =
+    looksLikeSophiaSupportContactRequest(userMessage) &&
+    (Boolean(dispatcherSignals.needs_research?.value) ||
+      dispatcherSignals.interrupt.kind === "SWITCH_TOPIC" ||
+      dispatcherSignals.interrupt.kind === "DIGRESSION");
+  let supportContactContext = "";
+  if (supportContactRequestHybrid) {
+    supportContactContext =
+      `\n=== CONTACT SUPPORT SOPHIA (CANONIQUE) ===\n` +
+      `Si l'utilisateur demande l'email de contact/support Sophia, donne UNIQUEMENT cette adresse:\n` +
+      `sophia@sophia-coach.ai\n` +
+      `Ne propose pas d'autres emails et n'invente pas d'entités homonymes.\n` +
+      `=== FIN CONTACT SUPPORT ===\n`;
+    await traceV("brain:support_contact_guard", "routing", {
+      interrupt_kind: dispatcherSignals.interrupt.kind,
+      needs_research: Boolean(dispatcherSignals.needs_research?.value),
+    });
+  }
+
   let researchContext = "";
   if (
     dispatcherSignals.needs_research?.value &&
@@ -6248,7 +6743,8 @@ Réponds uniquement avec la transition:`;
     targetMode !== "sentry" &&
     targetMode !== "firefighter" &&
     !(checkupActive && !isPostCheckup) &&
-    !toolFlowActiveGlobal
+    !toolFlowActiveGlobal &&
+    !supportContactRequestHybrid
   ) {
     const researchQuery = String(
       dispatcherSignals.needs_research.query ??
@@ -6320,6 +6816,9 @@ Réponds uniquement avec la transition:`;
     }
   }
   // Inject research results into context (before librarian overlay / agent execution)
+  if (supportContactContext) {
+    context = `${context}\n${supportContactContext}`;
+  }
   if (researchContext) {
     context = `${context}\n${researchContext}`;
   }
@@ -6382,6 +6881,71 @@ Réponds uniquement avec la transition:`;
       })`,
     );
   }
+
+  machineStateBeforeAgent = getMachineStateSnapshot(
+    tempMemory,
+    (state as any)?.investigation_state,
+  );
+  await traceMachineTransitionIfChanged({
+    from: machineStateAtTurnStart,
+    to: machineStateBeforeAgent,
+    reasonCode: "router_pre_agent",
+  });
+
+  const routingReasonCode = (() => {
+    if (dualToolSkipRouting) return "dual_tool_wait_confirmation";
+    if (
+      relaunchConsentHandled &&
+      relaunchConsentNextMode &&
+      targetMode === relaunchConsentNextMode
+    ) {
+      return "relaunch_consent_resume";
+    }
+    if (
+      dispatcherSignals.safety.level === "SENTRY" &&
+      dispatcherSignals.safety.confidence >= 0.75
+    ) return "safety_sentry";
+    if (
+      dispatcherSignals.safety.level === "FIREFIGHTER" &&
+      dispatcherSignals.safety.confidence >= 0.75
+    ) return "safety_firefighter";
+    if (checkupConfirmedThisTurn) return "checkup_confirmed";
+    if (targetMode === "investigator" && Boolean(state?.investigation_state)) {
+      return "active_checkup_guard";
+    }
+    if (targetMode === "librarian" && librarianOverlayActive) {
+      return "needs_explanation_overlay";
+    }
+    if (targetMode === "architect" && getAnyActiveToolFlow(tempMemory)) {
+      return "active_toolflow_owner";
+    }
+    if (targetMode === "architect" && getActiveDeepReasonsExploration(tempMemory)) {
+      return "deep_reasons_active";
+    }
+    if (targetMode === "architect" && primaryMotherSignal) {
+      return `mother_signal:${primaryMotherSignal}`;
+    }
+    return `intent:${dispatcherSignals.user_intent_primary}`;
+  })();
+
+  await trace("routing_decision_summary", "routing", {
+    target_mode: targetMode,
+    reason_code: routingReasonCode,
+    primary_mother_signal: primaryMotherSignal,
+    secondary_tool_signal: secondaryToolMotherSignal,
+    filtered_mother_signals: filteredMotherSignals,
+    dual_tool_skip_routing: dualToolSkipRouting,
+    active_machine_type: machineStateBeforeAgent.machine_type,
+    active_machine_phase: machineStateBeforeAgent.machine_phase,
+    pending_resolution_type: pendingResolutionSignal?.pending_type ?? null,
+    pending_resolution_decision: pendingResolutionSignal?.decision_code ?? null,
+    pending_resolution_confidence: pendingResolutionSignal
+      ? Number(pendingResolutionSignal.confidence ?? 0)
+      : null,
+    interrupt_kind: dispatcherSignals.interrupt?.kind ?? null,
+    interrupt_confidence: Number(dispatcherSignals.interrupt?.confidence ?? 0),
+    request_id: meta?.requestId ?? null,
+  }, "info");
 
   const selectedChatModel = selectChatModel(targetMode, riskScore);
   await trace("brain:model_selected", "agent", {
@@ -6501,6 +7065,9 @@ Réponds uniquement avec la transition:`;
     // Pass dispatcher's formalized deferred topic to avoid extra AI call in agent_exec
     dispatcherDeferredTopic:
       dispatcherSignals.interrupt.deferred_topic_formalized ?? null,
+    toolResultStatusHook: async ({ payload, level }) => {
+      await trace("tool_result_status", "agent", payload, level);
+    },
   });
 
   responseContent = agentOut.responseContent;
@@ -6925,8 +7492,10 @@ Réponds uniquement avec la transition:`;
   // IMPORTANT: agents may have updated temp_memory mid-turn (e.g. Architect tool flows).
   // Merge with latest DB temp_memory to avoid clobbering those updates.
   let mergedTempMemory = tempMemory;
+  let latestStateForFinal: any = state;
   try {
     const latest = await getUserState(supabase, userId, scope);
+    latestStateForFinal = latest;
     const latestTm = (latest as any)?.temp_memory ?? {};
     // Keep latestTm as base (preserve agent-written changes), but re-apply router-owned supervisor runtime.
     mergedTempMemory = { ...(latestTm ?? {}) };
@@ -7026,6 +7595,16 @@ Réponds uniquement avec la transition:`;
       } catch {}
     }
   }
+
+  const machineStateFinal = getMachineStateSnapshot(
+    mergedTempMemory,
+    (latestStateForFinal as any)?.investigation_state,
+  );
+  await traceMachineTransitionIfChanged({
+    from: machineStateBeforeAgent,
+    to: machineStateFinal,
+    reasonCode: "router_post_agent",
+  });
 
   await updateUserState(supabase, userId, scope, {
     current_mode: nextMode,

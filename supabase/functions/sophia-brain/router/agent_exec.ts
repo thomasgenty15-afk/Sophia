@@ -45,6 +45,11 @@ export async function runAgentAndVerify(opts: {
   tempMemory?: any
   /** Pre-formalized deferred topic from dispatcher (avoids extra AI call) */
   dispatcherDeferredTopic?: string | null
+  /** Optional hook so caller can mirror tool_result_status into its own trace buffer. */
+  toolResultStatusHook?: (args: {
+    payload: Record<string, unknown>
+    level: "debug" | "info" | "warn" | "error"
+  }) => Promise<void> | void
 }): Promise<{ responseContent: string; nextMode: AgentMode; tempMemory?: any }> {
   const {
     supabase,
@@ -202,6 +207,43 @@ export async function runAgentAndVerify(opts: {
     if (!args.allowedTools.includes(tool)) v.push("tool_call_tool_not_allowed")
     if (args.toolArgs == null || (typeof args.toolArgs === "object" && Object.keys(args.toolArgs).length === 0)) v.push("tool_call_missing_args")
     return v
+  }
+
+  async function traceArchitectToolResultStatus(args: {
+    source: "router_run_architect" | "router_multi_candidate"
+    latencyMs?: number
+    toolNameHint?: string
+    errorCode?: string | null
+  }): Promise<void> {
+    if (targetMode !== "architect") return
+    if (!Array.isArray(executedTools) || executedTools.length === 0) return
+    const level = toolExecution === "failed" ? "error" : toolExecution === "blocked" ? "warn" : "info"
+    const primaryTool = String(args.toolNameHint ?? executedTools[0] ?? "").trim() || null
+    const errorCode = args.errorCode ?? (toolExecution === "failed"
+      ? "tool_failed"
+      : toolExecution === "blocked"
+      ? "tool_blocked"
+      : null)
+    const payload = {
+      agent: "architect",
+      source: args.source,
+      tool_execution: toolExecution,
+      tool_name: primaryTool,
+      executed_count: executedTools.length,
+      executed_tools: executedTools.slice(0, 5),
+      primary_tool: executedTools[0] ?? null,
+      latency_ms: Number.isFinite(args.latencyMs) ? Math.max(0, Math.round(args.latencyMs!)) : null,
+      error_code: errorCode,
+    }
+    if (opts.toolResultStatusHook) {
+      try {
+        await opts.toolResultStatusHook({ payload, level })
+        return
+      } catch {}
+    }
+    try {
+      await trace("tool_result_status", "agent", payload, level)
+    } catch {}
   }
 
   async function runMultiCandidateIfNeeded(): Promise<{ ran: boolean; responseText: string }> {
@@ -368,6 +410,7 @@ export async function runAgentAndVerify(opts: {
       if (chosen.kind === "text") finalText = chosen.text
       else {
         // NOTE: Architect tool-call ledger is logged inside handleArchitectModelOutput (deeper + avoids duplicates).
+        const t0 = Date.now()
         const out = await handleArchitectModelOutput({
           supabase,
           userId,
@@ -379,6 +422,11 @@ export async function runAgentAndVerify(opts: {
         executedTools = out.executed_tools ?? []
         toolExecution = out.tool_execution ?? "uncertain"
         finalText = out.text
+        await traceArchitectToolResultStatus({
+          source: "router_multi_candidate",
+          latencyMs: Date.now() - t0,
+          toolNameHint: chosen.tool,
+        })
       }
     } else {
       // librarian
@@ -632,6 +680,7 @@ export async function runAgentAndVerify(opts: {
     case "architect":
       try {
         if (!responseContent) {
+          const t0 = Date.now()
           const out = await runArchitect(
           supabase,
           userId,
@@ -644,6 +693,10 @@ export async function runAgentAndVerify(opts: {
           responseContent = out.text
           executedTools = out.executed_tools ?? []
           toolExecution = out.tool_execution ?? "uncertain"
+          await traceArchitectToolResultStatus({
+            source: "router_run_architect",
+            latencyMs: Date.now() - t0,
+          })
         }
       } catch (e) {
         console.error("[Router] architect failed:", e)

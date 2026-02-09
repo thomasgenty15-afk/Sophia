@@ -89,6 +89,22 @@ function looksLikePlanStepQuestion(message: string): boolean {
     .test(t)
 }
 
+function isActionToolResultSuccessful(text: string): boolean {
+  const s = String(text ?? "").toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, " ")
+  if (!s.trim()) return false
+  if (
+    /\b(je ne trouve pas|je n ai pas compris|pas de plan actif|souci technique|erreur|impossible)\b/i
+      .test(s)
+  ) {
+    return false
+  }
+  return /\b(c est fait|j ai (mis en pause|retire|retiree?|active)|est deja en pause|est deja active)\b/i
+    .test(s)
+}
+
 function parseExplicitCreateActionFromUserMessage(message: string): {
   title?: string
   description?: string
@@ -2291,20 +2307,27 @@ FORMAT :
             ...args,
             action_title_or_id: titleToDelete,
           })
-          await trace({ event: "tool_call_succeeded", toolResult: deleteResult })
+          const deleteSucceeded = isActionToolResultSuccessful(deleteResult)
+          await trace({
+            event: deleteSucceeded ? "tool_call_succeeded" : "tool_call_blocked",
+            toolResult: deleteResult,
+            metadata: deleteSucceeded ? { outcome: "deleted" } : { reason: "delete_not_applied" },
+          })
           // Close the machine
-          try {
-            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
-            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
-            const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
-            tmClean = closed.tempMemory
-            delete tmClean.__delete_action_confirmed
-            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
-          } catch {}
+          if (deleteSucceeded) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
+              tmClean = closed.tempMemory
+              delete tmClean.__delete_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+          }
           return {
             text: deleteResult,
             executed_tools: [toolName],
-            tool_execution: "success",
+            tool_execution: deleteSucceeded ? "success" : "blocked",
           }
         }
 
@@ -2315,20 +2338,27 @@ FORMAT :
             ...args,
             action_title_or_id: titleToDelete,
           })
-          await trace({ event: "tool_call_succeeded", toolResult: deleteResult })
+          const deleteSucceeded = isActionToolResultSuccessful(deleteResult)
+          await trace({
+            event: deleteSucceeded ? "tool_call_succeeded" : "tool_call_blocked",
+            toolResult: deleteResult,
+            metadata: deleteSucceeded ? { outcome: "deleted" } : { reason: "delete_not_applied" },
+          })
           // Close machine if it exists
-          try {
-            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
-            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
-            const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
-            tmClean = closed.tempMemory
-            delete tmClean.__delete_action_confirmed
-            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
-          } catch {}
+          if (deleteSucceeded) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
+              tmClean = closed.tempMemory
+              delete tmClean.__delete_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+          }
           return {
             text: deleteResult,
             executed_tools: [toolName],
-            tool_execution: "success",
+            tool_execution: deleteSucceeded ? "success" : "blocked",
           }
         }
 
@@ -2372,20 +2402,33 @@ FORMAT :
             ...args,
             action_title_or_id: titleToDeactivate,
           })
-          await trace({ event: "tool_call_succeeded", toolResult: deactivateResult })
+          const deactivateSucceeded = isActionToolResultSuccessful(
+            deactivateResult,
+          )
+          await trace({
+            event: deactivateSucceeded
+              ? "tool_call_succeeded"
+              : "tool_call_blocked",
+            toolResult: deactivateResult,
+            metadata: deactivateSucceeded
+              ? { outcome: "deactivated" }
+              : { reason: "deactivate_not_applied" },
+          })
           // Close the machine
-          try {
-            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
-            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
-            const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
-            tmClean = closed.tempMemory
-            delete tmClean.__deactivate_action_confirmed
-            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
-          } catch {}
+          if (deactivateSucceeded) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
+              tmClean = closed.tempMemory
+              delete tmClean.__deactivate_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+          }
           return {
             text: deactivateResult,
             executed_tools: [toolName],
-            tool_execution: "success",
+            tool_execution: deactivateSucceeded ? "success" : "blocked",
           }
         }
 
@@ -2396,20 +2439,33 @@ FORMAT :
             ...args,
             action_title_or_id: titleToDeactivate,
           })
-          await trace({ event: "tool_call_succeeded", toolResult: deactivateResult })
+          const deactivateSucceeded = isActionToolResultSuccessful(
+            deactivateResult,
+          )
+          await trace({
+            event: deactivateSucceeded
+              ? "tool_call_succeeded"
+              : "tool_call_blocked",
+            toolResult: deactivateResult,
+            metadata: deactivateSucceeded
+              ? { outcome: "deactivated" }
+              : { reason: "deactivate_not_applied" },
+          })
           // Close machine if it exists
-          try {
-            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
-            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
-            const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
-            tmClean = closed.tempMemory
-            delete tmClean.__deactivate_action_confirmed
-            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
-          } catch {}
+          if (deactivateSucceeded) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
+              tmClean = closed.tempMemory
+              delete tmClean.__deactivate_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+          }
           return {
             text: deactivateResult,
             executed_tools: [toolName],
-            tool_execution: "success",
+            tool_execution: deactivateSucceeded ? "success" : "blocked",
           }
         }
 
@@ -2842,5 +2898,3 @@ FORMAT :
 
   return { text: String(response ?? ""), executed_tools: [], tool_execution: "none" }
 }
-
-

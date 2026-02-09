@@ -17,3 +17,16 @@ OK {
   id: '0020514b-00e8-4a8d-94a9-319dcad18b74',
   email: 'fagenty@gmail.com'
 }
+
+
+
+
+Pour aller créer un bundle à partir de la BD prod : 
+SUPABASE_URL="https://ybyqxwnwjvuxckolsddn.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InlieXF4d253anZ1eGNrb2xzZGRuIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2NjAwMTM2MywiZXhwIjoyMDgxNTc3MzYzfQ.ldGZq8wQcXpDeCcO49FL73kedTef5_sVSl8YBeuVjlQ" \
+npm run prod:bundle:user -- \
+  --prod \
+  --user-id "UUID_DU_U" \
+  --since "2026-02-08T17:00:00.000Z" \
+  --until "2026-02-09T15:59:59.999Z" \
+  --scope "whatsapp" \

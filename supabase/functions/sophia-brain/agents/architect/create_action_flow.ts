@@ -19,6 +19,10 @@ import {
 } from "./action_candidate_types.ts"
 import {
   extractModificationInfo,
+  looksLikeAbandonActionCreation,
+  looksLikeModificationRequest,
+  looksLikeNoToProceed,
+  looksLikeYesToProceed,
 } from "./consent.ts"
 import { logToolLedgerEvent } from "../../lib/tool_ledger.ts"
 
@@ -216,6 +220,71 @@ export function processPreviewResponse(
     }
   }
 
+  // ── Hybrid fallback: LLM signal missing, validate with deterministic guardrails ──
+  const fallbackModify = looksLikeModificationRequest(userMessage)
+  const fallbackNo = looksLikeAbandonActionCreation(userMessage) ||
+    looksLikeNoToProceed(userMessage)
+  const fallbackYes = looksLikeYesToProceed(userMessage)
+
+  if (fallbackModify) {
+    const modInfo = extractModificationInfo(userMessage)
+    if (shouldAbandonCandidate(candidate) && candidate.last_clarification_reason !== "unclear" && !modInfo?.field) {
+      return {
+        response: generateAbandonmentMessage(candidate, "max_clarifications"),
+        candidate: updateActionCandidate(candidate, { status: "abandoned" }),
+        shouldCreate: false,
+        shouldAbandon: true,
+        toolExecution: "none",
+      }
+    }
+
+    if (modInfo?.field) {
+      const updatedCandidate = applyModificationToCandidate(candidate, modInfo)
+      return {
+        response: generatePreviewMessage(updatedCandidate),
+        candidate: updateActionCandidate(updatedCandidate, {
+          clarification_count: Math.min(candidate.clarification_count + 1, 1),
+          status: "previewing",
+        }),
+        shouldCreate: false,
+        shouldAbandon: false,
+        toolExecution: "blocked",
+      }
+    }
+
+    return {
+      response: generateClarificationQuestion(candidate, modInfo),
+      candidate: updateActionCandidate(candidate, {
+        clarification_count: candidate.clarification_count + 1,
+        status: "previewing",
+        last_clarification_reason: userMessage.slice(0, 200),
+      }),
+      shouldCreate: false,
+      shouldAbandon: false,
+      toolExecution: "blocked",
+    }
+  }
+
+  if (fallbackNo) {
+    return {
+      response: generateAbandonmentMessage(candidate, "user_declined"),
+      candidate: updateActionCandidate(candidate, { status: "abandoned" }),
+      shouldCreate: false,
+      shouldAbandon: true,
+      toolExecution: "none",
+    }
+  }
+
+  if (fallbackYes) {
+    return {
+      response: "",
+      candidate: updateActionCandidate(candidate, { status: "created" }),
+      shouldCreate: true,
+      shouldAbandon: false,
+      toolExecution: "success",
+    }
+  }
+
   // ── No AI signal (unclear) ─────────────────────────────────────────────
 
   if (candidate.status === "previewing" && candidate.clarification_count === 0) {
@@ -307,4 +376,3 @@ export async function logCreateActionFlowEvent(opts: {
     },
   })
 }
-

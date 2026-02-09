@@ -1,13 +1,34 @@
+function normalizeConsentText(message: string): string {
+  return String(message ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim()
+}
+
+function looksLikeElongatedOui(raw: string): boolean {
+  const compact = raw.replace(/\s+/g, "")
+  // Handles forms like "ouiiii", "ouiiu", "ouiuuu", "ouiiiiii"
+  return /^ou+i+u*$/.test(compact) || /^ou+i+$/.test(compact)
+}
+
 export function looksLikeYesToProceed(message: string): boolean {
-  const t = String(message ?? "").trim().toLowerCase()
-  return /^(oui|ok|d['’]accord|vas[-\s]?y|go|ça\s+marche|c['’]est\s+bon)\b/i.test(t) ||
-    /\b(oui|ok|vas[-\s]?y|tu\s+peux|d['’]accord)\b/i.test(t)
+  const t = normalizeConsentText(message)
+  if (!t) return false
+  if (looksLikeElongatedOui(t)) return true
+  return /^(oui|ouais|ok|d accord|vas y|go|yes|ca marche|c est bon|bien sur)\b/i.test(t) ||
+    /\b(oui|ouais|ok|vas y|tu peux|d accord|go|yes|bien sur)\b/i.test(t)
 }
 
 export function looksLikeNoToProceed(message: string): boolean {
-  const t = String(message ?? "").trim().toLowerCase()
-  return /^(non|nope|nan|pas\s+maintenant|pas\s+besoin|laisse|laisse\s+tomber)\b/i.test(t) ||
-    /\b(non|pas\s+maintenant|pas\s+besoin)\b/i.test(t)
+  const t = normalizeConsentText(message)
+  if (!t) return false
+  const compact = t.replace(/\s+/g, "")
+  if (/^no+n+$/.test(compact) || /^na+n+$/.test(compact)) return true
+  return /^(non|nope|nan|pas maintenant|pas besoin|laisse|laisse tomber|plus tard)\b/i.test(t) ||
+    /\b(non|pas maintenant|pas besoin|laisse tomber|plus tard)\b/i.test(t)
 }
 
 export function looksLikeExplicitTrackProgressRequest(message: string): boolean {
@@ -463,4 +484,3 @@ export function extractBlockerHint(message: string): string | null {
 
   return null
 }
-

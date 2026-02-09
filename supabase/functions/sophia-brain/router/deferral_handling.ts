@@ -193,6 +193,12 @@ export async function handleSignalDeferral(opts: {
   let { tempMemory } = opts;
   let deferredAckPrefix = "";
   let deferredSignalAddon = "";
+  const traceDeferralDecision = async (
+    payload: Record<string, unknown>,
+    level: "debug" | "info" | "warn" | "error" = "debug",
+  ) => {
+    await opts.trace("deferral_decision", "routing", payload, level);
+  };
 
   // Prune expired deferred topics first
   {
@@ -260,6 +266,9 @@ export async function handleSignalDeferral(opts: {
       if (!isSameMachineType) return false;
       // For non-tool machines (topics, deep_reasons), same machine type is enough
       if (!isToolMachine(newMachineSignal.machine_type)) return true;
+      // For tool machines, if dispatcher has no specific target hint, treat as
+      // continuation of current flow rather than creating a deferred duplicate.
+      if (!newMachineSignal.action_target) return true;
       // For tool machines, require matching action targets
       return Boolean(
         activeToolFlowTarget &&
@@ -271,10 +280,10 @@ export async function handleSignalDeferral(opts: {
     })();
 
     // If it's NOT sentry/firefighter AND (different machine OR different action), DEFER
-    if (
-      !shouldInterruptForSafety(opts.dispatcherSignals) &&
-      (!isSameMachineType || !isSameAction)
-    ) {
+    const interruptedForSafety = shouldInterruptForSafety(
+      opts.dispatcherSignals,
+    );
+    if (!interruptedForSafety && (!isSameMachineType || !isSameAction)) {
       // Generate summary for the deferred signal
       const summary = generateDeferredSignalSummary({
         signals: opts.dispatcherSignals,
@@ -377,7 +386,47 @@ export async function handleSignalDeferral(opts: {
       } else if (newMachineSignal.machine_type === "deep_reasons") {
         delete (tempMemory as any).__deep_reasons_opportunity;
       }
+      await traceDeferralDecision(
+        {
+          deferred: true,
+          reason_code: "deferred_different_machine_or_action",
+          machine_type: newMachineSignal.machine_type,
+          action_target: newMachineSignal.action_target ?? null,
+          active_machine: anyActiveMachine.type,
+          active_machine_target: activeToolFlowTarget ?? null,
+          is_same_machine_type: isSameMachineType,
+          is_same_action: isSameAction,
+          interrupted_for_safety: false,
+        },
+        "info",
+      );
+    } else {
+      await traceDeferralDecision({
+        deferred: false,
+        reason_code: interruptedForSafety
+          ? "safety_interrupt"
+          : "same_machine_same_action",
+        machine_type: newMachineSignal.machine_type,
+        action_target: newMachineSignal.action_target ?? null,
+        active_machine: anyActiveMachine.type,
+        active_machine_target: activeToolFlowTarget ?? null,
+        is_same_machine_type: isSameMachineType,
+        is_same_action: isSameAction,
+        interrupted_for_safety: interruptedForSafety,
+      });
     }
+  } else {
+    await traceDeferralDecision({
+      deferred: false,
+      reason_code: anyActiveMachine
+        ? "no_new_machine_signal"
+        : "no_active_machine",
+      machine_type: newMachineSignal?.machine_type ?? null,
+      action_target: newMachineSignal?.action_target ?? null,
+      active_machine: anyActiveMachine?.type ?? null,
+      active_machine_target: activeToolFlowTarget ?? null,
+      interrupted_for_safety: shouldInterruptForSafety(opts.dispatcherSignals),
+    });
   }
 
   return { tempMemory, deferredAckPrefix, deferredSignalAddon };

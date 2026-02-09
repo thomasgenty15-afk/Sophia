@@ -295,3 +295,40 @@ Deno.test("processRelaunchConsentResponse: no signal schedules unclear re-ask", 
   assertEquals(result.handled, true, "handled");
   assertEquals(result.unclearReaskScheduled, true, "reask scheduled");
 });
+
+Deno.test("processRelaunchConsentResponse: fallback yes without signal initializes machine", () => {
+  const topic = makeTopic({ machine_type: "create_action", action_target: "Action test" });
+  const { tempMemory: tm0 } = setPendingRelaunchConsent({
+    tempMemory: {},
+    topic,
+  });
+
+  const result = processRelaunchConsentResponse({
+    tempMemory: tm0,
+    userMessage: "ouiiiuuu",
+    profileConfirmDeferredKey: "__profile_deferred",
+  });
+
+  assertEquals(result.handled, true, "handled");
+  assertEquals(result.shouldInitMachine, true, "machine initialized");
+  assertEquals(result.machineType, "create_action", "machine type");
+  assertEquals(result.nextMode, "architect", "next mode");
+});
+
+Deno.test("processRelaunchConsentResponse: fallback no without signal declines", () => {
+  const topic = makeTopic({ machine_type: "update_action", action_target: "Action test" });
+  const { tempMemory: tm0 } = setPendingRelaunchConsent({
+    tempMemory: {},
+    topic,
+  });
+
+  const result = processRelaunchConsentResponse({
+    tempMemory: tm0,
+    userMessage: "nonnn laisse tomber",
+    profileConfirmDeferredKey: "__profile_deferred",
+  });
+
+  assertEquals(result.handled, true, "handled");
+  assertEquals(result.shouldInitMachine, false, "not initialized");
+  assertEquals(typeof result.declineMessage, "string", "decline message");
+});

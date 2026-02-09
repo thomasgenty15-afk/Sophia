@@ -19,7 +19,11 @@ import {
   hasActualChanges,
   getChangeType,
 } from "./update_action_candidate_types.ts"
-// Consent detection is now AI-driven via dispatcher signals (no regex imports needed)
+import {
+  looksLikeModificationRequest,
+  looksLikeNoToProceed,
+  looksLikeYesToProceed,
+} from "./consent.ts"
 import { formatDaysFrench } from "./dates.ts"
 import { logToolLedgerEvent } from "../../lib/tool_ledger.ts"
 
@@ -306,6 +310,79 @@ export function processUpdatePreviewResponse(
     }
   }
 
+  // ── Hybrid fallback: LLM signal missing, validate with deterministic guardrails ──
+  const fallbackModify = looksLikeModificationRequest(userMessage)
+  const fallbackNo = looksLikeNoToProceed(userMessage)
+  const fallbackYes = looksLikeYesToProceed(userMessage)
+
+  if (fallbackModify) {
+    const modInfo = extractUpdateModificationInfo(userMessage)
+
+    if (shouldAbandonUpdateCandidate(candidate)) {
+      return {
+        response: generateUpdateAbandonmentMessage(candidate, "max_clarifications"),
+        candidate: updateUpdateCandidate(candidate, { status: "abandoned" }),
+        shouldApply: false,
+        shouldAbandon: true,
+        toolExecution: "none",
+      }
+    }
+
+    if (modInfo?.field) {
+      const updatedCandidate = applyUpdateModification(candidate, modInfo)
+      return {
+        response: generateUpdatePreviewMessage(updatedCandidate),
+        candidate: updateUpdateCandidate(updatedCandidate, {
+          clarification_count: candidate.clarification_count + 1,
+          status: "awaiting_confirm",
+        }),
+        shouldApply: false,
+        shouldAbandon: false,
+        toolExecution: "blocked",
+      }
+    }
+
+    return {
+      response: generateUpdateClarificationQuestion(candidate),
+      candidate: updateUpdateCandidate(candidate, {
+        clarification_count: candidate.clarification_count + 1,
+        last_clarification_reason: userMessage.slice(0, 200),
+      }),
+      shouldApply: false,
+      shouldAbandon: false,
+      toolExecution: "blocked",
+    }
+  }
+
+  if (fallbackNo) {
+    return {
+      response: generateUpdateAbandonmentMessage(candidate, "user_declined"),
+      candidate: updateUpdateCandidate(candidate, { status: "abandoned" }),
+      shouldApply: false,
+      shouldAbandon: true,
+      toolExecution: "none",
+    }
+  }
+
+  if (fallbackYes) {
+    if (!hasActualChanges(candidate)) {
+      return {
+        response: generateUpdateAbandonmentMessage(candidate, "no_changes"),
+        candidate: updateUpdateCandidate(candidate, { status: "abandoned" }),
+        shouldApply: false,
+        shouldAbandon: true,
+        toolExecution: "none",
+      }
+    }
+    return {
+      response: "",
+      candidate: updateUpdateCandidate(candidate, { status: "applied" }),
+      shouldApply: true,
+      shouldAbandon: false,
+      toolExecution: "success",
+    }
+  }
+
   // ── No AI signal (unclear) ─────────────────────────────────────────────
 
   if (candidate.clarification_count === 0) {
@@ -405,7 +482,6 @@ export async function logUpdateActionFlowEvent(opts: {
     },
   })
 }
-
 
 
 

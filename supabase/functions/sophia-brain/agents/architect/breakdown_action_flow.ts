@@ -15,7 +15,10 @@ import {
   shouldAbandonBreakdownCandidate,
   hasProposedStep,
 } from "./breakdown_candidate_types.ts"
-// Consent detection is now AI-driven via dispatcher signals (no regex imports needed)
+import {
+  looksLikeNoToProceed,
+  looksLikeYesToProceed,
+} from "./consent.ts"
 
 // ═══════════════════════════════════════════════════════════════════════════
 // Message generation
@@ -180,6 +183,69 @@ export function processBreakdownPreviewResponse(
     }
   }
 
+  // ── Hybrid fallback: LLM signal missing, validate with deterministic guardrails ──
+  const fallbackDifferent = /\b(plutot|plut[oô]t|autre|different|diff[eé]rent|pas ca|pas ça)\b/i
+    .test(String(userMessage ?? ""))
+  const fallbackNo = looksLikeNoToProceed(userMessage)
+  const fallbackYes = looksLikeYesToProceed(userMessage)
+
+  if (fallbackDifferent) {
+    if (shouldAbandonBreakdownCandidate(candidate)) {
+      return {
+        response: generateBreakdownAbandonmentMessage(candidate, "max_clarifications"),
+        candidate: updateBreakdownCandidate(candidate, { status: "abandoned" }),
+        shouldApply: false,
+        shouldAbandon: true,
+        needsNewProposal: false,
+        toolExecution: "none",
+      }
+    }
+    return {
+      response: generateBreakdownClarificationQuestion(candidate),
+      candidate: updateBreakdownCandidate(candidate, {
+        clarification_count: candidate.clarification_count + 1,
+        last_clarification_reason: userMessage.slice(0, 200),
+        status: "awaiting_blocker",
+      }),
+      shouldApply: false,
+      shouldAbandon: false,
+      needsNewProposal: true,
+      toolExecution: "blocked",
+    }
+  }
+
+  if (fallbackNo) {
+    return {
+      response: generateBreakdownAbandonmentMessage(candidate, "user_declined"),
+      candidate: updateBreakdownCandidate(candidate, { status: "abandoned" }),
+      shouldApply: false,
+      shouldAbandon: true,
+      needsNewProposal: false,
+      toolExecution: "none",
+    }
+  }
+
+  if (fallbackYes) {
+    if (!hasProposedStep(candidate)) {
+      return {
+        response: generateBreakdownAbandonmentMessage(candidate, "no_step_generated"),
+        candidate: updateBreakdownCandidate(candidate, { status: "abandoned" }),
+        shouldApply: false,
+        shouldAbandon: true,
+        needsNewProposal: false,
+        toolExecution: "none",
+      }
+    }
+    return {
+      response: "",
+      candidate: updateBreakdownCandidate(candidate, { status: "applied" }),
+      shouldApply: true,
+      shouldAbandon: false,
+      needsNewProposal: false,
+      toolExecution: "success",
+    }
+  }
+
   // ── No AI signal (unclear) ─────────────────────────────────────────────
 
   if (candidate.clarification_count === 0) {
@@ -293,4 +359,3 @@ export async function logBreakdownFlowEvent(opts: BreakdownFlowLogEvent): Promis
     console.error("[BreakdownFlow] Failed to log event:", e)
   }
 }
-
