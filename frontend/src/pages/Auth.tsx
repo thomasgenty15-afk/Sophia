@@ -85,7 +85,9 @@ const Auth = () => {
   const [tzFollowDevice, setTzFollowDevice] = useState<boolean>(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'checking' | 'verified'>('idle');
   const [resendCooldown, setResendCooldown] = useState(0);
-  const emailVerifiedLanding = new URLSearchParams(location.search).get('email_verified') === '1';
+  const [showVerifiedLanding, setShowVerifiedLanding] = useState(
+    new URLSearchParams(location.search).get('email_verified') === '1'
+  );
 
   // Keep guest flow state in sessionStorage so "back" / refresh doesn't wipe the plan data.
   useEffect(() => {
@@ -141,6 +143,137 @@ const Auth = () => {
   }, [isSignUp, prelaunchLockdown]);
 
   // ---------------------------------------------------------------------------
+  // PKCE CODE EXCHANGE
+  // Quand l'user clique le lien de vérification email, Supabase confirme l'email
+  // côté serveur puis redirige vers /auth?code=xxx. On détecte le code ici et on
+  // affiche la page "Email vérifié" (= nouvel onglet ouvert par le lien email).
+  // L'onglet ORIGINAL (celui avec le cache) détecte la vérification via le polling.
+  // ---------------------------------------------------------------------------
+  const codeParam = new URLSearchParams(location.search).get('code');
+  useEffect(() => {
+    if (!codeParam) return;
+    // Ne pas interférer avec le flow de reset password
+    if ((view || '').trim() === 'update_password') return;
+    // Si on est déjà sur l'écran de confirmation (= onglet original), ne pas échanger
+    if (confirmationPending) return;
+
+    let cancelled = false;
+    (async () => {
+      try {
+        console.log('[Auth] PKCE code detected, exchanging for session...');
+        const { error: codeError } = await supabase.auth.exchangeCodeForSession(codeParam);
+
+        // Nettoyer l'URL pour éviter les replays
+        const clean = new URL(window.location.href);
+        clean.searchParams.delete('code');
+        clean.searchParams.delete('email_verified');
+        window.history.replaceState({}, '', clean.toString());
+
+        if (cancelled) return;
+        if (codeError) {
+          console.warn('[Auth] Code exchange error (email was still confirmed server-side):', codeError);
+        }
+
+        // Afficher "Email vérifié !" sur ce nouvel onglet
+        setShowVerifiedLanding(true);
+      } catch (err) {
+        console.warn('[Auth] Code exchange failed:', err);
+        if (!cancelled) setShowVerifiedLanding(true); // L'email est quand même confirmé côté serveur
+      }
+    })();
+
+    return () => { cancelled = true; };
+  }, []);
+
+  // ---------------------------------------------------------------------------
+  // POST-SIGNUP FLOW (shared between polling, manual check, and handleAuth)
+  // ---------------------------------------------------------------------------
+  const runPostSignupFlow = async (userId: string) => {
+    console.log('[Auth] ✅ Running post-signup flow for user', userId);
+
+    // WhatsApp opt-in (best-effort, non-blocking)
+    try {
+      const waReqId = newRequestId();
+      await supabase.functions.invoke('whatsapp-optin', {
+        body: {},
+        headers: requestHeaders(waReqId),
+      });
+    } catch (e) {
+      console.warn('WhatsApp opt-in send failed (non-blocking):', e);
+    }
+
+    // Backfill des réponses guest → nouveau compte
+    if (isRegistrationFlow && planData?.fullAnswers) {
+      try {
+        console.log('💾 Sauvegarde des réponses Invité pour le nouveau compte...');
+        const answersPayload = planData.fullAnswers;
+        const submissionId = planData.submissionId || crypto.randomUUID();
+        const contentToSave = answersPayload.ui_state
+          ? answersPayload
+          : {
+              structured_data: answersPayload,
+              ui_state: {},
+              last_updated: new Date().toISOString(),
+            };
+        const { error: answersError } = await supabase.from('user_answers').insert({
+          user_id: userId,
+          questionnaire_type: 'onboarding',
+          submission_id: submissionId,
+          content: contentToSave,
+          status: 'completed',
+          sorting_attempts: 1,
+        });
+        if (answersError) {
+          console.error('Erreur sauvegarde réponses post-inscription:', answersError);
+        } else {
+          console.log('✅ Réponses sauvegardées avec succès pour', userId);
+        }
+      } catch (err) {
+        console.error('Erreur backfill:', err);
+      }
+    }
+
+    clearGuestPlanFlowState();
+
+    if (isRegistrationFlow) {
+      navigate('/plan-generator', { state: planData });
+    } else if (redirectTo) {
+      navigate(redirectTo);
+    } else {
+      navigate('/global-plan');
+    }
+  };
+
+  // ---------------------------------------------------------------------------
+  // MANUAL VERIFICATION CHECK (bouton "J'ai vérifié")
+  // ---------------------------------------------------------------------------
+  const handleManualVerificationCheck = async () => {
+    if (!email || !password) return;
+    setVerificationStatus('checking');
+    setError(null);
+    try {
+      console.log('[Auth] Manual verification check...');
+      const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInData?.session && signInData?.user && !signInError) {
+        setVerificationStatus('verified');
+        await new Promise((r) => setTimeout(r, 1200));
+        await runPostSignupFlow(signInData.user.id);
+      } else {
+        setVerificationStatus('idle');
+        setError("Email pas encore vérifié. Clique sur le lien dans ton email puis reviens ici.");
+      }
+    } catch (err) {
+      console.error('[Auth] Manual check error:', err);
+      setVerificationStatus('idle');
+      setError(getErrorMessage(err, "Erreur lors de la vérification."));
+    }
+  };
+
+  // ---------------------------------------------------------------------------
   // EMAIL VERIFICATION POLLING
   // Quand l'utilisateur est sur l'écran "Vérifiez votre email", on tente un
   // signInWithPassword toutes les ~5 s. Dès que l'email est confirmé, le sign-in
@@ -157,6 +290,7 @@ const Auth = () => {
       if (cancelled) return;
       setVerificationStatus('checking');
       try {
+        console.log('[Auth] Polling: attempting signInWithPassword...');
         const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
           email,
           password,
@@ -164,66 +298,25 @@ const Auth = () => {
         if (cancelled) return;
 
         if (signInData?.session && signInData?.user && !signInError) {
-          // ✅ Email confirmé ! On lance le post-signup flow.
+          // ✅ Email confirmé !
+          console.log('[Auth] ✅ Polling detected email verification!');
           setVerificationStatus('verified');
-
-          // WhatsApp opt-in (best-effort, non-blocking)
-          try {
-            const waReqId = newRequestId();
-            await supabase.functions.invoke('whatsapp-optin', {
-              body: {},
-              headers: requestHeaders(waReqId),
-            });
-          } catch (e) {
-            console.warn('WhatsApp opt-in send failed (non-blocking):', e);
-          }
-
-          // Backfill des réponses guest → nouveau compte
-          if (isRegistrationFlow && planData?.fullAnswers) {
-            try {
-              const answersPayload = planData.fullAnswers;
-              const submissionId = planData.submissionId || crypto.randomUUID();
-              const contentToSave = answersPayload.ui_state
-                ? answersPayload
-                : {
-                    structured_data: answersPayload,
-                    ui_state: {},
-                    last_updated: new Date().toISOString(),
-                  };
-              await supabase.from('user_answers').insert({
-                user_id: signInData.user.id,
-                questionnaire_type: 'onboarding',
-                submission_id: submissionId,
-                content: contentToSave,
-                status: 'completed',
-                sorting_attempts: 1,
-              });
-            } catch (err) {
-              console.error('Erreur backfill:', err);
-            }
-          }
-
-          clearGuestPlanFlowState();
 
           // Petite pause pour montrer l'état "vérifié" avant de naviguer
           await new Promise((r) => setTimeout(r, 1500));
           if (cancelled) return;
 
-          if (isRegistrationFlow) {
-            navigate('/plan-generator', { state: planData });
-          } else if (redirectTo) {
-            navigate(redirectTo);
-          } else {
-            navigate('/global-plan');
-          }
+          await runPostSignupFlow(signInData.user.id);
           return;
         }
 
         // Pas encore vérifié → on replanifie
+        console.log('[Auth] Email not yet verified, retrying in 5s...', signInError?.message);
         setVerificationStatus('idle');
         if (!cancelled) pollTimer = setTimeout(attemptSignIn, 5000);
-      } catch {
+      } catch (err) {
         // Erreur réseau ou rate-limit → back-off
+        console.warn('[Auth] Polling error, backing off to 10s:', err);
         if (!cancelled) {
           setVerificationStatus('idle');
           pollTimer = setTimeout(attemptSignIn, 10000);
@@ -264,7 +357,7 @@ const Auth = () => {
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth?email_verified=1`,
+          emailRedirectTo: `${window.location.origin}/auth`,
         },
       });
       if (resendErr) throw resendErr;
@@ -387,9 +480,10 @@ const Auth = () => {
                 timezone: (timezone || "").trim() || DEFAULT_TIMEZONE,
                 tz_follow_device: tzFollowDevice
             },
-            // Redirect vers une page "email vérifié" dans un NOUVEL onglet.
-            // L'onglet original reste sur /auth avec le cache intact et poll pour détecter la vérification.
-            emailRedirectTo: `${window.location.origin}/auth?email_verified=1`
+            // Redirect vers /auth dans le NOUVEL onglet (après clic sur le lien email).
+            // Supabase ajoute ?code=xxx → le composant Auth le détecte et affiche "Email vérifié".
+            // L'onglet ORIGINAL reste sur /auth avec le cache intact et poll pour détecter la vérification.
+            emailRedirectTo: `${window.location.origin}/auth`
           }
         });
 
@@ -407,73 +501,8 @@ const Auth = () => {
         }
         
         if (data.user) {
-            // Send WhatsApp opt-in template (best-effort, non-blocking)
-            // Note: requires an active session/JWT; if email confirmations are enabled, this will be retried on first login.
-            try {
-              if (data.session) {
-                const waReqId = newRequestId();
-                const { data: waData, error: waErr } = await supabase.functions.invoke('whatsapp-optin', { body: {}, headers: requestHeaders(waReqId) });
-                if (waErr) {
-                  console.warn("WhatsApp opt-in send failed (non-blocking):", waErr, waData);
-                }
-              }
-            } catch (e) {
-              console.warn("WhatsApp opt-in send failed (non-blocking):", e);
-            }
-
-            // --- BACKFILL DES RÉPONSES POUR LE NOUVEAU COMPTE ---
-            if (isRegistrationFlow && planData?.fullAnswers) {
-                try {
-                    console.log("💾 Sauvegarde des réponses Invité pour le nouveau compte...");
-                    
-                    // On vérifie si on a le payload complet (nouveau format) ou partiel
-                    const answersPayload = planData.fullAnswers;
-                    const submissionId = planData.submissionId || crypto.randomUUID();
-                    
-                    // On adapte le contenu pour qu'il soit compatible (structured_data vs ui_state)
-                    // Si fullAnswers contient déjà la structure, on l'utilise, sinon on l'enrobe
-                    const contentToSave = answersPayload.ui_state ? answersPayload : {
-                        structured_data: answersPayload,
-                        ui_state: {},
-                        last_updated: new Date().toISOString()
-                    };
-
-                    const { error: answersError } = await supabase.from('user_answers').insert({
-                        user_id: data.user.id,
-                        questionnaire_type: 'onboarding',
-                        submission_id: submissionId,
-                        content: contentToSave,
-                        status: 'completed', // On considère le questionnaire fini puisqu'on est là
-                        sorting_attempts: 1
-                    });
-
-                    if (answersError) {
-                        console.error("Erreur sauvegarde réponses post-inscription:", answersError);
-                        // On ne bloque pas le flux, le fallback state prendra le relais, mais c'est noté
-                    } else {
-                        console.log("✅ Réponses sauvegardées avec succès pour", data.user.id);
-                    }
-                } catch (backfillErr) {
-                    console.error("Erreur backfill:", backfillErr);
-                }
-            }
-
-            // Guest cache is no longer needed once signup succeeded.
-            clearGuestPlanFlowState();
-
-            if (isRegistrationFlow) {
-                // Flow Standard : Génération après questionnaire
-                navigate('/plan-generator', { state: planData });
-            } else if (redirectTo) {
-                // Redirect override (ex: /admin)
-                navigate(redirectTo);
-            } else if (isSignUp) {
-                // Inscription Directe (via Landing) -> Onboarding
-                navigate('/global-plan');
-            } else {
-                // Connexion (via Landing) -> Dashboard
-                navigate('/dashboard');
-            }
+            // Inscription réussie sans confirmation email → lancer le post-signup flow directement
+            await runPostSignupFlow(data.user.id);
         }
 
       } else {
@@ -490,7 +519,14 @@ const Auth = () => {
             // Do NOT auto-send WhatsApp opt-in on login.
             // Login can happen for many reasons (password change, session refresh, etc.) and we don't want to spam templates.
             // Opt-in should be sent on signup (when we just collected the phone) or explicitly (e.g. in profile when user changes phone).
-            navigate(redirectTo || '/dashboard');
+
+            // Si l'user a des données de registration (ex: a vérifié son email puis est revenu sur le form
+            // et se connecte), on reprend le flow d'inscription avec les données du cache.
+            if (isRegistrationFlow) {
+              await runPostSignupFlow(data.user.id);
+            } else {
+              navigate(redirectTo || '/dashboard');
+            }
         }
       }
     } catch (err: unknown) {
@@ -506,7 +542,7 @@ const Auth = () => {
   // L'email est déjà confirmé côté Supabase ; on affiche juste un message
   // demandant de retourner sur l'onglet d'origine (celui qui poll).
   // ---------------------------------------------------------------------------
-  if (emailVerifiedLanding) {
+  if (showVerifiedLanding) {
     return (
       <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-900">
         <div className="sm:mx-auto sm:w-full sm:max-w-md text-center animate-fade-in-up">
@@ -572,17 +608,40 @@ const Auth = () => {
                 <span>En attente de vérification…</span>
               </div>
 
-              <div className="space-y-3">
+              <div className="space-y-4">
+                {/* Bouton principal: vérification manuelle */}
                 <button
-                  onClick={handleResendConfirmation}
-                  disabled={resendCooldown > 0}
-                  className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                  onClick={handleManualVerificationCheck}
+                  disabled={verificationStatus === 'checking'}
+                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-slate-900 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-2"
                 >
-                  {resendCooldown > 0
-                    ? `Renvoyer l'email (${resendCooldown}s)`
-                    : "Renvoyer l'email de confirmation"}
+                  {verificationStatus === 'checking' ? (
+                    <><Loader2 className="w-4 h-4 animate-spin" /> Vérification…</>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4" /> J'ai cliqué sur le lien
+                    </>
+                  )}
                 </button>
-                <div>
+
+                {error && (
+                  <div className="rounded-lg bg-red-50 p-3 flex items-start gap-2">
+                    <AlertCircle className="h-4 w-4 text-red-400 mt-0.5 flex-shrink-0" />
+                    <p className="text-xs text-red-700 font-medium">{error}</p>
+                  </div>
+                )}
+
+                {/* Liens secondaires */}
+                <div className="flex flex-col items-center gap-2">
+                  <button
+                    onClick={handleResendConfirmation}
+                    disabled={resendCooldown > 0}
+                    className="text-sm font-medium text-indigo-600 hover:text-indigo-500 disabled:text-slate-400 disabled:cursor-not-allowed transition-colors"
+                  >
+                    {resendCooldown > 0
+                      ? `Renvoyer l'email (${resendCooldown}s)`
+                      : "Renvoyer l'email de confirmation"}
+                  </button>
                   <button
                     onClick={() => {
                       setConfirmationPending(false);

@@ -178,6 +178,24 @@ function safeIsoMs(value: unknown): number {
   return Number.isFinite(ms) ? ms : 0;
 }
 
+function hasAnyOwnKeys(value: unknown): boolean {
+  return !!value && typeof value === "object" && Object.keys(value as Record<string, unknown>).length > 0;
+}
+
+function readSupervisorUpdatedAtMsStrict(tempMemory: unknown): number {
+  if (!tempMemory || typeof tempMemory !== "object") return 0;
+  const tm = tempMemory as Record<string, unknown>;
+  const gm = tm.global_machine;
+  const sup = tm.supervisor;
+  const raw = hasAnyOwnKeys(gm)
+    ? (gm as Record<string, unknown>)
+    : hasAnyOwnKeys(sup)
+    ? (sup as Record<string, unknown>)
+    : null;
+  if (!raw) return 0;
+  return safeIsoMs(raw.updated_at);
+}
+
 function normalizeRepeatGuardText(value: string): string {
   return normalizeLoose(String(value ?? ""))
     .replace(/\s+/g, " ")
@@ -209,9 +227,17 @@ function looksLikeActionAppliedClaim(value: string): boolean {
   if (!s) return false;
   if (/\btu\s+es\s+sur\b/.test(s)) return false;
   if (/\best[-\s]?ce\s+que\b/.test(s)) return false;
+  if (/\bsi\s+tu\s+veux\b/.test(s)) return false;
+  if (/\bje\s+peux\b/.test(s)) return false;
   const patterns = [
     /\bc[' ]est\s+fait\b/,
+    /\bc[' ]est\s+(note|enregistre|modifie|mis\s+a\s+jour|ajoute|cree|supprime|retire|archive|active|desactive)\b/,
+    /\bc[' ]est\s+bien\s+(note|enregistre|modifie|mis\s+a\s+jour|ajoute|cree|supprime|retire|archive|active|desactive)\b/,
+    /\bj[' ]ai\s+(note|enregistre|valide)\b/,
     /\bj[' ]ai\s+bien\s+note\b.*\b(accord|validation)\b/,
+    /\bj[' ]ai\s+(desactive|active|archive|supprime|retire|cree|ajoute|modifie|mis\s+en\s+pause|mis\s+a\s+jour)\b/,
+    /\bje\s+(desactive|active|archive|supprime|retire|cree|ajoute|modifie|mets\s+en\s+pause|met\s+en\s+pause|mets\s+a\s+jour|met\s+a\s+jour)\b/,
+    /\bje\s+(note|enregistre)\b.*\b(action|habitude|plan|progression|profil|preference)\b/,
     /\best\s+bien\s+(desactivee?|activee?|archivee?|supprimee?|retiree?|mise\s+en\s+pause)\b/,
     /\b(action|habitude)\b.*\b(desactivee?|activee?|archivee?|supprimee?|retiree?|mise\s+en\s+pause)\b/,
     /\btu\s+n[' ]auras\s+plus\s+de\s+rappels\b/,
@@ -7535,16 +7561,14 @@ Réponds uniquement avec la transition:`;
     // Keep latestTm as base (preserve agent-written changes), but re-apply router-owned supervisor runtime.
     mergedTempMemory = { ...(latestTm ?? {}) };
     if (tempMemory && typeof tempMemory === "object") {
-      const latestSupervisorTs = safeIsoMs(
-        getSupervisorRuntime(latestTm).updated_at,
-      );
-      const routerSupervisorTs = safeIsoMs(
-        getSupervisorRuntime(tempMemory).updated_at,
-      );
+      const latestSupervisorTs = readSupervisorUpdatedAtMsStrict(latestTm);
+      const routerSupervisorTs = readSupervisorUpdatedAtMsStrict(tempMemory);
       // Only override supervisor/global_machine if router state is clearly newer.
       // This prevents stale in-memory snapshots from rolling back toolflow phase transitions
       // persisted by agent handlers mid-turn.
-      const shouldUseRouterSupervisor = routerSupervisorTs > latestSupervisorTs;
+      // Important: when timestamps are equal we still keep router state to avoid dropping
+      // freshly-created in-memory flows in the same turn.
+      const shouldUseRouterSupervisor = routerSupervisorTs >= latestSupervisorTs;
       if ((tempMemory as any).global_machine) {
         if (shouldUseRouterSupervisor) {
           (mergedTempMemory as any).global_machine =
@@ -7665,10 +7689,14 @@ Réponds uniquement avec la transition:`;
         : 1)
       : 0;
     const nonSuccessfulTool = agentToolExecution !== "success";
+    const inToolSensitiveContext =
+      agentExecutedTools.length > 0 ||
+      toolFlowActiveGlobal ||
+      targetMode === "architect";
     const falseSuccessClaim =
       nonSuccessfulTool &&
       looksLikeActionAppliedClaim(String(responseContent ?? "")) &&
-      (toolFlowActiveGlobal || targetMode === "architect");
+      inToolSensitiveContext;
 
     const shouldRewriteForRepeat =
       nearDuplicate &&
@@ -7702,6 +7730,12 @@ ${String(lastAssistantMessage ?? "").slice(0, 500)}
 
 Brouillon actuel:
 ${String(responseContent ?? "").slice(0, 500)}
+
+Statut d'execution tool:
+${agentToolExecution}
+
+Tools executes:
+${agentExecutedTools.slice(0, 5).join(", ")}
 `.trim();
         const rewriteOut = await generateWithGemini(
           rewriteSystem,
@@ -7726,8 +7760,9 @@ ${String(responseContent ?? "").slice(0, 500)}
         console.warn("[Router] repeat-guard rewrite failed (non-blocking):", e);
       }
       if (!rewritten) {
-        rewritten =
-          "Je t'entends. Je ne vais pas te reposer la même question: j'ai bien noté ton accord et je continue.";
+        rewritten = falseSuccessClaim
+          ? "Je préfère vérifier l'exécution avant de te confirmer le changement. Je te redis dès que c'est validé."
+          : "Je t'entends. Je ne vais pas te reposer la même question: j'ai bien noté ton accord et je continue.";
       }
       responseContent = rewritten;
       await trace("brain:repeat_guard_applied", "routing", {
