@@ -590,7 +590,7 @@ export function computeNextTopicPhase(
     }
     // Check if user wants to continue
     const highEngagement = signals.user_engagement?.level === "HIGH" || signals.user_engagement?.level === "MEDIUM"
-    if (highEngagement && signals.user_engagement?.confidence >= 0.6) {
+    if (highEngagement && (signals.user_engagement?.confidence ?? 0) >= 0.6) {
       return "exploring"  // User wants to continue, go back to exploring
     }
     return "closing"  // Default: move to closing

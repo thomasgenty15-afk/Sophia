@@ -268,7 +268,7 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
   if (vitalIds.length > 0) {
     try {
       const latestRows = await Promise.all(
-        vitalIds.map(async (vitalId) => {
+        vitalIds.map(async (vitalId: string) => {
           const { data } = await supabase
             .from("user_vital_sign_entries")
             .select("value")

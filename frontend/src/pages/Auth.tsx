@@ -85,9 +85,6 @@ const Auth = () => {
   const [tzFollowDevice, setTzFollowDevice] = useState<boolean>(false);
   const [verificationStatus, setVerificationStatus] = useState<'idle' | 'checking' | 'verified'>('idle');
   const [resendCooldown, setResendCooldown] = useState(0);
-  const [showVerifiedLanding, setShowVerifiedLanding] = useState(
-    new URLSearchParams(location.search).get('email_verified') === '1'
-  );
 
   // Keep guest flow state in sessionStorage so "back" / refresh doesn't wipe the plan data.
   useEffect(() => {
@@ -143,11 +140,11 @@ const Auth = () => {
   }, [isSignUp, prelaunchLockdown]);
 
   // ---------------------------------------------------------------------------
-  // PKCE CODE EXCHANGE
+  // EMAIL CONFIRM LANDING (redirige vers une page dédiée)
   // Quand l'user clique le lien de vérification email, Supabase confirme l'email
-  // côté serveur puis redirige vers /auth?code=xxx. On détecte le code ici et on
-  // affiche la page "Email vérifié" (= nouvel onglet ouvert par le lien email).
-  // L'onglet ORIGINAL (celui avec le cache) détecte la vérification via le polling.
+  // côté serveur puis redirige vers l'URL autorisée (emailRedirectTo) en ajoutant
+  // `?code=xxx`. Si jamais on reçoit ce `code` sur /auth (ex: ancienne config),
+  // on redirige vers /email-verified pour afficher un message simple.
   // ---------------------------------------------------------------------------
   const codeParam = new URLSearchParams(location.search).get('code');
   useEffect(() => {
@@ -156,34 +153,8 @@ const Auth = () => {
     if ((view || '').trim() === 'update_password') return;
     // Si on est déjà sur l'écran de confirmation (= onglet original), ne pas échanger
     if (confirmationPending) return;
-
-    let cancelled = false;
-    (async () => {
-      try {
-        console.log('[Auth] PKCE code detected, exchanging for session...');
-        const { error: codeError } = await supabase.auth.exchangeCodeForSession(codeParam);
-
-        // Nettoyer l'URL pour éviter les replays
-        const clean = new URL(window.location.href);
-        clean.searchParams.delete('code');
-        clean.searchParams.delete('email_verified');
-        window.history.replaceState({}, '', clean.toString());
-
-        if (cancelled) return;
-        if (codeError) {
-          console.warn('[Auth] Code exchange error (email was still confirmed server-side):', codeError);
-        }
-
-        // Afficher "Email vérifié !" sur ce nouvel onglet
-        setShowVerifiedLanding(true);
-      } catch (err) {
-        console.warn('[Auth] Code exchange failed:', err);
-        if (!cancelled) setShowVerifiedLanding(true); // L'email est quand même confirmé côté serveur
-      }
-    })();
-
-    return () => { cancelled = true; };
-  }, []);
+    navigate(`/email-verified${window.location.search || ''}`, { replace: true });
+  }, [codeParam, view, confirmationPending, navigate]);
 
   // ---------------------------------------------------------------------------
   // POST-SIGNUP FLOW (shared between polling, manual check, and handleAuth)
@@ -357,7 +328,7 @@ const Auth = () => {
         type: 'signup',
         email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth`,
+          emailRedirectTo: `${window.location.origin}/email-verified`,
         },
       });
       if (resendErr) throw resendErr;
@@ -418,7 +389,7 @@ const Auth = () => {
     try {
         if (isSignUp) {
         if (prelaunchLockdown) {
-          throw new Error("Inscription désactivée (pré-lancement). Connectez-vous avec le compte master_admin.");
+          throw new Error("Inscription désactivée (pré-lancement). Connecte-toi avec le compte master_admin.");
         }
         // --- INSCRIPTION ---
         
@@ -480,10 +451,10 @@ const Auth = () => {
                 timezone: (timezone || "").trim() || DEFAULT_TIMEZONE,
                 tz_follow_device: tzFollowDevice
             },
-            // Redirect vers /auth dans le NOUVEL onglet (après clic sur le lien email).
-            // Supabase ajoute ?code=xxx → le composant Auth le détecte et affiche "Email vérifié".
+            // Redirect vers une page dédiée (nouvel onglet après clic sur le lien email).
             // L'onglet ORIGINAL reste sur /auth avec le cache intact et poll pour détecter la vérification.
-            emailRedirectTo: `${window.location.origin}/auth`
+            // Note: Supabase ajoute `?code=xxx` automatiquement.
+            emailRedirectTo: `${window.location.origin}/email-verified`
           }
         });
 
@@ -538,33 +509,6 @@ const Auth = () => {
   };
 
   // ---------------------------------------------------------------------------
-  // LANDING PAGE : Nouvel onglet après clic sur le lien de vérification email.
-  // L'email est déjà confirmé côté Supabase ; on affiche juste un message
-  // demandant de retourner sur l'onglet d'origine (celui qui poll).
-  // ---------------------------------------------------------------------------
-  if (showVerifiedLanding) {
-    return (
-      <div className="min-h-screen bg-slate-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8 font-sans text-slate-900">
-        <div className="sm:mx-auto sm:w-full sm:max-w-md text-center animate-fade-in-up">
-          <div className="mx-auto w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
-            <CheckCircle2 className="w-8 h-8" />
-          </div>
-          <h2 className="text-3xl font-bold text-slate-900 mb-4">
-            Email vérifié !
-          </h2>
-          <p className="text-slate-600 mb-8 max-w-sm mx-auto">
-            Votre adresse email a bien été confirmée.<br />
-            <strong>Retournez sur l'onglet précédent</strong> — tout se met à jour automatiquement.
-          </p>
-          <p className="text-xs text-slate-400">
-            Vous pouvez fermer cet onglet.
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  // ---------------------------------------------------------------------------
   // VUE "VÉRIFIEZ VOS EMAILS" (onglet d'origine, avec polling automatique)
   // ---------------------------------------------------------------------------
   if (confirmationPending) {
@@ -580,46 +524,50 @@ const Auth = () => {
                 Email vérifié !
               </h2>
               <p className="text-slate-600 mb-4">
-                Préparation de votre espace…
+                Préparation de ton espace…
               </p>
               <Loader2 className="w-6 h-6 animate-spin text-slate-400 mx-auto" />
             </>
           ) : (
             <>
-              <div className="relative mx-auto w-16 h-16 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg mb-6">
-                <Mail className="w-8 h-8" />
+              <div className="relative mx-auto w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center text-white shadow-xl shadow-slate-200 mb-8">
+                <Mail className="w-10 h-10" />
                 {verificationStatus === 'checking' && (
-                  <span className="absolute -top-1 -right-1 flex h-4 w-4">
+                  <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75" />
-                    <span className="relative inline-flex rounded-full h-4 w-4 bg-indigo-500" />
+                    <span className="relative inline-flex rounded-full h-5 w-5 bg-indigo-500 border-2 border-white" />
                   </span>
                 )}
               </div>
-              <h2 className="text-3xl font-bold text-slate-900 mb-4">
-                Vérifiez votre boîte mail.
+              <h2 className="text-3xl font-extrabold text-slate-900 mb-4 tracking-tight">
+                Vérifie ta boîte mail.
               </h2>
-              <p className="text-slate-600 mb-6 max-w-sm mx-auto">
-                Un lien de confirmation a été envoyé à <strong>{email}</strong>.<br />
-                Cliquez dessus puis revenez ici — la page se met à jour toute seule.
+              <p className="text-lg text-slate-600 mb-8 max-w-md mx-auto leading-relaxed">
+                Un lien de confirmation a été envoyé à <strong className="text-slate-900 font-semibold">{email}</strong>.<br />
+                Clique dessus puis reviens ici — la page se met à jour toute seule.
+                <br />
+                <span className="text-sm text-slate-500 mt-2 block font-medium bg-slate-50 py-1 px-3 rounded-full inline-block mt-3 border border-slate-100">
+                   💡 Si tu ne le vois pas, regarde aussi dans tes indésirables.
+                </span>
               </p>
 
-              <div className="flex items-center justify-center gap-2 text-sm text-slate-500 mb-8">
+              <div className="flex items-center justify-center gap-3 text-sm font-medium text-indigo-600 bg-indigo-50 py-2 px-4 rounded-full mx-auto w-fit mb-10 border border-indigo-100">
                 <Loader2 className="w-4 h-4 animate-spin" />
                 <span>En attente de vérification…</span>
               </div>
 
-              <div className="space-y-4">
+              <div className="space-y-4 max-w-xs mx-auto">
                 {/* Bouton principal: vérification manuelle */}
                 <button
                   onClick={handleManualVerificationCheck}
                   disabled={verificationStatus === 'checking'}
-                  className="w-full flex justify-center py-3 px-4 border border-transparent rounded-xl shadow-sm text-sm font-bold text-white bg-slate-900 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-2"
+                  className="w-full flex justify-center py-4 px-6 border border-transparent rounded-2xl shadow-lg shadow-indigo-200 text-base font-bold text-white bg-slate-900 hover:bg-indigo-600 hover:shadow-indigo-300 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition-all disabled:opacity-50 disabled:cursor-not-allowed items-center gap-3 group"
                 >
                   {verificationStatus === 'checking' ? (
-                    <><Loader2 className="w-4 h-4 animate-spin" /> Vérification…</>
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Vérification…</>
                   ) : (
                     <>
-                      <CheckCircle2 className="w-4 h-4" /> J'ai cliqué sur le lien
+                      <CheckCircle2 className="w-5 h-5" /> J'ai cliqué sur le lien
                     </>
                   )}
                 </button>
@@ -686,7 +634,7 @@ const Auth = () => {
               Dernière étape avant ton plan {String(getThemeLabelById(planData.finalOrder[0].theme)).toLocaleLowerCase('fr-FR')}.
             </h2>
             <p className="text-slate-600 max-w-sm mx-auto">
-              Créez votre espace sécurisé pour finaliser votre stratégie.
+              Crée ton espace sécurisé pour finaliser ta stratégie.
             </p>
           </div>
         ) : (
@@ -696,14 +644,14 @@ const Auth = () => {
                 ? "Réinitialisation" 
                 : isSignUp 
                   ? "Bienvenue sur Sophia." 
-                  : "Ravi de vous revoir."}
+                  : "Ravi de te revoir."}
             </h2>
             <p className="text-slate-600">
               {isResettingPassword 
-                ? "Nous allons vous envoyer un lien magique."
+                ? "Je vais t'envoyer un lien magique."
                 : isSignUp 
-                  ? "Créez votre compte pour commencer." 
-                  : "Connectez-vous pour reprendre votre transformation."}
+                  ? "Crée ton compte pour commencer." 
+                  : "Connecte-toi pour reprendre ta transformation."}
             </p>
             {prelaunchLockdown && !isResettingPassword && (
               <div className="mt-4 inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 text-amber-800 text-xs font-bold">
@@ -739,7 +687,7 @@ const Auth = () => {
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                    placeholder="vous@exemple.com"
+                    placeholder="prenom@exemple.com"
                   />
                 </div>
               </div>
@@ -798,7 +746,7 @@ const Auth = () => {
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                      placeholder="Votre prénom"
+                      placeholder="Ton prénom"
                     />
                   </div>
                 </div>
@@ -817,7 +765,7 @@ const Auth = () => {
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                      placeholder="vous@exemple.com"
+                      placeholder="prenom@exemple.com"
                     />
                   </div>
                 </div>
@@ -839,7 +787,7 @@ const Auth = () => {
                       placeholder="+33 6 12 34 56 78"
                     />
                   </div>
-                  <p className="mt-1 text-xs text-slate-500">Pour que Sophia puisse vous contacter.</p>
+                  <p className="mt-1 text-xs text-slate-500">Pour que Sophia puisse te contacter.</p>
                 </div>
               </>
             )}
@@ -860,7 +808,7 @@ const Auth = () => {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   className="appearance-none block w-full pl-10 pr-3 py-3 border border-slate-200 rounded-xl placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent sm:text-sm transition-all"
-                  placeholder="vous@exemple.com"
+                  placeholder="prenom@exemple.com"
                 />
               </div>
             </div>

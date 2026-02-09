@@ -100,11 +100,11 @@ export async function handleActivateAction(
       activatedTitleSet.add(normalizeTitle((row as any)?.title))
     }
 
-    const missingTitles = prevPhaseTitles.filter((t) => !activatedTitleSet.has(normalizeTitle(t)))
+    const missingTitles = prevPhaseTitles.filter((t: string) => !activatedTitleSet.has(normalizeTitle(t)))
     if (missingTitles.length > 0) {
       const missingCount = missingTitles.length
       const phaseTitle = String(prevPhase?.title ?? `Phase ${prevPhaseIndex + 1}`).trim()
-      const sample = missingTitles.slice(0, 3).map((t) => `- ${t}`).join("\n")
+      const sample = missingTitles.slice(0, 3).map((t: string) => `- ${t}`).join("\n")
       const more = missingCount > 3 ? `\n(et ${missingCount - 3} autre(s))` : ""
       return [
         `Je peux activer “${targetAction.title}”, mais avant il reste ${missingCount} action(s) à activer dans la phase précédente (“${phaseTitle}”).`,
@@ -424,4 +424,3 @@ export async function handleArchiveAction(
 
   return `Je ne trouve pas l'action "${action_title_or_id}" dans ton plan.`
 }
-

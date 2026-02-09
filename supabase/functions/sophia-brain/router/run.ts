@@ -230,7 +230,7 @@ function looksLikeActionAppliedClaim(value: string): boolean {
   if (/\bsi\s+tu\s+veux\b/.test(s)) return false;
   if (/\bje\s+peux\b/.test(s)) return false;
   const patterns = [
-    /\bc[' ]est\s+fait\b/,
+    /\bc[' ]est\s+fait\b.*\b(action|habitude|plan|rappel|desactive|active|supprime|retire|archive|pause|mise\s+en\s+pause)\b/,
     /\bc[' ]est\s+(note|enregistre|modifie|mis\s+a\s+jour|ajoute|cree|supprime|retire|archive|active|desactive)\b/,
     /\bc[' ]est\s+bien\s+(note|enregistre|modifie|mis\s+a\s+jour|ajoute|cree|supprime|retire|archive|active|desactive)\b/,
     /\bj[' ]ai\s+(note|enregistre|valide)\b/,
@@ -7709,8 +7709,13 @@ Réponds uniquement avec la transition:`;
 
     if (shouldRewrite) {
       let rewritten = "";
-      try {
-        const rewriteSystem = `
+      if (falseSuccessClaim) {
+        rewritten = agentToolExecution === "blocked" || agentToolExecution === "failed"
+          ? "Je ne peux pas te confirmer le changement pour l'instant, l'action n'a pas encore été validée techniquement. Je peux relancer la vérification tout de suite."
+          : "Je préfère vérifier l'exécution avant de te confirmer le changement. Je te redis dès que c'est validé.";
+      } else {
+        try {
+          const rewriteSystem = `
 Tu es Sophia (coach WhatsApp, français).
 Réécris la réponse assistant pour éviter une répétition de boucle.
 
@@ -7737,27 +7742,28 @@ ${agentToolExecution}
 Tools executes:
 ${agentExecutedTools.slice(0, 5).join(", ")}
 `.trim();
-        const rewriteOut = await generateWithGemini(
-          rewriteSystem,
-          rewriteUser,
-          0.35,
-          false,
-          [],
-          "auto",
-          {
-            requestId: meta?.requestId,
-            model: selectedChatModel,
-            source: "sophia-brain:repeat_guard_rewrite",
-            forceRealAi: meta?.forceRealAi,
-            maxRetries: 1,
-            httpTimeoutMs: 10_000,
-          } as any,
-        );
-        if (typeof rewriteOut === "string") {
-          rewritten = normalizeChatText(rewriteOut).trim();
+          const rewriteOut = await generateWithGemini(
+            rewriteSystem,
+            rewriteUser,
+            0.35,
+            false,
+            [],
+            "auto",
+            {
+              requestId: meta?.requestId,
+              model: selectedChatModel,
+              source: "sophia-brain:repeat_guard_rewrite",
+              forceRealAi: meta?.forceRealAi,
+              maxRetries: 1,
+              httpTimeoutMs: 10_000,
+            } as any,
+          );
+          if (typeof rewriteOut === "string") {
+            rewritten = normalizeChatText(rewriteOut).trim();
+          }
+        } catch (e) {
+          console.warn("[Router] repeat-guard rewrite failed (non-blocking):", e);
         }
-      } catch (e) {
-        console.warn("[Router] repeat-guard rewrite failed (non-blocking):", e);
       }
       if (!rewritten) {
         rewritten = falseSuccessClaim

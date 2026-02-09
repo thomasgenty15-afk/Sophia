@@ -23,6 +23,7 @@ import ProductArchitect from './pages/ProductArchitect';
 import Formules from './pages/Formules';
 import UpgradePlan from './pages/UpgradePlan'; // IMPORT UPGRADE PAGE
 import Auth from './pages/Auth'; 
+import EmailVerified from './pages/EmailVerified';
 import ResetPassword from './pages/ResetPassword';
 import Legal from './pages/Legal'; // IMPORT PAGE LEGALE
 import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
@@ -46,6 +47,7 @@ function App() {
             <Route path="/formules" element={<Formules />} />
             <Route path="/upgrade" element={<RequireAppAccess><UpgradePlan /></RequireAppAccess>} /> {/* ROUTE UPGRADE */}
             <Route path="/auth" element={<Auth />} /> 
+            <Route path="/email-verified" element={<EmailVerified />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/legal" element={<Legal />} /> {/* ROUTE LEGALE */}
             <Route path="/dashboard" element={<RequireAppAccess><Dashboard /></RequireAppAccess>} />

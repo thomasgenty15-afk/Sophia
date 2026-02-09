@@ -14,7 +14,7 @@ Dans Supabase Dashboard du projet (`https://ybyqxwnwjvuxckolsddn.supabase.co`) :
 - **Auth → Settings**:
   - **Disable signups** (inscriptions OFF) → personne ne peut créer de compte
   - **Site URL**: `https://sophia-coach.ai`
-  - **Additional Redirect URLs**: ajoute aussi `https://sophia-coach.ai/auth` (et `https://www.sophia-coach.ai/auth` si tu utilises le www)
+  - **Additional Redirect URLs**: ajoute aussi `https://sophia-coach.ai/auth` et `https://sophia-coach.ai/email-verified` (et les versions `www` si tu utilises le www)
 - **Auth → Users**:
   - crée/invite l’utilisateur `thomasgenty15@gmail.com`
 - **DB**:

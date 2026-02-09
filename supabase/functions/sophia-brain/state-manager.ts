@@ -110,7 +110,7 @@ export async function getCoreIdentity(supabase: SupabaseClient, userId: string):
   if (error || !data || data.length === 0) return ""
 
   // Formatter : "AXE [week_id] : [content]"
-  return data.map(d => `[IDENTITÉ PROFONDE - ${d.week_id.toUpperCase()}]\n${d.content}`).join('\n\n')
+  return data.map((d: { week_id: string; content: string }) => `[IDENTITÉ PROFONDE - ${d.week_id.toUpperCase()}]\n${d.content}`).join('\n\n')
 }
 
 // ============================================================================

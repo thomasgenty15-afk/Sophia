@@ -66,15 +66,24 @@ ou
 
 JSON:`
 
-    const result = await generateWithGemini({
-      model: "gemini-2.0-flash",
-      systemInstruction: "Tu analyses des sujets de conversation. Réponds uniquement en JSON valide.",
-      contents: [{ role: "user", parts: [{ text: prompt }] }],
-      maxOutputTokens: 80,
-      temperature: 0.1,
-    })
-    
-    const text = String(result?.text ?? "").trim()
+    const result = await generateWithGemini(
+      "Tu analyses des sujets de conversation. Réponds uniquement en JSON valide.",
+      prompt,
+      0.1,
+      false,
+      [],
+      "auto",
+      {
+        model: "gemini-2.0-flash",
+        source: "sophia-brain:deferred_topic_validate",
+        maxRetries: 1,
+        httpTimeoutMs: 10_000,
+      },
+    )
+
+    const text = typeof result === "string"
+      ? result.trim()
+      : JSON.stringify(result ?? "").trim()
     // Extract JSON from response (handle potential markdown code blocks)
     const jsonMatch = text.match(/\{[\s\S]*\}/)
     if (!jsonMatch) {
@@ -291,6 +300,5 @@ export function isValidDeferredTopic(topic: string): boolean {
   // Or be long enough to likely be meaningful
   return hasRealSubject || t.length >= 15
 }
-
 
 

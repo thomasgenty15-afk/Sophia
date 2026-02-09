@@ -154,9 +154,11 @@ export async function loadContextForMode(
   // Wait for plan metadata before loading dependent elements
   await Promise.all(promises)
 
+  const planId = (planMeta as PlanMetadataResult | null)?.id ?? null
+
   // 5. Plan JSON (heavy, on_demand)
-  if (planMeta && shouldLoadPlanJson(profile, opts.triggers)) {
-    const planContent = await getPlanFullJson(opts.supabase, planMeta.id)
+  if (planId && shouldLoadPlanJson(profile, opts.triggers)) {
+    const planContent = await getPlanFullJson(opts.supabase, planId)
     if (planContent) {
       context.planJson = formatPlanJson(planContent)
       elementsLoaded.push("plan_json")
@@ -164,15 +166,15 @@ export async function loadContextForMode(
   }
 
   // 6. Actions summary or details
-  if (planMeta?.id) {
+  if (planId) {
     if (shouldLoadActionsDetails(profile, opts.triggers)) {
-      const actionsDetails = await getActionsDetails(opts.supabase, opts.userId, planMeta.id)
+      const actionsDetails = await getActionsDetails(opts.supabase, opts.userId, planId)
       if (actionsDetails) {
         context.actionsDetails = actionsDetails
         elementsLoaded.push("actions_details")
       }
     } else if (profile.actions_summary) {
-      const actionsSummary = await getActionsSummary(opts.supabase, opts.userId, planMeta.id)
+      const actionsSummary = await getActionsSummary(opts.supabase, opts.userId, planId)
       const formatted = formatActionsSummary(actionsSummary)
       if (formatted) {
         context.actionsSummary = formatted
@@ -544,4 +546,3 @@ function formatOnboardingAddon(onbFlow: any): string {
 
 // Re-export types for convenience
 export type { LoadedContext, ContextProfile, OnDemandTriggers } from "./types.ts"
-

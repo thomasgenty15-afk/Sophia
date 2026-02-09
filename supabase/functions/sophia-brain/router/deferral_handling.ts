@@ -206,7 +206,7 @@ export async function handleSignalDeferral(opts: {
     if (pruneResult.pruned.length > 0) {
       tempMemory = pruneResult.tempMemory;
       for (const expired of pruneResult.pruned) {
-        await opts.trace("brain:deferred_expired", "cleanup", {
+        await opts.trace("brain:deferred_expired", "routing", {
           topic_id: expired.id,
           machine_type: expired.machine_type,
           action_target: expired.action_target,
