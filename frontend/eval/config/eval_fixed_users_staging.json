@@ -1,0 +1,54 @@
+{
+  "_comment": "5 fixed eval user IDs for staging (project iabxchanerdkczbxyjgg). Provisioned once by provision_eval_v2_users.mjs.",
+  "users": [
+    {
+      "slot": 1,
+      "email": "eval-v2-user-1@sophia-test.local",
+      "password": "SophiaEvalV2!001",
+      "full_name": "Eval V2 User 1",
+      "user_id": "f90f82b4-0ff9-495c-9f3e-531a127b0e0f"
+    },
+    {
+      "slot": 2,
+      "email": "eval-v2-user-2@sophia-test.local",
+      "password": "SophiaEvalV2!002",
+      "full_name": "Eval V2 User 2",
+      "user_id": "3f307ff4-6319-49cf-8080-86fe96f98366"
+    },
+    {
+      "slot": 3,
+      "email": "eval-v2-user-3@sophia-test.local",
+      "password": "SophiaEvalV2!003",
+      "full_name": "Eval V2 User 3",
+      "user_id": "e107ac64-f9b0-4184-bfa7-c4aca1e9a298"
+    },
+    {
+      "slot": 4,
+      "email": "eval-v2-user-4@sophia-test.local",
+      "password": "SophiaEvalV2!004",
+      "full_name": "Eval V2 User 4",
+      "user_id": "fc1b6f7e-3e0f-4dbe-9309-68a16abed21f"
+    },
+    {
+      "slot": 5,
+      "email": "eval-v2-user-5@sophia-test.local",
+      "password": "SophiaEvalV2!005",
+      "full_name": "Eval V2 User 5",
+      "user_id": "b9cd377a-5cba-4c92-97dd-31f1bc83509c"
+    },
+    {
+      "slot": 6,
+      "email": "user-target-exceed-bilan-v4@sophia-test.local",
+      "password": "SophiaEvalV4!006",
+      "full_name": "user-target-exceed-bilan-V4",
+      "user_id": "7ce005f9-84a1-4f0a-80fa-47651ea80d54"
+    },
+    {
+      "slot": 7,
+      "email": "user-bilan-missed-breakdown@sophia-test.local",
+      "password": "SophiaEvalV4!007",
+      "full_name": "user-bilan-missed-breakdown",
+      "user_id": "54248436-d383-457a-8fc9-a2c81cf84a3d"
+    }
+  ]
+}

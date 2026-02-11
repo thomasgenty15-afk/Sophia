@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "request_id": "eval_v2:tools_deactivate_action_v2_ai_user__hard_12t:slot5:1770743971619",
+  "mega_test_mode": false,
+  "use_real_ai": true,
+  "requested_scenarios": 1,
+  "selected_scenarios": 1,
+  "limits_applied": {
+    "max_scenarios": 1,
+    "max_turns_per_scenario": 4,
+    "bilan_actions_count": 0,
+    "test_post_checkup_deferral": false,
+    "stop_on_first_failure": false,
+    "budget_usd": 0,
+    "model": "gpt-5-mini"
+  },
+  "ran": 1,
+  "stopped_reason": null,
+  "plan_template_fingerprint": null,
+  "total_cost_usd": 0.0246181,
+  "total_prompt_tokens": 51002,
+  "total_output_tokens": 3727,
+  "total_tokens": 64905,
+  "results": [
+    {
+      "dataset_key": "tools",
+      "scenario_key": "tools_deactivate_action_v2_ai_user__hard_12t",
+      "eval_run_id": "e3d8e4a7-626d-4a40-9979-f2971f0d6a27",
+      "plan_template_fingerprint": null,
+      "test_user_id": "34049477-6052-488d-94a1-7f393e22bac4",
+      "turns_executed": 4,
+      "bilan_completed": false,
+      "plan_snapshot_actions_count": 2,
+      "bilan_pending_items_count": 0,
+      "issues_count": 0,
+      "suggestions_count": null,
+      "cost_usd": 0.0246181,
+      "prompt_tokens": 51002,
+      "output_tokens": 3727,
+      "total_tokens": 64905
+    }
+  ]
+}

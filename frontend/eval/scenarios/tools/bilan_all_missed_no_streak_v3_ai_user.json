@@ -1,0 +1,93 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_all_missed_no_streak_v3_ai_user",
+  "description": "V3: Bilan tout raté sans streak. 2 actions non faites, pas de streak >= 5 donc pas de breakdown offer. Teste le flow missed avec empathie et logging correct.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Méditation 10 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "morning",
+        "description": "Méditer 10 minutes le matin au réveil.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Marche 20 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 4,
+        "time_of_day": "any_time",
+        "description": "Marcher 20 minutes dans la journée.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur fatigué mais honnête",
+    "age_range": "28-40",
+    "style": "oral, un peu abattu, honnête sur ses échecs, donne des raisons brèves",
+    "background": "Journée difficile, j'ai rien fait. Je suis fatigué et un peu découragé mais je réponds honnêtement au bilan."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_all_missed",
+      "spec": {
+        "actions_status": {
+          "Méditation 10 min": "missed",
+          "Marche 20 min": "missed"
+        },
+        "miss_reasons": {
+          "Méditation 10 min": "j'ai pas réussi à me lever assez tôt, j'étais crevé",
+          "Marche 20 min": "il pleuvait et j'avais pas la motivation"
+        },
+        "phase_sequence": [
+          "trigger_checkup",
+          "answer_action_1_missed_with_reason",
+          "elaborate_on_miss_1",
+          "answer_action_2_missed_with_reason",
+          "elaborate_on_miss_2",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point"
+    ]
+  }
+}

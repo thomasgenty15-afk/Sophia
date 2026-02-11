@@ -202,6 +202,11 @@ export interface ActionSummary {
   type: string
 }
 
+function isPausedLikeStatus(statusRaw: unknown): boolean {
+  const s = String(statusRaw ?? "").toLowerCase().trim()
+  return s === "pending" || s === "paused" || s === "inactive" || s === "deactivated"
+}
+
 export async function getActionsSummary(
   supabase: SupabaseClient, 
   userId: string, 
@@ -213,13 +218,13 @@ export async function getActionsSummary(
       .select('title, status, time_of_day, type')
       .eq('user_id', userId)
       .eq('plan_id', planId)
-      .in('status', ['active', 'pending', 'completed']),
+      .in('status', ['active', 'pending', 'paused', 'inactive', 'deactivated', 'completed']),
     supabase
       .from('user_framework_tracking')
       .select('title, status, type')
       .eq('user_id', userId)
       .eq('plan_id', planId)
-      .in('status', ['active', 'pending', 'completed']),
+      .in('status', ['active', 'pending', 'paused', 'inactive', 'deactivated', 'completed']),
   ])
 
   return {
@@ -237,16 +242,16 @@ export function formatActionsSummary(
   const { actions, frameworks } = data
   
   const activeA = actions.filter(a => a.status === 'active')
-  const pendingA = actions.filter(a => a.status === 'pending')
+  const pausedA = actions.filter(a => isPausedLikeStatus(a.status))
   const completedA = actions.filter(a => a.status === 'completed')
   const activeF = frameworks.filter(f => f.status === 'active')
-  const pendingF = frameworks.filter(f => f.status === 'pending')
+  const pausedF = frameworks.filter(f => isPausedLikeStatus(f.status))
   const completedF = frameworks.filter(f => f.status === 'completed')
   
-  const total = activeA.length + pendingA.length + completedA.length + activeF.length + pendingF.length + completedF.length
+  const total = activeA.length + pausedA.length + completedA.length + activeF.length + pausedF.length + completedF.length
   if (total === 0) return ""
   
-  let ctx = `=== ACTIONS (${activeA.length + activeF.length} actives, ${pendingA.length + pendingF.length} pending, ${completedA.length + completedF.length} completed) ===\n`
+  let ctx = `=== ACTIONS (${activeA.length + activeF.length} actives, ${pausedA.length + pausedF.length} en pause, ${completedA.length + completedF.length} completed) ===\n`
   
   if (activeA.length + activeF.length > 0) {
     ctx += `Actives:\n`
@@ -254,10 +259,10 @@ export function formatActionsSummary(
     for (const f of activeF) ctx += `- [F] ${f.title}\n`
   }
   
-  if (pendingA.length + pendingF.length > 0) {
-    ctx += `Pending:\n`
-    for (const a of pendingA) ctx += `- ${a.title}${a.time_of_day ? ` (${a.time_of_day})` : ''}\n`
-    for (const f of pendingF) ctx += `- [F] ${f.title}\n`
+  if (pausedA.length + pausedF.length > 0) {
+    ctx += `En pause:\n`
+    for (const a of pausedA) ctx += `- ${a.title}${a.time_of_day ? ` (${a.time_of_day})` : ''}\n`
+    for (const f of pausedF) ctx += `- [F] ${f.title}\n`
   }
 
   if (completedA.length + completedF.length > 0) {
@@ -283,20 +288,20 @@ export async function getActionsDetails(
       .select('title, status, time_of_day, type, tracking_type, description, scheduled_days, is_habit, target')
       .eq('user_id', userId)
       .eq('plan_id', planId)
-      .in('status', ['active', 'pending', 'completed']),
+      .in('status', ['active', 'pending', 'paused', 'inactive', 'deactivated', 'completed']),
     supabase
       .from('user_framework_tracking')
       .select('title, status, type, tracking_type, description')
       .eq('user_id', userId)
       .eq('plan_id', planId)
-      .in('status', ['active', 'pending', 'completed']),
+      .in('status', ['active', 'pending', 'paused', 'inactive', 'deactivated', 'completed']),
   ])
 
   const activeA = (actions ?? []).filter((a: any) => a.status === 'active')
-  const pendingA = (actions ?? []).filter((a: any) => a.status === 'pending')
+  const pendingA = (actions ?? []).filter((a: any) => isPausedLikeStatus((a as any)?.status))
   const completedA = (actions ?? []).filter((a: any) => a.status === 'completed')
   const activeF = (frameworks ?? []).filter((f: any) => f.status === 'active')
-  const pendingF = (frameworks ?? []).filter((f: any) => f.status === 'pending')
+  const pendingF = (frameworks ?? []).filter((f: any) => isPausedLikeStatus((f as any)?.status))
   const completedF = (frameworks ?? []).filter((f: any) => f.status === 'completed')
 
   if (activeA.length + pendingA.length + completedA.length + activeF.length + pendingF.length + completedF.length === 0) return ""
@@ -304,7 +309,7 @@ export async function getActionsDetails(
   let context = `=== ACTIONS / FRAMEWORKS (ÉTAT RÉEL DB) ===\n`
   context += `RÈGLES IMPORTANTES:\n`
   context += `- Les frameworks comptent comme des actions côté utilisateur.\n`
-  context += `- "active" = activée et visible comme active dans l'app. "pending" = désactivée / en attente (réactivable).\n`
+  context += `- "active" = activée et visible comme active dans l'app. "pending/paused/inactive/deactivated" = désactivée / en pause (réactivable).\n`
   context += `- "completed" = terminée (mission accomplie). NE PAS en parler sauf si l'utilisateur les mentionne.\n`
   context += `- On peut activer/désactiver/supprimer via conversation OU depuis le dashboard.\n\n`
 
@@ -319,7 +324,7 @@ export async function getActionsDetails(
   context += `\n`
 
   if (pendingA.length + pendingF.length > 0) {
-    context += `Non actives / pending (${pendingA.length + pendingF.length}):\n`
+    context += `Non actives / en pause (${pendingA.length + pendingF.length}):\n`
     for (const a of pendingA) context += `- [ACTION] ${a.title} (${(a as any).time_of_day})\n`
     for (const f of pendingF) context += `- [FRAMEWORK] ${f.title}\n`
     context += `\n`

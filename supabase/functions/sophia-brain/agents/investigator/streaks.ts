@@ -254,8 +254,9 @@ export async function maybeHandleStreakAfterLog(opts: {
     }
   }
 
-  // If missed and streak>=5: propose breakdown flow BEFORE moving on.
-  if (currentItem.type === "action" && argsWithId.status === "missed") {
+  // If missed-like status and streak>=5: propose breakdown flow BEFORE moving on.
+  const missedLike = ["missed", "skipped", "failed"].includes(String(argsWithId.status ?? "").toLowerCase());
+  if (currentItem.type === "action" && missedLike) {
     try {
       // If the user already declined a breakdown for this action in the current checkup,
       // never re-offer it (prevents repetitive "micro-étape 2 minutes" loops).

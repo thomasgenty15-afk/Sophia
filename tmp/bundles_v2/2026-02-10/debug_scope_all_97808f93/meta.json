@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "bundle_id": "debug_scope_all_97808f93",
+  "source": "env",
+  "supabase_url": "https://iabxchanerdkczbxyjgg.supabase.co",
+  "user_id": "97808f93-a705-4d0d-a168-b7ce19ed89f2",
+  "scope": "ALL",
+  "since": "2026-02-10T11:45:00.000Z",
+  "until": "2026-02-10T12:05:00.000Z",
+  "counts": {
+    "chat_messages": 0,
+    "request_ids": 0,
+    "turn_summary_logs": 0,
+    "missing_turn_summaries": 0
+  },
+  "outputs": {
+    "out_dir": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-10/debug_scope_all_97808f93",
+    "conversation_transcript": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-10/debug_scope_all_97808f93/conversation_transcript.txt",
+    "brain_trace_jsonl": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-10/debug_scope_all_97808f93/brain_trace.jsonl"
+  },
+  "missing_turn_summary_request_ids": []
+}

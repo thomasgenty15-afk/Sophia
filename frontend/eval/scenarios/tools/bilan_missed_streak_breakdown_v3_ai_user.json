@@ -1,0 +1,103 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_missed_streak_breakdown_v3_ai_user",
+  "description": "V3: Bilan avec missed streak >= 5 + breakdown offer accepté. Action ratée depuis 6 jours → proposition micro-étape → user accepte → deferred dans deferred_topics_v2 → bilan continue sur 2e item.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user",
+    "streaks",
+    "breakdown"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Méditation 10 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "morning",
+        "description": "Méditer 10 minutes le matin.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Lecture 20 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "evening",
+        "description": "Lire 20 minutes le soir.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Méditation 10 min",
+        "status": "missed",
+        "days": 6,
+        "note": "pas réussi à me lever"
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur en difficulté qui accepte l'aide",
+    "age_range": "25-40",
+    "style": "oral, un peu abattu mais ouvert aux suggestions",
+    "background": "La méditation ça fait 6 jours que j'y arrive pas. Quand Sophia propose de découper en micro-étape, j'accepte. Je sais que j'ai besoin d'aide sur ce point."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_missed_streak_accept",
+      "spec": {
+        "streak_action": "Méditation 10 min",
+        "streak_days": 6,
+        "actions_status": {
+          "Méditation 10 min": "missed",
+          "Lecture 20 min": "completed"
+        },
+        "miss_reason": "j'arrive pas à me lever assez tôt, ça fait une semaine que c'est comme ça",
+        "accept_breakdown": true,
+        "phase_sequence": [
+          "trigger_checkup",
+          "answer_action_1_missed",
+          "give_reason_for_miss",
+          "accept_breakdown_offer",
+          "answer_action_2_done",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "micro|découpe|étape|bilan|check"
+    ]
+  }
+}

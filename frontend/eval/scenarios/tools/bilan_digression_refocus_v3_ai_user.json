@@ -1,0 +1,91 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_digression_refocus_v3_ai_user",
+  "description": "V3: Bilan avec digression complète. User parle de tout sauf du bilan (météo, recette, etc.) → investigator refocus → bilan reprend. Teste la résistance aux digressions et le mécanisme anti-faux-positifs (pas de log erroné).",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user",
+    "digression"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Méditation 10 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "morning",
+        "description": "Méditer 10 minutes le matin.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Marche 20 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 4,
+        "time_of_day": "any_time",
+        "description": "Marcher 20 minutes dans la journée.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur distrait qui digresse",
+    "age_range": "25-40",
+    "style": "bavard, part dans tous les sens, a du mal à rester concentré",
+    "background": "J'ai tendance à digresser. Quand on me demande si j'ai fait la méditation, je vais parler de la météo ou d'un truc que j'ai vu sur internet. Quand Sophia me recadre, je reviens au sujet et je réponds correctement."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_digression",
+      "spec": {
+        "digression_topic": "un truc que j'ai vu sur YouTube hier soir, c'était trop marrant",
+        "digression_after_item": 0,
+        "actions_status": {
+          "Méditation 10 min": "completed",
+          "Marche 20 min": "completed"
+        },
+        "phase_sequence": [
+          "trigger_checkup",
+          "digress_completely_off_topic",
+          "respond_to_refocus_answer_action_1",
+          "answer_action_2_done",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point"
+    ]
+  }
+}

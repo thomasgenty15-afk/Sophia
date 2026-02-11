@@ -16,6 +16,8 @@
     "eval:tools:create-action:ai-user": "node scripts/run_tool_create_action_eval_ai_user.mjs",
     "eval:wa:onboarding:bundle": "node scripts/run_ui_whatsapp_onboarding_eval_bundle.mjs",
     "eval:export-bundle": "node scripts/export_eval_bundle.mjs",
+    "eval:v2:provision": "node scripts/provision_eval_v2_users.mjs",
+    "eval:v2:run": "node scripts/run_eval_v2_local.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,0 +1,91 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_happy_path_vital_v3_ai_user",
+  "description": "V3: Bilan happy path complet. 1 vital sign + 2 actions, tout est fait. Teste le flow nominal init -> vital check -> action completed x2 -> fin propre.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user",
+    "bilan.vitals"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": "morning",
+        "description": "Faire 30 minutes de sport le matin.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Lecture 20 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "evening",
+        "description": "Lire 20 minutes le soir avant de dormir.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur motivé et coopératif",
+    "age_range": "25-35",
+    "style": "oral, naturel, réponses claires et positives",
+    "background": "Je fais mon bilan quotidien. J'ai tout fait aujourd'hui, je suis content. Je réponds simplement et clairement à chaque question."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_happy_path",
+      "spec": {
+        "actions_status": {
+          "Sport 30 min": "completed",
+          "Lecture 20 min": "completed"
+        },
+        "vital_value": "7 heures",
+        "phase_sequence": [
+          "trigger_checkup",
+          "answer_vital_sign",
+          "answer_action_1_done",
+          "answer_action_2_done",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "include_vitals_in_bilan": true,
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point"
+    ]
+  }
+}

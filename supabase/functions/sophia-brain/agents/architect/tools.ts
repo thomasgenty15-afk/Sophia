@@ -155,7 +155,7 @@ const ARCHIVE_ACTION_TOOL: ToolDef = {
 
 const DEACTIVATE_ACTION_TOOL: ToolDef = {
   name: "deactivate_plan_action",
-  description: "Désactive (met en pause) une action active du plan. L'action reste dans le plan mais passe en status 'pending'. Réversible. À utiliser si l'utilisateur dit 'mets en pause le sport', 'désactive la méditation', 'j'arrête temporairement'.",
+  description: "Désactive (met en pause) une action active du plan. L'action reste dans le plan en pause. Réversible. À utiliser si l'utilisateur dit 'mets en pause le sport', 'désactive la méditation', 'j'arrête temporairement'.",
   parameters: {
     type: "OBJECT",
     properties: {

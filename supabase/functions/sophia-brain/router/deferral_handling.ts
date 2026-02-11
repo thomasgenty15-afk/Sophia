@@ -66,6 +66,68 @@ const MOTHER_SIGNAL_PRIORITY: MotherSignalType[] = [
   "checkup",
 ];
 
+const TOOL_SIGNAL_PRIORITY: MotherSignalType[] = [
+  "deactivate_action",
+  "delete_action",
+  "activate_action",
+  "update_action",
+  "create_action",
+  "breakdown_action",
+  "track_progress",
+];
+
+function getSignalConfidence(
+  signal: MotherSignalType,
+  signals: DispatcherSignals,
+): number {
+  switch (signal) {
+    case "create_action":
+      return Number(signals.create_action?.confidence ?? 0);
+    case "update_action":
+      return Number(signals.update_action?.confidence ?? 0);
+    case "breakdown_action":
+      return Number(signals.breakdown_action?.confidence ?? 0);
+    case "topic_exploration":
+      return Number(signals.topic_depth?.confidence ?? 0);
+    case "deep_reasons":
+      return Number(signals.deep_reasons?.confidence ?? 0);
+    case "activate_action":
+      return Number(signals.activate_action?.confidence ?? 0);
+    case "delete_action":
+      return Number(signals.delete_action?.confidence ?? 0);
+    case "deactivate_action":
+      return Number(signals.deactivate_action?.confidence ?? 0);
+    case "track_progress":
+      return Number(signals.track_progress?.confidence ?? 0);
+    default:
+      return 0;
+  }
+}
+
+function hasSignalTargetHint(
+  signal: MotherSignalType,
+  signals: DispatcherSignals,
+): boolean {
+  switch (signal) {
+    case "create_action":
+      return Boolean(String(signals.create_action?.action_label_hint ?? "").trim());
+    case "update_action":
+      return Boolean(String(signals.update_action?.target_hint ?? "").trim());
+    case "breakdown_action":
+      return Boolean(String(signals.breakdown_action?.target_hint ?? "").trim());
+    case "activate_action":
+      return Boolean(String(signals.activate_action?.target_hint ?? "").trim());
+    case "delete_action":
+      return Boolean(String(signals.delete_action?.target_hint ?? "").trim());
+    case "deactivate_action":
+      return Boolean(String(signals.deactivate_action?.target_hint ?? "").trim());
+    case "track_progress":
+      return Boolean(String(signals.track_progress?.target_hint ?? "").trim());
+    default:
+      return false;
+  }
+}
+
 /**
  * Filter dispatcher signals to keep only ONE mother signal (highest priority).
  * Safety signals (firefighter/sentry) are NEVER filtered - they always pass through.
@@ -130,6 +192,30 @@ export function filterToSingleMotherSignal(
       secondaryToolSignal: null,
       filtered: [],
     };
+  }
+
+  // Strong explicit tool intent should take precedence over conversational
+  // mother signals (topic_exploration/deep_reasons) so action flows execute.
+  const hasConversationalSignal =
+    detected.includes("topic_exploration") || detected.includes("deep_reasons");
+  const strongTools = detected
+    .filter((s) => isToolMotherSignal(s))
+    .filter((s) =>
+      getSignalConfidence(s, signals) >= 0.72 && hasSignalTargetHint(s, signals)
+    )
+    .sort((a, b) => {
+      const aIdx = TOOL_SIGNAL_PRIORITY.indexOf(a);
+      const bIdx = TOOL_SIGNAL_PRIORITY.indexOf(b);
+      return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx);
+    });
+  if (hasConversationalSignal && strongTools.length > 0) {
+    const primary = strongTools[0] ?? null;
+    const rest = detected.filter((s) => s !== primary);
+    const secondaryToolSignal = rest.find((s) => isToolMotherSignal(s)) ?? null;
+    const filtered = secondaryToolSignal
+      ? rest.filter((s) => s !== secondaryToolSignal)
+      : rest;
+    return { primarySignal: primary, secondaryToolSignal, filtered };
   }
 
   // Sort by priority (lower index = higher priority)

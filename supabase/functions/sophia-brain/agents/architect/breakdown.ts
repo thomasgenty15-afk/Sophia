@@ -68,7 +68,7 @@ export async function handleBreakDownAction(opts: {
   const targetTitle = String(found.action.title)
   const { data: actionRow } = await supabase
     .from("user_actions")
-    .select("title, description, tracking_type, time_of_day, target_reps, submission_id")
+    .select("id, title, description, tracking_type, time_of_day, target_reps, submission_id, status")
     .eq("user_id", userId)
     .eq("plan_id", planRow.id)
     .ilike("title", targetTitle)
@@ -120,8 +120,25 @@ export async function handleBreakDownAction(opts: {
   }
 
   const { updated, inserted } = insertActionBeforeInPlanByTitle(planRow.content, targetTitle, newActionJson)
+  let updatedPlanContent = updated
+  // Also mark the blocking action as paused in plan JSON so UI and DB stay coherent.
+  if (updatedPlanContent && typeof updatedPlanContent === "object" && Array.isArray((updatedPlanContent as any).phases)) {
+    const normalizedTarget = String(targetTitle ?? "").trim().toLowerCase()
+    const cloned = structuredClone(updatedPlanContent)
+    for (const phase of (cloned as any).phases) {
+      if (!Array.isArray(phase?.actions)) continue
+      for (const action of phase.actions) {
+        const t = String(action?.title ?? "").trim().toLowerCase()
+        if (t === normalizedTarget) {
+          action.status = "pending"
+          action.is_active = false
+        }
+      }
+    }
+    updatedPlanContent = cloned
+  }
   if (inserted) {
-    const { error: upErr } = await supabase.from("user_plans").update({ content: updated }).eq("id", planRow.id)
+    const { error: upErr } = await supabase.from("user_plans").update({ content: updatedPlanContent }).eq("id", planRow.id)
     if (upErr) console.error("[Architect] Failed to update plan content for breakdown:", upErr)
   }
 
@@ -147,11 +164,36 @@ export async function handleBreakDownAction(opts: {
     return { text: "Je l’ai bien générée, mais j’ai eu un souci technique pour l’ajouter au plan. Retente dans 10s.", tool_execution: "failed" }
   }
 
+  // Deactivate (pause) the blocking action that was broken down.
+  // This keeps the plan focused on the micro-step instead of keeping two active competing actions.
+  let deactivateDbError: any = null
+  const targetActionId = (actionRow as any)?.id ? String((actionRow as any).id) : null
+  if (targetActionId) {
+    const { error } = await supabase
+      .from("user_actions")
+      .update({ status: "pending" })
+      .eq("id", targetActionId)
+    deactivateDbError = error
+  } else {
+    const { error } = await supabase
+      .from("user_actions")
+      .update({ status: "pending" })
+      .eq("user_id", userId)
+      .eq("plan_id", planRow.id)
+      .ilike("title", targetTitle)
+      .eq("status", "active")
+    deactivateDbError = error
+  }
+  if (deactivateDbError) {
+    console.error("[Architect] Failed to deactivate blocking action after breakdown:", deactivateDbError)
+  }
+
   const reply =
     `Ok. Je te mets une micro-étape (2 min) pour débloquer "${targetTitle}":\n` +
     `- ${stepTitle}${stepDesc ? ` — ${stepDesc}` : ""}\n` +
     (tip ? `\nTip: ${tip}` : "") +
-    `\n\nTu veux la faire maintenant (oui/non) ?`
+    `\n\nJ'ai mis "${targetTitle}" en pause pour te laisser te concentrer sur cette micro-étape.\n` +
+    `\nTu veux la faire maintenant (oui/non) ?`
   return { text: reply, tool_execution: "success" }
 }
 

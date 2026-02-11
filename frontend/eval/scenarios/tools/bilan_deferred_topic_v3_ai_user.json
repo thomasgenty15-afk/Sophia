@@ -1,0 +1,94 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_deferred_topic_v3_ai_user",
+  "description": "V3: Bilan avec sujet différé. User mentionne un sujet personnel mid-bilan → dispatcher détecte confirm_topic → topic déféré dans deferred_topics_v2 → bilan continue normalement.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user",
+    "deferred_topics"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": "morning",
+        "description": "Faire 30 minutes de sport.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Lecture 20 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "evening",
+        "description": "Lire 20 minutes le soir.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur avec un sujet en tête",
+    "age_range": "28-42",
+    "style": "oral, naturel, fait un aparté spontané puis revient au bilan",
+    "background": "J'ai un conflit avec mon manager au boulot qui me travaille. Pendant le bilan, ça va sortir naturellement quand on parle de la lecture (je lis pas parce que j'ai la tête ailleurs). Quand Sophia propose d'en reparler après le bilan, j'accepte."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_deferred_topic",
+      "spec": {
+        "deferred_topic": "problème avec mon manager qui me met la pression au travail",
+        "topic_trigger_moment": "after_action_1",
+        "actions_status": {
+          "Sport 30 min": "completed",
+          "Lecture 20 min": "missed"
+        },
+        "miss_reason": "j'avais la tête ailleurs à cause du boulot",
+        "phase_sequence": [
+          "trigger_checkup",
+          "answer_action_1_done",
+          "mention_personal_topic_naturally",
+          "accept_defer_topic",
+          "answer_action_2_missed_with_reason",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point",
+      "après|plus tard|noté"
+    ]
+  }
+}

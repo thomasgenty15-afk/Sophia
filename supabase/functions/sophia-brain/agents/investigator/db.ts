@@ -545,10 +545,11 @@ export async function increaseWeekTarget(
   supabase: SupabaseClient,
   userId: string,
   actionId: string,
-): Promise<{ success: boolean; old_target: number; new_target: number; error?: string }> {
+  dayToAdd?: string,
+): Promise<{ success: boolean; old_target: number; new_target: number; scheduled_days?: string[]; error?: string }> {
   const { data: action, error: fetchError } = await supabase
     .from("user_actions")
-    .select("id, title, target_reps, type, status")
+    .select("id, title, target_reps, scheduled_days, type, status")
     .eq("id", actionId)
     .eq("user_id", userId)
     .maybeSingle()
@@ -570,9 +571,21 @@ export async function increaseWeekTarget(
   }
 
   const newTarget = oldTarget + 1
+
+  // Build update payload: always increment target_reps, optionally add a day to scheduled_days
+  const updatePayload: Record<string, unknown> = { target_reps: newTarget }
+  let newScheduledDays: string[] | undefined
+  if (dayToAdd) {
+    const currentDays: string[] = Array.isArray((action as any).scheduled_days) ? (action as any).scheduled_days : []
+    const dayOrder = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"]
+    const deduped = Array.from(new Set([...currentDays, dayToAdd]))
+    newScheduledDays = deduped.sort((a, b) => dayOrder.indexOf(a) - dayOrder.indexOf(b))
+    updatePayload.scheduled_days = newScheduledDays
+  }
+
   const { data: updated, error: updateError } = await supabase
     .from("user_actions")
-    .update({ target_reps: newTarget })
+    .update(updatePayload)
     .eq("id", actionId)
     .eq("user_id", userId)
     .eq("type", "habit")
@@ -585,8 +598,8 @@ export async function increaseWeekTarget(
     return { success: false, old_target: oldTarget, new_target: oldTarget, error: "Erreur technique." }
   }
 
-  console.log(`[Investigator] Increased target_reps for ${actionId}: ${oldTarget} -> ${newTarget}`)
-  return { success: true, old_target: oldTarget, new_target: newTarget }
+  console.log(`[Investigator] Increased target_reps for ${actionId}: ${oldTarget} -> ${newTarget}${dayToAdd ? ` (+day: ${dayToAdd})` : ""}`)
+  return { success: true, old_target: oldTarget, new_target: newTarget, ...(newScheduledDays ? { scheduled_days: newScheduledDays } : {}) }
 }
 
 export async function handleArchiveAction(

@@ -44,7 +44,7 @@ import { formatDaysFrench, dayTokenToFrench } from "./dates.ts"
 import { handleBreakDownAction, findActionInPlanContent } from "./breakdown.ts"
 import { injectActionIntoPlanJson, planJsonHasAction, verifyActionCreated } from "./plan_json.ts"
 import { handleUpdateAction } from "./update_action.ts"
-import { handleActivateAction, handleArchiveAction, handleDeactivateAction } from "./activation.ts"
+import { getActivePlanForUser, handleActivateAction, handleArchiveAction, handleDeactivateAction } from "./activation.ts"
 import {
   looksLikeExplicitActivateActionRequest,
   looksLikeExplicitDeleteActionRequest,
@@ -110,6 +110,315 @@ function isActionToolResultSuccessful(text: string): boolean {
   }
   return /\b(c est fait|j ai (mis en pause|retire|retiree?|active)|est deja en pause|est deja active)\b/i
     .test(s)
+}
+
+function isArchiveAlreadyAbsentResult(text: string): boolean {
+  const s = String(text ?? "").toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, " ")
+  return /\b(je ne trouve pas l action|action .* n est pas dans ton plan|n y est pas|introuvable)\b/i.test(s)
+}
+
+function looksLikeIrreversibleDeleteIntent(message: string): boolean {
+  const s = String(message ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/['’]/g, " ")
+  const asksDelete = /\b(supprim|retir|effac|archiv)\b/i.test(s)
+  const irreversible = /\b(definit|pour de bon|pour toujours|irrevers|radical|definitivement)\b/i.test(s)
+  return asksDelete && irreversible
+}
+
+function normalizeActionTitleForMemory(raw: string): string {
+  return String(raw ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+}
+
+function shouldTrackActionTitleForMemory(raw: string): boolean {
+  return !isGenericActionTitle(raw)
+}
+
+function isGenericActionTitle(raw: string): boolean {
+  const norm = normalizeActionTitleForMemory(raw)
+  if (!norm) return true
+  const generic = new Set([
+    "action",
+    "une action",
+    "cette action",
+    "l action",
+    "laction",
+  ])
+  return generic.has(norm)
+}
+
+function pickBestActionTitle(candidates: Array<string | null | undefined>, fallback = ""): string {
+  const vals = candidates
+    .map((v) => String(v ?? "").trim())
+    .filter(Boolean)
+  const specific = vals.find((v) => !isGenericActionTitle(v))
+  if (specific) return specific
+  return vals[0] || fallback
+}
+
+function asksForPlanSnapshot(message: string): boolean {
+  const t = String(message ?? "").toLowerCase()
+  return /\b(mon plan|affiche|montre|liste|quelles?\s+actions?)\b/i.test(t)
+}
+
+async function buildActiveActionsSnapshot(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  try {
+    const { data: plan } = await supabase
+      .from("user_plans")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .limit(1)
+      .maybeSingle()
+    if (!plan?.id) return ""
+    const { data: actions } = await supabase
+      .from("user_actions")
+      .select("title,time_of_day,status")
+      .eq("user_id", userId)
+      .eq("plan_id", plan.id)
+      .eq("status", "active")
+      .order("created_at", { ascending: true })
+      .limit(6)
+    const rows = Array.isArray(actions) ? actions : []
+    if (rows.length === 0) return "Plan actif: aucune action active."
+    const lines = rows.map((a: any) => `- ${String(a?.title ?? "Action")} (${String(a?.time_of_day ?? "any_time")})`)
+    return `Plan actuel:\n${lines.join("\n")}`
+  } catch {
+    return ""
+  }
+}
+
+function wasActionRecentlyDeleted(tempMemory: any, title: string, nowMs = Date.now()): boolean {
+  if (!shouldTrackActionTitleForMemory(title)) return false
+  const norm = normalizeActionTitleForMemory(title)
+  if (!norm) return false
+  const arr = Array.isArray((tempMemory as any)?.__recently_deleted_actions)
+    ? (tempMemory as any).__recently_deleted_actions
+    : []
+  const ttlMs = 20 * 60 * 1000
+  for (const it of arr) {
+    const t = normalizeActionTitleForMemory(String(it?.title ?? ""))
+    if (!t || t !== norm) continue
+    const atMs = Date.parse(String(it?.at ?? ""))
+    if (Number.isFinite(atMs) && nowMs - atMs <= ttlMs) return true
+  }
+  return false
+}
+
+function markActionRecentlyDeleted(tempMemory: any, title: string, nowIso = new Date().toISOString()): any {
+  const tm = ((tempMemory && typeof tempMemory === "object") ? tempMemory : {}) as any
+  if (!shouldTrackActionTitleForMemory(title)) return tm
+  const norm = normalizeActionTitleForMemory(title)
+  if (!norm) return tm
+  const arr = Array.isArray(tm.__recently_deleted_actions) ? [...tm.__recently_deleted_actions] : []
+  const nowMs = Date.parse(nowIso)
+  const ttlMs = 20 * 60 * 1000
+  const pruned = arr.filter((it: any) => {
+    const atMs = Date.parse(String(it?.at ?? ""))
+    return Number.isFinite(atMs) && Number.isFinite(nowMs) ? (nowMs - atMs <= ttlMs) : true
+  })
+  const kept = pruned.filter((it: any) =>
+    normalizeActionTitleForMemory(String(it?.title ?? "")) !== norm
+  )
+  kept.unshift({ title: String(title ?? "").trim(), at: nowIso })
+  tm.__recently_deleted_actions = kept.slice(0, 8)
+  return tm
+}
+
+function wasActionRecentlyDeactivated(tempMemory: any, title: string, nowMs = Date.now()): boolean {
+  if (!shouldTrackActionTitleForMemory(title)) return false
+  const norm = normalizeActionTitleForMemory(title)
+  if (!norm) return false
+  const arr = Array.isArray((tempMemory as any)?.__recently_deactivated_actions)
+    ? (tempMemory as any).__recently_deactivated_actions
+    : []
+  const ttlMs = 20 * 60 * 1000
+  for (const it of arr) {
+    const t = normalizeActionTitleForMemory(String(it?.title ?? ""))
+    if (!t || t !== norm) continue
+    const atMs = Date.parse(String(it?.at ?? ""))
+    if (Number.isFinite(atMs) && nowMs - atMs <= ttlMs) return true
+  }
+  return false
+}
+
+function markActionRecentlyDeactivated(tempMemory: any, title: string, nowIso = new Date().toISOString()): any {
+  const tm = ((tempMemory && typeof tempMemory === "object") ? tempMemory : {}) as any
+  if (!shouldTrackActionTitleForMemory(title)) return tm
+  const norm = normalizeActionTitleForMemory(title)
+  if (!norm) return tm
+  const arr = Array.isArray(tm.__recently_deactivated_actions) ? [...tm.__recently_deactivated_actions] : []
+  const nowMs = Date.parse(nowIso)
+  const ttlMs = 20 * 60 * 1000
+  const pruned = arr.filter((it: any) => {
+    const atMs = Date.parse(String(it?.at ?? ""))
+    return Number.isFinite(atMs) && Number.isFinite(nowMs) ? (nowMs - atMs <= ttlMs) : true
+  })
+  const kept = pruned.filter((it: any) =>
+    normalizeActionTitleForMemory(String(it?.title ?? "")) !== norm
+  )
+  kept.unshift({ title: String(title ?? "").trim(), at: nowIso })
+  tm.__recently_deactivated_actions = kept.slice(0, 8)
+  return tm
+}
+
+function clearDeleteArtifactsAfterDeactivation(tempMemory: any, title?: string): any {
+  let tm = ((tempMemory && typeof tempMemory === "object") ? tempMemory : {}) as any
+  const normTitle = normalizeActionTitleForMemory(String(title ?? ""))
+  const matchesTarget = (raw: unknown): boolean => {
+    if (!normTitle) return true
+    const normRaw = normalizeActionTitleForMemory(String(raw ?? ""))
+    if (!normRaw) return true
+    return normRaw === normTitle || normRaw.includes(normTitle) || normTitle.includes(normRaw)
+  }
+
+  const closedDelete = closeDeleteActionFlow({ tempMemory: tm, outcome: "abandoned" })
+  tm = closedDelete.tempMemory
+
+  const pending = tm.__pending_relaunch_consent
+  if (
+    pending &&
+    String(pending?.machine_type ?? "") === "delete_action" &&
+    matchesTarget(pending?.action_target)
+  ) {
+    delete tm.__pending_relaunch_consent
+  }
+
+  const ask = tm.__ask_relaunch_consent
+  if (
+    ask &&
+    String(ask?.machine_type ?? "") === "delete_action" &&
+    matchesTarget(ask?.action_target)
+  ) {
+    delete tm.__ask_relaunch_consent
+  }
+
+  const deferredState = tm.deferred_topics_v2
+  const deferredTopics = Array.isArray(deferredState?.topics)
+    ? deferredState.topics
+    : null
+  if (deferredTopics) {
+    const kept = deferredTopics.filter((t: any) => {
+      if (String(t?.machine_type ?? "") !== "delete_action") return true
+      return !matchesTarget(t?.action_target)
+    })
+    if (kept.length !== deferredTopics.length) {
+      tm.deferred_topics_v2 = {
+        ...(deferredState ?? {}),
+        topics: kept,
+        last_processed_at: new Date().toISOString(),
+      }
+    }
+  }
+
+  return tm
+}
+
+async function findAlreadyPausedAction(opts: {
+  supabase: SupabaseClient
+  userId: string
+  titleOrId: string
+}): Promise<{ title: string; kind: "action" | "framework" } | null> {
+  const rawInput = String(opts.titleOrId ?? "").trim()
+  if (!rawInput) return null
+
+  const plan = await getActivePlanForUser(opts.supabase, opts.userId)
+  if (!plan?.id) return null
+
+  const isPausedLike = (status: unknown): boolean => {
+    const s = String(status ?? "").toLowerCase().trim()
+    return s === "pending" || s === "paused" || s === "inactive" || s === "deactivated"
+  }
+
+  const findAction = async () => {
+    const byId = await opts.supabase
+      .from("user_actions")
+      .select("id,title,status")
+      .eq("plan_id", plan.id)
+      .eq("id", rawInput)
+      .maybeSingle()
+    if (byId.data && isPausedLike((byId.data as any)?.status)) {
+      return { title: String((byId.data as any)?.title ?? rawInput), kind: "action" as const }
+    }
+    const byTitleExact = await opts.supabase
+      .from("user_actions")
+      .select("id,title,status")
+      .eq("plan_id", plan.id)
+      .ilike("title", rawInput)
+      .maybeSingle()
+    if (byTitleExact.data && isPausedLike((byTitleExact.data as any)?.status)) {
+      return { title: String((byTitleExact.data as any)?.title ?? rawInput), kind: "action" as const }
+    }
+    const byTitlePartial = await opts.supabase
+      .from("user_actions")
+      .select("id,title,status")
+      .eq("plan_id", plan.id)
+      .ilike("title", `%${rawInput}%`)
+      .limit(1)
+      .maybeSingle()
+    if (byTitlePartial.data && isPausedLike((byTitlePartial.data as any)?.status)) {
+      return { title: String((byTitlePartial.data as any)?.title ?? rawInput), kind: "action" as const }
+    }
+    return null
+  }
+
+  const findFramework = async () => {
+    const byId = await opts.supabase
+      .from("user_framework_tracking")
+      .select("id,action_id,title,status")
+      .eq("plan_id", plan.id)
+      .eq("id", rawInput)
+      .maybeSingle()
+    if (byId.data && isPausedLike((byId.data as any)?.status)) {
+      return { title: String((byId.data as any)?.title ?? rawInput), kind: "framework" as const }
+    }
+    const byActionId = await opts.supabase
+      .from("user_framework_tracking")
+      .select("id,action_id,title,status")
+      .eq("plan_id", plan.id)
+      .eq("action_id", rawInput)
+      .maybeSingle()
+    if (byActionId.data && isPausedLike((byActionId.data as any)?.status)) {
+      return { title: String((byActionId.data as any)?.title ?? rawInput), kind: "framework" as const }
+    }
+    const byTitleExact = await opts.supabase
+      .from("user_framework_tracking")
+      .select("id,action_id,title,status")
+      .eq("plan_id", plan.id)
+      .ilike("title", rawInput)
+      .maybeSingle()
+    if (byTitleExact.data && isPausedLike((byTitleExact.data as any)?.status)) {
+      return { title: String((byTitleExact.data as any)?.title ?? rawInput), kind: "framework" as const }
+    }
+    const byTitlePartial = await opts.supabase
+      .from("user_framework_tracking")
+      .select("id,action_id,title,status")
+      .eq("plan_id", plan.id)
+      .ilike("title", `%${rawInput}%`)
+      .limit(1)
+      .maybeSingle()
+    if (byTitlePartial.data && isPausedLike((byTitlePartial.data as any)?.status)) {
+      return { title: String((byTitlePartial.data as any)?.title ?? rawInput), kind: "framework" as const }
+    }
+    return null
+  }
+
+  const a = await findAction()
+  if (a) return a
+  return await findFramework()
 }
 
 function parseExplicitCreateActionFromUserMessage(message: string): {
@@ -1506,6 +1815,15 @@ FORMAT :
       out = out.replace(/\bOn\s+part\s+l[àa]-dessus\s*\?\s*$/i, "Ça te va ?")
       // If the model uses "On valide ..." mid-message, keep it but soften.
       out = out.replace(/\bOn\s+valide\b/gi, "Ça te va de")
+      // Remove technical verification loop phrasing in user-facing replies.
+      out = out.replace(
+        /Je préfère vérifier l'exécution avant de te confirmer le changement\. Je te redis dès que c'est validé\.?/gi,
+        "Je te suis. On avance simplement sur ce que tu veux faire.",
+      )
+      out = out.replace(
+        /Je ne peux pas te confirmer le changement[^.]*\./gi,
+        "Je te suis. Dis-moi ce que tu veux faire et je m'en occupe.",
+      )
       return out.replace(/\s{2,}/g, " ").replace(/\n{3,}/g, "\n\n").trim()
     }
 
@@ -1767,6 +2085,39 @@ FORMAT :
     }
 
     const cleaned = response.replace(/\*\*/g, "")
+    const parsedTitle = parseQuotedActionTitle(message)
+    const activeDeleteTarget = (getActiveDeleteActionFlow(tm0)?.meta as any)?.target_action
+    const activeDeactivateTarget = (getActiveDeactivateActionFlow(tm0)?.meta as any)?.target_action
+    if (!isModuleUi && looksLikeExplicitDeleteActionRequest(message)) {
+      const reqTitle = pickBestActionTitle([parsedTitle, activeDeleteTarget], "")
+      if (reqTitle && wasActionRecentlyDeleted(tm0, reqTitle)) {
+        const snap = asksForPlanSnapshot(message) ? await buildActiveActionsSnapshot(supabase, userId) : ""
+        return {
+          text: [
+            `"${reqTitle}" est deja retiree de ton plan.`,
+            "La suppression est definitive et irreversible.",
+            snap,
+          ].filter(Boolean).join("\n"),
+          executed_tools: [],
+          tool_execution: "none",
+        }
+      }
+    }
+    if (!isModuleUi && looksLikeExplicitDeactivateActionRequest(message)) {
+      const reqTitle = pickBestActionTitle([parsedTitle, activeDeactivateTarget], "")
+      if (reqTitle && wasActionRecentlyDeactivated(tm0, reqTitle)) {
+        const snap = asksForPlanSnapshot(message) ? await buildActiveActionsSnapshot(supabase, userId) : ""
+        return {
+          text: [
+            `"${reqTitle}" est deja en pause.`,
+            "Tu peux me dire quand tu veux la reactiver.",
+            snap,
+          ].filter(Boolean).join("\n"),
+          executed_tools: [],
+          tool_execution: "none",
+        }
+      }
+    }
     try {
       const shouldStart =
         !currentFlow &&
@@ -1802,6 +2153,29 @@ FORMAT :
       console.log(`[Architect] Args:`, JSON.stringify((response as any).args))
 
       await trace({ event: "tool_call_attempted", level: "debug", toolName })
+
+      // Global idempotent guard in tool-object path:
+      // if user asks to delete an action that was already deleted recently,
+      // short-circuit regardless of which tool the model selected.
+      if (looksLikeExplicitDeleteActionRequest(message)) {
+        const guardParsedTitle = parseQuotedActionTitle(message)
+        const guardDeleteTarget = (getActiveDeleteActionFlow(tm0)?.meta as any)?.target_action
+        const guardTitle = pickBestActionTitle([guardParsedTitle, guardDeleteTarget], "")
+        if (guardTitle && wasActionRecentlyDeleted(tm0, guardTitle)) {
+          const snap = asksForPlanSnapshot(message)
+            ? await buildActiveActionsSnapshot(supabase, userId)
+            : ""
+          return {
+            text: [
+              `"${guardTitle}" est deja retiree de ton plan.`,
+              "La suppression est definitive et irreversible.",
+              snap,
+            ].filter(Boolean).join("\n"),
+            executed_tools: [toolName],
+            tool_execution: "success",
+          }
+        }
+      }
 
       if (toolName === "track_progress") {
         const flowAwaiting =
@@ -2326,66 +2700,220 @@ FORMAT :
         const args = (response as any).args ?? {}
         const askedTitle = String(args?.action_title_or_id ?? "").trim()
         const deleteTarget = (deleteSession?.meta as any)?.target_action
-
-        // Case 1: Machine already confirmed (user said yes, detected by dispatcher LLM)
-        if (deletePhase === "deleted") {
-          const titleToDelete = askedTitle || deleteTarget || "cette action"
-          const deleteResult = await handleArchiveAction(supabase, userId, {
+        const parsedTitle = parseQuotedActionTitle(message)
+        const explicitDeleteRequest = looksLikeExplicitDeleteActionRequest(message)
+        const explicitDeactivateRequest = looksLikeExplicitDeactivateActionRequest(message)
+        const irreversibleDeleteIntent = looksLikeIrreversibleDeleteIntent(message)
+        const previousAssistantMessage = Array.isArray(opts.history)
+          ? [...opts.history].reverse().find((m: any) => m?.role === "assistant" && typeof m?.content === "string")
+          : null
+        const previousAssistantAskedDeleteConfirmation = (() => {
+          const s = String(previousAssistantMessage?.content ?? "")
+            .toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/['’]/g, " ")
+          if (!s) return false
+          const asksConfirm = /\b(tu\s+confirmes?|es\s*tu\s+sur|tu\s+es\s+sur|tu\s+veux\s+bien)\b/i.test(s)
+          const mentionsDelete = /\b(retir|supprim|enlev)\b/i.test(s)
+          const mentionsPlanOrAction = /\b(plan|action)\b/i.test(s)
+          return asksConfirm && mentionsDelete && mentionsPlanOrAction
+        })()
+        const startsWithHardNo = /^\s*(non|pas\s+maintenant|laisse\s+tomber|annule)\b/i
+          .test(String(message ?? ""))
+        const yesAfterAssistantDeleteConfirm =
+          previousAssistantAskedDeleteConfirmation &&
+          looksLikeYesToProceed(message) &&
+          !startsWithHardNo
+        const deleteRequestedTitle = pickBestActionTitle(
+          [parsedTitle, deleteTarget, askedTitle],
+          "",
+        )
+        if (explicitDeactivateRequest && !irreversibleDeleteIntent) {
+          const titleToDeactivate = pickBestActionTitle(
+            [parsedTitle, deleteTarget, askedTitle],
+            "cette action",
+          )
+          const deactivateResult = await handleDeactivateAction(supabase, userId, {
             ...args,
-            action_title_or_id: titleToDelete,
+            action_title_or_id: titleToDeactivate,
           })
-          const deleteSucceeded = isActionToolResultSuccessful(deleteResult)
+          const deactivateSucceeded = isActionToolResultSuccessful(deactivateResult)
           await trace({
-            event: deleteSucceeded ? "tool_call_succeeded" : "tool_call_blocked",
-            toolResult: deleteResult,
-            metadata: deleteSucceeded ? { outcome: "deleted" } : { reason: "delete_not_applied" },
+            event: deactivateSucceeded ? "tool_call_succeeded" : "tool_call_blocked",
+            toolResult: deactivateResult,
+            metadata: deactivateSucceeded
+              ? { outcome: "deactivated", rerouted_from: "archive_plan_action" }
+              : { reason: "deactivate_not_applied_after_archive_reroute" },
           })
-          // Close the machine
-          if (deleteSucceeded) {
+          if (deactivateSucceeded) {
             try {
               const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
               let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
-              const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
-              tmClean = closed.tempMemory
+              const closedDelete = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "abandoned" })
+              tmClean = closedDelete.tempMemory
+              tmClean = markActionRecentlyDeactivated(tmClean, titleToDeactivate)
+              tmClean = clearDeleteArtifactsAfterDeactivation(tmClean, titleToDeactivate)
               delete tmClean.__delete_action_confirmed
               await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
             } catch {}
           }
           return {
-            text: deleteResult,
+            text: deactivateResult,
             executed_tools: [toolName],
-            tool_execution: deleteSucceeded ? "success" : "blocked",
+            tool_execution: deactivateSucceeded ? "success" : "blocked",
+          }
+        }
+        if (deleteRequestedTitle && !irreversibleDeleteIntent) {
+          const paused = await findAlreadyPausedAction({
+            supabase,
+            userId,
+            titleOrId: deleteRequestedTitle,
+          })
+          if (paused) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "abandoned" })
+              tmClean = closed.tempMemory
+              tmClean = markActionRecentlyDeactivated(tmClean, paused.title)
+              tmClean = clearDeleteArtifactsAfterDeactivation(tmClean, paused.title)
+              delete tmClean.__delete_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+            await trace({
+              event: "tool_call_blocked",
+              metadata: { reason: "already_deactivated_keep_pending", action: paused.title },
+            })
+            return {
+              text: `"${paused.title}" est deja en pause (desactivee proprement). Si tu veux une suppression definitive, dis-moi \"supprime-la definitivement\".`,
+              executed_tools: [toolName],
+              tool_execution: "success",
+            }
+          }
+        }
+        if (deleteRequestedTitle && wasActionRecentlyDeleted(tm0, deleteRequestedTitle)) {
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
+            tmClean = closed.tempMemory
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          await trace({
+            event: "tool_call_blocked",
+            metadata: { reason: "already_deleted_recently", action: deleteRequestedTitle },
+          })
+          return {
+            text: `"${deleteRequestedTitle}" est deja retiree de ton plan. On laisse comme ca.`,
+            executed_tools: [toolName],
+            tool_execution: "blocked",
+          }
+        }
+        const yesInConfirming = deletePhase === "confirming" &&
+          looksLikeYesToProceed(message) &&
+          !looksLikeNoToProceed(message)
+        const noInConfirming = deletePhase === "confirming" &&
+          looksLikeNoToProceed(message) &&
+          !looksLikeYesToProceed(message)
+
+        if (noInConfirming) {
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "abandoned" })
+            tmClean = closed.tempMemory
+            delete tmClean.__delete_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          await trace({ event: "tool_call_blocked", metadata: { reason: "user_declined_deletion", phase: "confirming" } })
+          return {
+            text: `Ok, je garde "${deleteTarget || askedTitle || "cette action"}" dans ton plan. Dis-moi si tu veux autre chose.`,
+            executed_tools: [toolName],
+            tool_execution: "blocked",
+          }
+        }
+
+        // Case 1: Machine already confirmed (user said yes, detected by dispatcher LLM)
+        // Fallback: if phase propagation lags but user clearly says YES, proceed directly.
+        if (deletePhase === "deleted" || yesInConfirming || yesAfterAssistantDeleteConfirm) {
+          const titleToDelete = pickBestActionTitle(
+            [parsedTitle, deleteTarget, askedTitle],
+            "cette action",
+          )
+          const deleteResult = await handleArchiveAction(supabase, userId, {
+            ...args,
+            action_title_or_id: titleToDelete,
+          })
+          const deleteSucceeded = isActionToolResultSuccessful(deleteResult)
+          const deleteAlreadyAbsent = isArchiveAlreadyAbsentResult(deleteResult) && Boolean(titleToDelete)
+          const deleteFlowResolved = deleteSucceeded || deleteAlreadyAbsent
+          await trace({
+            event: deleteFlowResolved ? "tool_call_succeeded" : "tool_call_blocked",
+            toolResult: deleteResult,
+            metadata: deleteFlowResolved
+              ? { outcome: deleteSucceeded ? "deleted" : "already_absent" }
+              : { reason: "delete_not_applied" },
+          })
+          // Close the machine
+          if (deleteFlowResolved) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
+              tmClean = closed.tempMemory
+              tmClean = markActionRecentlyDeleted(tmClean, titleToDelete)
+              delete tmClean.__delete_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+          }
+          return {
+            text: deleteAlreadyAbsent
+              ? `"${titleToDelete}" est deja retiree de ton plan. On laisse comme ca.`
+              : deleteResult,
+            executed_tools: [toolName],
+            tool_execution: deleteFlowResolved ? "success" : "blocked",
           }
         }
 
         // Case 2: User explicitly asked to delete (strong signal, no consent needed)
-        if (looksLikeExplicitDeleteActionRequest(message)) {
-          const titleToDelete = askedTitle || deleteTarget || parseQuotedActionTitle(message) || "cette action"
+        if (explicitDeleteRequest && irreversibleDeleteIntent) {
+          const titleToDelete = pickBestActionTitle(
+            [parsedTitle, deleteTarget, askedTitle],
+            "cette action",
+          )
           const deleteResult = await handleArchiveAction(supabase, userId, {
             ...args,
             action_title_or_id: titleToDelete,
           })
           const deleteSucceeded = isActionToolResultSuccessful(deleteResult)
+          const deleteAlreadyAbsent = isArchiveAlreadyAbsentResult(deleteResult) && Boolean(titleToDelete)
+          const deleteFlowResolved = deleteSucceeded || deleteAlreadyAbsent
           await trace({
-            event: deleteSucceeded ? "tool_call_succeeded" : "tool_call_blocked",
+            event: deleteFlowResolved ? "tool_call_succeeded" : "tool_call_blocked",
             toolResult: deleteResult,
-            metadata: deleteSucceeded ? { outcome: "deleted" } : { reason: "delete_not_applied" },
+            metadata: deleteFlowResolved
+              ? { outcome: deleteSucceeded ? "deleted" : "already_absent" }
+              : { reason: "delete_not_applied" },
           })
           // Close machine if it exists
-          if (deleteSucceeded) {
+          if (deleteFlowResolved) {
             try {
               const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
               let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
               const closed = closeDeleteActionFlow({ tempMemory: tmClean, outcome: "deleted" })
               tmClean = closed.tempMemory
+              tmClean = markActionRecentlyDeleted(tmClean, titleToDelete)
               delete tmClean.__delete_action_confirmed
               await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
             } catch {}
           }
           return {
-            text: deleteResult,
+            text: deleteAlreadyAbsent
+              ? `"${titleToDelete}" est deja retiree de ton plan. On laisse comme ca.`
+              : deleteResult,
             executed_tools: [toolName],
-            tool_execution: deleteSucceeded ? "success" : "blocked",
+            tool_execution: deleteFlowResolved ? "success" : "blocked",
           }
         }
 
@@ -2421,11 +2949,46 @@ FORMAT :
         const args = (response as any).args ?? {}
         const askedTitle = String(args?.action_title_or_id ?? "").trim()
         const deactivateTarget = (deactivateSession?.meta as any)?.target_action
+        const explicitDeleteRequest = looksLikeExplicitDeleteActionRequest(message)
+        const irreversibleDeleteIntent = looksLikeIrreversibleDeleteIntent(message)
+        const explicitDeactivateRequest = looksLikeExplicitDeactivateActionRequest(message)
+        const parsedTitle = parseQuotedActionTitle(message)
+        const msgLower = String(message ?? "").toLowerCase()
+        const targetNorm = String(deactivateTarget ?? askedTitle ?? "").toLowerCase().trim()
+        const messageMentionsTarget = Boolean(targetNorm) && msgLower.includes(targetNorm)
+        const hasDeactivateLexicon = /\b(d[ée]sactiv|pause|mettre\s+en\s+pause|arr[êe]ter\s+temporaire|stopper\s+temporaire)\b/i
+          .test(msgLower)
+        const contextualDeactivateIntent = explicitDeactivateRequest || (messageMentionsTarget && hasDeactivateLexicon)
+        const deactivateRequestedTitle = pickBestActionTitle(
+          [parsedTitle, deactivateTarget, askedTitle],
+          "",
+        )
+        if (deactivateRequestedTitle && wasActionRecentlyDeactivated(tm0, deactivateRequestedTitle)) {
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
+            tmClean = closed.tempMemory
+            tmClean = clearDeleteArtifactsAfterDeactivation(tmClean, deactivateRequestedTitle)
+            delete tmClean.__deactivate_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          await trace({
+            event: "tool_call_blocked",
+            metadata: { reason: "already_deactivated_recently", action: deactivateRequestedTitle },
+          })
+          return {
+            text: `"${deactivateRequestedTitle}" est deja en pause (desactivee proprement). On laisse comme ca.`,
+            executed_tools: [toolName],
+            tool_execution: "blocked",
+          }
+        }
         const yesInConfirming = deactivatePhase === "confirming" &&
           looksLikeYesToProceed(message) &&
           !looksLikeNoToProceed(message)
         const noInConfirming = deactivatePhase === "confirming" &&
           looksLikeNoToProceed(message) &&
+          !explicitDeactivateRequest &&
           !looksLikeYesToProceed(message)
 
         if (noInConfirming) {
@@ -2445,11 +3008,147 @@ FORMAT :
           }
         }
 
+        const pickDeactivateTitle = () => pickBestActionTitle(
+          [parsedTitle, deactivateTarget, askedTitle],
+          "cette action",
+        )
+
+        const maybeShortCircuitAlreadyPaused = async (titleToCheck: string) => {
+          const paused = await findAlreadyPausedAction({
+            supabase,
+            userId,
+            titleOrId: titleToCheck,
+          })
+          if (!paused) return null
+          try {
+            const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+            let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+            const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
+            tmClean = closed.tempMemory
+            tmClean = markActionRecentlyDeactivated(tmClean, paused.title)
+            tmClean = clearDeleteArtifactsAfterDeactivation(tmClean, paused.title)
+            delete tmClean.__deactivate_action_confirmed
+            await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+          } catch {}
+          await trace({
+            event: "tool_call_blocked",
+            metadata: { reason: "already_deactivated_db_state", action: paused.title },
+          })
+          return {
+            text: `"${paused.title}" est deja en pause (desactivee proprement). On laisse comme ca.`,
+            executed_tools: [toolName],
+            tool_execution: "success" as const,
+          }
+        }
+
+        // Recovery: user explicitly asks delete but model selected deactivate tool.
+        // Execute delete path to stay aligned with user intent.
+        if (explicitDeleteRequest && irreversibleDeleteIntent) {
+          const titleToDelete = pickBestActionTitle(
+            [parsedTitle, deactivateTarget, askedTitle],
+            "cette action",
+          )
+          if (titleToDelete && wasActionRecentlyDeleted(tm0, titleToDelete)) {
+            const snap = asksForPlanSnapshot(message)
+              ? await buildActiveActionsSnapshot(supabase, userId)
+              : ""
+            return {
+              text: [
+                `"${titleToDelete}" est deja retiree de ton plan.`,
+                "La suppression est definitive et irreversible.",
+                snap,
+              ].filter(Boolean).join("\n"),
+              executed_tools: [toolName],
+              tool_execution: "success",
+            }
+          }
+          const deleteResult = await handleArchiveAction(supabase, userId, {
+            action_title_or_id: titleToDelete,
+          })
+          const deleteSucceeded = isActionToolResultSuccessful(deleteResult)
+          const deleteAlreadyAbsent = isArchiveAlreadyAbsentResult(deleteResult) && Boolean(titleToDelete)
+          const deleteFlowResolved = deleteSucceeded || deleteAlreadyAbsent
+          await trace({
+            event: deleteFlowResolved ? "tool_call_succeeded" : "tool_call_blocked",
+            toolResult: deleteResult,
+            metadata: deleteFlowResolved
+              ? { outcome: deleteSucceeded ? "deleted_via_deactivate_recovery" : "already_absent" }
+              : { reason: "delete_not_applied_from_deactivate_recovery" },
+          })
+          if (deleteFlowResolved) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closedDeact = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "abandoned" })
+              tmClean = closedDeact.tempMemory
+              tmClean = markActionRecentlyDeleted(tmClean, titleToDelete)
+              delete tmClean.__deactivate_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+          }
+          return {
+            text: deleteAlreadyAbsent
+              ? `"${titleToDelete}" est deja retiree de ton plan. On laisse comme ca.`
+              : deleteResult,
+            executed_tools: [toolName],
+            tool_execution: deleteFlowResolved ? "success" : "blocked",
+          }
+        }
+        if (explicitDeleteRequest && !irreversibleDeleteIntent) {
+          const titleToCheck = pickBestActionTitle(
+            [parsedTitle, deactivateTarget, askedTitle],
+            "cette action",
+          )
+          const paused = await findAlreadyPausedAction({
+            supabase,
+            userId,
+            titleOrId: titleToCheck,
+          })
+          if (paused) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
+              tmClean = closed.tempMemory
+              tmClean = markActionRecentlyDeactivated(tmClean, paused.title)
+              tmClean = clearDeleteArtifactsAfterDeactivation(tmClean, paused.title)
+              delete tmClean.__deactivate_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+            return {
+              text: `"${paused.title}" est deja en pause (desactivee proprement). Si tu veux une suppression definitive, dis-moi \"supprime-la definitivement\".`,
+              executed_tools: [toolName],
+              tool_execution: "success",
+            }
+          }
+        }
+
         // Case 1: Machine already confirmed (user said yes, detected by dispatcher LLM)
         // Fallback: if we're still in confirming phase but user clearly says YES,
         // proceed directly to avoid consent loops caused by stale phase propagation.
         if (deactivatePhase === "deactivated" || yesInConfirming) {
-          const titleToDeactivate = askedTitle || deactivateTarget || "cette action"
+          if (deactivatePhase === "deactivated" && !yesInConfirming && !contextualDeactivateIntent) {
+            try {
+              const latestState = await getUserState(supabase, userId, scope).catch(() => null as any)
+              let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
+              const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "abandoned" })
+              tmClean = closed.tempMemory
+              delete tmClean.__deactivate_action_confirmed
+              await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
+            } catch {}
+            await trace({
+              event: "tool_call_blocked",
+              metadata: { reason: "stale_deactivate_confirmation_context", phase: deactivatePhase },
+            })
+            return {
+              text: "Je te suis. On laisse les autres actions telles quelles pour l'instant.",
+              executed_tools: [toolName],
+              tool_execution: "blocked",
+            }
+          }
+          const titleToDeactivate = pickDeactivateTitle()
+          const noOp = await maybeShortCircuitAlreadyPaused(titleToDeactivate)
+          if (noOp) return noOp
           const deactivateResult = await handleDeactivateAction(supabase, userId, {
             ...args,
             action_title_or_id: titleToDeactivate,
@@ -2473,6 +3172,8 @@ FORMAT :
               let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
               const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
               tmClean = closed.tempMemory
+              tmClean = markActionRecentlyDeactivated(tmClean, titleToDeactivate)
+              tmClean = clearDeleteArtifactsAfterDeactivation(tmClean, titleToDeactivate)
               delete tmClean.__deactivate_action_confirmed
               await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
             } catch {}
@@ -2485,8 +3186,10 @@ FORMAT :
         }
 
         // Case 2: User explicitly asked to deactivate (strong signal, no consent needed)
-        if (looksLikeExplicitDeactivateActionRequest(message)) {
-          const titleToDeactivate = askedTitle || deactivateTarget || parseQuotedActionTitle(message) || "cette action"
+        if (explicitDeactivateRequest) {
+          const titleToDeactivate = pickDeactivateTitle()
+          const noOp = await maybeShortCircuitAlreadyPaused(titleToDeactivate)
+          if (noOp) return noOp
           const deactivateResult = await handleDeactivateAction(supabase, userId, {
             ...args,
             action_title_or_id: titleToDeactivate,
@@ -2510,6 +3213,8 @@ FORMAT :
               let tmClean = ((latestState as any)?.temp_memory ?? (tm0 ?? {})) as any
               const closed = closeDeactivateActionFlow({ tempMemory: tmClean, outcome: "deactivated" })
               tmClean = closed.tempMemory
+              tmClean = markActionRecentlyDeactivated(tmClean, titleToDeactivate)
+              tmClean = clearDeleteArtifactsAfterDeactivation(tmClean, titleToDeactivate)
               delete tmClean.__deactivate_action_confirmed
               await updateUserState(supabase, userId, scope, { temp_memory: tmClean } as any)
             } catch {}

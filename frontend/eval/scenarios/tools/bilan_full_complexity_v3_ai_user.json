@@ -1,0 +1,138 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_full_complexity_v3_ai_user",
+  "description": "V3: Bilan stress test complet. 1 vital sign + 3 actions: action 1 avec win streak, action 2 avec missed streak >= 5 (breakdown offer), action 3 normale + digression mid-bilan. Combine tous les chemins en une session.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user",
+    "stress_test",
+    "bilan.vitals",
+    "streaks",
+    "breakdown"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "morning",
+        "description": "Faire 30 minutes de sport le matin.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Méditation 10 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "morning",
+        "description": "Méditer 10 minutes le matin.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Lecture 15 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "evening",
+        "description": "Lire 15 minutes le soir.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Sport 30 min",
+        "status": "completed",
+        "days": 4
+      },
+      {
+        "title": "Méditation 10 min",
+        "status": "missed",
+        "days": 6,
+        "note": "pas réussi à me lever"
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur avec un bilan complexe",
+    "age_range": "28-38",
+    "style": "oral, naturel, parfois distrait, mélange de fierté et de frustration",
+    "background": "Mon bilan est contrasté: le sport ça marche super bien (4 jours d'affilée !), mais la méditation c'est le désastre (6 jours ratés). La lecture c'est fait. J'ai tendance à digresser un peu en cours de route. Quand on me propose une micro-étape pour la méditation, j'accepte."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_full_complexity",
+      "spec": {
+        "vital_value": "7h30",
+        "actions_status": {
+          "Sport 30 min": "completed",
+          "Méditation 10 min": "missed",
+          "Lecture 15 min": "completed"
+        },
+        "streak_action_win": "Sport 30 min",
+        "streak_action_missed": "Méditation 10 min",
+        "win_streak_days": 4,
+        "missed_streak_days": 6,
+        "miss_reason": "j'arrive pas à me lever, c'est la catastrophe depuis une semaine",
+        "accept_breakdown": true,
+        "digression_moment": "after_vital",
+        "digression_topic": "un truc random sur les chats que j'ai vu hier",
+        "phase_sequence": [
+          "trigger_checkup",
+          "answer_vital_sign",
+          "digress_briefly",
+          "respond_to_refocus_action_1_done",
+          "react_to_win_streak_congrats",
+          "answer_action_2_missed",
+          "give_reason_for_miss",
+          "accept_breakdown_offer",
+          "answer_action_3_done",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "include_vitals_in_bilan": true,
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point"
+    ]
+  }
+}

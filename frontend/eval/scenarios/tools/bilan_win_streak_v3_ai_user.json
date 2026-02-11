@@ -1,0 +1,98 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_win_streak_v3_ai_user",
+  "description": "V3: Bilan avec win streak >= 3. La 1ère action a été complétée 4 jours de suite. Teste maybeHandleStreakAfterLog côté positif: congratulations + transition fluide vers le prochain item.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user",
+    "streaks"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "morning",
+        "description": "Faire 30 minutes de sport le matin.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Lecture 15 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "evening",
+        "description": "Lire 15 minutes le soir.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Sport 30 min",
+        "status": "completed",
+        "days": 4
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur régulier et fier de sa série",
+    "age_range": "25-35",
+    "style": "oral, positif, content de sa régularité",
+    "background": "Je fais du sport depuis 4 jours d'affilée et je suis fier. Aujourd'hui encore, c'est fait. Je réponds avec enthousiasme au bilan."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_win_streak",
+      "spec": {
+        "streak_action": "Sport 30 min",
+        "streak_days": 4,
+        "actions_status": {
+          "Sport 30 min": "completed",
+          "Lecture 15 min": "completed"
+        },
+        "phase_sequence": [
+          "trigger_checkup",
+          "answer_action_1_done_streak",
+          "react_to_congratulations",
+          "answer_action_2_done",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point"
+    ]
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "_comment": "6 fixed eval user IDs for staging (project iabxchanerdkczbxyjgg). Includes dedicated slot 6 for deactivate tool staging runs.",
+  "users": [
+    {
+      "slot": 1,
+      "email": "user-delete-tool-staging@sophia-test.local",
+      "password": "SophiaDeleteTool!001",
+      "full_name": "user_delete_tool_staging",
+      "user_id": "1878ad94-0aa9-45ba-b6ac-cb8439bbcb92"
+    },
+    {
+      "slot": 2,
+      "email": "eval-v2-user-2@sophia-test.local",
+      "password": "SophiaEvalV2!002",
+      "full_name": "Eval V2 User 2",
+      "user_id": "a7fe392e-61c5-4703-ad81-64f76f388a39"
+    },
+    {
+      "slot": 3,
+      "email": "eval-v2-user-3@sophia-test.local",
+      "password": "SophiaEvalV2!003",
+      "full_name": "Eval V2 User 3",
+      "user_id": "6d3bde43-759f-4bed-93ab-f009e2063898"
+    },
+    {
+      "slot": 4,
+      "email": "eval-v2-user-4@sophia-test.local",
+      "password": "SophiaEvalV2!004",
+      "full_name": "Eval V2 User 4",
+      "user_id": "9f780bdf-9efe-446a-8e43-bc6fe88f6a6a"
+    },
+    {
+      "slot": 5,
+      "email": "eval-v2-user-5@sophia-test.local",
+      "password": "SophiaEvalV2!005",
+      "full_name": "Eval V2 User 5",
+      "user_id": "34049477-6052-488d-94a1-7f393e22bac4"
+    },
+    {
+      "slot": 6,
+      "email": "user-deactivate-tool-staging@sophia-test.local",
+      "password": "SophiaDeactivateTool!006",
+      "full_name": "user_deactivate_tool_staging",
+      "user_id": "b5c7ed15-6ecb-474f-a700-0ef0b0b274cd"
+    }
+  ]
+}

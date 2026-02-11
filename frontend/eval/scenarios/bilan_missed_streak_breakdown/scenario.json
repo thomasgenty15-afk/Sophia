@@ -1,0 +1,318 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan-missed-streak-breakdown-V4",
+  "description": "V4: Bilan avec missed streak >= 5 jours sur une action, déclenchant la proposition de breakdown (micro-étape). Variants: accept_no_days (accept + mode au feeling), accept_with_days (accept + choix de jours fixes), decline (refus).",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v4",
+    "state_machine",
+    "ai_user",
+    "missed_streak",
+    "breakdown",
+    "deferred_topics",
+    "bilan.vitals"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_vitals": [
+      {
+        "label": "Énergie",
+        "unit": "/10",
+        "tracking_type": "counter"
+      }
+    ],
+    "preseed_actions": [
+      {
+        "title": "Méditation 10 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "current_reps": 0,
+        "time_of_day": "morning",
+        "description": "Méditer 10 minutes le matin."
+      },
+      {
+        "title": "Lecture 20 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "current_reps": 3,
+        "time_of_day": "evening",
+        "description": "Lire 20 minutes le soir."
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Méditation 10 min",
+        "status": "missed",
+        "days": 5
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur bloqué sur une habitude",
+    "age_range": "25-35",
+    "style": "oral, honnête, un peu découragé",
+    "background": "Je n'arrive pas à méditer le matin en ce moment. Je manque de motivation et je repousse à chaque fois. La lecture ça va mieux, j'ai fait 3 fois cette semaine."
+  },
+  "assertions": {
+    "must_include_agent": ["investigator"],
+    "include_vitals_in_bilan": true,
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point",
+      "micro[- ]?étape|micro[- ]?etape|découpe|simplifi|version.*simple"
+    ]
+  },
+  "variants": [
+    {
+      "id": "accept",
+      "setup": {
+        "test_post_checkup_deferral": true,
+        "preseed_actions": [
+          {
+            "title": "Méditation 10 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 0,
+            "time_of_day": "morning",
+            "description": "Méditer 10 minutes le matin."
+          },
+          {
+            "title": "Lecture 20 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 3,
+            "time_of_day": "evening",
+            "description": "Lire 20 minutes le soir."
+          }
+        ],
+        "preseed_action_entries": [
+          {
+            "title": "Méditation 10 min",
+            "status": "missed",
+            "days": 5
+          }
+        ]
+      },
+      "objectives": [
+        {
+          "kind": "bilan_v3_missed_streak_full_breakdown",
+          "spec": {
+            "streak_action": "Méditation 10 min",
+            "streak_days": 5,
+            "breakdown_schedule_mode": "no_days",
+            "vital_value": "7 sur 10",
+            "miss_reason": "j'arrive pas à me motiver le matin, je repousse et après c'est trop tard",
+            "actions_status": {
+              "Méditation 10 min": "missed",
+              "Lecture 20 min": "completed"
+            },
+            "phase_sequence": [
+              "trigger_checkup",
+              "answer_vital",
+              "report_action_missed",
+              "give_miss_reason",
+              "accept_breakdown_offer",
+              "answer_action_2_done",
+              "acknowledge_bilan_end",
+              "accept_relaunch_consent",
+              "explain_blocker",
+              "accept_micro_step",
+              "confirm_add_to_plan",
+              "choose_schedule_mode_no_days"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "accept_with_days",
+      "setup": {
+        "test_post_checkup_deferral": true,
+        "preseed_actions": [
+          {
+            "title": "Méditation 10 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 0,
+            "time_of_day": "morning",
+            "description": "Méditer 10 minutes le matin."
+          },
+          {
+            "title": "Lecture 20 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 3,
+            "time_of_day": "evening",
+            "description": "Lire 20 minutes le soir."
+          }
+        ],
+        "preseed_action_entries": [
+          {
+            "title": "Méditation 10 min",
+            "status": "missed",
+            "days": 5
+          }
+        ]
+      },
+      "objectives": [
+        {
+          "kind": "bilan_v3_missed_streak_full_breakdown",
+          "spec": {
+            "streak_action": "Méditation 10 min",
+            "streak_days": 5,
+            "breakdown_schedule_mode": "with_days",
+            "vital_value": "7 sur 10",
+            "miss_reason": "j'arrive pas à me motiver le matin, je repousse et après c'est trop tard",
+            "actions_status": {
+              "Méditation 10 min": "missed",
+              "Lecture 20 min": "completed"
+            },
+            "phase_sequence": [
+              "trigger_checkup",
+              "answer_vital",
+              "report_action_missed",
+              "accept_breakdown_offer",
+              "answer_action_2_done",
+              "acknowledge_bilan_end",
+              "accept_relaunch_consent",
+              "explain_blocker",
+              "accept_micro_step",
+              "confirm_add_to_plan",
+              "choose_schedule_mode_with_days",
+              "pick_specific_days"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "accept_no_days",
+      "setup": {
+        "test_post_checkup_deferral": true,
+        "preseed_actions": [
+          {
+            "title": "Méditation 10 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 0,
+            "time_of_day": "morning",
+            "description": "Méditer 10 minutes le matin."
+          },
+          {
+            "title": "Lecture 20 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 3,
+            "time_of_day": "evening",
+            "description": "Lire 20 minutes le soir."
+          }
+        ],
+        "preseed_action_entries": [
+          {
+            "title": "Méditation 10 min",
+            "status": "missed",
+            "days": 5
+          }
+        ]
+      },
+      "objectives": [
+        {
+          "kind": "bilan_v3_missed_streak_full_breakdown",
+          "spec": {
+            "streak_action": "Méditation 10 min",
+            "streak_days": 5,
+            "breakdown_schedule_mode": "no_days",
+            "vital_value": "7 sur 10",
+            "miss_reason": "j'arrive pas à me motiver le matin, je repousse et après c'est trop tard",
+            "actions_status": {
+              "Méditation 10 min": "missed",
+              "Lecture 20 min": "completed"
+            },
+            "phase_sequence": [
+              "trigger_checkup",
+              "answer_vital",
+              "report_action_missed",
+              "accept_breakdown_offer",
+              "answer_action_2_done",
+              "acknowledge_bilan_end",
+              "accept_relaunch_consent",
+              "explain_blocker",
+              "accept_micro_step",
+              "confirm_add_to_plan",
+              "choose_schedule_mode_no_days"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "decline",
+      "setup": {
+        "test_post_checkup_deferral": false,
+        "preseed_actions": [
+          {
+            "title": "Méditation 10 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 0,
+            "time_of_day": "morning",
+            "description": "Méditer 10 minutes le matin."
+          },
+          {
+            "title": "Lecture 20 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 3,
+            "time_of_day": "evening",
+            "description": "Lire 20 minutes le soir."
+          }
+        ],
+        "preseed_action_entries": [
+          {
+            "title": "Méditation 10 min",
+            "status": "missed",
+            "days": 5
+          }
+        ]
+      },
+      "objectives": [
+        {
+          "kind": "bilan_v3_missed_streak_decline",
+          "spec": {
+            "streak_action": "Méditation 10 min",
+            "streak_days": 5,
+            "vital_value": "7 sur 10",
+            "miss_reason": "j'arrive pas à me motiver le matin",
+            "actions_status": {
+              "Méditation 10 min": "missed",
+              "Lecture 20 min": "completed"
+            },
+            "phase_sequence": [
+              "trigger_checkup",
+              "answer_vital",
+              "report_action_missed",
+              "give_miss_reason",
+              "decline_breakdown_offer",
+              "answer_action_2_done",
+              "acknowledge_bilan_end"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+

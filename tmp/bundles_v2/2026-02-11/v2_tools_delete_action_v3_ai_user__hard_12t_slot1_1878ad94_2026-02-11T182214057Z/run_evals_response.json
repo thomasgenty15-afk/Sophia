@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "request_id": "eval_v2:tools_delete_action_v3_ai_user__hard_12t:slot1:1770833960067",
+  "mega_test_mode": false,
+  "use_real_ai": true,
+  "requested_scenarios": 1,
+  "selected_scenarios": 1,
+  "limits_applied": {
+    "max_scenarios": 1,
+    "max_turns_per_scenario": 12,
+    "bilan_actions_count": 0,
+    "test_post_checkup_deferral": false,
+    "stop_on_first_failure": false,
+    "budget_usd": 0,
+    "model": "gemini-2.5-flash"
+  },
+  "ran": 1,
+  "stopped_reason": null,
+  "plan_template_fingerprint": null,
+  "total_cost_usd": 0.04543489999999999,
+  "total_prompt_tokens": 95633,
+  "total_output_tokens": 6698,
+  "total_tokens": 122209,
+  "results": [
+    {
+      "dataset_key": "tools",
+      "scenario_key": "tools_delete_action_v3_ai_user__hard_12t",
+      "eval_run_id": "f657b9ba-1f81-48d3-950b-4f36555904ec",
+      "plan_template_fingerprint": null,
+      "test_user_id": "1878ad94-0aa9-45ba-b6ac-cb8439bbcb92",
+      "turns_executed": 6,
+      "bilan_completed": false,
+      "plan_snapshot_actions_count": 1,
+      "bilan_pending_items_count": 0,
+      "issues_count": 0,
+      "suggestions_count": null,
+      "cost_usd": 0.04543489999999999,
+      "prompt_tokens": 95633,
+      "output_tokens": 6698,
+      "total_tokens": 122209
+    }
+  ]
+}

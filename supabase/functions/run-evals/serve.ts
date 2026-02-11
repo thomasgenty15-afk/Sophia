@@ -347,7 +347,15 @@ export function serveRunEvals() {
             (Array.isArray((s as any)?.tags) && (s as any).tags.includes("bilan.vitals")) ||
             Boolean((s as any)?.assertions?.include_vitals_in_bilan);
 
-        if (!resumeFromDb || !testUserId) {
+        // V2: Support fixed test user (pre-provisioned, pre-reset by runner).
+        const fixedTestUserId = String((body as any)?.limits?._fixed_test_user_id ?? "").trim() || null;
+
+        if (fixedTestUserId && !resumeFromDb) {
+          // Use the pre-provisioned fixed user — skip user creation and plan seeding.
+          // The V2 local runner (run_eval_v2_local.mjs) handles reset + plan seed before calling run-evals.
+          testUserId = fixedTestUserId;
+          console.log(`[run-evals] Using fixed test user: ${testUserId} (V2 mode)`);
+        } else if (!resumeFromDb || !testUserId) {
             // Fresh run: create ephemeral auth user (FKs require auth.users) + seed a plan/state.
             const nonce = makeNonce();
           const makeDigitsNonce = (len = 10) => {
@@ -1123,6 +1131,10 @@ export function serveRunEvals() {
                 let simJson: any = null;
                 let simStatus = 0;
                 for (let attempt = 1; attempt <= MAX_SIM_RETRIES; attempt++) {
+                  const objectivesForScenario = Array.isArray((s as any)?.objectives) ? (s as any).objectives : [];
+                  const hasBreakdownPostBilanObjective = objectivesForScenario.some((o: any) =>
+                    String(o?.kind ?? "").trim() === "bilan_v3_missed_streak_full_breakdown"
+                  );
                   const simReq = fetch(`${url}/functions/v1/simulate-user`, {
                     method: "POST",
                     headers: {
@@ -1149,7 +1161,7 @@ export function serveRunEvals() {
                         JSON.stringify(currentChatState ?? null, null, 2),
                         "",
                         "=== CONSIGNE DE TEST SPÉCIFIQUE (EVAL RUNNER) ===",
-                        body.limits.test_post_checkup_deferral
+                        (body.limits.test_post_checkup_deferral && !hasBreakdownPostBilanObjective)
                           ? "IMPORTANT : TU DOIS TESTER LE 'PARKING LOT'. Pendant le bilan, trouve un moment pour dire 'on en reparle après' ou 'on verra ça à la fin' à propos d'un sujet (ex: ton organisation ou ton stress). Le but est de vérifier que Sophia le note et t'en reparle après le bilan."
                           : "",
                       ].join("\n"),
@@ -1282,9 +1294,12 @@ export function serveRunEvals() {
                   .maybeSingle();
 
                 if (testDeferral) {
-                  // Wait until investigation_state is FULLY cleared.
-                  // Also ignore simulate-user's early "done" while the session is still active.
-                  done = isBilanCompletedFromChatState(stMid);
+                  // Wait until post-checkup is fully done:
+                  // - investigation_state removed/null, OR
+                  // - explicit marker "post_checkup_done" in eval mode.
+                  // Also ignore simulate-user "done" while state is still active.
+                  const st = (stMid as any)?.investigation_state ?? null;
+                  done = !st || st?.status === "post_checkup_done";
                 } else {
                   // Stop as soon as the main list is done.
                   if (isBilanCompletedFromChatState(stMid)) {
@@ -1671,7 +1686,10 @@ export function serveRunEvals() {
           }
           // Cleanup auth user ONLY after successful completion, otherwise keep for resume.
           try {
-            const keep = Boolean((body as any)?.limits?.keep_test_user) || Boolean((s as any)?.setup?.keep_test_user);
+            const keep =
+              Boolean((body as any)?.limits?.keep_test_user) ||
+              Boolean((s as any)?.setup?.keep_test_user) ||
+              Boolean(fixedTestUserId);
             if (!keep && testUserId) await (admin as any).auth.admin.deleteUser(testUserId);
           } catch {
             // ignore

@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "bundle_id": "v2_tools_deactivate_action_v2_ai_user__hard_12t_slot4_9f780bdf_2026-02-10T200514084Z",
+  "source": "env",
+  "supabase_url": "https://iabxchanerdkczbxyjgg.supabase.co",
+  "user_id": "9f780bdf-9efe-446a-8e43-bc6fe88f6a6a",
+  "scope": "web",
+  "since": "2026-02-10T19:32:26.794Z",
+  "until": "2026-02-10T20:07:14.084Z",
+  "counts": {
+    "chat_messages": 9,
+    "request_ids": 1,
+    "turn_summary_logs": 4,
+    "missing_turn_summaries": 0
+  },
+  "outputs": {
+    "out_dir": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-10/v2_tools_deactivate_action_v2_ai_user__hard_12t_slot4_9f780bdf_2026-02-10T200514084Z",
+    "conversation_transcript": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-10/v2_tools_deactivate_action_v2_ai_user__hard_12t_slot4_9f780bdf_2026-02-10T200514084Z/conversation_transcript.txt",
+    "brain_trace_jsonl": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-10/v2_tools_deactivate_action_v2_ai_user__hard_12t_slot4_9f780bdf_2026-02-10T200514084Z/brain_trace.jsonl"
+  },
+  "missing_turn_summary_request_ids": []
+}

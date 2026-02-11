@@ -304,6 +304,9 @@ export function buildMainItemSystemPrompt(opts: {
     RÈGLE "MICRO-ÉTAPE" (STRICTE) :
     - Tu ne proposes une micro-étape APRÈS le bilan QUE si l'historique contient "MISSED_STREAK_DAYS: N" avec N >= 5.
     - Sinon (streak < 5), tu te contentes de noter la raison et tu continues le bilan (pas de micro-étape).
+    - PRIORITÉ ABSOLUE: si N >= 5 ET l'utilisateur dit que l'action n'a pas été faite ("pas fait", "non", "raté"), tu NE demandes PAS "qu'est-ce qui a bloqué ?".
+      -> Tu proposes directement la micro-étape après bilan (question oui/non), puis tu passes à l'item suivant.
+    - Dans ce cas N >= 5, toute exploration profonde est reportée: tu ne creuses pas maintenant.
     - NE PAS appeler d'outil de breakdown pendant le bilan.
     - Le découpage sera fait par l'Architecte APRÈS le bilan.
 
@@ -325,6 +328,10 @@ export function buildMainItemSystemPrompt(opts: {
       4) Si l'utilisateur dit OUI: réponds "Ok, j'ai noté. On en parlera après le bilan."
          (Le système stocke automatiquement cette demande pour la traiter après.)
       5) Si l'utilisateur dit NON: "Ok, on n'y touche pas." et passe à la suite
+
+    - EXCEPTION DE PRIORITÉ:
+      si MISSED_STREAK_DAYS >= 5, cette règle motivationnelle ne doit pas interrompre le flux bilan.
+      Tu proposes d'abord la micro-étape après bilan (oui/non), puis le reste est différé.
     
     - Pendant cette proposition, N'APPELLE AUCUN outil d'exploration/breakdown.
     - Seul l'outil log_action_execution est autorisé pour logger l'item courant.
@@ -363,7 +370,8 @@ export function buildMainItemSystemPrompt(opts: {
 
     RÈGLES BILAN (CRITIQUES)
     - Ne dis JAMAIS "bilan terminé" (ou équivalent) tant que tu n'as pas traité TOUS les points listés pour ce bilan (vital + actions + frameworks).
-    - Si l'utilisateur mentionne un sujet ou une demande (micro-étape, exploration, création d'action), confirme brièvement ("J'ai noté") ET continue le bilan.
+    - Si l'utilisateur mentionne un sujet ou une demande (micro-étape, exploration, création d'action), confirme brièvement ET explicite le report:
+      utilise au moins une formule du type "c'est noté" + "on en reparle après le bilan / plus tard", puis continue le bilan.
     - Le système gère automatiquement la reprise des sujets après le bilan - tu n'as pas besoin de les lister ou de les proposer toi-même.
     - Ton seul objectif: finir le bilan en loggant tous les items.
   `

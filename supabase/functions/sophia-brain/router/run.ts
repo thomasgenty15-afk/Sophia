@@ -16,7 +16,7 @@ import {
   type OnDemandTriggers,
 } from "../context/loader.ts";
 import { getContextProfile, getVectorResultsCount } from "../context/types.ts";
-// NOTE: runWatcher is no longer called inline; it runs via the trigger-watcher-batch cron.
+import { runWatcher } from "../agents/watcher.ts";
 import { normalizeChatText } from "../chat_text.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
 import { getEffectiveTierForUser } from "../../_shared/billing-tier.ts";
@@ -38,6 +38,7 @@ import {
   shouldBypassCheckupLockForDeepWork,
 } from "./classifiers.ts";
 import {
+  type DeferredMachineType,
   type DispatcherOutputV2,
   type DispatcherSignals,
   type NewSignalEntry,
@@ -170,78 +171,6 @@ function detectShortBinaryReply(
   if (yes && !no) return "yes";
   if (no && !yes) return "no";
   return null;
-}
-
-function safeIsoMs(value: unknown): number {
-  const ms = Date.parse(String(value ?? ""));
-  return Number.isFinite(ms) ? ms : 0;
-}
-
-function hasAnyOwnKeys(value: unknown): boolean {
-  return !!value && typeof value === "object" && Object.keys(value as Record<string, unknown>).length > 0;
-}
-
-function readSupervisorUpdatedAtMsStrict(tempMemory: unknown): number {
-  if (!tempMemory || typeof tempMemory !== "object") return 0;
-  const tm = tempMemory as Record<string, unknown>;
-  const gm = tm.global_machine;
-  const sup = tm.supervisor;
-  const raw = hasAnyOwnKeys(gm)
-    ? (gm as Record<string, unknown>)
-    : hasAnyOwnKeys(sup)
-    ? (sup as Record<string, unknown>)
-    : null;
-  if (!raw) return 0;
-  return safeIsoMs(raw.updated_at);
-}
-
-function normalizeRepeatGuardText(value: string): string {
-  return normalizeLoose(String(value ?? ""))
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function repeatGuardSimilarity(aRaw: string, bRaw: string): number {
-  const a = normalizeRepeatGuardText(aRaw);
-  const b = normalizeRepeatGuardText(bRaw);
-  if (!a || !b) return 0;
-  if (a === b) return 1;
-  if (a.includes(b) || b.includes(a)) return 0.96;
-  const aTokens = a.split(" ").filter(Boolean);
-  const bTokens = b.split(" ").filter(Boolean);
-  if (aTokens.length === 0 || bTokens.length === 0) return 0;
-  const bSet = new Set(bTokens);
-  let overlap = 0;
-  for (const tok of aTokens) {
-    if (bSet.has(tok)) overlap++;
-  }
-  const precision = overlap / aTokens.length;
-  const recall = overlap / bTokens.length;
-  if (precision + recall === 0) return 0;
-  return (2 * precision * recall) / (precision + recall);
-}
-
-function looksLikeActionAppliedClaim(value: string): boolean {
-  const s = normalizeRepeatGuardText(value);
-  if (!s) return false;
-  if (/\btu\s+es\s+sur\b/.test(s)) return false;
-  if (/\best[-\s]?ce\s+que\b/.test(s)) return false;
-  if (/\bsi\s+tu\s+veux\b/.test(s)) return false;
-  if (/\bje\s+peux\b/.test(s)) return false;
-  const patterns = [
-    /\bc[' ]est\s+fait\b.*\b(action|habitude|plan|rappel|desactive|active|supprime|retire|archive|pause|mise\s+en\s+pause)\b/,
-    /\bc[' ]est\s+(note|enregistre|modifie|mis\s+a\s+jour|ajoute|cree|supprime|retire|archive|active|desactive)\b/,
-    /\bc[' ]est\s+bien\s+(note|enregistre|modifie|mis\s+a\s+jour|ajoute|cree|supprime|retire|archive|active|desactive)\b/,
-    /\bj[' ]ai\s+(note|enregistre|valide)\b/,
-    /\bj[' ]ai\s+bien\s+note\b.*\b(accord|validation)\b/,
-    /\bj[' ]ai\s+(desactive|active|archive|supprime|retire|cree|ajoute|modifie|mis\s+en\s+pause|mis\s+a\s+jour)\b/,
-    /\bje\s+(desactive|active|archive|supprime|retire|cree|ajoute|modifie|mets\s+en\s+pause|met\s+en\s+pause|mets\s+a\s+jour|met\s+a\s+jour)\b/,
-    /\bje\s+(note|enregistre)\b.*\b(action|habitude|plan|progression|profil|preference)\b/,
-    /\best\s+bien\s+(desactivee?|activee?|archivee?|supprimee?|retiree?|mise\s+en\s+pause)\b/,
-    /\b(action|habitude)\b.*\b(desactivee?|activee?|archivee?|supprimee?|retiree?|mise\s+en\s+pause)\b/,
-    /\btu\s+n[' ]auras\s+plus\s+de\s+rappels\b/,
-  ];
-  return patterns.some((re) => re.test(s));
 }
 
 function looksLikeSophiaSupportContactRequest(userMessage: string): boolean {
@@ -563,7 +492,6 @@ import {
 } from "../supervisor.ts";
 import {
   clearDeferredPause,
-  type DeferredMachineType,
   type DeferredTopicV2,
   // Deferred Topics V2
   deferSignal,
@@ -599,7 +527,6 @@ import {
   getPendingRelaunchConsent,
   processRelaunchConsentResponse,
 } from "./deferred_relaunch.ts";
-import { buildToolAckContract } from "../tool_ack.ts";
 import { buildRelaunchConsentAgentAddon } from "./relaunch_consent_addons.ts";
 import { buildResumeFromSafetyAddon } from "./resume_from_safety_addons.ts";
 import {
@@ -673,8 +600,15 @@ const ENABLE_TESTER_MAGIC_RESET =
 
 // Dispatcher v2 is now the only dispatcher
 
-// NOTE: WATCHER_DISABLED removed — watcher now runs via trigger-watcher-batch cron,
-// which checks the env flag itself.
+// ═══════════════════════════════════════════════════════════════════════════════
+// HEAVY BACKGROUND JOB FLAGS (useful for tests / local CPU budget)
+// Defaults: enabled (set *_DISABLED=1 to skip)
+// ═══════════════════════════════════════════════════════════════════════════════
+const WATCHER_DISABLED =
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_WATCHER_DISABLED") ??
+      "") as string).trim() === "1" ||
+  (((globalThis as any)?.Deno?.env?.get?.("SOPHIA_VEILLEUR_DISABLED") ??
+      "") as string).trim() === "1";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SIGNAL HISTORY: Storage and management in temp_memory
@@ -2189,10 +2123,18 @@ export async function processMessage(
     "Je te réponds dès que je peux, je dois gérer une urgence pour le moment.";
 
   // --- LOGIC VEILLEUR (Watcher) ---
-  // The watcher now runs via a dedicated cron (trigger-watcher-batch, every ~10 min).
-  // The router only increments the counter so the cron knows there are unprocessed messages.
   let msgCount = (state.unprocessed_msg_count || 0) + 1;
   let lastProcessed = state.last_processed_at || new Date().toISOString();
+
+  if (!WATCHER_DISABLED && msgCount >= 15 && !isEvalParkingLotTest) {
+    // Trigger watcher analysis (best effort).
+    // IMPORTANT: do NOT block the user response on watcher work (it can add significant wall-clock time).
+    runWatcher(supabase, userId, scope, lastProcessed, meta).catch((e) => {
+      console.error("[Router] watcher failed (non-blocking):", e);
+    });
+    msgCount = 0;
+    lastProcessed = new Date().toISOString();
+  }
   // ---------------------------------
 
   // NOTE: Relaunch consent handling moved to AFTER dispatcher (uses consent_to_relaunch signal)
@@ -3221,10 +3163,7 @@ export async function processMessage(
     let summary = "";
     let actionTarget: string | undefined = currentItemTitle;
 
-    if (
-      machineSignals.breakdown_recommended &&
-      (flowContext?.missedStreak ?? 0) >= 5
-    ) {
+    if (machineSignals.breakdown_recommended && missedStreak >= 5) {
       machineType = "breakdown_action";
       summary = currentItemTitle
         ? `Micro-etape pour ${currentItemTitle}`
@@ -4607,10 +4546,7 @@ export async function processMessage(
     // Track progress consent: user said YES/NO (detected by LLM)
     if (
       isTrackProgressConsent &&
-      (
-        (tpMachineSignals as any)?.user_confirms_tracking === true ||
-        tpMachineSignals?.user_confirms_change === "yes"
-      )
+      tpMachineSignals?.user_confirms_tracking === true
     ) {
       (tempMemory as any).__track_progress_confirmed = true;
       await traceV("brain:track_progress_consent", "routing", {
@@ -4620,10 +4556,7 @@ export async function processMessage(
     }
     if (
       isTrackProgressConsent &&
-      (
-        (tpMachineSignals as any)?.user_confirms_tracking === false ||
-        tpMachineSignals?.user_confirms_change === "no"
-      )
+      tpMachineSignals?.user_confirms_tracking === false
     ) {
       (tempMemory as any).__track_progress_declined = true;
       await traceV("brain:track_progress_consent", "routing", {
@@ -7139,27 +7072,10 @@ Réponds uniquement avec la transition:`;
 
   responseContent = agentOut.responseContent;
   nextMode = agentOut.nextMode;
-  const agentToolExecution = agentOut.toolExecution ?? "none";
-  const agentExecutedTools = Array.isArray(agentOut.executedTools)
-    ? agentOut.executedTools
-    : [];
-  const agentToolAck = agentOut.toolAck ?? buildToolAckContract({
-    status: agentToolExecution,
-    executedTools: agentExecutedTools,
-  });
   if (agentOut.tempMemory) {
     tempMemory = agentOut.tempMemory;
   }
   (tempMemory as any).__router_turn_counter = routerTurnCounter;
-  await trace("tool_ack", "agent", {
-    version: agentToolAck.version,
-    status: agentToolAck.status,
-    attempted: agentToolAck.attempted,
-    success_confirmed: agentToolAck.success_confirmed,
-    allow_success_claim: agentToolAck.allow_success_claim,
-    tool_name: agentToolAck.tool_name,
-    executed_tools: agentToolAck.executed_tools.slice(0, 3),
-  }, agentToolAck.success_confirmed ? "info" : "debug");
   await trace("brain:agent_done", "agent", {
     target_mode: targetMode,
     next_mode: nextMode,
@@ -7584,24 +7500,12 @@ Réponds uniquement avec la transition:`;
     // Keep latestTm as base (preserve agent-written changes), but re-apply router-owned supervisor runtime.
     mergedTempMemory = { ...(latestTm ?? {}) };
     if (tempMemory && typeof tempMemory === "object") {
-      const latestSupervisorTs = readSupervisorUpdatedAtMsStrict(latestTm);
-      const routerSupervisorTs = readSupervisorUpdatedAtMsStrict(tempMemory);
-      // Only override supervisor/global_machine if router state is clearly newer.
-      // This prevents stale in-memory snapshots from rolling back toolflow phase transitions
-      // persisted by agent handlers mid-turn.
-      // Important: when timestamps are equal we still keep router state to avoid dropping
-      // freshly-created in-memory flows in the same turn.
-      const shouldUseRouterSupervisor = routerSupervisorTs >= latestSupervisorTs;
       if ((tempMemory as any).global_machine) {
-        if (shouldUseRouterSupervisor) {
-          (mergedTempMemory as any).global_machine =
-            (tempMemory as any).global_machine;
-        }
+        (mergedTempMemory as any).global_machine =
+          (tempMemory as any).global_machine;
       }
       if ((tempMemory as any).supervisor) {
-        if (shouldUseRouterSupervisor) {
-          (mergedTempMemory as any).supervisor = (tempMemory as any).supervisor;
-        }
+        (mergedTempMemory as any).supervisor = (tempMemory as any).supervisor;
       }
       if ((tempMemory as any).global_deferred_topics) {
         (mergedTempMemory as any).global_deferred_topics =
@@ -7690,131 +7594,6 @@ Réponds uniquement avec la transition:`;
         delete (mergedTempMemory as any)[key];
       } catch {}
     }
-  }
-
-  // Anti-repeat guard (conversation safety):
-  // If we are about to send a near-duplicate assistant reply in an active toolflow,
-  // force a rewritten response to avoid user-facing loops.
-  {
-    const REPEAT_GUARD_KEY = "__assistant_repeat_guard_v1";
-    const lastAssistantNorm = normalizeRepeatGuardText(lastAssistantMessage ?? "");
-    const draftNorm = normalizeRepeatGuardText(String(responseContent ?? ""));
-    const prevGuard = ((mergedTempMemory as any)?.[REPEAT_GUARD_KEY] ?? {}) as {
-      last_norm?: string;
-      repeat_count?: number;
-    };
-    const prevNorm = normalizeRepeatGuardText(String(prevGuard.last_norm ?? ""));
-    const similarity = repeatGuardSimilarity(draftNorm, lastAssistantNorm);
-    const nearDuplicate = draftNorm.length >= 24 && similarity >= 0.92;
-    const repeatCount = nearDuplicate
-      ? (prevNorm === draftNorm
-        ? Math.max(0, Number(prevGuard.repeat_count ?? 0)) + 1
-        : 1)
-      : 0;
-    const inToolSensitiveContext =
-      agentExecutedTools.length > 0 ||
-      toolFlowActiveGlobal ||
-      targetMode === "architect";
-    const falseSuccessClaim =
-      !agentToolAck.allow_success_claim &&
-      looksLikeActionAppliedClaim(String(responseContent ?? "")) &&
-      inToolSensitiveContext;
-
-    const shouldRewriteForRepeat =
-      nearDuplicate &&
-      repeatCount >= 2 &&
-      targetMode !== "sentry" &&
-      targetMode !== "firefighter" &&
-      (agentToolExecution === "blocked" ||
-        (toolFlowActiveGlobal && targetMode === "architect"));
-    const shouldRewrite = shouldRewriteForRepeat || falseSuccessClaim;
-
-    if (shouldRewrite) {
-      let rewritten = "";
-      if (falseSuccessClaim) {
-        rewritten = agentToolExecution === "blocked" || agentToolExecution === "failed"
-          ? "Je ne peux pas te confirmer le changement pour l'instant, l'action n'a pas encore été validée techniquement. Je peux relancer la vérification tout de suite."
-          : "Je préfère vérifier l'exécution avant de te confirmer le changement. Je te redis dès que c'est validé.";
-      } else {
-        try {
-          const rewriteSystem = `
-Tu es Sophia (coach WhatsApp, français).
-Réécris la réponse assistant pour éviter une répétition de boucle.
-
-Contraintes STRICTES:
-- 1 à 2 phrases max.
-- Ton humain, direct, sans jargon.
-- Ne répète PAS la même question que le message précédent.
-- N'affirme pas qu'une action est faite si ce n'est pas explicitement confirmé.
-- Pas d'emojis obligatoires.
-`.trim();
-        const rewriteUser = `
-Message utilisateur:
-${String(userMessage ?? "").slice(0, 500)}
-
-Dernière réponse assistant (à éviter de répéter):
-${String(lastAssistantMessage ?? "").slice(0, 500)}
-
-Brouillon actuel:
-${String(responseContent ?? "").slice(0, 500)}
-
-Statut d'execution tool:
-${agentToolExecution}
-
-Tools executes:
-${agentExecutedTools.slice(0, 5).join(", ")}
-`.trim();
-          const rewriteOut = await generateWithGemini(
-            rewriteSystem,
-            rewriteUser,
-            0.35,
-            false,
-            [],
-            "auto",
-            {
-              requestId: meta?.requestId,
-              model: selectedChatModel,
-              source: "sophia-brain:repeat_guard_rewrite",
-              forceRealAi: meta?.forceRealAi,
-              maxRetries: 1,
-              httpTimeoutMs: 10_000,
-            } as any,
-          );
-          if (typeof rewriteOut === "string") {
-            rewritten = normalizeChatText(rewriteOut).trim();
-          }
-        } catch (e) {
-          console.warn("[Router] repeat-guard rewrite failed (non-blocking):", e);
-        }
-      }
-      if (!rewritten) {
-        rewritten = falseSuccessClaim
-          ? "Je préfère vérifier l'exécution avant de te confirmer le changement. Je te redis dès que c'est validé."
-          : "Je t'entends. Je ne vais pas te reposer la même question: j'ai bien noté ton accord et je continue.";
-      }
-      responseContent = rewritten;
-      await trace("brain:repeat_guard_applied", "routing", {
-        reason: shouldRewriteForRepeat
-          ? "near_duplicate_assistant_reply"
-          : "non_success_tool_false_success_claim",
-        similarity,
-        repeat_count: repeatCount,
-        false_success_claim: falseSuccessClaim,
-        target_mode: targetMode,
-        tool_execution: agentToolExecution,
-        tool_ack_status: agentToolAck.status,
-        tool_ack_success_confirmed: agentToolAck.success_confirmed,
-        executed_tools: agentExecutedTools.slice(0, 3),
-      }, "warn");
-    }
-
-    const finalNorm = normalizeRepeatGuardText(String(responseContent ?? ""));
-    (mergedTempMemory as any)[REPEAT_GUARD_KEY] = {
-      last_norm: finalNorm.slice(0, 320),
-      repeat_count: shouldRewrite ? 0 : repeatCount,
-      similarity_to_last_assistant: Number(similarity.toFixed(3)),
-      updated_at: new Date().toISOString(),
-    };
   }
 
   const machineStateFinal = getMachineStateSnapshot(

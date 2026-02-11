@@ -97,21 +97,42 @@ export async function handleInvestigatorModelOutput(opts: {
   // (including missed-streak breakdown offers) instead of looping on the same question.
   if (typeof response === "string" && currentItem?.type === "action") {
     const u = String(message ?? "").trim().toLowerCase()
+    const currentProgress = getItemProgress(currentState, currentItem.id)
+    const isAwaitingReason = String(currentProgress?.phase ?? "") === "awaiting_reason"
     const userSaysDone = /\b(fait|ok|c['’]est\s+fait|j['’]ai\s+fait|termin[ée]?|réussi)\b/i.test(u)
     const userSaysMissed =
       /\b(pas\s+fait|pas\s+r[eé]ussi|rat[ée]|non\b|j['’]ai\s+pas\s+fait|pas\s+aujourd['’]hui|pas\s+hier)\b/i
         .test(u)
+    const userProvidedReason =
+      !userSaysDone &&
+      !userSaysMissed &&
+      String(message ?? "").trim().length >= 6
+    const cachedMissedStreak = Number(
+      (currentState?.temp_memory as any)?.missed_streaks_by_action?.[String(currentItem.id)] ?? 0,
+    ) || 0
+    let highMissedStreak = cachedMissedStreak >= 5
+    if (!highMissedStreak && userSaysMissed && !userSaysDone) {
+      // Defensive fallback when cache is missing: compute from DB once.
+      try {
+        const computed = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
+        highMissedStreak = computed >= 5
+      } catch {}
+    }
     const responseLooksLikeReasonQuestion = /\?/.test(String(response ?? "")) ||
       /\b(coinc[ée]?|bloqu[ée]?|raconte|pourquoi|qu['’]est-ce|qu["’]est ce)\b/i
         .test(String(response ?? ""))
-    if (userSaysMissed && !userSaysDone && responseLooksLikeReasonQuestion) {
+    if (userSaysMissed && !userSaysDone && responseLooksLikeReasonQuestion && !highMissedStreak) {
       // The model is asking for the reason — move to awaiting_reason instead of auto-logging.
       stateForTextResponse = updateItemProgress(currentState, currentItem.id, {
         phase: "awaiting_reason",
         last_question_kind: "ask_reason",
       })
     }
-    if (userSaysMissed && !userSaysDone && !responseLooksLikeReasonQuestion) {
+    if (
+      (userSaysMissed && !userSaysDone && highMissedStreak) ||
+      (userSaysMissed && !userSaysDone && !responseLooksLikeReasonQuestion) ||
+      (isAwaitingReason && userProvidedReason)
+    ) {
       const argsWithId = {
         status: "missed",
         item_id: currentItem.id,
@@ -276,6 +297,56 @@ export async function handleInvestigatorModelOutput(opts: {
       }
 
       const nextItem = stateWithLog.pending_items[nextIndex]
+
+      // If the next item is already at/above weekly target, do NOT ask a generic "did_it?".
+      // Jump directly to the dedicated congratulate + increase offer flow.
+      if (
+        nextItem?.type === "action" &&
+        nextItem?.is_habit &&
+        (nextItem?.weekly_target_status === "exceeded" ||
+          nextItem?.weekly_target_status === "at_target")
+      ) {
+        const currentTarget = Number(nextItem?.target ?? 1)
+        const currentReps = Number(nextItem?.current ?? 0)
+        const hasScheduledDays = Array.isArray(nextItem?.scheduled_days) &&
+          nextItem.scheduled_days.length > 0
+
+        const congratsMsg = await investigatorSay(
+          "target_exceeded_congrats",
+          {
+            user_message: message,
+            channel: meta?.channel,
+            action_title: String(nextItem?.title ?? ""),
+            current_reps: currentReps,
+            current_target: currentTarget,
+            can_increase: currentTarget < 7,
+          },
+          meta,
+        )
+
+        const stateWithOffer: InvestigationState = {
+          ...nextState,
+          temp_memory: {
+            ...(nextState.temp_memory || {}),
+            bilan_defer_offer: {
+              stage: "awaiting_consent",
+              kind: "increase_target",
+              action_id: nextItem.id,
+              action_title: nextItem.title,
+              current_target: currentTarget,
+              last_item_log: { status: "completed", item_type: "action" },
+              has_scheduled_days: hasScheduledDays,
+              current_scheduled_days: hasScheduledDays ? nextItem.scheduled_days : [],
+            },
+          },
+        }
+
+        return {
+          content: congratsMsg,
+          investigationComplete: false,
+          newState: stateWithOffer,
+        }
+      }
       
       // Update next item to awaiting_answer
       nextState = updateItemProgress(nextState, nextItem.id, {

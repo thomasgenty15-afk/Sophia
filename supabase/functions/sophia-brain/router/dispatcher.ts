@@ -323,7 +323,6 @@ export interface DispatcherInputV2 {
     investigation_status?: string;
     toolflow_active?: boolean;
     toolflow_kind?: string;
-    profile_confirm_pending?: boolean;
     plan_confirm_pending?: boolean;
     topic_exploration_phase?: string;
     topic_exploration_type?: string;
@@ -357,40 +356,6 @@ export interface SignalEnrichment {
   existing_signal_type: string;
   /** Updated brief with new context */
   updated_brief: string;
-}
-
-/**
- * Profile fact types for direct detection (10 types).
- * Each fact has a value (extracted from message) and confidence score.
- */
-export type ProfileFactType =
-  | "work_schedule" // "9h-18h", "mi-temps", "freelance"
-  | "energy_peaks" // "matin", "soir", "après-midi"
-  | "wake_time" // "6h30", "7h"
-  | "sleep_time" // "23h", "minuit"
-  | "job" // "dev", "médecin", "prof"
-  | "hobbies" // "course, lecture"
-  | "family" // "2 enfants", "célibataire"
-  | "tone_preference" // "direct", "doux", "cash"
-  | "emoji_preference" // "avec emojis", "sans emojis"
-  | "verbosity"; // "concis", "détaillé"
-
-export interface ProfileFactDetected {
-  value: string; // The extracted value to confirm
-  confidence: number; // 0-1
-}
-
-export interface ProfileFactsDetected {
-  work_schedule?: ProfileFactDetected;
-  energy_peaks?: ProfileFactDetected;
-  wake_time?: ProfileFactDetected;
-  sleep_time?: ProfileFactDetected;
-  job?: ProfileFactDetected;
-  hobbies?: ProfileFactDetected;
-  family?: ProfileFactDetected;
-  tone_preference?: ProfileFactDetected;
-  emoji_preference?: ProfileFactDetected;
-  verbosity?: ProfileFactDetected;
 }
 
 /**
@@ -436,15 +401,6 @@ export interface MachineSignals {
   // deactivate_action_flow
   user_confirms_deactivation?: boolean | null;
   deactivation_ready?: boolean;
-
-  // user_profile_confirmation (when machine is active)
-  user_confirms_fact?: "yes" | "no" | "nuance" | null;
-  user_provides_correction?: string | null;
-  fact_type_detected?: string | null;
-
-  // Profile facts detection (direct, no mother signal)
-  // Detected when NO profile confirmation is active - triggers confirmation flow
-  profile_facts_detected?: ProfileFactsDetected;
 
   // bilan/investigation (signals for post-bilan processing)
   breakdown_recommended?: boolean;
@@ -871,42 +827,6 @@ SORTIE JSON (dans machine_signals):
     "trigger_phrase": "phrase exacte qui a declenche" | null
   }
 }
-`;
-
-/**
- * Profile facts detection - direct detection of 10 fact types.
- * No mother signal - we detect specific facts directly for immediate confirmation.
- */
-const PROFILE_FACTS_DETECTION_SECTION = `
-=== DETECTION FAITS PERSONNELS (10 types) ===
-Si le message revele UN OU PLUSIEURS faits personnels, signale-les DIRECTEMENT dans profile_facts_detected.
-Ces signaux sont SILENCIEUX (pas d'ack a l'utilisateur) et declenchent une confirmation si confidence >= 0.7.
-
-FAITS A DETECTER:
-1. work_schedule: horaires de travail ("je bosse de 9h a 18h", "mi-temps", "teletravail")
-2. energy_peaks: moments d'energie ("plus efficace le matin", "creve le soir", "sieste l'aprem")
-3. wake_time: heure de reveil ("je me leve a 6h30", "debout a 7h")
-4. sleep_time: heure de coucher ("je me couche vers 23h", "au lit a minuit")
-5. job: metier/profession ("je suis dev", "je travaille dans le medical", "prof de maths")
-6. hobbies: loisirs/passions ("j'aime courir", "fan de lecture", "je fais du yoga")
-7. family: situation familiale ("j'ai 2 enfants", "je vis seul", "marie depuis 5 ans")
-8. tone_preference: preference de ton ("sois direct avec moi", "j'aime quand c'est cash", "doux")
-9. emoji_preference: preference emojis ("pas d'emoji stp", "j'adore les emojis", "sans smiley")
-10. verbosity: preference longueur ("fais court", "j'aime les explications detaillees", "concis")
-
-REGLE CRITIQUE: Ne signale QUE si c'est EXPLICITE dans le message.
-- "je suis fatigue" ≠ energy_peaks (pas de pattern permanent)
-- "je me leve tot demain" ≠ wake_time (ponctuel, pas habituel)
-- "j'ai couru ce matin" ≠ hobbies (sauf si "j'aime courir", "je fais du running")
-
-SORTIE JSON (dans machine_signals):
-{
-  "profile_facts_detected": {
-    "wake_time": { "value": "6h30", "confidence": 0.9 },
-    "job": { "value": "developpeur", "confidence": 0.85 }
-  }
-}
-// Ou omis / {} si aucun fait detecte
 `;
 
 /**
@@ -2845,81 +2765,6 @@ IMPORTANT:
 `;
   }
 
-  // ═══════════════════════════════════════════════════════════════════════════════
-  // USER PROFILE CONFIRMATION - Profile fact confirmation machine
-  // ═══════════════════════════════════════════════════════════════════════════════
-  if (activeMachine === "user_profile_confirmation") {
-    const phase = flowContext?.profileConfirmPhase ?? "awaiting_confirm";
-    const queueSize = flowContext?.profileConfirmQueueSize ?? 1;
-    const currentIdx = flowContext?.profileConfirmCurrentIndex ?? 0;
-    const remaining = queueSize - currentIdx - 1;
-
-    return `
-═══════════════════════════════════════════════════════════════════════════════
-📋 user_profile_confirmation ACTIF - Machine de Confirmation de Profil
-═══════════════════════════════════════════════════════════════════════════════
-
-FAIT EN COURS: "${flowContext?.profileFactKey ?? "inconnu"}" = "${
-      flowContext?.profileFactValue ?? "?"
-    }"
-PHASE ACTUELLE: ${phase}
-QUEUE: ${currentIdx + 1}/${queueSize} (${
-      remaining > 0 ? `${remaining} restant(s)` : "dernier"
-    })
-
-┌─────────────────────────────────────────────────────────────────────────────┐
-│  DIAGRAMME DE PHASES                                                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                             │
-│  [presenting] ────► [awaiting_confirm] ────► [processing]                   │
-│                            │                      │                         │
-│                            │                      ├──► [presenting] (next)  │
-│                            │                      └──► [completed] ✓        │
-│                            │                                                │
-│                            └──────────────────────► [abandoned] ✗           │
-│                                                                             │
-└─────────────────────────────────────────────────────────────────────────────┘
-
-TRANSITIONS STRICTES:
-- presenting → awaiting_confirm: Question de confirmation posee
-- awaiting_confirm → processing: Reponse de l'utilisateur recue (yes/no/nuance)
-- processing → presenting: Si queue non vide, passer au fait suivant
-- processing → completed: Si queue vide, terminer
-- * → abandoned: user_abandons = true
-
-SIGNAUX A DETECTER (dans machine_signals):
-{
-  "machine_signals": {
-    "user_confirms_fact": "yes" | "no" | "nuance" | null,
-    "user_provides_correction": "correction fournie" | null,
-    "fact_type_detected": "work_schedule" | "energy_peaks" | ... | null,
-    "user_abandons": true | false
-  }
-}
-
-INTERPRETATION:
-- user_confirms_fact:
-  • "yes" = "oui", "c'est ca", "exact", "yep", "ouep"
-  • "no" = "non", "pas vraiment", "nan", "c'est pas ca"
-  • "nuance" = "oui mais...", "plutot...", "en fait c'est..."
-- user_provides_correction: la valeur corrigee si nuance
-- user_abandons: true si "laisse tomber", "on verra plus tard", "stop"
-
-TYPES DE FAITS:
-work_schedule, energy_peaks, wake_time, sleep_time, job, 
-hobbies, family, tone_preference, emoji_preference, verbosity
-
-IMPORTANT:
-- ${
-      remaining > 0
-        ? `Il reste ${remaining} fait(s) a confirmer apres celui-ci`
-        : "C'est le DERNIER fait"
-    }
-- Ne pas forcer la confirmation
-- Accepter les corrections/nuances avec bienveillance
-`;
-  }
-
   // Bilan (investigation) active - detect signals for post-bilan processing
   if (activeMachine === "investigation" || flowContext?.isBilan) {
     let addon = `
@@ -3241,9 +3086,6 @@ ETAT ACTUEL:
         : ""
     }
 - Machine active: ${activeMachine ?? "AUCUNE"}
-- Confirmation profil en attente: ${
-      stateSnapshot.profile_confirm_pending ? "OUI" : "NON"
-    }
 - Topic exploration phase: ${stateSnapshot.topic_exploration_phase ?? "none"}
 `;
 
@@ -3293,12 +3135,6 @@ ETAT ACTUEL:
   // This helps detect when user claims to be done with onboarding or reports bugs
   prompt += ONBOARDING_STATUS_DETECTION_SECTION;
 
-  // Add profile facts detection (only when no profile confirmation is pending)
-  // This allows direct detection of 10 fact types without a mother signal
-  if (!stateSnapshot.profile_confirm_pending && !hasActiveMachine) {
-    prompt += PROFILE_FACTS_DETECTION_SECTION;
-  }
-
   // Add machine-specific addon with context if applicable
   prompt += buildMachineAddonWithContext(activeMachine, flowContext);
 
@@ -3328,10 +3164,6 @@ function machineMatchesSignalType(
     "topic_serious": ["topic_exploration_intent", "topic_serious"],
     "topic_light": ["topic_exploration_intent", "topic_light"],
     "deep_reasons_exploration": ["deep_reasons_intent", "deep_reasons"],
-    "user_profile_confirmation": [
-      "profile_info_detected",
-      "profile_confirmation",
-    ],
     "investigation": ["checkup_intent", "checkup", "bilan"],
   };
   return mappings[machineType]?.includes(signalType) ?? false;
@@ -4158,25 +3990,6 @@ Reponds UNIQUEMENT avec le JSON:`;
         machineSignals.deactivation_ready = Boolean(ms.deactivation_ready);
       }
 
-      // user_profile_confirmation signals
-      if (ms.user_confirms_fact !== undefined) {
-        const valid = ["yes", "no", "nuance", null];
-        machineSignals.user_confirms_fact =
-          valid.includes(ms.user_confirms_fact) ? ms.user_confirms_fact : null;
-      }
-      if (ms.user_provides_correction !== undefined) {
-        machineSignals.user_provides_correction =
-          typeof ms.user_provides_correction === "string"
-            ? ms.user_provides_correction.slice(0, 200)
-            : null;
-      }
-      if (ms.fact_type_detected !== undefined) {
-        machineSignals.fact_type_detected =
-          typeof ms.fact_type_detected === "string"
-            ? ms.fact_type_detected.slice(0, 50)
-            : null;
-      }
-
       // bilan/investigation signals
       if (ms.breakdown_recommended !== undefined) {
         machineSignals.breakdown_recommended = Boolean(
@@ -4303,49 +4116,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       );
       if (parsedPendingResolution) {
         machineSignals.pending_resolution = parsedPendingResolution;
-      }
-
-      // Profile facts detection (direct, 10 types)
-      if (
-        ms.profile_facts_detected &&
-        typeof ms.profile_facts_detected === "object"
-      ) {
-        const pf = ms.profile_facts_detected;
-        const validFactTypes = [
-          "work_schedule",
-          "energy_peaks",
-          "wake_time",
-          "sleep_time",
-          "job",
-          "hobbies",
-          "family",
-          "tone_preference",
-          "emoji_preference",
-          "verbosity",
-        ];
-        const parsedFacts: ProfileFactsDetected = {};
-        let hasAnyFact = false;
-
-        for (const factType of validFactTypes) {
-          const fact = (pf as any)[factType];
-          if (
-            fact && typeof fact === "object" && typeof fact.value === "string"
-          ) {
-            const value = String(fact.value ?? "").trim().slice(0, 100);
-            const confidence = Math.min(
-              1,
-              Math.max(0, Number(fact.confidence ?? 0.5)),
-            );
-            if (value && confidence >= 0.5) {
-              (parsedFacts as any)[factType] = { value, confidence };
-              hasAnyFact = true;
-            }
-          }
-        }
-
-        if (hasAnyFact) {
-          machineSignals.profile_facts_detected = parsedFacts;
-        }
       }
 
       // Only include if there's at least one defined signal

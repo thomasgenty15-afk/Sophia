@@ -363,6 +363,13 @@ export function extractUpdateTargetHint(message: string): string | null {
  */
 export function looksLikeExplicitDeleteActionRequest(message: string): boolean {
   const t = String(message ?? "").toLowerCase()
+  // Guardrail: if the user clearly talks about pause/reversibility, this is NOT a delete intent.
+  if (
+    /\b(d[ée]sactiv|pause|mettre\s+en\s+pause|temporaire|r[ée]activ|r[ée]versibl)\b/i.test(t) &&
+    !/\b(supprime\s+d[ée]finitiv|suppression\s+d[ée]finitive|efface\s+(tout|donn[ée]es?|historique))\b/i.test(t)
+  ) {
+    return false
+  }
   const hasVerb =
     /\b(supprime|supprimer|retire|retirer|enl[eè]ve|enlever|arr[eê]te|arr[eê]ter|vire|virer|supprime[-\s]?la|retire[-\s]?la|enl[eè]ve[-\s]?la)\b/i.test(t) ||
     /\b(je\s+veux\s+(?:supprimer|retirer|enlever|arr[eê]ter)|tu\s+peux\s+(?:supprimer|retirer|enlever)|on\s+peut\s+(?:supprimer|retirer|enlever))\b/i.test(t)

@@ -855,6 +855,329 @@ function buildComplexMultiMachineStateMachineContext(
   return { stage, finalStage, ctx, forcedDone };
 }
 
+function buildDeactivateActionV2StateMachineContext(
+  obj: any,
+  ts: TranscriptMsg[],
+  turnIndex: number,
+  maxTurns: number,
+): {
+  stage: number;
+  finalStage: number;
+  ctx: string;
+  forcedDone: boolean;
+  meta: { actionTitle: string; difficultyProfile: string; forbidDeleteIntent: boolean; lastUserNorm: string };
+} {
+  const spec = (obj?.spec && typeof obj.spec === "object") ? obj.spec : {};
+  const actionTitle = String(spec?.action_title ?? "Lecture").trim() || "Lecture";
+  const reason = String(spec?.reason ?? "ça me met la pression et je n'arrive pas à l'assumer en ce moment").trim();
+  const difficultyProfile = String(spec?.difficulty_profile ?? "hard").trim().toLowerCase();
+  const expectedTurns = Math.max(6, Math.min(20, Number(spec?.expected_turns ?? 12) || 12));
+  const forbidDeleteIntent = Boolean(spec?.forbid_delete_intent ?? true);
+  const allText = (ts ?? []).map((m) => `${m.role}:${m.content}`).join("\n").toLowerCase();
+  const assistantAllText = (ts ?? [])
+    .filter((m) => m?.role === "assistant")
+    .map((m) => String(m?.content ?? ""))
+    .join("\n")
+    .toLowerCase();
+  const lastAssistant = [...(ts ?? [])].reverse().find((m) => m?.role === "assistant")?.content ?? "";
+  const lastAssistantLower = String(lastAssistant).toLowerCase();
+  const lastUser = [...(ts ?? [])].reverse().find((m) => m?.role === "user")?.content ?? "";
+  const lastUserNorm = String(lastUser ?? "").toLowerCase().replace(/[^a-z0-9àâäçéèêëîïôöùûüÿñæœ]+/gi, " ").trim();
+
+  const userAskedDeactivate = /\b(d[ée]sactive|d[ée]sactiver|retire|supprime|arr[êe]te)\b/i.test(allText);
+  const userMentionedPauseOnly = /\b(pause|mettre\s+en\s+pause)\b/i.test(allText) && !userAskedDeactivate;
+  const assistantAskedTarget = /\b(quelle?\s+action|laquelle|de\s+quelle\s+action)\b/i.test(lastAssistantLower);
+  const assistantAskedConfirm = /\b(tu\s+veux|tu\s+confirmes|je\s+la\s+d[ée]sactive|on\s+la\s+d[ée]sactive)\b/i.test(lastAssistantLower);
+  const assistantConfirmedDone =
+    /\b(c['’]est\s+fait|d[ée]sactiv[ée]|retir[ée]|supprim[ée]|je\s+l['’]ai\s+d[ée]sactiv[ée])\b/i.test(lastAssistantLower);
+  const userConfirmed = (ts ?? []).some((m) =>
+    m?.role === "user" &&
+    /\b(oui|ok|vas[-\s]?y|go|fais[-\s]le)\b/i.test(String(m?.content ?? "")) &&
+    /\b(d[ée]sactive|retire|supprime|action)\b/i.test(String(m?.content ?? "")),
+  );
+
+  // 12 user turns (0..11) with increasing pressure + slight digressions.
+  // The flow stays "deactivate only" (no final pause path).
+  let inferred = 0;
+  if (assistantAskedTarget) inferred = Math.max(inferred, 4);
+  if (assistantAskedConfirm) inferred = Math.max(inferred, 7);
+  if (userConfirmed) inferred = Math.max(inferred, 8);
+  if (assistantConfirmedDone) inferred = Math.max(inferred, 10);
+  if (userMentionedPauseOnly) inferred = Math.max(inferred, 2);
+  if (userAskedDeactivate) inferred = Math.max(inferred, 3);
+
+  // Keep stage progression tied to turn budget so late-turn constraints are always exercised.
+  const byTurn = Math.max(0, Math.min(11, Number(turnIndex) || 0));
+  const stage = Math.max(Math.min(inferred, 11), byTurn);
+  const finalStage = 11;
+  const forcedDone = stage >= finalStage && (turnIndex + 1 >= Math.min(maxTurns, expectedTurns));
+
+  const difficultyCue = (() => {
+    if (difficultyProfile === "easy") {
+      return "Style facile: coopératif, peu de digressions, clarifications nettes.";
+    }
+    if (difficultyProfile === "mid") {
+      return "Style moyen: hésitations légères, 1 digression courte, puis retour rapide.";
+    }
+    if (difficultyProfile === "expert") {
+      return "Style expert: ambiguïté contrôlée, plusieurs reformulations, micro-égarements, mais intention de désactivation constante.";
+    }
+    return "Style difficile: ambigu, parfois distrait, mais reste engagé et cohérent vers la désactivation.";
+  })();
+
+  const stageInstruction = (() => {
+    switch (stage) {
+      case 0:
+        return `Tu parles d'une action qui te pèse ("${actionTitle}") sans demander un tool. Sois flou mais humain.`;
+      case 1:
+        return `Tu expliques pourquoi "${actionTitle}" te bloque (${reason}). Tu restes engagé(e), pas de rupture.`;
+      case 2:
+        return `Moment d'égarement: tu évoques "pause" puis tu te reprends. Ne donne PAS de consentement final.`;
+      case 3:
+        return `Tu demandes explicitement de désactiver "${actionTitle}" (pas mettre en pause).`;
+      case 4:
+        return `Si Sophia demande la cible, tu confirms clairement "${actionTitle}" et rien d'autre.`;
+      case 5:
+        return `Tu réponds à une clarification avec une nuance (hésitation courte), mais tu maintiens l'intention de désactivation.`;
+      case 6:
+        return `Mini digression personnelle (1 phrase), puis retour immédiat sur la désactivation.`;
+      case 7:
+        return `Tu donnes un consentement clair à la désactivation maintenant ("oui/ok vas-y, désactive").`;
+      case 8:
+        return `Tu poses une question réaliste sur l'impact (est-ce réversible / est-ce que ça sort du plan).`;
+      case 9:
+        return `Tu confirmes une dernière fois: tu veux bien la désactivation, sans changer d'avis vers "pause".`;
+      case 10:
+        return `Après confirmation assistant, tu accuses réception + léger doute humain, mais tu restes aligné(e).`;
+      case 11:
+        return `Tu clôtures simplement ("merci c'est bon").`;
+      default:
+        return "Continue naturellement.";
+    }
+  })();
+
+  const ctx = [
+    "=== STATE MACHINE (tool: deactivate_action V2) ===",
+    `stage=${stage}/${finalStage}`,
+    `target_action_title="${actionTitle}"`,
+    "",
+    "INSTRUCTION DE CE STAGE:",
+    stageInstruction,
+    "",
+    "CONTRAINTES:",
+    "- Tu es l'utilisateur (1ère personne).",
+    "- Tu écris en français naturel, 1 message.",
+    "- Scénario difficile: parfois hésitant(e) ou distrait(e), mais tu continues.",
+    `- ${difficultyCue}`,
+    "- Ne mentionne jamais que c'est un test.",
+    "- Objectif final: désactivation (pas pause finale).",
+    "- IMPORTANT: ne demande jamais une suppression définitive de l'action ni des données.",
+  ].join("\n");
+
+  return { stage, finalStage, ctx, forcedDone, meta: { actionTitle, difficultyProfile, forbidDeleteIntent, lastUserNorm } };
+}
+
+function buildDeleteActionV3StateMachineContext(
+  obj: any,
+  ts: TranscriptMsg[],
+  turnIndex: number,
+  maxTurns: number,
+): {
+  stage: number;
+  finalStage: number;
+  ctx: string;
+  forcedDone: boolean;
+  meta: { actionTitle: string; difficultyProfile: string; forbidPauseFinal: boolean; lastUserNorm: string };
+} {
+  const spec = (obj?.spec && typeof obj.spec === "object") ? obj.spec : {};
+  const actionTitle = String(spec?.action_title ?? "Lecture").trim() || "Lecture";
+  const reason = String(spec?.reason ?? "je n'en veux plus dans mon plan, ça ne me correspond plus").trim();
+  const difficultyProfile = String(spec?.difficulty_profile ?? "hard").trim().toLowerCase();
+  const expectedTurns = Math.max(6, Math.min(20, Number(spec?.expected_turns ?? 12) || 12));
+  const forbidPauseFinal = Boolean(spec?.forbid_pause_final ?? true);
+  const allText = (ts ?? []).map((m) => `${m.role}:${m.content}`).join("\n").toLowerCase();
+  const assistantAllText = (ts ?? []).filter((m) => m?.role === "assistant").map((m) => m.content).join(" ").toLowerCase();
+  const lastAssistant = [...(ts ?? [])].reverse().find((m) => m?.role === "assistant")?.content ?? "";
+  const lastAssistantLower = String(lastAssistant).toLowerCase();
+  const lastUser = [...(ts ?? [])].reverse().find((m) => m?.role === "user")?.content ?? "";
+  const lastUserNorm = String(lastUser ?? "").toLowerCase().replace(/[^a-z0-9àâäçéèêëîïôöùûüÿñæœ]+/gi, " ").trim();
+
+  const userAskedDelete = /\b(supprime|supprimer|retire|retirer|enl[èe]ve|enlever)\b/i.test(allText);
+  const userMentionedPause = /\b(pause|mettre\s+en\s+pause|d[ée]sactiv)\b/i.test(allText);
+  const assistantAskedTarget = /\b(quelle?\s+action|laquelle|de\s+quelle\s+action)\b/i.test(lastAssistantLower);
+  const assistantAskedConfirm = /\b(tu\s+veux|tu\s+confirmes|je\s+la\s+retire|on\s+la\s+retire|supprimer)\b/i.test(lastAssistantLower);
+  const assistantConfirmedDone =
+    /\b(c['’]est\s+fait|supprim[ée]|retir[ée]|je\s+l['’]ai\s+supprim[ée]|j['’]ai\s+retir[ée])\b/i.test(lastAssistantLower);
+  const assistantEverConfirmedDone =
+    /\b(c['’]est\s+fait|supprim[ée]|retir[ée]|je\s+l['’]ai\s+supprim[ée]|j['’]ai\s+retir[ée])\b/i.test(assistantAllText);
+  const userConfirmed = (ts ?? []).some((m) =>
+    m?.role === "user" &&
+    /\b(oui|ok|vas[-\s]?y|go|fais[-\s]le)\b/i.test(String(m?.content ?? "")) &&
+    /\b(supprime|retire|enl[èe]ve|action)\b/i.test(String(m?.content ?? "")),
+  );
+  const lastUserAsksPlanCheck = /\b(mon\s+plan|affiche|montre|liste|actions?)\b/i.test(lastUserNorm);
+  const lastUserAcknowledges = /\b(merci|ok|reçu|d['’]accord|parfait|c['’]est\s+bon)\b/i.test(lastUserNorm);
+  const lastUserAsksDeleteAgain = /\b(supprime|supprimer|retire|retirer|enl[èe]ve|enlever)\b/i.test(lastUserNorm);
+
+  let inferred = 0;
+  if (assistantAskedTarget) inferred = Math.max(inferred, 4);
+  if (assistantAskedConfirm) inferred = Math.max(inferred, 7);
+  if (userConfirmed) inferred = Math.max(inferred, 8);
+  if (assistantConfirmedDone) inferred = Math.max(inferred, 10);
+  if (userMentionedPause) inferred = Math.max(inferred, 2);
+  if (userAskedDelete) inferred = Math.max(inferred, 3);
+
+  // Before deletion is actually confirmed by assistant, cap turn-driven progression to 9
+  // to avoid drifting into late closure stages too early.
+  const byTurnCap = assistantEverConfirmedDone ? 11 : 9;
+  const byTurn = Math.max(0, Math.min(byTurnCap, Number(turnIndex) || 0));
+  const stage = Math.max(Math.min(inferred, 11), byTurn);
+  const finalStage = 11;
+  const forcedDoneEarly =
+    assistantEverConfirmedDone &&
+    !lastUserAsksDeleteAgain &&
+    (lastUserAcknowledges || lastUserAsksPlanCheck) &&
+    turnIndex + 1 >= 5;
+  const forcedDone =
+    forcedDoneEarly ||
+    (stage >= finalStage && (turnIndex + 1 >= Math.min(maxTurns, expectedTurns)));
+
+  const difficultyCue = (() => {
+    if (difficultyProfile === "easy") {
+      return "Style facile: coopératif, peu de digressions, clarifications nettes.";
+    }
+    if (difficultyProfile === "mid") {
+      return "Style moyen: hésitations légères, 1 digression courte, puis retour rapide.";
+    }
+    if (difficultyProfile === "expert") {
+      return "Style expert: ambiguïté contrôlée, plusieurs reformulations, micro-égarements, mais intention de suppression constante.";
+    }
+    return "Style difficile: ambigu, parfois distrait, mais reste engagé et cohérent vers la suppression.";
+  })();
+
+  const stageInstruction = (() => {
+    switch (stage) {
+      case 0:
+        return `Tu parles d'une action qui ne te correspond plus ("${actionTitle}") sans demander un tool.`;
+      case 1:
+        return `Tu expliques pourquoi "${actionTitle}" te bloque (${reason}). Tu restes engagé(e), pas de rupture.`;
+      case 2:
+        return `Moment d'égarement: tu évoques "pause" puis tu te reprends. Ne donne PAS de consentement final.`;
+      case 3:
+        return `Tu demandes explicitement de supprimer "${actionTitle}" du plan.`;
+      case 4:
+        return `Si Sophia demande la cible, tu confirms clairement "${actionTitle}" et rien d'autre.`;
+      case 5:
+        return `Tu réponds à une clarification avec une nuance, mais tu maintiens l'intention de suppression.`;
+      case 6:
+        return `Mini digression personnelle (1 phrase), puis retour immédiat sur la suppression.`;
+      case 7:
+        return `Tu donnes un consentement clair à la suppression maintenant ("oui/ok vas-y, supprime").`;
+      case 8:
+        return `Tu poses une question réaliste sur l'impact (historique, progression, irréversibilité).`;
+      case 9:
+        return `Tu confirmes une dernière fois: tu veux bien la suppression, sans revenir vers "pause".`;
+      case 10:
+        return `Après confirmation assistant, tu accuses réception + léger doute humain, mais tu restes aligné(e).`;
+      case 11:
+        return `Tu clôtures simplement ("merci c'est bon").`;
+      default:
+        return "Continue naturellement.";
+    }
+  })();
+
+  const ctx = [
+    "=== STATE MACHINE (tool: delete_action V3) ===",
+    `stage=${stage}/${finalStage}`,
+    `target_action_title="${actionTitle}"`,
+    "",
+    "INSTRUCTION DE CE STAGE:",
+    stageInstruction,
+    "",
+    "CONTRAINTES:",
+    "- Tu es l'utilisateur (1ère personne).",
+    "- Tu écris en français naturel, 1 message.",
+    "- Scénario difficile: parfois hésitant(e) ou distrait(e), mais tu continues.",
+    `- ${difficultyCue}`,
+    "- Ne mentionne jamais que c'est un test.",
+    "- Objectif final: suppression (pas pause finale).",
+  ].join("\n");
+
+  return { stage, finalStage, ctx, forcedDone, meta: { actionTitle, difficultyProfile, forbidPauseFinal, lastUserNorm } };
+}
+
+function validateBilanV3StageMessage(
+  stage: number,
+  msg: string,
+  meta: { variant: string; breakdownScheduleMode?: "with_days" | "no_days" },
+): { ok: boolean; reason: string } {
+  const t = String(msg ?? "").trim().toLowerCase();
+  if (!t) return { ok: false, reason: "empty" };
+  if (/\b(log|tool|base\s+de\s+donn|investigator)\b/i.test(t)) return { ok: false, reason: "mentions_tech_terms" };
+
+  const hasYes = /\b(oui|ok|d['’]?accord|vas[-\s]?y|bonne idée)\b/i.test(t);
+  const hasNo = /\b(non|pas besoin|non merci|je préfère)\b/i.test(t);
+  const mentionsDone = /\b(c['’]?est fait|fait(e)?|oui)\b/i.test(t);
+  const mentionsMissed = /\b(non|pas (fait|réussi)|rat[ée]|j['’]arrive pas|je repousse)\b/i.test(t);
+
+  if (meta.variant === "missed_streak_decline") {
+    if (stage === 0 && !/\b(check|bilan|point)\b/i.test(t)) return { ok: false, reason: "s0_missing_trigger" };
+    if (stage === 1 && !mentionsMissed) return { ok: false, reason: "s1_missing_missed" };
+    if (stage === 4) {
+      if (!hasNo) return { ok: false, reason: "s4_missing_decline" };
+      if (t.length > 80) return { ok: false, reason: "s4_too_long" };
+    }
+    if (stage === 5 && !mentionsDone) return { ok: false, reason: "s5_missing_done_action2" };
+    return { ok: true, reason: "ok" };
+  }
+
+  if (meta.variant === "missed_streak_full_breakdown") {
+    if (stage === 0) {
+      if (!/\b(check|bilan|point)\b/i.test(t)) return { ok: false, reason: "s0_missing_trigger" };
+      if (/\b(m[ée]ditation|lecture|d[ée]courag|stress|organisation)\b/i.test(t)) return { ok: false, reason: "s0_mentions_topic_too_early" };
+    }
+    if (stage === 1) {
+      if (!(/\/10/.test(t) || /\b[0-9]{1,2}\b/.test(t))) return { ok: false, reason: "s1_missing_vital_value" };
+      if (/\b(m[ée]ditation|lecture|stress|organisation)\b/i.test(t)) return { ok: false, reason: "s1_mentions_topic_too_early" };
+    }
+    if (stage === 2 && !/\bpas\s+fait\b/i.test(t)) return { ok: false, reason: "s2_missing_explicit_pas_fait" };
+    if (stage === 2 && t.length > 90) return { ok: false, reason: "s2_too_long" };
+    if (stage === 3 && t.length > 120) return { ok: false, reason: "s3_too_long" };
+    if (stage === 4) {
+      if (!hasYes) return { ok: false, reason: "s4_missing_accept_breakdown" };
+      if (/\b(ajoute|ajouter|plan)\b/i.test(t)) return { ok: false, reason: "s4_mentions_add_to_plan_too_early" };
+      if (t.length > 140) return { ok: false, reason: "s4_too_long_or_digressive" };
+    }
+    if (stage === 5 && !mentionsDone) return { ok: false, reason: "s5_missing_done_action2" };
+    if (stage === 7) {
+      if (!hasYes) return { ok: false, reason: "s7_missing_relaunch_accept" };
+      if (t.length > 140) return { ok: false, reason: "s7_too_long_or_digressive" };
+    }
+    if (stage === 10) {
+      if (!/\b(ajoute|ajouter)\b/i.test(t) || !/\bplan\b/i.test(t) || !hasYes) {
+        return { ok: false, reason: "s10_missing_add_to_plan_accept" };
+      }
+    }
+    if (meta.breakdownScheduleMode === "no_days" && stage === 11) {
+      if (!/\b(au\s+feeling|sans\s+jours?\s+fixes?|mode\s+libre)\b/i.test(t)) {
+        return { ok: false, reason: "s11_missing_no_days_choice" };
+      }
+    }
+    if (meta.breakdownScheduleMode === "with_days" && stage === 11) {
+      if (!/\b(jours?\s+fixes?|jours?\s+pr[ée]cis)\b/i.test(t)) {
+        return { ok: false, reason: "s11_missing_with_days_choice" };
+      }
+    }
+    if (meta.breakdownScheduleMode === "with_days" && stage === 12) {
+      if (!/\b(lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/i.test(t)) {
+        return { ok: false, reason: "s12_missing_days_selection" };
+      }
+    }
+  }
+
+  return { ok: true, reason: "ok" };
+}
+
 function validateComplexStageMessage(
   stage: number,
   next: string,
@@ -926,6 +1249,116 @@ function validateComplexStageMessage(
   // Avoid quoting the create title with explicit add commands in any stage.
   if (new RegExp(`"${String(meta?.createTitle ?? "").replace(/[.*+?^${}()|[\\]\\\\]/g, "\\$&")}"`, "i").test(s) && consent) {
     return { ok: false, reason: "title_plus_consent" };
+  }
+  return { ok: true, reason: "ok" };
+}
+
+function validateDeactivateActionV2StageMessage(
+  stage: number,
+  next: string,
+  meta: { actionTitle: string; difficultyProfile: string; forbidDeleteIntent: boolean; lastUserNorm: string },
+): { ok: boolean; reason: string } {
+  const s = String(next ?? "").trim();
+  const l = s.toLowerCase();
+  if (!s) return { ok: false, reason: "empty" };
+  if (/\b(test|évaluation|eval|llm|prompt)\b/i.test(l)) return { ok: false, reason: "meta_leak" };
+
+  const mentionsTitle = String(meta?.actionTitle ?? "").trim()
+    ? l.includes(String(meta.actionTitle).toLowerCase())
+    : true;
+  const deactivateIntent = /\b(d[ée]sactive|d[ée]sactiver|retire|supprime|arr[êe]te)\b/i.test(l);
+  const pauseOnly = /\b(pause|mettre\s+en\s+pause)\b/i.test(l) && !deactivateIntent;
+  const consent = /\b(oui|ok|vas[-\s]?y|go|fais[-\s]le)\b/i.test(l);
+  const norm = l.replace(/[^a-z0-9àâäçéèêëîïôöùûüÿñæœ]+/gi, " ").trim();
+  const asksIrreversibleDelete =
+    /\b(d[ée]finitiv|irr[ée]versibl|supprim\w*\s+(tout|donn[ée]es?|historique|stats|compteurs?)|effac\w*)\b/i.test(l);
+  const qCount = (s.match(/\?/g) ?? []).length;
+  const shortAck = /\b(ok|merci|reçu|c['’]est\s+bon)\b/i.test(l);
+
+  if (stage <= 2 && /\b(oui\s+vas[-\s]?y|tu\s+peux\s+l['’]?ajouter)\b/i.test(l)) return { ok: false, reason: "too_early_consent" };
+  if (stage >= 3 && stage <= 7 && !deactivateIntent) return { ok: false, reason: "missing_deactivate_intent" };
+  if (stage >= 7 && !consent && !/\b(d[ée]sactive)\b/i.test(l) && stage < 10) return { ok: false, reason: "missing_clear_consent" };
+  if (stage >= 9 && pauseOnly) return { ok: false, reason: "pause_in_late_stage" };
+  if ((stage === 3 || stage === 4) && !mentionsTitle) return { ok: false, reason: "missing_action_title" };
+  if (Boolean(meta?.forbidDeleteIntent) && asksIrreversibleDelete) {
+    return { ok: false, reason: "forbidden_delete_intent" };
+  }
+  if (meta?.lastUserNorm && norm && norm === String(meta.lastUserNorm)) {
+    return { ok: false, reason: "repeated_message" };
+  }
+  if (stage === 8) {
+    if (!/\b(r[ée]versibl|impact|plan|progression|historique)\b/i.test(l)) return { ok: false, reason: "stage8_missing_impact_question" };
+  }
+  if (stage === 9) {
+    if (!/\b(oui|ok|vas[-\s]?y|d[ée]sactive)\b/i.test(l)) return { ok: false, reason: "stage9_missing_final_go" };
+    if (qCount > 1) return { ok: false, reason: "stage9_too_many_questions" };
+  }
+  if (stage === 10) {
+    if (!shortAck) return { ok: false, reason: "stage10_missing_ack" };
+    if (/\b(d[ée]sactiv|inactive|pending|statut)\b/i.test(l)) return { ok: false, reason: "stage10_should_not_restart_deactivation_loop" };
+    if (qCount > 1) return { ok: false, reason: "stage10_too_many_questions" };
+  }
+  if (stage === 11) {
+    if (!/\b(merci|c['’]est\s+bon|on\s+arr[êe]te|c['’]est\s+ok)\b/i.test(l)) return { ok: false, reason: "stage11_missing_closure" };
+    if (qCount > 0) return { ok: false, reason: "stage11_should_not_ask_question" };
+  }
+  if (String(meta?.difficultyProfile ?? "") === "easy" && stage <= 2 && pauseOnly) {
+    // Easy profile should not get stuck in pause-only ambiguity too early.
+    return { ok: false, reason: "easy_profile_pause_only_too_early" };
+  }
+  return { ok: true, reason: "ok" };
+}
+
+function validateDeleteActionV3StageMessage(
+  stage: number,
+  next: string,
+  meta: { actionTitle: string; difficultyProfile: string; forbidPauseFinal: boolean; lastUserNorm: string },
+): { ok: boolean; reason: string } {
+  const s = String(next ?? "").trim();
+  const l = s.toLowerCase();
+  if (!s) return { ok: false, reason: "empty" };
+  if (/\b(test|évaluation|eval|llm|prompt)\b/i.test(l)) return { ok: false, reason: "meta_leak" };
+
+  const mentionsTitle = String(meta?.actionTitle ?? "").trim()
+    ? l.includes(String(meta.actionTitle).toLowerCase())
+    : true;
+  const deleteIntent = /\b(supprime|supprimer|retire|retirer|enl[èe]ve|enlever)\b/i.test(l);
+  const pauseOnly = /\b(pause|mettre\s+en\s+pause|d[ée]sactiv)\b/i.test(l) && !deleteIntent;
+  const consent = /\b(oui|ok|vas[-\s]?y|go|fais[-\s]le)\b/i.test(l);
+  const norm = l.replace(/[^a-z0-9àâäçéèêëîïôöùûüÿñæœ]+/gi, " ").trim();
+  const qCount = (s.match(/\?/g) ?? []).length;
+  const shortAck = /\b(ok|merci|reçu|c['’]est\s+bon)\b/i.test(l);
+
+  if (stage <= 2 && /\b(oui\s+vas[-\s]?y|tu\s+peux\s+l['’]?ajouter)\b/i.test(l)) return { ok: false, reason: "too_early_consent" };
+  if (stage >= 3 && stage <= 7 && !deleteIntent) return { ok: false, reason: "missing_delete_intent" };
+  if (stage >= 7 && !consent && !/\b(supprime|retire|enl[èe]ve)\b/i.test(l) && stage < 10) {
+    return { ok: false, reason: "missing_clear_consent" };
+  }
+  if (stage >= 9 && pauseOnly && Boolean(meta?.forbidPauseFinal)) return { ok: false, reason: "pause_in_late_stage" };
+  if ((stage === 3 || stage === 4) && !mentionsTitle) return { ok: false, reason: "missing_action_title" };
+  if (meta?.lastUserNorm && norm && norm === String(meta.lastUserNorm)) {
+    return { ok: false, reason: "repeated_message" };
+  }
+  if (stage === 8) {
+    if (!/\b(irrévers|d[ée]finit|historique|progression|stats?|retour\s+arri[èe]re)\b/i.test(l)) {
+      return { ok: false, reason: "stage8_missing_impact_question" };
+    }
+  }
+  if (stage === 9) {
+    if (!/\b(oui|ok|vas[-\s]?y|supprime|retire)\b/i.test(l)) return { ok: false, reason: "stage9_missing_final_go" };
+    if (qCount > 1) return { ok: false, reason: "stage9_too_many_questions" };
+  }
+  if (stage === 10) {
+    if (!shortAck) return { ok: false, reason: "stage10_missing_ack" };
+    if (/\b(supprim|retir|enlev)\b/i.test(l)) return { ok: false, reason: "stage10_should_not_restart_delete_loop" };
+    if (qCount > 1) return { ok: false, reason: "stage10_too_many_questions" };
+  }
+  if (stage === 11) {
+    if (!/\b(merci|c['’]est\s+bon|on\s+arr[êe]te|c['’]est\s+ok)\b/i.test(l)) return { ok: false, reason: "stage11_missing_closure" };
+    if (qCount > 0) return { ok: false, reason: "stage11_should_not_ask_question" };
+  }
+  if (String(meta?.difficultyProfile ?? "") === "easy" && stage <= 2 && pauseOnly) {
+    return { ok: false, reason: "easy_profile_pause_only_too_early" };
   }
   return { ok: true, reason: "ok" };
 }
@@ -1248,6 +1681,675 @@ function buildActivateActionStateMachineContext(
   return { stage, finalStage, ctx, forcedDone, meta: { title } };
 }
 
+// ═══════════════════════════════════════════════════════════════════════════════
+// BILAN V3 — Unified state machine builder for all bilan V3 eval scenarios.
+// Each variant (happy_path, all_missed, stop_midway, win_streak, etc.) gets
+// per-stage instructions that guide the simulated user through the bilan flow.
+// ═══════════════════════════════════════════════════════════════════════════════
+function buildBilanV3StateMachineContext(
+  obj: any,
+  ts: TranscriptMsg[],
+  turnIndex: number,
+  maxTurns: number,
+): {
+  stage: number;
+  finalStage: number;
+  ctx: string;
+  forcedDone: boolean;
+  meta: { variant: string; breakdownScheduleMode?: "with_days" | "no_days" };
+} {
+  const spec = (obj?.spec && typeof obj.spec === "object") ? obj.spec : {};
+  const variant = String(obj?.kind ?? "").replace("bilan_v3_", "");
+  const lastAssistant = [...(ts ?? [])].reverse().find((m) => m?.role === "assistant")?.content ?? "";
+  const lastAssistantLower = String(lastAssistant).toLowerCase();
+  const allAssistantText = (ts ?? []).filter((m) => m?.role === "assistant").map((m) => m.content).join(" ").toLowerCase();
+
+  // Detect bilan state from transcript
+  const bilanStarted = /\b(bilan|check|point)\b/i.test(allAssistantText);
+  const assistantAskedStop = /\b(on (arrête|arrete)|à bientôt|bonne soirée|terminé|c['']est (tout|fini))\b/i.test(lastAssistantLower);
+  const assistantCongrats = /\b(bravo|félicit|super|bien joué|chapeau|série|streak|d['']affilée)\b/i.test(lastAssistantLower);
+  const assistantBreakdownOffer = /\b(micro[- ]?étape|micro[- ]?etape|découpe|simplifi|version.*simple|plus accessible)\b/i.test(lastAssistantLower);
+  const assistantIncreaseOffer = /\b(augment|passer à|objectif|cible|fois par semaine)\b/i.test(lastAssistantLower) && assistantCongrats;
+  const assistantTopicDefer = /\b(après le bilan|on en (re)?parle|noté|j['']ai noté)\b/i.test(lastAssistantLower);
+  const assistantRefocus = /\b(revenons|pour le bilan|on continue|et (pour|sinon)|action|habitude)\b/i.test(lastAssistantLower);
+
+  let stage = 0;
+  let finalStage = 4;
+  let stageInstruction = "";
+
+  // Phase sequences and stage instructions per variant
+  const actionsStatus = spec?.actions_status ?? {};
+  const actionKeys = Object.keys(actionsStatus);
+  const askedAction = actionKeys.find((k) => {
+    const key = String(k ?? "").trim().toLowerCase();
+    return key.length > 0 && lastAssistantLower.includes(key);
+  }) ?? null;
+  const vitalValue = String(spec?.vital_value ?? "7 heures");
+  const missReasons = spec?.miss_reasons ?? {};
+  const missReason = String(spec?.miss_reason ?? "j'ai pas eu le temps");
+  const deferredTopic = String(spec?.deferred_topic ?? "un sujet personnel");
+  const digressionTopic = String(spec?.digression_topic ?? "un truc random");
+
+  switch (variant) {
+    // ─── HAPPY PATH (vital + all done) ─────────────────────────────────────
+    case "happy_path": {
+      finalStage = 5;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      // Infer stage from transcript
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      // Resilience rule:
+      // Prefer assistant-cue inference over raw turn index.
+      // We allow at most +1 stage drift to avoid getting stuck on wording noise,
+      // but never let turn-index jump multiple stages ahead (which creates out-of-context user replies).
+      stage = Math.min(finalStage, Math.max(inferred, Math.min(byTurn, inferred + 1)));
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: dis "Check du soir" ou "On fait le bilan ?".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande ton signe vital (sommeil ou similaire). Réponds avec la valeur: "${vitalValue}".`;
+          break;
+        case 2:
+          stageInstruction = `Réponds à l'action demandée par Sophia (${askedAction ?? actionKeys[0] ?? "l'action 1"}) et dis clairement que c'est fait.`;
+          break;
+        case 3:
+          stageInstruction = `Réponds à l'autre action restante (${actionKeys.find((k) => k !== askedAction) ?? actionKeys[1] ?? "l'action 2"}) et dis clairement que c'est fait.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception positivement ("super, merci !" ou "cool, à demain").`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé. Dis simplement merci.`;
+      }
+      break;
+    }
+
+    // ─── ALL MISSED (no streak trigger) ────────────────────────────────────
+    case "all_missed": {
+      finalStage = 7;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const action1 = actionKeys[0] ?? "action 1";
+      const action2 = actionKeys[1] ?? "action 2";
+      const reason1 = String(missReasons[action1] ?? missReason);
+      const reason2 = String(missReasons[action2] ?? "j'avais pas la motivation");
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: dis "On fait le point ?" ou "Check du soir".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande si tu as fait "${action1}". Dis que non, pas fait: "${reason1}".`;
+          break;
+        case 2:
+          stageInstruction = `Sophia va probablement creuser pourquoi. Donne un peu plus de contexte sur ton blocage avec "${action1}" (1-2 phrases). Reste honnête et bref.`;
+          break;
+        case 3:
+          stageInstruction = `Si Sophia a loggé l'action ou passe à la suivante, réponds naturellement. Sinon, confirme que c'est bien "pas fait" pour qu'elle puisse noter.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia te demande si tu as fait "${action2}". Dis que non: "${reason2}".`;
+          break;
+        case 5:
+          stageInstruction = `Donne un peu de contexte sur le miss de "${action2}". Reste bref et humain.`;
+          break;
+        case 6:
+          stageInstruction = `Confirme ou accuse réception si Sophia logge et avance. Si elle pose encore une question, réponds brièvement.`;
+          break;
+        default:
+          stageInstruction = `Le bilan se termine. Accuse réception ("ok, merci" ou "c'est noté").`;
+      }
+      break;
+    }
+
+    // ─── STOP MIDWAY ───────────────────────────────────────────────────────
+    case "stop_midway": {
+      finalStage = 3;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: dis "Bilan du soir" ou "Check rapide".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande la première action. Dis que c'est fait (ou pas fait), réponds brièvement.`;
+          break;
+        case 2:
+          stageInstruction = `OBLIGATION: dis explicitement que tu veux arrêter le bilan. Utilise "stop", "on arrête", "j'arrête le bilan" ou "pas le temps de continuer, on arrête là". Sois clair et direct.`;
+          break;
+        default:
+          stageInstruction = `Tu as demandé d'arrêter. Si Sophia continue quand même, répète que tu veux stop.`;
+      }
+      break;
+    }
+
+    // ─── WIN STREAK (completed streak >= 3) ────────────────────────────────
+    case "win_streak": {
+      finalStage = 5;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantCongrats) inferred = Math.max(inferred, 3);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const streakAction = String(spec?.streak_action ?? actionKeys[0] ?? "action");
+      const streakDays = Number(spec?.streak_days ?? 4);
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan avec UNE phrase neutre et courte, sans mentionner d'action ni de problème: "On fait le bilan ?" ou "Check du soir".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande si tu as fait "${streakAction}". Dis que oui c'est fait, avec un ton content (tu sais que ça fait ${streakDays} jours d'affilée).`;
+          break;
+        case 2:
+          stageInstruction = `Sophia te félicite pour ta série de ${streakDays} jours. Réagis positivement ("ouais ça fait plaisir !", "trop bien !"). Reste naturel.`;
+          break;
+        case 3:
+          stageInstruction = `Sophia passe à l'action suivante "${actionKeys[1] ?? "action 2"}". Dis que c'est fait.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception ("merci, à demain !").`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── MISSED STREAK ACCEPT BREAKDOWN ────────────────────────────────────
+    case "missed_streak_accept": {
+      finalStage = 7;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantBreakdownOffer) inferred = Math.max(inferred, 4);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const streakAction = String(spec?.streak_action ?? actionKeys[0] ?? "action");
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "On fait le point ?" ou "Check du soir".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande "${streakAction}". Dis clairement que non, pas fait.`;
+          break;
+        case 2:
+          stageInstruction = `Après "${streakAction}" ratée, attends la proposition de micro-étape. Si Sophia demande pourquoi malgré tout, réponds très court (ex: "Je repousse, c'est tout.") sans lancer d'exploration profonde.`;
+          break;
+        case 3:
+          stageInstruction = `Si Sophia propose la micro-étape, réponds en accord. Sinon, confirme juste "pas fait" et attends la proposition.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia propose une micro-étape / de découper "${streakAction}" en version plus simple après le bilan. Réponds EXACTEMENT: "Oui bonne idée." (une seule phrase, aucun autre sujet).`;
+          break;
+        case 5:
+          stageInstruction = `Sophia passe à l'action suivante "${actionKeys[1] ?? "action 2"}". Réponds EXACTEMENT: "Oui, c'est fait."`;
+          break;
+        case 6:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception.`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── MISSED STREAK DECLINE BREAKDOWN ───────────────────────────────────
+    case "missed_streak_decline": {
+      finalStage = 7;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantBreakdownOffer) inferred = Math.max(inferred, 4);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const streakAction = String(spec?.streak_action ?? actionKeys[0] ?? "action");
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "Check du soir" ou "On fait le bilan".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande "${streakAction}". Dis que non, c'est pas fait.`;
+          break;
+        case 2:
+          stageInstruction = `Attends la proposition de micro-étape. Si Sophia insiste sur le pourquoi, réponds très court sans approfondir.`;
+          break;
+        case 3:
+          stageInstruction = `Dès que Sophia propose la micro-étape, prépare un refus court. Sinon, reste bref.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia propose une micro-étape (ou un approfondissement reporté après bilan). REFUSE clairement EN UNE PHRASE COURTE et n'ajoute AUCUN autre sujet: "Non merci, je préfère réessayer tel quel." ou "Non, pas besoin pour l'instant."`;
+          break;
+        case 5:
+          stageInstruction = `Uniquement quand Sophia demande "${actionKeys[1] ?? "action 2"}", réponds que c'est fait. Ne reparle pas de la micro-étape.`;
+          break;
+        case 6:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception.`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── MISSED STREAK FULL BREAKDOWN (bilan + post-bilan breakdown machine) ─
+    case "missed_streak_full_breakdown": {
+      const breakdownScheduleMode =
+        String(spec?.breakdown_schedule_mode ?? "no_days").trim().toLowerCase() === "with_days"
+          ? "with_days"
+          : "no_days";
+      // Keep one final post-bilan reply turn so deferred relaunch can actually execute.
+      finalStage = breakdownScheduleMode === "with_days" ? 13 : 12;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+
+      // Post-bilan detection signals
+      const assistantRelaunchOffer = /\b(tu\s+veux\s+qu['']on|on\s+en\s+(re)?parle|revenir\s+sur|sujet\s+(en\s+attente|report[ée]|mis\s+de\s+côté)|micro[- ]?[ée]tape)\b/i.test(lastAssistantLower) && assistantAskedStop;
+      const assistantAskedBlockerPost = /\b(qu['']?est-ce|quel|quelle|raconte|explique)\b/i.test(lastAssistantLower) && /\b(bloqu|coinc|emp[êe]ch|frein|difficult)\b/i.test(lastAssistantLower);
+      // Detect if bilan is done (post-checkup state)
+      const bilanClosed = /\b(on\s+(arr[êe]te|arrete)|à\s+bient[ôo]t|bonne\s+soir[ée]e|termin[ée]|c['']est\s+(tout|fini)|récap|r[ée]cap)\b/i.test(allAssistantText) && bilanStarted;
+      // Important: only treat this as "post-breakdown proposal" once bilan is actually closed.
+      const assistantProposedMicroStep = bilanClosed &&
+        /\b(micro[- ]?[ée]tape|micro[- ]?pas|[ée]tape.*simple|version.*simple)\b/i.test(lastAssistantLower) &&
+        /\b(ajout|plan|tu\s+veux|ça\s+te\s+va|ok\s+pour|qu['']en\s+penses)\b/i.test(lastAssistantLower);
+
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantBreakdownOffer && !bilanClosed) inferred = Math.max(inferred, 4);
+      if (bilanClosed && !assistantRelaunchOffer && !assistantAskedBlockerPost && !assistantProposedMicroStep) inferred = Math.max(inferred, 6);
+      if (assistantRelaunchOffer || (bilanClosed && /\b(micro[- ]?[ée]tape|sujet|report)\b/i.test(lastAssistantLower))) inferred = Math.max(inferred, 7);
+      if (assistantAskedBlockerPost) inferred = Math.max(inferred, 8);
+      if (assistantProposedMicroStep) inferred = Math.max(inferred, 10);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const streakAction = String(spec?.streak_action ?? actionKeys[0] ?? "action");
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "On fait le point ?" ou "Check du soir".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande ton signe vital (énergie ou similaire). Réponds avec la valeur: "${vitalValue}".`;
+          break;
+        case 2:
+          stageInstruction = `Sophia te demande "${streakAction}". Réponds EXACTEMENT: "Non, pas fait."`;
+          break;
+        case 3:
+          stageInstruction = `Après "Non, pas fait.", attends la proposition de micro-étape. Si Sophia demande quand même pourquoi, réponds très court sans lancer de deep reasons (ex: "Je repousse, c'est tout.").`;
+          break;
+        case 4:
+          stageInstruction = `Sophia propose une micro-étape / de découper "${streakAction}" en version plus simple après le bilan. Réponds EXACTEMENT: "Oui."`;
+          break;
+        case 5:
+          stageInstruction = `Sophia passe à l'action suivante "${actionKeys[1] ?? "action 2"}". Dis que c'est fait.`;
+          break;
+        case 6:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception positivement ("super, merci" ou "ok à demain").`;
+          break;
+        case 7:
+          stageInstruction = `Sophia revient sur le sujet mis en attente (micro-étape pour "${streakAction}"). Réponds EXACTEMENT: "Oui."`;
+          break;
+        case 8:
+          stageInstruction = `Sophia te demande quel est le blocage concret sur "${streakAction}". Explique en 1-2 phrases: "${missReason}". Par exemple: "Le matin j'ai aucune énergie, je repousse et après c'est trop tard."`;
+          break;
+        case 9:
+          stageInstruction = `Sophia digère ta réponse et travaille sur la micro-étape. Réponds naturellement si elle pose une question de suivi, sinon attends.`;
+          break;
+        case 10:
+          stageInstruction = `Sophia propose une micro-étape concrète et demande si tu veux l'ajouter au plan. Réponds EXACTEMENT: "Oui, ajoute-la au plan."`;
+          break;
+        case 11:
+          stageInstruction = breakdownScheduleMode === "with_days"
+            ? `Quand Sophia te demande le mode, choisis les jours fixes: "Jours fixes, je préfère."`
+            : `Quand Sophia te demande le mode, choisis sans jours fixes: "Au feeling, sans jours fixes."`;
+          break;
+        case 12:
+          stageInstruction = breakdownScheduleMode === "with_days"
+            ? `Sophia te demande les jours précis. Donne 2 jours clairs: "Lundi et jeudi."`
+            : `Après la clôture bilan, si Sophia te propose d'enchaîner maintenant sur la micro-étape, réponds "Oui, on peut le faire maintenant."`;
+          break;
+        case 13:
+          stageInstruction = `Sophia te demande les jours précis. Donne 2 jours clairs: "Lundi et jeudi."`;
+          break;
+        default:
+          stageInstruction = `Le flow breakdown est terminé. Dis merci et clos la conversation.`;
+      }
+      break;
+    }
+
+    // ─── TARGET EXCEEDED (increase offer) ──────────────────────────────────
+    case "target_exceeded": {
+      finalStage = 5;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantIncreaseOffer || assistantCongrats) inferred = Math.max(inferred, 2);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const exceededAction = String(spec?.exceeded_action ?? actionKeys[0] ?? "action");
+      const targetReps = Number(spec?.target_reps ?? 3);
+      const currentReps = Number(spec?.current_reps ?? 4);
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "Check du soir" ou "On fait le point".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te dit que "${exceededAction}" a déjà atteint/dépassé son objectif (${currentReps}/${targetReps} cette semaine). Elle te félicite. Réagis positivement.`;
+          break;
+        case 2:
+          stageInstruction = `Sophia propose d'augmenter l'objectif (passer à ${targetReps + 1} fois/semaine). ACCEPTE: "Oui carrément", "Ok on augmente", "Allez, on monte d'un cran".`;
+          break;
+        case 3:
+          stageInstruction = `Sophia confirme l'augmentation et passe à "${actionKeys[1] ?? "action 2"}". Dis que c'est fait.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception.`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── TARGET EXCEEDED YES_NO_DAYS (V4: accept increase, no scheduled_days) ─
+    case "target_exceeded_yes_no_days": {
+      finalStage = 5;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantIncreaseOffer || assistantCongrats) inferred = Math.max(inferred, 2);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const exceededAction = String(spec?.exceeded_action ?? actionKeys[0] ?? "action");
+      const targetReps = Number(spec?.target_reps ?? 3);
+      const currentReps = Number(spec?.current_reps ?? 4);
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "On peut faire mon bilan maintenant ?".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande ton signe vital (énergie ou similaire). Réponds avec la valeur: "${vitalValue}".`;
+          break;
+        case 2:
+          stageInstruction = `Sophia arrive à "${exceededAction}" qui a dépassé son objectif (${currentReps}/${targetReps}). Elle te félicite et propose d'augmenter. ACCEPTE clairement: "Oui carrément, on augmente !" ou "Allez, on monte d'un cran !". INTERDIT de contenir un mot négatif en même temps.`;
+          break;
+        case 3:
+          stageInstruction = `Sophia confirme l'augmentation et passe à "${actionKeys[1] ?? "action 2"}". Réponds que c'est fait ou pas selon le contexte.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception: "Merci, à demain !" ou "Super, bonne soirée".`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── TARGET EXCEEDED YES_WITH_DAYS (V4: accept increase + scheduled_days → choose day) ─
+    case "target_exceeded_yes_with_days": {
+      finalStage = 6;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      const assistantAskDay = /\b(quel jour|jour.*ajouter|jour.*rajouter|lundi|mardi|mercredi|jeudi|vendredi|samedi|dimanche)\b/i.test(lastAssistantLower) && !assistantIncreaseOffer;
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantIncreaseOffer || assistantCongrats) inferred = Math.max(inferred, 2);
+      if (assistantAskDay) inferred = Math.max(inferred, 3);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const exceededAction = String(spec?.exceeded_action ?? actionKeys[0] ?? "action");
+      const targetReps = Number(spec?.target_reps ?? 3);
+      const currentReps = Number(spec?.current_reps ?? 4);
+      const dayToAdd = String(spec?.day_to_add ?? "mardi");
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "On peut faire mon bilan maintenant ?".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande ton signe vital (énergie ou similaire). Réponds avec la valeur: "${vitalValue}".`;
+          break;
+        case 2:
+          stageInstruction = `Sophia arrive à "${exceededAction}" qui a dépassé son objectif (${currentReps}/${targetReps}). Elle te félicite et propose d'augmenter. ACCEPTE clairement: "Oui on augmente" ou "Allez, on y va !". INTERDIT de contenir un mot négatif en même temps.`;
+          break;
+        case 3:
+          stageInstruction = `Sophia te demande quel jour ajouter (elle liste les jours actuels). Réponds avec un jour précis: "Le ${dayToAdd}" ou "${dayToAdd.charAt(0).toUpperCase() + dayToAdd.slice(1)} ça me va". UN SEUL jour, sans ambiguïté.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia confirme l'augmentation avec le jour ajouté et passe à "${actionKeys[1] ?? "action 2"}". Réponds que c'est fait ou pas selon le contexte.`;
+          break;
+        case 5:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception: "Merci, à demain !" ou "Super, bonne soirée".`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── TARGET EXCEEDED NO (V4: refuse increase) ────────────────────────
+    case "target_exceeded_no": {
+      finalStage = 5;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantIncreaseOffer || assistantCongrats) inferred = Math.max(inferred, 2);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const exceededAction = String(spec?.exceeded_action ?? actionKeys[0] ?? "action");
+      const targetReps = Number(spec?.target_reps ?? 3);
+      const currentReps = Number(spec?.current_reps ?? 4);
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "On peut faire mon bilan maintenant ?".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande ton signe vital (énergie ou similaire). Réponds avec la valeur: "${vitalValue}".`;
+          break;
+        case 2:
+          stageInstruction = `Sophia arrive à "${exceededAction}" qui a dépassé son objectif (${currentReps}/${targetReps}). Elle te félicite et propose d'augmenter. REFUSE clairement: "Non je reste comme ça, ça me va" ou "Non merci, on garde comme ça". INTERDIT de contenir un mot affirmatif en même temps.`;
+          break;
+        case 3:
+          stageInstruction = `Sophia accepte ta décision et passe à "${actionKeys[1] ?? "action 2"}". Réponds que c'est fait ou pas selon le contexte.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception: "Merci, à demain !" ou "Super, bonne soirée".`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── DEFERRED TOPIC ────────────────────────────────────────────────────
+    case "deferred_topic": {
+      finalStage = 7;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantTopicDefer) inferred = Math.max(inferred, 4);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "On fait le bilan ?" ou "Check du soir".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande "${actionKeys[0] ?? "action 1"}". Dis que c'est fait.`;
+          break;
+        case 2:
+          stageInstruction = `OBLIGATION: mentionne spontanément ton sujet personnel: "${deferredTopic}". Intègre-le naturellement ("d'ailleurs, ${deferredTopic}, ça me travaille en ce moment"). Ne demande PAS explicitement d'en parler, mentionne-le juste comme un aparté.`;
+          break;
+        case 3:
+          stageInstruction = `Sophia propose d'en reparler après le bilan ("on en parle après ?"). ACCEPTE: "Oui, bonne idée" ou "Ok on en reparle après".`;
+          break;
+        case 4:
+          stageInstruction = `Sophia revient au bilan et te demande "${actionKeys[1] ?? "action 2"}". Dis que c'est pas fait: "${String(spec?.miss_reason ?? "j'avais la tête ailleurs")}".`;
+          break;
+        case 5:
+          stageInstruction = `Si Sophia demande pourquoi, donne une raison brève. Sinon, accuse réception.`;
+          break;
+        case 6:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception.`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── DIGRESSION REFOCUS ────────────────────────────────────────────────
+    case "digression": {
+      finalStage = 5;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantRefocus) inferred = Math.max(inferred, 2);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "Check du soir" ou "On fait le bilan".`;
+          break;
+        case 1:
+          stageInstruction = `OBLIGATION: au lieu de répondre à la question de Sophia sur l'action, DIGRESSE complètement. Parle de "${digressionTopic}" sans aucun rapport avec le bilan. Par exemple: "En fait, ${digressionTopic}". Ne réponds PAS à la question sur l'action.`;
+          break;
+        case 2:
+          stageInstruction = `Sophia te recadre et repose la question sur "${actionKeys[0] ?? "action 1"}". Maintenant, réponds à la question: dis que c'est fait.`;
+          break;
+        case 3:
+          stageInstruction = `Sophia te demande "${actionKeys[1] ?? "action 2"}". Dis que c'est fait.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception.`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé.`;
+      }
+      break;
+    }
+
+    // ─── FULL COMPLEXITY ───────────────────────────────────────────────────
+    case "full_complexity": {
+      finalStage = 11;
+      const byTurn = Math.min(finalStage, Math.floor(turnIndex));
+      let inferred = 0;
+      if (bilanStarted) inferred = Math.max(inferred, 1);
+      if (assistantCongrats) inferred = Math.max(inferred, 5);
+      if (assistantBreakdownOffer) inferred = Math.max(inferred, 8);
+      if (assistantAskedStop) inferred = Math.max(inferred, finalStage);
+      stage = Math.max(Math.min(inferred, finalStage), byTurn);
+
+      const streakWin = String(spec?.streak_action_win ?? "Sport 30 min");
+      const streakMissed = String(spec?.streak_action_missed ?? "Méditation 10 min");
+      const winStreakDays = Number(spec?.win_streak_days ?? 4);
+      const digrTopic = String(spec?.digression_topic ?? "un truc random");
+
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "On fait le bilan ?" ou "Check du soir".`;
+          break;
+        case 1:
+          stageInstruction = `Sophia te demande ton signe vital. Réponds "${vitalValue}".`;
+          break;
+        case 2:
+          stageInstruction = `Digresse brièvement: "${digrTopic}" (1-2 phrases max). Fais une parenthèse rapide.`;
+          break;
+        case 3:
+          stageInstruction = `Sophia te recadre ou te demande "${streakWin}". Reviens au sujet et dis que c'est fait.`;
+          break;
+        case 4:
+          stageInstruction = `Sophia te félicite pour ta série de ${winStreakDays} jours sur "${streakWin}". Réagis positivement.`;
+          break;
+        case 5:
+          stageInstruction = `Sophia passe à "${streakMissed}". Dis que non, c'est pas fait.`;
+          break;
+        case 6:
+          stageInstruction = `Sophia demande pourquoi. Donne la raison: "${missReason}". Sois honnête.`;
+          break;
+        case 7:
+          stageInstruction = `Si Sophia logge et propose la micro-étape, passe au stage suivant. Sinon, confirme que c'est raté.`;
+          break;
+        case 8:
+          stageInstruction = `Sophia propose une micro-étape pour "${streakMissed}". ACCEPTE: "Oui bonne idée".`;
+          break;
+        case 9:
+          stageInstruction = `Sophia passe à "${actionKeys[2] ?? "action 3"}". Dis que c'est fait.`;
+          break;
+        case 10:
+          stageInstruction = `Sophia conclut le bilan. Accuse réception.`;
+          break;
+        default:
+          stageInstruction = `Le bilan est terminé. Dis merci.`;
+      }
+      break;
+    }
+
+    // ─── DEFAULT (unknown variant, graceful fallback) ──────────────────────
+    default: {
+      finalStage = 4;
+      stage = Math.min(finalStage, Math.floor(turnIndex));
+      switch (stage) {
+        case 0:
+          stageInstruction = `Déclenche le bilan: "Check du soir".`;
+          break;
+        default:
+          stageInstruction = `Continue le bilan naturellement. Réponds aux questions de Sophia.`;
+      }
+    }
+  }
+
+  const forcedDone = stage >= finalStage && (turnIndex + 1 >= Math.min(maxTurns, finalStage + 3));
+
+  const ctx = [
+    `=== STATE MACHINE (bilan V3: ${variant}) ===`,
+    `stage=${stage}/${finalStage}`,
+    "",
+    "INSTRUCTION DE CE STAGE:",
+    stageInstruction,
+    "",
+    "CONTRAINTES BILAN V3:",
+    "- Tu es l'utilisateur (1ère personne).",
+    "- Tu écris en français naturel, 1 message.",
+    "- Tu ne dis jamais que c'est un test.",
+    "- Ne mentionne jamais 'log', 'tool', 'base de données', 'investigator'.",
+    "- Reste bref et humain (max 2-3 phrases).",
+    "- N'introduis jamais un nouveau sujet non demandé (pas de digression spontanée).",
+    "- Ne répète pas un récapitulatif assistant mot pour mot.",
+    "- Pas de panique/crise/détresse (ne déclenche pas le sentry).",
+    "- Si tu acceptes/refuses une proposition, sois clair et sans ambiguïté.",
+  ].join("\n");
+
+  const breakdownScheduleMode =
+    variant === "missed_streak_full_breakdown"
+      ? (String(spec?.breakdown_schedule_mode ?? "no_days").trim().toLowerCase() === "with_days" ? "with_days" : "no_days")
+      : undefined;
+  return { stage, finalStage, ctx, forcedDone, meta: { variant, breakdownScheduleMode } };
+}
+
 function isShortAck(s: string): boolean {
   const t = String(s ?? "").trim().toLowerCase();
   if (!t) return false;
@@ -1333,6 +2435,122 @@ function stubNextMessage(
       if (turn === 8) return { next_message: "Réponses courtes.", done: false, satisfied: [] };
       if (turn === 9) return { next_message: "Ok, et pour les emojis ?", done: false, satisfied: [] };
       return { next_message: "Non.", done: true, satisfied: ["profile_confirm_3_topics_realistic"] };
+    }
+    // Bilan V3 stubs (MEGA_TEST_MODE / local dev)
+    case "bilan_v3_happy_path": {
+      if (turn === 0) return { next_message: "Check du soir", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "7 heures de sommeil.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Oui, c'est fait.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Oui, fait aussi.", done: false, satisfied: [] };
+      return { next_message: "Merci, à demain !", done: true, satisfied: ["bilan_v3_happy_path"] };
+    }
+    case "bilan_v3_all_missed": {
+      if (turn === 0) return { next_message: "On fait le point ?", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "Non, pas fait. J'étais crevé.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "J'ai pas réussi à me motiver.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Non plus. Pas la motivation.", done: false, satisfied: [] };
+      return { next_message: "Ok, merci.", done: true, satisfied: ["bilan_v3_all_missed"] };
+    }
+    case "bilan_v3_stop_midway": {
+      if (turn === 0) return { next_message: "Bilan du soir", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "Oui c'est fait.", done: false, satisfied: [] };
+      return { next_message: "Stop, on arrête là, j'ai pas le temps.", done: true, satisfied: ["bilan_v3_stop_midway"] };
+    }
+    case "bilan_v3_win_streak": {
+      if (turn === 0) return { next_message: "Check du soir", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "Oui c'est fait ! Ça fait 4 jours d'affilée.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Trop bien, merci !", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Oui, fait aussi.", done: false, satisfied: [] };
+      return { next_message: "Merci !", done: true, satisfied: ["bilan_v3_win_streak"] };
+    }
+    case "bilan_v3_missed_streak_accept": {
+      if (turn === 0) return { next_message: "On fait le point ?", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "Non, pas fait.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Je repousse, c'est tout.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Ok.", done: false, satisfied: [] };
+      if (turn === 4) return { next_message: "Oui bonne idée, on découpe.", done: false, satisfied: [] };
+      if (turn === 5) return { next_message: "Oui, fait.", done: false, satisfied: [] };
+      return { next_message: "Merci.", done: true, satisfied: ["bilan_v3_missed_streak_accept"] };
+    }
+    case "bilan_v3_missed_streak_decline": {
+      if (turn === 0) return { next_message: "Check du soir", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "Non, pas fait.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Je repousse, c'est tout.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Ok.", done: false, satisfied: [] };
+      if (turn === 4) return { next_message: "Non merci, je préfère réessayer tel quel.", done: false, satisfied: [] };
+      if (turn === 5) return { next_message: "Oui, fait.", done: false, satisfied: [] };
+      return { next_message: "Merci.", done: true, satisfied: ["bilan_v3_missed_streak_decline"] };
+    }
+    case "bilan_v3_missed_streak_full_breakdown": {
+      if (turn === 0) return { next_message: "On fait le point ?", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "7 sur 10.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Non, pas fait.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Je repousse, c'est tout.", done: false, satisfied: [] };
+      if (turn === 4) return { next_message: "Ok.", done: false, satisfied: [] };
+      if (turn === 5) return { next_message: "Oui bonne idée, on découpe après le bilan.", done: false, satisfied: [] };
+      if (turn === 6) return { next_message: "Oui, fait.", done: false, satisfied: [] };
+      if (turn === 7) return { next_message: "Ok, merci pour le bilan.", done: false, satisfied: [] };
+      if (turn === 8) return { next_message: "Oui, on en parle.", done: false, satisfied: [] };
+      if (turn === 9) return { next_message: "Le matin j'ai aucune énergie, je repousse et après c'est trop tard.", done: false, satisfied: [] };
+      if (turn === 10) return { next_message: "Oui, ajoute-la au plan.", done: false, satisfied: [] };
+      return { next_message: "Merci !", done: true, satisfied: ["bilan_v3_missed_streak_full_breakdown"] };
+    }
+    case "bilan_v3_target_exceeded": {
+      if (turn === 0) return { next_message: "On fait le point", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "Ouais, trop content !", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Oui carrément, on augmente.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Oui, fait.", done: false, satisfied: [] };
+      return { next_message: "Merci !", done: true, satisfied: ["bilan_v3_target_exceeded"] };
+    }
+    case "bilan_v3_target_exceeded_yes_no_days": {
+      if (turn === 0) return { next_message: "On peut faire mon bilan maintenant ?", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "7 sur 10.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Oui carrément, on augmente !", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Oui c'est fait.", done: false, satisfied: [] };
+      return { next_message: "Merci, à demain !", done: true, satisfied: ["bilan_v3_target_exceeded_yes_no_days"] };
+    }
+    case "bilan_v3_target_exceeded_yes_with_days": {
+      if (turn === 0) return { next_message: "On peut faire mon bilan maintenant ?", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "7 sur 10.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Oui on augmente.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Le mardi.", done: false, satisfied: [] };
+      if (turn === 4) return { next_message: "Oui c'est fait.", done: false, satisfied: [] };
+      return { next_message: "Merci, à demain !", done: true, satisfied: ["bilan_v3_target_exceeded_yes_with_days"] };
+    }
+    case "bilan_v3_target_exceeded_no": {
+      if (turn === 0) return { next_message: "On peut faire mon bilan maintenant ?", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "7 sur 10.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Non je reste comme ça, ça me va.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Oui c'est fait.", done: false, satisfied: [] };
+      return { next_message: "Merci, à demain !", done: true, satisfied: ["bilan_v3_target_exceeded_no"] };
+    }
+    case "bilan_v3_deferred_topic": {
+      if (turn === 0) return { next_message: "On fait le bilan ?", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "Oui, c'est fait.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "D'ailleurs, j'ai un problème avec mon manager au boulot, ça me travaille.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Oui, on en reparle après.", done: false, satisfied: [] };
+      if (turn === 4) return { next_message: "Pas fait, j'avais la tête ailleurs.", done: false, satisfied: [] };
+      return { next_message: "Ok, merci.", done: true, satisfied: ["bilan_v3_deferred_topic"] };
+    }
+    case "bilan_v3_digression": {
+      if (turn === 0) return { next_message: "Check du soir", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "En fait hier j'ai vu un truc trop marrant sur YouTube, c'était un chat qui faisait du skateboard.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Ah oui pardon, oui c'est fait.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Oui, fait aussi.", done: false, satisfied: [] };
+      return { next_message: "Merci !", done: true, satisfied: ["bilan_v3_digression"] };
+    }
+    case "bilan_v3_full_complexity": {
+      if (turn === 0) return { next_message: "On fait le bilan ?", done: false, satisfied: [] };
+      if (turn === 1) return { next_message: "7h30 de sommeil.", done: false, satisfied: [] };
+      if (turn === 2) return { next_message: "Ah tiens, j'ai vu un truc marrant sur les chats.", done: false, satisfied: [] };
+      if (turn === 3) return { next_message: "Oui c'est fait le sport !", done: false, satisfied: [] };
+      if (turn === 4) return { next_message: "Ouais trop bien la série !", done: false, satisfied: [] };
+      if (turn === 5) return { next_message: "Non, pas fait la méditation.", done: false, satisfied: [] };
+      if (turn === 6) return { next_message: "J'arrive pas à me lever, c'est la cata depuis une semaine.", done: false, satisfied: [] };
+      if (turn === 7) return { next_message: "Ok.", done: false, satisfied: [] };
+      if (turn === 8) return { next_message: "Oui bonne idée, on découpe.", done: false, satisfied: [] };
+      if (turn === 9) return { next_message: "Oui, la lecture c'est fait.", done: false, satisfied: [] };
+      return { next_message: "Merci !", done: true, satisfied: ["bilan_v3_full_complexity"] };
     }
     default:
       if (difficulty === "easy") return { next_message: `Ok.`, done: turn >= 1, satisfied: turn >= 1 ? ["generic"] : [] };
@@ -1505,6 +2723,8 @@ console.log("simulate-user: Function initialized");
     const toolUpdateActionObj = findObjective(body.objectives ?? [], "tools_update_action_realistic");
     const toolBreakDownActionObj = findObjective(body.objectives ?? [], "tools_break_down_action_realistic");
     const toolActivateActionObj = findObjective(body.objectives ?? [], "tools_activate_action_realistic");
+    const toolDeactivateV2Obj = findObjective(body.objectives ?? [], "tools_deactivate_action_v2_realistic");
+    const toolDeleteV3Obj = findObjective(body.objectives ?? [], "tools_delete_action_v3_realistic");
     const toolComplexObj = findObjective(body.objectives ?? [], "tools_complex_multimachine_realistic");
     // Topic session objectives (supports both topic_serious and topic_light machine scenarios)
     const topicExplorationObj = findObjective(body.objectives ?? [], "topic_exploration_handoff_realistic") ??
@@ -1519,6 +2739,12 @@ console.log("simulate-user: Function initialized");
     
     // Ultimate full flow objective (sophisticated state machine)
     const ultimateFlowObj = findObjective(body.objectives ?? [], "ultimate_full_flow");
+
+    // Bilan V3 objectives (unified state machine for all bilan V3 scenarios)
+    const bilanV3Obj = (body.objectives ?? []).find((o: any) => {
+      const kind = String(o?.kind ?? "");
+      return kind.startsWith("bilan_v3_");
+    }) ?? null;
 
     // Multi-tool flows:
     // - If both create + update objectives are present, we first run the create state machine
@@ -1542,6 +2768,55 @@ console.log("simulate-user: Function initialized");
       ? buildActivateActionStateMachineContext(toolActivateActionObj, body.transcript as TranscriptMsg[], body.turn_index)
       : null;
     const activateDone = Boolean(activateFlow?.forcedDone);
+    const deactivateV2Flow = toolDeactivateV2Obj
+      ? buildDeactivateActionV2StateMachineContext(
+        toolDeactivateV2Obj,
+        body.transcript as TranscriptMsg[],
+        body.turn_index,
+        Number(body.max_turns) || 12,
+      )
+      : null;
+    const deactivateV2Done = Boolean(deactivateV2Flow?.forcedDone);
+    let deleteV3Flow:
+      | {
+        stage: number;
+        finalStage: number;
+        ctx: string;
+        forcedDone: boolean;
+        meta: { actionTitle: string; difficultyProfile: string; forbidPauseFinal: boolean; lastUserNorm: string };
+      }
+      | null = null;
+    if (toolDeleteV3Obj) {
+      try {
+        deleteV3Flow = buildDeleteActionV3StateMachineContext(
+          toolDeleteV3Obj,
+          body.transcript as TranscriptMsg[],
+          body.turn_index,
+          Number(body.max_turns) || 12,
+        );
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : String(e);
+        console.warn(`[simulate-user] delete_v3_flow_build_failed request_id=${requestId} ${msg}`);
+        const spec = (toolDeleteV3Obj?.spec && typeof toolDeleteV3Obj.spec === "object") ? toolDeleteV3Obj.spec : {};
+        deleteV3Flow = {
+          stage: 0,
+          finalStage: 11,
+          ctx: [
+            "=== STATE MACHINE (tool: delete_action V3 fallback) ===",
+            `target_action_title="${String(spec?.action_title ?? "Lecture")}"`,
+            "Reste naturel, garde une intention de suppression claire, puis clôture quand Sophia confirme.",
+          ].join("\n"),
+          forcedDone: false,
+          meta: {
+            actionTitle: String(spec?.action_title ?? "Lecture"),
+            difficultyProfile: String(spec?.difficulty_profile ?? "hard"),
+            forbidPauseFinal: true,
+            lastUserNorm: "",
+          },
+        };
+      }
+    }
+    const deleteV3Done = Boolean(deleteV3Flow?.forcedDone);
     const complexFlow = toolComplexObj
       ? buildComplexMultiMachineStateMachineContext(toolComplexObj, body.transcript as TranscriptMsg[], body.turn_index)
       : null;
@@ -1587,6 +2862,18 @@ console.log("simulate-user: Function initialized");
       : null;
     
     const ultimateFlowDone = Boolean(ultimateFlow?.forcedDone);
+
+    // Bilan V3 (unified state machine)
+    const bilanV3Flow = bilanV3Obj
+      ? buildBilanV3StateMachineContext(
+        bilanV3Obj,
+        body.transcript as TranscriptMsg[],
+        body.turn_index,
+        Number(body.max_turns) || 14,
+      )
+      : null;
+
+    const bilanV3Done = Boolean(bilanV3Flow?.forcedDone);
     
     // NOTE: stressTestFlow is intentionally NOT included in toolFlow.
     // It has its own done handling logic and shouldn't be subject to the toolFlow allDone check.
@@ -1599,7 +2886,11 @@ console.log("simulate-user: Function initialized");
             ? updateFlow
             : ((!breakDownDone && breakDownFlow)
               ? breakDownFlow
-              : ((!activateDone && activateFlow) ? activateFlow : null)))));
+              : ((!activateDone && activateFlow)
+                ? activateFlow
+                : ((!deactivateV2Done && deactivateV2Flow)
+                  ? deactivateV2Flow
+                  : ((!deleteV3Done && deleteV3Flow) ? deleteV3Flow : null)))))));
 
     const isWhatsApp = /\bwhatsapp\b/i.test(String(body.context ?? "")) || Array.isArray((body as any)?.suggested_replies);
 
@@ -1632,6 +2923,8 @@ ${stressTestFlow ? `\n\n${stressTestFlow.ctx}\n` : ""}
 
 ${ultimateFlow ? `\n\n${ultimateFlow.ctx}\n` : ""}
 
+${bilanV3Flow ? `\n\n${bilanV3Flow.ctx}\n` : ""}
+
 CANAL / CONTRAINTES UI:
 ${Array.isArray((body as any).suggested_replies) && (body as any).suggested_replies.length > 0
   ? `- Si possible, réponds avec UNE des quick replies suivantes (copie exacte) : ${JSON.stringify((body as any).suggested_replies)}`
@@ -1663,7 +2956,11 @@ TRANSCRIPT (dernier contexte):
 ${transcriptText || "(vide)"}
     `.trim();
 
-    const MAX_ROLE_RETRIES = (toolComplexObj && complexFlow && !complexDone) ? 6 : 3;
+    const MAX_ROLE_RETRIES = (toolComplexObj && complexFlow && !complexDone) ||
+        (toolDeactivateV2Obj && deactivateV2Flow && !deactivateV2Done) ||
+        (toolDeleteV3Obj && deleteV3Flow && !deleteV3Done)
+      ? 6
+      : 3;
     let parsedOut: any = null;
     let next = "";
     let satisfied: any[] = [];
@@ -1779,7 +3076,53 @@ ${transcriptText || "(vide)"}
           )
           : "";
 
-      const systemPrompt = `${baseSystemPrompt}${stageStrict}${stageStrictBreakdown}${stageStrictComplex}${stageStrictProfile}`.trim();
+      const stageStrictDeactivate =
+        (toolDeactivateV2Obj && deactivateV2Flow && !deactivateV2Done)
+          ? (
+            `\n\n[DEACTIVATE_ACTION_V2 — CONTRAINTES STRICTES]\n` +
+            `Tu es l'utilisateur. 1 seul message.\n` +
+            `stage=${deactivateV2Flow.stage}/${deactivateV2Flow.finalStage}\n` +
+            `action_title="${deactivateV2Flow.meta.actionTitle}"\n` +
+            (lastInvalidReason ? `Ton message précédent était invalide: ${lastInvalidReason}\n` : "") +
+            `RÈGLES:\n` +
+            `- Rester humain, parfois hésitant, mais continuer.\n` +
+            `- Objectif final: désactivation de l'action (pas pause finale).\n` +
+            `- N'utilise jamais le mot "pending"; utilise "en pause" si nécessaire.\n` +
+            `- Ne jamais mentionner test/eval/LLM.\n`
+          )
+          : "";
+      const stageStrictDelete =
+        (toolDeleteV3Obj && deleteV3Flow && !deleteV3Done)
+          ? (
+            `\n\n[DELETE_ACTION_V3 — CONTRAINTES STRICTES]\n` +
+            `Tu es l'utilisateur. 1 seul message.\n` +
+            `stage=${deleteV3Flow.stage}/${deleteV3Flow.finalStage}\n` +
+            `action_title="${deleteV3Flow.meta.actionTitle}"\n` +
+            (lastInvalidReason ? `Ton message précédent était invalide: ${lastInvalidReason}\n` : "") +
+            `RÈGLES:\n` +
+            `- Rester humain, parfois hésitant, mais continuer.\n` +
+            `- Objectif final: suppression de l'action (pas mise en pause).\n` +
+            `- Ne jamais mentionner test/eval/LLM.\n`
+          )
+          : "";
+
+      const stageStrictBilanV3 =
+        (bilanV3Obj && bilanV3Flow && !bilanV3Done)
+          ? (
+            `\n\n[BILAN_V3 — CONTRAINTES STRICTES]\n` +
+            `Tu es l'utilisateur. 1 seul message.\n` +
+            `stage=${bilanV3Flow.stage}/${bilanV3Flow.finalStage} (variant=${bilanV3Flow.meta.variant})\n` +
+            (lastInvalidReason ? `Ton message précédent était invalide: ${lastInvalidReason}\n` : "") +
+            `RÈGLES:\n` +
+            `- Suis EXACTEMENT l'instruction de stage ci-dessus.\n` +
+            `- Ne mentionne jamais test/eval/LLM.\n` +
+            `- Ne déclenche PAS de crise (pas de panique/détresse/crise).\n` +
+            `- Reste bref (2-3 phrases max).\n` +
+            `- Si tu dois accepter/refuser une proposition, sois explicite.\n`
+          )
+          : "";
+
+      const systemPrompt = `${baseSystemPrompt}${stageStrict}${stageStrictBreakdown}${stageStrictComplex}${stageStrictProfile}${stageStrictDeactivate}${stageStrictDelete}${stageStrictBilanV3}`.trim();
       const userMessage = baseUserMessage;
       lastSystemPrompt = systemPrompt;
       lastUserMessage = userMessage;
@@ -1850,6 +3193,14 @@ ${transcriptText || "(vide)"}
           continue;
         }
       }
+      if (bilanV3Obj && bilanV3Flow && !bilanV3Done) {
+        const v = validateBilanV3StageMessage(bilanV3Flow.stage, next, bilanV3Flow.meta);
+        if (!v.ok) {
+          lastInvalidReason = `bilan_v3_${v.reason}`;
+          next = "";
+          continue;
+        }
+      }
       // No "assistant-ish" hard gate here; judge will evaluate style at the end.
       // BUT: keep the update_action state machine mechanically valid so the scenario can reach the assertions.
       if (toolUpdateActionObj && updateFlow && !updateDone) {
@@ -1908,6 +3259,28 @@ ${transcriptText || "(vide)"}
             continue;
           }
           lastInvalidReason = `activate_${v.reason}`;
+        }
+      }
+      if (toolDeactivateV2Obj && deactivateV2Flow && !deactivateV2Done) {
+        const v = validateDeactivateActionV2StageMessage(deactivateV2Flow.stage, next, deactivateV2Flow.meta);
+        if (!v.ok) {
+          const safe = isComplexMessageSafeNoConsent(next);
+          if (!safe.ok) {
+            lastInvalidReason = `deactivate_v2_${v.reason}_unsafe_${safe.reason}`;
+            next = "";
+            continue;
+          }
+          lastInvalidReason = `deactivate_v2_${v.reason}`;
+        }
+      }
+      if (toolDeleteV3Obj && deleteV3Flow && !deleteV3Done) {
+        const v = validateDeleteActionV3StageMessage(deleteV3Flow.stage, next, deleteV3Flow.meta);
+        if (!v.ok) {
+          // Keep delete V3 trajectory strict to avoid late-stage drift
+          // (backup/escalation loops) that degrades conversation realism.
+          lastInvalidReason = `delete_v3_${v.reason}`;
+          next = "";
+          continue;
         }
       }
       // After update_action flow is complete, avoid the simulated user parroting an assistant recap
@@ -2000,6 +3373,10 @@ ${complexFlow.ctx}
     if (stressTestObj) {
       done = Boolean(stressTestFlow?.forcedDone) || body.turn_index + 1 >= body.max_turns;
     }
+    // Bilan V3 scenarios: do NOT allow early done; follow the state machine stages.
+    if (bilanV3Obj) {
+      done = Boolean(bilanV3Flow?.forcedDone) || body.turn_index + 1 >= body.max_turns;
+    }
     // Ultimate full flow: only done when phase is DONE (emoji confirmed), ignore max_turns
     if (ultimateFlowObj) {
       done = Boolean(ultimateFlow?.forcedDone);
@@ -2014,7 +3391,9 @@ ${complexFlow.ctx}
         (toolCreateActionObj ? createDone : true) &&
         (toolUpdateActionObj ? updateDone : true) &&
         (toolBreakDownActionObj ? breakDownDone : true) &&
-        (toolActivateActionObj ? activateDone : true);
+        (toolActivateActionObj ? activateDone : true) &&
+        (toolDeactivateV2Obj ? deactivateV2Done : true) &&
+        (toolDeleteV3Obj ? deleteV3Done : true);
       done = allDone || body.turn_index + 1 >= body.max_turns;
     }
     // IMPORTANT: once a tool flow is complete, stop the scenario immediately to avoid extra turns
@@ -2025,6 +3404,12 @@ ${complexFlow.ctx}
     if (!doneLocked && toolActivateActionObj && activateDone) {
       // Once activated, stop immediately and avoid any follow-up that can trigger routing/tool loops.
       next = `Ok, merci.`;
+      done = true;
+    }
+    if (!doneLocked && toolDeactivateV2Obj && deactivateV2Done) {
+      done = true;
+    }
+    if (!doneLocked && toolDeleteV3Obj && deleteV3Done) {
       done = true;
     }
     satisfied = Array.isArray(parsedOut?.satisfied) ? parsedOut.satisfied : [];

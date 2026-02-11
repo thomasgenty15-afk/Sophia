@@ -1,0 +1,20 @@
+{
+  "id": "tools_deactivate_action_staging",
+  "type": "staging_harness",
+  "description": "Staging harness for tools_deactivate_action_v2_ai_user using a dedicated slot/user and no-bilan mode.",
+  "staging": {
+    "runner": "scripts/run_eval_v2_real_staging_no_bilan.mjs",
+    "scenario": "tools_deactivate_action_v2_ai_user",
+    "variant": "hard_12t",
+    "turns_default": 12,
+    "slot": 6,
+    "model": "gemini-2.5-flash",
+    "no_bilan": true
+  },
+  "dedicated_user": {
+    "slot": 6,
+    "email": "user-deactivate-tool-staging@sophia-test.local",
+    "full_name": "user_deactivate_tool_staging"
+  }
+}
+

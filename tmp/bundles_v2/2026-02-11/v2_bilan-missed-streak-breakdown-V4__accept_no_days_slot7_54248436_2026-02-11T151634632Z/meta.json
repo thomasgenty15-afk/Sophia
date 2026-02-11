@@ -1,0 +1,22 @@
+{
+  "ok": true,
+  "bundle_id": "v2_bilan-missed-streak-breakdown-V4__accept_no_days_slot7_54248436_2026-02-11T151634632Z",
+  "source": "env",
+  "supabase_url": "http://127.0.0.1:54321",
+  "user_id": "54248436-d383-457a-8fc9-a2c81cf84a3d",
+  "scope": "web",
+  "since": "2026-02-11T15:13:00.225Z",
+  "until": "2026-02-11T15:18:34.631Z",
+  "counts": {
+    "chat_messages": 11,
+    "request_ids": 1,
+    "turn_summary_logs": 5,
+    "missing_turn_summaries": 0
+  },
+  "outputs": {
+    "out_dir": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-11/v2_bilan-missed-streak-breakdown-V4__accept_no_days_slot7_54248436_2026-02-11T151634632Z",
+    "conversation_transcript": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-11/v2_bilan-missed-streak-breakdown-V4__accept_no_days_slot7_54248436_2026-02-11T151634632Z/conversation_transcript.txt",
+    "brain_trace_jsonl": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-11/v2_bilan-missed-streak-breakdown-V4__accept_no_days_slot7_54248436_2026-02-11T151634632Z/brain_trace.jsonl"
+  },
+  "missing_turn_summary_request_ids": []
+}

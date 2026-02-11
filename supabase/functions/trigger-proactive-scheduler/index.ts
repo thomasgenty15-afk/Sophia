@@ -76,7 +76,10 @@ Deno.serve(async (req) => {
         const resp = await callEdge("trigger-daily-bilan", { user_ids: userIds, scheduler: true })
         const sentUserIds = uniq((resp as any)?.sent_user_ids ?? [])
         const skippedUserIds = uniq((resp as any)?.skipped_user_ids ?? [])
-        const handled = uniq([...sentUserIds, ...skippedUserIds])
+        const deferredUserIds = uniq((resp as any)?.deferred_user_ids ?? [])
+        // Deferred users are intentionally handled for this local date (they were parked
+        // because another machine was active), so mark them to avoid retry loops.
+        const handled = uniq([...sentUserIds, ...skippedUserIds, ...deferredUserIds])
 
         if (handled.length > 0) {
           const pairs = handled
@@ -98,6 +101,7 @@ Deno.serve(async (req) => {
 
         out.daily_bilan.sent = sentUserIds.length
         out.daily_bilan.skipped = skippedUserIds.length
+        out.daily_bilan.deferred = deferredUserIds.length
         out.daily_bilan.errors = (resp as any)?.errors ?? []
       }
     }

@@ -1155,7 +1155,9 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
   if (!GEMINI_API_KEY) throw new Error('Clé API Gemini manquante')
 
-  const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "text-embedding-005").trim() || "text-embedding-005"
+  const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "gemini-embedding-001").trim() || "gemini-embedding-001"
+  // Keep embeddings compatible with Postgres vector(768) columns.
+  const outputDimensionality = 768
   const base = "https://generativelanguage.googleapis.com"
   const urlV1 = `${base}/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`
   const urlV1beta = `${base}/v1beta/models/${model}:embedContent?key=${GEMINI_API_KEY}`
@@ -1179,6 +1181,7 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
     // Gemini expects this "models/..." prefix in the payload (even though the URL also includes the model).
     model: `models/${model}`,
     content: { parts: [{ text }] },
+    outputDimensionality,
   })
 
   async function doFetch(url: string): Promise<Response> {
@@ -1244,5 +1247,9 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
   } catch {
     // ignore telemetry failures
   }
-  return data.embedding.values
+  const values = data?.embedding?.values
+  if (!Array.isArray(values) || values.length !== outputDimensionality) {
+    throw new Error(`Erreur Embedding: dimension invalide (${Array.isArray(values) ? values.length : "unknown"}), attendu=${outputDimensionality}`)
+  }
+  return values
 }

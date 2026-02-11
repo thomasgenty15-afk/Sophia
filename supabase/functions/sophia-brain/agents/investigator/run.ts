@@ -378,6 +378,126 @@ export async function runInvestigator(
 
   // Handle pending post-bilan offer (micro-étape / deep reasons / increase target / activate action) before normal flow
   const pendingOffer = (currentState as any)?.temp_memory?.bilan_defer_offer;
+
+  // ── AWAITING DAY CHOICE: user said yes to increase + action has scheduled_days → parse the day ──
+  if (pendingOffer?.stage === "awaiting_day_choice" && pendingOffer?.kind === "increase_target") {
+    const dayMap: Record<string, string> = {
+      "lun": "mon", "lundi": "mon",
+      "mar": "tue", "mardi": "tue",
+      "mer": "wed", "mercredi": "wed",
+      "jeu": "thu", "jeudi": "thu",
+      "ven": "fri", "vendredi": "fri",
+      "sam": "sat", "samedi": "sat",
+      "dim": "sun", "dimanche": "sun",
+    };
+    const msgLower = String(message ?? "").toLowerCase();
+    let parsedDay: string | null = null;
+    // Try full names first (longer match wins), then abbreviations
+    for (const [fr, en] of Object.entries(dayMap)) {
+      const isFullName = fr.length > 3;
+      const pat = isFullName ? `\\b${fr}s?\\b` : `\\b${fr}\\b`;
+      if (new RegExp(pat, "i").test(msgLower)) {
+        parsedDay = en;
+        if (isFullName) break; // Full name match is definitive
+      }
+    }
+
+    const offerItemId = String(pendingOffer?.action_id ?? currentItem?.id ?? "");
+    const offerLoggedStatus = String(pendingOffer?.last_item_log?.status ?? "missed");
+
+    if (parsedDay) {
+      // Call increaseWeekTarget with the parsed day
+      let increaseResult: {
+        success: boolean;
+        old_target: number;
+        new_target: number;
+        scheduled_days?: string[];
+        error?: string;
+      } | null = null;
+      try {
+        increaseResult = await increaseWeekTarget(supabase, userId, offerItemId, parsedDay);
+      } catch (e) {
+        console.error("[Investigator] increaseWeekTarget (with day) call failed:", e);
+      }
+
+      let nextState = updateItemProgress(currentState, offerItemId, {
+        phase: "logged",
+        logged_at: new Date().toISOString(),
+        logged_status: offerLoggedStatus,
+      });
+      const nextIndex = currentState.current_item_index + 1;
+      const nextTempMemory: Record<string, unknown> = { ...(nextState.temp_memory || {}) };
+      delete nextTempMemory.bilan_defer_offer;
+      delete nextTempMemory.bilan_offer_resolution_override;
+      nextState = { ...nextState, current_item_index: nextIndex, temp_memory: nextTempMemory as any };
+
+      // Build confirmation or error prefix
+      const dayTokenToFrench = (d: string) => {
+        const m: Record<string, string> = { mon: "lundi", tue: "mardi", wed: "mercredi", thu: "jeudi", fri: "vendredi", sat: "samedi", sun: "dimanche" };
+        return m[d] ?? d;
+      };
+      let prefix: string;
+      if (increaseResult?.success) {
+        prefix = `C'est fait, objectif passé à ${increaseResult.new_target}×/semaine avec ${dayTokenToFrench(parsedDay)} en plus. `;
+      } else {
+        prefix = `${increaseResult?.error ?? "Pas pu augmenter."} `;
+      }
+
+      const scenario = increaseResult?.success ? "increase_target_confirmed" : null;
+      const scenarioAck = scenario
+        ? await investigatorSay(scenario, {
+            user_message: message,
+            channel: meta?.channel,
+            action_title: String(pendingOffer?.action_title ?? currentItem?.title ?? ""),
+            current_target: Number(pendingOffer?.current_target ?? currentItem?.target ?? 1),
+            increase_result: increaseResult,
+            day_added: dayTokenToFrench(parsedDay),
+          }, meta)
+        : null;
+      const lead = scenarioAck ? `${scenarioAck}\n\n` : prefix;
+
+      if (nextIndex >= currentState.pending_items.length) {
+        const base = await investigatorSay("end_checkup_after_last_log", {
+          user_message: message,
+          channel: meta?.channel,
+          recent_history: history.slice(-15),
+          last_item: currentItem,
+          last_item_log: pendingOffer.last_item_log ?? null,
+          day_scope: String(currentItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
+          increase_result: increaseResult,
+        }, meta);
+        return { content: `${lead}${base}`.trim(), investigationComplete: true, newState: null };
+      }
+
+      const nextItem = currentState.pending_items[nextIndex];
+      nextState = updateItemProgress(nextState, nextItem.id, {
+        phase: "awaiting_answer",
+        last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
+      });
+      const transitionOut = await investigatorSay("transition_to_next_item", {
+        user_message: message,
+        last_item_log: pendingOffer.last_item_log ?? null,
+        next_item: nextItem,
+        day_scope: String(nextItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
+        deferred_topic: null,
+      }, meta);
+      return { content: `${lead}${transitionOut}`.trim(), investigationComplete: false, newState: nextState };
+    }
+
+    // Could not parse a day — ask again
+    return {
+      content: await investigatorSay("increase_target_ask_day", {
+        user_message: message,
+        channel: meta?.channel,
+        action_title: String(pendingOffer?.action_title ?? currentItem?.title ?? ""),
+        current_scheduled_days: pendingOffer?.current_scheduled_days ?? [],
+        retry: true,
+      }, meta),
+      investigationComplete: false,
+      newState: currentState,
+    };
+  }
+
   if (pendingOffer?.stage === "awaiting_consent") {
     const override = (currentState as any)?.temp_memory
       ?.bilan_offer_resolution_override;
@@ -401,13 +521,39 @@ export async function runInvestigator(
       const declinedActionId = String(pendingOffer?.action_id ?? "").trim();
 
       // --- INCREASE TARGET: execute the DB update if confirmed ---
+      // If the action has scheduled_days defined, redirect to awaiting_day_choice
+      // so Sophia asks which day to add before calling increaseWeekTarget.
       let increaseResult: {
         success: boolean;
         old_target: number;
         new_target: number;
+        scheduled_days?: string[];
         error?: string;
       } | null = null;
       if (pendingOffer.kind === "increase_target" && userSaysYes) {
+        if (pendingOffer.has_scheduled_days) {
+          // Redirect to awaiting_day_choice: ask which day to add
+          const askDayState: InvestigationState = {
+            ...currentState,
+            temp_memory: {
+              ...(currentState.temp_memory || {}),
+              bilan_defer_offer: {
+                ...pendingOffer,
+                stage: "awaiting_day_choice",
+              },
+            },
+          };
+          return {
+            content: await investigatorSay("increase_target_ask_day", {
+              user_message: message,
+              channel: meta?.channel,
+              action_title: String(pendingOffer?.action_title ?? currentItem?.title ?? ""),
+              current_scheduled_days: pendingOffer?.current_scheduled_days ?? [],
+            }, meta),
+            investigationComplete: false,
+            newState: askDayState,
+          };
+        }
         try {
           increaseResult = await increaseWeekTarget(
             supabase,
@@ -448,6 +594,46 @@ export async function runInvestigator(
         current_item_index: nextIndex,
         temp_memory: nextTempMemory as any,
       };
+
+      // Special case: increase_target declined with more items to process.
+      // Use a dedicated transition copy to avoid redundant/confusing double acknowledgements.
+      if (
+        pendingOffer.kind === "increase_target" &&
+        userSaysNo &&
+        nextIndex < currentState.pending_items.length
+      ) {
+        const nextItem = currentState.pending_items[nextIndex];
+        nextState = updateItemProgress(nextState, nextItem.id, {
+          phase: "awaiting_answer",
+          last_question_kind: nextItem.type === "vital"
+            ? "vital_value"
+            : "did_it",
+        });
+        const declinedTransition = await investigatorSay(
+          "increase_target_declined_transition",
+          {
+            user_message: message,
+            channel: meta?.channel,
+            action_title: String(
+              pendingOffer?.action_title ?? currentItem?.title ?? "",
+            ),
+            current_target: Number(
+              pendingOffer?.current_target ?? currentItem?.target ?? 1,
+            ),
+            next_item: nextItem,
+            day_scope: String(
+              nextItem.day_scope ?? nextState?.temp_memory?.day_scope ??
+                "yesterday",
+            ),
+          },
+          meta,
+        );
+        return {
+          content: declinedTransition,
+          investigationComplete: false,
+          newState: nextState,
+        };
+      }
 
       // Build fallback prefix based on offer kind.
       // Primary path uses investigatorSay scenarios for consistency with copy rules.
@@ -623,6 +809,7 @@ export async function runInvestigator(
 
     if (currentTarget < 7) {
       // Store pending offer for increase_target
+      const hasScheduledDays = Array.isArray(currentItem.scheduled_days) && currentItem.scheduled_days.length > 0;
       const nextState: InvestigationState = {
         ...currentState,
         temp_memory: {
@@ -634,6 +821,8 @@ export async function runInvestigator(
             action_title: currentItem.title,
             current_target: currentTarget,
             last_item_log: { status: "completed", item_type: "action" },
+            has_scheduled_days: hasScheduledDays,
+            current_scheduled_days: hasScheduledDays ? currentItem.scheduled_days : [],
           },
         },
       };

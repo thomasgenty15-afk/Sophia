@@ -1,0 +1,101 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_target_exceeded_v3_ai_user",
+  "description": "V3: Bilan avec habitude ayant dépassé son objectif hebdomadaire. L'habitude a target_reps=3 et current_reps=4 → Sophia félicite et propose d'augmenter → user accepte → increaseWeekTarget exécuté.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user",
+    "target_exceeded"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": "morning",
+        "description": "Faire 30 minutes de sport.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Lecture 15 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "evening",
+        "description": "Lire 15 minutes le soir.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Sport 30 min",
+        "status": "completed",
+        "days": 4
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur performant qui veut progresser",
+    "age_range": "25-35",
+    "style": "oral, confiant, motivé, prêt à augmenter la cadence",
+    "background": "J'ai dépassé mon objectif de sport cette semaine (4 fois au lieu de 3). Quand Sophia propose d'augmenter, j'accepte avec enthousiasme."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_target_exceeded",
+      "spec": {
+        "exceeded_action": "Sport 30 min",
+        "current_reps": 4,
+        "target_reps": 3,
+        "actions_status": {
+          "Sport 30 min": "completed",
+          "Lecture 15 min": "completed"
+        },
+        "accept_increase": true,
+        "phase_sequence": [
+          "trigger_checkup",
+          "react_to_target_exceeded_congrats",
+          "accept_increase_target",
+          "answer_action_2_done",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point",
+      "augment|passer|objectif|cible|fois"
+    ]
+  }
+}

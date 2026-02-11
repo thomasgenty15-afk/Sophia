@@ -1,0 +1,12 @@
+{
+  "fixed_slot_user_id": "a7fe392e-61c5-4703-ad81-64f76f388a39",
+  "run_evals_test_user_id": "a7fe392e-61c5-4703-ad81-64f76f388a39",
+  "requested_interval": {
+    "startIso": "2026-02-10T18:05:52.154Z",
+    "endIso": "2026-02-10T18:25:58.355Z"
+  },
+  "export_interval": {
+    "sinceIso": "2026-02-10T18:05:22.154Z",
+    "untilIso": "2026-02-10T18:27:58.355Z"
+  }
+}

@@ -6,7 +6,12 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { generateWithGemini } from "../_shared/gemini.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 import { whatsappLangFromLocale } from "../_shared/locale.ts"
-import { hasActiveStateMachine } from "./state_machine_check.ts"
+import { deferSignal, type DeferredMachineType } from "../sophia-brain/router/deferred_topics_v2.ts"
+import {
+  cleanupHardExpiredStateMachines,
+  clearActiveMachineForDailyBilan,
+  hasActiveStateMachine,
+} from "./state_machine_check.ts"
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms))
@@ -66,6 +71,120 @@ function isMegaTestMode(): boolean {
 
 function normalizeChatText(text: unknown): string {
   return (text ?? "").toString().replace(/\\n/g, "\n").replace(/\*\*/g, "").trim()
+}
+
+function lastWhatsappActivityMs(profile: any): number | null {
+  const inbound = profile?.whatsapp_last_inbound_at ? new Date(profile.whatsapp_last_inbound_at).getTime() : null
+  const outbound = profile?.whatsapp_last_outbound_at ? new Date(profile.whatsapp_last_outbound_at).getTime() : null
+  const last = Math.max(inbound ?? 0, outbound ?? 0)
+  return last > 0 ? last : null
+}
+
+function machineLabelToDeferredType(machineLabel: string | null): DeferredMachineType | null {
+  switch (machineLabel) {
+    case "create_action":
+    case "create_action_flow":
+      return "create_action"
+    case "update_action":
+    case "update_action_flow":
+    case "update_consent":
+      return "update_action"
+    case "breakdown_action":
+    case "breakdown_action_flow":
+      return "breakdown_action"
+    case "activate_action":
+    case "activate_action_flow":
+      return "activate_action"
+    case "delete_action":
+    case "delete_action_flow":
+      return "delete_action"
+    case "deactivate_action":
+    case "deactivate_action_flow":
+      return "deactivate_action"
+    case "track_progress":
+    case "track_progress_flow":
+      return "track_progress"
+    case "topic_serious":
+      return "topic_serious"
+    case "topic_light":
+      return "topic_light"
+    case "deep_reasons":
+    case "deep_reasons_exploration":
+      return "deep_reasons"
+    case "checkup_entry_pending":
+      return "checkup"
+    case "profile_confirmation":
+      return "user_profile_confirmation"
+    default:
+      return null
+  }
+}
+
+function extractActionTargetFromState(chatState: any, machineLabel: string | null): string | undefined {
+  const tm = chatState?.temp_memory ?? {}
+  const stack = tm?.supervisor?.stack
+  if (Array.isArray(stack) && machineLabel) {
+    const active = stack.find((s: any) => String(s?.status ?? "") === "active" && String(s?.type ?? "") === machineLabel)
+    const target = String(
+      active?.meta?.target_action ??
+        active?.meta?.candidate?.target_action?.title ??
+        active?.meta?.candidate?.label ??
+        active?.topic ??
+        "",
+    ).trim()
+    if (target) return target
+  }
+
+  const byKey = (key: string) => {
+    const raw = (tm as any)?.[key]
+    const t = String(raw?.target_action ?? raw?.candidate?.target_action?.title ?? raw?.candidate?.label ?? raw?.topic ?? "").trim()
+    return t || undefined
+  }
+
+  switch (machineLabel) {
+    case "create_action":
+      return byKey("create_action_flow")
+    case "update_action":
+    case "update_consent":
+      return byKey("update_action_flow")
+    case "breakdown_action":
+      return byKey("breakdown_action_flow")
+    case "activate_action":
+      return byKey("activate_action_flow")
+    case "delete_action":
+      return byKey("delete_action_flow")
+    case "deactivate_action":
+      return byKey("deactivate_action_flow")
+    case "track_progress":
+      return byKey("track_progress_flow")
+    case "deep_reasons":
+      return String((tm as any)?.deep_reasons_state?.action_title ?? "").trim() || undefined
+    default:
+      return undefined
+  }
+}
+
+function parkInterruptedMachineAsDeferred(chatState: any, machineLabel: string | null): { chatState: any; parked: boolean } {
+  const machineType = machineLabelToDeferredType(machineLabel)
+  if (!machineType || !chatState || typeof chatState !== "object") return { chatState, parked: false }
+  const actionTarget = extractActionTargetFromState(chatState, machineLabel)
+  const summary = actionTarget
+    ? `Interrompu pour bilan: ${actionTarget}`
+    : "Interrompu pour bilan du soir"
+  const tm = chatState?.temp_memory ?? {}
+  const result = deferSignal({
+    tempMemory: tm,
+    machine_type: machineType,
+    action_target: actionTarget,
+    summary,
+  })
+  return {
+    chatState: {
+      ...chatState,
+      temp_memory: result.tempMemory,
+    },
+    parked: true,
+  }
 }
 
 function fallbackDailyBilanMessage(): string {
@@ -269,9 +388,10 @@ async function deferBilanToTopics(
     // Build deferred topic entry (mirrors deferred_topics_v2.ts createDeferredTopicV2)
     const now = new Date()
     const nowStr = now.toISOString()
+    const deferTtlMinutes = Math.max(30, envInt("DAILY_BILAN_DEFER_TTL_MINUTES", 240))
+    const ttlMs = deferTtlMinutes * 60 * 1000
     const rand = Math.random().toString(36).slice(2, 8)
     const topicId = `def_bilan_${nowStr.replace(/[:.]/g, "-")}_${rand}`
-    const ttlMs = 48 * 60 * 60 * 1000 // 48h
     const deferredMarker = {
       source: "trigger-daily-bilan",
       created_at: nowStr,
@@ -295,9 +415,16 @@ async function deferBilanToTopics(
     // Read existing deferred state
     const deferredState = (tm as any).deferred_topics_v2 ?? { topics: [] }
     const existingTopics = Array.isArray(deferredState.topics) ? deferredState.topics : []
+    const freshTopics = existingTopics.filter((t: any) => {
+      const expiresAt = new Date(String(t?.expires_at ?? "")).getTime()
+      if (Number.isFinite(expiresAt) && expiresAt <= now.getTime()) return false
+      const createdAt = new Date(String(t?.created_at ?? "")).getTime()
+      if (Number.isFinite(createdAt) && now.getTime() - createdAt > ttlMs) return false
+      return true
+    })
 
     // Check if a checkup deferred already exists (avoid duplicates)
-    const alreadyHasCheckup = existingTopics.some(
+    const alreadyHasCheckup = freshTopics.some(
       (t: any) => t.machine_type === "checkup" && new Date(t.expires_at).getTime() > now.getTime()
     )
     if (alreadyHasCheckup) {
@@ -321,7 +448,7 @@ async function deferBilanToTopics(
     }
 
     // Add new topic (max 5, FIFO)
-    let updatedTopics = [...existingTopics, newTopic]
+    let updatedTopics = [...freshTopics, newTopic]
     if (updatedTopics.length > 5) {
       updatedTopics = updatedTopics.slice(-5)
     }
@@ -393,7 +520,7 @@ Deno.serve(async (req) => {
     // Scheduler can pass a user_ids filter; otherwise we keep legacy behavior.
     const q = admin
       .from("profiles")
-      .select("id, full_name, whatsapp_bilan_opted_in, timezone, locale")
+      .select("id, full_name, whatsapp_bilan_opted_in, timezone, locale, whatsapp_last_inbound_at, whatsapp_last_outbound_at")
       .eq("whatsapp_opted_in", true)
       .eq("phone_invalid", false)
       .not("phone_number", "is", null)
@@ -431,6 +558,8 @@ Deno.serve(async (req) => {
     const throttleMs = Math.max(0, envInt("DAILY_BILAN_THROTTLE_MS", 300))
     const maxAttempts = Math.max(1, envInt("DAILY_BILAN_MAX_SEND_ATTEMPTS", 5))
     const logSkips = envBool("DAILY_BILAN_LOG_SKIPS", false)
+    const forceInterruptInactivityMs = Math.max(1, envInt("DAILY_BILAN_FORCE_INTERRUPT_INACTIVITY_MINUTES", 15)) * 60 * 1000
+    const machineHardTtlMs = Math.max(30, envInt("DAILY_BILAN_MACHINE_HARD_TTL_MINUTES", 240)) * 60 * 1000
 
     let sent = 0
     let skipped = 0
@@ -464,13 +593,68 @@ Deno.serve(async (req) => {
       console.error("[trigger-daily-bilan] Failed to batch-read chat states:", e)
     }
 
+    async function persistChatState(userId: string, chatState: any): Promise<boolean> {
+      try {
+        const { error: stErr } = await admin
+          .from("user_chat_states")
+          .update({
+            investigation_state: (chatState as any)?.investigation_state ?? null,
+            temp_memory: (chatState as any)?.temp_memory ?? {},
+          })
+          .eq("user_id", userId)
+          .eq("scope", "whatsapp")
+        if (stErr) {
+          console.error(`[trigger-daily-bilan] Failed to persist chat state for ${userId}:`, stErr)
+          return false
+        }
+        chatStatesById.set(userId, chatState)
+        return true
+      } catch (e) {
+        console.error(`[trigger-daily-bilan] Persist chat state exception for ${userId}:`, e)
+        return false
+      }
+    }
+
     for (let idx = 0; idx < filtered.length; idx++) {
       const userId = filtered[idx]
       try {
         const p = profilesById.get(userId) as any
         const hasBilanOptIn = Boolean(p?.whatsapp_bilan_opted_in)
-        const chatState = chatStatesById.get(userId)
-        const machineCheck = hasActiveStateMachine(chatState)
+        let chatState = chatStatesById.get(userId)
+
+        // Hard cleanup (4h by default): if a machine has been stale too long,
+        // clear it now so proactive scheduling is not blocked forever.
+        if (chatState) {
+          const cleaned = cleanupHardExpiredStateMachines(chatState, { hardTtlMs: machineHardTtlMs })
+          if (cleaned.changed) {
+            chatState = cleaned.chatState
+            await persistChatState(userId, chatState)
+            if (logSkips) {
+              await logComm(admin, {
+                user_id: userId,
+                channel: "whatsapp",
+                type: "daily_bilan_machine_expired_cleanup",
+                status: "cleaned",
+                metadata: {
+                  cleaned_keys: cleaned.cleaned,
+                  request_id: requestId,
+                  hard_ttl_minutes: Math.round(machineHardTtlMs / 60000),
+                },
+              })
+            }
+          }
+        }
+
+        let machineCheck = hasActiveStateMachine(chatState)
+        const lastActivity = lastWhatsappActivityMs(p)
+        const inactiveForMs = lastActivity ? Math.max(0, Date.now() - lastActivity) : null
+        const shouldForceInterrupt = Boolean(
+          hasBilanOptIn &&
+          machineCheck.active &&
+          machineCheck.interruptible &&
+          inactiveForMs !== null &&
+          inactiveForMs >= forceInterruptInactivityMs,
+        )
 
         // Smooth out bursts (skip the first)
         if (throttleMs > 0 && idx > 0) await sleep(throttleMs)
@@ -532,6 +716,33 @@ Deno.serve(async (req) => {
             sentUserIds.push(userId)
           }
         } else {
+          if (shouldForceInterrupt && machineCheck.machineLabel) {
+            const interruptedLabel = machineCheck.machineLabel
+            const parked = parkInterruptedMachineAsDeferred(chatState, interruptedLabel)
+            chatState = parked.chatState
+            const interrupted = clearActiveMachineForDailyBilan(chatState, interruptedLabel)
+            if (interrupted.changed || parked.parked) {
+              chatState = interrupted.chatState
+              await persistChatState(userId, chatState)
+            }
+            machineCheck = hasActiveStateMachine(chatState)
+            if (logSkips) {
+              await logComm(admin, {
+                user_id: userId,
+                channel: "whatsapp",
+                type: "daily_bilan_forced_interrupt",
+                status: "forced",
+                metadata: {
+                  interrupted_machine: interruptedLabel,
+                  parked_as_deferred: parked.parked,
+                  inactivity_minutes: inactiveForMs !== null ? Math.round(inactiveForMs / 60000) : null,
+                  threshold_minutes: Math.round(forceInterruptInactivityMs / 60000),
+                  request_id: requestId,
+                },
+              })
+            }
+          }
+
           // ═══════════════════════════════════════════════════════════════════
           // STATE MACHINE CHECK: If user has an active state machine, defer
           // the bilan to deferred_topics_v2 instead of interrupting.

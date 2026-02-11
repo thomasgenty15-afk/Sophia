@@ -278,38 +278,8 @@ async function main() {
         `${url}/rest/v1/turn_summary_logs` +
         `?select=${encodeURIComponent(
           [
-            "id",
             "created_at",
             "request_id",
-            "user_id",
-            "channel",
-            "scope",
-            "latency_total_ms",
-            "latency_dispatcher_ms",
-            "latency_context_ms",
-            "latency_agent_ms",
-            "dispatcher_model",
-            "dispatcher_safety",
-            "dispatcher_intent",
-            "dispatcher_intent_conf",
-            "dispatcher_interrupt",
-            "dispatcher_topic_depth",
-            "dispatcher_flow_resolution",
-            "context_profile",
-            "context_elements",
-            "context_tokens",
-            "target_dispatcher",
-            "target_initial",
-            "target_final",
-            "risk_score",
-            "agent_model",
-            "agent_outcome",
-            "agent_tool",
-            "checkup_active",
-            "toolflow_active",
-            "supervisor_stack_top",
-            "aborted",
-            "abort_reason",
             "payload",
           ].join(","),
         )}` +
@@ -340,52 +310,6 @@ async function main() {
     metadata: m.metadata ?? {},
   }));
 
-  const turnSummaryRows = (turnSummaries ?? []).map((t) => ({
-    ts: t.created_at,
-    kind: "turn_summary_log",
-    user_id: t.user_id,
-    channel: t.channel,
-    scope: t.scope,
-    request_id: t.request_id,
-    aborted: t.aborted ?? false,
-    abort_reason: t.abort_reason ?? null,
-    latency_total_ms: t.latency_total_ms ?? null,
-    latency_dispatcher_ms: t.latency_dispatcher_ms ?? null,
-    latency_context_ms: t.latency_context_ms ?? null,
-    latency_agent_ms: t.latency_agent_ms ?? null,
-    dispatcher: {
-      model: t.dispatcher_model ?? null,
-      safety: t.dispatcher_safety ?? null,
-      intent: t.dispatcher_intent ?? null,
-      intent_conf: t.dispatcher_intent_conf ?? null,
-      interrupt: t.dispatcher_interrupt ?? null,
-      topic_depth: t.dispatcher_topic_depth ?? null,
-      flow_resolution: t.dispatcher_flow_resolution ?? null,
-    },
-    context: {
-      profile: t.context_profile ?? null,
-      elements: t.context_elements ?? null,
-      tokens: t.context_tokens ?? null,
-    },
-    routing: {
-      target_dispatcher: t.target_dispatcher ?? null,
-      target_initial: t.target_initial ?? null,
-      target_final: t.target_final ?? null,
-      risk_score: t.risk_score ?? null,
-    },
-    agent: {
-      model: t.agent_model ?? null,
-      outcome: t.agent_outcome ?? null,
-      tool: t.agent_tool ?? null,
-    },
-    state: {
-      checkup_active: t.checkup_active ?? null,
-      toolflow_active: t.toolflow_active ?? null,
-      supervisor_stack_top: t.supervisor_stack_top ?? null,
-    },
-    payload: t.payload ?? {},
-  }));
-
   // Files requested for analysis:
   // 1) human-readable transcript
   // 2) brain trace (payloads)
@@ -395,10 +319,10 @@ async function main() {
   transcriptWrite(transcriptPath, conversationRows);
   jsonlWrite(
     brainTracePath,
-    turnSummaryRows.map((r) => ({
+    (turnSummaries ?? []).map((t) => ({
       // Minimal "trace" export: DB timestamp + payload (payload already includes request_id, channel, scope, etc.)
-      ts_db: r.ts,
-      payload: r.payload ?? {},
+      ts_db: t.created_at,
+      payload: t.payload ?? {},
     })),
   );
 
@@ -417,7 +341,7 @@ async function main() {
     counts: {
       chat_messages: conversationRows.length,
       request_ids: requestIds.length,
-      turn_summary_logs: turnSummaryRows.length,
+      turn_summary_logs: (turnSummaries ?? []).length,
       missing_turn_summaries: missingSummary.length,
     },
     outputs: {

@@ -1,0 +1,125 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_deactivate_action_v2_ai_user",
+  "description": "V2 — Tool test (deactivate_action_flow) with AI-generated user messages. 12-turn difficult conversation with slight digressions, but a consistent deactivate intent.",
+  "tags": ["sophia.architect", "v2", "deactivate_action_flow"],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Lecture",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 4,
+        "time_of_day": "evening",
+        "description": "Lire 10 minutes le soir.",
+        "scheduled_days": ["mon", "wed", "fri", "sun"]
+      },
+      {
+        "title": "Marche 15 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": "any_time",
+        "description": "Marcher 15 minutes pour couper la journée.",
+        "scheduled_days": ["tue", "thu", "sat"]
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur web",
+    "age_range": "25-40",
+    "style": "oral, naturel, parfois hésitant, mais engagé",
+    "background": "J'ai une action Lecture qui me met la pression. Je veux la désactiver proprement, sans sortir de la conversation."
+  },
+  "objectives": [
+    {
+      "kind": "tools_deactivate_action_v2_realistic",
+      "spec": {
+        "action_title": "Lecture",
+        "reason": "ça me met la pression et je procrastine dessus depuis des semaines",
+        "difficulty_profile": "hard",
+        "expected_turns": 12
+      }
+    }
+  ],
+  "variants": [
+    {
+      "id": "easy_12t",
+      "tags": ["difficulty.easy", "v2"],
+      "objectives": [
+        {
+          "kind": "tools_deactivate_action_v2_realistic",
+          "spec": {
+            "action_title": "Lecture",
+            "reason": "je n'arrive pas à garder le rythme en ce moment",
+            "difficulty_profile": "easy",
+            "expected_turns": 12
+          }
+        }
+      ]
+    },
+    {
+      "id": "mid_12t",
+      "tags": ["difficulty.mid", "v2"],
+      "objectives": [
+        {
+          "kind": "tools_deactivate_action_v2_realistic",
+          "spec": {
+            "action_title": "Lecture",
+            "reason": "ça me met la pression et je procrastine souvent",
+            "difficulty_profile": "mid",
+            "expected_turns": 12
+          }
+        }
+      ]
+    },
+    {
+      "id": "hard_12t",
+      "tags": ["difficulty.hard", "v2"],
+      "objectives": [
+        {
+          "kind": "tools_deactivate_action_v2_realistic",
+          "spec": {
+            "action_title": "Lecture",
+            "reason": "je culpabilise à chaque fois et je finis par éviter cette action",
+            "difficulty_profile": "hard",
+            "expected_turns": 12
+          }
+        }
+      ]
+    },
+    {
+      "id": "expert_12t",
+      "tags": ["difficulty.expert", "v2"],
+      "objectives": [
+        {
+          "kind": "tools_deactivate_action_v2_realistic",
+          "spec": {
+            "action_title": "Lecture",
+            "reason": "je suis partagé entre pause et désactivation, mais je veux une vraie décision propre",
+            "difficulty_profile": "expert",
+            "expected_turns": 12
+          }
+        }
+      ]
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"],
+    "assistant_must_not_match": ["\\*\\*", "\\bpending\\b"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "(d[ée]sactiv|mise? en pause|en pause)",
+      "(r[ée]activ|r[ée]versibl|conserv|historique)"
+    ],
+    "plan_actions_must_include": [
+      {
+        "title": ["Lecture"],
+        "status": "pending"
+      }
+    ]
+  }
+}
+

@@ -1,0 +1,246 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "target-exceed-bilan-V4",
+  "description": "V4: Bilan avec habitude ayant dépassé son objectif hebdomadaire. 3 variants: yes_no_days (accept sans jours), yes_with_days (accept avec jours planifiés → demande quel jour), no (refuse l'augmentation).",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v4",
+    "state_machine",
+    "ai_user",
+    "target_exceeded",
+    "bilan.vitals"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_vitals": [
+      {
+        "label": "Énergie",
+        "unit": "/10",
+        "tracking_type": "counter"
+      }
+    ],
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "current_reps": 4,
+        "time_of_day": "morning",
+        "description": "Faire 30 minutes de sport."
+      },
+      {
+        "title": "Lecture 15 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "current_reps": 2,
+        "time_of_day": "evening",
+        "description": "Lire 15 minutes le soir."
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Sport 30 min",
+        "status": "completed",
+        "days": 4
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur performant qui veut progresser",
+    "age_range": "25-35",
+    "style": "oral, confiant, motivé",
+    "background": "J'ai dépassé mon objectif de sport cette semaine (4 fois au lieu de 3). Je suis prêt à faire le bilan."
+  },
+  "assertions": {
+    "must_include_agent": ["investigator"],
+    "include_vitals_in_bilan": true,
+    "assistant_must_not_match": ["\\*\\*"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point",
+      "augment|passer|objectif|cible|fois"
+    ]
+  },
+  "variants": [
+    {
+      "id": "yes_no_days",
+      "setup": {
+        "preseed_actions": [
+          {
+            "title": "Sport 30 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 3,
+            "current_reps": 4,
+            "time_of_day": "morning",
+            "description": "Faire 30 minutes de sport."
+          },
+          {
+            "title": "Lecture 15 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 2,
+            "time_of_day": "evening",
+            "description": "Lire 15 minutes le soir."
+          }
+        ],
+        "preseed_action_entries": [
+          {
+            "title": "Sport 30 min",
+            "status": "completed",
+            "days": 4
+          }
+        ]
+      },
+      "objectives": [
+        {
+          "kind": "bilan_v3_target_exceeded_yes_no_days",
+          "spec": {
+            "exceeded_action": "Sport 30 min",
+            "current_reps": 4,
+            "target_reps": 3,
+            "vital_value": "7 sur 10",
+            "actions_status": {
+              "Sport 30 min": "completed",
+              "Lecture 15 min": "completed"
+            },
+            "accept_increase": true,
+            "has_scheduled_days": false,
+            "phase_sequence": [
+              "trigger_checkup",
+              "answer_vital",
+              "react_to_target_exceeded_congrats",
+              "accept_increase_target",
+              "answer_action_2",
+              "acknowledge_bilan_end"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "yes_with_days",
+      "setup": {
+        "preseed_actions": [
+          {
+            "title": "Sport 30 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 3,
+            "current_reps": 4,
+            "time_of_day": "morning",
+            "description": "Faire 30 minutes de sport.",
+            "scheduled_days": ["mon", "wed", "fri"]
+          },
+          {
+            "title": "Lecture 15 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 2,
+            "time_of_day": "evening",
+            "description": "Lire 15 minutes le soir."
+          }
+        ],
+        "preseed_action_entries": [
+          {
+            "title": "Sport 30 min",
+            "status": "completed",
+            "days": 4
+          }
+        ]
+      },
+      "objectives": [
+        {
+          "kind": "bilan_v3_target_exceeded_yes_with_days",
+          "spec": {
+            "exceeded_action": "Sport 30 min",
+            "current_reps": 4,
+            "target_reps": 3,
+            "vital_value": "7 sur 10",
+            "actions_status": {
+              "Sport 30 min": "completed",
+              "Lecture 15 min": "completed"
+            },
+            "accept_increase": true,
+            "has_scheduled_days": true,
+            "scheduled_days": ["mon", "wed", "fri"],
+            "day_to_add": "mardi",
+            "phase_sequence": [
+              "trigger_checkup",
+              "answer_vital",
+              "react_to_target_exceeded_congrats",
+              "accept_increase_target",
+              "choose_day",
+              "answer_action_2",
+              "acknowledge_bilan_end"
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "no",
+      "setup": {
+        "preseed_actions": [
+          {
+            "title": "Sport 30 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 3,
+            "current_reps": 4,
+            "time_of_day": "morning",
+            "description": "Faire 30 minutes de sport."
+          },
+          {
+            "title": "Lecture 15 min",
+            "type": "habit",
+            "tracking_type": "boolean",
+            "target_reps": 5,
+            "current_reps": 2,
+            "time_of_day": "evening",
+            "description": "Lire 15 minutes le soir."
+          }
+        ],
+        "preseed_action_entries": [
+          {
+            "title": "Sport 30 min",
+            "status": "completed",
+            "days": 4
+          }
+        ]
+      },
+      "objectives": [
+        {
+          "kind": "bilan_v3_target_exceeded_no",
+          "spec": {
+            "exceeded_action": "Sport 30 min",
+            "current_reps": 4,
+            "target_reps": 3,
+            "vital_value": "7 sur 10",
+            "actions_status": {
+              "Sport 30 min": "completed",
+              "Lecture 15 min": "completed"
+            },
+            "accept_increase": false,
+            "has_scheduled_days": false,
+            "phase_sequence": [
+              "trigger_checkup",
+              "answer_vital",
+              "react_to_target_exceeded_congrats",
+              "decline_increase_target",
+              "answer_action_2",
+              "acknowledge_bilan_end"
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+

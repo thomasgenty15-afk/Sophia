@@ -54,6 +54,7 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     INSTRUCTIONS POUR LA FIN DU BILAN (NATURELLE ET CONTEXTUELLE) :
     
     1. Le bilan est terminé. Ne pose plus de questions item-par-item.
+       - Commence par une phrase de clôture explicite du bilan du jour (ex: "Ok, bilan du jour bouclé.").
     
     2. SYNTHÈSE (1-2 phrases MAX, fluide):
        - NE LISTE PAS les actions une par une de façon robotique.
@@ -237,14 +238,37 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     `
       : ""}
 
+    ${scenario === "increase_target_ask_day"
+      ? `
+    SCÉNARIO SPÉCIAL : DEMANDER QUEL JOUR AJOUTER
+    L'utilisateur a accepté d'augmenter son objectif hebdomadaire.
+    Mais cette habitude a des jours planifiés (scheduled_days). Il faut savoir quel jour ajouter.
+    
+    Données: action_title, current_scheduled_days (ex: ["mon","wed","fri"]).
+    
+    TON STYLE:
+    1. Confirme brièvement que tu notes son envie d'augmenter.
+    2. Liste les jours actuels EN FRANÇAIS (lundi, mercredi, vendredi…).
+    3. Demande quel jour il veut ajouter. Question simple et directe.
+    
+    EXEMPLES:
+    - "Ok ! Aujourd'hui c'est lundi, mercredi et vendredi. Tu voudrais rajouter quel jour ? 🤔"
+    - "Top ! Tu fais déjà lundi, mercredi et vendredi. Quel jour on rajoute ?"
+    
+    INTERDIT: Citer les jours en anglais (mon/wed/fri). Toujours en français.
+    `
+      : ""}
+
     ${scenario === "increase_target_confirmed"
       ? `
     SCÉNARIO SPÉCIAL : AUGMENTATION CONFIRMÉE
     L'utilisateur a dit oui à l'augmentation de l'objectif hebdomadaire.
-    Données: increase_result (success, old_target, new_target).
+    Données: increase_result (success, old_target, new_target), day_added (optionnel, si un jour a été ajouté).
     
     Message court: Confirme que c'est fait + mentionne le nouveau chiffre.
-    Exemple: "C'est passé à X×/semaine. On continue ?"
+    Si day_added est présent, mentionne aussi le jour ajouté.
+    Exemple sans jour: "C'est passé à X×/semaine. On continue ?"
+    Exemple avec jour: "C'est noté, mardi ajouté ! Objectif à X×/semaine maintenant."
     `
       : ""}
 
@@ -253,6 +277,24 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     SCÉNARIO SPÉCIAL : AUGMENTATION REFUSÉE
     L'utilisateur ne veut pas augmenter. Pas de pression, acknowledge et continue.
     Message court: "Ok, on garde X×/semaine."
+    `
+      : ""}
+
+    ${scenario === "increase_target_declined_transition"
+      ? `
+    SCÉNARIO SPÉCIAL : AUGMENTATION REFUSÉE + TRANSITION IMMÉDIATE
+    L'utilisateur a refusé l'augmentation, et il reste des items à traiter dans le bilan.
+
+    OBJECTIF:
+    - Faire UNE seule transition fluide, sans redondance.
+    - D'abord: acknowledge le refus en une phrase courte.
+    - Ensuite: enchaîne directement vers la question sur next_item.
+
+    RÈGLES CRITIQUES:
+    - Interdiction de doubler l'acknowledgement ("ok ... d'accord ...").
+    - Interdiction de ton passif-agressif ou insistant.
+    - Pas de mention technique.
+    - Une seule question finale (sur next_item).
     `
       : ""}
 

@@ -296,10 +296,10 @@ export async function handleDeactivateAction(
   if (action) {
     const st = String((action as any)?.status ?? "")
     if (st === "pending") {
-      return `"${(action as any).title}" est déjà en pause (status pending).`
+      return `"${(action as any).title}" est déjà en pause (désactivée proprement).`
     }
     await supabase.from("user_actions").update({ status: "pending" }).eq("id", (action as any).id)
-    return `C'est fait. J'ai mis en pause "${(action as any).title}". Tu pourras la réactiver quand tu veux.`
+    return `C'est fait. J'ai mis en pause "${(action as any).title}" (désactivée proprement). Tu pourras la réactiver quand tu veux.`
   }
 
   let fw: any = null
@@ -347,10 +347,10 @@ export async function handleDeactivateAction(
   if (fw) {
     const st = String((fw as any)?.status ?? "")
     if (st === "pending") {
-      return `"${(fw as any).title}" est déjà en pause (status pending).`
+      return `"${(fw as any).title}" est déjà en pause (désactivé proprement).`
     }
     await supabase.from("user_framework_tracking").update({ status: "pending" }).eq("id", (fw as any).id)
-    return `C'est fait. J'ai mis en pause "${(fw as any).title}". Tu pourras le réactiver quand tu veux.`
+    return `C'est fait. J'ai mis en pause "${(fw as any).title}" (désactivé proprement). Tu pourras le réactiver quand tu veux.`
   }
 
   return `Je ne trouve pas l'action "${rawInput}" dans ton plan.`

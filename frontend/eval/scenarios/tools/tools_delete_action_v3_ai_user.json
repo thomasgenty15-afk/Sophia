@@ -1,0 +1,123 @@
+{
+  "dataset_key": "tools",
+  "id": "tools_delete_action_v3_ai_user",
+  "description": "V3 — Tool test (delete_action_flow) with AI-generated user messages. 12-turn difficult conversation with slight digressions, but a consistent delete intent.",
+  "tags": ["sophia.architect", "v3", "delete_action_flow"],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Lecture",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 4,
+        "time_of_day": "evening",
+        "description": "Lire 10 minutes le soir.",
+        "scheduled_days": ["mon", "wed", "fri", "sun"]
+      },
+      {
+        "title": "Marche 15 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": "any_time",
+        "description": "Marcher 15 minutes pour couper la journée.",
+        "scheduled_days": ["tue", "thu", "sat"]
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur web",
+    "age_range": "25-40",
+    "style": "oral, naturel, parfois hésitant, mais engagé",
+    "background": "J'ai une action Lecture qui ne me correspond plus. Je veux la supprimer proprement, sans quitter la conversation."
+  },
+  "objectives": [
+    {
+      "kind": "tools_delete_action_v3_realistic",
+      "spec": {
+        "action_title": "Lecture",
+        "reason": "je n'en veux plus dans mon plan, ça me culpabilise et je l'évite depuis des semaines",
+        "difficulty_profile": "hard",
+        "expected_turns": 12
+      }
+    }
+  ],
+  "variants": [
+    {
+      "id": "easy_12t",
+      "tags": ["difficulty.easy", "v3"],
+      "objectives": [
+        {
+          "kind": "tools_delete_action_v3_realistic",
+          "spec": {
+            "action_title": "Lecture",
+            "reason": "ça ne me convient plus en ce moment",
+            "difficulty_profile": "easy",
+            "expected_turns": 12
+          }
+        }
+      ]
+    },
+    {
+      "id": "mid_12t",
+      "tags": ["difficulty.mid", "v3"],
+      "objectives": [
+        {
+          "kind": "tools_delete_action_v3_realistic",
+          "spec": {
+            "action_title": "Lecture",
+            "reason": "je n'arrive plus à la tenir et je veux nettoyer mon plan",
+            "difficulty_profile": "mid",
+            "expected_turns": 12
+          }
+        }
+      ]
+    },
+    {
+      "id": "hard_12t",
+      "tags": ["difficulty.hard", "v3"],
+      "objectives": [
+        {
+          "kind": "tools_delete_action_v3_realistic",
+          "spec": {
+            "action_title": "Lecture",
+            "reason": "je culpabilise à chaque fois et je veux vraiment la retirer du plan",
+            "difficulty_profile": "hard",
+            "expected_turns": 12
+          }
+        }
+      ]
+    },
+    {
+      "id": "expert_12t",
+      "tags": ["difficulty.expert", "v3"],
+      "objectives": [
+        {
+          "kind": "tools_delete_action_v3_realistic",
+          "spec": {
+            "action_title": "Lecture",
+            "reason": "je suis partagé entre simplifier et supprimer, mais je veux une décision propre et définitive",
+            "difficulty_profile": "expert",
+            "expected_turns": 12
+          }
+        }
+      ]
+    }
+  ],
+  "assertions": {
+    "must_include_agent": ["architect"],
+    "assistant_must_not_match": ["\\*\\*", "\\bpending\\b"]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "(supprim|retir|enlev)",
+      "(d[ée]finiti(?:f|ve)|retir[ée]?.{0,80}(du\\s+plan|de\\s+ton\\s+plan)|supprim[ée]?.{0,80}(de\\s+ton\\s+plan|du\\s+plan)|parti[e]?\\s+de\\s+ton\\s+plan)"
+    ],
+    "plan_actions_must_not_include": [
+      {
+        "title": ["Lecture"]
+      }
+    ]
+  }
+}

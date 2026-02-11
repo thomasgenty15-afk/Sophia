@@ -1,0 +1,46 @@
+{
+  "status": "checking",
+  "pending_items": [
+    {
+      "id": "ab91a13b-d129-4289-8830-7c639abecf53",
+      "type": "vital",
+      "title": "Énergie",
+      "tracking_type": "counter",
+      "unit": "/10",
+      "day_scope": "today",
+      "target_vital_value": ""
+    },
+    {
+      "id": "95bfb8e7-ff3f-45d3-b397-abf2862c5e44",
+      "type": "action",
+      "title": "Méditation 10 min",
+      "description": "Méditer 10 minutes le matin.",
+      "tracking_type": "boolean",
+      "target": 5,
+      "current": 0,
+      "is_habit": true,
+      "weekly_target_status": "below",
+      "is_scheduled_day": true,
+      "day_scope": "today",
+      "time_of_day": "morning"
+    },
+    {
+      "id": "7fefa76b-d118-40c4-af55-e30084cf9748",
+      "type": "action",
+      "title": "Lecture 20 min",
+      "description": "Lire 20 minutes le soir.",
+      "tracking_type": "boolean",
+      "target": 5,
+      "current": 3,
+      "is_habit": true,
+      "weekly_target_status": "below",
+      "is_scheduled_day": true,
+      "day_scope": "today",
+      "time_of_day": "evening"
+    }
+  ],
+  "current_item_index": 0,
+  "temp_memory": {
+    "opening_done": false
+  }
+}

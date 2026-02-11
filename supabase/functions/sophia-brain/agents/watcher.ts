@@ -2,6 +2,7 @@ import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { getUserState, updateUserState, normalizeScope } from '../state-manager.ts' // Need access to state
 import { consolidateMemories } from "./gardener.ts"
+import { getUserProfileFacts, formatUserProfileFactsForPrompt, upsertUserProfileFactWithEvent } from "../profile_facts.ts"
 
 export async function runWatcher(
   supabase: SupabaseClient, 
@@ -92,7 +93,19 @@ export async function runWatcher(
     return;
   }
 
-  // 4. Analyze with Gemini (TRIPLE ACTION: Insights + Archive + Context)
+  // 4. Fetch existing user profile facts so the LLM can decide insert vs update
+  let existingFactsPrompt = ""
+  try {
+    const existingFacts = await getUserProfileFacts({ supabase, userId, scopes: ["global", scope] })
+    const formatted = formatUserProfileFactsForPrompt(existingFacts, scope)
+    if (formatted) {
+      existingFactsPrompt = `\n    FACTS UTILISATEUR DEJA CONNUS :\n    ${formatted}\n`
+    }
+  } catch (e) {
+    console.warn("[Veilleur] Failed to fetch existing profile facts (non-blocking):", e)
+  }
+
+  // 5. Analyze with Gemini (TRIPLE ACTION: Insights + Archive + Context + Profile Facts)
   const basePrompt = `
     Tu es "Le Veilleur" du système Sophia.
     Tu analyses le dernier bloc de conversation (15 messages) pour mettre à jour la mémoire du système.
@@ -100,21 +113,33 @@ export async function runWatcher(
     INPUTS :
     - Contexte Précédent (Fil Rouge) : "${currentContext}"
     - Nouveaux Messages : (Voir ci-dessous)
+    ${existingFactsPrompt}
 
-    TES 3 MISSIONS :
+    TES 4 MISSIONS :
     1. PÉPITES (RAG Précis) : Extrait les faits atomiques NOUVEAUX (ex: "Il aime le jazz", "Il veut changer de job").
     2. ARCHIVAGE (RAG Narratif) : Rédige un paragraphe dense (3-4 phrases) résumant ce bloc de conversation pour l'histoire.
     3. FIL ROUGE (Contexte Actif) : Mets à jour le "Contexte Précédent" pour qu'il reflète la situation ACTUELLE. Supprime ce qui est obsolète, garde ce qui est en cours.
 
-    4. CANDIDATS "USER MODEL" (NE PAS ÉCRIRE EN DB DIRECTEMENT) :
-    - Propose des candidats de préférences/contraintes qui méritent d'être CONFIRMÉS par l'utilisateur.
-    - IMPORTANT: ne fais PAS de déduction fragile sur un message "de flemme". Si tu n'es pas sûr, mets confidence faible ou ne propose rien.
-    - Tu ne proposes que des clés parmi:
-      - conversation.tone: "direct" | "soft"
-      - conversation.verbosity: "short" | "detailed"
-      - conversation.use_emojis: "never" | "normal"
-      - coaching.plan_push_allowed: true | false
-    - Sors au maximum 3 candidats.
+    4. PROFILE FACTS (application directe) :
+    - Détecte les faits personnels EXPLICITES et NON-AMBIGUS dans la conversation.
+    - IMPORTANT: ne fais PAS de déduction fragile. Seules les déclarations EXPLICITES comptent.
+      - "je me lève à 6h30" = wake_time OK (explicite, habitude)
+      - "je me lève tôt demain" = PAS wake_time (ponctuel, pas une habitude)
+      - "j'aime pas les emojis" = emoji_preference OK (explicite)
+      - "je suis fatigué" = PAS energy_peaks (pas un pattern permanent)
+    - Compare avec les FACTS DEJA CONNUS ci-dessus. Si le fait existe déjà avec la même valeur, ne le propose pas.
+    - Clés autorisées (max 3 candidats) :
+      - schedule.work_schedule: horaires de travail (ex: "9h-18h", "mi-temps", "télétravail")
+      - schedule.energy_peaks: moments d'énergie (ex: "matin", "après-midi")
+      - schedule.wake_time: heure de réveil habituelle (ex: "6h30", "8h")
+      - schedule.sleep_time: heure de coucher habituelle (ex: "23h", "minuit")
+      - personal.job: métier/profession (ex: "développeur", "prof de maths")
+      - personal.hobbies: loisirs/passions (ex: "course à pied", "lecture")
+      - personal.family: situation familiale (ex: "2 enfants", "marié")
+      - conversation.tone: préférence de ton ("direct" | "soft")
+      - conversation.use_emojis: préférence emojis ("never" | "normal")
+      - conversation.verbosity: préférence longueur ("short" | "detailed")
+    - Confidence: 0.0-1.0. Mets >= 0.75 seulement si c'est une déclaration EXPLICITE et non-ambiguë.
 
     SORTIE JSON ATTENDUE :
     {
@@ -122,7 +147,7 @@ export async function runWatcher(
       "chat_history_paragraph": "Texte du résumé narratif pour archivage...",
       "new_short_term_context": "Texte du nouveau fil rouge mis à jour...",
       "profile_fact_candidates": [
-        { "key": "conversation.verbosity", "value": "short", "confidence": 0.7, "reason": "string", "evidence": "snippet" }
+        { "key": "schedule.wake_time", "value": "6h30", "confidence": 0.9, "reason": "L'utilisateur a dit explicitement se lever à 6h30 chaque matin", "evidence": "je me lève tous les jours à 6h30" }
       ]
     }
   `
@@ -187,67 +212,42 @@ export async function runWatcher(
         console.log(`[Veilleur] Short Term Context Updated.`);
     }
 
-    // D. Store profile fact candidates in temp_memory (for Companion confirmation later).
-    // We keep it small and best-effort; candidates do NOT become facts without explicit confirmation.
+    // D. Apply high-confidence profile facts directly (no confirmation needed).
     try {
       if (Array.isArray(candidates) && candidates.length > 0) {
-        const now = new Date().toISOString()
+        let applied = 0
         for (const c of candidates.slice(0, 3)) {
           const key = String((c as any)?.key ?? "").trim()
           if (!key) continue
           const value = (c as any)?.value
           const conf = Math.max(0, Math.min(1, Number((c as any)?.confidence ?? 0)))
-          if (conf < 0.45) continue // ignore weak candidates
-          const reason = String((c as any)?.reason ?? "")
-          const evidence = String((c as any)?.evidence ?? "")
-
-          // Upsert candidate row (unique on user_id, scope, key, value_hash).
-          // On conflict, bump hits + recency and keep the max confidence.
-          const { data: existing } = await supabase
-            .from("user_profile_fact_candidates")
-            .select("id, hits, confidence")
-            .eq("user_id", userId)
-            .eq("scope", scope)
-            .eq("key", key)
-            .eq("proposed_value", value as any)
-            .maybeSingle()
-
-          if (existing?.id) {
-            const nextHits = Number(existing.hits ?? 0) + 1
-            const nextConf = Math.max(Number(existing.confidence ?? 0), conf)
-            await supabase
-              .from("user_profile_fact_candidates")
-              .update({
-                status: "pending",
-                hits: nextHits,
-                confidence: nextConf,
-                reason,
-                evidence,
-                last_seen_at: now,
-                updated_at: now,
-              })
-              .eq("id", existing.id)
-          } else {
-            await supabase.from("user_profile_fact_candidates").insert({
-              user_id: userId,
-              scope,
-              key,
-              proposed_value: value,
-              status: "pending",
-              confidence: conf,
-              hits: 1,
-              reason,
-              evidence,
-              first_seen_at: now,
-              last_seen_at: now,
-              created_at: now,
-              updated_at: now,
-            } as any)
+          if (conf < 0.75) {
+            console.log(`[Veilleur] Skipping low-confidence fact: ${key} (conf=${conf})`)
+            continue
           }
+          const reason = String((c as any)?.reason ?? "")
+
+          const result = await upsertUserProfileFactWithEvent({
+            supabase,
+            userId,
+            scope: "global",
+            key,
+            value,
+            sourceType: "watcher",
+            confidence: conf,
+            reason,
+          })
+          if (result.changed) {
+            applied++
+            console.log(`[Veilleur] Applied profile fact: ${key} = ${JSON.stringify(value)} (conf=${conf})`)
+          }
+        }
+        if (applied > 0) {
+          console.log(`[Veilleur] Applied ${applied} profile fact(s).`)
         }
       }
     } catch (e) {
-      console.warn("[Watcher] storing profile fact candidates failed (non-blocking):", e)
+      console.warn("[Watcher] applying profile facts failed (non-blocking):", e)
     }
 
     // E. Trigger Memory Consolidation (Fire & Forget)

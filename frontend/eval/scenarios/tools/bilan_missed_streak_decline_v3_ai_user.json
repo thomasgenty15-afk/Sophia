@@ -1,0 +1,103 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_missed_streak_decline_v3_ai_user",
+  "description": "V3: Bilan avec missed streak >= 5 + breakdown offer refusé. Action ratée depuis 6 jours → proposition micro-étape → user refuse → breakdown_declined_action_ids mis à jour → bilan continue normalement.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user",
+    "streaks",
+    "breakdown"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Méditation 10 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "morning",
+        "description": "Méditer 10 minutes le matin.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Marche 20 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 4,
+        "time_of_day": "any_time",
+        "description": "Marcher 20 minutes dans la journée.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ],
+    "preseed_action_entries": [
+      {
+        "title": "Méditation 10 min",
+        "status": "missed",
+        "days": 6,
+        "note": "trop fatigué le matin"
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur qui refuse la micro-étape",
+    "age_range": "30-45",
+    "style": "oral, un peu sec, veut pas qu'on change ses habitudes",
+    "background": "La méditation c'est raté cette semaine mais je veux pas qu'on me propose de micro-étape. Je préfère réessayer tel quel. Quand on me propose de découper, je dis non clairement."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_missed_streak_decline",
+      "spec": {
+        "streak_action": "Méditation 10 min",
+        "streak_days": 6,
+        "actions_status": {
+          "Méditation 10 min": "missed",
+          "Marche 20 min": "completed"
+        },
+        "miss_reason": "j'y arrive pas le matin, je suis trop fatigué",
+        "accept_breakdown": false,
+        "phase_sequence": [
+          "trigger_checkup",
+          "answer_action_1_missed",
+          "give_reason_for_miss",
+          "decline_breakdown_offer",
+          "answer_action_2_done",
+          "acknowledge_bilan_end"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point"
+    ]
+  }
+}

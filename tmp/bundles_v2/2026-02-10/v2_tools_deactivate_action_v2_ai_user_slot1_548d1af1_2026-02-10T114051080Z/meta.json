@@ -1,0 +1,15 @@
+{
+  "kind": "eval_v2_bundle",
+  "scenario_key": "tools_deactivate_action_v2_ai_user",
+  "slot": 1,
+  "user_id": "548d1af1-c007-4745-9f83-f88c00995123",
+  "since": "2026-02-10T11:37:27.701Z",
+  "until": "2026-02-10T11:40:51.078Z",
+  "counts": {
+    "chat_messages": 0,
+    "request_ids": 0,
+    "turn_summary_logs": 0
+  },
+  "bundle_dir": "/Users/ahmedamara/Dev/Sophia 2/tmp/bundles_v2/2026-02-10/v2_tools_deactivate_action_v2_ai_user_slot1_548d1af1_2026-02-10T114051080Z",
+  "created_at": "2026-02-10T11:40:51.202Z"
+}

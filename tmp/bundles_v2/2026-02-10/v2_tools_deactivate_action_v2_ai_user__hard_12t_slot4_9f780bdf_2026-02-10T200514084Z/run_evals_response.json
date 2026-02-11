@@ -1,0 +1,11 @@
+{
+  "forced_timeout": true,
+  "message": "forced_completed_after_timeout:auto_completed_timeout:900000ms",
+  "results": [
+    {
+      "eval_run_id": "",
+      "test_user_id": "9f780bdf-9efe-446a-8e43-bc6fe88f6a6a",
+      "turns_executed": 0
+    }
+  ]
+}

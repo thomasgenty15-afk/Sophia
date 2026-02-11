@@ -1,0 +1,101 @@
+{
+  "dataset_key": "state_machines_v3",
+  "id": "bilan_stop_midway_v3_ai_user",
+  "description": "V3: Bilan interrompu par l'utilisateur. 3 actions mais user dit 'stop' / 'on arrête' après le 1er item. Teste isExplicitStopBilan et la fin immédiate.",
+  "tags": [
+    "bilan",
+    "investigator",
+    "v3",
+    "state_machine",
+    "ai_user"
+  ],
+  "setup": {
+    "seed_plan": true,
+    "preseed_actions": [
+      {
+        "title": "Sport 30 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": "morning",
+        "description": "Faire 30 minutes de sport.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Lecture 15 min",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 5,
+        "time_of_day": "evening",
+        "description": "Lire 15 minutes le soir.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      },
+      {
+        "title": "Journaling",
+        "type": "habit",
+        "tracking_type": "boolean",
+        "target_reps": 3,
+        "time_of_day": "evening",
+        "description": "Écrire quelques lignes dans son journal.",
+        "scheduled_days": [
+          "mon",
+          "tue",
+          "wed",
+          "thu",
+          "fri",
+          "sat",
+          "sun"
+        ]
+      }
+    ]
+  },
+  "persona": {
+    "label": "Utilisateur pressé qui veut arrêter",
+    "age_range": "30-45",
+    "style": "direct, impatient, veut couper court",
+    "background": "Je suis pressé, j'ai pas le temps pour le bilan complet. Après avoir répondu à un item, je veux arrêter et faire autre chose."
+  },
+  "objectives": [
+    {
+      "kind": "bilan_v3_stop_midway",
+      "spec": {
+        "first_action_status": "completed",
+        "stop_after_items": 1,
+        "phase_sequence": [
+          "trigger_checkup",
+          "answer_first_action_done",
+          "say_stop_explicitly"
+        ]
+      }
+    }
+  ],
+  "assertions": {
+    "must_include_agent": [
+      "investigator"
+    ],
+    "assistant_must_not_match": [
+      "\\*\\*"
+    ]
+  },
+  "mechanical_assertions": {
+    "assistant_must_match": [
+      "bilan|check|point"
+    ]
+  }
+}

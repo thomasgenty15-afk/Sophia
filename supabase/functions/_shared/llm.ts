@@ -144,7 +144,9 @@ export async function geminiEmbed(text: string, requestId: string = crypto.rando
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
   if (!GEMINI_API_KEY) throw new Error("Clé API Gemini manquante");
 
-  const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "text-embedding-005").trim() || "text-embedding-005";
+  const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "gemini-embedding-001").trim() || "gemini-embedding-001";
+  // Keep embeddings compatible with Postgres vector(768) columns.
+  const outputDimensionality = 768;
   const url =
     `https://generativelanguage.googleapis.com/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`;
 
@@ -157,6 +159,7 @@ export async function geminiEmbed(text: string, requestId: string = crypto.rando
         body: JSON.stringify({
           model: `models/${model}`,
           content: { parts: [{ text }] },
+          outputDimensionality,
         }),
       });
 
@@ -174,7 +177,11 @@ export async function geminiEmbed(text: string, requestId: string = crypto.rando
 
       const data = await resp.json();
       const values = data?.embedding?.values;
-      if (!Array.isArray(values)) throw new Error("Embedding invalide (values manquant)");
+      if (!Array.isArray(values) || values.length !== outputDimensionality) {
+        throw new Error(
+          `Embedding invalide (dimension=${Array.isArray(values) ? values.length : "unknown"}, attendu=${outputDimensionality})`,
+        );
+      }
       return values;
     } catch (err) {
       const isLast = attempt === MAX_RETRIES;
