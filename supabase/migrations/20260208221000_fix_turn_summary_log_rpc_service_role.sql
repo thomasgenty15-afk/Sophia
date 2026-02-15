@@ -164,3 +164,4 @@ grant execute on function public.log_turn_summary_log(
 ) to service_role;
 
 
+

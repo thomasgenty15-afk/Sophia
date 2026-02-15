@@ -113,8 +113,6 @@ function machineLabelToDeferredType(machineLabel: string | null): DeferredMachin
       return "deep_reasons"
     case "checkup_entry_pending":
       return "checkup"
-    case "profile_confirmation":
-      return "user_profile_confirmation"
     default:
       return null
   }

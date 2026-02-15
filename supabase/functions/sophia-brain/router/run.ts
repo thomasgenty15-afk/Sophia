@@ -51,7 +51,6 @@ import {
 import {
   normalizeLoose,
   pickDeferredSummary,
-  pickProfileConfirmSummary,
   pickSupervisorSummary,
 } from "./router_helpers.ts";
 import { resolveCheckupEntryConfirmation } from "./checkup_entry.ts";
@@ -819,7 +818,6 @@ export async function processMessage(
             "onboarding_active",
             "investigation_active",
             "plan_confirm_pending",
-            "profile_confirm_pending",
           ]) : p.state_snapshot,
         };
       case "brain:context_loaded":
@@ -1120,7 +1118,7 @@ export async function processMessage(
       reasonCodes.push("TOOLFLOW_CANCELLED_ON_STOP");
     }
     if (args.forced_pending_confirm) {
-      reasonCodes.push("PROFILE_CONFIRM_HARD_GUARD_ACTIVE");
+      reasonCodes.push("PENDING_CONFIRM_HARD_GUARD_ACTIVE");
     }
     if (args.forced_preference_mode) {
       reasonCodes.push("PREFERENCE_FORCE_COMPANION");
@@ -1159,13 +1157,11 @@ export async function processMessage(
     };
     const snapshotBefore = {
       toolflow: buildToolflowSummary(args.temp_memory_before),
-      profile_confirm: pickProfileConfirmSummary(args.temp_memory_before),
       global_deferred: pickDeferredSummary(args.temp_memory_before),
       supervisor: pickSupervisorSummary(args.temp_memory_before),
     };
     const snapshotAfter = {
       toolflow: buildToolflowSummary(args.temp_memory_after),
-      profile_confirm: pickProfileConfirmSummary(args.temp_memory_after),
       global_deferred: pickDeferredSummary(args.temp_memory_after),
       supervisor: pickSupervisorSummary(args.temp_memory_after),
     };
@@ -5616,7 +5612,7 @@ export async function processMessage(
 
   // --- Preference change requests should always be handled by Companion ---
   // We DO NOT rely on dispatcher LLM for this because it may incorrectly route to architect
-  // when the user mentions "suite"/"plan"/"style". This breaks the user_profile_confirmation machine.
+  // when the user mentions "suite"/"plan"/"style". This can break active follow-up flows.
   if (!disableForcedRouting) {
     const s = normalizeLoose(userMessage);
     const looksLikePreference =

@@ -266,7 +266,6 @@ export async function handleSignalDeferral(opts: {
   tempMemory: any;
   dispatcherSignals: DispatcherSignals;
   userMessage: string;
-  profileConfirmDeferredKey: string;
   trace: (
     event: string,
     phase: BrainTracePhase,
@@ -301,15 +300,6 @@ export async function handleSignalDeferral(opts: {
               (60 * 60 * 1000),
           ),
         });
-      }
-      if (
-        pruneResult.pruned.some((t) =>
-          t.machine_type === "user_profile_confirmation"
-        )
-      ) {
-        const next = { ...(tempMemory ?? {}) };
-        delete next[opts.profileConfirmDeferredKey];
-        tempMemory = next;
       }
     }
   }

@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
   "id": "stress_test_maxhard_full_chaos_1",
-  "description": "MAX HARD: 5 machines (toolflow + firefighter + bilan + deferred + profile_confirm). Full chaos scenario with all machines interacting.",
-  "tags": ["stress_test", "maxhard", "toolflow", "firefighter", "bilan", "deferred", "profile_confirm"],
+  "description": "MAX HARD: 5 machines (toolflow + firefighter + bilan + deferred + watcher_facts). Full chaos scenario with all machines interacting.",
+  "tags": ["stress_test", "maxhard", "toolflow", "firefighter", "bilan", "deferred", "watcher_facts"],
   "difficulty": "maxhard",
   "setup": {
     "seed_plan": true,

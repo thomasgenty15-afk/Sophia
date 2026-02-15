@@ -11,3 +11,4 @@ ALTER TABLE "public"."user_actions"
 ADD CONSTRAINT "user_actions_habit_target_reps_max"
 CHECK (type != 'habit' OR target_reps <= 7);
 
+

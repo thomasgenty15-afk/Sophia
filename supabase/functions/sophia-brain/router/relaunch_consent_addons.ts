@@ -91,7 +91,6 @@ function getMachineTypeLabel(machineType: DeferredMachineType): string {
     case "topic_serious": return "Sujet sérieux"
     case "topic_light": return "Sujet de discussion"
     case "checkup": return "Bilan"
-    case "user_profile_confirmation": return "Confirmation de préférences"
     default: return "Sujet en attente"
   }
 }

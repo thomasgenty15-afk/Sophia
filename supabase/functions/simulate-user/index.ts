@@ -14,53 +14,6 @@ function findObjective(objs: any[], kind: string): any | null {
   return objs.find((o) => String(o?.kind ?? "").trim() === kind) ?? null;
 }
 
-function buildProfileConfirm3TopicsStateMachineContext(
-  obj: any,
-  ts: TranscriptMsg[],
-  turnIndex: number,
-  maxTurns: number,
-): { stage: number; finalStage: number; ctx: string; forcedDone: boolean } {
-  const spec = (obj?.spec && typeof obj.spec === "object") ? obj.spec : {};
-  // This flow is intentionally STAGE-STRICT to make evals stable under real AI.
-  // We drive the conversation with a fixed longer schedule and do not allow early termination.
-  // Goal: have a real mid-conversation (3-4 turns) about a plan action, THEN only after closure confirm the 3 prefs one-by-one.
-  const finalStage = 10;
-  const stage = Math.max(0, Math.min(finalStage, Math.floor(Number(turnIndex) || 0)));
-  const forcedDone = stage >= finalStage || turnIndex + 1 >= maxTurns;
-
-  const prefs = {
-    tone: String(spec?.tone ?? "direct"),
-    verbosity: String(spec?.verbosity ?? "short"),
-    use_emojis: String(spec?.use_emojis ?? "never"),
-  };
-
-  const ctx = `
-[PROFILE_CONFIRM_3_TOPICS — STATE MACHINE USER SIM]
-Goal: user expresses 3 preferences, defers confirmation, then later asks to confirm them (one by one).
-Preferences to converge on:
-- conversation.tone = "${prefs.tone}"
-- conversation.verbosity = "${prefs.verbosity}"
- - conversation.use_emojis = "${prefs.use_emojis}"
-
-STAGES:
-0) List the 3 preferences (direct + réponses courtes + pas d'emojis) + say "on confirme plus tard". Then pivot to small-talk (no distress words).
-1) Continue small-talk (no preferences mentioned).
-2) Start a real convo about ONE plan action: mention "dans mon plan" + describe a specific action you're struggling to close properly.
-3) Continue that plan-action convo (give more context, respond naturally).
-4) Close that plan-action topic explicitly ("Ok c’est bon pour cette action, on a fini.").
-5) Only now: ask Sophia to confirm the 3 points, one by one.
-6) Answer first confirmation: "Direct."
-7) Ask about verbosity: "Ok, et sur la longueur des réponses ?"
-8) Answer: "Réponses courtes."
-9) Ask about emojis: "Ok, et pour les emojis ?"
-10) Answer: "Non."
-
-Current stage: ${stage}/${finalStage}
-    `.trim();
-
-  return { stage, finalStage, ctx, forcedDone };
-}
-
 function validateUpdateActionStageMessage(
   stage: number,
   msg: string,
@@ -196,68 +149,6 @@ function validateActivateActionStageMessage(
   }
   if (!/\b(active|activer|active[-\s]?la)\b/i.test(t)) return { ok: false, reason: "stage2_missing_activate_intent" };
   if (!t.includes(String(meta.title).toLowerCase())) return { ok: false, reason: "stage2_missing_title" };
-  return { ok: true, reason: "ok" };
-}
-
-function validateProfileConfirmStageMessage(
-  stage: number,
-  msg: string,
-): { ok: boolean; reason: string } {
-  const t = String(msg ?? "").trim().toLowerCase();
-  if (!t) return { ok: false, reason: "empty" };
-  // Avoid accidentally triggering firefighter in this scenario.
-  if (/\b(panique|angoisse|crise|suffoque|j['’]arrive\s+pas\s+a\s+respirer)\b/i.test(t)) return { ok: false, reason: "distress_words" };
-
-  const hasDirectAsk = /tu\s+peux\s+[ée]tre\s+plus\s+direct/i.test(t) && /\bplut[oô]t\s+que\s+doux\b/i.test(t);
-  const hasDirectAnswerOnly = t === "direct." || t === "direct" || t === "plutôt direct." || t === "plutot direct.";
-  const hasVerbosityAsk = /tu\s+peux\s+faire\s+des\s+r[ée]ponses\s+plus\s+courtes/i.test(t) && /\bplut[oô]t\s+que\s+d[ée]taill/i.test(t);
-  const hasVerbosityAnswerOnly = t === "réponses courtes." || t === "reponses courtes." || t === "réponses courtes" || t === "reponses courtes";
-  const hasEmojiAsk = /\b(emojis?|emoji)\b/i.test(t) && /\b[ée]vite\b/i.test(t);
-  const hasNoOnly = t === "non." || t === "non";
-
-  if (stage === 0) {
-    const hasList = /\bplus\s+direct\b/i.test(t) && /\br[ée]ponses?\s+plus\s+courtes\b/i.test(t) && /\b[ée]vite\b[\s\S]{0,40}\bemoji\b/i.test(t);
-    const hasDefer = /\b(on\s+confirme\s+plus\s+tard|on\s+confirmera\s+plus\s+tard|on\s+valide\s+plus\s+tard)\b/i.test(t);
-    if (!hasList) return { ok: false, reason: "stage0_missing_list" };
-    if (!hasDefer) return { ok: false, reason: "stage0_missing_defer" };
-    return { ok: true, reason: "ok" };
-  }
-  if (stage === 1) {
-    // small talk only: do not mention preference keywords.
-    if (/\b(direct|doux|courtes|d[ée]taill|emoji)\b/i.test(t)) return { ok: false, reason: "stage1_mentions_preferences" };
-    return { ok: true, reason: "ok" };
-  }
-  if (stage === 2) {
-    // Start plan-action discussion: must mention plan + action
-    if (!/\bplan\b/i.test(t)) return { ok: false, reason: "stage2_missing_plan" };
-    if (!/\baction\b/i.test(t)) return { ok: false, reason: "stage2_missing_action" };
-    return { ok: true, reason: "ok" };
-  }
-  if (stage === 3) {
-    // Continue plan-action discussion; don't mention preferences yet.
-    if (/\b(direct|doux|courtes|d[ée]taill|emoji)\b/i.test(t)) return { ok: false, reason: "stage3_mentions_preferences" };
-    return { ok: true, reason: "ok" };
-  }
-  if (stage === 4) {
-    // Explicit closure of the plan-action topic
-    if (!/\b(c['’]est\s+bon|ok|on\s+a\s+fini|c['’]est\s+bon\s+pour\s+cette\s+action)\b/i.test(t)) return { ok: false, reason: "stage4_missing_close" };
-    return { ok: true, reason: "ok" };
-  }
-  if (stage === 5) {
-    if (!/\b(confirme|confirmer|valide|valider)\b/i.test(t)) return { ok: false, reason: "stage5_missing_confirm_request" };
-    return { ok: true, reason: "ok" };
-  }
-  if (stage === 6) return hasDirectAnswerOnly ? { ok: true, reason: "ok" } : { ok: false, reason: "stage6_not_direct_only" };
-  if (stage === 7) {
-    if (!/\b(longueur|courtes|d[ée]taill)\b/i.test(t)) return { ok: false, reason: "stage7_missing_verbosity_prompt" };
-    return { ok: true, reason: "ok" };
-  }
-  if (stage === 8) return hasVerbosityAnswerOnly ? { ok: true, reason: "ok" } : { ok: false, reason: "stage8_not_short_only" };
-  if (stage === 9) {
-    if (!/\bemoji\b/i.test(t)) return { ok: false, reason: "stage9_missing_emoji_prompt" };
-    return { ok: true, reason: "ok" };
-  }
-  if (stage === 10) return hasNoOnly ? { ok: true, reason: "ok" } : { ok: false, reason: "stage10_not_no_only" };
   return { ok: true, reason: "ok" };
 }
 
@@ -444,10 +335,6 @@ function buildUltimateFullFlowStateMachineContext(
   const investigationActive = Boolean(chatState?.investigation_state);
   const investigationStatus = String(chatState?.investigation_state?.status ?? "");
   const isPostCheckup = investigationStatus === "post_checkup";
-  const profileConfirmPending = Boolean(
-    chatState?.temp_memory?.profile_confirmation_state &&
-    chatState?.temp_memory?.profile_confirmation_state?.status === "confirming"
-  );
   const deferredTopics = chatState?.temp_memory?.global_deferred_topics ?? [];
   const hasDeferredTopics = Array.isArray(deferredTopics) && deferredTopics.length > 0;
 
@@ -564,7 +451,6 @@ DÉTECTION D'ÉTAT:
 - actions_discussed: ${actionsDiscussed}/4
 - investigation_active: ${investigationActive}
 - is_post_checkup: ${isPostCheckup}
-- profile_confirm_pending: ${profileConfirmPending}
 - last_agent: ${lastAssistantAgent}
 
 INSTRUCTION POUR CE TOUR:
@@ -2423,19 +2309,6 @@ function stubNextMessage(
       if (turn === 0) return { next_message: "Check du soir", done: false, satisfied: [] };
       return { next_message: "Stop, je veux parler d’autre chose.", done: true, satisfied: ["explicit_stop_checkup"] };
     }
-    case "profile_confirm_3_topics_realistic": {
-      if (turn === 0) return { next_message: "3 trucs pour moi: tu peux être plus direct, tu peux faire des réponses plus courtes, et évite les emojis. Mais on confirme plus tard. Là je veux juste parler d’un truc léger.", done: false, satisfied: [] };
-      if (turn === 1) return { next_message: "Tu penses quoi des gens qui disparaissent des réseaux pendant un mois ? Ça fait du bien ou c’est juste de l’évitement ?", done: false, satisfied: [] };
-      if (turn === 2) return { next_message: "Dans mon plan, j’ai une action “lecture 10 min le soir” et j’arrive pas à la clore. Je procrastine et après je culpabilise. Tu m’aides à la fermer proprement ?", done: false, satisfied: [] };
-      if (turn === 3) return { next_message: "En vrai le blocage c’est que je suis rincée à 22h et je scrolle. Et quand je rate, je me dis ‘à quoi bon’.", done: false, satisfied: [] };
-      if (turn === 4) return { next_message: "Ok, c’est bon pour cette action, on a fini.", done: false, satisfied: [] };
-      if (turn === 5) return { next_message: "Maintenant, tu me confirmes mes 3 préférences une par une, stp. On commence.", done: false, satisfied: [] };
-      if (turn === 6) return { next_message: "Direct.", done: false, satisfied: [] };
-      if (turn === 7) return { next_message: "Ok, et sur la longueur des réponses ?", done: false, satisfied: [] };
-      if (turn === 8) return { next_message: "Réponses courtes.", done: false, satisfied: [] };
-      if (turn === 9) return { next_message: "Ok, et pour les emojis ?", done: false, satisfied: [] };
-      return { next_message: "Non.", done: true, satisfied: ["profile_confirm_3_topics_realistic"] };
-    }
     // Bilan V3 stubs (MEGA_TEST_MODE / local dev)
     case "bilan_v3_happy_path": {
       if (turn === 0) return { next_message: "Check du soir", done: false, satisfied: [] };
@@ -2729,7 +2602,6 @@ console.log("simulate-user: Function initialized");
     // Topic session objectives (supports both topic_serious and topic_light machine scenarios)
     const topicExplorationObj = findObjective(body.objectives ?? [], "topic_exploration_handoff_realistic") ??
       findObjective(body.objectives ?? [], "topic_session_handoff_realistic");
-    const profileConfirmObj = findObjective(body.objectives ?? [], "profile_confirm_3_topics_realistic");
     
     // Stress test objectives (multi-machine scenarios)
     const stressTestObj = (body.objectives ?? []).find((o: any) => {
@@ -2831,15 +2703,6 @@ console.log("simulate-user: Function initialized");
       )
       : null;
 
-    const profileFlow = profileConfirmObj
-      ? buildProfileConfirm3TopicsStateMachineContext(
-        profileConfirmObj,
-        body.transcript as TranscriptMsg[],
-        body.turn_index,
-        Number(body.max_turns) || 14,
-      )
-      : null;
-
     const stressTestFlow = stressTestObj
       ? buildStressTestStateMachineContext(
         stressTestObj,
@@ -2916,8 +2779,6 @@ ${body.context ? body.context : "(aucun)"}
 ${toolFlow ? `\n\n${toolFlow.ctx}\n` : ""}
 
 ${topicFlow ? `\n\n${topicFlow.ctx}\n` : ""}
-
-${profileFlow ? `\n\n${profileFlow.ctx}\n` : ""}
 
 ${stressTestFlow ? `\n\n${stressTestFlow.ctx}\n` : ""}
 
@@ -3036,45 +2897,6 @@ ${transcriptText || "(vide)"}
           )
           : "";
 
-      const stageStrictProfile =
-        (profileConfirmObj && profileFlow && !profileFlow.forcedDone)
-          ? (
-            `\n\n[PROFILE_CONFIRM_3_TOPICS — CONTRAINTES STRICTES]\n` +
-            `Tu es l'utilisateur. 1 seul message.\n` +
-            `stage=${profileFlow.stage}/${profileFlow.finalStage}\n` +
-            `RÈGLES GÉNÉRALES:\n` +
-            `- Ne parle PAS de "panique", "angoisse", "crise", "je suffoque" (ne déclenche pas firefighter).\n` +
-            `- Une seule préférence par message à partir du stage 3.\n` +
-            (profileFlow.stage === 0
-              ? `OBLIGATIONS: mentionne (plus direct + réponses plus courtes + évite les emojis) ET dis "on confirme plus tard". Puis une phrase de small-talk.\nINTERDICTIONS: ne parle pas de plan/objectifs/actions.\n`
-              : "") +
-            (profileFlow.stage === 1
-              ? `OBLIGATIONS: small-talk uniquement (aucune préférence, aucun "plan").\n`
-              : "") +
-            (profileFlow.stage === 2
-              ? `OBLIGATIONS: demander de confirmer maintenant (ex: "on valide maintenant ?") sans re-décrire les préférences.\n`
-              : "") +
-            (profileFlow.stage === 3
-              ? `OBLIGATIONS: écrire exactement une question sur le TON: "Tu peux être plus direct avec moi, plutôt que doux ?"\nINTERDICTIONS: ne parle pas de réponses courtes ni de plan.\n`
-              : "") +
-            (profileFlow.stage === 4
-              ? `OBLIGATIONS: répondre uniquement "Direct."\n`
-              : "") +
-            (profileFlow.stage === 5
-              ? `OBLIGATIONS: écrire exactement une question sur la VERBOSITÉ: "Tu peux faire des réponses plus courtes, plutôt que détaillées ?"\nINTERDICTIONS: ne parle pas de ton direct ni de plan.\n`
-              : "") +
-            (profileFlow.stage === 6
-              ? `OBLIGATIONS: répondre uniquement "Réponses courtes."\n`
-              : "") +
-            (profileFlow.stage === 7
-              ? `OBLIGATIONS: écrire exactement une question sur les EMOJIS: "Et les emojis : évite d'en mettre, ok ?"\nINTERDICTIONS: ne parle pas de ton direct ni de réponses courtes.\n`
-              : "") +
-            (profileFlow.stage === 8
-              ? `OBLIGATIONS: répondre uniquement "Non."\n`
-              : "") +
-            ``
-          )
-          : "";
 
       const stageStrictDeactivate =
         (toolDeactivateV2Obj && deactivateV2Flow && !deactivateV2Done)
@@ -3122,7 +2944,7 @@ ${transcriptText || "(vide)"}
           )
           : "";
 
-      const systemPrompt = `${baseSystemPrompt}${stageStrict}${stageStrictBreakdown}${stageStrictComplex}${stageStrictProfile}${stageStrictDeactivate}${stageStrictDelete}${stageStrictBilanV3}`.trim();
+      const systemPrompt = `${baseSystemPrompt}${stageStrict}${stageStrictBreakdown}${stageStrictComplex}${stageStrictDeactivate}${stageStrictDelete}${stageStrictBilanV3}`.trim();
       const userMessage = baseUserMessage;
       lastSystemPrompt = systemPrompt;
       lastUserMessage = userMessage;
@@ -3184,15 +3006,6 @@ ${transcriptText || "(vide)"}
         }
       }
       lastNonEmptyCandidate = next;
-      // Enforce the profile confirmation flow stages (this scenario is brittle if violated).
-      if (profileConfirmObj && profileFlow && !profileFlow.forcedDone) {
-        const v = validateProfileConfirmStageMessage(profileFlow.stage, next);
-        if (!v.ok) {
-          lastInvalidReason = `profile_${v.reason}`;
-          next = "";
-          continue;
-        }
-      }
       if (bilanV3Obj && bilanV3Flow && !bilanV3Done) {
         const v = validateBilanV3StageMessage(bilanV3Flow.stage, next, bilanV3Flow.meta);
         if (!v.ok) {
@@ -3364,10 +3177,6 @@ ${complexFlow.ctx}
     // Topic-exploration scenario: do NOT allow early done; we want a full-length, fluid run for realism.
     if (topicExplorationObj) {
       done = Boolean(topicFlow?.forcedDone) || body.turn_index + 1 >= body.max_turns;
-    }
-    // Profile confirmation scenario: do NOT allow early done; we need enough turns to confirm 3 preferences.
-    if (profileConfirmObj) {
-      done = Boolean(profileFlow?.forcedDone) || body.turn_index + 1 >= body.max_turns;
     }
     // Stress test scenarios: do NOT allow early done; we want a full-length run to test all machines.
     if (stressTestObj) {

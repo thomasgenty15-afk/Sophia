@@ -11,9 +11,6 @@ import {
   getActiveTopicSession,
   getActiveTrackProgressFlow,
   getActiveUpdateActionFlow,
-  getCurrentFactToConfirm,
-  getProfileConfirmationState,
-  hasActiveProfileConfirmation,
 } from "../supervisor.ts";
 import { getDeferredTopicsV2 } from "./deferred_topics_v2.ts";
 
@@ -43,10 +40,6 @@ export function machineMatchesSignalType(
     "topic_serious": ["topic_exploration_intent", "topic_serious"],
     "topic_light": ["topic_exploration_intent", "topic_light"],
     "deep_reasons_exploration": ["deep_reasons_intent", "deep_reasons"],
-    "user_profile_confirmation": [
-      "profile_info_detected",
-      "profile_confirmation",
-    ],
     // Safety flows - they handle safety_resolution signals
     "safety_firefighter_flow": [
       "safety_resolution",
@@ -119,11 +112,6 @@ export function getActiveMachineType(tempMemory: any): string | null {
   // Check deep reasons
   if ((tempMemory as any)?.deep_reasons_state) {
     return "deep_reasons_exploration";
-  }
-
-  // Check profile confirmation
-  if (hasActiveProfileConfirmation(tempMemory)) {
-    return "user_profile_confirmation";
   }
 
   return null;
@@ -477,21 +465,6 @@ export function buildFlowContext(
       deepReasonsTurnCount: Number(dr?.turn_count ?? 0),
       deepReasonsPattern: dr?.detected_pattern,
     });
-  }
-
-  // Profile confirmation
-  if (hasActiveProfileConfirmation(tempMemory)) {
-    const confirmState = getProfileConfirmationState(tempMemory);
-    const pending = getCurrentFactToConfirm(tempMemory);
-    if (pending && confirmState) {
-      return withCheckup({
-        profileFactKey: pending.key,
-        profileFactValue: pending.proposed_value,
-        profileConfirmPhase: confirmState.phase ?? "awaiting_confirm",
-        profileConfirmQueueSize: confirmState.facts_queue?.length ?? 0,
-        profileConfirmCurrentIndex: confirmState.current_index ?? 0,
-      });
-    }
   }
 
   // Return context if we have any passive addon/pending context even without active machine.

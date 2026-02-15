@@ -75,9 +75,6 @@ export function generateAcknowledgmentPrefix(opts: {
     case "checkup":
       return `J'ai noté pour le bilan, on fait ça juste après ! `
     
-    case "user_profile_confirmation":
-      return `J'ai noté quelques infos te concernant, on confirme ça après ! `
-    
     default:
       return target
         ? `J'ai noté pour ${target}, on en reparle après. `
@@ -146,13 +143,6 @@ export function generateDeferredAckWithTopic(opts: {
           `J'ai note ce sujet. On y revient apres ${topicLabel}.`,
           `Ok, on en parle apres ${topicLabel}.`,
           `Note, on discute de ca apres ${topicLabel}.`,
-        ]
-      
-      case "user_profile_confirmation":
-        return [
-          `J'ai note quelques infos te concernant. On confirme ca apres ${topicLabel}.`,
-          `Ok, j'ai capte des trucs sur toi. On valide apres ${topicLabel}.`,
-          `Note, on fait le point sur tes preferences apres ${topicLabel}.`,
         ]
       
       default:
@@ -317,9 +307,6 @@ export function generateAutoRelaunchIntro(opts: {
     
     case "checkup":
       return `Tu voulais faire le bilan. On s'y met ?`
-    
-    case "user_profile_confirmation":
-      return `J'ai note quelques infos te concernant. Je peux te poser quelques questions rapides pour confirmer ?`
     
     default:
       return target

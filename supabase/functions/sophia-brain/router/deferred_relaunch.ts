@@ -1,6 +1,5 @@
 import type { AgentMode } from "../state-manager.ts";
 import type { BrainTracePhase } from "../../_shared/brain-trace.ts";
-import type { ProfileFactToConfirm } from "../supervisor.ts";
 import type {
   DeferredMachineType,
   DeferredTopicV2,
@@ -19,7 +18,6 @@ import {
   upsertDeactivateActionFlow,
   upsertDeepReasonsExploration,
   upsertDeleteActionFlow,
-  upsertProfileConfirmation,
   upsertTopicLight,
   upsertTopicSerious,
   upsertUpdateActionFlow,
@@ -169,9 +167,6 @@ export function generateRelaunchConsentQuestion(
     case "checkup":
       return `Tu voulais faire le bilan. On s'y met maintenant ?`;
 
-    case "user_profile_confirmation":
-      return `J'ai noté quelques infos te concernant. Je peux te poser quelques questions rapides pour confirmer ?`;
-
     default:
       return target
         ? `On avait noté "${target}". Tu veux qu'on s'en occupe maintenant ?`
@@ -187,7 +182,6 @@ export async function applyAutoRelaunchFromDeferred(opts: {
   tempMemory: any;
   responseContent: string;
   nextMode: AgentMode;
-  profileConfirmDeferredKey: string;
   trace: (
     event: string,
     phase: BrainTracePhase,
@@ -255,7 +249,6 @@ export async function applyAutoRelaunchFromDeferred(opts: {
 export function processRelaunchConsentResponse(opts: {
   tempMemory: any;
   userMessage: string;
-  profileConfirmDeferredKey: string;
   /** Legacy signal from dispatcher (kept for backward compatibility) */
   dispatcherConsentSignal?: ConsentSignal | undefined;
   /** Structured pending-resolution signal from dispatcher (hybrid model) */
@@ -323,7 +316,6 @@ export function processRelaunchConsentResponse(opts: {
       machineType: pending.machine_type,
       actionTarget: pending.action_target,
       summaries: pending.summaries,
-      profileConfirmDeferredKey: opts.profileConfirmDeferredKey,
     });
     return {
       handled: true,
@@ -429,7 +421,6 @@ function initializeMachineFromConsent(opts: {
   machineType: DeferredMachineType;
   actionTarget?: string;
   summaries: string[];
-  profileConfirmDeferredKey: string;
 }): { tempMemory: any; nextMode: AgentMode } {
   let { tempMemory } = opts;
   let nextMode: AgentMode = "companion";
@@ -551,28 +542,6 @@ function initializeMachineFromConsent(opts: {
         deep_reasons_state: deepReasonsState,
       };
       nextMode = "architect";
-      break;
-    }
-
-    case "user_profile_confirmation": {
-      const queuedFacts =
-        Array.isArray((tempMemory as any)?.[opts.profileConfirmDeferredKey])
-          ? (tempMemory as any)[
-            opts.profileConfirmDeferredKey
-          ] as ProfileFactToConfirm[]
-          : [];
-      if (queuedFacts.length > 0) {
-        const result = upsertProfileConfirmation({
-          tempMemory,
-          factsToAdd: queuedFacts,
-          now: new Date(),
-        });
-        tempMemory = result.tempMemory;
-      }
-      const next = { ...(tempMemory ?? {}) };
-      delete next[opts.profileConfirmDeferredKey];
-      tempMemory = next;
-      nextMode = "companion";
       break;
     }
 

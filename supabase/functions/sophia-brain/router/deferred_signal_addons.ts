@@ -71,8 +71,6 @@ ou rester silencieux si c'est redondant. Continue ensuite avec le sujet en cours
       return buildTopicSeriousAddon(ctx)
     case "topic_light":
       return buildTopicLightAddon(ctx)
-    case "user_profile_confirmation":
-      return buildProfileConfirmAddon(ctx)
     default:
       return buildGenericAddon(ctx)
   }
@@ -403,24 +401,6 @@ EXEMPLES:
 → "Intéressant ça. On y revient dans 2 minutes, promis."
 
 Après l'acquittement, continue NORMALEMENT avec ${ctx.currentMachineTarget || "le sujet en cours"}.
-`
-}
-
-function buildProfileConfirmAddon(ctx: DeferredSignalAddonContext): string {
-  return `
-═══════════════════════════════════════════════════════════════════════════════
-⏸️ SIGNAL DIFFÉRÉ: PROFILE_CONFIRMATION (Info personnelle)
-═══════════════════════════════════════════════════════════════════════════════
-
-Le dispatcher a détecté une INFO PERSONNELLE dans ce message:
-"${ctx.userMessage.slice(0, 200)}${ctx.userMessage.length > 200 ? "..." : ""}"
-
-CE QUI A DÉCLENCHÉ LE SIGNAL:
-L'utilisateur a mentionné quelque chose sur lui (préférences, situation, etc).
-
-TA MISSION:
-Tu n'as PAS BESOIN d'acquitter explicitement ce signal. Continue normalement.
-L'info sera confirmée plus tard automatiquement.
 `
 }
 

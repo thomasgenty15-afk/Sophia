@@ -1,6 +1,5 @@
 import {
   getActiveSupervisorSession,
-  getCurrentFactToConfirm,
 } from "../supervisor.ts"
 
 export function normalizeLoose(s: string): string {
@@ -56,12 +55,4 @@ export function pickDeferredSummary(tm: any): { has_items: boolean; last_topic?:
   const topic = last && typeof last === "object" ? String((last as any).topic ?? "").trim() : ""
   return { has_items: items.length > 0, last_topic: topic ? topic.slice(0, 160) : undefined }
 }
-
-export function pickProfileConfirmSummary(tm: any): { pending: boolean; key?: string } {
-  const pending = getCurrentFactToConfirm(tm)
-  if (!pending || typeof pending !== "object") return { pending: false }
-  const key = typeof pending.key === "string" ? String(pending.key).slice(0, 80) : undefined
-  return { pending: true, key }
-}
-
 

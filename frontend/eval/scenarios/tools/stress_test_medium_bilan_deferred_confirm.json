@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
   "id": "stress_test_medium_bilan_deferred_confirm",
-  "description": "MEDIUM: 3 machines (bilan + deferred + profile_confirm). User does checkup, defers topics, then gets profile confirmation.",
-  "tags": ["stress_test", "medium", "bilan", "deferred", "profile_confirm"],
+  "description": "MEDIUM: 3 machines (bilan + deferred + watcher_facts). User does checkup, defers topics, then Watcher applies profile facts.",
+  "tags": ["stress_test", "medium", "bilan", "deferred", "watcher_facts"],
   "difficulty": "medium",
   "setup": {
     "seed_plan": true,

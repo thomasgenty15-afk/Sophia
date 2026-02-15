@@ -26,8 +26,6 @@ import {
 } from "../profile_facts.ts"
 import {
   getActiveTopicSession,
-  getProfileConfirmationState,
-  getCurrentFactToConfirm,
 } from "../supervisor.ts"
 import type {
   LoadedContext,
@@ -219,21 +217,7 @@ export async function loadContextForMode(
     }
   }
 
-  // 10. Candidates (for companion only)
-  if (profile.candidates && opts.tempMemory) {
-    const candidatesContext = await loadCandidatesContext(
-      opts.supabase,
-      opts.userId,
-      opts.scope,
-      opts.tempMemory
-    )
-    if (candidatesContext) {
-      context.candidates = candidatesContext
-      elementsLoaded.push("candidates")
-    }
-  }
-
-  // 11. Topic session
+  // 10. Topic session
   if (opts.tempMemory) {
     const topicSession = getActiveTopicSession(opts.tempMemory)
     if (topicSession) {
@@ -242,33 +226,33 @@ export async function loadContextForMode(
     }
   }
 
-  // 12. Injected context (from UI modules)
+  // 11. Injected context (from UI modules)
   if (opts.injectedContext) {
     context.injectedContext = `=== CONTEXTE MODULE (UI) ===\n${opts.injectedContext}\n\n`
     elementsLoaded.push("injected_context")
   }
 
-  // 13. Deferred user pref context
+  // 12. Deferred user pref context
   if (opts.deferredUserPrefContext) {
     context.deferredUserPref = opts.deferredUserPrefContext
     elementsLoaded.push("deferred_user_pref")
   }
 
-  // 14. Checkup addon
+  // 13. Checkup addon
   const checkupAddon = (opts.tempMemory as any)?.__checkup_addon
   if (checkupAddon && opts.mode === "companion") {
     context.checkupAddon = formatCheckupAddon(checkupAddon)
     if (context.checkupAddon) elementsLoaded.push("checkup_addon")
   }
 
-  // 15. Track progress addon (parallel tracking)
+  // 14. Track progress addon (parallel tracking)
   const trackProgressAddon = (opts.tempMemory as any)?.__track_progress_parallel
   if (trackProgressAddon && (opts.mode === "companion" || opts.mode === "architect")) {
     context.trackProgressAddon = formatTrackProgressAddon(trackProgressAddon)
     if (context.trackProgressAddon) elementsLoaded.push("track_progress_addon")
   }
 
-  // 16. Expired bilan summary (silent expiry context for companion)
+  // 15. Expired bilan summary (silent expiry context for companion)
   const expiredBilanSummary = (opts.tempMemory as any)?.__expired_bilan_summary
   if (expiredBilanSummary && (opts.mode === "companion" || opts.mode === "architect")) {
     const done = Array.isArray(expiredBilanSummary.items_done) ? expiredBilanSummary.items_done : []
@@ -284,7 +268,7 @@ export async function loadContextForMode(
     elementsLoaded.push("expired_bilan_context")
   }
 
-  // 17. Onboarding addon (Q1/Q2/Q3 warm questions) — applies when __onboarding_flow is active.
+  // 16. Onboarding addon (Q1/Q2/Q3 warm questions) — applies when __onboarding_flow is active.
   // The dispatcher uses this machine to decide transitions; the agent still needs explicit instructions
   // to ask the right question in natural language.
   const onbFlow = (opts.tempMemory as any)?.__onboarding_flow
@@ -322,7 +306,6 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.injectedContext) ctx += loaded.injectedContext
   if (loaded.temporal) ctx += loaded.temporal
   if (loaded.facts) ctx += loaded.facts
-  if (loaded.candidates) ctx += loaded.candidates
   if (loaded.shortTerm) ctx += loaded.shortTerm
   if (loaded.recentTurns) ctx += loaded.recentTurns
   if (loaded.planMetadata) ctx += loaded.planMetadata + "\n\n"
@@ -344,80 +327,6 @@ export function buildContextString(loaded: LoadedContext): string {
 // ============================================================================
 // Helper functions
 // ============================================================================
-
-/**
- * Load candidates context for user model confirmation
- */
-async function loadCandidatesContext(
-  supabase: SupabaseClient,
-  userId: string,
-  scope: string,
-  tempMemory: any
-): Promise<string | null> {
-  try {
-    const { data: candRows, error: candErr } = await supabase
-      .from("user_profile_fact_candidates")
-      .select("id, key, scope, proposed_value, confidence, hits, reason, evidence, last_seen_at, last_asked_at, asked_count, status")
-      .eq("user_id", userId)
-      .in("scope", ["global", scope])
-      .in("status", ["pending", "asked"])
-      .limit(30)
-    
-    if (candErr) throw candErr
-
-    // Score and sort candidates
-    const candSorted = (candRows ?? [])
-      .map((r: any) => ({ ...r, _score: scoreCandidate(r) }))
-      .sort((a: any, b: any) => Number(b?._score ?? 0) - Number(a?._score ?? 0))
-      .slice(0, 6)
-
-    // Get pending confirmation from machine
-    const profileConfirmState = getProfileConfirmationState(tempMemory)
-    const currentFactFromMachine = profileConfirmState ? getCurrentFactToConfirm(tempMemory) : null
-    
-    const pending = currentFactFromMachine ? {
-      key: currentFactFromMachine.key,
-      proposed_value: currentFactFromMachine.proposed_value,
-      scope: "current",
-      asked_at: currentFactFromMachine.detected_at,
-      reason: "dispatcher_detection",
-      confidence: currentFactFromMachine.confidence,
-      _from_machine: true,
-      _machine_queue_size: profileConfirmState?.facts_queue.length ?? 1,
-      _machine_current_index: profileConfirmState?.current_index ?? 0,
-    } : null
-
-    if (!pending && candSorted.length === 0) return null
-
-    return (
-      `=== USER MODEL (CANDIDATES / CONFIRMATION) ===\n` +
-      `RÈGLE: ne JAMAIS écrire de facts sans confirmation explicite.\n` +
-      `PENDING_CONFIRMATION: ${pending ? JSON.stringify(pending) : "null"}\n` +
-      `CANDIDATES: ${candSorted.length > 0 ? JSON.stringify(candSorted) : "[]"}\n\n`
-    )
-  } catch (e) {
-    console.warn("[ContextLoader] failed to build candidates context (non-blocking):", e)
-    return null
-  }
-}
-
-/**
- * Score a candidate for priority ranking
- */
-function scoreCandidate(r: any): number {
-  const conf = Math.max(0, Math.min(1, Number(r?.confidence ?? 0)))
-  const hits = Math.max(1, Number(r?.hits ?? 1))
-  const askedCount = Math.max(0, Number(r?.asked_count ?? 0))
-  const lastSeen = Date.parse(String(r?.last_seen_at ?? ""))
-  const lastAsked = Date.parse(String(r?.last_asked_at ?? ""))
-  const ageDays = Number.isFinite(lastSeen) ? (Date.now() - lastSeen) / (24 * 60 * 60 * 1000) : 999
-  const recency = Math.exp(-ageDays / 7)
-  const hitFactor = Math.min(2.0, 1 + Math.log1p(hits) / Math.log(6))
-  const askedRecently = Number.isFinite(lastAsked) && (Date.now() - lastAsked) < 24 * 60 * 60 * 1000
-  const askPenalty = askedRecently ? 0.15 : 1.0
-  const fatiguePenalty = Math.max(0.3, 1.0 - 0.15 * askedCount)
-  return conf * recency * hitFactor * askPenalty * fatiguePenalty
-}
 
 /**
  * Format topic session for context

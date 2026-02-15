@@ -180,3 +180,4 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
+

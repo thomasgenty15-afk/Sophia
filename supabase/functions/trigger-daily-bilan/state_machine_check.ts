@@ -161,14 +161,6 @@ export function hasActiveStateMachine(chatState: any): ActiveMachineCheck {
     return { active: true, machineLabel, interruptible: isMachineInterruptible(machineLabel) };
   }
 
-  // Profile confirmation
-  const profileConfirm = tm.__profile_confirmation_state ??
-    tm.profile_confirmation_state;
-  if (profileConfirm?.status === "confirming") {
-    const machineLabel = "profile_confirmation";
-    return { active: true, machineLabel, interruptible: isMachineInterruptible(machineLabel) };
-  }
-
   // Pending relaunch consent
   if (tm.__pending_relaunch_consent) {
     const machineLabel = "relaunch_consent";
@@ -224,8 +216,6 @@ export function cleanupHardExpiredStateMachines(
     "track_progress_flow",
     "__update_flow_stage",
     "deep_reasons_state",
-    "__profile_confirmation_state",
-    "profile_confirmation_state",
   ];
   for (const key of timedKeys) {
     const raw = (tm as any)[key];
@@ -327,10 +317,6 @@ export function clearActiveMachineForDailyBilan(
   if (machineLabel === "resume_prompt_pending") clearTmKey("__router_resume_prompt_v1");
   if (machineLabel === "update_consent") clearTmKey("__update_flow_stage");
   if (machineLabel === "deep_reasons") clearTmKey("deep_reasons_state");
-  if (machineLabel === "profile_confirmation") {
-    clearTmKey("__profile_confirmation_state");
-    clearTmKey("profile_confirmation_state");
-  }
   if (machineLabel === "relaunch_consent") clearTmKey("__pending_relaunch_consent");
   if (machineLabel === "create_action") clearTmKey("create_action_flow");
   if (machineLabel === "update_action") clearTmKey("update_action_flow");

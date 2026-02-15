@@ -47,7 +47,6 @@ Deno.test("processRelaunchConsentResponse: first unclear schedules re-ask", () =
   const result = processRelaunchConsentResponse({
     tempMemory: tm0,
     userMessage: "hmm je sais pas trop",
-    profileConfirmDeferredKey: "__profile_deferred",
     pendingResolutionSignal: {
       status: "unresolved",
       pending_type: "relaunch_consent",
@@ -91,7 +90,6 @@ Deno.test("processRelaunchConsentResponse: second unclear drops gracefully", () 
   const first = processRelaunchConsentResponse({
     tempMemory,
     userMessage: "bof",
-    profileConfirmDeferredKey: "__profile_deferred",
     pendingResolutionSignal: {
       status: "unresolved",
       pending_type: "relaunch_consent",
@@ -106,7 +104,6 @@ Deno.test("processRelaunchConsentResponse: second unclear drops gracefully", () 
   const second = processRelaunchConsentResponse({
     tempMemory,
     userMessage: "euh",
-    profileConfirmDeferredKey: "__profile_deferred",
     pendingResolutionSignal: {
       status: "unresolved",
       pending_type: "relaunch_consent",
@@ -144,7 +141,6 @@ Deno.test("processRelaunchConsentResponse: yes after first unclear initializes m
   const first = processRelaunchConsentResponse({
     tempMemory,
     userMessage: "bof",
-    profileConfirmDeferredKey: "__profile_deferred",
     pendingResolutionSignal: {
       status: "unresolved",
       pending_type: "relaunch_consent",
@@ -159,7 +155,6 @@ Deno.test("processRelaunchConsentResponse: yes after first unclear initializes m
   const second = processRelaunchConsentResponse({
     tempMemory,
     userMessage: "oui vas-y",
-    profileConfirmDeferredKey: "__profile_deferred",
     pendingResolutionSignal: {
       status: "resolved",
       pending_type: "relaunch_consent",
@@ -195,7 +190,6 @@ Deno.test("processRelaunchConsentResponse: checkup accept does not recreate entr
   const result = processRelaunchConsentResponse({
     tempMemory: tm0,
     userMessage: "oui vas-y",
-    profileConfirmDeferredKey: "__profile_deferred",
     pendingResolutionSignal: {
       status: "resolved",
       pending_type: "relaunch_consent",
@@ -237,7 +231,6 @@ Deno.test("processRelaunchConsentResponse: no after first unclear declines", () 
   const first = processRelaunchConsentResponse({
     tempMemory,
     userMessage: "bof",
-    profileConfirmDeferredKey: "__profile_deferred",
     pendingResolutionSignal: {
       status: "unresolved",
       pending_type: "relaunch_consent",
@@ -252,7 +245,6 @@ Deno.test("processRelaunchConsentResponse: no after first unclear declines", () 
   const second = processRelaunchConsentResponse({
     tempMemory,
     userMessage: "non laisse",
-    profileConfirmDeferredKey: "__profile_deferred",
     pendingResolutionSignal: {
       status: "resolved",
       pending_type: "relaunch_consent",
@@ -289,7 +281,6 @@ Deno.test("processRelaunchConsentResponse: no signal schedules unclear re-ask", 
   const result = processRelaunchConsentResponse({
     tempMemory: tm0,
     userMessage: "je vais au cinéma ce soir",
-    profileConfirmDeferredKey: "__profile_deferred",
   });
 
   assertEquals(result.handled, true, "handled");
@@ -306,7 +297,6 @@ Deno.test("processRelaunchConsentResponse: fallback yes without signal initializ
   const result = processRelaunchConsentResponse({
     tempMemory: tm0,
     userMessage: "ouiiiuuu",
-    profileConfirmDeferredKey: "__profile_deferred",
   });
 
   assertEquals(result.handled, true, "handled");
@@ -325,10 +315,10 @@ Deno.test("processRelaunchConsentResponse: fallback no without signal declines",
   const result = processRelaunchConsentResponse({
     tempMemory: tm0,
     userMessage: "nonnn laisse tomber",
-    profileConfirmDeferredKey: "__profile_deferred",
   });
 
   assertEquals(result.handled, true, "handled");
   assertEquals(result.shouldInitMachine, false, "not initialized");
   assertEquals(typeof result.declineMessage, "string", "decline message");
 });
+

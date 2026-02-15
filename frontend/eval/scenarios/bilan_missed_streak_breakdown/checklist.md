@@ -143,3 +143,4 @@
 - **Variant `decline`** : Bilan seulement. Attendu raisonnable: `turns_executed` entre **6 et 14**
 - Alerte si `< 6`: bilan probablement non lancé ou interrompu trop tôt
 
+

@@ -2,7 +2,7 @@
   "dataset_key": "stress_test",
   "id": "stress_test_ultimate_full_flow",
   "description": "ULTIMATE: Full flow test - Bilan (4 actions) + Panic during bilan + Breakdown proposal (5 failures) + Digression (deferred) + Emoji preference (confirm after deferred). No turn limit - ends when emoji is confirmed.",
-  "tags": ["stress_test", "ultimate", "bilan", "firefighter", "breakdown", "deferred", "profile_confirm"],
+  "tags": ["stress_test", "ultimate", "bilan", "firefighter", "breakdown", "deferred", "watcher_facts"],
   "difficulty": "ultimate",
   "setup": {
     "seed_plan": true,
@@ -73,7 +73,6 @@
       "scheduler:toolflow_active_after_stop"
     ],
     "completion_conditions": {
-      "profile_confirm_completed": true,
       "deferred_topics_surfaced": true,
       "firefighter_triggered": true
     }

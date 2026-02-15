@@ -11,3 +11,4 @@ COMMENT ON COLUMN profiles.whatsapp_deferred_onboarding IS
 
 
 
+

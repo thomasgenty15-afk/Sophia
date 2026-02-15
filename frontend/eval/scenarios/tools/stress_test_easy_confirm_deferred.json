@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
   "id": "stress_test_easy_confirm_deferred",
-  "description": "EASY: 2 machines (profile_confirm + global_deferred). User sets preferences, defers a topic, then gets nudged.",
-  "tags": ["stress_test", "easy", "profile_confirm", "deferred"],
+  "description": "EASY: 2 machines (watcher_facts + global_deferred). User sets preferences, defers a topic, then gets nudged.",
+  "tags": ["stress_test", "easy", "watcher_facts", "deferred"],
   "difficulty": "easy",
   "setup": {
     "seed_plan": true,

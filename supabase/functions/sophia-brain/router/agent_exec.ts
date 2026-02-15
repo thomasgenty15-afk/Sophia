@@ -187,8 +187,6 @@ export async function runAgentAndVerify(opts: {
   function toolUsageWhen(name: string): string {
     const n = String(name ?? "").trim()
     if (n === "track_progress") return "Seulement quand l'utilisateur dit explicitement qu'il a fait / pas fait une action."
-    if (n === "set_profile_confirm_pending") return "Seulement quand tu poses une question de confirmation de préférence (low-stakes)."
-    if (n === "apply_profile_fact") return "Seulement après confirmation explicite d'une préférence."
     if (n === "break_down_action") return "Seulement quand une action bloque et que l'utilisateur accepte explicitement de la découper en micro-étape."
     if (n === "create_simple_action" || n === "create_framework") return "Seulement si un plan actif existe ET que l'utilisateur demande clairement d'ajouter un élément."
     if (n === "update_action_structure") return "Seulement si l'utilisateur demande un changement sur une action existante."
@@ -211,8 +209,6 @@ export async function runAgentAndVerify(opts: {
     if (args.mode === "companion") {
       return [
         { name: "track_progress", description: "Enregistre une progression ou un raté.", usage_when: toolUsageWhen("track_progress") },
-        { name: "set_profile_confirm_pending", description: "Marque une question de confirmation posée.", usage_when: toolUsageWhen("set_profile_confirm_pending") },
-        { name: "apply_profile_fact", description: "Applique une préférence confirmée.", usage_when: toolUsageWhen("apply_profile_fact") },
       ]
     }
     if (args.mode === "architect") {

@@ -12,7 +12,6 @@ import { getSignalHistory, updateSignalHistory } from "./signal_history.ts"
 import { buildFlowContext, getActiveMachineType, machineMatchesSignalType } from "./flow_context.ts"
 import {
   getActiveTopicSession,
-  hasActiveProfileConfirmation,
   getAnyActiveToolFlow,
 } from "../supervisor.ts"
 
@@ -47,7 +46,6 @@ export function buildDispatcherStateSnapshot(opts: {
     investigation_status: opts.state?.investigation_state?.status,
     toolflow_active: Boolean(activeToolFlow),
     toolflow_kind: activeToolFlow?.type,
-    profile_confirm_pending: hasActiveProfileConfirmation(opts.tempMemory),
     plan_confirm_pending: Boolean((opts.tempMemory as any)?.__wa_plan_confirm_pending),
     topic_exploration_phase: topicSession ? topicSession.phase : undefined,
     topic_exploration_type: topicSession?.type,

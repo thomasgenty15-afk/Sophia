@@ -64,7 +64,6 @@ Deno.test("handleSignalDeferral: same machine without target hint does not defer
     tempMemory,
     dispatcherSignals,
     userMessage: "oui crée l'action",
-    profileConfirmDeferredKey: "__profile_deferred",
     trace: async (event, _phase, payload) => {
       traceEvents.push(event);
       tracePayloads.push({ event, payload });
@@ -99,7 +98,6 @@ Deno.test("handleSignalDeferral: same machine with different target is deferred"
     tempMemory,
     dispatcherSignals,
     userMessage: "finalement crée une action lecture",
-    profileConfirmDeferredKey: "__profile_deferred",
     trace: async (event, _phase, payload) => {
       traceEvents.push(event);
       tracePayloads.push({ event, payload });

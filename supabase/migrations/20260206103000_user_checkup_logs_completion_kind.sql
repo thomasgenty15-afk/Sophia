@@ -20,3 +20,4 @@ create index if not exists idx_user_checkup_logs_user_completed_full
   where completion_kind = 'full';
 
 
+

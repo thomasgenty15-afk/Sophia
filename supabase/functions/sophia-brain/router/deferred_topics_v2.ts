@@ -18,9 +18,6 @@ import type { SupervisorSessionType } from "../supervisor.ts"
 /** Max number of sub-topics within a single topic machine (topic_light/topic_serious) */
 export const MAX_TOPICS_PER_MACHINE = 3
 
-/** Max number of profile facts to confirm in a single confirmation session */
-export const MAX_PROFILE_FACTS_PER_SESSION = 3
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // TYPES
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -37,7 +34,6 @@ export type DeferredMachineType =
   | "deactivate_action"  // Deactivate/pause an active action
   | "checkup"  // User-initiated bilan request
   | "track_progress"  // Log action progress after current flow
-  | "user_profile_confirmation"  // Confirm detected user profile facts
 
 export interface SignalSummary {
   summary: string       // Max 100 chars, e.g. "L'utilisateur bloque sur lecture car trop long"

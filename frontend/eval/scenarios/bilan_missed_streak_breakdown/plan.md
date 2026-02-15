@@ -273,3 +273,4 @@ Ce document.
 - ❌ Messages consécutifs du même rôle
 - ❌ `**markdown**` dans les messages Sophia
 
+

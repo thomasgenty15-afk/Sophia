@@ -10,7 +10,6 @@ import { generateWithGemini } from "../_shared/gemini.ts"
  */
 
 export type SupervisorSessionType =
-  | "user_profile_confirmation"      // Proper state machine for profile fact confirmation
   | "topic_serious"                  // Deep topics (owner=architect): introspection, personal issues
   | "topic_light"                    // Casual topics (owner=companion): small talk, anecdotes
   | "deep_reasons_exploration"
@@ -25,38 +24,6 @@ export type SupervisorSessionType =
   | "safety_firefighter_flow"        // Safety flow for emotional crisis (owner=firefighter)
 
 export type SupervisorSessionStatus = "active" | "paused"
-
-/**
- * Profile fact to confirm - used in user_profile_confirmation machine.
- */
-export interface ProfileFactToConfirm {
-  key: string           // e.g. "schedule.wake_time", "personal.job"
-  proposed_value: string
-  confidence: number
-  detected_at: string
-}
-
-/**
- * Phase for the user_profile_confirmation machine.
- * - presenting: About to present a fact for confirmation
- * - awaiting_confirm: Waiting for user response
- * - processing: Processing the user's response
- * - completed: All facts confirmed/processed
- */
-export type ProfileConfirmationPhase = "presenting" | "awaiting_confirm" | "processing" | "completed"
-
-/**
- * State for the user_profile_confirmation machine.
- * Stored in temp_memory.profile_confirmation_state
- */
-export interface UserProfileConfirmationState {
-  facts_queue: ProfileFactToConfirm[]
-  current_index: number
-  phase: ProfileConfirmationPhase  // Current phase in the confirmation flow
-  status: "confirming" | "completed"
-  started_at: string
-  last_updated_at: string
-}
 
 export type TopicEngagementLevel = "high" | "medium" | "low" | "disengaged"
 
@@ -715,173 +682,6 @@ export function getPausedDeepReasonsExploration(tempMemory: any): SupervisorSess
   )
   return paused ? (paused as SupervisorSession) : null
 }
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// USER PROFILE CONFIRMATION SESSION
-// ═══════════════════════════════════════════════════════════════════════════════
-
-const PROFILE_CONFIRM_STATE_KEY = "profile_confirmation_state"
-
-/**
- * Get active user profile confirmation state.
- */
-export function getProfileConfirmationState(tempMemory: any): UserProfileConfirmationState | null {
-  const tm = safeObj(tempMemory)
-  const state = (tm as any)[PROFILE_CONFIRM_STATE_KEY] ?? null
-  if (!state || typeof state !== "object") return null
-  if (!Array.isArray(state.facts_queue)) return null
-  return state as UserProfileConfirmationState
-}
-
-/**
- * Check if profile confirmation machine is active.
- */
-export function hasActiveProfileConfirmation(tempMemory: any): boolean {
-  const state = getProfileConfirmationState(tempMemory)
-  return state !== null && state.status === "confirming"
-}
-
-/**
- * Create or update profile confirmation state with new facts to confirm.
- * Limits to MAX_PROFILE_FACTS_PER_SESSION (3).
- */
-export function upsertProfileConfirmation(opts: {
-  tempMemory: any
-  factsToAdd: ProfileFactToConfirm[]
-  now?: Date
-}): { tempMemory: any; changed: boolean; state: UserProfileConfirmationState } {
-  const tm0 = safeObj(opts.tempMemory)
-  const existing = getProfileConfirmationState(tm0)
-  const now = nowIso(opts.now)
-  
-  // Max 3 facts per session
-  const MAX_FACTS = 3
-  
-  let factsQueue: ProfileFactToConfirm[]
-  let currentIndex: number
-  let startedAt: string
-  let phase: ProfileConfirmationPhase
-  
-  if (existing && existing.status === "confirming") {
-    // Append to existing queue (up to limit)
-    const remainingSlots = MAX_FACTS - existing.facts_queue.length
-    const toAdd = opts.factsToAdd.slice(0, remainingSlots)
-    factsQueue = [...existing.facts_queue, ...toAdd]
-    currentIndex = existing.current_index
-    startedAt = existing.started_at
-    phase = existing.phase ?? "presenting"  // Keep current phase or default
-  } else {
-    // Create new session
-    factsQueue = opts.factsToAdd.slice(0, MAX_FACTS)
-    currentIndex = 0
-    startedAt = now
-    phase = "presenting"  // Start with presenting the first fact
-  }
-  
-  const state: UserProfileConfirmationState = {
-    facts_queue: factsQueue,
-    current_index: currentIndex,
-    phase,
-    status: "confirming",
-    started_at: startedAt,
-    last_updated_at: now,
-  }
-  
-  const tmNext = {
-    ...(tm0 as any),
-    [PROFILE_CONFIRM_STATE_KEY]: state,
-  }
-  
-  return { tempMemory: tmNext, changed: true, state }
-}
-
-/**
- * Get the current fact being confirmed.
- */
-export function getCurrentFactToConfirm(tempMemory: any): ProfileFactToConfirm | null {
-  const state = getProfileConfirmationState(tempMemory)
-  if (!state || state.status !== "confirming") return null
-  if (state.current_index >= state.facts_queue.length) return null
-  return state.facts_queue[state.current_index]
-}
-
-/**
- * Advance to next fact after user confirms/rejects current one.
- */
-export function advanceProfileConfirmation(opts: {
-  tempMemory: any
-  now?: Date
-}): { tempMemory: any; changed: boolean; completed: boolean; nextFact: ProfileFactToConfirm | null } {
-  const tm0 = safeObj(opts.tempMemory)
-  const state = getProfileConfirmationState(tm0)
-  if (!state || state.status !== "confirming") {
-    return { tempMemory: tm0, changed: false, completed: true, nextFact: null }
-  }
-  
-  const nextIndex = state.current_index + 1
-  const completed = nextIndex >= state.facts_queue.length
-  const nextFact = completed ? null : state.facts_queue[nextIndex]
-  
-  const newState: UserProfileConfirmationState = {
-    ...state,
-    current_index: nextIndex,
-    phase: completed ? "completed" : "presenting",  // Move to presenting next fact or completed
-    status: completed ? "completed" : "confirming",
-    last_updated_at: nowIso(opts.now),
-  }
-  
-  const tmNext = {
-    ...(tm0 as any),
-    [PROFILE_CONFIRM_STATE_KEY]: newState,
-  }
-  
-  return { tempMemory: tmNext, changed: true, completed, nextFact }
-}
-
-/**
- * Update the phase of the profile confirmation machine.
- */
-export function updateProfileConfirmationPhase(opts: {
-  tempMemory: any
-  phase: ProfileConfirmationPhase
-  now?: Date
-}): { tempMemory: any; changed: boolean } {
-  const tm0 = safeObj(opts.tempMemory)
-  const state = getProfileConfirmationState(tm0)
-  if (!state || state.status !== "confirming") {
-    return { tempMemory: tm0, changed: false }
-  }
-  
-  const newState: UserProfileConfirmationState = {
-    ...state,
-    phase: opts.phase,
-    last_updated_at: nowIso(opts.now),
-  }
-  
-  const tmNext = {
-    ...(tm0 as any),
-    [PROFILE_CONFIRM_STATE_KEY]: newState,
-  }
-  
-  return { tempMemory: tmNext, changed: true }
-}
-
-/**
- * Close profile confirmation session.
- */
-export function closeProfileConfirmation(opts: {
-  tempMemory: any
-}): { tempMemory: any; changed: boolean } {
-  const tm0 = safeObj(opts.tempMemory)
-  const state = getProfileConfirmationState(tm0)
-  if (!state) return { tempMemory: tm0, changed: false }
-  
-  const tmNext = { ...(tm0 as any) }
-  delete tmNext[PROFILE_CONFIRM_STATE_KEY]
-  
-  return { tempMemory: tmNext, changed: true }
-}
-
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // TTL / STALE CLEANUP
@@ -1844,11 +1644,6 @@ export function pauseMachineForSafety(opts: {
     actionTarget = opts.session.topic ?? undefined
   } else if (opts.session.type === "deep_reasons_exploration") {
     actionTarget = opts.session.topic ?? undefined
-  } else if (opts.session.type === "user_profile_confirmation") {
-    // For profile confirmation, extract current fact as action_target
-    const profileState = getProfileConfirmationState(tm0)
-    const currentFact = profileState?.facts_queue?.[profileState.current_index]
-    actionTarget = currentFact ? `${currentFact.key}: ${currentFact.proposed_value}` : "confirmation profil"
   }
   
   // Generate resume context
@@ -1856,11 +1651,8 @@ export function pauseMachineForSafety(opts: {
     ? `On était en train de travailler sur: ${opts.session.topic}` 
     : `On était dans un flow de ${opts.session.type}`
   
-  // For profile confirmation, save the full state as candidate_snapshot
   let candidateSnapshot = opts.candidate ?? (opts.session.meta as any)?.candidate
-  if (opts.session.type === "user_profile_confirmation") {
-    candidateSnapshot = getProfileConfirmationState(tm0)
-  } else if (opts.session.type === "deep_reasons_exploration") {
+  if (opts.session.type === "deep_reasons_exploration") {
     // Preserve deep_reasons state so resume can restore the phase accurately.
     candidateSnapshot = (tm0 as any)?.deep_reasons_state ?? candidateSnapshot
   } else if (
@@ -1911,12 +1703,6 @@ export function pauseMachineForSafety(opts: {
   } else if (sessionType === "topic_serious" || sessionType === "topic_light") {
     const closed = closeTopicSession({ tempMemory, now: opts.now })
     tempMemory = closed.tempMemory
-  } else if (sessionType === "user_profile_confirmation") {
-    // For profile confirmation, remove active state so safety flow can take over.
-    // The state is preserved in pausedState.candidate_snapshot for resume.
-    const next = { ...(tempMemory as any) }
-    delete next[PROFILE_CONFIRM_STATE_KEY]
-    tempMemory = next
   }
   
   return { tempMemory, pausedState }
@@ -2048,16 +1834,6 @@ export function resumePausedMachine(opts: {
       now: opts.now,
     })
     tempMemory = result.tempMemory
-  } else if (machineType === "user_profile_confirmation") {
-    // Profile confirmation state is preserved in candidate_snapshot
-    // Restore it from there
-    if (pausedState.candidate_snapshot) {
-      ;(tempMemory as any).profile_confirmation_state = pausedState.candidate_snapshot
-    }
-    // Also set a flag to indicate we're resuming
-    ;(tempMemory as any).__resume_profile_confirmation = {
-      context: pausedState.resume_context,
-    }
   }
   
   // Clear paused state

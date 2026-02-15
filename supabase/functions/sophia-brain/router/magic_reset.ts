@@ -19,7 +19,6 @@ export function detectMagicResetCommand(
 
 export function clearMachineStateTempMemory(opts: {
   tempMemory: any;
-  profileConfirmDeferredKey: string;
 }): { tempMemory: any; clearedKeys: string[] } {
   const next = { ...(opts.tempMemory ?? {}) };
   const keysToClear = [
@@ -70,8 +69,6 @@ export function clearMachineStateTempMemory(opts: {
     "__delete_action_signal",
     "__deactivate_action_signal",
     "__deep_reasons_opportunity",
-    // Deferred profile confirmation facts key
-    opts.profileConfirmDeferredKey,
   ];
 
   const clearedKeys: string[] = [];

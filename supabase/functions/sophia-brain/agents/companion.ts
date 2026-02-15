@@ -2,24 +2,10 @@ import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { handleTracking } from "../lib/tracking.ts"
 import { logEdgeFunctionError } from "../../_shared/error-log.ts"
-import { getUserState, updateUserState } from "../state-manager.ts"
-import { upsertUserProfileFactWithEvent } from "../profile_facts.ts"
-import {
-  getProfileConfirmationState,
-  hasActiveProfileConfirmation,
-  getCurrentFactToConfirm,
-  upsertProfileConfirmation,
-  advanceProfileConfirmation,
-  closeProfileConfirmation,
-  updateProfileConfirmationPhase,
-  type ProfileFactToConfirm,
-} from "../supervisor.ts"
 
 export type CompanionModelOutput =
   | string
   | { tool: "track_progress"; args: any }
-  | { tool: "set_profile_confirm_pending"; args: any }
-  | { tool: "apply_profile_fact"; args: any }
 
 export type CompanionRunResult = {
   text: string
@@ -67,23 +53,8 @@ export function buildCompanionSystemPrompt(opts: {
     - Tu n'en parles QUE si l'utilisateur en parle en premier. Sinon, ignore-les.
 
     USER MODEL (PRÉFÉRENCES - 10 types) :
-    - Le contexte peut contient "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
-    - TU ES LE SEUL mode autorise a poser ces questions (Companion).
-    
-    TYPES DE FAITS: conversation.tone, conversation.verbosity, conversation.use_emojis,
-    schedule.work_hours, schedule.energy_peaks, schedule.wake_time, schedule.sleep_time,
-    personal.job, personal.hobbies, personal.family
-    
+    - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
     - Si des facts existent, adapte ton style/timing sans le dire.
-    - Si PENDING_CONFIRMATION est non-null:
-      - Il peut contenir un "proposed_value" (valeur detectee a confirmer).
-      - Si l'utilisateur dit "oui/exact": appelle apply_profile_fact avec la cle + proposed_value.
-      - Si l'utilisateur corrige: appelle apply_profile_fact avec la cle + valeur corrigee.
-      - Si pas clair: repose UNE question courte pour clarifier.
-    - Si PENDING_CONFIRMATION est null ET qu'il y a des CANDIDATES:
-      - N'interromps pas une conversation importante.
-      - Si moment "low-stakes", tu peux poser UNE question de confirmation.
-      - Quand tu poses la question, appelle set_profile_confirm_pending (key, scope).
 
     DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 120)}..."
 
@@ -124,7 +95,7 @@ export function buildCompanionSystemPrompt(opts: {
     - Si le contexte contient "=== ADDON TRACK_PROGRESS", suis la consigne (clarifier si besoin, sinon acquiescer).
 
     USER MODEL (PRÉFÉRENCES - 10 types) :
-    - Le contexte peut contenir "=== USER MODEL (FACTS) ===" et/ou "=== USER MODEL (CANDIDATES / CONFIRMATION) ===".
+    - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
     
     TYPES DE FAITS PERSONNELS (10):
     1. conversation.tone: ton de communication ("direct", "doux", "cash")
@@ -139,18 +110,6 @@ export function buildCompanionSystemPrompt(opts: {
     10. personal.family: situation familiale ("2 enfants", "celibataire")
     
     - Si des facts existent, adapte ton style/timing sans le dire.
-    - Si PENDING_CONFIRMATION est non-null:
-      - Il peut contenir un "proposed_value" (valeur detectee a confirmer).
-      - Interprète la reponse du user par rapport a ce proposed_value.
-      - Si l'utilisateur dit "oui/exact/c'est ca": appelle apply_profile_fact avec la cle + proposed_value.
-      - Si l'utilisateur corrige: appelle apply_profile_fact avec la cle + valeur corrigee.
-      - Si pas clair: repose UNE question courte pour clarifier.
-      - EXEMPLE: Si pending = {key: "schedule.wake_time", proposed_value: "6h30"} et user dit "oui"
-        -> appelle apply_profile_fact(key="schedule.wake_time", value="6h30")
-    - Si PENDING_CONFIRMATION est null ET qu'il y a des CANDIDATES:
-      - N'interromps pas une conversation importante.
-      - Si moment "low-stakes" (ok/merci/super), tu peux poser UNE question de confirmation.
-      - Quand tu poses la question, appelle set_profile_confirm_pending (key, scope).
 
     ACTIONS COMPLETED (CRITIQUE) :
     - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
@@ -277,142 +236,6 @@ const TRACK_PROGRESS_TOOL = {
   }
 }
 
-const SET_PROFILE_CONFIRM_PENDING_TOOL = {
-  name: "set_profile_confirm_pending",
-  description:
-    "Enregistre qu'une question de confirmation de préférence a été posée (sans écrire le fact final).",
-  parameters: {
-    type: "OBJECT",
-    properties: {
-      candidate_id: { type: "STRING", description: "ID du candidate (recommandé).", nullable: true },
-      key: { type: "STRING", description: "Clé du fact à confirmer (ex: conversation.verbosity)" },
-      scope: { type: "STRING", description: "'global' ou 'current'." },
-      reason: { type: "STRING", description: "Raison (optionnel)." },
-    },
-    required: ["key", "scope"],
-  },
-}
-
-const APPLY_PROFILE_FACT_TOOL = {
-  name: "apply_profile_fact",
-  description:
-    "Applique un fact utilisateur CONFIRMÉ dans user_profile_facts et log un event. À utiliser uniquement après confirmation explicite.",
-  parameters: {
-    type: "OBJECT",
-    properties: {
-      candidate_id: { type: "STRING", description: "ID du candidate confirmé (recommandé).", nullable: true },
-      key: { type: "STRING", description: "Clé du fact à écrire (ex: conversation.verbosity)" },
-      // IMPORTANT: Gemini function_declarations schema does NOT support type="ANY" and will 400.
-      // We accept a string payload and coerce to boolean in code for boolean-like keys.
-      value: { type: "STRING", description: "Valeur confirmée. Pour oui/non, renvoie 'true' ou 'false'. Sinon, renvoie la valeur texte." },
-      scope: { type: "STRING", description: "'global' ou 'current'." },
-      reason: { type: "STRING", description: "Raison/trace (optionnel)." },
-    },
-    required: ["key", "value", "scope"],
-  },
-}
-
-function coerceProfileFactValue(key: string, value: any): any {
-  const k = String(key ?? "").trim();
-  const s = typeof value === "string" ? value.trim() : value;
-
-  const booleanKeys = new Set([
-    "coaching.plan_push_allowed",
-  ]);
-
-  // Normalize common synonyms for enumerated facts.
-  if (k === "conversation.verbosity") {
-    const str = String(s ?? "").trim().toLowerCase();
-    if (["short", "concise", "court", "courtes", "bref", "brève", "breve", "brèves", "breves"].includes(str)) return "short";
-    if (["detailed", "detaille", "détaillé", "détaillée", "detaillé", "detaillée", "long", "longue"].includes(str)) return "detailed";
-    // fallback: keep as-is (string)
-    return String(s ?? "");
-  }
-
-  if (k === "conversation.use_emojis") {
-    const str = String(s ?? "").trim().toLowerCase();
-    // Normalize to the enum used by the watcher schema: "never" | "normal"
-    if (["false", "0", "no", "n", "non", "never", "sans", "stop"].includes(str)) return "never";
-    if (["true", "1", "yes", "y", "oui", "ok", "normal", "oui stp", "vas-y"].includes(str)) return "normal";
-    // fallback: keep as-is
-    return String(s ?? "");
-  }
-
-  if (booleanKeys.has(k)) {
-    if (typeof value === "boolean") return value;
-    const str = String(s ?? "").trim().toLowerCase();
-    if (["true", "1", "yes", "y", "oui", "ok", "daccord", "d’accord"].includes(str)) return true;
-    if (["false", "0", "no", "n", "non"].includes(str)) return false;
-    // fallback: if we can't parse, store the raw string (better than crashing)
-    return String(s ?? "");
-  }
-
-  // Default: keep string if provided, otherwise pass-through (JSONB accepts primitives)
-  if (typeof s === "string") return s;
-  return value;
-}
-
-function normalizeProfileFactKey(rawKey: string): string {
-  const k = String(rawKey ?? "").trim();
-  if (!k) return "";
-  // Back-compat / common model aliasing:
-  if (k === "conversation.plan_push" || k === "coaching.plan_push" || k === "plan_push_allowed") return "coaching.plan_push_allowed";
-  if (k === "conversation.verbose") return "conversation.verbosity";
-  if (k === "conversation.emojis" || k === "conversation.emoji") return "conversation.use_emojis";
-  return k;
-}
-
-/**
- * Map dispatcher profile fact types to database keys.
- * Dispatcher uses simple types, DB uses prefixed keys.
- */
-const PROFILE_FACT_TYPE_TO_DB_KEY: Record<string, string> = {
-  // Conversation preferences
-  "tone_preference": "conversation.tone",
-  "verbosity": "conversation.verbosity",
-  "emoji_preference": "conversation.use_emojis",
-  // Schedule & energy
-  "work_schedule": "schedule.work_hours",
-  "energy_peaks": "schedule.energy_peaks",
-  "wake_time": "schedule.wake_time",
-  "sleep_time": "schedule.sleep_time",
-  // Personal info
-  "job": "personal.job",
-  "hobbies": "personal.hobbies",
-  "family": "personal.family",
-}
-
-/**
- * All 10 allowed profile fact keys (database format).
- */
-const ALLOWED_PROFILE_FACT_KEYS = new Set([
-  // Conversation preferences (original 4)
-  "conversation.tone",
-  "conversation.verbosity",
-  "conversation.use_emojis",
-  "coaching.plan_push_allowed",
-  // Schedule & energy (new)
-  "schedule.work_hours",
-  "schedule.energy_peaks",
-  "schedule.wake_time",
-  "schedule.sleep_time",
-  // Personal info (new)
-  "personal.job",
-  "personal.hobbies",
-  "personal.family",
-])
-
-function isAllowedProfileFactKey(key: string): boolean {
-  return ALLOWED_PROFILE_FACT_KEYS.has(String(key ?? "").trim());
-}
-
-/**
- * Convert dispatcher profile fact type to database key.
- */
-function profileFactTypeToDbKey(factType: string): string | null {
-  return PROFILE_FACT_TYPE_TO_DB_KEY[factType] ?? null
-}
-
 export async function generateCompanionModelOutput(opts: {
   systemPrompt: string
   message: string
@@ -432,7 +255,7 @@ export async function generateCompanionModelOutput(opts: {
     `Historique:\n${historyText}\n\nUser: ${opts.message}`,
     temperature,
     false,
-    [TRACK_PROGRESS_TOOL, SET_PROFILE_CONFIRM_PENDING_TOOL, APPLY_PROFILE_FACT_TOOL],
+    [TRACK_PROGRESS_TOOL],
     "auto",
     {
       requestId: opts.meta?.requestId,
@@ -534,176 +357,6 @@ export async function handleCompanionModelOutput(opts: {
         tool_execution: "failed",
       }
     }
-  }
-
-  if (typeof response === "object" && (response as any)?.tool === "set_profile_confirm_pending") {
-    const args = (response as any).args ?? {}
-    const candidateId = (args?.candidate_id ?? null) ? String(args?.candidate_id) : null
-    const key = String(args?.key ?? "").trim()
-    const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
-    const resolvedScope = rawScope === "global" ? "global" : scope
-    const reason = String(args?.reason ?? "")
-    const proposedValue = typeof (args as any)?.proposed_value === "string"
-      ? String((args as any)?.proposed_value)
-      : ""
-    let toolExecution: "success" | "uncertain" = "success"
-    if (key) {
-      try {
-        const st = await getUserState(supabase, userId, scope)
-        const tm0 = (st as any)?.temp_memory ?? {}
-        const now = new Date()
-        const fact: ProfileFactToConfirm = {
-          key,
-          proposed_value: proposedValue,
-          confidence: 0.6,
-          detected_at: now.toISOString(),
-        }
-        const result = upsertProfileConfirmation({ tempMemory: tm0, factsToAdd: [fact], now })
-        const phaseResult = updateProfileConfirmationPhase({
-          tempMemory: result.tempMemory,
-          phase: "awaiting_confirm",
-          now,
-        })
-        await updateUserState(supabase, userId, scope, { temp_memory: phaseResult.tempMemory })
-
-        // Mark candidate as "asked" (best-effort, by id if available)
-        if (candidateId) {
-          const { data: row } = await supabase
-            .from("user_profile_fact_candidates")
-            .select("asked_count")
-            .eq("id", candidateId)
-            .maybeSingle()
-          const prevAsked = Number((row as any)?.asked_count ?? 0)
-          await supabase
-            .from("user_profile_fact_candidates")
-            .update({
-              status: "asked",
-              last_asked_at: now,
-              asked_count: prevAsked + 1,
-              updated_at: now,
-            } as any)
-            .eq("id", candidateId)
-        }
-      } catch (e) {
-        console.warn("[Companion] set_profile_confirm_pending failed (non-blocking):", e)
-        toolExecution = "uncertain"
-      }
-    }
-    // The model is expected to have asked the question in its normal response content;
-    // if it returned a tool call, we fall back to a safe generic question.
-    if (key === "conversation.tone") {
-      return { text: "Tu préfères que je sois plutôt direct, ou plutôt doux ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
-    }
-    if (key === "conversation.verbosity") {
-      return { text: "Tu préfères plutôt des réponses courtes, ou détaillées ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
-    }
-    if (key === "conversation.use_emojis") {
-      return { text: "Tu veux que je mette des emojis (oui/non) ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
-    }
-    if (key === "coaching.plan_push_allowed") {
-      return { text: "Tu veux que je puisse te ramener à ton plan quand c’est utile (oui/non) ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
-    }
-    return { text: "Tu préfères quoi, là ?", executed_tools: ["set_profile_confirm_pending"], tool_execution: toolExecution }
-  }
-
-  if (typeof response === "object" && (response as any)?.tool === "apply_profile_fact") {
-    const args = (response as any).args ?? {}
-    const candidateId = (args?.candidate_id ?? null) ? String(args?.candidate_id) : null
-    const key0 = String(args?.key ?? "").trim()
-    const key = normalizeProfileFactKey(key0)
-    const rawScope = String(args?.scope ?? "current").trim().toLowerCase()
-    const resolvedScope = rawScope === "global" ? "global" : scope
-    const rawValue = (args as any)?.value
-    const value = coerceProfileFactValue(key, rawValue)
-    const reason = String(args?.reason ?? "")
-    let toolExecution: "success" | "uncertain" = "success"
-    if (key && isAllowedProfileFactKey(key)) {
-      try {
-        await upsertUserProfileFactWithEvent({
-          supabase,
-          userId,
-          scope: resolvedScope,
-          key,
-          value,
-          sourceType: "explicit_user",
-          confidence: 1.0,
-          reason: reason ? `confirmed:${reason}` : "confirmed_by_user",
-          sourceMessageId: null,
-        })
-
-        // Mark candidate as confirmed, and optionally reject other values for same (user,scope,key)
-        const now = new Date().toISOString()
-        if (candidateId) {
-          await supabase
-            .from("user_profile_fact_candidates")
-            .update({
-              status: "confirmed",
-              resolved_at: now,
-              resolved_value: value,
-              updated_at: now,
-            } as any)
-            .eq("id", candidateId)
-        } else {
-          await supabase
-            .from("user_profile_fact_candidates")
-            .update({
-              status: "confirmed",
-              resolved_at: now,
-              resolved_value: value,
-              updated_at: now,
-            } as any)
-            .eq("user_id", userId)
-            .eq("scope", resolvedScope)
-            .eq("key", key)
-            .eq("proposed_value", value as any)
-            .in("status", ["pending", "asked"])
-        }
-
-        await supabase
-          .from("user_profile_fact_candidates")
-          .update({
-            status: "rejected",
-            resolved_at: now,
-            updated_at: now,
-          } as any)
-          .eq("user_id", userId)
-          .eq("scope", resolvedScope)
-          .eq("key", key)
-          .neq("proposed_value", value as any)
-          .in("status", ["pending", "asked"])
-
-        // Clear pending and advance profile confirmation machine
-        const st = await getUserState(supabase, userId, scope)
-        const tm0 = (st as any)?.temp_memory ?? {}
-        
-        // Check if we're using the new machine
-        const hasActiveMachine = hasActiveProfileConfirmation(tm0)
-        let tmNext = { ...tm0 }
-        
-        if (hasActiveMachine) {
-          // Advance to next fact in the machine
-          const advanceResult = advanceProfileConfirmation({ tempMemory: tmNext })
-          tmNext = advanceResult.tempMemory
-          
-          if (advanceResult.completed) {
-            // Machine completed - close it
-            const closeResult = closeProfileConfirmation({ tempMemory: tmNext })
-            tmNext = closeResult.tempMemory
-            console.log("[Companion] Profile confirmation machine completed")
-          } else if (advanceResult.nextFact) {
-            console.log(`[Companion] Profile confirmation machine advanced, next fact: ${advanceResult.nextFact.key}`)
-          }
-        }
-        
-        await updateUserState(supabase, userId, scope, { temp_memory: tmNext })
-      } catch (e) {
-        console.warn("[Companion] apply_profile_fact failed (non-blocking):", e)
-        toolExecution = "uncertain"
-      }
-    } else {
-      toolExecution = "uncertain"
-    }
-    return { text: "Ok, c’est noté. On continue.", executed_tools: ["apply_profile_fact"], tool_execution: toolExecution }
   }
 
   // Catch-all: never stringify arbitrary objects into chat (it becomes "[object Object]").
