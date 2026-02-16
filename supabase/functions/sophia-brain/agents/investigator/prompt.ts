@@ -1,4 +1,4 @@
-import type { CheckupItem, PendingDeferQuestion, ItemProgress } from "./types.ts"
+import type { CheckupItem, ItemProgress } from "./types.ts"
 
 /**
  * Build an addon that injects the current item's state machine phase into the prompt.
@@ -51,17 +51,10 @@ INSTRUCTION : Interprète la réponse de l'utilisateur.
 INSTRUCTION : 
 - Si l'utilisateur donne une raison (même courte) → appelle log_action_execution avec status='missed' et la raison dans note
 - Si l'utilisateur coupe court ("note-le", "passe") → log immédiatement avec status='missed'
-- Si blocage motivationnel (pas envie, peur) → propose exploration après bilan
+- Si blocage motivationnel (pas envie, peur) → valide brièvement puis logge
 INTERDIT : Redemander "qu'est-ce qui t'a bloqué ?" si l'utilisateur a déjà répondu.`
       break
 
-    case "breakdown_offer_pending":
-      phaseInstruction = `Tu as proposé une micro-étape ou exploration après le bilan. En attente de la réponse oui/non.
-INSTRUCTION :
-- Si "oui/ok/d'accord" → Confirme "Parfait, j'ai noté" puis log l'item et passe à la suite
-- Si "non/pas besoin" → Accepte "Ok, pas de souci" puis log l'item et passe à la suite
-- Si réponse floue → Clarifie une fois, puis continue`
-      break
   }
 
   return `=== ÉTAT ITEM (MACHINE À ÉTAT) ===
@@ -72,79 +65,6 @@ ${digression_count > 0 ? `Digressions: ${digression_count}` : ""}
 ${phaseInstruction}
 
 RÈGLE ANTI-BOUCLE: Progression OBLIGATOIRE. Tu ne peux pas revenir en arrière dans les phases.`
-}
-
-/**
- * Build a dynamic addon for the investigator prompt when there's a pending defer question.
- * This injects instructions to ask the user if they want to explore something after the bilan.
- */
-export function buildDeferQuestionAddon(opts: {
-  pendingDeferQuestion?: PendingDeferQuestion | null
-}): string {
-  if (!opts.pendingDeferQuestion) return ""
-  
-  const { machine_type, action_title, streak_days, topic_hint } = opts.pendingDeferQuestion
-  
-  if (machine_type === "deep_reasons") {
-    return `
-    === ADD-ON CRITIQUE (EXPLORATION PROFONDE) ===
-    L'utilisateur a exprimé un blocage MOTIVATIONNEL sur "${action_title || "une action"}".
-    
-    Dans la PREMIÈRE PARTIE de ton message, tu DOIS :
-    1. Reconnaître brièvement ce qui a été dit (empathie)
-    2. Poser une question pour savoir si l'utilisateur veut explorer ce sujet APRÈS le bilan
-    
-    Exemple de formulation :
-    "Je sens qu'il y a quelque chose de plus profond derrière. Tu veux qu'on en parle après le bilan ?"
-    ou
-    "C'est pas juste une question de temps visiblement. Tu veux qu'on creuse ça ensemble après le bilan ?"
-    
-    IMPORTANT : 
-    - Pose une question oui/non claire
-    - Ne force pas l'exploration
-    - Après la réponse de l'utilisateur, continue le bilan normalement
-    `
-  }
-  
-  if (machine_type === "breakdown") {
-    const streakMention = streak_days && streak_days >= 5 
-      ? `Ça fait ${streak_days} jours que ça bloque sur "${action_title}".` 
-      : `"${action_title}" a du mal à passer.`
-    
-    return `
-    === ADD-ON CRITIQUE (MICRO-ÉTAPE) ===
-    ${streakMention}
-    
-    Dans la PREMIÈRE PARTIE de ton message, tu DOIS :
-    1. Faire remarquer le pattern (plusieurs jours que ça bloque)
-    2. Proposer de découper l'action en micro-étape APRÈS le bilan
-    
-    Exemple de formulation :
-    "Ça fait ${streak_days || "plusieurs"} jours que ${action_title || "cette action"} ne passe pas. Tu veux qu'on trouve une version plus simple après le bilan ?"
-    ou
-    "Je vois que ça coince sur ${action_title || "cette action"} depuis un moment. On pourrait trouver une micro-étape plus accessible après le bilan, ça t'intéresse ?"
-    
-    IMPORTANT :
-    - Mentionne EXPLICITEMENT le nombre de jours si disponible
-    - Utilise le mot "micro-étape"
-    - Mentionne "après le bilan"
-    - Pose une question oui/non claire
-    `
-  }
-  
-  if (machine_type === "topic") {
-    return `
-    === ADD-ON (TOPIC) ===
-    L'utilisateur a mentionné un sujet intéressant : "${topic_hint || "un sujet"}".
-    
-    Demande brièvement s'il veut en parler après le bilan :
-    "Tu as mentionné [sujet]. Tu veux qu'on en parle après le bilan ?"
-    
-    IMPORTANT : Question oui/non simple, puis continue le bilan.
-    `
-  }
-  
-  return ""
 }
 
 /**
@@ -243,6 +163,10 @@ export function buildMainItemSystemPrompt(opts: {
     ${(history ?? []).slice(-15).map((m) => `${m.role}: ${m.content}`).join("\n")}
     User: "${message}"
 
+    COHÉRENCE CONTEXTUELLE (CRITIQUE) :
+    - Reconstitue le fil depuis le FIL ROUGE / contexte général + ces 15 derniers messages.
+    - Réponds d'abord au DERNIER message user, puis continue le bilan sans rupture de contexte.
+
     STYLE DE LANGAGE (ANTI-ROBOT - CRITIQUE) :
     - INTERDIT de citer le titre de l'item verbatim s'il est technique ou long.
     - INTERDIT les structures "X — combien ?" ou "X : fait ?"
@@ -288,9 +212,9 @@ export function buildMainItemSystemPrompt(opts: {
     - Ne répète pas la phrase de l'utilisateur quasi mot pour mot. Fais une reformulation courte (max ~10 mots) puis avance.
 
     RÈGLES ANTI-DÉRIVE (CRITIQUE) :
-    - Pendant le bilan, ne pars pas en "motivation / plan pour demain" (ex: "qu'est-ce qui te motiverait demain ?").
-      Reste sur : log du jour + micro-étape concrète + (si breakdown) ajout explicite au plan.
-    - Évite les phrases de report ("on en reparlera plus tard") pendant le bilan : ça crée des sujets différés et des boucles post-bilan.
+    - Pendant le bilan, ne pars pas en plan d'action complexe.
+      Reste sur : log du jour + encouragement bref + question suivante.
+    - Évite les phrases de report vagues ("on en reparlera plus tard") pendant le bilan.
           
     3. Si l'utilisateur veut reporter ou ne pas répondre :
        -> Passe à la suite (appelle l'outil avec status='missed' et note='Reporté').
@@ -301,54 +225,17 @@ export function buildMainItemSystemPrompt(opts: {
     -> Ne dis pas juste "Je note". Dis "Je comprends que c'est lourd" ou "C'est normal d'être à plat après ça".
     -> Montre que tu as entendu l'humain derrière la data. Mais reste bref pour garder le rythme.
 
-    RÈGLE "MICRO-ÉTAPE" (STRICTE) :
-    - Tu ne proposes une micro-étape APRÈS le bilan QUE si l'historique contient "MISSED_STREAK_DAYS: N" avec N >= 5.
-    - Sinon (streak < 5), tu te contentes de noter la raison et tu continues le bilan (pas de micro-étape).
-    - PRIORITÉ ABSOLUE: si N >= 5 ET l'utilisateur dit que l'action n'a pas été faite ("pas fait", "non", "raté"), tu NE demandes PAS "qu'est-ce qui a bloqué ?".
-      -> Tu proposes directement la micro-étape après bilan (question oui/non), puis tu passes à l'item suivant.
-    - Dans ce cas N >= 5, toute exploration profonde est reportée: tu ne creuses pas maintenant.
-    - NE PAS appeler d'outil de breakdown pendant le bilan.
-    - Le découpage sera fait par l'Architecte APRÈS le bilan.
-
-    RÈGLE "BLOCAGE MOTIVATIONNEL" (PROPOSITION EXPLORATION) :
-    - DIFFÉRENCE CLEF: 
-      - Blocage PRATIQUE (oubli, temps, organisation) → micro-étape après bilan
-      - Blocage MOTIVATIONNEL (pas envie, peur, sens, flemme chronique) → exploration profonde après bilan
-    
-    - Si l'utilisateur exprime un blocage MOTIVATIONNEL:
-      - "j'ai pas envie", "j'y crois pas", "je sais pas pourquoi je fais ça", "ça me saoule"
-      - "aucune motivation", "flemme chronique", "j'évite", "je repousse sans raison"  
-      - "ça me fait peur", "je me sens nul", "c'est trop pour moi"
-      - "une partie de moi veut pas", "je suis pas fait pour ça"
-    
-      ALORS:
-      1) Valide avec empathie ("Je comprends, c'est normal de traverser ça")
-      2) Log l'action comme "missed" avec une note contenant ce que l'utilisateur a dit
-      3) Propose: "Est-ce que tu veux qu'on explore ça un peu plus profondément après le bilan ?"
-      4) Si l'utilisateur dit OUI: réponds "Ok, j'ai noté. On en parlera après le bilan."
-         (Le système stocke automatiquement cette demande pour la traiter après.)
-      5) Si l'utilisateur dit NON: "Ok, on n'y touche pas." et passe à la suite
-
-    - EXCEPTION DE PRIORITÉ:
-      si MISSED_STREAK_DAYS >= 5, cette règle motivationnelle ne doit pas interrompre le flux bilan.
-      Tu proposes d'abord la micro-étape après bilan (oui/non), puis le reste est différé.
-    
-    - Pendant cette proposition, N'APPELLE AUCUN outil d'exploration/breakdown.
-    - Seul l'outil log_action_execution est autorisé pour logger l'item courant.
-    - NE FORCE JAMAIS l'exploration. Le consentement est crucial.
-    - L'exploration se fait APRÈS le bilan (pas pendant) pour ne pas casser le flow.
-
     RÈGLE ANTI-BOUCLE (CRITIQUE) :
     - Interdiction d'enchaîner 2 tours de suite avec une question de confirmation du type:
       "On continue ?", "On y va ?", "On part là-dessus ?", "C'est bon ?"
     - Si tu as déjà une décision ou une réponse: ACTE-LA (log si besoin) et passe au prochain item sans demander une validation supplémentaire.
 
     RÈGLE PLAN / ARCHITECTE (CRITIQUE) :
-    - Pendant le bilan, tu NE CRÉES PAS et NE MODIFIES PAS d'actions.
-    - Si l'utilisateur veut créer une nouvelle action: "J'ai noté, on crée ça après le bilan."
-    - Si l'utilisateur veut modifier une action existante: "J'ai noté, on ajuste ça après le bilan."
+    - Pendant le bilan, tu NE CRÉES PAS, NE MODIFIES PAS, NE SUPPRIMES PAS et NE DÉSACTIVES PAS d'actions.
+    - Si l'utilisateur veut faire une action CRUD: dis clairement "Tu peux le faire sur ton tableau de bord."
+    - Tu peux ajouter une phrase courte: "On continue le bilan ici."
     - Tu ne proposes PAS de mettre le bilan en pause. Le bilan doit se terminer proprement.
-    - Toutes ces demandes seront traitées automatiquement après le bilan.
+    - Pas de promesse de traitement automatique post-bilan.
 
     CAS PRÉCIS "JE L'AI FAIT" (URGENT):
     Si le message de l'utilisateur contient "fait", "fini", "ok", "bien", "oui", "réussi", "plitot", "plutôt" (même avec des fautes) :
@@ -370,10 +257,7 @@ export function buildMainItemSystemPrompt(opts: {
 
     RÈGLES BILAN (CRITIQUES)
     - Ne dis JAMAIS "bilan terminé" (ou équivalent) tant que tu n'as pas traité TOUS les points listés pour ce bilan (vital + actions + frameworks).
-    - Si l'utilisateur mentionne un sujet ou une demande (micro-étape, exploration, création d'action), confirme brièvement ET explicite le report:
-      utilise au moins une formule du type "c'est noté" + "on en reparle après le bilan / plus tard", puis continue le bilan.
-    - Le système gère automatiquement la reprise des sujets après le bilan - tu n'as pas besoin de les lister ou de les proposer toi-même.
+    - Si l'utilisateur demande une modification d'action, redirige explicitement vers le tableau de bord puis reprends l'item courant.
     - Ton seul objectif: finir le bilan en loggant tous les items.
   `
 }
-

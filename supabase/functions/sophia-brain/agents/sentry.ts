@@ -212,6 +212,8 @@ Contexte: situation potentiellement urgente (sécurité / santé / crise).
 ${phaseAddon}
 
 OBJECTIF GÉNÉRAL:
+- Avant de répondre, reconstitue rapidement le fil avec le contexte récent.
+- Réponds d'abord au DERNIER message utilisateur, sans perdre la continuité.
 - Donner une réponse TRÈS courte, TRÈS actionnable.
 - Aider l'utilisateur à se mettre en sécurité et à contacter les secours si nécessaire.
 - Ne pas diagnostiquer. Ne pas donner de posologie. Ne pas minimiser.
@@ -244,4 +246,3 @@ RÈGLES ABSOLUES:
     return fallback
   }
 }
-

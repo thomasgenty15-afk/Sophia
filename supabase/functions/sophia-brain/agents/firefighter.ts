@@ -333,6 +333,8 @@ export async function runFirefighter(
 ${phaseAddon}
 
     OBJECTIF GÉNÉRAL:
+    - Avant de répondre, reconstitue mentalement le fil avec le FIL ROUGE + l'historique récent.
+    - Réponds d'abord au DERNIER message utilisateur, puis garde la continuité.
     - Faire avancer l'utilisateur dans sa gestion de crise avec FLUIDITÉ
     - Plusieurs tours sur une même phase = NORMAL, ne pas rusher
     - La priorité est l'accompagnement, pas la vitesse de résolution

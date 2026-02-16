@@ -6,10 +6,7 @@ export type AgentMode =
   | 'sentry' 
   | 'firefighter' 
   | 'investigator' 
-  | 'architect' 
-  | 'librarian'
-  | 'companion' 
-  | 'assistant'
+  | 'companion'
 
 export interface UserChatState {
   current_mode: AgentMode

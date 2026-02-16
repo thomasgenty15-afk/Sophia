@@ -8,7 +8,7 @@ function assertEquals(actual: unknown, expected: unknown) {
   }
 }
 
-Deno.test("buildFlowContext: returns pendingSignalResolution for dual_tool without active machine", () => {
+Deno.test("buildFlowContext: ignores dual_tool pending context in release-1 simplified mode", () => {
   const ctx = buildFlowContext({
     __pending_dual_tool: {
       tool1: { verb: "activer", target_hint: "sport" },
@@ -16,15 +16,10 @@ Deno.test("buildFlowContext: returns pendingSignalResolution for dual_tool witho
     },
   });
 
-  assertEquals(ctx?.pendingSignalResolution?.pending_type, "dual_tool");
-  assertEquals(ctx?.pendingSignalResolution?.dual_tool?.tool1_verb, "activer");
-  assertEquals(
-    ctx?.pendingSignalResolution?.dual_tool?.tool2_verb,
-    "supprimer",
-  );
+  assertEquals(ctx, undefined);
 });
 
-Deno.test("buildFlowContext: returns pendingSignalResolution for non-expired resume_prompt", () => {
+Deno.test("buildFlowContext: ignores resume_prompt pending context in release-1 simplified mode", () => {
   const ctx = buildFlowContext({
     __router_resume_prompt_v1: {
       kind: "safety_recovery",
@@ -32,11 +27,7 @@ Deno.test("buildFlowContext: returns pendingSignalResolution for non-expired res
     },
   });
 
-  assertEquals(ctx?.pendingSignalResolution?.pending_type, "resume_prompt");
-  assertEquals(
-    ctx?.pendingSignalResolution?.resume_prompt?.kind,
-    "safety_recovery",
-  );
+  assertEquals(ctx, undefined);
 });
 
 Deno.test("buildFlowContext: ignores expired resume_prompt marker", () => {

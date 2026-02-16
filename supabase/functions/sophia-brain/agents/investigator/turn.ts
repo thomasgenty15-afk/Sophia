@@ -14,8 +14,7 @@ import {
 } from "./streaks.ts"
 import { logEdgeFunctionError } from "../../../_shared/error-log.ts"
 import { getItemProgress, updateItemProgress } from "./item_progress.ts"
-// NOTE: Tool handlers for break_down_action, defer_deep_exploration, activate_plan_action,
-// archive_plan_action have been removed. These are now handled post-bilan via deferred_topics_v2.
+// NOTE: Investigator tool handling is intentionally small and deterministic.
 
 export async function handleInvestigatorModelOutput(opts: {
   supabase: SupabaseClient
@@ -94,7 +93,7 @@ export async function handleInvestigatorModelOutput(opts: {
 
   // Deterministic safety net: during bilan, if the user clearly indicates "pas fait" for the current action
   // but the model returns plain text (no tool call), we log the miss immediately so the flow can progress
-  // (including missed-streak breakdown offers) instead of looping on the same question.
+  // instead of looping on the same question.
   if (typeof response === "string" && currentItem?.type === "action") {
     const u = String(message ?? "").trim().toLowerCase()
     const currentProgress = getItemProgress(currentState, currentItem.id)
@@ -157,7 +156,6 @@ export async function handleInvestigatorModelOutput(opts: {
         logged_status: "missed",
       })
       
-      // Offer breakdown if streak>=5, otherwise move on.
       try {
         const streakIntercept = await maybeHandleStreakAfterLog({
           supabase,
@@ -235,7 +233,6 @@ export async function handleInvestigatorModelOutput(opts: {
             next_item: nextItem,
             // Use next item's day_scope for the transition question
             day_scope: String(nextItem.day_scope ?? stateWithProgress?.temp_memory?.day_scope ?? "yesterday"),
-            deferred_topic: null,
           },
           meta,
         )
@@ -328,9 +325,8 @@ export async function handleInvestigatorModelOutput(opts: {
           ...nextState,
           temp_memory: {
             ...(nextState.temp_memory || {}),
-            bilan_defer_offer: {
+            pending_increase_target_offer: {
               stage: "awaiting_consent",
-              kind: "increase_target",
               action_id: nextItem.id,
               action_title: nextItem.title,
               current_target: currentTarget,
@@ -370,59 +366,8 @@ export async function handleInvestigatorModelOutput(opts: {
         },
         meta,
       )
-      return { content: transitionMsg, investigationComplete: false, newState: nextState }
-    }
-
-    // --- WEEKLY HABIT TARGET REACHED: Interactive flow (Case 3) ---
-    // For habits, target_reps is a weekly frequency. When current_reps reaches target_reps (within the ISO week),
-    // we congratulate AND offer to activate another action.
-    // This returns early, so the flow below (level up, streak, transition) only runs for non-target-reached cases.
-    if (currentItem.type === "action" && argsWithId.status === "completed") {
-      try {
-        const { data: a } = await supabase
-          .from("user_actions")
-          .select("type, title, current_reps, target_reps")
-          .eq("id", currentItem.id)
-          .maybeSingle()
-        if (a && String((a as any).type ?? "") === "habit") {
-          const curr = Number((a as any).current_reps ?? 0)
-          const target = Number((a as any).target_reps ?? 1)
-          if (target > 0 && curr === target) {
-            // Generate interactive congrats + activate offer
-            const congratsMsg = await investigatorSay(
-              "weekly_target_reached_activate_offer",
-              {
-                user_message: message,
-                channel: meta?.channel,
-                action_title: String((a as any).title ?? currentItem.title),
-                current_reps: curr,
-                current_target: target,
-              },
-              meta,
-            )
-
-            // Store pending offer for activate_action
-            const nextStateWithOffer: InvestigationState = {
-              ...stateWithLog,
-              temp_memory: {
-                ...(stateWithLog.temp_memory || {}),
-                bilan_defer_offer: {
-                  stage: "awaiting_consent",
-                  kind: "activate_action",
-                  action_id: currentItem.id,
-                  action_title: String((a as any).title ?? currentItem.title),
-                  current_target: target,
-                  last_item_log: argsWithId,
-                },
-              },
-            }
-            return { content: congratsMsg, investigationComplete: false, newState: nextStateWithOffer }
-          }
-        }
-      } catch (e) {
-        console.error("[Investigator] weekly habit target check failed:", e)
+        return { content: transitionMsg, investigationComplete: false, newState: nextState }
       }
-    }
 
     // --- LEVEL UP CHECK ---
     if (currentItem.type === "action" && argsWithId.status === "completed") {
@@ -528,8 +473,6 @@ export async function handleInvestigatorModelOutput(opts: {
       last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
     })
     
-    const deferred = Boolean(stateWithLog?.temp_memory?.deferred_topic)
-
     // Use enriched scenario for action completed (félicitation + transition in same message)
     if (currentItem.type === "action" && argsWithId.status === "completed") {
       // Get win streak for context (already checked for >= 3 earlier, but we pass it anyway)
@@ -594,7 +537,6 @@ export async function handleInvestigatorModelOutput(opts: {
             next_item: nextItem,
             // Use next item's day_scope for the transition question
             day_scope: String(nextItem.day_scope ?? stateWithLog?.temp_memory?.day_scope ?? "yesterday"),
-            deferred_topic: deferred ? "planning/organisation" : null,
           },
           meta,
         )
@@ -610,7 +552,6 @@ export async function handleInvestigatorModelOutput(opts: {
         next_item: nextItem,
         // Use next item's day_scope for the transition question
         day_scope: String(nextItem.day_scope ?? stateWithLog?.temp_memory?.day_scope ?? "yesterday"),
-        deferred_topic: deferred ? "planning/organisation" : null,
       },
       meta,
     )
@@ -695,11 +636,7 @@ export async function handleInvestigatorModelOutput(opts: {
     }
   }
 
-  // NOTE: Tool handlers for break_down_action, archive_plan_action, activate_plan_action,
-  // defer_deep_exploration have been removed. These tools are no longer available to the
-  // Investigator. The Investigator now only proposes these actions verbally; if the user
-  // consents, the Dispatcher detects the signal and stores it in deferred_topics_v2 for
-  // processing after the bilan ends.
+  // NOTE: The investigator only executes logging + weekly target increase tool paths.
 
   // Text response (no tool call) - this usually means a digression or clarification
   // Update digression count only if we're still awaiting an answer
@@ -744,5 +681,4 @@ export async function handleInvestigatorModelOutput(opts: {
     newState: stateAfterTextResponse,
   }
 }
-
 

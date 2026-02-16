@@ -154,65 +154,6 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     `
       : ""}
 
-    ${(scenario.startsWith("breakdown_") || scenario.includes("missed_streak_offer_breakdown"))
-      ? `
-    SCÉNARIO SPÉCIAL : BREAKDOWN / MICRO-ÉTAPE
-    - Tu DOIS utiliser le mot exact "micro-étape" au moins une fois.
-    - Si le scénario est "breakdown_ask_blocker", tu DOIS poser une question qui contient "coincé" ou "bloque".
-      Exemple: "Qu'est-ce qui a coincé ?" / "Qu'est-ce qui te bloque ?"
-    - Reste très concret, 1 question max.
-    - INTERDICTION d'utiliser des phrases de report ("on en reparlera", "après/plus tard", "à la fin du bilan") dans ces scénarios.
-    `
-      : ""}
-
-    ${scenario === "bilan_defer_offer_breakdown"
-      ? `
-    SCÉNARIO SPÉCIAL : PROPOSITION MICRO-ÉTAPE APRÈS LE BILAN
-    DONNÉES DISPONIBLES: streak_days (nombre de jours ratés), item.title (nom de l'action)
-    
-    RÈGLES CRITIQUES:
-    1. Tu DOIS MENTIONNER EXPLICITEMENT LE NOMBRE DE JOURS : "Ça fait {streak_days} jours que..."
-       - Utilise le nombre exact présent dans les données (streak_days)
-       - Exemple: "Ça fait 5 jours que cette action ne passe pas."
-    2. Tu DOIS utiliser le mot exact "micro-étape" au moins une fois.
-    3. Tu DOIS mentionner explicitement "après le bilan".
-    4. Tu DOIS poser UNE question simple de consentement (oui/non).
-    5. Ne parle pas d'outils, de systèmes, ni de process internes.
-    
-    EXEMPLE COMPLET:
-    "Ça fait 5 jours que [action] ne passe pas. Tu veux qu'on trouve une micro-étape plus simple après le bilan ?"
-    `
-      : ""}
-
-    ${scenario === "bilan_defer_offer_clarify"
-      ? `
-    SCÉNARIO SPÉCIAL : CLARIFICATION DU CONSENTEMENT
-    - Reformule la question en mode oui/non, très court.
-    - Rappelle "après le bilan" en une seule phrase.
-    - Une seule question.
-    `
-      : ""}
-
-    ${((scenario === "break_down_action_propose_step") || (scenario === "breakdown_propose_step"))
-      ? `
-    CONTRAINTE CRITIQUE (proposition de micro-étape) :
-    - Tu DOIS terminer par une question explicite pour l'ajout au plan :
-      "Tu veux que je l'ajoute à ton plan ?"
-    `
-      : ""}
-
-    ${scenario.startsWith("deep_exploration_")
-      ? `
-    SCÉNARIO SPÉCIAL : EXPLORATION PROFONDE (DEEP REASONS)
-    - L'utilisateur a accepté d'explorer un blocage motivationnel/profond APRÈS le bilan.
-    - Tu dois confirmer que c'est noté et qu'on y reviendra.
-    - Si "deferred_continue": continue le bilan normalement en passant à l'item suivant.
-    - Si "deferred_end": le bilan est terminé, la prochaine fois on explorera ce blocage ensemble.
-    - Ton chaleureux, pas clinique.
-    - Exemple: "Ok, je note qu'on revient là-dessus après le bilan. On continue ?"
-    `
-      : ""}
-
     ${scenario === "target_exceeded_congrats"
       ? `
     SCÉNARIO SPÉCIAL : HABITUDE DÉPASSÉE — FÉLICITATION + PROPOSITION AUGMENTATION
@@ -280,6 +221,15 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     `
       : ""}
 
+    ${scenario === "increase_target_clarify"
+      ? `
+    SCÉNARIO SPÉCIAL : CLARIFICATION DU CONSENTEMENT (AUGMENTATION CIBLE HEBDO)
+    Reformule simplement la question oui/non.
+    Une seule question, pas de détour.
+    Exemple: "Tu veux qu'on passe à X×/semaine, oui ou non ?"
+    `
+      : ""}
+
     ${scenario === "increase_target_declined_transition"
       ? `
     SCÉNARIO SPÉCIAL : AUGMENTATION REFUSÉE + TRANSITION IMMÉDIATE
@@ -295,37 +245,6 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     - Interdiction de ton passif-agressif ou insistant.
     - Pas de mention technique.
     - Une seule question finale (sur next_item).
-    `
-      : ""}
-
-    ${scenario === "weekly_target_reached_activate_offer"
-      ? `
-    SCÉNARIO SPÉCIAL : OBJECTIF ATTEINT — PROPOSER D'ACTIVER UNE NOUVELLE ACTION
-    L'utilisateur a atteint son objectif de streaks (nombre de reps = nombre de streaks target).
-    C'est une victoire. Proposer d'activer une action supplémentaire de son plan.
-    
-    TON STYLE:
-    1. Félicite la persévérance (c'est l'objectif final, pas juste hebdo).
-    2. Propose: "Tu veux activer une autre action de ton plan ?"
-    3. Question oui/non simple.
-    
-    INTERDIT: Forcer l'activation, être robotique.
-    `
-      : ""}
-
-    ${scenario === "weekly_target_reached_activate_confirmed"
-      ? `
-    SCÉNARIO SPÉCIAL : ACTIVATION CONFIRMÉE
-    L'utilisateur veut activer une nouvelle action. Confirme qu'on s'en occupe après le bilan.
-    Message court: "Parfait, on regarde ça après le bilan."
-    `
-      : ""}
-
-    ${scenario === "weekly_target_reached_activate_declined"
-      ? `
-    SCÉNARIO SPÉCIAL : ACTIVATION REFUSÉE
-    L'utilisateur ne veut pas activer de nouvelle action. Pas de pression.
-    Message court: "Ok, on garde le rythme actuel."
     `
       : ""}
 
@@ -411,7 +330,7 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     - ❌ "Je comprends que tu étais fatigué. Passons à : Méditation matinale."
     - ✅ "Ok, journée chargée. Et t'as médité ce matin ?"
     - ✅ "Ça arrive. Côté nuit, t'as dormi combien ?"
-    - ✅ "5 jours que ça coince. On en reparle après. Et ta lecture ?"
+    - ✅ "5 jours que ça coince, je note. Et ta lecture ?"
     `
       : ""}
 
@@ -451,7 +370,5 @@ DONNÉES (JSON): ${JSON.stringify(data)}
   })
   return verified.text
 }
-
-
 
 

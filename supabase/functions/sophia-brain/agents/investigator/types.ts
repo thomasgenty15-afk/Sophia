@@ -1,5 +1,3 @@
-import type { DeepReasonsPattern } from "../architect/deep_reasons_types.ts";
-
 export interface CheckupItem {
   id: string;
   type: "action" | "vital" | "framework";
@@ -23,54 +21,14 @@ export interface CheckupItem {
   target_vital_value?: string;
 }
 
-/**
- * @deprecated Use deferred_topics_v2 system instead.
- * Deep reasons deferred during bilan - will be explored after.
- */
-export interface DeepReasonsDeferred {
+export interface PendingIncreaseTargetOffer {
+  stage: "awaiting_consent" | "awaiting_day_choice";
   action_id: string;
-  action_title: string;
-  detected_pattern: DeepReasonsPattern;
-  user_words: string;
-  created_at: string;
-}
-
-/**
- * Consents for machines that will be launched after the bilan.
- * Each machine has its own indicator for whether the user confirmed.
- */
-export interface BilanDeferConsents {
-  /** Deep reasons exploration consent */
-  explore_deep_reasons?: {
-    action_id: string;
-    action_title: string;
-    user_words?: string;
-    confirmed: boolean | null; // null = awaiting confirmation
-  };
-  /** Breakdown action consent (one per action) */
-  breakdown_action?: {
-    [action_id: string]: {
-      action_title: string;
-      streak_days: number;
-      confirmed: boolean | null;
-    };
-  };
-  /** Topic exploration consent */
-  topic_exploration?: {
-    topic_hint: string;
-    confirmed: boolean | null;
-  };
-}
-
-/**
- * Pending defer question to be asked in the next investigator message.
- */
-export interface PendingDeferQuestion {
-  machine_type: "deep_reasons" | "breakdown" | "topic";
-  action_id?: string;
   action_title?: string;
-  streak_days?: number;
-  topic_hint?: string;
+  current_target?: number;
+  last_item_log?: unknown;
+  has_scheduled_days?: boolean;
+  current_scheduled_days?: string[];
 }
 
 /**
@@ -78,14 +36,12 @@ export interface PendingDeferQuestion {
  * Progression is strictly monotone (no backward transitions allowed).
  *
  * Flow: not_started -> awaiting_answer -> (awaiting_reason) -> logged
- * With optional "parenthesis" states for breakdown offers.
  */
 export type ItemPhase =
   | "not_started"
   | "awaiting_answer"
   | "awaiting_reason"
-  | "logged"
-  | "breakdown_offer_pending";
+  | "logged";
 
 /**
  * Progress state for an individual checkup item.
@@ -109,61 +65,9 @@ export interface ItemProgress {
  */
 export type ItemProgressMap = Record<string, ItemProgress>;
 
-/**
- * Extended temp_memory type for InvestigationState
- *
- * NOTE: Several fields are deprecated as of the Investigator Deferred Unification refactor:
- * - deferred_topics: Now uses global deferred_topics_v2 system
- * - breakdown: Breakdown flow removed from Investigator, handled post-bilan by Architect
- * - deep_reasons_deferred: Now uses global deferred_topics_v2 system
- */
 export interface InvestigationTempMemory {
-  /** @deprecated Use deferred_topics_v2 in global temp_memory instead */
-  deferred_topics?: unknown[];
-  /** @deprecated Breakdown flow removed from Investigator */
-  breakdown?: {
-    stage: string;
-    action_id: string;
-    action_title?: string;
-    streak_days?: number;
-    problem?: string;
-    proposed_action?: unknown;
-    apply_to_plan?: boolean;
-  };
-  /** @deprecated Breakdown flow removed from Investigator */
-  breakdown_declined_action_ids?: string[];
-  /** @deprecated Use deferred_topics_v2 with machine_type="deep_reasons" instead */
-  deep_reasons_deferred?: DeepReasonsDeferred;
-  /** Pending post-bilan consent offer (micro-étape / exploration / increase target / activate action) */
-  bilan_defer_offer?: {
-    stage: "awaiting_consent";
-    kind:
-      | "breakdown"
-      | "deep_reasons"
-      | "increase_target"
-      | "activate_action"
-      | "delete_action"
-      | "deactivate_action";
-    action_id: string;
-    action_title?: string;
-    streak_days?: number;
-    current_target?: number;
-    last_note?: string;
-    last_item_log?: unknown;
-  };
-  /** Router-provided override for pending offer consent (hybrid with dispatcher signals). */
-  bilan_offer_resolution_override?: {
-    kind:
-      | "breakdown"
-      | "deep_reasons"
-      | "increase_target"
-      | "activate_action"
-      | "delete_action"
-      | "deactivate_action";
-    confirmed: boolean;
-    source: "dispatcher";
-    set_at: string;
-  };
+  /** Pending offer dedicated to the weekly target increase flow. */
+  pending_increase_target_offer?: PendingIncreaseTargetOffer;
   /** Cache of missed streaks by action id for the current bilan */
   missed_streaks_by_action?: Record<string, number>;
   /** Snapshot of vital progression context captured at bilan start */
@@ -171,10 +75,6 @@ export interface InvestigationTempMemory {
     string,
     { previous_value?: string; target_value?: string }
   >;
-  /** Consents collected during bilan for machines to launch after */
-  bilan_defer_consents?: BilanDeferConsents;
-  /** Pending defer question to inject into next investigator prompt */
-  pending_defer_question?: PendingDeferQuestion;
   /**
    * Per-item progress state for the checkup state machine.
    * Tracks phase, digression count, and logged status for each item.

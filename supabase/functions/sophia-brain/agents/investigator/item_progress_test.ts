@@ -103,21 +103,6 @@ Deno.test("updateItemProgress: awaiting_reason -> logged (allowed)", () => {
   assertEquals(progress.phase, "logged")
 })
 
-Deno.test("updateItemProgress: breakdown_offer_pending -> logged (allowed - decline)", () => {
-  const state = createTestState({
-    "item-1": { phase: "breakdown_offer_pending", digression_count: 0 },
-  })
-  
-  const newState = updateItemProgress(state, "item-1", { 
-    phase: "logged",
-    logged_at: new Date().toISOString(),
-    logged_status: "missed",
-  })
-  const progress = getItemProgress(newState, "item-1")
-  
-  assertEquals(progress.phase, "logged")
-})
-
 // ═══════════════════════════════════════════════════════════════════════════════
 // Backward transitions (blocked)
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -266,4 +251,3 @@ Deno.test("updateItemProgress handles null-ish state gracefully", () => {
 })
 
 console.log("\n✅ All Item Progress State Machine tests passed!\n")
-

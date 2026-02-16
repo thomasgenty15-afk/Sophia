@@ -33,15 +33,11 @@ export function updateItemProgress(
   const newProgress: ItemProgress = { ...current, ...update }
   
   // Enforce monotone progression
-  const phaseOrder = ["not_started", "awaiting_answer", "awaiting_reason", "breakdown_offer_pending", "logged"]
+  const phaseOrder = ["not_started", "awaiting_answer", "awaiting_reason", "logged"]
   const currentIdx = phaseOrder.indexOf(current.phase)
   const newIdx = phaseOrder.indexOf(newProgress.phase)
-  
-  // Special case: breakdown_offer_pending can transition to logged (decline) without going through awaiting_reason
-  const isValidBreakdownTransition = 
-    current.phase === "breakdown_offer_pending" && newProgress.phase === "logged"
-  
-  if (newIdx < currentIdx && !isValidBreakdownTransition) {
+
+  if (newIdx < currentIdx) {
     console.warn(`[Investigator] BLOCKED backward phase transition: ${current.phase} -> ${newProgress.phase}`)
     return state // Refuse backward transition
   }
@@ -70,5 +66,4 @@ export function initializeItemProgress(items: CheckupItem[]): ItemProgressMap {
   }
   return progress
 }
-
 

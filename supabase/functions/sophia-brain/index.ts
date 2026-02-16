@@ -48,9 +48,9 @@ Deno.serve(async (req) => {
         contextOverride = `LegacyMode: ${legacyMode}\nLegacyContext: ${JSON.stringify(safeContext)}`
       }
 
-      // Force architect for these legacy content modes.
+      // Legacy content modes now map to companion in the simplified router.
       if (!forceMode && (legacyMode === 'architect_help' || legacyMode === 'refine_module')) {
-        forceMode = 'architect'
+        forceMode = 'companion'
       }
     }
     
@@ -124,7 +124,7 @@ Deno.serve(async (req) => {
       { requestId, channel, scope },
       {
         logMessages: typeof logMessages === "boolean" ? logMessages : undefined,
-        forceMode: (forceMode === 'dispatcher' || forceMode === 'sentry' || forceMode === 'firefighter' || forceMode === 'investigator' || forceMode === 'architect' || forceMode === 'librarian' || forceMode === 'companion' || forceMode === 'assistant')
+        forceMode: (forceMode === 'dispatcher' || forceMode === 'sentry' || forceMode === 'firefighter' || forceMode === 'investigator' || forceMode === 'companion')
           ? forceMode
           : undefined,
         contextOverride: contextOverride ? contextOverride.toString() : undefined,

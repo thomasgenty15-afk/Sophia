@@ -10,10 +10,6 @@ import type {
 import { analyzeSignalsV2 } from "./dispatcher.ts"
 import { getSignalHistory, updateSignalHistory } from "./signal_history.ts"
 import { buildFlowContext, getActiveMachineType, machineMatchesSignalType } from "./flow_context.ts"
-import {
-  getActiveTopicSession,
-  getAnyActiveToolFlow,
-} from "../supervisor.ts"
 
 export function buildLastAssistantInfo(history: any[]): { lastAssistantMessage: string; lastAssistantAgent: string | null } {
   const lastAssistantMessage = history.filter((m: any) => m.role === "assistant").pop()?.content || ""
@@ -33,25 +29,16 @@ export function buildDispatcherStateSnapshot(opts: {
   tempMemory: any
   state: any
 }): DispatcherInputV2["stateSnapshot"] {
-  const topicSession = getActiveTopicSession(opts.tempMemory)
-  const activeToolFlow = getAnyActiveToolFlow(opts.tempMemory)
-  // Onboarding flow state (WhatsApp)
-  const onbFlow = (opts.tempMemory as any)?.__onboarding_flow
-  const onboarding_active = Boolean(onbFlow)
-  const onboarding_step = onbFlow?.step as string | undefined
-
   return {
     current_mode: opts.state?.current_mode,
     investigation_active: Boolean(opts.state?.investigation_state),
     investigation_status: opts.state?.investigation_state?.status,
-    toolflow_active: Boolean(activeToolFlow),
-    toolflow_kind: activeToolFlow?.type,
+    toolflow_active: false,
+    toolflow_kind: undefined,
     plan_confirm_pending: Boolean((opts.tempMemory as any)?.__wa_plan_confirm_pending),
-    topic_exploration_phase: topicSession ? topicSession.phase : undefined,
-    topic_exploration_type: topicSession?.type,
+    topic_exploration_phase: undefined,
+    topic_exploration_type: undefined,
     risk_level: opts.state?.risk_level,
-    onboarding_active,
-    onboarding_step,
   }
 }
 
@@ -79,9 +66,9 @@ export async function runContextualDispatcherV2(opts: {
   const signalHistory = getSignalHistory(opts.tempMemory, opts.signalHistoryKey)
   const activeMachine = getActiveMachineType(opts.tempMemory)
 
-  // Build last 6 messages (3 turns) for context (latency-sensitive; keep small).
-  // A turn = 1 user message + 1 assistant message = 2 messages
-  const last3TurnsMessages = (opts.history ?? []).slice(-6).map((m: any) => ({
+  // Build last 10 messages (5 turns) for context disambiguation.
+  // A turn = 1 user message + 1 assistant message = 2 messages.
+  const last5TurnsMessages = (opts.history ?? []).slice(-10).map((m: any) => ({
     role: String(m?.role ?? "user"),
     content: String(m?.content ?? "").slice(0, 220),
   }))
@@ -93,7 +80,7 @@ export async function runContextualDispatcherV2(opts: {
   const dispatcherInputV2: DispatcherInputV2 = {
     userMessage: opts.userMessage,
     lastAssistantMessage: opts.lastAssistantMessage,
-    last5Messages: last3TurnsMessages,
+    last5Messages: last5TurnsMessages,
     signalHistory,
     activeMachine,
     stateSnapshot: opts.stateSnapshot,
@@ -159,4 +146,3 @@ export async function runContextualDispatcherV2(opts: {
     tempMemory,
   }
 }
-

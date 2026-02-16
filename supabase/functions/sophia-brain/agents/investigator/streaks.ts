@@ -254,52 +254,12 @@ export async function maybeHandleStreakAfterLog(opts: {
     }
   }
 
-  // If missed-like status and streak>=5: propose breakdown flow BEFORE moving on.
+  // Release 1: keep bilan track-only.
+  // We no longer open post-bilan breakdown/deep-reasons offers from this flow.
   const missedLike = ["missed", "skipped", "failed"].includes(String(argsWithId.status ?? "").toLowerCase());
   if (currentItem.type === "action" && missedLike) {
     try {
-      // If the user already declined a breakdown for this action in the current checkup,
-      // never re-offer it (prevents repetitive "micro-étape 2 minutes" loops).
-      const declinedIds = Array.isArray((currentState as any)?.temp_memory?.breakdown_declined_action_ids)
-        ? ((currentState as any).temp_memory.breakdown_declined_action_ids as any[])
-        : [];
-      const declined = declinedIds.map((x: any) => String(x)).includes(String(currentItem.id));
-      if (declined) return null;
-
-      const streak = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
-      // Trigger post-bilan deferral offer ONLY when missed streak >= 5 days.
-      // Rationale: prevent proposing micro-steps after a single miss (false positives).
-      if (streak >= 5) {
-        // Update item progress to breakdown_offer_pending
-        let nextState = updateItemProgress(currentState, currentItem.id, {
-          phase: "breakdown_offer_pending",
-        })
-        
-        nextState = {
-          ...nextState,
-          temp_memory: {
-            ...(nextState.temp_memory || {}),
-            bilan_defer_offer: {
-              stage: "awaiting_consent",
-              kind: "breakdown",
-              action_id: currentItem.id,
-              action_title: currentItem.title,
-              streak_days: streak,
-              last_note: String(argsWithId.note ?? "").trim(),
-              last_item_log: argsWithId,
-            },
-          },
-        }
-        return {
-          content: await investigatorSay(
-            "bilan_defer_offer_breakdown",
-            { user_message: message, streak_days: streak, item: currentItem, last_note: String(argsWithId.note ?? "").trim() },
-            meta,
-          ),
-          investigationComplete: false,
-          newState: nextState,
-        }
-      }
+      await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)
     } catch (e) {
       console.error("[Investigator] streak check failed after missed log:", e)
     }
