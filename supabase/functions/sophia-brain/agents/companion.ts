@@ -165,6 +165,12 @@ export async function retrieveContext(
   message: string,
   opts?: RetrieveContextOptions
 ): Promise<string> {
+  const legacyMemoriesEnabled =
+    (Deno.env.get("SOPHIA_LEGACY_MEMORIES_ENABLED") ?? "").trim() === "1";
+  if (!legacyMemoriesEnabled) {
+    return "";
+  }
+
   const maxResults = opts?.maxResults ?? 5
   const includeActionHistory = opts?.includeActionHistory ?? true
   // For minimal mode (firefighter), we limit action history too

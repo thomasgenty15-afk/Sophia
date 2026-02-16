@@ -1,5 +1,5 @@
 import { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
-import { generateWithGemini } from "./gemini.ts";
+import { generateEmbedding, generateWithGemini } from "./gemini.ts";
 import { WEEKS_CONTENT } from "./weeksContent.ts";
 
 export async function processCoreIdentity(
@@ -83,7 +83,15 @@ export async function processCoreIdentity(
       `;
   }
 
-  const newIdentityContent = await generateWithGemini(systemPrompt, transcript, 0.3);
+  const newIdentityRaw = await generateWithGemini(systemPrompt, transcript, 0.3);
+  if (typeof newIdentityRaw !== "string") {
+    throw new Error("Identity generation returned a tool call instead of text");
+  }
+  const newIdentityContent = newIdentityRaw.trim();
+  if (!newIdentityContent) {
+    throw new Error("Identity generation returned empty content");
+  }
+  const identityEmbedding = await generateEmbedding(newIdentityContent);
 
   // 5. Sauvegarde et Archivage
   if (oldIdentity) {
@@ -99,6 +107,7 @@ export async function processCoreIdentity(
       // Mise à jour
       await supabase.from('user_core_identity').update({
           content: newIdentityContent,
+          identity_embedding: identityEmbedding,
           last_updated_at: new Date().toISOString()
       }).eq('id', oldIdentity.id);
       
@@ -108,9 +117,9 @@ export async function processCoreIdentity(
       await supabase.from('user_core_identity').insert({
           user_id: userId,
           week_id: `week_${weekNum}`,
-          content: newIdentityContent
+          content: newIdentityContent,
+          identity_embedding: identityEmbedding,
       });
       console.log(`[IdentityManager] Created identity for Week ${weekNum}`);
   }
 }
-

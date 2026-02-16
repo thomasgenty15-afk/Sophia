@@ -5,6 +5,7 @@ import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions, cleanupPlanData } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
+import { syncPlanTopicMemoryOnValidation } from '../lib/topicMemory';
 import { EpicLoading } from '../components/common/EpicLoading';
 import { 
   ArrowRight, 
@@ -487,6 +488,11 @@ const ActionPlanGeneratorRecraft = () => {
              const { data: activePlan } = await supabase.from('user_plans').select('id, submission_id').eq('goal_id', goal.id).single();
              if (activePlan && plan) {
                  await distributePlanActions(user.id, activePlan.id, activePlan.submission_id, plan);
+                 await syncPlanTopicMemoryOnValidation({
+                   supabase,
+                   planId: activePlan.id,
+                   goalId: goal.id,
+                 });
              }
           }
       }

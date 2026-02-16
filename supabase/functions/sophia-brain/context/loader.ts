@@ -24,6 +24,10 @@ import {
   formatUserProfileFactsForPrompt,
   getUserProfileFacts,
 } from "../profile_facts.ts";
+import {
+  retrieveTopicMemories,
+  formatTopicMemoriesForPrompt,
+} from "../topic_memory.ts";
 // R2: getActiveTopicSession removed (topic sessions disabled)
 import type {
   ContextProfile,
@@ -36,6 +40,9 @@ import {
   shouldLoadActionsDetails,
   shouldLoadPlanJson,
 } from "./types.ts";
+
+const IDENTITY_MAX_ITEMS = 2;
+const IDENTITY_MAX_BLOCK_TOKENS = 280;
 
 /**
  * Options pour le chargement du contexte
@@ -123,10 +130,16 @@ export async function loadContextForMode(
   // 3. Identity (Temple)
   if (profile.identity) {
     promises.push(
-      getCoreIdentity(opts.supabase, opts.userId).then((identity) => {
+      getCoreIdentity(opts.supabase, opts.userId, {
+        message: opts.message,
+        maxItems: IDENTITY_MAX_ITEMS,
+      }).then((identity) => {
         if (identity) {
-          context.identity =
-            `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identity}\n\n`;
+          const block = `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identity}\n\n`;
+          context.identity = truncateToTokenEstimate(
+            block,
+            IDENTITY_MAX_BLOCK_TOKENS,
+          );
           elementsLoaded.push("identity");
         }
       }),
@@ -152,6 +165,29 @@ export async function loadContextForMode(
       }).catch((e) => {
         console.warn(
           "[ContextLoader] failed to load user_profile_facts (non-blocking):",
+          e,
+        );
+      }),
+    );
+  }
+
+  // 4b. Topic memories (mémoire thématique vivante)
+  if (profile.topic_memories && opts.message) {
+    promises.push(
+      retrieveTopicMemories({
+        supabase: opts.supabase,
+        userId: opts.userId,
+        message: opts.message,
+        maxResults: 3,
+      }).then((topics) => {
+        const topicContext = formatTopicMemoriesForPrompt(topics);
+        if (topicContext) {
+          context.topicMemories = topicContext;
+          elementsLoaded.push("topic_memories");
+        }
+      }).catch((e) => {
+        console.warn(
+          "[ContextLoader] failed to load topic_memories (non-blocking):",
           e,
         );
       }),
@@ -396,6 +432,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.actionsDetails) ctx += loaded.actionsDetails + "\n\n";
   if (loaded.vitals) ctx += loaded.vitals + "\n\n";
   if (loaded.identity) ctx += loaded.identity;
+  if (loaded.topicMemories) ctx += loaded.topicMemories;
   if (loaded.vectors) {
     ctx += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${loaded.vectors}\n\n`;
   }
@@ -459,6 +496,13 @@ function formatTopicSession(session: any): string {
   }
 
   return ctx;
+}
+
+function truncateToTokenEstimate(text: string, maxTokens: number): string {
+  const maxChars = Math.max(80, Math.floor(maxTokens * 4));
+  if (text.length <= maxChars) return text;
+  const truncated = text.slice(0, Math.max(0, maxChars - 24)).trimEnd();
+  return `${truncated}\n[...]\n`;
 }
 
 /**

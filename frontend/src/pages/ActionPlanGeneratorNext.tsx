@@ -5,6 +5,7 @@ import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
+import { syncPlanTopicMemoryOnValidation } from '../lib/topicMemory';
 import OnboardingProgress from '../components/OnboardingProgress';
 import { EpicLoading } from '../components/common/EpicLoading';
 import { 
@@ -565,6 +566,11 @@ const ActionPlanGeneratorNext = () => {
                  // ou 'plan' si on est sûr qu'il est sync. Utilisons 'plan' du state car c'est ce que voit l'user.
                  console.log("⚡ Validation : Distribution des actions pour le plan", activePlan.id);
                  await distributePlanActions(user.id, activePlan.id, goal.submission_id, plan);
+                 await syncPlanTopicMemoryOnValidation({
+                   supabase,
+                   planId: activePlan.id,
+                   goalId: goal.id,
+                 });
              }
           }
       }

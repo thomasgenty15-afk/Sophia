@@ -1,8 +1,8 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
-import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
+import { generateWithGemini } from '../../_shared/gemini.ts'
 import { getUserState, updateUserState, normalizeScope } from '../state-manager.ts' // Need access to state
-import { consolidateMemories } from "./gardener.ts"
 import { getUserProfileFacts, formatUserProfileFactsForPrompt, upsertUserProfileFactWithEvent } from "../profile_facts.ts"
+import { processTopicsFromWatcher } from "../topic_memory.ts"
 
 export async function runWatcher(
   supabase: SupabaseClient, 
@@ -40,11 +40,11 @@ export async function runWatcher(
 
   // 3. Prepare transcript
   const batch = messages.slice(-50) // Safe upper limit
-  const transcript = batch.map(m => `${m.role.toUpperCase()}: ${m.content}`).join('\n')
+  const transcript = batch.map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join('\n')
   // NOTE: We do not use keyword heuristics here.
   // Candidate extraction is LLM-based and appended to the Watcher JSON output.
 
-  // Deterministic mode (MEGA): ensure this pipeline actually writes DB rows (so we can test it).
+  // Deterministic mode (MEGA): keep behavior stable for integration tests.
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
   const isLocalSupabase =
     (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
@@ -52,44 +52,14 @@ export async function runWatcher(
   const megaEnabled = megaRaw === "1" || (megaRaw === "" && isLocalSupabase);
 
   if (megaEnabled) {
-    const insights = [
-      `MEGA_TEST_STUB: insight 1 (${batch.length} msgs)`,
-      `MEGA_TEST_STUB: insight 2 (${batch.length} msgs)`,
-    ];
     const archiveText = `MEGA_TEST_STUB: archive (${batch.length} msgs)`;
     const newContext = `MEGA_TEST_STUB: context updated`;
-
-    for (const insight of insights) {
-      try {
-        const embedding = await generateEmbedding(insight);
-        await supabase.from('memories').insert({
-          user_id: userId,
-          content: insight,
-          type: 'insight',
-          source_type: 'chat',
-          source_id: `insight_${Date.now()}`,
-          embedding
-        });
-      } catch (e) { console.error("Error storing insight", e) }
-    }
-
-    try {
-      const embedding = await generateEmbedding(archiveText);
-      await supabase.from('memories').insert({
-        user_id: userId,
-        content: archiveText,
-        type: 'chat_history',
-        source_type: 'chat',
-        source_id: `batch_${new Date().toISOString()}`,
-        embedding
-      });
-    } catch (e) { console.error("Error storing history", e) }
 
     try {
       await updateUserState(supabase, userId, scope, { short_term_context: newContext });
     } catch (e) { console.error("Error updating short_term_context", e) }
 
-    console.log(`[Veilleur] MEGA stub: wrote insights + archive + context.`);
+    console.log(`[Veilleur] MEGA stub: wrote short-term context only (${archiveText}).`);
     return;
   }
 
@@ -105,7 +75,7 @@ export async function runWatcher(
     console.warn("[Veilleur] Failed to fetch existing profile facts (non-blocking):", e)
   }
 
-  // 5. Analyze with Gemini (TRIPLE ACTION: Insights + Archive + Context + Profile Facts)
+  // 5. Analyze with Gemini (Context + Profile Facts)
   const basePrompt = `
     Tu es "Le Veilleur" du système Sophia.
     Tu analyses le dernier bloc de conversation (15 messages) pour mettre à jour la mémoire du système.
@@ -115,12 +85,10 @@ export async function runWatcher(
     - Nouveaux Messages : (Voir ci-dessous)
     ${existingFactsPrompt}
 
-    TES 4 MISSIONS :
-    1. PÉPITES (RAG Précis) : Extrait les faits atomiques NOUVEAUX (ex: "Il aime le jazz", "Il veut changer de job").
-    2. ARCHIVAGE (RAG Narratif) : Rédige un paragraphe dense (3-4 phrases) résumant ce bloc de conversation pour l'histoire.
-    3. FIL ROUGE (Contexte Actif) : Mets à jour le "Contexte Précédent" pour qu'il reflète la situation ACTUELLE. Supprime ce qui est obsolète, garde ce qui est en cours.
+    TES 2 MISSIONS :
+    1. FIL ROUGE (Contexte Actif) : Mets à jour le "Contexte Précédent" pour qu'il reflète la situation ACTUELLE. Supprime ce qui est obsolète, garde ce qui est en cours.
 
-    4. PROFILE FACTS (application directe) :
+    2. PROFILE FACTS (application directe) :
     - Détecte les faits personnels EXPLICITES et NON-AMBIGUS dans la conversation.
     - IMPORTANT: ne fais PAS de déduction fragile. Seules les déclarations EXPLICITES comptent.
       - "je me lève à 6h30" = wake_time OK (explicite, habitude)
@@ -143,8 +111,6 @@ export async function runWatcher(
 
     SORTIE JSON ATTENDUE :
     {
-      "insights": ["Pépite 1", "Pépite 2"],
-      "chat_history_paragraph": "Texte du résumé narratif pour archivage...",
       "new_short_term_context": "Texte du nouveau fil rouge mis à jour...",
       "profile_fact_candidates": [
         { "key": "schedule.wake_time", "value": "6h30", "confidence": 0.9, "reason": "L'utilisateur a dit explicitement se lever à 6h30 chaque matin", "evidence": "je me lève tous les jours à 6h30" }
@@ -165,45 +131,12 @@ export async function runWatcher(
       throw new Error("Watcher expected JSON string from generateWithGemini()");
     }
     const result = JSON.parse(jsonStr)
-    const insights = result.insights || []
-    const archiveText = result.chat_history_paragraph
     const newContext = result.new_short_term_context
     const candidates = Array.isArray(result.profile_fact_candidates) ? result.profile_fact_candidates : []
 
-    console.log(`[Veilleur] Analysis done. Insights: ${insights.length}.`)
+    console.log(`[Veilleur] Analysis done. Profile candidates: ${candidates.length}.`)
 
-    // A. Store Insights (Atomic Facts)
-    for (const insight of insights) {
-      try {
-        const embedding = await generateEmbedding(insight)
-        await supabase.from('memories').insert({
-          user_id: userId,
-          content: insight,
-          type: 'insight',
-          source_type: 'chat',
-          source_id: `insight_${Date.now()}`,
-          embedding
-        })
-      } catch (e) { console.error("Error storing insight", e) }
-    }
-
-    // B. Store Narrative Archive (History Paragraph)
-    if (archiveText && archiveText.length > 10) {
-        try {
-            const embedding = await generateEmbedding(archiveText);
-            await supabase.from('memories').insert({
-                user_id: userId,
-                content: archiveText,
-                type: 'chat_history', // New type
-                source_type: 'chat',
-                source_id: `batch_${new Date().toISOString()}`,
-                embedding
-            });
-            console.log(`[Veilleur] Chat History Archived.`);
-        } catch (e) { console.error("Error storing history", e) }
-    }
-
-    // C. Update Short Term Context (Flow)
+    // A. Update Short Term Context (Flow)
     if (newContext) {
         await updateUserState(supabase, userId, scope, {
           short_term_context: newContext
@@ -212,7 +145,7 @@ export async function runWatcher(
         console.log(`[Veilleur] Short Term Context Updated.`);
     }
 
-    // D. Apply high-confidence profile facts directly (no confirmation needed).
+    // B. Apply high-confidence profile facts directly (no confirmation needed).
     try {
       if (Array.isArray(candidates) && candidates.length > 0) {
         let applied = 0
@@ -250,19 +183,24 @@ export async function runWatcher(
       console.warn("[Watcher] applying profile facts failed (non-blocking):", e)
     }
 
-    // E. Trigger Memory Consolidation (Fire & Forget)
+    // C. Topic Memory — Extraction et enrichissement des mémoires thématiques
     try {
-      const gardenerDisabled = (Deno.env.get("SOPHIA_GARDENER_DISABLED") ?? "").trim() === "1"
-      if (gardenerDisabled) return
-
-      // Don't await, let it run in background (if runtime allows) or just await it if we want safety.
-      // Deno Deploy edge functions usually kill async tasks after response is sent if not awaited, 
-      // but here we are inside a background task (watcher) which is already decoupled from user response.
-      // So awaiting is safer to ensure completion before the isolate dies.
-      console.log(`[Veilleur] Triggering memory consolidation...`)
-      await consolidateMemories({ supabase, userId })
+      const topicMemoryDisabled = (Deno.env.get("SOPHIA_TOPIC_MEMORY_DISABLED") ?? "").trim() === "1"
+      if (!topicMemoryDisabled) {
+        console.log(`[Veilleur] Processing topic memories...`)
+        const topicResult = await processTopicsFromWatcher({
+          supabase,
+          userId,
+          transcript,
+          currentContext,
+          meta,
+        })
+        if (topicResult.topicsCreated > 0 || topicResult.topicsEnriched > 0) {
+          console.log(`[Veilleur] Topic memories: ${topicResult.topicsCreated} created, ${topicResult.topicsEnriched} enriched.`)
+        }
+      }
     } catch (e) {
-      console.error("Error triggering consolidation", e)
+      console.error("[Veilleur] Error processing topic memories (non-blocking):", e)
     }
 
   } catch (err) {

@@ -1,7 +1,10 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { generateWithGemini } from "../../../_shared/gemini.ts";
-import { retrieveContext } from "../companion.ts";
 import { getUserTimeContext } from "../../../_shared/user_time_context.ts";
+import {
+  formatTopicMemoriesForPrompt,
+  retrieveTopicMemories,
+} from "../../topic_memory.ts";
 import type { InvestigationState, InvestigatorTurnResult } from "./types.ts";
 import { isExplicitStopBilan, resolveBinaryConsent } from "./utils.ts";
 import { investigatorSay } from "./copy.ts";
@@ -833,14 +836,25 @@ export async function runInvestigator(
     };
   }
 
-  // RAG : history for this item + general context
+  // RAG : history for this item + topic memory context
   const itemHistoryRaw = await getItemHistory(
     supabase,
     userId,
     currentItem.id,
     currentItem.type,
   );
-  const generalContextRaw = await retrieveContext(supabase, userId, message);
+  let generalContextRaw = "";
+  try {
+    const topics = await retrieveTopicMemories({
+      supabase,
+      userId,
+      message,
+      maxResults: 2,
+    });
+    generalContextRaw = formatTopicMemoriesForPrompt(topics);
+  } catch (e) {
+    console.warn("[Investigator] failed to load topic memories (non-blocking):", e);
+  }
   // Prompt-size guardrails (latency/cost): keep only the most useful parts.
   const itemHistory = String(itemHistoryRaw ?? "").trim().slice(0, 1800);
   const generalContext = String(generalContextRaw ?? "").trim().slice(0, 1200);

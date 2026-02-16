@@ -5,6 +5,7 @@ import { newRequestId, requestHeaders } from '../lib/requestId';
 import { useAuth } from '../context/AuthContext';
 import { distributePlanActions } from '../lib/planActions';
 import { startLoadingSequence } from '../lib/loadingSequence';
+import { syncPlanTopicMemoryOnValidation } from '../lib/topicMemory';
 import OnboardingProgress from '../components/OnboardingProgress';
 import { EpicLoading } from '../components/common/EpicLoading';
 import { 
@@ -1013,12 +1014,13 @@ const ActionPlanGeneratorFollow = () => {
             return;
         }
 
-            const { data: existingPlan } = await supabase
-                .from('user_plans')
-                .select('*')
-                .eq('goal_id', activeGoal.id)
-                .limit(1)
-                .maybeSingle();
+        let validatedPlanId: string | null = null;
+        const { data: existingPlan } = await supabase
+            .from('user_plans')
+            .select('*')
+            .eq('goal_id', activeGoal.id)
+            .limit(1)
+            .maybeSingle();
 
             if (!existingPlan) {
                 console.log("⚠️ Plan non trouvé en base, insertion...");
@@ -1043,7 +1045,8 @@ const ActionPlanGeneratorFollow = () => {
                 
                 // DISTRIBUTION DES ACTIONS
                 if (newPlan) {
-                   await distributePlanActions(user.id, newPlan.id, activeGoal.submission_id, plan);
+                    validatedPlanId = newPlan.id;
+                    await distributePlanActions(user.id, newPlan.id, activeGoal.submission_id, plan);
                 }
             } else {
                 // Si on est là, c'est qu'on a peut-être fait un "Retry".
@@ -1064,11 +1067,18 @@ const ActionPlanGeneratorFollow = () => {
                     .eq('id', existingPlan.id);
                 
                 if (updateError) throw updateError;
+                validatedPlanId = existingPlan.id;
 
                 // DISTRIBUTION DES ACTIONS (Mise à jour)
                 // On utilise bien le 'plan' du state qui est potentiellement modifié par le chat
                 await distributePlanActions(user.id, existingPlan.id, activeGoal.submission_id, plan);
             }
+
+        await syncPlanTopicMemoryOnValidation({
+          supabase,
+          planId: validatedPlanId,
+          goalId: activeGoal.id,
+        });
 
         // 3. Mettre à jour le profil pour dire "Onboarding Terminé"
         const { error: profileError } = await supabase

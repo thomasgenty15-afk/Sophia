@@ -1,4 +1,5 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
+import { generateEmbedding } from '../_shared/gemini.ts'
 
 export type AgentMode = 
   | 'dispatcher' 
@@ -97,17 +98,60 @@ export async function logMessage(
   })
 }
 
-export async function getCoreIdentity(supabase: SupabaseClient, userId: string): Promise<string> {
+export async function getCoreIdentity(
+  supabase: SupabaseClient,
+  userId: string,
+  opts?: {
+    message?: string
+    maxItems?: number
+    semanticThreshold?: number
+  },
+): Promise<string> {
+  const maxItems = Math.max(1, Math.min(2, Number(opts?.maxItems ?? 2) || 2))
+  const semanticThreshold = Number(opts?.semanticThreshold ?? 0.52)
+  const message = String(opts?.message ?? "").trim()
+
+  const formatRows = (rows: Array<{ week_id: string; content: string }>) =>
+    rows.map((d) => `[IDENTITÉ PROFONDE - ${d.week_id.toUpperCase()}]\n${d.content}`).join('\n\n')
+
+  if (message.length > 0) {
+    try {
+      const queryEmbedding = await generateEmbedding(message)
+      const { data: matched, error: matchErr } = await supabase.rpc(
+        "match_core_identity_by_embedding",
+        {
+          target_user_id: userId,
+          query_embedding: queryEmbedding,
+          match_threshold: semanticThreshold,
+          match_count: maxItems,
+        } as any,
+      )
+
+      if (!matchErr && Array.isArray(matched) && matched.length > 0) {
+        const rows = matched
+          .slice(0, maxItems)
+          .map((r: any) => ({
+            week_id: String(r.week_id ?? ""),
+            content: String(r.content ?? "").trim(),
+          }))
+          .filter((r) => r.week_id && r.content)
+        if (rows.length > 0) return formatRows(rows)
+      }
+    } catch (e) {
+      console.warn("[StateManager] semantic core identity retrieval failed (fallback latest):", e)
+    }
+  }
+
+  // Fallback: latest identity blocks if no semantic match / missing embeddings
   const { data, error } = await supabase
     .from('user_core_identity')
     .select('week_id, content')
     .eq('user_id', userId)
-    .order('week_id', { ascending: true })
+    .order('last_updated_at', { ascending: false })
+    .limit(maxItems)
 
   if (error || !data || data.length === 0) return ""
-
-  // Formatter : "AXE [week_id] : [content]"
-  return data.map((d: { week_id: string; content: string }) => `[IDENTITÉ PROFONDE - ${d.week_id.toUpperCase()}]\n${d.content}`).join('\n\n')
+  return formatRows((data as any[]).map((d) => ({ week_id: String(d.week_id ?? ""), content: String(d.content ?? "").trim() })))
 }
 
 // ============================================================================

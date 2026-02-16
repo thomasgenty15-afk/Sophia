@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { generateWithGemini } from '../_shared/gemini.ts'
+import { generateEmbedding, generateWithGemini } from '../_shared/gemini.ts'
 import { WEEKS_CONTENT } from '../_shared/weeksContent.ts'
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
@@ -123,7 +123,15 @@ Deno.serve(async (req) => {
         `
     }
 
-    const newIdentityContent = await generateWithGemini(systemPrompt, transcript, 0.3)
+    const newIdentityRaw = await generateWithGemini(systemPrompt, transcript, 0.3)
+    if (typeof newIdentityRaw !== "string") {
+      throw new Error("Identity generation returned a tool call instead of text")
+    }
+    const newIdentityContent = newIdentityRaw.trim()
+    if (!newIdentityContent) {
+      throw new Error("Identity generation returned empty content")
+    }
+    const identityEmbedding = await generateEmbedding(newIdentityContent)
 
     // 7. Sauvegarde et Archivage
     if (oldIdentity) {
@@ -139,6 +147,7 @@ Deno.serve(async (req) => {
         // Mise à jour
         await supabaseAdmin.from('user_core_identity').update({
             content: newIdentityContent,
+            identity_embedding: identityEmbedding,
             last_updated_at: new Date().toISOString()
         }).eq('id', oldIdentity.id)
         
@@ -148,7 +157,8 @@ Deno.serve(async (req) => {
         await supabaseAdmin.from('user_core_identity').insert({
             user_id: userId,
             week_id: `week_${weekNum}`,
-            content: newIdentityContent
+            content: newIdentityContent,
+            identity_embedding: identityEmbedding,
         })
         console.log(`[Identity] Created identity for Week ${weekNum}`)
     }
@@ -158,6 +168,7 @@ Deno.serve(async (req) => {
     })
 
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : String(error)
     console.error(`[update-core-identity] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, error)
     await logEdgeFunctionError({
       functionName: "update-core-identity",
@@ -167,6 +178,6 @@ Deno.serve(async (req) => {
       source: "edge",
       metadata: { client_request_id: ctx.clientRequestId },
     })
-    return new Response(JSON.stringify({ error: error.message }), { status: 500 })
+    return new Response(JSON.stringify({ error: errorMessage }), { status: 500 })
   }
 })

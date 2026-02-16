@@ -34,7 +34,7 @@ async function createTestUser(anon: any) {
   return { userId: signInData.user.id };
 }
 
-Deno.test("sophia-brain watcher: after batch, writes memories + updates short_term_context (MEGA stub)", async () => {
+Deno.test("sophia-brain watcher: after batch, updates short_term_context (MEGA stub)", async () => {
   // Force deterministic watcher path.
   Deno.env.set("MEGA_TEST_MODE", "1");
 
@@ -42,8 +42,8 @@ Deno.test("sophia-brain watcher: after batch, writes memories + updates short_te
   const anonKey = getEnv("VITE_SUPABASE_ANON_KEY");
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-  const anon = createClient<any>(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
-  const admin = createClient<any>(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const anon = createClient(url, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const admin = createClient(url, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
 
   const { userId } = await createTestUser(anon);
 
@@ -53,6 +53,7 @@ Deno.test("sophia-brain watcher: after batch, writes memories + updates short_te
   // Seed a batch of messages
   const messages = Array.from({ length: 15 }, (_, i) => ({
     user_id: userId,
+    scope: "web",
     role: i % 2 === 0 ? "user" : "assistant",
     content: `msg ${i + 1}`,
     created_at: new Date(now.getTime() + i).toISOString(),
@@ -60,7 +61,7 @@ Deno.test("sophia-brain watcher: after batch, writes memories + updates short_te
   const { error: seedErr } = await admin.from("chat_messages").insert(messages);
   if (seedErr) throw seedErr;
 
-  await runWatcher(admin as any, userId, lastProcessedAt);
+  await runWatcher(admin as any, userId, "web", lastProcessedAt);
 
   const { data: state, error: stateErr } = await admin
     .from("user_chat_states")
@@ -69,14 +70,4 @@ Deno.test("sophia-brain watcher: after batch, writes memories + updates short_te
     .maybeSingle();
   if (stateErr) throw stateErr;
   assert((state as any)?.short_term_context?.includes("MEGA_TEST_STUB"), "watcher should update short_term_context in mega mode");
-
-  const { count: memCount, error: memErr } = await admin
-    .from("memories")
-    .select("*", { count: "exact", head: true })
-    .eq("user_id", userId)
-    .in("type", ["insight", "chat_history"]);
-  if (memErr) throw memErr;
-  assert((memCount ?? 0) >= 3, "watcher should write >=2 insights + 1 chat_history memory");
 });
-
-

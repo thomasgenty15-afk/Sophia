@@ -34,6 +34,9 @@ export interface ContextProfile {
   /** Mémoires vectorielles (Forge/RAG) - "minimal" = 2-3 résultats */
   vectors: boolean | "minimal";
 
+  /** Topic memories (mémoire thématique vivante) */
+  topic_memories: boolean;
+
   /** User facts (préférences structurées) */
   facts: boolean;
 
@@ -73,6 +76,7 @@ export interface LoadedContext {
   actionsDetails?: string;
   identity?: string;
   vectors?: string;
+  topicMemories?: string;
   facts?: string;
   candidates?: string;
   shortTerm?: string;
@@ -121,8 +125,9 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     plan_json: false,
     actions_summary: true,
     actions_details: false,
-    identity: false,
-    vectors: true,
+    identity: true,
+    vectors: false,
+    topic_memories: true,
     facts: true,
     candidates: true,
     short_term: true,
@@ -137,7 +142,8 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_summary: false,
     actions_details: false,
     identity: false,
-    vectors: "minimal",
+    vectors: false,
+    topic_memories: true, // Topic memories are lightweight and high-signal even in crisis
     facts: false,
     candidates: false,
     short_term: true,
@@ -153,6 +159,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     vectors: false, // RAG spécifique à l'item, géré par investigator/run.ts
+    topic_memories: false,
     facts: false,
     candidates: false,
     short_term: false,
@@ -168,6 +175,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     vectors: false,
+    topic_memories: false,
     facts: false,
     candidates: false,
     short_term: false,
@@ -184,6 +192,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     vectors: false,
+    topic_memories: false,
     facts: false,
     candidates: false,
     short_term: false,
@@ -199,6 +208,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     vectors: false,
+    topic_memories: false,
     facts: false,
     candidates: false,
     short_term: false,
@@ -219,6 +229,7 @@ export const DEFAULT_CONTEXT_PROFILE: ContextProfile = {
   actions_details: false,
   identity: false,
   vectors: false,
+  topic_memories: false,
   facts: false,
   candidates: false,
   short_term: false,

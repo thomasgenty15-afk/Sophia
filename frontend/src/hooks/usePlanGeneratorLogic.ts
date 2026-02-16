@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { newRequestId, requestHeaders } from '../lib/requestId';
 import { distributePlanActions } from '../lib/planActions';
+import { syncPlanTopicMemoryOnValidation } from '../lib/topicMemory';
 import type { AxisContext } from './usePlanGeneratorData';
 
 interface PlanInputs {
@@ -245,6 +246,7 @@ export const usePlanGeneratorLogic = (
         }
 
         if (activeGoal) {
+            let validatedPlanId: string | null = null;
             const { data: existingPlan } = await supabase.from('user_plans').select('*').eq('goal_id', activeGoal.id).limit(1).maybeSingle();
 
             if (!existingPlan) {
@@ -263,7 +265,10 @@ export const usePlanGeneratorLogic = (
                     generation_attempts: 1
                   }).select().single();
 
-                if (newPlan) await distributePlanActions(user.id, newPlan.id, activeGoal.submission_id, plan);
+                if (newPlan) {
+                    validatedPlanId = newPlan.id;
+                    await distributePlanActions(user.id, newPlan.id, activeGoal.submission_id, plan);
+                }
 
             } else {
                 await supabase.from('user_plans').update({
@@ -277,9 +282,16 @@ export const usePlanGeneratorLogic = (
                         content: plan,
                         status: 'active',
                     }).eq('id', existingPlan.id);
+                validatedPlanId = existingPlan.id;
                 
                 await distributePlanActions(user.id, existingPlan.id, activeGoal.submission_id, plan);
             }
+
+            await syncPlanTopicMemoryOnValidation({
+              supabase,
+              planId: validatedPlanId,
+              goalId: activeGoal.id,
+            });
         }
 
         await supabase.from('profiles').update({ onboarding_completed: true }).eq('id', user.id);
@@ -320,4 +332,3 @@ export const usePlanGeneratorLogic = (
     loadingMessage // EXPORT DU MESSAGE
   };
 };
-

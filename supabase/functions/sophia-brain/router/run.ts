@@ -15,7 +15,6 @@ import {
   type OnDemandTriggers,
 } from "../context/loader.ts";
 import { getContextProfile, getVectorResultsCount } from "../context/types.ts";
-import { retrieveContext } from "../agents/companion.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
 import { debounceAndBurstMerge } from "./debounce.ts";
 import {
@@ -521,13 +520,9 @@ export async function processMessage(
 
   const vectorMaxResults = getVectorResultsCount(contextProfile);
   if (vectorMaxResults > 0) {
-    const vectorContext = await retrieveContext(supabase, userId, userMessage, {
-      maxResults: vectorMaxResults,
-      includeActionHistory: vectorMaxResults > 2,
-    });
-    if (vectorContext) {
-      contextLoadResult.context.vectors = vectorContext;
-    }
+    console.warn(
+      `[Router] Legacy vector memories are disabled; requested vectorMaxResults=${vectorMaxResults}`,
+    );
   }
 
   context = buildContextString(contextLoadResult.context);
