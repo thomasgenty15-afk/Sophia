@@ -22,6 +22,7 @@ import {
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 import { hasArchitecteAccess } from '../lib/entitlements';
 
 // Hooks extraits
@@ -50,17 +51,25 @@ import { PreferencesSection } from '../components/dashboard/PreferencesSection';
 
 const Dashboard = () => {
   const navigate = useNavigate();
-  const { subscription, trialEnd, accessTier } = useAuth();
+  const { user: authUser, loading: authContextLoading, subscription, trialEnd, accessTier } = useAuth();
 
   // If user just came back from Stripe Checkout, force a one-time subscription sync
   // (useful if webhooks are delayed/misconfigured) then clear the query param.
   useEffect(() => {
     const billing = new URLSearchParams(window.location.search).get("billing");
     if (billing !== "success") return;
+    if (authContextLoading) return;
+    if (!authUser) return;
     let cancelled = false;
     (async () => {
       try {
-        await supabase.functions.invoke("stripe-sync-subscription", { body: {} });
+        const { data: sessData } = await supabase.auth.getSession();
+        if (!sessData?.session?.access_token) return;
+        const reqId = newRequestId();
+        await supabase.functions.invoke("stripe-sync-subscription", {
+          body: {},
+          headers: requestHeaders(reqId),
+        });
       } catch {
         // Non-fatal: dashboard will remain locked until webhook lands.
       } finally {
@@ -72,7 +81,7 @@ const Dashboard = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [authContextLoading, authUser]);
 
   // 1. DATA HOOK : Récupère toutes les données (Plan, User, Modules)
   const {

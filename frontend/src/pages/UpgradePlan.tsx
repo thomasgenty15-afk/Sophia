@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
+import { newRequestId, requestHeaders } from '../lib/requestId';
 
 const UpgradePlan = () => {
   const navigate = useNavigate();
@@ -44,7 +45,13 @@ const UpgradePlan = () => {
     sessionStorage.setItem(attemptedKey, "1");
     (async () => {
       try {
-        await supabase.functions.invoke("stripe-sync-subscription", { body: {} });
+        const { data: sessData } = await supabase.auth.getSession();
+        if (!sessData?.session?.access_token) return;
+        const reqId = newRequestId();
+        await supabase.functions.invoke("stripe-sync-subscription", {
+          body: {},
+          headers: requestHeaders(reqId),
+        });
       } catch {
         // ignore
       } finally {
@@ -61,6 +68,10 @@ const UpgradePlan = () => {
     setSuccess(null);
     setLoading(true);
     try {
+      const { data: sessData } = await supabase.auth.getSession();
+      if (!sessData?.session?.access_token) {
+        throw new Error("Session expirée. Recharge la page et reconnecte-toi.");
+      }
       const hasActiveSub = currentPaidTier !== "none";
 
       const isUpgrade = hasActiveSub && rank(tier) > rank(currentPaidTier);
@@ -89,6 +100,7 @@ const UpgradePlan = () => {
         // Existing subscriber: change plan directly (avoids Billing Portal config issues).
         const { error } = await supabase.functions.invoke("stripe-change-plan", {
           body: { tier, interval, effective_at: "now" },
+          headers: requestHeaders(newRequestId()),
         });
         if (error) throw error;
         window.alert(
@@ -106,6 +118,7 @@ const UpgradePlan = () => {
         );
         const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
           body: { tier, interval },
+          headers: requestHeaders(newRequestId()),
         });
         if (error) throw error;
         const url = (data as any)?.url as string | undefined;
@@ -145,6 +158,7 @@ const UpgradePlan = () => {
     try {
       const { error } = await supabase.functions.invoke("stripe-change-plan", {
         body: { tier, interval: intervalToKeep, effective_at: "period_end" },
+        headers: requestHeaders(newRequestId()),
       });
       if (error) throw error;
       setSuccess(
