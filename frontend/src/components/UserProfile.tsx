@@ -407,7 +407,15 @@ const UserProfile: React.FC<UserProfileProps> = ({ isOpen, onClose, mode, initia
     setBillingError(null);
     setBillingLoading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('stripe-create-portal-session', { body: {} });
+      const { data: sessData } = await supabase.auth.getSession();
+      if (!sessData?.session?.access_token) {
+        throw new Error("Session expirée. Recharge la page et reconnecte-toi.");
+      }
+      const reqId = newRequestId();
+      const { data, error } = await supabase.functions.invoke('stripe-create-portal-session', {
+        body: {},
+        headers: requestHeaders(reqId),
+      });
       if (error) throw error;
       const url = (data as any)?.url as string | undefined;
       if (!url) throw new Error("Portal URL manquante");
