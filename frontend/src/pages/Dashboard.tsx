@@ -607,7 +607,7 @@ const Dashboard = () => {
                         }`}
                       >
                         <Target className={`w-4 h-4 ${activeTab === 'plan' ? 'text-blue-500' : ''}`} />
-                        Plan de Transformation
+                        <span className="hidden min-[487px]:inline">Plan de Transformation</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('personal')}
@@ -618,7 +618,7 @@ const Dashboard = () => {
                         }`}
                       >
                         <Repeat className={`w-4 h-4 ${activeTab === 'personal' ? 'text-emerald-500' : ''}`} />
-                        Actions Personnelles
+                        <span className="hidden min-[487px]:inline">Actions Personnelles</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('reminders')}
@@ -629,7 +629,7 @@ const Dashboard = () => {
                         }`}
                       >
                         <Bell className={`w-4 h-4 ${activeTab === 'reminders' ? 'text-amber-500' : ''}`} />
-                        Rappels
+                        <span className="hidden min-[487px]:inline">Rappels</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('preferences')}
@@ -640,7 +640,7 @@ const Dashboard = () => {
                         }`}
                       >
                         <Settings className={`w-4 h-4 ${activeTab === 'preferences' ? 'text-violet-600' : ''}`} />
-                        Préférences
+                        <span className="hidden min-[487px]:inline">Préférences</span>
                       </button>
                     </div>
 
