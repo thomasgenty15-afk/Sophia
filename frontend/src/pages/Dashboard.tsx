@@ -15,7 +15,9 @@ import {
   Settings,
   Zap,
   Check,
-  Crown
+  Crown,
+  Repeat,
+  Bell
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -42,6 +44,9 @@ import UserProfile from '../components/UserProfile';
 import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
 import { FeedbackModal, type FeedbackData } from '../components/dashboard/FeedbackModal';
 import { CreateActionModal } from '../components/dashboard/CreateActionModal';
+import { PersonalActionsSection } from '../components/dashboard/PersonalActionsSection';
+import { RemindersSection } from '../components/dashboard/RemindersSection';
+import { PreferencesSection } from '../components/dashboard/PreferencesSection';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -116,6 +121,7 @@ const Dashboard = () => {
   const [habitSettingsMode, setHabitSettingsMode] = useState<'activate' | 'edit'>('edit');
   const [createActionPhaseIndex, setCreateActionPhaseIndex] = useState<number | null>(null);
   const [editingAction, setEditingAction] = useState<Action | null>(null);
+  const [activeTab, setActiveTab] = useState<'plan' | 'personal' | 'reminders' | 'preferences'>('plan');
 
   // 2. LOGIC HOOK : Récupère tous les handlers (Actions, Reset, Save...)
   const logic = useDashboardLogic({
@@ -282,7 +288,7 @@ const Dashboard = () => {
   if (!isOnboardingCompleted) return <ResumeOnboardingView />;
 
   return (
-    <div className={`min-h-screen transition-colors duration-500 ${isArchitectMode ? "bg-emerald-950 text-emerald-50" : "bg-gray-50 text-gray-900"} pb-24`}>
+    <div className={`min-h-screen flex flex-col transition-colors duration-500 ${isArchitectMode ? "bg-emerald-950 text-emerald-50" : "bg-gray-50 text-gray-900"} pb-24`}>
       {/* 
         SOFT-LOCK UI SHIELD
         When trial is over and there's no active subscription, block all dashboard interactions
@@ -386,7 +392,7 @@ const Dashboard = () => {
         initialTab={profileInitialTab}
       />
 
-      <main className="max-w-5xl mx-auto px-6 py-10">
+      <main className="max-w-5xl mx-auto px-6 py-10 w-full flex-1 flex flex-col">
         {showBanner && (
           <div
             className={`relative z-45 mb-6 rounded-2xl border p-4 flex flex-col min-[450px]:flex-row min-[450px]:items-center min-[450px]:justify-between gap-3 ${
@@ -558,7 +564,7 @@ const Dashboard = () => {
             </div>
           </div>
         ) : (
-          <div className="animate-fade-in">
+          <div className="animate-fade-in flex-1 flex flex-col">
             {!hasActivePlan ? (
               <EmptyState 
                 onGenerate={() => {
@@ -579,180 +585,235 @@ const Dashboard = () => {
               />
             ) : (
               <>
-                <StrategyCard 
-                  strategy={displayStrategy} 
-                  identityProp={activePlan?.identity}
-                  whyProp={activePlan?.deepWhy}
-                  rulesProp={activePlan?.goldenRules}
-                />
-
                 <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
-                  <div className="lg:col-span-8">
-                    <div className="mb-8">
-                        <h2 className="text-xs min-[350px]:text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4 text-blue-600" /> Moniteur de Contrôle
-                        </h2>
-                        <MetricCard 
-                            plan={activePlan} 
-                            vitalSignData={activeVitalSignData}
-                            onUpdateVitalSign={logic.handleUpdateVitalSign}
+                  <div className="lg:col-span-12">
+                    {/* TABS NAVIGATION */}
+                    <div className="flex p-1 bg-slate-100 rounded-xl mb-8">
+                      <button
+                        onClick={() => setActiveTab('plan')}
+                        className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                          activeTab === 'plan'
+                            ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                        }`}
+                      >
+                        <Target className={`w-4 h-4 ${activeTab === 'plan' ? 'text-blue-500' : ''}`} />
+                        Plan de Transformation
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('personal')}
+                        className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                          activeTab === 'personal'
+                            ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                        }`}
+                      >
+                        <Repeat className={`w-4 h-4 ${activeTab === 'personal' ? 'text-emerald-500' : ''}`} />
+                        Actions Personnelles
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('reminders')}
+                        className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                          activeTab === 'reminders'
+                            ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                        }`}
+                      >
+                        <Bell className={`w-4 h-4 ${activeTab === 'reminders' ? 'text-amber-500' : ''}`} />
+                        Rappels
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('preferences')}
+                        className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                          activeTab === 'preferences'
+                            ? 'bg-white text-slate-900 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
+                        }`}
+                      >
+                        <Settings className={`w-4 h-4 ${activeTab === 'preferences' ? 'text-violet-600' : ''}`} />
+                        Préférences
+                      </button>
+                    </div>
+
+                    {activeTab === 'plan' ? (
+                      <div className="animate-fade-in">
+                        <StrategyCard 
+                          strategy={displayStrategy} 
+                          identityProp={activePlan?.identity}
+                          whyProp={activePlan?.deepWhy}
+                          rulesProp={activePlan?.goldenRules}
                         />
-                    </div>
 
-                    <div className="mb-10">
-                        <h2 className="text-xs min-[350px]:text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-indigo-600" /> Accélérateurs
-                        </h2>
-                        <RitualCard action={{ id: 'h_perso', type: 'ancrage', subType: 'hypnose_perso', title: 'Hypnose Sur-Mesure', description: 'Générée spécifiquement pour tes blocages.', isCompleted: false, price: '5,00 €', isComingSoon: true }} />
-                        <RitualCard action={{ id: 'h_global', type: 'ancrage', subType: 'hypnose_daily', title: 'Hypnose : Ancrage du Calme', description: 'Session standard.', isCompleted: false, target_days: 21, current_streak: 3, media_duration: '12 min', free_trial_days: 5, current_trial_day: 3, isComingSoon: true }} />
-                    </div>
+                        <div className="mb-8">
+                            <h2 className="text-xs min-[350px]:text-sm font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <BarChart3 className="w-4 h-4 text-blue-600" /> Moniteur de Contrôle
+                            </h2>
+                            <MetricCard 
+                                plan={activePlan} 
+                                vitalSignData={activeVitalSignData}
+                                onUpdateVitalSign={logic.handleUpdateVitalSign}
+                            />
+                        </div>
 
-                    <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
-                        <Target className="w-6 h-6 text-emerald-600" /> Mon Plan d'Action
-                        </h2>
-                        <button 
-                            onClick={() => setIsSettingsOpen(true)}
-                            className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
-                            title="Gérer le plan"
-                        >
-                            <Settings className="w-5 h-5" />
-                        </button>
-                    </div>
+                        {/* SECTION ACCÉLÉRATEURS (Masquée temporairement) */}
+                        {/* <div className="mb-10">
+                            <h2 className="text-xs min-[350px]:text-sm font-bold text-indigo-900 uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-indigo-600" /> Accélérateurs
+                            </h2>
+                            <RitualCard action={{ id: 'h_perso', type: 'ancrage', subType: 'hypnose_perso', title: 'Hypnose Sur-Mesure', description: 'Générée spécifiquement pour tes blocages.', isCompleted: false, price: '5,00 €', isComingSoon: true }} />
+                            <RitualCard action={{ id: 'h_global', type: 'ancrage', subType: 'hypnose_daily', title: 'Hypnose : Ancrage du Calme', description: 'Session standard.', isCompleted: false, target_days: 21, current_streak: 3, media_duration: '12 min', free_trial_days: 5, current_trial_day: 3, isComingSoon: true }} />
+                        </div> */}
 
-                    <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-8">
-                        {(() => {
-                            // Check if ALL actions in ALL phases up to index-1 are activated
-                            const areAllPreviousPhasesFullyActivated = (phaseIndex: number) => {
-                                for (let i = 0; i < phaseIndex; i++) {
-                                    const prevPhase = activePlan.phases[i];
-                                    const allActionsActivated = prevPhase.actions.every(a => {
-                                        const s = (a as any).status as string | undefined;
-                                        return s !== 'pending';
-                                    });
-                                    if (!allActionsActivated) return false;
-                                }
-                                return true;
-                            };
-
-                            return activePlan.phases.map((phase, index) => {
-                                // Phase can be unlocked only if ALL actions in ALL previous phases are activated
-                                const canUnlockThisPhase = areAllPreviousPhasesFullyActivated(index);
-                                
-                                // "Fully activated" for THIS phase means: nothing is explicitly pending
-                                const isCurrentPhaseFullyActivated = phase.actions.every(a => {
-                                  const s = (a as any).status as string | undefined;
-                                  return s !== 'pending';
-                                });
-                                
-                                // Actions in this phase can only be activated if all previous phases are fully activated
-                                const canActivateActions = canUnlockThisPhase;
-                                
-                                let currentPhaseStatus = phase.status; 
-                                
-                                // Don't auto-unlock phases: if the plan says "locked", keep it locked.
-                                // Only provide a safe fallback when `status` is missing in the plan JSON.
-                                if (!currentPhaseStatus) currentPhaseStatus = index === 0 ? 'active' : 'locked';
-                                
-                                // If user can't unlock this phase (previous phases not fully activated), force it locked
-                                if (!canUnlockThisPhase && index > 0) currentPhaseStatus = 'locked';
-
-                                return (
-                                    <PlanPhaseBlock
-                                        key={phase.id}
-                                        phase={{ ...phase, status: currentPhaseStatus } as any}
-                                        isLast={index === activePlan.phases.length - 1}
-                                        canActivateActions={canActivateActions}
-                                        onHelpAction={setHelpingAction}
-                                        onOpenFramework={setOpenFrameworkAction}
-                                        onOpenHistory={setHistoryFrameworkAction}
-                                        onUnlockPhase={canUnlockThisPhase ? () => logic.handleUnlockPhase(index) : undefined}
-                                        onUnlockAction={(action) => {
-                                          if (isHabit(action)) return openHabitSettings(action, 'activate');
-                                          return logic.handleUnlockAction(action);
-                                        }}
-                                        onToggleMission={logic.handleToggleMission}
-                                        onIncrementHabit={logic.handleIncrementHabit}
-                                        onMasterHabit={logic.handleMasterHabit}
-                                        onOpenHabitSettings={(action) => openHabitSettings(action, 'edit')}
-                                        onCreateAction={() => setCreateActionPhaseIndex(index)}
-                                        onEditAction={(action) => setEditingAction(action)}
-                                        onDeleteAction={logic.handleDeleteAction}
-                                        onDeactivateAction={logic.handleDeactivateAction}
-                                    />
-                                );
-                            });
-                        })()}
-                    </div>
-
-                    <div className="flex justify-center pb-8">
-                        {hasPendingAxes ? (
-                            <button
-                                onClick={() => onPlanCompletion(logic.handleManualSkip)}
-                                className="group bg-slate-900 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-emerald-200 transition-all flex items-center gap-3"
+                        <div className="flex items-center justify-between mb-6">
+                            <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
+                            <Target className="w-6 h-6 text-emerald-600" /> Mon Plan d'Action
+                            </h2>
+                            <button 
+                                onClick={() => setIsSettingsOpen(true)}
+                                className="p-2 rounded-full hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+                                title="Gérer le plan"
                             >
-                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Check className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Mission Achevée ?</span>
-                                    <span className="block">Lancer la Prochaine Transformation</span>
-                                </div>
-                                <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
+                                <Settings className="w-5 h-5" />
                             </button>
-                        ) : (
-                            <button
-                                onClick={() => onPlanCompletion(logic.handleCreateNextGlobalPlan)}
-                                className="group bg-indigo-900 hover:bg-indigo-800 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center gap-3"
-                            >
-                                <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                    <Sparkles className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Cycle Terminé</span>
-                                    <span className="block">Créer mon prochain plan de transformation</span>
-                                </div>
+                        </div>
+
+                        <div className="bg-white rounded-2xl border border-gray-100 p-6 shadow-sm mb-8">
+                            {(() => {
+                                // Check if ALL actions in ALL phases up to index-1 are activated
+                                const areAllPreviousPhasesFullyActivated = (phaseIndex: number) => {
+                                    for (let i = 0; i < phaseIndex; i++) {
+                                        const prevPhase = activePlan.phases[i];
+                                        const allActionsActivated = prevPhase.actions.every(a => {
+                                            const s = (a as any).status as string | undefined;
+                                            return s !== 'pending';
+                                        });
+                                        if (!allActionsActivated) return false;
+                                    }
+                                    return true;
+                                };
+
+                                return activePlan.phases.map((phase, index) => {
+                                    // Phase can be unlocked only if ALL actions in ALL previous phases are activated
+                                    const canUnlockThisPhase = areAllPreviousPhasesFullyActivated(index);
+                                    
+                                    // "Fully activated" for THIS phase means: nothing is explicitly pending
+                                    const isCurrentPhaseFullyActivated = phase.actions.every(a => {
+                                      const s = (a as any).status as string | undefined;
+                                      return s !== 'pending';
+                                    });
+                                    
+                                    // Actions in this phase can only be activated if all previous phases are fully activated
+                                    const canActivateActions = canUnlockThisPhase;
+                                    
+                                    let currentPhaseStatus = phase.status; 
+                                    
+                                    // Don't auto-unlock phases: if the plan says "locked", keep it locked.
+                                    // Only provide a safe fallback when `status` is missing in the plan JSON.
+                                    if (!currentPhaseStatus) currentPhaseStatus = index === 0 ? 'active' : 'locked';
+                                    
+                                    // If user can't unlock this phase (previous phases not fully activated), force it locked
+                                    if (!canUnlockThisPhase && index > 0) currentPhaseStatus = 'locked';
+
+                                    return (
+                                        <PlanPhaseBlock
+                                            key={phase.id}
+                                            phase={{ ...phase, status: currentPhaseStatus } as any}
+                                            isLast={index === activePlan.phases.length - 1}
+                                            canActivateActions={canActivateActions}
+                                            onHelpAction={setHelpingAction}
+                                            onOpenFramework={setOpenFrameworkAction}
+                                            onOpenHistory={setHistoryFrameworkAction}
+                                            onUnlockPhase={canUnlockThisPhase ? () => logic.handleUnlockPhase(index) : undefined}
+                                            onUnlockAction={(action) => {
+                                              if (isHabit(action)) return openHabitSettings(action, 'activate');
+                                              return logic.handleUnlockAction(action);
+                                            }}
+                                            onToggleMission={logic.handleToggleMission}
+                                            onIncrementHabit={logic.handleIncrementHabit}
+                                            onMasterHabit={logic.handleMasterHabit}
+                                            onOpenHabitSettings={(action) => openHabitSettings(action, 'edit')}
+                                            onCreateAction={() => setCreateActionPhaseIndex(index)}
+                                            onEditAction={(action) => setEditingAction(action)}
+                                            onDeleteAction={logic.handleDeleteAction}
+                                            onDeactivateAction={logic.handleDeactivateAction}
+                                        />
+                                    );
+                                });
+                            })()}
+                        </div>
+
+                        <div className="flex justify-center pb-8">
+                            {hasPendingAxes ? (
+                                <button
+                                    onClick={() => onPlanCompletion(logic.handleManualSkip)}
+                                    className="group bg-slate-900 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-emerald-200 transition-all flex items-center gap-3"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <Check className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Mission Achevée ?</span>
+                                        <span className="block">Lancer la Prochaine Transformation</span>
+                                    </div>
+                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={() => onPlanCompletion(logic.handleCreateNextGlobalPlan)}
+                                    className="group bg-indigo-900 hover:bg-indigo-800 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all flex items-center gap-3"
+                                >
+                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                        <Sparkles className="w-5 h-5" />
+                                    </div>
+                                    <div>
+                                        <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Cycle Terminé</span>
+                                        <span className="block">Créer mon prochain plan de transformation</span>
+                                    </div>
                                 <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
                             </button>
                         )}
                     </div>
-                  </div>
 
-                  <div className="lg:col-span-4 space-y-6 md:space-y-8">
-                    <section>
-                      <h2 className="text-xs min-[350px]:text-sm font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
-                        <Tv className="w-4 h-4" /> Vidéos pour t'aider
-                      </h2>
-                      <div className="bg-white border border-gray-200 rounded-xl p-8 text-center flex flex-col items-center justify-center">
-                          <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mb-3 text-gray-400">
-                              <Tv className="w-6 h-6" />
-                          </div>
-                          <h3 className="font-bold text-gray-900 text-sm mb-1">À venir</h3>
-                          <p className="text-xs text-gray-500">Cette section sera bientôt disponible.</p>
-                      </div>
-                    </section>
-
+                    {/* SECTION GRIMOIRE (Pleine largeur en bas) */}
                     <section
                       onClick={() => navigate('/grimoire')}
-                      className="relative z-40 pointer-events-auto bg-indigo-50 border border-indigo-100 rounded-xl p-3 md:p-5 flex flex-col min-[300px]:flex-row items-center justify-between cursor-pointer hover:bg-indigo-100 transition-colors shadow-sm mt-auto gap-3 min-[300px]:gap-4"
+                      className="relative z-40 pointer-events-auto bg-gradient-to-br from-indigo-50 to-white border border-indigo-100 rounded-2xl p-6 md:p-8 flex flex-col md:flex-row items-center justify-between cursor-pointer hover:shadow-md hover:border-indigo-200 transition-all mt-auto gap-6 group"
                     >
-                      <div className="flex items-center gap-3 md:gap-4 w-full">
-                        <div className="w-10 h-10 md:w-12 md:h-12 bg-indigo-200 text-indigo-700 rounded-full flex items-center justify-center flex-shrink-0">
-                          <Book className="w-5 h-5 md:w-6 md:h-6" />
+                      <div className="flex items-center gap-6 w-full">
+                        <div className="w-16 h-16 bg-indigo-100 text-indigo-600 rounded-2xl flex items-center justify-center flex-shrink-0 shadow-sm group-hover:scale-110 transition-transform duration-300">
+                          <Book className="w-8 h-8" />
                         </div>
                         <div className="flex-1">
-                          <h3 className="font-bold text-indigo-900 text-base min-[350px]:text-lg md:text-xl">Le Grimoire</h3>
-                          <p className="text-xs min-[350px]:text-sm text-indigo-700 opacity-80 leading-snug">Victoires, historiques, hypnoses & réactivations</p>
+                          <h3 className="font-bold text-indigo-900 text-xl md:text-2xl mb-2">Le Grimoire</h3>
+                          <p className="text-sm md:text-base text-indigo-600/80 leading-relaxed max-w-2xl">
+                            Retrouve ici toutes tes victoires passées, ton historique de transformation, tes sessions d'hypnose et tes protocoles de réactivation.
+                          </p>
                         </div>
                       </div>
-                      <ArrowRight className="w-5 h-5 text-indigo-400 self-end min-[300px]:self-auto" />
+                      <div className="bg-white p-3 rounded-full shadow-sm border border-indigo-50 group-hover:bg-indigo-600 group-hover:border-indigo-600 transition-colors duration-300">
+                        <ArrowRight className="w-6 h-6 text-indigo-400 group-hover:text-white transition-colors duration-300" />
+                      </div>
                     </section>
                   </div>
-                </div>
-              </>
-            )}
-          </div>
+                ) : activeTab === 'personal' ? (
+                  <div className="animate-fade-in">
+                    <PersonalActionsSection userId={user?.id ?? null} />
+                  </div>
+                ) : activeTab === 'reminders' ? (
+                  <div className="animate-fade-in">
+                    <RemindersSection userId={user?.id ?? null} />
+                  </div>
+                ) : (
+                  <div className="animate-fade-in">
+                    <PreferencesSection />
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
         )}
+      </div>
+    )}
 
         <FeedbackModal
           isOpen={isFeedbackOpen}
@@ -800,3 +861,4 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
+

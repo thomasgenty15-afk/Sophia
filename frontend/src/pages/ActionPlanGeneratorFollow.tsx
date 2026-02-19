@@ -42,7 +42,7 @@ type SuggestedPacingId = "fast" | "balanced" | "slow";
 
 interface ContextAssistData {
   suggested_pacing?: { id: SuggestedPacingId; reason?: string };
-  examples?: { why?: string[]; blockers?: string[]; context?: string[] };
+  examples?: { why?: string[]; blockers?: string[]; actions_good_for_me?: string[] };
 }
 
 // --- CACHE HELPERS ---
@@ -156,7 +156,7 @@ const ActionPlanGeneratorFollow = () => {
   const [inputs, setInputs] = useState({
     why: '',
     blockers: '',
-    context: '',
+    actions_good_for_me: '',
     pacing: 'balanced' // default value
   });
   
@@ -225,6 +225,32 @@ const ActionPlanGeneratorFollow = () => {
       }
     }
   }, [currentAxis?.id]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!user || !currentAxis?.id) return;
+
+    const loadPreferredActions = async () => {
+      const { data } = await supabase
+        .from('user_goals')
+        .select('actions_good_for_me')
+        .eq('user_id', user.id)
+        .eq('axis_id', currentAxis.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const value = String((data as any)?.actions_good_for_me ?? '').trim();
+      if (isMounted && value) {
+        setInputs((prev) => (prev.actions_good_for_me ? prev : { ...prev, actions_good_for_me: value }));
+      }
+    };
+
+    loadPreferredActions();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, currentAxis?.id]);
 
   const SnakeBorder = ({ active }: { active: boolean }) => {
     if (!active) return null;
@@ -360,7 +386,7 @@ const ActionPlanGeneratorFollow = () => {
               // 1. Vérifier si on a déjà le résumé dans user_goals
               let { data: existingGoal } = await supabase
                  .from('user_goals')
-                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at, submission_id')
+                 .select('id, sophia_knowledge, summary_attempts, knowledge_generated_at, submission_id, actions_good_for_me')
                  .eq('user_id', user.id)
                  .eq('axis_id', currentAxis.id)
                  .in('status', ['active', 'pending'])
@@ -387,7 +413,7 @@ const ActionPlanGeneratorFollow = () => {
                       setInputs({
                           why: existingPlan.inputs_why || '',
                           blockers: existingPlan.inputs_blockers || '',
-                          context: existingPlan.inputs_context || '',
+                          actions_good_for_me: existingGoal.actions_good_for_me || '',
                           pacing: existingPlan.inputs_pacing || 'balanced'
                       });
 
@@ -770,6 +796,11 @@ const ActionPlanGeneratorFollow = () => {
                 .single();
 
             if (targetGoal) {
+                await supabase
+                    .from('user_goals')
+                    .update({ actions_good_for_me: inputs.actions_good_for_me || null })
+                    .eq('id', targetGoal.id);
+
                 // Vérifier s'il existe déjà un plan pour faire un UPDATE ou INSERT
                 const { data: existingPlan } = await supabase
                     .from('user_plans')
@@ -784,7 +815,6 @@ const ActionPlanGeneratorFollow = () => {
                         .update({
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
-                            inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
                             content: data,
                             status: 'pending', // On remet en pending si on régénère
@@ -801,7 +831,6 @@ const ActionPlanGeneratorFollow = () => {
                             submission_id: targetGoal.submission_id, // AJOUT DU SUBMISSION ID
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
-                            inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
                             content: data,
                             status: 'pending', // Le plan est une proposition, donc 'pending' jusqu'à validation
@@ -1003,7 +1032,10 @@ const ActionPlanGeneratorFollow = () => {
                  if (lastGoal) {
                      activeGoal = lastGoal;
                      // On le passe en active pour être sûr
-                     await supabase.from('user_goals').update({ status: 'active' }).eq('id', lastGoal.id);
+                     await supabase
+                        .from('user_goals')
+                        .update({ status: 'active', actions_good_for_me: inputs.actions_good_for_me || null })
+                        .eq('id', lastGoal.id);
                  }
              }
         }
@@ -1013,6 +1045,11 @@ const ActionPlanGeneratorFollow = () => {
             alert("Erreur critique : Aucun objectif trouvé. Veuillez recommencer le processus.");
             return;
         }
+
+        await supabase
+          .from('user_goals')
+          .update({ actions_good_for_me: inputs.actions_good_for_me || null })
+          .eq('id', activeGoal.id);
 
         let validatedPlanId: string | null = null;
         const { data: existingPlan } = await supabase
@@ -1032,7 +1069,6 @@ const ActionPlanGeneratorFollow = () => {
                     submission_id: activeGoal.submission_id, // PROPAGATION DU SUBMISSION ID
                     inputs_why: inputs.why,
                     inputs_blockers: inputs.blockers,
-                    inputs_context: inputs.context,
                     inputs_pacing: inputs.pacing,
                     content: plan,
                     status: 'active',
@@ -1058,7 +1094,6 @@ const ActionPlanGeneratorFollow = () => {
                         submission_id: activeGoal.submission_id, // Mettre à jour si jamais ça a changé (peu probable mais safe)
                         inputs_why: inputs.why,
                         inputs_blockers: inputs.blockers,
-                        inputs_context: inputs.context,
                         inputs_pacing: inputs.pacing,
                         content: plan,
                         status: 'active', // VALIDATION FINALE : Passage en active
@@ -1313,18 +1348,18 @@ const ActionPlanGeneratorFollow = () => {
               <div className="relative rounded-xl">
                 <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
-                  Informations contextuelles utiles (matériel, horaires...)
+                  Quelles sont les actions qui auraient le plus d'impact et qui te viennent à l'esprit ?
                 </label>
-                <textarea 
-                  value={inputs.context}
-                  onChange={e => setInputs({...inputs, context: e.target.value})}
+                <textarea
+                  value={inputs.actions_good_for_me}
+                  onChange={e => setInputs({ ...inputs, actions_good_for_me: e.target.value })}
                   className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
                   placeholder=""
                 />
                 <ExampleList
-                  examples={contextAssist?.examples?.context}
-                  currentValue={inputs.context}
-                  onKeep={(v) => setInputs({ ...inputs, context: v })}
+                  examples={contextAssist?.examples?.actions_good_for_me}
+                  currentValue={inputs.actions_good_for_me}
+                  onKeep={(v) => setInputs({ ...inputs, actions_good_for_me: v })}
                 />
               </div>
             </div>

@@ -11,14 +11,35 @@ interface CreateActionModalProps {
   isSubmitting?: boolean;
   initialValues?: Partial<Action>;
   mode?: 'create' | 'edit';
+  lockToHabit?: boolean;
 }
 
-export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, onClose, onSubmit, isSubmitting = false, initialValues, mode = 'create' }) => {
+const DAYS: Array<{ key: string; label: string }> = [
+  { key: 'mon', label: 'Lun' },
+  { key: 'tue', label: 'Mar' },
+  { key: 'wed', label: 'Mer' },
+  { key: 'thu', label: 'Jeu' },
+  { key: 'fri', label: 'Ven' },
+  { key: 'sat', label: 'Sam' },
+  { key: 'sun', label: 'Dim' },
+];
+
+const TIME_OPTIONS: Array<{ value: Action['timeOfDay']; label: string }> = [
+  { value: 'any_time', label: 'N’importe quand' },
+  { value: 'morning', label: 'Matin' },
+  { value: 'afternoon', label: 'Après-midi' },
+  { value: 'evening', label: 'Soir' },
+  { value: 'night', label: 'Nuit' },
+];
+
+export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, onClose, onSubmit, isSubmitting = false, initialValues, mode = 'create', lockToHabit = false }) => {
   const [type, setType] = useState<'mission' | 'habit'>('mission');
   const [questType, setQuestType] = useState<'main' | 'side'>('side');
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [targetReps, setTargetReps] = useState(1);
+  const [timeOfDay, setTimeOfDay] = useState<Action['timeOfDay']>('any_time');
+  const [scheduledDays, setScheduledDays] = useState<string[]>([]);
   const [rationale, setRationale] = useState('');
   const [tips, setTips] = useState('');
 
@@ -27,27 +48,56 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
     if (isOpen) {
         if (initialValues) {
             const t = String(initialValues.type || '').toLowerCase().trim();
-            setType((t === 'habitude' || t === 'habit') ? 'habit' : 'mission');
+            const nextType = (t === 'habitude' || t === 'habit') ? 'habit' : 'mission';
+            setType(lockToHabit ? 'habit' : nextType);
             setQuestType(initialValues.questType || 'side');
             setTitle(initialValues.title || '');
             setDescription(initialValues.description || '');
             setTargetReps(initialValues.targetReps || 1);
+            setTimeOfDay(initialValues.timeOfDay || 'any_time');
+            setScheduledDays((initialValues.scheduledDays || []).filter(Boolean));
             setRationale(initialValues.rationale || '');
             setTips(initialValues.tips || '');
         } else {
             resetForm();
         }
     }
-  }, [isOpen, initialValues]);
+  }, [isOpen, initialValues, lockToHabit]);
 
   const resetForm = () => {
-    setType('mission');
+    setType(lockToHabit ? 'habit' : 'mission');
     setQuestType('side');
     setTitle('');
     setDescription('');
     setTargetReps(1);
+    setTimeOfDay('any_time');
+    setScheduledDays([]);
     setRationale('');
     setTips('');
+  };
+
+  useEffect(() => {
+    if (lockToHabit && type !== 'habit') setType('habit');
+  }, [lockToHabit, type]);
+
+  const toggleDay = (key: string) => {
+    const prev = scheduledDays;
+    let next: string[];
+
+    if (prev.includes(key)) {
+      next = prev.filter((d) => d !== key);
+    } else {
+      next = [...prev, key];
+    }
+
+    const sortedNext = DAYS.map((d) => d.key).filter((d) => next.includes(d));
+    
+    setScheduledDays(sortedNext);
+    
+    // Auto-update targetReps to match selected days count
+    if (sortedNext.length > 0) {
+      setTargetReps(sortedNext.length);
+    }
   };
 
   const handleSubmit = async () => {
@@ -59,6 +109,8 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
       description,
       questType,
       targetReps: type === 'habit' ? targetReps : undefined,
+      timeOfDay: type === 'habit' ? (timeOfDay || 'any_time') : undefined,
+      scheduledDays: type === 'habit' ? (scheduledDays.length > 0 ? scheduledDays : null) : undefined,
       rationale: rationale || undefined,
       tips: tips || undefined,
       status: 'pending', // Default status
@@ -110,6 +162,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
             <div className="p-6 space-y-6 flex-1 overflow-y-auto">
               
               {/* Type Selection */}
+              {!lockToHabit && (
               <div className="grid grid-cols-2 gap-3">
                 <button
                     onClick={() => setType('mission')}
@@ -143,6 +196,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
                     </div>
                 </button>
               </div>
+              )}
 
               {/* Quest Type */}
               <div>
@@ -216,6 +270,49 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
                     <p className="text-[10px] text-emerald-600/70 mt-2 font-medium">
                         Cette action devra être réalisée {targetReps} fois par semaine.
                     </p>
+
+                    <div className="mt-4">
+                      <label className="block text-xs font-bold text-emerald-800 mb-2">Moment conseillé</label>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        {TIME_OPTIONS.map((opt) => (
+                          <button
+                            key={opt.value}
+                            onClick={() => setTimeOfDay(opt.value || 'any_time')}
+                            className={clsx(
+                              "px-3 py-2 rounded-lg border text-xs font-bold transition-all",
+                              timeOfDay === opt.value
+                                ? "bg-emerald-600 text-white border-emerald-600"
+                                : "bg-white border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                            )}
+                          >
+                            {opt.label}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="mt-4">
+                      <label className="block text-xs font-bold text-emerald-800 mb-2">Jours (optionnel)</label>
+                      <div className="grid grid-cols-7 gap-1.5">
+                        {DAYS.map((d) => {
+                          const active = scheduledDays.includes(d.key);
+                          return (
+                            <button
+                              key={d.key}
+                              onClick={() => toggleDay(d.key)}
+                              className={clsx(
+                                "py-1.5 rounded-md border text-[10px] font-bold transition-colors",
+                                active
+                                  ? "bg-emerald-600 text-white border-emerald-600"
+                                  : "bg-white text-emerald-700 border-emerald-200 hover:bg-emerald-50"
+                              )}
+                            >
+                              {d.label}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
                 </div>
               )}
 

@@ -39,7 +39,7 @@ type SuggestedPacingId = "fast" | "balanced" | "slow";
 
 interface ContextAssistData {
   suggested_pacing?: { id: SuggestedPacingId; reason?: string };
-  examples?: { why?: string[]; blockers?: string[] }; // Pas de context en mode recraft
+  examples?: { why?: string[]; blockers?: string[]; actions_good_for_me?: string[] }; // Pas de context en mode recraft
 }
 
 // --- CACHE HELPERS ---
@@ -102,7 +102,7 @@ const ActionPlanGeneratorRecraft = () => {
   const [inputs, setInputs] = useState({
     why: '',
     blockers: '',
-    context: '',
+    actions_good_for_me: '',
     pacing: 'balanced'
   });
   
@@ -129,6 +129,32 @@ const ActionPlanGeneratorRecraft = () => {
       }
     }
   }, [currentAxis?.id]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!user || !currentAxis?.id) return;
+
+    const loadPreferredActions = async () => {
+      const { data } = await supabase
+        .from('user_goals')
+        .select('actions_good_for_me')
+        .eq('user_id', user.id)
+        .eq('axis_id', currentAxis.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const value = String((data as any)?.actions_good_for_me ?? '').trim();
+      if (isMounted && value) {
+        setInputs((prev) => (prev.actions_good_for_me ? prev : { ...prev, actions_good_for_me: value }));
+      }
+    };
+
+    loadPreferredActions();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, currentAxis?.id]);
 
   const SnakeBorder = ({ active }: { active: boolean }) => {
     if (!active) return null;
@@ -353,7 +379,7 @@ const ActionPlanGeneratorRecraft = () => {
       if (checkGoal) {
           const { data: existingPlan } = await supabase
               .from('user_plans')
-              .select('content, inputs_why, inputs_blockers, inputs_context')
+              .select('content, inputs_why, inputs_blockers')
               .eq('goal_id', checkGoal.id)
               .maybeSingle();
           
@@ -361,7 +387,6 @@ const ActionPlanGeneratorRecraft = () => {
               previousPlanContext = {
                   initialWhy: existingPlan.inputs_why,
                   initialBlockers: existingPlan.inputs_blockers,
-                  initialContext: existingPlan.inputs_context,
                   previousContent: existingPlan.content // Optionnel, si on veut que l'IA analyse le contenu généré précédent
               };
           }
@@ -404,20 +429,24 @@ const ActionPlanGeneratorRecraft = () => {
             .maybeSingle();
             
         if (goal) {
+            await supabase
+                .from('user_goals')
+                .update({ actions_good_for_me: inputs.actions_good_for_me || null })
+                .eq('id', goal.id);
+
             // On supprime l'ancien plan actif s'il y en a un (ou on l'archive ?)
             // Le prompt dit "Refaire ce plan", donc on remplace.
             
             // On vérifie s'il existe un plan
             const { data: existingPlan } = await supabase
                 .from('user_plans')
-                .select('id, inputs_why, inputs_blockers, inputs_context')
+                .select('id, inputs_why, inputs_blockers')
                 .eq('goal_id', goal.id)
                 .maybeSingle();
 
             // CONTEXTE INITIAL : On sauvegarde les inputs d'origine avant de supprimer
             const initialWhy = existingPlan?.inputs_why || inputs.why; // Fallback sur inputs actuels si pas d'historique (Cas rare)
             const initialBlockers = existingPlan?.inputs_blockers || inputs.blockers;
-            const initialContext = existingPlan?.inputs_context || inputs.context;
 
             if (existingPlan) {
                 console.log("♻️ Nettoyage complet de l'ancien plan (Recraft Mode Robust)...");
@@ -439,7 +468,6 @@ const ActionPlanGeneratorRecraft = () => {
                 // ON PRÉSERVE L'HISTOIRE D'ORIGINE
                 inputs_why: initialWhy,
                 inputs_blockers: initialBlockers,
-                inputs_context: initialContext,
                 
                 // ON AJOUTE LE CHAPITRE RECRAFT
                 recraft_reason: inputs.why,
@@ -480,7 +508,10 @@ const ActionPlanGeneratorRecraft = () => {
           const { data: goal } = await supabase.from('user_goals').select('id, submission_id').eq('user_id', user.id).eq('axis_id', currentAxis.id).single();
           if (goal) {
              // On s'assure que le goal est actif
-             await supabase.from('user_goals').update({ status: 'active' }).eq('id', goal.id);
+             await supabase
+               .from('user_goals')
+               .update({ status: 'active', actions_good_for_me: inputs.actions_good_for_me || null })
+               .eq('id', goal.id);
              // On s'assure que le plan est actif
              await supabase.from('user_plans').update({ status: 'active' }).eq('goal_id', goal.id);
              
@@ -669,6 +700,24 @@ const ActionPlanGeneratorRecraft = () => {
                   examples={contextAssist?.examples?.blockers}
                   currentValue={inputs.blockers}
                   onKeep={(v) => setInputs({ ...inputs, blockers: v })}
+                />
+              </div>
+
+              <div className="relative rounded-xl">
+                <SnakeBorder active={isContextLoading} />
+                <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
+                  Quelles sont les actions qui auraient le plus d'impact et qui te viennent à l'esprit ?
+                </label>
+                <textarea
+                  value={inputs.actions_good_for_me}
+                  onChange={e => setInputs({ ...inputs, actions_good_for_me: e.target.value })}
+                  className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
+                  placeholder=""
+                />
+                <ExampleList
+                  examples={contextAssist?.examples?.actions_good_for_me}
+                  currentValue={inputs.actions_good_for_me}
+                  onKeep={(v) => setInputs({ ...inputs, actions_good_for_me: v })}
                 />
               </div>
             </div>

@@ -209,6 +209,11 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
     .eq("user_id", userId)
     .eq("status", "active")
   const { data: frameworks } = planId ? await fwQ.eq("plan_id", planId) : await fwQ
+  const { data: personalActions } = await supabase
+    .from("user_personal_actions")
+    .select("*")
+    .eq("user_id", userId)
+    .eq("status", "active")
 
   // Apply 18h Logic
   actions?.forEach((a: any) => {
@@ -247,6 +252,7 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
       pending.push({
         id: a.id,
         type: "action",
+        action_source: "plan",
         title: a.title,
         description: a.description,
         tracking_type: a.tracking_type,
@@ -258,6 +264,50 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
         is_habit: isHabit,
         time_of_day: a.time_of_day ?? undefined,
         weekly_target_status: weeklyTargetStatus,
+      })
+    }
+  })
+
+  // 1b. Fetch Personal Actions (outside transformation plan)
+  personalActions?.forEach((a: any) => {
+    const lastPerformedDate = a.last_performed_at
+      ? new Date(a.last_performed_at)
+      : null
+    if (!lastPerformedDate || lastPerformedDate < eighteenHoursAgo) {
+      const scheduledDays: string[] = Array.isArray(a.scheduled_days)
+        ? a.scheduled_days
+        : []
+      const isScheduledDay = scheduledDays.length === 0
+        ? true
+        : scheduledDays.includes(weekdayKey)
+      if (scheduledDays.length > 0 && !isScheduledDay) return
+
+      const weekNow = isoWeekStartYmdInTz(now, tz)
+      const weekLast = lastPerformedDate
+        ? isoWeekStartYmdInTz(lastPerformedDate, tz)
+        : null
+      const weekReps = weekLast && weekLast === weekNow
+        ? Number(a.current_reps ?? 0)
+        : 0
+      const target = Number(a.target_reps ?? 1)
+      const actionDayScope = computeActionDayScope(a.time_of_day, localHour)
+
+      pending.push({
+        id: a.id,
+        type: "action",
+        action_source: "personal",
+        title: a.title,
+        description: a.description,
+        tracking_type: "boolean",
+        target: target,
+        current: weekReps,
+        scheduled_days: scheduledDays.length > 0 ? scheduledDays : undefined,
+        is_scheduled_day: isScheduledDay,
+        day_scope: actionDayScope,
+        is_habit: true,
+        time_of_day: a.time_of_day ?? undefined,
+        // Personal actions are outside plan flow; keep weekly_target_status undefined
+        // to avoid plan-specific increase-target path.
       })
     }
   })
@@ -347,6 +397,51 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
   const now = new Date()
 
   if (item_type === "action") {
+    const itemSource = String(args?.item_source ?? "").toLowerCase().trim()
+
+    // Personal actions have no dedicated entry table yet. We update state directly.
+    if (itemSource === "personal") {
+      if (status === "completed") {
+        const { data: currentAction } = await supabase
+          .from("user_personal_actions")
+          .select("current_reps, last_performed_at")
+          .eq("id", item_id)
+          .eq("user_id", userId)
+          .maybeSingle()
+
+        const lastPerformedDate = currentAction?.last_performed_at
+          ? new Date(currentAction.last_performed_at)
+          : null
+        const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
+        if (lastPerformedDate && lastPerformedDate > eighteenHoursAgo) {
+          return "Logged (Skipped duplicate)"
+        }
+
+        const tz = await getUserTimezone(supabase, userId)
+        const weekNow = isoWeekStartYmdInTz(now, tz)
+        const weekLast = lastPerformedDate
+          ? isoWeekStartYmdInTz(lastPerformedDate, tz)
+          : null
+        const base = !weekLast || weekLast !== weekNow
+          ? 0
+          : Number(currentAction?.current_reps ?? 0)
+        const nextReps = base + 1
+
+        await supabase.from("user_personal_actions").update({
+          current_reps: nextReps,
+          status: "active",
+          last_performed_at: now.toISOString(),
+        }).eq("id", item_id).eq("user_id", userId)
+      } else {
+        // For missed/partial we keep the action active and only refresh timestamp.
+        await supabase.from("user_personal_actions").update({
+          status: "active",
+          last_performed_at: now.toISOString(),
+        }).eq("id", item_id).eq("user_id", userId)
+      }
+      return "Logged"
+    }
+
     // Idempotency / correction guard (all statuses):
     // If we already logged this action recently, avoid inserting duplicate entries.
     // - If the status differs, update the latest recent entry (supports "oops finalement je l'ai fait").

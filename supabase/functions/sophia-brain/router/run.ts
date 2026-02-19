@@ -42,6 +42,12 @@ function extractDashboardRedirectIntents(signals: DispatcherSignals): string[] {
   if (signals.activate_action?.detected) intents.push("activate_action");
   if (signals.delete_action?.detected) intents.push("delete_action");
   if (signals.deactivate_action?.detected) intents.push("deactivate_action");
+  if (signals.dashboard_preferences_intent?.detected) {
+    intents.push("dashboard_preferences_intent");
+  }
+  if (signals.dashboard_recurring_reminder_intent?.detected) {
+    intents.push("dashboard_recurring_reminder_intent");
+  }
   return intents;
 }
 
@@ -219,6 +225,44 @@ function attachDynamicAddons(args: {
     }
   }
 
+  const dashboardPreferencesSignal =
+    dispatcherSignals.dashboard_preferences_intent;
+  if (dashboardPreferencesSignal?.detected) {
+    (tempMemory as any).__dashboard_preferences_intent_addon = {
+      keys: Array.isArray(dashboardPreferencesSignal.preference_keys)
+        ? dashboardPreferencesSignal.preference_keys.slice(0, 9)
+        : [],
+      confidence: Number(dashboardPreferencesSignal.confidence ?? 0),
+      from_bilan: Boolean(state?.investigation_state),
+      detected_at: new Date().toISOString(),
+    };
+  } else {
+    try {
+      delete (tempMemory as any).__dashboard_preferences_intent_addon;
+    } catch {
+      // best effort
+    }
+  }
+
+  const dashboardRecurringReminderSignal =
+    dispatcherSignals.dashboard_recurring_reminder_intent;
+  if (dashboardRecurringReminderSignal?.detected) {
+    (tempMemory as any).__dashboard_recurring_reminder_intent_addon = {
+      fields: Array.isArray(dashboardRecurringReminderSignal.reminder_fields)
+        ? dashboardRecurringReminderSignal.reminder_fields.slice(0, 9)
+        : [],
+      confidence: Number(dashboardRecurringReminderSignal.confidence ?? 0),
+      from_bilan: Boolean(state?.investigation_state),
+      detected_at: new Date().toISOString(),
+    };
+  } else {
+    try {
+      delete (tempMemory as any).__dashboard_recurring_reminder_intent_addon;
+    } catch {
+      // best effort
+    }
+  }
+
   const safetyActive = dispatcherSignals.safety.level === "SENTRY" ||
     dispatcherSignals.safety.level === "FIREFIGHTER";
   if (safetyActive && Number(dispatcherSignals.safety.confidence ?? 0) >= 0.6) {
@@ -317,6 +361,8 @@ function clearOneShotKeys(tempMemory: any, consumedBilanStopped: boolean) {
   const keys = [
     "__checkup_not_triggerable_addon",
     "__dashboard_redirect_addon",
+    "__dashboard_preferences_intent_addon",
+    "__dashboard_recurring_reminder_intent_addon",
     "__safety_active_addon",
     "__track_progress_parallel",
     "__deferred_signal_addon",

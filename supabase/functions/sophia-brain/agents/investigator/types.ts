@@ -1,6 +1,7 @@
 export interface CheckupItem {
   id: string;
   type: "action" | "vital" | "framework";
+  action_source?: "plan" | "personal";
   title: string;
   description?: string;
   tracking_type: "boolean" | "counter";

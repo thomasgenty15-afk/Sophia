@@ -133,6 +133,26 @@ export interface DispatcherSignals {
     target_hint?: string;
     confidence: number;
   };
+  dashboard_preferences_intent: {
+    detected: boolean;
+    /**
+     * Preference keys user wants to change in dashboard settings.
+     * Canonical keys expected by product:
+     * language, tone, response_length, emoji_level, voice_style,
+     * proactivity_level, timezone, daily_summary_time, coach_intensity
+     */
+    preference_keys?: string[];
+    confidence: number;
+  };
+  dashboard_recurring_reminder_intent: {
+    detected: boolean;
+    /**
+     * Reminder configuration hints to prepare dashboard redirect:
+     * mode, days, time, timezone, channel, start_date, end_date, pause, message
+     */
+    reminder_fields?: string[];
+    confidence: number;
+  };
   /**
    * Safety resolution signals (for active safety flows):
    * - user_confirms_safe: user explicitly confirms they are safe
@@ -394,6 +414,14 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
     detected: false,
     confidence: 0.5,
   },
+  dashboard_preferences_intent: {
+    detected: false,
+    confidence: 0.5,
+  },
+  dashboard_recurring_reminder_intent: {
+    detected: false,
+    confidence: 0.5,
+  },
   safety_resolution: {
     user_confirms_safe: false,
     stabilizing_signal: false,
@@ -431,12 +459,15 @@ Tu détectes TOUJOURS:
 - needs_explanation (si l'utilisateur demande d'expliquer / clarifier)
 - needs_research (si question factuelle fraîche / web)
 - CRUD action intents (create/update/breakdown/activate/delete/deactivate) pour redirection dashboard
+- dashboard_preferences_intent (si user veut modifier les préférences UX/UI Sophia)
+- dashboard_recurring_reminder_intent (si user veut régler ses rappels récurrents)
 - user_engagement (HIGH / MEDIUM / LOW / DISENGAGED)
 - risk_score (0-10)
 - safety_resolution (uniquement si safety != NONE)
 
 IMPORTANT:
 - Les signaux CRUD servent à COMPRENDRE l'intention et déclencher une redirection dashboard.
+- Les 2 signaux dashboard_*_intent servent à orienter vers les bons écrans réglages dashboard.
 - Tu ne décides jamais d'exécution d'outil ici.
 `;
 
@@ -461,6 +492,33 @@ Exemples:
 - "supprime cette action" -> delete_action.detected=true
 - "active l'exercice respiration" -> activate_action.detected=true
 - "je veux ajouter une nouvelle habitude" -> create_action.intent_strength=explicit
+
+3) dashboard_preferences_intent (redirection réglages UX/UI)
+- Détecte quand le user veut changer ses préférences produit (pas une action du plan).
+- Renseigne "preference_keys" avec les clés canoniques détectées parmi:
+  * language: fr | en
+  * tone: friendly | neutral | direct
+  * response_length: short | medium | long
+  * emoji_level: none | low | medium | high
+  * voice_style: coach | companion | concise
+  * proactivity_level: low | medium | high
+  * timezone: ex "Europe/Paris"
+  * daily_summary_time: ex "20:00"
+  * coach_intensity: gentle | balanced | challenge
+- Exemples:
+  * "parle plus court" -> response_length
+  * "mets moins d'emojis" -> emoji_level
+  * "je veux un ton plus direct" -> tone
+
+4) dashboard_recurring_reminder_intent (redirection rappels récurrents)
+- Détecte quand le user veut configurer/éditer des rappels planifiés.
+- Renseigne "reminder_fields" avec les infos à paramétrer si présentes:
+  * mode (daily|weekly|custom), days, time, timezone,
+    channel (app|whatsapp), start_date, end_date, pause, message
+- Exemples:
+  * "rappelle-moi tous les lundis à 8h" -> mode+days+time
+  * "pause mes rappels cette semaine" -> pause
+  * "mets le rappel sur WhatsApp" -> channel
 `;
 
 const LAST_MESSAGE_PROTOCOL_SECTION = `
@@ -1006,6 +1064,8 @@ ${contextMessages}
     "activate_action": { "detected": bool, "target_hint": string|null, "exercise_type_hint": string|null, "confidence": 0.0-1.0 },
     "delete_action": { "detected": bool, "target_hint": string|null, "reason_hint": string|null, "confidence": 0.0-1.0 },
     "deactivate_action": { "detected": bool, "target_hint": string|null, "confidence": 0.0-1.0 },
+    "dashboard_preferences_intent": { "detected": bool, "preference_keys": ["language|tone|response_length|emoji_level|voice_style|proactivity_level|timezone|daily_summary_time|coach_intensity"], "confidence": 0.0-1.0 },
+    "dashboard_recurring_reminder_intent": { "detected": bool, "reminder_fields": ["mode|days|time|timezone|channel|start_date|end_date|pause|message"], "confidence": 0.0-1.0 },
     "safety_resolution": { "user_confirms_safe": bool, "stabilizing_signal": bool, "symptoms_still_present": bool, "external_help_mentioned": bool, "escalate_to_sentry": bool, "confidence": 0.0-1.0 },
     "safety_stabilization": { "stabilizing_turn": bool, "confidence": 0.0-1.0 },
     "wants_tools": bool,
@@ -1479,6 +1539,73 @@ Reponds UNIQUEMENT avec le JSON:`;
         Number.isFinite(deactivateActionConfRaw)
           ? deactivateActionConfRaw
           : 0.5,
+      ),
+    );
+
+    // Parse dashboard_preferences_intent signal
+    const dashboardPreferencesDetected = Boolean(
+      signalsObj?.dashboard_preferences_intent?.detected,
+    );
+    const dashboardPreferencesKeysRaw = Array.isArray(
+      signalsObj?.dashboard_preferences_intent?.preference_keys,
+    )
+      ? signalsObj.dashboard_preferences_intent.preference_keys
+      : [];
+    const dashboardPreferenceAllowed = new Set([
+      "language",
+      "tone",
+      "response_length",
+      "emoji_level",
+      "voice_style",
+      "proactivity_level",
+      "timezone",
+      "daily_summary_time",
+      "coach_intensity",
+    ]);
+    const dashboardPreferenceKeys = dashboardPreferencesKeysRaw
+      .map((v: unknown) => String(v ?? "").trim().toLowerCase())
+      .filter((v: string) => dashboardPreferenceAllowed.has(v))
+      .slice(0, 9);
+    const dashboardPreferencesConf = Math.max(
+      0,
+      Math.min(
+        1,
+        Number(signalsObj?.dashboard_preferences_intent?.confidence ?? 0.5) ||
+          0.5,
+      ),
+    );
+
+    // Parse dashboard_recurring_reminder_intent signal
+    const dashboardRecurringReminderDetected = Boolean(
+      signalsObj?.dashboard_recurring_reminder_intent?.detected,
+    );
+    const dashboardReminderFieldsRaw = Array.isArray(
+      signalsObj?.dashboard_recurring_reminder_intent?.reminder_fields,
+    )
+      ? signalsObj.dashboard_recurring_reminder_intent.reminder_fields
+      : [];
+    const dashboardReminderAllowed = new Set([
+      "mode",
+      "days",
+      "time",
+      "timezone",
+      "channel",
+      "start_date",
+      "end_date",
+      "pause",
+      "message",
+    ]);
+    const dashboardReminderFields = dashboardReminderFieldsRaw
+      .map((v: unknown) => String(v ?? "").trim().toLowerCase())
+      .filter((v: string) => dashboardReminderAllowed.has(v))
+      .slice(0, 9);
+    const dashboardRecurringReminderConf = Math.max(
+      0,
+      Math.min(
+        1,
+        Number(
+          signalsObj?.dashboard_recurring_reminder_intent?.confidence ?? 0.5,
+        ) || 0.5,
       ),
     );
 
@@ -1960,6 +2087,16 @@ Reponds UNIQUEMENT avec le JSON:`;
           detected: deactivateActionDetected,
           target_hint: deactivateActionTargetHint,
           confidence: deactivateActionConf,
+        },
+        dashboard_preferences_intent: {
+          detected: dashboardPreferencesDetected,
+          preference_keys: dashboardPreferenceKeys,
+          confidence: dashboardPreferencesConf,
+        },
+        dashboard_recurring_reminder_intent: {
+          detected: dashboardRecurringReminderDetected,
+          reminder_fields: dashboardReminderFields,
+          confidence: dashboardRecurringReminderConf,
         },
         safety_resolution: {
           user_confirms_safe: safetyResolutionUserConfirmsSafe,

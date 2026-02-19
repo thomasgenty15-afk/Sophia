@@ -19,7 +19,6 @@ type PlanRow = {
   title: string | null
   inputs_why: string | null
   inputs_blockers: string | null
-  inputs_context: string | null
   recraft_reason: string | null
   recraft_challenges: string | null
 }
@@ -80,7 +79,7 @@ Deno.serve(async (req) => {
     if (planId) {
       const { data } = await admin
         .from("user_plans")
-        .select("id,user_id,goal_id,status,title,inputs_why,inputs_blockers,inputs_context,recraft_reason,recraft_challenges")
+        .select("id,user_id,goal_id,status,title,inputs_why,inputs_blockers,recraft_reason,recraft_challenges")
         .eq("id", planId)
         .eq("user_id", userId)
         .maybeSingle()
@@ -88,7 +87,7 @@ Deno.serve(async (req) => {
     } else {
       const { data } = await admin
         .from("user_plans")
-        .select("id,user_id,goal_id,status,title,inputs_why,inputs_blockers,inputs_context,recraft_reason,recraft_challenges")
+        .select("id,user_id,goal_id,status,title,inputs_why,inputs_blockers,recraft_reason,recraft_challenges")
         .eq("goal_id", goalId)
         .eq("user_id", userId)
         .order("updated_at", { ascending: false })
@@ -123,7 +122,6 @@ Deno.serve(async (req) => {
         title: planRow.title,
         inputs_why: planRow.inputs_why,
         inputs_blockers: planRow.inputs_blockers,
-        inputs_context: planRow.inputs_context,
         recraft_reason: planRow.recraft_reason,
         recraft_challenges: planRow.recraft_challenges,
       },
@@ -156,4 +154,3 @@ Deno.serve(async (req) => {
     )
   }
 })
-

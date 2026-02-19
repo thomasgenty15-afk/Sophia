@@ -127,7 +127,6 @@ Deno.serve(async (req) => {
     context += `Problème Initial: ${record.context_problem || 'N/A'}\n`
     context += `Inputs Why (Motivation initiale): ${record.inputs_why || 'N/A'}\n`
     context += `Inputs Blockers (Blocages initiaux): ${record.inputs_blockers || 'N/A'}\n`
-    context += `Inputs Context (Contexte global): ${record.inputs_context || 'N/A'}\n`
     
     if (record.recraft_reason) {
         context += `\n[HISTORIQUE DE RECRAFT]\n`

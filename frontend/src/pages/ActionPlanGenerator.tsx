@@ -334,18 +334,18 @@ const ActionPlanGenerator = () => {
               <div className="relative rounded-xl">
                 <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
-                  Informations contextuelles utiles (matériel, horaires...)
+                  Quelles sont les actions qui auraient le plus d'impact et qui te viennent à l'esprit ?
                 </label>
-                <textarea 
-                  value={inputs.context}
-                  onChange={e => setInputs({...inputs, context: e.target.value})}
+                <textarea
+                  value={inputs.actions_good_for_me}
+                  onChange={e => setInputs({ ...inputs, actions_good_for_me: e.target.value })}
                   className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
                   placeholder=""
                 />
                 <ExampleList
-                  examples={contextAssist?.examples?.context}
-                  currentValue={inputs.context}
-                  onKeep={(v) => setInputs({ ...inputs, context: v })}
+                  examples={contextAssist?.examples?.actions_good_for_me}
+                  currentValue={inputs.actions_good_for_me}
+                  onKeep={(v) => setInputs({ ...inputs, actions_good_for_me: v })}
                 />
               </div>
             </div>

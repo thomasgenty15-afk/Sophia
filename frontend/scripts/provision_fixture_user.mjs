@@ -137,7 +137,6 @@ async function seedGoalPlanAndActions(admin, userId, planSeed) {
       title: planSeed.title ?? "Fixture plan",
       deep_why: planSeed.deep_why ?? null,
       inputs_why: planSeed.inputs_why ?? null,
-      inputs_context: planSeed.inputs_context ?? null,
       inputs_blockers: planSeed.inputs_blockers ?? null,
       content: planContent,
     })
@@ -328,5 +327,4 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
-
 

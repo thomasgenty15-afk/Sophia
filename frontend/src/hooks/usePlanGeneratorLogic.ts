@@ -9,7 +9,7 @@ import type { AxisContext } from './usePlanGeneratorData';
 interface PlanInputs {
   why: string;
   blockers: string;
-  context: string;
+  actions_good_for_me: string;
   pacing: string;
 }
 
@@ -24,7 +24,7 @@ export const usePlanGeneratorLogic = (
   const [inputs, setInputs] = useState<PlanInputs>({
     why: '',
     blockers: '',
-    context: '',
+    actions_good_for_me: '',
     pacing: 'balanced'
   });
   const [plan, setPlan] = useState<any>(null);
@@ -33,6 +33,35 @@ export const usePlanGeneratorLogic = (
   const [isRefining, setIsRefining] = useState(false);
 
   const [loadingMessage, setLoadingMessage] = useState<string>('');
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!user || !currentAxis?.id) return;
+
+    const loadGoalPreferredActions = async () => {
+      const { data } = await supabase
+        .from('user_goals')
+        .select('actions_good_for_me')
+        .eq('user_id', user.id)
+        .eq('axis_id', currentAxis.id)
+        .in('status', ['active', 'pending'])
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const goalValue = String((data as any)?.actions_good_for_me ?? '').trim();
+      if (isMounted && goalValue) {
+        setInputs((prev) => (
+          prev.actions_good_for_me ? prev : { ...prev, actions_good_for_me: goalValue }
+        ));
+      }
+    };
+
+    loadGoalPreferredActions();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, currentAxis?.id]);
 
   // --- LOADING SEQUENCE ---
   const startLoadingSequence = () => {
@@ -142,13 +171,17 @@ export const usePlanGeneratorLogic = (
             const { data: targetGoal } = await supabase.from('user_goals').select('id, submission_id').eq('user_id', user.id).eq('axis_id', activeAxis.id).in('status', ['active', 'pending']).order('created_at', { ascending: false }).limit(1).single();
 
             if (targetGoal) {
+                await supabase
+                    .from('user_goals')
+                    .update({ actions_good_for_me: inputs.actions_good_for_me || null })
+                    .eq('id', targetGoal.id);
+
                 const { data: existingPlan } = await supabase.from('user_plans').select('id, generation_attempts').eq('goal_id', targetGoal.id).maybeSingle();
 
                 if (existingPlan) {
                     await supabase.from('user_plans').update({
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
-                            inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
                             title: data.grimoireTitle,
                             deep_why: data.deepWhy,
@@ -164,7 +197,6 @@ export const usePlanGeneratorLogic = (
                             submission_id: targetGoal.submission_id,
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
-                            inputs_context: inputs.context,
                             inputs_pacing: inputs.pacing,
                             title: data.grimoireTitle,
                             deep_why: data.deepWhy,
@@ -246,6 +278,11 @@ export const usePlanGeneratorLogic = (
         }
 
         if (activeGoal) {
+            await supabase
+                .from('user_goals')
+                .update({ actions_good_for_me: inputs.actions_good_for_me || null })
+                .eq('id', activeGoal.id);
+
             let validatedPlanId: string | null = null;
             const { data: existingPlan } = await supabase.from('user_plans').select('*').eq('goal_id', activeGoal.id).limit(1).maybeSingle();
 
@@ -256,7 +293,6 @@ export const usePlanGeneratorLogic = (
                     submission_id: activeGoal.submission_id,
                     inputs_why: inputs.why,
                     inputs_blockers: inputs.blockers,
-                    inputs_context: inputs.context,
                     inputs_pacing: inputs.pacing,
                     title: plan.grimoireTitle,
                     deep_why: plan.deepWhy,
@@ -275,7 +311,6 @@ export const usePlanGeneratorLogic = (
                         submission_id: activeGoal.submission_id,
                         inputs_why: inputs.why,
                         inputs_blockers: inputs.blockers,
-                        inputs_context: inputs.context,
                         inputs_pacing: inputs.pacing,
                         title: plan.grimoireTitle,
                         deep_why: plan.deepWhy,

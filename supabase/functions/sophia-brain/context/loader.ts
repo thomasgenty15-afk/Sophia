@@ -159,7 +159,13 @@ export async function loadContextForMode(
           opts.scope,
         );
         if (factsContext) {
-          context.facts = `${factsContext}\n\n`;
+          context.facts =
+            `${factsContext}\n` +
+            `=== CONSIGNE PERSONNALISATION FACTS ===\n` +
+            `- Utilise ces facts comme support de connaissance pour personnaliser ton style de réponse.\n` +
+            `- En priorité pour: ton (conversation.tone), longueur (conversation.verbosity), emojis (conversation.use_emojis).\n` +
+            `- Ces facts orientent la forme de réponse (style/longueur), pas l'exécution d'actions.\n` +
+            `- N'invente jamais un fact manquant; si absent, applique le style par défaut.\n\n`;
           elementsLoaded.push("facts");
         }
       }).catch((e) => {
@@ -338,6 +344,38 @@ export async function loadContextForMode(
     if (context.safetyActiveAddon) elementsLoaded.push("safety_active_addon");
   }
 
+  // 15b. Dashboard preferences intent addon (dedicated UX/UI settings redirect)
+  const dashboardPreferencesIntentAddon = (opts.tempMemory as any)
+    ?.__dashboard_preferences_intent_addon;
+  if (
+    dashboardPreferencesIntentAddon &&
+    (opts.mode === "companion" || opts.mode === "investigator")
+  ) {
+    context.dashboardPreferencesIntentAddon =
+      formatDashboardPreferencesIntentAddon(
+        dashboardPreferencesIntentAddon,
+      );
+    if (context.dashboardPreferencesIntentAddon) {
+      elementsLoaded.push("dashboard_preferences_intent_addon");
+    }
+  }
+
+  // 15c. Dashboard recurring reminder intent addon (dedicated reminder settings redirect)
+  const dashboardRecurringReminderIntentAddon = (opts.tempMemory as any)
+    ?.__dashboard_recurring_reminder_intent_addon;
+  if (
+    dashboardRecurringReminderIntentAddon &&
+    (opts.mode === "companion" || opts.mode === "investigator")
+  ) {
+    context.dashboardRecurringReminderIntentAddon =
+      formatDashboardRecurringReminderIntentAddon(
+        dashboardRecurringReminderIntentAddon,
+      );
+    if (context.dashboardRecurringReminderIntentAddon) {
+      elementsLoaded.push("dashboard_recurring_reminder_intent_addon");
+    }
+  }
+
   // 16. Expired bilan summary (silent expiry context for companion)
   const expiredBilanSummary = (opts.tempMemory as any)?.__expired_bilan_summary;
   if (
@@ -440,6 +478,12 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.onboardingAddon) ctx += loaded.onboardingAddon;
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon;
   if (loaded.dashboardRedirectAddon) ctx += loaded.dashboardRedirectAddon;
+  if (loaded.dashboardPreferencesIntentAddon) {
+    ctx += loaded.dashboardPreferencesIntentAddon;
+  }
+  if (loaded.dashboardRecurringReminderIntentAddon) {
+    ctx += loaded.dashboardRecurringReminderIntentAddon;
+  }
   if (loaded.safetyActiveAddon) ctx += loaded.safetyActiveAddon;
   if (loaded.expiredBilanContext) ctx += loaded.expiredBilanContext;
   if (loaded.checkupNotTriggerableAddon) ctx += loaded.checkupNotTriggerableAddon;
@@ -527,11 +571,71 @@ function formatDashboardRedirectAddon(addon: any): string {
   return (
     `\n\n=== ADDON DASHBOARD REDIRECT ===\n` +
     `- Intention détectée: ${intentText}.\n` +
+    `- Cet add-on est un support de connaissance pour bien orienter l'utilisateur (pas un exécuteur).\n` +
     `- Réponds utilement et naturellement, puis redirige vers le tableau de bord.\n` +
     (fromBilan
       ? `- Le bilan reste prioritaire: confirme la redirection dashboard puis reprends l'item du bilan.\n`
       : "") +
-    `- Interdiction d'annoncer qu'une action a été créée/modifiée/activée/supprimée depuis le chat.\n`
+    `- Interdiction d'annoncer qu'une action a été créée/modifiée/activée/supprimée depuis le chat.\n` +
+    `- Aucune création/modification n'est exécutée dans le chat: tout se fait dans le dashboard.\n`
+  );
+}
+
+function formatDashboardPreferencesIntentAddon(addon: any): string {
+  const confidence = Number(addon?.confidence ?? 0);
+  const confidenceText = Number.isFinite(confidence)
+    ? ` (confidence=${confidence.toFixed(2)})`
+    : "";
+  const keys = Array.isArray(addon?.keys)
+    ? addon.keys
+      .filter((v: unknown) => typeof v === "string")
+      .slice(0, 9)
+    : [];
+  const keysText = keys.length > 0 ? keys.join(", ") : "non précisé";
+  const fromBilan = Boolean(addon?.from_bilan);
+
+  return (
+    `\n\n=== ADDON DASHBOARD PREFERENCES INTENT ===\n` +
+    `- L'utilisateur veut modifier des préférences produit UX/UI${confidenceText}.\n` +
+    `- Clés détectées: ${keysText}.\n` +
+    `- Cet add-on sert de support de connaissance pour guider correctement l'utilisateur.\n` +
+    `- Réponds brièvement puis redirige vers l'écran Préférences du dashboard.\n` +
+    `- Les 9 catégories possibles à expliciter si utile: language, tone, response_length, emoji_level, voice_style, proactivity_level, timezone, daily_summary_time, coach_intensity.\n` +
+    `- Donne des exemples de valeurs très rapides (ex: tone=direct, response_length=short, daily_summary_time=20:00).\n` +
+    `- Interdiction de créer/appliquer un réglage depuis le chat: toute modification se fait dans le dashboard.\n` +
+    (fromBilan
+      ? `- Le bilan reste prioritaire: confirme la redirection puis reprends l'item du bilan.\n`
+      : "") +
+    `- N'annonce aucune modification comme déjà appliquée depuis le chat.\n`
+  );
+}
+
+function formatDashboardRecurringReminderIntentAddon(addon: any): string {
+  const confidence = Number(addon?.confidence ?? 0);
+  const confidenceText = Number.isFinite(confidence)
+    ? ` (confidence=${confidence.toFixed(2)})`
+    : "";
+  const fields = Array.isArray(addon?.fields)
+    ? addon.fields
+      .filter((v: unknown) => typeof v === "string")
+      .slice(0, 9)
+    : [];
+  const fieldsText = fields.length > 0 ? fields.join(", ") : "non précisé";
+  const fromBilan = Boolean(addon?.from_bilan);
+
+  return (
+    `\n\n=== ADDON DASHBOARD RECURRING REMINDER INTENT ===\n` +
+    `- L'utilisateur veut configurer des rappels récurrents${confidenceText}.\n` +
+    `- Paramètres détectés: ${fieldsText}.\n` +
+    `- Cet add-on sert de support de connaissance pour orienter la configuration correctement.\n` +
+    `- Réponds clairement puis redirige vers les paramètres de rappels du dashboard.\n` +
+    `- Si besoin, précise les paramètres configurables: mode (daily/weekly/custom), days, time, timezone, channel (app/whatsapp), start_date, end_date, pause, message.\n` +
+    `- Demande seulement l'info manquante critique avant redirection si la demande est ambiguë.\n` +
+    `- Interdiction de programmer/éditer un rappel depuis le chat: toute création/modification se fait dans le dashboard.\n` +
+    (fromBilan
+      ? `- Le bilan reste prioritaire: confirme la redirection puis reprends l'item du bilan.\n`
+      : "") +
+    `- N'annonce aucune programmation de rappel comme déjà faite dans le chat.\n`
   );
 }
 

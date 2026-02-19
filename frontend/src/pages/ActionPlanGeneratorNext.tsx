@@ -40,7 +40,7 @@ type SuggestedPacingId = "fast" | "balanced" | "slow";
 
 interface ContextAssistData {
   suggested_pacing?: { id: SuggestedPacingId; reason?: string };
-  examples?: { why?: string[]; blockers?: string[]; context?: string[] };
+  examples?: { why?: string[]; blockers?: string[]; actions_good_for_me?: string[] };
 }
 
 // --- CACHE HELPERS ---
@@ -102,7 +102,7 @@ const ActionPlanGeneratorNext = () => {
   const [inputs, setInputs] = useState({
     why: '',
     blockers: '',
-    context: '',
+    actions_good_for_me: '',
     pacing: 'balanced'
   });
   
@@ -137,6 +137,32 @@ const ActionPlanGeneratorNext = () => {
       }
     }
   }, [currentAxis?.id]);
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!user || !currentAxis?.id) return;
+
+    const loadPreferredActions = async () => {
+      const { data } = await supabase
+        .from('user_goals')
+        .select('actions_good_for_me')
+        .eq('user_id', user.id)
+        .eq('axis_id', currentAxis.id)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      const value = String((data as any)?.actions_good_for_me ?? '').trim();
+      if (isMounted && value) {
+        setInputs((prev) => (prev.actions_good_for_me ? prev : { ...prev, actions_good_for_me: value }));
+      }
+    };
+
+    loadPreferredActions();
+    return () => {
+      isMounted = false;
+    };
+  }, [user?.id, currentAxis?.id]);
 
   const ExampleList = ({
     examples,
@@ -460,6 +486,10 @@ const ActionPlanGeneratorNext = () => {
             .maybeSingle();
             
         if (goal) {
+            await supabase
+                .from('user_goals')
+                .update({ actions_good_for_me: inputs.actions_good_for_me || null })
+                .eq('id', goal.id);
             
             // On vérifie s'il existe un plan
             const { data: existingPlan } = await supabase
@@ -474,7 +504,6 @@ const ActionPlanGeneratorNext = () => {
                      content: data,
                      inputs_why: inputs.why,
                      inputs_blockers: inputs.blockers,
-                     inputs_context: inputs.context,
                      inputs_pacing: inputs.pacing,
                      title: data.grimoireTitle,
                      deep_why: data.deepWhy, // NOUVEAU
@@ -495,7 +524,6 @@ const ActionPlanGeneratorNext = () => {
                     content: data,
                     inputs_why: inputs.why,
                     inputs_blockers: inputs.blockers,
-                    inputs_context: inputs.context,
                     inputs_pacing: inputs.pacing,
                     title: data.grimoireTitle,
                     deep_why: data.deepWhy, // NOUVEAU
@@ -544,7 +572,18 @@ const ActionPlanGeneratorNext = () => {
              // 2. ACTIVATION FORCÉE DU GOAL
              if (goal.status !== 'active') {
                  console.log(`⚡ Activation forcée du goal ${goal.id} (était ${goal.status})...`);
-                 await supabase.from('user_goals').update({ status: 'active' }).eq('id', goal.id);
+                 await supabase
+                   .from('user_goals')
+                   .update({
+                     status: 'active',
+                     actions_good_for_me: inputs.actions_good_for_me || null,
+                   })
+                   .eq('id', goal.id);
+             } else {
+                 await supabase
+                   .from('user_goals')
+                   .update({ actions_good_for_me: inputs.actions_good_for_me || null })
+                   .eq('id', goal.id);
              }
 
              // 3. ACTIVATION DU PLAN
@@ -799,18 +838,18 @@ const ActionPlanGeneratorNext = () => {
               <div className="relative rounded-xl">
                 <SnakeBorder active={isContextLoading} />
                 <label className="block text-sm md:text-base font-bold text-slate-700 mb-2">
-                  Informations contextuelles utiles (matériel, horaires...)
+                  Quelles sont les actions qui auraient le plus d'impact et qui te viennent à l'esprit ?
                 </label>
-                <textarea 
-                  value={inputs.context}
-                  onChange={e => setInputs({...inputs, context: e.target.value})}
+                <textarea
+                  value={inputs.actions_good_for_me}
+                  onChange={e => setInputs({ ...inputs, actions_good_for_me: e.target.value })}
                   className="w-full p-3 md:p-4 rounded-xl border border-slate-200 focus:ring-2 focus:ring-indigo-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
                   placeholder=""
                 />
                 <ExampleList
-                  examples={contextAssist?.examples?.context}
-                  currentValue={inputs.context}
-                  onKeep={(v) => setInputs({ ...inputs, context: v })}
+                  examples={contextAssist?.examples?.actions_good_for_me}
+                  currentValue={inputs.actions_good_for_me}
+                  onKeep={(v) => setInputs({ ...inputs, actions_good_for_me: v })}
                 />
               </div>
             </div>

@@ -128,6 +128,7 @@ export async function getMissedStreakDaysForCheckupItem(
   item: CheckupItem,
 ): Promise<number> {
   if (item.type === "action") {
+    if (item.action_source === "personal") return 0
     // IMPORTANT: We only count what we have actually logged in `user_action_entries`.
     // Using `user_actions.created_at` as a proxy for activation is incorrect because actions can be created long
     // before being activated (e.g., plan activated today). That produced huge fake streaks and premature

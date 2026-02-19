@@ -732,6 +732,7 @@ export async function runInvestigator(
   // ═══════════════════════════════════════════════════════════════════════════════
   if (
     currentItem.type === "action" &&
+    currentItem.action_source !== "personal" &&
     currentItem.is_habit &&
     (currentItem.weekly_target_status === "exceeded" ||
       currentItem.weekly_target_status === "at_target")

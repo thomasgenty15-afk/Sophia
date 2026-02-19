@@ -48,10 +48,10 @@ serve(async (req) => {
               "MEGA_TEST_STUB: Je me décourage quand je ne vois pas de résultat immédiat.",
               "MEGA_TEST_STUB: Je ne sais pas quoi faire exactement, donc je procrastine.",
             ],
-            context: [
-              "MEGA_TEST_STUB: Mes journées sont chargées, j’ai besoin d’un plan simple et réaliste.",
-              "MEGA_TEST_STUB: Je peux y consacrer un petit créneau fixe, mais pas tous les jours.",
-              "MEGA_TEST_STUB: Je veux éviter du matériel compliqué et rester flexible.",
+            actions_good_for_me: [
+              "MEGA_TEST_STUB: Une marche de 15 min m’aide à retrouver de l’énergie.",
+              "MEGA_TEST_STUB: Écrire 3 lignes chaque soir m’apaise vraiment.",
+              "MEGA_TEST_STUB: Préparer mes affaires la veille me met en mouvement.",
             ],
           },
         }),
@@ -95,32 +95,33 @@ serve(async (req) => {
     const questionLabels = isRecraftMode ? {
       why: "Pourquoi ce changement de plan ? (Qu'est-ce qui n'a pas marché ?)",
       blockers: "Nouveaux blocages ou contraintes ?",
-      context: null // Pas de question context en mode recraft
+      actions_good_for_me: "Quelles sont les actions qui auraient le plus d'impact et qui te viennent à l'esprit ?",
     } : {
       why: "Pourquoi est-ce important pour toi aujourd'hui ?",
       blockers: "Quels sont les vrais blocages (honnêtement) ?",
-      context: "Informations contextuelles utiles (matériel, horaires...)"
+      actions_good_for_me: "Quelles sont les actions qui auraient le plus d'impact et qui te viennent à l'esprit ?",
     }
 
     const examplesInstructions = isRecraftMode
-      ? `3) Générer 2 exemples PERCUTANTS par question pour aider l'utilisateur à remplir 2 questions:
+      ? `3) Générer 2 exemples PERCUTANTS par question pour aider l'utilisateur à remplir 3 questions:
          - why: "${questionLabels.why}" → Exemples orientés "échec du plan précédent", "ce qui n'a pas fonctionné", "nouvelle situation"
-         - blockers: "${questionLabels.blockers}" → Exemples orientés "nouvelles contraintes", "obstacles découverts"`
+         - blockers: "${questionLabels.blockers}" → Exemples orientés "nouvelles contraintes", "obstacles découverts"
+         - actions_good_for_me: "${questionLabels.actions_good_for_me}" → Exemples d'actions concrètes déjà efficaces pour lui/elle`
       : `3) Générer 2 exemples PERCUTANTS par question pour aider l'utilisateur à remplir 3 questions:
          - why: "${questionLabels.why}"
          - blockers: "${questionLabels.blockers}"
-         - context: "${questionLabels.context}"`
+         - actions_good_for_me: "${questionLabels.actions_good_for_me}"`
 
     const jsonSchema = isRecraftMode
       ? `{
         "summary": string,
         "suggested_pacing": { "id": "fast"|"balanced"|"slow", "reason": string },
-        "examples": { "why": string[], "blockers": string[] }
+        "examples": { "why": string[], "blockers": string[], "actions_good_for_me": string[] }
       }`
       : `{
         "summary": string,
         "suggested_pacing": { "id": "fast"|"balanced"|"slow", "reason": string },
-        "examples": { "why": string[], "blockers": string[], "context": string[] }
+        "examples": { "why": string[], "blockers": string[], "actions_good_for_me": string[] }
       }`
 
     const systemPrompt = `

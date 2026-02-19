@@ -53,6 +53,13 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
   const isGroupA = normalizedType === 'habitude' || normalizedType === 'habit';
   const isFramework = normalizedType === 'framework';
   const isMainQuest = action.questType === 'main';
+  const timeLabelMap: Record<string, string> = {
+    morning: 'Matin',
+    afternoon: 'Apres-midi',
+    evening: 'Soir',
+    night: 'Nuit',
+    any_time: 'Flexible',
+  };
 
   // Si l'action est pending (verrouillée individuellement), elle est considérée comme locked visuellement
   const isVisuallyLocked = isLocked || isPending;
@@ -132,6 +139,19 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
 
           <p className="text-xs min-[350px]:text-sm text-gray-500 mb-3 leading-snug min-h-[32px] break-words">{action.description}</p>
 
+          {isGroupA && (
+            <div className="mb-3 flex items-center gap-2 text-[10px] min-[330px]:text-xs">
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-100">
+                {timeLabelMap[String(action.timeOfDay || 'any_time')] || 'Flexible'}
+              </span>
+              {Array.isArray(action.scheduledDays) && action.scheduledDays.length > 0 && (
+                <span className="text-slate-500 font-medium">
+                  {action.scheduledDays.join(', ').toUpperCase()}
+                </span>
+              )}
+            </div>
+          )}
+
           {/* EXPLICATION STRATEGIQUE (RATIONALE) SI PRESENTE */}
           {action.rationale && (
             <div className="bg-amber-50 border border-amber-100 rounded-lg p-2 min-[330px]:p-3 mb-3 text-[10px] min-[330px]:text-xs min-[350px]:text-sm text-amber-900 relative">
@@ -186,13 +206,6 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
                         /* Boutons Habitude */
                         <>
                             <button
-                            onClick={() => onMasterHabit && onMasterHabit(action)}
-                            className="flex-1 py-1.5 text-gray-400 hover:text-emerald-600 text-[10px] min-[330px]:text-xs font-medium underline decoration-dotted transition-colors flex items-center justify-center gap-1"
-                            title="Passer à la suite (Maîtrise acquise)"
-                            >
-                            <FastForward className="w-3 h-3" /> Je maîtrise déjà
-                            </button>
-                            <button
                             onClick={() => onOpenHabitSettings && onOpenHabitSettings(action)}
                             className="px-3 py-1.5 bg-emerald-50 text-emerald-700 hover:bg-emerald-100 rounded text-[10px] min-[330px]:text-xs font-bold flex items-center justify-center gap-1 transition-colors border border-emerald-200"
                             title="Réglages (jours / fréquence)"
@@ -202,9 +215,10 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
                             <button
                             onClick={handleIncrement}
                             disabled={currentReps >= targetReps}
-                            className="flex-1 py-1.5 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded text-[10px] min-[330px]:text-xs font-bold flex items-center justify-center gap-1 transition-colors"
+                            className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded text-[10px] min-[330px]:text-xs font-bold flex items-center justify-center gap-2 transition-colors text-center"
                             >
-                            <PlusCircle className="w-3 h-3" /> Fait
+                            <PlusCircle className="w-3.5 h-3.5 flex-shrink-0" /> 
+                            <span>Valider pour aujourd'hui</span>
                             </button>
                         </>
                     )}

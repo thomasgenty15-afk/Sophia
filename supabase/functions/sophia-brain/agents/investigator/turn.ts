@@ -137,6 +137,7 @@ export async function handleInvestigatorModelOutput(opts: {
         item_id: currentItem.id,
         item_type: currentItem.type,
         item_title: currentItem.title,
+        item_source: currentItem.action_source,
         // Keep a short note (best effort) so streak offer has context.
         note: String(message ?? "").trim().slice(0, 220) || null,
       }
@@ -248,6 +249,7 @@ export async function handleInvestigatorModelOutput(opts: {
       item_id: currentItem.id,
       item_type: currentItem.type,
       item_title: currentItem.title,
+      item_source: currentItem.action_source,
     }
 
     try {
@@ -266,7 +268,11 @@ export async function handleInvestigatorModelOutput(opts: {
       logged_status: argsWithId.status,
     })
 
-    if (currentItem.type === "action" && argsWithId.status === "completed") {
+    if (
+      currentItem.type === "action" &&
+      currentItem.action_source !== "personal" &&
+      argsWithId.status === "completed"
+    ) {
       updateMissedStreakCache(currentItem.id, 0)
     }
 
@@ -299,6 +305,7 @@ export async function handleInvestigatorModelOutput(opts: {
       // Jump directly to the dedicated congratulate + increase offer flow.
       if (
         nextItem?.type === "action" &&
+        nextItem?.action_source !== "personal" &&
         nextItem?.is_habit &&
         (nextItem?.weekly_target_status === "exceeded" ||
           nextItem?.weekly_target_status === "at_target")
@@ -370,7 +377,11 @@ export async function handleInvestigatorModelOutput(opts: {
       }
 
     // --- LEVEL UP CHECK ---
-    if (currentItem.type === "action" && argsWithId.status === "completed") {
+    if (
+      currentItem.type === "action" &&
+      currentItem.action_source !== "personal" &&
+      argsWithId.status === "completed"
+    ) {
       try {
         const levelUpResult = await checkAndHandleLevelUp(supabase, userId, currentItem.id)
         if (levelUpResult.leveledUp) {
@@ -503,7 +514,11 @@ export async function handleInvestigatorModelOutput(opts: {
     }
 
     // Handle missed actions with enriched transition (comment on reason + next question)
-    if (currentItem.type === "action" && argsWithId.status === "missed") {
+    if (
+      currentItem.type === "action" &&
+      currentItem.action_source !== "personal" &&
+      argsWithId.status === "missed"
+    ) {
       let missedStreak = 0
       try {
         missedStreak = await getMissedStreakDaysForCheckupItem(supabase, userId, currentItem)

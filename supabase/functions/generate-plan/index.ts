@@ -174,6 +174,8 @@ serve(async (req) => {
              => Si le rythme change, mets à jour estimatedDuration + sous-titres des phases + nombre de phases + actions par phase pour respecter ces contraintes.
           6. Renvoie UNIQUEMENT le JSON complet mis à jour.
           7. Assure-toi que chaque action a bien un "tracking_type" ('boolean' ou 'counter').
+          8. Priorité haute aux "Actions bonnes pour moi" : conserve/intègre ces actions autant que possible.
+             Si la liste contient <= 8 actions explicites, elles doivent toutes être présentes (exactes ou reformulées).
 
           STATUTS / VERROUILLAGE (CRITIQUE) :
           - Tu DOIS mettre exactement 1 phase en "active" : la phase 1.
@@ -191,7 +193,7 @@ serve(async (req) => {
           CONTEXTE INITIAL :
           - Motivation : "${inputs.why}"
           - Blocages : "${inputs.blockers}"
-          - Contexte : "${inputs.context}"
+          - Actions bonnes pour moi : "${inputs.actions_good_for_me || ''}"
 
           ${assistantContextBlock}
 
@@ -219,6 +221,8 @@ serve(async (req) => {
           2. Si c'était "trop dur", propose une approche "Tiny Habits" (très petits pas).
           3. Si c'était "ennuyeux", propose une approche plus ludique ou intense ("fast").
           4. Ne redonne PAS les mêmes actions qui ont échoué. Change d'angle d'attaque.
+          5. Si "Actions bonnes pour moi" est renseigné, intègre en priorité ces actions (ou variantes proches) dans le nouveau plan.
+             Si la liste contient <= 8 actions explicites, elles doivent toutes être présentes (exactes ou reformulées).
           
           RÈGLES DE DURÉE ET STRUCTURE (PACING) — STRICTES :
           Le plan DOIT être construit en PHASES, et la structure dépend du choix "pacing".
@@ -376,11 +380,11 @@ serve(async (req) => {
           HISTORIQUE DU PREMIER ESSAI (Ce qui était prévu à la base) :
           - Motivation Initiale : "${previousPlanContext.initialWhy}"
           - Blocages Initiaux : "${previousPlanContext.initialBlockers}"
-          - Contexte Initial : "${previousPlanContext.initialContext}"
           
           POURQUOI ÇA A RATÉ (Le Recraft) :
           - RAISON DE L'ÉCHEC (Why) : "${inputs.why}"
           - NOUVEAUX BLOCAGES (Blockers) : "${inputs.blockers}"
+          - ACTIONS BONNES POUR MOI : "${inputs.actions_good_for_me || ''}"
           - NOUVEAU RYTHME SOUHAITÉ (Pacing) : "${inputs.pacing || 'balanced'}"
           
           ${assistantContextBlock}
@@ -409,6 +413,9 @@ serve(async (req) => {
           - IMPORTANT : ne JAMAIS mettre 7×/semaine. Maximum = 6×/semaine pour une habitude.
           - Choisis les actions en tenant compte de la "capacité" implicite de l'utilisateur (contexte, énergie, blocages, rythme/pacing).
           - Évite les contraintes très strictes ("absolu", "jamais", "tous les jours") en Phase 1 sauf si l'utilisateur l'a explicitement demandé.
+          - Priorité forte : si "Actions bonnes pour moi" contient des actions concrètes, intègre-en un maximum dans le plan.
+            Pour chaque action mentionnée, essaie de la reprendre telle quelle ou en variante proche et réaliste.
+            Si la liste contient <= 8 actions explicites, elles doivent toutes apparaître (exactes ou reformulées).
 
           RÈGLES DE DURÉE ET STRUCTURE (PACING) — STRICTES :
           Le plan DOIT être construit en PHASES, et la structure dépend du choix "pacing".
@@ -571,7 +578,7 @@ serve(async (req) => {
           SES MOTS (Analyse psychologique requise) :
           - Motivation (Why) : "${inputs.why}"
           - Blocages (Blockers) : "${inputs.blockers}"
-          - Contexte : "${inputs.context}"
+          - Actions bonnes pour moi : "${inputs.actions_good_for_me || ''}"
           - RYTHME SOUHAITÉ (PACING) : "${inputs.pacing || 'balanced'}"
           
           ${assistantContextBlock}

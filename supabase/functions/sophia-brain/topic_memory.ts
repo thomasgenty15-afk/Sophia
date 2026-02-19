@@ -23,6 +23,67 @@ import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts"
 
 type TopicEnrichmentSource = "chat" | "onboarding" | "bilan" | "module" | "plan"
 
+const MATCH_HIGH = Number((Deno.env.get("SOPHIA_TOPIC_MATCH_HIGH") ?? "0.72").trim()) || 0.72
+const KEYWORD_STRONG = Number((Deno.env.get("SOPHIA_TOPIC_KEYWORD_STRONG") ?? "0.86").trim()) || 0.86
+const SYNTH_STRONG = Number((Deno.env.get("SOPHIA_TOPIC_SYNTH_STRONG") ?? "0.84").trim()) || 0.84
+const NOOP_SEMANTIC_SIM = Number((Deno.env.get("SOPHIA_TOPIC_NOOP_SEMANTIC_SIM") ?? "0.90").trim()) || 0.90
+const MAX_KEYWORDS_PER_TOPIC_UPDATE = Number((Deno.env.get("SOPHIA_TOPIC_MAX_KEYWORDS_PER_UPDATE") ?? "12").trim()) || 12
+const ALLOW_KEYWORD_REASSIGN = (Deno.env.get("SOPHIA_TOPIC_ALLOW_KEYWORD_REASSIGN") ?? "").trim() === "1"
+
+function toVector(v: unknown): number[] | null {
+  if (Array.isArray(v)) {
+    const arr = v.map((x) => Number(x)).filter((n) => Number.isFinite(n))
+    return arr.length > 0 ? arr : null
+  }
+  return null
+}
+
+function cosineSimilarity(a: number[], b: number[]): number {
+  const n = Math.min(a.length, b.length)
+  if (n === 0) return 0
+  let dot = 0
+  let na = 0
+  let nb = 0
+  for (let i = 0; i < n; i++) {
+    const av = a[i]
+    const bv = b[i]
+    dot += av * bv
+    na += av * av
+    nb += bv * bv
+  }
+  const den = Math.sqrt(na) * Math.sqrt(nb)
+  if (den <= 0) return 0
+  return Math.max(-1, Math.min(1, dot / den))
+}
+
+function tokens(text: string): Set<string> {
+  const t = String(text ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, " ")
+    .split(/\s+/)
+    .map((w) => w.trim())
+    .filter((w) => w.length >= 3)
+  return new Set(t)
+}
+
+function jaccard(a: Set<string>, b: Set<string>): number {
+  if (a.size === 0 || b.size === 0) return 0
+  let inter = 0
+  for (const v of a) if (b.has(v)) inter++
+  const union = a.size + b.size - inter
+  return union > 0 ? inter / union : 0
+}
+
+function recencyScore(lastEnrichedAt: string | null | undefined): number {
+  if (!lastEnrichedAt) return 0.3
+  const ts = new Date(lastEnrichedAt).getTime()
+  if (!Number.isFinite(ts)) return 0.3
+  const days = Math.max(0, (Date.now() - ts) / (1000 * 60 * 60 * 24))
+  return Math.max(0, Math.min(1, 1 - days / 30))
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -184,32 +245,89 @@ export async function findMatchingTopic(opts: {
 
   if (exactMatch) return exactMatch as TopicMemory
 
-  // 2. Chercher par similarité sémantique sur les keywords
-  if (extractedTopic.keywords.length > 0) {
-    // On vectorise le titre + le premier keyword pour chercher
-    const searchText = `${extractedTopic.title} ${extractedTopic.keywords.slice(0, 3).join(" ")}`
-    const embedding = await generateEmbedding(searchText)
+  // 2) Recherche sémantique + re-ranking fusion
+  const searchText = `${extractedTopic.title}\n${extractedTopic.new_information}\n${extractedTopic.keywords.slice(0, 8).join(" ")}`
+  const queryEmbedding = await generateEmbedding(searchText)
 
-    const { data: semanticMatches } = await supabase.rpc(
-      "match_topic_memories_by_keywords",
-      {
-        target_user_id: userId,
-        query_embedding: embedding,
-        match_threshold: 0.78, // High threshold for matching existing topics
-        match_count: 1,
-      } as any,
-    )
+  const [keywordRes, synthesisRes] = await Promise.all([
+    supabase.rpc("match_topic_memories_by_keywords", {
+      target_user_id: userId,
+      query_embedding: queryEmbedding,
+      match_threshold: 0.45,
+      match_count: 6,
+    } as any),
+    supabase.rpc("match_topic_memories_by_synthesis", {
+      target_user_id: userId,
+      query_embedding: queryEmbedding,
+      match_threshold: 0.45,
+      match_count: 4,
+    } as any),
+  ])
 
-    if (Array.isArray(semanticMatches) && semanticMatches.length > 0) {
-      const match = semanticMatches[0]
-      // Charger le topic complet
+  const byTopic = new Map<string, {
+    topic_id: string
+    keyword_similarity: number
+    synthesis_similarity: number
+    last_enriched_at: string | null
+  }>()
+
+  for (const r of (Array.isArray(keywordRes.data) ? keywordRes.data : []) as any[]) {
+    const id = String(r.topic_id ?? "").trim()
+    if (!id) continue
+    const prev = byTopic.get(id) ?? {
+      topic_id: id,
+      keyword_similarity: 0,
+      synthesis_similarity: 0,
+      last_enriched_at: null,
+    }
+    prev.keyword_similarity = Math.max(prev.keyword_similarity, Number(r.keyword_similarity ?? 0) || 0)
+    prev.last_enriched_at = (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any
+    byTopic.set(id, prev)
+  }
+
+  for (const r of (Array.isArray(synthesisRes.data) ? synthesisRes.data : []) as any[]) {
+    const id = String(r.topic_id ?? "").trim()
+    if (!id) continue
+    const prev = byTopic.get(id) ?? {
+      topic_id: id,
+      keyword_similarity: 0,
+      synthesis_similarity: 0,
+      last_enriched_at: null,
+    }
+    prev.synthesis_similarity = Math.max(prev.synthesis_similarity, Number(r.synthesis_similarity ?? 0) || 0)
+    prev.last_enriched_at = (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any
+    byTopic.set(id, prev)
+  }
+
+  if (byTopic.size > 0) {
+    const ranked = [...byTopic.values()]
+      .map((c) => {
+        const rec = recencyScore(c.last_enriched_at)
+        const fused = 0.5 * c.keyword_similarity + 0.3 * c.synthesis_similarity + 0.2 * rec
+        return { ...c, recency_score: rec, fused_score: fused }
+      })
+      .sort((a, b) => b.fused_score - a.fused_score)
+
+    const best = ranked[0]
+    const accept =
+      best.fused_score >= MATCH_HIGH ||
+      best.keyword_similarity >= KEYWORD_STRONG ||
+      best.synthesis_similarity >= SYNTH_STRONG
+
+    if (accept) {
       const { data: fullTopic } = await supabase
         .from("user_topic_memories")
         .select("*")
-        .eq("id", match.topic_id)
+        .eq("id", best.topic_id)
+        .eq("status", "active")
         .maybeSingle()
 
-      if (fullTopic) return fullTopic as TopicMemory
+      if (fullTopic) {
+        console.log(
+          `[TopicMemory] match accepted slug=${extractedTopic.slug} -> topic_id=${best.topic_id} fused=${best.fused_score.toFixed(3)} kw=${best.keyword_similarity.toFixed(3)} syn=${best.synthesis_similarity.toFixed(3)} rec=${best.recency_score.toFixed(3)}`,
+        )
+        return fullTopic as TopicMemory
+      }
     }
   }
 
@@ -235,6 +353,63 @@ export async function enrichTopicSynthesis(opts: {
 }): Promise<{ enriched: boolean; newSynthesis?: string }> {
   const { supabase, userId, topic, newInformation, newKeywords, meta } = opts
   const sourceType = opts.sourceType ?? "chat"
+
+  const oldSynth = String(topic.synthesis ?? "").trim()
+  const newInfo = String(newInformation ?? "").trim()
+  if (!newInfo) return { enriched: false }
+
+  // Fast no-op guard (lexical overlap) before costly LLM enrichment.
+  const lexSim = jaccard(tokens(oldSynth), tokens(newInfo))
+  if (lexSim >= 0.72 || oldSynth.toLowerCase().includes(newInfo.toLowerCase())) {
+    const keywordStats = await upsertKeywords({
+      supabase,
+      userId,
+      topicId: topic.id,
+      keywords: newKeywords,
+      allowReassign: false,
+    })
+    await supabase
+      .from("user_topic_memories")
+      .update({
+        mention_count: (topic.mention_count ?? 0) + 1,
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", topic.id)
+    console.log(`[TopicMemory] NOOP (lexical) topic=${topic.slug} lex=${lexSim.toFixed(3)} keywords+${keywordStats.inserted}`)
+    return { enriched: false }
+  }
+
+  // Semantic no-op guard
+  try {
+    const infoEmbedding = await generateEmbedding(newInfo)
+    let synthEmbedding = toVector((topic as any)?.synthesis_embedding)
+    if (!synthEmbedding && oldSynth.length > 0) {
+      synthEmbedding = await generateEmbedding(oldSynth)
+    }
+    if (synthEmbedding && infoEmbedding) {
+      const sem = cosineSimilarity(infoEmbedding, synthEmbedding)
+      if (sem >= NOOP_SEMANTIC_SIM) {
+        const keywordStats = await upsertKeywords({
+          supabase,
+          userId,
+          topicId: topic.id,
+          keywords: newKeywords,
+          allowReassign: false,
+        })
+        await supabase
+          .from("user_topic_memories")
+          .update({
+            mention_count: (topic.mention_count ?? 0) + 1,
+            updated_at: new Date().toISOString(),
+          })
+          .eq("id", topic.id)
+        console.log(`[TopicMemory] NOOP (semantic) topic=${topic.slug} sem=${sem.toFixed(3)} keywords+${keywordStats.inserted}`)
+        return { enriched: false }
+      }
+    }
+  } catch (e) {
+    console.warn(`[TopicMemory] semantic no-op check failed topic=${topic.slug}:`, e)
+  }
 
   const prompt = `
 Tu es le gestionnaire de mémoire d'un coach IA.
@@ -276,6 +451,13 @@ ou
     const result = JSON.parse(String(raw ?? "{}"))
 
     if (!result.enriched) {
+      const keywordStats = await upsertKeywords({
+        supabase,
+        userId,
+        topicId: topic.id,
+        keywords: newKeywords,
+        allowReassign: false,
+      })
       // Pas d'enrichissement, mais on incrémente le mention_count
       await supabase
         .from("user_topic_memories")
@@ -285,6 +467,7 @@ ou
         })
         .eq("id", topic.id)
 
+      console.log(`[TopicMemory] NOOP (llm) topic=${topic.slug} keywords+${keywordStats.inserted}`)
       return { enriched: false }
     }
 
@@ -318,14 +501,15 @@ ou
       .eq("id", topic.id)
 
     // Ajouter les nouveaux keywords
-    await upsertKeywords({
+    const keywordStats = await upsertKeywords({
       supabase,
       userId,
       topicId: topic.id,
       keywords: newKeywords,
+      allowReassign: false,
     })
 
-    console.log(`[TopicMemory] Enriched topic "${topic.title}" (id=${topic.id})`)
+    console.log(`[TopicMemory] Enriched topic "${topic.title}" (id=${topic.id}) keywords+${keywordStats.inserted}`)
     return { enriched: true, newSynthesis }
   } catch (e) {
     console.error(`[TopicMemory] Failed to enrich topic "${topic.title}":`, e)
@@ -403,14 +587,15 @@ Sujet : "${extractedTopic.title}"
   }
 
   // Ajouter les keywords
-  await upsertKeywords({
+  const keywordStats = await upsertKeywords({
     supabase,
     userId,
     topicId: newTopic.id,
     keywords: extractedTopic.keywords,
+    allowReassign: false,
   })
 
-  console.log(`[TopicMemory] Created topic "${extractedTopic.title}" with ${extractedTopic.keywords.length} keywords`)
+  console.log(`[TopicMemory] Created topic "${extractedTopic.title}" keywords+${keywordStats.inserted}`)
   return newTopic as TopicMemory
 }
 
@@ -427,32 +612,75 @@ async function upsertKeywords(opts: {
   userId: string
   topicId: string
   keywords: string[]
-}): Promise<void> {
+  allowReassign?: boolean
+}): Promise<{ inserted: number; keptExisting: number; reassigned: number }> {
   const { supabase, userId, topicId, keywords } = opts
+  const allowReassign = Boolean(opts.allowReassign) || ALLOW_KEYWORD_REASSIGN
 
-  const uniqueKeywords = [...new Set(keywords.map(k => k.trim().toLowerCase()).filter(Boolean))]
+  const uniqueKeywords = [...new Set(
+    keywords
+      .map((k) => k.trim().toLowerCase())
+      .filter((k) => Boolean(k) && k.length >= 3),
+  )].slice(0, MAX_KEYWORDS_PER_TOPIC_UPDATE)
+
+  let inserted = 0
+  let keptExisting = 0
+  let reassigned = 0
 
   for (const keyword of uniqueKeywords) {
     try {
-      const embedding = await generateEmbedding(keyword)
-
-      // Upsert : si le keyword existe déjà, on le réaffecte à ce topic
-      await supabase
+      const { data: existing } = await supabase
         .from("user_topic_keywords")
-        .upsert(
-          {
+        .select("id,topic_id")
+        .eq("user_id", userId)
+        .eq("keyword", keyword)
+        .maybeSingle()
+
+      if (!existing) {
+        const embedding = await generateEmbedding(keyword)
+        const { error: insErr } = await supabase
+          .from("user_topic_keywords")
+          .insert({
             user_id: userId,
             topic_id: topicId,
             keyword,
             keyword_embedding: embedding,
             source: "llm_extracted",
-          },
-          { onConflict: "user_id,keyword" },
-        )
+          } as any)
+        if (insErr) throw insErr
+        inserted++
+        continue
+      }
+
+      const existingTopicId = String((existing as any)?.topic_id ?? "")
+      if (existingTopicId === topicId) {
+        keptExisting++
+        continue
+      }
+
+      if (!allowReassign) {
+        // Anti-drift guard: avoid aggressively moving aliases across topics.
+        keptExisting++
+        continue
+      }
+
+      const embedding = await generateEmbedding(keyword)
+      const { error: updErr } = await supabase
+        .from("user_topic_keywords")
+        .update({
+          topic_id: topicId,
+          keyword_embedding: embedding,
+          source: "llm_extracted",
+        } as any)
+        .eq("id", (existing as any).id)
+      if (updErr) throw updErr
+      reassigned++
     } catch (e) {
       console.warn(`[TopicMemory] Failed to upsert keyword "${keyword}":`, e)
     }
   }
+
+  return { inserted, keptExisting, reassigned }
 }
 
 // ============================================================================
@@ -567,7 +795,7 @@ export async function processTopicsFromWatcher(opts: {
   currentContext?: string
   sourceType?: TopicEnrichmentSource
   meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
-}): Promise<{ topicsCreated: number; topicsEnriched: number }> {
+}): Promise<{ topicsCreated: number; topicsEnriched: number; topicsNoop: number }> {
   const { supabase, userId, transcript, currentContext, meta } = opts
   const sourceType = opts.sourceType ?? "chat"
 
@@ -591,13 +819,14 @@ export async function processTopicsFromWatcher(opts: {
 
   if (extractedTopics.length === 0) {
     console.log("[TopicMemory] No topics extracted from transcript.")
-    return { topicsCreated: 0, topicsEnriched: 0 }
+    return { topicsCreated: 0, topicsEnriched: 0, topicsNoop: 0 }
   }
 
   console.log(`[TopicMemory] Extracted ${extractedTopics.length} topics: ${extractedTopics.map(t => t.slug).join(", ")}`)
 
   let topicsCreated = 0
   let topicsEnriched = 0
+  let topicsNoop = 0
 
   // 3. Pour chaque topic : enrichir ou créer
   for (const extracted of extractedTopics) {
@@ -620,6 +849,7 @@ export async function processTopicsFromWatcher(opts: {
           meta,
         })
         if (result.enriched) topicsEnriched++
+        else topicsNoop++
       } else {
         // Créer un nouveau topic
         const created = await createTopic({
@@ -630,14 +860,16 @@ export async function processTopicsFromWatcher(opts: {
           meta,
         })
         if (created) topicsCreated++
+        else topicsNoop++
       }
     } catch (e) {
       console.error(`[TopicMemory] Failed to process topic "${extracted.slug}":`, e)
+      topicsNoop++
     }
   }
 
-  console.log(`[TopicMemory] Pipeline done: ${topicsCreated} created, ${topicsEnriched} enriched.`)
-  return { topicsCreated, topicsEnriched }
+  console.log(`[TopicMemory] Pipeline done: ${topicsCreated} created, ${topicsEnriched} enriched, ${topicsNoop} noop.`)
+  return { topicsCreated, topicsEnriched, topicsNoop }
 }
 
 /**
@@ -652,12 +884,11 @@ export async function processTopicsFromPlan(opts: {
     title?: string | null
     inputs_why?: string | null
     inputs_blockers?: string | null
-    inputs_context?: string | null
     recraft_reason?: string | null
     recraft_challenges?: string | null
   }
   meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
-}): Promise<{ topicsCreated: number; topicsEnriched: number }> {
+}): Promise<{ topicsCreated: number; topicsEnriched: number; topicsNoop: number }> {
   const { supabase, userId, plan, meta } = opts
 
   const rows: string[] = []
@@ -668,12 +899,11 @@ export async function processTopicsFromPlan(opts: {
 
   pushIfPresent("Mon pourquoi", plan.inputs_why)
   pushIfPresent("Mes blocages", plan.inputs_blockers)
-  pushIfPresent("Mon contexte", plan.inputs_context)
   pushIfPresent("Raison du recraft", plan.recraft_reason)
   pushIfPresent("Difficultés du recraft", plan.recraft_challenges)
 
   if (rows.length === 0) {
-    return { topicsCreated: 0, topicsEnriched: 0 }
+    return { topicsCreated: 0, topicsEnriched: 0, topicsNoop: 0 }
   }
 
   const transcript = rows.join("\n")

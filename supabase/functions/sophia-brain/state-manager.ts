@@ -168,7 +168,6 @@ export interface PlanMetadataResult {
   current_phase: number | null
   deep_why: string | null
   inputs_why: string | null
-  inputs_context: string | null
   inputs_blockers: string | null
   recraft_reason: string | null
 }
@@ -179,7 +178,7 @@ export async function getPlanMetadata(
 ): Promise<PlanMetadataResult | null> {
   const { data: activePlan } = await supabase
     .from('user_plans')
-    .select('id, status, current_phase, title, deep_why, inputs_why, inputs_context, inputs_blockers, recraft_reason')
+    .select('id, status, current_phase, title, deep_why, inputs_why, inputs_blockers, recraft_reason')
     .eq('user_id', userId)
     .in('status', ['active', 'in_progress', 'pending'])
     .order('created_at', { ascending: false })
@@ -202,7 +201,6 @@ export function formatPlanMetadata(plan: PlanMetadataResult | null): string {
   ctx += `Statut: ${plan.status || 'unknown'}\n`
   if (plan.current_phase != null) ctx += `Phase: ${plan.current_phase}\n`
   ctx += `Pourquoi (Deep Why): ${plan.deep_why || plan.inputs_why || 'Non défini'}\n`
-  if (plan.inputs_context) ctx += `Contexte: ${plan.inputs_context}\n`
   if (plan.inputs_blockers) ctx += `Blocages: ${plan.inputs_blockers}\n`
   if (plan.recraft_reason) ctx += `Pivot récent: ${plan.recraft_reason}\n`
   

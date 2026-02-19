@@ -28,7 +28,7 @@ describe("edge functions: client-facing (stubbed by default)", () => {
 
   it("generate-plan returns a valid plan JSON (stub or real)", async () => {
     const { data, error } = await client.functions.invoke("generate-plan", {
-      body: { inputs: { why: "x", blockers: "y", context: "z" }, currentAxis: { id: "a", title: "Sommeil", theme: "energy", problems: [] }, mode: "standard", answers: {} },
+      body: { inputs: { why: "x", blockers: "y" }, currentAxis: { id: "a", title: "Sommeil", theme: "energy", problems: [] }, mode: "standard", answers: {} },
     });
     if (error) throw error;
 
@@ -132,5 +132,4 @@ describe("edge functions: client-facing (stubbed by default)", () => {
     expect(state.updated_at).toBeTruthy();
   });
 });
-
 

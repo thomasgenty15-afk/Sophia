@@ -496,7 +496,7 @@ export const useDashboardLogic = ({
     const isHabit = normalizedType === 'habitude' || normalizedType === 'habit';
     if (!isHabit) return;
 
-    const safeTarget = Math.max(1, Math.min(6, Number(payload.targetReps || 1)));
+    const safeTarget = Math.max(1, Math.min(7, Number(payload.targetReps || 1)));
     const safeDays = payload.scheduledDays && payload.scheduledDays.length > 0
       ? payload.scheduledDays.slice(0, safeTarget)
       : null;
@@ -752,6 +752,8 @@ export const useDashboardLogic = ({
                  description: newAction.description,
                  target_reps: safeReps,
                  current_reps: 0,
+                 time_of_day: newAction.timeOfDay || 'any_time',
+                 scheduled_days: newAction.scheduledDays || null,
                  status: 'active'
             });
     
@@ -786,6 +788,8 @@ export const useDashboardLogic = ({
             if (updatedFields.title) updates.title = updatedFields.title;
             if (updatedFields.description) updates.description = updatedFields.description;
             if (updatedFields.targetReps) updates.target_reps = updatedFields.targetReps;
+            if (updatedFields.timeOfDay) updates.time_of_day = updatedFields.timeOfDay;
+            if ('scheduledDays' in updatedFields) updates.scheduled_days = updatedFields.scheduledDays || null;
             
             if (Object.keys(updates).length > 0) {
                  await supabase.from('user_actions')

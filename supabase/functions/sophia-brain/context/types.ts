@@ -85,6 +85,8 @@ export interface LoadedContext {
   topicSession?: string;
   trackProgressAddon?: string;
   dashboardRedirectAddon?: string;
+  dashboardPreferencesIntentAddon?: string;
+  dashboardRecurringReminderIntentAddon?: string;
   safetyActiveAddon?: string;
   deferredUserPref?: string;
   injectedContext?: string;
@@ -103,7 +105,6 @@ export interface PlanMetadata {
   status: string;
   current_phase: number | null;
   deep_why: string | null;
-  inputs_context: string | null;
   inputs_blockers: string | null;
   recraft_reason: string | null;
 }

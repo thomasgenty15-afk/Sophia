@@ -16,7 +16,7 @@ export type SuggestedPacingId = "fast" | "balanced" | "slow";
 
 export interface ContextAssistData {
   suggested_pacing?: { id: SuggestedPacingId; reason?: string };
-  examples?: { why?: string[]; blockers?: string[]; context?: string[] };
+  examples?: { why?: string[]; blockers?: string[]; actions_good_for_me?: string[] };
 }
 
 // --- CACHE HELPERS ---
@@ -364,4 +364,3 @@ export const usePlanGeneratorData = () => {
     needsProfileInfo
   };
 };
-

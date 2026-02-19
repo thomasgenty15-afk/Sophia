@@ -716,7 +716,7 @@ export async function fetchPlanSnapshot(admin: any, userId: string): Promise<any
   const { data: planRow } = await admin
     .from("user_plans")
     .select(
-      "id,created_at,status,title,deep_why,inputs_why,inputs_context,inputs_blockers,content,submission_id,goal_id,current_phase,progress_percentage",
+      "id,created_at,status,title,deep_why,inputs_why,inputs_blockers,content,submission_id,goal_id,current_phase,progress_percentage",
     )
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
@@ -762,5 +762,4 @@ export async function fetchPlanSnapshot(admin: any, userId: string): Promise<any
     frameworks: frameworks ?? [],
   };
 }
-
 

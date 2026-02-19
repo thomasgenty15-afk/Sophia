@@ -12,6 +12,7 @@ export interface Action {
   targetReps?: number;
   currentReps?: number;
   lastPerformedAt?: string | null;
+  timeOfDay?: 'morning' | 'afternoon' | 'evening' | 'night' | 'any_time';
   scheduledDays?: string[] | null; // ex: ["mon","wed","fri"] (optionnel)
   // Pour les One-Shot (Groupe B)
   frameworkId?: string; // Si c'est un outil à ouvrir
