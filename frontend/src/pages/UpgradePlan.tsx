@@ -75,8 +75,9 @@ const UpgradePlan = () => {
         `Confirmer ${isNewSub ? "l'abonnement" : (isUpgrade ? "la mise à niveau" : (isIntervalSwitch ? "le changement de formule" : "le changement de plan"))} ?\n\n` +
         `Plan : ${planLabel}\n` +
         `Formule : ${intervalLabel}\n\n` +
-        `Tu vas être redirigé(e) vers Stripe pour confirmer.\n` +
-        `Tu pourras gérer ta facturation (factures, annulation, moyen de paiement) depuis le menu.`;
+        `Tu pourras toujours gérer ta facturation (factures, annulation, moyen de paiement) depuis le menu.\n\n` +
+        `Note : Stripe calcule automatiquement les ajustements (prorata / différence de prix) selon ton abonnement actuel, ` +
+        `et les applique soit immédiatement, soit sur la prochaine facture (selon la configuration Stripe).`;
 
       const ok = window.confirm(confirmMsg);
       if (!ok) {
@@ -84,16 +85,33 @@ const UpgradePlan = () => {
         return;
       }
 
-      // Stripe-first flow in all cases:
-      // - New subscription => Checkout Session URL
-      // - Existing active subscription => Billing Portal URL (returned by backend guardrail)
-      const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
-        body: { tier, interval },
-      });
-      if (error) throw error;
-      const url = (data as any)?.url as string | undefined;
-      if (!url) throw new Error("Checkout URL manquante");
-      window.location.href = url;
+      if (hasActiveSub) {
+        // Existing subscriber: change plan directly (avoids Billing Portal config issues).
+        const { error } = await supabase.functions.invoke("stripe-change-plan", {
+          body: { tier, interval, effective_at: "now" },
+        });
+        if (error) throw error;
+        window.alert(
+          `C'est confirmé.\n\n` +
+            `Rappel : tu peux gérer la facturation depuis le menu.\n` +
+            `Stripe appliquera automatiquement les ajustements (prorata / différence de prix) si nécessaire ` +
+            `(immédiatement ou sur la prochaine facture).`,
+        );
+        window.location.href = "/dashboard?billing=success";
+      } else {
+        window.alert(
+          `C'est confirmé.\n\n` +
+            `Tu vas être redirigé vers Stripe pour finaliser.\n` +
+            `Rappel : tu pourras gérer la facturation depuis le menu ensuite.`,
+        );
+        const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
+          body: { tier, interval },
+        });
+        if (error) throw error;
+        const url = (data as any)?.url as string | undefined;
+        if (!url) throw new Error("Checkout URL manquante");
+        window.location.href = url;
+      }
     } catch (err: any) {
       setError(err?.message ?? "Erreur lors de la redirection vers le paiement");
     } finally {
