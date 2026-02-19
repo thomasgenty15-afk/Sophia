@@ -217,7 +217,7 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
                             disabled={currentReps >= targetReps}
                             className="flex-1 py-2 px-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded text-[10px] min-[330px]:text-xs font-bold flex items-center justify-center gap-2 transition-colors text-center"
                             >
-                            <PlusCircle className="w-3.5 h-3.5 flex-shrink-0" /> 
+                            <PlusCircle className="hidden min-[386px]:block w-3.5 h-3.5 flex-shrink-0" /> 
                             <span>Valider pour aujourd'hui</span>
                             </button>
                         </>
