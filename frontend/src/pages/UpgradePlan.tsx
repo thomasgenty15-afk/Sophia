@@ -72,59 +72,18 @@ const UpgradePlan = () => {
       if (!sessData?.session?.access_token) {
         throw new Error("Session expirée. Recharge la page et reconnecte-toi.");
       }
-      const hasActiveSub = currentPaidTier !== "none";
-
-      const isUpgrade = hasActiveSub && rank(tier) > rank(currentPaidTier);
-      const isIntervalSwitch = hasActiveSub && rank(tier) === rank(currentPaidTier) && currentInterval !== interval;
-      const isNewSub = !hasActiveSub;
-
-      const planLabel =
-        tier === "system" ? "Le Système" : tier === "alliance" ? "L'Alliance" : "L'Architecte";
-      const intervalLabel = interval === "yearly" ? "annuel" : "mensuel";
-
-      const confirmMsg =
-        `Confirmer ${isNewSub ? "l'abonnement" : (isUpgrade ? "la mise à niveau" : (isIntervalSwitch ? "le changement de formule" : "le changement de plan"))} ?\n\n` +
-        `Plan : ${planLabel}\n` +
-        `Formule : ${intervalLabel}\n\n` +
-        `Tu pourras toujours gérer ta facturation (factures, annulation, moyen de paiement) depuis le menu.\n\n` +
-        `Note : Stripe calcule automatiquement les ajustements (prorata / différence de prix) selon ton abonnement actuel, ` +
-        `et les applique soit immédiatement, soit sur la prochaine facture (selon la configuration Stripe).`;
-
-      const ok = window.confirm(confirmMsg);
-      if (!ok) {
-        setLoading(false);
-        return;
-      }
-
-      if (hasActiveSub) {
-        // Existing subscriber: change plan directly (avoids Billing Portal config issues).
-        const { error } = await supabase.functions.invoke("stripe-change-plan", {
-          body: { tier, interval, effective_at: "now" },
-          headers: requestHeaders(newRequestId()),
-        });
-        if (error) throw error;
-        window.alert(
-          `C'est confirmé.\n\n` +
-            `Rappel : tu peux gérer la facturation depuis le menu.\n` +
-            `Stripe appliquera automatiquement les ajustements (prorata / différence de prix) si nécessaire ` +
-            `(immédiatement ou sur la prochaine facture).`,
-        );
-        window.location.href = "/dashboard?billing=success";
-      } else {
-        window.alert(
-          `C'est confirmé.\n\n` +
-            `Tu vas être redirigé vers Stripe pour finaliser.\n` +
-            `Rappel : tu pourras gérer la facturation depuis le menu ensuite.`,
-        );
-        const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
-          body: { tier, interval },
-          headers: requestHeaders(newRequestId()),
-        });
-        if (error) throw error;
-        const url = (data as any)?.url as string | undefined;
-        if (!url) throw new Error("Checkout URL manquante");
-        window.location.href = url;
-      }
+      // Single Stripe-native flow:
+      // - no local popups
+      // - Stripe Checkout for new subscriptions
+      // - Stripe Portal redirection when an active subscription already exists
+      const { data, error } = await supabase.functions.invoke('stripe-create-checkout-session', {
+        body: { tier, interval },
+        headers: requestHeaders(newRequestId()),
+      });
+      if (error) throw error;
+      const url = (data as any)?.url as string | undefined;
+      if (!url) throw new Error("Checkout URL manquante");
+      window.location.href = url;
     } catch (err: any) {
       setError(err?.message ?? "Erreur lors de la redirection vers le paiement");
     } finally {
@@ -140,33 +99,26 @@ const UpgradePlan = () => {
     return new Intl.DateTimeFormat("fr-FR", { day: "2-digit", month: "2-digit", year: "numeric" }).format(d);
   };
 
-  const scheduleDowngrade = async (tier: 'system' | 'alliance') => {
+  const scheduleDowngrade = async (_tier: 'system' | 'alliance') => {
     setError(null);
     setSuccess(null);
-    const effectiveDate = formatDateFr((subscription as any)?.current_period_end);
-    const intervalToKeep = (currentInterval ?? billingInterval) as 'monthly' | 'yearly';
-    const planLabel = tier === "system" ? "Le Système" : "L'Alliance";
-    const msg =
-      `Confirmer le downgrade vers "${planLabel}" ?\n\n` +
-      `Ton accès actuel reste actif jusqu'à la fin de la période${effectiveDate ? ` (${effectiveDate})` : ""}.\n\n` +
-      `Rappel : tu peux gérer la facturation depuis le menu.\n\n` +
-      `Note : à la date de renouvellement, Stripe appliquera automatiquement le changement (aucun débit immédiat).`;
-    const ok = window.confirm(msg);
-    if (!ok) return;
-
     setLoading(true);
     try {
-      const { error } = await supabase.functions.invoke("stripe-change-plan", {
-        body: { tier, interval: intervalToKeep, effective_at: "period_end" },
+      const { data: sessData } = await supabase.auth.getSession();
+      if (!sessData?.session?.access_token) {
+        throw new Error("Session expirée. Recharge la page et reconnecte-toi.");
+      }
+
+      const { data, error } = await supabase.functions.invoke("stripe-create-portal-session", {
+        body: {},
         headers: requestHeaders(newRequestId()),
       });
       if (error) throw error;
-      setSuccess(
-        `OK — downgrade programmé${effectiveDate ? ` pour le ${effectiveDate}` : " à la fin de la période"}. ` +
-          `Tu gardes l'accès actuel jusque-là. (Tu peux gérer la facturation depuis le menu.)`,
-      );
+      const url = (data as any)?.url as string | undefined;
+      if (!url) throw new Error("Portal URL manquante");
+      window.location.href = url;
     } catch (err: any) {
-      setError(err?.message ?? "Erreur lors de la programmation du downgrade");
+      setError(err?.message ?? "Erreur lors de la redirection vers la facturation");
     } finally {
       setLoading(false);
     }
