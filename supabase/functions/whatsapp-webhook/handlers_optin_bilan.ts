@@ -48,7 +48,7 @@ export async function computeOptInAndBilanContext(params: {
       .eq("role", "assistant")
       .gte("created_at", since)
       .filter("metadata->>channel", "eq", "whatsapp")
-      .filter("metadata->>purpose", "in", "(daily_bilan,daily_bilan_reschedule)")
+      .filter("metadata->>purpose", "in", "(daily_bilan,daily_bilan_reschedule,daily_bilan_winback)")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle()
@@ -354,7 +354,97 @@ export async function handleOptInAndDailyBilanActions(params: {
   requestId: string
   waMessageId: string
   inboundText: string
+  actionId?: string
+  textLower?: string
 }): Promise<boolean> {
+  const actionId = String(params.actionId ?? "").trim().toLowerCase()
+  const textLower = String(params.textLower ?? params.inboundText ?? "").trim().toLowerCase()
+
+  const isWinbackPause48h =
+    actionId === "winback_pause_48h" ||
+    /pause\s*(de)?\s*2\s*jour/.test(textLower)
+  const isWinbackResume =
+    actionId === "winback_resume" ||
+    actionId === "winback_restart" ||
+    /on\s*(reprend|relance)|je\s*m['’]?y\s*remets/.test(textLower)
+  const isWinbackOverwhelmed =
+    actionId === "winback_overwhelmed" ||
+    actionId === "winback_adapt_plan" ||
+    actionId === "winback_low_energy" ||
+    /trop\s*charg[eé]|adapter|coup\s*de\s*mou/.test(textLower)
+  const isWinbackSleepInfinite =
+    actionId === "winback_sleep_infinite" ||
+    /pas\s*tout\s*de\s*suite/.test(textLower)
+
+  if (
+    isWinbackPause48h ||
+    isWinbackResume ||
+    isWinbackOverwhelmed ||
+    isWinbackSleepInfinite
+  ) {
+    const nowIso = new Date().toISOString()
+    const patchBase: Record<string, unknown> = {
+      whatsapp_bilan_opted_in: true,
+      whatsapp_bilan_missed_streak: 0,
+      whatsapp_bilan_winback_step: 0,
+      whatsapp_bilan_last_winback_at: nowIso,
+      whatsapp_bilan_paused_until: null,
+    }
+    if (isWinbackPause48h) {
+      patchBase.whatsapp_bilan_paused_until = new Date(
+        Date.now() + 48 * 60 * 60 * 1000,
+      ).toISOString()
+    }
+    if (isWinbackSleepInfinite) {
+      patchBase.whatsapp_bilan_paused_until = "2099-12-31T00:00:00.000Z"
+    }
+    await params.admin.from("profiles").update(patchBase).eq("id", params.userId)
+
+    if (isWinbackPause48h) {
+      await params.replyWithBrain({
+        admin: params.admin,
+        userId: params.userId,
+        fromE164: params.fromE164,
+        inboundText: params.inboundText,
+        requestId: params.requestId,
+        replyToWaMessageId: params.waMessageId,
+        purpose: "daily_bilan_winback_pause_ack",
+        whatsappMode: "normal",
+        forceMode: "companion",
+        contextOverride:
+          `=== CONTEXTE WHATSAPP ===\n` +
+          `L'utilisateur a choisi une pause de 2 jours pour le bilan.\n\n` +
+          `CONSIGNE DE TOUR:\n` +
+          `- Confirme clairement que le bilan est mis en pause 2 jours.\n` +
+          `- Dis que le bilan reprendra automatiquement apres ce delai.\n` +
+          `- Message court (1-2 phrases), chaleureux, sans question.\n`,
+      })
+      return true
+    }
+
+    if (isWinbackSleepInfinite) {
+      await params.replyWithBrain({
+        admin: params.admin,
+        userId: params.userId,
+        fromE164: params.fromE164,
+        inboundText: params.inboundText,
+        requestId: params.requestId,
+        replyToWaMessageId: params.waMessageId,
+        purpose: "daily_bilan_winback_sleep_ack",
+        whatsappMode: "normal",
+        forceMode: "companion",
+        contextOverride:
+          `=== CONTEXTE WHATSAPP ===\n` +
+          `L'utilisateur veut rester en pause pour le moment.\n\n` +
+          `CONSIGNE DE TOUR:\n` +
+          `- Confirme que tu restes discrete.\n` +
+          `- Dis qu'un simple message de sa part relancera les bilans.\n` +
+          `- Message court (1-2 phrases), sans question.\n`,
+      })
+      return true
+    }
+  }
+
   // If there's a bilan context and this is NOT an opt-in action, classify the response via LLM.
   if (params.hasBilanContext && !params.isOptInYes) {
     // Fetch recent messages for LLM context

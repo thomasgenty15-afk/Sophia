@@ -134,21 +134,23 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
               }`}>
               {action.type}
             </span>
+
+            {isGroupA && (
+              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-100 text-[10px] min-[330px]:text-xs">
+                {timeLabelMap[String(action.timeOfDay || 'any_time')] || 'Flexible'}
+              </span>
+            )}
+
             <h3 className={`font-bold text-sm min-[350px]:text-base md:text-lg leading-tight ${isVisuallyLocked ? 'text-gray-400' : 'text-gray-900'}`}>{action.title}</h3>
           </div>
 
           <p className="text-xs min-[350px]:text-sm text-gray-500 mb-3 leading-snug min-h-[32px] break-words">{action.description}</p>
 
-          {isGroupA && (
+          {isGroupA && Array.isArray(action.scheduledDays) && action.scheduledDays.length > 0 && (
             <div className="mb-3 flex items-center gap-2 text-[10px] min-[330px]:text-xs">
-              <span className="px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-bold border border-emerald-100">
-                {timeLabelMap[String(action.timeOfDay || 'any_time')] || 'Flexible'}
+              <span className="text-slate-500 font-medium">
+                {action.scheduledDays.join(', ').toUpperCase()}
               </span>
-              {Array.isArray(action.scheduledDays) && action.scheduledDays.length > 0 && (
-                <span className="text-slate-500 font-medium">
-                  {action.scheduledDays.join(', ').toUpperCase()}
-                </span>
-              )}
             </div>
           )}
 

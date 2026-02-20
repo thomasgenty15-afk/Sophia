@@ -399,6 +399,14 @@ Deno.serve(async (req) => {
         .update({
           whatsapp_last_inbound_at: nowIso,
           whatsapp_opted_in: nextOptedIn,
+          ...(isStop
+            ? {}
+            : {
+              // Any inbound reply reactivates bilan mechanics unless user explicitly STOPs.
+              whatsapp_bilan_paused_until: null,
+              whatsapp_bilan_missed_streak: 0,
+              whatsapp_bilan_winback_step: 0,
+            }),
           ...(optOutUpdates as any),
         })
         .eq("id", profile.id)
@@ -579,6 +587,8 @@ Deno.serve(async (req) => {
         requestId: processId,
         waMessageId: msg.wa_message_id,
         inboundText: msg.text ?? "",
+        actionId,
+        textLower,
       })
       if (didHandleOptInOrBilan) continue
 

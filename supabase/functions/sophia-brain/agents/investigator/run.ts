@@ -33,6 +33,58 @@ import {
 // Re-export for backward compatibility
 export { getItemProgress, updateItemProgress } from "./item_progress.ts";
 
+function parseIsoMs(raw: unknown): number | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const ms = new Date(raw).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function resolveOpeningContext(
+  tempMemory: Record<string, unknown> | undefined,
+  history: any[],
+): {
+  mode: "cold_relaunch" | "ongoing_conversation";
+  hours_since_last_message: number | null;
+  last_message_at: string | null;
+} {
+  const tmContext = (tempMemory as any)?.opening_context;
+  const tmMode = String(tmContext?.mode ?? "").trim();
+  if (tmMode === "cold_relaunch" || tmMode === "ongoing_conversation") {
+    return {
+      mode: tmMode,
+      hours_since_last_message:
+        Number.isFinite(Number(tmContext?.hours_since_last_message))
+          ? Number(tmContext.hours_since_last_message)
+          : null,
+      last_message_at: typeof tmContext?.last_message_at === "string"
+        ? tmContext.last_message_at
+        : null,
+    };
+  }
+
+  let latestMs: number | null = null;
+  for (const msg of (Array.isArray(history) ? history : [])) {
+    const ts = parseIsoMs((msg as any)?.created_at);
+    if (ts === null) continue;
+    latestMs = latestMs === null ? ts : Math.max(latestMs, ts);
+  }
+  if (latestMs === null) {
+    return {
+      mode: "cold_relaunch",
+      hours_since_last_message: null,
+      last_message_at: null,
+    };
+  }
+  const hours = Number(
+    (Math.max(0, Date.now() - latestMs) / (60 * 60 * 1000)).toFixed(2),
+  );
+  return {
+    mode: hours >= 4 ? "cold_relaunch" : "ongoing_conversation",
+    hours_since_last_message: hours,
+    last_message_at: new Date(latestMs).toISOString(),
+  };
+}
+
 export async function runInvestigator(
   supabase: SupabaseClient,
   userId: string,
@@ -169,6 +221,10 @@ export async function runInvestigator(
     currentState?.temp_memory?.opening_done !== true
   ) {
     const currentItem0 = currentState.pending_items[0];
+    const openingContext = resolveOpeningContext(
+      (currentState?.temp_memory ?? {}) as Record<string, unknown>,
+      history,
+    );
 
     // Update item progress: first item is now awaiting_answer
     let nextState = updateItemProgress(currentState, currentItem0.id, {
@@ -280,6 +336,7 @@ export async function runInvestigator(
           summary_yesterday: summary,
           first_item: currentItem0,
           recent_history: history.slice(-15),
+          opening_context: openingContext,
           // Use the item's own day_scope (based on time_of_day)
           day_scope: String(
             currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ??
@@ -298,11 +355,17 @@ export async function runInvestigator(
       };
     } catch (e) {
       console.error("[Investigator] opening summary failed:", e);
-      const intros = [
-        "Allez, on fait le point.",
-        "Ok, petit bilan.",
-        "C'est parti pour le bilan.",
-      ];
+      const intros = openingContext.mode === "ongoing_conversation"
+        ? [
+          "Si ca te va, on cale le bilan maintenant, comme ca c'est fait.",
+          "Je te prends 2 min pour le bilan, et ensuite on continue.",
+          "On glisse le bilan maintenant, tranquillement.",
+        ]
+        : [
+          "Hey, c'est l'heure de ton bilan.",
+          "Petit check-in du jour.",
+          "On se fait le bilan du jour.",
+        ];
       const intro = intros[Math.floor(Math.random() * intros.length)];
       const safe = `${intro}\n\n${fallbackFirstQuestion}`;
       return {

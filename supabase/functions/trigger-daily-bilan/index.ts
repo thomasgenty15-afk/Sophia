@@ -60,8 +60,79 @@ function backoffMs(attempt: number): number {
   return Math.min(max, exp + jitter);
 }
 
+function parseTimestampMs(value: unknown): number | null {
+  if (typeof value !== "string" || !value.trim()) return null;
+  const ms = new Date(value).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
 
-function buildCronInitialInvestigationState(pendingItems: any[]) {
+type WinbackStep = 1 | 2 | 3;
+
+function nextWinbackStep(current: number): WinbackStep | null {
+  const step = Math.floor(Number(current) || 0);
+  if (step >= 3) return null;
+  if (step <= 0) return 1;
+  if (step === 1) return 2;
+  return 3;
+}
+
+function winbackTemplateName(step: WinbackStep): string {
+  if (step === 1) {
+    return (Deno.env.get("WHATSAPP_BILAN_WINBACK_STEP1_TEMPLATE_NAME") ??
+      "sophia_winback_step1_soft").trim();
+  }
+  if (step === 2) {
+    return (Deno.env.get("WHATSAPP_BILAN_WINBACK_STEP2_TEMPLATE_NAME") ??
+      "sophia_winback_step2_refocus").trim();
+  }
+  return (Deno.env.get("WHATSAPP_BILAN_WINBACK_STEP3_TEMPLATE_NAME") ??
+    "sophia_winback_step3_opendoor").trim();
+}
+
+function winbackTemplateLang(locale: unknown): string {
+  return whatsappLangFromLocale(
+    locale ?? null,
+    (Deno.env.get("WHATSAPP_BILAN_WINBACK_TEMPLATE_LANG") ?? "fr").trim(),
+  );
+}
+
+type BilanOpeningContext = {
+  mode: "cold_relaunch" | "ongoing_conversation";
+  hours_since_last_message: number | null;
+  last_message_at: string | null;
+};
+
+function parseIsoMs(raw: unknown): number | null {
+  if (typeof raw !== "string" || !raw.trim()) return null;
+  const ms = new Date(raw).getTime();
+  return Number.isFinite(ms) ? ms : null;
+}
+
+function deriveCronBilanOpeningContext(profile: any): BilanOpeningContext {
+  const inboundMs = parseIsoMs(profile?.whatsapp_last_inbound_at);
+  const outboundMs = parseIsoMs(profile?.whatsapp_last_outbound_at);
+  const lastMessageMs = Math.max(inboundMs ?? -Infinity, outboundMs ?? -Infinity);
+  if (!Number.isFinite(lastMessageMs)) {
+    return {
+      mode: "cold_relaunch",
+      hours_since_last_message: null,
+      last_message_at: null,
+    };
+  }
+  const deltaMs = Math.max(0, Date.now() - (lastMessageMs as number));
+  const hours = Number((deltaMs / (60 * 60 * 1000)).toFixed(2));
+  return {
+    mode: hours >= 4 ? "cold_relaunch" : "ongoing_conversation",
+    hours_since_last_message: hours,
+    last_message_at: new Date(lastMessageMs as number).toISOString(),
+  };
+}
+
+
+function buildCronInitialInvestigationState(
+  pendingItems: any[],
+  openingContext: BilanOpeningContext,
+) {
   const itemProgress: Record<string, any> = {};
   const vitalProgression: Record<string, any> = {};
   for (const item of pendingItems) {
@@ -93,6 +164,7 @@ function buildCronInitialInvestigationState(pendingItems: any[]) {
       opening_done: false,
       locked_pending_items: true,
       day_scope: defaultDayScope,
+      opening_context: openingContext,
       missed_streaks_by_action: {},
       vital_progression: vitalProgression,
       item_progress: itemProgress,
@@ -215,7 +287,7 @@ Deno.serve(async (req) => {
     const q = admin
       .from("profiles")
       .select(
-        "id, full_name, whatsapp_bilan_opted_in, timezone, locale, whatsapp_last_inbound_at, whatsapp_last_outbound_at",
+        "id, full_name, whatsapp_bilan_opted_in, timezone, locale, whatsapp_last_inbound_at, whatsapp_last_outbound_at, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at",
       )
       .eq("whatsapp_opted_in", true)
       .eq("phone_invalid", false)
@@ -354,6 +426,34 @@ Deno.serve(async (req) => {
       }
     }
 
+    async function updateBilanProfileState(
+      userId: string,
+      patch: Record<string, unknown>,
+    ): Promise<boolean> {
+      try {
+        const { error: updErr } = await admin
+          .from("profiles")
+          .update(patch as any)
+          .eq("id", userId);
+        if (updErr) {
+          console.error(
+            `[trigger-daily-bilan] Failed to update profile bilan state for ${userId}:`,
+            updErr,
+          );
+          return false;
+        }
+        const existing = profilesById.get(userId) ?? {};
+        profilesById.set(userId, { ...existing, ...patch });
+        return true;
+      } catch (e) {
+        console.error(
+          `[trigger-daily-bilan] Profile bilan state exception for ${userId}:`,
+          e,
+        );
+        return false;
+      }
+    }
+
     for (let idx = 0; idx < filtered.length; idx++) {
       const userId = filtered[idx];
       try {
@@ -378,6 +478,53 @@ Deno.serve(async (req) => {
 
         const p = profilesById.get(userId) as any;
         const hasBilanOptIn = Boolean(p?.whatsapp_bilan_opted_in);
+        const pauseUntilMs = parseTimestampMs(p?.whatsapp_bilan_paused_until);
+        const previousPromptMs = parseTimestampMs(p?.whatsapp_bilan_last_prompt_at);
+        const lastInboundMs = parseTimestampMs(p?.whatsapp_last_inbound_at);
+        const baselineMissed = Math.max(
+          0,
+          Math.min(30, Math.floor(Number(p?.whatsapp_bilan_missed_streak ?? 0))),
+        );
+        const currentWinbackStep = Math.max(
+          0,
+          Math.min(3, Math.floor(Number(p?.whatsapp_bilan_winback_step ?? 0))),
+        );
+        const unresolvedPreviousPrompt = Boolean(
+          previousPromptMs &&
+            (!lastInboundMs || (lastInboundMs as number) < (previousPromptMs as number)),
+        );
+        const nextMissed = currentWinbackStep > 0
+          ? baselineMissed
+          : (unresolvedPreviousPrompt
+            ? Math.min(30, baselineMissed + 1)
+            : 0);
+
+        if (nextMissed !== baselineMissed) {
+          await updateBilanProfileState(userId, {
+            whatsapp_bilan_missed_streak: nextMissed,
+          });
+        }
+
+        if (pauseUntilMs && (pauseUntilMs as number) > Date.now()) {
+          skipped++;
+          skippedUserIds.push(userId);
+          skippedReasons[userId] = "bilan_paused_until";
+          if (logSkips) {
+            await logComm(admin, {
+              user_id: userId,
+              channel: "whatsapp",
+              type: "daily_bilan_skipped",
+              status: "skipped",
+              metadata: {
+                reason: "bilan_paused_until",
+                pause_until: p?.whatsapp_bilan_paused_until ?? null,
+                request_id: requestId,
+              },
+            });
+          }
+          continue;
+        }
+
         let chatState = chatStatesById.get(userId);
 
         // Hard cleanup (4h by default): if a machine has been stale too long,
@@ -476,6 +623,47 @@ Deno.serve(async (req) => {
             sentUserIds.push(userId);
           }
         } else {
+          // Missed two bilans in a row: suspend regular bilan and trigger win-back templates.
+          if (nextMissed >= 2) {
+            const step = nextWinbackStep(currentWinbackStep);
+            if (!step) {
+              skipped++;
+              skippedUserIds.push(userId);
+              skippedReasons[userId] = "winback_waiting_for_user_reply";
+              continue;
+            }
+            const resp = await callWhatsappSendWithRetry({
+              user_id: userId,
+              message: {
+                type: "template",
+                name: winbackTemplateName(step),
+                language: winbackTemplateLang((p as any)?.locale ?? null),
+              },
+              purpose: "daily_bilan_winback",
+              require_opted_in: true,
+              force_template: true,
+              metadata_extra: {
+                winback_step: step,
+                source: "trigger_daily_bilan",
+              },
+            }, { maxAttempts, throttleMs });
+            if ((resp as any)?.skipped) {
+              skipped++;
+              skippedUserIds.push(userId);
+              const reason = String((resp as any)?.skip_reason ?? "skipped");
+              skippedReasons[userId] = `winback:${reason}`;
+              continue;
+            }
+            await updateBilanProfileState(userId, {
+              whatsapp_bilan_missed_streak: Math.max(2, nextMissed),
+              whatsapp_bilan_winback_step: step,
+              whatsapp_bilan_last_winback_at: new Date().toISOString(),
+            });
+            sent++;
+            sentUserIds.push(userId);
+            continue;
+          }
+
           // ═══════════════════════════════════════════════════════════════════
           // STATE MACHINE CHECK: skip if bilan/safety/onboarding is active.
           // ═══════════════════════════════════════════════════════════════════
@@ -527,7 +715,11 @@ Deno.serve(async (req) => {
             continue;
           }
 
-          const initialState = buildCronInitialInvestigationState(pendingItems);
+          const openingContext = deriveCronBilanOpeningContext(p);
+          const initialState = buildCronInitialInvestigationState(
+            pendingItems,
+            openingContext,
+          );
           const invResult = await runInvestigator(
             admin as any,
             userId,
@@ -621,6 +813,11 @@ Deno.serve(async (req) => {
           } else {
             sent++;
             sentUserIds.push(userId);
+            await updateBilanProfileState(userId, {
+              whatsapp_bilan_last_prompt_at: new Date().toISOString(),
+              whatsapp_bilan_winback_step: 0,
+              whatsapp_bilan_missed_streak: nextMissed,
+            });
           }
         }
       } catch (e) {
