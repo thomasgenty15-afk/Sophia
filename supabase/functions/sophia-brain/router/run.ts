@@ -22,6 +22,10 @@ import {
   buildLastAssistantInfo,
   runContextualDispatcherV2,
 } from "./dispatcher_flow.ts";
+import {
+  clearMachineStateTempMemory,
+  detectMagicResetCommand,
+} from "./magic_reset.ts";
 import type { DispatcherSignals, MachineSignals } from "./dispatcher.ts";
 import { handleTracking } from "../lib/tracking.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
@@ -506,6 +510,21 @@ export async function processMessage(
 
   const onboarding = stabilizeOnboardingFlag(tempMemory);
   tempMemory = onboarding.tempMemory;
+
+  // Magic Reset Check (abracadabra)
+  const magicResetVariant = detectMagicResetCommand(userMessage);
+  if (magicResetVariant) {
+    const { tempMemory: cleared, clearedKeys } = clearMachineStateTempMemory({ tempMemory });
+    tempMemory = cleared;
+    await trace("brain:magic_reset_command", "routing", {
+      variant: magicResetVariant,
+      cleared_keys: clearedKeys,
+      cleared_count: clearedKeys.length
+    }, "warn");
+    
+    // Force immediate persist to ensure reset sticks even if later logic fails
+    await updateUserState(supabase, userId, scope, { temp_memory: tempMemory });
+  }
 
   const { lastAssistantMessage } = buildLastAssistantInfo(history);
   const stateSnapshot = buildDispatcherStateSnapshot({ tempMemory, state });
