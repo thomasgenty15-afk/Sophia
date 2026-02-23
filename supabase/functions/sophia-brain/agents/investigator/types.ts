@@ -13,7 +13,7 @@ export interface CheckupItem {
   is_scheduled_day?: boolean;
   day_scope?: "today" | "yesterday";
   is_habit?: boolean;
-  // Moment de la journée pour l'action (utilisé pour calculer day_scope)
+  // Moment de la journée (action ou vital), utilisé pour calculer day_scope
   time_of_day?: string; // "morning" | "afternoon" | "evening" | "night" | "any_time"
   // Weekly target status for habits (set during getPendingItems)
   weekly_target_status?: "below" | "at_target" | "exceeded";

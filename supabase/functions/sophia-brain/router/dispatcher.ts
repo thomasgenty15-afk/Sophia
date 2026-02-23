@@ -493,6 +493,19 @@ Exemples:
 - "active l'exercice respiration" -> activate_action.detected=true
 - "je veux ajouter une nouvelle habitude" -> create_action.intent_strength=explicit
 
+2.bis) breakdown_action (SOS blocage) — REGLES FORTES
+- Détecte breakdown_action dès que le user exprime un BLOCAGE EXÉCUTION sur une action:
+  * "je galère", "j'arrive pas", "je bloque", "trop dur", "trop long", "impossible"
+  * "j'ai besoin d'une étape intermédiaire", "micro-étape", "plus simple"
+  * "comment je fais quand je galère ?", "SOS blocage"
+- Même si la cible n'est pas parfaitement nommée, mets breakdown_action.detected=true.
+- Si la cible est floue: target_hint=null MAIS renseigne blocker_hint avec la difficulté concrète.
+- Si la cible est identifiable: renseigne target_hint + blocker_hint.
+- Exemples:
+  * "j'arrive pas à tenir 30 min de sport" -> breakdown_action.detected=true, target_hint="sport", blocker_hint="durée trop longue"
+  * "je galère avec ma routine du soir" -> breakdown_action.detected=true, target_hint="routine du soir"
+  * "quand je bloque sur une action je fais quoi ?" -> breakdown_action.detected=true, blocker_hint="blocage d'exécution"
+
 3) dashboard_preferences_intent (redirection réglages UX/UI)
 - Détecte quand le user veut changer ses préférences produit (pas une action du plan).
 - Renseigne "preference_keys" avec les clés canoniques détectées parmi:

@@ -76,6 +76,13 @@ const TOOL_SIGNAL_PRIORITY: MotherSignalType[] = [
   "track_progress",
 ];
 
+function minConfidenceForToolSignal(signal: MotherSignalType): number {
+  // breakdown_action is often phrased with more natural language ("je galère", "ça bloque").
+  // Allow slightly lower confidence to avoid missing valid SOS blocage cases.
+  if (signal === "breakdown_action") return 0.62;
+  return 0.72;
+}
+
 function getSignalConfidence(
   signal: MotherSignalType,
   signals: DispatcherSignals,
@@ -114,7 +121,10 @@ function hasSignalTargetHint(
     case "update_action":
       return Boolean(String(signals.update_action?.target_hint ?? "").trim());
     case "breakdown_action":
-      return Boolean(String(signals.breakdown_action?.target_hint ?? "").trim());
+      return Boolean(
+        String(signals.breakdown_action?.target_hint ?? "").trim() ||
+        String(signals.breakdown_action?.blocker_hint ?? "").trim(),
+      );
     case "activate_action":
       return Boolean(String(signals.activate_action?.target_hint ?? "").trim());
     case "delete_action":
@@ -201,7 +211,8 @@ export function filterToSingleMotherSignal(
   const strongTools = detected
     .filter((s) => isToolMotherSignal(s))
     .filter((s) =>
-      getSignalConfidence(s, signals) >= 0.72 && hasSignalTargetHint(s, signals)
+      getSignalConfidence(s, signals) >= minConfidenceForToolSignal(s) &&
+      hasSignalTargetHint(s, signals)
     )
     .sort((a, b) => {
       const aIdx = TOOL_SIGNAL_PRIORITY.indexOf(a);

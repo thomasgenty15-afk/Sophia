@@ -63,6 +63,7 @@ const VitalSignalSchema = z.object({
   description: z.string().optional(),
   type: z.string(), // On laisse string large pour éviter les blocages bêtes, ou VitalTypeSchema
   tracking_type: TrackingTypeSchema.optional().default('counter'), // Default safety
+  time_of_day: TimeOfDaySchema.optional().default('any_time'),
 });
 
 const MaintenanceCheckSchema = z.object({

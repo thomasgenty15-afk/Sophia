@@ -174,7 +174,7 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
   // Day scope based on user's LOCAL hour (timezone-aware).
   const tz = await getUserTimezone(supabase, userId)
   const localHour = localHourInTz(new Date(), tz)
-  // Global day scope for vitals/frameworks (fallback)
+  // Global fallback day scope (used by frameworks and as safety fallback elsewhere)
   const globalDayScope: "today" | "yesterday" = Number.isFinite(localHour) && localHour >= 16 ? "today" : "yesterday"
   const localTodayYmd = ymdInTz(new Date(), tz)
   const localDayYmd = globalDayScope === "today" ? localTodayYmd : addDays(localTodayYmd, -1)
@@ -349,7 +349,8 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
         title: v.label || v.name,
         tracking_type: "counter",
         unit: v.unit,
-        day_scope: globalDayScope,  // Vitals use global day_scope
+        day_scope: computeActionDayScope(v.time_of_day, localHour),
+        time_of_day: v.time_of_day ?? undefined,
         previous_vital_value: vitalEntriesMap.get(v.id) ?? undefined,
         target_vital_value: v.target_value !== null && v.target_value !== undefined ? String(v.target_value) : undefined,
       })

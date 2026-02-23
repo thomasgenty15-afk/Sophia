@@ -59,6 +59,12 @@ function normalizeToE164(input: string): string {
 
 function getFallbackTemplate(purpose: string | undefined) {
   const p = (purpose ?? "").trim()
+  if (p === "recurring_reminder") {
+    return {
+      name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ?? "sophia_reminder_consent_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_LANG") ?? "fr").trim(),
+    }
+  }
   if (p === "daily_bilan") {
     return {
       name: (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_NAME") ?? "sophia_bilan_v1").trim(),

@@ -43,6 +43,52 @@ async function callWhatsappSend(payload: unknown) {
   return data
 }
 
+function getRecurringReminderIdFromEventContext(eventContext: string): string | null {
+  const raw = String(eventContext ?? "").trim()
+  const prefix = "recurring_reminder:"
+  if (!raw.startsWith(prefix)) return null
+  const id = raw.slice(prefix.length).trim()
+  return id || null
+}
+
+async function consumeUnansweredRecurringProbe(params: {
+  supabaseAdmin: ReturnType<typeof createClient>
+  userId: string
+  recurringReminderId: string
+}): Promise<number> {
+  const { supabaseAdmin, userId, recurringReminderId } = params
+  const eventContext = `recurring_reminder:${recurringReminderId}`
+  const { data: pendingRows, error } = await supabaseAdmin
+    .from("whatsapp_pending_actions")
+    .select("id,scheduled_checkin_id,status,payload")
+    .eq("user_id", userId)
+    .eq("kind", "scheduled_checkin")
+    .eq("status", "pending")
+    .filter("payload->>event_context", "eq", eventContext)
+    .order("created_at", { ascending: true })
+  if (error) throw error
+
+  if (!pendingRows || pendingRows.length === 0) return 0
+
+  for (const row of pendingRows as any[]) {
+    await supabaseAdmin
+      .from("whatsapp_pending_actions")
+      .update({ status: "expired", processed_at: new Date().toISOString() })
+      .eq("id", row.id)
+      .eq("status", "pending")
+
+    if (row.scheduled_checkin_id) {
+      await supabaseAdmin
+        .from("scheduled_checkins")
+        .update({ status: "cancelled", processed_at: new Date().toISOString() })
+        .eq("id", row.scheduled_checkin_id)
+        .eq("status", "awaiting_user")
+    }
+  }
+
+  return pendingRows.length
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
   try {
@@ -152,6 +198,70 @@ Deno.serve(async (req) => {
     let processedCount = 0
 
     for (const checkin of checkins) {
+      const eventContext = String((checkin as any)?.event_context ?? "")
+      const recurringReminderId = getRecurringReminderIdFromEventContext(eventContext)
+
+      // Recurring reminders: if previous consent probes were unanswered, count them.
+      // After 2 unanswered probes, auto-pause the reminder and stop future sends.
+      if (recurringReminderId) {
+        try {
+          const newlyUnanswered = await consumeUnansweredRecurringProbe({
+            supabaseAdmin,
+            userId: checkin.user_id,
+            recurringReminderId,
+          })
+
+          const { data: reminder } = await supabaseAdmin
+            .from("user_recurring_reminders")
+            .select("id,status,unanswered_probe_count")
+            .eq("id", recurringReminderId)
+            .eq("user_id", checkin.user_id)
+            .maybeSingle()
+
+          if (!reminder || (reminder as any).status !== "active") {
+            await supabaseAdmin
+              .from("scheduled_checkins")
+              .update({ status: "cancelled", processed_at: new Date().toISOString() })
+              .eq("id", checkin.id)
+            continue
+          }
+
+          const currentMisses = Number((reminder as any).unanswered_probe_count ?? 0)
+          const misses = Math.max(0, Math.min(2, currentMisses + newlyUnanswered))
+          if (newlyUnanswered > 0) {
+            await supabaseAdmin
+              .from("user_recurring_reminders")
+              .update({
+                unanswered_probe_count: misses,
+                updated_at: new Date().toISOString(),
+              } as any)
+              .eq("id", recurringReminderId)
+              .eq("user_id", checkin.user_id)
+          }
+
+          if (misses >= 2) {
+            await supabaseAdmin
+              .from("user_recurring_reminders")
+              .update({
+                status: "inactive",
+                deactivated_at: new Date().toISOString(),
+                probe_paused_at: new Date().toISOString(),
+                updated_at: new Date().toISOString(),
+              } as any)
+              .eq("id", recurringReminderId)
+              .eq("user_id", checkin.user_id)
+
+            await supabaseAdmin
+              .from("scheduled_checkins")
+              .update({ status: "cancelled", processed_at: new Date().toISOString() })
+              .eq("id", checkin.id)
+            continue
+          }
+        } catch (e) {
+          console.warn(`[process-checkins] request_id=${requestId} recurring_probe_policy_failed checkin_id=${checkin.id}`, e)
+        }
+      }
+
       // Quiet window: don't interrupt an active WhatsApp conversation.
       // If the user was active recently, push the checkin a bit later instead of sending now.
       {
@@ -203,19 +313,23 @@ Deno.serve(async (req) => {
         bodyText = "Petit check-in: comment ça va depuis tout à l'heure ?"
       }
       // Needed for purpose tagging in both WhatsApp and fallback logging paths.
-      const isBilanReschedule = String(checkin.event_context ?? "") === "daily_bilan_reschedule"
+      const isBilanReschedule = eventContext === "daily_bilan_reschedule"
+      const checkinPurpose = isBilanReschedule
+        ? "daily_bilan"
+        : (recurringReminderId ? "recurring_reminder" : "scheduled_checkin")
 
       try {
         const resp = await callWhatsappSend({
           user_id: checkin.user_id,
           message: { type: "text", body: bodyText },
-          purpose: isBilanReschedule ? "daily_bilan" : "scheduled_checkin",
+          purpose: checkinPurpose,
           require_opted_in: true,
           metadata_extra: {
             source: "scheduled_checkin",
             event_context: checkin.event_context,
             original_checkin_id: checkin.id,
-            purpose: isBilanReschedule ? "daily_bilan" : "scheduled_checkin",
+            purpose: checkinPurpose,
+            recurring_reminder_id: recurringReminderId,
           },
         })
         usedTemplate = Boolean((resp as any)?.used_template)
@@ -240,6 +354,17 @@ Deno.serve(async (req) => {
 
       // If we had to use a template, we are outside the 24h window. We now wait for an explicit "Oui".
       if (sentViaWhatsapp && usedTemplate) {
+        if (recurringReminderId) {
+          await supabaseAdmin
+            .from("user_recurring_reminders")
+            .update({
+              probe_last_sent_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            } as any)
+            .eq("id", recurringReminderId)
+            .eq("user_id", checkin.user_id)
+        }
+
         // Create pending action for this user, and mark checkin as awaiting_user to avoid spamming.
         const { error: pendErr } = await supabaseAdmin
           .from("whatsapp_pending_actions")
@@ -254,6 +379,7 @@ Deno.serve(async (req) => {
               event_context: checkin.event_context,
               message_mode: (checkin as any)?.message_mode ?? "static",
               message_payload: (checkin as any)?.message_payload ?? {},
+              recurring_reminder_id: recurringReminderId,
             },
             expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
           })
@@ -273,8 +399,6 @@ Deno.serve(async (req) => {
 
       // For bilan reschedules: log with purpose "daily_bilan" so the user's response
       // gets intercepted by the bilan flow (hasBilanContext checks for this purpose).
-      const checkinPurpose = isBilanReschedule ? "daily_bilan" : "scheduled_checkin"
-
       if (!sentViaWhatsapp) {
         // Use bodyText (which includes dynamically generated message) instead of draft_message
         const { error: msgError } = await supabaseAdmin

@@ -651,6 +651,15 @@ export const useDashboardLogic = ({
         setActiveVitalSignData({ ...activeVitalSignData, currentValue: newValue, last_checked_at: new Date().toISOString() });
     } else {
         const jsonSignal = (activePlan as any)?.vitalSignal;
+        const rawTimeOfDay = String(jsonSignal?.time_of_day ?? 'any_time');
+        const timeOfDay =
+          rawTimeOfDay === 'morning' ||
+            rawTimeOfDay === 'afternoon' ||
+            rawTimeOfDay === 'evening' ||
+            rawTimeOfDay === 'night' ||
+            rawTimeOfDay === 'any_time'
+            ? rawTimeOfDay
+            : 'any_time';
         const { data } = await supabase.from('user_vital_signs').insert({
                 user_id: user.id,
                 plan_id: activePlanId,
@@ -660,6 +669,7 @@ export const useDashboardLogic = ({
                 current_value: newValue,
                 unit: jsonSignal?.unit || "unités",
                 status: 'active',
+                time_of_day: timeOfDay,
                 last_checked_at: new Date().toISOString()
             }).select().single();
 

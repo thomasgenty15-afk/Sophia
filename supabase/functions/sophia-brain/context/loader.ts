@@ -120,6 +120,23 @@ export async function loadContextForMode(
     );
   }
 
+  // 1b. North Star context (on-demand to keep prompt lean)
+  const shouldInjectNorthStar = shouldInjectNorthStarContext({
+    mode: opts.mode,
+    message: opts.message,
+    tempMemory: opts.tempMemory,
+  });
+  if (shouldInjectNorthStar) {
+    promises.push(
+      loadNorthStarContext(opts.supabase, opts.userId).then((block) => {
+        if (block) {
+          context.northStarContext = block;
+          elementsLoaded.push("north_star_context");
+        }
+      }),
+    );
+  }
+
   // 2. Temporal context
   if (profile.temporal && opts.userTime?.prompt_block) {
     context.temporal =
@@ -376,6 +393,21 @@ export async function loadContextForMode(
     }
   }
 
+  // 15d. Dashboard capabilities addon (umbrella "can be related to dashboard")
+  const dashboardCapabilitiesAddon = (opts.tempMemory as any)
+    ?.__dashboard_capabilities_addon;
+  if (
+    dashboardCapabilitiesAddon &&
+    (opts.mode === "companion" || opts.mode === "investigator")
+  ) {
+    context.dashboardCapabilitiesAddon = formatDashboardCapabilitiesAddon(
+      dashboardCapabilitiesAddon,
+    );
+    if (context.dashboardCapabilitiesAddon) {
+      elementsLoaded.push("dashboard_capabilities_addon");
+    }
+  }
+
   // 16. Expired bilan summary (silent expiry context for companion)
   const expiredBilanSummary = (opts.tempMemory as any)?.__expired_bilan_summary;
   if (
@@ -464,6 +496,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.shortTerm) ctx += loaded.shortTerm;
   if (loaded.recentTurns) ctx += loaded.recentTurns;
   if (loaded.planMetadata) ctx += loaded.planMetadata + "\n\n";
+  if (loaded.northStarContext) ctx += loaded.northStarContext + "\n\n";
   if (loaded.planJson) ctx += loaded.planJson + "\n\n";
   if (loaded.actionsSummary) ctx += loaded.actionsSummary + "\n\n";
   if (loaded.actionIndicators) ctx += loaded.actionIndicators + "\n\n";
@@ -483,6 +516,9 @@ export function buildContextString(loaded: LoadedContext): string {
   }
   if (loaded.dashboardRecurringReminderIntentAddon) {
     ctx += loaded.dashboardRecurringReminderIntentAddon;
+  }
+  if (loaded.dashboardCapabilitiesAddon) {
+    ctx += loaded.dashboardCapabilitiesAddon;
   }
   if (loaded.safetyActiveAddon) ctx += loaded.safetyActiveAddon;
   if (loaded.expiredBilanContext) ctx += loaded.expiredBilanContext;
@@ -568,11 +604,18 @@ function formatDashboardRedirectAddon(addon: any): string {
     : [];
   const intentText = intents.length > 0 ? intents.join(", ") : "CRUD action";
   const fromBilan = Boolean(addon?.from_bilan);
+  const isBreakdownIntent = intents.includes("breakdown_action");
   return (
     `\n\n=== ADDON DASHBOARD REDIRECT ===\n` +
     `- Intention détectée: ${intentText}.\n` +
     `- Cet add-on est un support de connaissance pour bien orienter l'utilisateur (pas un exécuteur).\n` +
     `- Réponds utilement et naturellement, puis redirige vers le tableau de bord.\n` +
+    (isBreakdownIntent
+      ? `- Mode SOS blocage: pose d'abord 1 question de diagnostic ciblée (blocage concret, contexte, contrainte), puis propose la fonction de découpage en micro-étapes dans le dashboard.\n`
+      : "") +
+    (isBreakdownIntent
+      ? `- Exemples de questions utiles: "Qu'est-ce qui bloque exactement ?", "À quel moment ça coince le plus ?", "Quelle version ultra-simple (2 min) serait faisable ?"\n`
+      : "") +
     (fromBilan
       ? `- Le bilan reste prioritaire: confirme la redirection dashboard puis reprends l'item du bilan.\n`
       : "") +
@@ -608,6 +651,136 @@ function formatDashboardPreferencesIntentAddon(addon: any): string {
       : "") +
     `- N'annonce aucune modification comme déjà appliquée depuis le chat.\n`
   );
+}
+
+function formatDashboardCapabilitiesAddon(addon: any): string {
+  const intents = Array.isArray(addon?.intents)
+    ? addon.intents.filter((v: unknown) => typeof v === "string").slice(0, 8)
+    : [];
+  const fromBilan = Boolean(addon?.from_bilan);
+  const intentsText = intents.length > 0 ? intents.join(", ") : "general_dashboard_intent";
+  return (
+    `\n\n=== ADDON DASHBOARD CAPABILITIES (CAN_BE_RELATED_TO_DASHBOARD) ===\n` +
+    `- Signal synthétique détecté: la demande peut relever du dashboard (${intentsText}).\n` +
+    `- Objectif: réponse CONSISTANTE et utile sur les possibilités produit, sans exécution dans le chat.\n` +
+    `- Tu peux expliquer clairement les zones/fonctions suivantes si pertinent:\n` +
+    `  1) Actions personnelles (feature centrale): créer, modifier, activer, désactiver, supprimer, tracker l'avancement, et SOS blocage.\n` +
+    `  2) North Star (direction long terme): clarifier le cap, la raison, et l'alignement avec les actions hebdo.\n` +
+    `  3) Rappels (feature de paramétrage Sophia): moments, style de message, canal, fréquence, pause/reprise.\n` +
+    `  4) Préférences Sophia (personnalisation): ton, longueur, emojis, proactivité, timezone, horaires, intensité coaching.\n` +
+    `\n` +
+    `- Détail ACTIONS (ce qu'il faut préciser pour bien aider):\n` +
+    `  - Création d'action: objectif concret, nom/titre clair, fréquence visée (daily/weekly), jours, heure ou fenêtre, difficulté réaliste, version minimale (2 min), déclencheur contexte.\n` +
+    `  - Mise à jour d'action: change_type fréquent = frequency|days|time|title|mixed; vérifier ce que le user veut garder vs changer.\n` +
+    `  - Activation/Désactivation/Suppression: confirmer la cible exacte (target_hint) pour éviter l'ambiguïté.\n` +
+    `  - Suivi d'avancement: expliciter status (completed|missed|partial), valeur éventuelle, et date concernée.\n` +
+    `  - SOS blocage: identifier blocker_hint (pourquoi ça coince), puis proposer une micro-étape faisable immédiatement.\n` +
+    `\n` +
+    `- Détail NORTH STAR:\n` +
+    `  - Expliquer que la North Star sert de boussole: priorité long terme, critères d'alignement, arbitrage des actions.\n` +
+    `  - Quand proposer: si dispersion, perte de sens, surcharge d'actions, ou besoin de prioriser.\n` +
+    `  - Aide attendue: reformuler la North Star en phrase claire + relier 1-2 actions concrètes qui la servent cette semaine.\n` +
+    `\n` +
+    `- Détail RAPPELS (très important):\n` +
+    `  - Les rappels sont une vraie feature de configuration de Sophia (pas juste "notifications").\n` +
+    `  - Paramètres clés: mode (daily|weekly|custom), days, time, timezone, channel (app|whatsapp), start_date, end_date, pause, message.\n` +
+    `  - Personnalisation possible: type de relance ("question", "nudge", "bonjour", "bonsoir", "check-in court"), ton (doux/direct), fréquence.\n` +
+    `  - Exemples utiles à expliciter:\n` +
+    `    * "Pose-moi une question chaque matin"\n` +
+    `    * "Envoie-moi un bonsoir à 21h"\n` +
+    `    * "Rappel WhatsApp les lundis/mercredis à 8h"\n` +
+    `    * "Mets en pause cette semaine, puis reprise lundi prochain"\n` +
+    `\n` +
+    `- Détail PRÉFÉRENCES SOPHIA:\n` +
+    `  - Catégories possibles: language, tone, response_length, emoji_level, voice_style, proactivity_level, timezone, daily_summary_time, coach_intensity.\n` +
+    `  - Toujours donner des exemples courts de valeurs (ex: tone=direct, response_length=short, emoji_level=low, daily_summary_time=20:00).\n` +
+    `\n` +
+    `- Quand proposer "autres possibilités produit":\n` +
+    `  - Si le user parle d'une action, tu peux suggérer en plus (si pertinent): SOS blocage, ajustement rappels, alignement North Star, préférence de ton/proactivité.\n` +
+    `  - Le but est d'élargir utilement, sans noyer la réponse.\n` +
+    `- Protocole de réponse:\n` +
+    `  A) Réponds d'abord à la question exacte du user.\n` +
+    `  B) Creuse avec 1 question diagnostique ciblée pour mieux aider (pourquoi, blocage concret, contrainte, résultat attendu).\n` +
+    `  C) Donne les paramètres utiles (champs précis) si la demande touche une config/dashboard feature.\n` +
+    `  D) Propose ensuite le bon chemin dashboard (section/fonction) en restant concret.\n` +
+    `  E) Si pertinent, ajoute UNE suggestion produit complémentaire à forte valeur (pas plus d'une).\n` +
+    `- Interdictions:\n` +
+    `  - N'affirme jamais qu'une modification dashboard est déjà appliquée depuis le chat.\n` +
+    `  - N'invente pas de features non supportées.\n` +
+    (fromBilan
+      ? `- Si un bilan est actif, garde le bilan prioritaire après l'orientation dashboard.\n`
+      : "")
+  );
+}
+
+function shouldInjectNorthStarContext(args: {
+  mode: AgentMode;
+  message: string;
+  tempMemory?: any;
+}): boolean {
+  const isEligibleMode = args.mode === "companion" || args.mode === "investigator";
+  if (!isEligibleMode) return false;
+
+  const hasDashboardCapabilitiesSignal = Boolean(
+    (args.tempMemory as any)?.__dashboard_capabilities_addon,
+  );
+  if (hasDashboardCapabilitiesSignal) return true;
+
+  const msg = String(args.message ?? "").toLowerCase();
+  return /north\s*star|etoile|étoile|cap|vision|priorit/.test(msg);
+}
+
+async function loadNorthStarContext(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  try {
+    const { data, error } = await supabase
+      .from("user_north_stars")
+      .select("title, metric_type, unit, start_value, current_value, target_value, status, updated_at")
+      .eq("user_id", userId)
+      .in("status", ["active", "completed"])
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    if (error || !data) return null;
+
+    const title = String((data as any).title ?? "North Star").trim();
+    const metricType = String((data as any).metric_type ?? "number").trim();
+    const unit = String((data as any).unit ?? "").trim();
+    const status = String((data as any).status ?? "unknown").trim();
+    const startValue = Number((data as any).start_value);
+    const currentValue = Number((data as any).current_value);
+    const targetValue = Number((data as any).target_value);
+
+    let progress = "";
+    if (
+      Number.isFinite(startValue) &&
+      Number.isFinite(currentValue) &&
+      Number.isFinite(targetValue) &&
+      targetValue !== startValue
+    ) {
+      const pct = Math.max(
+        -100,
+        Math.min(300, ((currentValue - startValue) / (targetValue - startValue)) * 100),
+      );
+      progress = `\n- Progression estimée: ${pct.toFixed(0)}%`;
+    }
+
+    return (
+      `=== NORTH STAR ACTIVE ===\n` +
+      `- Titre: ${title}\n` +
+      `- Type métrique: ${metricType}\n` +
+      `- Valeurs: départ=${String((data as any).start_value)} | actuel=${String((data as any).current_value)} | cible=${String((data as any).target_value)}${unit ? ` ${unit}` : ""}\n` +
+      `- Statut: ${status}` +
+      `${progress}\n` +
+      `- Consigne: si tu proposes/modifies des actions, relie-les explicitement à cette North Star.\n`
+    );
+  } catch {
+    // Backward compatibility: environments without the table should not break context loading.
+    return null;
+  }
 }
 
 function formatDashboardRecurringReminderIntentAddon(addon: any): string {

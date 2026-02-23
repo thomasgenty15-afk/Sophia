@@ -164,7 +164,8 @@ export const useDashboardData = () => {
                         targetValue: vitalData.target_value,
                         unit: vitalData.unit,
                         startValue: vitalData.current_value,
-                        last_checked_at: vitalData.last_checked_at
+                        last_checked_at: vitalData.last_checked_at,
+                        time_of_day: vitalData.time_of_day ?? 'any_time',
                     });
                 } else {
                     setActiveVitalSignData(null);

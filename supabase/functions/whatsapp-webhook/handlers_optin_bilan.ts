@@ -71,8 +71,7 @@ export async function computeOptInAndBilanContext(params: {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type BilanClassification = {
-  intent: "accept" | "decline" | "defer"
-  delay_minutes: number | null
+  intent: "accept" | "decline"
 }
 
 function deterministicBilanFallback(inboundText: string): BilanClassification | null {
@@ -81,44 +80,18 @@ function deterministicBilanFallback(inboundText: string): BilanClassification | 
 
   // Exact/near-exact template-like replies
   if (/^carr[ée]ment\s*!?$/i.test(lower) || /^go\s*!?$/i.test(lower)) {
-    return { intent: "accept", delay_minutes: null }
+    return { intent: "accept" }
   }
-  if (/^pas\s*tout\s*de\s*suite\s*!?$/i.test(lower)) {
-    return { intent: "defer", delay_minutes: null }
-  }
-  if (/^on\s*fera\s*[çc]a\s*demain\s*!?$/i.test(lower)) {
-    return { intent: "defer", delay_minutes: 24 * 60 }
-  }
-  if (/^plus\s*tard\s*!?$/i.test(lower)) {
-    return { intent: "defer", delay_minutes: null }
+  if (/^pas\s*tout\s*de\s*suite\s*!?$/i.test(lower) || /^plus\s*tard\s*!?$/i.test(lower) || /^on\s*fera\s*[çc]a\s*demain\s*!?$/i.test(lower)) {
+    return { intent: "decline" }
   }
 
-  // Deterministic delay extraction for common formats.
-  const hMin = lower.match(/(\d+)\s*h\s*(\d+)/i)
-  if (hMin) {
-    const mins = Number(hMin[1]) * 60 + Number(hMin[2])
-    if (mins > 0 && mins <= 48 * 60) return { intent: "defer", delay_minutes: mins }
-  }
-  const hours = lower.match(/(\d+)\s*(?:h(?:eure)?s?)\b/i)
-  if (hours) {
-    const mins = Number(hours[1]) * 60
-    if (mins > 0 && mins <= 48 * 60) return { intent: "defer", delay_minutes: mins }
-  }
-  const mins = lower.match(/(\d+)\s*(?:min(?:ute)?s?)\b/i)
-  if (mins) {
-    const value = Number(mins[1])
-    if (value > 0 && value <= 48 * 60) return { intent: "defer", delay_minutes: value }
-  }
-  if (/\b(demain|tomorrow)\b/i.test(lower)) {
-    return { intent: "defer", delay_minutes: 24 * 60 }
-  }
-
-  // Broad defer/decline hints when no explicit delay was parsed.
-  if (/\b(pas dispo|pas maintenant|plus tard|une autre fois|on verra)\b/i.test(lower)) {
-    return { intent: "defer", delay_minutes: null }
+  // Broad defer/decline hints.
+  if (/\b(demain|tomorrow|pas dispo|pas maintenant|plus tard|une autre fois|on verra)\b/i.test(lower)) {
+    return { intent: "decline" }
   }
   if (/\b(non|pas envie|pas interesser|pas intéressé|laisse tomber)\b/i.test(lower)) {
-    return { intent: "decline", delay_minutes: null }
+    return { intent: "decline" }
   }
 
   return null
@@ -135,7 +108,7 @@ export async function classifyBilanResponse(
   requestId: string,
 ): Promise<BilanClassification> {
   const text = (inboundText ?? "").trim()
-  if (!text) return { intent: "defer", delay_minutes: null }
+  if (!text) return { intent: "decline" }
 
   // --- Deterministic fast-path before LLM ---
   const deterministic = deterministicBilanFallback(text)
@@ -149,18 +122,15 @@ export async function classifyBilanResponse(
 
   const systemPrompt = [
     "Tu es un classifieur d'intention. L'utilisateur vient de recevoir un message de Sophia lui proposant de faire son bilan du soir.",
-    "Tu dois classifier la réponse de l'utilisateur parmi 3 intentions :",
+    "Tu dois classifier la réponse de l'utilisateur parmi 2 intentions :",
     '- "accept" : l\'utilisateur accepte de faire le bilan maintenant',
-    '- "defer" : l\'utilisateur veut reporter le bilan à plus tard (il n\'est pas dispo maintenant mais il veut le faire plus tard)',
-    '- "decline" : l\'utilisateur refuse de faire le bilan (pas intéressé, ne veut pas)',
-    "",
-    "Si l'utilisateur mentionne un délai (ex: \"dans 2h\", \"dans 30 min\", \"dans 1 heure\"), extrais le délai en minutes.",
+    '- "decline" : l\'utilisateur refuse ou reporte le bilan (pas dispo, plus tard, demain, pas envie, non)',
     "",
     "Contexte conversation récente :",
     context || "(pas de contexte)",
     "",
     "IMPORTANT: Réponds UNIQUEMENT en JSON valide, rien d'autre.",
-    'Format: {"intent": "accept"|"defer"|"decline", "delay_minutes": <number|null>}',
+    'Format: {"intent": "accept"|"decline"}',
   ].join("\n")
 
   try {
@@ -176,72 +146,15 @@ export async function classifyBilanResponse(
     const cleaned = jsonStr.replace(/```json?\s*/gi, "").replace(/```/g, "").trim()
     const parsed = JSON.parse(cleaned)
 
-    const intent = (["accept", "decline", "defer"] as const).includes(parsed?.intent)
-      ? (parsed.intent as "accept" | "decline" | "defer")
-      : "defer"
-    const delay = typeof parsed?.delay_minutes === "number" && parsed.delay_minutes > 0
-      ? Math.round(parsed.delay_minutes)
-      : null
+    const intent = (["accept", "decline"] as const).includes(parsed?.intent)
+      ? (parsed.intent as "accept" | "decline")
+      : "decline"
 
-    return { intent, delay_minutes: delay }
+    return { intent }
   } catch (e) {
-    // Safer fallback: prefer "defer" over an aggressive false decline.
     console.warn("[classifyBilanResponse] LLM classification failed, using deterministic fallback:", e)
-    return deterministicBilanFallback(text) ?? { intent: "defer", delay_minutes: null }
+    return deterministicBilanFallback(text) ?? { intent: "decline" }
   }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// BILAN RESCHEDULE SCHEDULING
-// ═══════════════════════════════════════════════════════════════════════════════
-
-/**
- * Schedule a bilan reschedule by inserting a row in scheduled_checkins.
- * process-checkins later handles delivery and template-window pending logic.
- */
-export async function scheduleBilanReschedule(params: {
-  admin: SupabaseClient
-  userId: string
-  delayMinutes: number
-}): Promise<string> {
-  const { admin, userId, delayMinutes } = params
-  const scheduledFor = new Date(Date.now() + delayMinutes * 60 * 1000).toISOString()
-
-  // Insert scheduled_checkins row
-  const { data: checkin, error: checkinErr } = await admin
-    .from("scheduled_checkins")
-    .insert({
-      user_id: userId,
-      status: "pending",
-      scheduled_for: scheduledFor,
-      event_context: "daily_bilan_reschedule",
-      message_mode: "dynamic",
-      message_payload: {
-        type: "daily_bilan_reschedule",
-        original_bilan_time: new Date().toISOString(),
-        instruction: "L'utilisateur avait demandé à être relancé pour son bilan du soir. Propose-lui de faire le point maintenant de manière chaleureuse et naturelle.",
-      },
-      draft_message: null,
-    })
-    .select("id")
-    .single()
-
-  if (checkinErr) throw checkinErr
-  const checkinId = (checkin as any)?.id
-
-  return checkinId
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// DELAY FORMATTING HELPER
-// ═══════════════════════════════════════════════════════════════════════════════
-
-export function formatDelay(minutes: number): string {
-  if (minutes < 60) return `${minutes} min`
-  const h = Math.floor(minutes / 60)
-  const m = minutes % 60
-  if (m === 0) return h === 1 ? "1 heure" : `${h} heures`
-  return h === 1 ? `1h${String(m).padStart(2, "0")}` : `${h}h${String(m).padStart(2, "0")}`
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -458,7 +371,7 @@ export async function handleOptInAndDailyBilanActions(params: {
     const recentMessages = ((recentMsgs ?? []) as Array<{ role: string; content: string }>).slice().reverse()
 
     const classification = await classifyBilanResponse(params.inboundText, recentMessages, params.requestId)
-    console.log(`[handlers_optin_bilan] classifyBilanResponse result: intent=${classification.intent} delay=${classification.delay_minutes}`)
+    console.log(`[handlers_optin_bilan] classifyBilanResponse result: intent=${classification.intent}`)
 
     // ACCEPT: kick off the bilan conversation
     if (classification.intent === "accept") {
@@ -484,98 +397,6 @@ export async function handleOptInAndDailyBilanActions(params: {
       return true
     }
 
-    // DEFER with delay: schedule reschedule and confirm
-    if (classification.intent === "defer" && classification.delay_minutes) {
-      // Deduplicate: don't create another reschedule if one is already pending
-      const { data: existingReschedule } = await params.admin
-        .from("scheduled_checkins")
-        .select("id")
-        .eq("user_id", params.userId)
-        .eq("event_context", "daily_bilan_reschedule")
-        .eq("status", "pending")
-        .limit(1)
-        .maybeSingle()
-
-      if (!(existingReschedule as any)?.id) {
-        await scheduleBilanReschedule({
-          admin: params.admin,
-          userId: params.userId,
-          delayMinutes: classification.delay_minutes,
-        })
-      }
-
-      const delayText = formatDelay(classification.delay_minutes)
-      await params.replyWithBrain({
-        admin: params.admin,
-        userId: params.userId,
-        fromE164: params.fromE164,
-        inboundText: params.inboundText,
-        requestId: params.requestId,
-        replyToWaMessageId: params.waMessageId,
-        purpose: "daily_bilan_deferred_ai",
-        whatsappMode: "normal",
-        forceMode: "companion",
-        contextOverride:
-          `=== CONTEXTE WHATSAPP ===\n` +
-          `L'utilisateur veut reporter le bilan à plus tard (dans ${delayText}).\n` +
-          `Tu l'as programmé pour le relancer dans ${delayText}.\n\n` +
-          `CONSIGNE DE TOUR:\n` +
-          `- Confirme-lui de manière naturelle et chaleureuse que tu le relanceras dans ${delayText}.\n` +
-          `- Une ou deux phrases max, format WhatsApp.\n` +
-          `- Ne pose pas de question.\n`,
-      })
-      return true
-    }
-
-    // DEFER without delay: ask when to reschedule
-    if (classification.intent === "defer" && !classification.delay_minutes) {
-      // Create a pending action so the next message is intercepted to extract the delay.
-      // Deduplicate to avoid stacking multiple pending rows for the same user.
-      const { data: existingPending } = await params.admin
-        .from("whatsapp_pending_actions")
-        .select("id")
-        .eq("user_id", params.userId)
-        .eq("kind", "bilan_reschedule")
-        .eq("status", "pending")
-        .limit(1)
-        .maybeSingle()
-
-      if (!(existingPending as any)?.id) {
-        await params.admin
-          .from("whatsapp_pending_actions")
-          .insert({
-            user_id: params.userId,
-            kind: "bilan_reschedule",
-            status: "pending",
-            payload: {
-              original_bilan_time: new Date().toISOString(),
-              retry_count: 0,
-            },
-            expires_at: new Date(Date.now() + 6 * 60 * 60 * 1000).toISOString(), // 6h expiry
-          })
-      }
-
-      await params.replyWithBrain({
-        admin: params.admin,
-        userId: params.userId,
-        fromE164: params.fromE164,
-        inboundText: params.inboundText,
-        requestId: params.requestId,
-        replyToWaMessageId: params.waMessageId,
-        purpose: "daily_bilan_ask_delay_ai",
-        whatsappMode: "normal",
-        forceMode: "companion",
-        contextOverride:
-          `=== CONTEXTE WHATSAPP ===\n` +
-          `L'utilisateur veut reporter le bilan mais n'a pas précisé quand.\n\n` +
-          `CONSIGNE DE TOUR:\n` +
-          `- Réponds gentiment et demande-lui dans combien de temps il veut être relancé.\n` +
-          `- Sois naturel, format WhatsApp (court).\n` +
-          `- Exemple de formulation: "Pas de souci ! Tu veux que je te relance dans combien de temps ?"\n`,
-      })
-      return true
-    }
-
     // DECLINE: respond gently, no scheduling
     if (classification.intent === "decline") {
       await params.replyWithBrain({
@@ -590,10 +411,11 @@ export async function handleOptInAndDailyBilanActions(params: {
         forceMode: "companion",
         contextOverride:
           `=== CONTEXTE WHATSAPP ===\n` +
-          `L'utilisateur décline le bilan du soir.\n\n` +
+          `L'utilisateur refuse ou reporte le bilan du soir.\n\n` +
           `CONSIGNE DE TOUR:\n` +
-          `- Réponds gentiment, sans insister.\n` +
-          `- Une seule phrase.\n`,
+          `- Réponds gentiment en disant que c'est ok pour aujourd'hui et donne-lui rendez-vous à demain pour le prochain.\n` +
+          `- Ne lui propose JAMAIS de le relancer plus tard dans la soirée.\n` +
+          `- Une seule phrase, chaleureuse et sans question.\n`,
       })
       return true
     }

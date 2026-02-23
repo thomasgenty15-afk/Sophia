@@ -70,6 +70,7 @@ export interface OnDemandTriggers {
 export interface LoadedContext {
   temporal?: string;
   planMetadata?: string;
+  northStarContext?: string;
   planJson?: string;
   actionsSummary?: string;
   actionIndicators?: string;
@@ -85,6 +86,7 @@ export interface LoadedContext {
   topicSession?: string;
   trackProgressAddon?: string;
   dashboardRedirectAddon?: string;
+  dashboardCapabilitiesAddon?: string;
   dashboardPreferencesIntentAddon?: string;
   dashboardRecurringReminderIntentAddon?: string;
   safetyActiveAddon?: string;

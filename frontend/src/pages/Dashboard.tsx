@@ -131,6 +131,46 @@ const Dashboard = () => {
   const [createActionPhaseIndex, setCreateActionPhaseIndex] = useState<number | null>(null);
   const [editingAction, setEditingAction] = useState<Action | null>(null);
   const [activeTab, setActiveTab] = useState<'plan' | 'personal' | 'reminders' | 'preferences'>('plan');
+  const [northStarAttention, setNorthStarAttention] = useState(false);
+
+  useEffect(() => {
+    const checkNorthStarAttention = async () => {
+      if (!user?.id || !activeGoalId || !activeSubmissionId) {
+        setNorthStarAttention(false);
+        return;
+      }
+      try {
+        const { data: goalRow, error: goalErr } = await supabase
+          .from('user_goals')
+          .select('north_star_id')
+          .eq('id', activeGoalId)
+          .maybeSingle();
+        // Backward-compatible fallback if user_goals.north_star_id is not present yet.
+        if (goalErr && String((goalErr as any)?.code ?? '') === '42703') {
+          const { data: northStarRow, error: nsErr } = await supabase
+            .from('user_north_stars')
+            .select('id')
+            .eq('user_id', user.id)
+            .eq('submission_id', activeSubmissionId)
+            .eq('status', 'active')
+            .limit(1)
+            .maybeSingle();
+          if (nsErr && String((nsErr as any)?.code ?? '') !== '42P01') throw nsErr;
+          const dismissed = localStorage.getItem(`north_star_prompt_dismissed:${activeGoalId}`) === '1';
+          const hasNorthStar = Boolean((northStarRow as any)?.id);
+          setNorthStarAttention(!hasNorthStar || !dismissed);
+          return;
+        }
+        if (goalErr) throw goalErr;
+        const dismissed = localStorage.getItem(`north_star_prompt_dismissed:${activeGoalId}`) === '1';
+        const hasNorthStar = Boolean((goalRow as any)?.north_star_id);
+        setNorthStarAttention(!hasNorthStar || !dismissed);
+      } catch {
+        setNorthStarAttention(false);
+      }
+    };
+    checkNorthStarAttention();
+  }, [user?.id, activeGoalId, activeSubmissionId, activeTab]);
 
   // 2. LOGIC HOOK : Récupère tous les handlers (Actions, Reset, Save...)
   const logic = useDashboardLogic({
@@ -232,6 +272,7 @@ const Dashboard = () => {
     return { system: true, sophia: false, architect: false };
   };
 
+  const canAccessWhatsappFeatures = accessTier === 'alliance' || accessTier === 'architecte';
   const isArchitectMode = mode === 'architecte';
   const hasActivePlan = activePlan !== null;
   const displayStrategy = activePlan?.strategy || "Chargement de la stratégie...";
@@ -617,7 +658,12 @@ const Dashboard = () => {
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                         }`}
                       >
-                        <Repeat className={`w-4 h-4 ${activeTab === 'personal' ? 'text-emerald-500' : ''}`} />
+                        <span className="relative inline-flex">
+                          <Repeat className={`w-4 h-4 ${activeTab === 'personal' ? 'text-emerald-500' : ''} ${northStarAttention ? 'animate-pulse' : ''}`} />
+                          {northStarAttention && (
+                            <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 border border-white" />
+                          )}
+                        </span>
                         <span className="hidden min-[487px]:inline">Actions Personnelles</span>
                       </button>
                       <button
@@ -810,11 +856,18 @@ const Dashboard = () => {
                   </div>
                 ) : activeTab === 'reminders' ? (
                   <div className="animate-fade-in">
-                    <RemindersSection userId={user?.id ?? null} />
+                    <RemindersSection
+                      userId={user?.id ?? null}
+                      isLocked={!canAccessWhatsappFeatures}
+                      onUnlockRequest={() => navigate('/upgrade')}
+                    />
                   </div>
                 ) : (
                   <div className="animate-fade-in">
-                    <PreferencesSection />
+                    <PreferencesSection
+                      isLocked={!canAccessWhatsappFeatures}
+                      onUnlockRequest={() => navigate('/upgrade')}
+                    />
                   </div>
                 )}
               </div>

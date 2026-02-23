@@ -129,12 +129,16 @@ Deno.serve(async (req) => {
         [
           {
             "event_context": "Courte description de l'événement (ex: Présentation client)",
-            "scheduled_for": "Date ISO 8601 précise (UTC) quand le message doit être envoyé"
+            "scheduled_for": "Date ISO 8601 précise (UTC) quand le message doit être envoyé",
+            "confidence_score": "Score entre 0 et 10"
           }
         ]
 
-        Règles :
+        Règles CRITIQUES :
         - Ne génère RIEN si aucun événement pertinent n'est trouvé. Renvoie un tableau vide [].
+        - Sois TRÈS CONSERVATEUR. Ne programme un check-in QUE pour des événements majeurs (examen, entretien important, etc.) OU si l'utilisateur demande explicitement qu'on le relance.
+        - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
+        - Ne programme JAMAIS de check-in avec un confidence_score inférieur à 8.
         - Ne propose pas de check-in pour des événements passés depuis longtemps.
         - Assure-toi que "scheduled_for" est dans le FUTUR par rapport à "Maintenant" (${now}).
         - Le message doit être chaleureux, comme un ami qui prend des nouvelles.
@@ -157,6 +161,13 @@ Deno.serve(async (req) => {
         if (Array.isArray(events) && events.length > 0) {
             
             for (const event of events) {
+                // Check confidence score to avoid spamming the user
+                const score = Number(event.confidence_score)
+                if (isNaN(score) || score < 8) {
+                    console.log(`[detect-future-events] Skipped event due to low confidence:`, event)
+                    continue
+                }
+
                 // Validate scheduled_for is valid date and in future
                 const scheduledTime = new Date(event.scheduled_for)
                 if (isNaN(scheduledTime.getTime())) {

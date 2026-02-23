@@ -29,6 +29,22 @@ import {
   type BrainTracePhase,
   logBrainTrace,
 } from "../../_shared/brain-trace.ts";
+import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
+
+function envBool(name: string, fallback: boolean): boolean {
+  const denoEnv = (globalThis as any)?.Deno?.env;
+  const raw = String(denoEnv?.get?.(name) ?? "").trim().toLowerCase();
+  if (!raw) return fallback;
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
+function envInt(name: string, fallback: number): number {
+  const denoEnv = (globalThis as any)?.Deno?.env;
+  const raw = String(denoEnv?.get?.(name) ?? "").trim();
+  const n = Number(raw);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.floor(n));
+}
 
 function extractDashboardRedirectIntents(signals: DispatcherSignals): string[] {
   const intents: string[] = [];
@@ -217,9 +233,18 @@ function attachDynamicAddons(args: {
       intents: dashboardRedirectIntents,
       from_bilan: Boolean(state?.investigation_state),
     };
+    // Synthetic umbrella signal: user message can be related to dashboard capabilities.
+    // This keeps behavior consistent without adding a new fragile LLM schema field.
+    (tempMemory as any).__dashboard_capabilities_addon = {
+      detected: true,
+      intents: dashboardRedirectIntents,
+      from_bilan: Boolean(state?.investigation_state),
+      detected_at: new Date().toISOString(),
+    };
   } else {
     try {
       delete (tempMemory as any).__dashboard_redirect_addon;
+      delete (tempMemory as any).__dashboard_capabilities_addon;
     } catch {
       // best effort
     }
@@ -361,6 +386,7 @@ function clearOneShotKeys(tempMemory: any, consumedBilanStopped: boolean) {
   const keys = [
     "__checkup_not_triggerable_addon",
     "__dashboard_redirect_addon",
+    "__dashboard_capabilities_addon",
     "__dashboard_preferences_intent_addon",
     "__dashboard_recurring_reminder_intent_addon",
     "__safety_active_addon",
@@ -412,6 +438,11 @@ export async function processMessage(
     forceOnboardingFlow?: boolean;
   },
 ) {
+  const turnStartMs = Date.now();
+  let dispatcherLatencyMs: number | undefined;
+  let contextLatencyMs: number | undefined;
+  let agentLatencyMs: number | undefined;
+
   const channel = meta?.channel ?? "web";
   const scope = normalizeScope(
     meta?.scope,
@@ -492,6 +523,7 @@ export async function processMessage(
     trace,
     traceV: trace,
   });
+  dispatcherLatencyMs = Date.now() - turnStartMs;
 
   const dispatcherSignals = contextual.dispatcherSignals;
   const machineSignals = contextual.dispatcherResult?.machine_signals;
@@ -563,6 +595,7 @@ export async function processMessage(
     triggers: onDemandTriggers,
     injectedContext: opts?.contextOverride,
   });
+  contextLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0);
 
   const vectorMaxResults = getVectorResultsCount(contextProfile);
   if (vectorMaxResults > 0) {
@@ -606,9 +639,13 @@ export async function processMessage(
     stopCheckup,
     isPostCheckup: state?.investigation_state?.status === "post_checkup",
     outageTemplate: "Je te réponds dès que je peux, je dois gérer une urgence pour le moment.",
-    sophiaChatModel: (Deno.env.get("SOPHIA_CHAT_MODEL") ?? "gemini-2.5-flash").trim(),
+    sophiaChatModel: String(
+      (globalThis as any)?.Deno?.env?.get?.("SOPHIA_CHAT_MODEL") ?? "gemini-2.5-flash",
+    ).trim(),
     tempMemory,
   });
+  agentLatencyMs =
+    Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0) - (contextLatencyMs ?? 0);
 
   let responseContent = String(agentOut.responseContent ?? "").trim();
   const nextMode = agentOut.nextMode;
@@ -670,6 +707,72 @@ export async function processMessage(
     stop_checkup: stopCheckup,
     checkup_intent_detected: checkupIntentDetected,
   }, "info");
+
+  // Persist one turn_summary row per router turn (powers bundle brain_trace exports).
+  try {
+    await persistTurnSummaryLog({
+      supabase,
+      config: {
+        awaitEnabled: envBool("SOPHIA_TURN_SUMMARY_DB_AWAIT", false),
+        timeoutMs: envInt("SOPHIA_TURN_SUMMARY_DB_TIMEOUT_MS", 1200),
+        retries: envInt("SOPHIA_TURN_SUMMARY_DB_RETRIES", 1),
+      },
+      metrics: {
+        request_id: meta?.requestId ?? null,
+        user_id: userId,
+        channel,
+        scope,
+        latency_ms: {
+          total: Date.now() - turnStartMs,
+          dispatcher: dispatcherLatencyMs,
+          context: contextLoadResult?.metrics?.load_ms ?? contextLatencyMs,
+          agent: agentLatencyMs,
+        },
+        dispatcher: {
+          model: String(meta?.model ?? (globalThis as any)?.Deno?.env?.get?.("SOPHIA_DISPATCHER_MODEL") ?? "gemini-2.5-flash").trim(),
+          signals: {
+            safety: String(dispatcherSignals.safety.level ?? "NONE"),
+            intent: String(dispatcherSignals.user_intent_primary ?? "UNKNOWN"),
+            intent_conf: Number(dispatcherSignals.user_intent_confidence ?? 0),
+            interrupt: String(dispatcherSignals.interrupt.kind ?? "NONE"),
+            topic_depth: String(dispatcherSignals.topic_depth?.value ?? "NONE"),
+            flow_resolution: String(dispatcherSignals.flow_resolution?.kind ?? "NONE"),
+          },
+        },
+        context: {
+          profile: String(targetMode),
+          elements: contextLoadResult?.metrics?.elements_loaded ?? [],
+          tokens: contextLoadResult?.metrics?.estimated_tokens ?? undefined,
+        },
+        routing: {
+          target_dispatcher: targetMode,
+          target_initial: targetMode,
+          target_final: nextMode,
+          risk_score: riskScore,
+        },
+        agent: {
+          model: String(meta?.model ?? (globalThis as any)?.Deno?.env?.get?.("SOPHIA_CHAT_MODEL") ?? "gemini-2.5-flash").trim(),
+          outcome: (agentOut.toolExecution && agentOut.toolExecution !== "none") ? "tool_call" : "text",
+          tool: agentOut.executedTools?.[0] ?? null,
+        },
+        state_flags: {
+          checkup_active: checkupActive,
+          toolflow_active: false,
+          supervisor_stack_top: String((mergedTempMemory as any)?.__toolflow_owner?.machine_type ?? ""),
+        },
+        details: {
+          source: "sophia-brain/router/run.ts",
+          channel,
+          tool_execution: agentOut.toolExecution,
+          executed_tools: agentOut.executedTools ?? [],
+          tool_ack: agentOut.toolAck ?? null,
+        },
+        aborted: false,
+      },
+    });
+  } catch (e) {
+    console.warn("[Router] persistTurnSummaryLog failed (non-blocking):", e);
+  }
 
   return {
     content: responseContent,

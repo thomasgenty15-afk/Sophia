@@ -123,6 +123,16 @@ function pickRequestIds(messages) {
   return [...ids];
 }
 
+function pickAssistantRequestIds(messages) {
+  const ids = new Set();
+  for (const m of messages ?? []) {
+    if (String(m?.role ?? "").toLowerCase() !== "assistant") continue;
+    const rid = m?.metadata?.router_decision_v1?.request_id ?? m?.metadata?.request_id ?? null;
+    if (typeof rid === "string" && rid.trim()) ids.add(rid.trim());
+  }
+  return [...ids];
+}
+
 function chunk(arr, size) {
   const out = [];
   for (let i = 0; i < arr.length; i += size) out.push(arr.slice(i, i + size));
@@ -266,12 +276,13 @@ async function main() {
   });
 
   const requestIds = pickRequestIds(chatMessages);
+  const assistantRequestIds = pickAssistantRequestIds(chatMessages);
 
   // Turn summary logs: fetch by request_id IN (...) batches for accuracy.
   // Also apply created_at range to keep exports bounded.
   let turnSummaries = [];
-  if (requestIds.length > 0) {
-    const batches = chunk(requestIds, 40); // keep URLs short/safe
+  if (assistantRequestIds.length > 0) {
+    const batches = chunk(assistantRequestIds, 40); // keep URLs short/safe
     for (const b of batches) {
       const inList = b.map((x) => `"${String(x).replaceAll('"', '\\"')}"`).join(",");
       const tsUrlBase =
@@ -327,7 +338,8 @@ async function main() {
   );
 
   const foundSummaryRequestIds = new Set(turnSummaries.map((t) => String(t?.request_id ?? "")));
-  const missingSummary = requestIds.filter((rid) => !foundSummaryRequestIds.has(String(rid)));
+  // Missing brain traces are evaluated on assistant request_ids only.
+  const missingBrainTrace = assistantRequestIds.filter((rid) => !foundSummaryRequestIds.has(String(rid)));
 
   const meta = {
     ok: true,
@@ -341,15 +353,26 @@ async function main() {
     counts: {
       chat_messages: conversationRows.length,
       request_ids: requestIds.length,
+      assistant_request_ids: assistantRequestIds.length,
       turn_summary_logs: (turnSummaries ?? []).length,
-      missing_turn_summaries: missingSummary.length,
+      // Backward-compatible alias (historically based on request_ids).
+      // We now compute missing traces only on assistant turns.
+      missing_turn_summaries: missingBrainTrace.length,
+      missing_brain_trace: missingBrainTrace.length,
     },
     outputs: {
       out_dir: outDir,
       conversation_transcript: transcriptPath,
       brain_trace_jsonl: brainTracePath,
     },
-    missing_turn_summary_request_ids: missingSummary.slice(0, 200), // cap for sanity
+    missing_brain_trace_request_ids: missingBrainTrace.slice(0, 200), // cap for sanity
+    // Backward-compatible alias.
+    missing_turn_summary_request_ids: missingBrainTrace.slice(0, 200),
+    warnings: missingBrainTrace.length > 0
+      ? [
+          `Missing brain trace for ${missingBrainTrace.length} assistant request_ids (turn_summary_logs absent).`,
+        ]
+      : [],
   };
 
   if (args.writeMeta) {

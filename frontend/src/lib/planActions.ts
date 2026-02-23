@@ -218,6 +218,13 @@ export const distributePlanActions = async (
     // Validation stricte : label est requis (NOT NULL constraint)
     const label = vitalSignal.name || vitalSignal.label || 'Signe Vital';
     const trackingType = vitalSignal.tracking_type === 'boolean' ? 'boolean' : 'counter'; // Vital often counter
+    const timeOfDay = (vitalSignal.time_of_day === 'morning' ||
+      vitalSignal.time_of_day === 'afternoon' ||
+      vitalSignal.time_of_day === 'evening' ||
+      vitalSignal.time_of_day === 'night' ||
+      vitalSignal.time_of_day === 'any_time')
+      ? vitalSignal.time_of_day
+      : 'any_time';
     
     // Conversion explicite en string pour les valeurs
     vitalSignToInsert = {
@@ -229,7 +236,8 @@ export const distributePlanActions = async (
       current_value: String(vitalSignal.startValue || ''),
       unit: vitalSignal.unit || '',
       status: 'active',
-      tracking_type: trackingType // Ajout du tracking_type
+      tracking_type: trackingType, // Ajout du tracking_type
+      time_of_day: timeOfDay
     };
   }
 
@@ -362,6 +370,9 @@ export const cleanupSubmissionData = async (userId: string, submissionId: string
         
         // 3. Supprimer les signes vitaux
         supabase.from('user_vital_signs').delete().eq('user_id', userId).eq('submission_id', submissionId),
+
+        // 3b. Supprimer les north stars du cycle
+        supabase.from('user_north_stars').delete().eq('user_id', userId).eq('submission_id', submissionId),
 
         // 4. Supprimer le tracking framework
         supabase.from('user_framework_tracking').delete().eq('user_id', userId).eq('submission_id', submissionId),

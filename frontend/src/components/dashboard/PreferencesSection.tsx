@@ -11,7 +11,9 @@ import {
   Layout,
   Target,
   Moon,
-  Heart
+  Heart,
+  Lock,
+  Crown
 } from 'lucide-react';
 import { supabase } from '../../lib/supabase';
 import { useAuth } from '../../context/AuthContext';
@@ -150,7 +152,12 @@ const PREFERENCES: PreferenceDef[] = [
 
 const PREF_BY_KEY = new Map(PREFERENCES.map((p) => [p.key, p]));
 
-export function PreferencesSection() {
+type PreferencesSectionProps = {
+  isLocked?: boolean;
+  onUnlockRequest?: () => void;
+};
+
+export function PreferencesSection({ isLocked = false, onUnlockRequest }: PreferencesSectionProps) {
   const { user } = useAuth();
   const [values, setValues] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
@@ -201,14 +208,17 @@ export function PreferencesSection() {
   }, [user?.id, withDefaults]);
 
   const setPrefValue = (key: string, value: string) => {
+    if (isLocked) return;
     setValues((prev) => ({ ...prev, [key]: value }));
   };
 
   const toggleExpand = (key: string) => {
+    if (isLocked) return;
     setExpandedKey(prev => prev === key ? null : key);
   };
 
   const save = async () => {
+    if (isLocked) return;
     if (!user?.id) return;
     setSaving(true);
     setStatusMsg(null);
@@ -243,6 +253,30 @@ export function PreferencesSection() {
 
   return (
     <section className="mb-10">
+      {isLocked && (
+        <div className="mb-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-col min-[450px]:flex-row min-[450px]:items-center min-[450px]:justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-900">Fonctionnalité WhatsApp verrouillée</p>
+              <p className="text-xs text-amber-700">
+                Les préférences du coach WhatsApp sont disponibles avec le plan Alliance ou Architecte.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onUnlockRequest?.()}
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold flex items-center justify-center gap-2 shrink-0"
+          >
+            <Crown className="w-4 h-4" />
+            Passer à Alliance / Architecte
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
           <MessageCircle className="w-5 h-5 text-violet-600" />
@@ -278,6 +312,7 @@ export function PreferencesSection() {
                 <div key={pref.key} className="border border-gray-100 rounded-xl overflow-hidden transition-all hover:border-violet-100 hover:shadow-sm bg-white">
                   <button 
                       onClick={() => toggleExpand(pref.key)}
+                      disabled={isLocked}
                       className="w-full flex items-center justify-between p-4 bg-white hover:bg-slate-50/50 transition-colors text-left"
                   >
                       <div className="flex items-center gap-4">
@@ -350,7 +385,7 @@ export function PreferencesSection() {
         <div className="mt-8 flex flex-col items-center gap-3">
           <button
             onClick={save}
-            disabled={saving || loading}
+            disabled={isLocked || saving || loading}
             className="px-6 py-2.5 rounded-xl bg-violet-600 hover:bg-violet-700 text-white text-sm font-bold flex items-center gap-2 disabled:opacity-60 shadow-md shadow-violet-200 hover:shadow-violet-300 transition-all"
           >
             <Save className="w-4 h-4" />

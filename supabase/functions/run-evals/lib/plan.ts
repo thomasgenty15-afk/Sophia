@@ -639,6 +639,7 @@ export async function seedActivePlan(
       const vitalId = crypto.randomUUID();
       const label = "Sommeil";
       const unit = "h";
+      const timeOfDay = "night";
       const { error: vErr } = await admin.from("user_vital_signs").insert({
         id: vitalId,
         user_id: userId,
@@ -650,6 +651,7 @@ export async function seedActivePlan(
         target_value: "",
         status: "active",
         tracking_type: "counter",
+        time_of_day: timeOfDay,
         last_checked_at: twoDaysAgo,
       });
       if (vErr) throw vErr;
@@ -659,6 +661,7 @@ export async function seedActivePlan(
         title: label,
         tracking_type: "counter",
         unit,
+        time_of_day: timeOfDay,
       });
     } else {
       // Default behavior: seed from generated plan if present (realistic), and INCLUDE in pending_items.
@@ -668,6 +671,7 @@ export async function seedActivePlan(
         const label = String(vital?.name ?? vital?.title ?? "Signe Vital");
         const trackingType = String(vital?.tracking_type ?? "counter") === "boolean" ? "boolean" : "counter";
         const unit = String(vital?.unit ?? "");
+        const timeOfDay = String(vital?.time_of_day ?? "any_time");
         const { error: vErr } = await admin.from("user_vital_signs").insert({
           id: vitalId,
           user_id: userId,
@@ -679,6 +683,7 @@ export async function seedActivePlan(
           target_value: String(vital?.targetValue ?? ""),
           status: "active",
           tracking_type: trackingType,
+          time_of_day: timeOfDay,
           last_checked_at: twoDaysAgo,
         });
         if (vErr) throw vErr;
@@ -689,6 +694,7 @@ export async function seedActivePlan(
           title: label,
           tracking_type: trackingType,
           unit,
+          time_of_day: timeOfDay,
         });
       }
     }

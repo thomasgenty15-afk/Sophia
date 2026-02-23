@@ -45,6 +45,31 @@ export interface VitalSignal {
   currentValue?: string | number; // La valeur actuelle en base
   last_checked_at?: string; // Date de la dernière mise à jour
   type?: 'time' | 'duration' | 'number' | 'range' | 'text'; // Type explicite
+  time_of_day?: 'morning' | 'afternoon' | 'evening' | 'night' | 'any_time';
+}
+
+export type NorthStarMetricType = 'number' | 'scale_10' | 'counter';
+
+export interface NorthStarHistoryEntry {
+  date: string; // YYYY-MM-DD
+  value: number;
+  note?: string;
+}
+
+export interface NorthStar {
+  id: string;
+  user_id: string;
+  submission_id: string;
+  title: string;
+  metric_type: NorthStarMetricType;
+  unit: string;
+  start_value: number;
+  target_value: number;
+  current_value: number;
+  history: NorthStarHistoryEntry[];
+  status: 'active' | 'completed' | 'abandoned' | 'archived';
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface GeneratedPlan {

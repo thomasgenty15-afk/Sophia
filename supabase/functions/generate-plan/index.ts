@@ -86,6 +86,7 @@ serve(async (req) => {
           startValue: "7",
           targetValue: "8",
           tracking_type: "counter",
+          time_of_day: "night",
           type: "number",
         },
         maintenanceCheck: {
@@ -307,6 +308,9 @@ serve(async (req) => {
               - "evening" : Soir (fin de journée, dîner).
               - "night" : Juste avant de dormir ou pendant la nuit (Sommeil). Ex: Couvre-feu digital, Dormir.
               - "any_time" : N'importe quand dans la journée.
+          12. **Timing du Vital Signal (NOUVEAU - CRITIQUE)** :
+              Pour le "vitalSignal", tu DOIS aussi ajouter "time_of_day" avec les mêmes valeurs autorisées :
+              - "morning" | "afternoon" | "evening" | "night" | "any_time"
 
           STRUCTURE JSON ATTENDUE (Exemple complet) :
           {
@@ -322,6 +326,7 @@ serve(async (req) => {
               "unit": "h",
               "startValue": "01:00",
               "targetValue": "22:30",
+              "time_of_day": "night",
               "description": "On décalera progressivement de 15min tous les 3 jours.",
               "type": "time"
             },
@@ -505,6 +510,9 @@ serve(async (req) => {
               - "evening" : Soir (fin de journée, dîner).
               - "night" : Juste avant de dormir ou pendant la nuit (Sommeil). Ex: Couvre-feu digital, Dormir.
               - "any_time" : N'importe quand dans la journée.
+          12. **Timing du Vital Signal (NOUVEAU - CRITIQUE)** :
+              Pour le "vitalSignal", tu DOIS aussi ajouter "time_of_day" avec les mêmes valeurs autorisées :
+              - "morning" | "afternoon" | "evening" | "night" | "any_time"
 
           STRUCTURE JSON ATTENDUE (Exemple complet) :
           {
@@ -520,6 +528,7 @@ serve(async (req) => {
               "unit": "h",
               "startValue": "01:00",
               "targetValue": "22:30",
+              "time_of_day": "night",
               "description": "On décalera progressivement de 15min tous les 3 jours.",
               "type": "constat"
             },
@@ -627,6 +636,9 @@ serve(async (req) => {
       if (!plan.estimatedDuration) {
         const p = (pacing ?? "").toLowerCase().trim();
         plan.estimatedDuration = p === "fast" ? "1 mois" : p === "slow" ? "3 mois" : "2 mois";
+      }
+      if (plan.vitalSignal && typeof plan.vitalSignal === "object" && !plan.vitalSignal.time_of_day) {
+        plan.vitalSignal.time_of_day = "any_time";
       }
 
       // Progressive ramp (deterministic): enforce habit frequency per phase based on pacing.

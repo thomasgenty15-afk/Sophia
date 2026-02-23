@@ -19,6 +19,15 @@ const RETENTION_STEPS = [
   { days: 5, type: "trial_ended_j_plus_5", subject: "Je te laisse tranquille après ça (promis)" },
 ];
 
+function hasActiveSubscription(row: { status: string | null; current_period_end: string | null } | null | undefined): boolean {
+  if (!row) return false;
+  const status = String(row.status ?? "").toLowerCase();
+  if (status !== "active" && status !== "trialing") return false;
+  if (!row.current_period_end) return true;
+  const end = new Date(row.current_period_end).getTime();
+  return Number.isFinite(end) ? Date.now() < end : true;
+}
+
 serve(async (req) => {
   const ctx = getRequestContext(req)
   const guardRes = ensureInternalRequest(req);
@@ -51,8 +60,7 @@ serve(async (req) => {
         id, 
         email, 
         full_name, 
-        trial_end,
-        subscriptions (status)
+        trial_end
       `)
       .gte("trial_end", rangeStart.toISOString())
       .lte("trial_end", rangeEnd.toISOString());
@@ -64,9 +72,14 @@ serve(async (req) => {
     let sentCount = 0;
 
     for (const user of users) {
-      // Vérifier si payant
-      const isPaid = user.subscriptions && user.subscriptions.length > 0 && user.subscriptions[0].status === 'active';
-      if (isPaid) continue;
+      // Vérifier le statut d'abonnement en temps réel (avant CHAQUE envoi).
+      // Cela évite d'envoyer un mail de rétention à un utilisateur qui vient de se réabonner.
+      const { data: subRow } = await supabase
+        .from("subscriptions")
+        .select("status,current_period_end")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      if (hasActiveSubscription(subRow as any)) continue;
 
       // Calculer le delta en jours (entiers)
       // Delta = Aujourd'hui - TrialEnd

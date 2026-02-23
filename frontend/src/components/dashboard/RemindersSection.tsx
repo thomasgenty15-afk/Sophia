@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Plus, Clock, Calendar, Trash2, Edit2, Play, Pause } from 'lucide-react';
+import { Bell, Plus, Clock, Calendar, Trash2, Edit2, Play, Pause, Lock, Crown } from 'lucide-react';
 import { CreateReminderModal, type ReminderFormValues } from './CreateReminderModal';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
@@ -25,6 +25,8 @@ type Reminder = {
 
 interface RemindersSectionProps {
   userId: string | null;
+  isLocked?: boolean;
+  onUnlockRequest?: () => void;
 }
 
 function rowToReminder(row: ReminderRow): Reminder {
@@ -38,7 +40,7 @@ function rowToReminder(row: ReminderRow): Reminder {
   };
 }
 
-export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId }) => {
+export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLocked = false, onUnlockRequest }) => {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
@@ -73,6 +75,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId }) =>
   }, [userId]);
 
   const handleCreate = async (data: ReminderFormValues) => {
+    if (isLocked) return;
     if (!userId) return;
     const message = String(data.message ?? '').trim();
     if (!message || !data.days?.length) return;
@@ -92,6 +95,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId }) =>
   };
 
   const handleUpdate = async (data: ReminderFormValues) => {
+    if (isLocked) return;
     if (!editingReminder) return;
     const message = String(data.message ?? '').trim();
     if (!message || !data.days?.length) return;
@@ -112,6 +116,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId }) =>
   };
 
   const toggleActive = async (reminder: Reminder) => {
+    if (isLocked) return;
     const nextActive = !reminder.isActive;
     const { error } = await supabase
       .from('user_recurring_reminders')
@@ -126,6 +131,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId }) =>
   };
 
   const softDeleteReminder = async (reminder: Reminder) => {
+    if (isLocked) return;
     const { error } = await supabase
       .from('user_recurring_reminders')
       .update({
@@ -147,13 +153,44 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId }) =>
 
   return (
     <div className="space-y-6">
+      {isLocked && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-col min-[450px]:flex-row min-[450px]:items-center min-[450px]:justify-between gap-3">
+          <div className="flex items-start gap-3">
+            <div className="w-9 h-9 rounded-full bg-amber-200 text-amber-900 flex items-center justify-center shrink-0">
+              <Lock className="w-4 h-4" />
+            </div>
+            <div>
+              <p className="text-sm font-bold text-amber-900">Fonctionnalité WhatsApp verrouillée</p>
+              <p className="text-xs text-amber-700">
+                Les rappels WhatsApp sont disponibles avec le plan Alliance ou Architecte.
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            onClick={() => onUnlockRequest?.()}
+            className="px-4 py-2 rounded-xl bg-amber-500 hover:bg-amber-400 text-white text-xs font-bold flex items-center justify-center gap-2 shrink-0"
+          >
+            <Crown className="w-4 h-4" />
+            Passer à Alliance / Architecte
+          </button>
+        </div>
+      )}
+
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
           <Bell className="w-6 h-6 text-amber-500" /> Mes Rappels
         </h2>
         <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-amber-200 hover:shadow-amber-300 transition-all flex items-center gap-2"
+          onClick={() => {
+            if (isLocked) {
+              onUnlockRequest?.();
+              return;
+            }
+            setIsModalOpen(true);
+          }}
+          disabled={isLocked}
+          className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-amber-200 hover:shadow-amber-300 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500"
         >
           <Plus className="w-4 h-4" />
           <span className="hidden min-[450px]:inline">Ajouter</span>
@@ -202,29 +239,31 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId }) =>
                   {reminder.time}
                 </div>
 
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <button
-                    onClick={() => toggleActive(reminder)}
-                    className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
-                    title={reminder.isActive ? 'Desactiver' : 'Activer'}
-                  >
-                    {reminder.isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                  </button>
-                  <button
-                    onClick={() => setEditingReminder(reminder)}
-                    className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-600 transition-colors"
-                    title="Modifier"
-                  >
-                    <Edit2 className="w-4 h-4" />
-                  </button>
-                  <button
-                    onClick={() => softDeleteReminder(reminder)}
-                    className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
-                    title="Supprimer (desactive)"
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </button>
-                </div>
+                {!isLocked && (
+                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <button
+                      onClick={() => toggleActive(reminder)}
+                      className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
+                      title={reminder.isActive ? 'Desactiver' : 'Activer'}
+                    >
+                      {reminder.isActive ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
+                    </button>
+                    <button
+                      onClick={() => setEditingReminder(reminder)}
+                      className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-blue-600 transition-colors"
+                      title="Modifier"
+                    >
+                      <Edit2 className="w-4 h-4" />
+                    </button>
+                    <button
+                      onClick={() => softDeleteReminder(reminder)}
+                      className="p-1.5 hover:bg-red-50 rounded-lg text-slate-400 hover:text-red-500 transition-colors"
+                      title="Supprimer (desactive)"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </div>
+                )}
               </div>
 
               <p className={`font-medium text-sm mb-4 line-clamp-2 ${reminder.isActive ? 'text-slate-800' : 'text-slate-500'}`}>
@@ -257,13 +296,13 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId }) =>
       )}
 
       <CreateReminderModal
-        isOpen={isModalOpen}
+        isOpen={!isLocked && isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreate}
       />
 
       <CreateReminderModal
-        isOpen={!!editingReminder}
+        isOpen={!isLocked && !!editingReminder}
         onClose={() => setEditingReminder(null)}
         onSubmit={handleUpdate}
         initialValues={editingReminder ? {
