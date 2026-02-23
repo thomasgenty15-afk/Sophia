@@ -127,20 +127,22 @@ export async function runAgentAndVerify(opts: {
     const shouldForceStop = checkupActive && stopCheckup && !activeSentryFlow && !activeFirefighterFlow;
     if (shouldForceStop) {
       const invState = (state as any)?.investigation_state;
-      const stats = computeCheckupStatsFromInvestigationState(invState, {
-        fillUnloggedAsMissed: true,
-      });
-
-      try {
-        await logCheckupCompletion(
-          supabase,
-          userId,
-          { items: stats.items, completed: stats.completed, missed: stats.missed },
-          "chat_stop",
-          "partial",
-        );
-      } catch {
-        // non-blocking
+      const isWeeklyBilan = String((invState as any)?.mode ?? "") === "weekly_bilan";
+      if (!isWeeklyBilan) {
+        const stats = computeCheckupStatsFromInvestigationState(invState, {
+          fillUnloggedAsMissed: true,
+        });
+        try {
+          await logCheckupCompletion(
+            supabase,
+            userId,
+            { items: stats.items, completed: stats.completed, missed: stats.missed },
+            "chat_stop",
+            "partial",
+          );
+        } catch {
+          // non-blocking
+        }
       }
 
       const tm0 = (state as any)?.temp_memory ?? tempMemory ?? {};
@@ -165,7 +167,9 @@ export async function runAgentAndVerify(opts: {
       } as any);
 
       return {
-        responseContent: "Pas de souci, on fera le bilan demain soir.",
+        responseContent: isWeeklyBilan
+          ? "Pas de souci, on reprendra le bilan hebdo plus tard."
+          : "Pas de souci, on fera le bilan demain soir.",
         nextMode: "companion",
         tempMemory: tm1,
         toolExecution,
@@ -228,23 +232,26 @@ export async function runAgentAndVerify(opts: {
 
         if (invResult.investigationComplete) {
           const invState = (state as any)?.investigation_state;
-          const stats = computeCheckupStatsFromInvestigationState(invState, {
-            fillUnloggedAsMissed: true,
-          });
-          try {
-            await logCheckupCompletion(
-              supabase,
-              userId,
-              {
-                items: stats.items,
-                completed: stats.completed,
-                missed: stats.missed,
-              },
-              "chat",
-              "full",
-            );
-          } catch {
-            // non-blocking
+          const isWeeklyBilan = String((invState as any)?.mode ?? "") === "weekly_bilan";
+          if (!isWeeklyBilan) {
+            const stats = computeCheckupStatsFromInvestigationState(invState, {
+              fillUnloggedAsMissed: true,
+            });
+            try {
+              await logCheckupCompletion(
+                supabase,
+                userId,
+                {
+                  items: stats.items,
+                  completed: stats.completed,
+                  missed: stats.missed,
+                },
+                "chat",
+                "full",
+              );
+            } catch {
+              // non-blocking
+            }
           }
 
           const tm0 = (state as any)?.temp_memory ?? tempMemory ?? {};

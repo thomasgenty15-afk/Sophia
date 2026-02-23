@@ -272,7 +272,7 @@ const Dashboard = () => {
     return { system: true, sophia: false, architect: false };
   };
 
-  const canAccessWhatsappFeatures = accessTier === 'alliance' || accessTier === 'architecte';
+  const canAccessWhatsappFeatures = accessTier === 'alliance' || accessTier === 'architecte' || accessTier === 'trial';
   const isArchitectMode = mode === 'architecte';
   const hasActivePlan = activePlan !== null;
   const displayStrategy = activePlan?.strategy || "Chargement de la stratégie...";
@@ -675,7 +675,7 @@ const Dashboard = () => {
                         }`}
                       >
                         <Bell className={`w-4 h-4 ${activeTab === 'reminders' ? 'text-amber-500' : ''}`} />
-                        <span className="hidden min-[487px]:inline">Rappels</span>
+                        <span className="hidden min-[487px]:inline">Initiatives</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('preferences')}

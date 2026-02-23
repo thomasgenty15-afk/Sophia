@@ -57,6 +57,7 @@ Deno.serve(async (req) => {
       success: true,
       request_id: requestId,
       daily_bilan: { claimed: 0, marked: 0 },
+      weekly_bilan: { claimed: 0, marked: 0 },
       memory_echo: { claimed: 0, marked: 0 },
     }
 
@@ -103,6 +104,48 @@ Deno.serve(async (req) => {
         out.daily_bilan.skipped = skippedUserIds.length
         out.daily_bilan.deferred = deferredUserIds.length
         out.daily_bilan.errors = (resp as any)?.errors ?? []
+      }
+    }
+
+    // ---- WEEKLY BILAN (Sunday 20:00 local) ----
+    {
+      const { data: claimed, error } = await admin.rpc("claim_due_weekly_bilan", {
+        p_batch: 100,
+        p_target: "20:00",
+      })
+      if (error) throw error
+      const rows = (claimed ?? []) as Array<{ user_id: string; local_date: string }>
+      out.weekly_bilan.claimed = rows.length
+      if (rows.length > 0) {
+        const mapLocalDate = new Map(rows.map((r) => [String(r.user_id), String(r.local_date)]))
+        const userIds = uniq(rows.map((r) => String(r.user_id)))
+
+        const resp = await callEdge("trigger-weekly-bilan", { user_ids: userIds, scheduler: true })
+        const sentUserIds = uniq((resp as any)?.sent_user_ids ?? [])
+        const skippedUserIds = uniq((resp as any)?.skipped_user_ids ?? [])
+        const handled = uniq([...sentUserIds, ...skippedUserIds])
+
+        if (handled.length > 0) {
+          const pairs = handled
+            .map((id) => ({ id, d: mapLocalDate.get(id) ?? null }))
+            .filter((x) => Boolean(x.d)) as Array<{ id: string; d: string }>
+          const userIdsToMark = pairs.map((p) => p.id)
+          const localDates = pairs.map((p) => p.d)
+
+          if (userIdsToMark.length > 0) {
+            const { error: markErr } = await admin.rpc("mark_proactive_job_sent_batch", {
+              p_job: "weekly_bilan",
+              p_user_ids: userIdsToMark,
+              p_local_dates: localDates,
+            })
+            if (markErr) throw markErr
+            out.weekly_bilan.marked = userIdsToMark.length
+          }
+        }
+
+        out.weekly_bilan.sent = sentUserIds.length
+        out.weekly_bilan.skipped = skippedUserIds.length
+        out.weekly_bilan.errors = (resp as any)?.errors ?? []
       }
     }
 
@@ -168,5 +211,4 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-
 

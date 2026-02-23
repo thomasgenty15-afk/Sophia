@@ -1,10 +1,22 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { generateWithGemini } from "../_shared/gemini.ts"
-import { fetchLatestPending, markPending } from "./wa_db.ts"
+import { fetchLatestPending, loadHistory, markPending } from "./wa_db.ts"
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts"
 import { generateDynamicWhatsAppCheckinMessage } from "../_shared/scheduled_checkins.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
-import { classifyBilanResponse } from "./handlers_optin_bilan.ts"
+import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts"
+import { createWeeklyInvestigationState } from "../sophia-brain/agents/investigator-weekly/types.ts"
+import { buildWeeklyReviewPayload } from "../trigger-weekly-bilan/payload.ts"
+
+function classifyWeeklyBilanIntent(text: string): "accept" | "decline" | "unknown" {
+  const t = String(text ?? "").trim().toLowerCase()
+  if (!t) return "unknown"
+  if (/^(oui|yes|go|ok|carr[ée]ment)\b/.test(t)) return "accept"
+  if (/\bon\s+le\s+fait\b/.test(t)) return "accept"
+  if (/\b(c'est parti|vas[- ]?y)\b/.test(t)) return "accept"
+  if (/\b(pas maintenant|plus tard|demain|non|pas dispo|une autre fois)\b/.test(t)) return "decline"
+  return "unknown"
+}
 
 export async function handlePendingActions(params: {
   admin: SupabaseClient
@@ -170,6 +182,134 @@ export async function handlePendingActions(params: {
       metadata: { channel: "whatsapp", wa_outbound_message_id: outId, outbound_tracking_id: outboundTrackingId, is_proactive: false },
     })
     return true
+  }
+
+  // Weekly bilan template: user chooses to start now or postpone.
+  const weeklyPending = await fetchLatestPending(admin, userId, "weekly_bilan")
+  if (weeklyPending && !params.isOptInYes) {
+    const intent = classifyWeeklyBilanIntent(params.inboundText)
+
+    if (intent === "decline") {
+      await markPending(admin, (weeklyPending as any).id, "cancelled")
+      const txt = "Ok, pas de souci. On laisse le bilan hebdo pour une autre fois."
+      const sendResp = await sendWhatsAppTextTracked({
+        admin,
+        requestId,
+        userId,
+        toE164: fromE164,
+        body: txt,
+        purpose: "weekly_bilan",
+        isProactive: false,
+      })
+      const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+      const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+      await admin.from("chat_messages").insert({
+        user_id: userId,
+        scope: "whatsapp",
+        role: "assistant",
+        content: txt,
+        agent_used: "companion",
+        metadata: {
+          channel: "whatsapp",
+          wa_outbound_message_id: outId,
+          outbound_tracking_id: outboundTrackingId,
+          is_proactive: false,
+          source: "weekly_bilan",
+        },
+      })
+      return true
+    }
+
+    if (intent === "accept") {
+      const payloadFromPending = (weeklyPending as any)?.payload?.weekly_review_payload ?? null
+      const weeklyPayload = payloadFromPending ?? await buildWeeklyReviewPayload(admin as any, userId)
+      const initialState = createWeeklyInvestigationState(weeklyPayload)
+      const history = await loadHistory(admin, userId, 20, "whatsapp")
+      const inv = await runInvestigator(
+        admin as any,
+        userId,
+        "",
+        history,
+        initialState,
+        { requestId, channel: "whatsapp" },
+      )
+
+      const opening = String(inv?.content ?? "").trim()
+      if (inv?.investigationComplete || !inv?.newState || !opening) {
+        await markPending(admin, (weeklyPending as any).id, "expired")
+        const txt = "On a eu un souci technique pour lancer le bilan hebdo. Tu peux me redire “on le fait” ?"
+        const sendResp = await sendWhatsAppTextTracked({
+          admin,
+          requestId,
+          userId,
+          toE164: fromE164,
+          body: txt,
+          purpose: "weekly_bilan",
+          isProactive: false,
+        })
+        const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+        const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+        await admin.from("chat_messages").insert({
+          user_id: userId,
+          scope: "whatsapp",
+          role: "assistant",
+          content: txt,
+          agent_used: "companion",
+          metadata: {
+            channel: "whatsapp",
+            wa_outbound_message_id: outId,
+            outbound_tracking_id: outboundTrackingId,
+            is_proactive: false,
+            source: "weekly_bilan",
+          },
+        })
+        return true
+      }
+
+      const { data: st } = await admin
+        .from("user_chat_states")
+        .select("temp_memory")
+        .eq("user_id", userId)
+        .eq("scope", "whatsapp")
+        .maybeSingle()
+      const tempMemory = (st as any)?.temp_memory ?? {}
+
+      await admin.from("user_chat_states").upsert({
+        user_id: userId,
+        scope: "whatsapp",
+        investigation_state: inv.newState,
+        temp_memory: tempMemory,
+      }, { onConflict: "user_id,scope" })
+
+      const sendResp = await sendWhatsAppTextTracked({
+        admin,
+        requestId,
+        userId,
+        toE164: fromE164,
+        body: opening,
+        purpose: "weekly_bilan",
+        isProactive: false,
+      })
+      const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+      const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+      await admin.from("chat_messages").insert({
+        user_id: userId,
+        scope: "whatsapp",
+        role: "assistant",
+        content: opening,
+        agent_used: "investigator",
+        metadata: {
+          channel: "whatsapp",
+          wa_outbound_message_id: outId,
+          outbound_tracking_id: outboundTrackingId,
+          is_proactive: false,
+          source: "weekly_bilan",
+        },
+      })
+
+      await markPending(admin, (weeklyPending as any).id, "done")
+      return true
+    }
   }
 
   // Memory echo: user accepts -> send a short intro then generate and send the actual echo.

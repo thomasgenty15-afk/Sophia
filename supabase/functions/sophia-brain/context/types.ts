@@ -71,6 +71,7 @@ export interface LoadedContext {
   temporal?: string;
   planMetadata?: string;
   northStarContext?: string;
+  weeklyRecapContext?: string;
   planJson?: string;
   actionsSummary?: string;
   actionIndicators?: string;

@@ -1159,8 +1159,8 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
   // Keep embeddings compatible with Postgres vector(768) columns.
   const outputDimensionality = 768
   const base = "https://generativelanguage.googleapis.com"
-  const urlV1 = `${base}/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`
   const urlV1beta = `${base}/v1beta/models/${model}:embedContent?key=${GEMINI_API_KEY}`
+  const urlV1 = `${base}/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`
 
   const parseTimeoutMs = (raw: string | undefined, fallback: number) => {
     const n = Number(String(raw ?? "").trim());
@@ -1193,22 +1193,16 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
     })
   }
 
-  // Prefer v1 (more stable). Only fall back to v1beta when explicitly allowed.
+  // Prefer v1beta first for embeddings (current behavior for this project/key),
+  // then fall back to v1 if/when GA support is available.
   let response: Response
   let lastErrPayload: any = null
   try {
-    response = await doFetch(urlV1)
+    response = await doFetch(urlV1beta)
     if (!response.ok) {
       lastErrPayload = await response.json().catch(() => ({}))
-      const allowV1beta = (Deno.env.get("GEMINI_ALLOW_V1BETA") ?? "").trim() === "1"
-      const message = String(lastErrPayload?.error?.message ?? "")
-      const looksLikeVersionMismatch =
-        message.includes("API version v1") ||
-        message.includes("not supported for embedContent") ||
-        message.includes("not found")
-      if (allowV1beta && looksLikeVersionMismatch) {
-        response = await doFetch(urlV1beta)
-      }
+      // Retry once on v1 to support future GA switches.
+      response = await doFetch(urlV1)
     }
   } finally {
     cancel()

@@ -137,6 +137,21 @@ export async function loadContextForMode(
     );
   }
 
+  const shouldInjectWeeklyRecap = shouldInjectWeeklyRecapContext({
+    mode: opts.mode,
+    state: opts.state,
+  });
+  if (shouldInjectWeeklyRecap) {
+    promises.push(
+      loadWeeklyRecapContext(opts.supabase, opts.userId).then((block) => {
+        if (block) {
+          context.weeklyRecapContext = block;
+          elementsLoaded.push("weekly_recap_context");
+        }
+      }),
+    );
+  }
+
   // 2. Temporal context
   if (profile.temporal && opts.userTime?.prompt_block) {
     context.temporal =
@@ -497,6 +512,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.recentTurns) ctx += loaded.recentTurns;
   if (loaded.planMetadata) ctx += loaded.planMetadata + "\n\n";
   if (loaded.northStarContext) ctx += loaded.northStarContext + "\n\n";
+  if (loaded.weeklyRecapContext) ctx += loaded.weeklyRecapContext + "\n\n";
   if (loaded.planJson) ctx += loaded.planJson + "\n\n";
   if (loaded.actionsSummary) ctx += loaded.actionsSummary + "\n\n";
   if (loaded.actionIndicators) ctx += loaded.actionIndicators + "\n\n";
@@ -711,6 +727,97 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
       ? `- Si un bilan est actif, garde le bilan prioritaire après l'orientation dashboard.\n`
       : "")
   );
+}
+
+function ymdInTz(d: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-CA", {
+    timeZone,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).format(d);
+}
+
+function isoWeekStartYmdInTz(d: Date, timeZone: string): string {
+  const ymd = ymdInTz(d, timeZone);
+  const [y, m, dd] = ymd.split("-").map(Number);
+  const dt = new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, dd ?? 1));
+  const isoDayIndex = (dt.getUTCDay() + 6) % 7;
+  dt.setUTCDate(dt.getUTCDate() - isoDayIndex);
+  const yy = dt.getUTCFullYear();
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const ddd = String(dt.getUTCDate()).padStart(2, "0");
+  return `${yy}-${mm}-${ddd}`;
+}
+
+function addDaysYmd(ymd: string, delta: number): string {
+  const [y, m, d] = ymd.split("-").map(Number);
+  const dt = new Date(Date.UTC(y ?? 1970, (m ?? 1) - 1, d ?? 1));
+  dt.setUTCDate(dt.getUTCDate() + delta);
+  const yy = dt.getUTCFullYear();
+  const mm = String(dt.getUTCMonth() + 1).padStart(2, "0");
+  const dd = String(dt.getUTCDate()).padStart(2, "0");
+  return `${yy}-${mm}-${dd}`;
+}
+
+function shouldInjectWeeklyRecapContext(args: {
+  mode: AgentMode;
+  state: any;
+}): boolean {
+  if (args.mode === "companion") return true;
+  if (args.mode !== "investigator") return false;
+  const inv = args.state?.investigation_state;
+  return String(inv?.mode ?? "") === "weekly_bilan";
+}
+
+async function loadWeeklyRecapContext(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  try {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("timezone")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const tz = String((profile as any)?.timezone ?? "").trim() || "Europe/Paris";
+    const weekStart = isoWeekStartYmdInTz(new Date(), tz);
+    const previousWeekStart = addDaysYmd(weekStart, -7);
+
+    const { data: recap, error } = await supabase
+      .from("weekly_bilan_recaps")
+      .select("execution,etoile_polaire,decisions_next_week,coach_note,week_start")
+      .eq("user_id", userId)
+      .eq("week_start", previousWeekStart)
+      .maybeSingle();
+
+    if (error || !recap) return null;
+
+    const execution = (recap as any).execution ?? {};
+    const etoile = (recap as any).etoile_polaire ?? {};
+    const decisions = Array.isArray((recap as any).decisions_next_week)
+      ? (recap as any).decisions_next_week.map((x: unknown) => String(x)).filter(Boolean).slice(0, 5)
+      : [];
+    const coachNote = String((recap as any).coach_note ?? "").trim();
+
+    let block = "=== RECAP BILAN HEBDO PRECEDENT ===\n";
+    block += `- Semaine: ${String((recap as any).week_start ?? previousWeekStart)}\n`;
+    block += `- Exécution: ${Number(execution?.rate_pct ?? 0)}% (${Number(execution?.completed ?? 0)}/${Number(execution?.total ?? 0)})\n`;
+    if (etoile && typeof etoile === "object" && Object.keys(etoile).length > 0) {
+      block += `- Etoile Polaire: ${String(etoile?.title ?? "Etoile Polaire")} | actuel=${String(etoile?.current ?? "?")} | cible=${String(etoile?.target ?? "?")}\n`;
+    }
+    if (decisions.length > 0) {
+      block += `- Décisions prises: ${decisions.join(" ; ")}\n`;
+    }
+    if (coachNote) {
+      block += `- Note coach: ${coachNote.slice(0, 500)}\n`;
+    }
+    block += "- Utilise ce recap pour assurer la continuité, sans le réciter mot à mot.\n";
+    return block;
+  } catch {
+    return null;
+  }
 }
 
 function shouldInjectNorthStarContext(args: {

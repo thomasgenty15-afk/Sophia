@@ -146,12 +146,12 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
             className="relative bg-white rounded-3xl shadow-2xl w-full max-w-lg max-h-[90vh] overflow-y-auto flex flex-col"
           >
             {/* Header */}
-            <div className="p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
+            <div className="p-4 md:p-6 border-b border-slate-100 flex items-center justify-between sticky top-0 bg-white z-10">
               <div className="flex items-center gap-3">
                  <div className="p-2 bg-indigo-50 text-indigo-600 rounded-xl">
                     <Plus className="w-5 h-5" />
                  </div>
-                 <h2 className="text-xl font-bold text-slate-900">{mode === 'edit' ? "Modifier l'action" : "Créer une action"}</h2>
+                 <h2 className="text-lg md:text-xl font-bold text-slate-900">{mode === 'edit' ? "Modifier l'action" : "Créer une action"}</h2>
               </div>
               <button onClick={handleClose} className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-300 hover:text-slate-500">
                 <X className="w-5 h-5" />
@@ -159,7 +159,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
             </div>
 
             {/* Content */}
-            <div className="p-6 space-y-6 flex-1 overflow-y-auto">
+            <div className="p-4 md:p-6 space-y-6 flex-1 overflow-y-auto">
               
               {/* Type Selection */}
               {!lockToHabit && (
@@ -205,7 +205,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
                     <button
                         onClick={() => setQuestType('main')}
                         className={clsx(
-                            "flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all",
+                            "flex-1 py-2 px-2 sm:px-3 rounded-lg border text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all",
                             questType === 'main' ? "bg-blue-600 text-white border-blue-600 shadow-sm" : "bg-white text-slate-500 border-slate-200 hover:bg-slate-50"
                         )}
                     >
@@ -215,7 +215,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
                     <button
                         onClick={() => setQuestType('side')}
                         className={clsx(
-                            "flex-1 py-2 px-3 rounded-lg border text-xs font-bold flex items-center justify-center gap-2 transition-all",
+                            "flex-1 py-2 px-2 sm:px-3 rounded-lg border text-[10px] sm:text-xs font-bold flex items-center justify-center gap-1.5 sm:gap-2 transition-all",
                             questType === 'side' ? "bg-white text-slate-600 border-slate-300 shadow-sm" : "bg-white text-slate-400 border-slate-200 hover:bg-slate-50"
                         )}
                     >
@@ -234,7 +234,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
                         value={title}
                         onChange={(e) => setTitle(e.target.value)}
                         placeholder="Ex: Lire 10 pages..."
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all font-medium text-slate-900 placeholder:text-slate-400"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all font-medium text-xs md:text-sm text-slate-900 placeholder:text-slate-400"
                     />
                 </div>
 
@@ -245,7 +245,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
                         onChange={(e) => setDescription(e.target.value)}
                         placeholder="Détails de l'action..."
                         rows={3}
-                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all font-medium text-slate-900 placeholder:text-slate-400 resize-none"
+                        className="w-full px-4 py-3 rounded-xl bg-slate-50 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 transition-all font-medium text-xs md:text-sm text-slate-900 placeholder:text-slate-400 resize-none"
                     />
                 </div>
               </div>
@@ -293,7 +293,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
 
                     <div className="mt-4">
                       <label className="block text-xs font-bold text-emerald-800 mb-2">Jours (optionnel)</label>
-                      <div className="grid grid-cols-7 gap-1.5">
+                      <div className="grid grid-cols-7 gap-1">
                         {DAYS.map((d) => {
                           const active = scheduledDays.includes(d.key);
                           return (
@@ -354,7 +354,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
             </div>
 
             {/* Footer */}
-            <div className="p-6 pt-2 border-t border-slate-50 bg-slate-50/50 flex justify-end gap-3 sticky bottom-0">
+            <div className="p-4 md:p-6 pt-2 border-t border-slate-50 bg-slate-50/50 flex justify-end gap-3 sticky bottom-0">
               <button
                 onClick={handleClose}
                 className="px-5 py-3 rounded-xl font-bold text-slate-500 hover:bg-slate-100 transition-colors text-sm"

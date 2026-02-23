@@ -29,6 +29,10 @@ import {
   initializeItemProgress,
   updateItemProgress,
 } from "./item_progress.ts";
+import {
+  isWeeklyInvestigationState,
+} from "../investigator-weekly/types.ts";
+import { runInvestigatorWeekly } from "../investigator-weekly/run.ts";
 
 // Re-export for backward compatibility
 export { getItemProgress, updateItemProgress } from "./item_progress.ts";
@@ -98,6 +102,17 @@ export async function runInvestigator(
     model?: string;
   },
 ): Promise<InvestigatorTurnResult> {
+  if (isWeeklyInvestigationState(state)) {
+    return await runInvestigatorWeekly(
+      supabase,
+      userId,
+      message,
+      history,
+      state,
+      meta,
+    ) as InvestigatorTurnResult;
+  }
+
   const timeCtx = await getUserTimeContext({ supabase, userId }).catch(() =>
     null as any
   );

@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Repeat, Sparkles, Target } from 'lucide-react';
+import { Plus, Repeat, Sparkles, Target, Info } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { isSameIsoWeekLocal } from '../../lib/isoWeek';
 import type { Action, NorthStar, NorthStarMetricType } from '../../types/dashboard';
@@ -51,6 +52,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
   const [createOpen, setCreateOpen] = useState(false);
   const [editingAction, setEditingAction] = useState<Action | null>(null);
   const [habitSettingsAction, setHabitSettingsAction] = useState<Action | null>(null);
+  const [showInfo, setShowInfo] = useState(false);
 
   const [northStar, setNorthStar] = useState<NorthStar | null>(null);
   const [northStarGoalId, setNorthStarGoalId] = useState<string | null>(null);
@@ -61,6 +63,10 @@ export function PersonalActionsSection(props: { userId: string | null }) {
   const [northStarSaving, setNorthStarSaving] = useState(false);
   const [northStarSuggestions, setNorthStarSuggestions] = useState<Array<{ title: string; metric_type: NorthStarMetricType; unit: string }>>([]);
   const [showCyclePrompt, setShowCyclePrompt] = useState(false);
+  const [northStarValueModalOpen, setNorthStarValueModalOpen] = useState(false);
+  const [northStarValueDraft, setNorthStarValueDraft] = useState('');
+  const [northStarValueSaving, setNorthStarValueSaving] = useState(false);
+  const [northStarValueError, setNorthStarValueError] = useState<string | null>(null);
 
   const activeCount = useMemo(
     () => actions.filter((a) => a.status === 'active' || a.status === 'pending').length,
@@ -275,6 +281,31 @@ export function PersonalActionsSection(props: { userId: string | null }) {
     setNorthStar(data as NorthStar);
   };
 
+  const openNorthStarValueModal = () => {
+    if (!northStar) return;
+    setNorthStarValueDraft(String(northStar.current_value ?? ''));
+    setNorthStarValueError(null);
+    setNorthStarValueModalOpen(true);
+  };
+
+  const submitNorthStarValue = async () => {
+    const parsed = Number(northStarValueDraft);
+    if (!Number.isFinite(parsed)) {
+      setNorthStarValueError('Entre un nombre valide.');
+      return;
+    }
+    setNorthStarValueSaving(true);
+    setNorthStarValueError(null);
+    try {
+      await updateNorthStarValue(String(parsed));
+      setNorthStarValueModalOpen(false);
+    } catch (e: any) {
+      setNorthStarValueError(String(e?.message ?? 'Impossible de mettre à jour la valeur.'));
+    } finally {
+      setNorthStarValueSaving(false);
+    }
+  };
+
   const patchActionLocal = (actionId: string, patch: Partial<Action>) => {
     setActions((prev) =>
       prev.map((a) =>
@@ -437,18 +468,40 @@ export function PersonalActionsSection(props: { userId: string | null }) {
 
   return (
     <section className="mb-10">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
-          <Repeat className="w-5 h-5 text-emerald-600" />
-          Actions personnelles
-        </h2>
-        <button
-          onClick={() => setCreateOpen(true)}
-          className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-emerald-200 hover:shadow-emerald-300 transition-all flex items-center gap-2"
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Repeat className="w-5 h-5 text-emerald-600" />
+            <div className="flex items-center gap-1">
+              Actions Personnelles
+              <button
+                onClick={() => setShowInfo(!showInfo)}
+                className="p-1 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
+                title="Plus d'informations"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+            </div>
+          </h2>
+          <button
+            onClick={() => setCreateOpen(true)}
+            className="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-emerald-200 hover:shadow-emerald-300 transition-all flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden min-[450px]:inline">Ajouter</span>
+          </button>
+        </div>
+        <motion.div
+          initial={false}
+          animate={{ height: showInfo ? 'auto' : 0, opacity: showInfo ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          className="overflow-hidden"
         >
-          <Plus className="w-4 h-4" />
-          Ajouter
-        </button>
+          <p className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4">
+            Gère tes propres habitudes en parallèle de ton plan de transformation. 
+            <br />Exemples : <span className="italic">« Boire 2L d'eau »</span>, <span className="italic">« Méditer 10 minutes »</span>, ou <span className="italic">« Lire 10 pages avant de dormir »</span>.
+          </p>
+        </motion.div>
       </div>
 
       {loading ? (
@@ -456,17 +509,17 @@ export function PersonalActionsSection(props: { userId: string | null }) {
           Chargement des actions personnelles…
         </div>
       ) : actions.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center shadow-sm">
-          <div className="w-16 h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Repeat className="w-8 h-8" />
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 md:p-8 text-center shadow-sm">
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-50 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Repeat className="w-6 h-6 md:w-8 md:h-8" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Aucune habitude personnelle</h3>
+          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-2">Aucune habitude personnelle</h3>
           <p className="text-slate-500 mb-6 max-w-md mx-auto text-sm">
             Crée des habitudes indépendantes de ton plan de transformation (ex: boire de l'eau, méditer, lire...)
           </p>
           <button
             onClick={() => setCreateOpen(true)}
-            className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors text-sm"
+            className="text-emerald-600 font-bold hover:text-emerald-700 transition-colors text-xs md:text-sm"
           >
             Créer ma première habitude
           </button>
@@ -575,11 +628,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
               )}
               <div className="mt-3 pt-2 border-t border-slate-100">
                 <button
-                  onClick={async () => {
-                    const v = window.prompt('Nouvelle valeur actuelle :', String(northStar.current_value));
-                    if (v == null) return;
-                    await updateNorthStarValue(v);
-                  }}
+                  onClick={openNorthStarValueModal}
                   className="text-xs font-bold text-blue-600 hover:text-blue-800 flex items-center gap-1"
                 >
                   <Plus className="w-3 h-3" />
@@ -635,6 +684,82 @@ export function PersonalActionsSection(props: { userId: string | null }) {
         isGenerating={northStarGenerating}
         isSaving={northStarSaving}
       />
+
+      {northStarValueModalOpen && northStar && (
+        <div className="fixed inset-0 z-[70] flex items-center justify-center p-4">
+          <button
+            className="absolute inset-0 bg-slate-900/35"
+            aria-label="Fermer"
+            onClick={() => {
+              if (!northStarValueSaving) setNorthStarValueModalOpen(false);
+            }}
+          />
+          <div className="relative w-full max-w-md rounded-2xl bg-white border border-slate-100 shadow-2xl p-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <h4 className="text-base font-bold text-slate-900">Mettre à jour la valeur actuelle</h4>
+                <p className="mt-1 text-sm text-slate-500">
+                  {northStar.title} {northStar.unit ? `(${northStar.unit})` : ''}
+                </p>
+              </div>
+              <button
+                className="text-slate-400 hover:text-slate-600 text-xl leading-none"
+                onClick={() => {
+                  if (!northStarValueSaving) setNorthStarValueModalOpen(false);
+                }}
+                aria-label="Fermer"
+              >
+                ×
+              </button>
+            </div>
+
+            <div className="mt-4">
+              <label className="block text-xs font-bold uppercase tracking-wide text-slate-500 mb-2">
+                Nouvelle valeur
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  step="any"
+                  value={northStarValueDraft}
+                  onChange={(e) => setNorthStarValueDraft(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && !northStarValueSaving) void submitNorthStarValue();
+                  }}
+                  className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+                  placeholder="Ex: 2"
+                  disabled={northStarValueSaving}
+                />
+                {northStar.unit && (
+                  <span className="text-xs font-semibold text-slate-500 whitespace-nowrap">
+                    {northStar.unit}
+                  </span>
+                )}
+              </div>
+              {northStarValueError && (
+                <p className="mt-2 text-xs text-rose-600">{northStarValueError}</p>
+              )}
+            </div>
+
+            <div className="mt-5 flex justify-end gap-2">
+              <button
+                className="px-3 py-2 rounded-lg border border-slate-200 text-slate-700 text-sm font-semibold hover:bg-slate-50 disabled:opacity-60"
+                onClick={() => setNorthStarValueModalOpen(false)}
+                disabled={northStarValueSaving}
+              >
+                Annuler
+              </button>
+              <button
+                className="px-3 py-2 rounded-lg bg-blue-600 text-white text-sm font-semibold hover:bg-blue-700 disabled:opacity-60"
+                onClick={() => void submitNorthStarValue()}
+                disabled={northStarValueSaving}
+              >
+                {northStarValueSaving ? 'Enregistrement…' : 'Enregistrer'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

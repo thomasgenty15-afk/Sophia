@@ -2,10 +2,15 @@ import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding } from '../../_shared/gemini.ts'
 import { handleTracking } from "../lib/tracking.ts"
 import { logEdgeFunctionError } from "../../_shared/error-log.ts"
+import {
+  UPDATE_ETOILE_POLAIRE_TOOL,
+  updateEtoilePolaire,
+} from "../lib/north_star_tools.ts"
 
 export type CompanionModelOutput =
   | string
   | { tool: "track_progress"; args: any }
+  | { tool: "update_etoile_polaire"; args: any }
 
 export type CompanionRunResult = {
   text: string
@@ -68,6 +73,7 @@ export function buildCompanionSystemPrompt(opts: {
     TRACKING :
     - Si l'utilisateur dit qu'il a FAIT une action/habitude: appelle l'outil track_progress (status=completed).
     - S'il dit qu'il ne l'a PAS faite: track_progress (status=missed, value=0).
+    - Si l'utilisateur donne explicitement une nouvelle valeur de son Etoile Polaire: appelle update_etoile_polaire.
 
     ACTIONS COMPLETED (CRITIQUE) :
     - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
@@ -316,7 +322,7 @@ export async function generateCompanionModelOutput(opts: {
     `Historique:\n${historyText}\n\nUser: ${opts.message}`,
     temperature,
     false,
-    [TRACK_PROGRESS_TOOL],
+    [TRACK_PROGRESS_TOOL, UPDATE_ETOILE_POLAIRE_TOOL],
     "auto",
     {
       requestId: opts.meta?.requestId,
@@ -414,6 +420,43 @@ export async function handleCompanionModelOutput(opts: {
       } catch {}
       return {
         text: `Ok, j’ai eu un souci technique en notant ça.\n\nDis “retente” et je réessaie.`,
+        executed_tools: [toolName],
+        tool_execution: "failed",
+      }
+    }
+  }
+
+  if (typeof response === "object" && (response as any)?.tool === "update_etoile_polaire") {
+    const toolName = "update_etoile_polaire"
+    try {
+      const newValue = Number((response as any)?.args?.new_value)
+      const note = String((response as any)?.args?.note ?? "").trim().slice(0, 300)
+      const result = await updateEtoilePolaire(supabase, userId, {
+        new_value: newValue,
+        ...(note ? { note } : {}),
+      })
+      const sign = result.delta >= 0 ? "+" : ""
+      const unit = result.unit ? ` ${result.unit}` : ""
+      return {
+        text: `Top, je mets à jour ton Etoile Polaire: ${result.new_value}${unit} (${sign}${result.delta}${unit}). Progression estimée: ${result.progression_pct}%.`,
+        executed_tools: [toolName],
+        tool_execution: "success",
+      }
+    } catch (e) {
+      const errMsg = e instanceof Error ? e.message : String(e)
+      console.error("[Companion] update_etoile_polaire failed (unexpected):", errMsg)
+      await logEdgeFunctionError({
+        functionName: "sophia-brain",
+        error: e,
+        severity: "error",
+        title: "tool_execution_failed_unexpected",
+        requestId: meta?.requestId ?? null,
+        userId,
+        source: "sophia-brain:companion",
+        metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, channel: meta?.channel ?? "web" },
+      })
+      return {
+        text: "J'ai eu un souci technique en mettant à jour ton Etoile Polaire. Tu peux me redonner la valeur ?",
         executed_tools: [toolName],
         tool_execution: "failed",
       }

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Plus, Clock, Calendar, Trash2, Edit2, Play, Pause, Lock, Crown } from 'lucide-react';
+import { Bell, Plus, Clock, Calendar, Trash2, Edit2, Play, Pause, Lock, Crown, Info } from 'lucide-react';
 import { CreateReminderModal, type ReminderFormValues } from './CreateReminderModal';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
@@ -45,6 +45,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [showInfo, setShowInfo] = useState(false);
 
   const loadReminders = async () => {
     if (!userId) {
@@ -80,7 +81,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
     const message = String(data.message ?? '').trim();
     if (!message || !data.days?.length) return;
     const sortedDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].filter((d) => data.days.includes(d));
-    const { error } = await supabase.from('user_recurring_reminders').insert({
+    const { data: createdReminder, error } = await supabase.from('user_recurring_reminders').insert({
       user_id: userId,
       message_instruction: message,
       rationale: data.rationale ?? null,
@@ -88,8 +89,15 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
       scheduled_days: sortedDays,
       status: 'active',
       updated_at: new Date().toISOString(),
-    } as any);
+    } as any)
+      .select('id')
+      .single();
     if (error) throw error;
+    if (createdReminder?.id) {
+      void supabase.functions.invoke('classify-recurring-reminder', {
+        body: { reminder_id: createdReminder.id },
+      });
+    }
     setIsModalOpen(false);
     await loadReminders();
   };
@@ -111,6 +119,9 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
       } as any)
       .eq('id', editingReminder.id);
     if (error) throw error;
+    void supabase.functions.invoke('classify-recurring-reminder', {
+      body: { reminder_id: editingReminder.id },
+    });
     setEditingReminder(null);
     await loadReminders();
   };
@@ -162,7 +173,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
             <div>
               <p className="text-sm font-bold text-amber-900">Fonctionnalité WhatsApp verrouillée</p>
               <p className="text-xs text-amber-700">
-                Les rappels WhatsApp sont disponibles avec le plan Alliance ou Architecte.
+                Les initiatives WhatsApp sont disponibles avec le plan Alliance ou Architecte.
               </p>
             </div>
           </div>
@@ -177,24 +188,47 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
         </div>
       )}
 
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
-          <Bell className="w-6 h-6 text-amber-500" /> Mes Rappels
-        </h2>
-        <button
-          onClick={() => {
-            if (isLocked) {
-              onUnlockRequest?.();
-              return;
-            }
-            setIsModalOpen(true);
-          }}
-          disabled={isLocked}
-          className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-amber-200 hover:shadow-amber-300 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500"
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Bell className="w-5 h-5 text-amber-500" />
+            <div className="flex items-center gap-1">
+              Mes Initiatives
+              <button
+                onClick={() => setShowInfo(!showInfo)}
+                className="p-1 rounded-full text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
+                title="Plus d'informations"
+              >
+                <Info className="w-4 h-4" />
+              </button>
+            </div>
+          </h2>
+          <button
+            onClick={() => {
+              if (isLocked) {
+                onUnlockRequest?.();
+                return;
+              }
+              setIsModalOpen(true);
+            }}
+            disabled={isLocked}
+            className="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded-xl font-bold text-sm shadow-md shadow-amber-200 hover:shadow-amber-300 transition-all flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-amber-500"
+          >
+            <Plus className="w-4 h-4" />
+            <span className="hidden min-[450px]:inline">Ajouter</span>
+          </button>
+        </div>
+        <motion.div
+          initial={false}
+          animate={{ height: showInfo ? 'auto' : 0, opacity: showInfo ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          className="overflow-hidden"
         >
-          <Plus className="w-4 h-4" />
-          <span className="hidden min-[450px]:inline">Ajouter</span>
-        </button>
+          <p className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4">
+            Autorise Sophia à prendre l'initiative et à venir vers toi selon tes besoins. 
+            <br />Exemples : <span className="italic">« Envoie-moi une citation stoïcienne le lundi à 8h »</span>, ou <span className="italic">« Souhaite-moi bonne nuit à 22h »</span>.
+          </p>
+        </motion.div>
       </div>
 
       {loading ? (
@@ -202,19 +236,19 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
           Chargement des rappels...
         </div>
       ) : reminders.length === 0 ? (
-        <div className="bg-white rounded-2xl border border-slate-100 p-8 text-center">
-          <div className="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Bell className="w-8 h-8" />
+        <div className="bg-white rounded-2xl border border-slate-100 p-4 md:p-8 text-center">
+          <div className="w-12 h-12 md:w-16 md:h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Bell className="w-6 h-6 md:w-8 md:h-8" />
           </div>
-          <h3 className="text-lg font-bold text-slate-900 mb-2">Aucun rappel configure</h3>
-          <p className="text-slate-500 mb-6 max-w-md mx-auto">
-            Configure des rappels recurrents pour que Sophia t'envoie un message au bon moment.
+          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-2">Aucune initiative configurée</h3>
+          <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
+            Autorise Sophia à venir vers toi de manière proactive en créant ta première initiative.
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
-            className="text-amber-600 font-bold hover:text-amber-700 transition-colors"
+            className="text-amber-600 font-bold hover:text-amber-700 transition-colors text-xs md:text-sm"
           >
-            Creer mon premier rappel
+            Créer ma première initiative
           </button>
         </div>
       ) : (

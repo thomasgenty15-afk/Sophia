@@ -71,6 +71,12 @@ function getFallbackTemplate(purpose: string | undefined) {
       language: (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
     }
   }
+  if (p === "weekly_bilan") {
+    return {
+      name: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME") ?? "weekly_bilan_fin_semaine_v1_fr").trim(),
+      language: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
+    }
+  }
   if (p === "scheduled_checkin") {
     return {
       name: (Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_NAME") ?? "sophia_checkin_v1").trim(),
@@ -349,5 +355,4 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-
 
