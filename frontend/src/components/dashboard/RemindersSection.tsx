@@ -225,8 +225,9 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
           className="overflow-hidden"
         >
           <p className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4">
-            Autorise Sophia à prendre l'initiative et à venir vers toi selon tes besoins. 
-            <br />Exemples : <span className="italic">« Envoie-moi une citation stoïcienne le lundi à 8h »</span>, ou <span className="italic">« Souhaite-moi bonne nuit à 22h »</span>.
+            Autorise Sophia à prendre l'initiative et à venir vers toi selon tes besoins.
+            <br />Sois créatif ! Tu peux lui demander de t'envoyer du contenu inspirant, des rappels bienveillants ou simplement une pensée positive.
+            <br />Exemples : <span className="italic">« Envoie-moi une citation stoïcienne le lundi à 8h »</span>, <span className="italic">« Souhaite-moi bonne nuit à 22h »</span>, ou <span className="italic">« Rappelle-moi de respirer profondément à 14h »</span>.
           </p>
         </motion.div>
       </div>
