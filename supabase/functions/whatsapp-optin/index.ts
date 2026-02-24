@@ -2,6 +2,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
+import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"
@@ -120,40 +121,56 @@ serve(async (req: Request) => {
 
   try {
     ctx = getRequestContext(req)
-    const authHeader = req.headers.get("Authorization")
-    if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      })
-    }
+    const isInternal = Boolean(req.headers.get("x-internal-secret")?.trim())
+    const body = req.headers.get("content-type")?.toLowerCase().includes("application/json")
+      ? await req.json().catch(() => ({}))
+      : {}
+    let overrides: { template_name?: string; template_lang?: string; force?: boolean } = body ?? {}
 
-    const supabase = createClient(
-      denoEnv("SUPABASE_URL") ?? "",
-      denoEnv("SUPABASE_ANON_KEY") ?? "",
-      { global: { headers: { Authorization: authHeader } } },
-    )
+    let userId = ""
+    let supabase: ReturnType<typeof createClient>
 
-    const { data: authData, error: authErr } = await supabase.auth.getUser()
-    if (authErr || !authData.user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      })
-    }
-
-    const userId = authData.user.id
-    ctx = getRequestContext(req, { user_id: userId })
-
-    // Optional client overrides for template (useful for debugging misconfigured env vars).
-    let overrides: { template_name?: string; template_lang?: string; force?: boolean } = {}
-    try {
-      if (req.headers.get("content-type")?.toLowerCase().includes("application/json")) {
-        overrides = (await req.json()) ?? {}
+    if (isInternal) {
+      const guard = ensureInternalRequest(req)
+      if (guard) return guard
+      userId = String((body as any)?.user_id ?? (body as any)?.userId ?? "").trim()
+      if (!userId) {
+        return new Response(JSON.stringify({ error: "Missing user_id for internal call" }), {
+          status: 400,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
       }
-    } catch {
-      // ignore invalid JSON
-      overrides = {}
+      supabase = createClient(
+        denoEnv("SUPABASE_URL") ?? "",
+        denoEnv("SUPABASE_SERVICE_ROLE_KEY") ?? "",
+        { auth: { persistSession: false, autoRefreshToken: false } },
+      )
+      ctx = getRequestContext(req, { user_id: userId })
+    } else {
+      const authHeader = req.headers.get("Authorization")
+      if (!authHeader) {
+        return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
+      }
+
+      supabase = createClient(
+        denoEnv("SUPABASE_URL") ?? "",
+        denoEnv("SUPABASE_ANON_KEY") ?? "",
+        { global: { headers: { Authorization: authHeader } } },
+      )
+
+      const { data: authData, error: authErr } = await supabase.auth.getUser()
+      if (authErr || !authData.user) {
+        return new Response(JSON.stringify({ error: "Unauthorized" }), {
+          status: 401,
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+        })
+      }
+
+      userId = authData.user.id
+      ctx = getRequestContext(req, { user_id: userId })
     }
 
     const { data: profile, error: profErr } = await supabase
