@@ -18,6 +18,62 @@ export type CompanionRunResult = {
   tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain"
 }
 
+async function inferEtoileUpdateFromContext(args: {
+  message: string
+  history: any[]
+  proposedToolValue?: number | null
+  meta?: { requestId?: string; forceRealAi?: boolean; model?: string }
+}): Promise<{ allow_update: boolean; effective_value: number | null; user_declined: boolean }> {
+  const historySlice = (Array.isArray(args.history) ? args.history : [])
+    .slice(-8)
+    .map((m: any) => ({
+      role: String(m?.role ?? ""),
+      content: String(m?.content ?? "").slice(0, 280),
+    }))
+
+  const prompt = [
+    "Tu decides si Sophia peut mettre a jour l'Etoile Polaire MAINTENANT.",
+    "Reponds UNIQUEMENT en JSON valide.",
+    "Schema strict:",
+    '{"allow_update":boolean,"effective_value":number|null,"user_declined":boolean}',
+    "Regles:",
+    "- allow_update=true seulement si une valeur est explicite OU si le user confirme clairement une valeur proposee juste avant par Sophia.",
+    "- user_declined=true si le user refuse explicitement la mise a jour.",
+    "- Si ambigu, allow_update=false et effective_value=null.",
+    `user_message=${JSON.stringify(String(args.message ?? ""))}`,
+    `recent_history=${JSON.stringify(historySlice)}`,
+    `tool_proposed_value=${Number.isFinite(Number(args.proposedToolValue)) ? Number(args.proposedToolValue) : null}`,
+  ].join("\n")
+
+  try {
+    const raw = await generateWithGemini(
+      prompt,
+      "Analyse la decision.",
+      0.1,
+      true,
+      [],
+      "auto",
+      {
+        requestId: args.meta?.requestId,
+        model: args.meta?.model,
+        source: "sophia-brain:companion_etoile_update_gate",
+        forceRealAi: args.meta?.forceRealAi,
+      },
+    )
+    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
+    const allow = Boolean((parsed as any)?.allow_update)
+    const declined = Boolean((parsed as any)?.user_declined)
+    const n = Number((parsed as any)?.effective_value)
+    return {
+      allow_update: allow,
+      effective_value: Number.isFinite(n) ? n : null,
+      user_declined: declined,
+    }
+  } catch {
+    return { allow_update: false, effective_value: null, user_declined: false }
+  }
+}
+
 export function buildCompanionSystemPrompt(opts: {
   isWhatsApp: boolean
   lastAssistantMessage: string
@@ -339,10 +395,11 @@ export async function handleCompanionModelOutput(opts: {
   userId: string
   scope: string
   message: string
+  history: any[]
   response: CompanionModelOutput
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
 }): Promise<CompanionRunResult> {
-  const { supabase, userId, scope, message, response, meta } = opts
+  const { supabase, userId, scope, message, history, response, meta } = opts
 
   if (typeof response === 'string') {
     return { text: response.replace(/\*\*/g, ''), executed_tools: [], tool_execution: "none" }
@@ -429,16 +486,43 @@ export async function handleCompanionModelOutput(opts: {
   if (typeof response === "object" && (response as any)?.tool === "update_etoile_polaire") {
     const toolName = "update_etoile_polaire"
     try {
-      const newValue = Number((response as any)?.args?.new_value)
+      const toolValue = Number((response as any)?.args?.new_value)
+      const gate = await inferEtoileUpdateFromContext({
+        message,
+        history,
+        proposedToolValue: Number.isFinite(toolValue) ? toolValue : null,
+        meta,
+      })
+      if (!gate.allow_update || gate.effective_value === null) {
+        if (gate.user_declined) {
+          return {
+            text: "Parfait, on garde ta valeur actuelle pour l'Etoile Polaire.",
+            executed_tools: [toolName],
+            tool_execution: "blocked",
+          }
+        }
+        return {
+          text: "Je peux le faire, mais j'ai besoin de la valeur exacte. Tu veux la mettre a combien ?",
+          executed_tools: [toolName],
+          tool_execution: "blocked",
+        }
+      }
       const note = String((response as any)?.args?.note ?? "").trim().slice(0, 300)
       const result = await updateEtoilePolaire(supabase, userId, {
-        new_value: newValue,
+        new_value: gate.effective_value,
         ...(note ? { note } : {}),
       })
-      const sign = result.delta >= 0 ? "+" : ""
       const unit = result.unit ? ` ${result.unit}` : ""
+      const deltaText = result.delta >= 0
+        ? `+${result.delta}${unit}`
+        : `${result.delta}${unit}`
+      const trendSinceStart = result.new_value === result.start_value
+        ? "Tu repars de ta base de depart."
+        : result.new_value > result.start_value
+        ? "Tu avances bien depuis le debut."
+        : "On est un peu en dessous du point de depart, on peut remonter ca pas a pas."
       return {
-        text: `Top, je mets à jour ton Etoile Polaire: ${result.new_value}${unit} (${sign}${result.delta}${unit}). Progression estimée: ${result.progression_pct}%.`,
+        text: `Top, je mets a jour ton Etoile Polaire a ${result.new_value}${unit}. ${trendSinceStart} Et par rapport a la derniere valeur: ${deltaText}.`,
         executed_tools: [toolName],
         tool_execution: "success",
       }
@@ -501,5 +585,5 @@ export async function runCompanion(
 
   const systemPrompt = buildCompanionSystemPrompt({ isWhatsApp, lastAssistantMessage, context, userState })
   const response = await generateCompanionModelOutput({ systemPrompt, message, history, meta })
-  return await handleCompanionModelOutput({ supabase, userId, scope, message, response, meta })
+  return await handleCompanionModelOutput({ supabase, userId, scope, message, history, response, meta })
 }

@@ -34,6 +34,7 @@ import {
   logBrainTrace,
 } from "../../_shared/brain-trace.ts";
 import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
+import { enqueueLlmRetryJob } from "./emergency.ts";
 
 function envBool(name: string, fallback: boolean): boolean {
   const denoEnv = (globalThis as any)?.Deno?.env;
@@ -641,6 +642,7 @@ export async function processMessage(
   }
 
   const checkupActive = isCheckupActive(state);
+  const isPostCheckup = state?.investigation_state?.status === "post_checkup";
 
   const agentOut = await runAgentAndVerify({
     supabase,
@@ -656,8 +658,8 @@ export async function processMessage(
     nCandidates: 1,
     checkupActive,
     stopCheckup,
-    isPostCheckup: state?.investigation_state?.status === "post_checkup",
-    outageTemplate: "Je te réponds dès que je peux, je dois gérer une urgence pour le moment.",
+    isPostCheckup,
+    outageTemplate: "J'ai un petit souci technique, je reviens vers toi dès que c'est réglé!",
     sophiaChatModel: String(
       (globalThis as any)?.Deno?.env?.get?.("SOPHIA_CHAT_MODEL") ?? "gemini-2.5-flash",
     ).trim(),
@@ -668,6 +670,19 @@ export async function processMessage(
 
   let responseContent = String(agentOut.responseContent ?? "").trim();
   const nextMode = agentOut.nextMode;
+  let llmRetryJobId: string | null = null;
+  if (agentOut.outageFallback) {
+    llmRetryJobId = await enqueueLlmRetryJob({
+      supabase,
+      userId,
+      scope,
+      channel,
+      userMessage,
+      investigationActive: checkupActive || isPostCheckup,
+      requestId: meta?.requestId,
+      reason: `agent_failure:${String(agentOut.outageFailedMode ?? "unknown")}`,
+    });
+  }
 
   let mergedTempMemory = agentOut.tempMemory ?? tempMemory;
   try {
@@ -681,6 +696,17 @@ export async function processMessage(
   }
 
   clearOneShotKeys(mergedTempMemory, consumedBilanStopped);
+  try {
+    const retryAfterRaw = String((mergedTempMemory as any)?.__investigator_retry_after ?? "").trim();
+    if (retryAfterRaw) {
+      const retryTs = Date.parse(retryAfterRaw);
+      if (!Number.isFinite(retryTs) || retryTs <= Date.now()) {
+        delete (mergedTempMemory as any).__investigator_retry_after;
+      }
+    }
+  } catch {
+    // best effort
+  }
 
   const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
   const nextLastProcessed = new Date().toISOString();
@@ -713,6 +739,11 @@ export async function processMessage(
           intent_primary: dispatcherSignals.user_intent_primary,
           safety_level: dispatcherSignals.safety.level,
           interrupt_kind: dispatcherSignals.interrupt.kind,
+          llm_retry_queued: Boolean(llmRetryJobId),
+          llm_retry_job_id: llmRetryJobId,
+          outage_fallback: Boolean(agentOut.outageFallback),
+          outage_failed_mode: agentOut.outageFailedMode ?? null,
+          outage_error: agentOut.outageErrorMessage ?? null,
         },
       },
     );
@@ -785,6 +816,11 @@ export async function processMessage(
           tool_execution: agentOut.toolExecution,
           executed_tools: agentOut.executedTools ?? [],
           tool_ack: agentOut.toolAck ?? null,
+          outage_fallback: Boolean(agentOut.outageFallback),
+          outage_failed_mode: agentOut.outageFailedMode ?? null,
+          outage_error: agentOut.outageErrorMessage ?? null,
+          llm_retry_queued: Boolean(llmRetryJobId),
+          llm_retry_job_id: llmRetryJobId,
         },
         aborted: false,
       },

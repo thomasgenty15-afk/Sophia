@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { processMessage } from "../sophia-brain/router.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { sendWhatsAppTextTracked } from "../whatsapp-webhook/wa_whatsapp_api.ts"
 
 // Internal worker: retries queued LLM responses (after full Google model fallback failed).
 // Trigger via cron or scripts/local_trigger_internal_job.sh:
@@ -102,6 +103,48 @@ Deno.serve(async (req) => {
           },
         )
 
+        const assistantMetadata: Record<string, unknown> = {
+          llm_retry_job_id: jobId,
+          llm_retry: true,
+        }
+
+        // Auto-send to WhatsApp when the recovered answer is for WhatsApp scope.
+        // This makes the retry visible to the user without waiting for a new inbound.
+        if (scope === "whatsapp") {
+          const { data: profile } = await admin
+            .from("profiles")
+            .select("phone_number")
+            .eq("id", userId)
+            .maybeSingle()
+          const toE164 = String((profile as any)?.phone_number ?? "").trim()
+          if (toE164) {
+            try {
+              const sendResp = await sendWhatsAppTextTracked({
+                admin: admin as any,
+                requestId,
+                userId: String(userId),
+                toE164,
+                body: String(resp?.content ?? ""),
+                purpose: "llm_retry_recovered_reply",
+                isProactive: false,
+                metadata: { llm_retry_job_id: jobId, llm_retry: true },
+              })
+              const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+              const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+              assistantMetadata.channel = "whatsapp"
+              assistantMetadata.wa_outbound_message_id = outId
+              assistantMetadata.outbound_tracking_id = outboundTrackingId
+              assistantMetadata.sent_via_whatsapp_retry_worker = true
+            } catch (e) {
+              console.warn("[process-llm-retry-jobs] whatsapp auto-send failed (non-blocking):", e)
+              assistantMetadata.whatsapp_retry_send_failed = true
+              assistantMetadata.whatsapp_retry_send_error = String((e as any)?.message ?? e ?? "unknown").slice(0, 240)
+            }
+          } else {
+            assistantMetadata.whatsapp_retry_send_skipped = "missing_phone_number"
+          }
+        }
+
         // Log assistant answer explicitly (since logMessages=false).
         await admin.from("chat_messages").insert({
           user_id: userId,
@@ -109,7 +152,7 @@ Deno.serve(async (req) => {
           role: "assistant",
           content: resp?.content ?? "",
           agent_used: resp?.mode ?? null,
-          metadata: { llm_retry_job_id: jobId, llm_retry: true },
+          metadata: assistantMetadata,
         })
 
         await admin

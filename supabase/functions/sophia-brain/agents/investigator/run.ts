@@ -102,6 +102,7 @@ export async function runInvestigator(
     model?: string;
   },
 ): Promise<InvestigatorTurnResult> {
+  const startConsent = resolveBinaryConsent(message);
   if (isWeeklyInvestigationState(state)) {
     return await runInvestigatorWeekly(
       supabase,
@@ -219,6 +220,7 @@ export async function runInvestigator(
       started_at: new Date().toISOString(),
       // locked_pending_items avoids pulling extra items mid-checkup (more stable UX).
       temp_memory: {
+        awaiting_start_consent: true,
         opening_done: false,
         locked_pending_items: true,
         day_scope: initialDayScope,
@@ -227,6 +229,41 @@ export async function runInvestigator(
         item_progress: initializeItemProgress(items),
       },
     };
+  }
+
+  if (
+    currentState?.status === "checking" &&
+    currentState.current_item_index === 0 &&
+    currentState?.temp_memory?.awaiting_start_consent === true
+  ) {
+    if (startConsent === "no") {
+      return {
+        content: "Pas de souci, ce n'est pas grave. On fera le bilan demain.",
+        investigationComplete: true,
+        newState: null,
+      };
+    }
+    if (startConsent === "yes") {
+      currentState = {
+        ...currentState,
+        temp_memory: {
+          ...(currentState.temp_memory || {}),
+          awaiting_start_consent: false,
+        },
+      };
+    } else {
+      return {
+        content: "Si c'est ok pour toi, on fait le bilan maintenant ?",
+        investigationComplete: false,
+        newState: {
+          ...currentState,
+          temp_memory: {
+            ...(currentState.temp_memory || {}),
+            awaiting_start_consent: true,
+          },
+        },
+      };
+    }
   }
 
   // Soft, personalized opening (before the very first question)

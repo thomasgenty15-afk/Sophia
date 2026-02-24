@@ -243,6 +243,35 @@ function classifyWhatsappSendFailure(
   return { kind: "error" };
 }
 
+async function hasRecentFullCheckup(
+  admin: ReturnType<typeof createClient>,
+  userId: string,
+  withinHours: number,
+): Promise<boolean> {
+  const hours = Math.max(1, Math.floor(Number(withinHours) || 18));
+  const sinceIso = new Date(Date.now() - hours * 60 * 60 * 1000).toISOString();
+  try {
+    const { data, error } = await admin
+      .from("user_checkup_logs")
+      .select("id")
+      .eq("user_id", userId)
+      .eq("completion_kind", "full")
+      .gte("completed_at", sinceIso)
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error) throw error;
+    return Boolean(data);
+  } catch (e) {
+    console.error(
+      `[trigger-daily-bilan] recent full checkup lookup failed for ${userId}:`,
+      e,
+    );
+    // Fail-open to avoid blocking all bilan sends on a transient DB read issue.
+    return false;
+  }
+}
+
 async function callWhatsappSendWithRetry(
   payload: unknown,
   opts: { maxAttempts: number; throttleMs: number },
@@ -356,6 +385,10 @@ Deno.serve(async (req) => {
     // These envs are optional and safe defaults apply.
     const throttleMs = Math.max(0, envInt("DAILY_BILAN_THROTTLE_MS", 300));
     const maxAttempts = Math.max(1, envInt("DAILY_BILAN_MAX_SEND_ATTEMPTS", 5));
+    const recentCheckupWindowHours = Math.max(
+      1,
+      envInt("DAILY_BILAN_RECENT_CHECKUP_WINDOW_HOURS", 18),
+    );
     const logSkips = envBool("DAILY_BILAN_LOG_SKIPS", false);
     const machineHardTtlMs =
       Math.max(30, envInt("DAILY_BILAN_MACHINE_HARD_TTL_MINUTES", 240)) * 60 *
@@ -623,6 +656,31 @@ Deno.serve(async (req) => {
             sentUserIds.push(userId);
           }
         } else {
+          const recentlyCompleted = await hasRecentFullCheckup(
+            admin,
+            userId,
+            recentCheckupWindowHours,
+          );
+          if (recentlyCompleted) {
+            skipped++;
+            skippedUserIds.push(userId);
+            skippedReasons[userId] = `recent_full_checkup_lt_${recentCheckupWindowHours}h`;
+            if (logSkips) {
+              await logComm(admin, {
+                user_id: userId,
+                channel: "whatsapp",
+                type: "daily_bilan_skipped",
+                status: "skipped",
+                metadata: {
+                  reason: "recent_full_checkup",
+                  recent_window_hours: recentCheckupWindowHours,
+                  request_id: requestId,
+                },
+              });
+            }
+            continue;
+          }
+
           // Missed two bilans in a row: suspend regular bilan and trigger win-back templates.
           if (nextMissed >= 2) {
             const step = nextWinbackStep(currentWinbackStep);

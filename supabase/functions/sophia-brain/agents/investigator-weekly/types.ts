@@ -10,6 +10,7 @@ export interface WeeklyRecapDraft {
 export interface WeeklyInvestigationState {
   mode: "weekly_bilan";
   status: "init" | "reviewing" | "closing";
+  awaiting_start_consent?: boolean;
   weekly_phase: WeeklyPhase;
   weekly_payload: WeeklyReviewPayload;
   weekly_covered_topics: string[];
@@ -27,6 +28,7 @@ export function createWeeklyInvestigationState(
   return {
     mode: "weekly_bilan",
     status: "init",
+    awaiting_start_consent: false,
     weekly_phase: "execution",
     weekly_payload: payload,
     weekly_covered_topics: [],

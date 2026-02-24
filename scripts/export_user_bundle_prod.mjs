@@ -277,12 +277,14 @@ async function main() {
 
   const requestIds = pickRequestIds(chatMessages);
   const assistantRequestIds = pickAssistantRequestIds(chatMessages);
+  const usingAssistantRequestIds = assistantRequestIds.length > 0;
+  const requestIdsForSummaries = usingAssistantRequestIds ? assistantRequestIds : requestIds;
 
   // Turn summary logs: fetch by request_id IN (...) batches for accuracy.
-  // Also apply created_at range to keep exports bounded.
+  // Prefer assistant request_ids for precision; fallback to all request_ids when assistant IDs are absent.
   let turnSummaries = [];
-  if (assistantRequestIds.length > 0) {
-    const batches = chunk(assistantRequestIds, 40); // keep URLs short/safe
+  if (requestIdsForSummaries.length > 0) {
+    const batches = chunk(requestIdsForSummaries, 40); // keep URLs short/safe
     for (const b of batches) {
       const inList = b.map((x) => `"${String(x).replaceAll('"', '\\"')}"`).join(",");
       const tsUrlBase =
@@ -338,8 +340,18 @@ async function main() {
   );
 
   const foundSummaryRequestIds = new Set(turnSummaries.map((t) => String(t?.request_id ?? "")));
-  // Missing brain traces are evaluated on assistant request_ids only.
-  const missingBrainTrace = assistantRequestIds.filter((rid) => !foundSummaryRequestIds.has(String(rid)));
+  const missingBrainTrace = requestIdsForSummaries.filter((rid) => !foundSummaryRequestIds.has(String(rid)));
+  const warnings = [];
+  if (!usingAssistantRequestIds && requestIds.length > 0) {
+    warnings.push(
+      "No assistant request_ids found in chat_messages metadata; fallback to all request_ids for turn_summary_logs lookup.",
+    );
+  }
+  if (missingBrainTrace.length > 0) {
+    warnings.push(
+      `Missing brain trace for ${missingBrainTrace.length} ${usingAssistantRequestIds ? "assistant" : "fallback"} request_ids (turn_summary_logs absent).`,
+    );
+  }
 
   const meta = {
     ok: true,
@@ -354,9 +366,10 @@ async function main() {
       chat_messages: conversationRows.length,
       request_ids: requestIds.length,
       assistant_request_ids: assistantRequestIds.length,
+      turn_summary_lookup_request_ids: requestIdsForSummaries.length,
       turn_summary_logs: (turnSummaries ?? []).length,
       // Backward-compatible alias (historically based on request_ids).
-      // We now compute missing traces only on assistant turns.
+      // We now compute missing traces on the IDs effectively used for lookup.
       missing_turn_summaries: missingBrainTrace.length,
       missing_brain_trace: missingBrainTrace.length,
     },
@@ -365,14 +378,11 @@ async function main() {
       conversation_transcript: transcriptPath,
       brain_trace_jsonl: brainTracePath,
     },
+    turn_summary_lookup_source: usingAssistantRequestIds ? "assistant_request_ids" : "request_ids_fallback",
     missing_brain_trace_request_ids: missingBrainTrace.slice(0, 200), // cap for sanity
     // Backward-compatible alias.
     missing_turn_summary_request_ids: missingBrainTrace.slice(0, 200),
-    warnings: missingBrainTrace.length > 0
-      ? [
-          `Missing brain trace for ${missingBrainTrace.length} assistant request_ids (turn_summary_logs absent).`,
-        ]
-      : [],
+    warnings,
   };
 
   if (args.writeMeta) {

@@ -30,6 +30,13 @@ const NOOP_SEMANTIC_SIM = Number((Deno.env.get("SOPHIA_TOPIC_NOOP_SEMANTIC_SIM")
 const MAX_KEYWORDS_PER_TOPIC_UPDATE = Number((Deno.env.get("SOPHIA_TOPIC_MAX_KEYWORDS_PER_UPDATE") ?? "12").trim()) || 12
 const ALLOW_KEYWORD_REASSIGN = (Deno.env.get("SOPHIA_TOPIC_ALLOW_KEYWORD_REASSIGN") ?? "").trim() === "1"
 
+const GENERIC_KEYWORDS = new Set([
+  "sommeil", "sleep", "maman", "mere", "mother", "famille", "family",
+  "travail", "work", "stress", "anxiete", "anxiety", "sante", "health",
+  "routine", "habitude", "habit", "probleme", "problem", "objectif", "goal",
+  "lecture", "book", "article", "temps", "time", "soir", "nuit", "jour",
+])
+
 function toVector(v: unknown): number[] | null {
   if (Array.isArray(v)) {
     const arr = v.map((x) => Number(x)).filter((n) => Number.isFinite(n))
@@ -66,6 +73,53 @@ function tokens(text: string): Set<string> {
     .map((w) => w.trim())
     .filter((w) => w.length >= 3)
   return new Set(t)
+}
+
+function normalizeKeyword(raw: string): string {
+  return String(raw ?? "")
+    .toLowerCase()
+    .trim()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[_\-]+/g, " ")
+    .replace(/\s+/g, " ")
+}
+
+function isGenericKeyword(raw: string): boolean {
+  const k = normalizeKeyword(raw)
+  if (!k) return true
+  if (GENERIC_KEYWORDS.has(k)) return true
+  // A single short token is generally too broad as an anchor.
+  if (!k.includes(" ") && k.length <= 6) return true
+  return false
+}
+
+function keywordSpecificity(raw: string): number {
+  const k = normalizeKeyword(raw)
+  if (!k) return 0
+  const words = k.split(" ").filter(Boolean)
+  if (words.length >= 2) return 1
+  if (isGenericKeyword(k)) return 0.1
+  return 0.6
+}
+
+function sanitizeKeywords(rawKeywords: string[], fallbackTitle: string): string[] {
+  const normalized = [...new Set(
+    (Array.isArray(rawKeywords) ? rawKeywords : [])
+      .map((k) => normalizeKeyword(String(k ?? "")))
+      .filter(Boolean),
+  )]
+
+  const contextual = normalized.filter((k) => !isGenericKeyword(k))
+  const chosen = contextual.length > 0 ? contextual : normalized
+
+  // Ensure at least one anchor exists using title as fallback.
+  if (chosen.length === 0) {
+    const fromTitle = normalizeKeyword(fallbackTitle)
+    if (fromTitle) return [fromTitle]
+  }
+
+  return chosen.slice(0, MAX_KEYWORDS_PER_TOPIC_UPDATE)
 }
 
 function jaccard(a: Set<string>, b: Set<string>): number {
@@ -127,6 +181,7 @@ export interface TopicSearchResult {
   keyword_matched?: string
   keyword_similarity?: number
   synthesis_similarity?: number
+  title_similarity?: number
   mention_count: number
   last_enriched_at: string | null
   metadata: Record<string, unknown>
@@ -171,6 +226,9 @@ TES RÈGLES :
    - Synonymes ("cannabis", "weed", "joint", "shit", "fumer")
    - Liens familiaux ("ma sœur", "tania", "ma frangine")
    - Termes connexes importants ("arrêter de fumer", "sevrage", "addiction")
+   - IMPORTANT: privilégie des keywords contextualisés (ex: "sommeil mere", "article sommeil", "routine soir")
+   - Évite les keywords trop génériques seuls (ex: "sommeil", "travail", "stress")
+   - Si tu utilises un mot générique, ajoute au moins un alias contextualisé correspondant.
 4. Le champ "new_information" doit contenir un résumé dense de ce qui a été dit dans CE bloc.
 5. Le champ "domain" aide à connecter des topics entre eux (ex: "alimentation" et "allergie" sont dans le domaine "santé").
 6. Maximum 4 topics par batch (garde seulement les plus significatifs).
@@ -208,14 +266,109 @@ SORTIE JSON ATTENDUE :
         slug: slugify(String(t.slug)),
         title: String(t.title).trim(),
         new_information: String(t.new_information).trim(),
-        keywords: Array.isArray(t.keywords)
-          ? t.keywords.map((k: any) => String(k).trim().toLowerCase()).filter(Boolean)
-          : [],
+        keywords: sanitizeKeywords(
+          Array.isArray(t.keywords)
+            ? t.keywords.map((k: any) => String(k))
+            : [],
+          String(t.title ?? ""),
+        ),
         domain: t.domain ? String(t.domain).trim().toLowerCase() : undefined,
       }))
   } catch (e) {
     console.error("[TopicMemory] Failed to extract topics:", e)
     return []
+  }
+}
+
+// ============================================================================
+// PERSISTENCE GATE — Ne persister que les topics utiles long terme
+// ============================================================================
+
+/** Min chars for new_information to pass prefilter (avoid LLM on tiny snippets) */
+const PREFILTER_MIN_INFO_LEN = 50
+
+export interface PersistGateResult {
+  persist: boolean
+  value_score: number
+  reason: string
+  horizon: "short_term" | "long_term"
+  duplicate_structured_data: boolean
+}
+
+/**
+ * Détermine si un topic extrait mérite d'être persisté.
+ * Prefilter rapide puis LLM pour éviter les mises à jour transitoires et doublons plan/bilan.
+ */
+export async function shouldPersistTopicMemory(opts: {
+  extractedTopic: ExtractedTopic
+  sourceType?: TopicEnrichmentSource
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+}): Promise<PersistGateResult> {
+  const { extractedTopic, meta } = opts
+  const sourceType = opts.sourceType ?? "chat"
+  const info = String(extractedTopic.new_information ?? "").trim()
+  const slug = extractedTopic.slug ?? ""
+
+  // Prefilter: avoid LLM on obvious low-value tiny snippets
+  if (info.length < PREFILTER_MIN_INFO_LEN) {
+    return {
+      persist: false,
+      value_score: 0,
+      reason: `new_information trop court (${info.length} chars)`,
+      horizon: "short_term",
+      duplicate_structured_data: false,
+    }
+  }
+
+  const prompt = `
+Tu évalues si une information thématique extraite d'une conversation mérite d'être persistée en mémoire long terme (2+ mois).
+
+RÈGLES STRICTES :
+- persist=false pour : mises à jour quotidiennes d'exécution (ex: "a fait X aujourd'hui"), micro-ajustements de routine déjà suivis dans le plan, doublons de données structurées (plan, bilan, modules), infos très éphémères, small talk.
+- persist=true pour : contextes stables, contraintes de vie, patterns récurrents, relations significatives, objectifs/habitudes durables, infos qui resteront utiles au coach dans 2+ mois.
+
+Schema JSON strict :
+{
+  "persist": boolean,
+  "value_score": number (0-10),
+  "reason": string (court),
+  "horizon": "short_term" | "long_term",
+  "duplicate_structured_data": boolean
+}
+  `.trim()
+
+  const userPayload = JSON.stringify({
+    source_type: sourceType,
+    slug,
+    title: extractedTopic.title,
+    new_information: info.slice(0, 600),
+  })
+
+  try {
+    const raw = await generateWithGemini(prompt, userPayload, 0.1, true, [], "json", {
+      requestId: meta?.requestId,
+      model: meta?.model ?? "gemini-2.5-flash",
+      source: "sophia-brain:topic_persist_gate",
+      forceRealAi: meta?.forceRealAi,
+    })
+
+    const parsed = JSON.parse(String(raw ?? "{}"))
+    const persist = Boolean(parsed.persist)
+    const value_score = Math.max(0, Math.min(10, Number(parsed.value_score) || 0))
+    const reason = String(parsed.reason ?? "").trim() || (persist ? "Valeur long terme" : "Valeur insuffisante")
+    const horizon = parsed.horizon === "long_term" ? "long_term" : "short_term"
+    const duplicate_structured_data = Boolean(parsed.duplicate_structured_data)
+
+    return {
+      persist,
+      value_score,
+      reason,
+      horizon,
+      duplicate_structured_data,
+    }
+  } catch (e) {
+    console.warn("[TopicMemory] Persist gate LLM failed, defaulting to persist=true:", e)
+    return { persist: true, value_score: 5, reason: "LLM fallback", horizon: "long_term", duplicate_structured_data: false }
   }
 }
 
@@ -249,7 +402,7 @@ export async function findMatchingTopic(opts: {
   const searchText = `${extractedTopic.title}\n${extractedTopic.new_information}\n${extractedTopic.keywords.slice(0, 8).join(" ")}`
   const queryEmbedding = await generateEmbedding(searchText)
 
-  const [keywordRes, synthesisRes] = await Promise.all([
+  const [keywordRes, synthesisRes, titleRes] = await Promise.all([
     supabase.rpc("match_topic_memories_by_keywords", {
       target_user_id: userId,
       query_embedding: queryEmbedding,
@@ -262,12 +415,20 @@ export async function findMatchingTopic(opts: {
       match_threshold: 0.45,
       match_count: 4,
     } as any),
+    supabase.rpc("match_topic_memories_by_title", {
+      target_user_id: userId,
+      query_embedding: queryEmbedding,
+      match_threshold: 0.45,
+      match_count: 4,
+    } as any),
   ])
 
   const byTopic = new Map<string, {
     topic_id: string
+    title: string
     keyword_similarity: number
     synthesis_similarity: number
+    title_similarity: number
     last_enriched_at: string | null
   }>()
 
@@ -276,11 +437,14 @@ export async function findMatchingTopic(opts: {
     if (!id) continue
     const prev = byTopic.get(id) ?? {
       topic_id: id,
+      title: String(r.title ?? ""),
       keyword_similarity: 0,
       synthesis_similarity: 0,
+      title_similarity: 0,
       last_enriched_at: null,
     }
     prev.keyword_similarity = Math.max(prev.keyword_similarity, Number(r.keyword_similarity ?? 0) || 0)
+    prev.title = prev.title || String(r.title ?? "")
     prev.last_enriched_at = (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any
     byTopic.set(id, prev)
   }
@@ -290,29 +454,61 @@ export async function findMatchingTopic(opts: {
     if (!id) continue
     const prev = byTopic.get(id) ?? {
       topic_id: id,
+      title: String(r.title ?? ""),
       keyword_similarity: 0,
       synthesis_similarity: 0,
+      title_similarity: 0,
       last_enriched_at: null,
     }
     prev.synthesis_similarity = Math.max(prev.synthesis_similarity, Number(r.synthesis_similarity ?? 0) || 0)
+    prev.title = prev.title || String(r.title ?? "")
+    prev.last_enriched_at = (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any
+    byTopic.set(id, prev)
+  }
+
+  for (const r of (Array.isArray(titleRes.data) ? titleRes.data : []) as any[]) {
+    const id = String(r.topic_id ?? "").trim()
+    if (!id) continue
+    const prev = byTopic.get(id) ?? {
+      topic_id: id,
+      title: String(r.title ?? ""),
+      keyword_similarity: 0,
+      synthesis_similarity: 0,
+      title_similarity: 0,
+      last_enriched_at: null,
+    }
+    prev.title_similarity = Math.max(prev.title_similarity, Number(r.title_similarity ?? 0) || 0)
+    prev.title = prev.title || String(r.title ?? "")
     prev.last_enriched_at = (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any
     byTopic.set(id, prev)
   }
 
   if (byTopic.size > 0) {
+    const queryTitleTokens = tokens(extractedTopic.title)
+    const specificity =
+      extractedTopic.keywords.length > 0
+        ? extractedTopic.keywords
+          .map((k) => keywordSpecificity(k))
+          .reduce((a, b) => a + b, 0) / extractedTopic.keywords.length
+        : 0.3
+
     const ranked = [...byTopic.values()]
       .map((c) => {
+        const titleLexical = jaccard(queryTitleTokens, tokens(c.title))
+        const titleSim = Math.max(titleLexical, c.title_similarity)
         const rec = recencyScore(c.last_enriched_at)
-        const fused = 0.5 * c.keyword_similarity + 0.3 * c.synthesis_similarity + 0.2 * rec
-        return { ...c, recency_score: rec, fused_score: fused }
+        const fused = 0.45 * c.keyword_similarity + 0.25 * c.synthesis_similarity + 0.20 * titleSim + 0.10 * rec
+        return { ...c, title_similarity: titleSim, recency_score: rec, fused_score: fused }
       })
       .sort((a, b) => b.fused_score - a.fused_score)
 
     const best = ranked[0]
+    const keywordStrongEnough = best.keyword_similarity >= KEYWORD_STRONG && specificity >= 0.45
+    const synthesisStrongEnough = best.synthesis_similarity >= (SYNTH_STRONG + (specificity < 0.35 ? 0.03 : 0))
     const accept =
       best.fused_score >= MATCH_HIGH ||
-      best.keyword_similarity >= KEYWORD_STRONG ||
-      best.synthesis_similarity >= SYNTH_STRONG
+      keywordStrongEnough ||
+      synthesisStrongEnough
 
     if (accept) {
       const { data: fullTopic } = await supabase
@@ -324,7 +520,7 @@ export async function findMatchingTopic(opts: {
 
       if (fullTopic) {
         console.log(
-          `[TopicMemory] match accepted slug=${extractedTopic.slug} -> topic_id=${best.topic_id} fused=${best.fused_score.toFixed(3)} kw=${best.keyword_similarity.toFixed(3)} syn=${best.synthesis_similarity.toFixed(3)} rec=${best.recency_score.toFixed(3)}`,
+          `[TopicMemory] match accepted slug=${extractedTopic.slug} -> topic_id=${best.topic_id} fused=${best.fused_score.toFixed(3)} kw=${best.keyword_similarity.toFixed(3)} syn=${best.synthesis_similarity.toFixed(3)} title=${best.title_similarity.toFixed(3)} spec=${specificity.toFixed(3)} rec=${best.recency_score.toFixed(3)}`,
         )
         return fullTopic as TopicMemory
       }
@@ -556,8 +752,11 @@ Sujet : "${extractedTopic.title}"
     synthesis = extractedTopic.new_information
   }
 
-  // Vectoriser la synthèse
-  const synthesisEmbedding = await generateEmbedding(synthesis)
+  // Vectoriser la synthèse et le titre
+  const [synthesisEmbedding, titleEmbedding] = await Promise.all([
+    generateEmbedding(synthesis),
+    generateEmbedding(extractedTopic.title),
+  ])
   const now = new Date().toISOString()
 
   const { data: newTopic, error } = await supabase
@@ -568,6 +767,7 @@ Sujet : "${extractedTopic.title}"
       title: extractedTopic.title,
       synthesis,
       synthesis_embedding: synthesisEmbedding,
+      title_embedding: titleEmbedding,
       status: "active",
       mention_count: 1,
       enrichment_count: 0,
@@ -619,15 +819,18 @@ async function upsertKeywords(opts: {
 
   const uniqueKeywords = [...new Set(
     keywords
-      .map((k) => k.trim().toLowerCase())
+      .map((k) => normalizeKeyword(k))
       .filter((k) => Boolean(k) && k.length >= 3),
-  )].slice(0, MAX_KEYWORDS_PER_TOPIC_UPDATE)
+  )]
+  const filtered = uniqueKeywords.filter((k) => !isGenericKeyword(k))
+  const finalKeywords = (filtered.length > 0 ? filtered : uniqueKeywords)
+    .slice(0, MAX_KEYWORDS_PER_TOPIC_UPDATE)
 
   let inserted = 0
   let keptExisting = 0
   let reassigned = 0
 
-  for (const keyword of uniqueKeywords) {
+  for (const keyword of finalKeywords) {
     try {
       const { data: existing } = await supabase
         .from("user_topic_keywords")
@@ -702,8 +905,8 @@ export async function retrieveTopicMemories(opts: {
 
   const embedding = await generateEmbedding(message)
 
-  // Recherche parallèle : par keywords ET par synthèse
-  const [keywordResults, synthesisResults] = await Promise.all([
+  // Recherche parallèle : par keywords, synthèse ET title
+  const [keywordResults, synthesisResults, titleResults] = await Promise.all([
     supabase.rpc("match_topic_memories_by_keywords", {
       target_user_id: userId,
       query_embedding: embedding,
@@ -717,22 +920,32 @@ export async function retrieveTopicMemories(opts: {
       match_threshold: 0.50,
       match_count: maxResults,
     } as any).then((r: any) => (Array.isArray(r.data) ? r.data : []) as TopicSearchResult[]),
+
+    supabase.rpc("match_topic_memories_by_title", {
+      target_user_id: userId,
+      query_embedding: embedding,
+      match_threshold: 0.55,
+      match_count: maxResults,
+    } as any).then((r: any) => (Array.isArray(r.data) ? r.data : []) as TopicSearchResult[]),
   ])
 
-  // Dédupliquer et fusionner les résultats
+  // Dédupliquer et fusionner les résultats (priorité: keywords > synthesis > title)
   const seenIds = new Set<string>()
   const merged: TopicSearchResult[] = []
 
-  // Priorité aux keyword matches (plus précis)
   for (const r of keywordResults) {
     if (!seenIds.has(r.topic_id)) {
       seenIds.add(r.topic_id)
       merged.push(r)
     }
   }
-
-  // Ajouter les synthesis matches manquants
   for (const r of synthesisResults) {
+    if (!seenIds.has(r.topic_id)) {
+      seenIds.add(r.topic_id)
+      merged.push(r)
+    }
+  }
+  for (const r of titleResults) {
     if (!seenIds.has(r.topic_id)) {
       seenIds.add(r.topic_id)
       merged.push(r)
@@ -828,9 +1041,18 @@ export async function processTopicsFromWatcher(opts: {
   let topicsEnriched = 0
   let topicsNoop = 0
 
-  // 3. Pour chaque topic : enrichir ou créer
+  // 3. Pour chaque topic : gate de persistance, puis enrichir ou créer
   for (const extracted of extractedTopics) {
     try {
+      const gate = await shouldPersistTopicMemory({ extractedTopic: extracted, sourceType, meta })
+      if (!gate.persist) {
+        topicsNoop++
+        console.log(
+          `[TopicMemory] Rejected slug=${extracted.slug} score=${gate.value_score} reason="${gate.reason.slice(0, 80)}"`,
+        )
+        continue
+      }
+
       const existingTopic = await findMatchingTopic({
         supabase,
         userId,

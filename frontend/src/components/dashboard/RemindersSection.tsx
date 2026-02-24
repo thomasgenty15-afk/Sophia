@@ -138,6 +138,11 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
       } as any)
       .eq('id', reminder.id);
     if (error) throw error;
+    if (nextActive) {
+      void supabase.functions.invoke('classify-recurring-reminder', {
+        body: { reminder_id: reminder.id },
+      });
+    }
     await loadReminders();
   };
 

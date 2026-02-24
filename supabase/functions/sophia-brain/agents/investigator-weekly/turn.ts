@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { generateWithGemini } from "../../../_shared/gemini.ts";
+import { resolveBinaryConsent } from "../investigator/utils.ts";
 import {
   UPDATE_ETOILE_POLAIRE_TOOL,
   updateEtoilePolaire,
@@ -138,17 +139,58 @@ function maybeExtractNumber(text: string): number | null {
   return Number.isFinite(n) ? n : null;
 }
 
+function extractProposedEtoileValueFromText(text: string): number | null {
+  const src = String(text ?? "").replace(/,/g, ".").trim();
+  if (!src) return null;
+
+  // Typical wording: "mettre à jour ta valeur à 3 pour ton Etoile Polaire"
+  const direct = src.match(/(?:valeur|mettre(?:\s+\S+){0,8})\s+à\s*(-?\d+(?:\.\d+)?)/i);
+  if (direct?.[1]) {
+    const n = Number(direct[1]);
+    if (Number.isFinite(n)) return n;
+  }
+
+  // Fallback: if message explicitly references Etoile Polaire, take last numeric token.
+  if (/etoile\s+polaire/i.test(src)) {
+    const all = [...src.matchAll(/-?\d+(?:\.\d+)?/g)];
+    if (all.length > 0) {
+      const n = Number(all[all.length - 1][0]);
+      if (Number.isFinite(n)) return n;
+    }
+  }
+
+  return null;
+}
+
+function extractRecentAssistantProposedValue(history: any[]): number | null {
+  const rows = Array.isArray(history) ? history : [];
+  for (let i = rows.length - 1; i >= 0; i--) {
+    const role = String((rows[i] as any)?.role ?? "").trim();
+    if (role !== "assistant") continue;
+    const content = String((rows[i] as any)?.content ?? "");
+    const value = extractProposedEtoileValueFromText(content);
+    if (value !== null) return value;
+  }
+  return null;
+}
+
 async function maybeHandleEtoileToolCall(opts: {
   supabase: SupabaseClient;
   userId: string;
   message: string;
+  history: any[];
   state: WeeklyInvestigationState;
   meta?: { requestId?: string; forceRealAi?: boolean; model?: string };
 }): Promise<any | null> {
   if (opts.state.weekly_phase !== "etoile_polaire") return null;
 
+  const consent = resolveBinaryConsent(opts.message);
   const candidate = maybeExtractNumber(opts.message);
-  if (candidate === null) return null;
+  const proposedFromHistory = extractRecentAssistantProposedValue(opts.history);
+  // If assistant already proposed a concrete value and user confirms with "oui",
+  // apply it directly to avoid asking the same question again.
+  const effectiveValue = candidate ?? (consent === "yes" ? proposedFromHistory : null);
+  if (effectiveValue === null) return null;
 
   const toolPrompt = [
     "Décide si on doit appeler l'outil update_etoile_polaire.",
@@ -177,19 +219,25 @@ async function maybeHandleEtoileToolCall(opts: {
     if (typeof out === "object" && out?.tool === "update_etoile_polaire") {
       const newValue = Number((out?.args as any)?.new_value);
       if (!Number.isFinite(newValue)) return null;
-      return await updateEtoilePolaire(opts.supabase, opts.userId, {
+      const updated = await updateEtoilePolaire(opts.supabase, opts.userId, {
         new_value: newValue,
         note: String((out?.args as any)?.note ?? opts.message ?? "").slice(0, 400),
       });
+      return updated
+        ? { ...updated, source: consent === "yes" && candidate === null ? "consent_proposed_value" : "explicit_value" }
+        : updated;
     }
   } catch {
     // ignore model/tool gate failures
   }
 
-  return await updateEtoilePolaire(opts.supabase, opts.userId, {
-    new_value: candidate,
+  const updated = await updateEtoilePolaire(opts.supabase, opts.userId, {
+    new_value: effectiveValue,
     note: String(opts.message ?? "").slice(0, 400),
   }).catch(() => null);
+  return updated
+    ? { ...updated, source: consent === "yes" && candidate === null ? "consent_proposed_value" : "explicit_value" }
+    : updated;
 }
 
 function mergeDraft(
@@ -263,9 +311,21 @@ export async function handleWeeklyTurn(opts: {
     supabase,
     userId,
     message,
+    history,
     state,
     meta,
   });
+
+  if (
+    state.weekly_phase === "etoile_polaire" &&
+    toolResult?.success &&
+    toolResult?.source === "consent_proposed_value" &&
+    decision === "stay_on_topic"
+  ) {
+    // The user already accepted the proposed value: move forward, don't ask again.
+    decision = "next_topic";
+    stagnation = 0;
+  }
 
   const nextDraft = mergeDraft(
     state.weekly_recap_draft ?? { decisions_next_week: [] },

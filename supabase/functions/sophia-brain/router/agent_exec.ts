@@ -26,6 +26,19 @@ type ExecMeta = {
   forceBrainTrace?: boolean;
 };
 
+const INVESTIGATOR_FAILURE_COOLDOWN_MS = 120_000;
+
+function isInvestigatorCooldownActive(tempMemory: any): boolean {
+  try {
+    const raw = String(tempMemory?.__investigator_retry_after ?? "").trim();
+    if (!raw) return false;
+    const ts = Date.parse(raw);
+    return Number.isFinite(ts) && ts > Date.now();
+  } catch {
+    return false;
+  }
+}
+
 function normalizeAgentText(text: unknown): string {
   return String(text ?? "")
     .replace(/\\n/g, "\n")
@@ -92,6 +105,9 @@ export async function runAgentAndVerify(opts: {
   toolExecution: ToolExecutionStatus;
   executedTools: string[];
   toolAck: ToolAckContract;
+  outageFallback: boolean;
+  outageFailedMode: AgentMode | null;
+  outageErrorMessage: string | null;
 }> {
   const {
     supabase,
@@ -116,6 +132,9 @@ export async function runAgentAndVerify(opts: {
   let tempMemory = opts.tempMemory ?? {};
   let executedTools: string[] = [];
   let toolExecution: ToolExecutionStatus = "none";
+  let outageFallback = false;
+  let outageFailedMode: AgentMode | null = null;
+  let outageErrorMessage: string | null = null;
 
   const computeToolAck = (): ToolAckContract =>
     buildToolAckContract({ status: toolExecution, executedTools });
@@ -175,13 +194,20 @@ export async function runAgentAndVerify(opts: {
         toolExecution,
         executedTools,
         toolAck: computeToolAck(),
+        outageFallback,
+        outageFailedMode,
+        outageErrorMessage,
       };
     }
   }
 
   // If an active bilan exists, investigator remains owner unless safety took over.
   const effectiveMode: AgentMode =
-    checkupActive && !stopCheckup && targetMode !== "sentry" && targetMode !== "firefighter"
+    checkupActive &&
+      !stopCheckup &&
+      targetMode !== "sentry" &&
+      targetMode !== "firefighter" &&
+      !isInvestigatorCooldownActive(tempMemory)
       ? "investigator"
       : targetMode;
 
@@ -195,6 +221,9 @@ export async function runAgentAndVerify(opts: {
         console.error("[Router] sentry failed:", e);
         responseContent = outageTemplate;
         nextMode = "companion";
+        outageFallback = true;
+        outageFailedMode = "sentry";
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
       }
       break;
     }
@@ -215,6 +244,9 @@ export async function runAgentAndVerify(opts: {
         console.error("[Router] firefighter failed:", e);
         responseContent = outageTemplate;
         nextMode = "companion";
+        outageFallback = true;
+        outageFailedMode = "firefighter";
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
       }
       break;
     }
@@ -278,8 +310,19 @@ export async function runAgentAndVerify(opts: {
         }
       } catch (e) {
         console.error("[Router] investigator failed:", e);
+        const retryAfterIso = new Date(Date.now() + INVESTIGATOR_FAILURE_COOLDOWN_MS).toISOString();
+        tempMemory = {
+          ...((state as any)?.temp_memory ?? {}),
+          ...(tempMemory ?? {}),
+          __investigator_retry_after: retryAfterIso,
+          __investigator_last_error_at: new Date().toISOString(),
+          __investigator_last_error: String((e as any)?.message ?? e ?? "unknown").slice(0, 240),
+        };
         responseContent = outageTemplate;
         nextMode = "companion";
+        outageFallback = true;
+        outageFailedMode = "investigator";
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
       }
       break;
     }
@@ -304,6 +347,9 @@ export async function runAgentAndVerify(opts: {
       } catch (e) {
         console.error("[Router] companion failed:", e);
         responseContent = outageTemplate;
+        outageFallback = true;
+        outageFailedMode = "companion";
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
       }
       nextMode = "companion";
       break;
@@ -322,5 +368,8 @@ export async function runAgentAndVerify(opts: {
     toolExecution,
     executedTools,
     toolAck: computeToolAck(),
+    outageFallback,
+    outageFailedMode,
+    outageErrorMessage,
   };
 }

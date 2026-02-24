@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { isExplicitStopBilan } from "../investigator/utils.ts";
+import { resolveBinaryConsent } from "../investigator/utils.ts";
 import { weeklyInvestigatorSay } from "./copy.ts";
 import { handleWeeklyTurn } from "./turn.ts";
 import type { WeeklyInvestigationState } from "./types.ts";
@@ -24,6 +25,7 @@ export async function runInvestigatorWeekly(
   },
 ): Promise<WeeklyTurnResult> {
   const currentState = state;
+  const consent = resolveBinaryConsent(message);
 
   if (!currentState?.weekly_payload) {
     return {
@@ -42,6 +44,14 @@ export async function runInvestigatorWeekly(
   }
 
   if (currentState.status === "init") {
+    if (consent === "no") {
+      return {
+        content: "Pas de souci, ce n'est pas grave. On fera le bilan hebdo la semaine prochaine.",
+        investigationComplete: true,
+        newState: null,
+      };
+    }
+
     const opening = await weeklyInvestigatorSay(
       "weekly_bilan_opening",
       {
@@ -55,6 +65,7 @@ export async function runInvestigatorWeekly(
     const nextState: WeeklyInvestigationState = {
       ...currentState,
       status: "reviewing",
+      awaiting_start_consent: true,
       weekly_phase: "execution",
       turn_count: Math.max(1, Number(currentState.turn_count ?? 0)),
       updated_at: new Date().toISOString(),
@@ -64,6 +75,39 @@ export async function runInvestigatorWeekly(
       content: opening,
       investigationComplete: false,
       newState: nextState,
+    };
+  }
+
+  if (currentState.awaiting_start_consent) {
+    if (consent === "no") {
+      return {
+        content: "Pas de souci, ce n'est pas grave. On fera le bilan hebdo la semaine prochaine.",
+        investigationComplete: true,
+        newState: null,
+      };
+    }
+    if (consent === "yes") {
+      const nextState: WeeklyInvestigationState = {
+        ...currentState,
+        awaiting_start_consent: false,
+        updated_at: new Date().toISOString(),
+      };
+      return await handleWeeklyTurn({
+        supabase,
+        userId,
+        message,
+        history,
+        state: nextState,
+        meta,
+      });
+    }
+    return {
+      content: "Pas de souci. Tu veux qu'on fasse le bilan hebdo maintenant ?",
+      investigationComplete: false,
+      newState: {
+        ...currentState,
+        updated_at: new Date().toISOString(),
+      },
     };
   }
 

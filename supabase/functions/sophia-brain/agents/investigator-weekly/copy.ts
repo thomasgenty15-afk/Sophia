@@ -27,16 +27,17 @@ RÈGLES STRICTES:
 - Ne repose pas exactement la même question 2 fois.
 - Ton WhatsApp: court, humain, pas robot.
 - Pas de markdown, pas de gras.
+- Evite le ton trop analytique: peu de chiffres, uniquement ceux vraiment utiles.
 
 SCENARIO: ${scenario}
 DONNÉES JSON: ${JSON.stringify(data)}
 
 Consignes par scénario:
-- weekly_bilan_opening: ouvre avec chaleur + rappelle en 1 phrase les 4 blocs du bilan hebdo.
+- weekly_bilan_opening: ouvre avec chaleur, formule douce, puis propose le démarrage avec une mini-question de consentement (ex: "on le fait maintenant ?"), sans ton abrupt.
 - weekly_bilan_execution: analyse exécution hebdo (wins + blocages) et pose 1 question utile.
 - weekly_bilan_etoile_polaire: fais le point Etoile Polaire + propose mise à jour de valeur si pertinent.
 - weekly_bilan_action_load: évalue la charge d'actions et cherche l'ajustement réaliste.
-- weekly_bilan_closing: synthèse finale avec 1 priorité, 1 ajustement, 1 garde-fou semaine prochaine.
+- weekly_bilan_closing: synthèse finale avec 1 priorité, 1 ajustement, 1 garde-fou semaine prochaine, SANS poser de question et sans terminer par "?".
 `.trim();
 
   const out = await generateWithGemini(
