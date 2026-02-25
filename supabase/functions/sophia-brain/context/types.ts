@@ -87,6 +87,7 @@ export interface LoadedContext {
   topicSession?: string;
   trackProgressAddon?: string;
   dashboardRedirectAddon?: string;
+  dashboardCapabilitiesLiteAddon?: string;
   dashboardCapabilitiesAddon?: string;
   dashboardPreferencesIntentAddon?: string;
   dashboardRecurringReminderIntentAddon?: string;

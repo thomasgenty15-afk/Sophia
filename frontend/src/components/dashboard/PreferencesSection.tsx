@@ -10,7 +10,6 @@ import {
   AlignLeft,
   Layout,
   Target,
-  Moon,
   Heart,
   Lock,
   Crown
@@ -40,8 +39,8 @@ const PREFERENCES: PreferenceDef[] = [
     options: [
       { value: 'gentle', title: 'Bienveillant doux', description: 'Soutenant, calme, très empathique.' },
       { value: 'warm_direct', title: 'Bienveillant ferme', description: 'Chaleureux mais orienté action.' },
-      { value: 'direct', title: 'Direct', description: 'Claire, concise, sans détour.' },
-      { value: 'energetic', title: 'Énergique', description: 'Dynamique et motivante.' },
+      { value: 'direct', title: 'Direct', description: 'Clair, concis, sans détour.' },
+      { value: 'energetic', title: 'Énergique', description: 'Dynamique et motivant.' },
     ],
   },
   {
@@ -120,19 +119,6 @@ const PREFERENCES: PreferenceDef[] = [
       { value: 'emotional', title: 'Émotionnel', description: 'Régulation et clarté interne.' },
       { value: 'clarity', title: 'Clarté / décision', description: 'Prioriser et trancher.' },
       { value: 'energy', title: 'Énergie / routines', description: 'Rythme, sommeil, constance.' },
-    ],
-  },
-  {
-    key: 'coach.inactivity_response',
-    icon: Moon,
-    title: 'En cas d’inactivité',
-    description: 'La réaction de Sophia si tu ne donnes plus de nouvelles. Doit-elle te relancer avec douceur, fermeté, ou respecter ton silence ?',
-    defaultValue: 'neutral',
-    options: [
-      { value: 'soft', title: 'Empathique', description: 'Relance douce et compréhensive.' },
-      { value: 'neutral', title: 'Neutre', description: 'Rappel simple.' },
-      { value: 'firm', title: 'Ferme', description: 'Relance plus engageante.' },
-      { value: 'quiet', title: 'Silence', description: 'Pas de relance proactive.' },
     ],
   },
   {

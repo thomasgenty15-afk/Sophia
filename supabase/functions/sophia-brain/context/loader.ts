@@ -366,6 +366,14 @@ export async function loadContextForMode(
     }
   }
 
+  // 14b. Dashboard capabilities lite addon (always-on condensed overview)
+  if (opts.mode === "companion" || opts.mode === "investigator") {
+    context.dashboardCapabilitiesLiteAddon = formatDashboardCapabilitiesLiteAddon();
+    if (context.dashboardCapabilitiesLiteAddon) {
+      elementsLoaded.push("dashboard_capabilities_lite_addon");
+    }
+  }
+
   // 15. Safety active addon (dynamic tone/protocol guidance)
   const safetyActiveAddon = (opts.tempMemory as any)?.__safety_active_addon;
   if (
@@ -527,6 +535,9 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.onboardingAddon) ctx += loaded.onboardingAddon;
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon;
   if (loaded.dashboardRedirectAddon) ctx += loaded.dashboardRedirectAddon;
+  if (loaded.dashboardCapabilitiesLiteAddon) {
+    ctx += loaded.dashboardCapabilitiesLiteAddon;
+  }
   if (loaded.dashboardPreferencesIntentAddon) {
     ctx += loaded.dashboardPreferencesIntentAddon;
   }
@@ -640,6 +651,26 @@ function formatDashboardRedirectAddon(addon: any): string {
   );
 }
 
+function formatDashboardCapabilitiesLiteAddon(): string {
+  return (
+    `\n\n=== ADDON TABLEAU DE BORD (LITE / ALWAYS-ON) ===\n` +
+    `- Support de connaissance global: utilise ces infos seulement si c'est pertinent pour la question du user.\n` +
+    `- Cartographie produit:\n` +
+    `  - Tableau de bord Action:\n` +
+    `    1) Plan de Transformation: pilotage des actions du plan (activer, mettre en pause, supprimer, modifier). En cas de blocage: SOS blocage (breakdown_action) pour découper en micro-étapes.\n` +
+    `    2) Actions Personnelles: habitudes hors plan principal (créer, modifier, activer, pause, supprimer, suivi d'avancement) + Étoile Polaire (valeurs numériques départ/actuel/cible).\n` +
+    `    3) Initiatives: configure Sophia a l'image du user, pour qu'elle vienne au bon moment avec le bon ton (ex: citation du matin, message de soutien dans les moments sensibles, relance douce avant un passage important). C'est une vraie personnalisation de l'accompagnement (créer, modifier, activer, pause, supprimer; paramètres message/jours/heure).\n` +
+    `    4) Préférences: personnalisation du style de Sophia (ton, longueur, format, niveau de challenge, etc.).\n` +
+    `  - Tableau de bord Architecte:\n` +
+    `    1) Construction du Temple: fondations identitaires.\n` +
+    `    2) Amélioration du Temple: phase avancée débloquée après la construction.\n` +
+    `- Règles d'usage:\n` +
+    `  - Réponds d'abord au besoin immédiat du user, sans réciter toute la liste.\n` +
+    `  - Si c'est pertinent ET confiance > 0.9, tu peux pousser UNE fonctionnalité du dashboard complémentaire.\n` +
+    `- Interdiction: aucune création/modification réelle n'est exécutée dans le chat.\n`"
+  );
+}
+
 function formatDashboardPreferencesIntentAddon(addon: any): string {
   const confidence = Number(addon?.confidence ?? 0);
   const confidenceText = Number.isFinite(confidence)
@@ -677,43 +708,54 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
   const intentsText = intents.length > 0 ? intents.join(", ") : "general_dashboard_intent";
   return (
     `\n\n=== ADDON DASHBOARD CAPABILITIES (CAN_BE_RELATED_TO_DASHBOARD) ===\n` +
-    `- Signal synthétique détecté: la demande peut relever du dashboard (${intentsText}).\n` +
-    `- Objectif: réponse CONSISTANTE et utile sur les possibilités produit, sans exécution dans le chat.\n` +
-    `- Tu peux expliquer clairement les zones/fonctions suivantes si pertinent:\n` +
-    `  1) Actions personnelles (feature centrale): créer, modifier, activer, désactiver, supprimer, tracker l'avancement, et SOS blocage.\n` +
-    `  2) North Star (direction long terme): clarifier le cap, la raison, et l'alignement avec les actions hebdo.\n` +
-    `  3) Rappels (feature de paramétrage Sophia): moments, style de message, canal, fréquence, pause/reprise.\n` +
-    `  4) Préférences Sophia (personnalisation): ton, longueur, emojis, proactivité, timezone, horaires, intensité coaching.\n` +
+    `- Signal synthétique détecté: la demande peut relever du tableau de bord (${intentsText}).\n` +
+    `- Objectif: réponse CONSISTANTE, fidèle à l'UI réelle, sans exécution dans le chat.\n` +
     `\n` +
-    `- Détail ACTIONS (ce qu'il faut préciser pour bien aider):\n` +
-    `  - Création d'action: objectif concret, nom/titre clair, fréquence visée (daily/weekly), jours, heure ou fenêtre, difficulté réaliste, version minimale (2 min), déclencheur contexte.\n` +
-    `  - Mise à jour d'action: change_type fréquent = frequency|days|time|title|mixed; vérifier ce que le user veut garder vs changer.\n` +
-    `  - Activation/Désactivation/Suppression: confirmer la cible exacte (target_hint) pour éviter l'ambiguïté.\n` +
-    `  - Suivi d'avancement: expliciter status (completed|missed|partial), valeur éventuelle, et date concernée.\n` +
-    `  - SOS blocage: identifier blocker_hint (pourquoi ça coince), puis proposer une micro-étape faisable immédiatement.\n` +
+    `- CARTOGRAPHIE PRODUIT (SOURCE DE VÉRITÉ):\n` +
+    `  A) Tableau de bord ACTION\n` +
+    `    1) Plan de Transformation\n` +
+    `    2) Actions Personnelles (inclut l'Étoile Polaire)\n` +
+    `    3) Initiatives\n` +
+    `    4) Préférences\n` +
+    `  B) Tableau de bord ARCHITECTE\n` +
+    `    1) Construction du Temple\n` +
+    `    2) Amélioration du Temple (débloquée une fois la Construction du Temple terminée)\n` +
     `\n` +
-    `- Détail NORTH STAR:\n` +
-    `  - Expliquer que la North Star sert de boussole: priorité long terme, critères d'alignement, arbitrage des actions.\n` +
-    `  - Quand proposer: si dispersion, perte de sens, surcharge d'actions, ou besoin de prioriser.\n` +
-    `  - Aide attendue: reformuler la North Star en phrase claire + relier 1-2 actions concrètes qui la servent cette semaine.\n` +
+    `- DÉTAILS TABLEAU DE BORD ACTION (intérêt + ce qui est possible):\n` +
+    `  1) Plan de Transformation:\n` +
+    `     - Intérêt: exécuter la transformation active, phase par phase.\n` +
+    `     - Possibilités clés sur une action: modifier, supprimer, mettre en pause (désactiver), activer, marquer la progression, SOS blocage (découpage micro-étapes).\n` +
+    `     - Important: si blocage, poser 1 question de diagnostic concrète avant redirection.\n` +
+    `  2) Actions Personnelles:\n` +
+    `     - Intérêt: gérer des habitudes perso en parallèle du plan principal.\n` +
+    `     - Possibilités clés: créer, modifier, activer, mettre en pause, supprimer, suivre la progression.\n` +
+    `     - Étoile Polaire: définir/mettre à jour un indicateur chiffré (valeurs numériques: départ, actuel, cible) pour garder le cap.\n` +
+    `  3) Initiatives:\n` +
+    `     - Intérêt: autoriser Sophia à venir vers le user de façon proactive (rappels/messages planifiés).\n` +
+    `     - Possibilités clés: créer, modifier, activer, mettre en pause (inactive), supprimer (soft-delete/inactive).\n` +
+    `     - Paramètres typiques: message, pourquoi/rationale, heure locale (HH:MM), jours (lun→dim).\n` +
+    `  4) Préférences:\n` +
+    `     - Intérêt: personnaliser précisément le style du coach.\n` +
+    `     - Reprendre EXACTEMENT les catégories/labels du dashboard:\n` +
+    `       * Ton de coaching: Bienveillant doux | Bienveillant ferme | Direct | Énergique\n` +
+    `       * Niveau de challenge: Léger | Équilibré | Exigeant | Très exigeant\n` +
+    `       * Style de feedback: Positif puis amélioration | Amélioration puis positif | Honnêteté directe | Socratique\n` +
+    `       * Propension à parler: Discrète | Équilibrée | Engagée | Très bavarde\n` +
+    `       * Longueur des messages: Ultra court | Court | Moyen | Détaillé\n` +
+    `       * Format préféré: Questions guidées | Liste d'actions | Mini plan | Mix adaptatif\n` +
+    `       * Focus principal: Discipline/action | Émotionnel | Clarté/décision | Énergie/routines\n` +
+    `       * Personnalisation émotionnelle: Sobre/factuel | Chaleureux | Très humain | Introspectif\n` +
     `\n` +
-    `- Détail RAPPELS (très important):\n` +
-    `  - Les rappels sont une vraie feature de configuration de Sophia (pas juste "notifications").\n` +
-    `  - Paramètres clés: mode (daily|weekly|custom), days, time, timezone, channel (app|whatsapp), start_date, end_date, pause, message.\n` +
-    `  - Personnalisation possible: type de relance ("question", "nudge", "bonjour", "bonsoir", "check-in court"), ton (doux/direct), fréquence.\n` +
-    `  - Exemples utiles à expliciter:\n` +
-    `    * "Pose-moi une question chaque matin"\n` +
-    `    * "Envoie-moi un bonsoir à 21h"\n` +
-    `    * "Rappel WhatsApp les lundis/mercredis à 8h"\n` +
-    `    * "Mets en pause cette semaine, puis reprise lundi prochain"\n` +
+    `- DÉTAILS TABLEAU DE BORD ARCHITECTE (overview bref):\n` +
+    `  - Logique fondatrice: cet espace repose sur l'idée que pour changer durablement, il faut travailler l'identité en parallèle des actions.\n` +
+    `  1) Construction du Temple: parcours de fondations identitaires (les 12 semaines de base).\n` +
+    `  2) Amélioration du Temple: phase avancée débloquée après la Construction du Temple, avec notamment la Table Ronde (alignement hebdo) et la Forge (évolution identitaire progressive).\n` +
     `\n` +
-    `- Détail PRÉFÉRENCES SOPHIA:\n` +
-    `  - Catégories possibles: language, tone, response_length, emoji_level, voice_style, proactivity_level, timezone, daily_summary_time, coach_intensity.\n` +
-    `  - Toujours donner des exemples courts de valeurs (ex: tone=direct, response_length=short, emoji_level=low, daily_summary_time=20:00).\n` +
+    `- STRATÉGIE DE LONGUEUR (anti-réponse trop longue):\n` +
+    `  - Niveau 1 (par défaut): donner une vue d'ensemble courte et structurée (Action vs Architecte + sections du tableau de bord).\n` +
+    `  - Niveau 2 (si demandé): détailler uniquement la/les section(s) ciblée(s) avec possibilités concrètes.\n` +
+    `  - Ne pas réciter tout le catalogue si le user pose une question précise sur une seule section.\n` +
     `\n` +
-    `- Quand proposer "autres possibilités produit":\n` +
-    `  - Si le user parle d'une action, tu peux suggérer en plus (si pertinent): SOS blocage, ajustement rappels, alignement North Star, préférence de ton/proactivité.\n` +
-    `  - Le but est d'élargir utilement, sans noyer la réponse.\n` +
     `- Protocole de réponse:\n` +
     `  A) Réponds d'abord à la question exacte du user.\n` +
     `  B) Creuse avec 1 question diagnostique ciblée pour mieux aider (pourquoi, blocage concret, contrainte, résultat attendu).\n` +

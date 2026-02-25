@@ -11,6 +11,11 @@ function str(v: unknown): string {
   return String(v ?? "").trim();
 }
 
+function clampText(v: string, maxChars: number): string {
+  if (v.length <= maxChars) return v;
+  return v.slice(0, maxChars - 1).trimEnd() + "…";
+}
+
 function weekdayKeyInTimezone(params: { timezone: string; dayOffset: number; now?: Date }): WeekdayKey {
   const tz = str(params.timezone) || "Europe/Paris";
   const base = params.now ?? new Date();
@@ -84,10 +89,11 @@ async function seedReminderUntilNextSunday(params: {
 
   const { data: profile } = await params.admin
     .from("profiles")
-    .select("timezone")
+    .select("timezone,locale")
     .eq("id", reminder.user_id)
     .maybeSingle();
   const timezone = str((profile as any)?.timezone) || "Europe/Paris";
+  const locale = str((profile as any)?.locale) || "fr-FR";
   const eventContext = `recurring_reminder:${reminder.id}`;
   const localTime = normalizeHHMM(reminder.local_time_hhmm);
   const scheduledDays = (Array.isArray(reminder.scheduled_days) ? reminder.scheduled_days : [])
@@ -119,6 +125,12 @@ async function seedReminderUntilNextSunday(params: {
     .lt("scheduled_for", horizonEndIso);
 
   const nowLocalHHMM = localTimeHHMMInTimezone({ timezone });
+  const slots: Array<{
+    dayOffset: number;
+    weekday: WeekdayKey;
+    scheduledFor: string;
+    slotLabel: string;
+  }> = [];
   let inserted = 0;
   for (let dayOffset = 0; dayOffset <= maxOffset; dayOffset++) {
     const weekday = weekdayKeyInTimezone({ timezone, dayOffset, now: new Date() });
@@ -130,7 +142,73 @@ async function seedReminderUntilNextSunday(params: {
       dayOffset,
       localTimeHHMM: localTime,
     });
-    const draft = `Petit rappel: ${str(reminder.message_instruction).slice(0, 180)}`;
+    slots.push({
+      dayOffset,
+      weekday,
+      scheduledFor,
+      slotLabel: `J+${dayOffset} (${weekday})`,
+    });
+  }
+
+  if (slots.length === 0) return 0;
+
+  let drafts: string[] = [];
+  try {
+    const slotList = slots
+      .map((s, i) => `${i + 1}. ${s.slotLabel} | scheduled_for=${s.scheduledFor}`)
+      .join("\n");
+    const systemPrompt = [
+      "Tu es Sophia (mode Companion). Tu rédiges des messages d'initiative WhatsApp.",
+      "",
+      "Contraintes strictes:",
+      "- Retourne uniquement un JSON valide.",
+      `- Schéma exact: {"messages":[...]} avec exactement ${slots.length} messages.`,
+      "- Chaque message: 2 à 5 lignes, texte brut, chaleureux, naturel, tutoiement.",
+      "- Le message doit refléter fidèlement l'instruction utilisateur (thème, ton, intention).",
+      "- Interdit de recopier mot-à-mot la consigne utilisateur.",
+      "- Interdit de répondre avec une simple reformulation du type 'Petit rappel: ...'.",
+      "- Variations réelles entre les messages.",
+      "",
+      "Contexte initiative:",
+      `- Instruction: ${clampText(str(reminder.message_instruction), 1000)}`,
+      reminder.rationale ? `- Pourquoi c'est important: ${clampText(str(reminder.rationale), 420)}` : "",
+      `- Timezone: ${timezone}`,
+      `- Locale: ${locale}`,
+      "",
+      "Slots à couvrir (dans l'ordre):",
+      slotList,
+    ]
+      .filter(Boolean)
+      .join("\n");
+    const outRaw = await generateWithGemini(
+      systemPrompt,
+      "Génère les messages maintenant.",
+      0.5,
+      true,
+      [],
+      "auto",
+      {
+        requestId: `${crypto.randomUUID()}:seed-recurring-reminder`,
+        source: "classify-recurring-reminder",
+        model: "gemini-2.5-flash",
+        maxRetries: 2,
+        forceRealAi: true,
+      },
+    );
+    const parsed = typeof outRaw === "string" ? JSON.parse(outRaw) : outRaw;
+    const rawMessages = Array.isArray((parsed as any)?.messages) ? (parsed as any).messages : [];
+    drafts = rawMessages
+      .map((m: any) => str(m))
+      .filter(Boolean)
+      .slice(0, slots.length);
+  } catch (e) {
+    console.warn("[classify-recurring-reminder] seed_generation_failed", e);
+    drafts = [];
+  }
+
+  for (let idx = 0; idx < slots.length; idx++) {
+    const slot = slots[idx];
+    const draft = drafts[idx] || `Petit rappel: ${str(reminder.message_instruction).slice(0, 180)}`;
     const payload = {
       source: "recurring_reminder_seed_until_sunday",
       recurring_reminder_id: reminder.id,
@@ -139,9 +217,10 @@ async function seedReminderUntilNextSunday(params: {
       personalization_level_configured: params.level,
       personalization_level_effective: params.level,
       generated_at: new Date().toISOString(),
-      slot_day_offset: dayOffset,
-      slot_weekday: weekday,
+      slot_day_offset: slot.dayOffset,
+      slot_weekday: slot.weekday,
       seed_mode: "until_next_sunday_cron",
+      generated_by_ai: Boolean(drafts[idx]),
     };
 
     const { error } = await params.admin
@@ -153,7 +232,7 @@ async function seedReminderUntilNextSunday(params: {
           draft_message: draft,
           message_mode: "static",
           message_payload: payload,
-          scheduled_for: scheduledFor,
+          scheduled_for: slot.scheduledFor,
           status: "pending",
         } as any,
         { onConflict: "user_id,event_context,scheduled_for" },
@@ -165,7 +244,7 @@ async function seedReminderUntilNextSunday(params: {
     .from("user_recurring_reminders")
     .update({
       last_drafted_at: new Date().toISOString(),
-      last_draft_message: `Petit rappel: ${str(reminder.message_instruction).slice(0, 180)}`,
+      last_draft_message: drafts[0] || `Petit rappel: ${str(reminder.message_instruction).slice(0, 180)}`,
       updated_at: new Date().toISOString(),
     } as any)
     .eq("id", reminder.id)
@@ -291,6 +370,7 @@ Deno.serve(async (req) => {
   try {
     const body = await req.json().catch(() => ({} as any));
     const reminderId = str((body as any)?.reminder_id);
+    const fullReset = Boolean((body as any)?.full_reset);
     if (!reminderId) {
       return new Response(JSON.stringify({ error: "Missing reminder_id" }), {
         status: 400,
@@ -363,6 +443,16 @@ Deno.serve(async (req) => {
       .eq("id", reminderId)
       .eq("user_id", userId);
     if (updateErr) throw updateErr;
+
+    if (fullReset) {
+      const eventContext = `recurring_reminder:${reminderId}`;
+      const { error: purgeErr } = await admin
+        .from("scheduled_checkins")
+        .delete()
+        .eq("user_id", userId)
+        .eq("event_context", eventContext);
+      if (purgeErr) throw purgeErr;
+    }
 
     const seededCheckins = await seedReminderUntilNextSunday({
       admin,

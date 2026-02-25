@@ -348,9 +348,20 @@ async function main() {
     );
   }
   if (missingBrainTrace.length > 0) {
-    warnings.push(
-      `Missing brain trace for ${missingBrainTrace.length} ${usingAssistantRequestIds ? "assistant" : "fallback"} request_ids (turn_summary_logs absent).`,
-    );
+    const likelyProactiveOnlyGap =
+      usingAssistantRequestIds &&
+      requestIdsForSummaries.length === 1 &&
+      missingBrainTrace.length === 1 &&
+      (turnSummaries ?? []).length === 0;
+    if (likelyProactiveOnlyGap) {
+      warnings.push(
+        "No turn_summary_logs for the single assistant request_id looked up. This is non-blocking and can happen for proactive assistant messages.",
+      );
+    } else {
+      warnings.push(
+        `Missing brain trace for ${missingBrainTrace.length} ${usingAssistantRequestIds ? "assistant" : "fallback"} request_ids (turn_summary_logs absent).`,
+      );
+    }
   }
 
   const meta = {
