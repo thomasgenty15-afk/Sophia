@@ -139,6 +139,37 @@ function chunk(arr, size) {
   return out;
 }
 
+async function fetchTurnSummariesByRequestIds(args) {
+  const { requestIds, url, headers, userId, pageSize, hardLimit } = args;
+  let rowsOut = [];
+  if (!Array.isArray(requestIds) || requestIds.length === 0) return rowsOut;
+  const batches = chunk(requestIds, 40); // keep URLs short/safe
+  for (const b of batches) {
+    const inList = b.map((x) => `"${String(x).replaceAll('"', '\\"')}"`).join(",");
+    const tsUrlBase =
+      `${url}/rest/v1/turn_summary_logs` +
+      `?select=${encodeURIComponent(
+        [
+          "created_at",
+          "request_id",
+          "payload",
+        ].join(","),
+      )}` +
+      `&user_id=eq.${encodeURIComponent(userId)}` +
+      `&request_id=in.(${encodeURIComponent(inList)})` +
+      `&order=created_at.asc`;
+
+    const rows = await fetchAll({
+      urlBase: tsUrlBase,
+      headers,
+      pageSize,
+      hardLimit,
+    });
+    if (Array.isArray(rows) && rows.length > 0) rowsOut = rowsOut.concat(rows);
+  }
+  return rowsOut;
+}
+
 async function fetchAll({ urlBase, headers, pageSize, hardLimit }) {
   const out = [];
   for (let offset = 0; offset < hardLimit; offset += pageSize) {
@@ -278,36 +309,36 @@ async function main() {
   const requestIds = pickRequestIds(chatMessages);
   const assistantRequestIds = pickAssistantRequestIds(chatMessages);
   const usingAssistantRequestIds = assistantRequestIds.length > 0;
-  const requestIdsForSummaries = usingAssistantRequestIds ? assistantRequestIds : requestIds;
+  let requestIdsForSummaries = usingAssistantRequestIds ? assistantRequestIds : requestIds;
+  let turnSummaryLookupSource = usingAssistantRequestIds ? "assistant_request_ids" : "request_ids_fallback";
 
   // Turn summary logs: fetch by request_id IN (...) batches for accuracy.
   // Prefer assistant request_ids for precision; fallback to all request_ids when assistant IDs are absent.
-  let turnSummaries = [];
-  if (requestIdsForSummaries.length > 0) {
-    const batches = chunk(requestIdsForSummaries, 40); // keep URLs short/safe
-    for (const b of batches) {
-      const inList = b.map((x) => `"${String(x).replaceAll('"', '\\"')}"`).join(",");
-      const tsUrlBase =
-        `${url}/rest/v1/turn_summary_logs` +
-        `?select=${encodeURIComponent(
-          [
-            "created_at",
-            "request_id",
-            "payload",
-          ].join(","),
-        )}` +
-        `&user_id=eq.${encodeURIComponent(args.userId)}` +
-        `&request_id=in.(${encodeURIComponent(inList)})` +
-        `&order=created_at.asc`;
+  let turnSummaries = await fetchTurnSummariesByRequestIds({
+    requestIds: requestIdsForSummaries,
+    url,
+    headers,
+    userId: args.userId,
+    pageSize: args.pageSize,
+    hardLimit: args.limitTurnSummaries,
+  });
 
-      const rows = await fetchAll({
-        urlBase: tsUrlBase,
-        headers,
-        pageSize: args.pageSize,
-        hardLimit: args.limitTurnSummaries,
-      });
-      if (Array.isArray(rows) && rows.length > 0) turnSummaries = turnSummaries.concat(rows);
-    }
+  // If assistant-only lookup yields nothing, fallback to all request_ids.
+  if (
+    usingAssistantRequestIds &&
+    (turnSummaries ?? []).length === 0 &&
+    requestIds.length > 0
+  ) {
+    requestIdsForSummaries = requestIds;
+    turnSummaryLookupSource = "assistant_request_ids_then_all_request_ids_fallback";
+    turnSummaries = await fetchTurnSummariesByRequestIds({
+      requestIds: requestIdsForSummaries,
+      url,
+      headers,
+      userId: args.userId,
+      pageSize: args.pageSize,
+      hardLimit: args.limitTurnSummaries,
+    });
   }
 
   // Normalize exports to JSONL rows that are easy to stream / diff / grep.
@@ -345,6 +376,11 @@ async function main() {
   if (!usingAssistantRequestIds && requestIds.length > 0) {
     warnings.push(
       "No assistant request_ids found in chat_messages metadata; fallback to all request_ids for turn_summary_logs lookup.",
+    );
+  }
+  if (turnSummaryLookupSource === "assistant_request_ids_then_all_request_ids_fallback") {
+    warnings.push(
+      "Assistant request_ids lookup returned no turn summaries; retried with all request_ids.",
     );
   }
   if (missingBrainTrace.length > 0) {
@@ -389,7 +425,7 @@ async function main() {
       conversation_transcript: transcriptPath,
       brain_trace_jsonl: brainTracePath,
     },
-    turn_summary_lookup_source: usingAssistantRequestIds ? "assistant_request_ids" : "request_ids_fallback",
+    turn_summary_lookup_source: turnSummaryLookupSource,
     missing_brain_trace_request_ids: missingBrainTrace.slice(0, 200), // cap for sanity
     // Backward-compatible alias.
     missing_turn_summary_request_ids: missingBrainTrace.slice(0, 200),

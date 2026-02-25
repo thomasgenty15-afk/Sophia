@@ -667,7 +667,7 @@ function formatDashboardCapabilitiesLiteAddon(): string {
     `- Règles d'usage:\n` +
     `  - Réponds d'abord au besoin immédiat du user, sans réciter toute la liste.\n` +
     `  - Si c'est pertinent ET confiance > 0.9, tu peux pousser UNE fonctionnalité du dashboard complémentaire.\n` +
-    `- Interdiction: aucune création/modification réelle n'est exécutée dans le chat.\n`"
+    `- Interdiction: aucune création/modification réelle n'est exécutée dans le chat.\n`
   );
 }
 

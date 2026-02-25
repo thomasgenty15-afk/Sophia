@@ -1,0 +1,128 @@
+[2026-02-25T19:00:10.14961+00:00] [whatsapp] assistant (request_id=814632d5-a796-4f06-9347-2a5405bae622):
+Salut Thomas, j'espère que tu vas bien ce soir.
+Je voulais prendre de tes nouvelles par rapport à l'arrêt du cannabis.
+Comment ça se passe de ton côté ?
+
+[2026-02-25T20:46:11.36053+00:00] [whatsapp] user (request_id=94d6177f-2bb6-421d-b874-fca017e70d74):
+Euh bah écoute oui ça va merci, cest un peu compliqué ce soir je viens de manger et l'envie est forte je t'avoue
+
+[2026-02-25T20:46:30.342466+00:00] [whatsapp] assistant:
+Ok. Je vois que l'envie est là. 
+Pose tes pieds au sol. Sens le contact. 
+Respire calmement : inspire 4 secondes, expire 6 secondes. Fais ça 3 fois.
+
+[2026-02-25T20:47:20.363141+00:00] [whatsapp] user (request_id=ddcfe192-3a18-44e1-96cb-1b71ea704a92):
+Ok cest bon c'est fait, c'est vrai que ça fait du bien!
+
+[2026-02-25T20:47:40.911747+00:00] [whatsapp] assistant:
+Super. C'est bien que ça t'ait aidé. 
+Maintenant, regarde autour de toi. Trouve 3 objets de couleur bleue. Juste ça.
+
+[2026-02-25T20:48:07.660978+00:00] [whatsapp] user (request_id=d28eee23-0675-4e30-9c36-dcfe389820ae):
+Euh non c'est bon je tassure que ça va
+
+[2026-02-25T20:48:24.852195+00:00] [whatsapp] assistant:
+Ok, je vois. C'est super si tu te sens mieux. L'envie est toujours là ou ça s'est calmé un peu ?
+
+[2026-02-25T20:48:41.349624+00:00] [whatsapp] user (request_id=5efd8611-3b07-4420-b48a-9e8497dce626):
+Bah ça sest un peu calmé effectivement
+
+[2026-02-25T20:48:58.299427+00:00] [whatsapp] assistant:
+Ok, c'est une bonne nouvelle. Comment tu te sens là, maintenant ?
+
+[2026-02-25T20:49:09.289341+00:00] [whatsapp] user (request_id=e9a1f974-fcc4-49b1-bfbd-1a852d84dba2):
+Bah ça va !
+
+[2026-02-25T20:49:28.01609+00:00] [whatsapp] assistant:
+Ok, super. C'est une bonne nouvelle. Tu sens que l'envie est partie ou elle est juste plus gérable ?
+
+[2026-02-25T20:49:51.839514+00:00] [whatsapp] user (request_id=d82e5edd-c9df-491f-a1bc-7500ec4f4f57):
+Euh je dirai qu'elle est plus gérable
+
+[2026-02-25T20:50:17.081878+00:00] [whatsapp] assistant:
+Ok. C'est une bonne nouvelle. Qu'est-ce que tu ressens dans ton corps, là, maintenant ?
+
+[2026-02-25T20:50:39.354338+00:00] [whatsapp] user (request_id=73f47ff4-4781-426b-ab9f-3a5e5de1afc1):
+Euh la ça commence à faire un peu lourd niveau question en vrai
+
+[2026-02-25T20:51:00.834344+00:00] [whatsapp] assistant:
+Ok, je comprends. Merci de me le dire. L'essentiel, c'est que tu aies réussi à rendre cette envie plus gérable. C'est un pas important.
+
+[2026-02-25T20:51:13.904288+00:00] [whatsapp] user (request_id=9d79d5c5-e5f6-4a32-a802-0311e42baef0):
+Oui !
+
+[2026-02-25T20:51:42.679492+00:00] [whatsapp] assistant:
+Ok, super alors ! C'est vraiment ça l'essentiel.
+
+Tu te sens prêt à regarder un peu ton Protocole Nocturne maintenant, ou tu préfères juste te poser ?
+
+[2026-02-25T20:52:00.967564+00:00] [whatsapp] user (request_id=170ab24a-6dc7-44d7-8eab-925dc8e44ade):
+Oui vas y je suis chaud
+
+[2026-02-25T20:52:19.688087+00:00] [whatsapp] assistant:
+Super ! J'aime ton énergie. 💪
+
+Alors, pour ton Protocole Nocturne, on a la "Zone Sans Écran Sacrée", le "Couvre-feu Digital Léger" et "Mon Rituel du Soir Personnalisé" d'actifs.
+
+On regarde ça ensemble ?
+
+[2026-02-25T20:52:49.229717+00:00] [whatsapp] user (request_id=9926ed00-070e-429c-b215-5481cf0226b7):
+Oui on peut regarder ça vas y!
+
+[2026-02-25T20:53:03.210256+00:00] [whatsapp] assistant:
+Parfait ! On va décortiquer ça ensemble.
+
+On commence par ta "Zone Sans Écran Sacrée" ? C'est une bonne base pour retrouver des nuits plus sereines.
+
+[2026-02-25T20:53:18.179152+00:00] [whatsapp] user (request_id=cab41fbf-5cfe-4ac6-a3c8-adda37984f7a):
+Oui allons y !
+
+[2026-02-25T20:53:32.457062+00:00] [whatsapp] assistant:
+Ok, super !
+
+La "Zone Sans Écran Sacrée", l'idée c'est de créer un espace et un moment avant de dormir où tous les écrans (télé, téléphone, tablette...) sont bannis. C'est pour permettre à ton cerveau de déconnecter vraiment.
+
+Pour toi, ça ressemblerait à quoi, concrètement, une "Zone Sans Écran Sacrée" ?
+
+[2026-02-25T20:54:37.718801+00:00] [whatsapp] user (request_id=d202d35a-a5b6-4c64-8232-ed6619da251e):
+Euh alors je dirai que comme ce que tu as dit, ça consiste à enlever tous les ecrans, et donc ça veut dire que dans ma chambre ça se fasse naturellement
+
+[2026-02-25T20:54:51.936622+00:00] [whatsapp] assistant:
+Oui, c'est exactement ça, Thomas. L'idée, c'est vraiment de faire de ta chambre un espace sans écran.
+
+Et pour que ça se fasse "naturellement", tu penses à quel moment précis tu poserais ton téléphone, par exemple ?
+
+[2026-02-25T20:55:15.8852+00:00] [whatsapp] user (request_id=5d5e62b4-50d1-4806-9f48-526a2237a99b):
+Bah idéalement faudrait que je le pose a 23h!
+
+[2026-02-25T20:55:26.943967+00:00] [whatsapp] assistant:
+Ok, 23h, c'est un super objectif, Thomas ! C'est clair et précis.
+
+Pour que ça devienne une habitude, qu'est-ce qui pourrait t'aider à tenir cette heure chaque soir ?
+
+[2026-02-25T20:55:41.719842+00:00] [whatsapp] user (request_id=9bdfa780-2e3b-4020-b9ed-4270d676c5a5):
+Mais attend je comprends pas on fait le bilan là ?
+
+[2026-02-25T20:55:59.174237+00:00] [whatsapp] assistant:
+Non, pas encore Thomas. Le bilan, il arrive automatiquement chaque soir vers 20h sur WhatsApp. Pour l'instant, on ne peut pas le déclencher manuellement.
+
+On continue sur ton objectif de poser ton téléphone à 23h ?
+
+[2026-02-25T20:56:39.824327+00:00] [whatsapp] user (request_id=04fd935b-b1f5-471c-a2ee-64869cdcfbe8):
+Bah tu mas envoyé le message pile a 20h pourtant ? Fin il est pas passé ce soir ?
+
+[2026-02-25T20:56:57.630895+00:00] [whatsapp] assistant:
+Ah, je vois ce qui t'embrouille ! 🤔
+
+Le message que tu as reçu à 20h, c'était une de mes relances pour qu'on avance ensemble. Le bilan, c'est un message automatique et spécifique qui arrive bien chaque soir vers 20h, mais il est distinct de nos échanges.
+
+Est-ce que tu l'as vu passer ce soir, du coup, ce fameux bilan ?
+
+[2026-02-25T20:57:48.645094+00:00] [whatsapp] user (request_id=6f2f7123-d9b5-4621-a932-083640ab4508):
+Bah non 😕
+
+[2026-02-25T20:58:03.159585+00:00] [whatsapp] assistant:
+Ah d'accord, je comprends ta confusion. Il y a peut-être eu un petit loupé ce soir pour le bilan automatique.
+
+Du coup, si on revient à ton objectif de poser ton téléphone à 23h, qu'est-ce qui pourrait t'aider à tenir cette heure chaque soir ?
+
