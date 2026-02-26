@@ -32,7 +32,7 @@ function pushUnique(arr: string[], value: string) {
 export function isMachineInterruptible(machineLabel: string | null): boolean {
   if (!machineLabel) return false;
   if (
-    machineLabel === "safety_sentry" || machineLabel === "safety_firefighter" ||
+    machineLabel === "safety_sentry" ||
     machineLabel === "bilan_in_progress"
   ) return false;
   return true;
@@ -67,18 +67,6 @@ export function hasActiveStateMachine(chatState: any): ActiveMachineCheck {
 
   if (tm.__safety_sentry_flow && tm.__safety_sentry_flow.phase !== "resolved") {
     const machineLabel = "safety_sentry";
-    return {
-      active: true,
-      machineLabel,
-      interruptible: isMachineInterruptible(machineLabel),
-    };
-  }
-
-  if (
-    tm.__safety_firefighter_flow &&
-    tm.__safety_firefighter_flow.phase !== "resolved"
-  ) {
-    const machineLabel = "safety_firefighter";
     return {
       active: true,
       machineLabel,
@@ -146,21 +134,6 @@ export function cleanupHardExpiredStateMachines(
   }
 
   if (
-    (tm as any).__safety_firefighter_flow &&
-    String((tm as any).__safety_firefighter_flow?.phase ?? "") !== "resolved" &&
-    isOlderThan(
-      (tm as any).__safety_firefighter_flow?.last_updated_at ??
-        (tm as any).__safety_firefighter_flow?.started_at,
-      nowMs,
-      hardTtlMs,
-    )
-  ) {
-    delete (tm as any).__safety_firefighter_flow;
-    changed = true;
-    pushUnique(cleaned, "__safety_firefighter_flow");
-  }
-
-  if (
     (tm as any).__onboarding_active &&
     isOlderThan(
       (tm as any).__onboarding_active?.last_updated_at ??
@@ -208,9 +181,6 @@ export function clearActiveMachineForDailyBilan(
   }
 
   if (machineLabel === "safety_sentry") clearTmKey("__safety_sentry_flow");
-  if (machineLabel === "safety_firefighter") {
-    clearTmKey("__safety_firefighter_flow");
-  }
   if (machineLabel === "onboarding") {
     clearTmKey("__onboarding_active");
     clearTmKey("__onboarding_flow");

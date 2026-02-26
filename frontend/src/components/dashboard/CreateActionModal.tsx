@@ -366,7 +366,7 @@ export const CreateActionModal: React.FC<CreateActionModalProps> = ({ isOpen, on
                 disabled={isSubmitting || !title.trim() || !description.trim()}
                 className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-indigo-200 hover:shadow-indigo-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {isSubmitting ? 'Enregistrement...' : mode === 'edit' ? 'Enregistrer' : <><Plus className="w-4 h-4" /> Créer l'action</>}
+                {isSubmitting ? 'Vérification...' : mode === 'edit' ? 'Enregistrer' : <><Plus className="w-4 h-4" /> Créer l'action</>}
               </button>
             </div>
           </motion.div>

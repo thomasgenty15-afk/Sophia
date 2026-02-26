@@ -157,13 +157,14 @@ export const useDashboardData = () => {
                     .maybeSingle();
                 
                 if (vitalData) {
+                    const planSignal = (loadedPlan as any)?.vitalSignal || {};
                     setActiveVitalSignData({
                         id: vitalData.id,
                         title: vitalData.label,
                         currentValue: vitalData.current_value,
                         targetValue: vitalData.target_value,
                         unit: vitalData.unit,
-                        startValue: vitalData.current_value,
+                        startValue: planSignal.startValue ?? vitalData.current_value,
                         last_checked_at: vitalData.last_checked_at,
                         time_of_day: vitalData.time_of_day ?? 'any_time',
                     });

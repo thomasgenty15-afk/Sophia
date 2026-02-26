@@ -5,6 +5,7 @@ export const THEME_DISCIPLINE: Theme = {
   title: 'Discipline & Organisation',
   shortTitle: 'Discipline',
   icon: '📅',
+  keywords: ['Procrastination', 'Concentration', 'Organisation', 'Routines'],
   axes: [
     {
       id: 'DSC_1',

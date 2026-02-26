@@ -461,7 +461,7 @@ export async function buildMechanicalIssues(params: {
       // INV2: Bilan active → investigator mode (unless safety override)
       if (invName === "bilan_active_implies_investigator") {
         const bilanActive = invState && invState.status && invState.status !== "post_checkup";
-        const isSafetyMode = currentMode === "sentry" || currentMode === "firefighter";
+        const isSafetyMode = currentMode === "sentry";
         if (bilanActive && !isSafetyMode && currentMode !== "investigator") {
           out.push({
             severity: "high",

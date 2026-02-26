@@ -16,7 +16,7 @@ export async function handleStopOptOut(params: {
     replyToWaMessageId?: string | null
     contextOverride: string
     whatsappMode?: "onboarding" | "normal"
-    forceMode?: "companion" | "architect" | "assistant" | "investigator" | "firefighter" | "sentry"
+    forceMode?: "companion" | "architect" | "assistant" | "investigator" | "sentry"
     purpose?: string
   }) => Promise<any>
   requestId: string

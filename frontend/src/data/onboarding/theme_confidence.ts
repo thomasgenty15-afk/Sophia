@@ -5,6 +5,7 @@ export const THEME_CONFIDENCE: Theme = {
   title: 'Confiance & Estime de soi',
   shortTitle: 'Confiance',
   icon: '💪',
+  keywords: ['Estime de soi', 'Image corporelle', 'Regard des autres', 'Légitimité'],
   axes: [
     {
       id: 'CNF_1',

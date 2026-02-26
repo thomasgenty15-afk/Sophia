@@ -27,8 +27,13 @@ const MATCH_HIGH = Number((Deno.env.get("SOPHIA_TOPIC_MATCH_HIGH") ?? "0.72").tr
 const KEYWORD_STRONG = Number((Deno.env.get("SOPHIA_TOPIC_KEYWORD_STRONG") ?? "0.86").trim()) || 0.86
 const SYNTH_STRONG = Number((Deno.env.get("SOPHIA_TOPIC_SYNTH_STRONG") ?? "0.84").trim()) || 0.84
 const NOOP_SEMANTIC_SIM = Number((Deno.env.get("SOPHIA_TOPIC_NOOP_SEMANTIC_SIM") ?? "0.90").trim()) || 0.90
+const TITLE_STRONG = Number((Deno.env.get("SOPHIA_TOPIC_TITLE_STRONG") ?? "0.88").trim()) || 0.88
 const MAX_KEYWORDS_PER_TOPIC_UPDATE = Number((Deno.env.get("SOPHIA_TOPIC_MAX_KEYWORDS_PER_UPDATE") ?? "12").trim()) || 12
 const ALLOW_KEYWORD_REASSIGN = (Deno.env.get("SOPHIA_TOPIC_ALLOW_KEYWORD_REASSIGN") ?? "").trim() === "1"
+const AUTO_MERGE_SYNTH_SIM = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_SYNTH_SIM") ?? "0.93").trim()) || 0.93
+const AUTO_MERGE_TITLE_SIM = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_SIM") ?? "0.95").trim()) || 0.95
+const AUTO_MERGE_TITLE_JACCARD = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_JACCARD") ?? "0.60").trim()) || 0.60
+const MAX_TIMELINE_ITEMS = Number((Deno.env.get("SOPHIA_TOPIC_MAX_TIMELINE_ITEMS") ?? "10").trim()) || 10
 
 const GENERIC_KEYWORDS = new Set([
   "sommeil", "sleep", "maman", "mere", "mother", "famille", "family",
@@ -138,6 +143,85 @@ function recencyScore(lastEnrichedAt: string | null | undefined): number {
   return Math.max(0, Math.min(1, 1 - days / 30))
 }
 
+function slugTokenKey(raw: string): string {
+  const norm = slugify(raw).replace(/_/g, " ").trim()
+  if (!norm) return ""
+  const parts = norm.split(/\s+/).map((p) => p.trim()).filter((p) => p.length >= 3)
+  return [...new Set(parts)].sort().join("_")
+}
+
+function mergeSynthesisText(a: string, b: string): string {
+  const aa = String(a ?? "").trim()
+  const bb = String(b ?? "").trim()
+  if (!aa) return bb
+  if (!bb) return aa
+  const aLower = aa.toLowerCase()
+  const bLower = bb.toLowerCase()
+  if (aLower.includes(bLower)) return aa
+  if (bLower.includes(aLower)) return bb
+  return `${aa}\n\n${bb}`
+}
+
+interface TimelineEvent {
+  at: string
+  note: string
+  source?: TopicEnrichmentSource | "merge"
+}
+
+function formatDateFrDayMonthYear(input: string | null | undefined): string {
+  if (!input) return "date inconnue"
+  const dt = new Date(input)
+  if (!Number.isFinite(dt.getTime())) return "date inconnue"
+  return new Intl.DateTimeFormat("fr-FR", {
+    day: "2-digit",
+    month: "long",
+    year: "numeric",
+  }).format(dt)
+}
+
+function timelineNote(raw: string, maxLen = 220): string {
+  const cleaned = String(raw ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+  if (!cleaned) return "Mise à jour contextuelle."
+  if (cleaned.length <= maxLen) return cleaned
+  return `${cleaned.slice(0, maxLen - 1).trim()}…`
+}
+
+function readTimeline(metadata: unknown): TimelineEvent[] {
+  const md = (metadata && typeof metadata === "object") ? (metadata as Record<string, unknown>) : {}
+  const raw = md.timeline
+  if (!Array.isArray(raw)) return []
+  const events: TimelineEvent[] = []
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue
+    const at = String((item as Record<string, unknown>).at ?? "").trim()
+    const note = String((item as Record<string, unknown>).note ?? "").trim()
+    const sourceRaw = String((item as Record<string, unknown>).source ?? "").trim()
+    if (!at || !note) continue
+    const parsed = new Date(at)
+    if (!Number.isFinite(parsed.getTime())) continue
+    const source = sourceRaw ? sourceRaw as TimelineEvent["source"] : undefined
+    events.push({ at: parsed.toISOString(), note, source })
+  }
+  return events.sort((a, b) => {
+    const at = new Date(a.at).getTime()
+    const bt = new Date(b.at).getTime()
+    return at - bt
+  })
+}
+
+function appendTimelineEvent(timeline: TimelineEvent[], event: TimelineEvent): TimelineEvent[] {
+  const normalizedAt = new Date(event.at)
+  const safeAt = Number.isFinite(normalizedAt.getTime()) ? normalizedAt.toISOString() : new Date().toISOString()
+  const safeNote = timelineNote(event.note, 240)
+  const dedupKey = `${safeAt.slice(0, 10)}|${safeNote.toLowerCase()}`
+  const deduped = timeline.filter((e) => `${e.at.slice(0, 10)}|${e.note.toLowerCase()}` !== dedupKey)
+  const next = [...deduped, { ...event, at: safeAt, note: safeNote }]
+    .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime())
+  return next.slice(-MAX_TIMELINE_ITEMS)
+}
+
 // ============================================================================
 // Types
 // ============================================================================
@@ -163,12 +247,16 @@ export interface TopicMemory {
   slug: string
   title: string
   synthesis: string
+  synthesis_embedding?: number[] | null
+  title_embedding?: number[] | null
   status: string
   mention_count: number
   enrichment_count: number
   first_mentioned_at: string
   last_enriched_at: string | null
   last_retrieved_at: string | null
+  created_at?: string
+  updated_at?: string
   metadata: Record<string, unknown>
 }
 
@@ -367,8 +455,8 @@ Schema JSON strict :
       duplicate_structured_data,
     }
   } catch (e) {
-    console.warn("[TopicMemory] Persist gate LLM failed, defaulting to persist=true:", e)
-    return { persist: true, value_score: 5, reason: "LLM fallback", horizon: "long_term", duplicate_structured_data: false }
+    console.warn("[TopicMemory] Persist gate LLM failed, defaulting to persist=false:", e)
+    return { persist: false, value_score: 0, reason: "LLM fallback (fail-closed)", horizon: "short_term", duplicate_structured_data: false }
   }
 }
 
@@ -397,6 +485,31 @@ export async function findMatchingTopic(opts: {
     .maybeSingle()
 
   if (exactMatch) return exactMatch as TopicMemory
+
+  // 1b. Match canonique de slug (ignore l'ordre des tokens)
+  const targetSlugKey = slugTokenKey(extractedTopic.slug)
+  if (targetSlugKey) {
+    const { data: activeTopics } = await supabase
+      .from("user_topic_memories")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .limit(120)
+
+    const sameSlugFamily = (Array.isArray(activeTopics) ? activeTopics : [])
+      .filter((t: any) => slugTokenKey(String(t?.slug ?? "")) === targetSlugKey)
+      .sort((a: any, b: any) => {
+        const byMentions = (Number(b?.mention_count ?? 0) || 0) - (Number(a?.mention_count ?? 0) || 0)
+        if (byMentions !== 0) return byMentions
+        const at = new Date(String(a?.last_enriched_at ?? a?.updated_at ?? 0)).getTime() || 0
+        const bt = new Date(String(b?.last_enriched_at ?? b?.updated_at ?? 0)).getTime() || 0
+        return bt - at
+      })
+
+    if (sameSlugFamily.length > 0) {
+      return sameSlugFamily[0] as TopicMemory
+    }
+  }
 
   // 2) Recherche sémantique + re-ranking fusion
   const searchText = `${extractedTopic.title}\n${extractedTopic.new_information}\n${extractedTopic.keywords.slice(0, 8).join(" ")}`
@@ -505,10 +618,12 @@ export async function findMatchingTopic(opts: {
     const best = ranked[0]
     const keywordStrongEnough = best.keyword_similarity >= KEYWORD_STRONG && specificity >= 0.45
     const synthesisStrongEnough = best.synthesis_similarity >= (SYNTH_STRONG + (specificity < 0.35 ? 0.03 : 0))
+    const titleStrongEnough = best.title_similarity >= TITLE_STRONG
     const accept =
       best.fused_score >= MATCH_HIGH ||
       keywordStrongEnough ||
-      synthesisStrongEnough
+      synthesisStrongEnough ||
+      titleStrongEnough
 
     if (accept) {
       const { data: fullTopic } = await supabase
@@ -624,6 +739,7 @@ TES RÈGLES :
 2. Si les nouvelles infos enrichissent le topic → produis une NOUVELLE SYNTHÈSE qui :
    - Intègre les nouvelles infos DANS la synthèse existante (pas juste concaténer)
    - Maintient une progression chronologique naturelle
+   - Respecte l'évolution du vécu au fil du temps (sans inventer de dates)
    - Garde les informations importantes du passé
    - Supprime les redondances
    - Reste dense et factuel (max 5 paragraphes courts)
@@ -684,6 +800,17 @@ ou
     })
 
     // Mettre à jour le topic
+    const baseMetadata = (topic.metadata && typeof topic.metadata === "object")
+      ? topic.metadata
+      : {}
+    const timeline = appendTimelineEvent(
+      readTimeline(baseMetadata),
+      {
+        at: now,
+        note: timelineNote(newInformation),
+        source: sourceType,
+      },
+    )
     await supabase
       .from("user_topic_memories")
       .update({
@@ -692,6 +819,10 @@ ou
         mention_count: (topic.mention_count ?? 0) + 1,
         enrichment_count: (topic.enrichment_count ?? 0) + 1,
         last_enriched_at: now,
+        metadata: {
+          ...baseMetadata,
+          timeline,
+        },
         updated_at: now,
       })
       .eq("id", topic.id)
@@ -776,6 +907,13 @@ Sujet : "${extractedTopic.title}"
       metadata: {
         domain: extractedTopic.domain ?? null,
         source_type: sourceType,
+        timeline: [
+          {
+            at: now,
+            note: timelineNote(extractedTopic.new_information),
+            source: sourceType,
+          },
+        ],
       },
     })
     .select("*")
@@ -796,7 +934,177 @@ Sujet : "${extractedTopic.title}"
   })
 
   console.log(`[TopicMemory] Created topic "${extractedTopic.title}" keywords+${keywordStats.inserted}`)
-  return newTopic as TopicMemory
+  return await maybeAutoMergeNewTopic({
+    supabase,
+    userId,
+    newTopic: newTopic as TopicMemory,
+    sourceType,
+  })
+}
+
+async function maybeAutoMergeNewTopic(opts: {
+  supabase: SupabaseClient
+  userId: string
+  newTopic: TopicMemory
+  sourceType: TopicEnrichmentSource
+}): Promise<TopicMemory> {
+  const { supabase, userId, newTopic, sourceType } = opts
+
+  try {
+    const { data: candidates } = await supabase
+      .from("user_topic_memories")
+      .select("*")
+      .eq("user_id", userId)
+      .eq("status", "active")
+      .neq("id", newTopic.id)
+      .limit(120)
+
+    if (!Array.isArray(candidates) || candidates.length === 0) {
+      return newTopic
+    }
+
+    const currentSynth = toVector((newTopic as any).synthesis_embedding) ?? await generateEmbedding(newTopic.synthesis)
+    const currentTitle = toVector((newTopic as any).title_embedding) ?? await generateEmbedding(newTopic.title)
+    const currentTitleTokens = tokens(newTopic.title)
+
+    const ranked = candidates
+      .map((c: any) => {
+        const synth = toVector(c?.synthesis_embedding)
+        const title = toVector(c?.title_embedding)
+        const synthSim = synth ? cosineSimilarity(currentSynth, synth) : 0
+        const titleSim = title ? cosineSimilarity(currentTitle, title) : 0
+        const titleLex = jaccard(currentTitleTokens, tokens(String(c?.title ?? "")))
+        const score = 0.70 * synthSim + 0.20 * titleSim + 0.10 * titleLex
+        return {
+          topic: c as TopicMemory,
+          synthSim,
+          titleSim,
+          titleLex,
+          score,
+        }
+      })
+      .sort((a, b) => b.score - a.score)
+
+    const best = ranked[0]
+    if (!best) return newTopic
+
+    const shouldMerge =
+      best.synthSim >= AUTO_MERGE_SYNTH_SIM ||
+      (best.titleSim >= AUTO_MERGE_TITLE_SIM && best.titleLex >= AUTO_MERGE_TITLE_JACCARD)
+
+    if (!shouldMerge) {
+      return newTopic
+    }
+
+    const canonical = best.topic
+    const now = new Date().toISOString()
+    const { data: duplicateKeywords } = await supabase
+      .from("user_topic_keywords")
+      .select("keyword")
+      .eq("user_id", userId)
+      .eq("topic_id", newTopic.id)
+
+    const dupKeywordList = (Array.isArray(duplicateKeywords) ? duplicateKeywords : [])
+      .map((r: any) => String(r?.keyword ?? "").trim())
+      .filter(Boolean)
+
+    await upsertKeywords({
+      supabase,
+      userId,
+      topicId: canonical.id,
+      keywords: dupKeywordList,
+      allowReassign: true,
+    })
+
+    const mergedSynthesis = mergeSynthesisText(String(canonical.synthesis ?? ""), String(newTopic.synthesis ?? ""))
+    const mergedSynthesisEmbedding = await generateEmbedding(mergedSynthesis)
+    const canonicalMetadata = (canonical.metadata && typeof canonical.metadata === "object")
+      ? canonical.metadata
+      : {}
+    const canonicalTimeline = appendTimelineEvent(
+      readTimeline(canonicalMetadata),
+      {
+        at: now,
+        note: `Fusion du topic "${newTopic.title}" (${newTopic.slug}) dans "${canonical.title}".`,
+        source: "merge",
+      },
+    )
+    const existingMergedFrom = Array.isArray((canonicalMetadata as any).merged_from)
+      ? (canonicalMetadata as any).merged_from
+      : []
+    const mergedFrom = [
+      ...existingMergedFrom,
+      {
+        topic_id: newTopic.id,
+        slug: newTopic.slug,
+        merged_at: now,
+      },
+    ]
+
+    await supabase
+      .from("user_topic_memories")
+      .update({
+        synthesis: mergedSynthesis,
+        synthesis_embedding: mergedSynthesisEmbedding,
+        mention_count: (Number(canonical.mention_count ?? 0) || 0) + (Number(newTopic.mention_count ?? 0) || 0),
+        enrichment_count: (Number(canonical.enrichment_count ?? 0) || 0) + (Number(newTopic.enrichment_count ?? 0) || 0),
+        last_enriched_at: now,
+        metadata: {
+          ...canonicalMetadata,
+          merged_from: mergedFrom,
+          timeline: canonicalTimeline,
+        },
+        updated_at: now,
+      })
+      .eq("id", canonical.id)
+
+    const duplicateMetadata = (newTopic.metadata && typeof newTopic.metadata === "object")
+      ? newTopic.metadata
+      : {}
+    const duplicateTimeline = appendTimelineEvent(
+      readTimeline(duplicateMetadata),
+      {
+        at: now,
+        note: `Topic fusionné dans "${canonical.title}" (${canonical.slug}).`,
+        source: "merge",
+      },
+    )
+    await supabase
+      .from("user_topic_memories")
+      .update({
+        status: "merged",
+        metadata: {
+          ...duplicateMetadata,
+          merged_into: canonical.id,
+          merged_at: now,
+          timeline: duplicateTimeline,
+        },
+        updated_at: now,
+      })
+      .eq("id", newTopic.id)
+
+    await supabase.from("user_topic_enrichment_log").insert({
+      user_id: userId,
+      topic_id: canonical.id,
+      enrichment_summary: `Auto-merge du topic "${newTopic.title}" (${newTopic.slug}) dans "${canonical.title}".`,
+      previous_synthesis: canonical.synthesis,
+      source_type: sourceType,
+    })
+
+    const { data: refreshed } = await supabase
+      .from("user_topic_memories")
+      .select("*")
+      .eq("id", canonical.id)
+      .maybeSingle()
+
+    console.log(
+      `[TopicMemory] Auto-merged topic "${newTopic.title}" -> "${canonical.title}" (synth=${best.synthSim.toFixed(3)} title=${best.titleSim.toFixed(3)} lexical=${best.titleLex.toFixed(3)})`,
+    )
+    return (refreshed as TopicMemory) ?? canonical
+  } catch (e) {
+    console.warn(`[TopicMemory] auto-merge failed for topic=${newTopic.slug}:`, e)
+    return newTopic
+  }
 }
 
 // ============================================================================
@@ -805,7 +1113,8 @@ Sujet : "${extractedTopic.title}"
 
 /**
  * Ajoute ou met à jour des keywords pour un topic.
- * Si un keyword existe déjà pour un AUTRE topic, il est réaffecté.
+ * Par défaut, si un keyword existe déjà sur un autre topic, il est conservé.
+ * La réaffectation est possible seulement via allowReassign (ou env flag).
  */
 async function upsertKeywords(opts: {
   supabase: SupabaseClient
@@ -930,30 +1239,56 @@ export async function retrieveTopicMemories(opts: {
   ])
 
   // Dédupliquer et fusionner les résultats (priorité: keywords > synthesis > title)
-  const seenIds = new Set<string>()
-  const merged: TopicSearchResult[] = []
+  const byTopic = new Map<string, TopicSearchResult & {
+    keyword_similarity: number
+    synthesis_similarity: number
+    title_similarity: number
+    retrieval_score: number
+  }>()
 
-  for (const r of keywordResults) {
-    if (!seenIds.has(r.topic_id)) {
-      seenIds.add(r.topic_id)
-      merged.push(r)
+  const upsertRow = (
+    row: TopicSearchResult,
+    kind: "keyword" | "synthesis" | "title",
+  ) => {
+    const id = String(row.topic_id ?? "").trim()
+    if (!id) return
+    const prev = byTopic.get(id) ?? {
+      ...row,
+      keyword_similarity: 0,
+      synthesis_similarity: 0,
+      title_similarity: 0,
+      retrieval_score: 0,
     }
+    if (kind === "keyword") prev.keyword_similarity = Math.max(prev.keyword_similarity, Number(row.keyword_similarity ?? 0) || 0)
+    if (kind === "synthesis") prev.synthesis_similarity = Math.max(prev.synthesis_similarity, Number(row.synthesis_similarity ?? 0) || 0)
+    if (kind === "title") prev.title_similarity = Math.max(prev.title_similarity, Number(row.title_similarity ?? 0) || 0)
+    prev.mention_count = Math.max(Number(prev.mention_count ?? 0) || 0, Number(row.mention_count ?? 0) || 0)
+    if (!prev.last_enriched_at && row.last_enriched_at) prev.last_enriched_at = row.last_enriched_at
+    byTopic.set(id, prev)
   }
-  for (const r of synthesisResults) {
-    if (!seenIds.has(r.topic_id)) {
-      seenIds.add(r.topic_id)
-      merged.push(r)
-    }
-  }
-  for (const r of titleResults) {
-    if (!seenIds.has(r.topic_id)) {
-      seenIds.add(r.topic_id)
-      merged.push(r)
-    }
-  }
+
+  for (const r of keywordResults) upsertRow(r, "keyword")
+  for (const r of synthesisResults) upsertRow(r, "synthesis")
+  for (const r of titleResults) upsertRow(r, "title")
+
+  const merged = [...byTopic.values()]
+    .map((r) => {
+      const rec = recencyScore(r.last_enriched_at)
+      const mention = Math.max(0, Number(r.mention_count ?? 0) || 0)
+      const mentionBoost = Math.min(1, Math.log1p(mention) / Math.log(10))
+      r.retrieval_score =
+        0.50 * r.keyword_similarity +
+        0.30 * r.synthesis_similarity +
+        0.20 * r.title_similarity +
+        0.08 * rec +
+        0.04 * mentionBoost
+      return r
+    })
+    .sort((a, b) => b.retrieval_score - a.retrieval_score)
 
   // Mettre à jour last_retrieved_at pour les topics retournés
-  const topicIds = merged.slice(0, maxResults).map(r => r.topic_id)
+  const top = merged.slice(0, maxResults)
+  const topicIds = top.map((r) => r.topic_id)
   if (topicIds.length > 0) {
     try {
       await supabase
@@ -965,7 +1300,10 @@ export async function retrieveTopicMemories(opts: {
     }
   }
 
-  return merged.slice(0, maxResults)
+  return top.map((r) => {
+    const { retrieval_score: _ignored, ...rest } = r
+    return rest
+  })
 }
 
 /**
@@ -984,6 +1322,14 @@ export function formatTopicMemoriesForPrompt(topics: TopicSearchResult[]): strin
 
     block += `\n📌 ${topic.title} (mentionné ${mentions}x, dernière màj: ${enrichedAt})\n`
     block += `${topic.synthesis}\n`
+
+    const timeline = readTimeline(topic.metadata).slice(-4)
+    if (timeline.length > 0) {
+      block += "Repères temporels (évolution):\n"
+      for (const ev of timeline) {
+        block += `- ${formatDateFrDayMonthYear(ev.at)}: ${ev.note}\n`
+      }
+    }
   }
 
   block += "\n- Utilise ces informations NATURELLEMENT, sans les exposer.\n"

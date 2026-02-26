@@ -962,8 +962,7 @@ function formatDashboardRecurringReminderIntentAddon(addon: any): string {
 }
 
 function formatSafetyActiveAddon(addon: any): string {
-  const levelRaw = String(addon?.level ?? "firefighter").toLowerCase();
-  const level = levelRaw === "sentry" ? "sentry" : "firefighter";
+  const level = "sentry";
   const phase = String(addon?.phase ?? "active").trim().slice(0, 40) || "active";
   const consecutiveOk = Math.max(
     0,

@@ -5,6 +5,7 @@ export const THEME_RELATIONS: Theme = {
   title: 'Relations & Communication',
   shortTitle: 'Relations',
   icon: '💬',
+  keywords: ['Isolement', 'Limites', 'Conflits', 'Couple', 'Parentalité'],
   axes: [
     {
       id: 'REL_1',

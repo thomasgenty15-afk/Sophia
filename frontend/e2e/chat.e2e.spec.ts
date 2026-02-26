@@ -138,7 +138,7 @@ test("Chat: sending a message triggers sophia-brain and writes chat_messages + a
   await page.getByTestId("chat-send").click();
 
   // Assistant response appears (agent label shown on assistant messages)
-  await expect(page.getByText(/companion|investigator|architect|assistant|firefighter|sentry/i)).toBeVisible();
+  await expect(page.getByText(/companion|investigator|architect|assistant|sentry/i)).toBeVisible();
 
   // DB: chat_messages increased by at least 2 (user + assistant)
   await expect.poll(async () => {

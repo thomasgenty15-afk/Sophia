@@ -102,7 +102,7 @@ function ruleBasedIssues(params: {
   const { transcript, state_before, state_after, config } = params;
   const issues: any[] = [];
 
-  // Special mode: post-bilan "parking lot" (we intentionally route to companion/architect/firefighter after bilan completion).
+  // Special mode: post-bilan "parking lot" (we intentionally route to companion/architect after bilan completion).
   const isPostBilanTest = Boolean(config?.limits?.test_post_checkup_deferral);
   const afterInvStatus = (state_after as any)?.investigation_state?.status ?? null;
   const isPostCheckupState = String(afterInvStatus ?? "").startsWith("post_checkup");
@@ -642,7 +642,7 @@ Deno.serve(async (req) => {
       ],
       routing_rules: [
         "Hard guard (router): if investigation_state is active, only investigator answers unless explicit stop (stop/arrête/change topic).",
-        "Safety priority: sentry/firefighter may override during a checkup if risk is detected.",
+        "Safety priority: sentry may override during a checkup if risk is detected.",
       ],
     };
     if (!isMegaEnabled() || allowReal) {
@@ -667,7 +667,6 @@ Règles:
   - sophia.investigator
   - sophia.companion
   - sophia.architect
-  - sophia.firefighter
   - sophia.sentry
 
 SYSTEM_SNAPSHOT:

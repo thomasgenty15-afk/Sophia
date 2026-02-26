@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { isSameIsoWeekLocal } from '../../lib/isoWeek';
 import type { Action, NorthStar, NorthStarMetricType } from '../../types/dashboard';
+import { shouldValidateOnUpdate, validateEthicalText } from '../../lib/ethicalValidation';
 import { PlanActionCard } from './PlanActionCard';
 import { CreateActionModal } from './CreateActionModal';
 import { HabitSettingsModal } from './HabitSettingsModal';
@@ -67,6 +68,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
   const [northStarValueDraft, setNorthStarValueDraft] = useState('');
   const [northStarValueSaving, setNorthStarValueSaving] = useState(false);
   const [northStarValueError, setNorthStarValueError] = useState<string | null>(null);
+  const [isVerifyingEthics, setIsVerifyingEthics] = useState(false);
 
   const activeCount = useMemo(
     () => actions.filter((a) => a.status === 'active' || a.status === 'pending').length,
@@ -90,6 +92,32 @@ export function PersonalActionsSection(props: { userId: string | null }) {
       setActions([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const runEthicalValidation = async (params: {
+    entityType: 'action' | 'initiative' | 'north_star' | 'vital_sign';
+    operation: 'create' | 'update';
+    textFields: Record<string, unknown>;
+    previousTextFields?: Record<string, unknown>;
+    textFieldKeys: string[];
+    context?: Record<string, unknown>;
+  }) => {
+    setIsVerifyingEthics(true);
+    try {
+      const result = await validateEthicalText({
+        entityType: params.entityType,
+        operation: params.operation,
+        textFields: params.textFields,
+        previousTextFields: params.previousTextFields ?? null,
+        textFieldKeys: params.textFieldKeys,
+        context: params.context,
+      });
+      if (result.decision === 'block') {
+        throw new Error(result.reasonShort || "Contenu bloqué par la vérification éthique.");
+      }
+    } finally {
+      setIsVerifyingEthics(false);
     }
   };
 
@@ -208,6 +236,36 @@ export function PersonalActionsSection(props: { userId: string | null }) {
     if (!userId || !northStarSubmissionId) return;
     setNorthStarSaving(true);
     try {
+      const nextText = {
+        title: payload.title,
+        unit: payload.unit,
+      };
+      if (northStar) {
+        const prevText = {
+          title: northStar.title ?? '',
+          unit: northStar.unit ?? '',
+        };
+        const needsValidation = shouldValidateOnUpdate(prevText, nextText, ['title', 'unit']);
+        if (needsValidation) {
+          await runEthicalValidation({
+            entityType: 'north_star',
+            operation: 'update',
+            textFields: nextText,
+            previousTextFields: prevText,
+            textFieldKeys: ['title', 'unit'],
+            context: { scope: 'personal_actions' },
+          });
+        }
+      } else {
+        await runEthicalValidation({
+          entityType: 'north_star',
+          operation: 'create',
+          textFields: nextText,
+          textFieldKeys: ['title', 'unit'],
+          context: { scope: 'personal_actions' },
+        });
+      }
+
       const today = new Date().toISOString().slice(0, 10);
       const initialHistory = [{ date: today, value: payload.current_value, note: 'initial' }];
 
@@ -326,6 +384,17 @@ export function PersonalActionsSection(props: { userId: string | null }) {
       ? actionData.scheduledDays.slice(0, targetReps)
       : null;
 
+    await runEthicalValidation({
+      entityType: 'action',
+      operation: 'create',
+      textFields: {
+        title,
+        description,
+      },
+      textFieldKeys: ['title', 'description'],
+      context: { scope: 'personal_actions' },
+    });
+
     const { error } = await supabase.from('user_personal_actions').insert({
       user_id: userId,
       title,
@@ -358,6 +427,24 @@ export function PersonalActionsSection(props: { userId: string | null }) {
         ? (actionData.scheduledDays && actionData.scheduledDays.length > 0 ? actionData.scheduledDays : null)
         : (originalAction.scheduledDays ?? null),
     };
+    const prevText = {
+      title: originalAction.title ?? '',
+      description: originalAction.description ?? '',
+    };
+    const nextText = {
+      title: updates.title,
+      description: updates.description,
+    };
+    if (shouldValidateOnUpdate(prevText, nextText, ['title', 'description'])) {
+      await runEthicalValidation({
+        entityType: 'action',
+        operation: 'update',
+        textFields: nextText,
+        previousTextFields: prevText,
+        textFieldKeys: ['title', 'description'],
+        context: { scope: 'personal_actions' },
+      });
+    }
     if (Array.isArray(updates.scheduled_days) && updates.scheduled_days.length > updates.target_reps) {
       updates.scheduled_days = updates.scheduled_days.slice(0, updates.target_reps);
     }
@@ -643,6 +730,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
       <CreateActionModal
         isOpen={createOpen}
         onClose={() => setCreateOpen(false)}
+        isSubmitting={isVerifyingEthics}
         onSubmit={async (actionData) => {
           await handleCreate(actionData);
           setCreateOpen(false);
@@ -654,6 +742,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
         isOpen={!!editingAction}
         onClose={() => setEditingAction(null)}
         mode="edit"
+        isSubmitting={isVerifyingEthics}
         initialValues={editingAction || undefined}
         onSubmit={async (actionData) => {
           if (!editingAction) return;
@@ -682,7 +771,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
         existingNorthStar={northStar}
         suggestions={northStarSuggestions}
         isGenerating={northStarGenerating}
-        isSaving={northStarSaving}
+        isSaving={northStarSaving || isVerifyingEthics}
       />
 
       {northStarValueModalOpen && northStar && (
@@ -754,7 +843,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
                 onClick={() => void submitNorthStarValue()}
                 disabled={northStarValueSaving}
               >
-                {northStarValueSaving ? 'Enregistrement…' : 'Enregistrer'}
+                {northStarValueSaving ? 'Enregistrement…' : isVerifyingEthics ? 'Vérification...' : 'Enregistrer'}
               </button>
             </div>
           </div>

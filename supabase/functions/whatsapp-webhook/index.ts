@@ -42,6 +42,8 @@ const PAYWALL_NOTICE_COOLDOWN_MS = Number.parseInt(
   (Deno.env.get("WHATSAPP_PAYWALL_NOTICE_COOLDOWN_MS") ?? "").trim() || String(6 * 60 * 60 * 1000),
   10,
 )
+const AUDIO_UNSUPPORTED_REPLY =
+  "Merci pour ton vocal 🎙️ Je ne peux pas encore écouter les messages audio, mais ça arrive bientôt. En attendant, tu peux dicter au micro 😊✨"
 
 function decodeJwtAlg(jwt: string) {
   const t = (jwt ?? "").trim()
@@ -440,6 +442,37 @@ Deno.serve(async (req) => {
           chat_message_id: (insertedIn as any)?.id ?? null,
         } as any)
         .eq("wamid_in", msg.wa_message_id)
+
+      // Temporary fallback: acknowledge audio inbounds with a short friendly message.
+      if (msg.type === "audio") {
+        const sendResp = await sendWhatsAppTextTracked({
+          admin,
+          requestId: processId,
+          userId: profile.id,
+          toE164: fromE164,
+          body: AUDIO_UNSUPPORTED_REPLY,
+          purpose: "whatsapp_audio_not_supported",
+          isProactive: false,
+          replyToWaMessageId: msg.wa_message_id,
+        })
+        const outId = (sendResp as any)?.messages?.[0]?.id ?? null
+        const outboundTrackingId = (sendResp as any)?.outbound_tracking_id ?? null
+        await admin.from("chat_messages").insert({
+          user_id: profile.id,
+          scope: "whatsapp",
+          role: "assistant",
+          content: AUDIO_UNSUPPORTED_REPLY,
+          agent_used: "companion",
+          metadata: {
+            channel: "whatsapp",
+            wa_outbound_message_id: outId,
+            outbound_tracking_id: outboundTrackingId,
+            is_proactive: false,
+            purpose: "whatsapp_audio_not_supported",
+          },
+        })
+        continue
+      }
 
       // If user is messaging us but has no active plan, put them in the onboarding state-machine
       // so we don't spam the same generic "no plan" reply over and over.

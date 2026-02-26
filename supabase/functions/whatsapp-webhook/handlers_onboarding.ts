@@ -82,7 +82,7 @@ export async function handleOnboardingState(params: {
     replyToWaMessageId?: string | null
     contextOverride: string
     whatsappMode?: "onboarding" | "normal"
-    forceMode?: "companion" | "architect" | "assistant" | "investigator" | "firefighter" | "sentry"
+    forceMode?: "companion" | "architect" | "assistant" | "investigator" | "sentry"
     purpose?: string
   }) => Promise<any>
   sendWhatsAppText: (toE164: string, body: string) => Promise<any>

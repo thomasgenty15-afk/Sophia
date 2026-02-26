@@ -182,24 +182,19 @@ export function generateSubtleUpdateAck(opts: {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// POST-PARENTHESIS MESSAGES (after sentry/firefighter)
+// POST-PARENTHESIS MESSAGES (after sentry)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
- * Generate the "do you want to resume?" question after sentry/firefighter.
+ * Generate the "do you want to resume?" question after sentry.
  */
 export function generatePostParenthesisQuestion(opts: {
   pausedMachine: PausedMachineStateV2
-  reason: "sentry" | "firefighter"
+  reason: "sentry"
 }): string {
   const context = opts.pausedMachine.action_target 
     ? ` (on travaillait sur ${opts.pausedMachine.action_target})`
     : ""
-  
-  // Softer phrasing after emotional support
-  if (opts.reason === "firefighter") {
-    return `Tu as l'air d'aller un peu mieux. Tu veux qu'on reprenne ce qu'on faisait${context}, ou tu preferes souffler un peu ?`
-  }
   
   // After sentry (more serious)
   return `Je suis content qu'on ait pu en parler. Si tu te sens pret, on peut reprendre ce qu'on faisait${context}. Sinon, prends ton temps, je suis la. Qu'est-ce que tu preferes ?`

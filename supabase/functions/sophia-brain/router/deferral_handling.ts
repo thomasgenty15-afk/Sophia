@@ -140,7 +140,7 @@ function hasSignalTargetHint(
 
 /**
  * Filter dispatcher signals to keep only ONE mother signal (highest priority).
- * Safety signals (firefighter/sentry) are NEVER filtered - they always pass through.
+ * Safety signals (sentry) are NEVER filtered - they always pass through.
  *
  * DUAL-TOOL EXCEPTION: If at least 2 tool signals are detected (both from the tool set:
  * create_action, update_action, delete_action, deactivate_action, activate_action, breakdown_action),
@@ -366,7 +366,7 @@ export async function handleSignalDeferral(opts: {
       );
     })();
 
-    // If it's NOT sentry/firefighter AND (different machine OR different action), DEFER
+    // If it's NOT sentry AND (different machine OR different action), DEFER
     const interruptedForSafety = shouldInterruptForSafety(
       opts.dispatcherSignals,
     );

@@ -29,6 +29,7 @@ export type Theme = {
   title: string;
   shortTitle?: string;
   icon?: string;
+  keywords?: string[];
   axes?: Axis[];
   // Propriétés optionnelles pour accommoder les objets Axis mal placés
   description?: string;

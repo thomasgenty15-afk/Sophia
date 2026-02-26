@@ -3,7 +3,6 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
-import { tierFromStripePriceId } from "../_shared/billing-tier.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
 import { getPendingItems } from "../sophia-brain/agents/investigator/db.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
@@ -316,7 +315,7 @@ Deno.serve(async (req) => {
     const q = admin
       .from("profiles")
       .select(
-        "id, full_name, whatsapp_bilan_opted_in, timezone, locale, whatsapp_last_inbound_at, whatsapp_last_outbound_at, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at",
+        "id, full_name, access_tier, whatsapp_bilan_opted_in, timezone, locale, whatsapp_last_inbound_at, whatsapp_last_outbound_at, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at",
       )
       .eq("whatsapp_opted_in", true)
       .eq("phone_invalid", false)
@@ -356,33 +355,15 @@ Deno.serve(async (req) => {
     const allowed = new Set((plans ?? []).map((p) => p.user_id));
     const filtered = userIds.filter((id) => allowed.has(id));
 
-    // Billing gate:
-    // - active subscriptions must map to paid tiers (alliance/architecte)
-    // - trialing subscriptions are eligible (to ensure trial users receive the daily bilan)
-    const { data: subscriptions, error: subErr } = await admin
-      .from("subscriptions")
-      .select("user_id,status,stripe_price_id,current_period_end")
-      .in("user_id", filtered);
-    if (subErr) throw subErr;
-    const nowMs = Date.now();
-    const paidEligible = new Set<string>();
-    for (const sub of (subscriptions ?? [])) {
-      const status = String((sub as any)?.status ?? "").toLowerCase();
-      if (status !== "active" && status !== "trialing") continue;
-      const endRaw = String((sub as any)?.current_period_end ?? "").trim();
-      if (endRaw) {
-        const endTs = new Date(endRaw).getTime();
-        if (Number.isFinite(endTs) && nowMs >= endTs) continue;
-      }
-      if (status === "trialing") {
-        paidEligible.add(String((sub as any)?.user_id ?? ""));
-        continue;
-      }
-      const tier = tierFromStripePriceId(
-        String((sub as any)?.stripe_price_id ?? "").trim(),
-      );
-      if (tier === "alliance" || tier === "architecte") {
-        paidEligible.add(String((sub as any)?.user_id ?? ""));
+    // Billing gate based on profile access tier (source of truth for proactive eligibility).
+    // Eligible tiers: trial, alliance, architecte.
+    const tierEligible = new Set<string>();
+    for (const profile of (profiles ?? []) as any[]) {
+      const userId = String(profile?.id ?? "");
+      const accessTier = String(profile?.access_tier ?? "").toLowerCase().trim();
+      if (!userId) continue;
+      if (accessTier === "trial" || accessTier === "alliance" || accessTier === "architecte") {
+        tierEligible.add(userId);
       }
     }
 
@@ -495,7 +476,7 @@ Deno.serve(async (req) => {
     for (let idx = 0; idx < filtered.length; idx++) {
       const userId = filtered[idx];
       try {
-        if (!paidEligible.has(userId)) {
+        if (!tierEligible.has(userId)) {
           skipped++;
           skippedUserIds.push(userId);
           skippedReasons[userId] = "not_paid_subscription";

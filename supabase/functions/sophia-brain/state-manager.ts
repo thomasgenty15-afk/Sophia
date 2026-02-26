@@ -5,7 +5,6 @@ export type AgentMode =
   | 'dispatcher' 
   | 'watcher'
   | 'sentry' 
-  | 'firefighter' 
   | 'investigator' 
   | 'companion'
 

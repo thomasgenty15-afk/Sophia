@@ -5,6 +5,7 @@ export const THEME_TRANSVERSE: Theme = {
   title: 'Transverses (fond de climat)',
   shortTitle: 'Transverses',
   icon: '🔁',
+  keywords: ['Stress', 'Anxiété', 'Charge mentale', 'Équilibre'],
   axes: [
     {
       id: 'TRV_1',

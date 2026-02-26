@@ -1431,7 +1431,6 @@ export function serveRunEvals() {
               channel: scenarioChannel,
               available_modules: [
                 "sentry",
-                "firefighter",
                 "investigator",
                 "architect",
                 "companion",

@@ -30,12 +30,12 @@ Deno.test("hasActiveStateMachine: detects active bilan", () => {
 Deno.test("hasActiveStateMachine: detects safety flow", () => {
   const result = hasActiveStateMachine({
     temp_memory: {
-      __safety_firefighter_flow: { phase: "acute" },
+      __safety_sentry_flow: { phase: "acute" },
     },
   });
   assertEquals(result, {
     active: true,
-    machineLabel: "safety_firefighter",
+    machineLabel: "safety_sentry",
     interruptible: false,
   });
 });
@@ -72,7 +72,6 @@ Deno.test("hasActiveStateMachine: ignores tool/supervisor flows in simplified mo
 
 Deno.test("isMachineInterruptible: safety and active bilan are non-interruptible", () => {
   assertEquals(isMachineInterruptible("safety_sentry"), false);
-  assertEquals(isMachineInterruptible("safety_firefighter"), false);
   assertEquals(isMachineInterruptible("bilan_in_progress"), false);
   assertEquals(isMachineInterruptible("onboarding"), true);
 });

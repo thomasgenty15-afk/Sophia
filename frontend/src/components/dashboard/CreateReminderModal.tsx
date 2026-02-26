@@ -214,7 +214,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
                 disabled={isSubmitting || !message.trim() || selectedDays.length === 0}
                 className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-amber-200 hover:shadow-amber-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {isSubmitting ? 'Enregistrement...' : initialValues ? 'Modifier' : <><Plus className="w-4 h-4" /> Créer l'initiative</>}
+                {isSubmitting ? 'Vérification...' : initialValues ? 'Modifier' : <><Plus className="w-4 h-4" /> Créer l'initiative</>}
               </button>
             </div>
           </motion.div>

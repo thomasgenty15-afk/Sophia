@@ -36,14 +36,6 @@ export async function applyDeterministicRouting(opts: {
   ) {
     targetMode = "sentry";
   } else if (
-    (opts.dispatcherSignals.safety.level === "FIREFIGHTER" &&
-      opts.dispatcherSignals.safety.confidence >= 0.75) ||
-    (opts.dispatcherSignals.topic_depth?.value === "NEED_SUPPORT" &&
-      opts.dispatcherSignals.topic_depth?.confidence >= 0.6 &&
-      Number(opts.dispatcherSignals.risk_score ?? 0) >= 4)
-  ) {
-    targetMode = "firefighter";
-  } else if (
     opts.state?.investigation_state &&
     opts.state?.investigation_state?.status !== "post_checkup" &&
     opts.state?.investigation_state?.status !== "post_checkup_done" &&
@@ -57,8 +49,7 @@ export async function applyDeterministicRouting(opts: {
   if (
     !opts.disableForcedRouting &&
     opts.forceMode &&
-    targetMode !== "sentry" &&
-    targetMode !== "firefighter"
+    targetMode !== "sentry"
   ) {
     await opts.traceV("brain:forced_routing_override", "routing", {
       from: targetMode,

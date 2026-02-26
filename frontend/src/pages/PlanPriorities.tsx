@@ -612,16 +612,41 @@ const PlanPriorities = () => {
 
   // --- HANDLERS ---
   const handleDragStart = (index: number) => setDraggedItem(index);
+  const reorderItems = (fromIndex: number, toIndex: number) => {
+    if (fromIndex === toIndex) return;
+    const newOrder = [...currentOrder];
+    const draggedPriority = newOrder[fromIndex];
+    newOrder.splice(fromIndex, 1);
+    newOrder.splice(toIndex, 0, draggedPriority);
+    setCurrentOrder(newOrder);
+    setDraggedItem(toIndex);
+  };
   
   const handleDragOver = (e: React.DragEvent, index: number) => {
     e.preventDefault();
     if (draggedItem === null || draggedItem === index) return;
-    const newOrder = [...currentOrder];
-    const draggedPriority = newOrder[draggedItem];
-    newOrder.splice(draggedItem, 1);
-    newOrder.splice(index, 0, draggedPriority);
-    setCurrentOrder(newOrder);
+    reorderItems(draggedItem, index);
+  };
+  
+  const handleTouchStart = (index: number) => {
     setDraggedItem(index);
+  };
+  
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (draggedItem === null) return;
+    const touch = e.touches[0];
+    if (!touch) return;
+    const element = document.elementFromPoint(touch.clientX, touch.clientY) as HTMLElement | null;
+    const card = element?.closest('[data-priority-index]') as HTMLElement | null;
+    if (!card) return;
+    const nextIndex = Number(card.dataset.priorityIndex);
+    if (Number.isNaN(nextIndex) || nextIndex === draggedItem) return;
+    e.preventDefault();
+    reorderItems(draggedItem, nextIndex);
+  };
+
+  const handleTouchEnd = () => {
+    setDraggedItem(null);
   };
 
   const handleReset = () => setCurrentOrder([...initialOrder]);
@@ -788,14 +813,19 @@ const PlanPriorities = () => {
                 )}
 
                 <div 
+                  data-priority-index={index}
                   draggable
                   onDragStart={() => handleDragStart(index)}
                   onDragOver={(e) => handleDragOver(e, index)}
                   onDragEnd={() => setDraggedItem(null)}
+                  onTouchStart={() => handleTouchStart(index)}
+                  onTouchMove={handleTouchMove}
+                  onTouchEnd={handleTouchEnd}
+                  onTouchCancel={handleTouchEnd}
                   className={`group relative bg-white border rounded-xl p-6 shadow-sm hover:shadow-lg transition-all cursor-grab active:cursor-grabbing animate-fade-in-up z-10 ${
                     draggedItem === index ? 'opacity-50 border-dashed border-violet-400 scale-95' : 'border-slate-200 hover:border-violet-300 hover:translate-x-1'
                   }`}
-                  style={{ animationDelay: `${index * 150}ms` }}
+                  style={{ animationDelay: `${index * 150}ms`, touchAction: 'none' }}
                 >
                   <div className={`absolute -left-2 min-[350px]:-left-3 md:-left-4 top-6 md:top-8 w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm md:text-lg shadow-lg border-2 md:border-4 border-slate-50 z-20 ${
                     index === 0 ? 'bg-slate-900 text-white' : 'bg-white text-slate-400 border-slate-200'

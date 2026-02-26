@@ -1,6 +1,5 @@
 import type { FlowContext } from "./dispatcher.ts";
 import {
-  getActiveSafetyFirefighterFlow,
   getActiveSafetySentryFlow,
 } from "../supervisor.ts";
 
@@ -16,11 +15,6 @@ export function machineMatchesSignalType(
   const mappings: Record<string, string[]> = {
     "track_progress_flow": ["track_progress"],
     "track_progress_consent": ["track_progress"],
-    "safety_firefighter_flow": [
-      "safety_resolution",
-      "firefighter_resolution",
-      "crisis_resolution",
-    ],
     "safety_sentry_flow": [
       "safety_resolution",
       "sentry_resolution",
@@ -39,11 +33,6 @@ export function getActiveMachineType(tempMemory: any): string | null {
   const sentryFlow = getActiveSafetySentryFlow(tempMemory);
   if (sentryFlow && sentryFlow.phase !== "resolved") {
     return "safety_sentry_flow";
-  }
-
-  const firefighterFlow = getActiveSafetyFirefighterFlow(tempMemory);
-  if (firefighterFlow && firefighterFlow.phase !== "resolved") {
-    return "safety_firefighter_flow";
   }
 
   // All other machine types (tool flows, topic sessions, deep reasons) removed in R2.
@@ -68,19 +57,6 @@ export function buildFlowContext(
       safetyTurnCount: sentryFlow.turn_count,
       safetyConfirmed: sentryFlow.safety_confirmed,
       externalHelpMentioned: sentryFlow.external_help_mentioned,
-    };
-  }
-
-  const firefighterFlow = getActiveSafetyFirefighterFlow(tempMemory);
-  if (firefighterFlow && firefighterFlow.phase !== "resolved") {
-    return {
-      isSafetyFlow: true,
-      safetyFlowType: "firefighter",
-      safetyPhase: firefighterFlow.phase,
-      safetyTurnCount: firefighterFlow.turn_count,
-      stabilizationSignals: firefighterFlow.stabilization_signals,
-      distressSignals: firefighterFlow.distress_signals,
-      lastTechnique: firefighterFlow.technique_used,
     };
   }
 

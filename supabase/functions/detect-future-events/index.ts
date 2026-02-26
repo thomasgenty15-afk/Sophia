@@ -40,6 +40,7 @@ Deno.serve(async (req) => {
       const now = Date.now()
       const results = userIds.map((userId) => ({
         user_id: userId,
+        origin: "watcher",
         event_context: "MEGA_TEST_STUB_EVENT",
         draft_message: "MEGA_TEST_STUB: checkin",
         scheduled_for: new Date(now + 60 * 60 * 1000).toISOString(),
@@ -138,6 +139,13 @@ Deno.serve(async (req) => {
         - Ne génère RIEN si aucun événement pertinent n'est trouvé. Renvoie un tableau vide [].
         - Sois TRÈS CONSERVATEUR. Ne programme un check-in QUE pour des événements majeurs (examen, entretien important, etc.) OU si l'utilisateur demande explicitement qu'on le relance.
         - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
+        - Si le sujet/rappel est déjà pris en charge via initiatives/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event.
+        - Si la conversation montre qu'une initiative couvre déjà ce besoin, renvoie [] pour éviter les doublons.
+        - ÉTHIQUE / VERTU (OBLIGATOIRE):
+          - Les check-ins doivent être bienveillants, respectueux, non intrusifs et proportionnés.
+          - Interdit de proposer des relances culpabilisantes, manipulatoires, contrôlantes ou anxiogènes.
+          - Respecte l'autonomie de l'utilisateur: pas de pression, pas de harcèlement de relance.
+          - En cas de doute éthique, ne programme RIEN (renvoie []).
         - Ne programme JAMAIS de check-in avec un confidence_score inférieur à 8.
         - Ne propose pas de check-in pour des événements passés depuis longtemps.
         - Assure-toi que "scheduled_for" est dans le FUTUR par rapport à "Maintenant" (${now}).
@@ -178,6 +186,7 @@ Deno.serve(async (req) => {
                 // Add to results to insert
                 results.push({
                     user_id: userId,
+                    origin: "watcher",
                     event_context: event.event_context,
                     // Dynamic checkin: message generated at send time.
                     draft_message: null,

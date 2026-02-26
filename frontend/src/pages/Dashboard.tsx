@@ -707,6 +707,7 @@ const Dashboard = () => {
                                 plan={activePlan} 
                                 vitalSignData={activeVitalSignData}
                                 onUpdateVitalSign={logic.handleUpdateVitalSign}
+                                onUpdateVitalSignSettings={logic.handleUpdateVitalSignSettings}
                             />
                         </div>
 
@@ -797,21 +798,26 @@ const Dashboard = () => {
                             })()}
                         </div>
 
-                        <div className="flex justify-center pb-8">
+                        <div className="flex flex-col items-center pb-8 gap-3">
                             {hasPendingAxes ? (
-                                <button
-                                    onClick={() => onPlanCompletion(logic.handleManualSkip)}
-                                    className="group bg-slate-900 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-emerald-200 transition-all flex items-center gap-3"
-                                >
-                                    <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
-                                        <Check className="w-5 h-5" />
-                                    </div>
-                                    <div>
-                                        <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Mission Achevée ?</span>
-                                        <span className="block">Lancer la Prochaine Transformation</span>
-                                    </div>
-                                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
-                                </button>
+                                <>
+                                    <button
+                                        onClick={() => onPlanCompletion(logic.handleManualSkip)}
+                                        className="group bg-slate-900 hover:bg-emerald-600 text-white px-6 py-4 rounded-xl font-bold text-lg shadow-lg shadow-slate-200 hover:shadow-emerald-200 transition-all flex items-center gap-3"
+                                    >
+                                        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                            <Check className="w-5 h-5" />
+                                        </div>
+                                        <div>
+                                            <span className="block text-[10px] uppercase tracking-wider opacity-80 text-left">Mission Achevée ?</span>
+                                            <span className="block">Lancer la Prochaine Transformation</span>
+                                        </div>
+                                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform ml-2" />
+                                    </button>
+                                    <p className="text-xs text-red-500 max-w-md text-center font-medium">
+                                        Passer à la prochaine transformation signifie arrêter celle en cours, "une bataille après l'autre" tel est la philosophie de Sophia.
+                                    </p>
+                                </>
                             ) : (
                                 <button
                                     onClick={() => onPlanCompletion(logic.handleCreateNextGlobalPlan)}
@@ -899,6 +905,7 @@ const Dashboard = () => {
         <CreateActionModal
           isOpen={createActionPhaseIndex !== null}
           onClose={() => setCreateActionPhaseIndex(null)}
+          isSubmitting={logic.isVerifyingEthics}
           onSubmit={async (actionData) => {
             if (createActionPhaseIndex === null) return;
             await logic.handleCreateAction(createActionPhaseIndex, actionData);
@@ -910,6 +917,7 @@ const Dashboard = () => {
           isOpen={!!editingAction}
           onClose={() => setEditingAction(null)}
           mode="edit"
+          isSubmitting={logic.isVerifyingEthics}
           initialValues={editingAction || undefined}
           onSubmit={async (actionData) => {
             if (!editingAction) return;

@@ -11,7 +11,7 @@ import {
 // Goal: IA interprets the turn → produces signals → Supervisor applies deterministic policy
 // ═══════════════════════════════════════════════════════════════════════════════
 
-export type SafetyLevel = "NONE" | "FIREFIGHTER" | "SENTRY";
+export type SafetyLevel = "NONE" | "SENTRY";
 export type UserIntentPrimary =
   | "CHECKUP"
   | "SMALL_TALK"
@@ -159,7 +159,7 @@ export interface DispatcherSignals {
    * - stabilizing_signal: user shows signs of calming ("ça va mieux", "merci", etc.)
    * - symptoms_still_present: user still mentions physical/emotional symptoms
    * - external_help_mentioned: user mentions contacting help (SAMU, ami, médecin)
-   * - escalate_to_sentry: situation became life-threatening (firefighter → sentry)
+   * - escalate_to_sentry: situation became life-threatening
    */
   safety_resolution: {
     user_confirms_safe: boolean;
@@ -452,7 +452,7 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
 const MOTHER_SIGNALS_SECTION = `
 === SIGNAUX MÈRES (OBLIGATOIRES) ===
 Tu détectes TOUJOURS:
-- safety (NONE / FIREFIGHTER / SENTRY)
+- safety (NONE / SENTRY)
 - user_intent_primary (CHECKUP / SMALL_TALK / PREFERENCE / UNKNOWN)
 - interrupt (NONE / EXPLICIT_STOP / BORED / SWITCH_TOPIC / DIGRESSION)
 - track_progress (si l'utilisateur dit avoir fait / raté une action)
@@ -624,7 +624,7 @@ Exemples plan_focus=false: "au boulot…", "j'ose pas parler", "j'ai peur du jug
 
 RÈGLE CLÉ (anti-surclassement):
 - "NEED_SUPPORT" = seulement si le message indique une détresse/overwhelm actuelle et un besoin d'être soutenu maintenant.
-- Sinon, par défaut, préfère "SERIOUS" (pas firefighter).
+- Sinon, par défaut, préfère "SERIOUS" (pas safety).
 
 CRITÈRES "NEED_SUPPORT" (exemples):
 - panique/angoisse présente, souffle court, "je craque", "je suis au bout", "je n'en peux plus"
@@ -713,7 +713,7 @@ RÈGLE DURE:
   user_confirms_safe=false, stabilizing_signal=false, symptoms_still_present=false,
   external_help_mentioned=false, escalate_to_sentry=false, confidence <= 0.3
 
-METTRE des valeurs non-neutres uniquement si safety.level est FIREFIGHTER ou SENTRY
+METTRE des valeurs non-neutres uniquement si safety.level est SENTRY
 et que l'utilisateur dit explicitement qu'il va mieux / pas mieux / symptômes / aide externe.
 `;
 
@@ -822,9 +822,9 @@ export interface FlowContext {
   missedStreak?: number;
   missedStreaksByAction?: Record<string, number>;
   isBilan?: boolean;
-  /** For safety flows (firefighter/sentry): crisis context */
+  /** For safety flows (sentry): crisis context */
   isSafetyFlow?: boolean;
-  safetyFlowType?: "firefighter" | "sentry";
+  safetyFlowType?: "sentry";
   safetyPhase?:
     | "acute"
     | "grounding"
@@ -908,7 +908,7 @@ function buildMachineAddonWithContext(
 
   // SAFETY FLOWS (kept)
   if (flowContext?.isSafetyFlow) {
-    const safetyType = flowContext.safetyFlowType ?? "firefighter";
+    const safetyType = flowContext.safetyFlowType ?? "sentry";
     const phase = flowContext.safetyPhase ?? "acute";
     const turnCount = flowContext.safetyTurnCount ?? 0;
     return `
@@ -1059,7 +1059,7 @@ ${contextMessages}
 === FORMAT DE SORTIE JSON ===
 {
   "signals": {
-    "safety": { "level": "NONE|FIREFIGHTER|SENTRY", "confidence": 0.0-1.0, "immediacy": "acute|non_acute|unknown" },
+    "safety": { "level": "NONE|SENTRY", "confidence": 0.0-1.0, "immediacy": "acute|non_acute|unknown" },
     "user_intent_primary": "CHECKUP|SMALL_TALK|PREFERENCE|UNKNOWN",
     "user_intent_confidence": 0.0-1.0,
     "interrupt": { "kind": "NONE|EXPLICIT_STOP|BORED|SWITCH_TOPIC|DIGRESSION", "confidence": 0.0-1.0 },
@@ -1149,7 +1149,7 @@ Reponds UNIQUEMENT avec le JSON:`;
 
     // Parse safety
     const safetyLevel =
-      (["NONE", "FIREFIGHTER", "SENTRY"] as SafetyLevel[]).includes(
+      (["NONE", "SENTRY"] as SafetyLevel[]).includes(
           signalsObj?.safety?.level,
         )
         ? signalsObj.safety.level as SafetyLevel
@@ -2186,12 +2186,11 @@ export function generateDeferredSignalSummary(args: {
 }
 
 /**
- * Check if a signal is a safety signal (sentry/firefighter).
+ * Check if a signal is a safety signal (sentry).
  * These are the only signals that can interrupt active machines.
  */
 export function isSafetySignal(signals: DispatcherSignals): boolean {
-  return signals.safety.level === "SENTRY" ||
-    signals.safety.level === "FIREFIGHTER";
+  return signals.safety.level === "SENTRY";
 }
 
 /**
@@ -2199,11 +2198,6 @@ export function isSafetySignal(signals: DispatcherSignals): boolean {
  */
 export function shouldInterruptForSafety(signals: DispatcherSignals): boolean {
   if (signals.safety.level === "SENTRY" && signals.safety.confidence >= 0.7) {
-    return true;
-  }
-  if (
-    signals.safety.level === "FIREFIGHTER" && signals.safety.confidence >= 0.75
-  ) {
     return true;
   }
   return false;

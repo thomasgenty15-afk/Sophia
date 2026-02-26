@@ -1,7 +1,7 @@
 {
   "dataset_key": "state_machines",
   "id": "topic_session_handoff_basic",
-  "description": "Topic Sessions (topic_serious/topic_light) should exist and allow a clean handoff when the user signals boredom/stop. Scenario is simulated (simulate-user) for more realistic pacing and multi-turn transitions, including an acute stress moment (firefighter) and a gentle return to plan.",
+  "description": "Topic Sessions (topic_serious/topic_light) should exist and allow a clean handoff when the user signals boredom/stop. Scenario is simulated (simulate-user) for more realistic pacing and multi-turn transitions, including an acute stress moment (sentry) and a gentle return to plan.",
   "tags": ["supervisor", "topic_session", "topic_serious", "topic_light", "handoff"],
   "setup": {
     "seed_plan": true,
@@ -17,7 +17,7 @@
     {
       "kind": "topic_session_handoff_realistic",
       "spec": {
-        "notes": "Pacing réaliste. Handoff attendu sur stop/boredom. Inclure un moment 'stress corporel' (firefighter). Retour au plan ensuite, sans tool immédiat."
+        "notes": "Pacing réaliste. Handoff attendu sur stop/boredom. Inclure un moment 'stress corporel' (sentry). Retour au plan ensuite, sans tool immédiat."
       }
     }
   ],

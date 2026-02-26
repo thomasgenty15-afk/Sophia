@@ -119,7 +119,6 @@ export interface PlanMetadata {
  * Principes:
  * - Companion: contexte conversationnel, pas besoin du plan JSON
  * - Architect: plan JSON seulement si opération détectée
- * - Firefighter: contexte minimal pour réponse rapide en crise
  * - Investigator: RAG spécifique à l'item en cours
  * - Sentry: zéro contexte, réponse déterministe
  */
@@ -138,22 +137,6 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     short_term: true,
     history_depth: 15,
     vitals: true,
-  },
-
-  firefighter: {
-    temporal: true,
-    plan_metadata: false,
-    plan_json: false,
-    actions_summary: false,
-    actions_details: false,
-    identity: false,
-    vectors: false,
-    topic_memories: true, // Topic memories are lightweight and high-signal even in crisis
-    facts: false,
-    candidates: false,
-    short_term: true,
-    history_depth: 5,
-    vitals: false,
   },
 
   investigator: {

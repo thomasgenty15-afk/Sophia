@@ -2,7 +2,7 @@
  * Deferred Topics V2: Smart signal deferral system for state machine prioritization.
  *
  * Key features:
- * - Only SENTRY/FIREFIGHTER can interrupt active state machines
+ * - Only SENTRY can interrupt active state machines
  * - Other signals are deferred with smart summarization
  * - UPDATE-instead-of-CREATE to avoid duplicates
  * - Tool machines handle ONE action at a time (action_target tracking)
@@ -73,7 +73,7 @@ export interface PausedMachineState {
   action_target?: string            // For tool flows
   candidate_snapshot?: any          // ActionCandidate, UpdateCandidate, BreakdownCandidate
   paused_at: string
-  reason: "sentry" | "firefighter"
+  reason: "sentry"
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -467,7 +467,7 @@ export function markDeferredProcessed(opts: {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
-// PAUSED MACHINE STATE (for sentry/firefighter parenthesis)
+// PAUSED MACHINE STATE (for sentry parenthesis)
 // ═══════════════════════════════════════════════════════════════════════════════
 
 /**
@@ -484,12 +484,12 @@ export function getPausedMachineState(tempMemory: any): PausedMachineState | nul
     action_target: raw.action_target ? String(raw.action_target) : undefined,
     candidate_snapshot: raw.candidate_snapshot,
     paused_at: String(raw.paused_at ?? nowIso()),
-    reason: (raw.reason === "sentry" || raw.reason === "firefighter") ? raw.reason : "firefighter",
+    reason: "sentry",
   }
 }
 
 /**
- * Set paused machine state (when sentry/firefighter interrupts).
+ * Set paused machine state (when sentry interrupts).
  */
 export function setPausedMachineState(opts: {
   tempMemory: any

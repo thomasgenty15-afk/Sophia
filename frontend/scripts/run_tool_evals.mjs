@@ -314,7 +314,16 @@ async function main() {
   if (files.length === 0) throw new Error("No tool scenarios found in frontend/eval/scenarios/tools");
 
   const selected = args.scenario
-    ? files.filter((p) => path.basename(p, ".json") === args.scenario || path.basename(p).includes(args.scenario))
+    ? files.filter((p) => {
+        const base = path.basename(p, ".json");
+        if (base === args.scenario || base.includes(args.scenario)) return true;
+        try {
+          const scenario = loadScenario(p);
+          return String(scenario?.id ?? "").trim() === args.scenario;
+        } catch {
+          return false;
+        }
+      })
     : files;
   // #region agent log
   fetch('http://127.0.0.1:7242/ingest/f0e4cdf2-e090-4c26-80a9-306daf5df797',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:'debug-session',runId:'pre-run',hypothesisId:'H1',location:'run_tool_evals.mjs:main:selected',message:'scenario selection',data:{selected_count:selected.length,selected_sample:selected.slice(0,5).map((p)=>path.basename(p))},timestamp:Date.now()})}).catch(()=>{});

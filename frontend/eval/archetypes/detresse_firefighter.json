@@ -1,6 +1,6 @@
 {
-  "key": "detresse_firefighter",
-  "label": "Détresse · utilisateur anxieux (firefighter triggerable)",
+  "key": "detresse_safety",
+  "label": "Détresse · utilisateur anxieux (safety triggerable)",
   "profile": {
     "full_name": "Fixture · Détresse",
     "onboarding_completed": true,

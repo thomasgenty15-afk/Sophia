@@ -5,6 +5,7 @@ export const THEME_PROFESSIONAL: Theme = {
   title: 'Carrière & Ambition',
   shortTitle: 'Pro',
   icon: '🚀',
+  keywords: ['Évolution', 'Recherche d\'emploi', 'Efficacité', 'Management'],
   axes: [
     {
       id: 'PRO_1',

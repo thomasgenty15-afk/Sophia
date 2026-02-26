@@ -1,8 +1,8 @@
 {
   "dataset_key": "tools",
   "id": "tools_complex_multimachine_ai_user",
-  "description": "Complex tool-actions eval: multi-machine flow (architect create-flow discussion without consent -> firefighter panic interruption -> investigator breakdown -> post-checkup deferred topic). All turns are AI-generated (simulate-user + sophia-brain).",
-  "tags": ["sophia.architect", "sophia.firefighter", "sophia.investigator"],
+  "description": "Complex tool-actions eval: multi-machine flow (architect create-flow discussion without consent -> sentry panic interruption -> investigator breakdown -> post-checkup deferred topic). All turns are AI-generated (simulate-user + sophia-brain).",
+  "tags": ["sophia.architect", "sophia.sentry", "sophia.investigator"],
   "setup": {
     "seed_plan": true,
     "test_post_checkup_deferral": true,
@@ -48,7 +48,7 @@
     }
   ],
   "assertions": {
-    "must_include_agent": ["architect", "firefighter", "investigator"],
+    "must_include_agent": ["architect", "sentry", "investigator"],
     "assistant_must_not_match": ["\\*\\*"]
   },
   "mechanical_assertions": {

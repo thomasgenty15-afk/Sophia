@@ -129,6 +129,10 @@ export function buildCompanionSystemPrompt(opts: {
       - Tu l'aides avec une réponse coaching courte
       - Puis tu rediriges explicitement vers le tableau de bord pour effectuer l'opération
       - Tu n'annonces jamais qu'une action a été modifiée depuis le chat.
+    - EXCEPTION RAPPEL PONCTUEL:
+      - Si l'utilisateur demande un rappel ponctuel (one-shot, date/heure précise, non récurrent), ne redirige PAS vers dashboard/initiatives.
+      - Tu acquiesces simplement et clairement (ex: "Oui, c'est noté.").
+      - Le watcher gère ce type de rappel en arrière-plan.
     - Si l'utilisateur exprime un BLOCAGE sur une action ("je galère", "j'arrive pas", "trop dur", "ça bloque"):
       - Tu poses 1 question de diagnostic très concrète (cause, moment de blocage, contrainte réelle),
       - puis tu proposes explicitement le mode SOS blocage (découpage en micro-étapes) dans le dashboard.
@@ -215,6 +219,10 @@ export function buildCompanionSystemPrompt(opts: {
       - Tu aides d'abord (coaching, reformulation, clarification rapide),
       - puis tu rediriges clairement vers le tableau de bord pour faire l'opération.
     - Interdit d'affirmer qu'une action a été créée/modifiée/activée/supprimée depuis le chat.
+    - EXCEPTION RAPPEL PONCTUEL:
+      - Si l'utilisateur demande un rappel ponctuel (one-shot, date/heure précise, non récurrent), ne redirige PAS vers dashboard/initiatives.
+      - Tu acquiesces simplement et clairement (ex: "Oui, c'est noté.").
+      - Le watcher gère ce type de rappel en arrière-plan.
     - Si l'utilisateur exprime un BLOCAGE d'exécution sur une action ("je galère", "j'arrive pas", "trop dur", "ça bloque"):
       - Tu ne te contentes pas de rediriger.
       - Tu poses d'abord 1 question de diagnostic ciblée (cause concrète / moment précis / contrainte),
@@ -283,7 +291,7 @@ export async function retrieveContext(
 
   const maxResults = opts?.maxResults ?? 5
   const includeActionHistory = opts?.includeActionHistory ?? true
-  // For minimal mode (firefighter), we limit action history too
+  // For minimal mode, we limit action history too
   const actionResultsCount = maxResults <= 2 ? 1 : 3
   
   let contextString = "";
@@ -322,7 +330,7 @@ export async function retrieveContext(
 
     // 2. Historique des Actions (Action Entries)
     // On cherche si des actions passées (réussites ou échecs) sont pertinentes pour la discussion
-    // Skip for minimal mode (firefighter) if explicitly disabled
+    // Skip for minimal mode if explicitly disabled
     if (includeActionHistory) {
       const { data: actionEntries, error: actErr } = await supabase.rpc('match_all_action_entries_for_user', {
         target_user_id: userId,

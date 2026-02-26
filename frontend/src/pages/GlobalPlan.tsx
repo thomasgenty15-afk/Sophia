@@ -675,7 +675,7 @@ const GlobalPlan = () => {
         <h2 className="text-lg md:text-xl font-bold mb-0 md:mb-6">Thèmes</h2>
         
         {/* Conteneur relatif pour les indicateurs visuels */}
-        <div className="relative w-full">
+        <div className="relative w-full flex-1 min-h-0">
             {/* Indicateur GAUCHE */}
             {hasSelectionLeft && (
                 <div className="md:hidden absolute left-0 top-0 bottom-1 z-20 flex items-center pointer-events-none">
@@ -694,7 +694,7 @@ const GlobalPlan = () => {
                 </div>
             )}
 
-            <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-visible scrollbar-hide w-full pb-1 md:pb-0 px-1">
+            <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-y-auto scrollbar-hide w-full pb-1 md:pb-0 px-1 h-full">
             {displayedThemes.map(theme => {
                 const isAxisSelectedInTheme = selectedAxisByTheme[theme.id] != null;
                 
@@ -730,7 +730,7 @@ const GlobalPlan = () => {
                     key={theme.id}
                     id={`theme-btn-${theme.id}`} // ID pour le scroll automatique
                     onClick={() => setCurrentTheme(theme)}
-                    className={`shrink-0 md:shrink md:w-full flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-all relative whitespace-nowrap 
+                    className={`shrink-0 md:shrink md:w-full flex items-start md:items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-xl text-left transition-all relative 
                     ${isActive
                         ? "bg-blue-600 text-white shadow-md border-2 border-blue-600" // Actif = Bleu plein
                         : isAxisSelectedInTheme 
@@ -738,12 +738,19 @@ const GlobalPlan = () => {
                             : "hover:bg-gray-100 text-gray-600 border-2 border-transparent" // Rien = Gris
                     }`}
                 >
-                    <span className="text-lg md:text-xl">{theme.icon}</span>
-                    <span className="font-medium text-sm md:text-base">{theme.shortTitle}</span>
+                    <span className="text-lg md:text-xl mt-0.5 md:mt-0">{theme.icon}</span>
+                    <div className="flex flex-col pr-6 md:pr-8 min-w-0 flex-1">
+                        <span className="font-medium text-sm md:text-base whitespace-nowrap">{theme.shortTitle}</span>
+                        {theme.keywords && (
+                            <span className={`text-[10px] md:text-[11px] mt-0.5 leading-tight whitespace-normal ${isActive ? 'text-blue-200' : 'text-blue-500'}`}>
+                                {theme.keywords.slice(0, 4).join(', ')}
+                            </span>
+                        )}
+                    </div>
 
                     {/* Indicateur d'état */}
                     {isAxisSelectedInTheme && (
-                    <div className="ml-2 md:absolute md:right-3">
+                    <div className="ml-2 absolute right-2 top-1/2 -translate-y-1/2 md:right-3">
                         {isCompleted ? (
                             <div className={`rounded-full p-0.5 ${isActive ? 'bg-white text-blue-600' : 'bg-blue-600 text-white'}`}>
                                 <Check className="w-3 h-3" strokeWidth={3} />
@@ -761,9 +768,13 @@ const GlobalPlan = () => {
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 p-6 md:p-12 max-w-4xl mx-auto">
-        <OnboardingProgress currentStep={1} />
-        <header className="mb-8">
+      <main className="flex-1 p-6 md:p-12 max-w-4xl mx-auto flex flex-col">
+        <div className="order-1">
+          <OnboardingProgress currentStep={1} />
+        </div>
+        
+        {/* Encart & Bouton (Desktop: top, Mobile: bottom) */}
+        <div className="order-4 md:order-2 mt-8 md:mt-0 mb-0 md:mb-8">
           {/* Encart Explicatif */}
           <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 flex items-start gap-3">
             <div className="bg-blue-100 p-2 rounded-full text-blue-600 mt-0.5">
@@ -785,7 +796,7 @@ const GlobalPlan = () => {
 
           {/* BOUTON ASSISTANT SOPHIA */}
           {!isRefineMode && (
-              <div className="mb-8">
+              <div className="mb-0 md:mb-8">
                 <button 
                     onClick={() => setShowAssistant(true)}
                     className="w-full bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white p-0.5 rounded-2xl shadow-lg hover:shadow-xl transition-all group"
@@ -807,15 +818,27 @@ const GlobalPlan = () => {
                 </button>
               </div>
           )}
+        </div>
 
-          <div className="flex items-center gap-3 mb-2">
-            <span className="text-2xl md:text-4xl">{currentTheme.icon}</span>
-            <h1 className="text-xl md:text-3xl font-bold">{currentTheme.title}</h1>
+        <header className="order-2 md:order-3 mb-8">
+          <div className="flex items-start gap-3">
+            <span className="text-2xl md:text-4xl mt-0.5 md:mt-1">{currentTheme.icon}</span>
+            <div className="flex flex-col">
+              <h1 className="text-xl md:text-3xl font-bold mb-2">{currentTheme.title}</h1>
+              {currentTheme.keywords && (
+                <div className="flex flex-wrap gap-1.5 md:gap-2">
+                  {currentTheme.keywords.slice(0, 4).map((kw, idx) => (
+                    <span key={idx} className="bg-blue-50 text-blue-700 px-2 md:px-2.5 py-0.5 md:py-1 rounded-md text-[10px] md:text-xs font-medium border border-blue-100">
+                      {kw}
+                    </span>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
-          <p className="text-gray-500 text-base md:text-lg">Sélectionne une transformation pour commencer.</p>
         </header>
 
-        <div className="space-y-4">
+        <div className="order-3 md:order-4 space-y-4">
           {(currentTheme.axes || []).map(axis => {
             const isSelected = selectedAxisByTheme[currentTheme.id] === axis.id;
 

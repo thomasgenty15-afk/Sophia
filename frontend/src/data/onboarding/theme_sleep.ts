@@ -5,6 +5,7 @@ export const THEME_SLEEP: Theme = {
   title: 'Sommeil & Récupération',
   shortTitle: 'Sommeil',
   icon: '🌙',
+  keywords: ['Endormissement', 'Réveils nocturnes', 'Fatigue matinale', 'Rythme'],
   axes: [
     {
       id: 'SLP_1',

@@ -438,6 +438,7 @@ Deno.serve(async (req) => {
           .upsert(
             {
               user_id: reminder.user_id,
+              origin: "initiative",
               event_context: eventContext,
               draft_message: draftMessage,
               message_mode: "static",

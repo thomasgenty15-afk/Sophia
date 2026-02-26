@@ -26,18 +26,18 @@ const SCENARIOS_DIR = path.join(__dirname, "../eval/scenarios/tools");
 const DIFFICULTY_SCENARIOS = {
   easy: [
     "stress_test_easy_toolflow_topic",
-    "stress_test_easy_bilan_firefighter",
+    "stress_test_easy_bilan_sentry",
     "stress_test_easy_confirm_deferred",
   ],
   medium: [
-    "stress_test_medium_toolflow_firefighter_resume",
+    "stress_test_medium_toolflow_sentry_resume",
     "stress_test_medium_bilan_deferred_confirm",
     "stress_test_medium_topic_toolflow_deferred",
   ],
   hard: [
-    "stress_test_hard_bilan_ff_toolflow_resume",
+    "stress_test_hard_bilan_sentry_toolflow_resume",
     "stress_test_hard_topic_confirm_deferred_toolflow",
-    "stress_test_hard_ff_bilan_topic_deferred",
+    "stress_test_hard_sentry_bilan_topic_deferred",
   ],
   maxhard: [
     "stress_test_maxhard_full_chaos_1",

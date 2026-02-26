@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
-  "id": "stress_test_medium_toolflow_firefighter_resume",
-  "description": "MEDIUM: 3 machines (toolflow + firefighter + resume). User starts toolflow, has acute stress (firefighter preempts), then resumes toolflow.",
-  "tags": ["stress_test", "medium", "toolflow", "firefighter", "resume"],
+  "id": "stress_test_medium_toolflow_sentry_resume",
+  "description": "MEDIUM: 3 machines (toolflow + sentry + resume). User starts toolflow, has acute stress (sentry preempts), then resumes toolflow.",
+  "tags": ["stress_test", "medium", "toolflow", "sentry", "resume"],
   "difficulty": "medium",
   "setup": {
     "seed_plan": true,
@@ -16,7 +16,7 @@
   },
   "objectives": [
     {
-      "kind": "stress_test_medium_toolflow_firefighter_resume",
+      "kind": "stress_test_medium_toolflow_sentry_resume",
       "spec": {
         "phase_1_start_toolflow": "Je veux ajouter une action sport le mardi",
         "phase_2_continue_toolflow": "Oui, genre 30 minutes de course",

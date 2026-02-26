@@ -50,14 +50,15 @@ export const PlanSettingsModal = ({
           <button 
             onClick={onSkip}
             data-testid="plan-settings-skip"
-            className="w-full p-3 rounded-xl border border-slate-200 hover:border-amber-200 hover:bg-amber-50 text-left group transition-all flex items-center gap-3"
+            className="w-full p-3 rounded-xl border border-slate-200 hover:border-amber-200 hover:bg-amber-50 text-left group transition-all flex items-start gap-3"
           >
-            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-100 text-slate-500 group-hover:text-amber-600 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-full bg-slate-100 group-hover:bg-amber-100 text-slate-500 group-hover:text-amber-600 flex items-center justify-center flex-shrink-0 mt-0.5">
               <SkipForward className="w-4 h-4" />
             </div>
             <div>
               <p className="font-bold text-slate-900 text-sm group-hover:text-amber-700">Lancer la prochaine transformation</p>
-              <p className="text-xs text-slate-500">Archiver ce plan et commencer le prochain.</p>
+              <p className="text-xs text-slate-500 mb-1">Archiver ce plan et commencer le prochain.</p>
+              <p className="text-[10px] text-red-500 leading-tight">Passer à la prochaine transformation signifie arrêter celle en cours, "une bataille après l'autre" tel est la philosophie de Sophia.</p>
             </div>
           </button>
 

@@ -3,6 +3,7 @@ import { Bell, Plus, Clock, Calendar, Trash2, Edit2, Play, Pause, Lock, Crown, I
 import { CreateReminderModal, type ReminderFormValues } from './CreateReminderModal';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
+import { shouldValidateOnUpdate, validateEthicalText } from '../../lib/ethicalValidation';
 
 type ReminderRow = {
   id: string;
@@ -46,6 +47,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
   const [editingReminder, setEditingReminder] = useState<Reminder | null>(null);
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [showInfo, setShowInfo] = useState(false);
+  const [isVerifyingEthics, setIsVerifyingEthics] = useState(false);
 
   const loadReminders = async () => {
     if (!userId) {
@@ -75,31 +77,68 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
     loadReminders();
   }, [userId]);
 
+  const runEthicalValidation = async (params: {
+    operation: 'create' | 'update';
+    textFields: Record<string, unknown>;
+    previousTextFields?: Record<string, unknown>;
+    textFieldKeys: string[];
+  }) => {
+    setIsVerifyingEthics(true);
+    try {
+      const result = await validateEthicalText({
+        entityType: 'initiative',
+        operation: params.operation,
+        textFields: params.textFields,
+        previousTextFields: params.previousTextFields ?? null,
+        textFieldKeys: params.textFieldKeys,
+        context: { scope: 'reminders' },
+      });
+      if (result.decision === 'block') {
+        throw new Error(result.reasonShort || "Contenu bloqué par la vérification éthique.");
+      }
+    } finally {
+      setIsVerifyingEthics(false);
+    }
+  };
+
   const handleCreate = async (data: ReminderFormValues) => {
     if (isLocked) return;
     if (!userId) return;
     const message = String(data.message ?? '').trim();
     if (!message || !data.days?.length) return;
-    const sortedDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].filter((d) => data.days.includes(d));
-    const { data: createdReminder, error } = await supabase.from('user_recurring_reminders').insert({
-      user_id: userId,
-      message_instruction: message,
-      rationale: data.rationale ?? null,
-      local_time_hhmm: data.time,
-      scheduled_days: sortedDays,
-      status: 'active',
-      updated_at: new Date().toISOString(),
-    } as any)
-      .select('id')
-      .single();
-    if (error) throw error;
-    if (createdReminder?.id) {
-      void supabase.functions.invoke('classify-recurring-reminder', {
-        body: { reminder_id: createdReminder.id },
+    try {
+      await runEthicalValidation({
+        operation: 'create',
+        textFields: {
+          message_instruction: message,
+          rationale: data.rationale ?? null,
+        },
+        textFieldKeys: ['message_instruction', 'rationale'],
       });
+      const sortedDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].filter((d) => data.days.includes(d));
+      const { data: createdReminder, error } = await supabase.from('user_recurring_reminders').insert({
+        user_id: userId,
+        message_instruction: message,
+        rationale: data.rationale ?? null,
+        local_time_hhmm: data.time,
+        scheduled_days: sortedDays,
+        status: 'active',
+        updated_at: new Date().toISOString(),
+      } as any)
+        .select('id')
+        .single();
+      if (error) throw error;
+      if (createdReminder?.id) {
+        void supabase.functions.invoke('classify-recurring-reminder', {
+          body: { reminder_id: createdReminder.id },
+        });
+      }
+      setIsModalOpen(false);
+      await loadReminders();
+    } catch (e: any) {
+      alert(String(e?.message ?? "Erreur lors de l'enregistrement."));
+      throw e;
     }
-    setIsModalOpen(false);
-    await loadReminders();
   };
 
   const handleUpdate = async (data: ReminderFormValues) => {
@@ -107,23 +146,44 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
     if (!editingReminder) return;
     const message = String(data.message ?? '').trim();
     if (!message || !data.days?.length) return;
-    const sortedDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].filter((d) => data.days.includes(d));
-    const { error } = await supabase
-      .from('user_recurring_reminders')
-      .update({
-        message_instruction: message,
-        rationale: data.rationale ?? null,
-        local_time_hhmm: data.time,
-        scheduled_days: sortedDays,
-        updated_at: new Date().toISOString(),
-      } as any)
-      .eq('id', editingReminder.id);
-    if (error) throw error;
-    void supabase.functions.invoke('classify-recurring-reminder', {
-      body: { reminder_id: editingReminder.id, full_reset: true },
-    });
-    setEditingReminder(null);
-    await loadReminders();
+    const prevText = {
+      message_instruction: editingReminder.message ?? '',
+      rationale: editingReminder.rationale ?? '',
+    };
+    const nextText = {
+      message_instruction: message,
+      rationale: data.rationale ?? '',
+    };
+    try {
+      if (shouldValidateOnUpdate(prevText, nextText, ['message_instruction', 'rationale'])) {
+        await runEthicalValidation({
+          operation: 'update',
+          textFields: nextText,
+          previousTextFields: prevText,
+          textFieldKeys: ['message_instruction', 'rationale'],
+        });
+      }
+      const sortedDays = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun'].filter((d) => data.days.includes(d));
+      const { error } = await supabase
+        .from('user_recurring_reminders')
+        .update({
+          message_instruction: message,
+          rationale: data.rationale ?? null,
+          local_time_hhmm: data.time,
+          scheduled_days: sortedDays,
+          updated_at: new Date().toISOString(),
+        } as any)
+        .eq('id', editingReminder.id);
+      if (error) throw error;
+      void supabase.functions.invoke('classify-recurring-reminder', {
+        body: { reminder_id: editingReminder.id, full_reset: true },
+      });
+      setEditingReminder(null);
+      await loadReminders();
+    } catch (e: any) {
+      alert(String(e?.message ?? "Erreur lors de la mise à jour."));
+      throw e;
+    }
   };
 
   const toggleActive = async (reminder: Reminder) => {
@@ -280,7 +340,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
                 </div>
 
                 {!isLocked && (
-                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="flex items-center gap-1 opacity-100 lg:opacity-0 lg:group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => toggleActive(reminder)}
                       className="p-1.5 hover:bg-slate-100 rounded-lg text-slate-400 hover:text-slate-600 transition-colors"
@@ -339,12 +399,14 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
         isOpen={!isLocked && isModalOpen}
         onClose={() => setIsModalOpen(false)}
         onSubmit={handleCreate}
+        isSubmitting={isVerifyingEthics}
       />
 
       <CreateReminderModal
         isOpen={!isLocked && !!editingReminder}
         onClose={() => setEditingReminder(null)}
         onSubmit={handleUpdate}
+        isSubmitting={isVerifyingEthics}
         initialValues={editingReminder ? {
           message: editingReminder.message,
           rationale: editingReminder.rationale,

@@ -5,6 +5,7 @@ export const THEME_SENSE: Theme = {
   title: 'Sens & Direction',
   shortTitle: 'Sens',
   icon: '🧭',
+  keywords: ['Quête de sens', 'Reconversion', 'Deuil & Transition', 'Alignement'],
   axes: [
     {
       id: 'SNS_1',

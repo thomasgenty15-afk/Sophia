@@ -69,7 +69,6 @@ CREATE EXTENSION IF NOT EXISTS "vector" WITH SCHEMA "public";
 CREATE TYPE "public"."chat_agent_mode" AS ENUM (
     'dispatcher',
     'sentry',
-    'firefighter',
     'investigator',
     'architect',
     'companion',

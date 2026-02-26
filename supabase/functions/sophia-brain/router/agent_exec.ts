@@ -5,8 +5,7 @@ import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { AgentMode } from "../state-manager.ts";
 import { updateUserState } from "../state-manager.ts";
 import { runSentry, type SentryFlowContext } from "../agents/sentry.ts";
-import { runFirefighter, type FirefighterFlowContext } from "../agents/firefighter.ts";
-import { getActiveSafetyFirefighterFlow, getActiveSafetySentryFlow } from "../supervisor.ts";
+import { getActiveSafetySentryFlow } from "../supervisor.ts";
 import { runInvestigator } from "../agents/investigator.ts";
 import { logCheckupCompletion } from "../agents/investigator/db.ts";
 import { computeCheckupStatsFromInvestigationState } from "../agents/investigator/checkup_stats.ts";
@@ -56,22 +55,6 @@ function toSentryContext(tempMemory: any): SentryFlowContext {
     turnCount: Number(flow?.turn_count ?? 0),
     safetyConfirmed: Boolean(flow?.safety_confirmed),
     externalHelpMentioned: Boolean(flow?.external_help_mentioned),
-  };
-}
-
-function toFirefighterContext(tempMemory: any): FirefighterFlowContext {
-  const flow = getActiveSafetyFirefighterFlow(tempMemory);
-  const phaseRaw = String(flow?.phase ?? "acute");
-  const phase: FirefighterFlowContext["phase"] =
-    phaseRaw === "stabilizing" || phaseRaw === "confirming" || phaseRaw === "resolved"
-      ? phaseRaw
-      : "acute";
-  return {
-    phase,
-    turnCount: Number(flow?.turn_count ?? 0),
-    stabilizationSignals: Number(flow?.stabilization_signals ?? 0),
-    distressSignals: Number(flow?.distress_signals ?? 0),
-    lastTechnique: flow?.technique_used ? String(flow.technique_used) : undefined,
   };
 }
 
@@ -142,8 +125,7 @@ export async function runAgentAndVerify(opts: {
   // Forced bilan stop on explicit stop / boredom.
   {
     const activeSentryFlow = getActiveSafetySentryFlow(tempMemory);
-    const activeFirefighterFlow = getActiveSafetyFirefighterFlow(tempMemory);
-    const shouldForceStop = checkupActive && stopCheckup && !activeSentryFlow && !activeFirefighterFlow;
+    const shouldForceStop = checkupActive && stopCheckup && !activeSentryFlow;
     if (shouldForceStop) {
       const invState = (state as any)?.investigation_state;
       const isWeeklyBilan = String((invState as any)?.mode ?? "") === "weekly_bilan";
@@ -206,7 +188,6 @@ export async function runAgentAndVerify(opts: {
     checkupActive &&
       !stopCheckup &&
       targetMode !== "sentry" &&
-      targetMode !== "firefighter" &&
       !isInvestigatorCooldownActive(tempMemory)
       ? "investigator"
       : targetMode;
@@ -223,29 +204,6 @@ export async function runAgentAndVerify(opts: {
         nextMode = "companion";
         outageFallback = true;
         outageFailedMode = "sentry";
-        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
-      }
-      break;
-    }
-
-    case "firefighter": {
-      try {
-        const flowContext = toFirefighterContext(tempMemory);
-        const firefighterResult = await runFirefighter(
-          userMessage,
-          history,
-          context,
-          { ...(meta ?? {}), model: sophiaChatModel },
-          flowContext,
-        );
-        responseContent = firefighterResult.content;
-        nextMode = "firefighter";
-      } catch (e) {
-        console.error("[Router] firefighter failed:", e);
-        responseContent = outageTemplate;
-        nextMode = "companion";
-        outageFallback = true;
-        outageFailedMode = "firefighter";
         outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
       }
       break;

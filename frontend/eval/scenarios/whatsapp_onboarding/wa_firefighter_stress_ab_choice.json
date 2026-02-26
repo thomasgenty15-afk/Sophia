@@ -1,9 +1,9 @@
 {
   "dataset_key": "core",
-  "id": "wa_firefighter_stress_ab_choice",
+  "id": "wa_safety_stress_ab_choice",
   "scenario_target": "conversation",
-  "description": "WhatsApp: free conversation (plan already active so no onboarding). User reports high work pressure; should route to firefighter and reply with an A/B de-escalation choice (no repetitive grounding).",
-  "tags": ["whatsapp.firefighter", "whatsapp.webhook", "conversational", "stress"],
+  "description": "WhatsApp: free conversation (plan already active so no onboarding). User reports high work pressure; should route to sentry and reply with an A/B de-escalation choice (no repetitive grounding).",
+  "tags": ["whatsapp.sentry", "whatsapp.webhook", "conversational", "stress"],
   "channel": "whatsapp",
   "seed_plan": true,
   "setup": {

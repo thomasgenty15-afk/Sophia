@@ -165,7 +165,7 @@ interface AdaptiveFlowResult {
   flow: OnboardingFlow
   deferredSteps: DeferredOnboardingStep[]
   detectedTopic?: string
-  forceMode?: "companion" | "firefighter" | "sentry"
+  forceMode?: "companion" | "sentry"
 }
 
 async function analyzeSignalsForWhatsApp(text: string, requestId: string) {
@@ -206,12 +206,9 @@ async function detectAdaptiveFlow(
       (signals.topic_depth?.value === "NEED_SUPPORT" && (signals.topic_depth?.confidence ?? 0) >= 0.7)
 
     if (isUrgent) {
-      const forceMode =
-        signals.safety.level === "SENTRY"
-          ? "sentry"
-          : signals.safety.level === "FIREFIGHTER"
-            ? "firefighter"
-            : "companion"
+      const forceMode = signals.safety.level === "SENTRY"
+        ? "sentry"
+        : "companion"
       return {
         flow: "urgent",
         deferredSteps: ["motivation", "personal_fact"],
@@ -261,7 +258,7 @@ export async function handleOptInAndDailyBilanActions(params: {
     replyToWaMessageId?: string | null
     contextOverride: string
     whatsappMode?: "onboarding" | "normal"
-    forceMode?: "companion" | "architect" | "assistant" | "investigator" | "firefighter" | "sentry"
+    forceMode?: "companion" | "architect" | "assistant" | "investigator" | "sentry"
     purpose?: string
   }) => Promise<any>
   requestId: string

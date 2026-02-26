@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
-  "id": "stress_test_easy_bilan_firefighter",
-  "description": "EASY: 2 machines (bilan + firefighter). User starts checkup, has a stress moment, then resumes checkup.",
-  "tags": ["stress_test", "easy", "bilan", "firefighter"],
+  "id": "stress_test_easy_bilan_sentry",
+  "description": "EASY: 2 machines (bilan + sentry). User starts checkup, has a stress moment, then resumes checkup.",
+  "tags": ["stress_test", "easy", "bilan", "sentry"],
   "difficulty": "easy",
   "setup": {
     "seed_plan": true,
@@ -16,7 +16,7 @@
   },
   "objectives": [
     {
-      "kind": "stress_test_easy_bilan_firefighter",
+      "kind": "stress_test_easy_bilan_sentry",
       "spec": {
         "phase_1_start_bilan": "Salut Sophia, on fait le bilan ?",
         "phase_2_answer_bilan": "Oui j'ai fait 2 actions sur 3 aujourd'hui",

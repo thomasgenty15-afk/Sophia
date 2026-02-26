@@ -54,6 +54,9 @@ export function extractMessages(payload: WaInbound): ExtractedInboundMessage[] {
           interactive_id = br?.id ?? lr?.id
           interactive_title = br?.title ?? lr?.title
           text = interactive_title ?? interactive_id ?? ""
+        } else if (type === "audio") {
+          // Keep audio inbound messages so the webhook can answer with a friendly fallback.
+          text = ""
         } else {
           // ignore unsupported types for now
           continue

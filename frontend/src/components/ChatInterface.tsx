@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, AlertTriangle, FileText, Heart, Shield, Trash2, X } from 'lucide-react';
+import { Send, User, Bot, AlertTriangle, FileText, Shield, Trash2, X } from 'lucide-react';
 import { useChat } from '../hooks/useChat';
 import type { Message } from '../hooks/useChat';
 
@@ -44,7 +44,6 @@ export const ChatInterface: React.FC<{
   const getAgentIcon = (agent?: string) => {
     switch (agent) {
       case 'sentry': return <Shield className="w-4 h-4 text-red-500" />;
-      case 'firefighter': return <Heart className="w-4 h-4 text-orange-500" />;
       case 'investigator': return <FileText className="w-4 h-4 text-blue-500" />;
       case 'architect': return <Bot className="w-4 h-4 text-purple-500" />; 
       default: return <Bot className="w-4 h-4 text-indigo-500" />;

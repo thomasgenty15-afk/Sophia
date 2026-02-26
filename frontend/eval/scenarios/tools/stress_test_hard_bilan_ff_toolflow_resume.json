@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
-  "id": "stress_test_hard_bilan_ff_toolflow_resume",
-  "description": "HARD: 4 machines (bilan + firefighter + toolflow + resume). Checkup interrupted by panic, then toolflow started, then resume of checkup.",
-  "tags": ["stress_test", "hard", "bilan", "firefighter", "toolflow", "resume"],
+  "id": "stress_test_hard_bilan_sentry_toolflow_resume",
+  "description": "HARD: 4 machines (bilan + sentry + toolflow + resume). Checkup interrupted by panic, then toolflow started, then resume of checkup.",
+  "tags": ["stress_test", "hard", "bilan", "sentry", "toolflow", "resume"],
   "difficulty": "hard",
   "setup": {
     "seed_plan": true,
@@ -16,7 +16,7 @@
   },
   "objectives": [
     {
-      "kind": "stress_test_hard_bilan_ff_toolflow_resume",
+      "kind": "stress_test_hard_bilan_sentry_toolflow_resume",
       "spec": {
         "phase_1_start_bilan": "Salut, on fait le bilan ?",
         "phase_2_answer": "J'ai fait 1 action sur 3",

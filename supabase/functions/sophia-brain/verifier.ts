@@ -223,15 +223,6 @@ RÈGLES SPÉCIFIQUES COMPANION:
 - Pas de coaching structuré non demandé; propose max 2 options.
     `.trim();
   }
-  if (a === "firefighter") {
-    return `
-RÈGLES SPÉCIFIQUES FIREFIGHTER:
-- Style sobre, concret, somatique. Pas de poésie.
-- Priorité sécurité: si danger immédiat → question sécurité + appel secours.
-- 0–1 question (2 max uniquement si sécurité).
-- Pas de diagnostic médical, pas de posologie.
-    `.trim();
-  }
   if (a === "assistant") {
     return `
 RÈGLES SPÉCIFIQUES ASSISTANT (TECH):
@@ -425,14 +416,12 @@ export function buildConversationAgentViolations(text: string, ctx: {
           agent === "architect" ? (askedDetail ? 1100 : 520) :
           agent === "librarian" ? (askedDetail ? 2200 : 1400) :
           agent === "companion" ? (askedDetail ? 950 : 420) :
-          agent === "firefighter" ? 450 :
           agent === "assistant" ? (askedDetail ? 1200 : 650) :
           (askedDetail ? 1100 : 520)
         )
       : (
           agent === "architect" ? (askedDetail ? 2200 : 1400) :
           agent === "librarian" ? (askedDetail ? 3200 : 2400) :
-          agent === "firefighter" ? 800 :
           agent === "assistant" ? 1400 :
           1600
         );
@@ -562,7 +551,7 @@ SORTIE JSON STRICTE:
 
 export async function verifyConversationAgentMessage(opts: {
   draft: string;
-  agent: "architect" | "companion" | "firefighter" | "assistant" | string;
+  agent: "architect" | "companion" | "assistant" | string;
   data: {
     user_message?: unknown;
     last_assistant_message?: unknown;
@@ -804,7 +793,6 @@ function buildBilanAgentViolations(text: string, ctx: { agent: string; user_mess
   const askedDetail = looksLikeUserAskedForDetail(ctx?.user_message);
   const maxChars =
     agent === "architect" ? (askedDetail ? 1400 : 650) :
-    agent === "firefighter" ? 500 :
     agent === "companion" ? 750 :
     750;
   if (cleaned.length > maxChars) v.push("too_long");
@@ -837,7 +825,7 @@ function buildBilanAgentViolations(text: string, ctx: { agent: string; user_mess
 
 export async function verifyBilanAgentMessage(opts: {
   draft: string;
-  agent: "architect" | "companion" | "firefighter" | "assistant" | string;
+  agent: "architect" | "companion" | "assistant" | string;
   data: unknown;
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; userId?: string };
 }): Promise<{ text: string; rewritten: boolean; violations: string[] }> {
@@ -914,7 +902,7 @@ function buildPostCheckupViolations(text: string): string[] {
 
 export async function verifyPostCheckupAgentMessage(opts: {
   draft: string;
-  agent: "architect" | "companion" | "firefighter" | "assistant" | string;
+  agent: "architect" | "companion" | "assistant" | string;
   data: unknown; // should include topic/context excerpt
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; userId?: string };
 }): Promise<{ text: string; rewritten: boolean; violations: string[] }> {

@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
+import { validateEthicalTextWithAI } from "./ethical_text_validator.ts";
 
 export const UPDATE_ETOILE_POLAIRE_TOOL = {
   name: "update_etoile_polaire",
@@ -69,11 +70,23 @@ export async function updateEtoilePolaire(
 
   const history = Array.isArray((row as any).history) ? (row as any).history.slice(-79) : [];
   const nowIso = new Date().toISOString();
+  const note = String(args?.note ?? "").trim().slice(0, 300);
+  if (note) {
+    const validation = await validateEthicalTextWithAI({
+      entity_type: "north_star",
+      operation: "update",
+      text_fields: { note },
+      context: { source: "tool:update_etoile_polaire" },
+    });
+    if (validation.decision === "block") {
+      throw new Error(validation.reason_short || "Note bloquée par la vérification éthique.");
+    }
+  }
   history.push({
     at: nowIso,
     value: newValue,
     previous_value: oldValue,
-    note: String(args?.note ?? "").trim().slice(0, 300) || null,
+    note: note || null,
     source: "tool:update_etoile_polaire",
   });
 

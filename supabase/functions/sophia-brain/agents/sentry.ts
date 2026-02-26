@@ -135,9 +135,9 @@ CE QU'IL FAUT ÉVITER:
 • Plonger dans l'analyse des causes maintenant
 • Être trop enthousiaste ("Super !")
 
-TRANSITION POSSIBLE VERS FIREFIGHTER:
-Si le danger vital est écarté MAIS que la détresse émotionnelle est forte,
-la machine peut transitionner vers firefighter pour un accompagnement émotionnel.
+TRANSITION APRÈS SÉCURISATION:
+Si le danger vital est écarté mais qu'une détresse émotionnelle persiste,
+la conversation peut revenir vers un accompagnement conversationnel standard.
 `
   }
   
@@ -157,7 +157,7 @@ L'utilisateur est en sécurité. Faire une passation douce. Laisser une porte ou
 POINTS D'ATTENTION CRITIQUES:
 • La crise vitale est passée
 • Quelqu'un est présent OU l'utilisateur a un plan de sécurité
-• On peut commencer à accompagner différemment (firefighter si détresse)
+• On peut reprendre un accompagnement conversationnel adapté
 • Garder une porte ouverte pour plus tard
 
 EXEMPLES DE BONNES RÉACTIONS:
@@ -173,7 +173,7 @@ BONNES PRATIQUES:
 • Message court et bienveillant
 • Ne pas revenir sur la crise sauf si l'utilisateur le veut
 • Proposer de parler si besoin (pas imposer)
-• Si détresse émotionnelle résiduelle → transition firefighter
+• Si détresse émotionnelle résiduelle → rester présent, concret et rassurant
 
 CE QU'IL FAUT ÉVITER:
 • Analyser ce qui s'est passé

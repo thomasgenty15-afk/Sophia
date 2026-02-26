@@ -1,8 +1,8 @@
 {
   "dataset_key": "stress_test",
-  "id": "stress_test_hard_ff_bilan_topic_deferred",
-  "description": "HARD: 4 machines (firefighter + bilan + topic_session + deferred). Starts with stress, then checkup, then topic discussion, then defer.",
-  "tags": ["stress_test", "hard", "firefighter", "bilan", "topic_session", "deferred"],
+  "id": "stress_test_hard_sentry_bilan_topic_deferred",
+  "description": "HARD: 4 machines (sentry + bilan + topic_session + deferred). Starts with stress, then checkup, then topic discussion, then defer.",
+  "tags": ["stress_test", "hard", "sentry", "bilan", "topic_session", "deferred"],
   "difficulty": "hard",
   "setup": {
     "seed_plan": true,
@@ -16,7 +16,7 @@
   },
   "objectives": [
     {
-      "kind": "stress_test_hard_ff_bilan_topic_deferred",
+      "kind": "stress_test_hard_sentry_bilan_topic_deferred",
       "spec": {
         "phase_1_stress": "Je suis pas bien la, j'ai le coeur qui bat",
         "phase_2_grounding": "Ok je respire...",

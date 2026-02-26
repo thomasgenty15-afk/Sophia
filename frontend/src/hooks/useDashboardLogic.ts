@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { cleanupSubmissionData } from '../lib/planActions';
 import { useNavigate } from 'react-router-dom';
 import type { GeneratedPlan, Action } from '../types/dashboard';
 import { startOfIsoWeekLocal } from '../lib/isoWeek';
 import { newRequestId, requestHeaders } from '../lib/requestId';
+import { shouldValidateOnUpdate, validateEthicalText } from '../lib/ethicalValidation';
 
 const PLAN_COMPLETION_THRESHOLD_PERCENT = 60;
 
@@ -41,6 +43,7 @@ export const useDashboardLogic = ({
   onBillingRequired,
 }: DashboardLogicProps) => {
   const navigate = useNavigate();
+  const [isVerifyingEthics, setIsVerifyingEthics] = useState(false);
 
   const maybeHandleBillingGate = (err: any): boolean => {
     const msg = (err?.message ?? err?.error_description ?? err?.details ?? "").toString().toLowerCase();
@@ -62,6 +65,32 @@ export const useDashboardLogic = ({
     if (!error) return;
     if (maybeHandleBillingGate(error)) throw error;
     throw error;
+  };
+
+  const runEthicalValidation = async (params: {
+    entityType: 'action' | 'initiative' | 'north_star' | 'vital_sign';
+    operation: 'create' | 'update';
+    textFields: Record<string, unknown>;
+    previousTextFields?: Record<string, unknown>;
+    textFieldKeys: string[];
+    context?: Record<string, unknown>;
+  }) => {
+    setIsVerifyingEthics(true);
+    try {
+      const result = await validateEthicalText({
+        entityType: params.entityType,
+        operation: params.operation,
+        textFields: params.textFields,
+        previousTextFields: params.previousTextFields ?? null,
+        textFieldKeys: params.textFieldKeys,
+        context: params.context,
+      });
+      if (result.decision === 'block') {
+        throw new Error(result.reasonShort || "Contenu bloqué par la vérification éthique.");
+      }
+    } finally {
+      setIsVerifyingEthics(false);
+    }
   };
 
   // --- 1. RESET PLAN ---
@@ -697,7 +726,118 @@ export const useDashboardLogic = ({
     }
   };
 
+  const handleUpdateVitalSignSettings = async (payload: {
+    label: string;
+    unit: string;
+    startValue: string;
+    targetValue: string;
+    currentValue: string;
+  }) => {
+    if (!user || !activePlanId) return;
+
+    const nowIso = new Date().toISOString();
+    if (activeVitalSignData?.id) {
+      const prevText = {
+        label: activeVitalSignData.title ?? '',
+        unit: activeVitalSignData.unit ?? '',
+      };
+      const nextText = {
+        label: payload.label,
+        unit: payload.unit,
+      };
+      const needsValidation = shouldValidateOnUpdate(prevText, nextText, ['label', 'unit']);
+      if (needsValidation) {
+        await runEthicalValidation({
+          entityType: 'vital_sign',
+          operation: 'update',
+          textFields: nextText,
+          previousTextFields: prevText,
+          textFieldKeys: ['label', 'unit'],
+          context: { scope: 'dashboard_plan' },
+        });
+      }
+    } else {
+      await runEthicalValidation({
+        entityType: 'vital_sign',
+        operation: 'create',
+        textFields: {
+          label: payload.label,
+          unit: payload.unit,
+        },
+        textFieldKeys: ['label', 'unit'],
+        context: { scope: 'dashboard_plan' },
+      });
+    }
+    if (activeVitalSignData?.id) {
+      const { error } = await supabase
+        .from('user_vital_signs')
+        .update({
+          label: payload.label,
+          unit: payload.unit,
+          current_value: payload.currentValue,
+          target_value: payload.targetValue,
+          last_checked_at: nowIso,
+          updated_at: nowIso,
+        } as any)
+        .eq('id', activeVitalSignData.id);
+      mustOk(error);
+
+      setActiveVitalSignData({
+        ...activeVitalSignData,
+        title: payload.label,
+        unit: payload.unit,
+        startValue: payload.startValue,
+        currentValue: payload.currentValue,
+        targetValue: payload.targetValue,
+        last_checked_at: nowIso,
+      });
+      return;
+    }
+
+    const rawTimeOfDay = String((activePlan as any)?.vitalSignal?.time_of_day ?? 'any_time');
+    const timeOfDay =
+      rawTimeOfDay === 'morning' ||
+      rawTimeOfDay === 'afternoon' ||
+      rawTimeOfDay === 'evening' ||
+      rawTimeOfDay === 'night' ||
+      rawTimeOfDay === 'any_time'
+        ? rawTimeOfDay
+        : 'any_time';
+
+    const { data, error } = await supabase
+      .from('user_vital_signs')
+      .insert({
+        user_id: user.id,
+        plan_id: activePlanId,
+        submission_id: activeSubmissionId,
+        label: payload.label,
+        unit: payload.unit,
+        current_value: payload.currentValue,
+        target_value: payload.targetValue,
+        status: 'active',
+        time_of_day: timeOfDay,
+        last_checked_at: nowIso,
+      } as any)
+      .select()
+      .single();
+    mustOk(error);
+
+    if (data) {
+      setActiveVitalSignData({
+        id: data.id,
+        title: payload.label,
+        unit: payload.unit,
+        startValue: payload.startValue,
+        currentValue: payload.currentValue,
+        targetValue: payload.targetValue,
+        last_checked_at: nowIso,
+        time_of_day: data.time_of_day ?? 'any_time',
+      });
+    }
+  };
+
   return {
+    isVerifyingEthics,
     handleResetCurrentPlan,
     handleGlobalReset,
     handleCreateNextGlobalPlan,
@@ -711,6 +851,7 @@ export const useDashboardLogic = ({
     handleSaveFramework,
     handleGenerateStep,
     handleUpdateVitalSign,
+    handleUpdateVitalSignSettings,
     handleCreateAction: async (phaseIndex: number, actionData: Partial<Action>) => {
         if (!activePlan || !activePlanId || !user) return;
     
@@ -727,6 +868,17 @@ export const useDashboardLogic = ({
           ...actionData,
         } as Action;
     
+        await runEthicalValidation({
+          entityType: 'action',
+          operation: 'create',
+          textFields: {
+            title: newAction.title,
+            description: newAction.description,
+          },
+          textFieldKeys: ['title', 'description'],
+          context: { scope: 'dashboard_plan' },
+        });
+
         // 1. Update Local State
         const newPhases = [...activePlan.phases];
         if (!newPhases[phaseIndex]) return;
@@ -769,8 +921,9 @@ export const useDashboardLogic = ({
     
         } catch (err) {
             console.error("Error creating action:", err);
-            alert("Erreur lors de la création de l'action.");
+            alert((err as any)?.message || "Erreur lors de la création de l'action.");
             setActivePlan(prevPlan);
+            throw err;
         }
       },
 
@@ -779,6 +932,26 @@ export const useDashboardLogic = ({
         
         const prevPlan = activePlan;
         
+        const nextText = {
+          title: updatedFields.title ?? originalAction.title ?? "",
+          description: updatedFields.description ?? originalAction.description ?? "",
+        };
+        const prevText = {
+          title: originalAction.title ?? "",
+          description: originalAction.description ?? "",
+        };
+        const needsValidation = shouldValidateOnUpdate(prevText, nextText, ['title', 'description']);
+        if (needsValidation) {
+          await runEthicalValidation({
+            entityType: 'action',
+            operation: 'update',
+            textFields: nextText,
+            previousTextFields: prevText,
+            textFieldKeys: ['title', 'description'],
+            context: { scope: 'dashboard_plan' },
+          });
+        }
+
         // 1. Update Local State
         const newPhases = activePlan.phases.map(p => ({
             ...p,
@@ -811,7 +984,8 @@ export const useDashboardLogic = ({
         } catch (err) {
             console.error("Error updating action:", err);
             setActivePlan(prevPlan);
-            alert("Erreur lors de la modification.");
+            alert((err as any)?.message || "Erreur lors de la modification.");
+            throw err;
         }
     },
 

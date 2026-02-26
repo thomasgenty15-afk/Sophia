@@ -18,7 +18,7 @@ export function buildLastAssistantInfo(history: any[]): { lastAssistantMessage: 
     const s = String(raw ?? "").trim()
     if (!s) return null
     // DB often stores "sophia.architect" / "sophia.companion" etc.
-    const m = s.match(/\b(sentry|firefighter|investigator|architect|companion|librarian)\b/i)
+    const m = s.match(/\b(sentry|investigator|architect|companion|librarian)\b/i)
     return m ? m[1]!.toLowerCase() : s.toLowerCase()
   }
   const lastAssistantAgent = normalizeAgentUsed(lastAssistantAgentRaw)

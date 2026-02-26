@@ -45,7 +45,6 @@ values
   ('sophia.investigator', true, ''),
   ('sophia.companion', true, ''),
   ('sophia.architect', true, ''),
-  ('sophia.firefighter', true, ''),
   ('sophia.sentry', true, ''),
   ('sophia.watcher', true, ''),
   ('sophia.detect_future_events', true, '')

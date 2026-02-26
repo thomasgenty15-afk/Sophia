@@ -1,14 +1,17 @@
 import { useState } from 'react';
-import { BarChart3, MessageCircle, TrendingUp, Edit2, CheckCircle2 } from 'lucide-react';
+import { BarChart3, MessageCircle, TrendingUp, Edit2, CheckCircle2, Settings } from 'lucide-react';
 import type { GeneratedPlan, VitalSignal } from '../../types/dashboard';
 import { VitalSignModal } from './VitalSignModal';
+import { VitalSignSettingsModal } from './VitalSignSettingsModal';
 
-export const MetricCard = ({ plan, vitalSignData, onUpdateVitalSign }: { 
+export const MetricCard = ({ plan, vitalSignData, onUpdateVitalSign, onUpdateVitalSignSettings }: { 
     plan: GeneratedPlan | null, 
     vitalSignData: VitalSignal | null,
-    onUpdateVitalSign: (value: string) => Promise<void>
+    onUpdateVitalSign: (value: string) => Promise<void>,
+    onUpdateVitalSignSettings: (payload: { label: string; unit: string; startValue: string; targetValue: string; currentValue: string }) => Promise<void>
 }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   if (!plan) return null; 
 
@@ -66,7 +69,15 @@ export const MetricCard = ({ plan, vitalSignData, onUpdateVitalSign }: {
             <div>
             <div className="flex items-center gap-2 mb-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                <h3 className="text-xs min-[350px]:text-sm font-bold text-slate-400 uppercase tracking-wider">Signal Vital Suivi</h3>
+                <h3 className="text-xs min-[350px]:text-sm font-bold text-slate-400 uppercase tracking-wider">Signe Vital Suivi</h3>
+                <button
+                    onClick={() => setIsSettingsOpen(true)}
+                    className="p-1 rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors"
+                    title="Modifier le signe vital"
+                    aria-label="Modifier le signe vital"
+                >
+                    <Settings className="w-3.5 h-3.5" />
+                </button>
             </div>
             <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 mb-1">{metricName}</h2>
             <p className="text-xs min-[350px]:text-sm text-slate-500 flex items-center gap-1">
@@ -130,6 +141,18 @@ export const MetricCard = ({ plan, vitalSignData, onUpdateVitalSign }: {
                 currentValue: String(currentValue),
                 targetValue: String(targetValue),
                 unit: unit
+            }}
+        />
+        <VitalSignSettingsModal
+            isOpen={isSettingsOpen}
+            onClose={() => setIsSettingsOpen(false)}
+            onSave={onUpdateVitalSignSettings}
+            initialValues={{
+                label: metricName,
+                unit: String(unit ?? ''),
+                startValue: String(startValue ?? ''),
+                targetValue: String(targetValue ?? ''),
+                currentValue: String(currentValue ?? ''),
             }}
         />
     </>

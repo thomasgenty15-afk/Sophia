@@ -59,7 +59,6 @@ const PROMPT_KEYS = [
   "sophia.investigator",
   "sophia.companion",
   "sophia.architect",
-  "sophia.firefighter",
   "sophia.assistant",
   "sophia.watcher",
 ] as const;

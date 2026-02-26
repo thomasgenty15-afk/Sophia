@@ -5,6 +5,7 @@ export const THEME_ENERGY: Theme = {
   title: 'Énergie & Vitalité',
   shortTitle: 'Énergie',
   icon: '⚡',
+  keywords: ['Fatigue', 'Alimentation', 'Perte de poids', 'Mouvement'],
   axes: [
     {
       id: 'ENG_1',

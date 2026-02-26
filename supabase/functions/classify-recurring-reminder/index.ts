@@ -246,6 +246,7 @@ async function seedReminderUntilNextSunday(params: {
       .upsert(
         {
           user_id: reminder.user_id,
+          origin: "initiative",
           event_context: eventContext,
           draft_message: draft,
           message_mode: "static",

@@ -11,7 +11,6 @@ $$ LANGUAGE plpgsql;
 CREATE TYPE chat_agent_mode AS ENUM (
   'dispatcher',   -- Le Chef de Gare (interne)
   'sentry',       -- Le Guetteur (Sécurité)
-  'firefighter',  -- Le Pompier (Urgence)
   'investigator', -- L'Enquêteur / Le Comptable (Data)
   'architect',    -- L'Architecte (Deep Work)
   'companion',    -- Le Compagnon (Défaut)

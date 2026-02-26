@@ -12,7 +12,7 @@ export async function replyWithBrain(params: {
   replyToWaMessageId?: string | null
   contextOverride: string
   whatsappMode?: "onboarding" | "normal"
-  forceMode?: "companion" | "architect" | "assistant" | "investigator" | "firefighter" | "sentry"
+  forceMode?: "companion" | "architect" | "assistant" | "investigator" | "sentry"
   purpose?: string
 }) {
   const scope = "whatsapp"

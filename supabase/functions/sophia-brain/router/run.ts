@@ -179,17 +179,6 @@ function selectTargetMode(args: {
     return { targetMode: "sentry", stopCheckup, checkupIntentDetected };
   }
 
-  const firefighterBySafety =
-    dispatcherSignals.safety.level === "FIREFIGHTER" &&
-    dispatcherSignals.safety.confidence >= 0.75;
-  const firefighterByDistress =
-    dispatcherSignals.topic_depth?.value === "NEED_SUPPORT" &&
-    dispatcherSignals.topic_depth?.confidence >= 0.6 &&
-    Number(dispatcherSignals.risk_score ?? 0) >= 4;
-  if (firefighterBySafety || firefighterByDistress) {
-    return { targetMode: "firefighter", stopCheckup, checkupIntentDetected };
-  }
-
   if (checkupActive && !stopCheckup) {
     return { targetMode: "investigator", stopCheckup, checkupIntentDetected };
   }
@@ -293,8 +282,7 @@ function attachDynamicAddons(args: {
     }
   }
 
-  const safetyActive = dispatcherSignals.safety.level === "SENTRY" ||
-    dispatcherSignals.safety.level === "FIREFIGHTER";
+  const safetyActive = dispatcherSignals.safety.level === "SENTRY";
   if (safetyActive && Number(dispatcherSignals.safety.confidence ?? 0) >= 0.6) {
     const prev = (tempMemory as any)?.__safety_stabilization ?? {};
     const stabilized = Boolean(dispatcherSignals.safety_resolution?.stabilizing_signal);
@@ -557,7 +545,7 @@ export async function processMessage(
   });
 
   let targetMode: AgentMode = routedMode;
-  if (opts?.forceMode && targetMode !== "sentry" && targetMode !== "firefighter") {
+  if (opts?.forceMode && targetMode !== "sentry") {
     targetMode = opts.forceMode;
   }
 

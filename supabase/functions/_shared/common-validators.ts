@@ -3,7 +3,7 @@ import { z } from "npm:zod@3.22.4";
 // --- 1. ROUTER (DISPATCHER) ---
 
 export const DispatcherSchema = z.object({
-  targetMode: z.enum(['sentry', 'firefighter', 'investigator', 'architect', 'assistant', 'companion']),
+  targetMode: z.enum(['sentry', 'investigator', 'architect', 'assistant', 'companion']),
   riskScore: z.number().min(0).max(10)
 });
 
