@@ -16,6 +16,24 @@ function clampText(v: string, maxChars: number): string {
   return v.slice(0, maxChars - 1).trimEnd() + "…";
 }
 
+function normalizeDraftMessage(v: unknown): string {
+  if (typeof v === "string") return v.trim();
+  if (!v || typeof v !== "object") return "";
+  const o = v as Record<string, unknown>;
+  const candidates = [
+    o.text,
+    o.message,
+    o.content,
+    (o.data && typeof o.data === "object")
+      ? (o.data as Record<string, unknown>).text
+      : null,
+  ];
+  for (const c of candidates) {
+    if (typeof c === "string" && c.trim()) return c.trim();
+  }
+  return "";
+}
+
 function weekdayKeyInTimezone(params: { timezone: string; dayOffset: number; now?: Date }): WeekdayKey {
   const tz = str(params.timezone) || "Europe/Paris";
   const base = params.now ?? new Date();
@@ -198,7 +216,7 @@ async function seedReminderUntilNextSunday(params: {
     const parsed = typeof outRaw === "string" ? JSON.parse(outRaw) : outRaw;
     const rawMessages = Array.isArray((parsed as any)?.messages) ? (parsed as any).messages : [];
     drafts = rawMessages
-      .map((m: any) => str(m))
+      .map((m: any) => normalizeDraftMessage(m))
       .filter(Boolean)
       .slice(0, slots.length);
   } catch (e) {

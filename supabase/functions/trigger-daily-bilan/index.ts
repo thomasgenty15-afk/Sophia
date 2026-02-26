@@ -356,8 +356,9 @@ Deno.serve(async (req) => {
     const allowed = new Set((plans ?? []).map((p) => p.user_id));
     const filtered = userIds.filter((id) => allowed.has(id));
 
-    // Billing gate (strict): only paid tiers can receive daily bilan proactive sends.
-    // This avoids sending opt-in templates after a paid subscription ends.
+    // Billing gate:
+    // - active subscriptions must map to paid tiers (alliance/architecte)
+    // - trialing subscriptions are eligible (to ensure trial users receive the daily bilan)
     const { data: subscriptions, error: subErr } = await admin
       .from("subscriptions")
       .select("user_id,status,stripe_price_id,current_period_end")
@@ -372,6 +373,10 @@ Deno.serve(async (req) => {
       if (endRaw) {
         const endTs = new Date(endRaw).getTime();
         if (Number.isFinite(endTs) && nowMs >= endTs) continue;
+      }
+      if (status === "trialing") {
+        paidEligible.add(String((sub as any)?.user_id ?? ""));
+        continue;
       }
       const tier = tierFromStripePriceId(
         String((sub as any)?.stripe_price_id ?? "").trim(),
