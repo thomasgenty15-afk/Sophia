@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
-import { generateWithGemini } from "../../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts"
 import { getUserState, normalizeScope, updateUserState } from "../state-manager.ts"
 
 type ChatMessageRow = {
@@ -120,7 +120,7 @@ ${transcriptRecent}
   try {
     const raw = await generateWithGemini(systemPrompt, userPrompt, 0.15, true, [], "json", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:synthesizer",
       forceRealAi: meta?.forceRealAi,
     })

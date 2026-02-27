@@ -55,7 +55,9 @@ export async function handleTracking(
   if (actions && actions.length > 0) {
     const action = actions[0] as any;
     const lastPerformedDay = action.last_performed_at ? String(action.last_performed_at).split("T")[0] : null;
-    const isHabit = String(action.type ?? "") === "habit";
+    const actionType = String(action.type ?? "").toLowerCase();
+    const isHabit = actionType === "habit";
+    const isMission = actionType === "mission";
 
     let prevReps = Number(action.current_reps || 0);
     const trackingType = action.tracking_type || "boolean";
@@ -120,11 +122,14 @@ export async function handleTracking(
 
     // A) Update aggregate
     if (entryStatus === "completed") {
+      const target = Math.max(1, Number(action.target_reps ?? 1) || 1);
+      const shouldCompleteMission = isMission && newReps >= target;
       const { error: updateError } = await supabase
         .from("user_actions")
         .update({
           current_reps: newReps,
           last_performed_at: new Date().toISOString(),
+          ...(shouldCompleteMission ? { status: "completed" } : {}),
         })
         .eq("id", action.id);
 
@@ -142,7 +147,14 @@ export async function handleTracking(
       performed_at: performedAt,
     });
 
-    if (entryError) console.error("[Tracking] Error inserting action entry:", entryError);
+    if (entryError) {
+      const code = String((entryError as any)?.code ?? "");
+      // DB-level dedup guard (missed per action/day). Treat as benign duplicate.
+      if (code === "23505" && entryStatus === "missed") {
+        return `Je sais, c'est déjà noté comme raté pour aujourd'hui. T'inquiète pas. 📉`;
+      }
+      console.error("[Tracking] Error inserting action entry:", entryError);
+    }
 
     if (entryStatus === "missed") return `C'est noté (Pas fait). 📉\nAction : ${action.title}`;
     if (isHabit) {
@@ -151,6 +163,12 @@ export async function handleTracking(
         return `Bravo ! Tu viens d'atteindre ton objectif hebdo (${target}×/semaine) pour : ${action.title} ✅`;
       }
       return `C'est noté ! ✅\nHabitude : ${action.title} (${newReps}/${target} cette semaine)`;
+    }
+    if (isMission) {
+      const target = Math.max(1, Number(action.target_reps ?? 1) || 1);
+      if (newReps >= target) {
+        return `Mission validée et complétée ✅\nAction : ${action.title}`;
+      }
     }
     return `C'est noté ! ✅\nAction : ${action.title}`;
   }
@@ -180,9 +198,15 @@ export async function handleTracking(
     if (entryStatus === "completed" || entryStatus === "partial") {
       const curr = Number(fw.current_reps ?? 0);
       const next = operation === "set" ? Math.max(curr, 1) : (curr + 1);
+      const target = Math.max(1, Number(fw.target_reps ?? 1) || 1);
+      const shouldComplete = next >= target;
       const { error: updateFwErr } = await supabase
         .from("user_framework_tracking")
-        .update({ current_reps: next, last_performed_at: nowIso })
+        .update({
+          current_reps: next,
+          last_performed_at: nowIso,
+          ...(shouldComplete ? { status: "completed" } : {}),
+        })
         .eq("id", fw.id);
       if (updateFwErr) console.error("[Tracking] Error updating framework aggregate:", updateFwErr);
     }
@@ -245,5 +269,4 @@ export async function handleTracking(
 
   return `INFO_POUR_AGENT: Je ne trouve pas "${target_name}" dans le plan actif (Actions / Frameworks / Signes Vitaux). Contente-toi de féliciter ou discuter, sans dire "C'est noté".`;
 }
-
 

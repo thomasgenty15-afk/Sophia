@@ -3,6 +3,19 @@
 // Keep this lightweight to avoid noisy "Cannot find name 'Deno'" errors.
 declare const Deno: any;
 
+export function getGlobalAiModel(fallback = "gemini-2.5-flash"): string {
+  const model = (
+    Deno.env.get("GLOBAL_AI_MODEL") ??
+    ""
+  ).trim();
+  return model || fallback;
+}
+
+export function getGeminiFallbackModel(fallback = "gemini-2.5-flash"): string {
+  const model = (Deno.env.get("GEMINI_FALLBACK_MODEL") ?? "").trim();
+  return model || fallback;
+}
+
 export async function generateWithGemini(
   systemPrompt: string, 
   userMessage: string, 
@@ -310,10 +323,8 @@ export async function generateWithGemini(
 
   // Default model selection:
   // - If caller provides meta.model, respect it.
-  // - Otherwise, prefer env GEMINI_SOPHIA_CHAT_MODEL.
-  const envChatModel = (Deno.env.get("GEMINI_SOPHIA_CHAT_MODEL") ?? "").trim();
-  // Default to gemini-2.5-flash (fast) for all traffic.
-  const defaultModel = envChatModel || "gemini-2.5-flash";
+  // - Otherwise, use GLOBAL_AI_MODEL.
+  const defaultModel = getGlobalAiModel("gemini-2.5-flash");
   let baseModel = (meta?.model ?? defaultModel).trim();
   const sourceLower = String(meta?.source ?? "").toLowerCase();
   const isEvalJudgeCall =
@@ -325,16 +336,24 @@ export async function generateWithGemini(
   // In eval-like calls, default stickiness is to go to 2.0 after first failure.
   let stickyModel: string | null = null;
 
-  // Fallback policy (interleaved providers for resilience):
-  // - Standard: gemini-2.5-flash → gpt-5-mini → gpt-5-nano
-  // - Critical (gpt-5.2): gpt-5.2 → gemini-2.5-flash → gpt-5-mini → gpt-5-nano
-  //
-  // Note: We interleave providers (OpenAI ↔ Gemini) for better resilience.
-  // Removed: gemini preview models (unstable), gemini-2.0-flash (deprecated).
+  // Fallback policy:
+  // - Standard Gemini traffic: GLOBAL_AI_MODEL (attempt 1), then GEMINI_FALLBACK_MODEL (attempt 2),
+  //   then alternate primary/fallback across attempts. OpenAI stays as tertiary safety net.
+  // - Critical (gpt-5.2): keep dedicated critical chain.
   const isGpt52 = (m: string) => /^\s*gpt-5\.2\b/i.test(String(m ?? "").trim());
+  const geminiPrimaryModel = getGlobalAiModel("gemini-2.5-flash");
+  const geminiFallbackModel = getGeminiFallbackModel("gemini-2.5-flash");
+  const hasDistinctGeminiFallback =
+    geminiFallbackModel &&
+    geminiFallbackModel.toLowerCase() !== geminiPrimaryModel.toLowerCase();
 
   const pickModelForAttempt = (startModel: string, attempt: number): string => {
-    // Simple: always return the start model; fallback chain handles diversity.
+    // For Gemini primary traffic, alternate primary/fallback across retries.
+    const start = String(startModel ?? "").trim();
+    if (!isOpenAiModel(start) && !isGpt52(start) && hasDistinctGeminiFallback) {
+      return attempt % 2 === 1 ? geminiPrimaryModel : geminiFallbackModel;
+    }
+    // Otherwise keep caller-selected model.
     return startModel;
   };
 
@@ -354,13 +373,13 @@ export async function generateWithGemini(
       // If timeouts are too tight we end up thrashing into fallbacks and generating noisy warning logs.
       // "Very loose" policy: allow long provider latency up to GEMINI_EVAL_HTTP_TIMEOUT_MS (default 120s),
       // with generous per-model caps, unless the caller explicitly set meta.httpTimeoutMs (handled above).
-      if (/\bgemini-3[-.]flash-preview\b/i.test(mm)) return Math.min(evalTimeout, 120_000);
+      if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) return Math.min(evalTimeout, 120_000);
       if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(evalTimeout, 120_000);
       if (/\bgemini-2\.5-flash\b/i.test(mm)) return Math.min(evalTimeout, 110_000);
       if (/\bgemini-2\.0-flash\b/i.test(mm)) return Math.min(evalTimeout, 90_000);
       return evalTimeout;
     }
-    if (/\bgemini-3[-.]flash-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 12_000);
+    if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 12_000);
     if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 25_000);
     return GEMINI_HTTP_TIMEOUT_MS;
   };
@@ -391,23 +410,26 @@ export async function generateWithGemini(
       push(primary);
       return chain;
     }
-    // Fallback chains (interleaved providers for resilience):
-    // - Critical (gpt-5.2): gpt-5.2 → gemini-2.5-flash → gpt-5-mini → gpt-5-nano
-    // - Standard: primary → gpt-5-mini → gpt-5-nano
+    // Fallback chains:
+    // - Critical (gpt-5.2): gpt-5.2 → gemini fallback → gpt-5-mini → gpt-5-nano
+    // - Standard Gemini: alternating primary/fallback first, then OpenAI safety nets.
     //
-    // Notes:
-    // - Providers are interleaved: if OpenAI is down, we fall back to Gemini immediately.
-    // - If OPENAI_API_KEY is missing, OpenAI models will be skipped at runtime.
     push(primary);
     const isCritical = isGpt52(startModel) || (isEvalJudgeCall && isGpt52(primary));
     if (isCritical) {
-      push("gemini-2.5-flash");
+      push(geminiFallbackModel);
       push("gpt-5-mini");
       push("gpt-5-nano");
       return chain;
     }
-    // Standard: prefer staying on Gemini as primary; if it fails, fall back to OpenAI.
-    // If primary is not Gemini, still keep the OpenAI fallbacks to increase success chance.
+    // Standard Gemini behavior: second chance is always the other Gemini model first.
+    if (!isOpenAiModel(primary) && hasDistinctGeminiFallback) {
+      const other = primary.toLowerCase() === geminiPrimaryModel.toLowerCase()
+        ? geminiFallbackModel
+        : geminiPrimaryModel;
+      push(other);
+    }
+    // Then keep OpenAI as tertiary safety nets.
     push("gpt-5-mini");
     push("gpt-5-nano");
     return chain;
@@ -779,8 +801,8 @@ export async function generateWithGemini(
           });
           lastInnerErr = new Error(`Erreur Gemini: ${msg}`);
           if (response.status === 429 || response.status === 503) {
-            // After rate limiting / overload, stick to gemini-2.5-flash (most stable Gemini).
-            if (isEvalLikeRequest) stickyModel = "gemini-2.5-flash";
+            // After rate limiting / overload, prefer configured Gemini fallback.
+            if (isEvalLikeRequest) stickyModel = getGeminiFallbackModel("gemini-2.5-flash");
             openBreaker("gemini", model, 20_000, msg);
           }
           // Respect retry-after/backoff for rate limiting/overload BEFORE trying next model.
@@ -1001,7 +1023,7 @@ export async function searchWithGeminiGrounding(
     return { text: `MEGA_TEST_STUB: recherche pour "${query}"`, snippets: [`Stub result for: ${query}`], sources: ["stub://test"] };
   }
 
-  const model = (meta?.model ?? "gemini-2.5-flash").trim();
+  const model = (meta?.model ?? getGlobalAiModel("gemini-2.5-flash")).trim();
   const timeoutMs = Math.max(3_000, Math.floor(meta?.timeoutMs ?? 8_000));
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 

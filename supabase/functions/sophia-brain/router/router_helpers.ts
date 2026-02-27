@@ -48,11 +48,3 @@ export function pickSupervisorSummary(tm: any): {
   return out
 }
 
-export function pickDeferredSummary(tm: any): { has_items: boolean; last_topic?: string } {
-  const st = (tm as any)?.global_deferred_topics
-  const items = Array.isArray((st as any)?.items) ? (st as any).items : []
-  const last = items.length ? items[items.length - 1] : null
-  const topic = last && typeof last === "object" ? String((last as any).topic ?? "").trim() : ""
-  return { has_items: items.length > 0, last_topic: topic ? topic.slice(0, 160) : undefined }
-}
-

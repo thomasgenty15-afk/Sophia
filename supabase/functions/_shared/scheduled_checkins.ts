@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { generateWithGemini } from "./gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "./gemini.ts"
 import { buildUserTimeContextFromValues } from "./user_time_context.ts"
 
 function safeTrim(s: unknown): string {
@@ -18,11 +18,13 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   userId: string
   eventContext: string
   instruction?: string
+  eventGrounding?: string
   requestId?: string
 }): Promise<string> {
   const { admin, userId } = params
   const eventContext = clampText(params.eventContext, 180)
   const instruction = clampText(params.instruction ?? "", 500)
+  const eventGrounding = clampText(params.eventGrounding ?? "", 320)
 
   const { data: prof } = await admin
     .from("profiles")
@@ -31,14 +33,14 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     .maybeSingle()
   const tctx = buildUserTimeContextFromValues({ timezone: (prof as any)?.timezone ?? null, locale: (prof as any)?.locale ?? null })
 
-  // Pull the most recent WhatsApp messages for grounding.
+  // Pull a compact WhatsApp history for local continuity.
   const { data: msgs, error } = await admin
     .from("chat_messages")
     .select("role,content,created_at")
     .eq("user_id", userId)
     .eq("scope", "whatsapp")
     .order("created_at", { ascending: false })
-    .limit(24)
+    .limit(12)
   if (error) throw error
 
   const transcript = (msgs ?? [])
@@ -62,6 +64,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
       tctx.prompt_block,
       "",
       `Contexte de relance (event_context): ${eventContext}`,
+      eventGrounding ? `Contexte figé de l'événement (watcher): ${eventGrounding}` : "",
       instruction ? `Instruction additionnelle: ${instruction}` : "",
       "",
       "Tu dois prendre en compte la conversation récente ci-dessous (si elle est vide, reste générique).",
@@ -71,8 +74,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
 
   const out = await generateWithGemini(systemPrompt, transcript || "(pas d'historique)", 0.4, false, [], "auto", {
     requestId: params.requestId,
-    // Avoid Gemini preview defaults in prod; rely on stable default.
-    model: "gemini-2.5-flash",
+    model: getGlobalAiModel("gemini-2.5-flash"),
     source: "scheduled_checkins:dynamic_whatsapp",
     forceRealAi: true,
   })

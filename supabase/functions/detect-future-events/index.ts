@@ -1,7 +1,7 @@
 /// <reference path="../tsserver-shims.d.ts" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
-import { generateWithGemini } from '../_shared/gemini.ts'
+import { generateWithGemini, getGlobalAiModel } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
@@ -161,7 +161,7 @@ Deno.serve(async (req) => {
             true, // JSON mode
             [],
             "auto",
-            { requestId, model: "gemini-2.5-flash", source: "detect-future-events" }
+            { requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "detect-future-events" }
         )
 
         const events = JSON.parse(responseText as string)

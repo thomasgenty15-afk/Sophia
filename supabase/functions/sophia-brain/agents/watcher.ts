@@ -1,6 +1,6 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { normalizeScope } from '../state-manager.ts' // Need access to state
-import { generateWithGemini } from "../../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts"
 import { buildUserTimeContextFromValues } from "../../_shared/user_time_context.ts"
 
 type ExistingCheckin = {
@@ -128,7 +128,7 @@ ${dayList || "(aucun)"}
       true,
       [],
       "auto",
-      { requestId: params.requestId, model: "gemini-2.5-flash", source: "trigger-watcher-batch:day-coherence" },
+      { requestId: params.requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "trigger-watcher-batch:day-coherence" },
     )
     const parsed = JSON.parse(String(out))
     return Boolean((parsed as any)?.accept)
@@ -253,7 +253,8 @@ Format de sortie attendu : JSON uniquement, un tableau d'objets.
   {
     "event_context": "Courte description de l'événement (ex: Présentation client)",
     "scheduled_for": "Date ISO 8601 précise (UTC) quand le message doit être envoyé",
-    "confidence_score": "Score entre 0 et 10"
+    "confidence_score": "Score entre 0 et 10",
+    "event_grounding": "1-2 phrases factuelles sur ce que l'utilisateur a dit (optionnel, max 280 caractères)"
   }
 ]
 
@@ -286,7 +287,7 @@ ${activeActionsBlock}
       true,
       [],
       "auto",
-      { requestId: meta?.requestId, model: "gemini-2.5-flash", source: "trigger-watcher-batch" },
+      { requestId: meta?.requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "trigger-watcher-batch" },
     )
 
     const events = JSON.parse(String(responseText))
@@ -298,7 +299,8 @@ ${activeActionsBlock}
         const scheduledFor = String(event?.scheduled_for ?? "")
         const scheduledTime = new Date(scheduledFor)
         const eventContext = String(event?.event_context ?? "").trim()
-        return { score, scheduledFor, scheduledTime, eventContext }
+        const eventGrounding = String(event?.event_grounding ?? "").trim().slice(0, 280)
+        return { score, scheduledFor, scheduledTime, eventContext, eventGrounding }
       })
       .filter((c: any) => !Number.isNaN(c.score) && c.score >= 8)
       .filter((c: any) => !Number.isNaN(c.scheduledTime.getTime()) && c.scheduledTime.getTime() > Date.now())
@@ -363,6 +365,7 @@ ${activeActionsBlock}
           source: "trigger-watcher-batch",
           instruction:
             "Relance courte liée à l'événement. Utilise le tutoiement. 1 question max. Pas de markdown.",
+          event_grounding: candidate.eventGrounding || null,
         },
         scheduled_for: scheduledFor,
         status: "pending",

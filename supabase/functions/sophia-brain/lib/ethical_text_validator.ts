@@ -1,4 +1,4 @@
-import { generateWithGemini } from "../../_shared/gemini.ts";
+import { generateWithGemini, getGeminiFallbackModel } from "../../_shared/gemini.ts";
 
 export type EthicalEntityType =
   | "action"
@@ -23,6 +23,21 @@ export type EthicalValidationResult = {
   reason_short: string;
   confidence: number;
 };
+
+function blockReasonByEntity(entityType: EthicalEntityType): string {
+  switch (entityType) {
+    case "action":
+      return "Ce type d'action n'est pas en accord avec les valeurs de Sophia.";
+    case "initiative":
+      return "Ce type d'initiative n'est pas en accord avec les valeurs de Sophia.";
+    case "north_star":
+      return "Ce type d'etoile polaire n'est pas en accord avec les valeurs de Sophia.";
+    case "vital_sign":
+      return "Ce type de signe vital n'est pas en accord avec les valeurs de Sophia.";
+    default:
+      return "Ce type de contenu n'est pas en accord avec les valeurs de Sophia.";
+  }
+}
 
 function envBool(name: string, fallback: boolean): boolean {
   const raw = String(Deno.env.get(name) ?? "").trim().toLowerCase();
@@ -109,7 +124,9 @@ export async function validateEthicalTextWithAI(
       {
         requestId: input.request_id,
         source: "ethical-text-validator",
-        model: "gemini-2.5-flash",
+        model:
+          (Deno.env.get("ETHICAL_VALIDATION_MODEL") ?? "").trim() ||
+          getGeminiFallbackModel("gemini-2.5-flash"),
         maxRetries: 2,
       },
     );
@@ -118,11 +135,15 @@ export async function validateEthicalTextWithAI(
     const decision: EthicalDecision = decisionRaw === "block" ? "block" : "allow";
     const reason = String(parsed?.reason_short ?? "").trim().slice(0, 180);
     const confidence = Math.max(0, Math.min(1, Number(parsed?.confidence ?? 0.5)));
+    
+    // Override reason for block decisions with a standard message by entity type
+    const finalReason = decision === "block"
+      ? blockReasonByEntity(input.entity_type)
+      : reason || "Contenu conforme.";
+
     return {
       decision,
-      reason_short: reason || (decision === "block"
-        ? "Contenu non conforme aux règles éthiques."
-        : "Contenu conforme."),
+      reason_short: finalReason,
       confidence,
     };
   } catch (e) {

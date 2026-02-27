@@ -3,7 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
-import { generateWithGemini } from "../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts"
 
@@ -278,7 +278,7 @@ async function generateRecurringReminderWeeklyDrafts(params: {
     "auto",
     {
       requestId: params.requestId,
-      model: "gemini-2.5-flash",
+      model: getGlobalAiModel("gemini-2.5-flash"),
       source: "schedule-recurring-checkins",
       forceRealAi: true,
     },

@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts"
-import { generateWithGemini } from "../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts"
 import {
   loadOnboardingContext,
   setDeferredOnboardingSteps,
@@ -136,7 +136,7 @@ export async function classifyBilanResponse(
   try {
     const raw = await generateWithGemini(systemPrompt, `Réponse de l'utilisateur: "${text}"`, 0.1, true, [], "auto", {
       requestId,
-      model: "gemini-2.5-flash",
+      model: getGlobalAiModel("gemini-2.5-flash"),
       source: "bilan_classify",
       forceRealAi: true,
     })

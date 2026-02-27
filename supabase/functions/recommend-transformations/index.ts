@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { generateWithGemini } from "../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"
 
@@ -264,7 +264,7 @@ serve(async (req) => {
       source: "recommend-transformations",
       // Force 2.5 first: we observed 3.0 flash preview can be slower / timeout in some environments.
       // Keep `generateWithGemini` fallback chain intact.
-      model: "gemini-2.5-flash",
+      model: getGlobalAiModel("gemini-2.5-flash"),
     } as const
 
     const index = buildCatalogIndex(availableTransformations as CatalogTheme[])

@@ -2,7 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getCorsHeaders } from "../_shared/cors.ts"
-import { generateWithGemini } from "../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts"
 
 serve(async (req) => {
   const guard = ensureInternalRequest(req)
@@ -169,7 +169,7 @@ serve(async (req) => {
       maxRetries: 6,
       httpTimeoutMs: 12_000,
       // Avoid Gemini preview defaults in prod; rely on stable default.
-      model: "gemini-2.5-flash",
+      model: getGlobalAiModel("gemini-2.5-flash"),
     } as any)
     const newActionData = typeof raw === "string" ? JSON.parse(raw) : (raw as any)
 

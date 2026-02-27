@@ -19,7 +19,7 @@
  */
 
 import { SupabaseClient } from "jsr:@supabase/supabase-js@2"
-import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts"
+import { generateWithGemini, generateEmbedding, getGlobalAiModel } from "../_shared/gemini.ts"
 
 type TopicEnrichmentSource = "chat" | "onboarding" | "bilan" | "module" | "plan"
 
@@ -339,7 +339,7 @@ SORTIE JSON ATTENDUE :
   try {
     const raw = await generateWithGemini(prompt, transcript, 0.2, true, [], "json", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_extraction",
       forceRealAi: meta?.forceRealAi,
     })
@@ -435,7 +435,7 @@ Schema JSON strict :
   try {
     const raw = await generateWithGemini(prompt, userPayload, 0.1, true, [], "json", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_persist_gate",
       forceRealAi: meta?.forceRealAi,
     })
@@ -755,7 +755,7 @@ ou
   try {
     const raw = await generateWithGemini(prompt, "", 0.1, true, [], "json", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_enrichment",
       forceRealAi: meta?.forceRealAi,
     })
@@ -874,7 +874,7 @@ Sujet : "${extractedTopic.title}"
   let synthesis: string
   try {
     const raw = await generateWithGemini(prompt, "", 0.1, true, [], "auto", {
-      model: "gemini-2.5-flash",
+      model: getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_initial_synthesis",
       forceRealAi: meta?.forceRealAi,
     })

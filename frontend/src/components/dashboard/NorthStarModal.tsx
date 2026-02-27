@@ -99,14 +99,18 @@ export function NorthStarModal(props: {
       }
     }
 
-    await onSubmit({
-      title,
-      metric_type: form.metric_type,
-      unit: form.unit.trim(),
-      start_value: startValue,
-      target_value: targetValue,
-      current_value: currentValue,
-    });
+    try {
+      await onSubmit({
+        title,
+        metric_type: form.metric_type,
+        unit: form.unit.trim(),
+        start_value: startValue,
+        target_value: targetValue,
+        current_value: currentValue,
+      });
+    } catch (e: any) {
+      setError(String(e?.message ?? "Contenu bloqué par la vérification éthique."));
+    }
   };
 
   return (
@@ -226,7 +230,7 @@ export function NorthStarModal(props: {
             <button
               onClick={submit}
               disabled={isSaving}
-              className="px-4 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold disabled:opacity-60"
+              className="px-4 py-2 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-bold disabled:opacity-60"
             >
               {isSaving ? 'Vérification...' : existingNorthStar ? 'Enregistrer' : 'Créer'}
             </button>

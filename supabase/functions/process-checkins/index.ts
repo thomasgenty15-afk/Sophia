@@ -300,6 +300,7 @@ Deno.serve(async (req) => {
             userId: checkin.user_id,
             eventContext: String((checkin as any)?.event_context ?? "check-in"),
             instruction: String(payload?.instruction ?? payload?.note ?? ""),
+            eventGrounding: String(payload?.event_grounding ?? ""),
             requestId,
           })
         } catch (e) {

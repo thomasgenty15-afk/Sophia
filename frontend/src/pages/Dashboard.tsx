@@ -46,6 +46,7 @@ import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
 import { FeedbackModal, type FeedbackData } from '../components/dashboard/FeedbackModal';
 import { CreateActionModal } from '../components/dashboard/CreateActionModal';
 import { PersonalActionsSection } from '../components/dashboard/PersonalActionsSection';
+import { NorthStarSection } from '../components/dashboard/NorthStarSection';
 import { RemindersSection } from '../components/dashboard/RemindersSection';
 import { PreferencesSection } from '../components/dashboard/PreferencesSection';
 
@@ -130,7 +131,7 @@ const Dashboard = () => {
   const [habitSettingsMode, setHabitSettingsMode] = useState<'activate' | 'edit'>('edit');
   const [createActionPhaseIndex, setCreateActionPhaseIndex] = useState<number | null>(null);
   const [editingAction, setEditingAction] = useState<Action | null>(null);
-  const [activeTab, setActiveTab] = useState<'plan' | 'personal' | 'reminders' | 'preferences'>('plan');
+  const [activeTab, setActiveTab] = useState<'plan' | 'personal' | 'north_star' | 'reminders' | 'preferences'>('plan');
   const [northStarAttention, setNorthStarAttention] = useState(false);
 
   useEffect(() => {
@@ -658,13 +659,24 @@ const Dashboard = () => {
                             : 'text-slate-500 hover:text-slate-700 hover:bg-slate-200/50'
                         }`}
                       >
+                        <Repeat className={`w-4 h-4 ${activeTab === 'personal' ? 'text-emerald-500' : ''}`} />
+                        <span className="hidden min-[487px]:inline">Actions Personnelles</span>
+                      </button>
+                      <button
+                        onClick={() => setActiveTab('north_star')}
+                        className={`flex-1 py-2.5 text-sm font-bold rounded-lg transition-all flex items-center justify-center gap-2 ${
+                          activeTab === 'north_star'
+                            ? 'bg-white text-blue-600 shadow-sm ring-1 ring-black/5'
+                            : 'text-slate-500 hover:text-blue-600 hover:bg-blue-50'
+                        }`}
+                      >
                         <span className="relative inline-flex">
-                          <Repeat className={`w-4 h-4 ${activeTab === 'personal' ? 'text-emerald-500' : ''} ${northStarAttention ? 'animate-pulse' : ''}`} />
+                          <Compass className={`w-4 h-4 ${activeTab === 'north_star' ? 'text-blue-500' : ''} ${northStarAttention ? 'animate-pulse' : ''}`} />
                           {northStarAttention && (
                             <span className="absolute -top-1.5 -right-1.5 w-2.5 h-2.5 rounded-full bg-amber-500 border border-white" />
                           )}
                         </span>
-                        <span className="hidden min-[487px]:inline">Actions Personnelles</span>
+                        <span className="hidden min-[487px]:inline">Étoile Polaire</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('reminders')}
@@ -859,6 +871,10 @@ const Dashboard = () => {
                 ) : activeTab === 'personal' ? (
                   <div className="animate-fade-in">
                     <PersonalActionsSection userId={user?.id ?? null} />
+                  </div>
+                ) : activeTab === 'north_star' ? (
+                  <div className="animate-fade-in">
+                    <NorthStarSection userId={user?.id ?? null} />
                   </div>
                 ) : activeTab === 'reminders' ? (
                   <div className="animate-fade-in">

@@ -42,6 +42,10 @@ export function getCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get("Origin");
   const allowOrigin = origin && isAllowedOrigin(origin) ? origin : "null";
 
+  // Keep browser-visible headers minimal; internal secrets are for server-to-server calls only.
+  const allowHeaders =
+    "authorization, apikey, x-client-info, content-type, x-request-id, x-client-request-id, x-sophia-client-request-id";
+
   return {
     "Access-Control-Allow-Origin": allowOrigin,
     "Vary": "Origin",
@@ -49,7 +53,7 @@ export function getCorsHeaders(req: Request): Record<string, string> {
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     // Supabase client requires `apikey` + `authorization` + `x-client-info`.
     // Browser calls may include supabase-js tracing headers and our own request id header.
-    "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type, x-request-id, x-client-request-id, x-sophia-client-request-id, x-internal-secret",
+    "Access-Control-Allow-Headers": allowHeaders,
   };
 }
 
@@ -68,7 +72,8 @@ export function enforceCors(req: Request): Response | null {
         "Access-Control-Allow-Origin": origin,
         "Vary": "Origin",
         "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Headers": "authorization, apikey, x-client-info, content-type, x-request-id, x-client-request-id, x-sophia-client-request-id, x-internal-secret",
+        "Access-Control-Allow-Headers":
+          "authorization, apikey, x-client-info, content-type, x-request-id, x-client-request-id, x-sophia-client-request-id",
         "Content-Type": "application/json",
       },
     });
@@ -86,5 +91,4 @@ export function handleCorsOptions(req: Request): Response {
   if (forbidden) return forbidden;
   return new Response("ok", { headers: getCorsHeaders(req) });
 }
-
 

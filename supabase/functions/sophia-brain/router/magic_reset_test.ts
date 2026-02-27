@@ -29,7 +29,6 @@ Deno.test("detectMagicResetCommand: requires single word", () => {
 Deno.test("clearMachineStateTempMemory: clears machine-related keys only", () => {
   const input = {
     global_machine: { v: 1, stack: [] },
-    deferred_topics_v2: { topics: [] },
     __pending_relaunch_consent: { machine_type: "create_action" },
     __onboarding_flow: { step: "q1" },
     soft_cap: { count: 8, date: "2026-02-09" },
@@ -42,10 +41,6 @@ Deno.test("clearMachineStateTempMemory: clears machine-related keys only", () =>
 
   assertEquals(
     Object.prototype.hasOwnProperty.call(result.tempMemory, "global_machine"),
-    false,
-  );
-  assertEquals(
-    Object.prototype.hasOwnProperty.call(result.tempMemory, "deferred_topics_v2"),
     false,
   );
   assertEquals(

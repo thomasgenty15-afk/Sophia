@@ -69,7 +69,12 @@ Deno.serve(async (req) => {
     )
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
-    if (authError || !user) throw new Error('Unauthorized')
+    if (authError || !user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
+      })
+    }
     authedUserId = user.id
 
     function sanitizeHistory(raw: any[]): any[] {

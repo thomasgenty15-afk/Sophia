@@ -1,7 +1,7 @@
 /// <reference path="../tsserver-shims.d.ts" />
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
-import { generateWithGemini } from '../_shared/gemini.ts'
+import { generateWithGemini, getGlobalAiModel } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
@@ -88,7 +88,7 @@ async function pickBestCandidate(candidates: EchoCandidate[], requestId: string)
   try {
     const raw = await generateWithGemini(selectionPrompt, "Choisis.", 0.0, true, [], "auto", {
       requestId,
-      model: "gemini-2.5-flash",
+      model: getGlobalAiModel("gemini-2.5-flash"),
       source: "trigger-memory-echo:picker",
     })
     const parsed = JSON.parse(String(raw)) as any
@@ -323,7 +323,7 @@ Deno.serve(async (req) => {
               try {
                 const raw = await generateWithGemini(selectionPrompt, "Choisis.", 0.0, true, [], "auto", {
                   requestId,
-                  model: "gemini-2.5-flash",
+                  model: getGlobalAiModel("gemini-2.5-flash"),
                   source: "trigger-memory-echo:picker_memories",
                 })
                 const parsed = JSON.parse(String(raw)) as any

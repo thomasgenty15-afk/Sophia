@@ -1,4 +1,4 @@
-import { generateWithGemini } from "../../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts"
 
 /** Phase de la machine à état sentry */
 export type SentryPhase = "acute" | "confirming" | "resolved"
@@ -236,7 +236,7 @@ RÈGLES ABSOLUES:
 
     const out = await generateWithGemini(systemPrompt, m || "Aide-moi.", 0.2, false, [], "auto", {
       requestId: meta?.requestId,
-      model: meta?.model ?? "gemini-2.5-flash",
+      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:sentry",
       forceRealAi: meta?.forceRealAi,
     })

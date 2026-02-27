@@ -1,5 +1,5 @@
 import type { AgentMode } from "../state-manager.ts";
-import { generateWithGemini } from "../../_shared/gemini.ts";
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import {
   normalizePendingResolutionSignal,
   type PendingResolutionSignal,
@@ -1118,7 +1118,7 @@ Reponds UNIQUEMENT avec le JSON:`;
     const dispatcherModel =
       ((globalThis as any)?.Deno?.env?.get?.("GEMINI_DISPATCHER_MODEL") ?? "")
         .toString().trim() ||
-      "gemini-2.5-flash";
+      getGlobalAiModel("gemini-2.5-flash");
     // Helpful runtime breadcrumb (lets us confirm quickly in logs that the override is active).
     try {
       console.log(JSON.stringify({
@@ -2138,7 +2138,7 @@ Reponds UNIQUEMENT avec le JSON:`;
     const dispatcherModel =
       ((globalThis as any)?.Deno?.env?.get?.("GEMINI_DISPATCHER_MODEL") ?? "")
         .toString().trim() ||
-      "gemini-2.5-flash";
+      getGlobalAiModel("gemini-2.5-flash");
     return {
       signals: { ...DEFAULT_SIGNALS },
       new_signals: [],

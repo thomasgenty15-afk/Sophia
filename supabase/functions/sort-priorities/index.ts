@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { generateWithGemini } from "../_shared/gemini.ts"
+import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"
 
@@ -138,7 +138,7 @@ serve(async (req) => {
         source: "sort-priorities",
         // Force 2.5 first: 3.0 flash preview can be slower in some environments.
         // Keep `generateWithGemini` fallback chain intact.
-        model: "gemini-2.5-flash",
+        model: getGlobalAiModel("gemini-2.5-flash"),
       } // No userId here as it might be pre-auth
     );
 

@@ -1,7 +1,7 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2";
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts";
-import { generateWithGemini } from "../_shared/gemini.ts";
+import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
 
 type PersonalizationLevel = 1 | 2 | 3;
@@ -208,7 +208,7 @@ async function seedReminderUntilNextSunday(params: {
       {
         requestId: `${crypto.randomUUID()}:seed-recurring-reminder`,
         source: "classify-recurring-reminder",
-        model: "gemini-2.5-flash",
+        model: getGlobalAiModel("gemini-2.5-flash"),
         maxRetries: 2,
         forceRealAi: true,
       },
@@ -360,7 +360,7 @@ Initiative:
     {
       requestId,
       source: "classify-recurring-reminder",
-      model: "gemini-2.5-flash",
+      model: getGlobalAiModel("gemini-2.5-flash"),
       maxRetries: 2,
       forceRealAi: true,
     },

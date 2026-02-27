@@ -512,9 +512,15 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
       }
       const newReps = base + 1
 
+      const actionType = String(action?.type ?? "").toLowerCase()
+      const isHabit = actionType === "habit"
+      const target = Math.max(1, Number(action?.target_reps ?? 1) || 1)
+      const shouldCompleteMission = !isHabit && newReps >= target
+
       await supabase.from("user_actions").update({
         last_performed_at: now.toISOString(),
         current_reps: newReps,
+        ...(shouldCompleteMission ? { status: "completed" } : {}),
       }).eq("id", item_id)
 
       console.log(`[Investigator] Incremented reps for ${item_id} to ${newReps}`)
@@ -543,6 +549,11 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
     }) : ({ error: null } as any)
 
     if (logError) {
+      const code = String((logError as any)?.code ?? "")
+      if (code === "23505" && String(status ?? "") === "missed") {
+        console.log("[Investigator] Missed entry dedup hit, skipping duplicate insert.")
+        return "Logged (Skipped duplicate)"
+      }
       console.error("[Investigator] ❌ Log Entry Error:", logError)
     } else {
       if (shouldInsert) console.log("[Investigator] ✅ Entry logged successfully")

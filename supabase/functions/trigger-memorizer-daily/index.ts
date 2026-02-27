@@ -6,6 +6,7 @@ import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { processTopicsFromWatcher } from "../sophia-brain/topic_memory.ts"
 import { getUserState, updateUserState } from "../sophia-brain/state-manager.ts"
+import { getGlobalAiModel } from "../_shared/gemini.ts"
 
 console.log("trigger-memorizer-daily: Function initialized")
 
@@ -112,7 +113,7 @@ Deno.serve(async (req) => {
           transcript,
           currentContext: "",
           sourceType: "chat",
-          meta: { requestId, model: "gemini-2.5-flash" },
+          meta: { requestId, model: getGlobalAiModel("gemini-2.5-flash") },
         })
 
         temp.memorizer_last_message_at = latest || already || null

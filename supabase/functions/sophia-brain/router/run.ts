@@ -16,6 +16,7 @@ import {
 } from "../context/loader.ts";
 import { getContextProfile, getVectorResultsCount } from "../context/types.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
+import { getGlobalAiModel } from "../../_shared/gemini.ts";
 import { debounceAndBurstMerge } from "./debounce.ts";
 import {
   buildDispatcherStateSnapshot,
@@ -81,10 +82,6 @@ function cleanupLegacyBilanFlags(tempMemory: any) {
     "__propose_track_progress",
     "__track_progress_from_bilan_done",
     "__checkup_addon",
-    "__bilan_defer_pending",
-    "__bilan_defer_confirm_addon",
-    "__checkup_deferred_topic",
-    "__deferred_bilan_pending",
     "__bilan_tomorrow_addon",
   ];
   for (const key of legacyKeys) {
@@ -384,11 +381,9 @@ function clearOneShotKeys(tempMemory: any, consumedBilanStopped: boolean) {
     "__dashboard_recurring_reminder_intent_addon",
     "__safety_active_addon",
     "__track_progress_parallel",
-    "__deferred_signal_addon",
     "__dual_tool_addon",
     "__resume_safety_addon",
     "__resume_message_prefix",
-    "__deferred_ack_prefix",
     "__abandon_message",
   ];
   for (const key of keys) {
@@ -649,7 +644,7 @@ export async function processMessage(
     isPostCheckup,
     outageTemplate: "J'ai un petit souci technique, je reviens vers toi dès que c'est réglé!",
     sophiaChatModel: String(
-      (globalThis as any)?.Deno?.env?.get?.("SOPHIA_CHAT_MODEL") ?? "gemini-2.5-flash",
+      getGlobalAiModel("gemini-2.5-flash"),
     ).trim(),
     tempMemory,
   });
@@ -767,7 +762,7 @@ export async function processMessage(
           agent: agentLatencyMs,
         },
         dispatcher: {
-          model: String(meta?.model ?? (globalThis as any)?.Deno?.env?.get?.("SOPHIA_DISPATCHER_MODEL") ?? "gemini-2.5-flash").trim(),
+          model: String(meta?.model ?? (globalThis as any)?.Deno?.env?.get?.("SOPHIA_DISPATCHER_MODEL") ?? getGlobalAiModel("gemini-2.5-flash")).trim(),
           signals: {
             safety: String(dispatcherSignals.safety.level ?? "NONE"),
             intent: String(dispatcherSignals.user_intent_primary ?? "UNKNOWN"),
@@ -789,7 +784,7 @@ export async function processMessage(
           risk_score: riskScore,
         },
         agent: {
-          model: String(meta?.model ?? (globalThis as any)?.Deno?.env?.get?.("SOPHIA_CHAT_MODEL") ?? "gemini-2.5-flash").trim(),
+          model: String(meta?.model ?? getGlobalAiModel("gemini-2.5-flash")).trim(),
           outcome: (agentOut.toolExecution && agentOut.toolExecution !== "none") ? "tool_call" : "text",
           tool: agentOut.executedTools?.[0] ?? null,
         },

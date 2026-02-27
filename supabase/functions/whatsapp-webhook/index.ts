@@ -137,13 +137,44 @@ async function getAdminClientForRequest(req: Request) {
   return createClient(url, envServiceKey)
 }
 
+function logWebhookTrace(args: {
+  requestId: string
+  phase: string
+  processId?: string
+  startedAtMs?: number
+  extra?: Record<string, unknown>
+}) {
+  const elapsedMs = typeof args.startedAtMs === "number" ? Date.now() - args.startedAtMs : undefined
+  const payload = {
+    request_id: args.requestId,
+    process_id: args.processId ?? null,
+    phase: args.phase,
+    elapsed_ms: elapsedMs,
+    ...(args.extra ?? {}),
+  }
+  console.log(`[whatsapp-webhook] trace ${JSON.stringify(payload)}`)
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
+  const requestStartedAtMs = Date.now()
   const prevLoopback = (globalThis as any).__SOPHIA_WA_LOOPBACK
   const transport = String(req.headers.get("x-sophia-wa-transport") ?? "").trim().toLowerCase()
   const loopback = transport === "loopback" || transport === "simulate" || transport === "simulator"
   ;(globalThis as any).__SOPHIA_WA_LOOPBACK = loopback
   try {
+    logWebhookTrace({
+      requestId,
+      phase: "request_start",
+      startedAtMs: requestStartedAtMs,
+      extra: {
+        method: req.method,
+        pathname: new URL(req.url).pathname,
+        transport: transport || null,
+        loopback,
+      },
+    })
+
     // 1) Verification handshake (Meta)
     if (req.method === "GET") {
       const url = new URL(req.url)
@@ -163,8 +194,15 @@ Deno.serve(async (req) => {
     }
 
     // 2) Signature verification
+    logWebhookTrace({ requestId, phase: "before_signature_verification", startedAtMs: requestStartedAtMs })
     const rawBuf = await req.arrayBuffer()
     const ok = await verifyXHubSignature(req, rawBuf)
+    logWebhookTrace({
+      requestId,
+      phase: "after_signature_verification",
+      startedAtMs: requestStartedAtMs,
+      extra: { signature_ok: ok, payload_bytes: rawBuf.byteLength },
+    })
     if (!ok) {
       return jsonResponse(req, { error: "Invalid signature", request_id: requestId }, { status: 403, includeCors: false })
     }
@@ -173,15 +211,29 @@ Deno.serve(async (req) => {
     const payload = JSON.parse(new TextDecoder().decode(raw)) as WaInbound
     const inbound = extractMessages(payload)
     const statuses = extractStatuses(payload)
+    logWebhookTrace({
+      requestId,
+      phase: "payload_parsed",
+      startedAtMs: requestStartedAtMs,
+      extra: { inbound_count: inbound.length, statuses_count: statuses.length },
+    })
     if (inbound.length === 0 && statuses.length === 0) {
       // Most webhook calls may be statuses/acks; acknowledge.
       return jsonResponse(req, { ok: true, request_id: requestId }, { includeCors: false })
     }
 
+    logWebhookTrace({ requestId, phase: "before_get_admin_client", startedAtMs: requestStartedAtMs })
     const admin = await getAdminClientForRequest(req)
+    logWebhookTrace({ requestId, phase: "after_get_admin_client", startedAtMs: requestStartedAtMs })
 
     // 0) Status callbacks (delivery/read/failed). Best-effort: never fail the webhook for these.
     if (statuses.length > 0) {
+      logWebhookTrace({
+        requestId,
+        phase: "statuses_start",
+        startedAtMs: requestStartedAtMs,
+        extra: { statuses_count: statuses.length },
+      })
       for (const st of statuses) {
         try {
           await admin
@@ -255,15 +307,36 @@ Deno.serve(async (req) => {
           console.warn(`[whatsapp-webhook] request_id=${requestId} status_update_failed`, e)
         }
       }
+      logWebhookTrace({ requestId, phase: "statuses_done", startedAtMs: requestStartedAtMs })
     }
 
     for (const msg of inbound) {
       let userIdForLog: string | null = null
+      const processId = crypto.randomUUID()
+      const processStartedAtMs = Date.now()
       try {
         // One process id per inbound message (more granular than the webhook request id).
-        const processId = crypto.randomUUID()
+        logWebhookTrace({
+          requestId,
+          processId,
+          phase: "message_start",
+          startedAtMs: processStartedAtMs,
+          extra: {
+            wa_message_id: msg.wa_message_id,
+            wa_type: msg.type ?? null,
+          },
+        })
         const fromE164 = normalizeFrom(msg.from)
-        if (!fromE164) continue
+        if (!fromE164) {
+          logWebhookTrace({
+            requestId,
+            processId,
+            phase: "skip_invalid_phone",
+            startedAtMs: processStartedAtMs,
+            extra: { wa_message_id: msg.wa_message_id },
+          })
+          continue
+        }
 
         // Lookup profile by phone_number.
         // IMPORTANT: phone_number is not globally unique anymore (it becomes unique only once validated).
@@ -273,6 +346,7 @@ Deno.serve(async (req) => {
         const fromDigits = fromE164.startsWith("+") ? fromE164.slice(1) : fromE164
         const frLocal = e164ToFrenchLocal(fromE164)
 
+        logWebhookTrace({ requestId, processId, phase: "before_profile_lookup", startedAtMs: processStartedAtMs })
         const { data: candidates, error: profErr } = await admin
           .from("profiles")
           .select("id, full_name, email, phone_invalid, whatsapp_opted_in, whatsapp_opted_out_at, whatsapp_optout_confirmed_at, whatsapp_state, phone_verified_at, trial_end, onboarding_completed")
@@ -282,6 +356,13 @@ Deno.serve(async (req) => {
           .order("phone_verified_at", { ascending: false, nullsFirst: false })
           .limit(2)
         if (profErr) throw profErr
+        logWebhookTrace({
+          requestId,
+          processId,
+          phase: "after_profile_lookup",
+          startedAtMs: processStartedAtMs,
+          extra: { candidates_count: (candidates ?? []).length },
+        })
 
         const { profile, ambiguous } = (() => {
           const rows = (candidates ?? []) as any[]
@@ -292,6 +373,7 @@ Deno.serve(async (req) => {
         })()
 
         if (!profile) {
+          logWebhookTrace({ requestId, processId, phase: "before_unlinked_handler", startedAtMs: processStartedAtMs })
           await handleUnlinkedInbound({
             admin,
             msg,
@@ -305,6 +387,7 @@ Deno.serve(async (req) => {
             linkBlockNoticeCooldownMs: LINK_BLOCK_NOTICE_COOLDOWN_MS,
             linkMaxAttempts: LINK_MAX_ATTEMPTS,
           })
+          logWebhookTrace({ requestId, processId, phase: "after_unlinked_handler", startedAtMs: processStartedAtMs })
           continue
         }
 
@@ -312,6 +395,7 @@ Deno.serve(async (req) => {
         if (profile.phone_invalid) continue
 
         // Idempotency (race-safe): insert dedup row first with unique wamid_in.
+        logWebhookTrace({ requestId, processId, phase: "before_dedup_insert", startedAtMs: processStartedAtMs })
         const { error: dedupErr } = await admin
           .from("whatsapp_inbound_dedup")
           .insert({
@@ -332,9 +416,19 @@ Deno.serve(async (req) => {
         if (dedupErr) {
           const code = String((dedupErr as any)?.code ?? "")
           // 23505 = unique_violation => Meta delivered the same inbound message twice; ACK & skip.
-          if (code === "23505") continue
+          if (code === "23505") {
+            logWebhookTrace({
+              requestId,
+              processId,
+              phase: "dedup_duplicate_skip",
+              startedAtMs: processStartedAtMs,
+              extra: { wa_message_id: msg.wa_message_id },
+            })
+            continue
+          }
           throw dedupErr
         }
+        logWebhookTrace({ requestId, processId, phase: "after_dedup_insert", startedAtMs: processStartedAtMs })
 
         // Prefer stable interactive ids (Quick Replies), fallback to text matching.
         const actionId = (msg.interactive_id ?? "").trim()
@@ -593,6 +687,7 @@ Deno.serve(async (req) => {
       }
 
       // Pending actions first: they are explicit outstanding asks and must win over generic bilan context.
+      logWebhookTrace({ requestId, processId, phase: "before_pending_handler", startedAtMs: processStartedAtMs })
       const didHandlePending = await handlePendingActions({
         admin,
         userId: profile.id,
@@ -605,9 +700,17 @@ Deno.serve(async (req) => {
         isEchoLater,
         inboundText: msg.text ?? "",
       })
+      logWebhookTrace({
+        requestId,
+        processId,
+        phase: "after_pending_handler",
+        startedAtMs: processStartedAtMs,
+        extra: { handled: didHandlePending },
+      })
       if (didHandlePending) continue
 
       // Opt-in + daily bilan fast paths (may send messages / update state) AFTER inbound is logged.
+      logWebhookTrace({ requestId, processId, phase: "before_optin_bilan_handler", startedAtMs: processStartedAtMs })
       const didHandleOptInOrBilan = await handleOptInAndDailyBilanActions({
         admin,
         userId: profile.id,
@@ -622,6 +725,13 @@ Deno.serve(async (req) => {
         inboundText: msg.text ?? "",
         actionId,
         textLower,
+      })
+      logWebhookTrace({
+        requestId,
+        processId,
+        phase: "after_optin_bilan_handler",
+        startedAtMs: processStartedAtMs,
+        extra: { handled: didHandleOptInOrBilan },
       })
       if (didHandleOptInOrBilan) continue
 
@@ -643,6 +753,13 @@ Deno.serve(async (req) => {
       if (profile.whatsapp_state && !profile.onboarding_completed) {
         const waState = String(profile.whatsapp_state || "")
 
+        logWebhookTrace({
+          requestId,
+          processId,
+          phase: "before_onboarding_handler",
+          startedAtMs: processStartedAtMs,
+          extra: { whatsapp_state: waState },
+        })
         const didHandleOnboarding = await handleOnboardingState({
           admin,
           userId: profile.id,
@@ -657,10 +774,18 @@ Deno.serve(async (req) => {
           isDonePhrase,
           extractAfterDonePhrase,
         })
+        logWebhookTrace({
+          requestId,
+          processId,
+          phase: "after_onboarding_handler",
+          startedAtMs: processStartedAtMs,
+          extra: { handled: didHandleOnboarding, whatsapp_state: waState },
+        })
         if (didHandleOnboarding) continue
       }
 
       // Default: call Sophia brain (no auto logging) then send reply
+        logWebhookTrace({ requestId, processId, phase: "before_reply_with_brain", startedAtMs: processStartedAtMs })
         await replyWithBrain({
           admin,
           userId: profile.id,
@@ -671,9 +796,20 @@ Deno.serve(async (req) => {
           purpose: "whatsapp_default_brain_reply",
           contextOverride: "",
         })
+        logWebhookTrace({ requestId, processId, phase: "after_reply_with_brain", startedAtMs: processStartedAtMs })
       } catch (err) {
         // Never fail the whole webhook batch: Meta expects a fast 200 OK; we log and continue.
         // This is especially important in Meta test mode when the recipient is not allowlisted (code 131030).
+        logWebhookTrace({
+          requestId,
+          phase: "message_error",
+          processId,
+          startedAtMs: processStartedAtMs,
+          extra: {
+            wa_message_id: msg.wa_message_id,
+            error_message: err instanceof Error ? err.message : String(err),
+          },
+        })
         console.error(`[whatsapp-webhook] request_id=${requestId} wa_message_id=${msg.wa_message_id}`, err)
         await logEdgeFunctionError({
           functionName: "whatsapp-webhook",
@@ -690,9 +826,21 @@ Deno.serve(async (req) => {
       }
     }
 
+    logWebhookTrace({
+      requestId,
+      phase: "request_done",
+      startedAtMs: requestStartedAtMs,
+      extra: { inbound_count: inbound.length, statuses_count: statuses.length },
+    })
     return jsonResponse(req, { ok: true, request_id: requestId }, { includeCors: false })
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error)
+    logWebhookTrace({
+      requestId,
+      phase: "request_error",
+      startedAtMs: requestStartedAtMs,
+      extra: { error_message: message },
+    })
     console.error(`[whatsapp-webhook] request_id=${requestId}`, error)
     await logEdgeFunctionError({
       functionName: "whatsapp-webhook",

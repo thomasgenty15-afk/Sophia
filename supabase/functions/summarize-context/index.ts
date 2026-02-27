@@ -164,6 +164,7 @@ serve(async (req) => {
     `
 
     const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
+    const SUMMARY_MODEL = (Deno.env.get("GLOBAL_AI_MODEL") ?? "").trim() || "gemini-2.5-flash"
     if (!GEMINI_API_KEY) {
       console.error("❌ GEMINI_API_KEY missing");
       throw new Error('Clé API manquante')
@@ -186,7 +187,7 @@ serve(async (req) => {
         try {
           console.log(`📡 Calling Gemini API (Summary)...`);
           return await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+            `https://generativelanguage.googleapis.com/v1beta/models/${SUMMARY_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
             {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
