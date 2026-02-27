@@ -36,6 +36,7 @@ import {
 } from "../../_shared/brain-trace.ts";
 import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
 import { enqueueLlmRetryJob } from "./emergency.ts";
+import { logEdgeFunctionError } from "../../_shared/error-log.ts";
 
 function envBool(name: string, fallback: boolean): boolean {
   const denoEnv = (globalThis as any)?.Deno?.env;
@@ -664,6 +665,26 @@ export async function processMessage(
       investigationActive: checkupActive || isPostCheckup,
       requestId: meta?.requestId,
       reason: `agent_failure:${String(agentOut.outageFailedMode ?? "unknown")}`,
+    });
+    // Persist fallback details for production debugging (queryable via SQL).
+    // This captures swallowed agent failures that otherwise only appear in runtime logs.
+    await logEdgeFunctionError({
+      functionName: "sophia-brain",
+      severity: "warn",
+      title: "router_outage_fallback",
+      error: agentOut.outageErrorMessage ?? `agent_failure:${String(agentOut.outageFailedMode ?? "unknown")}`,
+      requestId: meta?.requestId ?? null,
+      userId,
+      source: channel,
+      metadata: {
+        scope,
+        target_mode: targetMode,
+        next_mode: nextMode,
+        outage_fallback: true,
+        outage_failed_mode: agentOut.outageFailedMode ?? null,
+        outage_error_message: agentOut.outageErrorMessage ?? null,
+        llm_retry_job_id: llmRetryJobId,
+      },
     });
   }
 
