@@ -638,7 +638,7 @@ function formatDashboardRedirectAddon(addon: any): string {
     `- Cet add-on est un support de connaissance pour bien orienter l'utilisateur (pas un exécuteur).\n` +
     `- Réponds utilement et naturellement, puis redirige vers le tableau de bord.\n` +
     (isBreakdownIntent
-      ? `- Mode SOS blocage: pose d'abord 1 question de diagnostic ciblée (blocage concret, contexte, contrainte), puis propose la fonction de découpage en micro-étapes dans le dashboard.\n`
+      ? `- Mode SOS blocage: ne le propose QUE pour un blocage d'exécution sur une action du plan de transformation (pas pour un blocage personnel général). Pose d'abord 1 question de diagnostic ciblée, puis redirige.\n`
       : "") +
     (isBreakdownIntent
       ? `- Exemples de questions utiles: "Qu'est-ce qui bloque exactement ?", "À quel moment ça coince le plus ?", "Quelle version ultra-simple (2 min) serait faisable ?"\n`
@@ -657,7 +657,7 @@ function formatDashboardCapabilitiesLiteAddon(): string {
     `- Support de connaissance global: utilise ces infos seulement si c'est pertinent pour la question du user.\n` +
     `- Cartographie produit:\n` +
     `  - Tableau de bord Action:\n` +
-    `    1) Plan de Transformation: pilotage des actions du plan (activer, mettre en pause, supprimer, modifier). En cas de blocage: SOS blocage (breakdown_action) pour découper en micro-étapes.\n` +
+    `    1) Plan de Transformation: pilotage des actions du plan (activer, mettre en pause, supprimer, modifier). SOS blocage uniquement pour blocage d'exécution sur une action du plan.\n` +
     `    2) Actions Personnelles: habitudes hors plan principal (créer, modifier, activer, pause, supprimer, suivi d'avancement) + Étoile Polaire (valeurs numériques départ/actuel/cible).\n` +
     `    3) Initiatives: configure Sophia a l'image du user, pour qu'elle vienne au bon moment avec le bon ton (ex: citation du matin, message de soutien dans les moments sensibles, relance douce avant un passage important). C'est une vraie personnalisation de l'accompagnement (créer, modifier, activer, pause, supprimer; paramètres message/jours/heure).\n` +
     `    4) Préférences: personnalisation du style de Sophia (ton, longueur, format, niveau de challenge, etc.).\n` +
@@ -725,7 +725,7 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
     `  1) Plan de Transformation:\n` +
     `     - Intérêt: exécuter la transformation active, phase par phase.\n` +
     `     - Possibilités clés sur une action: modifier, supprimer, mettre en pause (désactiver), activer, marquer la progression, SOS blocage (découpage micro-étapes).\n` +
-    `     - Important: si blocage, poser 1 question de diagnostic concrète avant redirection.\n` +
+    `     - Important: SOS blocage uniquement si blocage sur action du plan; sinon orienter plutôt vers création d'action personnelle ou d'action du plan selon le besoin.\n` +
     `  2) Actions Personnelles:\n` +
     `     - Intérêt: gérer des habitudes perso en parallèle du plan principal.\n` +
     `     - Possibilités clés: créer, modifier, activer, mettre en pause, supprimer, suivre la progression.\n` +
