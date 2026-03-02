@@ -458,6 +458,25 @@ export async function generateWithGemini(
     },
   }
 
+  // Dispatcher guardrail: cap Flash 3 reasoning budget to keep routing latency bounded.
+  // Applies only to the contextual dispatcher when using Gemini Flash 3.
+  const sourceTag = String(meta?.source ?? "").trim();
+  const isDispatcherContextual = sourceTag === "sophia-brain:dispatcher-v2-contextual";
+  const isFlash3Model = /^\s*gemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(String(model ?? "").trim());
+  if (isDispatcherContextual && isFlash3Model) {
+    const rawBudget = (Deno.env.get("DISPATCHER_THINKING_BUDGET") ?? "").trim();
+    const parsedBudget = Number(rawBudget);
+    const thinkingBudget = Number.isFinite(parsedBudget) && parsedBudget >= 0
+      ? Math.floor(parsedBudget)
+      : 1024;
+    payload.generationConfig = {
+      ...(payload.generationConfig ?? {}),
+      thinkingConfig: {
+        thinkingBudget,
+      },
+    };
+  }
+
   // Prefer separating system instructions from user content (more stable behavior).
   const sys = (systemPrompt ?? "").toString().trim()
   if (sys) {

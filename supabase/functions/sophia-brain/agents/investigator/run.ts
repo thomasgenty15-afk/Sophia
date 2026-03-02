@@ -252,8 +252,20 @@ export async function runInvestigator(
         },
       };
     } else {
+      const consentRaw = String(message ?? "").trim().toLowerCase();
+      const looksLikeAlreadyDone = /\b(d[ée]j[àa]\s+fait|on\s+vient\s+de\s+le\s+faire|on\s+l['’]?a\s+fait)\b/i
+        .test(consentRaw);
+      if (looksLikeAlreadyDone) {
+        // Avoid consent loops when the user says the checkup was already done.
+        return {
+          content: "Tu as raison, on vient de le faire. On laisse pour ce soir 🙏",
+          investigationComplete: true,
+          newState: null,
+        };
+      }
       return {
-        content: "Si c'est ok pour toi, on fait le bilan maintenant ?",
+        content:
+          "Si c'est ok pour toi, on fait le bilan maintenant ? (Réponds 'oui' pour le faire maintenant, ou 'non' pour demain.)",
         investigationComplete: false,
         newState: {
           ...currentState,
