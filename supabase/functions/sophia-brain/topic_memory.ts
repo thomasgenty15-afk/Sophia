@@ -34,6 +34,7 @@ const AUTO_MERGE_SYNTH_SIM = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_SYNTH
 const AUTO_MERGE_TITLE_SIM = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_SIM") ?? "0.95").trim()) || 0.95
 const AUTO_MERGE_TITLE_JACCARD = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_JACCARD") ?? "0.60").trim()) || 0.60
 const MAX_TIMELINE_ITEMS = Number((Deno.env.get("SOPHIA_TOPIC_MAX_TIMELINE_ITEMS") ?? "10").trim()) || 10
+const TOPIC_DEBUG = (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1"
 
 const GENERIC_KEYWORDS = new Set([
   "sommeil", "sleep", "maman", "mere", "mother", "famille", "family",
@@ -273,6 +274,11 @@ export interface TopicSearchResult {
   mention_count: number
   last_enriched_at: string | null
   metadata: Record<string, unknown>
+  recent_enrichments?: Array<{
+    created_at: string
+    enrichment_summary: string
+    source_type?: string | null
+  }>
 }
 
 // ============================================================================
@@ -1215,28 +1221,47 @@ export async function retrieveTopicMemories(opts: {
   const embedding = await generateEmbedding(message)
 
   // Recherche parallèle : par keywords, synthèse ET title
-  const [keywordResults, synthesisResults, titleResults] = await Promise.all([
+  const [kwRaw, synRaw, titleRaw] = await Promise.all([
     supabase.rpc("match_topic_memories_by_keywords", {
       target_user_id: userId,
       query_embedding: embedding,
       match_threshold: 0.55, // Lower threshold for retrieval (more permissive)
       match_count: maxResults + 2,
-    } as any).then((r: any) => (Array.isArray(r.data) ? r.data : []) as TopicSearchResult[]),
+    } as any),
 
     supabase.rpc("match_topic_memories_by_synthesis", {
       target_user_id: userId,
       query_embedding: embedding,
       match_threshold: 0.50,
       match_count: maxResults,
-    } as any).then((r: any) => (Array.isArray(r.data) ? r.data : []) as TopicSearchResult[]),
+    } as any),
 
     supabase.rpc("match_topic_memories_by_title", {
       target_user_id: userId,
       query_embedding: embedding,
       match_threshold: 0.55,
       match_count: maxResults,
-    } as any).then((r: any) => (Array.isArray(r.data) ? r.data : []) as TopicSearchResult[]),
+    } as any),
   ])
+  const keywordResults = (Array.isArray((kwRaw as any)?.data)
+    ? (kwRaw as any).data
+    : []) as TopicSearchResult[]
+  const synthesisResults = (Array.isArray((synRaw as any)?.data)
+    ? (synRaw as any).data
+    : []) as TopicSearchResult[]
+  const titleResults = (Array.isArray((titleRaw as any)?.data)
+    ? (titleRaw as any).data
+    : []) as TopicSearchResult[]
+  const kwErr = (kwRaw as any)?.error
+  const synErr = (synRaw as any)?.error
+  const titleErr = (titleRaw as any)?.error
+  if (TOPIC_DEBUG && (kwErr || synErr || titleErr)) {
+    console.warn("[TopicMemory] retrieval RPC errors (non-blocking)", {
+      kw_error: kwErr ? String((kwErr as any)?.message ?? kwErr).slice(0, 200) : null,
+      syn_error: synErr ? String((synErr as any)?.message ?? synErr).slice(0, 200) : null,
+      title_error: titleErr ? String((titleErr as any)?.message ?? titleErr).slice(0, 200) : null,
+    })
+  }
 
   // Dédupliquer et fusionner les résultats (priorité: keywords > synthesis > title)
   const byTopic = new Map<string, TopicSearchResult & {
@@ -1288,6 +1313,78 @@ export async function retrieveTopicMemories(opts: {
 
   // Mettre à jour last_retrieved_at pour les topics retournés
   const top = merged.slice(0, maxResults)
+  // Optional: enrich top topics with latest linear enrichment snippets.
+  if (top.length > 0) {
+    try {
+      const topicIds = top.map((r) => String(r.topic_id)).filter(Boolean)
+      if (topicIds.length > 0) {
+        const { data: enrichmentRows } = await supabase
+          .from("user_topic_enrichment_log")
+          .select("topic_id, enrichment_summary, source_type, created_at")
+          .eq("user_id", userId)
+          .in("topic_id", topicIds)
+          .order("created_at", { ascending: false })
+          .limit(Math.max(12, topicIds.length * 4))
+
+        const byTopic = new Map<string, Array<{ created_at: string; enrichment_summary: string; source_type?: string | null }>>()
+        for (const row of (enrichmentRows ?? []) as any[]) {
+          const tid = String(row?.topic_id ?? "").trim()
+          if (!tid) continue
+          const createdAt = String(row?.created_at ?? "").trim()
+          const summary = String(row?.enrichment_summary ?? "").trim()
+          if (!createdAt || !summary) continue
+          const arr = byTopic.get(tid) ?? []
+          if (arr.length >= 3) continue
+          arr.push({
+            created_at: createdAt,
+            enrichment_summary: timelineNote(summary, 220),
+            source_type: row?.source_type ? String(row.source_type) : null,
+          })
+          byTopic.set(tid, arr)
+        }
+
+        for (const r of top) {
+          const enrichments = byTopic.get(String(r.topic_id)) ?? []
+          if (enrichments.length > 0) {
+            (r as TopicSearchResult).recent_enrichments = enrichments
+          }
+        }
+      }
+    } catch (e) {
+      if (TOPIC_DEBUG) {
+        console.warn("[TopicMemory] failed to load recent enrichment snippets (non-blocking):", e)
+      }
+    }
+  }
+  if (TOPIC_DEBUG) {
+    const topDebug = merged.slice(0, Math.max(maxResults, 6)).map((r) => ({
+      topic_id: r.topic_id,
+      slug: r.slug,
+      title: r.title,
+      keyword_similarity: Number(r.keyword_similarity.toFixed(3)),
+      synthesis_similarity: Number(r.synthesis_similarity.toFixed(3)),
+      title_similarity: Number(r.title_similarity.toFixed(3)),
+      retrieval_score: Number(r.retrieval_score.toFixed(3)),
+      mention_count: Number(r.mention_count ?? 0),
+      last_enriched_at: r.last_enriched_at ?? null,
+    }))
+    console.log(
+      JSON.stringify({
+        tag: "topic_retrieval_debug",
+        user_id: userId,
+        message_preview: String(message ?? "").slice(0, 120),
+        max_results: maxResults,
+        counts: {
+          keyword_results: keywordResults.length,
+          synthesis_results: synthesisResults.length,
+          title_results: titleResults.length,
+          merged_results: merged.length,
+          selected_results: top.length,
+        },
+        top: topDebug,
+      }),
+    )
+  }
   const topicIds = top.map((r) => r.topic_id)
   if (topicIds.length > 0) {
     try {
@@ -1328,6 +1425,15 @@ export function formatTopicMemoriesForPrompt(topics: TopicSearchResult[]): strin
       block += "Repères temporels (évolution):\n"
       for (const ev of timeline) {
         block += `- ${formatDateFrDayMonthYear(ev.at)}: ${ev.note}\n`
+      }
+    }
+    const recent = Array.isArray(topic.recent_enrichments)
+      ? topic.recent_enrichments.slice(0, 3)
+      : []
+    if (recent.length > 0) {
+      block += "Derniers enrichissements (linéaires):\n"
+      for (const e of recent) {
+        block += `- ${formatDateFrDayMonthYear(e.created_at)}: ${timelineNote(e.enrichment_summary, 220)}\n`
       }
     }
   }

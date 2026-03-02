@@ -6,6 +6,8 @@
  * ce qui est nécessaire.
  */
 
+declare const Deno: any;
+
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { AgentMode } from "../state-manager.ts";
 import {
@@ -211,17 +213,34 @@ export async function loadContextForMode(
 
   // 4b. Topic memories (mémoire thématique vivante)
   if (profile.topic_memories && opts.message) {
+    const topicMaxResultsRaw = (Deno.env.get("SOPHIA_TOPIC_RETRIEVE_MAX_RESULTS") ?? "").trim();
+    const topicMaxResultsParsed = Number(topicMaxResultsRaw);
+    const topicMaxResults = Number.isFinite(topicMaxResultsParsed) && topicMaxResultsParsed >= 1
+      ? Math.floor(topicMaxResultsParsed)
+      : 3;
+    const topicDebug = (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
     promises.push(
       retrieveTopicMemories({
         supabase: opts.supabase,
         userId: opts.userId,
         message: opts.message,
-        maxResults: 3,
+        maxResults: topicMaxResults,
       }).then((topics) => {
         const topicContext = formatTopicMemoriesForPrompt(topics);
         if (topicContext) {
           context.topicMemories = topicContext;
           elementsLoaded.push("topic_memories");
+        } else if (topicDebug) {
+          console.log(
+            JSON.stringify({
+              tag: "context_topic_memories_empty",
+              mode: opts.mode,
+              user_id: opts.userId,
+              message_preview: String(opts.message ?? "").slice(0, 120),
+              topic_candidates: Array.isArray(topics) ? topics.length : 0,
+              max_results: topicMaxResults,
+            }),
+          );
         }
       }).catch((e) => {
         console.warn(
