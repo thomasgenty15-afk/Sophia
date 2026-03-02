@@ -567,11 +567,6 @@ REGLE CRITIQUE - ATTENTION AU "NON" SUIVI DE "JE VEUX":
 - "non je veux en parler" = WANTS_RESUME (l'utilisateur VEUT discuter!)
 - "bah je veux" = WANTS_RESUME
 - "mais si" = WANTS_RESUME
-
-SORTIE JSON:
-{
-  "flow_resolution": { "kind": "NONE|ACK_DONE|WANTS_RESUME|DECLINES_RESUME|WANTS_PAUSE", "confidence": 0.0-1.0 }
-}
 `;
 
 /**
@@ -598,11 +593,6 @@ VALEURS POSSIBLES:
 - "SWITCH_TOPIC": l'utilisateur introduit un autre sujet ("sinon", "au fait") → nouveau sujet clair
 - "DIGRESSION": petit ecart temporaire (anecdote, question rapide) sans intention de changer durablement
 - "NONE": aucun des cas
-
-SORTIE JSON:
-{
-  "interrupt": { "kind": "NONE|EXPLICIT_STOP|BORED|SWITCH_TOPIC|DIGRESSION", "confidence": 0.0-1.0 }
-}
 `;
 
 /**
@@ -640,11 +630,6 @@ CRITÈRES "SERIOUS" (exemples):
 IMPORTANT:
 - "peur d'avoir l'air bête", "peur du jugement", "manque de confiance" = SERIOUS (PAS NEED_SUPPORT).
 - Si l'utilisateur dit explicitement "c'est pas une crise", c'est un signal fort pour SERIOUS (PAS NEED_SUPPORT).
-
-SORTIE JSON:
-{
-  "topic_depth": { "value": "NONE|NEED_SUPPORT|SERIOUS|LIGHT", "confidence": 0.0-1.0, "plan_focus": bool }
-}
 `;
 
 const NEEDS_EXPLANATION_SECTION = `
@@ -662,11 +647,6 @@ METTRE false (exemples):
 - expression émotionnelle simple ("ça m'énerve", "je suis stressé") sans demande d'explication
 - discussion SERIOUS normale ("c'est pas une crise") → PAS besoin d'overlay
 - préférence de longueur implicite non demandée (ne pas deviner)
-
-SORTIE JSON:
-{
-  "needs_explanation": { "value": bool, "confidence": 0.0-1.0, "reason": "string (optionnel, <=100)" }
-}
 `;
 
 const NEEDS_RESEARCH_SECTION = `
@@ -694,11 +674,6 @@ IMPORTANT:
 - Extraire une "query" optimisée pour la recherche web (courte, factuelle, en français ou anglais selon le sujet)
 - Indiquer un "domain_hint" si possible (sports, news, weather, entertainment, general)
 - Ne PAS activer si le LLM peut répondre de mémoire (connaissances générales stables)
-
-SORTIE JSON:
-{
-  "needs_research": { "value": bool, "confidence": 0.0-1.0, "query": "string (optionnel, <=120)", "domain_hint": "string (optionnel)" }
-}
 `;
 
 // wants_tools is legacy/backward-compatible. Keep it conservative.
@@ -731,15 +706,6 @@ ATTENTION - NE PAS CONFONDRE:
 - "je veux modifier mon plan" = update_action, PAS checkup
 - Discussion sur une action specifique = PAS checkup
 - "j'ai pas fait X" hors bilan = track_progress, PAS checkup
-
-SORTIE JSON (dans machine_signals):
-{
-  "checkup_intent": {
-    "detected": true | false,
-    "confidence": 0.0-1.0,
-    "trigger_phrase": "phrase exacte qui a declenche" | null
-  }
-}
 `;
 
 /**
@@ -1059,33 +1025,33 @@ ${contextMessages}
 === FORMAT DE SORTIE JSON ===
 {
   "signals": {
-    "safety": { "level": "NONE|SENTRY", "confidence": 0.0-1.0, "immediacy": "acute|non_acute|unknown" },
-    "user_intent_primary": "CHECKUP|SMALL_TALK|PREFERENCE|UNKNOWN",
-    "user_intent_confidence": 0.0-1.0,
-    "interrupt": { "kind": "NONE|EXPLICIT_STOP|BORED|SWITCH_TOPIC|DIGRESSION", "confidence": 0.0-1.0 },
-    "flow_resolution": { "kind": "NONE|ACK_DONE|WANTS_RESUME|DECLINES_RESUME|WANTS_PAUSE", "confidence": 0.0-1.0 },
-    "topic_depth": { "value": "NONE|NEED_SUPPORT|SERIOUS|LIGHT", "confidence": 0.0-1.0, "plan_focus": bool },
-    "deep_reasons": { "opportunity": bool, "action_mentioned": bool, "action_hint": string|null, "confidence": 0.0-1.0 },
-    "needs_explanation": { "value": bool, "confidence": 0.0-1.0 },
-    "needs_research": { "value": bool, "confidence": 0.0-1.0, "query": "string|null", "domain_hint": "string|null" },
-    "user_engagement": { "level": "HIGH|MEDIUM|LOW|DISENGAGED", "confidence": 0.0-1.0 },
-    "topic_satisfaction": { "detected": bool, "confidence": 0.0-1.0 },
-    "create_action": { "intent_strength": "explicit|implicit|exploration|none", "sophia_suggested": bool, "user_response": "yes|no|modify|unclear|none", "action_type_hint": "habit|mission|framework|unknown", "confidence": 0.0-1.0 },
-    "update_action": { "detected": bool, "target_hint": string|null, "change_type": "frequency|days|time|title|mixed|unknown", "user_response": "yes|no|modify|unclear|none", "confidence": 0.0-1.0 },
-    "breakdown_action": { "detected": bool, "target_hint": string|null, "blocker_hint": string|null, "user_response": "yes|no|unclear|none", "confidence": 0.0-1.0 },
-    "track_progress": { "detected": bool, "target_hint": string|null, "status_hint": "completed|missed|partial|unknown", "value_hint": number|null, "confidence": 0.0-1.0 },
-    "activate_action": { "detected": bool, "target_hint": string|null, "exercise_type_hint": string|null, "confidence": 0.0-1.0 },
-    "delete_action": { "detected": bool, "target_hint": string|null, "reason_hint": string|null, "confidence": 0.0-1.0 },
-    "deactivate_action": { "detected": bool, "target_hint": string|null, "confidence": 0.0-1.0 },
-    "dashboard_preferences_intent": { "detected": bool, "preference_keys": ["language|tone|response_length|emoji_level|voice_style|proactivity_level|timezone|daily_summary_time|coach_intensity"], "confidence": 0.0-1.0 },
-    "dashboard_recurring_reminder_intent": { "detected": bool, "reminder_fields": ["mode|days|time|timezone|channel|start_date|end_date|pause|message"], "confidence": 0.0-1.0 },
-    "safety_resolution": { "user_confirms_safe": bool, "stabilizing_signal": bool, "symptoms_still_present": bool, "external_help_mentioned": bool, "escalate_to_sentry": bool, "confidence": 0.0-1.0 },
-    "safety_stabilization": { "stabilizing_turn": bool, "confidence": 0.0-1.0 },
-    "wants_tools": bool,
-    "risk_score": 0-10
+    "safety": { "level": "string", "confidence": "number", "immediacy": "string" },
+    "user_intent_primary": "string",
+    "user_intent_confidence": "number",
+    "interrupt": { "kind": "string", "confidence": "number" },
+    "flow_resolution": { "kind": "string", "confidence": "number" },
+    "topic_depth": { "value": "string", "confidence": "number", "plan_focus": "boolean" },
+    "deep_reasons": { "opportunity": "boolean", "action_mentioned": "boolean", "action_hint": "string|null", "confidence": "number" },
+    "needs_explanation": { "value": "boolean", "confidence": "number" },
+    "needs_research": { "value": "boolean", "confidence": "number", "query": "string|null", "domain_hint": "string|null" },
+    "user_engagement": { "level": "string", "confidence": "number" },
+    "topic_satisfaction": { "detected": "boolean", "confidence": "number" },
+    "create_action": { "intent_strength": "string", "sophia_suggested": "boolean", "user_response": "string", "action_type_hint": "string", "confidence": "number" },
+    "update_action": { "detected": "boolean", "target_hint": "string|null", "change_type": "string", "user_response": "string", "confidence": "number" },
+    "breakdown_action": { "detected": "boolean", "target_hint": "string|null", "blocker_hint": "string|null", "user_response": "string", "confidence": "number" },
+    "track_progress": { "detected": "boolean", "target_hint": "string|null", "status_hint": "string", "value_hint": "number|null", "confidence": "number" },
+    "activate_action": { "detected": "boolean", "target_hint": "string|null", "exercise_type_hint": "string|null", "confidence": "number" },
+    "delete_action": { "detected": "boolean", "target_hint": "string|null", "reason_hint": "string|null", "confidence": "number" },
+    "deactivate_action": { "detected": "boolean", "target_hint": "string|null", "confidence": "number" },
+    "dashboard_preferences_intent": { "detected": "boolean", "preference_keys": ["string"], "confidence": "number" },
+    "dashboard_recurring_reminder_intent": { "detected": "boolean", "reminder_fields": ["string"], "confidence": "number" },
+    "safety_resolution": { "user_confirms_safe": "boolean", "stabilizing_signal": "boolean", "symptoms_still_present": "boolean", "external_help_mentioned": "boolean", "escalate_to_sentry": "boolean", "confidence": "number" },
+    "safety_stabilization": { "stabilizing_turn": "boolean", "confidence": "number" },
+    "wants_tools": "boolean",
+    "risk_score": "number"
   },
   "new_signals": [
-    { "signal_type": "string", "brief": "description max 100 chars", "confidence": 0.0-1.0, "action_target": "string|null" }
+    { "signal_type": "string", "brief": "description max 100 chars", "confidence": "number", "action_target": "string|null" }
   ],
   "enrichments": [
     { "existing_signal_type": "string", "updated_brief": "new description with added context" }
@@ -1103,8 +1069,6 @@ ${contextMessages}
 }
 
 REGLES:
-- Le DERNIER message utilisateur est la source de vérité pour tous les flags.
-- Les messages précédents sont uniquement du contexte.
 - "signals": contient l'analyse complete comme avant (backward compatible)
 - "new_signals": UNIQUEMENT pour les signaux detectes dans le DERNIER message qui ne sont PAS dans l'historique
 - "enrichments": UNIQUEMENT pour mettre a jour le brief d'un signal existant avec du contexte NOUVEAU
