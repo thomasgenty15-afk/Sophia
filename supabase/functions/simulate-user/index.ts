@@ -402,7 +402,7 @@ function buildUltimateFullFlowStateMachineContext(
     instruction = `Pendant la discussion de la dernière action, glisse: "Au fait, je me demandais si tu pourrais utiliser ${emojiPref}, mais je suis pas sûr." Ne confirme pas - juste une mention floue.`;
   } else if (isPostCheckup && !deferredSurfaced) {
     phase = "WAITING_DEFERRED";
-    instruction = "Le bilan est fini. Attends que Sophia ramène le sujet de ta digression. Réponds 'ok' ou 'merci' pour laisser Sophia prendre l'initiative.";
+    instruction = "Le bilan est fini. Attends que Sophia ramène le sujet de ta digression. Réponds 'ok' ou 'merci' pour laisser Sophia venir vers toi.";
   } else if (deferredSurfaced && !emojiConfirmed) {
     phase = "DEFERRED_DISCUSS";
     instruction = "Sophia a ramené le sujet de ta digression. Discute brièvement, puis dis 'c'est bon pour ce point' pour clore.";
@@ -457,7 +457,7 @@ INSTRUCTION POUR CE TOUR:
 ${instruction}
 
 RÈGLES CRITIQUES:
-1. N'AIDE PAS Sophia - elle doit prendre les initiatives (proposer bilan, proposer breakdown, ramener deferred, etc.)
+1. N'AIDE PAS Sophia - elle doit prendre les devants (proposer bilan, proposer breakdown, ramener deferred, etc.)
 2. Sois naturel, oral, pas robotique
 3. Pour la panique: sois physique ("cœur qui bat", "j'arrive plus à respirer")
 4. Pour la digression: pars vraiment sur un autre sujet sans rapport
@@ -2962,7 +2962,7 @@ ${transcriptText || "(vide)"}
         const raw = String((globalThis as any)?.Deno?.env?.get?.("SIMULATE_USER_LLM_HTTP_TIMEOUT_MS") ?? "").trim();
         const n = Number(raw);
         // Default: long-ish because retries + fallbacks need time; can be overridden.
-        return Number.isFinite(n) && n >= 1000 ? Math.floor(n) : 25_000;
+        return Number.isFinite(n) && n >= 1000 ? Math.floor(n) : 50_000;
       })();
 
       const out = await generateWithGemini(systemPrompt, userMessage, attempt >= 2 ? 0.2 : 0.4, true, [], "auto", {
@@ -3138,7 +3138,7 @@ ${complexFlow.ctx}
           forceRealAi: allowReal,
           evalRunId: (body as any)?.eval_run_id ?? null,
           maxRetries: 2,
-          httpTimeoutMs: 8_000,
+          httpTimeoutMs: 16_000,
         } as any);
         const parsed2 = JSON.parse(out2 as string);
         const cand = String(parsed2?.next_message ?? "").trim();
@@ -3271,7 +3271,7 @@ ${transcriptText || "(vide)"}
           forceRealAi: allowReal,
           evalRunId: (body as any)?.eval_run_id ?? null,
           maxRetries: 2,
-          httpTimeoutMs: 8_000,
+          httpTimeoutMs: 16_000,
         } as any);
         const parsedOut = JSON.parse(out as string);
         const next = String(parsedOut?.next_message ?? "").trim();

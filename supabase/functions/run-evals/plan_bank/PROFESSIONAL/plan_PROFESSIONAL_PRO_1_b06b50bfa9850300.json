@@ -259,7 +259,7 @@
             "description": "Demander un entretien formel avec votre manager pour discuter de vos perspectives de carrière et de votre évolution.",
             "questType": "main",
             "tips": "Formulez votre demande comme une 'discussion sur ma trajectoire professionnelle et mes contributions futures', plutôt que 'je veux une augmentation'.",
-            "rationale": "Prendre l'initiative est un signal fort de leadership et d'engagement, renforçant votre position avant même la conversation.",
+            "rationale": "Prendre les devants est un signal fort de leadership et d'engagement, renforçant votre position avant même la conversation.",
             "tracking_type": "boolean",
             "time_of_day": "any_time"
           },

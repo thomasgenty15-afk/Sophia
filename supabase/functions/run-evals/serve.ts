@@ -528,7 +528,7 @@ export function serveRunEvals() {
           const stepHttpTimeoutMsCap = (() => {
             const raw = (denoEnv("EVAL_STEP_HTTP_TIMEOUT_MS") ?? "").trim();
             const n = Number(raw);
-            return Number.isFinite(n) && n >= 5_000 ? Math.floor(n) : 90_000;
+            return Number.isFinite(n) && n >= 5_000 ? Math.floor(n) : 180_000;
           })();
 
           // Ensure values persisted to JSON/JSONB columns are actually JSON-serializable.

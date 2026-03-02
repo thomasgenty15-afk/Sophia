@@ -86,7 +86,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
     setIsVerifyingEthics(true);
     try {
       const result = await validateEthicalText({
-        entityType: 'initiative',
+        entityType: 'rendez_vous',
         operation: params.operation,
         textFields: params.textFields,
         previousTextFields: params.previousTextFields ?? null,
@@ -238,7 +238,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
             <div>
               <p className="text-sm font-bold text-amber-900">Fonctionnalité WhatsApp verrouillée</p>
               <p className="text-xs text-amber-700">
-                Les initiatives WhatsApp sont disponibles avec le plan Alliance ou Architecte.
+                Les rendez-vous WhatsApp sont disponibles avec le plan Alliance ou Architecte.
               </p>
             </div>
           </div>
@@ -258,7 +258,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
           <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
             <Bell className="w-5 h-5 text-amber-500" />
             <div className="flex items-center gap-1">
-              Mes Initiatives
+              Mes Rendez-vous
               <button
                 onClick={() => setShowInfo(!showInfo)}
                 className="p-1 rounded-full text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
@@ -290,7 +290,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
           className="overflow-hidden"
         >
           <p className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4">
-            Autorise Sophia à prendre l'initiative et à venir vers toi selon tes besoins.
+            Configure des rendez-vous où Sophia vient vers toi selon tes besoins.
             <br />Sois créatif ! Tu peux lui demander de t'envoyer du contenu inspirant, des rappels bienveillants ou simplement une pensée positive.
             <br />Exemples : <span className="italic">« Envoie-moi une citation stoïcienne le lundi à 8h »</span>, <span className="italic">« Souhaite-moi bonne nuit à 22h »</span>, ou <span className="italic">« Rappelle-moi de respirer profondément à 14h »</span>.
           </p>
@@ -306,15 +306,15 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
           <div className="w-12 h-12 md:w-16 md:h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4">
             <Bell className="w-6 h-6 md:w-8 md:h-8" />
           </div>
-          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-2">Aucune initiative configurée</h3>
+          <h3 className="text-base md:text-lg font-bold text-slate-900 mb-2">Aucun rendez-vous configuré</h3>
           <p className="text-sm text-slate-500 mb-6 max-w-md mx-auto">
-            Autorise Sophia à venir vers toi de manière proactive en créant ta première initiative.
+            Crée ton premier rendez-vous pour que Sophia vienne vers toi au bon moment.
           </p>
           <button
             onClick={() => setIsModalOpen(true)}
             className="text-amber-600 font-bold hover:text-amber-700 transition-colors text-xs md:text-sm"
           >
-            Créer ma première initiative
+            Créer mon premier rendez-vous
           </button>
         </div>
       ) : (

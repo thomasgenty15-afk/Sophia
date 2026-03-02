@@ -6,6 +6,7 @@ import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts";
 
 type PersonalizationLevel = 1 | 2 | 3;
 type WeekdayKey = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+const RDV_GENERATION_MODEL = "gpt-5.2";
 
 function str(v: unknown): string {
   return String(v ?? "").trim();
@@ -32,6 +33,104 @@ function normalizeDraftMessage(v: unknown): string {
     if (typeof c === "string" && c.trim()) return c.trim();
   }
   return "";
+}
+
+function fallbackDraftFromInstruction(instruction: string): string {
+  return `Petit rappel: ${str(instruction).slice(0, 180)}`;
+}
+
+function parseMessages(raw: unknown, maxCount: number): string[] {
+  let parsed: any = null;
+  try {
+    parsed = typeof raw === "string" ? JSON.parse(raw) : raw;
+  } catch {
+    parsed = null;
+  }
+  const list = Array.isArray(parsed?.messages) ? parsed.messages : [];
+  return list
+    .map((m: any) => normalizeDraftMessage(m))
+    .filter(Boolean)
+    .slice(0, maxCount);
+}
+
+async function generateDraftsWithExactCount(params: {
+  systemPrompt: string;
+  slotList: string;
+  expectedCount: number;
+  reminderInstruction: string;
+  requestId: string;
+}): Promise<{ drafts: string[]; generatedCount: number; missingCount: number; repairAttempts: number }> {
+  const missingFallback = Array.from({ length: params.expectedCount }).map(() =>
+    fallbackDraftFromInstruction(params.reminderInstruction)
+  );
+  let repairAttempts = 0;
+  let drafts: string[] = [];
+
+  try {
+    const firstRaw = await generateWithGemini(
+      params.systemPrompt,
+      "Génère les messages maintenant.",
+      0.5,
+      true,
+      [],
+      "auto",
+      {
+        requestId: params.requestId,
+        source: "classify-recurring-reminder",
+        model: RDV_GENERATION_MODEL,
+        maxRetries: 2,
+        forceRealAi: true,
+      },
+    );
+    drafts = parseMessages(firstRaw, params.expectedCount);
+  } catch {
+    drafts = [];
+  }
+
+  if (drafts.length !== params.expectedCount) {
+    repairAttempts++;
+    try {
+      const missing = Math.max(0, params.expectedCount - drafts.length);
+      const repairPrompt = [
+        "La sortie précédente n'avait pas le bon nombre de messages.",
+        `Tu dois corriger et retourner EXACTEMENT ${params.expectedCount} messages.`,
+        "- Priorité absolue: respecter l'instruction utilisateur.",
+        "- Les variantes de style ne doivent jamais déformer le besoin.",
+        "Slots (dans l'ordre):",
+        params.slotList,
+      ].join("\n");
+      const repairRaw = await generateWithGemini(
+        params.systemPrompt,
+        repairPrompt,
+        0.4,
+        true,
+        [],
+        "auto",
+        {
+          requestId: `${params.requestId}:repair`,
+          source: "classify-recurring-reminder",
+          model: RDV_GENERATION_MODEL,
+          maxRetries: 2,
+          forceRealAi: true,
+        },
+      );
+      const repaired = parseMessages(repairRaw, params.expectedCount);
+      if (repaired.length > 0) drafts = repaired;
+      if (drafts.length < params.expectedCount) {
+        drafts = [...drafts, ...Array.from({ length: missing }).map(() => fallbackDraftFromInstruction(params.reminderInstruction))]
+          .slice(0, params.expectedCount);
+      }
+    } catch {
+      drafts = [...drafts, ...missingFallback].slice(0, params.expectedCount);
+    }
+  }
+
+  return {
+    drafts,
+    generatedCount: drafts.length,
+    missingCount: Math.max(0, params.expectedCount - drafts.length),
+    repairAttempts,
+  };
 }
 
 function weekdayKeyInTimezone(params: { timezone: string; dayOffset: number; now?: Date }): WeekdayKey {
@@ -149,7 +248,6 @@ async function seedReminderUntilNextSunday(params: {
     scheduledFor: string;
     slotLabel: string;
   }> = [];
-  let inserted = 0;
   for (let dayOffset = 0; dayOffset <= maxOffset; dayOffset++) {
     const weekday = weekdayKeyInTimezone({ timezone, dayOffset, now: new Date() });
     if (!scheduledDays.includes(weekday)) continue;
@@ -170,63 +268,48 @@ async function seedReminderUntilNextSunday(params: {
 
   if (slots.length === 0) return 0;
 
-  let drafts: string[] = [];
-  try {
-    const slotList = slots
-      .map((s, i) => `${i + 1}. ${s.slotLabel} | scheduled_for=${s.scheduledFor}`)
-      .join("\n");
-    const systemPrompt = [
-      "Tu es Sophia (mode Companion). Tu rédiges des messages d'initiative WhatsApp.",
-      "",
-      "Contraintes strictes:",
-      "- Retourne uniquement un JSON valide.",
-      `- Schéma exact: {"messages":[...]} avec exactement ${slots.length} messages.`,
-      "- Chaque message: 2 à 5 lignes, texte brut, chaleureux, naturel, tutoiement.",
-      "- Le message doit refléter fidèlement l'instruction utilisateur (thème, ton, intention).",
-      "- Interdit de recopier mot-à-mot la consigne utilisateur.",
-      "- Interdit de répondre avec une simple reformulation du type 'Petit rappel: ...'.",
-      "- Variations réelles entre les messages.",
-      "",
-      "Contexte initiative:",
-      `- Instruction: ${clampText(str(reminder.message_instruction), 1000)}`,
-      reminder.rationale ? `- Pourquoi c'est important: ${clampText(str(reminder.rationale), 420)}` : "",
-      `- Timezone: ${timezone}`,
-      `- Locale: ${locale}`,
-      "",
-      "Slots à couvrir (dans l'ordre):",
-      slotList,
-    ]
-      .filter(Boolean)
-      .join("\n");
-    const outRaw = await generateWithGemini(
-      systemPrompt,
-      "Génère les messages maintenant.",
-      0.5,
-      true,
-      [],
-      "auto",
-      {
-        requestId: `${crypto.randomUUID()}:seed-recurring-reminder`,
-        source: "classify-recurring-reminder",
-        model: getGlobalAiModel("gemini-2.5-flash"),
-        maxRetries: 2,
-        forceRealAi: true,
-      },
-    );
-    const parsed = typeof outRaw === "string" ? JSON.parse(outRaw) : outRaw;
-    const rawMessages = Array.isArray((parsed as any)?.messages) ? (parsed as any).messages : [];
-    drafts = rawMessages
-      .map((m: any) => normalizeDraftMessage(m))
-      .filter(Boolean)
-      .slice(0, slots.length);
-  } catch (e) {
-    console.warn("[classify-recurring-reminder] seed_generation_failed", e);
-    drafts = [];
-  }
+  const slotList = slots
+    .map((s, i) => `${i + 1}. ${s.slotLabel} | scheduled_for=${s.scheduledFor}`)
+    .join("\n");
+  const systemPrompt = [
+    "Tu es Sophia (mode Companion). Tu rédiges des messages de rendez-vous WhatsApp.",
+    "",
+    "Contraintes strictes:",
+    "- Retourne uniquement un JSON valide.",
+    `- Schéma exact: {"messages":[...]} avec exactement ${slots.length} messages.`,
+    "- Chaque message: 2 à 5 lignes, texte brut, chaleureux, naturel, tutoiement.",
+    "- N'ouvre pas avec Bonjour/Salut/Coucou/Hello.",
+    "- Le message doit refléter fidèlement l'instruction utilisateur (thème, ton, intention).",
+    "- Priorité absolue: l'instruction utilisateur. Ne la déforme jamais pour varier le style.",
+    "- Interdit de recopier mot-à-mot la consigne utilisateur.",
+    "- Interdit de répondre avec une simple reformulation du type 'Petit rappel: ...'.",
+    "- Variations réelles entre les messages, mais sans changer le besoin utilisateur.",
+    "",
+    "Contexte rendez-vous:",
+    `- Instruction: ${clampText(str(reminder.message_instruction), 1000)}`,
+    reminder.rationale ? `- Pourquoi c'est important: ${clampText(str(reminder.rationale), 420)}` : "",
+    `- Timezone: ${timezone}`,
+    `- Locale: ${locale}`,
+    "",
+    "Slots à couvrir (dans l'ordre):",
+    slotList,
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const generationRequestId = `${crypto.randomUUID()}:seed-recurring-reminder`;
+  const generated = await generateDraftsWithExactCount({
+    systemPrompt,
+    slotList,
+    expectedCount: slots.length,
+    reminderInstruction: reminder.message_instruction,
+    requestId: generationRequestId,
+  });
+  const drafts = generated.drafts;
 
   for (let idx = 0; idx < slots.length; idx++) {
     const slot = slots[idx];
-    const draft = drafts[idx] || `Petit rappel: ${str(reminder.message_instruction).slice(0, 180)}`;
+    const draft = drafts[idx] || fallbackDraftFromInstruction(reminder.message_instruction);
     const payload = {
       source: "recurring_reminder_seed_until_sunday",
       recurring_reminder_id: reminder.id,
@@ -241,12 +324,12 @@ async function seedReminderUntilNextSunday(params: {
       generated_by_ai: Boolean(drafts[idx]),
     };
 
-    const { error } = await params.admin
+    await params.admin
       .from("scheduled_checkins")
       .upsert(
         {
           user_id: reminder.user_id,
-          origin: "initiative",
+          origin: "rendez_vous",
           event_context: eventContext,
           draft_message: draft,
           message_mode: "static",
@@ -256,20 +339,86 @@ async function seedReminderUntilNextSunday(params: {
         } as any,
         { onConflict: "user_id,event_context,scheduled_for" },
       );
-    if (!error) inserted++;
   }
+
+  let repairDbAttempts = 0;
+  const expectedScheduledFor = new Set(slots.map((s) => s.scheduledFor));
+  const { data: existingRows } = await params.admin
+    .from("scheduled_checkins")
+    .select("scheduled_for")
+    .eq("user_id", reminder.user_id)
+    .eq("event_context", eventContext)
+    .in("scheduled_for", [...expectedScheduledFor]);
+
+  const existingSet = new Set((existingRows ?? []).map((r: any) => String(r.scheduled_for ?? "")));
+  const missingSlots = slots.filter((s) => !existingSet.has(s.scheduledFor));
+  if (missingSlots.length > 0) {
+    repairDbAttempts++;
+    for (const slot of missingSlots) {
+      const payload = {
+        source: "recurring_reminder_seed_until_sunday_repair",
+        recurring_reminder_id: reminder.id,
+        reminder_instruction: reminder.message_instruction,
+        reminder_rationale: reminder.rationale ?? null,
+        personalization_level_configured: params.level,
+        personalization_level_effective: params.level,
+        generated_at: new Date().toISOString(),
+        slot_day_offset: slot.dayOffset,
+        slot_weekday: slot.weekday,
+        seed_mode: "until_next_sunday_cron",
+        generated_by_ai: false,
+      };
+      await params.admin
+        .from("scheduled_checkins")
+        .upsert(
+          {
+            user_id: reminder.user_id,
+            origin: "rendez_vous",
+            event_context: eventContext,
+            draft_message: fallbackDraftFromInstruction(reminder.message_instruction),
+            message_mode: "static",
+            message_payload: payload,
+            scheduled_for: slot.scheduledFor,
+            status: "pending",
+          } as any,
+          { onConflict: "user_id,event_context,scheduled_for" },
+        );
+    }
+  }
+
+  const { data: finalRows } = await params.admin
+    .from("scheduled_checkins")
+    .select("scheduled_for")
+    .eq("user_id", reminder.user_id)
+    .eq("event_context", eventContext)
+    .in("scheduled_for", [...expectedScheduledFor]);
+  const finalInserted = (finalRows ?? []).length;
+  console.log(
+    JSON.stringify({
+      tag: "recurring_seed_cardinality",
+      reminder_id: reminder.id,
+      expected_slots: slots.length,
+      generated_messages: generated.generatedCount,
+      missing_count: Math.max(0, slots.length - finalInserted),
+      repair_attempts: generated.repairAttempts + repairDbAttempts,
+      final_inserted: finalInserted,
+      model: RDV_GENERATION_MODEL,
+      source: "classify-recurring-reminder",
+      request_id: generationRequestId,
+    }),
+  );
 
   await params.admin
     .from("user_recurring_reminders")
     .update({
       last_drafted_at: new Date().toISOString(),
-      last_draft_message: drafts[0] || `Petit rappel: ${str(reminder.message_instruction).slice(0, 180)}`,
+      last_draft_message: drafts[0] || fallbackDraftFromInstruction(reminder.message_instruction),
       updated_at: new Date().toISOString(),
     } as any)
     .eq("id", reminder.id)
     .eq("user_id", reminder.user_id);
 
-  return inserted;
+  return finalInserted;
 }
 
 function buildContextPolicy(level: PersonalizationLevel): Record<string, unknown> {
@@ -326,7 +475,7 @@ async function classifyWithAI(params: {
 }): Promise<{ level: PersonalizationLevel; reason: string }> {
   const { instruction, rationale, requestId } = params;
   const systemPrompt = `
-Tu classes une initiative WhatsApp de Sophia en niveau de personnalisation.
+Tu classes un rendez-vous WhatsApp de Sophia en niveau de personnalisation.
 
 Règles strictes:
 - Retourne uniquement un JSON valide.
@@ -345,7 +494,7 @@ Choisis le niveau minimum nécessaire pour produire un message fidèle à l'inte
 `;
 
   const userPrompt = `
-Initiative:
+Rendez-vous:
 - Instruction: ${instruction || "n/a"}
 - Rationale: ${rationale || "n/a"}
 `;
@@ -360,7 +509,7 @@ Initiative:
     {
       requestId,
       source: "classify-recurring-reminder",
-      model: getGlobalAiModel("gemini-2.5-flash"),
+      model: getGlobalAiModel("gpt-5.2"),
       maxRetries: 2,
       forceRealAi: true,
     },

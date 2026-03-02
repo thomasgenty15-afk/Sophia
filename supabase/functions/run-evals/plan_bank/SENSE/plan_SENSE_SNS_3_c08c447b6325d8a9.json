@@ -251,7 +251,7 @@
             "description": "Lancez-vous dans un tout petit projet ou une exploration qui éveille votre curiosité, sans aucune attente de résultat, de performance ou de monétisation. L'objectif est l'exploration pour elle-même.",
             "questType": "main",
             "tips": "Apprendre quelques mots d'une nouvelle langue, essayer une recette compliquée, visiter un musée que vous ne connaissez pas, ou faire une recherche sur un sujet qui vous intrigue.",
-            "rationale": "L'exploration de la curiosité active le circuit de la récompense (dopamine) de manière saine et constructive, sans la pression de l'échec. C'est une façon douce de réactiver votre sens de l'initiative et d'ouvrir votre esprit à de nouvelles possibilités, en réhabilitant la notion de jeu et d'apprentissage.",
+            "rationale": "L'exploration de la curiosité active le circuit de la récompense (dopamine) de manière saine et constructive, sans la pression de l'échec. C'est une façon douce de réactiver votre capacité à vous mettre en mouvement et d'ouvrir votre esprit à de nouvelles possibilités, en réhabilitant la notion de jeu et d'apprentissage.",
             "targetReps": 1,
             "tracking_type": "boolean",
             "time_of_day": "any_time"

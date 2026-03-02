@@ -134,10 +134,10 @@ export async function generateWithGemini(
   const GEMINI_HTTP_TIMEOUT_MS =
     Number.isFinite(Number(meta?.httpTimeoutMs)) && Number(meta?.httpTimeoutMs) > 0
       ? Math.floor(Number(meta?.httpTimeoutMs))
-      : parseTimeoutMs(Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"), 55_000);
+      : parseTimeoutMs(Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"), 110_000);
   // Separate (looser) timeout for eval-like traffic. Keep it configurable without affecting normal chat latency.
   // Note: run-evals also has its own wall-clock chunking (`max_wall_clock_ms_per_request`) so do not set this absurdly high.
-  const GEMINI_EVAL_HTTP_TIMEOUT_MS = parseTimeoutMs(Deno.env.get("GEMINI_EVAL_HTTP_TIMEOUT_MS"), 120_000);
+  const GEMINI_EVAL_HTTP_TIMEOUT_MS = parseTimeoutMs(Deno.env.get("GEMINI_EVAL_HTTP_TIMEOUT_MS"), 240_000);
   const makeTimeoutSignal = (timeoutMs: number): { signal: AbortSignal; cancel: () => void } => {
     // Prefer native AbortSignal.timeout when available.
     const anyAbortSignal = AbortSignal as any;
@@ -371,16 +371,16 @@ export async function generateWithGemini(
       const evalTimeout = GEMINI_EVAL_HTTP_TIMEOUT_MS;
       // Evals can have large prompts (dashboard + vectors + tool schemas) and intermittent provider latency.
       // If timeouts are too tight we end up thrashing into fallbacks and generating noisy warning logs.
-      // "Very loose" policy: allow long provider latency up to GEMINI_EVAL_HTTP_TIMEOUT_MS (default 120s),
+      // "Very loose" policy: allow long provider latency up to GEMINI_EVAL_HTTP_TIMEOUT_MS (default 240s),
       // with generous per-model caps, unless the caller explicitly set meta.httpTimeoutMs (handled above).
-      if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) return Math.min(evalTimeout, 120_000);
-      if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(evalTimeout, 120_000);
-      if (/\bgemini-2\.5-flash\b/i.test(mm)) return Math.min(evalTimeout, 110_000);
-      if (/\bgemini-2\.0-flash\b/i.test(mm)) return Math.min(evalTimeout, 90_000);
+      if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) return Math.min(evalTimeout, 240_000);
+      if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(evalTimeout, 240_000);
+      if (/\bgemini-2\.5-flash\b/i.test(mm)) return Math.min(evalTimeout, 220_000);
+      if (/\bgemini-2\.0-flash\b/i.test(mm)) return Math.min(evalTimeout, 180_000);
       return evalTimeout;
     }
-    if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 12_000);
-    if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 25_000);
+    if (/\bgemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 24_000);
+    if (/\bgemini-3[-.]pro-preview\b/i.test(mm)) return Math.min(GEMINI_HTTP_TIMEOUT_MS, 50_000);
     return GEMINI_HTTP_TIMEOUT_MS;
   };
 
@@ -390,8 +390,8 @@ export async function generateWithGemini(
     const raw = (Deno.env.get("OPENAI_HTTP_TIMEOUT_MS") ?? "").trim();
     const n = Number(raw);
     if (Number.isFinite(n) && n > 0) return Math.floor(n);
-    // Increased default to 120s to allow for long generations (plans) with gpt-5.2
-    return isEvalLikeRequest ? 120_000 : 120_000;
+    // Increased default to 240s to reduce timeout-related fallbacks on long generations.
+    return isEvalLikeRequest ? 240_000 : 240_000;
   })();
 
   // Even when callers set maxRetries=1 (common for "follow-up phrasing" steps),
@@ -458,17 +458,22 @@ export async function generateWithGemini(
     },
   }
 
-  // Dispatcher guardrail: cap Flash 3 reasoning budget to keep routing latency bounded.
-  // Applies only to the contextual dispatcher when using Gemini Flash 3.
+  // Guardrails: cap Flash 3 reasoning budget to keep latency bounded.
+  // - Dispatcher contextual: low budget (routing).
+  // - Companion modes: higher budget when Flash 3 is selected.
   const sourceTag = String(meta?.source ?? "").trim();
   const isDispatcherContextual = sourceTag === "sophia-brain:dispatcher-v2-contextual";
+  const isCompanionMode = sourceTag.startsWith("sophia-brain:companion");
   const isFlash3Model = /^\s*gemini-3(?:\.0)?[-.]flash(?:-preview)?\b/i.test(String(model ?? "").trim());
-  if (isDispatcherContextual && isFlash3Model) {
-    const rawBudget = (Deno.env.get("DISPATCHER_THINKING_BUDGET") ?? "").trim();
-    const parsedBudget = Number(rawBudget);
+  if (isFlash3Model && (isDispatcherContextual || isCompanionMode)) {
+    const budgetEnv = isDispatcherContextual
+      ? "DISPATCHER_THINKING_BUDGET"
+      : "COMPANION_THINKING_BUDGET";
+    const parsedBudget = Number((Deno.env.get(budgetEnv) ?? "").trim());
+    const fallbackBudget = isDispatcherContextual ? 1024 : 3000;
     const thinkingBudget = Number.isFinite(parsedBudget) && parsedBudget >= 0
       ? Math.floor(parsedBudget)
-      : 1024;
+      : fallbackBudget;
     payload.generationConfig = {
       ...(payload.generationConfig ?? {}),
       thinkingConfig: {
@@ -1043,7 +1048,7 @@ export async function searchWithGeminiGrounding(
   }
 
   const model = (meta?.model ?? getGlobalAiModel("gemini-2.5-flash")).trim();
-  const timeoutMs = Math.max(3_000, Math.floor(meta?.timeoutMs ?? 8_000));
+  const timeoutMs = Math.max(3_000, Math.floor(meta?.timeoutMs ?? 16_000));
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${GEMINI_API_KEY}`;
 
   const payload = {
@@ -1207,7 +1212,7 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
     const n = Number(String(raw ?? "").trim());
     return Number.isFinite(n) && n > 0 ? Math.floor(n) : fallback;
   };
-  const GEMINI_HTTP_TIMEOUT_MS = parseTimeoutMs(Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"), 55_000);
+  const GEMINI_HTTP_TIMEOUT_MS = parseTimeoutMs(Deno.env.get("GEMINI_HTTP_TIMEOUT_MS"), 110_000);
   const makeTimeoutSignal = (timeoutMs: number): { signal: AbortSignal; cancel: () => void } => {
     const anyAbortSignal = AbortSignal as any;
     if (anyAbortSignal?.timeout && typeof anyAbortSignal.timeout === "function") {

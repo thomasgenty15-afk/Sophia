@@ -3,7 +3,6 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
-import { tierFromStripePriceId } from "../_shared/billing-tier.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
 import { createWeeklyInvestigationState } from "../sophia-brain/agents/investigator-weekly/types.ts";
@@ -152,25 +151,20 @@ Deno.serve(async (req) => {
       }, { includeCors: false });
     }
 
-    const { data: subscriptions, error: subErr } = await admin
-      .from("subscriptions")
-      .select("user_id,status,stripe_price_id,current_period_end")
-      .in("user_id", filtered);
-    if (subErr) throw subErr;
-
-    const nowMs = Date.now();
+    // Keep eligibility aligned with trigger-daily-bilan:
+    // source of truth is profiles.access_tier (trial, alliance, architecte).
+    // This avoids daily/weekly divergence when subscriptions rows are stale/missing.
     const paidEligible = new Set<string>();
-    for (const sub of (subscriptions ?? []) as any[]) {
-      const status = String(sub?.status ?? "").toLowerCase();
-      if (status !== "active" && status !== "trialing") continue;
-      const endRaw = String(sub?.current_period_end ?? "").trim();
-      if (endRaw) {
-        const endTs = new Date(endRaw).getTime();
-        if (Number.isFinite(endTs) && nowMs >= endTs) continue;
-      }
-      const tier = tierFromStripePriceId(String(sub?.stripe_price_id ?? "").trim());
-      if (tier === "alliance" || tier === "architecte") {
-        paidEligible.add(String(sub?.user_id ?? ""));
+    for (const p of (profiles ?? []) as any[]) {
+      const userId = String(p?.id ?? "");
+      const accessTier = String(p?.access_tier ?? "").toLowerCase().trim();
+      if (!userId) continue;
+      if (
+        accessTier === "trial" ||
+        accessTier === "alliance" ||
+        accessTier === "architecte"
+      ) {
+        paidEligible.add(userId);
       }
     }
 

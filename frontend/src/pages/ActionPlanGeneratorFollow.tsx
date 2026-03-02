@@ -157,6 +157,7 @@ const ActionPlanGeneratorFollow = () => {
     why: '',
     blockers: '',
     actions_good_for_me: '',
+    low_motivation_message: '',
     pacing: 'balanced' // default value
   });
   
@@ -414,6 +415,7 @@ const ActionPlanGeneratorFollow = () => {
                           why: existingPlan.inputs_why || '',
                           blockers: existingPlan.inputs_blockers || '',
                           actions_good_for_me: existingGoal.actions_good_for_me || '',
+                          low_motivation_message: existingPlan.inputs_low_motivation_message || '',
                           pacing: existingPlan.inputs_pacing || 'balanced'
                       });
 
@@ -487,7 +489,7 @@ const ActionPlanGeneratorFollow = () => {
 
                        // Promesse de timeout qui rejette après 15s
                        const timeoutPromise = new Promise((_, reject) => 
-                           setTimeout(() => reject(new Error('Timeout frontend (15s)')), 15000)
+                          setTimeout(() => reject(new Error('Timeout frontend (30s)')), 30000)
                        );
 
                        // On course les deux : le premier qui finit gagne
@@ -815,6 +817,7 @@ const ActionPlanGeneratorFollow = () => {
                         .update({
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
+                            inputs_low_motivation_message: inputs.low_motivation_message,
                             inputs_pacing: inputs.pacing,
                             content: data,
                             status: 'pending', // On remet en pending si on régénère
@@ -831,6 +834,7 @@ const ActionPlanGeneratorFollow = () => {
                             submission_id: targetGoal.submission_id, // AJOUT DU SUBMISSION ID
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
+                            inputs_low_motivation_message: inputs.low_motivation_message,
                             inputs_pacing: inputs.pacing,
                             content: data,
                             status: 'pending', // Le plan est une proposition, donc 'pending' jusqu'à validation
@@ -1069,6 +1073,7 @@ const ActionPlanGeneratorFollow = () => {
                     submission_id: activeGoal.submission_id, // PROPAGATION DU SUBMISSION ID
                     inputs_why: inputs.why,
                     inputs_blockers: inputs.blockers,
+                    inputs_low_motivation_message: inputs.low_motivation_message,
                     inputs_pacing: inputs.pacing,
                     content: plan,
                     status: 'active',
@@ -1094,6 +1099,7 @@ const ActionPlanGeneratorFollow = () => {
                         submission_id: activeGoal.submission_id, // Mettre à jour si jamais ça a changé (peu probable mais safe)
                         inputs_why: inputs.why,
                         inputs_blockers: inputs.blockers,
+                        inputs_low_motivation_message: inputs.low_motivation_message,
                         inputs_pacing: inputs.pacing,
                         content: plan,
                         status: 'active', // VALIDATION FINALE : Passage en active
@@ -1362,6 +1368,18 @@ const ActionPlanGeneratorFollow = () => {
                   onKeep={(v) => setInputs({ ...inputs, actions_good_for_me: v })}
                 />
               </div>
+
+              <div className="relative rounded-xl bg-amber-50 border border-amber-200 p-4 md:p-5">
+                <SnakeBorder active={isContextLoading} />
+                <label className="block text-sm md:text-base font-bold text-amber-900 mb-2">
+                  Il y aura des jours où tu auras la flemme. Que veux-tu que Sophia te dise ces jours-là pour te remotiver ?
+                </label>
+                <textarea
+                  value={inputs.low_motivation_message}
+                  onChange={e => setInputs({ ...inputs, low_motivation_message: e.target.value })}
+                  className="w-full p-3 md:p-4 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none min-h-[100px] text-sm md:text-base placeholder-slate-400"
+                />
+              </div>
             </div>
 
             <button 
@@ -1562,6 +1580,17 @@ const ActionPlanGeneratorFollow = () => {
                     Sophia réajuste le plan selon tes contraintes...
                 </p>
               )}
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
+              <h3 className="text-xs md:text-sm font-bold text-amber-900 uppercase tracking-wider mb-2">
+                Rappel anti-flemme
+              </h3>
+              <p className="text-sm text-amber-800 leading-relaxed italic">
+                {inputs.low_motivation_message?.trim()
+                  ? `"${inputs.low_motivation_message.trim()}"`
+                  : "Tu peux ajouter ce rappel dans la partie qualitative du plan pour que Sophia te remotive les jours plus difficiles."}
+              </p>
             </div>
 
             {/* VALIDATION FINALE */}

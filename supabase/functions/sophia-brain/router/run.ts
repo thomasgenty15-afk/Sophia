@@ -151,6 +151,61 @@ function isCheckupActive(state: any): boolean {
   return Boolean(status) && status !== "post_checkup" && status !== "post_checkup_done";
 }
 
+function resolveBinaryConsentLite(text: unknown): "yes" | "no" | null {
+  const t = String(text ?? "").trim().toLowerCase();
+  if (!t) return null;
+  const yes = /\b(oui|ouais|ok|okay|d'accord|dac|vas[- ]?y|go|yep|yes|on reprend|reprenons)\b/i.test(t);
+  const no = /\b(non|nope|nan|pas maintenant|plus tard|laisse|stop|on laisse|on verra)\b/i.test(t);
+  if (yes === no) return null;
+  return yes ? "yes" : "no";
+}
+
+function parseInvestigationStartedMs(state: any): number {
+  const inv = state?.investigation_state;
+  if (!inv || typeof inv !== "object") return 0;
+  const raw =
+    String(inv?.started_at ?? "").trim() ||
+    String(inv?.updated_at ?? "").trim() ||
+    String(inv?.temp_memory?.started_at ?? "").trim();
+  if (!raw) return 0;
+  const ms = new Date(raw).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
+function buildExpiredBilanSummary(inv: any, elapsedMs: number): Record<string, unknown> {
+  const pending = Array.isArray(inv?.pending_items) ? inv.pending_items : [];
+  const progress = (inv?.temp_memory?.item_progress && typeof inv?.temp_memory?.item_progress === "object")
+    ? inv.temp_memory.item_progress
+    : {};
+  const done: string[] = [];
+  const skipped: string[] = [];
+  for (const item of pending) {
+    const id = String(item?.id ?? "");
+    if (!id) continue;
+    const title = String(item?.title ?? "item").trim() || "item";
+    const phase = String((progress as any)?.[id]?.phase ?? "").trim();
+    if (phase === "logged") done.push(title);
+    else skipped.push(title);
+  }
+  const elapsedMinutes = Math.max(0, Math.floor(elapsedMs / 60000));
+  return {
+    expired_at: new Date().toISOString(),
+    elapsed_minutes: elapsedMinutes,
+    items_done: done.slice(0, 12),
+    items_skipped: skipped.slice(0, 12),
+    reason: "stale_checkup_timeout",
+  };
+}
+
+function detectCheckupIntent(dispatcherSignals: DispatcherSignals, machineSignals?: MachineSignals): boolean {
+  const checkupIntentSignal = machineSignals?.checkup_intent;
+  return (
+    (Boolean(checkupIntentSignal?.detected) && Number(checkupIntentSignal?.confidence ?? 0) >= 0.6) ||
+    (dispatcherSignals.user_intent_primary === "CHECKUP" &&
+      Number(dispatcherSignals.user_intent_confidence ?? 0) >= 0.6)
+  );
+}
+
 function selectTargetMode(args: {
   state: any;
   dispatcherSignals: DispatcherSignals;
@@ -164,11 +219,7 @@ function selectTargetMode(args: {
     (dispatcherSignals.interrupt.kind === "EXPLICIT_STOP" && dispatcherSignals.interrupt.confidence >= 0.6) ||
     (dispatcherSignals.interrupt.kind === "BORED" && dispatcherSignals.interrupt.confidence >= 0.65);
 
-  const checkupIntentSignal = machineSignals?.checkup_intent;
-  const checkupIntentDetected =
-    (Boolean(checkupIntentSignal?.detected) && Number(checkupIntentSignal?.confidence ?? 0) >= 0.6) ||
-    (dispatcherSignals.user_intent_primary === "CHECKUP" &&
-      Number(dispatcherSignals.user_intent_confidence ?? 0) >= 0.6);
+  const checkupIntentDetected = detectCheckupIntent(dispatcherSignals, machineSignals);
 
   if (
     dispatcherSignals.safety.level === "SENTRY" &&
@@ -488,7 +539,7 @@ export async function processMessage(
     userMessage = debounced.userMessage;
   }
 
-  const state = await getUserState(supabase, userId, scope);
+  let state = await getUserState(supabase, userId, scope);
   let tempMemory: any = (state as any)?.temp_memory ?? {};
 
   cleanupLegacyBilanFlags(tempMemory);
@@ -532,6 +583,60 @@ export async function processMessage(
   const dispatcherSignals = contextual.dispatcherSignals;
   const machineSignals = contextual.dispatcherResult?.machine_signals;
   tempMemory = contextual.tempMemory;
+
+  // If a daily bilan/checkup is stale, we either:
+  // - ask resume consent when user intent indicates checkup continuation
+  // - or silently abandon when user message is unrelated to checkup.
+  const staleTimeoutMs = envInt("SOPHIA_BILAN_STALE_TIMEOUT_MS", 4 * 60 * 60 * 1000);
+  const checkupActiveNow = isCheckupActive(state);
+  const startedMs = parseInvestigationStartedMs(state);
+  const elapsedSinceStartMs = startedMs > 0 ? Date.now() - startedMs : 0;
+  const staleCheckup = checkupActiveNow && startedMs > 0 && elapsedSinceStartMs >= staleTimeoutMs;
+  if (staleCheckup) {
+    const checkupIntentNow = detectCheckupIntent(dispatcherSignals, machineSignals);
+    const explicitConsent = resolveBinaryConsentLite(userMessage);
+    const shouldKeepForConsent = checkupIntentNow || explicitConsent !== null;
+    if (shouldKeepForConsent && state?.investigation_state) {
+      const inv = state.investigation_state;
+      state = {
+        ...state,
+        investigation_state: {
+          ...inv,
+          temp_memory: {
+            ...(inv?.temp_memory ?? {}),
+            awaiting_start_consent: true,
+            __stale_resume_gate: true,
+          },
+        },
+      };
+      await trace("brain:stale_checkup_resume_gate", "routing", {
+        elapsed_ms: elapsedSinceStartMs,
+        timeout_ms: staleTimeoutMs,
+        checkup_intent_now: checkupIntentNow,
+        explicit_consent: explicitConsent,
+      }, "info");
+    } else {
+      const expiredSummary = buildExpiredBilanSummary(state?.investigation_state, elapsedSinceStartMs);
+      tempMemory = {
+        ...(tempMemory ?? {}),
+        __expired_bilan_summary: expiredSummary,
+      };
+      await updateUserState(supabase, userId, scope, {
+        investigation_state: null as any,
+        temp_memory: tempMemory,
+      });
+      state = {
+        ...state,
+        investigation_state: null,
+        temp_memory: tempMemory,
+      } as any;
+      await trace("brain:stale_checkup_abandoned", "routing", {
+        elapsed_ms: elapsedSinceStartMs,
+        timeout_ms: staleTimeoutMs,
+        reason: "message_not_checkup_related",
+      }, "info");
+    }
+  }
 
   const { targetMode: routedMode, stopCheckup, checkupIntentDetected } = selectTargetMode({
     state,

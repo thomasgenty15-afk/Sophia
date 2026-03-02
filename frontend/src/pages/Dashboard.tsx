@@ -687,7 +687,7 @@ const Dashboard = () => {
                         }`}
                       >
                         <Bell className={`w-4 h-4 ${activeTab === 'reminders' ? 'text-amber-500' : ''}`} />
-                        <span className="hidden min-[487px]:inline">Initiatives</span>
+                        <span className="hidden min-[487px]:inline">Rendez-vous</span>
                       </button>
                       <button
                         onClick={() => setActiveTab('preferences')}

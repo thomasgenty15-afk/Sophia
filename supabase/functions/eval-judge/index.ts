@@ -260,7 +260,7 @@ async function runJudgeLlmWithModelCycle(args: {
 }): Promise<{ ok: true; parsed: any; model_used: string } | { ok: false; error: string }> {
   // Goal: avoid Edge Runtime wall clock kills by bounding the number of HTTP calls and their timeout.
   // We do ONE call per model attempt (no internal retries), and we cycle models 3 times max.
-  const perAttemptTimeoutMs = parseTimeoutMs(Deno.env.get("EVAL_JUDGE_HTTP_TIMEOUT_MS"), 12_000);
+  const perAttemptTimeoutMs = parseTimeoutMs(Deno.env.get("EVAL_JUDGE_HTTP_TIMEOUT_MS"), 24_000);
   const cycles = parseTimeoutMs(Deno.env.get("EVAL_JUDGE_MODEL_CYCLES"), 3);
   // Since judge now runs async (out-of-band), we can afford a higher retry budget.
   const perModelRetries = Math.max(1, Math.min(10, Math.floor(parseTimeoutMs(Deno.env.get("EVAL_JUDGE_MAX_RETRIES"), 10))));

@@ -4,7 +4,11 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
-import { generateDynamicWhatsAppCheckinMessage } from "../_shared/scheduled_checkins.ts"
+import {
+  applyScheduledCheckinGreetingPolicy,
+  generateDynamicWhatsAppCheckinMessage,
+  hasAnyWhatsappMessagesInLocalDay,
+} from "../_shared/scheduled_checkins.ts"
 
 console.log("Process Checkins: Function initialized")
 
@@ -267,7 +271,7 @@ Deno.serve(async (req) => {
       {
         const { data: profile } = await supabaseAdmin
           .from("profiles")
-          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
+          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone")
           .eq("id", checkin.user_id)
           .maybeSingle()
         const lastInbound = profile?.whatsapp_last_inbound_at ? new Date(profile.whatsapp_last_inbound_at).getTime() : null
@@ -312,6 +316,26 @@ Deno.serve(async (req) => {
       // Ensure bodyText is never empty/null for the fallback
       if (!bodyText.trim()) {
         bodyText = "Petit check-in: comment ça va depuis tout à l'heure ?"
+      }
+
+      // Greeting policy for scheduled_checkins only:
+      // - if messages were exchanged today (local user day): no greeting prefix
+      // - otherwise: prepend exact "Hello! "
+      try {
+        const { data: profileForGreeting } = await supabaseAdmin
+          .from("profiles")
+          .select("timezone")
+          .eq("id", checkin.user_id)
+          .maybeSingle()
+        const timezone = String((profileForGreeting as any)?.timezone ?? "").trim() || "Europe/Paris"
+        const hasMessagesToday = await hasAnyWhatsappMessagesInLocalDay({
+          admin: supabaseAdmin as any,
+          userId: checkin.user_id,
+          timezone,
+        })
+        bodyText = applyScheduledCheckinGreetingPolicy({ text: bodyText, hasMessagesToday })
+      } catch (e) {
+        console.warn(`[process-checkins] request_id=${requestId} greeting_policy_failed checkin_id=${checkin.id}`, e)
       }
       // Needed for purpose tagging in both WhatsApp and fallback logging paths.
       const isBilanReschedule = eventContext === "daily_bilan_reschedule"

@@ -348,6 +348,18 @@ const ActionPlanGenerator = () => {
                   onKeep={(v) => setInputs({ ...inputs, actions_good_for_me: v })}
                 />
               </div>
+
+              <div className="relative rounded-xl bg-amber-50 border border-amber-200 p-4 md:p-5">
+                <SnakeBorder active={isContextLoading} />
+                <label className="block text-sm md:text-base font-bold text-amber-900 mb-2">
+                  Il y aura des jours où tu auras la flemme. Que veux-tu que Sophia te dise ces jours-là pour te remotiver ?
+                </label>
+                <textarea
+                  value={inputs.low_motivation_message}
+                  onChange={e => setInputs({ ...inputs, low_motivation_message: e.target.value })}
+                  className="w-full p-3 md:p-4 rounded-xl border border-amber-200 bg-white focus:ring-2 focus:ring-amber-500 outline-none min-h-[100px] text-sm md:text-base"
+                />
+              </div>
             </div>
 
             <button 
@@ -543,6 +555,17 @@ const ActionPlanGenerator = () => {
                     Sophia réajuste le plan selon tes contraintes...
                 </p>
               )}
+            </div>
+
+            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
+              <h3 className="text-xs md:text-sm font-bold text-amber-900 uppercase tracking-wider mb-2">
+                Rappel anti-flemme
+              </h3>
+              <p className="text-sm text-amber-800 leading-relaxed italic">
+                {inputs.low_motivation_message?.trim()
+                  ? `"${inputs.low_motivation_message.trim()}"`
+                  : "Tu peux ajouter ce rappel dans la partie qualitative du plan pour que Sophia te remotive les jours plus difficiles."}
+              </p>
             </div>
 
             {/* VALIDATION FINALE */}

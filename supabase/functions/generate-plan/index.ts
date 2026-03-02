@@ -760,6 +760,7 @@ serve(async (req) => {
             source: "generate-plan",
             forceRealAi: forceRealGeneration,
             maxRetries: 4,
+            httpTimeoutMs: 180_000,
           }
         );
 

@@ -68,7 +68,7 @@ export const useDashboardLogic = ({
   };
 
   const runEthicalValidation = async (params: {
-    entityType: 'action' | 'initiative' | 'north_star' | 'vital_sign';
+    entityType: 'action' | 'rendez_vous' | 'north_star' | 'vital_sign';
     operation: 'create' | 'update';
     textFields: Record<string, unknown>;
     previousTextFields?: Record<string, unknown>;

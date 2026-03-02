@@ -375,6 +375,9 @@ export async function handleWeeklyTurn(opts: {
     ? "weekly_bilan_etoile_polaire"
     : "weekly_bilan_action_load";
 
+  const etoilePolaireMissing =
+    targetPhase === "etoile_polaire" && !state.weekly_payload?.etoile_polaire;
+
   const text = await weeklyInvestigatorSay(
     scenario,
     {
@@ -388,6 +391,10 @@ export async function handleWeeklyTurn(opts: {
       tool_result: toolResult,
       recap_draft: nextDraft,
       recent_history: (history ?? []).slice(-15),
+      etoile_polaire_missing: etoilePolaireMissing,
+      etoile_polaire_missing_guidance: etoilePolaireMissing
+        ? "Encourage l'utilisateur a configurer son Etoile Polaire en expliquant la valeur: cap long terme, meilleure priorisation, et mesure claire de progression semaine apres semaine."
+        : null,
     },
     meta,
   );

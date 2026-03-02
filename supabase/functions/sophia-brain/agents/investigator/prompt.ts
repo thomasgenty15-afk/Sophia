@@ -171,6 +171,8 @@ export function buildMainItemSystemPrompt(opts: {
     - INTERDIT de citer le titre de l'item verbatim s'il est technique ou long.
     - INTERDIT les structures "X — combien ?" ou "X : fait ?"
     - Traduis TOUJOURS le titre en langage parlé naturel.
+    - INTERDIT d'utiliser le terme "micro-action" / "micro action" (mot interne trop flou).
+      Remplace-le par le sujet concret en langage parlé (ex: "ta méditation", "les écrans hier soir", "ta lecture").
     - Exemples de traduction :
       - "Minutes d'écran de loisir après 19h" → "les écrans hier soir"
       - "Temps tête sur l'oreiller" → "t'endormir"

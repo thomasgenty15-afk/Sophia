@@ -154,8 +154,8 @@ SORTIE JSON:
   const perAttemptTimeoutMs = (() => {
     const raw = (Deno.env.get("SOPHIA_AGENT_JUDGE_HTTP_TIMEOUT_MS") ?? "").trim();
     const n = Number(raw);
-    // Default: 6s per attempt (keeps total wall-clock under tight control).
-    return Number.isFinite(n) && n >= 1000 ? Math.floor(n) : 6_000;
+    // Default: 12s per attempt.
+    return Number.isFinite(n) && n >= 1000 ? Math.floor(n) : 12_000;
   })();
 
   let raw: unknown = null;
@@ -304,6 +304,11 @@ function hasBoldLeak(text: string): boolean {
   return /\*\*/.test(text ?? "");
 }
 
+function hasMicroActionLeak(text: string): boolean {
+  const t = (text ?? "").toString();
+  return /\bmicro[\s-]?actions?\b/i.test(t);
+}
+
 function looksLikeUserAskedForDetail(userMessage: unknown): boolean {
   const s = (userMessage ?? "").toString().toLowerCase();
   if (!s) return false;
@@ -400,6 +405,7 @@ export function buildConversationAgentViolations(text: string, ctx: {
   if (!cleaned.trim()) v.push("empty_response");
   if (hasBoldLeak(cleaned)) v.push("bold_not_allowed");
   if (hasInternalTechLeak(cleaned)) v.push("internal_tech_terms_not_allowed");
+  if (hasMicroActionLeak(cleaned)) v.push("micro_action_wording_not_allowed");
   if (cleaned.includes("\n\n\n")) v.push("too_many_blank_lines");
 
   const maxQuestions = channel === "whatsapp" ? 1 : 2;
@@ -680,6 +686,7 @@ function buildInvestigatorCopyViolations(text: string, ctx: { scenario: string }
   if (!cleaned.trim()) v.push("empty_response");
   if (hasBoldLeak(cleaned)) v.push("bold_not_allowed");
   if (hasInternalTechLeak(cleaned)) v.push("internal_tech_terms_not_allowed");
+  if (hasMicroActionLeak(cleaned)) v.push("micro_action_wording_not_allowed");
   if (cleaned.includes("\n\n\n")) v.push("too_many_blank_lines");
 
   // End-of-checkup MUST ask an open question and must NOT introduce a new checkup item.

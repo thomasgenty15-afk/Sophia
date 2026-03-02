@@ -104,7 +104,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
                     <Bell className="w-5 h-5" />
                  </div>
                  <h2 className="text-lg md:text-xl font-bold text-slate-900">
-                   {initialValues ? "Modifier l'initiative" : "Nouvelle initiative"}
+                   {initialValues ? "Modifier le rendez-vous" : "Nouveau rendez-vous"}
                  </h2>
               </div>
               <button onClick={onClose} className="p-2 hover:bg-slate-50 rounded-full transition-colors text-slate-300 hover:text-slate-500">
@@ -118,7 +118,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
               {/* Message */}
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Quelle initiative Sophia doit-elle prendre ?
+                  Quel rendez-vous veux-tu planifier avec Sophia ?
                 </label>
                 <textarea 
                     value={message}
@@ -134,7 +134,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
 
               <div>
                 <label className="block text-xs font-bold text-slate-700 mb-1.5">
-                  Pourquoi cette initiative est importante ?
+                  Pourquoi ce rendez-vous est important ?
                 </label>
                 <textarea
                   value={rationale}
@@ -214,7 +214,7 @@ export const CreateReminderModal: React.FC<CreateReminderModalProps> = ({
                 disabled={isSubmitting || !message.trim() || selectedDays.length === 0}
                 className="bg-amber-500 hover:bg-amber-600 text-white px-6 py-3 rounded-xl font-bold text-sm shadow-lg shadow-amber-200 hover:shadow-amber-300 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
-                {isSubmitting ? 'Vérification...' : initialValues ? 'Modifier' : <><Plus className="w-4 h-4" /> Créer l'initiative</>}
+                {isSubmitting ? 'Vérification...' : initialValues ? 'Modifier' : <><Plus className="w-4 h-4" /> Créer le rendez-vous</>}
               </button>
             </div>
           </motion.div>

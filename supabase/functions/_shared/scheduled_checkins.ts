@@ -1,7 +1,8 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { generateWithGemini, getGlobalAiModel } from "./gemini.ts"
+import { generateWithGemini } from "./gemini.ts"
 import { buildUserTimeContextFromValues } from "./user_time_context.ts"
+const RDV_GENERATION_MODEL = "gpt-5.2"
 
 function safeTrim(s: unknown): string {
   return String(s ?? "").trim()
@@ -11,6 +12,51 @@ function clampText(s: string, maxChars: number): string {
   const t = safeTrim(s)
   if (t.length <= maxChars) return t
   return t.slice(0, maxChars - 1).trimEnd() + "…"
+}
+
+function stripLeadingGreeting(text: string): string {
+  return String(text ?? "").trim().replace(
+    /^(hello|bonjour|salut|coucou|hey)\s*[!,.:\-]?\s*/i,
+    "",
+  ).trim()
+}
+
+export function applyScheduledCheckinGreetingPolicy(params: { text: string; hasMessagesToday: boolean }): string {
+  const noGreeting = stripLeadingGreeting(params.text)
+  const base = noGreeting || "Petit check-in: comment ça va depuis tout à l’heure ?"
+  if (params.hasMessagesToday) return base
+  return `Hello! ${base}`
+}
+
+export async function hasAnyWhatsappMessagesInLocalDay(params: {
+  admin: SupabaseClient
+  userId: string
+  timezone: string
+  now?: Date
+}): Promise<boolean> {
+  const startIso = computeScheduledForFromLocal({
+    timezone: params.timezone,
+    dayOffset: 0,
+    localTimeHHMM: "00:00",
+    now: params.now ?? new Date(),
+  })
+  const endIso = computeScheduledForFromLocal({
+    timezone: params.timezone,
+    dayOffset: 1,
+    localTimeHHMM: "00:00",
+    now: params.now ?? new Date(),
+  })
+
+  const { data, error } = await params.admin
+    .from("chat_messages")
+    .select("id")
+    .eq("user_id", params.userId)
+    .eq("scope", "whatsapp")
+    .gte("created_at", startIso)
+    .lt("created_at", endIso)
+    .limit(1)
+  if (error) throw error
+  return (data ?? []).length > 0
 }
 
 export async function generateDynamicWhatsAppCheckinMessage(params: {
@@ -74,7 +120,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
 
   const out = await generateWithGemini(systemPrompt, transcript || "(pas d'historique)", 0.4, false, [], "auto", {
     requestId: params.requestId,
-    model: getGlobalAiModel("gemini-2.5-flash"),
+    model: RDV_GENERATION_MODEL,
     source: "scheduled_checkins:dynamic_whatsapp",
     forceRealAi: true,
   })

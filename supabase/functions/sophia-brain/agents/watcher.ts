@@ -263,8 +263,8 @@ Règles CRITIQUES :
 - Sois TRÈS CONSERVATEUR. Ne programme un check-in QUE pour des événements majeurs (examen, entretien important, etc.) OU si l'utilisateur demande explicitement qu'on le relance.
 - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
 - N'utilise PAS les actions actives du plan comme motif de check-in ponctuel watcher (elles sont déjà suivies ailleurs).
-- Si le sujet/rappel semble déjà pris en charge via le flux initiatives/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event watcher pour ce sujet.
-- Si l'échange montre qu'une initiative couvre déjà le besoin, renvoie [] pour éviter les doublons.
+- Si le sujet/rappel semble déjà pris en charge via le flux rendez-vous/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event watcher pour ce sujet.
+- Si l'échange montre qu'un rendez-vous couvre déjà le besoin, renvoie [] pour éviter les doublons.
 - ÉTHIQUE / VERTU (OBLIGATOIRE):
   - Les check-ins doivent rester bienveillants, respectueux, non intrusifs et proportionnés.
   - Ne crée JAMAIS de check-in à tonalité culpabilisante, contrôlante, manipulatoire ou anxiogène.

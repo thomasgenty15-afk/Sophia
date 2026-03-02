@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import { newRequestId, requestHeaders } from "./requestId";
 
-export type EthicalEntityType = "action" | "initiative" | "north_star" | "vital_sign";
+export type EthicalEntityType = "action" | "rendez_vous" | "north_star" | "vital_sign";
 export type EthicalOperation = "create" | "update";
 
 export function normalizeTextForCompare(value: unknown): string {
@@ -53,7 +53,7 @@ export async function validateEthicalText(payload: ValidatePayload): Promise<{ d
   });
 
   const timeoutPromise = new Promise<never>((_, reject) => {
-    setTimeout(() => reject(new Error(timeoutMessage)), 10_000);
+    setTimeout(() => reject(new Error(timeoutMessage)), 20_000);
   });
 
   const result = await Promise.race([invokePromise, timeoutPromise]) as Awaited<typeof invokePromise>;

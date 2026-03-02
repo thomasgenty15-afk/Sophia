@@ -2,7 +2,7 @@ import { generateWithGemini, getGeminiFallbackModel } from "../../_shared/gemini
 
 export type EthicalEntityType =
   | "action"
-  | "initiative"
+  | "rendez_vous"
   | "north_star"
   | "vital_sign";
 
@@ -28,8 +28,8 @@ function blockReasonByEntity(entityType: EthicalEntityType): string {
   switch (entityType) {
     case "action":
       return "Ce type d'action n'est pas en accord avec les valeurs de Sophia.";
-    case "initiative":
-      return "Ce type d'initiative n'est pas en accord avec les valeurs de Sophia.";
+    case "rendez_vous":
+      return "Ce type de rendez-vous n'est pas en accord avec les valeurs de Sophia.";
     case "north_star":
       return "Ce type d'etoile polaire n'est pas en accord avec les valeurs de Sophia.";
     case "vital_sign":

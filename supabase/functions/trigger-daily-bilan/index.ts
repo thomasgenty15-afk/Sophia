@@ -65,6 +65,32 @@ function parseTimestampMs(value: unknown): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
+function localDowFromTimezone(
+  timezoneRaw: unknown,
+  nowMs = Date.now(),
+): number | null {
+  const timezone = String(timezoneRaw ?? "").trim() || "Europe/Paris";
+  try {
+    const formatter = new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    });
+    const parts = formatter.formatToParts(new Date(nowMs));
+    const year = Number(parts.find((p) => p.type === "year")?.value ?? "");
+    const month = Number(parts.find((p) => p.type === "month")?.value ?? "");
+    const day = Number(parts.find((p) => p.type === "day")?.value ?? "");
+    if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) {
+      return null;
+    }
+    // Compute weekday from the user's local calendar date.
+    return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+  } catch {
+    return null;
+  }
+}
+
 type WinbackStep = 1 | 2 | 3;
 
 function nextWinbackStep(current: number): WinbackStep | null {
@@ -379,6 +405,7 @@ Deno.serve(async (req) => {
     const machineHardTtlMs =
       Math.max(30, envInt("DAILY_BILAN_MACHINE_HARD_TTL_MINUTES", 240)) * 60 *
       1000;
+    const skipSundayForDaily = envBool("DAILY_BILAN_SKIP_SUNDAY", true);
 
     let sent = 0;
     let skipped = 0;
@@ -496,6 +523,13 @@ Deno.serve(async (req) => {
         }
 
         const p = profilesById.get(userId) as any;
+        const localDow = localDowFromTimezone(p?.timezone);
+        if (skipSundayForDaily && localDow === 0) {
+          skipped++;
+          skippedUserIds.push(userId);
+          skippedReasons[userId] = "sunday_reserved_for_weekly_bilan";
+          continue;
+        }
         const hasBilanOptIn = Boolean(p?.whatsapp_bilan_opted_in);
         const pauseUntilMs = parseTimestampMs(p?.whatsapp_bilan_paused_until);
         const previousPromptMs = parseTimestampMs(p?.whatsapp_bilan_last_prompt_at);

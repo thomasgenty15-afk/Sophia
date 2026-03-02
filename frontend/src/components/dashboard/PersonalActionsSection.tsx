@@ -81,7 +81,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
   };
 
   const runEthicalValidation = async (params: {
-    entityType: 'action' | 'initiative' | 'north_star' | 'vital_sign';
+    entityType: 'action' | 'rendez_vous' | 'north_star' | 'vital_sign';
     operation: 'create' | 'update';
     textFields: Record<string, unknown>;
     previousTextFields?: Record<string, unknown>;

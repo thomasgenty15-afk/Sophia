@@ -659,7 +659,7 @@ function formatDashboardCapabilitiesLiteAddon(): string {
     `  - Tableau de bord Action:\n` +
     `    1) Plan de Transformation: pilotage des actions du plan (activer, mettre en pause, supprimer, modifier). SOS blocage uniquement pour blocage d'exécution sur une action du plan.\n` +
     `    2) Actions Personnelles: habitudes hors plan principal (créer, modifier, activer, pause, supprimer, suivi d'avancement) + Étoile Polaire (valeurs numériques départ/actuel/cible).\n` +
-    `    3) Initiatives: configure Sophia a l'image du user, pour qu'elle vienne au bon moment avec le bon ton (ex: citation du matin, message de soutien dans les moments sensibles, relance douce avant un passage important). C'est une vraie personnalisation de l'accompagnement (créer, modifier, activer, pause, supprimer; paramètres message/jours/heure).\n` +
+    `    3) Rendez-vous: configure les rendez-vous où Sophia vient vers le user au bon moment avec le bon ton (ex: citation du matin, message de soutien dans les moments sensibles, relance douce avant un passage important). C'est une vraie personnalisation de l'accompagnement (créer, modifier, activer, pause, supprimer; paramètres message/jours/heure).\n` +
     `    4) Préférences: personnalisation du style de Sophia (ton, longueur, format, niveau de challenge, etc.).\n` +
     `  - Tableau de bord Architecte:\n` +
     `    1) Construction du Temple: fondations identitaires.\n` +
@@ -715,7 +715,7 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
     `  A) Tableau de bord ACTION\n` +
     `    1) Plan de Transformation\n` +
     `    2) Actions Personnelles (inclut l'Étoile Polaire)\n` +
-    `    3) Initiatives\n` +
+    `    3) Rendez-vous\n` +
     `    4) Préférences\n` +
     `  B) Tableau de bord ARCHITECTE\n` +
     `    1) Construction du Temple\n` +
@@ -730,7 +730,7 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
     `     - Intérêt: gérer des habitudes perso en parallèle du plan principal.\n` +
     `     - Possibilités clés: créer, modifier, activer, mettre en pause, supprimer, suivre la progression.\n` +
     `     - Étoile Polaire: définir/mettre à jour un indicateur chiffré (valeurs numériques: départ, actuel, cible) pour garder le cap.\n` +
-    `  3) Initiatives:\n` +
+    `  3) Rendez-vous:\n` +
     `     - Intérêt: autoriser Sophia à venir vers le user de façon proactive (rappels/messages planifiés).\n` +
     `     - Possibilités clés: créer, modifier, activer, mettre en pause (inactive), supprimer (soft-delete/inactive).\n` +
     `     - Paramètres typiques: message, pourquoi/rationale, heure locale (HH:MM), jours (lun→dim).\n` +

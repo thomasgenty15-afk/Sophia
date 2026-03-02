@@ -167,7 +167,7 @@ serve(async (req) => {
       source: "break-down-action",
       forceRealAi: true,
       maxRetries: 6,
-      httpTimeoutMs: 12_000,
+      httpTimeoutMs: 24_000,
       // Avoid Gemini preview defaults in prod; rely on stable default.
       model: getGlobalAiModel("gemini-2.5-flash"),
     } as any)

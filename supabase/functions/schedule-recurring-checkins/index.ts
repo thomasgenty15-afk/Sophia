@@ -3,9 +3,10 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
-import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts"
+import { generateWithGemini } from "../_shared/gemini.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts"
+const RDV_GENERATION_MODEL = "gpt-5.2"
 
 type RecurringReminderRow = {
   id: string
@@ -50,6 +51,24 @@ function cleanText(v: unknown, fallback = ""): string {
 function clampText(v: string, maxChars: number): string {
   if (v.length <= maxChars) return v
   return v.slice(0, maxChars - 1).trimEnd() + "…"
+}
+
+function fallbackDraftMessage(instruction: string, slotLabel: string): string {
+  return `Petit rappel (${slotLabel}) : ${clampText(cleanText(instruction), 180)}`
+}
+
+function normalizeGeneratedMessages(raw: unknown, expectedCount: number): string[] {
+  let parsed: any = null
+  try {
+    parsed = typeof raw === "string" ? JSON.parse(raw) : raw
+  } catch {
+    parsed = null
+  }
+  const messages = Array.isArray(parsed?.messages) ? parsed.messages : []
+  return messages
+    .map((m: any) => clampText(cleanText(m).replace(/\*\*/g, ""), 900))
+    .filter(Boolean)
+    .slice(0, expectedCount)
 }
 
 function parsePersonalizationLevel(raw: unknown): 1 | 2 | 3 {
@@ -215,7 +234,7 @@ async function generateRecurringReminderWeeklyDrafts(params: {
   personalizationLevel: 1 | 2 | 3
   personalContextBlock: string
   requestId: string
-}): Promise<string[]> {
+}): Promise<{ drafts: string[]; generatedCount: number; missingCount: number; repairAttempts: number }> {
   const tctx = buildUserTimeContextFromValues({
     timezone: params.timezone,
     locale: params.locale,
@@ -231,7 +250,7 @@ async function generateRecurringReminderWeeklyDrafts(params: {
     .join("\n")
 
   const systemPrompt = [
-    "Tu es Sophia (mode Companion). Tu dois rédiger une semaine d'initiatives WhatsApp.",
+    "Tu es Sophia (mode Companion). Tu dois rédiger une semaine de rendez-vous WhatsApp.",
     "",
     "Contraintes strictes:",
     "- Réponse JSON valide uniquement.",
@@ -239,6 +258,7 @@ async function generateRecurringReminderWeeklyDrafts(params: {
     '- Schéma: {"messages":["...", "..."]}',
     "- Chaque message: 2 à 5 lignes, texte brut, 1 question max.",
     "- Ton chaleureux, naturel, tutoiement.",
+    "- N'ouvre pas avec Bonjour/Salut/Coucou/Hello.",
     "- Le message doit commencer par une introduction douce et contextuelle (bilan/check-in de fin de journée) avant la question.",
     "- N'ouvre jamais directement avec une métrique, un nombre de minutes, ou une question brute.",
     "- N'utilise pas de formulation qui demande l'autorisation de répondre (ex: 'si tu veux', 'tu peux', 'ça te dit').",
@@ -248,6 +268,7 @@ async function generateRecurringReminderWeeklyDrafts(params: {
     "Objectif utilisateur de ce rappel:",
     `- Instruction: ${clampText(params.reminderInstruction, 260)}`,
     params.reminderRationale ? `- Pourquoi c'est important: ${clampText(params.reminderRationale, 320)}` : "",
+    "- Priorité absolue: respecte l'instruction utilisateur. N'altère jamais son intention pour varier le style.",
     "",
     "Niveau de personnalisation requis:",
     `- Niveau attendu: ${params.personalizationLevel}`,
@@ -256,56 +277,93 @@ async function generateRecurringReminderWeeklyDrafts(params: {
     params.personalContextBlock,
     "",
     "Variation obligatoire:",
-    "- Tu dois varier l'angle et la formulation par rapport aux 3 dernières initiatives envoyées.",
+    "- Les 3 derniers rendez-vous servent UNIQUEMENT à éviter les répétitions.",
+    "- Tu dois varier l'angle et la formulation par rapport aux 3 derniers rendez-vous envoyés.",
+    "- Tu ne dois jamais privilégier la variation au détriment de l'instruction utilisateur.",
     "- Interdit de rephraser quasi-identique les exemples ci-dessous.",
-    last3 ? `Dernières initiatives:\n${last3}` : "Dernières initiatives: (aucune)",
+    last3 ? `Derniers rendez-vous:\n${last3}` : "Derniers rendez-vous: (aucun)",
     "",
     "Repere temporel local utilisateur:",
     tctx.prompt_block,
     "",
     "Slots à couvrir (dans l'ordre):",
     slotsBlock,
+    "",
+    "Auto-check avant de répondre:",
+    "- Vérifie que chaque message est cohérent avec l'instruction utilisateur.",
+    `- Vérifie que tu renvoies exactement ${params.slots.length} messages.`,
   ]
     .filter(Boolean)
     .join("\n")
 
-  const outRaw = await generateWithGemini(
-    systemPrompt,
-    "Génère les messages maintenant.",
-    0.5,
-    true,
-    [],
-    "auto",
-    {
-      requestId: params.requestId,
-      model: getGlobalAiModel("gemini-2.5-flash"),
-      source: "schedule-recurring-checkins",
-      forceRealAi: true,
-    },
-  )
-
-  let parsed: any = null
+  let repairAttempts = 0
+  let normalized: string[] = []
   try {
-    parsed = typeof outRaw === "string" ? JSON.parse(outRaw) : outRaw
+    const outRaw = await generateWithGemini(
+      systemPrompt,
+      "Génère les messages maintenant.",
+      0.5,
+      true,
+      [],
+      "auto",
+      {
+        requestId: params.requestId,
+        model: RDV_GENERATION_MODEL,
+        source: "schedule-recurring-checkins",
+        forceRealAi: true,
+      },
+    )
+    normalized = normalizeGeneratedMessages(outRaw, params.slots.length)
   } catch {
-    parsed = null
+    normalized = []
   }
 
-  const messages = Array.isArray(parsed?.messages) ? parsed.messages : []
-  const normalized = messages
-    .map((m: any) => clampText(cleanText(m).replace(/\*\*/g, ""), 900))
-    .filter(Boolean)
-
-  if (normalized.length >= params.slots.length) {
-    return normalized.slice(0, params.slots.length)
+  if (normalized.length !== params.slots.length) {
+    repairAttempts++
+    try {
+      const repairPrompt = [
+        "La sortie précédente n'avait pas le bon nombre de messages.",
+        `Corrige et retourne EXACTEMENT ${params.slots.length} messages.`,
+        "- Priorité absolue: respecter l'instruction utilisateur.",
+        "- Les 3 derniers rendez-vous ne servent qu'à éviter les répétitions.",
+        "Slots à couvrir (ordre strict):",
+        slotsBlock,
+      ].join("\n")
+      const repairedRaw = await generateWithGemini(
+        systemPrompt,
+        repairPrompt,
+        0.4,
+        true,
+        [],
+        "auto",
+        {
+          requestId: `${params.requestId}:repair`,
+          model: RDV_GENERATION_MODEL,
+          source: "schedule-recurring-checkins",
+          forceRealAi: true,
+        },
+      )
+      const repaired = normalizeGeneratedMessages(repairedRaw, params.slots.length)
+      if (repaired.length > 0) normalized = repaired
+    } catch {
+      // Keep fallback below.
+    }
   }
 
-  // Safe fallback if model output is malformed or incomplete.
-  return params.slots.map((slot, idx) => {
-    const existing = normalized[idx]
-    if (existing) return existing
-    return `Petit rappel (${slot.slotLabel}) : ${clampText(params.reminderInstruction, 180)}`
-  })
+  if (normalized.length < params.slots.length) {
+    normalized = params.slots.map((slot, idx) => {
+      const existing = normalized[idx]
+      if (existing) return existing
+      return fallbackDraftMessage(params.reminderInstruction, slot.slotLabel)
+    })
+  }
+
+  return {
+    drafts: normalized.slice(0, params.slots.length),
+    generatedCount: normalized.length,
+    missingCount: Math.max(0, params.slots.length - normalized.length),
+    repairAttempts,
+  }
 }
 
 Deno.serve(async (req) => {
@@ -360,7 +418,7 @@ Deno.serve(async (req) => {
 
       const eventContext = `recurring_reminder:${reminder.id}`
 
-      // Batch weekly generation once per initiative:
+      // Batch weekly generation once per rendez-vous:
       // if there are still future pending/awaiting checkins in the next 7 days, skip generation.
       const horizonEndIso = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString()
       const { data: existingFutureRows } = await supabaseAdmin
@@ -400,8 +458,9 @@ Deno.serve(async (req) => {
       })
 
       let weeklyDrafts: string[] = []
+      let generationStats = { generatedCount: 0, missingCount: 0, repairAttempts: 0 }
       try {
-        weeklyDrafts = await generateRecurringReminderWeeklyDrafts({
+        const generation = await generateRecurringReminderWeeklyDrafts({
           timezone,
           locale,
           reminderInstruction: reminder.message_instruction,
@@ -412,9 +471,20 @@ Deno.serve(async (req) => {
           personalContextBlock: personalContext.block,
           requestId,
         })
+        weeklyDrafts = generation.drafts
+        generationStats = {
+          generatedCount: generation.generatedCount,
+          missingCount: generation.missingCount,
+          repairAttempts: generation.repairAttempts,
+        }
       } catch (e) {
         console.warn(`[schedule-recurring-checkins] request_id=${requestId} generation_failed reminder_id=${reminder.id}`, e)
-        weeklyDrafts = slots.map((slot) => `Petit rappel (${slot.slotLabel}) : ${clampText(cleanText(reminder.message_instruction), 180)}`)
+        weeklyDrafts = slots.map((slot) => fallbackDraftMessage(reminder.message_instruction, slot.slotLabel))
+        generationStats = {
+          generatedCount: 0,
+          missingCount: slots.length,
+          repairAttempts: 0,
+        }
       }
 
       let insertedForReminder = 0
@@ -438,7 +508,7 @@ Deno.serve(async (req) => {
           .upsert(
             {
               user_id: reminder.user_id,
-              origin: "initiative",
+              origin: "rendez_vous",
               event_context: eventContext,
               draft_message: draftMessage,
               message_mode: "static",
@@ -455,6 +525,73 @@ Deno.serve(async (req) => {
         insertedForReminder++
       }
 
+      // Strict exact-match safeguard at DB level: verify all expected slots exist, then repair missing rows.
+      let repairDbAttempts = 0
+      const expectedScheduledFor = new Set(slots.map((s) => s.scheduledFor))
+      const { data: existingRows } = await supabaseAdmin
+        .from("scheduled_checkins")
+        .select("scheduled_for")
+        .eq("user_id", reminder.user_id)
+        .eq("event_context", eventContext)
+        .in("scheduled_for", [...expectedScheduledFor])
+
+      const existingSet = new Set((existingRows ?? []).map((r: any) => String(r.scheduled_for ?? "")))
+      const missingSlots = slots.filter((s) => !existingSet.has(s.scheduledFor))
+      if (missingSlots.length > 0) {
+        repairDbAttempts++
+        for (const slot of missingSlots) {
+          const payload = {
+            source: "recurring_reminder_weekly_repair",
+            recurring_reminder_id: reminder.id,
+            reminder_instruction: reminder.message_instruction,
+            reminder_rationale: reminder.rationale ?? null,
+            personalization_level_configured: configuredLevel,
+            personalization_level_effective: personalContext.effectiveLevel,
+            generated_at: new Date().toISOString(),
+            slot_day_offset: slot.dayOffset,
+            slot_weekday: slot.weekdayKey,
+          }
+          const fallbackDraft = fallbackDraftMessage(reminder.message_instruction, slot.slotLabel)
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .upsert(
+              {
+                user_id: reminder.user_id,
+                origin: "rendez_vous",
+                event_context: eventContext,
+                draft_message: fallbackDraft,
+                message_mode: "static",
+                message_payload: payload,
+                scheduled_for: slot.scheduledFor,
+                status: "pending",
+              } as any,
+              { onConflict: "user_id,event_context,scheduled_for" },
+            )
+        }
+      }
+
+      const { data: finalRows } = await supabaseAdmin
+        .from("scheduled_checkins")
+        .select("scheduled_for")
+        .eq("user_id", reminder.user_id)
+        .eq("event_context", eventContext)
+        .in("scheduled_for", [...expectedScheduledFor])
+
+      const finalInserted = (finalRows ?? []).length
+      console.log(
+        JSON.stringify({
+          tag: "recurring_weekly_cardinality",
+          request_id: requestId,
+          reminder_id: reminder.id,
+          model: RDV_GENERATION_MODEL,
+          expected_slots: slots.length,
+          generated_messages: generationStats.generatedCount,
+          missing_count: Math.max(0, slots.length - finalInserted),
+          repair_attempts: generationStats.repairAttempts + repairDbAttempts,
+          final_inserted: finalInserted,
+        }),
+      )
+
       const { error: markErr } = await supabaseAdmin
         .from("user_recurring_reminders")
         .update({
@@ -467,7 +604,7 @@ Deno.serve(async (req) => {
         console.warn(`[schedule-recurring-checkins] request_id=${requestId} reminder_mark_failed reminder_id=${reminder.id}`, markErr)
       }
 
-      scheduled += insertedForReminder
+      scheduled += finalInserted
     }
 
     return jsonResponse(

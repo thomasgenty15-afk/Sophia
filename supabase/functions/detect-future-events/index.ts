@@ -139,8 +139,8 @@ Deno.serve(async (req) => {
         - Ne génère RIEN si aucun événement pertinent n'est trouvé. Renvoie un tableau vide [].
         - Sois TRÈS CONSERVATEUR. Ne programme un check-in QUE pour des événements majeurs (examen, entretien important, etc.) OU si l'utilisateur demande explicitement qu'on le relance.
         - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
-        - Si le sujet/rappel est déjà pris en charge via initiatives/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event.
-        - Si la conversation montre qu'une initiative couvre déjà ce besoin, renvoie [] pour éviter les doublons.
+        - Si le sujet/rappel est déjà pris en charge via rendez-vous/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event.
+        - Si la conversation montre qu'un rendez-vous couvre déjà ce besoin, renvoie [] pour éviter les doublons.
         - ÉTHIQUE / VERTU (OBLIGATOIRE):
           - Les check-ins doivent être bienveillants, respectueux, non intrusifs et proportionnés.
           - Interdit de proposer des relances culpabilisantes, manipulatoires, contrôlantes ou anxiogènes.

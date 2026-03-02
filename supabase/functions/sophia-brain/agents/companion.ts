@@ -135,7 +135,7 @@ export function buildCompanionSystemPrompt(opts: {
       - Puis tu rediriges explicitement vers le tableau de bord pour effectuer l'opération
       - Tu n'annonces jamais qu'une action a été modifiée depuis le chat.
     - EXCEPTION RAPPEL PONCTUEL:
-      - Si l'utilisateur demande un rappel ponctuel (one-shot, date/heure précise, non récurrent), ne redirige PAS vers dashboard/initiatives.
+      - Si l'utilisateur demande un rappel ponctuel (one-shot, date/heure précise, non récurrent), ne redirige PAS vers dashboard/rendez-vous.
       - Tu acquiesces simplement et clairement (ex: "Oui, c'est noté.").
       - Le watcher gère ce type de rappel en arrière-plan.
     - RÈGLE SOS BLOCAGE (STRICTE):
@@ -238,7 +238,7 @@ export function buildCompanionSystemPrompt(opts: {
       - puis tu rediriges clairement vers le tableau de bord pour faire l'opération.
     - Interdit d'affirmer qu'une action a été créée/modifiée/activée/supprimée depuis le chat.
     - EXCEPTION RAPPEL PONCTUEL:
-      - Si l'utilisateur demande un rappel ponctuel (one-shot, date/heure précise, non récurrent), ne redirige PAS vers dashboard/initiatives.
+      - Si l'utilisateur demande un rappel ponctuel (one-shot, date/heure précise, non récurrent), ne redirige PAS vers dashboard/rendez-vous.
       - Tu acquiesces simplement et clairement (ex: "Oui, c'est noté.").
       - Le watcher gère ce type de rappel en arrière-plan.
     - RÈGLE SOS BLOCAGE (STRICTE):

@@ -10,6 +10,7 @@ interface PlanInputs {
   why: string;
   blockers: string;
   actions_good_for_me: string;
+  low_motivation_message: string;
   pacing: string;
 }
 
@@ -25,6 +26,7 @@ export const usePlanGeneratorLogic = (
     why: '',
     blockers: '',
     actions_good_for_me: '',
+    low_motivation_message: '',
     pacing: 'balanced'
   });
   const [plan, setPlan] = useState<any>(null);
@@ -182,6 +184,7 @@ export const usePlanGeneratorLogic = (
                     await supabase.from('user_plans').update({
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
+                            inputs_low_motivation_message: inputs.low_motivation_message,
                             inputs_pacing: inputs.pacing,
                             title: data.grimoireTitle,
                             deep_why: data.deepWhy,
@@ -197,6 +200,7 @@ export const usePlanGeneratorLogic = (
                             submission_id: targetGoal.submission_id,
                             inputs_why: inputs.why,
                             inputs_blockers: inputs.blockers,
+                            inputs_low_motivation_message: inputs.low_motivation_message,
                             inputs_pacing: inputs.pacing,
                             title: data.grimoireTitle,
                             deep_why: data.deepWhy,
@@ -293,6 +297,7 @@ export const usePlanGeneratorLogic = (
                     submission_id: activeGoal.submission_id,
                     inputs_why: inputs.why,
                     inputs_blockers: inputs.blockers,
+                    inputs_low_motivation_message: inputs.low_motivation_message,
                     inputs_pacing: inputs.pacing,
                     title: plan.grimoireTitle,
                     deep_why: plan.deepWhy,
@@ -311,6 +316,7 @@ export const usePlanGeneratorLogic = (
                         submission_id: activeGoal.submission_id,
                         inputs_why: inputs.why,
                         inputs_blockers: inputs.blockers,
+                        inputs_low_motivation_message: inputs.low_motivation_message,
                         inputs_pacing: inputs.pacing,
                         title: plan.grimoireTitle,
                         deep_why: plan.deepWhy,

@@ -306,7 +306,7 @@ export const usePlanGeneratorData = () => {
                        const invokePromise = supabase.functions.invoke('summarize-context', {
                            body: { responses: answersContent, currentAxis: currentAxis }
                        });
-                       const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout frontend (15s)')), 15000));
+                      const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout frontend (30s)')), 30000));
                        
                        const { data: summaryData, error } = await Promise.race([invokePromise, timeoutPromise]) as any;
                        if (error) throw error;

@@ -343,7 +343,7 @@ L'action exceeded n'a PAS de `scheduled_days` (le setup est le meme que `yes_no_
 Quand Sophia arrive a l'action dont `weekly_target_status === "exceeded"` :
 
 1. Elle **felicite** (brievement, c'est une victoire reelle).
-2. Elle **propose d'augmenter l'objectif** d'elle-meme (c'est a son initiative, pas celle du user).
+2. Elle **propose d'augmenter l'objectif** d'elle-meme (elle vient avec cette proposition, pas le user).
 
 - Formulation type : "Je reviens vers toi par rapport a [action], est-ce que tu veux qu'on augmente le nombre de repetitions pour la semaine ?"
 
@@ -423,7 +423,7 @@ Lire le transcript en entier. Chaque bloc est un `[timestamp] [web] user/assista
 C'est le coeur du test. QUELQUE PART apres le vital, Sophia doit arriver a l'action exceeded (ex: "Sport 30 min") et :
 
 - **DOIT** : feliciter le user (bravo, super, bien joue, chapeau, nice, objectif atteint, etc.). La felicitation doit etre naturelle et chaleureuse, pas robotique.
-- **DOIT** : proposer d'augmenter l'objectif. C'est **a l'initiative de Sophia**, pas du user. Formulations acceptables : "Tu veux qu'on passe a 4 fois par semaine ?", "On augmente l'objectif ?", "Tu veux qu'on monte la barre ?", etc. Le chiffre cible (4, ou `target + 1`) devrait etre mentionne.
+- **DOIT** : proposer d'augmenter l'objectif. C'est **Sophia qui vient avec la proposition**, pas le user. Formulations acceptables : "Tu veux qu'on passe a 4 fois par semaine ?", "On augmente l'objectif ?", "Tu veux qu'on monte la barre ?", etc. Le chiffre cible (4, ou `target + 1`) devrait etre mentionne.
 - **INTERDIT** : demander "tu l'as fait ?" / "c'est fait ?" pour l'action exceeded. L'objectif est deja depasse, poser cette question est un echec **grave** qui signifie que le code path "target exceeded" dans `investigator/run.ts` L601-605 n'a pas ete emprunte. Si ca arrive, revenir a l'etape B et verifier `is_habit` et `weekly_target_status`.
 - **Alerte** : si Sophia saute directement a l'action 2 sans feliciter ni proposer d'augmenter, le `weekly_target_status` n'est pas "exceeded" ou le random a filtre l'action. Verifier l'investigation_state_initial.
 
