@@ -16,14 +16,30 @@ export async function computeOptInAndBilanContext(params) {
   async function hasRecentDailyBilanPrompt(admin, userId) {
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6h window
     ;
-    const { data, error } = await admin.from("chat_messages").select("id, content, metadata, created_at").eq("user_id", userId).eq("role", "assistant").gte("created_at", since).filter("metadata->>channel", "eq", "whatsapp").filter("metadata->>purpose", "in", "(daily_bilan,daily_bilan_reschedule,daily_bilan_winback)").order("created_at", {
+    const { data, error } = await admin
+      .from("chat_messages")
+      .select("id, content, metadata, created_at")
+      .eq("user_id", userId)
+      .eq("role", "assistant")
+      .gte("created_at", since)
+      .filter("metadata->>channel", "eq", "whatsapp")
+      .order("created_at", {
       ascending: false
-    }).limit(1).maybeSingle();
+      })
+      .limit(1)
+      .maybeSingle();
     if (error) throw error;
     if (!data) return false;
-    // Prefer templates for opt-in; but allow any daily_bilan outbound marker.
-    const content = data?.content ?? "";
-    return typeof content === "string" && content.length > 0;
+    // Critical guardrail:
+    // only treat inbound as a "bilan reply" when the LAST assistant turn
+    // is actually a daily_bilan prompt. This avoids hijacking unrelated
+    // conversation messages that happen within the 6h window.
+    const purpose = String((data as any)?.metadata?.purpose ?? "").trim();
+    return [
+      "daily_bilan",
+      "daily_bilan_reschedule",
+      "daily_bilan_winback",
+    ].includes(purpose);
   }
   // Always check DB for recent bilan prompt — no longer gated by regex match.
   // This allows free-form responses ("non je suis pas dispo") to be recognized as bilan context.
@@ -261,6 +277,37 @@ export async function handleOptInAndDailyBilanActions(params) {
     }
     // DECLINE: respond gently, no scheduling
     if (classification.intent === "decline") {
+      // Source fix: a decline to daily bilan must also clear any lingering
+      // investigation_state, otherwise users can be routed back into
+      // investigator consent prompts on the next turn.
+      try {
+        const { data: st } = await params.admin
+          .from("user_chat_states")
+          .select("temp_memory")
+          .eq("user_id", params.userId)
+          .eq("scope", "whatsapp")
+          .maybeSingle();
+        const tm = st?.temp_memory ?? {};
+        await params.admin
+          .from("user_chat_states")
+          .upsert({
+            user_id: params.userId,
+            scope: "whatsapp",
+            investigation_state: null,
+            temp_memory: {
+              ...(tm ?? {}),
+              __bilan_just_stopped: {
+                stopped_at: new Date().toISOString(),
+                reason: "daily_bilan_decline_fastpath",
+              },
+            },
+          }, {
+            onConflict: "user_id,scope",
+          });
+      } catch (e) {
+        console.warn("[handlers_optin_bilan] failed to clear investigation_state on decline:", e);
+      }
+
       await params.replyWithBrain({
         admin: params.admin,
         userId: params.userId,
