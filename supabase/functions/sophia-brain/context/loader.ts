@@ -689,6 +689,9 @@ function formatDashboardRedirectAddon(addon: any): string {
     `- Intention détectée: ${intentText}.\n` +
     `- Cet add-on est un support de connaissance pour bien orienter l'utilisateur (pas un exécuteur).\n` +
     `- Réponds utilement et naturellement, puis redirige vers le tableau de bord.\n` +
+    `- Anti-répétition: ne répète jamais la même redirection dashboard sur 2 tours consécutifs.\n` +
+    `- Si la redirection vient d'être donnée, continue sur le contenu (paramètres, clarifications) sans renvoyer encore vers l'UI.\n` +
+    `- Rappel dashboard possible plus tard si utile (ordre de grandeur: ~5 tours) ou si l'utilisateur redemande explicitement l'exécution UI.\n` +
     (isBreakdownIntent
       ? `- Mode SOS blocage: ne le propose QUE pour un blocage d'exécution sur une action du plan de transformation (pas pour un blocage personnel général). Pose d'abord 1 question de diagnostic ciblée, puis redirige.\n`
       : "") +
@@ -742,6 +745,7 @@ function formatDashboardPreferencesIntentAddon(addon: any): string {
     `- Clés détectées: ${keysText}.\n` +
     `- Cet add-on sert de support de connaissance pour guider correctement l'utilisateur.\n` +
     `- Réponds brièvement puis redirige vers l'écran Préférences du dashboard.\n` +
+    `- Anti-répétition: évite la même redirection sur 2 tours d'affilée; entre-temps, traite les préférences demandées en conversation.\n` +
     `- Les 9 catégories possibles à expliciter si utile: language, tone, response_length, emoji_level, voice_style, proactivity_level, timezone, daily_summary_time, coach_intensity.\n` +
     `- Donne des exemples de valeurs très rapides (ex: tone=direct, response_length=short, daily_summary_time=20:00).\n` +
     `- Interdiction de créer/appliquer un réglage depuis le chat: toute modification se fait dans le dashboard.\n` +
@@ -1003,6 +1007,8 @@ function formatDashboardRecurringReminderIntentAddon(addon: any): string {
     `- Paramètres détectés: ${fieldsText}.\n` +
     `- Cet add-on sert de support de connaissance pour orienter la configuration correctement.\n` +
     `- Réponds clairement puis redirige vers les paramètres de rappels du dashboard.\n` +
+    `- Anti-répétition: n'enchaîne pas la même redirection dashboard sur des messages consécutifs.\n` +
+    `- Si la redirection vient d'être faite, continue la discussion sur le rendez-vous (heure/jours/message) sans re-rediriger immédiatement.\n` +
     `- Si besoin, précise les paramètres configurables: mode (daily/weekly/custom), days, time, timezone, channel (app/whatsapp), start_date, end_date, pause, message.\n` +
     `- Demande seulement l'info manquante critique avant redirection si la demande est ambiguë.\n` +
     `- Interdiction de programmer/éditer un rappel depuis le chat: toute création/modification se fait dans le dashboard.\n` +

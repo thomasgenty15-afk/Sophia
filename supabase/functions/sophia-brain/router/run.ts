@@ -615,6 +615,46 @@ export async function processMessage(
   const dispatcherSignals = contextual.dispatcherSignals;
   const machineSignals = contextual.dispatcherResult?.machine_signals;
   tempMemory = contextual.tempMemory;
+  const riskScore = Number(dispatcherSignals.risk_score ?? 0);
+
+  // High-risk circuit breaker: clear machine/runtime states to avoid compounding loops
+  // when user is in distress or conversation quality degrades sharply.
+  const riskResetThreshold = Number(
+    envInt("SOPHIA_RISK_RESET_THRESHOLD", 7),
+  );
+  const shouldResetForRisk = Number.isFinite(riskScore) && riskScore >= riskResetThreshold;
+  if (shouldResetForRisk) {
+    const { tempMemory: clearedTemp, clearedKeys } = clearMachineStateTempMemory({
+      tempMemory,
+    });
+    const invWasActive = Boolean((state as any)?.investigation_state);
+    tempMemory = {
+      ...(clearedTemp ?? {}),
+      __risk_reset: {
+        at: new Date().toISOString(),
+        risk_score: riskScore,
+        threshold: riskResetThreshold,
+      },
+    };
+    await updateUserState(supabase, userId, scope, {
+      investigation_state: null as any,
+      temp_memory: tempMemory,
+      risk_level: riskScore,
+    });
+    state = {
+      ...(state ?? {}),
+      investigation_state: null,
+      temp_memory: tempMemory,
+      risk_level: riskScore,
+    } as any;
+    await trace("brain:risk_circuit_breaker_reset", "routing", {
+      risk_score: riskScore,
+      threshold: riskResetThreshold,
+      investigation_was_active: invWasActive,
+      cleared_keys_count: clearedKeys.length,
+      cleared_keys: clearedKeys.slice(0, 40),
+    }, "warn");
+  }
 
   // If a daily bilan/checkup is stale (>4h), decide implicitly:
   // - continue if message answers the current bilan thread
@@ -706,7 +746,6 @@ export async function processMessage(
     channel,
   });
 
-  const riskScore = Number(dispatcherSignals.risk_score ?? 0);
   if (riskScore !== Number((state as any)?.risk_level ?? 0)) {
     await updateUserState(supabase, userId, scope, { risk_level: riskScore });
   }
