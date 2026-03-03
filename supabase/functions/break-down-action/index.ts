@@ -1,18 +1,54 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { ensureInternalRequest } from "../_shared/internal-auth.ts"
-import { getCorsHeaders } from "../_shared/cors.ts"
+import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts"
+import { getRequestContext } from "../_shared/request_context.ts"
 
 serve(async (req) => {
-  const guard = ensureInternalRequest(req)
-  if (guard) return guard
-  const corsHeaders = getCorsHeaders(req)
+  const ctx = getRequestContext(req)
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return handleCorsOptions(req)
   }
+  const corsErr = enforceCors(req)
+  if (corsErr) return corsErr
+  const corsHeaders = getCorsHeaders(req)
 
   try {
+    const authHeader = req.headers.get("Authorization") ?? req.headers.get("authorization") ?? ""
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim()
+    const anonKey = (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim()
+    const supabaseServiceKey = (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim()
+    if (!supabaseUrl || !anonKey || !supabaseServiceKey) {
+      return new Response(JSON.stringify({ error: "Server misconfigured" }), {
+        status: 500,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+      auth: { persistSession: false },
+    })
+    const { data: authData, error: authErr } = await userClient.auth.getUser()
+    if (authErr || !authData.user) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      })
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { persistSession: false },
+    })
+
     // Deterministic test mode (no network / no GEMINI_API_KEY required)
     const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
     const isLocalSupabase =
@@ -56,11 +92,6 @@ serve(async (req) => {
       )
     }
 
-    // 1. Initialize Supabase Client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
     // 2. Fetch Context (Inputs) if submissionId is available
     let contextData = {
         why: "",
@@ -77,6 +108,7 @@ serve(async (req) => {
             .from('user_answers')
             .select('content')
             .eq('submission_id', submissionId)
+            .eq('user_id', authData.user.id)
             .maybeSingle();
         
         if (!error && answersData?.content) {
@@ -187,10 +219,20 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('[break-down-action] error', { requestId: ctx.requestId, error })
+    await logEdgeFunctionError({
+      functionName: "break-down-action",
+      error,
+      requestId: ctx.requestId,
+      userId: ctx.userId,
+      source: "break-down-action",
+      metadata: {
+        has_authorization: Boolean(req.headers.get("Authorization") ?? req.headers.get("authorization")),
+      },
+    })
     const msg = error instanceof Error ? error.message : String(error)
     return new Response(
-      JSON.stringify({ error: "Internal Server Error", detail: msg }),
+      JSON.stringify({ error: "Internal Server Error", detail: msg, request_id: ctx.requestId }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 },
     )
   }

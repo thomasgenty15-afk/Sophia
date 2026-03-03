@@ -11,6 +11,7 @@ declare const Deno: any;
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { AgentMode } from "../state-manager.ts";
 import {
+  getActionDetailsByHint,
   formatActionsSummary,
   formatPlanJson,
   formatPlanMetadata,
@@ -267,17 +268,49 @@ export async function loadContextForMode(
 
   // 6. Actions summary or details
   if (planId) {
+    let actionsDetailsLoaded = false;
+    let actionsDetailsBlockedByAmbiguity = false;
+
     if (shouldLoadActionsDetails(profile, opts.triggers)) {
-      const actionsDetails = await getActionsDetails(
-        opts.supabase,
-        opts.userId,
-        planId,
-      );
-      if (actionsDetails) {
-        context.actionsDetails = actionsDetails;
-        elementsLoaded.push("actions_details");
+      const actionHint = String(opts.triggers?.action_discussion_hint ?? "").trim();
+      if (actionHint) {
+        const targeted = await getActionDetailsByHint(
+          opts.supabase,
+          opts.userId,
+          planId,
+          actionHint,
+        );
+        if (targeted.status === "matched") {
+          context.actionsDetails = targeted.details;
+          elementsLoaded.push("actions_details_targeted");
+          actionsDetailsLoaded = true;
+        } else if (targeted.status === "ambiguous") {
+          context.actionsDetails =
+            `=== ACTION CIBLE AMBIGUE ===\n` +
+            `Le message semble viser plusieurs actions proches: ${targeted.candidates.join(", ")}.\n` +
+            `Demande une précision courte avant d'agir (ex: \"Tu parles de laquelle ?\").\n`;
+          elementsLoaded.push("actions_details_ambiguous");
+          actionsDetailsBlockedByAmbiguity = true;
+        }
       }
-    } else if (profile.actions_summary) {
+
+      // Keep legacy fallback for non-targeted operational requests.
+      if (!actionsDetailsLoaded && !actionsDetailsBlockedByAmbiguity && !actionHint) {
+        const actionsDetails = await getActionsDetails(
+          opts.supabase,
+          opts.userId,
+          planId,
+        );
+        if (actionsDetails) {
+          context.actionsDetails = actionsDetails;
+          elementsLoaded.push("actions_details");
+          actionsDetailsLoaded = true;
+        }
+      }
+    }
+
+    // Keep summary as fallback when targeted details are unavailable.
+    if (profile.actions_summary && !actionsDetailsLoaded) {
       const actionsSummary = await getActionsSummary(
         opts.supabase,
         opts.userId,
@@ -639,7 +672,7 @@ function formatTrackProgressAddon(addon: any): string {
   const msg = String(addon?.message ?? "").trim();
   if (!msg) return "";
   if (mode === "needs_clarify") {
-    return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le user a dit avoir progressé mais aucune action n'a pu être matchée.\n- Demande une précision courte (quelle action ?), puis tu pourras tracker.\n- Indice interne: ${msg}\n`;
+    return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le user a parlé de progression, mais le log auto n'a pas pu être confirmé.\n- Si possible, demande une précision courte (quelle action + fait/raté/partiel).\n- Si ça reste ambigu, propose 2 options: mise à jour directe dans le dashboard OU attendre le prochain bilan.\n- Indice interne: ${msg}\n`;
   }
   return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le progrès a été loggé automatiquement (ne relance pas le tool).\n- Tu peux continuer le flow normalement et acquiescer si besoin.\n- Résultat: ${msg}\n`;
 }
@@ -983,18 +1016,12 @@ function formatDashboardRecurringReminderIntentAddon(addon: any): string {
 function formatSafetyActiveAddon(addon: any): string {
   const level = "sentry";
   const phase = String(addon?.phase ?? "active").trim().slice(0, 40) || "active";
-  const consecutiveOk = Math.max(
-    0,
-    Math.min(5, Number(addon?.consecutive_ok ?? 0) || 0),
-  );
-  const threshold = Math.max(1, Number(addon?.threshold ?? 3) || 3);
 
   return (
     `\n\n=== ADDON SAFETY ACTIVE ===\n` +
     `- Niveau safety actif: ${level} (phase=${phase}).\n` +
-    `- Stabilisation observée: ${consecutiveOk}/${threshold} message(s) ok consécutifs.\n` +
     `- Priorité: sécurité + apaisement, ton calme, validation émotionnelle, une seule micro-étape à la fois.\n` +
-    `- Si le user va mieux, confirme le progrès sans minimiser son vécu.\n`
+    `- Tant que le niveau safety est actif, ne sors pas du protocole safety.\n`
   );
 }
 

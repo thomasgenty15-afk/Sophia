@@ -84,7 +84,12 @@ function summarizeToolArgs(toolName: string, args: any): any {
   }
   switch (String(toolName)) {
     case "track_progress":
+    case "track_progress_action":
+    case "track_progress_vital_sign":
       return pick(["target_name", "status", "value", "operation", "date"])
+    case "track_progress_north_star":
+    case "update_etoile_polaire":
+      return pick(["new_value", "note"])
     case "break_down_action":
       return pick(["action_title_or_id", "apply_to_plan", "problem"])
     case "update_action_structure":

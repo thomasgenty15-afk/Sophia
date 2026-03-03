@@ -622,8 +622,8 @@ export const useDashboardLogic = ({
 
   const handleGenerateStep = async (problem: string, helpingAction: Action) => {
     if (!helpingAction || !activePlan || !activePlanId) return;
+    const reqId = newRequestId();
     try {
-        const reqId = newRequestId();
         const { data: newAction, error } = await supabase.functions.invoke('break-down-action', {
             body: { action: helpingAction, problem, plan: activePlan, submissionId: activeSubmissionId, client_request_id: reqId },
             headers: requestHeaders(reqId),
@@ -657,8 +657,12 @@ export const useDashboardLogic = ({
 
         setActivePlan(newPlan);
     } catch (err) {
-        console.error("Error generate step:", err);
-        alert("Erreur génération action.");
+        console.error("Error generate step:", { reqId, err });
+        const detail =
+          (err as any)?.context?.detail ||
+          (err as any)?.message ||
+          "Erreur génération action.";
+        alert(`Erreur génération action. (${detail})\nreqId: ${reqId}`);
     }
   };
 

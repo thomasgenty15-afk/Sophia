@@ -7,9 +7,14 @@ import {
   updateEtoilePolaire,
 } from "../lib/north_star_tools.ts"
 
+declare const Deno: any
+
 export type CompanionModelOutput =
   | string
-  | { tool: "track_progress"; args: any }
+  | { tool: "track_progress_action"; args: any }
+  | { tool: "track_progress_vital_sign"; args: any }
+  | { tool: "track_progress_north_star"; args: any }
+  | { tool: "track_progress"; args: any } // backward compatibility alias
   | { tool: "update_etoile_polaire"; args: any }
 
 export type CompanionRunResult = {
@@ -149,12 +154,10 @@ export function buildCompanionSystemPrompt(opts: {
       - Quand SOS blocage est pertinent: tu poses d'abord 1 question de diagnostic concrète (cause, moment de blocage, contrainte), puis tu rediriges vers SOS blocage dashboard.
       - Interdit absolu: présenter SOS blocage comme un outil de départ pour "créer une stratégie" quand aucune action du plan n'existe encore.
 
-    TRACKING DES ACTIONS :
-    - Si l'utilisateur dit qu'il a FAIT une action/habitude: appelle l'outil track_progress (status=completed).
-    - S'il dit qu'il ne l'a PAS faite: track_progress (status=missed, value=0).
-
-    ÉTOILE POLAIRE (CRITIQUE) :
-    - Si l'utilisateur donne explicitement une nouvelle valeur de son Etoile Polaire: appelle l'outil update_etoile_polaire.
+    TRACKING (TOOLS TOUJOURS DISPONIBLES) :
+    - Action/framework fait ou raté -> outil track_progress_action.
+    - Signe vital mesuré (sommeil, stress, etc.) -> outil track_progress_vital_sign.
+    - Nouvelle valeur Etoile Polaire -> outil track_progress_north_star.
 
     ACTIONS COMPLETED (CRITIQUE) :
     - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
@@ -252,12 +255,10 @@ export function buildCompanionSystemPrompt(opts: {
       - Quand SOS blocage est vraiment pertinent: poser 1 question de diagnostic ciblée, puis rediriger vers SOS blocage dashboard.
       - Interdit absolu: dire que SOS blocage sert à démarrer quand aucune action du plan n'existe encore.
 
-    TRACKING DES ACTIONS :
-    - Si l'utilisateur dit qu'il a FAIT une action/habitude: appelle l'outil track_progress (status=completed).
-    - S'il dit qu'il ne l'a PAS faite: track_progress (status=missed, value=0).
-
-    ÉTOILE POLAIRE (CRITIQUE) :
-    - Si l'utilisateur donne explicitement une nouvelle valeur de son Etoile Polaire: appelle l'outil update_etoile_polaire.
+    TRACKING (TOOLS TOUJOURS DISPONIBLES) :
+    - Action/framework fait ou raté -> outil track_progress_action.
+    - Signe vital mesuré (sommeil, stress, etc.) -> outil track_progress_vital_sign.
+    - Nouvelle valeur Etoile Polaire -> outil track_progress_north_star.
 
     USER MODEL (PRÉFÉRENCES - 10 types) :
     - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
@@ -385,13 +386,13 @@ export async function retrieveContext(
 }
 
 // --- OUTILS ---
-const TRACK_PROGRESS_TOOL = {
-  name: "track_progress",
-  description: "Enregistre une progression ou un raté (Action faite, Pas faite, ou Signe Vital mesuré). À utiliser quand l'utilisateur dit 'J'ai fait mon sport' ou 'J'ai raté mon sport'.",
+const TRACK_PROGRESS_ACTION_TOOL = {
+  name: "track_progress_action",
+  description: "Enregistre une progression ou un raté sur une action/framework du plan.",
   parameters: {
     type: "OBJECT",
     properties: {
-      target_name: { type: "STRING", description: "Nom approximatif de l'action ou du signe vital." },
+      target_name: { type: "STRING", description: "Nom approximatif de l'action/framework." },
       value: { type: "NUMBER", description: "Valeur à ajouter (ex: 1 pour 'J'ai fait', 0 pour 'Raté')." },
       operation: { type: "STRING", enum: ["add", "set"], description: "'add' = ajouter au total existant, 'set' = définir la valeur absolue." },
       status: { type: "STRING", enum: ["completed", "missed", "partial"], description: "Statut de l'action : 'completed' (fait), 'missed' (pas fait/raté), 'partial' (à moitié)." },
@@ -399,6 +400,34 @@ const TRACK_PROGRESS_TOOL = {
     },
     required: ["target_name", "value", "operation"]
   }
+}
+
+const TRACK_PROGRESS_VITAL_SIGN_TOOL = {
+  name: "track_progress_vital_sign",
+  description: "Enregistre une mesure de signe vital (sommeil, stress, poids, etc.).",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      target_name: { type: "STRING", description: "Nom du signe vital (ex: sommeil, stress)." },
+      value: { type: "NUMBER", description: "Valeur mesurée." },
+      operation: { type: "STRING", enum: ["set", "add"], description: "'set' recommandé pour une mesure instantanée." },
+      date: { type: "STRING", description: "Date concernée (YYYY-MM-DD). Laisser vide pour aujourd'hui." }
+    },
+    required: ["target_name", "value", "operation"]
+  }
+}
+
+const TRACK_PROGRESS_NORTH_STAR_TOOL = {
+  name: "track_progress_north_star",
+  description: "Met à jour la valeur actuelle de l'Étoile Polaire.",
+  parameters: {
+    type: "OBJECT",
+    properties: {
+      new_value: { type: "NUMBER", description: "Nouvelle valeur actuelle." },
+      note: { type: "STRING", description: "Note optionnelle (contexte)." },
+    },
+    required: ["new_value"],
+  },
 }
 
 export async function generateCompanionModelOutput(opts: {
@@ -420,7 +449,12 @@ export async function generateCompanionModelOutput(opts: {
     `Historique:\n${historyText}\n\nUser: ${opts.message}`,
     temperature,
     false,
-    [TRACK_PROGRESS_TOOL, UPDATE_ETOILE_POLAIRE_TOOL],
+    [
+      TRACK_PROGRESS_ACTION_TOOL,
+      TRACK_PROGRESS_VITAL_SIGN_TOOL,
+      TRACK_PROGRESS_NORTH_STAR_TOOL,
+      UPDATE_ETOILE_POLAIRE_TOOL,
+    ],
     "auto",
     {
       requestId: opts.meta?.requestId,
@@ -447,10 +481,20 @@ export async function handleCompanionModelOutput(opts: {
     return { text: response.replace(/\*\*/g, ''), executed_tools: [], tool_execution: "none" }
   }
 
-  if (typeof response === 'object' && (response as any)?.tool === 'track_progress') {
-    const toolName = "track_progress"
+  if (
+    typeof response === "object" &&
+    (
+      (response as any)?.tool === "track_progress_action" ||
+      (response as any)?.tool === "track_progress_vital_sign" ||
+      (response as any)?.tool === "track_progress" // backward compatibility
+    )
+  ) {
+    const calledTool = String((response as any)?.tool ?? "")
+    const toolName = calledTool === "track_progress_vital_sign"
+      ? "track_progress_vital_sign"
+      : "track_progress_action"
     try {
-      console.log(`[Companion] 🛠️ Tool Call: track_progress`)
+      console.log(`[Companion] 🛠️ Tool Call: ${toolName}`)
       await handleTracking(supabase, userId, (response as any).args, { source: meta?.channel ?? "chat" })
 
       const confirmationPrompt = `
@@ -525,10 +569,25 @@ export async function handleCompanionModelOutput(opts: {
     }
   }
 
-  if (typeof response === "object" && (response as any)?.tool === "update_etoile_polaire") {
-    const toolName = "update_etoile_polaire"
+  if (
+    typeof response === "object" &&
+    (
+      (response as any)?.tool === "update_etoile_polaire" ||
+      (response as any)?.tool === "track_progress_north_star"
+    )
+  ) {
+    const calledTool = String((response as any)?.tool ?? "")
+    const toolName = calledTool === "track_progress_north_star"
+      ? "track_progress_north_star"
+      : "update_etoile_polaire"
     try {
-      const toolValue = Number((response as any)?.args?.new_value)
+      const effectiveArgs = calledTool === "track_progress_north_star"
+        ? {
+          new_value: Number((response as any)?.args?.new_value ?? (response as any)?.args?.value),
+          note: (response as any)?.args?.note,
+        }
+        : (response as any)?.args
+      const toolValue = Number((effectiveArgs as any)?.new_value)
       const gate = await inferEtoileUpdateFromContext({
         message,
         history,
@@ -549,7 +608,7 @@ export async function handleCompanionModelOutput(opts: {
           tool_execution: "blocked",
         }
       }
-      const note = String((response as any)?.args?.note ?? "").trim().slice(0, 300)
+      const note = String((effectiveArgs as any)?.note ?? "").trim().slice(0, 300)
       const result = await updateEtoilePolaire(supabase, userId, {
         new_value: gate.effective_value,
         ...(note ? { note } : {}),

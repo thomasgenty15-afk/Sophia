@@ -382,6 +382,10 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
 
 export async function logItem(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
   const { item_id, item_type, status, value, note, item_title } = args
+  const hasNumericValue = Number.isFinite(Number(value))
+  const normalizedStatusValue = hasNumericValue
+    ? Number(value)
+    : (String(status ?? "") === "missed" ? 0 : 1)
 
   // Génération de l'embedding pour la note (si présente)
   let embedding: number[] | null = null
@@ -470,7 +474,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
         // Status changed within the same 18h window → update latest entry instead of inserting a new one.
         await supabase.from("user_action_entries").update({
           status: status,
-          value: value,
+          value: normalizedStatusValue,
           note: note,
           performed_at: now.toISOString(),
           embedding: embedding,
@@ -542,7 +546,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
       action_id: item_id,
       action_title: item_title,
       status: status,
-      value: value,
+      value: normalizedStatusValue,
       note: note,
       performed_at: now.toISOString(),
       embedding: embedding,

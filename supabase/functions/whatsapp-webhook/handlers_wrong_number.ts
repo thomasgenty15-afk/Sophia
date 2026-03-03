@@ -1,18 +1,8 @@
-import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { createLinkToken } from "./wa_linking.ts"
-import { getAccountEmailForProfile, maybeSendEmail } from "./wa_email.ts"
-
-export async function handleWrongNumber(params: {
-  admin: SupabaseClient
-  userId: string
-  fromE164: string
-  fullName: string
-  profileEmail: string
-  defaultWhatsappNumber: string
-}): Promise<void> {
-  const nowIso = new Date().toISOString()
-  const emailNorm = (params.profileEmail ?? "").trim()
-
+import { createLinkToken } from "./wa_linking.ts";
+import { getAccountEmailForProfile, maybeSendEmail } from "./wa_email.ts";
+export async function handleWrongNumber(params) {
+  const nowIso = new Date().toISOString();
+  const emailNorm = (params.profileEmail ?? "").trim();
   // Remove the phone number from the profile so the user can relink from the correct phone.
   await params.admin.from("profiles").update({
     phone_number: null,
@@ -24,21 +14,18 @@ export async function handleWrongNumber(params: {
     whatsapp_state_updated_at: nowIso,
     whatsapp_opted_out_at: nowIso,
     whatsapp_optout_reason: "wrong_number",
-    whatsapp_optout_confirmed_at: null,
-  }).eq("id", params.userId)
-
+    whatsapp_optout_confirmed_at: null
+  }).eq("id", params.userId);
   // Send an email to the account owner with the WhatsApp link and instructions.
   // This helps recover when the user entered the wrong number.
-  const targetEmail = await getAccountEmailForProfile(params.admin, params.userId, emailNorm)
-
+  const targetEmail = await getAccountEmailForProfile(params.admin, params.userId, emailNorm);
   if (targetEmail) {
     // Prefer token-based relinking via wa.me prefilled message.
-    const { token } = await createLinkToken(params.admin, params.userId, 30)
-    const waNum = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? params.defaultWhatsappNumber).trim()
-    const waLink = `https://wa.me/${waNum}?text=${encodeURIComponent(`LINK:${token}`)}`
-
-    const prenom = (params.fullName ?? "").split(" ")[0] || ""
-    const subject = "On relie ton WhatsApp à Sophia (1 clic)"
+    const { token } = await createLinkToken(params.admin, params.userId, 30);
+    const waNum = (Deno.env.get("WHATSAPP_PHONE_NUMBER") ?? params.defaultWhatsappNumber).trim();
+    const waLink = `https://wa.me/${waNum}?text=${encodeURIComponent(`LINK:${token}`)}`;
+    const prenom = (params.fullName ?? "").split(" ")[0] || "";
+    const subject = "On relie ton WhatsApp à Sophia (1 clic)";
     const html = `
       <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Arial, sans-serif; color:#0f172a; line-height:1.7; max-width:640px; margin:0 auto;">
         <p style="margin:0 0 14px;">Hello${prenom ? ` ${prenom}` : ""},</p>
@@ -68,20 +55,24 @@ export async function handleWrongNumber(params: {
         <p style="margin:18px 0 6px;">À tout de suite,</p>
         <p style="margin:0;"><strong>Sophia Coach</strong> <span style="color:#64748b;">— Powered by IKIZEN</span></p>
       </div>
-    `
-    const sendRes = await maybeSendEmail({ to: targetEmail, subject, html })
+    `;
+    const sendRes = await maybeSendEmail({
+      to: targetEmail,
+      subject,
+      html
+    });
     await params.admin.from("communication_logs").insert({
       user_id: params.userId,
       channel: "email",
       type: "whatsapp_wrong_number_email",
       status: sendRes.ok ? "sent" : "failed",
-      metadata: sendRes.ok
-        ? { resend_id: (sendRes.data as any)?.id ?? null, wa_link_token: token }
-        : { error: (sendRes as any).error, wa_link_token: token },
-    })
+      metadata: sendRes.ok ? {
+        resend_id: sendRes.data?.id ?? null,
+        wa_link_token: token
+      } : {
+        error: sendRes.error,
+        wa_link_token: token
+      }
+    });
   }
 }
-
-
-
-

@@ -199,6 +199,7 @@ export async function generateWithGemini(
 
   const requestId = String(meta?.requestId ?? "").trim();
   const source = String(meta?.source ?? "").trim();
+  const startedAtMs = Date.now();
   // Evals are extremely sensitive to wall-clock time (edge runtime early termination).
   // We treat any requestId that contains ":tools:" (run-evals scenarios) as an eval-like request.
   const isEvalLikeRequest =
@@ -626,6 +627,39 @@ export async function generateWithGemini(
               throw new Error(`OpenAI error: ${msg}`);
             }
             const msg0 = json?.choices?.[0]?.message;
+            try {
+              const promptTokens = Number(json?.usage?.prompt_tokens ?? 0) || 0;
+              const outputTokens = Number(json?.usage?.completion_tokens ?? 0) || 0;
+              const totalTokens = Number(json?.usage?.total_tokens ?? (promptTokens + outputTokens)) || 0;
+              if (promptTokens > 0 || outputTokens > 0 || totalTokens > 0) {
+                const { computeCostUsd, logLlmUsageEvent, resolvePricing } = await import("./llm-usage.ts");
+                const price = await resolvePricing("openai", model);
+                const costUsd = await computeCostUsd("openai", model, promptTokens, outputTokens);
+                await logLlmUsageEvent({
+                  user_id: meta?.userId ?? null,
+                  request_id: meta?.requestId ?? null,
+                  source: meta?.source ?? null,
+                  provider: "openai",
+                  model,
+                  kind: "generate",
+                  prompt_tokens: promptTokens,
+                  output_tokens: outputTokens,
+                  total_tokens: totalTokens,
+                  cost_usd: costUsd,
+                  pricing_version: price?.pricing_version ?? null,
+                  input_price_per_1k_tokens_usd: price?.input_per_1k_tokens_usd ?? null,
+                  output_price_per_1k_tokens_usd: price?.output_per_1k_tokens_usd ?? null,
+                  cost_unpriced: !price,
+                  currency: price?.currency ?? "USD",
+                  status: "success",
+                  channel: source.includes("whatsapp") ? "whatsapp" : "system",
+                  latency_ms: Date.now() - startedAtMs,
+                  metadata: { jsonMode, toolChoice, hasTools: Array.isArray(tools) && tools.length > 0 },
+                });
+              }
+            } catch {
+              // best effort usage telemetry
+            }
             const toolCalls = Array.isArray(msg0?.tool_calls) ? msg0.tool_calls : [];
             if (toolCalls.length > 0) {
               const tc = toolCalls[0];
@@ -924,7 +958,8 @@ export async function generateWithGemini(
     const outputTokens = usage?.candidatesTokenCount;
     const totalTokens = usage?.totalTokenCount;
     if (typeof promptTokens === "number" || typeof totalTokens === "number") {
-      const { computeCostUsd, logLlmUsageEvent } = await import("./llm-usage.ts");
+      const { computeCostUsd, logLlmUsageEvent, resolvePricing } = await import("./llm-usage.ts");
+      const price = await resolvePricing("gemini", model);
       const costUsd = await computeCostUsd("gemini", model, promptTokens, outputTokens);
       await logLlmUsageEvent({
         user_id: meta?.userId ?? null,
@@ -937,6 +972,14 @@ export async function generateWithGemini(
         output_tokens: typeof outputTokens === "number" ? outputTokens : null,
         total_tokens: typeof totalTokens === "number" ? totalTokens : null,
         cost_usd: costUsd,
+        pricing_version: price?.pricing_version ?? null,
+        input_price_per_1k_tokens_usd: price?.input_per_1k_tokens_usd ?? null,
+        output_price_per_1k_tokens_usd: price?.output_per_1k_tokens_usd ?? null,
+        cost_unpriced: !price,
+        currency: price?.currency ?? "USD",
+        status: "success",
+        channel: source.includes("whatsapp") ? "whatsapp" : "system",
+        latency_ms: Date.now() - startedAtMs,
         metadata: { jsonMode, toolChoice, hasTools: Array.isArray(tools) && tools.length > 0 },
       });
     }
@@ -1094,7 +1137,8 @@ export async function searchWithGeminiGrounding(
       const outputTokens = usage?.candidatesTokenCount;
       const totalTokens = usage?.totalTokenCount;
       if (typeof promptTokens === "number" || typeof totalTokens === "number") {
-        const { computeCostUsd, logLlmUsageEvent } = await import("./llm-usage.ts");
+        const { computeCostUsd, logLlmUsageEvent, resolvePricing } = await import("./llm-usage.ts");
+        const price = await resolvePricing("gemini", model);
         const costUsd = await computeCostUsd("gemini", model, promptTokens, outputTokens);
         await logLlmUsageEvent({
           user_id: null,
@@ -1107,6 +1151,13 @@ export async function searchWithGeminiGrounding(
           output_tokens: typeof outputTokens === "number" ? outputTokens : null,
           total_tokens: typeof totalTokens === "number" ? totalTokens : null,
           cost_usd: costUsd,
+          operation_family: "summarize_context",
+          operation_name: "research_grounding",
+          pricing_version: price?.pricing_version ?? null,
+          input_price_per_1k_tokens_usd: price?.input_per_1k_tokens_usd ?? null,
+          output_price_per_1k_tokens_usd: price?.output_per_1k_tokens_usd ?? null,
+          cost_unpriced: !price,
+          currency: price?.currency ?? "USD",
           metadata: {
             grounding: true,
             query: String(query ?? "").slice(0, 120),
@@ -1185,7 +1236,10 @@ export async function searchWithGeminiGrounding(
   }
 }
 
-export async function generateEmbedding(text: string, meta?: { userId?: string; forceRealAi?: boolean }): Promise<number[]> {
+export async function generateEmbedding(
+  text: string,
+  meta?: { userId?: string; forceRealAi?: boolean; requestId?: string; source?: string; operationName?: string },
+): Promise<number[]> {
   // Test mode: deterministic stub embedding (vector(768)).
   // NOTE: We do NOT stub just because we're on local Supabase; if a developer has a GEMINI_API_KEY
   // they usually want embeddings to work locally (RAG, memories, etc.). Use MEGA_TEST_MODE=1 explicitly
@@ -1268,12 +1322,13 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
     const promptTokens = usage?.promptTokenCount;
     const totalTokens = usage?.totalTokenCount;
     if (typeof promptTokens === "number" || typeof totalTokens === "number") {
-      const { computeCostUsd, logLlmUsageEvent } = await import("./llm-usage.ts");
+      const { computeCostUsd, logLlmUsageEvent, resolvePricing } = await import("./llm-usage.ts");
+      const price = await resolvePricing("gemini", model);
       const costUsd = await computeCostUsd("gemini", model, promptTokens, 0);
       await logLlmUsageEvent({
         user_id: meta?.userId ?? null,
-        request_id: null,
-        source: null,
+        request_id: meta?.requestId ?? null,
+        source: meta?.source ?? "embedding",
         provider: "gemini",
         model,
         kind: "embed",
@@ -1281,7 +1336,15 @@ export async function generateEmbedding(text: string, meta?: { userId?: string; 
         output_tokens: 0,
         total_tokens: typeof totalTokens === "number" ? totalTokens : null,
         cost_usd: costUsd,
-        metadata: { embedding: true },
+        operation_family: "embedding",
+        operation_name: meta?.operationName ?? "embedding.vectorize",
+        pricing_version: price?.pricing_version ?? null,
+        input_price_per_1k_tokens_usd: price?.input_per_1k_tokens_usd ?? null,
+        output_price_per_1k_tokens_usd: price?.output_per_1k_tokens_usd ?? null,
+        cost_unpriced: !price,
+        currency: price?.currency ?? "USD",
+        status: "success",
+        metadata: { embedding: true, source: meta?.source ?? null },
       });
     }
   } catch {

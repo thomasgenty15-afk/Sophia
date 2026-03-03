@@ -19,11 +19,7 @@ type TurnMetricsLike = {
     model?: string;
     signals?: {
       safety: string;
-      intent: string;
-      intent_conf: number;
       interrupt: string;
-      topic_depth: string;
-      flow_resolution?: string;
     };
   };
   context: {
@@ -107,11 +103,11 @@ export async function persistTurnSummaryLog(opts: {
       p_latency_agent_ms: metrics.latency_ms.agent ?? null,
       p_dispatcher_model: metrics.dispatcher.model ?? null,
       p_dispatcher_safety: metrics.dispatcher.signals?.safety ?? null,
-      p_dispatcher_intent: metrics.dispatcher.signals?.intent ?? null,
-      p_dispatcher_intent_conf: metrics.dispatcher.signals?.intent_conf ?? null,
+      p_dispatcher_intent: null,
+      p_dispatcher_intent_conf: null,
       p_dispatcher_interrupt: metrics.dispatcher.signals?.interrupt ?? null,
-      p_dispatcher_topic_depth: metrics.dispatcher.signals?.topic_depth ?? null,
-      p_dispatcher_flow_resolution: metrics.dispatcher.signals?.flow_resolution ?? null,
+      p_dispatcher_topic_depth: null,
+      p_dispatcher_flow_resolution: null,
       p_context_profile: metrics.context.profile ?? null,
       p_context_elements: metrics.context.elements ?? null,
       p_context_tokens: metrics.context.tokens ?? null,

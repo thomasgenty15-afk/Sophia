@@ -1,6 +1,11 @@
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
-type Pricing = { input_per_1k_tokens_usd: number; output_per_1k_tokens_usd: number };
+type Pricing = {
+  input_per_1k_tokens_usd: number;
+  output_per_1k_tokens_usd: number;
+  pricing_version: string;
+  currency: string;
+};
 
 let _admin: any | null = null;
 let _pricingCache: Map<string, Pricing> | null = null;
@@ -26,7 +31,10 @@ async function loadPricing(): Promise<Map<string, Pricing>> {
   _pricingCacheAt = now;
   const admin = getAdmin();
   const map = new Map<string, Pricing>();
-  const { data, error } = await admin.from("llm_pricing").select("provider,model,input_per_1k_tokens_usd,output_per_1k_tokens_usd");
+  const { data, error } = await admin
+    .from("llm_pricing")
+    .select("provider,model,input_per_1k_tokens_usd,output_per_1k_tokens_usd,pricing_version,currency,is_active")
+    .eq("is_active", true);
   if (error) {
     // Best effort: fall back to empty pricing
     _pricingCache = map;
@@ -36,6 +44,8 @@ async function loadPricing(): Promise<Map<string, Pricing>> {
     map.set(key(r.provider, r.model), {
       input_per_1k_tokens_usd: Number(r.input_per_1k_tokens_usd ?? 0) || 0,
       output_per_1k_tokens_usd: Number(r.output_per_1k_tokens_usd ?? 0) || 0,
+      pricing_version: String(r.pricing_version ?? "v1"),
+      currency: String(r.currency ?? "USD"),
     });
   }
   _pricingCache = map;
@@ -43,12 +53,32 @@ async function loadPricing(): Promise<Map<string, Pricing>> {
 }
 
 export async function computeCostUsd(provider: string, model: string, promptTokens?: number, outputTokens?: number): Promise<number> {
-  const pricing = await loadPricing();
-  const p = pricing.get(key(provider, model));
+  const p = await resolvePricing(provider, model);
   if (!p) return 0;
   const inTok = Number(promptTokens ?? 0) || 0;
   const outTok = Number(outputTokens ?? 0) || 0;
   return (inTok / 1000) * p.input_per_1k_tokens_usd + (outTok / 1000) * p.output_per_1k_tokens_usd;
+}
+
+export async function resolvePricing(provider: string, model: string): Promise<Pricing | null> {
+  const pricing = await loadPricing();
+  return pricing.get(key(provider, model)) ?? null;
+}
+
+export function inferOperationFromSource(source: string | null | undefined): { operation_family: string; operation_name: string } {
+  const src = String(source ?? "").trim().toLowerCase();
+  if (!src) return { operation_family: "other", operation_name: "unknown" };
+  if (src.includes("dispatcher")) return { operation_family: "dispatcher", operation_name: src };
+  if (src.includes("sort-priorities")) return { operation_family: "sort_priorities", operation_name: src };
+  if (src.includes("summarize-context") || src.includes("summary")) return { operation_family: "summarize_context", operation_name: src };
+  if (src.includes("ethical")) return { operation_family: "ethics_check", operation_name: src };
+  if (src.includes("memorizer") || src.includes("topic_memory")) return { operation_family: "memorizer", operation_name: src };
+  if (src.includes("watcher")) return { operation_family: "watcher", operation_name: src };
+  if (src.includes("schedule") || src.includes("checkin") || src.includes("reminder")) return { operation_family: "scheduling", operation_name: src };
+  if (src.includes("duplicate")) return { operation_family: "duplicate_check", operation_name: src };
+  if (src.includes("generate-plan")) return { operation_family: "plan_generation", operation_name: src };
+  if (src.includes("embed")) return { operation_family: "embedding", operation_name: src };
+  return { operation_family: "other", operation_name: src };
 }
 
 export async function logLlmUsageEvent(evt: {
@@ -62,10 +92,23 @@ export async function logLlmUsageEvent(evt: {
   output_tokens?: number | null;
   total_tokens?: number | null;
   cost_usd?: number | null;
+  operation_family?: string | null;
+  operation_name?: string | null;
+  channel?: string | null;
+  status?: string | null;
+  latency_ms?: number | null;
+  provider_request_id?: string | null;
+  pricing_version?: string | null;
+  input_price_per_1k_tokens_usd?: number | null;
+  output_price_per_1k_tokens_usd?: number | null;
+  cost_unpriced?: boolean | null;
+  currency?: string | null;
+  step_index?: number | null;
   metadata?: Record<string, unknown>;
 }) {
   try {
     const admin = getAdmin();
+    const inferred = inferOperationFromSource(evt.source);
     await admin.from("llm_usage_events").insert({
       user_id: evt.user_id ?? null,
       request_id: evt.request_id ?? null,
@@ -77,6 +120,18 @@ export async function logLlmUsageEvent(evt: {
       output_tokens: evt.output_tokens ?? null,
       total_tokens: evt.total_tokens ?? null,
       cost_usd: evt.cost_usd ?? null,
+      operation_family: evt.operation_family ?? inferred.operation_family,
+      operation_name: evt.operation_name ?? inferred.operation_name,
+      channel: evt.channel ?? "system",
+      status: evt.status ?? "success",
+      latency_ms: evt.latency_ms ?? null,
+      provider_request_id: evt.provider_request_id ?? null,
+      pricing_version: evt.pricing_version ?? null,
+      input_price_per_1k_tokens_usd: evt.input_price_per_1k_tokens_usd ?? null,
+      output_price_per_1k_tokens_usd: evt.output_price_per_1k_tokens_usd ?? null,
+      cost_unpriced: evt.cost_unpriced ?? false,
+      currency: evt.currency ?? "USD",
+      step_index: evt.step_index ?? null,
       metadata: evt.metadata ?? {},
     });
   } catch {

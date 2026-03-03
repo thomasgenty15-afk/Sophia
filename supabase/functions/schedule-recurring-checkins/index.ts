@@ -371,21 +371,37 @@ Deno.serve(async (req) => {
   try {
     const authResp = ensureInternalRequest(req)
     if (authResp) return authResp
+    const body = await req.json().catch(() => ({} as any))
+    const reminderIdFilter = cleanText((body as any)?.reminder_id)
+    const userIdFilter = cleanText((body as any)?.user_id)
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     )
 
-    const { data: reminders, error: remindersErr } = await supabaseAdmin
+    let remindersQuery = supabaseAdmin
       .from("user_recurring_reminders")
       .select("id,user_id,message_instruction,rationale,local_time_hhmm,scheduled_days,status,personalization_level,context_policy")
       .eq("status", "active")
       .order("created_at", { ascending: true })
+    if (reminderIdFilter) remindersQuery = remindersQuery.eq("id", reminderIdFilter)
+    if (userIdFilter) remindersQuery = remindersQuery.eq("user_id", userIdFilter)
+    const { data: reminders, error: remindersErr } = await remindersQuery
 
     if (remindersErr) throw remindersErr
     if (!reminders || reminders.length === 0) {
-      return jsonResponse(req, { success: true, scheduled: 0, request_id: requestId }, { includeCors: false })
+      return jsonResponse(
+        req,
+        {
+          success: true,
+          scheduled: 0,
+          request_id: requestId,
+          reminder_id: reminderIdFilter || null,
+          user_id: userIdFilter || null,
+        },
+        { includeCors: false },
+      )
     }
 
     const userIds = [...new Set((reminders as RecurringReminderRow[]).map((r) => r.user_id))]
@@ -615,6 +631,8 @@ Deno.serve(async (req) => {
         skipped,
         candidates: reminders.length,
         request_id: requestId,
+        reminder_id: reminderIdFilter || null,
+        user_id: userIdFilter || null,
       },
       { includeCors: false },
     )

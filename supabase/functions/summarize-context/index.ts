@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { retryOn429 } from "../_shared/retry429.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"
+import { generateWithGemini } from "../_shared/gemini.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -163,71 +162,24 @@ serve(async (req) => {
       Retourne le JSON demandé maintenant.
     `
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
     const SUMMARY_MODEL = (Deno.env.get("GLOBAL_AI_MODEL") ?? "").trim() || "gemini-2.5-flash"
-    if (!GEMINI_API_KEY) {
-      console.error("❌ GEMINI_API_KEY missing");
-      throw new Error('Clé API manquante')
-    }
-
-    // 2. Appel Gemini (Modèle 2.0 Flash) — retry 429 avec backoff (timeout 10s par tentative)
-    const MAX_ATTEMPTS = 10; // ~50s max de retry pour le résumé
-    let response: Response;
-    let data: any;
-
-    response = await retryOn429(
-      async () => {
-        // Timeout par requête (10s)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => {
-          console.log("⏰ Timeout Triggered (10s)");
-          controller.abort();
-        }, 10000);
-
-        try {
-          console.log(`📡 Calling Gemini API (Summary)...`);
-          return await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${SUMMARY_MODEL}:generateContent?key=${GEMINI_API_KEY}`,
-            {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-                generationConfig: { responseMimeType: "application/json" }
-              }),
-              signal: controller.signal
-            }
-          );
-        } catch (fetchError) {
-          console.error("💥 Fetch Error Block:", fetchError);
-          if (fetchError?.name === 'AbortError') {
-            throw new Error('Gemini request timed out');
-          }
-          throw fetchError;
-        } finally {
-          clearTimeout(timeoutId);
-        }
+    const raw = await generateWithGemini(
+      systemPrompt,
+      userPrompt,
+      0.3,
+      true,
+      [],
+      "auto",
+      {
+        requestId: ctx.requestId,
+        model: SUMMARY_MODEL,
+        source: "summarize-context",
+        userId: ctx.userId ?? undefined,
       },
-      { maxAttempts: MAX_ATTEMPTS, delayMs: 5000 },
-    );
-
-    console.log("📨 Response received, status:", response.status);
-    data = await response.json();
-
-    if (!response.ok) {
-            console.error("Gemini Error:", JSON.stringify(data));
-            
-            // GESTION ERREUR 429 (QUOTA EXCEEDED)
-            if (response.status === 429) {
-                throw new Error('Le cerveau de Sophia est en surchauffe (Quota atteint). Veuillez réessayer dans quelques minutes.')
-            }
-            
-            throw new Error(`Gemini Error: ${data.error?.message || 'Unknown error'}`);
-    }
-
-    const raw = data.candidates?.[0]?.content?.parts?.[0]?.text
+    )
+    if (typeof raw !== "string") throw new Error("Réponse invalide de Gemini")
     if (!raw) {
-        console.error("❌ No summary in response:", JSON.stringify(data));
+        console.error("❌ No summary in response");
         throw new Error('Réponse vide de Gemini')
     }
 

@@ -50,6 +50,7 @@ export async function runContextualDispatcherV2(opts: {
   state: any
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
   stateSnapshot: DispatcherInputV2["stateSnapshot"]
+  actionSnapshot?: DispatcherInputV2["actionSnapshot"]
   signalHistoryKey: string
   minTurnIndex: number
   trace: (event: string, phase: BrainTracePhase, payload?: Record<string, unknown>, level?: "debug" | "info" | "warn" | "error") => Promise<void>
@@ -85,6 +86,7 @@ export async function runContextualDispatcherV2(opts: {
     activeMachine,
     stateSnapshot: opts.stateSnapshot,
     flowContext,
+    actionSnapshot: opts.actionSnapshot,
   }
 
   // Call contextual dispatcher

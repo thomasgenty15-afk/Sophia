@@ -3,6 +3,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2"
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"
+import { generateWithGemini } from "../_shared/gemini.ts"
 
 serve(async (req) => {
   const ctx = getRequestContext(req)
@@ -98,31 +99,21 @@ serve(async (req) => {
       Génère le feedback en JSON maintenant.
     `;
 
-    const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
-    if (!GEMINI_API_KEY) {
-      throw new Error('Clé API Gemini manquante')
-    }
-
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${GEMINI_API_KEY}`,
+    const rawText = await generateWithGemini(
+      systemPrompt,
+      userPrompt,
+      0.5,
+      true,
+      [],
+      "auto",
       {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: systemPrompt + "\n\n" + userPrompt }] }],
-          generationConfig: { responseMimeType: "application/json" }
-        })
-      }
+        requestId: ctx.requestId,
+        model: "gemini-2.5-flash",
+        source: "generate-feedback",
+        userId: ctx.userId ?? undefined,
+      },
     )
-
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`Erreur Gemini: ${errorData.error?.message || response.statusText}`);
-    }
-
-    const data = await response.json()
-    const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text
-    
+    if (typeof rawText !== "string") throw new Error("Réponse invalide de Gemini")
     if (!rawText) throw new Error('Réponse vide de Gemini')
 
     const jsonString = rawText.replace(/```json\n?|```/g, '').trim()

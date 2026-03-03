@@ -522,6 +522,45 @@ Rendez-vous:
   return { level, reason: reason || "Classification automatique par intention utilisateur." };
 }
 
+function internalSecret(): string {
+  return str(Deno.env.get("INTERNAL_FUNCTION_SECRET")) || str(Deno.env.get("SECRET_KEY"));
+}
+
+function functionsBaseUrl(): string {
+  const supabaseUrl = str(Deno.env.get("SUPABASE_URL"));
+  if (!supabaseUrl) return "http://kong:8000";
+  if (supabaseUrl.includes("http://kong:8000")) return "http://kong:8000";
+  return supabaseUrl.replace(/\/+$/, "");
+}
+
+async function triggerRecurringSchedulingForReminder(params: {
+  reminderId: string;
+  userId: string;
+}): Promise<number> {
+  const secret = internalSecret();
+  if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET");
+  const url = `${functionsBaseUrl()}/functions/v1/schedule-recurring-checkins`;
+  const res = await fetch(url, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "X-Internal-Secret": secret,
+    },
+    body: JSON.stringify({
+      reminder_id: params.reminderId,
+      user_id: params.userId,
+    }),
+  });
+  const data = await res.json().catch(() => ({} as any));
+  if (!res.ok) {
+    throw new Error(
+      `schedule-recurring-checkins failed (${res.status}): ${JSON.stringify(data)}`,
+    );
+  }
+  const scheduled = Number((data as any)?.scheduled ?? 0);
+  return Number.isFinite(scheduled) ? scheduled : 0;
+}
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") return handleCorsOptions(req);
   const corsErr = enforceCors(req);
@@ -622,10 +661,11 @@ Deno.serve(async (req) => {
       if (purgeErr) throw purgeErr;
     }
 
-    const seededCheckins = await seedReminderUntilNextSunday({
-      admin,
-      reminder: reminder as any,
-      level,
+    // Source-of-truth scheduling: delegate slot generation to schedule-recurring-checkins.
+    // This avoids concurrent dual writers (classify + scheduler) creating duplicate rows.
+    const seededCheckins = await triggerRecurringSchedulingForReminder({
+      reminderId,
+      userId,
     });
 
     return new Response(

@@ -3,6 +3,12 @@ import {
   getActiveSafetySentryFlow,
 } from "../supervisor.ts";
 
+function parseIsoMs(raw: unknown): number {
+  if (typeof raw !== "string" || !raw.trim()) return 0;
+  const ms = new Date(raw).getTime();
+  return Number.isFinite(ms) ? ms : 0;
+}
+
 /**
  * Check if a machine type matches a signal type.
  * R2 simplified: only safety and track_progress mappings kept.
@@ -13,10 +19,18 @@ export function machineMatchesSignalType(
 ): boolean {
   if (!machineType || !signalType) return false;
   const mappings: Record<string, string[]> = {
-    "track_progress_flow": ["track_progress"],
-    "track_progress_consent": ["track_progress"],
+    "track_progress_flow": [
+      "track_progress_action",
+      "track_progress_vital_sign",
+      "track_progress_north_star",
+    ],
+    "track_progress_consent": [
+      "track_progress_action",
+      "track_progress_vital_sign",
+      "track_progress_north_star",
+    ],
     "safety_sentry_flow": [
-      "safety_resolution",
+      "safety",
       "sentry_resolution",
       "vital_danger_resolution",
     ],
@@ -65,6 +79,13 @@ export function buildFlowContext(
   if (invState && invState.status !== "post_checkup") {
     const currentIndex = invState.current_item_index ?? 0;
     const currentItem = invState.pending_items?.[currentIndex];
+    const startedMs = parseIsoMs(invState?.started_at) ||
+      parseIsoMs((invState?.temp_memory as any)?.started_at);
+    const ageHours = startedMs > 0
+      ? Math.max(0, Number(((Date.now() - startedMs) / 3600000).toFixed(2)))
+      : 0;
+    const staleAfterHours = 4;
+    const isStale = ageHours >= staleAfterHours;
 
     const missedStreaksByAction = (invState.temp_memory as any)
       ?.missed_streaks_by_action as Record<string, number> | undefined;
@@ -83,6 +104,9 @@ export function buildFlowContext(
         missedStreaksByAction && Object.keys(missedStreaksByAction).length > 0
           ? missedStreaksByAction
           : undefined,
+      bilanStale: isStale,
+      bilanAgeHours: ageHours,
+      bilanStaleAfterHours: staleAfterHours,
     };
   }
 

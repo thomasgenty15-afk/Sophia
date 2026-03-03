@@ -36,6 +36,10 @@ export async function handleTracking(
   const { target_name, value, operation, status, date } = args;
   const searchTerm = target_name.trim();
   const entryStatus = status || "completed";
+  const hasNumericValue = Number.isFinite(Number(value));
+  const normalizedStatusValue = hasNumericValue
+    ? Number(value)
+    : (entryStatus === "missed" ? 0 : 1);
   const day = (date && date.trim()) || new Date().toISOString().split("T")[0];
   const src = (opts?.source ?? "").trim() || "chat";
 
@@ -100,8 +104,8 @@ export async function handleTracking(
           newReps = Math.max(newReps + 1, 1);
         }
       } else {
-        if (operation === "add") newReps += value;
-        else if (operation === "set") newReps = value;
+        if (operation === "add") newReps += normalizedStatusValue;
+        else if (operation === "set") newReps = normalizedStatusValue;
       }
     } else if (entryStatus === "missed") {
       // Avoid duplicate "missed" entries on the same day
@@ -143,7 +147,7 @@ export async function handleTracking(
       action_id: action.id,
       action_title: action.title,
       status: entryStatus,
-      value,
+      value: normalizedStatusValue,
       performed_at: performedAt,
     });
 
@@ -242,8 +246,9 @@ export async function handleTracking(
   if (vitalSigns && vitalSigns.length > 0) {
     const sign = vitalSigns[0] as any;
     let newValue = parseFloat(sign.current_value) || 0;
-    if (operation === "add") newValue += value;
-    else if (operation === "set") newValue = value;
+    const vitalValue = hasNumericValue ? Number(value) : 0;
+    if (operation === "add") newValue += vitalValue;
+    else if (operation === "set") newValue = vitalValue;
 
     const { error: updateError } = await supabase
       .from("user_vital_signs")

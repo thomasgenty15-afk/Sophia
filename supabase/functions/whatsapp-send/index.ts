@@ -184,6 +184,8 @@ Deno.serve(async (req) => {
     const mustUseTemplate = !isIn24h || Boolean(body.force_template)
 
     let graphPayload: any
+    let templateName: string | null = null
+    let templateLanguage: string | null = null
     if (body.message.type === "text" && !mustUseTemplate) {
       graphPayload = {
         messaging_product: "whatsapp",
@@ -227,6 +229,8 @@ Deno.serve(async (req) => {
             ],
         },
       }
+      templateName = String(graphPayload?.template?.name ?? "").trim() || null
+      templateLanguage = String(graphPayload?.template?.language?.code ?? "").trim() || null
     }
 
     // Always create an outbound tracking row (authoritative for retry/status).
@@ -248,6 +252,9 @@ Deno.serve(async (req) => {
         proactive: isProactive,
         used_template: Boolean(mustUseTemplate),
         in_24h_window: Boolean(isIn24h),
+        template_name: templateName,
+        template_language: templateLanguage,
+        unit_cost_eur: graphPayload?.type === "template" ? 0.0712 : null,
       },
     })
 

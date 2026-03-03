@@ -59,9 +59,9 @@ export interface ContextProfile {
 export interface OnDemandTriggers {
   create_action_intent?: boolean;
   update_action_intent?: boolean;
-  plan_discussion_intent?: boolean;
   breakdown_recommended?: boolean;
-  topic_depth?: "shallow" | "medium" | "deep";
+  action_discussion_detected?: boolean;
+  action_discussion_hint?: string;
 }
 
 /**
@@ -128,7 +128,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     plan_metadata: true,
     plan_json: false,
     actions_summary: true,
-    actions_details: false,
+    actions_details: "on_demand",
     identity: true,
     vectors: false,
     topic_memories: true,
@@ -144,7 +144,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     plan_metadata: true,
     plan_json: false,
     actions_summary: true,
-    actions_details: false,
+    actions_details: "on_demand",
     identity: false,
     vectors: false, // RAG spécifique à l'item, géré par investigator/run.ts
     topic_memories: false,
@@ -248,7 +248,6 @@ export function shouldLoadPlanJson(
   return Boolean(
     triggers.create_action_intent ||
       triggers.update_action_intent ||
-      triggers.plan_discussion_intent ||
       triggers.breakdown_recommended,
   );
 }
@@ -267,6 +266,7 @@ export function shouldLoadActionsDetails(
   if (!triggers) return false;
 
   return Boolean(
+    triggers.action_discussion_detected ||
     triggers.create_action_intent ||
       triggers.update_action_intent ||
       triggers.breakdown_recommended,

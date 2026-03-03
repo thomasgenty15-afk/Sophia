@@ -12,25 +12,12 @@ import {
 // ═══════════════════════════════════════════════════════════════════════════════
 
 export type SafetyLevel = "NONE" | "SENTRY";
-export type UserIntentPrimary =
-  | "CHECKUP"
-  | "SMALL_TALK"
-  | "PREFERENCE"
-  | "UNKNOWN";
 export type InterruptKind =
   | "NONE"
   | "EXPLICIT_STOP"
   | "BORED"
   | "SWITCH_TOPIC"
   | "DIGRESSION";
-export type FlowResolutionKind =
-  | "NONE"
-  | "ACK_DONE"
-  | "WANTS_RESUME"
-  | "DECLINES_RESUME"
-  | "WANTS_PAUSE";
-export type TopicDepth = "NONE" | "NEED_SUPPORT" | "SERIOUS" | "LIGHT";
-export type UserEngagementLevel = "HIGH" | "MEDIUM" | "LOW" | "DISENGAGED";
 
 export interface DispatcherSignals {
   safety: {
@@ -38,32 +25,11 @@ export interface DispatcherSignals {
     confidence: number; // 0..1
     immediacy?: "acute" | "non_acute" | "unknown";
   };
-  user_intent_primary: UserIntentPrimary;
-  user_intent_confidence: number; // 0..1
   interrupt: {
     kind: InterruptKind;
     confidence: number; // 0..1
     /** If DIGRESSION or SWITCH_TOPIC, the formalized topic to defer (e.g., "la situation avec ton boss") */
     deferred_topic_formalized?: string | null;
-  };
-  flow_resolution: {
-    kind: FlowResolutionKind;
-    confidence: number; // 0..1
-  };
-  // Transverse overlays and action intent signals.
-  // They are consumed by routing/add-ons (dashboard redirect, research, explanation, tracking).
-  topic_depth: {
-    value: TopicDepth;
-    confidence: number;
-    plan_focus?: boolean;
-  };
-  deep_reasons: {
-    opportunity: boolean;
-    action_mentioned: boolean;
-    action_hint?: string;
-    deferred_ready: boolean;
-    in_bilan_context: boolean;
-    confidence: number;
   };
   needs_explanation: {
     value: boolean;
@@ -76,62 +42,41 @@ export interface DispatcherSignals {
     query?: string;
     domain_hint?: string;
   };
-  user_engagement: {
-    level: UserEngagementLevel;
-    confidence: number;
-  };
-  topic_satisfaction: {
-    detected: boolean;
-    confidence: number;
-  };
   create_action: {
-    intent_strength: "explicit" | "implicit" | "exploration" | "none";
-    sophia_suggested: boolean;
-    user_response: "yes" | "no" | "modify" | "unclear" | "none";
-    modification_info: "available" | "missing" | "none";
-    action_type_hint: "habit" | "mission" | "framework" | "unknown";
-    action_label_hint?: string;
-    confidence: number;
+    detected: boolean;
   };
   update_action: {
     detected: boolean;
-    target_hint?: string;
-    change_type: "frequency" | "days" | "time" | "title" | "mixed" | "unknown";
-    new_value_hint?: string;
-    user_response: "yes" | "no" | "modify" | "unclear" | "none";
-    confidence: number;
   };
   breakdown_action: {
     detected: boolean;
-    target_hint?: string;
-    blocker_hint?: string;
-    sophia_suggested: boolean;
-    user_response: "yes" | "no" | "unclear" | "none";
-    confidence: number;
   };
-  track_progress: {
+  track_progress_action: {
     detected: boolean;
     target_hint?: string;
-    status_hint: "completed" | "missed" | "partial" | "unknown";
+    status_hint?: "completed" | "missed" | "partial" | "unknown";
+  };
+  track_progress_vital_sign: {
+    detected: boolean;
+    target_hint?: string;
     value_hint?: number;
-    confidence: number;
+  };
+  track_progress_north_star: {
+    detected: boolean;
+    value_hint?: number;
+  };
+  action_discussion: {
+    detected: boolean;
+    action_hint?: string;
   };
   activate_action: {
     detected: boolean;
-    target_hint?: string;
-    exercise_type_hint?: string;
-    confidence: number;
   };
   delete_action: {
     detected: boolean;
-    target_hint?: string;
-    reason_hint?: string;
-    confidence: number;
   };
   deactivate_action: {
     detected: boolean;
-    target_hint?: string;
-    confidence: number;
   };
   dashboard_preferences_intent: {
     detected: boolean;
@@ -153,29 +98,8 @@ export interface DispatcherSignals {
     reminder_fields?: string[];
     confidence: number;
   };
-  /**
-   * Safety resolution signals (for active safety flows):
-   * - user_confirms_safe: user explicitly confirms they are safe
-   * - stabilizing_signal: user shows signs of calming ("ça va mieux", "merci", etc.)
-   * - symptoms_still_present: user still mentions physical/emotional symptoms
-   * - external_help_mentioned: user mentions contacting help (SAMU, ami, médecin)
-   * - escalate_to_sentry: situation became life-threatening
-   */
-  safety_resolution: {
-    user_confirms_safe: boolean;
-    stabilizing_signal: boolean;
-    symptoms_still_present: boolean;
-    external_help_mentioned: boolean;
-    escalate_to_sentry: boolean;
-    confidence: number; // 0..1
-  };
-  safety_stabilization: {
-    stabilizing_turn: boolean;
-    confidence: number; // 0..1
-  };
   // deferred_signal: REMOVED (R2 simplification - deferred topics system disabled)
   // consent_to_relaunch: REMOVED (R2 simplification - relaunch consent system disabled)
-  wants_tools: boolean;
   risk_score: number; // 0..10 (compatibility)
 }
 
@@ -236,6 +160,13 @@ export interface DispatcherInputV2 {
   };
   /** Flow context for enriching machine-specific prompts */
   flowContext?: FlowContext;
+  /** Lightweight snapshot of plan actions for better action-name detection */
+  actionSnapshot?: Array<{
+    title: string;
+    status: "active" | "paused" | "completed" | "other";
+    kind?: "action" | "framework" | "vital_sign" | "north_star";
+    description?: string;
+  }>;
 }
 
 /**
@@ -332,6 +263,8 @@ export interface MachineSignals {
     trigger_phrase?: string;
   };
   wants_to_checkup?: boolean; // User response to "tu veux faire le bilan?"
+  wants_to_continue_bilan?: boolean; // Implicit continuation after stale bilan (>4h)
+  dont_want_continue_bilan?: boolean; // User switched topic / unrelated while stale bilan active
   track_from_bilan_done_ok?: boolean; // User wants track_progress when bilan already done
 
   // Generic pending intent resolution (hybrid model: common wrapper + typed decisions)
@@ -361,58 +294,39 @@ export interface DispatcherOutputV2 {
 
 export const DEFAULT_SIGNALS: DispatcherSignals = {
   safety: { level: "NONE", confidence: 0.9 },
-  user_intent_primary: "UNKNOWN",
-  user_intent_confidence: 0.5,
   interrupt: { kind: "NONE", confidence: 0.9 },
-  flow_resolution: { kind: "NONE", confidence: 0.9 },
-  topic_depth: { value: "NONE", confidence: 0.9, plan_focus: false },
-  deep_reasons: {
-    opportunity: false,
-    action_mentioned: false,
-    deferred_ready: false,
-    in_bilan_context: false,
-    confidence: 0.9,
-  },
   needs_explanation: { value: false, confidence: 0.9 },
   needs_research: { value: false, confidence: 0.9 },
-  user_engagement: { level: "MEDIUM", confidence: 0.5 },
-  topic_satisfaction: { detected: false, confidence: 0.5 },
   create_action: {
-    intent_strength: "none",
-    sophia_suggested: false,
-    user_response: "none",
-    modification_info: "none",
-    action_type_hint: "unknown",
-    confidence: 0.5,
+    detected: false,
   },
   update_action: {
     detected: false,
-    change_type: "unknown",
-    user_response: "none",
-    confidence: 0.5,
   },
   breakdown_action: {
     detected: false,
-    sophia_suggested: false,
-    user_response: "none",
-    confidence: 0.5,
   },
-  track_progress: {
+  track_progress_action: {
     detected: false,
     status_hint: "unknown",
-    confidence: 0.5,
+  },
+  track_progress_vital_sign: {
+    detected: false,
+  },
+  track_progress_north_star: {
+    detected: false,
+  },
+  action_discussion: {
+    detected: false,
   },
   activate_action: {
     detected: false,
-    confidence: 0.5,
   },
   delete_action: {
     detected: false,
-    confidence: 0.5,
   },
   deactivate_action: {
     detected: false,
-    confidence: 0.5,
   },
   dashboard_preferences_intent: {
     detected: false,
@@ -422,19 +336,6 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
     detected: false,
     confidence: 0.5,
   },
-  safety_resolution: {
-    user_confirms_safe: false,
-    stabilizing_signal: false,
-    symptoms_still_present: false,
-    external_help_mentioned: false,
-    escalate_to_sentry: false,
-    confidence: 0.5,
-  },
-  safety_stabilization: {
-    stabilizing_turn: false,
-    confidence: 0.5,
-  },
-  wants_tools: false,
   risk_score: 0,
 };
 
@@ -453,17 +354,14 @@ const MOTHER_SIGNALS_SECTION = `
 === SIGNAUX MÈRES (OBLIGATOIRES) ===
 Tu détectes TOUJOURS:
 - safety (NONE / SENTRY)
-- user_intent_primary (CHECKUP / SMALL_TALK / PREFERENCE / UNKNOWN)
 - interrupt (NONE / EXPLICIT_STOP / BORED / SWITCH_TOPIC / DIGRESSION)
-- track_progress (si l'utilisateur dit avoir fait / raté une action)
+- track_progress_action / track_progress_vital_sign / track_progress_north_star (section TOOLS)
 - needs_explanation (si l'utilisateur demande d'expliquer / clarifier)
 - needs_research (si question factuelle fraîche / web)
 - CRUD action intents (create/update/breakdown/activate/delete/deactivate) pour redirection dashboard
 - dashboard_preferences_intent (si user veut modifier les préférences UX/UI Sophia)
 - dashboard_recurring_reminder_intent (si user veut régler ses rappels récurrents)
-- user_engagement (HIGH / MEDIUM / LOW / DISENGAGED)
 - risk_score (0-10)
-- safety_resolution (uniquement si safety != NONE)
 
 IMPORTANT:
 - Les signaux CRUD servent à COMPRENDRE l'intention et déclencher une redirection dashboard.
@@ -471,17 +369,35 @@ IMPORTANT:
 - Tu ne décides jamais d'exécution d'outil ici.
 `;
 
-const TRACK_AND_DASHBOARD_SIGNALS_SECTION = `
-=== DÉTECTION TRACK_PROGRESS + CRUD (REDIRECTION DASHBOARD) ===
-1) track_progress
-- Détecte quand le user dit qu'une action/habitude a été faite, ratée, partielle.
-- Renseigne: target_hint, status_hint, value_hint, confidence.
-- Exemples:
-  * "j'ai fait ma méditation" -> completed
-  * "j'ai raté le sport" -> missed
-  * "j'ai fait à moitié" -> partial
+const TOOLS_SIGNALS_SECTION = `
+=== SECTION TOOLS ===
+Objectif: détecter les intentions de tracking exploitables par les outils, hors bilan comme en conversation normale.
 
-2) CRUD intents (pour redirection dashboard, pas exécution)
+1) track_progress_action
+- Cas: user dit avoir fait / raté / partiellement fait une action ou framework.
+- Renseigne: detected + target_hint + status_hint (completed|missed|partial|unknown).
+- Exemples:
+  * "je viens de faire ma séance de sport" -> detected=true, status_hint=completed
+  * "j'ai raté la méditation hier" -> detected=true, status_hint=missed
+
+2) track_progress_vital_sign
+- Cas: user donne une mesure d'un signe vital (sommeil, poids, humeur notée, etc.).
+- Renseigne: detected + target_hint + value_hint (numérique).
+- Exemples:
+  * "j'ai dormi 6h30" -> detected=true, target_hint="sommeil", value_hint=6.5
+  * "mon stress est à 7" -> detected=true, target_hint="stress", value_hint=7
+
+3) track_progress_north_star
+- Cas: user donne une nouvelle valeur actuelle de son étoile polaire.
+- Renseigne: detected + value_hint (numérique).
+- Exemples:
+  * "mon étoile polaire est à 42" -> detected=true, value_hint=42
+`;
+
+const PLAN_SIGNALS_SECTION = `
+=== SECTION PLAN ===
+=== DÉTECTION CRUD + ACTION_DISCUSSION (REDIRECTION DASHBOARD) ===
+1) CRUD intents (pour redirection dashboard, pas exécution)
 - create_action: le user veut créer/ajouter une nouvelle action
 - update_action: modifier fréquence/jours/heure/titre
 - breakdown_action: découper une action en micro-étape
@@ -491,22 +407,31 @@ Exemples:
 - "je veux changer les jours de mon sport" -> update_action.detected=true
 - "supprime cette action" -> delete_action.detected=true
 - "active l'exercice respiration" -> activate_action.detected=true
-- "je veux ajouter une nouvelle habitude" -> create_action.intent_strength=explicit
+- "je veux ajouter une nouvelle habitude" -> create_action.detected=true
 
-2.bis) breakdown_action (SOS blocage) — REGLES FORTES
+1.ter) action_discussion (discussion sur une action existante)
+- Détecte si le user parle d'une action existante du plan sans forcément demander une opération CRUD.
+- Renseigne: action_discussion.detected + action_discussion.action_hint.
+- Utilise le snapshot (actions, signes vitaux, étoile polaire) pour mieux reconnaître l'élément visé.
+- Tolère de petites fautes d'orthographe/accents/pluriels sur le nom d'action.
+- Exemples:
+  * "ma medittion du soir me saoule" -> action_discussion.detected=true, action_hint="méditation du soir"
+  * "pour mon sport je bloque" -> action_discussion.detected=true, action_hint="sport"
+  * "je veux parler de mon plan" -> action_discussion.detected=false
+
+1.bis) breakdown_action (SOS blocage) — REGLES FORTES
 - Détecte breakdown_action dès que le user exprime un BLOCAGE EXÉCUTION sur une action:
   * "je galère", "j'arrive pas", "je bloque", "trop dur", "trop long", "impossible"
   * "j'ai besoin d'une étape intermédiaire", "micro-étape", "plus simple"
   * "comment je fais quand je galère ?", "SOS blocage"
 - Même si la cible n'est pas parfaitement nommée, mets breakdown_action.detected=true.
-- Si la cible est floue: target_hint=null MAIS renseigne blocker_hint avec la difficulté concrète.
-- Si la cible est identifiable: renseigne target_hint + blocker_hint.
+- Si la cible est floue: breakdown_action.detected=true quand même.
 - Exemples:
-  * "j'arrive pas à tenir 30 min de sport" -> breakdown_action.detected=true, target_hint="sport", blocker_hint="durée trop longue"
-  * "je galère avec ma routine du soir" -> breakdown_action.detected=true, target_hint="routine du soir"
-  * "quand je bloque sur une action je fais quoi ?" -> breakdown_action.detected=true, blocker_hint="blocage d'exécution"
+  * "j'arrive pas à tenir 30 min de sport" -> breakdown_action.detected=true
+  * "je galère avec ma routine du soir" -> breakdown_action.detected=true
+  * "quand je bloque sur une action je fais quoi ?" -> breakdown_action.detected=true
 
-3) dashboard_preferences_intent (redirection réglages UX/UI)
+2) dashboard_preferences_intent (redirection réglages UX/UI)
 - Détecte quand le user veut changer ses préférences produit (pas une action du plan).
 - Renseigne "preference_keys" avec les clés canoniques détectées parmi:
   * language: fr | en
@@ -523,7 +448,7 @@ Exemples:
   * "mets moins d'emojis" -> emoji_level
   * "je veux un ton plus direct" -> tone
 
-4) dashboard_recurring_reminder_intent (redirection rappels récurrents)
+3) dashboard_recurring_reminder_intent (redirection rappels récurrents)
 - Détecte quand le user veut configurer/éditer des rappels planifiés.
 - Renseigne "reminder_fields" avec les infos à paramétrer si présentes:
   * mode (daily|weekly|custom), days, time, timezone,
@@ -545,30 +470,6 @@ const LAST_MESSAGE_PROTOCOL_SECTION = `
 /**
  * Flow resolution detection - detect user's intent to resume, pause, or finish a topic.
  */
-const FLOW_RESOLUTION_SECTION = `
-=== DETECTION FLOW_RESOLUTION ===
-Detecte si l'utilisateur veut REPRENDRE, PAUSER ou TERMINER un sujet.
-
-VALEURS POSSIBLES:
-- "WANTS_RESUME": L'utilisateur veut REPRENDRE un sujet defere ou mis de cote
-  * "je veux en parler maintenant", "non mais je veux en parler", "bah je veux !"
-  * "on peut en parler ?", "j'aimerais qu'on en discute", "revenons-y"
-  * "non je veux" (= pas un refus, c'est une demande de reprendre!)
-- "DECLINES_RESUME": L'utilisateur REFUSE de reprendre un sujet propose
-  * "non", "plus tard", "pas maintenant", "on verra"
-- "ACK_DONE": L'utilisateur confirme avoir TERMINE quelque chose
-  * "c'est fait", "j'ai fini", "ok c'est bon"
-- "WANTS_PAUSE": L'utilisateur veut faire une PAUSE
-  * "pause", "on fait une pause", "je reviens"
-- "NONE": Aucun des cas ci-dessus
-
-REGLE CRITIQUE - ATTENTION AU "NON" SUIVI DE "JE VEUX":
-- "non" seul = DECLINES_RESUME
-- "non je veux en parler" = WANTS_RESUME (l'utilisateur VEUT discuter!)
-- "bah je veux" = WANTS_RESUME
-- "mais si" = WANTS_RESUME
-`;
-
 /**
  * Interrupt detection - user explicitly wants to stop/pause the current flow or change topic.
  * Used by the router for hard-guard interruptions (notably active checkup/bilan).
@@ -593,43 +494,6 @@ VALEURS POSSIBLES:
 - "SWITCH_TOPIC": l'utilisateur introduit un autre sujet ("sinon", "au fait") → nouveau sujet clair
 - "DIGRESSION": petit ecart temporaire (anecdote, question rapide) sans intention de changer durablement
 - "NONE": aucun des cas
-`;
-
-/**
- * Topic depth detection - distinguish light vs serious vs needs immediate support.
- */
-const TOPIC_DEPTH_SECTION = `
-=== DETECTION TOPIC_DEPTH ===
-Objectif: classer le SUJET du message (si topic_exploration) en:
-- "LIGHT": discussion légère (small-talk, anecdotes, recommandations, humour, séries, etc.)
-- "SERIOUS": sujet sérieux (problèmes, peurs, travail, relations, confiance, stress) MAIS sans urgence
-- "NEED_SUPPORT": l'utilisateur a besoin d'un soutien émotionnel IMMÉDIAT (sans forcément danger vital)
-- "NONE": pas de sujet à explorer
-
-plan_focus (bool):
-- true UNIQUEMENT si l'utilisateur parle de SON PLAN / objectifs / phases / règles / actions (discussion sur le plan, pas une opération outil)
-- false sinon (travail, relations, émotions, séries, etc.)
-Exemples plan_focus=true: "dans mon plan", "ma phase 2", "mes actions", "mon grimoire", "mon objectif", "je doute de la stratégie"
-Exemples plan_focus=false: "au boulot…", "j'ose pas parler", "j'ai peur du jugement", "reco de série"
-
-RÈGLE CLÉ (anti-surclassement):
-- "NEED_SUPPORT" = seulement si le message indique une détresse/overwhelm actuelle et un besoin d'être soutenu maintenant.
-- Sinon, par défaut, préfère "SERIOUS" (pas safety).
-
-CRITÈRES "NEED_SUPPORT" (exemples):
-- panique/angoisse présente, souffle court, "je craque", "je suis au bout", "je n'en peux plus"
-- pleurs incontrôlables / crise émotionnelle en cours
-- demande explicite de soutien: "j'ai besoin d'aide", "aide-moi là", "j'ai besoin qu'on parle maintenant"
-- sentiment d'insécurité émotionnelle immédiate (mais sans éléments de danger vital → safety reste séparé)
-
-CRITÈRES "SERIOUS" (exemples):
-- peur du jugement, manque de confiance, stress au travail, "j'ose pas parler en réunion"
-- tristesse ou inquiétude exprimée calmement, sans urgence
-- problèmes relationnels / décisions importantes / blocages
-
-IMPORTANT:
-- "peur d'avoir l'air bête", "peur du jugement", "manque de confiance" = SERIOUS (PAS NEED_SUPPORT).
-- Si l'utilisateur dit explicitement "c'est pas une crise", c'est un signal fort pour SERIOUS (PAS NEED_SUPPORT).
 `;
 
 const NEEDS_EXPLANATION_SECTION = `
@@ -676,22 +540,6 @@ IMPORTANT:
 - Ne PAS activer si le LLM peut répondre de mémoire (connaissances générales stables)
 `;
 
-// wants_tools is legacy/backward-compatible. Keep it conservative.
-const WANTS_TOOLS_SECTION = ``;
-
-const SAFETY_RESOLUTION_SECTION = `
-=== DETECTION SAFETY_RESOLUTION ===
-But: "safety_resolution" ne sert QUE si un sujet de SÉCURITÉ est actif dans le message (ou si safety.level != NONE).
-
-RÈGLE DURE:
-- Si safety.level == "NONE" => safety_resolution doit rester neutre:
-  user_confirms_safe=false, stabilizing_signal=false, symptoms_still_present=false,
-  external_help_mentioned=false, escalate_to_sentry=false, confidence <= 0.3
-
-METTRE des valeurs non-neutres uniquement si safety.level est SENTRY
-et que l'utilisateur dit explicitement qu'il va mieux / pas mieux / symptômes / aide externe.
-`;
-
 const CHECKUP_INTENT_DETECTION_SECTION = `
 === DETECTION CHECKUP_INTENT ===
 Detecte si l'utilisateur veut faire son BILAN (checkup quotidien).
@@ -702,10 +550,10 @@ MOTS-CLES / EXPRESSIONS A DETECTER:
 - Confirmation: "oui" apres proposition de bilan par Sophia ("tu veux qu'on fasse le bilan?")
 
 ATTENTION - NE PAS CONFONDRE:
-- "j'ai fait X" = track_progress, PAS checkup
+- "j'ai fait X" = track_progress_action, PAS checkup
 - "je veux modifier mon plan" = update_action, PAS checkup
 - Discussion sur une action specifique = PAS checkup
-- "j'ai pas fait X" hors bilan = track_progress, PAS checkup
+- "j'ai pas fait X" hors bilan = track_progress_action, PAS checkup
 `;
 
 /**
@@ -749,6 +597,27 @@ function buildDeferredTopicsSection(flowContext?: FlowContext): string {
   return "";
 }
 
+function buildActionSnapshotSection(
+  actionSnapshot?: DispatcherInputV2["actionSnapshot"],
+): string {
+  if (!Array.isArray(actionSnapshot) || actionSnapshot.length === 0) return "";
+  const lines = actionSnapshot
+    .slice(0, 30)
+    .map((a) => {
+      const title = String(a?.title ?? "").trim().slice(0, 80);
+      if (!title) return null;
+      const status = String(a?.status ?? "other").trim().slice(0, 20) || "other";
+      const kind = String(a?.kind ?? "action").trim().slice(0, 20) || "action";
+      const description = String(a?.description ?? "").trim().slice(0, 140);
+      return description
+        ? `- [${kind}|${status}] ${title} — ${description}`
+        : `- [${kind}|${status}] ${title}`;
+    })
+    .filter(Boolean);
+  if (lines.length === 0) return "";
+  return `\n=== SNAPSHOT PLAN (ACTIONS + VITALS + ETOILE POLAIRE) ===\n${lines.join("\n")}\n`;
+}
+
 /**
  * Flow context for enriching machine-specific addons.
  */
@@ -788,6 +657,9 @@ export interface FlowContext {
   missedStreak?: number;
   missedStreaksByAction?: Record<string, number>;
   isBilan?: boolean;
+  bilanStale?: boolean;
+  bilanAgeHours?: number;
+  bilanStaleAfterHours?: number;
   /** For safety flows (sentry): crisis context */
   isSafetyFlow?: boolean;
   safetyFlowType?: "sentry";
@@ -880,7 +752,7 @@ function buildMachineAddonWithContext(
     return `
 === SIGNAUX SPECIFIQUES (safety_${safetyType}_flow actif — phase: ${phase}) ===
 Phase actuelle: ${phase} | Tour: ${turnCount}
-Analyse safety_resolution: l'utilisateur va-t-il mieux ? Confirme safe ? Aide externe ?
+Conserve le contexte safety actif et reste prudent tant que safety.level reste SENTRY.
 
 SORTIE (dans machine_signals):
 {
@@ -895,11 +767,25 @@ SORTIE (dans machine_signals):
   if (flowContext?.isBilan) {
     const currentItem = flowContext.currentItemTitle ?? "un item";
     const missedStreak = flowContext.missedStreak ?? 0;
+    const bilanStale = flowContext.bilanStale === true;
+    const bilanAgeHours = Number(flowContext.bilanAgeHours ?? 0);
+    const staleAfterHours = Number(flowContext.bilanStaleAfterHours ?? 4);
     let addon = `
 === SIGNAUX SPECIFIQUES (bilan actif) ===
 Item en cours: "${currentItem}"`;
     if (missedStreak > 0) {
       addon += `\nStreak de ratés: ${missedStreak} jours`;
+    }
+    if (bilanStale) {
+      addon += `\nBilan stale: OUI (age ~${bilanAgeHours}h, seuil ${staleAfterHours}h)`;
+      addon +=
+        `\nSi le message répond à la question bilan en cours, mets "wants_to_continue_bilan": true.`;
+      addon +=
+        `\nSi le message lance un nouveau sujet (non lié à la question bilan), mets "dont_want_continue_bilan": true.`;
+      addon +=
+        `\nNe demande PAS de consentement explicite ici; classification implicite uniquement.`;
+    } else {
+      addon += `\nBilan stale: NON`;
     }
     addon +=
       `\nReste focalisé sur l'item en cours et les signaux utiles au bilan.`;
@@ -929,8 +815,15 @@ function buildDispatcherPromptV2(opts: {
   stateSnapshot: DispatcherInputV2["stateSnapshot"];
   lastAssistantMessage: string;
   flowContext?: FlowContext;
+  actionSnapshot?: DispatcherInputV2["actionSnapshot"];
 }): string {
-  const { activeMachine, stateSnapshot, lastAssistantMessage, flowContext } =
+  const {
+    activeMachine,
+    stateSnapshot,
+    lastAssistantMessage,
+    flowContext,
+    actionSnapshot,
+  } =
     opts;
 
   let prompt =
@@ -948,16 +841,15 @@ ETAT ACTUEL:
     }
 - Machine active: ${activeMachine ?? "AUCUNE"}
 `;
+  prompt += buildActionSnapshotSection(actionSnapshot);
 
   prompt += MOTHER_SIGNALS_SECTION;
   prompt += LAST_MESSAGE_PROTOCOL_SECTION;
-  prompt += FLOW_RESOLUTION_SECTION;
   prompt += INTERRUPT_SECTION;
-  prompt += TOPIC_DEPTH_SECTION;
   prompt += NEEDS_EXPLANATION_SECTION;
   prompt += NEEDS_RESEARCH_SECTION;
-  prompt += TRACK_AND_DASHBOARD_SIGNALS_SECTION;
-  prompt += SAFETY_RESOLUTION_SECTION;
+  prompt += TOOLS_SIGNALS_SECTION;
+  prompt += PLAN_SIGNALS_SECTION;
 
   if (!stateSnapshot.investigation_active) {
     prompt += CHECKUP_INTENT_DETECTION_SECTION;
@@ -1000,6 +892,7 @@ export async function analyzeSignalsV2(
     stateSnapshot: input.stateSnapshot,
     lastAssistantMessage: input.lastAssistantMessage,
     flowContext: input.flowContext,
+    actionSnapshot: input.actionSnapshot,
   });
 
   // Build message context (last 5 turns / 10 messages for disambiguation, analyze only last)
@@ -1026,28 +919,21 @@ ${contextMessages}
 {
   "signals": {
     "safety": { "level": "string", "confidence": "number", "immediacy": "string" },
-    "user_intent_primary": "string",
-    "user_intent_confidence": "number",
     "interrupt": { "kind": "string", "confidence": "number" },
-    "flow_resolution": { "kind": "string", "confidence": "number" },
-    "topic_depth": { "value": "string", "confidence": "number", "plan_focus": "boolean" },
-    "deep_reasons": { "opportunity": "boolean", "action_mentioned": "boolean", "action_hint": "string|null", "confidence": "number" },
     "needs_explanation": { "value": "boolean", "confidence": "number" },
     "needs_research": { "value": "boolean", "confidence": "number", "query": "string|null", "domain_hint": "string|null" },
-    "user_engagement": { "level": "string", "confidence": "number" },
-    "topic_satisfaction": { "detected": "boolean", "confidence": "number" },
-    "create_action": { "intent_strength": "string", "sophia_suggested": "boolean", "user_response": "string", "action_type_hint": "string", "confidence": "number" },
-    "update_action": { "detected": "boolean", "target_hint": "string|null", "change_type": "string", "user_response": "string", "confidence": "number" },
-    "breakdown_action": { "detected": "boolean", "target_hint": "string|null", "blocker_hint": "string|null", "user_response": "string", "confidence": "number" },
-    "track_progress": { "detected": "boolean", "target_hint": "string|null", "status_hint": "string", "value_hint": "number|null", "confidence": "number" },
-    "activate_action": { "detected": "boolean", "target_hint": "string|null", "exercise_type_hint": "string|null", "confidence": "number" },
-    "delete_action": { "detected": "boolean", "target_hint": "string|null", "reason_hint": "string|null", "confidence": "number" },
-    "deactivate_action": { "detected": "boolean", "target_hint": "string|null", "confidence": "number" },
+    "create_action": { "detected": "boolean" },
+    "update_action": { "detected": "boolean" },
+    "breakdown_action": { "detected": "boolean" },
+    "track_progress_action": { "detected": "boolean", "target_hint": "string|null", "status_hint": "completed|missed|partial|unknown" },
+    "track_progress_vital_sign": { "detected": "boolean", "target_hint": "string|null", "value_hint": "number|null" },
+    "track_progress_north_star": { "detected": "boolean", "value_hint": "number|null" },
+    "action_discussion": { "detected": "boolean", "action_hint": "string|null" },
+    "activate_action": { "detected": "boolean" },
+    "delete_action": { "detected": "boolean" },
+    "deactivate_action": { "detected": "boolean" },
     "dashboard_preferences_intent": { "detected": "boolean", "preference_keys": ["string"], "confidence": "number" },
     "dashboard_recurring_reminder_intent": { "detected": "boolean", "reminder_fields": ["string"], "confidence": "number" },
-    "safety_resolution": { "user_confirms_safe": "boolean", "stabilizing_signal": "boolean", "symptoms_still_present": "boolean", "external_help_mentioned": "boolean", "escalate_to_sentry": "boolean", "confidence": "number" },
-    "safety_stabilization": { "stabilizing_turn": "boolean", "confidence": "number" },
-    "wants_tools": "boolean",
     "risk_score": "number"
   },
   "new_signals": [
@@ -1058,6 +944,8 @@ ${contextMessages}
   ],
   "machine_signals": {
     /* VOIR SECTION SIGNAUX SPECIFIQUES - inclure seulement si une machine est active */
+    "wants_to_continue_bilan": "boolean|null",
+    "dont_want_continue_bilan": "boolean|null",
     "pending_resolution": {
       "status": "resolved|unresolved|unrelated",
       "pending_type": "dual_tool|relaunch_consent|checkup_entry|resume_prompt",
@@ -1128,20 +1016,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       ? signalsObj.safety.immediacy
       : "unknown";
 
-    // Parse intent
-    const intentPrimary = ([
-        "CHECKUP",
-        "SMALL_TALK",
-        "PREFERENCE",
-        "UNKNOWN",
-      ] as UserIntentPrimary[]).includes(signalsObj?.user_intent_primary)
-      ? signalsObj.user_intent_primary as UserIntentPrimary
-      : "UNKNOWN";
-    const intentConf = Math.max(
-      0,
-      Math.min(1, Number(signalsObj?.user_intent_confidence ?? 0.5) || 0.5),
-    );
-
     // Parse interrupt
     const interruptKind = ([
         "NONE",
@@ -1168,55 +1042,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       )
       ? deferredTopicRaw.trim()
       : null;
-
-    // Parse flow_resolution
-    const flowKind = ([
-        "NONE",
-        "ACK_DONE",
-        "WANTS_RESUME",
-        "DECLINES_RESUME",
-        "WANTS_PAUSE",
-      ] as FlowResolutionKind[])
-        .includes(signalsObj?.flow_resolution?.kind)
-      ? signalsObj.flow_resolution.kind as FlowResolutionKind
-      : "NONE";
-    const flowConf = Math.max(
-      0,
-      Math.min(
-        1,
-        Number(signalsObj?.flow_resolution?.confidence ?? 0.9) || 0.9,
-      ),
-    );
-
-    // Parse topic_depth
-    const topicDepthValue =
-      (["NONE", "NEED_SUPPORT", "SERIOUS", "LIGHT"] as TopicDepth[])
-          .includes(signalsObj?.topic_depth?.value)
-        ? signalsObj.topic_depth.value as TopicDepth
-        : "NONE";
-    const topicDepthConf = Math.max(
-      0,
-      Math.min(1, Number(signalsObj?.topic_depth?.confidence ?? 0.9) || 0.9),
-    );
-    const topicDepthPlanFocus = Boolean(signalsObj?.topic_depth?.plan_focus);
-
-    // Parse deep_reasons
-    let deepReasonsOpportunity = Boolean(signalsObj?.deep_reasons?.opportunity);
-    let deepReasonsActionMentioned = Boolean(
-      signalsObj?.deep_reasons?.action_mentioned,
-    );
-    let deepReasonsActionHint =
-      (typeof signalsObj?.deep_reasons?.action_hint === "string" &&
-          signalsObj.deep_reasons.action_hint.trim())
-        ? signalsObj.deep_reasons.action_hint.trim().slice(0, 50)
-        : undefined;
-    const deepReasonsInBilanContext =
-      Boolean(signalsObj?.deep_reasons?.in_bilan_context) ||
-      Boolean(input.stateSnapshot.investigation_active);
-    let deepReasonsConf = Math.max(
-      0,
-      Math.min(1, Number(signalsObj?.deep_reasons?.confidence ?? 0.5) || 0.5),
-    );
 
     // Parse needs_explanation
     const needsExplanationValue = Boolean(signalsObj?.needs_explanation?.value);
@@ -1261,263 +1086,61 @@ Reponds UNIQUEMENT avec le JSON:`;
       return d.length > 0 ? d : undefined;
     })();
 
-    // Parse user_engagement
-    const engagementLevelRaw = String(
-      signalsObj?.user_engagement?.level ?? "MEDIUM",
-    ).toUpperCase();
-    const engagementLevel =
-      (["HIGH", "MEDIUM", "LOW", "DISENGAGED"] as UserEngagementLevel[])
-          .includes(engagementLevelRaw as UserEngagementLevel)
-        ? engagementLevelRaw as UserEngagementLevel
-        : "MEDIUM";
-    const engagementConf = Math.max(
-      0,
-      Math.min(
-        1,
-        Number(signalsObj?.user_engagement?.confidence ?? 0.5) || 0.5,
-      ),
-    );
-
-    // Parse topic_satisfaction
-    const satisfactionDetected = Boolean(
-      signalsObj?.topic_satisfaction?.detected,
-    );
-    const satisfactionConf = Math.max(
-      0,
-      Math.min(
-        1,
-        Number(signalsObj?.topic_satisfaction?.confidence ?? 0.5) || 0.5,
-      ),
-    );
-
-    // Parse create_action
-    const createActionIntentRaw = String(
-      signalsObj?.create_action?.intent_strength ?? "none",
-    ).toLowerCase();
-    const createActionIntent =
-      (["explicit", "implicit", "exploration", "none"] as const).includes(
-          createActionIntentRaw as any,
-        )
-        ? createActionIntentRaw as
-          | "explicit"
-          | "implicit"
-          | "exploration"
-          | "none"
-        : "none";
-    const createActionSophiaSuggested = Boolean(
-      signalsObj?.create_action?.sophia_suggested,
-    );
-    const createActionUserResponseRaw = String(
-      signalsObj?.create_action?.user_response ?? "none",
-    ).toLowerCase();
-    const createActionUserResponse =
-      (["yes", "no", "modify", "unclear", "none"] as const).includes(
-          createActionUserResponseRaw as any,
-        )
-        ? createActionUserResponseRaw as
-          | "yes"
-          | "no"
-          | "modify"
-          | "unclear"
-          | "none"
-        : "none";
-    const createActionModInfoRaw = String(
-      signalsObj?.create_action?.modification_info ?? "none",
-    ).toLowerCase();
-    const createActionModInfo =
-      (["available", "missing", "none"] as const).includes(
-          createActionModInfoRaw as any,
-        )
-        ? createActionModInfoRaw as "available" | "missing" | "none"
-        : "none";
-    const createActionTypeRaw = String(
-      signalsObj?.create_action?.action_type_hint ?? "unknown",
-    ).toLowerCase();
-    const createActionType =
-      (["habit", "mission", "framework", "unknown"] as const).includes(
-          createActionTypeRaw as any,
-        )
-        ? createActionTypeRaw as "habit" | "mission" | "framework" | "unknown"
-        : "unknown";
-    const createActionLabel =
-      (typeof signalsObj?.create_action?.action_label_hint === "string" &&
-          signalsObj.create_action.action_label_hint.trim())
-        ? signalsObj.create_action.action_label_hint.trim().slice(0, 120)
-        : undefined;
-    const createActionConf = Math.max(
-      0,
-      Math.min(1, Number(signalsObj?.create_action?.confidence ?? 0.5) || 0.5),
-    );
-
-    // Parse update_action
+    // Parse plan CRUD/discussion signals (simplified: binary detection)
+    const createActionDetected = Boolean(signalsObj?.create_action?.detected);
     const updateActionDetected = Boolean(signalsObj?.update_action?.detected);
-    const updateActionTargetHint =
-      (typeof signalsObj?.update_action?.target_hint === "string" &&
-          signalsObj.update_action.target_hint.trim())
-        ? signalsObj.update_action.target_hint.trim().slice(0, 80)
+    const breakdownActionDetected = Boolean(signalsObj?.breakdown_action?.detected);
+    const trackProgressActionDetected = Boolean(signalsObj?.track_progress_action?.detected);
+    const trackProgressActionTargetHint =
+      (typeof signalsObj?.track_progress_action?.target_hint === "string" &&
+          signalsObj.track_progress_action.target_hint.trim())
+        ? signalsObj.track_progress_action.target_hint.trim().slice(0, 80)
         : undefined;
-    const updateActionChangeTypeRaw = String(
-      signalsObj?.update_action?.change_type ?? "unknown",
+    const trackProgressActionStatusHintRaw = String(
+      signalsObj?.track_progress_action?.status_hint ?? "unknown",
     ).toLowerCase();
-    const updateActionChangeType =
-      (["frequency", "days", "time", "title", "mixed", "unknown"] as const)
-          .includes(updateActionChangeTypeRaw as any)
-        ? updateActionChangeTypeRaw as
-          | "frequency"
-          | "days"
-          | "time"
-          | "title"
-          | "mixed"
-          | "unknown"
-        : "unknown";
-    const updateActionNewValueHint =
-      (typeof signalsObj?.update_action?.new_value_hint === "string" &&
-          signalsObj.update_action.new_value_hint.trim())
-        ? signalsObj.update_action.new_value_hint.trim().slice(0, 80)
-        : undefined;
-    const updateActionUserResponseRaw = String(
-      signalsObj?.update_action?.user_response ?? "none",
-    ).toLowerCase();
-    const updateActionUserResponse =
-      (["yes", "no", "modify", "unclear", "none"] as const).includes(
-          updateActionUserResponseRaw as any,
-        )
-        ? updateActionUserResponseRaw as
-          | "yes"
-          | "no"
-          | "modify"
-          | "unclear"
-          | "none"
-        : "none";
-    const updateActionConf = Math.max(
-      0,
-      Math.min(1, Number(signalsObj?.update_action?.confidence ?? 0.5) || 0.5),
-    );
-
-    // Parse breakdown_action
-    const breakdownActionDetected = Boolean(
-      signalsObj?.breakdown_action?.detected,
-    );
-    const breakdownActionTargetHint =
-      (typeof signalsObj?.breakdown_action?.target_hint === "string" &&
-          signalsObj.breakdown_action.target_hint.trim())
-        ? signalsObj.breakdown_action.target_hint.trim().slice(0, 80)
-        : undefined;
-    const breakdownActionBlockerHint =
-      (typeof signalsObj?.breakdown_action?.blocker_hint === "string" &&
-          signalsObj.breakdown_action.blocker_hint.trim())
-        ? signalsObj.breakdown_action.blocker_hint.trim().slice(0, 200)
-        : undefined;
-    const breakdownActionSophiaSuggested = Boolean(
-      signalsObj?.breakdown_action?.sophia_suggested,
-    );
-    const breakdownActionUserResponseRaw = String(
-      signalsObj?.breakdown_action?.user_response ?? "none",
-    ).toLowerCase();
-    const breakdownActionUserResponse =
-      (["yes", "no", "unclear", "none"] as const).includes(
-          breakdownActionUserResponseRaw as any,
-        )
-        ? breakdownActionUserResponseRaw as "yes" | "no" | "unclear" | "none"
-        : "none";
-    const breakdownActionConf = Math.max(
-      0,
-      Math.min(
-        1,
-        Number(signalsObj?.breakdown_action?.confidence ?? 0.5) || 0.5,
-      ),
-    );
-
-    // Parse track_progress signal
-    const trackProgressDetected = Boolean(signalsObj?.track_progress?.detected);
-    const trackProgressTargetHint =
-      (typeof signalsObj?.track_progress?.target_hint === "string" &&
-          signalsObj.track_progress.target_hint.trim())
-        ? signalsObj.track_progress.target_hint.trim().slice(0, 80)
-        : undefined;
-    const trackProgressStatusHintRaw = String(
-      signalsObj?.track_progress?.status_hint ?? "unknown",
-    ).toLowerCase();
-    const trackProgressStatusHint =
+    const trackProgressActionStatusHint =
       (["completed", "missed", "partial", "unknown"] as const).includes(
-          trackProgressStatusHintRaw as any,
+          trackProgressActionStatusHintRaw as any,
         )
-        ? trackProgressStatusHintRaw as
+        ? trackProgressActionStatusHintRaw as
           | "completed"
           | "missed"
           | "partial"
           | "unknown"
         : "unknown";
-    const trackProgressValueHint =
-      (typeof signalsObj?.track_progress?.value_hint === "number" &&
-          !isNaN(signalsObj.track_progress.value_hint))
-        ? signalsObj.track_progress.value_hint
-        : undefined;
-    const trackProgressConf = Math.max(
-      0,
-      Math.min(1, Number(signalsObj?.track_progress?.confidence ?? 0.5) || 0.5),
+    const trackProgressVitalDetected = Boolean(
+      signalsObj?.track_progress_vital_sign?.detected,
     );
-
-    // Parse activate_action signal
-    const activateActionDetected = Boolean(
-      signalsObj?.activate_action?.detected,
-    );
-    const activateActionTargetHint =
-      (typeof signalsObj?.activate_action?.target_hint === "string" &&
-          signalsObj.activate_action.target_hint.trim())
-        ? signalsObj.activate_action.target_hint.trim().slice(0, 80)
+    const trackProgressVitalTargetHint =
+      (typeof signalsObj?.track_progress_vital_sign?.target_hint === "string" &&
+          signalsObj.track_progress_vital_sign.target_hint.trim())
+        ? signalsObj.track_progress_vital_sign.target_hint.trim().slice(0, 80)
         : undefined;
-    const activateActionExerciseHint =
-      (typeof signalsObj?.activate_action?.exercise_type_hint === "string" &&
-          signalsObj.activate_action.exercise_type_hint.trim())
-        ? signalsObj.activate_action.exercise_type_hint.trim().slice(0, 80)
+    const trackProgressVitalValueHint =
+      (typeof signalsObj?.track_progress_vital_sign?.value_hint === "number" &&
+          !isNaN(signalsObj.track_progress_vital_sign.value_hint))
+        ? signalsObj.track_progress_vital_sign.value_hint
         : undefined;
-    const activateActionConf = Math.max(
-      0,
-      Math.min(
-        1,
-        Number(signalsObj?.activate_action?.confidence ?? 0.5) || 0.5,
-      ),
+    const trackProgressNorthStarDetected = Boolean(
+      signalsObj?.track_progress_north_star?.detected,
     );
-
-    // Parse delete_action signal
+    const trackProgressNorthStarValueHint =
+      (typeof signalsObj?.track_progress_north_star?.value_hint === "number" &&
+          !isNaN(signalsObj.track_progress_north_star.value_hint))
+        ? signalsObj.track_progress_north_star.value_hint
+        : undefined;
+    const actionDiscussionDetected = Boolean(
+      signalsObj?.action_discussion?.detected,
+    );
+    const actionDiscussionHint =
+      (typeof signalsObj?.action_discussion?.action_hint === "string" &&
+          signalsObj.action_discussion.action_hint.trim())
+        ? signalsObj.action_discussion.action_hint.trim().slice(0, 80)
+        : undefined;
+    const activateActionDetected = Boolean(signalsObj?.activate_action?.detected);
     const deleteActionDetected = Boolean(signalsObj?.delete_action?.detected);
-    const deleteActionTargetHint =
-      (typeof signalsObj?.delete_action?.target_hint === "string" &&
-          signalsObj.delete_action.target_hint.trim())
-        ? signalsObj.delete_action.target_hint.trim().slice(0, 80)
-        : undefined;
-    const deleteActionReasonHint =
-      (typeof signalsObj?.delete_action?.reason_hint === "string" &&
-          signalsObj.delete_action.reason_hint.trim())
-        ? signalsObj.delete_action.reason_hint.trim().slice(0, 120)
-        : undefined;
-    const deleteActionConf = Math.max(
-      0,
-      Math.min(1, Number(signalsObj?.delete_action?.confidence ?? 0.5) || 0.5),
-    );
-
-    // Parse deactivate_action signal
-    const deactivateActionDetected = Boolean(
-      signalsObj?.deactivate_action?.detected,
-    );
-    const deactivateActionTargetHint =
-      (typeof signalsObj?.deactivate_action?.target_hint === "string" &&
-          signalsObj.deactivate_action.target_hint.trim())
-        ? signalsObj.deactivate_action.target_hint.trim().slice(0, 80)
-        : undefined;
-    const deactivateActionConfRaw = Number(
-      signalsObj?.deactivate_action?.confidence,
-    );
-    const deactivateActionConf = Math.max(
-      0,
-      Math.min(
-        1,
-        Number.isFinite(deactivateActionConfRaw)
-          ? deactivateActionConfRaw
-          : 0.5,
-      ),
-    );
+    const deactivateActionDetected = Boolean(signalsObj?.deactivate_action?.detected);
 
     // Parse dashboard_preferences_intent signal
     const dashboardPreferencesDetected = Boolean(
@@ -1586,70 +1209,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       ),
     );
 
-    // Parse safety_resolution signal
-    let safetyResolutionUserConfirmsSafe = Boolean(
-      signalsObj?.safety_resolution?.user_confirms_safe,
-    );
-    let safetyResolutionStabilizingSignal = Boolean(
-      signalsObj?.safety_resolution?.stabilizing_signal,
-    );
-    let safetyResolutionSymptomsStillPresent = Boolean(
-      signalsObj?.safety_resolution?.symptoms_still_present,
-    );
-    let safetyResolutionExternalHelpMentioned = Boolean(
-      signalsObj?.safety_resolution?.external_help_mentioned,
-    );
-    let safetyResolutionEscalateToSentry = Boolean(
-      signalsObj?.safety_resolution?.escalate_to_sentry,
-    );
-    let safetyResolutionConf = Math.max(
-      0,
-      Math.min(
-        1,
-        Number(signalsObj?.safety_resolution?.confidence ?? 0.5) || 0.5,
-      ),
-    );
-
-    // Hard guard: safety_resolution is only meaningful when safety != NONE.
-    if (safetyLevel === "NONE") {
-      safetyResolutionUserConfirmsSafe = false;
-      safetyResolutionStabilizingSignal = false;
-      safetyResolutionSymptomsStillPresent = false;
-      safetyResolutionExternalHelpMentioned = false;
-      safetyResolutionEscalateToSentry = false;
-      safetyResolutionConf = Math.min(safetyResolutionConf, 0.3);
-    }
-
-    // Parse safety_stabilization signal (single-turn indicator used by router counter overlay).
-    let safetyStabilizationTurn = Boolean(
-      signalsObj?.safety_stabilization?.stabilizing_turn,
-    );
-    let safetyStabilizationConf = Math.max(
-      0,
-      Math.min(
-        1,
-        Number(signalsObj?.safety_stabilization?.confidence ?? 0.5) || 0.5,
-      ),
-    );
-    if (safetyLevel === "NONE") {
-      safetyStabilizationTurn = false;
-      safetyStabilizationConf = Math.min(safetyStabilizationConf, 0.3);
-    }
-
-    let wantsTools = Boolean(signalsObj?.wants_tools);
-    // Hard guard: do not set wants_tools=true unless there is actual tool intent evidence.
-    // This prevents "wants_tools" from flipping on emotional support turns.
-    const anyToolIntentDetected = (signalsObj?.create_action?.intent_strength &&
-      String(signalsObj.create_action.intent_strength) !== "none") ||
-      Boolean(signalsObj?.update_action?.detected) ||
-      Boolean(signalsObj?.breakdown_action?.detected) ||
-      Boolean(signalsObj?.track_progress?.detected) ||
-      Boolean(signalsObj?.activate_action?.detected) ||
-      Boolean(signalsObj?.delete_action?.detected) ||
-      Boolean(signalsObj?.deactivate_action?.detected);
-    if (wantsTools && !anyToolIntentDetected) {
-      wantsTools = false;
-    }
     const riskScore = Math.max(
       0,
       Math.min(10, Number(signalsObj?.risk_score ?? 0) || 0),
@@ -1930,6 +1489,16 @@ Reponds UNIQUEMENT avec le JSON:`;
       if (ms.wants_to_checkup !== undefined) {
         machineSignals.wants_to_checkup = Boolean(ms.wants_to_checkup);
       }
+      if (ms.wants_to_continue_bilan !== undefined) {
+        machineSignals.wants_to_continue_bilan = Boolean(
+          ms.wants_to_continue_bilan,
+        );
+      }
+      if (ms.dont_want_continue_bilan !== undefined) {
+        machineSignals.dont_want_continue_bilan = Boolean(
+          ms.dont_want_continue_bilan,
+        );
+      }
       if (ms.track_from_bilan_done_ok !== undefined) {
         machineSignals.track_from_bilan_done_ok = Boolean(
           ms.track_from_bilan_done_ok,
@@ -1973,8 +1542,6 @@ Reponds UNIQUEMENT avec le JSON:`;
           confidence: safetyConf,
           immediacy: safetyLevel !== "NONE" ? immediacy : undefined,
         },
-        user_intent_primary: intentPrimary,
-        user_intent_confidence: intentConf,
         interrupt: {
           kind: interruptKind,
           confidence: interruptConf,
@@ -1982,20 +1549,6 @@ Reponds UNIQUEMENT avec le JSON:`;
             (interruptKind === "DIGRESSION" || interruptKind === "SWITCH_TOPIC")
               ? deferredTopicFormalized
               : undefined,
-        },
-        flow_resolution: { kind: flowKind, confidence: flowConf },
-        topic_depth: {
-          value: topicDepthValue,
-          confidence: topicDepthConf,
-          plan_focus: topicDepthPlanFocus,
-        },
-        deep_reasons: {
-          opportunity: deepReasonsOpportunity,
-          action_mentioned: deepReasonsActionMentioned,
-          action_hint: deepReasonsActionHint,
-          deferred_ready: false,
-          in_bilan_context: deepReasonsInBilanContext,
-          confidence: deepReasonsConf,
         },
         needs_explanation: {
           value: needsExplanationValue,
@@ -2008,62 +1561,41 @@ Reponds UNIQUEMENT avec le JSON:`;
           query: needsResearchQuery,
           domain_hint: needsResearchDomainHint,
         },
-        user_engagement: {
-          level: engagementLevel,
-          confidence: engagementConf,
-        },
-        topic_satisfaction: {
-          detected: satisfactionDetected,
-          confidence: satisfactionConf,
-        },
         create_action: {
-          intent_strength: createActionIntent,
-          sophia_suggested: createActionSophiaSuggested,
-          user_response: createActionUserResponse,
-          modification_info: createActionModInfo,
-          action_type_hint: createActionType,
-          action_label_hint: createActionLabel,
-          confidence: createActionConf,
+          detected: createActionDetected,
         },
         update_action: {
           detected: updateActionDetected,
-          target_hint: updateActionTargetHint,
-          change_type: updateActionChangeType,
-          new_value_hint: updateActionNewValueHint,
-          user_response: updateActionUserResponse,
-          confidence: updateActionConf,
         },
         breakdown_action: {
           detected: breakdownActionDetected,
-          target_hint: breakdownActionTargetHint,
-          blocker_hint: breakdownActionBlockerHint,
-          sophia_suggested: breakdownActionSophiaSuggested,
-          user_response: breakdownActionUserResponse,
-          confidence: breakdownActionConf,
         },
-        track_progress: {
-          detected: trackProgressDetected,
-          target_hint: trackProgressTargetHint,
-          status_hint: trackProgressStatusHint,
-          value_hint: trackProgressValueHint,
-          confidence: trackProgressConf,
+        track_progress_action: {
+          detected: trackProgressActionDetected,
+          target_hint: trackProgressActionTargetHint,
+          status_hint: trackProgressActionStatusHint,
+        },
+        track_progress_vital_sign: {
+          detected: trackProgressVitalDetected,
+          target_hint: trackProgressVitalTargetHint,
+          value_hint: trackProgressVitalValueHint,
+        },
+        track_progress_north_star: {
+          detected: trackProgressNorthStarDetected,
+          value_hint: trackProgressNorthStarValueHint,
+        },
+        action_discussion: {
+          detected: actionDiscussionDetected,
+          action_hint: actionDiscussionHint,
         },
         activate_action: {
           detected: activateActionDetected,
-          target_hint: activateActionTargetHint,
-          exercise_type_hint: activateActionExerciseHint,
-          confidence: activateActionConf,
         },
         delete_action: {
           detected: deleteActionDetected,
-          target_hint: deleteActionTargetHint,
-          reason_hint: deleteActionReasonHint,
-          confidence: deleteActionConf,
         },
         deactivate_action: {
           detected: deactivateActionDetected,
-          target_hint: deactivateActionTargetHint,
-          confidence: deactivateActionConf,
         },
         dashboard_preferences_intent: {
           detected: dashboardPreferencesDetected,
@@ -2075,20 +1607,6 @@ Reponds UNIQUEMENT avec le JSON:`;
           reminder_fields: dashboardReminderFields,
           confidence: dashboardRecurringReminderConf,
         },
-        safety_resolution: {
-          user_confirms_safe: safetyResolutionUserConfirmsSafe,
-          stabilizing_signal: safetyResolutionStabilizingSignal,
-          symptoms_still_present: safetyResolutionSymptomsStillPresent,
-          external_help_mentioned: safetyResolutionExternalHelpMentioned,
-          escalate_to_sentry: safetyResolutionEscalateToSentry,
-          confidence: safetyResolutionConf,
-        },
-        safety_stabilization: {
-          stabilizing_turn: safetyStabilizationTurn,
-          confidence: safetyStabilizationConf,
-        },
-        // consent_to_relaunch: REMOVED (R2 simplification)
-        wants_tools: false, // R2: always false, tool flows disabled
         risk_score: riskScore,
       },
       new_signals: newSignals,

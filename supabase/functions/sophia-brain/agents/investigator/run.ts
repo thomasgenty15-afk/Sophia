@@ -235,12 +235,9 @@ export async function runInvestigator(
     currentState?.status === "checking" &&
     currentState?.temp_memory?.awaiting_start_consent === true
   ) {
-    const staleResumeGate = currentState?.temp_memory?.__stale_resume_gate === true;
     if (startConsent === "no") {
       return {
-        content: staleResumeGate
-          ? "Pas de souci, on laisse tomber le bilan pour cette fois."
-          : "Pas de souci, ce n'est pas grave. On fera le bilan demain.",
+        content: "Pas de souci, ce n'est pas grave. On fera le bilan demain.",
         investigationComplete: true,
         newState: null,
       };
@@ -251,7 +248,6 @@ export async function runInvestigator(
         temp_memory: {
           ...(currentState.temp_memory || {}),
           awaiting_start_consent: false,
-          __stale_resume_gate: false,
         },
       };
     } else {
@@ -267,16 +263,14 @@ export async function runInvestigator(
         };
       }
       return {
-        content: staleResumeGate
-          ? "Ton bilan est resté en pause un moment. Tu veux qu'on le reprenne maintenant ? (Réponds 'oui' pour reprendre, ou 'non' pour laisser tomber.)"
-          : "Si c'est ok pour toi, on fait le bilan maintenant ? (Réponds 'oui' pour le faire maintenant, ou 'non' pour demain.)",
+        content:
+          "Si c'est ok pour toi, on fait le bilan maintenant ? (Réponds 'oui' pour le faire maintenant, ou 'non' pour demain.)",
         investigationComplete: false,
         newState: {
           ...currentState,
           temp_memory: {
             ...(currentState.temp_memory || {}),
             awaiting_start_consent: true,
-            __stale_resume_gate: staleResumeGate,
           },
         },
       };

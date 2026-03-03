@@ -3,6 +3,8 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import {
+  getDispatcherActionSnapshot,
+  getPlanMetadata,
   getUserState,
   logMessage,
   normalizeScope,
@@ -29,6 +31,7 @@ import {
 } from "./magic_reset.ts";
 import type { DispatcherSignals, MachineSignals } from "./dispatcher.ts";
 import { handleTracking } from "../lib/tracking.ts";
+import { updateEtoilePolaire } from "../lib/north_star_tools.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
 import {
   type BrainTracePhase,
@@ -55,11 +58,7 @@ function envInt(name: string, fallback: number): number {
 
 function extractDashboardRedirectIntents(signals: DispatcherSignals): string[] {
   const intents: string[] = [];
-  if (
-    signals.create_action?.intent_strength === "explicit" ||
-    signals.create_action?.intent_strength === "implicit" ||
-    signals.create_action?.intent_strength === "exploration"
-  ) intents.push("create_action");
+  if (signals.create_action?.detected) intents.push("create_action");
   if (signals.update_action?.detected) intents.push("update_action");
   if (signals.breakdown_action?.detected) intents.push("breakdown_action");
   if (signals.activate_action?.detected) intents.push("activate_action");
@@ -197,12 +196,11 @@ function buildExpiredBilanSummary(inv: any, elapsedMs: number): Record<string, u
   };
 }
 
-function detectCheckupIntent(dispatcherSignals: DispatcherSignals, machineSignals?: MachineSignals): boolean {
+function detectCheckupIntent(_dispatcherSignals: DispatcherSignals, machineSignals?: MachineSignals): boolean {
   const checkupIntentSignal = machineSignals?.checkup_intent;
   return (
-    (Boolean(checkupIntentSignal?.detected) && Number(checkupIntentSignal?.confidence ?? 0) >= 0.6) ||
-    (dispatcherSignals.user_intent_primary === "CHECKUP" &&
-      Number(dispatcherSignals.user_intent_confidence ?? 0) >= 0.6)
+    Boolean(checkupIntentSignal?.detected) &&
+    Number(checkupIntentSignal?.confidence ?? 0) >= 0.6
   );
 }
 
@@ -255,7 +253,6 @@ function attachDynamicAddons(args: {
       detected_at: new Date().toISOString(),
       confidence: Number(
         checkupIntentSignal?.confidence ??
-          dispatcherSignals.user_intent_confidence ??
           0,
       ),
       trigger_phrase: String(checkupIntentSignal?.trigger_phrase ?? "")
@@ -333,29 +330,13 @@ function attachDynamicAddons(args: {
 
   const safetyActive = dispatcherSignals.safety.level === "SENTRY";
   if (safetyActive && Number(dispatcherSignals.safety.confidence ?? 0) >= 0.6) {
-    const prev = (tempMemory as any)?.__safety_stabilization ?? {};
-    const stabilized = Boolean(dispatcherSignals.safety_resolution?.stabilizing_signal);
-    const symptomsStill = Boolean(dispatcherSignals.safety_resolution?.symptoms_still_present);
-    const consecutiveOk = symptomsStill
-      ? 0
-      : (stabilized ? Number(prev.consecutive_ok ?? 0) + 1 : Number(prev.consecutive_ok ?? 0));
-
-    (tempMemory as any).__safety_stabilization = {
-      level: dispatcherSignals.safety.level,
-      consecutive_ok: Math.max(0, Math.min(5, consecutiveOk)),
-      threshold: 3,
-      updated_at: new Date().toISOString(),
-    };
     (tempMemory as any).__safety_active_addon = {
       level: dispatcherSignals.safety.level.toLowerCase(),
       phase: "active",
-      consecutive_ok: Math.max(0, Math.min(5, consecutiveOk)),
-      threshold: 3,
     };
   } else {
     try {
       delete (tempMemory as any).__safety_active_addon;
-      delete (tempMemory as any).__safety_stabilization;
     } catch {
       // best effort
     }
@@ -373,15 +354,26 @@ async function maybeTrackProgressParallel(args: {
 }) {
   const { supabase, userId, state, tempMemory, dispatcherSignals, loggedMessageId, channel } = args;
 
-  const track = dispatcherSignals.track_progress;
-  const trackStatus = String(track?.status_hint ?? "unknown");
-  const trackTarget = String(track?.target_hint ?? "").trim();
-  const canTrack =
-    !isCheckupActive(state) &&
-    track?.detected === true &&
-    (track?.confidence ?? 0) >= 0.8 &&
-    trackTarget.length >= 2 &&
-    (trackStatus === "completed" || trackStatus === "missed" || trackStatus === "partial");
+  const trackAction = dispatcherSignals.track_progress_action;
+  const trackVital = dispatcherSignals.track_progress_vital_sign;
+  const trackNorthStar = dispatcherSignals.track_progress_north_star;
+  const trackActionStatus = String(trackAction?.status_hint ?? "unknown");
+  const trackActionTarget = String(trackAction?.target_hint ?? "").trim();
+  const trackVitalTarget = String(trackVital?.target_hint ?? "").trim();
+  const trackVitalValue = Number(trackVital?.value_hint);
+  const trackNorthStarValue = Number(trackNorthStar?.value_hint);
+  const canTrackAction =
+    trackAction?.detected === true &&
+    trackActionTarget.length >= 2 &&
+    (trackActionStatus === "completed" || trackActionStatus === "missed" || trackActionStatus === "partial");
+  const canTrackVital =
+    trackVital?.detected === true &&
+    trackVitalTarget.length >= 2 &&
+    Number.isFinite(trackVitalValue);
+  const canTrackNorthStar =
+    trackNorthStar?.detected === true &&
+    Number.isFinite(trackNorthStarValue);
+  const canTrack = !isCheckupActive(state) && (canTrackAction || canTrackVital || canTrackNorthStar);
 
   const alreadyLogged =
     (tempMemory as any)?.__track_progress_parallel?.source_message_id &&
@@ -391,18 +383,40 @@ async function maybeTrackProgressParallel(args: {
   if (!canTrack || alreadyLogged) return;
 
   try {
-    const trackingMsg = await handleTracking(
-      supabase,
-      userId,
-      {
-        target_name: trackTarget,
-        value: trackStatus === "missed" ? 0 : 1,
-        operation: "add",
-        status: trackStatus as any,
-      },
-      { source: channel },
-    );
-    const raw = String(trackingMsg ?? "");
+    let raw = "";
+    if (canTrackNorthStar) {
+      const result = await updateEtoilePolaire(supabase, userId, {
+        new_value: trackNorthStarValue,
+      });
+      raw =
+        `Etoile Polaire mise à jour: ${result.title} -> ${result.new_value}${result.unit ? ` ${result.unit}` : ""}.`;
+    } else if (canTrackVital) {
+      const trackingMsg = await handleTracking(
+        supabase,
+        userId,
+        {
+          target_name: trackVitalTarget,
+          value: trackVitalValue,
+          operation: "set",
+          status: "completed",
+        },
+        { source: channel },
+      );
+      raw = String(trackingMsg ?? "");
+    } else {
+      const trackingMsg = await handleTracking(
+        supabase,
+        userId,
+        {
+          target_name: trackActionTarget,
+          value: trackActionStatus === "missed" ? 0 : 1,
+          operation: "add",
+          status: trackActionStatus as "completed" | "missed" | "partial",
+        },
+        { source: channel },
+      );
+      raw = String(trackingMsg ?? "");
+    }
     if (raw.startsWith("INFO_POUR_AGENT:")) {
       (tempMemory as any).__track_progress_parallel = {
         mode: "needs_clarify",
@@ -413,13 +427,18 @@ async function maybeTrackProgressParallel(args: {
       (tempMemory as any).__track_progress_parallel = {
         mode: "logged",
         message: raw,
-        target: trackTarget,
-        status: trackStatus,
+        target: trackActionTarget || trackVitalTarget || "north_star",
+        status: trackActionStatus,
         source_message_id: loggedMessageId ?? null,
       };
     }
   } catch (e) {
     console.warn("[Router] parallel track_progress failed (non-blocking):", e);
+    (tempMemory as any).__track_progress_parallel = {
+      mode: "needs_clarify",
+      message: "Impossible de logger automatiquement. Oriente vers le dashboard pour mise à jour immédiate, ou propose d'attendre le prochain bilan.",
+      source_message_id: loggedMessageId ?? null,
+    };
   }
 }
 
@@ -564,6 +583,18 @@ export async function processMessage(
 
   const { lastAssistantMessage } = buildLastAssistantInfo(history);
   const stateSnapshot = buildDispatcherStateSnapshot({ tempMemory, state });
+  let actionSnapshot: any[] | undefined = undefined;
+  try {
+    const planMeta = await getPlanMetadata(supabase, userId);
+    actionSnapshot = await getDispatcherActionSnapshot(
+      supabase,
+      userId,
+      planMeta?.id ? String(planMeta.id) : null,
+      30,
+    );
+  } catch (e) {
+    console.warn("[Router] action snapshot load failed (non-blocking):", e);
+  }
 
   const contextual = await runContextualDispatcherV2({
     userMessage,
@@ -573,6 +604,7 @@ export async function processMessage(
     state,
     meta,
     stateSnapshot,
+    actionSnapshot,
     signalHistoryKey: "signal_history",
     minTurnIndex: -4,
     trace,
@@ -584,38 +616,27 @@ export async function processMessage(
   const machineSignals = contextual.dispatcherResult?.machine_signals;
   tempMemory = contextual.tempMemory;
 
-  // If a daily bilan/checkup is stale, we either:
-  // - ask resume consent when user intent indicates checkup continuation
-  // - or silently abandon when user message is unrelated to checkup.
+  // If a daily bilan/checkup is stale (>4h), decide implicitly:
+  // - continue if message answers the current bilan thread
+  // - abandon if user starts a new/unrelated topic
+  // No explicit "do you want to continue?" question.
   const staleTimeoutMs = envInt("SOPHIA_BILAN_STALE_TIMEOUT_MS", 4 * 60 * 60 * 1000);
   const checkupActiveNow = isCheckupActive(state);
   const startedMs = parseInvestigationStartedMs(state);
   const elapsedSinceStartMs = startedMs > 0 ? Date.now() - startedMs : 0;
   const staleCheckup = checkupActiveNow && startedMs > 0 && elapsedSinceStartMs >= staleTimeoutMs;
   if (staleCheckup) {
+    const wantsToContinueByDispatcher = machineSignals?.wants_to_continue_bilan === true;
+    const dontWantToContinueByDispatcher = machineSignals?.dont_want_continue_bilan === true;
     const checkupIntentNow = detectCheckupIntent(dispatcherSignals, machineSignals);
     const explicitConsent = resolveBinaryConsentLite(userMessage);
-    const shouldKeepForConsent = checkupIntentNow || explicitConsent !== null;
-    if (shouldKeepForConsent && state?.investigation_state) {
-      const inv = state.investigation_state;
-      state = {
-        ...state,
-        investigation_state: {
-          ...inv,
-          temp_memory: {
-            ...(inv?.temp_memory ?? {}),
-            awaiting_start_consent: true,
-            __stale_resume_gate: true,
-          },
-        },
-      };
-      await trace("brain:stale_checkup_resume_gate", "routing", {
-        elapsed_ms: elapsedSinceStartMs,
-        timeout_ms: staleTimeoutMs,
-        checkup_intent_now: checkupIntentNow,
-        explicit_consent: explicitConsent,
-      }, "info");
-    } else {
+    const explicitContinue = explicitConsent === "yes";
+    const explicitStop = explicitConsent === "no";
+    const shouldContinue = (wantsToContinueByDispatcher && !dontWantToContinueByDispatcher) ||
+      explicitContinue ||
+      checkupIntentNow;
+    const shouldAbandon = dontWantToContinueByDispatcher || explicitStop || !shouldContinue;
+    if (shouldAbandon) {
       const expiredSummary = buildExpiredBilanSummary(state?.investigation_state, elapsedSinceStartMs);
       tempMemory = {
         ...(tempMemory ?? {}),
@@ -633,7 +654,24 @@ export async function processMessage(
       await trace("brain:stale_checkup_abandoned", "routing", {
         elapsed_ms: elapsedSinceStartMs,
         timeout_ms: staleTimeoutMs,
-        reason: "message_not_checkup_related",
+        reason: dontWantToContinueByDispatcher
+          ? "dispatcher_dont_want_continue_bilan"
+          : explicitStop
+          ? "explicit_user_stop"
+          : "message_not_checkup_related",
+        wants_to_continue_bilan: wantsToContinueByDispatcher,
+        dont_want_continue_bilan: dontWantToContinueByDispatcher,
+        checkup_intent_now: checkupIntentNow,
+        explicit_consent: explicitConsent,
+      }, "info");
+    } else {
+      await trace("brain:stale_checkup_continues_implicitly", "routing", {
+        elapsed_ms: elapsedSinceStartMs,
+        timeout_ms: staleTimeoutMs,
+        wants_to_continue_bilan: wantsToContinueByDispatcher,
+        dont_want_continue_bilan: dontWantToContinueByDispatcher,
+        checkup_intent_now: checkupIntentNow,
+        explicit_consent: explicitConsent,
       }, "info");
     }
   }
@@ -676,17 +714,11 @@ export async function processMessage(
   const userTime = await getUserTimeContext({ supabase, userId }).catch(() => null as any);
 
   const onDemandTriggers: OnDemandTriggers = {
-    create_action_intent:
-      dispatcherSignals.create_action?.intent_strength === "explicit" ||
-      dispatcherSignals.create_action?.intent_strength === "implicit",
+    create_action_intent: dispatcherSignals.create_action?.detected ?? false,
     update_action_intent: dispatcherSignals.update_action?.detected ?? false,
-    plan_discussion_intent: dispatcherSignals.topic_depth?.plan_focus ?? false,
     breakdown_recommended: dispatcherSignals.breakdown_action?.detected ?? false,
-    topic_depth: dispatcherSignals.topic_depth?.value === "SERIOUS"
-      ? "deep"
-      : dispatcherSignals.topic_depth?.value === "LIGHT"
-      ? "shallow"
-      : undefined,
+    action_discussion_detected: dispatcherSignals.action_discussion?.detected ?? false,
+    action_discussion_hint: dispatcherSignals.action_discussion?.action_hint,
   };
 
   let context = "";
@@ -845,7 +877,6 @@ export async function processMessage(
           risk_score: riskScore,
           checkup_active: checkupActive,
           stop_checkup: stopCheckup,
-          intent_primary: dispatcherSignals.user_intent_primary,
           safety_level: dispatcherSignals.safety.level,
           interrupt_kind: dispatcherSignals.interrupt.kind,
           llm_retry_queued: Boolean(llmRetryJobId),
@@ -891,11 +922,7 @@ export async function processMessage(
           model: String(meta?.model ?? (globalThis as any)?.Deno?.env?.get?.("SOPHIA_DISPATCHER_MODEL") ?? getGlobalAiModel("gemini-2.5-flash")).trim(),
           signals: {
             safety: String(dispatcherSignals.safety.level ?? "NONE"),
-            intent: String(dispatcherSignals.user_intent_primary ?? "UNKNOWN"),
-            intent_conf: Number(dispatcherSignals.user_intent_confidence ?? 0),
             interrupt: String(dispatcherSignals.interrupt.kind ?? "NONE"),
-            topic_depth: String(dispatcherSignals.topic_depth?.value ?? "NONE"),
-            flow_resolution: String(dispatcherSignals.flow_resolution?.kind ?? "NONE"),
           },
         },
         context: {
