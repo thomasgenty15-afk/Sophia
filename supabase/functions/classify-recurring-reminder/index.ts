@@ -543,6 +543,7 @@ function looksLikeJwtToken(value: string): boolean {
 async function triggerRecurringSchedulingForReminder(params: {
   reminderId: string;
   userId: string;
+  userAuthHeader?: string;
 }): Promise<number> {
   const secret = internalSecret();
   if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET");
@@ -555,8 +556,16 @@ async function triggerRecurringSchedulingForReminder(params: {
   };
   // Some runtimes/gateways enforce JWT verification before the function-level internal secret check.
   if (anonKey) headers.apikey = anonKey;
-  // New Supabase secret keys (`sb_secret_...`) are not JWTs and must not be sent as Bearer tokens.
-  if (looksLikeJwtToken(serviceRoleKey)) headers.Authorization = `Bearer ${serviceRoleKey}`;
+  const incomingAuth = str(params.userAuthHeader);
+  const incomingBearer = incomingAuth.toLowerCase().startsWith("bearer ")
+    ? incomingAuth.slice(7).trim()
+    : "";
+  // Prefer the caller's JWT when available; if absent, fallback to service-role only if JWT-shaped.
+  if (looksLikeJwtToken(incomingBearer)) {
+    headers.Authorization = `Bearer ${incomingBearer}`;
+  } else if (looksLikeJwtToken(serviceRoleKey)) {
+    headers.Authorization = `Bearer ${serviceRoleKey}`;
+  }
   const res = await fetch(url, {
     method: "POST",
     headers,
@@ -680,6 +689,7 @@ Deno.serve(async (req) => {
     const seededCheckins = await triggerRecurringSchedulingForReminder({
       reminderId,
       userId,
+      userAuthHeader: authHeader,
     });
 
     return new Response(
