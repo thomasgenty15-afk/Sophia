@@ -417,86 +417,91 @@ const ActionPlanGeneratorRecraft = () => {
         setPlan(data);
         setStep('result');
         stopLoading();
-        
-        // --- SAUVEGARDE EN BASE ---
-        // On doit trouver le goal correspondant à cet axe pour le mettre à jour ou recréer le plan
-        // Comme c'est un "Recraft", le goal existe surement déjà.
-        const { data: goal } = await supabase
-            .from('user_goals')
-            .select('id, submission_id')
-            .eq('user_id', user.id)
-            .eq('axis_id', currentAxis.id)
-            .limit(1)
-            .maybeSingle();
-            
-        if (goal) {
-            await supabase
-                .from('user_goals')
-                .update({ actions_good_for_me: inputs.actions_good_for_me || null })
-                .eq('id', goal.id);
 
-            // On supprime l'ancien plan actif s'il y en a un (ou on l'archive ?)
-            // Le prompt dit "Refaire ce plan", donc on remplace.
-            
-            // On vérifie s'il existe un plan
-            const { data: existingPlan } = await supabase
-                .from('user_plans')
-                .select('id, inputs_why, inputs_blockers')
-                .eq('goal_id', goal.id)
-                .maybeSingle();
+        try {
+          // --- SAUVEGARDE EN BASE ---
+          // On doit trouver le goal correspondant à cet axe pour le mettre à jour ou recréer le plan
+          // Comme c'est un "Recraft", le goal existe surement déjà.
+          const { data: goal } = await supabase
+              .from('user_goals')
+              .select('id, submission_id')
+              .eq('user_id', user.id)
+              .eq('axis_id', currentAxis.id)
+              .limit(1)
+              .maybeSingle();
+              
+          if (goal) {
+              await supabase
+                  .from('user_goals')
+                  .update({ actions_good_for_me: inputs.actions_good_for_me || null })
+                  .eq('id', goal.id);
 
-            // CONTEXTE INITIAL : On sauvegarde les inputs d'origine avant de supprimer
-            const initialWhy = existingPlan?.inputs_why || inputs.why; // Fallback sur inputs actuels si pas d'historique (Cas rare)
-            const initialBlockers = existingPlan?.inputs_blockers || inputs.blockers;
+              // On supprime l'ancien plan actif s'il y en a un (ou on l'archive ?)
+              // Le prompt dit "Refaire ce plan", donc on remplace.
+              
+              // On vérifie s'il existe un plan
+              const { data: existingPlan } = await supabase
+                  .from('user_plans')
+                  .select('id, inputs_why, inputs_blockers')
+                  .eq('goal_id', goal.id)
+                  .maybeSingle();
 
-            if (existingPlan) {
-                console.log("♻️ Nettoyage complet de l'ancien plan (Recraft Mode Robust)...");
-                // 1. Suppression des artefacts (Actions, Frameworks, Signes Vitaux)
-                // cleanupPlanData supprime TOUT ce qui est lié à cet ID, y compris les entrées de journal (user_framework_entries)
-                await cleanupPlanData(existingPlan.id);
+              // CONTEXTE INITIAL : On sauvegarde les inputs d'origine avant de supprimer
+              const initialWhy = existingPlan?.inputs_why || inputs.why; // Fallback sur inputs actuels si pas d'historique (Cas rare)
+              const initialBlockers = existingPlan?.inputs_blockers || inputs.blockers;
 
-                // 2. Suppression du plan lui-même pour repartir sur un ID propre
-                await supabase.from('user_plans').delete().eq('id', existingPlan.id);
-            }
+              if (existingPlan) {
+                  console.log("♻️ Nettoyage complet de l'ancien plan (Recraft Mode Robust)...");
+                  // 1. Suppression des artefacts (Actions, Frameworks, Signes Vitaux)
+                  // cleanupPlanData supprime TOUT ce qui est lié à cet ID, y compris les entrées de journal (user_framework_entries)
+                  await cleanupPlanData(existingPlan.id);
 
-            // 3. CRÉATION DU NOUVEAU PLAN (Insert Always)
-            const { data: newPlan, error: planError } = await supabase.from('user_plans').insert({
-                user_id: user.id,
-                goal_id: goal.id,
-                submission_id: goal.submission_id,
-                content: data,
-                
-                // ON PRÉSERVE L'HISTOIRE D'ORIGINE
-                inputs_why: initialWhy,
-                inputs_blockers: initialBlockers,
-                
-                // ON AJOUTE LE CHAPITRE RECRAFT
-                recraft_reason: inputs.why,
-                recraft_challenges: inputs.blockers,
-                inputs_low_motivation_message: inputs.low_motivation_message,
-                
-                inputs_pacing: inputs.pacing,
-                title: data.grimoireTitle,
-                deep_why: data.deepWhy, // NOUVEAU : Sauvegarde motivation
-                context_problem: data.context_problem, // NOUVEAU : Contexte Grimoire
-                status: 'active',
-                generation_attempts: 1
-            })
-            .select()
-            .single();
+                  // 2. Suppression du plan lui-même pour repartir sur un ID propre
+                  await supabase.from('user_plans').delete().eq('id', existingPlan.id);
+              }
 
-            if (planError) throw planError;
+              // 3. CRÉATION DU NOUVEAU PLAN (Insert Always)
+              const { data: newPlan, error: planError } = await supabase.from('user_plans').insert({
+                  user_id: user.id,
+                  goal_id: goal.id,
+                  submission_id: goal.submission_id,
+                  content: data,
+                  
+                  // ON PRÉSERVE L'HISTOIRE D'ORIGINE
+                  inputs_why: initialWhy,
+                  inputs_blockers: initialBlockers,
+                  
+                  // ON AJOUTE LE CHAPITRE RECRAFT
+                  recraft_reason: inputs.why,
+                  recraft_challenges: inputs.blockers,
+                  inputs_low_motivation_message: inputs.low_motivation_message,
+                  
+                  inputs_pacing: inputs.pacing,
+                  title: data.grimoireTitle,
+                  deep_why: data.deepWhy, // NOUVEAU : Sauvegarde motivation
+                  context_problem: data.context_problem, // NOUVEAU : Contexte Grimoire
+                  status: 'active',
+                  generation_attempts: 1
+              })
+              .select()
+              .single();
 
-            // 4. DISTRIBUTION DES ACTIONS
-            if (newPlan) {
-                await distributePlanActions(user.id, newPlan.id, goal.submission_id, data);
-            }
+              if (planError) throw planError;
+
+              // 4. DISTRIBUTION DES ACTIONS
+              if (newPlan) {
+                  await distributePlanActions(user.id, newPlan.id, goal.submission_id, data);
+              }
+          }
+        } catch (saveError: any) {
+          console.error('Plan généré mais échec de sauvegarde/distribution:', saveError);
+          setError(saveError?.message || "Le plan est généré, mais la sauvegarde a échoué. Ouvre le plan puis réessaie la validation.");
         }
       }
 
-    } catch (err) {
+    } catch (err: any) {
       console.error('Erreur génération plan:', err);
-      setError("Erreur lors de la génération. Veuillez réessayer.");
+      setError(err?.message || "Erreur lors de la génération. Veuillez réessayer.");
       setStep('input');
       stopLoading();
     }
@@ -931,17 +936,6 @@ const ActionPlanGeneratorRecraft = () => {
                     Sophia réajuste le plan selon tes contraintes...
                 </p>
               )}
-            </div>
-
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
-              <h3 className="text-xs md:text-sm font-bold text-amber-900 uppercase tracking-wider mb-2">
-                Rappel anti-flemme
-              </h3>
-              <p className="text-sm text-amber-800 leading-relaxed italic">
-                {inputs.low_motivation_message?.trim()
-                  ? `"${inputs.low_motivation_message.trim()}"`
-                  : "Tu peux ajouter ce rappel dans la partie qualitative du plan pour que Sophia te remotive les jours plus difficiles."}
-              </p>
             </div>
 
             {/* VALIDATION FINALE */}

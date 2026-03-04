@@ -420,16 +420,21 @@ Exemples:
   * "je veux parler de mon plan" -> action_discussion.detected=false
 
 1.bis) breakdown_action (SOS blocage) — REGLES FORTES
-- Détecte breakdown_action dès que le user exprime un BLOCAGE EXÉCUTION sur une action:
-  * "je galère", "j'arrive pas", "je bloque", "trop dur", "trop long", "impossible"
-  * "j'ai besoin d'une étape intermédiaire", "micro-étape", "plus simple"
-  * "comment je fais quand je galère ?", "SOS blocage"
-- Même si la cible n'est pas parfaitement nommée, mets breakdown_action.detected=true.
-- Si la cible est floue: breakdown_action.detected=true quand même.
+- Détecte breakdown_action seulement pour un BLOCAGE D'EXÉCUTION sur une action déjà existante (Plan de transformation OU Actions personnelles), avec notion d'échecs répétés / difficulté persistante.
+- Déclencheurs typiques:
+  * "je galère encore sur [action]", "j'arrive toujours pas à [action]", "je bloque depuis plusieurs jours"
+  * "j'ai besoin d'une étape intermédiaire", "micro-étape", "plus simple" (sur action existante)
+  * mention explicite "SOS blocage" + action identifiable
+- Si la cible n'est pas parfaitement nommée mais qu'une action existante est clairement visée, mets breakdown_action.detected=true.
+- Si aucune action existante n'est identifiable, breakdown_action.detected=false (laisser create_action/update_action/action_discussion selon le cas).
+- IMPORTANT anti-faux-positifs:
+  * NE PAS déclencher breakdown_action pour une crise/pulsion/urgence émotionnelle ("quand ça chauffe", "je vais craquer", etc.) sans action existante précise.
+  * NE PAS déclencher breakdown_action pour une difficulté générale de vie non liée à une action.
 - Exemples:
-  * "j'arrive pas à tenir 30 min de sport" -> breakdown_action.detected=true
-  * "je galère avec ma routine du soir" -> breakdown_action.detected=true
+  * "j'arrive toujours pas à tenir mes 30 min de sport" -> breakdown_action.detected=true
+  * "sur ma routine du soir je galère depuis une semaine" -> breakdown_action.detected=true
   * "quand je bloque sur une action je fais quoi ?" -> breakdown_action.detected=true
+  * "quand ça chauffe le soir je fais quoi ?" -> breakdown_action.detected=false
 
 2) dashboard_preferences_intent (redirection réglages UX/UI)
 - Détecte quand le user veut changer ses préférences produit (pas une action du plan).

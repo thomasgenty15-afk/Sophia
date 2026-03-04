@@ -43,6 +43,22 @@ function weekdayKeyInTimezone(params: { timezone: string; dayOffset: number; now
   return map[short.slice(0, 3)] ?? "mon"
 }
 
+function daysUntilNextSunday(timezone: string): number {
+  const key = weekdayKeyInTimezone({ timezone, dayOffset: 0, now: new Date() })
+  const idx: Record<string, number> = {
+    sun: 0,
+    mon: 1,
+    tue: 2,
+    wed: 3,
+    thu: 4,
+    fri: 5,
+    sat: 6,
+  }
+  const current = idx[key] ?? 1
+  const delta = (7 - current) % 7
+  return delta === 0 ? 7 : delta
+}
+
 function cleanText(v: unknown, fallback = ""): string {
   const t = String(v ?? "").trim()
   return t || fallback
@@ -421,11 +437,14 @@ Deno.serve(async (req) => {
       const timezone = cleanText(profile?.timezone, "Europe/Paris")
       const locale = profile?.locale ?? null
       const days = Array.isArray(reminder.scheduled_days) ? reminder.scheduled_days : []
+      // Weekly window must stop before next Sunday cron window (not rolling 7 full days).
+      const untilSunday = daysUntilNextSunday(timezone)
+      const horizonDays = Math.max(0, untilSunday - 1)
       const slots = listUpcomingSlots({
         timezone,
         localTimeHHMM: reminder.local_time_hhmm,
         scheduledDays: days,
-        horizonDays: 7,
+        horizonDays,
       })
       if (slots.length === 0) {
         skipped++
@@ -543,16 +562,22 @@ Deno.serve(async (req) => {
 
       // Strict exact-match safeguard at DB level: verify all expected slots exist, then repair missing rows.
       let repairDbAttempts = 0
-      const expectedScheduledFor = new Set(slots.map((s) => s.scheduledFor))
+      // Do not compare by exact scheduled_for: DB min-gap trigger may shift timestamps by +1h.
+      // Instead, reconcile by logical slot identity (slot_day_offset in payload).
+      const expectedDayOffsets = new Set(slots.map((s) => s.dayOffset))
       const { data: existingRows } = await supabaseAdmin
         .from("scheduled_checkins")
-        .select("scheduled_for")
+        .select("scheduled_for,message_payload")
         .eq("user_id", reminder.user_id)
         .eq("event_context", eventContext)
-        .in("scheduled_for", [...expectedScheduledFor])
+        .in("status", ["pending", "awaiting_user"])
 
-      const existingSet = new Set((existingRows ?? []).map((r: any) => String(r.scheduled_for ?? "")))
-      const missingSlots = slots.filter((s) => !existingSet.has(s.scheduledFor))
+      const existingOffsets = new Set<number>(
+        (existingRows ?? [])
+          .map((r: any) => Number((r?.message_payload ?? {})?.slot_day_offset))
+          .filter((n: number) => Number.isFinite(n) && expectedDayOffsets.has(n)),
+      )
+      const missingSlots = slots.filter((s) => !existingOffsets.has(s.dayOffset))
       if (missingSlots.length > 0) {
         repairDbAttempts++
         for (const slot of missingSlots) {
@@ -588,12 +613,17 @@ Deno.serve(async (req) => {
 
       const { data: finalRows } = await supabaseAdmin
         .from("scheduled_checkins")
-        .select("scheduled_for")
+        .select("message_payload")
         .eq("user_id", reminder.user_id)
         .eq("event_context", eventContext)
-        .in("scheduled_for", [...expectedScheduledFor])
+        .in("status", ["pending", "awaiting_user"])
 
-      const finalInserted = (finalRows ?? []).length
+      const finalOffsets = new Set<number>(
+        (finalRows ?? [])
+          .map((r: any) => Number((r?.message_payload ?? {})?.slot_day_offset))
+          .filter((n: number) => Number.isFinite(n) && expectedDayOffsets.has(n)),
+      )
+      const finalInserted = finalOffsets.size
       console.log(
         JSON.stringify({
           tag: "recurring_weekly_cardinality",
@@ -642,5 +672,4 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-
 

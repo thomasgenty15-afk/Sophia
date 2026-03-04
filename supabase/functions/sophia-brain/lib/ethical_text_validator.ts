@@ -1,4 +1,4 @@
-import { generateWithGemini, getGeminiFallbackModel } from "../../_shared/gemini.ts";
+import { generateWithGemini } from "../../_shared/gemini.ts";
 
 export type EthicalEntityType =
   | "action"
@@ -124,9 +124,9 @@ export async function validateEthicalTextWithAI(
       {
         requestId: input.request_id,
         source: "ethical-text-validator",
-        model:
-          (Deno.env.get("ETHICAL_VALIDATION_MODEL") ?? "").trim() ||
-          getGeminiFallbackModel("gemini-2.5-flash"),
+        // Force attempt #1 on 2.5 flash for stable policy latency/behavior in ethical checks.
+        model: "gemini-2.5-flash",
+        forceInitialModel: true,
         maxRetries: 2,
       },
     );

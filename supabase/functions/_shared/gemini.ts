@@ -31,6 +31,8 @@ export async function generateWithGemini(
     userId?: string;
     maxRetries?: number;
     httpTimeoutMs?: number;
+    // If true, attempt #1 always uses meta.model exactly (no policy model override).
+    forceInitialModel?: boolean;
     // If true, do not append our internal provider/model fallback chain.
     // Useful when the caller already implements an external model cycle (e.g. judge loops).
     disableFallbackChain?: boolean;
@@ -351,6 +353,9 @@ export async function generateWithGemini(
   const pickModelForAttempt = (startModel: string, attempt: number): string => {
     // For Gemini primary traffic, alternate primary/fallback across retries.
     const start = String(startModel ?? "").trim();
+    if (Boolean(meta?.forceInitialModel) && attempt === 1 && start) {
+      return start;
+    }
     if (!isOpenAiModel(start) && !isGpt52(start) && hasDistinctGeminiFallback) {
       return attempt % 2 === 1 ? geminiPrimaryModel : geminiFallbackModel;
     }

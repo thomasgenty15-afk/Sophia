@@ -539,13 +539,19 @@ async function triggerRecurringSchedulingForReminder(params: {
 }): Promise<number> {
   const secret = internalSecret();
   if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET");
+  const anonKey = str(Deno.env.get("SUPABASE_ANON_KEY"));
+  const serviceRoleKey = str(Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
   const url = `${functionsBaseUrl()}/functions/v1/schedule-recurring-checkins`;
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Internal-Secret": secret,
+  };
+  // Some runtimes/gateways enforce JWT verification before the function-level internal secret check.
+  if (anonKey) headers.apikey = anonKey;
+  if (serviceRoleKey) headers.Authorization = `Bearer ${serviceRoleKey}`;
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Internal-Secret": secret,
-    },
+    headers,
     body: JSON.stringify({
       reminder_id: params.reminderId,
       user_id: params.userId,

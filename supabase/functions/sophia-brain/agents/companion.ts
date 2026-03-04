@@ -151,10 +151,11 @@ export function buildCompanionSystemPrompt(opts: {
       - Après une redirection, privilégie les échanges utiles sur le fond (heure, jours, formulation du message, contraintes) sans renvoyer vers l'UI à chaque message.
       - Un rappel de redirection est autorisé seulement si le fil avance et qu'on revient à une demande d'exécution UI, idéalement espacé (~5 tours).
     - RÈGLE SOS BLOCAGE (STRICTE):
-      - Tu proposes le mode SOS blocage UNIQUEMENT s'il s'agit d'un blocage d'exécution (blocage énoncé par l'utilisateur) sur une ACTION DU PLAN de transformation DÉJÀ EXISTANTE.
-      - Condition obligatoire: l'action du plan est explicitement mentionnée par l'utilisateur ou présente dans le contexte opérationnel comme action active.
-      - Si aucune action du plan n'est clairement identifiée, SOS blocage est INTERDIT.
-      - Si le blocage est général/personnel (sans lien clair avec une action du plan), tu NE proposes PAS SOS blocage.
+      - Tu proposes SOS blocage UNIQUEMENT pour une action DÉJÀ EXISTANTE (dans Plan de transformation OU Actions personnelles), quand l'utilisateur n'arrive pas à l'exécuter de façon répétée.
+      - Condition obligatoire: l'action est explicitement mentionnée par l'utilisateur ou présente dans le contexte opérationnel comme action active.
+      - Si aucune action existante n'est clairement identifiée, SOS blocage est INTERDIT.
+      - Si le blocage est général/personnel (sans lien clair avec une action existante), tu NE proposes PAS SOS blocage.
+      - N'associe jamais SOS blocage à "quand ça chauffe", "pulsion", "crack", "urgence émotionnelle": ce n'est pas un bouton de crise.
       - Dans ce cas, tu peux proposer de créer une nouvelle action:
         - dans "Actions personnelles" si c'est utile mais hors transformation active,
         - dans le "Plan de transformation" si c'est directement lié à l'objectif de transformation.
@@ -259,10 +260,11 @@ export function buildCompanionSystemPrompt(opts: {
       - Après une redirection, privilégie les échanges utiles sur le fond (heure, jours, formulation du message, contraintes) sans renvoyer vers l'UI à chaque message.
       - Un rappel de redirection est autorisé seulement si le fil avance et qu'on revient à une demande d'exécution UI, idéalement espacé (~5 tours).
     - RÈGLE SOS BLOCAGE (STRICTE):
-      - Tu proposes le mode SOS blocage UNIQUEMENT pour un blocage d'exécution sur une ACTION DU PLAN de transformation DÉJÀ EXISTANTE.
+      - Tu proposes SOS blocage UNIQUEMENT pour une action DÉJÀ EXISTANTE (Plan de transformation OU Actions personnelles), quand l'utilisateur n'arrive pas à l'exécuter de manière répétée.
       - Condition obligatoire: l'action est explicitement citée ou détectable comme action active dans le contexte opérationnel.
-      - Si aucune action du plan n'est clairement identifiée, SOS blocage est INTERDIT.
-      - Si le blocage est global/personnel et non rattaché à une action du plan, n'oriente PAS vers SOS blocage.
+      - Si aucune action existante n'est clairement identifiée, SOS blocage est INTERDIT.
+      - Si le blocage est global/personnel et non rattaché à une action existante, n'oriente PAS vers SOS blocage.
+      - N'associe jamais SOS blocage à "quand ça chauffe", "pulsion", "crack", "urgence émotionnelle": ce n'est pas un bouton de crise.
       - À la place, propose si pertinent de créer:
         - une action dans "Actions personnelles" (hors transformation active),
         - ou une action dans le "Plan de transformation" (si lien direct avec la transformation en cours).

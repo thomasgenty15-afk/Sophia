@@ -1047,17 +1047,6 @@ const ActionPlanGeneratorNext = () => {
               )}
             </div>
 
-            <div className="bg-amber-50 border border-amber-200 rounded-2xl p-4 md:p-6 mb-6 md:mb-8">
-              <h3 className="text-xs md:text-sm font-bold text-amber-900 uppercase tracking-wider mb-2">
-                Rappel anti-flemme
-              </h3>
-              <p className="text-sm text-amber-800 leading-relaxed italic">
-                {inputs.low_motivation_message?.trim()
-                  ? `"${inputs.low_motivation_message.trim()}"`
-                  : "Tu peux ajouter ce rappel dans la partie qualitative du plan pour que Sophia te remotive les jours plus difficiles."}
-              </p>
-            </div>
-
             <button 
               onClick={handleValidatePlan}
               className="w-full bg-emerald-600 text-white font-bold text-base md:text-lg py-4 md:py-5 rounded-xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 md:gap-3"

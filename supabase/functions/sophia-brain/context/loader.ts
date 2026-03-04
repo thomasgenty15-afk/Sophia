@@ -693,10 +693,13 @@ function formatDashboardRedirectAddon(addon: any): string {
     `- Si la redirection vient d'être donnée, continue sur le contenu (paramètres, clarifications) sans renvoyer encore vers l'UI.\n` +
     `- Rappel dashboard possible plus tard si utile (ordre de grandeur: ~5 tours) ou si l'utilisateur redemande explicitement l'exécution UI.\n` +
     (isBreakdownIntent
-      ? `- Mode SOS blocage: ne le propose QUE pour un blocage d'exécution sur une action du plan de transformation (pas pour un blocage personnel général). Pose d'abord 1 question de diagnostic ciblée, puis redirige.\n`
+      ? `- Mode SOS blocage: ne le propose QUE pour une action déjà existante (Plan de transformation OU Actions personnelles) qui échoue de manière répétée. Pas pour un blocage personnel général.\n`
       : "") +
     (isBreakdownIntent
       ? `- Exemples de questions utiles: "Qu'est-ce qui bloque exactement ?", "À quel moment ça coince le plus ?", "Quelle version ultra-simple (2 min) serait faisable ?"\n`
+      : "") +
+    (isBreakdownIntent
+      ? `- Interdit: présenter SOS blocage comme un bouton "quand ça chauffe", "pulsion", "crack" ou urgence émotionnelle.\n`
       : "") +
     (fromBilan
       ? `- Le bilan reste prioritaire: confirme la redirection dashboard puis reprends l'item du bilan.\n`
@@ -712,9 +715,9 @@ function formatDashboardCapabilitiesLiteAddon(): string {
     `- Support de connaissance global: utilise ces infos seulement si c'est pertinent pour la question du user.\n` +
     `- Cartographie produit:\n` +
     `  - Tableau de bord Action:\n` +
-    `    1) Plan de Transformation: pilotage des actions du plan (activer, mettre en pause, supprimer, modifier). SOS blocage uniquement pour blocage d'exécution sur une action du plan.\n` +
+    `    1) Plan de Transformation: pilotage des actions du plan (activer, mettre en pause, supprimer, modifier). SOS blocage possible sur action existante en échec répété.\n` +
     `    2) Actions Personnelles: habitudes hors plan principal (créer, modifier, activer, pause, supprimer, suivi d'avancement) + Étoile Polaire (valeurs numériques départ/actuel/cible).\n` +
-    `    3) Rendez-vous: configure les rendez-vous où Sophia vient vers le user au bon moment avec le bon ton (ex: citation du matin, message de soutien dans les moments sensibles, relance douce avant un passage important). C'est une vraie personnalisation de l'accompagnement (créer, modifier, activer, pause, supprimer; paramètres message/jours/heure).\n` +
+    `    3) Rendez-vous: configure les rendez-vous où Sophia vient vers le user au bon moment avec le bon ton (ex: citation du matin, message de soutien planifié, relance douce avant un passage important). C'est une vraie personnalisation de l'accompagnement (créer, modifier, activer, pause, supprimer; paramètres message/jours/heure).\n` +
     `    4) Préférences: personnalisation du style de Sophia (ton, longueur, format, niveau de challenge, etc.).\n` +
     `  - Tableau de bord Architecte:\n` +
     `    1) Construction du Temple: fondations identitaires.\n` +
@@ -781,10 +784,10 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
     `  1) Plan de Transformation:\n` +
     `     - Intérêt: exécuter la transformation active, phase par phase.\n` +
     `     - Possibilités clés sur une action: modifier, supprimer, mettre en pause (désactiver), activer, marquer la progression, SOS blocage (découpage micro-étapes).\n` +
-    `     - Important: SOS blocage uniquement si blocage sur action du plan; sinon orienter plutôt vers création d'action personnelle ou d'action du plan selon le besoin.\n` +
+    `     - Important: SOS blocage n'est PAS un bouton de crise/pulsion. Il s'applique à une action existante en échec répété.\n` +
     `  2) Actions Personnelles:\n` +
     `     - Intérêt: gérer des habitudes perso en parallèle du plan principal.\n` +
-    `     - Possibilités clés: créer, modifier, activer, mettre en pause, supprimer, suivre la progression.\n` +
+    `     - Possibilités clés: créer, modifier, activer, mettre en pause, supprimer, suivre la progression, SOS blocage sur action existante en échec répété.\n` +
     `     - Étoile Polaire: définir/mettre à jour un indicateur chiffré (valeurs numériques: départ, actuel, cible) pour garder le cap.\n` +
     `  3) Rendez-vous:\n` +
     `     - Intérêt: autoriser Sophia à venir vers le user de façon proactive (rappels/messages planifiés).\n` +
