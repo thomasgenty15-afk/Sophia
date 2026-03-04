@@ -533,6 +533,13 @@ function functionsBaseUrl(): string {
   return supabaseUrl.replace(/\/+$/, "");
 }
 
+function looksLikeJwtToken(value: string): boolean {
+  const token = str(value);
+  if (!token) return false;
+  const parts = token.split(".");
+  return parts.length === 3 && parts.every((p) => p.length > 0);
+}
+
 async function triggerRecurringSchedulingForReminder(params: {
   reminderId: string;
   userId: string;
@@ -548,7 +555,8 @@ async function triggerRecurringSchedulingForReminder(params: {
   };
   // Some runtimes/gateways enforce JWT verification before the function-level internal secret check.
   if (anonKey) headers.apikey = anonKey;
-  if (serviceRoleKey) headers.Authorization = `Bearer ${serviceRoleKey}`;
+  // New Supabase secret keys (`sb_secret_...`) are not JWTs and must not be sent as Bearer tokens.
+  if (looksLikeJwtToken(serviceRoleKey)) headers.Authorization = `Bearer ${serviceRoleKey}`;
   const res = await fetch(url, {
     method: "POST",
     headers,
