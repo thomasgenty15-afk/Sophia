@@ -149,22 +149,9 @@ export async function upsertUserProfileFactWithEvent(opts: {
 
   if (isSame) return { changed: false }
 
-  // Write audit event
-  const { error: evErr } = await supabase.from("user_profile_fact_events").insert({
-    user_id: userId,
-    scope: scopeNorm,
-    key: keyNorm,
-    old_value: oldValue,
-    new_value: value,
-    source_type: String(sourceType ?? "explicit_user"),
-    source_message_id: sourceMessageId ?? null,
-    reason: reason ?? null,
-  })
-  if (evErr) console.warn("[profile_facts] event insert failed (non-blocking):", evErr)
-
+  // Audit event table was removed; fact upsert remains source of truth.
   return { changed: true }
 }
-
 
 
 

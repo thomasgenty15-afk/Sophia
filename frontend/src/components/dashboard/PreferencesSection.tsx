@@ -5,12 +5,7 @@ import {
   ChevronDown, 
   ChevronUp,
   Mic2,
-  Zap,
   MessageSquare,
-  AlignLeft,
-  Layout,
-  Target,
-  Heart,
   Lock,
   Crown
 } from 'lucide-react';
@@ -31,107 +26,39 @@ const FACT_SCOPE = 'global';
 
 const PREFERENCES: PreferenceDef[] = [
   {
-    key: 'coach.tone',
+    key: 'coach.coaching_style',
     icon: Mic2,
-    title: 'Ton de coaching',
-    description: 'Définit l\'ambiance générale de vos échanges. Préfères-tu une douceur enveloppante ou une énergie qui te pousse à l\'action ?',
-    defaultValue: 'warm_direct',
+    title: 'Style de coaching',
+    description: 'La façon dont Sophia te pousse vers l\'action: douce, équilibrée ou plus challengeante.',
+    defaultValue: 'normal',
     options: [
-      { value: 'gentle', title: 'Bienveillant doux', description: 'Soutenant, calme, très empathique.' },
-      { value: 'warm_direct', title: 'Bienveillant ferme', description: 'Chaleureux mais orienté action.' },
-      { value: 'direct', title: 'Direct', description: 'Clair, concis, sans détour.' },
-      { value: 'energetic', title: 'Énergique', description: 'Dynamique et motivant.' },
+      { value: 'gentle', title: 'Doux', description: 'Soutenant et apaisant, sans pression forte.' },
+      { value: 'normal', title: 'Normal', description: 'Équilibré entre soutien et progression.' },
+      { value: 'challenging', title: 'Challengeant', description: 'Plus direct et exigeant pour accélérer.' },
     ],
   },
   {
-    key: 'coach.challenge_level',
-    icon: Zap,
-    title: 'Niveau de challenge',
-    description: 'Ajuste l\'intensité de la responsabilisation. Sophia doit-elle être une observatrice bienveillante ou un coach exigeant qui ne laisse rien passer ?',
-    defaultValue: 'balanced',
-    options: [
-      { value: 'light', title: 'Léger', description: 'Peu de pression, encouragements.' },
-      { value: 'balanced', title: 'Équilibré', description: 'Bon compromis confort/progression.' },
-      { value: 'high', title: 'Exigeant', description: 'Responsabilisation plus forte.' },
-      { value: 'intense', title: 'Très exigeant', description: 'Accountability maximal.' },
-    ],
-  },
-  {
-    key: 'coach.feedback_style',
-    icon: MessageSquare,
-    title: 'Style de feedback',
-    description: 'La manière dont Sophia te fait ses retours. Veux-tu d\'abord être validé émotionnellement, ou préfères-tu aller droit au but sur les points d\'amélioration ?',
-    defaultValue: 'positive_then_fix',
-    options: [
-      { value: 'positive_then_fix', title: 'Positif puis amélioration', description: 'Valorise puis corrige.' },
-      { value: 'fix_then_positive', title: 'Amélioration puis positif', description: 'Corrige d’abord.' },
-      { value: 'radical_honesty', title: 'Honnêteté directe', description: 'Retour très frontal.' },
-      { value: 'socratic', title: 'Socratique', description: 'Plus de questions guidées.' },
-    ],
-  },
-  {
-    key: 'coach.talk_propensity',
+    key: 'coach.chatty_level',
     icon: MessageCircle,
-    title: 'Propension à parler',
-    description: 'Définit si Sophia doit nourrir la conversation ou aller à l\'essentiel. Veux-tu qu\'elle rebondisse, pose des questions et creuse les sujets, ou qu\'elle réponde juste à ta demande ?',
-    defaultValue: 'balanced',
+    title: 'Niveau de bavardage',
+    description: 'Définit à quel point Sophia prolonge la conversation au-delà de la demande initiale.',
+    defaultValue: 'normal',
     options: [
-      { value: 'discrete', title: 'Discrète', description: 'Répond uniquement à la demande, ne relance pas.' },
-      { value: 'balanced', title: 'Équilibrée', description: 'Pose une question de suivi si pertinent.' },
-      { value: 'chatty', title: 'Engagée', description: 'Nourrit l\'échange, rebondit et creuse les sujets.' },
-      { value: 'very_chatty', title: 'Très bavarde', description: 'Cherche toujours à prolonger la discussion.' },
+      { value: 'light', title: 'Léger', description: 'Réponses concises, peu de relances.' },
+      { value: 'normal', title: 'Normal', description: 'Conversation naturelle, relances si utile.' },
+      { value: 'high', title: 'Élevé', description: 'Échange plus nourri, rebonds fréquents.' },
     ],
   },
   {
-    key: 'coach.message_length',
-    icon: AlignLeft,
-    title: 'Longueur des messages',
-    description: 'La densité des réponses. Préfères-tu des messages courts et percutants pour une lecture rapide, ou des réponses détaillées qui explorent le sujet en profondeur ?',
-    defaultValue: 'short',
+    key: 'coach.question_tendency',
+    icon: MessageSquare,
+    title: 'Tendance à poser des questions',
+    description: 'Règle la fréquence des questions de Sophia pour approfondir ou laisser plus d\'espace.',
+    defaultValue: 'normal',
     options: [
-      { value: 'very_short', title: 'Ultra court', description: '1 à 3 lignes max.' },
-      { value: 'short', title: 'Court', description: 'Réponses rapides et nettes.' },
-      { value: 'medium', title: 'Moyen', description: 'Contexte + action.' },
-      { value: 'detailed', title: 'Détaillé', description: 'Réponses complètes.' },
-    ],
-  },
-  {
-    key: 'coach.message_format',
-    icon: Layout,
-    title: 'Format préféré',
-    description: 'La structure des réponses. Sophia doit-elle privilégier les listes d\'actions concrètes, les questions pour te faire réfléchir, ou des plans structurés ?',
-    defaultValue: 'adaptive',
-    options: [
-      { value: 'questions', title: 'Questions guidées', description: 'Dialogue réflexif.' },
-      { value: 'action_list', title: 'Liste d’actions', description: 'To-do clair et concret.' },
-      { value: 'mini_plan', title: 'Mini plan', description: 'Étapes structurées.' },
-      { value: 'adaptive', title: 'Mix adaptatif', description: 'Sophia choisit selon contexte.' },
-    ],
-  },
-  {
-    key: 'coach.primary_focus',
-    icon: Target,
-    title: 'Focus principal',
-    description: 'L\'angle d\'attaque prioritaire. Sur quoi Sophia doit-elle insister ? L\'action immédiate, la clarté mentale, la régulation émotionnelle ou l\'hygiène de vie ?',
-    defaultValue: 'discipline',
-    options: [
-      { value: 'discipline', title: 'Discipline / action', description: 'Passer à l’action vite.' },
-      { value: 'emotional', title: 'Émotionnel', description: 'Régulation et clarté interne.' },
-      { value: 'clarity', title: 'Clarté / décision', description: 'Prioriser et trancher.' },
-      { value: 'energy', title: 'Énergie / routines', description: 'Rythme, sommeil, constance.' },
-    ],
-  },
-  {
-    key: 'coach.emotional_personalization',
-    icon: Heart,
-    title: 'Personnalisation émotionnelle',
-    description: 'Le degré de chaleur humaine. Souhaites-tu une relation très personnelle et affective, ou un échange plus distancié et factuel ?',
-    defaultValue: 'warm',
-    options: [
-      { value: 'factual', title: 'Sobre / factuel', description: 'Pragmatique, peu émotionnel.' },
-      { value: 'warm', title: 'Chaleureux', description: 'Humain et soutenant.' },
-      { value: 'very_human', title: 'Très humain', description: 'Relation proche et sensible.' },
-      { value: 'introspective', title: 'Introspectif', description: 'Plus profondeur intérieure.' },
+      { value: 'low', title: 'Faible', description: 'Peu de questions, plus de réponses directes.' },
+      { value: 'normal', title: 'Normale', description: 'Questions de suivi quand c\'est pertinent.' },
+      { value: 'high', title: 'Élevée', description: 'Questionne davantage pour creuser.' },
     ],
   },
 ];
@@ -281,7 +208,7 @@ export function PreferencesSection({ isLocked = false, onUnlockRequest }: Prefer
             <div>
                 <h3 className="font-bold text-violet-900 text-sm md:text-base mb-1">Pose-moi toutes tes questions !</h3>
                 <p className="text-xs md:text-sm text-violet-700/80 leading-relaxed max-w-xl">
-                    Je ne suis pas là que pour te coacher. Tu peux me parler de tout : une idée qui te traverse l'esprit, un doute, une question technique ou juste envie de discuter. Je suis ta seconde mémoire, pensée pour toi.
+                    Je ne suis pas là que pour te coacher. Tu peux me parler de tout : une idée qui te traverse l'esprit, un doute, une question sur quoi que ce soit, ou on peut simplement discuter. Je suis ton amie, pensée pour toi.
                 </p>
             </div>
         </div>

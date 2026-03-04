@@ -151,20 +151,7 @@ export async function handleOnboardingState(params) {
     }
     // They say "done": re-check if an active plan exists now.
     const maybeFact = params.extractAfterDonePhrase(raw);
-    if (maybeFact.length > 0) {
-      await admin.from("memories").insert({
-        user_id: userId,
-        content: `Sur WhatsApp, l'utilisateur partage: ${maybeFact}`,
-        type: "whatsapp_personal_fact",
-        metadata: {
-          channel: "whatsapp",
-          wa_from: fromE164,
-          wa_message_id: waMessageId,
-          captured_from: "awaiting_plan_finalization"
-        },
-        source_type: "whatsapp"
-      });
-    }
+    void maybeFact;
     const { data: activePlan, error: planErr } = await admin.from("user_plans").select("title, updated_at").eq("user_id", userId).eq("status", "active").order("updated_at", {
       ascending: false
     }).limit(1).maybeSingle();

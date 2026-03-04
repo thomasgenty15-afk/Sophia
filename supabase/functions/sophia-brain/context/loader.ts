@@ -198,7 +198,8 @@ export async function loadContextForMode(
             `${factsContext}\n` +
             `=== CONSIGNE PERSONNALISATION FACTS ===\n` +
             `- Utilise ces facts comme support de connaissance pour personnaliser ton style de réponse.\n` +
-            `- En priorité pour: ton (conversation.tone), longueur (conversation.verbosity), emojis (conversation.use_emojis).\n` +
+            `- En priorité pour: style de coaching (coach.coaching_style), niveau de bavardage (coach.chatty_level), tendance à poser des questions (coach.question_tendency).\n` +
+            `- Les facts legacy (ex: conversation.tone / conversation.verbosity / conversation.use_emojis) restent utilisables si présents.\n` +
             `- Ces facts orientent la forme de réponse (style/longueur), pas l'exécution d'actions.\n` +
             `- N'invente jamais un fact manquant; si absent, applique le style par défaut.\n\n`;
           elementsLoaded.push("facts");
@@ -718,7 +719,7 @@ function formatDashboardCapabilitiesLiteAddon(): string {
     `    1) Plan de Transformation: pilotage des actions du plan (activer, mettre en pause, supprimer, modifier). SOS blocage possible sur action existante en échec répété.\n` +
     `    2) Actions Personnelles: habitudes hors plan principal (créer, modifier, activer, pause, supprimer, suivi d'avancement) + Étoile Polaire (valeurs numériques départ/actuel/cible).\n` +
     `    3) Rendez-vous: configure les rendez-vous où Sophia vient vers le user au bon moment avec le bon ton (ex: citation du matin, message de soutien planifié, relance douce avant un passage important). C'est une vraie personnalisation de l'accompagnement (créer, modifier, activer, pause, supprimer; paramètres message/jours/heure).\n` +
-    `    4) Préférences: personnalisation du style de Sophia (ton, longueur, format, niveau de challenge, etc.).\n` +
+    `    4) Préférences: personnalisation du style de Sophia (style de coaching, niveau de bavardage, tendance à poser des questions).\n` +
     `  - Tableau de bord Architecte:\n` +
     `    1) Construction du Temple: fondations identitaires.\n` +
     `    2) Amélioration du Temple: phase avancée débloquée après la construction.\n` +
@@ -737,7 +738,7 @@ function formatDashboardPreferencesIntentAddon(addon: any): string {
   const keys = Array.isArray(addon?.keys)
     ? addon.keys
       .filter((v: unknown) => typeof v === "string")
-      .slice(0, 9)
+      .slice(0, 3)
     : [];
   const keysText = keys.length > 0 ? keys.join(", ") : "non précisé";
   const fromBilan = Boolean(addon?.from_bilan);
@@ -749,8 +750,8 @@ function formatDashboardPreferencesIntentAddon(addon: any): string {
     `- Cet add-on sert de support de connaissance pour guider correctement l'utilisateur.\n` +
     `- Réponds brièvement puis redirige vers l'écran Préférences du dashboard.\n` +
     `- Anti-répétition: évite la même redirection sur 2 tours d'affilée; entre-temps, traite les préférences demandées en conversation.\n` +
-    `- Les 9 catégories possibles à expliciter si utile: language, tone, response_length, emoji_level, voice_style, proactivity_level, timezone, daily_summary_time, coach_intensity.\n` +
-    `- Donne des exemples de valeurs très rapides (ex: tone=direct, response_length=short, daily_summary_time=20:00).\n` +
+    `- Les 3 catégories possibles à expliciter si utile: coaching_style, chatty_level, question_tendency.\n` +
+    `- Donne des exemples de valeurs rapides (ex: coaching_style=challenging, chatty_level=light, question_tendency=low).\n` +
     `- Interdiction de créer/appliquer un réglage depuis le chat: toute modification se fait dans le dashboard.\n` +
     (fromBilan
       ? `- Le bilan reste prioritaire: confirme la redirection puis reprends l'item du bilan.\n`
@@ -796,14 +797,9 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
     `  4) Préférences:\n` +
     `     - Intérêt: personnaliser précisément le style du coach.\n` +
     `     - Reprendre EXACTEMENT les catégories/labels du dashboard:\n` +
-    `       * Ton de coaching: Bienveillant doux | Bienveillant ferme | Direct | Énergique\n` +
-    `       * Niveau de challenge: Léger | Équilibré | Exigeant | Très exigeant\n` +
-    `       * Style de feedback: Positif puis amélioration | Amélioration puis positif | Honnêteté directe | Socratique\n` +
-    `       * Propension à parler: Discrète | Équilibrée | Engagée | Très bavarde\n` +
-    `       * Longueur des messages: Ultra court | Court | Moyen | Détaillé\n` +
-    `       * Format préféré: Questions guidées | Liste d'actions | Mini plan | Mix adaptatif\n` +
-    `       * Focus principal: Discipline/action | Émotionnel | Clarté/décision | Énergie/routines\n` +
-    `       * Personnalisation émotionnelle: Sobre/factuel | Chaleureux | Très humain | Introspectif\n` +
+    `       * Style de coaching: Doux | Normal | Challengeant\n` +
+    `       * Niveau de bavardage: Léger | Normal | Élevé\n` +
+    `       * Tendance à poser des questions: Faible | Normale | Élevée\n` +
     `\n` +
     `- DÉTAILS TABLEAU DE BORD ARCHITECTE (overview bref):\n` +
     `  - Logique fondatrice: cet espace repose sur l'idée que pour changer durablement, il faut travailler l'identité en parallèle des actions.\n` +

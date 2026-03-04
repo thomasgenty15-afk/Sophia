@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Plus, Sparkles, Target } from 'lucide-react';
+import { Plus, Sparkles, Target, ChevronDown, Compass } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import type { NorthStar, NorthStarMetricType } from '../../types/dashboard';
 import { shouldValidateOnUpdate, validateEthicalText } from '../../lib/ethicalValidation';
@@ -22,6 +23,7 @@ export function NorthStarSection(props: { userId: string | null }) {
   const [northStarValueSaving, setNorthStarValueSaving] = useState(false);
   const [northStarValueError, setNorthStarValueError] = useState<string | null>(null);
   const [isVerifyingEthics, setIsVerifyingEthics] = useState(false);
+  const [showInfo, setShowInfo] = useState(false);
 
   const cyclePromptKey = (goalId: string) => `north_star_prompt_dismissed:${goalId}`;
 
@@ -287,12 +289,12 @@ export function NorthStarSection(props: { userId: string | null }) {
 
   return (
     <section className="mb-10">
-      <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6 shadow-sm">
-        <div className="flex items-center justify-between gap-3 mb-2">
-          <h3 className="text-sm min-[350px]:text-base font-bold text-blue-900 flex items-center gap-2">
-            <Target className="w-5 h-5 text-blue-600" />
-            Étoile polaire
-          </h3>
+      <div className="mb-6">
+        <div className="flex items-center justify-between mb-2">
+          <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
+            <Compass className="w-5 h-5 text-blue-600" />
+            Mon étoile polaire
+          </h2>
           {northStar && (
             <button
               onClick={() => setNorthStarModalOpen(true)}
@@ -302,12 +304,42 @@ export function NorthStarSection(props: { userId: string | null }) {
             </button>
           )}
         </div>
+        <button
+          onClick={() => setShowInfo(!showInfo)}
+          className="text-sm text-slate-500 hover:text-slate-700 font-medium flex items-center gap-1 mb-2 transition-colors ml-7"
+        >
+          Quelques explications ?
+          <ChevronDown className={`w-4 h-4 transition-transform ${showInfo ? 'rotate-180' : ''}`} />
+        </button>
+        <motion.div
+          initial={false}
+          animate={{ height: showInfo ? 'auto' : 0, opacity: showInfo ? 1 : 0 }}
+          transition={{ duration: 0.3, ease: 'easeInOut' }}
+          className="overflow-hidden"
+        >
+          <div className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4 ml-7 space-y-3">
+            <p>
+              L'étoile polaire, c'est l'indicateur qui te permet de mesurer ton avancée sur le long terme. Tu peux mettre à jour sa valeur quand tu le souhaites : toutes les semaines ou tous les jours, ici ou directement sur WhatsApp.
+            </p>
+            <p>
+              C'est un indicateur unique, qui peut évoluer avec le temps, en fonction des événements et de tes priorités. Il est indépendant de ton plan de transformation et de tes actions personnelles.
+            </p>
+            <p>
+              Par exemple, une personne qui cherche à devenir indépendante financièrement peut y inscrire le chiffre d'affaires qu'elle vise.<br />
+              Une personne qui sort d'une rupture peut y inscrire le nombre de fois qu'elle pense à son ex dans la journée.<br />
+              Une personne qui veut perdre du poids peut y mettre son poids de départ et son poids cible.
+            </p>
+          </div>
+        </motion.div>
+      </div>
+
+      <div className="bg-blue-50 rounded-2xl border border-blue-100 p-6 shadow-sm">
         {northStarLoading ? (
           <p className="text-sm text-blue-400">Chargement de l'étoile polaire…</p>
         ) : !northStar ? (
-          <div>
-            <p className="text-sm text-blue-700/80 mb-4">
-              Définis ton indicateur global de progression pour garder le cap entre les transformations.
+          <div className="text-center py-4">
+            <p className="text-sm text-blue-800 font-medium mb-4">
+              Tu n'as pas encore configuré ton étoile polaire
             </p>
             <button
               onClick={() => setNorthStarModalOpen(true)}

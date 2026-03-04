@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
-import { generateWithGemini, generateEmbedding } from "../_shared/gemini.ts";
+import { generateWithGemini } from "../_shared/gemini.ts";
 import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
 import { processCoreIdentity } from "../_shared/identity-manager.ts";
 import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts";
@@ -204,43 +204,7 @@ serve(async (req) => {
 
         aiSummary = await generateWithGemini(prompt, contentStr);
 
-        // 3. Vectorize
-        const vectorText = `Question : ${questionText}\nRésumé Réponse : ${aiSummary}`;
-        const embedding = await generateEmbedding(vectorText);
-
-        // 4. Store Memory (Micro-Souvenir)
-        // A. Archive old active insight
-        await supabaseClient
-          .from('memories')
-          .update({ 
-            type: 'history',
-            metadata: { 
-              archived_at: new Date().toISOString(),
-              source: 'complete-module-history'
-            }
-          })
-          .eq('user_id', user.id)
-          .eq('source_id', moduleId)
-          .eq('source_type', 'module')
-          .eq('type', 'insight');
-
-        // B. Insert new active insight
-        await supabaseClient
-          .from('memories')
-          .insert({
-            user_id: user.id,
-            source_id: moduleId,
-            source_type: 'module',
-            type: 'insight',
-            content: vectorText,
-            embedding: embedding,
-            metadata: { 
-              source: 'complete-module', 
-              version_date: new Date().toISOString() 
-            }
-          });
-          
-        console.log(`Forge Micro-Memory created for ${moduleId}`);
+        console.log(`[CompleteModule] Memory storage disabled; summary kept on module row (${moduleId}).`);
       }
     } catch (err) {
       console.error("Error creating Forge Memory:", err);

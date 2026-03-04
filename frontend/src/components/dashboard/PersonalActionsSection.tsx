@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { Plus, Repeat, Info } from 'lucide-react';
+import { Plus, Repeat, Info, ChevronDown } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
 import { isSameIsoWeekLocal } from '../../lib/isoWeek';
@@ -305,16 +305,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
             <Repeat className="w-5 h-5 text-emerald-600" />
-            <div className="flex items-center gap-1">
-              Actions Personnelles
-              <button
-                onClick={() => setShowInfo(!showInfo)}
-                className="p-1 rounded-full text-slate-400 hover:text-emerald-600 hover:bg-emerald-50 transition-colors"
-                title="Plus d'informations"
-              >
-                <Info className="w-4 h-4" />
-              </button>
-            </div>
+            Actions Personnelles
           </h2>
           <button
             onClick={() => setCreateOpen(true)}
@@ -324,16 +315,30 @@ export function PersonalActionsSection(props: { userId: string | null }) {
             <span className="hidden min-[450px]:inline">Ajouter</span>
           </button>
         </div>
+        <button
+          onClick={() => setShowInfo(!showInfo)}
+          className="text-sm text-slate-500 hover:text-slate-700 font-medium flex items-center gap-1 mb-2 transition-colors ml-7"
+        >
+          Quelques explications ?
+          <ChevronDown className={`w-4 h-4 transition-transform ${showInfo ? 'rotate-180' : ''}`} />
+        </button>
         <motion.div
           initial={false}
           animate={{ height: showInfo ? 'auto' : 0, opacity: showInfo ? 1 : 0 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
           className="overflow-hidden"
         >
-          <p className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4">
-            Gère tes propres habitudes en parallèle de ton plan de transformation. 
-            <br />Exemples : <span className="italic">« Boire 2L d'eau »</span>, <span className="italic">« Méditer 10 minutes »</span>, ou <span className="italic">« Lire 10 pages avant de dormir »</span>.
-          </p>
+          <div className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4 ml-7 space-y-3">
+            <p>
+              Toutes les actions que tu souhaites accomplir, mais qui ne rentrent pas forcément dans ton plan de transformation, ont leur place ici.
+            </p>
+            <p>
+              Il peut s'agir d'actions "pour toujours", comme boire deux litres d'eau par jour, ou bien d'actions ponctuelles pour une semaine, comme "faire 30 minutes de sport" pendant tes vacances. C'est toi qui décides !
+            </p>
+            <p>
+              Voici quelques exemples supplémentaires : "Méditer 10 minutes", "Ne pas regarder mon téléphone après 22h", ou encore "Jouer 30 minutes avec mon enfant".
+            </p>
+          </div>
         </motion.div>
       </div>
 

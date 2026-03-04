@@ -295,7 +295,7 @@ function attachDynamicAddons(args: {
   if (dashboardPreferencesSignal?.detected) {
     (tempMemory as any).__dashboard_preferences_intent_addon = {
       keys: Array.isArray(dashboardPreferencesSignal.preference_keys)
-        ? dashboardPreferencesSignal.preference_keys.slice(0, 9)
+        ? dashboardPreferencesSignal.preference_keys.slice(0, 3)
         : [],
       confidence: Number(dashboardPreferencesSignal.confidence ?? 0),
       from_bilan: Boolean(state?.investigation_state),

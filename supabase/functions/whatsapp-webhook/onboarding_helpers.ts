@@ -1,4 +1,3 @@
-import { generateEmbedding } from "../_shared/gemini.ts";
 const PROFILE_KEY_MAP = {
   "conversation.tone": "tone",
   "conversation.verbosity": "verbosity",
@@ -31,41 +30,16 @@ export async function loadProfileFactsForOnboarding(admin, userId) {
   return facts;
 }
 export async function loadRecentMemoriesForOnboarding(admin, userId, queryText, limit = 3) {
-  try {
-    // Use RAG to find relevant memories
-    const embedding = await generateEmbedding(queryText || "bienvenue onboarding motivation");
-    const { data: memories, error: memErr } = await admin.rpc("match_memories_for_user", {
-      target_user_id: userId,
-      query_embedding: embedding,
-      match_threshold: 0.55,
-      match_count: limit,
-      filter_status: [
-        "consolidated"
-      ]
-    });
-    if (memErr) {
-      console.warn("[onboarding_helpers] match_memories_for_user failed:", memErr);
-      return [];
-    }
-    return (memories ?? []).map((m)=>({
-        content: String(m.content ?? "").slice(0, 200),
-        sourceType: String(m.source_type ?? "unknown"),
-        date: m.created_at ? new Date(m.created_at).toLocaleDateString("fr-FR") : "Date inconnue"
-      }));
-  } catch (e) {
-    console.warn("[onboarding_helpers] loadRecentMemories error:", e);
-    return [];
-  }
+  void admin;
+  void userId;
+  void queryText;
+  void limit;
+  return [];
 }
 // ═══════════════════════════════════════════════════════════════════════════════
 // CHECK IF RETURNING USER (has prior interactions)
 // ═══════════════════════════════════════════════════════════════════════════════
 export async function isReturningUser(admin, userId) {
-  // Check for prior memories (any scope)
-  const { count: memCount } = await admin.from("memories").select("id", {
-    count: "exact",
-    head: true
-  }).eq("user_id", userId).limit(1);
   // Check for prior WhatsApp messages
   const { count: waCount } = await admin.from("chat_messages").select("id", {
     count: "exact",
@@ -77,7 +51,7 @@ export async function isReturningUser(admin, userId) {
     head: true
   }).eq("user_id", userId).eq("scope", "web").eq("role", "user").limit(1);
   const hasWhatsAppHistory = (waCount ?? 0) > 0;
-  const hasWebHistory = (webCount ?? 0) > 0 || (memCount ?? 0) > 0;
+  const hasWebHistory = (webCount ?? 0) > 0;
   const returning = hasWhatsAppHistory || hasWebHistory;
   return {
     returning,

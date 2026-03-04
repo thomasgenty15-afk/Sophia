@@ -1,6 +1,6 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { generateWithGemini, generateEmbedding } from '../_shared/gemini.ts'
+import { generateWithGemini } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"
@@ -203,35 +203,7 @@ Deno.serve(async (req) => {
 
     console.log(`[ArchivePlan] Generating narrative for user ${userId}...`)
     const narrative = await generateWithGemini(systemPrompt, context, 0.3)
-    
-    console.log(`[ArchivePlan] Narrative generated (${narrative.length} chars). Embedding...`)
-
-    // 5. Vectorize
-    const embedding = await generateEmbedding(narrative)
-
-    // 6. Store in Memories
-    const { error: insertError } = await supabaseAdmin
-        .from('memories')
-        .insert({
-            user_id: userId,
-            content: narrative,
-            type: 'insight', // Changed from 'archive' to be active in RAG
-            source_type: 'plan',
-            source_id: planId,
-            embedding: embedding,
-            metadata: {
-                plan_title: record.title,
-                archived_at: new Date().toISOString(),
-                rag_optimized: true
-            }
-        })
-
-    if (insertError) {
-        console.error("Error inserting memory:", insertError)
-        throw insertError
-    }
-
-    console.log(`[ArchivePlan] Successfully archived plan ${planId}`)
+    console.log(`[ArchivePlan] Memory storage disabled. Narrative generated (${narrative.length} chars) for plan ${planId}.`)
 
     return new Response(JSON.stringify({ success: true }), { 
         headers: { 'Content-Type': 'application/json' } 

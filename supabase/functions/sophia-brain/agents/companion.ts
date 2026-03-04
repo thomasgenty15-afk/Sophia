@@ -97,7 +97,7 @@ export function buildCompanionSystemPrompt(opts: {
     - Sois serviable comme la meilleure des IA génériques, tout en gardant ta personnalité de coach (empathique, sympa, directe).
 
     MODE WHATSAPP (CRITIQUE) :
-    - Réponse courte par défaut (2–6 lignes).
+    - Longueur adaptative: réponse courte par défaut (2–6 lignes), mais si le user envoie un message long/complexe, réponds plus long de façon proportionnelle (sans pavé inutile).
     - 1 question MAX.
     - Si le message user est court/pressé: 1–2 phrases MAX + 1 question oui/non ou A/B.
     - Pas de "Bonjour/Salut" au milieu d'une conversation.
@@ -171,14 +171,20 @@ export function buildCompanionSystemPrompt(opts: {
     - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
     - Tu n'en parles QUE si l'utilisateur en parle en premier. Sinon, ignore-les.
 
-    USER MODEL (PRÉFÉRENCES - 10 types) :
+    USER MODEL (PRÉFÉRENCES COACH) :
     - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
     - Si des facts existent, adapte ton style/timing sans le dire.
+    - Préférences coach prioritaires (si présentes):
+      1) coach.coaching_style: gentle | normal | challenging
+      2) coach.chatty_level: light | normal | high
+      3) coach.question_tendency: low | normal | high
+    - Les facts legacy (conversation.tone, conversation.verbosity, conversation.use_emojis) peuvent aussi exister; utilise-les comme signaux secondaires.
     - Priorité de personnalisation:
       1) Contraintes safety/add-ons actifs,
-      2) Facts user (notamment conversation.tone, conversation.verbosity, conversation.use_emojis),
+      2) Préférences coach + facts user disponibles,
       3) Règles génériques par défaut.
-    - N'écrase pas une préférence explicite de style/longueur par une règle générique.
+    - Si une préférence est absente, reste adaptative (longueur et relances proportionnelles au message user).
+    - N'écrase pas une préférence explicite par une règle générique.
 
     DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 120)}..."
 
@@ -211,6 +217,7 @@ export function buildCompanionSystemPrompt(opts: {
 
     ADAPTATION AU TON (CRITIQUE) :
     - Observe le ton du user. S'il écrit court / pressé ("oui", "ok", "suite", "vas-y"), toi aussi: 1–2 phrases max + 1 question.
+    - Si le user écrit un message long et dense, réponds plus structuré et un peu plus long (proportionnel), sans devenir excessif.
     - Évite les envolées + slogans. Pas de slang type "gnaque", "soufflé", etc.
     - Quand le user confirme une micro-action ("oui c'est bon"): valide en 3–6 mots MAX, puis passe à l'étape suivante.
     - N'enchaîne PAS avec "comment tu te sens ?" sauf si le user exprime une émotion (stress, peur, motivation, fatigue).
@@ -276,16 +283,20 @@ export function buildCompanionSystemPrompt(opts: {
     - Signe vital mesuré (sommeil, stress, etc.) -> outil track_progress_vital_sign.
     - Nouvelle valeur Etoile Polaire -> outil track_progress_north_star.
 
-    USER MODEL (PRÉFÉRENCES - 10 types) :
+    USER MODEL (PRÉFÉRENCES COACH) :
     - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
-    
-    
     - Si des facts existent, adapte ton style/timing sans le dire.
+    - Préférences coach prioritaires (si présentes):
+      1) coach.coaching_style: gentle | normal | challenging
+      2) coach.chatty_level: light | normal | high
+      3) coach.question_tendency: low | normal | high
+    - Les facts legacy (conversation.tone, conversation.verbosity, conversation.use_emojis) peuvent aussi exister; utilise-les comme signaux secondaires.
     - Priorité de personnalisation:
       1) Contraintes safety/add-ons actifs,
-      2) Facts user (notamment conversation.tone, conversation.verbosity, conversation.use_emojis),
+      2) Préférences coach + facts user disponibles,
       3) Règles génériques par défaut.
-    - N'écrase pas une préférence explicite de style/longueur par une règle générique.
+    - Si une préférence est absente, reste adaptative (longueur et relances proportionnelles au message user).
+    - N'écrase pas une préférence explicite par une règle générique.
 
     ACTIONS COMPLETED (CRITIQUE) :
     - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
@@ -319,12 +330,6 @@ export async function retrieveContext(
   message: string,
   opts?: RetrieveContextOptions
 ): Promise<string> {
-  const legacyMemoriesEnabled =
-    (Deno.env.get("SOPHIA_LEGACY_MEMORIES_ENABLED") ?? "").trim() === "1";
-  if (!legacyMemoriesEnabled) {
-    return "";
-  }
-
   const maxResults = opts?.maxResults ?? 5
   const includeActionHistory = opts?.includeActionHistory ?? true
   // For minimal mode, we limit action history too
@@ -334,37 +339,7 @@ export async function retrieveContext(
   try {
     const embedding = await generateEmbedding(message);
 
-    // 1. Souvenirs (Memories)
-    // IMPORTANT:
-    // - On web, the client is authed as the user -> auth.uid() works (use match_memories).
-    // - On WhatsApp, we call Sophia via a service_role client -> auth.uid() is NULL.
-    //   We therefore use service-role-only RPCs that accept an explicit user_id.
-    const { data: memories, error: memErr } = await supabase.rpc('match_memories_for_user', {
-      target_user_id: userId,
-      query_embedding: embedding,
-      match_threshold: 0.65,
-      match_count: maxResults,
-      filter_status: ["consolidated"],
-    } as any);
-    const { data: memoriesFallback } = memErr
-      ? await supabase.rpc('match_memories', {
-        query_embedding: embedding,
-        match_threshold: 0.65,
-        match_count: maxResults,
-        filter_status: ["consolidated"],
-      } as any)
-      : ({ data: null } as any);
-    const effectiveMemories = (memErr ? memoriesFallback : memories) as any[] | null;
-
-    if (effectiveMemories && effectiveMemories.length > 0) {
-        contextString += effectiveMemories.map((m: any) => {
-          const dateStr = m.created_at ? new Date(m.created_at).toLocaleDateString('fr-FR') : 'Date inconnue';
-          return `[Souvenir (${m.source_type}) du ${dateStr}] : ${m.content}`;
-        }).join('\n\n');
-        contextString += "\n\n";
-    }
-
-    // 2. Historique des Actions (Action Entries)
+    // Historique des Actions (Action Entries)
     // On cherche si des actions passées (réussites ou échecs) sont pertinentes pour la discussion
     // Skip for minimal mode if explicitly disabled
     if (includeActionHistory) {

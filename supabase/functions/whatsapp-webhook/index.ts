@@ -31,7 +31,15 @@ const SITE_URL = (Deno.env.get("WHATSAPP_SITE_URL") ?? "https://sophia-coach.ai"
 const DEFAULT_WHATSAPP_NUMBER = "33674637278" // fallback if WHATSAPP_PHONE_NUMBER is missing (no '+')
 ;
 const PAYWALL_NOTICE_COOLDOWN_MS = Number.parseInt((Deno.env.get("WHATSAPP_PAYWALL_NOTICE_COOLDOWN_MS") ?? "").trim() || String(6 * 60 * 60 * 1000), 10);
-const AUDIO_UNSUPPORTED_REPLY = "Merci pour ton vocal 🎙️ Je ne peux pas encore écouter les messages audio, mais ça arrive bientôt. En attendant, tu peux dicter au micro 😊✨";
+const GENERIC_UNSUPPORTED_REPLY = "Je n'arrive pas encore à lire ce type de contenu, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
+function getUnsupportedReplyByType(type) {
+  if (type === "audio") return "Je n'arrive pas encore à lire les vocaux, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
+  if (type === "image") return "Je n'arrive pas encore à lire les photos, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
+  if (type === "video") return "Je n'arrive pas encore à lire les vidéos, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
+  if (type === "document") return "Je n'arrive pas encore à lire les documents, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
+  if (type === "sticker") return "Je n'arrive pas encore à lire les stickers, mais c'est dans les tuyaux, je te ferai savoir quand c'est au point :)";
+  return GENERIC_UNSUPPORTED_REPLY;
+}
 function decodeJwtAlg(jwt) {
   const t = (jwt ?? "").trim();
   const p0 = t.split(".")[0] ?? "";
@@ -577,15 +585,17 @@ Deno.serve(async (req)=>{
           processed_at: new Date().toISOString(),
           chat_message_id: insertedIn?.id ?? null
         }).eq("wamid_in", msg.wa_message_id);
-        // Temporary fallback: acknowledge audio inbounds with a short friendly message.
-        if (msg.type === "audio") {
+        // Temporary fallback: acknowledge unsupported media inbounds with a short friendly message.
+        if (msg.type === "audio" || msg.type === "image" || msg.type === "video" || msg.type === "document" || msg.type === "sticker") {
+          const unsupportedReply = getUnsupportedReplyByType(msg.type);
+          const unsupportedPurpose = `whatsapp_${String(msg.type || "media")}_not_supported`;
           const sendResp = await sendWhatsAppTextTracked({
             admin,
             requestId: processId,
             userId: profile.id,
             toE164: fromE164,
-            body: AUDIO_UNSUPPORTED_REPLY,
-            purpose: "whatsapp_audio_not_supported",
+            body: unsupportedReply,
+            purpose: unsupportedPurpose,
             isProactive: false,
             replyToWaMessageId: msg.wa_message_id
           });
@@ -595,14 +605,14 @@ Deno.serve(async (req)=>{
             user_id: profile.id,
             scope: "whatsapp",
             role: "assistant",
-            content: AUDIO_UNSUPPORTED_REPLY,
+            content: unsupportedReply,
             agent_used: "companion",
             metadata: {
               channel: "whatsapp",
               wa_outbound_message_id: outId,
               outbound_tracking_id: outboundTrackingId,
               is_proactive: false,
-              purpose: "whatsapp_audio_not_supported"
+              purpose: unsupportedPurpose
             }
           });
           continue;

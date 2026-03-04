@@ -11,11 +11,9 @@ export async function loadHistory(admin, userId, limit = 20, scope = "whatsapp")
     }));
 }
 export async function hasWhatsappPersonalFact(admin, userId) {
-  const { data, error } = await admin.from("memories").select("id").eq("user_id", userId).eq("type", "whatsapp_personal_fact").order("created_at", {
-    ascending: false
-  }).limit(1).maybeSingle();
-  if (error) return false;
-  return Boolean(data?.id);
+  void admin;
+  void userId;
+  return false;
 }
 export async function fetchLatestPending(admin, userId, kind) {
   const { data, error } = await admin.from("whatsapp_pending_actions").select("id, kind, status, scheduled_checkin_id, payload, created_at").eq("user_id", userId).eq("kind", kind).eq("status", "pending").order("created_at", {

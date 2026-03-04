@@ -83,8 +83,7 @@ export interface DispatcherSignals {
     /**
      * Preference keys user wants to change in dashboard settings.
      * Canonical keys expected by product:
-     * language, tone, response_length, emoji_level, voice_style,
-     * proactivity_level, timezone, daily_summary_time, coach_intensity
+     * coaching_style, chatty_level, question_tendency
      */
     preference_keys?: string[];
     confidence: number;
@@ -439,19 +438,13 @@ Exemples:
 2) dashboard_preferences_intent (redirection réglages UX/UI)
 - Détecte quand le user veut changer ses préférences produit (pas une action du plan).
 - Renseigne "preference_keys" avec les clés canoniques détectées parmi:
-  * language: fr | en
-  * tone: friendly | neutral | direct
-  * response_length: short | medium | long
-  * emoji_level: none | low | medium | high
-  * voice_style: coach | companion | concise
-  * proactivity_level: low | medium | high
-  * timezone: ex "Europe/Paris"
-  * daily_summary_time: ex "20:00"
-  * coach_intensity: gentle | balanced | challenge
+  * coaching_style: gentle | normal | challenging
+  * chatty_level: light | normal | high
+  * question_tendency: low | normal | high
 - Exemples:
-  * "parle plus court" -> response_length
-  * "mets moins d'emojis" -> emoji_level
-  * "je veux un ton plus direct" -> tone
+  * "sois plus challengeante" -> coaching_style
+  * "sois moins bavarde" -> chatty_level
+  * "pose moi moins de questions" -> question_tendency
 
 3) dashboard_recurring_reminder_intent (redirection rappels récurrents)
 - Détecte quand le user veut configurer/éditer des rappels planifiés.
@@ -1157,20 +1150,14 @@ Reponds UNIQUEMENT avec le JSON:`;
       ? signalsObj.dashboard_preferences_intent.preference_keys
       : [];
     const dashboardPreferenceAllowed = new Set([
-      "language",
-      "tone",
-      "response_length",
-      "emoji_level",
-      "voice_style",
-      "proactivity_level",
-      "timezone",
-      "daily_summary_time",
-      "coach_intensity",
+      "coaching_style",
+      "chatty_level",
+      "question_tendency",
     ]);
     const dashboardPreferenceKeys = dashboardPreferencesKeysRaw
       .map((v: unknown) => String(v ?? "").trim().toLowerCase())
       .filter((v: string) => dashboardPreferenceAllowed.has(v))
-      .slice(0, 9);
+      .slice(0, 3);
     const dashboardPreferencesConf = Math.max(
       0,
       Math.min(

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Bell, Plus, Clock, Calendar, Trash2, Edit2, Play, Pause, Lock, Crown, Info } from 'lucide-react';
+import { Bell, Plus, Clock, Calendar, Trash2, Edit2, Play, Pause, Lock, Crown, Info, ChevronDown } from 'lucide-react';
 import { CreateReminderModal, type ReminderFormValues } from './CreateReminderModal';
 import { motion } from 'framer-motion';
 import { supabase } from '../../lib/supabase';
@@ -257,16 +257,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-base min-[350px]:text-xl font-bold text-slate-900 flex items-center gap-2">
             <Bell className="w-5 h-5 text-amber-500" />
-            <div className="flex items-center gap-1">
-              Mes Rendez-vous
-              <button
-                onClick={() => setShowInfo(!showInfo)}
-                className="p-1 rounded-full text-slate-400 hover:text-amber-500 hover:bg-amber-50 transition-colors"
-                title="Plus d'informations"
-              >
-                <Info className="w-4 h-4" />
-              </button>
-            </div>
+            Mes Rendez-vous
           </h2>
           <button
             onClick={() => {
@@ -283,17 +274,30 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
             <span className="hidden min-[450px]:inline">Ajouter</span>
           </button>
         </div>
+        <button
+          onClick={() => setShowInfo(!showInfo)}
+          className="text-sm text-slate-500 hover:text-slate-700 font-medium flex items-center gap-1 mb-2 transition-colors ml-7"
+        >
+          Quelques explications ?
+          <ChevronDown className={`w-4 h-4 transition-transform ${showInfo ? 'rotate-180' : ''}`} />
+        </button>
         <motion.div
           initial={false}
           animate={{ height: showInfo ? 'auto' : 0, opacity: showInfo ? 1 : 0 }}
           transition={{ duration: 0.3, ease: 'easeInOut' }}
           className="overflow-hidden"
         >
-          <p className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4">
-            Configure des rendez-vous où Sophia vient vers toi selon tes besoins.
-            <br />Sois créatif ! Tu peux lui demander de t'envoyer du contenu inspirant, des rappels bienveillants ou simplement une pensée positive.
-            <br />Exemples : <span className="italic">« Envoie-moi une citation stoïcienne le lundi à 8h »</span>, <span className="italic">« Souhaite-moi bonne nuit à 22h »</span>, ou <span className="italic">« Rappelle-moi de respirer profondément à 14h »</span>.
-          </p>
+          <div className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4 ml-7 space-y-3">
+            <p>
+              Configure des rendez-vous pour que Sophia vienne vers toi selon tes besoins.
+            </p>
+            <p>
+              Sois créatif ! Tu peux lui demander de t'envoyer du contenu inspirant, des rappels bienveillants ou simplement une pensée positive.
+            </p>
+            <p>
+              Exemples : « Envoie-moi une citation stoïcienne pour me faire réfléchir », « Rappelle-moi pourquoi je dois me coucher tôt », ou « Envoie-moi un message après le repas du midi pour me rappeler de ne pas fumer ».
+            </p>
+          </div>
         </motion.div>
       </div>
 

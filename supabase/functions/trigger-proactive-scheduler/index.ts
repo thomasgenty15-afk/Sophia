@@ -149,12 +149,12 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ---- MEMORY ECHO (09:00 local, every 10 days) ----
+    // ---- MEMORY ECHO (every 14 days; 14:00 local time for each user) ----
     {
       const { data: claimed, error } = await admin.rpc("claim_due_memory_echo", {
         p_batch: 120,
-        p_target: "09:00",
-        p_every_days: 10,
+        p_target: "14:00",
+        p_every_days: 14,
       })
       if (error) throw error
       const rows = (claimed ?? []) as Array<{ user_id: string; local_date: string }>
@@ -211,4 +211,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

@@ -1,6 +1,5 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
-import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { generateWithGemini, generateEmbedding } from '../_shared/gemini.ts'
+import { generateWithGemini } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { getRequestContext } from "../_shared/request_context.ts"
@@ -27,12 +26,6 @@ Deno.serve(async (req) => {
 
     console.log(`[create-round-table-summary] request_id=${ctx.requestId} user_id=${userId} module_id=${moduleId}`);
 
-    // Init Supabase Admin
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
-
     // 1. Generate Summary
     const prompt = `
         Voici le bilan hebdomadaire (Table Ronde) de l'utilisateur :
@@ -49,52 +42,7 @@ Deno.serve(async (req) => {
 
     const summary = await generateWithGemini(prompt, "", 0.3);
 
-    // 2. Vectorize
-    const embedding = await generateEmbedding(summary);
-
-    // 3. Store in Memories
-    // On utilise type 'insight' pour qu'il soit "actif" dans le cerveau, 
-    // mais on taggue 'weekly_review' dans source_type.
-    
-    // A. Archive old summary if exists
-    await supabaseAdmin
-      .from('memories')
-      .update({ 
-        type: 'history',
-        metadata: { 
-          archived_at: new Date().toISOString(),
-          source: 'round-table-trigger'
-        }
-      })
-      .eq('user_id', userId)
-      .eq('source_id', moduleId)
-      .eq('source_type', 'weekly_review')
-      .eq('type', 'insight');
-
-    // B. Insert new summary
-    const { error: insertError } = await supabaseAdmin
-      .from('memories')
-      .insert({
-        user_id: userId,
-        content: summary,
-        type: 'insight', // Active Memory
-        source_type: 'weekly_review',
-        source_id: moduleId,
-        embedding: embedding,
-        metadata: {
-            energy: record.energy_level,
-            wins: record.wins_3,
-            blocker: record.main_blocker,
-            source: 'create-round-table-summary'
-        }
-      });
-
-    if (insertError) {
-        console.error("[RoundTable] Error inserting memory:", insertError);
-        throw insertError;
-    }
-          
-    console.log(`[RoundTable] Success: Weekly Summary created for ${moduleId}`);
+    console.log(`[RoundTable] Memory storage disabled. Generated summary for ${moduleId}: ${String(summary).slice(0, 120)}`);
 
     return new Response(JSON.stringify({ success: true }), { 
         headers: { 'Content-Type': 'application/json' } 

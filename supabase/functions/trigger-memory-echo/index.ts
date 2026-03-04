@@ -20,7 +20,7 @@ const MEMORY_MAX_AGE_DAYS = 120
 const MEMORY_FALLBACK_MAX_AGE_DAYS = 180
 // Plans: keep up to 6 months (structural victory)
 const PLAN_LOOKBACK_DAYS = 180
-const COOLDOWN_DAYS = 10 // Don't trigger if triggered recently
+const COOLDOWN_DAYS = 14 // Don't trigger if triggered recently
 
 type EchoCandidate = {
   kind: "memory" | "chat"
@@ -187,7 +187,7 @@ Deno.serve(async (req) => {
       userIds = [String((prof as any).id)]
     }
 
-    // 1. Identify users eligible (active recently, but not triggered in last 10 days)
+    // 1. Identify users eligible (active recently, but not triggered in last 14 days)
     // We check `user_chat_states` to see last interaction, and maybe a new field `last_memory_echo_at`
     // For now, let's just pick active users and check a log table or metadata.
     // To keep it simple without migration: we'll check chat_messages history for 'memory_echo' source in metadata.
@@ -208,7 +208,7 @@ Deno.serve(async (req) => {
     const errorUserIds: string[] = []
 
     for (const userId of userIds) {
-        // A. Check Cooldown (Has echo been sent in last 10 days?)
+        // A. Check Cooldown (Has echo been sent in last 14 days?)
         if (!force) {
           const { data: recentEchoes } = await supabaseAdmin
             .from('chat_messages')
@@ -589,4 +589,3 @@ CONSIGNES:
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-
