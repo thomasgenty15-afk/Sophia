@@ -7,6 +7,8 @@
  * Configure:
  * - Set Edge secret: INTERNAL_FUNCTION_SECRET (recommended)
  */
+import { logHttpErrorEvent } from "./error-log.ts"
+
 export function ensureInternalRequest(req: Request): Response | null {
   // Most internal callers are non-browser, but allow OPTIONS to avoid noisy failures.
   if (req.method === "OPTIONS") {
@@ -21,6 +23,14 @@ export function ensureInternalRequest(req: Request): Response | null {
 
   // Internal endpoints should not be callable via GET from a browser URL bar.
   if (req.method !== "POST") {
+    void logHttpErrorEvent({
+      req,
+      status: 405,
+      body: { error: "Method Not Allowed" },
+      functionName: "internal-auth",
+      source: "edge",
+      metadata: { auth_stage: "method_guard" },
+    })
     return new Response(JSON.stringify({ error: "Method Not Allowed" }), {
       status: 405,
       headers: { "Content-Type": "application/json" },
@@ -45,6 +55,14 @@ export function ensureInternalRequest(req: Request): Response | null {
 
   if (!expectedInternalSecret) {
     console.error("[internal-auth] Server misconfigured: missing INTERNAL_FUNCTION_SECRET");
+    void logHttpErrorEvent({
+      req,
+      status: 500,
+      body: { error: "Server misconfigured" },
+      functionName: "internal-auth",
+      source: "edge",
+      metadata: { auth_stage: "config_guard" },
+    })
     return new Response(JSON.stringify({ error: "Server misconfigured" }), {
       status: 500,
       headers: { "Content-Type": "application/json" },
@@ -57,6 +75,14 @@ export function ensureInternalRequest(req: Request): Response | null {
       method: req.method,
       has_header: Boolean(gotInternalSecret),
     });
+    void logHttpErrorEvent({
+      req,
+      status: 403,
+      body: { error: "Forbidden" },
+      functionName: "internal-auth",
+      source: "edge",
+      metadata: { auth_stage: "secret_guard", has_header: Boolean(gotInternalSecret) },
+    })
     return new Response(JSON.stringify({ error: "Forbidden" }), {
       status: 403,
       headers: { "Content-Type": "application/json" },
@@ -65,4 +91,3 @@ export function ensureInternalRequest(req: Request): Response | null {
 
   return null;
 }
-

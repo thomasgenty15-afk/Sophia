@@ -2,6 +2,8 @@ import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts";
 import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
 import { loadOnboardingContext, setDeferredOnboardingSteps } from "./onboarding_helpers.ts";
 import { buildAdaptiveOnboardingContext } from "./onboarding_context.ts";
+
+declare const Deno: any;
 export async function computeOptInAndBilanContext(params) {
   async function hasRecentOptInPrompt(admin, userId) {
     const since = new Date(Date.now() - 30 * 60 * 60 * 1000).toISOString() // 30h window
@@ -152,14 +154,16 @@ async function detectAdaptiveFlow(inboundText, requestId) {
   // Default: normal flow with all steps
   const defaultResult = {
     flow: "normal",
-    deferredSteps: []
+    deferredSteps: [],
+    detectedTopic: undefined,
   };
   const text = (inboundText ?? "").trim();
   if (!text) return defaultResult;
   try {
     const signals = await analyzeSignalsForWhatsApp(inboundText, requestId);
+    const topicDepth = (signals as any)?.topic_depth;
     // SCENARIO A: Urgency detected (safety or NEED_SUPPORT)
-    const isUrgent = signals.safety.level !== "NONE" || signals.topic_depth?.value === "NEED_SUPPORT" && (signals.topic_depth?.confidence ?? 0) >= 0.7;
+    const isUrgent = signals.safety.level !== "NONE" || topicDepth?.value === "NEED_SUPPORT" && (topicDepth?.confidence ?? 0) >= 0.7;
     if (isUrgent) {
       const forceMode = signals.safety.level === "SENTRY" ? "sentry" : "companion";
       return {
@@ -168,19 +172,19 @@ async function detectAdaptiveFlow(inboundText, requestId) {
           "motivation",
           "personal_fact"
         ],
-        forceMode
+        forceMode,
+        detectedTopic: undefined,
       };
     }
     // SCENARIO B: Serious topic (not urgent but deep)
-    const isSerious = signals.topic_depth?.value === "SERIOUS" && (signals.topic_depth?.confidence ?? 0) >= 0.6;
+    const isSerious = topicDepth?.value === "SERIOUS" && (topicDepth?.confidence ?? 0) >= 0.6;
     if (isSerious) {
-      const topic = signals.interrupt?.deferred_topic_formalized ?? undefined;
       return {
         flow: "serious_topic",
         deferredSteps: [
           "motivation"
         ],
-        detectedTopic: topic
+        detectedTopic: undefined,
       };
     }
     // SCENARIO C: Normal (calm mood, no urgency)
@@ -202,7 +206,7 @@ export async function handleOptInAndDailyBilanActions(params) {
   const isWinbackSleepInfinite = actionId === "winback_sleep_infinite" || /pas\s*tout\s*de\s*suite/.test(textLower);
   if (isWinbackPause48h || isWinbackResume || isWinbackOverwhelmed || isWinbackSleepInfinite) {
     const nowIso = new Date().toISOString();
-    const patchBase = {
+    const patchBase: Record<string, any> = {
       whatsapp_bilan_opted_in: true,
       whatsapp_bilan_missed_streak: 0,
       whatsapp_bilan_winback_step: 0,

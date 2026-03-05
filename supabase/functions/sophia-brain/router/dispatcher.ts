@@ -28,8 +28,6 @@ export interface DispatcherSignals {
   interrupt: {
     kind: InterruptKind;
     confidence: number; // 0..1
-    /** If DIGRESSION or SWITCH_TOPIC, the formalized topic to defer (e.g., "la situation avec ton boss") */
-    deferred_topic_formalized?: string | null;
   };
   needs_explanation: {
     value: boolean;
@@ -583,6 +581,77 @@ REGLES ANTI-DUPLICATION:
 `;
 }
 
+function formatSignalHistoryInline(history: SignalHistoryEntry[]): string {
+  if (!Array.isArray(history) || history.length === 0) return "";
+  const lines = history
+    .slice(-8)
+    .map((h) => {
+      const sig = String(h.signal_type ?? "").trim().slice(0, 40);
+      if (!sig) return null;
+      const target = String(h.action_target ?? "").trim().slice(0, 40);
+      const brief = String(h.brief ?? "").trim().slice(0, 70);
+      const parts = [`- ${sig}`];
+      if (target) parts.push(`(${target})`);
+      if (brief) parts.push(`: ${brief}`);
+      return parts.join(" ");
+    })
+    .filter(Boolean);
+  if (lines.length === 0) return "";
+  return `\n=== SIGNAUX RECENTS (COURT) ===\n${lines.join("\n")}\n`;
+}
+
+function buildSignalsByTurnIndex(
+  history: SignalHistoryEntry[],
+): Map<number, SignalHistoryEntry[]> {
+  const map = new Map<number, SignalHistoryEntry[]>();
+  for (const h of history ?? []) {
+    const idx = Number(h?.turn_index);
+    if (!Number.isFinite(idx) || idx > 0 || idx < -10) continue;
+    const current = map.get(idx) ?? [];
+    if (current.length >= 3) continue;
+    current.push(h);
+    map.set(idx, current);
+  }
+  return map;
+}
+
+function formatSignalsForMessage(entries: SignalHistoryEntry[]): string {
+  if (!entries || entries.length === 0) return "";
+  const bits = entries
+    .map((e) => {
+      const sig = String(e.signal_type ?? "").trim().slice(0, 32);
+      if (!sig) return null;
+      const target = String(e.action_target ?? "").trim().slice(0, 28);
+      return target ? `${sig}(${target})` : sig;
+    })
+    .filter(Boolean)
+    .slice(0, 3);
+  if (bits.length === 0) return "";
+  return `\n  ↳ signaux(${bits.join(" | ")})`;
+}
+
+function buildContextMessagesWithSignals(
+  last5Messages: Array<{ role: string; content: string }>,
+  signalHistory: SignalHistoryEntry[],
+): string {
+  const signalsByTurn = buildSignalsByTurnIndex(signalHistory);
+  let userTurnIdx = 0;
+  const out: string[] = [];
+  for (let i = last5Messages.length - 1; i >= 0; i--) {
+    const m = last5Messages[i];
+    const msgIndex = i - last5Messages.length + 1;
+    const marker = msgIndex === 0 ? "[DERNIER - ANALYSER]" : `[Msg ${msgIndex}]`;
+    let line = `${marker} ${m.role}: ${String(m.content ?? "").slice(0, 200)}`;
+    if (String(m.role ?? "").toLowerCase() === "user") {
+      const signalsForTurn = signalsByTurn.get(userTurnIdx) ?? [];
+      line += formatSignalsForMessage(signalsForTurn);
+      userTurnIdx -= 1;
+    }
+    out.push(line);
+  }
+  return out.reverse().join("\n");
+}
+
 /**
  * Build the deferred topics section for dispatcher awareness.
  * Shows the dispatcher what topics are waiting in the queue so it can:
@@ -848,6 +917,8 @@ ETAT ACTUEL:
   prompt += NEEDS_RESEARCH_SECTION;
   prompt += TOOLS_SIGNALS_SECTION;
   prompt += PLAN_SIGNALS_SECTION;
+  prompt += formatSignalHistoryInline(opts.signalHistory);
+  prompt += buildAntiDuplicationSection(opts.signalHistory);
 
   if (!stateSnapshot.investigation_active) {
     prompt += CHECKUP_INTENT_DETECTION_SECTION;
@@ -894,15 +965,10 @@ export async function analyzeSignalsV2(
   });
 
   // Build message context (last 5 turns / 10 messages for disambiguation, analyze only last)
-  const contextMessages = input.last5Messages
-    .map((m, i) => {
-      const msgIndex = i - input.last5Messages.length + 1;
-      const marker = msgIndex === 0
-        ? "[DERNIER - ANALYSER]"
-        : `[Msg ${msgIndex}]`;
-      return `${marker} ${m.role}: ${m.content.slice(0, 200)}`;
-    })
-    .join("\n");
+  const contextMessages = buildContextMessagesWithSignals(
+    input.last5Messages,
+    input.signalHistory,
+  );
 
   // Add the full signal output specification
   const fullPrompt = `${basePrompt}
@@ -1029,17 +1095,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       0,
       Math.min(1, Number(signalsObj?.interrupt?.confidence ?? 0.9) || 0.9),
     );
-    const deferredTopicRaw = signalsObj?.interrupt?.deferred_topic_formalized;
-    const deferredTopicFormalized = (
-        typeof deferredTopicRaw === "string" &&
-        deferredTopicRaw.trim().length >= 3 &&
-        deferredTopicRaw.trim().length <= 120 &&
-        !/^(je\s+sais?\s+pas|null|undefined|none)$/i.test(
-          deferredTopicRaw.trim(),
-        )
-      )
-      ? deferredTopicRaw.trim()
-      : null;
 
     // Parse needs_explanation
     const needsExplanationValue = Boolean(signalsObj?.needs_explanation?.value);
@@ -1537,10 +1592,6 @@ Reponds UNIQUEMENT avec le JSON:`;
         interrupt: {
           kind: interruptKind,
           confidence: interruptConf,
-          deferred_topic_formalized:
-            (interruptKind === "DIGRESSION" || interruptKind === "SWITCH_TOPIC")
-              ? deferredTopicFormalized
-              : undefined,
         },
         needs_explanation: {
           value: needsExplanationValue,
@@ -1652,10 +1703,8 @@ export function generateDeferredSignalSummary(args: {
   action_target?: string;
 }): string {
   const target = String(args.action_target ?? "").trim();
-  const topicHint = String(args.signals.interrupt?.deferred_topic_formalized ?? "")
-    .trim();
   const direct = String(args.userMessage ?? "").trim().slice(0, 120);
-  const base = target || topicHint || direct || "sujet évoqué";
+  const base = target || direct || "sujet évoqué";
   return `${args.machine_type}: ${base}`.slice(0, 180);
 }
 

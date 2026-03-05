@@ -5,6 +5,14 @@ export interface SignalHistoryState {
   last_turn_index: number
 }
 
+function compactBrief(raw: unknown): string {
+  const text = String(raw ?? "")
+    .replace(/\s+/g, " ")
+    .trim();
+  if (!text) return "";
+  return text.slice(0, 72);
+}
+
 export function getSignalHistory(tempMemory: any, key: string): SignalHistoryEntry[] {
   const state = (tempMemory as any)?.[key] as SignalHistoryState | undefined
   return state?.entries ?? []
@@ -35,7 +43,8 @@ export function updateSignalHistory(opts: {
   for (const enrich of opts.enrichments) {
     const existing = entries.find(e => e.signal_type === enrich.existing_signal_type)
     if (existing) {
-      existing.brief = enrich.updated_brief.slice(0, 100)
+      const compact = compactBrief(enrich.updated_brief)
+      if (compact) existing.brief = compact
     }
   }
 
@@ -47,10 +56,11 @@ export function updateSignalHistory(opts: {
       (e.action_target === sig.action_target || (!e.action_target && !sig.action_target))
     )
     if (!alreadyExists) {
+      const compact = compactBrief(sig.brief)
       entries.push({
         signal_type: sig.signal_type,
         turn_index: 0,
-        brief: sig.brief.slice(0, 100),
+        brief: compact || "signal detecte",
         status: opts.activeMachine ? "deferred" : "pending",
         action_target: sig.action_target,
         detected_at: new Date().toISOString(),

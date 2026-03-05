@@ -16,6 +16,7 @@ export type EthicalValidationInput = {
   text_fields: Record<string, unknown>;
   context?: Record<string, unknown> | null;
   request_id?: string;
+  user_id?: string;
 };
 
 export type EthicalValidationResult = {
@@ -123,6 +124,7 @@ export async function validateEthicalTextWithAI(
       "auto",
       {
         requestId: input.request_id,
+        userId: input.user_id,
         source: "ethical-text-validator",
         // Force attempt #1 on 2.5 flash for stable policy latency/behavior in ethical checks.
         model: "gemini-2.5-flash",

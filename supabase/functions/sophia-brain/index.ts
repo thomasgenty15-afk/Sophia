@@ -1,8 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from 'jsr:@supabase/supabase-js@2'
-import { enforceCors, getCorsHeaders, handleCorsOptions } from "../_shared/cors.ts"
+import { enforceCors, handleCorsOptions } from "../_shared/cors.ts"
 import { processMessage } from './router.ts'
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
+import { getRequestId, jsonResponse } from "../_shared/http.ts"
 
 Deno.serve(async (req) => {
   // Gestion du CORS
@@ -12,7 +13,7 @@ Deno.serve(async (req) => {
   const corsBlock = enforceCors(req)
   if (corsBlock) return corsBlock
 
-  const requestId = req.headers.get("x-request-id") ?? crypto.randomUUID()
+  const requestId = getRequestId(req)
   let authedUserId: string | null = null
 
   try {
@@ -57,10 +58,11 @@ Deno.serve(async (req) => {
     // Auth Check
     const authHeader = (req.headers.get('Authorization') ?? "").trim()
     if (!authHeader) {
-      return new Response(JSON.stringify({ error: "Missing Authorization header" }), {
-        status: 401,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      })
+      return jsonResponse(
+        req,
+        { error: "Missing Authorization header", request_id: requestId },
+        { status: 401, errorLogMeta: { auth_stage: "missing_authorization" } },
+      )
     }
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
@@ -70,10 +72,11 @@ Deno.serve(async (req) => {
 
     const { data: { user }, error: authError } = await supabaseClient.auth.getUser()
     if (authError || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
-        status: 401,
-        headers: { ...getCorsHeaders(req), "Content-Type": "application/json" },
-      })
+      return jsonResponse(
+        req,
+        { error: "Unauthorized", request_id: requestId },
+        { status: 401, errorLogMeta: { auth_stage: "invalid_or_expired_jwt" } },
+      )
     }
     authedUserId = user.id
 
@@ -138,9 +141,7 @@ Deno.serve(async (req) => {
       }
     )
 
-    return new Response(JSON.stringify(response), {
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    })
+    return jsonResponse(req, response)
 
   } catch (error) {
     console.error("Error processing message:", error)
@@ -156,9 +157,10 @@ Deno.serve(async (req) => {
         method: req.method,
       },
     })
-    return new Response(JSON.stringify({ error: (error as any)?.message ?? String(error) }), {
-      status: 500,
-      headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
-    })
+    return jsonResponse(
+      req,
+      { error: (error as any)?.message ?? String(error), request_id: requestId },
+      { status: 500, skipErrorLog: true },
+    )
   }
 })

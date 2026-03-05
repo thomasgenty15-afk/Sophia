@@ -123,6 +123,7 @@ ${transcriptRecent}
       model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:synthesizer",
       forceRealAi: meta?.forceRealAi,
+      userId,
     })
     const parsed = JSON.parse(String(raw ?? "{}"))
     const candidate = String(parsed?.short_term_context ?? "").trim()

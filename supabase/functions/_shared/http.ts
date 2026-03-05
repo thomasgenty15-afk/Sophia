@@ -1,5 +1,6 @@
 import { z, type ZodError, type ZodSchema } from "npm:zod@3.22.4";
 import { getCorsHeaders } from "./cors.ts";
+import { logHttpErrorEvent } from "./error-log.ts";
 
 export function getRequestId(req: Request): string {
   return req.headers.get("x-request-id") ?? crypto.randomUUID();
@@ -8,7 +9,13 @@ export function getRequestId(req: Request): string {
 export function jsonResponse(
   req: Request,
   body: unknown,
-  opts?: { status?: number; includeCors?: boolean; headers?: Record<string, string> },
+  opts?: {
+    status?: number;
+    includeCors?: boolean;
+    headers?: Record<string, string>;
+    skipErrorLog?: boolean;
+    errorLogMeta?: Record<string, unknown>;
+  },
 ): Response {
   const status = opts?.status ?? 200;
   const includeCors = opts?.includeCors ?? true;
@@ -17,6 +24,14 @@ export function jsonResponse(
     ...(includeCors ? getCorsHeaders(req) : {}),
     ...(opts?.headers ?? {}),
   };
+  if (status >= 400 && !opts?.skipErrorLog) {
+    void logHttpErrorEvent({
+      req,
+      status,
+      body,
+      metadata: opts?.errorLogMeta,
+    });
+  }
   return new Response(JSON.stringify(body), { status, headers });
 }
 
@@ -62,5 +77,4 @@ function zodIssues(err: ZodError) {
 }
 
 export { z };
-
 

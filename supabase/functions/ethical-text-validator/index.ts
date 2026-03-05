@@ -119,6 +119,7 @@ Deno.serve(async (req) => {
           text_fields: textFields,
           context,
           request_id: requestId,
+          user_id: authData.user.id,
         }),
         timeoutMs,
       );

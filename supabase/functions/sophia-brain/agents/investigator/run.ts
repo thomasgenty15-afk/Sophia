@@ -102,7 +102,6 @@ export async function runInvestigator(
     model?: string;
   },
 ): Promise<InvestigatorTurnResult> {
-  const startConsent = resolveBinaryConsent(message);
   if (isWeeklyInvestigationState(state)) {
     return await runInvestigatorWeekly(
       supabase,
@@ -220,7 +219,6 @@ export async function runInvestigator(
       started_at: new Date().toISOString(),
       // locked_pending_items avoids pulling extra items mid-checkup (more stable UX).
       temp_memory: {
-        awaiting_start_consent: true,
         opening_done: false,
         locked_pending_items: true,
         day_scope: initialDayScope,
@@ -229,52 +227,6 @@ export async function runInvestigator(
         item_progress: initializeItemProgress(items),
       },
     };
-  }
-
-  if (
-    currentState?.status === "checking" &&
-    currentState?.temp_memory?.awaiting_start_consent === true
-  ) {
-    if (startConsent === "no") {
-      return {
-        content: "Pas de souci, ce n'est pas grave. On fera le bilan demain.",
-        investigationComplete: true,
-        newState: null,
-      };
-    }
-    if (startConsent === "yes") {
-      currentState = {
-        ...currentState,
-        temp_memory: {
-          ...(currentState.temp_memory || {}),
-          awaiting_start_consent: false,
-        },
-      };
-    } else {
-      const consentRaw = String(message ?? "").trim().toLowerCase();
-      const looksLikeAlreadyDone = /\b(d[ée]j[àa]\s+fait|on\s+vient\s+de\s+le\s+faire|on\s+l['’]?a\s+fait)\b/i
-        .test(consentRaw);
-      if (looksLikeAlreadyDone) {
-        // Avoid consent loops when the user says the checkup was already done.
-        return {
-          content: "Tu as raison, on vient de le faire. On laisse pour ce soir 🙏",
-          investigationComplete: true,
-          newState: null,
-        };
-      }
-      return {
-        content:
-          "Si c'est ok pour toi, on fait le bilan maintenant ? (Réponds 'oui' pour le faire maintenant, ou 'non' pour demain.)",
-        investigationComplete: false,
-        newState: {
-          ...currentState,
-          temp_memory: {
-            ...(currentState.temp_memory || {}),
-            awaiting_start_consent: true,
-          },
-        },
-      };
-    }
   }
 
   // Soft, personalized opening (before the very first question)

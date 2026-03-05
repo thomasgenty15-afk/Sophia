@@ -123,6 +123,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     model: RDV_GENERATION_MODEL,
     source: "scheduled_checkins:dynamic_whatsapp",
     forceRealAi: true,
+    userId,
   })
 
   const text = typeof out === "string" ? out : safeTrim((out as any)?.text ?? "")

@@ -226,8 +226,25 @@ export default function AdminUsageDashboard() {
   );
 
   const filteredUsers = useMemo(() => {
+    const byUser = new Map<string, UserRow>();
+    for (const u of users) {
+      const key = String(u.user_id || u.email || "unknown");
+      const existing = byUser.get(key);
+      if (!existing) {
+        byUser.set(key, { ...u });
+        continue;
+      }
+      existing.ai_cost_usd = Number(existing.ai_cost_usd || 0) + Number(u.ai_cost_usd || 0);
+      existing.whatsapp_cost_eur = Number(existing.whatsapp_cost_eur || 0) + Number(u.whatsapp_cost_eur || 0);
+      existing.total_cost_usd = Number(existing.total_cost_usd || 0) + Number(u.total_cost_usd || 0);
+      existing.total_calls = Number(existing.total_calls || 0) + Number(u.total_calls || 0);
+      existing.total_tokens = Number(existing.total_tokens || 0) + Number(u.total_tokens || 0);
+      if (!existing.full_name && u.full_name) existing.full_name = u.full_name;
+      if (!existing.email && u.email) existing.email = u.email;
+    }
+    const merged = Array.from(byUser.values()).sort((a, b) => Number(b.total_cost_usd || 0) - Number(a.total_cost_usd || 0));
     const q = appliedSearch.toLowerCase().trim();
-    return users.filter((u) => {
+    return merged.filter((u) => {
       if (!q) return true;
       return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
     });
@@ -491,8 +508,8 @@ export default function AdminUsageDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800">
-                  {filteredUsers.map((u, idx) => (
-                    <tr key={`${u.user_id}-${idx}`}>
+                  {filteredUsers.map((u) => (
+                    <tr key={u.user_id || u.email}>
                       <td className="px-4 py-2">
                         <div className="font-medium">{u.full_name || "Unknown"}</div>
                         <div className="text-xs text-neutral-500">{u.email}</div>

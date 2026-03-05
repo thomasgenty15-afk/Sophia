@@ -3,6 +3,17 @@ import { createClient } from "jsr:@supabase/supabase-js@2"
 
 type Severity = "info" | "warn" | "error"
 
+type HttpErrorEventArgs = {
+  req: Request
+  status: number
+  body?: unknown
+  functionName?: string
+  source?: string
+  requestId?: string | null
+  userId?: string | null
+  metadata?: Record<string, unknown>
+}
+
 function decodeJwtAlg(jwt: string) {
   const t = String(jwt ?? "").trim()
   const p0 = t.split(".")[0] ?? ""
@@ -73,6 +84,40 @@ function scrubText(value: string, maxLen: number): string {
   return s.replace(/[\u0000-\u001f\u007f]/g, " ").slice(0, maxLen)
 }
 
+function inferFunctionNameFromRequest(req: Request): string {
+  try {
+    const u = new URL(req.url)
+    const parts = u.pathname.split("/").filter(Boolean)
+    const v1Idx = parts.findIndex((p) => p === "v1")
+    if (v1Idx >= 0 && parts[v1Idx + 1]) return scrubText(parts[v1Idx + 1], 120)
+    if (parts.length > 0) return scrubText(parts[parts.length - 1], 120)
+    return "unknown_function"
+  } catch {
+    return "unknown_function"
+  }
+}
+
+function extractBodyError(body: unknown): string {
+  if (body == null) return ""
+  if (typeof body === "string") return scrubText(body, 600)
+  if (typeof body === "object") {
+    const anyBody = body as Record<string, unknown>
+    const msg =
+      typeof anyBody.error === "string"
+        ? anyBody.error
+        : typeof anyBody.message === "string"
+          ? anyBody.message
+          : ""
+    if (msg) return scrubText(msg, 600)
+    try {
+      return scrubText(JSON.stringify(anyBody), 600)
+    } catch {
+      return ""
+    }
+  }
+  return scrubText(String(body), 600)
+}
+
 export async function logEdgeFunctionError(args: {
   functionName: string
   error: unknown
@@ -133,3 +178,43 @@ export async function logEdgeFunctionError(args: {
   }
 }
 
+export async function logHttpErrorEvent(args: HttpErrorEventArgs) {
+  const status = Math.floor(Number(args.status) || 0)
+  if (status < 400) return
+
+  const req = args.req
+  const functionName = args.functionName || inferFunctionNameFromRequest(req)
+  const requestId =
+    args.requestId ??
+    req.headers.get("x-request-id") ??
+    req.headers.get("x-client-request-id") ??
+    req.headers.get("x-sophia-client-request-id") ??
+    null
+  const messageFromBody = extractBodyError(args.body)
+  const method = scrubText(req.method || "UNKNOWN", 16)
+  let path = ""
+  try {
+    path = scrubText(new URL(req.url).pathname, 180)
+  } catch {
+    path = ""
+  }
+  const message = messageFromBody || `HTTP ${status} ${method}${path ? ` ${path}` : ""}`
+  const severity: Severity = "error"
+
+  await logEdgeFunctionError({
+    functionName,
+    error: message,
+    severity,
+    title: `http_status_${status}`,
+    requestId,
+    userId: args.userId ?? null,
+    source: args.source ?? "edge",
+    metadata: {
+      ...(args.metadata ?? {}),
+      category: "http_response",
+      http_status: status,
+      http_method: method,
+      http_path: path,
+    },
+  })
+}

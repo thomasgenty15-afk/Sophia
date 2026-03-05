@@ -83,6 +83,7 @@ function cleanupLegacyBilanFlags(tempMemory: any) {
     "__track_progress_from_bilan_done",
     "__checkup_addon",
     "__bilan_tomorrow_addon",
+    "__safety_stabilization",
   ];
   for (const key of legacyKeys) {
     try {

@@ -10,6 +10,7 @@ type Pricing = {
 let _admin: any | null = null;
 let _pricingCache: Map<string, Pricing> | null = null;
 let _pricingCacheAt = 0;
+let _requestUserCache: Map<string, { userId: string | null; at: number }> = new Map();
 
 function getAdmin() {
   if (_admin) return _admin;
@@ -109,8 +110,20 @@ export async function logLlmUsageEvent(evt: {
   try {
     const admin = getAdmin();
     const inferred = inferOperationFromSource(evt.source);
+    const requestId = String(evt.request_id ?? "").trim();
+    const metadataUserId = getUserIdFromMetadata(evt.metadata);
+    const resolvedByRequest = !evt.user_id && requestId
+      ? await resolveUserIdFromRequestId(requestId)
+      : null;
+    const effectiveUserId = evt.user_id ?? metadataUserId ?? resolvedByRequest ?? null;
+    const metadata = {
+      ...(evt.metadata ?? {}),
+      user_id_resolution: evt.user_id
+        ? "provided"
+        : (metadataUserId ? "metadata" : (resolvedByRequest ? "request_id_lookup" : "none")),
+    };
     await admin.from("llm_usage_events").insert({
-      user_id: evt.user_id ?? null,
+      user_id: effectiveUserId,
       request_id: evt.request_id ?? null,
       source: evt.source ?? null,
       provider: evt.provider,
@@ -132,10 +145,58 @@ export async function logLlmUsageEvent(evt: {
       cost_unpriced: evt.cost_unpriced ?? false,
       currency: evt.currency ?? "USD",
       step_index: evt.step_index ?? null,
-      metadata: evt.metadata ?? {},
+      metadata,
     });
   } catch {
     // Best effort: never fail business logic on telemetry
+  }
+}
+
+function getUserIdFromMetadata(metadata: Record<string, unknown> | undefined): string | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const candidates = [
+    (metadata as any).user_id,
+    (metadata as any).userId,
+    (metadata as any).profile_id,
+    (metadata as any).profileId,
+  ];
+  for (const candidate of candidates) {
+    const v = String(candidate ?? "").trim();
+    if (v) return v;
+  }
+  return null;
+}
+
+async function resolveUserIdFromRequestId(requestId: string): Promise<string | null> {
+  const key = String(requestId ?? "").trim();
+  if (!key) return null;
+  const now = Date.now();
+  const cached = _requestUserCache.get(key);
+  if (cached && now - cached.at < 5 * 60_000) return cached.userId;
+  try {
+    const admin = getAdmin();
+    const { data, error } = await admin
+      .from("chat_messages")
+      .select("user_id")
+      .filter("metadata->>request_id", "eq", key)
+      .limit(5);
+    if (error || !Array.isArray(data) || data.length === 0) {
+      _requestUserCache.set(key, { userId: null, at: now });
+      return null;
+    }
+    const unique = Array.from(
+      new Set(
+        data
+          .map((r: any) => String(r?.user_id ?? "").trim())
+          .filter(Boolean),
+      ),
+    );
+    const userId = unique.length === 1 ? unique[0]! : null;
+    _requestUserCache.set(key, { userId, at: now });
+    return userId;
+  } catch {
+    _requestUserCache.set(key, { userId: null, at: now });
+    return null;
   }
 }
 

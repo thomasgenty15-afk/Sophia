@@ -77,6 +77,7 @@ export async function updateEtoilePolaire(
       operation: "update",
       text_fields: { note },
       context: { source: "tool:update_etoile_polaire" },
+      user_id: userId,
     });
     if (validation.decision === "block") {
       throw new Error(validation.reason_short || "Note bloquée par la vérification éthique.");

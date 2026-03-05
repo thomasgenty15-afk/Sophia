@@ -293,9 +293,10 @@ export async function extractTopicsFromTranscript(opts: {
   transcript: string
   existingTopicSlugs: string[]
   currentContext?: string
+  userId?: string
   meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
 }): Promise<ExtractedTopic[]> {
-  const { transcript, existingTopicSlugs, currentContext, meta } = opts
+  const { transcript, existingTopicSlugs, currentContext, userId, meta } = opts
 
   const existingTopicsHint = existingTopicSlugs.length > 0
     ? `\nTOPICS DÉJÀ CONNUS pour cet utilisateur : ${existingTopicSlugs.join(", ")}\nSi une information enrichit un topic existant, utilise le MÊME slug.\n`
@@ -348,6 +349,7 @@ SORTIE JSON ATTENDUE :
       model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_extraction",
       forceRealAi: meta?.forceRealAi,
+      userId,
     })
 
     const parsed = JSON.parse(String(raw ?? "{}"))
@@ -396,9 +398,10 @@ export interface PersistGateResult {
 export async function shouldPersistTopicMemory(opts: {
   extractedTopic: ExtractedTopic
   sourceType?: TopicEnrichmentSource
+  userId?: string
   meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
 }): Promise<PersistGateResult> {
-  const { extractedTopic, meta } = opts
+  const { extractedTopic, meta, userId } = opts
   const sourceType = opts.sourceType ?? "chat"
   const info = String(extractedTopic.new_information ?? "").trim()
   const slug = extractedTopic.slug ?? ""
@@ -444,6 +447,7 @@ Schema JSON strict :
       model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_persist_gate",
       forceRealAi: meta?.forceRealAi,
+      userId,
     })
 
     const parsed = JSON.parse(String(raw ?? "{}"))
@@ -478,8 +482,9 @@ export async function findMatchingTopic(opts: {
   supabase: SupabaseClient
   userId: string
   extractedTopic: ExtractedTopic
+  meta?: { requestId?: string }
 }): Promise<TopicMemory | null> {
-  const { supabase, userId, extractedTopic } = opts
+  const { supabase, userId, extractedTopic, meta } = opts
 
   // 1. Chercher par slug exact (match direct)
   const { data: exactMatch } = await supabase
@@ -519,7 +524,12 @@ export async function findMatchingTopic(opts: {
 
   // 2) Recherche sémantique + re-ranking fusion
   const searchText = `${extractedTopic.title}\n${extractedTopic.new_information}\n${extractedTopic.keywords.slice(0, 8).join(" ")}`
-  const queryEmbedding = await generateEmbedding(searchText)
+  const queryEmbedding = await generateEmbedding(searchText, {
+    userId,
+    requestId: meta?.requestId,
+    source: "sophia-brain:topic_match_query_embedding",
+    operationName: "embedding.topic_match_query",
+  })
 
   const [keywordRes, synthesisRes, titleRes] = await Promise.all([
     supabase.rpc("match_topic_memories_by_keywords", {
@@ -684,6 +694,7 @@ export async function enrichTopicSynthesis(opts: {
       topicId: topic.id,
       keywords: newKeywords,
       allowReassign: false,
+      requestId: meta?.requestId,
     })
     await supabase
       .from("user_topic_memories")
@@ -698,10 +709,20 @@ export async function enrichTopicSynthesis(opts: {
 
   // Semantic no-op guard
   try {
-    const infoEmbedding = await generateEmbedding(newInfo)
+    const infoEmbedding = await generateEmbedding(newInfo, {
+      userId,
+      requestId: meta?.requestId,
+      source: "sophia-brain:topic_enrichment",
+      operationName: "embedding.topic_new_information",
+    })
     let synthEmbedding = toVector((topic as any)?.synthesis_embedding)
     if (!synthEmbedding && oldSynth.length > 0) {
-      synthEmbedding = await generateEmbedding(oldSynth)
+      synthEmbedding = await generateEmbedding(oldSynth, {
+        userId,
+        requestId: meta?.requestId,
+        source: "sophia-brain:topic_enrichment",
+        operationName: "embedding.topic_existing_synthesis",
+      })
     }
     if (synthEmbedding && infoEmbedding) {
       const sem = cosineSimilarity(infoEmbedding, synthEmbedding)
@@ -712,6 +733,7 @@ export async function enrichTopicSynthesis(opts: {
           topicId: topic.id,
           keywords: newKeywords,
           allowReassign: false,
+          requestId: meta?.requestId,
         })
         await supabase
           .from("user_topic_memories")
@@ -764,6 +786,7 @@ ou
       model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_enrichment",
       forceRealAi: meta?.forceRealAi,
+      userId,
     })
 
     const result = JSON.parse(String(raw ?? "{}"))
@@ -775,6 +798,7 @@ ou
         topicId: topic.id,
         keywords: newKeywords,
         allowReassign: false,
+        requestId: meta?.requestId,
       })
       // Pas d'enrichissement, mais on incrémente le mention_count
       await supabase
@@ -793,7 +817,12 @@ ou
     if (!newSynthesis) return { enriched: false }
 
     // Mettre à jour le topic
-    const synthesisEmbedding = await generateEmbedding(newSynthesis)
+    const synthesisEmbedding = await generateEmbedding(newSynthesis, {
+      userId,
+      requestId: meta?.requestId,
+      source: "sophia-brain:topic_enrichment",
+      operationName: "embedding.topic_enriched_synthesis",
+    })
     const now = new Date().toISOString()
 
     // Log l'enrichissement (audit trail)
@@ -880,9 +909,11 @@ Sujet : "${extractedTopic.title}"
   let synthesis: string
   try {
     const raw = await generateWithGemini(prompt, "", 0.1, true, [], "auto", {
+      requestId: meta?.requestId,
       model: getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_initial_synthesis",
       forceRealAi: meta?.forceRealAi,
+      userId,
     })
     synthesis = String(raw ?? extractedTopic.new_information).trim()
   } catch {
@@ -891,8 +922,18 @@ Sujet : "${extractedTopic.title}"
 
   // Vectoriser la synthèse et le titre
   const [synthesisEmbedding, titleEmbedding] = await Promise.all([
-    generateEmbedding(synthesis),
-    generateEmbedding(extractedTopic.title),
+    generateEmbedding(synthesis, {
+      userId,
+      requestId: meta?.requestId,
+      source: "sophia-brain:topic_initial_synthesis",
+      operationName: "embedding.topic_initial_synthesis",
+    }),
+    generateEmbedding(extractedTopic.title, {
+      userId,
+      requestId: meta?.requestId,
+      source: "sophia-brain:topic_initial_synthesis",
+      operationName: "embedding.topic_title",
+    }),
   ])
   const now = new Date().toISOString()
 
@@ -937,6 +978,7 @@ Sujet : "${extractedTopic.title}"
     topicId: newTopic.id,
     keywords: extractedTopic.keywords,
     allowReassign: false,
+    requestId: meta?.requestId,
   })
 
   console.log(`[TopicMemory] Created topic "${extractedTopic.title}" keywords+${keywordStats.inserted}`)
@@ -969,8 +1011,16 @@ async function maybeAutoMergeNewTopic(opts: {
       return newTopic
     }
 
-    const currentSynth = toVector((newTopic as any).synthesis_embedding) ?? await generateEmbedding(newTopic.synthesis)
-    const currentTitle = toVector((newTopic as any).title_embedding) ?? await generateEmbedding(newTopic.title)
+    const currentSynth = toVector((newTopic as any).synthesis_embedding) ?? await generateEmbedding(newTopic.synthesis, {
+      userId,
+      source: "sophia-brain:topic_auto_merge",
+      operationName: "embedding.topic_auto_merge_synthesis",
+    })
+    const currentTitle = toVector((newTopic as any).title_embedding) ?? await generateEmbedding(newTopic.title, {
+      userId,
+      source: "sophia-brain:topic_auto_merge",
+      operationName: "embedding.topic_auto_merge_title",
+    })
     const currentTitleTokens = tokens(newTopic.title)
 
     const ranked = candidates
@@ -1023,7 +1073,11 @@ async function maybeAutoMergeNewTopic(opts: {
     })
 
     const mergedSynthesis = mergeSynthesisText(String(canonical.synthesis ?? ""), String(newTopic.synthesis ?? ""))
-    const mergedSynthesisEmbedding = await generateEmbedding(mergedSynthesis)
+    const mergedSynthesisEmbedding = await generateEmbedding(mergedSynthesis, {
+      userId,
+      source: "sophia-brain:topic_auto_merge",
+      operationName: "embedding.topic_auto_merge_merged_synthesis",
+    })
     const canonicalMetadata = (canonical.metadata && typeof canonical.metadata === "object")
       ? canonical.metadata
       : {}
@@ -1128,6 +1182,7 @@ async function upsertKeywords(opts: {
   topicId: string
   keywords: string[]
   allowReassign?: boolean
+  requestId?: string
 }): Promise<{ inserted: number; keptExisting: number; reassigned: number }> {
   const { supabase, userId, topicId, keywords } = opts
   const allowReassign = Boolean(opts.allowReassign) || ALLOW_KEYWORD_REASSIGN
@@ -1155,7 +1210,12 @@ async function upsertKeywords(opts: {
         .maybeSingle()
 
       if (!existing) {
-        const embedding = await generateEmbedding(keyword)
+        const embedding = await generateEmbedding(keyword, {
+          userId,
+          requestId: opts.requestId,
+          source: "sophia-brain:topic_keyword_embedding",
+          operationName: "embedding.topic_keyword",
+        })
         const { error: insErr } = await supabase
           .from("user_topic_keywords")
           .insert({
@@ -1182,7 +1242,12 @@ async function upsertKeywords(opts: {
         continue
       }
 
-      const embedding = await generateEmbedding(keyword)
+      const embedding = await generateEmbedding(keyword, {
+        userId,
+        requestId: opts.requestId,
+        source: "sophia-brain:topic_keyword_embedding",
+        operationName: "embedding.topic_keyword_reassign",
+      })
       const { error: updErr } = await supabase
         .from("user_topic_keywords")
         .update({
@@ -1218,7 +1283,12 @@ export async function retrieveTopicMemories(opts: {
 }): Promise<TopicSearchResult[]> {
   const { supabase, userId, message, maxResults = 3 } = opts
 
-  const embedding = await generateEmbedding(message)
+  const embedding = await generateEmbedding(message, {
+    userId,
+    requestId: opts.meta?.requestId,
+    source: "sophia-brain:topic_retrieve",
+    operationName: "embedding.topic_retrieval_query",
+  })
 
   // Recherche parallèle : par keywords, synthèse ET title
   const [kwRaw, synRaw, titleRaw] = await Promise.all([
@@ -1479,6 +1549,7 @@ export async function processTopicsFromWatcher(opts: {
     transcript,
     existingTopicSlugs,
     currentContext,
+    userId,
     meta,
   })
 
@@ -1496,7 +1567,7 @@ export async function processTopicsFromWatcher(opts: {
   // 3. Pour chaque topic : gate de persistance, puis enrichir ou créer
   for (const extracted of extractedTopics) {
     try {
-      const gate = await shouldPersistTopicMemory({ extractedTopic: extracted, sourceType, meta })
+      const gate = await shouldPersistTopicMemory({ extractedTopic: extracted, sourceType, userId, meta })
       if (!gate.persist) {
         topicsNoop++
         console.log(
@@ -1509,6 +1580,7 @@ export async function processTopicsFromWatcher(opts: {
         supabase,
         userId,
         extractedTopic: extracted,
+        meta: { requestId: meta?.requestId },
       })
 
       if (existingTopic) {
