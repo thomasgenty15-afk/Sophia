@@ -69,16 +69,38 @@ export async function resolvePricing(provider: string, model: string): Promise<P
 export function inferOperationFromSource(source: string | null | undefined): { operation_family: string; operation_name: string } {
   const src = String(source ?? "").trim().toLowerCase();
   if (!src) return { operation_family: "other", operation_name: "unknown" };
+
+  // Most specific mappings first.
+  if (src.includes("embed")) return { operation_family: "embedding", operation_name: src };
+  if (src.includes("generate-plan") || src.includes("plan")) return { operation_family: "plan_generation", operation_name: src };
   if (src.includes("dispatcher")) return { operation_family: "dispatcher", operation_name: src };
   if (src.includes("sort-priorities")) return { operation_family: "sort_priorities", operation_name: src };
   if (src.includes("summarize-context") || src.includes("summary")) return { operation_family: "summarize_context", operation_name: src };
   if (src.includes("ethical")) return { operation_family: "ethics_check", operation_name: src };
-  if (src.includes("memorizer") || src.includes("topic_memory")) return { operation_family: "memorizer", operation_name: src };
+
+  // Sophia-brain conversational generators.
+  if (
+    src.includes("companion") ||
+    src.includes("investigator") ||
+    src.includes("firefighter") ||
+    src.includes("sentry")
+  ) {
+    return { operation_family: "message_generation", operation_name: src };
+  }
+
+  // Memory lifecycle and context synthesis.
+  if (
+    src.includes("memorizer") ||
+    src.includes("topic_memory") ||
+    src.includes("topic_") ||
+    src.includes("synthesizer")
+  ) {
+    return { operation_family: "memorizer", operation_name: src };
+  }
+
   if (src.includes("watcher")) return { operation_family: "watcher", operation_name: src };
   if (src.includes("schedule") || src.includes("checkin") || src.includes("reminder")) return { operation_family: "scheduling", operation_name: src };
   if (src.includes("duplicate")) return { operation_family: "duplicate_check", operation_name: src };
-  if (src.includes("generate-plan")) return { operation_family: "plan_generation", operation_name: src };
-  if (src.includes("embed")) return { operation_family: "embedding", operation_name: src };
   return { operation_family: "other", operation_name: src };
 }
 

@@ -26,11 +26,12 @@ The logger infers family from `source` if callsites do not provide explicit valu
 - containing `sort-priorities` -> `sort_priorities`
 - containing `summarize-context` or `summary` -> `summarize_context`
 - containing `ethical` -> `ethics_check`
-- containing `memorizer` or `topic_memory` -> `memorizer`
+- containing `memorizer`, `topic_memory`, `topic_`, or `synthesizer` -> `memorizer`
+- containing `companion`, `investigator`, `firefighter`, or `sentry` -> `message_generation`
 - containing `watcher` -> `watcher`
 - containing `schedule`, `checkin`, or `reminder` -> `scheduling`
 - containing `duplicate` -> `duplicate_check`
-- containing `generate-plan` -> `plan_generation`
+- containing `generate-plan` or `plan` -> `plan_generation`
 - containing `embed` -> `embedding`
 - fallback -> `other`
 

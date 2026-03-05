@@ -50,6 +50,20 @@ type OperationRow = {
   total_tokens: number;
 };
 
+type UserOperationRow = {
+  operation_family: string;
+  operation_name: string;
+  source: string;
+  provider: string;
+  model: string;
+  cost_domain: string;
+  ai_cost_usd: number;
+  whatsapp_cost_eur: number;
+  total_cost_usd: number;
+  total_calls: number;
+  total_tokens: number;
+};
+
 type LegacySourceRow = { source: string | null };
 type LegacyModelRow = { model: string | null };
 
@@ -68,25 +82,24 @@ function toCsv(headers: string[], rows: Array<Record<string, unknown>>): string 
 function normalizeLegacyFamily(source: string): string {
   const s = String(source || "").trim().toLowerCase();
   if (!s) return "other";
-  if (s.startsWith("sophia-brain:")) {
-    const tag = s.split(":")[1] || "";
-    if (tag) return tag;
-  }
+  if (s.includes("embed")) return "embedding";
+  if (s.includes("generate-plan") || s.includes("plan")) return "plan_generation";
   if (s.includes("dispatcher")) return "dispatcher";
-  if (s.includes("companion")) return "companion";
-  if (s.includes("sentry")) return "sentry";
-  if (s.includes("watcher")) return "watcher";
-  if (s.includes("memorizer") || s.includes("topic_memory")) return "memorizer";
-  if (s.includes("summarize-context") || s.includes("summary")) return "summarize_context";
   if (s.includes("sort-priorities")) return "sort_priorities";
+  if (s.includes("summarize-context") || s.includes("summary")) return "summarize_context";
   if (s.includes("ethical")) return "ethics_check";
-  return s.split(":")[0] || s;
+  if (s.includes("companion") || s.includes("investigator") || s.includes("firefighter") || s.includes("sentry")) return "message_generation";
+  if (s.includes("memorizer") || s.includes("topic_memory") || s.includes("topic_") || s.includes("synthesizer")) return "memorizer";
+  if (s.includes("watcher")) return "watcher";
+  if (s.includes("schedule") || s.includes("checkin") || s.includes("reminder")) return "scheduling";
+  if (s.includes("duplicate")) return "duplicate_check";
+  return "other";
 }
 
 function normalizeLegacyOperation(source: string): string {
   const s = String(source || "").trim().toLowerCase();
   if (!s) return "unknown";
-  if (s.startsWith("sophia-brain:")) return s.replace("sophia-brain:", "");
+  if (s.startsWith("sophia-brain:")) return s;
   return s;
 }
 
@@ -111,6 +124,9 @@ export default function AdminUsageDashboard() {
   const [legacySources, setLegacySources] = useState<string[]>([]);
   const [legacyModels, setLegacyModels] = useState<string[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
+  const [userOperationRows, setUserOperationRows] = useState<UserOperationRow[]>([]);
+  const [userOperationLoading, setUserOperationLoading] = useState(false);
   const [appliedBucket, setAppliedBucket] = useState<Bucket>("day");
   const [appliedStartDate, setAppliedStartDate] = useState<string>("");
   const [appliedEndDate, setAppliedEndDate] = useState<string>("");
@@ -181,6 +197,33 @@ export default function AdminUsageDashboard() {
     loadData();
   }, [user, isAdmin, appliedStartDate, appliedEndDate, appliedBucket]);
 
+  useEffect(() => {
+    async function loadUserBreakdown() {
+      if (!user || !isAdmin || !appliedStartDate || !appliedEndDate || !selectedUserId) {
+        setUserOperationRows([]);
+        return;
+      }
+      setUserOperationLoading(true);
+      try {
+        const startAt = new Date(`${appliedStartDate}T00:00:00.000Z`).toISOString();
+        const endAt = new Date(`${appliedEndDate}T23:59:59.999Z`).toISOString();
+        const res = await supabase.rpc("get_admin_user_operation_breakdown", {
+          p_start: startAt,
+          p_end: endAt,
+          p_user_id: selectedUserId,
+        });
+        if (res.error) throw res.error;
+        setUserOperationRows((res.data as UserOperationRow[] | null) ?? []);
+      } catch (e) {
+        console.error("admin usage dashboard user breakdown load failed", e);
+        setUserOperationRows([]);
+      } finally {
+        setUserOperationLoading(false);
+      }
+    }
+    loadUserBreakdown();
+  }, [user, isAdmin, appliedStartDate, appliedEndDate, selectedUserId]);
+
   const providerOptions = useMemo(() => ["all", ...Array.from(new Set(operations.map((o) => o.provider).filter(Boolean)))], [operations]);
   const modelOptions = useMemo(
     () => ["all", ...Array.from(new Set([...operations.map((o) => o.model).filter(Boolean), ...legacyModels]))],
@@ -192,7 +235,7 @@ export default function AdminUsageDashboard() {
         "all",
         ...Array.from(
           new Set([
-            ...operations.map((o) => o.operation_family).filter(Boolean),
+            ...operations.map((o) => (o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family)).filter(Boolean),
             ...legacySources.map((s) => normalizeLegacyFamily(s)),
           ]),
         ),
@@ -205,7 +248,7 @@ export default function AdminUsageDashboard() {
         "all",
         ...Array.from(
           new Set([
-            ...operations.map((o) => o.operation_name).filter(Boolean),
+            ...operations.map((o) => normalizeLegacyOperation(o.operation_name || o.source)).filter(Boolean),
             ...legacySources.map((s) => normalizeLegacyOperation(s)),
           ]),
         ),
@@ -213,17 +256,40 @@ export default function AdminUsageDashboard() {
     [operations, legacySources],
   );
 
+  useEffect(() => {
+    if (appliedProviderFilter !== "all" && !providerOptions.includes(appliedProviderFilter)) setAppliedProviderFilter("all");
+    if (appliedModelFilter !== "all" && !modelOptions.includes(appliedModelFilter)) setAppliedModelFilter("all");
+    if (appliedFamilyFilter !== "all" && !familyOptions.includes(appliedFamilyFilter)) setAppliedFamilyFilter("all");
+    if (appliedOperationFilter !== "all" && !operationOptions.includes(appliedOperationFilter)) setAppliedOperationFilter("all");
+  }, [
+    providerOptions,
+    modelOptions,
+    familyOptions,
+    operationOptions,
+    appliedProviderFilter,
+    appliedModelFilter,
+    appliedFamilyFilter,
+    appliedOperationFilter,
+  ]);
+
   const filteredOps = useMemo(
     () =>
       operations.filter((o) => {
         if (appliedModelFilter !== "all" && o.model !== appliedModelFilter) return false;
         if (appliedProviderFilter !== "all" && o.provider !== appliedProviderFilter) return false;
-        if (appliedFamilyFilter !== "all" && o.operation_family !== appliedFamilyFilter) return false;
-        if (appliedOperationFilter !== "all" && o.operation_name !== appliedOperationFilter) return false;
+        const normalizedFamily = o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family;
+        const normalizedOperation = normalizeLegacyOperation(o.operation_name || o.source);
+        if (appliedFamilyFilter !== "all" && normalizedFamily !== appliedFamilyFilter) return false;
+        if (appliedOperationFilter !== "all" && normalizedOperation !== appliedOperationFilter) return false;
         return true;
       }),
     [operations, appliedProviderFilter, appliedModelFilter, appliedFamilyFilter, appliedOperationFilter],
   );
+  const hasActiveOpFilters =
+    appliedProviderFilter !== "all" ||
+    appliedModelFilter !== "all" ||
+    appliedFamilyFilter !== "all" ||
+    appliedOperationFilter !== "all";
 
   const filteredUsers = useMemo(() => {
     const byUser = new Map<string, UserRow>();
@@ -249,6 +315,31 @@ export default function AdminUsageDashboard() {
       return u.full_name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q);
     });
   }, [users, appliedSearch]);
+
+  useEffect(() => {
+    if (!selectedUserId) return;
+    const exists = filteredUsers.some((u) => String(u.user_id || "") === selectedUserId);
+    if (!exists) setSelectedUserId(null);
+  }, [filteredUsers, selectedUserId]);
+
+  const selectedUser = useMemo(
+    () => filteredUsers.find((u) => String(u.user_id || "") === selectedUserId) ?? null,
+    [filteredUsers, selectedUserId],
+  );
+
+  const filteredUserOps = useMemo(
+    () =>
+      userOperationRows.filter((o) => {
+        if (appliedModelFilter !== "all" && o.model !== appliedModelFilter) return false;
+        if (appliedProviderFilter !== "all" && o.provider !== appliedProviderFilter) return false;
+        const normalizedFamily = o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family;
+        const normalizedOperation = normalizeLegacyOperation(o.operation_name || o.source);
+        if (appliedFamilyFilter !== "all" && normalizedFamily !== appliedFamilyFilter) return false;
+        if (appliedOperationFilter !== "all" && normalizedOperation !== appliedOperationFilter) return false;
+        return true;
+      }),
+    [userOperationRows, appliedModelFilter, appliedProviderFilter, appliedFamilyFilter, appliedOperationFilter],
+  );
 
   function applyFilters() {
     setAppliedBucket(bucket);
@@ -509,7 +600,14 @@ export default function AdminUsageDashboard() {
                 </thead>
                 <tbody className="divide-y divide-neutral-800">
                   {filteredUsers.map((u) => (
-                    <tr key={u.user_id || u.email}>
+                    <tr
+                      key={u.user_id || u.email}
+                      className={cn(
+                        "cursor-pointer hover:bg-neutral-900/60",
+                        selectedUserId && String(u.user_id || "") === selectedUserId && "bg-indigo-500/10",
+                      )}
+                      onClick={() => setSelectedUserId(u.user_id || null)}
+                    >
                       <td className="px-4 py-2">
                         <div className="font-medium">{u.full_name || "Unknown"}</div>
                         <div className="text-xs text-neutral-500">{u.email}</div>
@@ -521,6 +619,65 @@ export default function AdminUsageDashboard() {
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="border-t border-neutral-800 p-3">
+              <div className="text-xs uppercase tracking-wide text-neutral-500 mb-2">
+                {selectedUser
+                  ? `Detail utilisateur: ${selectedUser.full_name || selectedUser.email || selectedUser.user_id}`
+                  : "Clique un utilisateur pour voir le detail par type d'appel"}
+              </div>
+              <div className="max-h-[280px] overflow-y-auto rounded-lg border border-neutral-800">
+                <table className="w-full text-sm">
+                  <thead className="bg-neutral-950 text-neutral-400">
+                    <tr>
+                      <th className="px-3 py-2 text-left">Operation</th>
+                      <th className="px-3 py-2 text-left">Model</th>
+                      <th className="px-3 py-2 text-right">Total USD</th>
+                      <th className="px-3 py-2 text-right">Calls</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-neutral-800">
+                    {!selectedUser ? (
+                      <tr>
+                        <td className="px-3 py-3 text-neutral-500" colSpan={4}>
+                          Selectionne un utilisateur.
+                        </td>
+                      </tr>
+                    ) : userOperationLoading ? (
+                      <tr>
+                        <td className="px-3 py-3 text-neutral-500" colSpan={4}>
+                          Chargement...
+                        </td>
+                      </tr>
+                    ) : filteredUserOps.length === 0 ? (
+                      <tr>
+                        <td className="px-3 py-3 text-neutral-500" colSpan={4}>
+                          Aucun appel pour cet utilisateur sur la periode/filtres.
+                        </td>
+                      </tr>
+                    ) : (
+                      filteredUserOps.map((o, idx) => {
+                        const family = o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family;
+                        const operation = normalizeLegacyOperation(o.operation_name || o.source);
+                        return (
+                          <tr key={`${operation}-${o.model}-${idx}`}>
+                            <td className="px-3 py-2">
+                              <div>{family}</div>
+                              <div className="text-xs text-neutral-500">{operation}</div>
+                            </td>
+                            <td className="px-3 py-2">
+                              <div>{o.model}</div>
+                              <div className="text-xs text-neutral-500">{o.provider}</div>
+                            </td>
+                            <td className="px-3 py-2 text-right">${Number(o.total_cost_usd).toFixed(4)}</td>
+                            <td className="px-3 py-2 text-right">{o.total_calls}</td>
+                          </tr>
+                        );
+                      })
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
           </div>
 
@@ -537,20 +694,32 @@ export default function AdminUsageDashboard() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-neutral-800">
-                  {filteredOps.map((o, idx) => (
-                    <tr key={`${o.operation_name}-${o.model}-${idx}`}>
-                      <td className="px-4 py-2">
-                        <div>{o.operation_family}</div>
-                        <div className="text-xs text-neutral-500">{o.operation_name}</div>
+                  {filteredOps.length === 0 ? (
+                    <tr>
+                      <td className="px-4 py-3 text-neutral-500" colSpan={4}>
+                        {hasActiveOpFilters
+                          ? "Aucune operation pour ces filtres sur la periode. Clique sur Reset ou ajuste les filtres."
+                          : "Aucune operation enregistree sur cette periode."}
                       </td>
-                      <td className="px-4 py-2">
-                        <div>{o.model}</div>
-                        <div className="text-xs text-neutral-500">{o.provider}</div>
-                      </td>
-                      <td className="px-4 py-2 text-right">${Number(o.total_cost_usd).toFixed(4)}</td>
-                      <td className="px-4 py-2 text-right">{o.total_calls}</td>
                     </tr>
-                  ))}
+                  ) : filteredOps.map((o, idx) => {
+                    const family = o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family;
+                    const operation = normalizeLegacyOperation(o.operation_name || o.source);
+                    return (
+                      <tr key={`${operation}-${o.model}-${idx}`}>
+                        <td className="px-4 py-2">
+                          <div>{family}</div>
+                          <div className="text-xs text-neutral-500">{operation}</div>
+                        </td>
+                        <td className="px-4 py-2">
+                          <div>{o.model}</div>
+                          <div className="text-xs text-neutral-500">{o.provider}</div>
+                        </td>
+                        <td className="px-4 py-2 text-right">${Number(o.total_cost_usd).toFixed(4)}</td>
+                        <td className="px-4 py-2 text-right">{o.total_calls}</td>
+                      </tr>
+                    );
+                  })}
                 </tbody>
               </table>
             </div>
