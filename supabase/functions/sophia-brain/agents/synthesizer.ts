@@ -48,8 +48,14 @@ export async function runSynthesizer(opts: {
   const state = await getUserState(supabase, userId, scope)
   const tempMemory = safeObj((state as any)?.temp_memory)
   const prevContext = String(state.short_term_context ?? "").trim()
-  const lastSynthMessageAt = asIso(tempMemory.short_context_last_message_at)
-  const lastSynthUpdatedAt = asIso(tempMemory.short_context_updated_at)
+  const jobState = safeObj(tempMemory.__job_state)
+  const synthState = safeObj(jobState.synthesizer)
+  const lastSynthMessageAt = asIso(
+    synthState.last_message_at ?? tempMemory.short_context_last_message_at,
+  )
+  const lastSynthUpdatedAt = asIso(
+    synthState.updated_at ?? tempMemory.short_context_updated_at,
+  )
 
   const { data: recentRows, error: recentErr } = await supabase
     .from("chat_messages")
@@ -134,10 +140,18 @@ ${transcriptRecent}
 
   const mergedTempMemory = {
     ...tempMemory,
-    short_context_last_message_at: latestMessageAt || lastSynthMessageAt || null,
-    short_context_updated_at: new Date().toISOString(),
-    short_context_new_messages: newMessages,
+    __job_state: {
+      ...jobState,
+      synthesizer: {
+        last_message_at: latestMessageAt || lastSynthMessageAt || null,
+        updated_at: new Date().toISOString(),
+        new_messages: newMessages,
+      },
+    },
   }
+  delete (mergedTempMemory as any).short_context_last_message_at
+  delete (mergedTempMemory as any).short_context_updated_at
+  delete (mergedTempMemory as any).short_context_new_messages
 
   await updateUserState(supabase, userId, scope, {
     short_term_context: nextContext,

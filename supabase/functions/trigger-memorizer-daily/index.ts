@@ -97,9 +97,17 @@ Deno.serve(async (req) => {
         const temp = ((state as any)?.temp_memory && typeof (state as any).temp_memory === "object")
           ? { ...(state as any).temp_memory }
           : {}
+        const jobState = (temp.__job_state && typeof temp.__job_state === "object")
+          ? { ...(temp.__job_state as Record<string, unknown>) }
+          : {}
+        const memorizerState = (jobState.memorizer && typeof jobState.memorizer === "object")
+          ? { ...(jobState.memorizer as Record<string, unknown>) }
+          : {}
 
         const latest = String(rows[rows.length - 1]?.created_at ?? "")
-        const already = String(temp.memorizer_last_message_at ?? "")
+        const already = String(
+          memorizerState.last_message_at ?? temp.memorizer_last_message_at ?? "",
+        )
         if (already && latest && latest <= already) {
           skipped++
           details.push({ user_id: c.user_id, scope: c.scope, skipped: true, reason: "already_processed" })
@@ -116,9 +124,18 @@ Deno.serve(async (req) => {
           meta: { requestId, model: getGlobalAiModel("gemini-2.5-flash") },
         })
 
-        temp.memorizer_last_message_at = latest || already || null
-        temp.memorizer_last_run_at = new Date().toISOString()
-        temp.memorizer_last_counts = { created: result.topicsCreated, enriched: result.topicsEnriched }
+        temp.__job_state = {
+          ...jobState,
+          memorizer: {
+            ...memorizerState,
+            last_message_at: latest || already || null,
+            last_run_at: new Date().toISOString(),
+            last_counts: { created: result.topicsCreated, enriched: result.topicsEnriched },
+          },
+        }
+        delete (temp as any).memorizer_last_message_at
+        delete (temp as any).memorizer_last_run_at
+        delete (temp as any).memorizer_last_counts
 
         await updateUserState(admin as any, c.user_id, c.scope, {
           temp_memory: temp,

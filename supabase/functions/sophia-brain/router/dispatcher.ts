@@ -1,8 +1,6 @@
 import type { AgentMode } from "../state-manager.ts";
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import {
-  normalizePendingResolutionSignal,
-  type PendingResolutionSignal,
   type PendingResolutionType,
 } from "./pending_resolution.ts";
 
@@ -191,81 +189,18 @@ export interface SignalEnrichment {
 }
 
 /**
- * Machine-specific signals (varies by active machine).
+ * Machine-specific signals still consumed by router logic in R2.
+ * Legacy machine-specific fields (tool flows/topic/deferred resolution) were removed.
  */
 export interface MachineSignals {
-  // create_action_flow
-  user_confirms_preview?: "yes" | "no" | "modify" | "unclear" | null;
-  action_type_clarified?: "habit" | "mission" | "framework" | null;
-  user_abandons?: boolean;
-  modification_requested?: string | null;
-
-  // update_action_flow
-  user_confirms_change?: "yes" | "no" | "modify" | "unclear" | null;
-  new_value_provided?: string | null;
-
-  // breakdown_action_flow
-  user_confirms_microstep?: "yes" | "no" | null;
-  user_wants_different_step?: boolean;
-  blocker_clarified?: string | null;
-
-  // topic_exploration
-  user_engagement?: "HIGH" | "MEDIUM" | "LOW" | "DISENGAGED";
-  topic_satisfaction?: { detected: boolean };
-  wants_to_change_topic?: boolean;
-  needs_deeper_exploration?: boolean;
-
-  // deep_reasons_exploration
-  user_opens_up?: boolean;
-  resistance_detected?: boolean;
-  insight_emerged?: boolean;
-  wants_to_stop?: boolean;
-
-  // activate_action_flow
-  user_confirms_activation?: boolean | null;
-  user_wants_different_action?: string | null;
-  activation_ready?: boolean;
-
-  // delete_action_flow
-  user_confirms_deletion?: boolean | null;
-  deletion_ready?: boolean;
-
-  // deactivate_action_flow
-  user_confirms_deactivation?: boolean | null;
-  deactivation_ready?: boolean;
-
-  // bilan/investigation (signals for post-bilan processing)
-  breakdown_recommended?: boolean;
-  deep_reasons_opportunity?: boolean;
-  create_action_intent?: boolean;
-  update_action_intent?: boolean;
-  activate_action_intent?: boolean;
-  delete_action_intent?: boolean;
-  deactivate_action_intent?: boolean;
-  user_consents_defer?: boolean;
-
-  // bilan/investigation (confirmation signals for deferred machines)
-  // These capture user's response to "tu veux qu'on en parle après le bilan ?"
-  confirm_deep_reasons?: boolean | null; // User confirms/declines deep reasons exploration after bilan
-  confirm_breakdown?: boolean | null; // User confirms/declines micro-step breakdown after bilan
-  confirm_topic?: boolean | null; // User confirms/declines topic exploration after bilan
-  confirm_increase_target?: boolean | null; // User confirms/declines increasing weekly habit target
-  confirm_delete_action?: boolean | null; // User confirms/declines deleting an action after bilan
-  confirm_deactivate_action?: boolean | null; // User confirms/declines deactivating an action after bilan
-
-  // Checkup flow signals
+  // Checkup / bilan signals
   checkup_intent?: {
     detected: boolean;
     confidence: number;
     trigger_phrase?: string;
   };
-  wants_to_checkup?: boolean; // User response to "tu veux faire le bilan?"
   wants_to_continue_bilan?: boolean; // Implicit continuation after stale bilan (>4h)
   dont_want_continue_bilan?: boolean; // User switched topic / unrelated while stale bilan active
-  track_from_bilan_done_ok?: boolean; // User wants track_progress when bilan already done
-
-  // Generic pending intent resolution (hybrid model: common wrapper + typed decisions)
-  pending_resolution?: PendingResolutionSignal;
 }
 
 /**
@@ -820,13 +755,6 @@ function buildMachineAddonWithContext(
 === SIGNAUX SPECIFIQUES (safety_${safetyType}_flow actif — phase: ${phase}) ===
 Phase actuelle: ${phase} | Tour: ${turnCount}
 Conserve le contexte safety actif et reste prudent tant que safety.level reste SENTRY.
-
-SORTIE (dans machine_signals):
-{
-  "machine_signals": {
-    "pending_resolution": null
-  }
-}
 `;
   }
 
@@ -1008,15 +936,9 @@ ${contextMessages}
   ],
   "machine_signals": {
     /* VOIR SECTION SIGNAUX SPECIFIQUES - inclure seulement si une machine est active */
+    "checkup_intent": { "detected": "boolean", "confidence": "number", "trigger_phrase": "string|null" },
     "wants_to_continue_bilan": "boolean|null",
-    "dont_want_continue_bilan": "boolean|null",
-    "pending_resolution": {
-      "status": "resolved|unresolved|unrelated",
-      "pending_type": "dual_tool|relaunch_consent|checkup_entry|resume_prompt",
-      "decision_code": "string enum selon pending_type",
-      "confidence": 0.0-1.0,
-      "reason_short": "string courte optionnelle"
-    }
+    "dont_want_continue_bilan": "boolean|null"
   }
 }
 
@@ -1026,7 +948,6 @@ REGLES:
 - "enrichments": UNIQUEMENT pour mettre a jour le brief d'un signal existant avec du contexte NOUVEAU
 - Ne pas re-emettre un signal deja dans l'historique!
 - "machine_signals": INCLURE UNIQUEMENT si une machine est active (voir SIGNAUX SPECIFIQUES ci-dessus)
-- Si un pending de resolution est actif, "machine_signals.pending_resolution" est OBLIGATOIRE.
 
 Reponds UNIQUEMENT avec le JSON:`;
 
@@ -1311,217 +1232,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       const ms = obj.machine_signals;
       machineSignals = {};
 
-      // create_action_flow signals
-      if (ms.user_confirms_preview !== undefined) {
-        const valid = ["yes", "no", "modify", "unclear", null];
-        machineSignals.user_confirms_preview =
-          valid.includes(ms.user_confirms_preview)
-            ? ms.user_confirms_preview
-            : null;
-      }
-      if (ms.action_type_clarified !== undefined) {
-        const valid = ["habit", "mission", "framework", null];
-        machineSignals.action_type_clarified =
-          valid.includes(ms.action_type_clarified)
-            ? ms.action_type_clarified
-            : null;
-      }
-      if (ms.user_abandons !== undefined) {
-        machineSignals.user_abandons = Boolean(ms.user_abandons);
-      }
-      if (ms.modification_requested !== undefined) {
-        machineSignals.modification_requested =
-          typeof ms.modification_requested === "string"
-            ? ms.modification_requested.slice(0, 200)
-            : null;
-      }
-
-      // update_action_flow signals
-      if (ms.user_confirms_change !== undefined) {
-        const valid = ["yes", "no", "modify", "unclear", null];
-        machineSignals.user_confirms_change =
-          valid.includes(ms.user_confirms_change)
-            ? ms.user_confirms_change
-            : null;
-      }
-      if (ms.new_value_provided !== undefined) {
-        machineSignals.new_value_provided =
-          typeof ms.new_value_provided === "string"
-            ? ms.new_value_provided.slice(0, 200)
-            : null;
-      }
-
-      // breakdown_action_flow signals
-      if (ms.user_confirms_microstep !== undefined) {
-        const valid = ["yes", "no", null];
-        machineSignals.user_confirms_microstep =
-          valid.includes(ms.user_confirms_microstep)
-            ? ms.user_confirms_microstep
-            : null;
-      }
-      if (ms.user_wants_different_step !== undefined) {
-        machineSignals.user_wants_different_step = Boolean(
-          ms.user_wants_different_step,
-        );
-      }
-      if (ms.blocker_clarified !== undefined) {
-        machineSignals.blocker_clarified =
-          typeof ms.blocker_clarified === "string"
-            ? ms.blocker_clarified.slice(0, 200)
-            : null;
-      }
-
-      // topic_exploration signals
-      if (ms.user_engagement !== undefined) {
-        const valid = ["HIGH", "MEDIUM", "LOW", "DISENGAGED"];
-        machineSignals.user_engagement = valid.includes(ms.user_engagement)
-          ? ms.user_engagement
-          : "MEDIUM";
-      }
-      if (
-        ms.topic_satisfaction !== undefined &&
-        typeof ms.topic_satisfaction === "object"
-      ) {
-        machineSignals.topic_satisfaction = {
-          detected: Boolean(ms.topic_satisfaction?.detected),
-        };
-      }
-      if (ms.wants_to_change_topic !== undefined) {
-        machineSignals.wants_to_change_topic = Boolean(
-          ms.wants_to_change_topic,
-        );
-      }
-      if (ms.needs_deeper_exploration !== undefined) {
-        machineSignals.needs_deeper_exploration = Boolean(
-          ms.needs_deeper_exploration,
-        );
-      }
-
-      // deep_reasons_exploration signals
-      if (ms.user_opens_up !== undefined) {
-        machineSignals.user_opens_up = Boolean(ms.user_opens_up);
-      }
-      if (ms.resistance_detected !== undefined) {
-        machineSignals.resistance_detected = Boolean(ms.resistance_detected);
-      }
-      if (ms.insight_emerged !== undefined) {
-        machineSignals.insight_emerged = Boolean(ms.insight_emerged);
-      }
-      if (ms.wants_to_stop !== undefined) {
-        machineSignals.wants_to_stop = Boolean(ms.wants_to_stop);
-      }
-
-      // activate_action_flow signals
-      if (ms.user_confirms_activation !== undefined) {
-        machineSignals.user_confirms_activation =
-          ms.user_confirms_activation === null
-            ? null
-            : Boolean(ms.user_confirms_activation);
-      }
-      if (ms.user_wants_different_action !== undefined) {
-        machineSignals.user_wants_different_action =
-          typeof ms.user_wants_different_action === "string"
-            ? ms.user_wants_different_action.slice(0, 100)
-            : null;
-      }
-      if (ms.activation_ready !== undefined) {
-        machineSignals.activation_ready = Boolean(ms.activation_ready);
-      }
-
-      // delete_action_flow signals
-      if (ms.user_confirms_deletion !== undefined) {
-        machineSignals.user_confirms_deletion =
-          ms.user_confirms_deletion === null
-            ? null
-            : Boolean(ms.user_confirms_deletion);
-      }
-      if (ms.deletion_ready !== undefined) {
-        machineSignals.deletion_ready = Boolean(ms.deletion_ready);
-      }
-
-      // deactivate_action_flow signals
-      if (ms.user_confirms_deactivation !== undefined) {
-        machineSignals.user_confirms_deactivation =
-          ms.user_confirms_deactivation === null
-            ? null
-            : Boolean(ms.user_confirms_deactivation);
-      }
-      if (ms.deactivation_ready !== undefined) {
-        machineSignals.deactivation_ready = Boolean(ms.deactivation_ready);
-      }
-
-      // bilan/investigation signals
-      if (ms.breakdown_recommended !== undefined) {
-        machineSignals.breakdown_recommended = Boolean(
-          ms.breakdown_recommended,
-        );
-      }
-      if (ms.deep_reasons_opportunity !== undefined) {
-        machineSignals.deep_reasons_opportunity = Boolean(
-          ms.deep_reasons_opportunity,
-        );
-      }
-      if (ms.create_action_intent !== undefined) {
-        machineSignals.create_action_intent = Boolean(ms.create_action_intent);
-      }
-      if (ms.update_action_intent !== undefined) {
-        machineSignals.update_action_intent = Boolean(ms.update_action_intent);
-      }
-      if (ms.activate_action_intent !== undefined) {
-        machineSignals.activate_action_intent = Boolean(
-          ms.activate_action_intent,
-        );
-      }
-      if (ms.delete_action_intent !== undefined) {
-        machineSignals.delete_action_intent = Boolean(ms.delete_action_intent);
-      }
-      if (ms.deactivate_action_intent !== undefined) {
-        machineSignals.deactivate_action_intent = Boolean(
-          ms.deactivate_action_intent,
-        );
-      }
-      if (ms.user_consents_defer !== undefined) {
-        machineSignals.user_consents_defer = Boolean(ms.user_consents_defer);
-      }
-
-      // bilan/investigation confirmation signals (response to "tu veux qu'on en parle après le bilan ?")
-      if (
-        ms.confirm_deep_reasons !== undefined &&
-        ms.confirm_deep_reasons !== null
-      ) {
-        machineSignals.confirm_deep_reasons = Boolean(ms.confirm_deep_reasons);
-      }
-      if (ms.confirm_breakdown !== undefined && ms.confirm_breakdown !== null) {
-        machineSignals.confirm_breakdown = Boolean(ms.confirm_breakdown);
-      }
-      if (ms.confirm_topic !== undefined && ms.confirm_topic !== null) {
-        machineSignals.confirm_topic = Boolean(ms.confirm_topic);
-      }
-      if (
-        ms.confirm_increase_target !== undefined &&
-        ms.confirm_increase_target !== null
-      ) {
-        machineSignals.confirm_increase_target = Boolean(
-          ms.confirm_increase_target,
-        );
-      }
-      if (
-        ms.confirm_delete_action !== undefined &&
-        ms.confirm_delete_action !== null
-      ) {
-        machineSignals.confirm_delete_action = Boolean(
-          ms.confirm_delete_action,
-        );
-      }
-      if (
-        ms.confirm_deactivate_action !== undefined &&
-        ms.confirm_deactivate_action !== null
-      ) {
-        machineSignals.confirm_deactivate_action = Boolean(
-          ms.confirm_deactivate_action,
-        );
-      }
-
       // Checkup flow signals
       if (ms.checkup_intent && typeof ms.checkup_intent === "object") {
         const ci = ms.checkup_intent;
@@ -1533,9 +1243,6 @@ Reponds UNIQUEMENT avec le JSON:`;
             : undefined,
         };
       }
-      if (ms.wants_to_checkup !== undefined) {
-        machineSignals.wants_to_checkup = Boolean(ms.wants_to_checkup);
-      }
       if (ms.wants_to_continue_bilan !== undefined) {
         machineSignals.wants_to_continue_bilan = Boolean(
           ms.wants_to_continue_bilan,
@@ -1545,19 +1252,6 @@ Reponds UNIQUEMENT avec le JSON:`;
         machineSignals.dont_want_continue_bilan = Boolean(
           ms.dont_want_continue_bilan,
         );
-      }
-      if (ms.track_from_bilan_done_ok !== undefined) {
-        machineSignals.track_from_bilan_done_ok = Boolean(
-          ms.track_from_bilan_done_ok,
-        );
-      }
-
-      // Generic pending resolution signal (structured, typed by pending_type)
-      const parsedPendingResolution = normalizePendingResolutionSignal(
-        ms.pending_resolution,
-      );
-      if (parsedPendingResolution) {
-        machineSignals.pending_resolution = parsedPendingResolution;
       }
 
       // Only include if there's at least one defined signal

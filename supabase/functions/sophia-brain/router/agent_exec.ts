@@ -269,13 +269,30 @@ export async function runAgentAndVerify(opts: {
       } catch (e) {
         console.error("[Router] investigator failed:", e);
         const retryAfterIso = new Date(Date.now() + INVESTIGATOR_FAILURE_COOLDOWN_MS).toISOString();
-        tempMemory = {
+        const currentTm = {
           ...((state as any)?.temp_memory ?? {}),
           ...(tempMemory ?? {}),
-          __investigator_retry_after: retryAfterIso,
-          __investigator_last_error_at: new Date().toISOString(),
-          __investigator_last_error: String((e as any)?.message ?? e ?? "unknown").slice(0, 240),
         };
+        const jobState = (currentTm.__job_state && typeof currentTm.__job_state === "object")
+          ? { ...(currentTm.__job_state as Record<string, unknown>) }
+          : {};
+        const investigatorState = (jobState.investigator && typeof jobState.investigator === "object")
+          ? { ...(jobState.investigator as Record<string, unknown>) }
+          : {};
+        tempMemory = {
+          ...currentTm,
+          __investigator_retry_after: retryAfterIso,
+          __job_state: {
+            ...jobState,
+            investigator: {
+              ...investigatorState,
+              last_error_at: new Date().toISOString(),
+              last_error: String((e as any)?.message ?? e ?? "unknown").slice(0, 240),
+            },
+          },
+        };
+        delete (tempMemory as any).__investigator_last_error_at;
+        delete (tempMemory as any).__investigator_last_error;
         responseContent = outageTemplate;
         nextMode = "companion";
         outageFallback = true;

@@ -484,42 +484,14 @@ export async function loadContextForMode(
     }
   }
 
-  // 16. Expired bilan summary (silent expiry context for companion)
-  const expiredBilanSummary = (opts.tempMemory as any)?.__expired_bilan_summary;
-  if (
-    expiredBilanSummary &&
-    opts.mode === "companion"
-  ) {
-    const done = Array.isArray(expiredBilanSummary.items_done)
-      ? expiredBilanSummary.items_done
-      : [];
-    const skipped = Array.isArray(expiredBilanSummary.items_skipped)
-      ? expiredBilanSummary.items_skipped
-      : [];
-    const elapsed = expiredBilanSummary.elapsed_minutes ?? "?";
-    let block = `=== CONTEXTE : BILAN PRÉCÉDENT NON TERMINÉ ===\n`;
-    block +=
-      `Le bilan du jour a été lancé il y a ~${elapsed} minutes mais n'a pas été terminé.\n`;
-    if (done.length > 0) block += `Items traités : ${done.join(", ")}.\n`;
-    if (skipped.length > 0) {
-      block += `Items non traités : ${skipped.join(", ")}.\n`;
-    }
-    block +=
-      `Tu n'as PAS besoin de mentionner l'expiration sauf si l'utilisateur en parle.\n`;
-    block +=
-      `Si l'utilisateur demande à reprendre le bilan ou mentionne le bilan, dis-lui qu'on pourra en refaire un au prochain créneau.\n\n`;
-    context.expiredBilanContext = block;
-    elementsLoaded.push("expired_bilan_context");
-  }
-
-  // 17. Lightweight onboarding addon — applies when __onboarding_active is set.
+  // 16. Lightweight onboarding addon — applies when __onboarding_active is set.
   const onboardingState = (opts.tempMemory as any)?.__onboarding_active;
   if (onboardingState && opts.mode === "companion") {
     context.onboardingAddon = formatOnboardingAddon(onboardingState);
     if (context.onboardingAddon) elementsLoaded.push("onboarding_addon");
   }
 
-  // 18. Checkup intent addon (manual trigger requested, but bilan is cron-driven).
+  // 17. Checkup intent addon (manual trigger requested, but bilan is cron-driven).
   const checkupNotTriggerableAddon = (opts.tempMemory as any)
     ?.__checkup_not_triggerable_addon;
   if (checkupNotTriggerableAddon && opts.mode === "companion") {
@@ -531,7 +503,7 @@ export async function loadContextForMode(
     }
   }
 
-  // 19. Bilan just stopped addon (one-shot guidance after explicit stop/bored).
+  // 18. Bilan just stopped addon (one-shot guidance after explicit stop/bored).
   const bilanJustStopped = (opts.tempMemory as any)?.__bilan_just_stopped;
   if (bilanJustStopped && opts.mode === "companion") {
     context.bilanJustStoppedAddon = formatBilanJustStoppedAddon(bilanJustStopped);
@@ -685,6 +657,16 @@ function formatDashboardRedirectAddon(addon: any): string {
   const intentText = intents.length > 0 ? intents.join(", ") : "CRUD action";
   const fromBilan = Boolean(addon?.from_bilan);
   const isBreakdownIntent = intents.includes("breakdown_action");
+  const highMissedStreakMeta = addon?.high_missed_streak_breakdown;
+  const highMissedStreakDaysRaw = Number(highMissedStreakMeta?.streak_days ?? 0);
+  const highMissedStreakDays = Number.isFinite(highMissedStreakDaysRaw)
+    ? Math.max(0, Math.floor(highMissedStreakDaysRaw))
+    : 0;
+  const highMissedActionTitle = String(highMissedStreakMeta?.action_title ?? "")
+    .trim()
+    .slice(0, 80);
+  const hasHighMissedStreakBreakdown = isBreakdownIntent &&
+    highMissedStreakDays >= 5;
   return (
     `\n\n=== ADDON DASHBOARD REDIRECT ===\n` +
     `- Intention détectée: ${intentText}.\n` +
@@ -701,6 +683,15 @@ function formatDashboardRedirectAddon(addon: any): string {
       : "") +
     (isBreakdownIntent
       ? `- Interdit: présenter SOS blocage comme un bouton "quand ça chauffe", "pulsion", "crack" ou urgence émotionnelle.\n`
+      : "") +
+    (hasHighMissedStreakBreakdown
+      ? `- Contexte bilan: l'action ${highMissedActionTitle ? `"${highMissedActionTitle}"` : "en cours"} coince depuis ~${highMissedStreakDays} jours.\n`
+      : "") +
+    (hasHighMissedStreakBreakdown
+      ? `- Formulation attendue: empathie courte ("je vois que c'est pas facile") + proposition claire d'utiliser SOS blocage dans le dashboard pour cette action.\n`
+      : "") +
+    (hasHighMissedStreakBreakdown
+      ? `- Puis reprends le fil du bilan (ne transforme pas ce tour en tutoriel long).\n`
       : "") +
     (fromBilan
       ? `- Le bilan reste prioritaire: confirme la redirection dashboard puis reprends l'item du bilan.\n`

@@ -2,7 +2,6 @@ import type { NewSignalEntry, SignalEnrichment, SignalHistoryEntry } from "./dis
 
 export interface SignalHistoryState {
   entries: SignalHistoryEntry[]
-  last_turn_index: number
 }
 
 function compactBrief(raw: unknown): string {
@@ -15,6 +14,7 @@ function compactBrief(raw: unknown): string {
 
 export function getSignalHistory(tempMemory: any, key: string): SignalHistoryEntry[] {
   const state = (tempMemory as any)?.[key] as SignalHistoryState | undefined
+  if (Array.isArray(state as any)) return state as unknown as SignalHistoryEntry[]
   return state?.entries ?? []
 }
 
@@ -28,8 +28,9 @@ export function updateSignalHistory(opts: {
   machineMatchesSignalType: (machineType: string | null, signalType: string) => boolean
 }): { tempMemory: any; prunedCount: number } {
   const state = (opts.tempMemory as any)?.[opts.key] as SignalHistoryState | undefined
-  const current = state?.entries ?? []
-  const turnIndex = (state?.last_turn_index ?? 0) + 1
+  const current = Array.isArray(state as any)
+    ? (state as unknown as SignalHistoryEntry[])
+    : (state?.entries ?? [])
 
   // Age existing entries (decrement turn_index)
   let entries = current.map(e => ({ ...e, turn_index: e.turn_index - 1 }))
@@ -80,7 +81,7 @@ export function updateSignalHistory(opts: {
   return {
     tempMemory: {
       ...opts.tempMemory,
-      [opts.key]: { entries, last_turn_index: turnIndex },
+      [opts.key]: { entries },
     },
     prunedCount,
   }
@@ -93,9 +94,12 @@ export function resolveSignalInHistory(opts: {
   actionTarget?: string
 }): { tempMemory: any } {
   const state = (opts.tempMemory as any)?.[opts.key] as SignalHistoryState | undefined
-  if (!state?.entries) return { tempMemory: opts.tempMemory }
+  const current = Array.isArray(state as any)
+    ? (state as unknown as SignalHistoryEntry[])
+    : (state?.entries ?? [])
+  if (!current.length) return { tempMemory: opts.tempMemory }
 
-  const entries = state.entries.map(e => {
+  const entries = current.map(e => {
     if (e.signal_type === opts.signalType &&
         (e.action_target === opts.actionTarget || (!e.action_target && !opts.actionTarget))) {
       return { ...e, status: "resolved" as const }
@@ -106,7 +110,7 @@ export function resolveSignalInHistory(opts: {
   return {
     tempMemory: {
       ...opts.tempMemory,
-      [opts.key]: { ...state, entries },
+      [opts.key]: { entries },
     },
   }
 }

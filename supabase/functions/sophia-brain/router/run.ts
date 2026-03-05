@@ -73,6 +73,44 @@ function extractDashboardRedirectIntents(signals: DispatcherSignals): string[] {
   return intents;
 }
 
+function detectHighMissedStreakBreakdownCandidate(
+  state: any,
+  signals: DispatcherSignals,
+): { streak_days: number; action_title?: string } | null {
+  if (!isCheckupActive(state)) return null;
+  const trackAction = signals.track_progress_action;
+  if (!trackAction?.detected) return null;
+  if (String(trackAction.status_hint ?? "unknown") !== "missed") return null;
+
+  const inv = state?.investigation_state;
+  const currentIndex = Number(inv?.current_item_index ?? -1);
+  if (!Number.isFinite(currentIndex) || currentIndex < 0) return null;
+  const currentItem = inv?.pending_items?.[currentIndex];
+  if (!currentItem || String(currentItem?.type ?? "") !== "action") return null;
+
+  const actionId = String(currentItem?.id ?? "").trim();
+  if (!actionId) return null;
+
+  const rawCurrentStreak = Number(
+    inv?.temp_memory?.missed_streaks_by_action?.[actionId] ?? 0,
+  );
+  const currentStreak = Number.isFinite(rawCurrentStreak)
+    ? Math.max(0, Math.floor(rawCurrentStreak))
+    : 0;
+
+  // During bilan, the current "missed" answer is not persisted yet when addons are built.
+  // Project the streak by +1 so the 5th miss can trigger SOS guidance immediately.
+  const projectedStreak = currentStreak + 1;
+  if (projectedStreak < 5) return null;
+
+  const actionTitleRaw = String(currentItem?.title ?? "").trim();
+  const actionTitle = actionTitleRaw ? actionTitleRaw.slice(0, 120) : undefined;
+  return {
+    streak_days: projectedStreak,
+    action_title: actionTitle,
+  };
+}
+
 function cleanupLegacyBilanFlags(tempMemory: any) {
   if (!tempMemory || typeof tempMemory !== "object") return;
   const legacyKeys = [
@@ -84,6 +122,16 @@ function cleanupLegacyBilanFlags(tempMemory: any) {
     "__checkup_addon",
     "__bilan_tomorrow_addon",
     "__safety_stabilization",
+    "__bilan_mass_reset",
+    "__expired_bilan_summary",
+    "memorizer_last_counts",
+    "memorizer_last_run_at",
+    "memorizer_last_message_at",
+    "short_context_updated_at",
+    "short_context_new_messages",
+    "short_context_last_message_at",
+    "__investigator_last_error",
+    "__investigator_last_error_at",
   ];
   for (const key of legacyKeys) {
     try {
@@ -172,31 +220,6 @@ function parseInvestigationStartedMs(state: any): number {
   return Number.isFinite(ms) ? ms : 0;
 }
 
-function buildExpiredBilanSummary(inv: any, elapsedMs: number): Record<string, unknown> {
-  const pending = Array.isArray(inv?.pending_items) ? inv.pending_items : [];
-  const progress = (inv?.temp_memory?.item_progress && typeof inv?.temp_memory?.item_progress === "object")
-    ? inv.temp_memory.item_progress
-    : {};
-  const done: string[] = [];
-  const skipped: string[] = [];
-  for (const item of pending) {
-    const id = String(item?.id ?? "");
-    if (!id) continue;
-    const title = String(item?.title ?? "item").trim() || "item";
-    const phase = String((progress as any)?.[id]?.phase ?? "").trim();
-    if (phase === "logged") done.push(title);
-    else skipped.push(title);
-  }
-  const elapsedMinutes = Math.max(0, Math.floor(elapsedMs / 60000));
-  return {
-    expired_at: new Date().toISOString(),
-    elapsed_minutes: elapsedMinutes,
-    items_done: done.slice(0, 12),
-    items_skipped: skipped.slice(0, 12),
-    reason: "stale_checkup_timeout",
-  };
-}
-
 function detectCheckupIntent(_dispatcherSignals: DispatcherSignals, machineSignals?: MachineSignals): boolean {
   const checkupIntentSignal = machineSignals?.checkup_intent;
   return (
@@ -268,11 +291,22 @@ function attachDynamicAddons(args: {
     }
   }
 
+  const highMissedStreakBreakdown = detectHighMissedStreakBreakdownCandidate(
+    state,
+    dispatcherSignals,
+  );
   const dashboardRedirectIntents = extractDashboardRedirectIntents(dispatcherSignals);
+  if (
+    highMissedStreakBreakdown &&
+    !dashboardRedirectIntents.includes("breakdown_action")
+  ) {
+    dashboardRedirectIntents.push("breakdown_action");
+  }
   if (dashboardRedirectIntents.length > 0) {
     (tempMemory as any).__dashboard_redirect_addon = {
       intents: dashboardRedirectIntents,
       from_bilan: Boolean(state?.investigation_state),
+      high_missed_streak_breakdown: highMissedStreakBreakdown ?? undefined,
     };
     // Synthetic umbrella signal: user message can be related to dashboard capabilities.
     // This keeps behavior consistent without adding a new fragile LLM schema field.
@@ -280,6 +314,7 @@ function attachDynamicAddons(args: {
       detected: true,
       intents: dashboardRedirectIntents,
       from_bilan: Boolean(state?.investigation_state),
+      high_missed_streak_breakdown: highMissedStreakBreakdown ?? undefined,
       detected_at: new Date().toISOString(),
     };
   } else {
@@ -678,11 +713,6 @@ export async function processMessage(
       checkupIntentNow;
     const shouldAbandon = dontWantToContinueByDispatcher || explicitStop || !shouldContinue;
     if (shouldAbandon) {
-      const expiredSummary = buildExpiredBilanSummary(state?.investigation_state, elapsedSinceStartMs);
-      tempMemory = {
-        ...(tempMemory ?? {}),
-        __expired_bilan_summary: expiredSummary,
-      };
       await updateUserState(supabase, userId, scope, {
         investigation_state: null as any,
         temp_memory: tempMemory,
