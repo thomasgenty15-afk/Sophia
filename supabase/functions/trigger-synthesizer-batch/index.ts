@@ -8,12 +8,10 @@ import { runSynthesizer } from "../sophia-brain/agents/synthesizer.ts"
 
 console.log("trigger-synthesizer-batch: Function initialized")
 
-const LOOKBACK_MINUTES = Number((Deno.env.get("SOPHIA_SYNTH_LOOKBACK_MINUTES") ?? "180").trim()) || 180
 const BATCH_LIMIT = Number((Deno.env.get("SOPHIA_SYNTH_BATCH_LIMIT") ?? "60").trim()) || 60
-const MIN_NEW_MESSAGES = Number((Deno.env.get("SOPHIA_SYNTH_MIN_NEW_MESSAGES") ?? "12").trim()) || 12
-const STALE_FORCE_MINUTES = Number((Deno.env.get("SOPHIA_SYNTH_STALE_FORCE_MINUTES") ?? "60").trim()) || 60
+const MIN_NEW_MESSAGES = Number((Deno.env.get("SOPHIA_SYNTH_MIN_NEW_MESSAGES") ?? "15").trim()) || 15
 
-type CandidateKey = { user_id: string; scope: string; latest_at: string }
+type CandidateKey = { user_id: string; scope: string; unprocessed_msg_count: number }
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
@@ -36,27 +34,22 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     )
 
-    const cutoff = new Date(Date.now() - LOOKBACK_MINUTES * 60 * 1000).toISOString()
     const { data: rows, error: rowsErr } = await admin
-      .from("chat_messages")
-      .select("user_id,scope,created_at,role")
-      .in("role", ["user", "assistant"])
-      .gt("created_at", cutoff)
-      .order("created_at", { ascending: false })
-      .limit(5000)
+      .from("user_chat_states")
+      .select("user_id,scope,unprocessed_msg_count")
+      .gte("unprocessed_msg_count", MIN_NEW_MESSAGES)
+      .order("unprocessed_msg_count", { ascending: false })
+      .limit(BATCH_LIMIT)
     if (rowsErr) throw rowsErr
 
-    const dedup = new Map<string, CandidateKey>()
-    for (const r of (rows ?? []) as any[]) {
-      const userId = String(r.user_id ?? "").trim()
-      if (!userId) continue
-      const scope = String(r.scope ?? "web").trim() || "web"
-      const latestAt = String(r.created_at ?? "").trim()
-      const key = `${userId}::${scope}`
-      if (!dedup.has(key)) dedup.set(key, { user_id: userId, scope, latest_at: latestAt })
-      if (dedup.size >= BATCH_LIMIT) break
-    }
-    const candidates = [...dedup.values()]
+    const candidates: CandidateKey[] = ((rows ?? []) as any[])
+      .map((r) => ({
+        user_id: String(r?.user_id ?? "").trim(),
+        scope: String(r?.scope ?? "web").trim() || "web",
+        unprocessed_msg_count: Number(r?.unprocessed_msg_count ?? 0),
+      }))
+      .filter((r) => Boolean(r.user_id))
+
     if (candidates.length === 0) {
       return jsonResponse(req, { success: true, request_id: requestId, processed: 0 }, { includeCors: false })
     }
@@ -72,8 +65,8 @@ Deno.serve(async (req) => {
           supabase: admin as any,
           userId: c.user_id,
           scopeRaw: c.scope,
+          maxRecentMessages: 15,
           minNewMessages: MIN_NEW_MESSAGES,
-          staleForceMinutes: STALE_FORCE_MINUTES,
           meta: { requestId },
         })
         processed++
@@ -82,6 +75,7 @@ Deno.serve(async (req) => {
         details.push({
           user_id: c.user_id,
           scope: c.scope,
+          queued_messages: c.unprocessed_msg_count,
           updated: res.updated,
           reason: res.reason,
           new_messages: res.newMessages,
@@ -122,5 +116,4 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-
 

@@ -12,60 +12,24 @@ console.log("trigger-watcher-batch: Function initialized")
 const WATCHER_INTERVAL_MINUTES = Number(
   (Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "10").trim(),
 ) || 10
+const WATCHER_ACTIVITY_LOOKBACK_MINUTES = Number(
+  (Deno.env.get("SOPHIA_WATCHER_ACTIVITY_LOOKBACK_MINUTES") ?? "1440").trim(),
+) || 1440
 
 /** Maximum number of users to process per cron invocation to avoid timeouts. */
 const BATCH_LIMIT = 50
 
-function toSafeNonNegativeInt(value: unknown): number {
-  const n = Number(value)
-  if (!Number.isFinite(n)) return 0
-  return Math.max(0, Math.floor(n))
-}
-
-async function acknowledgeProcessedMessages(
+async function acknowledgeWatcherRun(
   admin: ReturnType<typeof createClient>,
   userId: string,
   scope: string,
-  processedAtSelection: number,
 ) {
-  // We retry with optimistic locking to avoid clobbering increments made by the router
-  // while the watcher is running for this user.
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const { data: stateRow, error: stateErr } = await admin
-      .from("user_chat_states")
-      .select("unprocessed_msg_count")
-      .eq("user_id", userId)
-      .eq("scope", scope)
-      .maybeSingle()
-
-    if (stateErr) throw stateErr
-    if (!stateRow) {
-      throw new Error(`user_chat_states row missing for user=${userId} scope=${scope}`)
-    }
-
-    const currentCount = toSafeNonNegativeInt(stateRow.unprocessed_msg_count)
-    const nextCount = Math.max(0, currentCount - processedAtSelection)
-
-    const { error: updateErr, count } = await admin
-      .from("user_chat_states")
-      .update(
-        {
-          unprocessed_msg_count: nextCount,
-          last_processed_at: new Date().toISOString(),
-        },
-        { count: "exact" },
-      )
-      .eq("user_id", userId)
-      .eq("scope", scope)
-      .eq("unprocessed_msg_count", currentCount)
-
-    if (updateErr) throw updateErr
-    if ((count ?? 0) > 0) return
-  }
-
-  throw new Error(
-    `Could not acknowledge watcher batch after retries for user=${userId} scope=${scope}`,
-  )
+  const { error: updateErr } = await admin
+    .from("user_chat_states")
+    .update({ last_processed_at: new Date().toISOString() })
+    .eq("user_id", userId)
+    .eq("scope", scope)
+  if (updateErr) throw updateErr
 }
 
 Deno.serve(async (req) => {
@@ -93,20 +57,31 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     )
 
-    // Find users with unprocessed messages whose last watcher run was > WATCHER_INTERVAL_MINUTES ago.
+    // Find active users whose last watcher run was > WATCHER_INTERVAL_MINUTES ago.
     const cutoff = new Date(Date.now() - WATCHER_INTERVAL_MINUTES * 60 * 1000).toISOString()
+    const activityCutoff = new Date(
+      Date.now() - WATCHER_ACTIVITY_LOOKBACK_MINUTES * 60 * 1000,
+    ).toISOString()
 
     const { data: eligible, error: queryErr } = await admin
       .from("user_chat_states")
-      .select("user_id, scope, last_processed_at, unprocessed_msg_count")
-      .gt("unprocessed_msg_count", 0)
+      .select("user_id, scope, last_processed_at, last_interaction_at")
+      .gt("last_interaction_at", activityCutoff)
       .or(`last_processed_at.lt.${cutoff},last_processed_at.is.null`)
       .order("last_processed_at", { ascending: true, nullsFirst: true })
       .limit(BATCH_LIMIT)
 
     if (queryErr) throw queryErr
 
-    const rows = eligible ?? []
+    const rows = (eligible ?? []).filter((row: any) => {
+      const lastInteractionMs = Number(new Date(String(row?.last_interaction_at ?? "")).getTime())
+      if (!Number.isFinite(lastInteractionMs)) return false
+      const lastProcessedRaw = String(row?.last_processed_at ?? "").trim()
+      if (!lastProcessedRaw) return true
+      const lastProcessedMs = Number(new Date(lastProcessedRaw).getTime())
+      if (!Number.isFinite(lastProcessedMs)) return true
+      return lastInteractionMs > lastProcessedMs
+    })
     console.log(`[trigger-watcher-batch] request_id=${requestId} eligible=${rows.length}`)
 
     if (rows.length === 0) {
@@ -128,7 +103,6 @@ Deno.serve(async (req) => {
       const lastProcessedAt = row.last_processed_at
         ? String(row.last_processed_at)
         : new Date(0).toISOString()
-      const processedAtSelection = toSafeNonNegativeInt(row.unprocessed_msg_count)
 
       // Derive channel from scope
       const channel: "web" | "whatsapp" = scope === "whatsapp" ? "whatsapp" : "web"
@@ -140,11 +114,10 @@ Deno.serve(async (req) => {
           scope,
         })
 
-        await acknowledgeProcessedMessages(
+        await acknowledgeWatcherRun(
           admin,
           userId,
           scope,
-          processedAtSelection,
         )
 
         processed++
@@ -180,4 +153,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

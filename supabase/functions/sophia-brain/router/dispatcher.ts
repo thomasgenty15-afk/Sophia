@@ -38,6 +38,11 @@ export interface DispatcherSignals {
     query?: string;
     domain_hint?: string;
   };
+  checkup_intent: {
+    detected: boolean;
+    confidence: number;
+    trigger_phrase?: string;
+  };
   create_action: {
     detected: boolean;
   };
@@ -193,12 +198,7 @@ export interface SignalEnrichment {
  * Legacy machine-specific fields (tool flows/topic/deferred resolution) were removed.
  */
 export interface MachineSignals {
-  // Checkup / bilan signals
-  checkup_intent?: {
-    detected: boolean;
-    confidence: number;
-    trigger_phrase?: string;
-  };
+  // Bilan stale continuation signals
   wants_to_continue_bilan?: boolean; // Implicit continuation after stale bilan (>4h)
   dont_want_continue_bilan?: boolean; // User switched topic / unrelated while stale bilan active
 }
@@ -229,6 +229,7 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
   interrupt: { kind: "NONE", confidence: 0.9 },
   needs_explanation: { value: false, confidence: 0.9 },
   needs_research: { value: false, confidence: 0.9 },
+  checkup_intent: { detected: false, confidence: 0.5 },
   create_action: {
     detected: false,
   },
@@ -290,6 +291,7 @@ Tu détectes TOUJOURS:
 - track_progress_action / track_progress_vital_sign / track_progress_north_star (section TOOLS)
 - needs_explanation (si l'utilisateur demande d'expliquer / clarifier)
 - needs_research (si question factuelle fraîche / web)
+- checkup_intent (si l'utilisateur veut lancer le bilan maintenant, hors bilan actif)
 - CRUD action intents (create/update/breakdown/activate/delete/deactivate) pour redirection dashboard
 - dashboard_preferences_intent (si user veut modifier les préférences UX/UI Sophia)
 - dashboard_recurring_reminder_intent (si user veut régler ses rappels récurrents)
@@ -298,6 +300,7 @@ Tu détectes TOUJOURS:
 IMPORTANT:
 - Les signaux CRUD servent à COMPRENDRE l'intention et déclencher une redirection dashboard.
 - Les 2 signaux dashboard_*_intent servent à orienter vers les bons écrans réglages dashboard.
+- Si un message contient à la fois du tracking et une demande CRUD: garde les DEUX familles de signaux.
 - Tu ne décides jamais d'exécution d'outil ici.
 `;
 
@@ -469,11 +472,12 @@ IMPORTANT:
 - Extraire une "query" optimisée pour la recherche web (courte, factuelle, en français ou anglais selon le sujet)
 - Indiquer un "domain_hint" si possible (sports, news, weather, entertainment, general)
 - Ne PAS activer si le LLM peut répondre de mémoire (connaissances générales stables)
+- Non-sticky: si le dernier message n'est PAS une demande factuelle web, mets needs_research.value=false
 `;
 
 const CHECKUP_INTENT_DETECTION_SECTION = `
 === DETECTION CHECKUP_INTENT ===
-Detecte si l'utilisateur veut faire son BILAN (checkup quotidien).
+Detecte si l'utilisateur veut faire son BILAN maintenant (hors bilan actif).
 
 MOTS-CLES / EXPRESSIONS A DETECTER:
 - Explicites: "bilan", "check", "checkup", "faire le point", "on check", "check du soir"
@@ -509,7 +513,7 @@ ${lines.join("\n")}
 
 REGLES ANTI-DUPLICATION:
 1. Tu analyses UNIQUEMENT le DERNIER message utilisateur pour les nouveaux signaux
-2. Si un signal est deja dans la liste ci-dessus: NE PAS le re-emettre dans new_signals
+2. Si un signal est deja dans la liste ci-dessus: NE PAS le re-emettre dans "new_signals" (mais garde "signals" complet)
 3. Tu PEUX enrichir le brief d'un signal existant si le dernier message apporte du contexte NOUVEAU
 4. Enrichissement = mettre a jour le brief dans "enrichments", PAS creer un nouveau signal
 5. Si l'utilisateur parle de la MEME action mais avec un contexte different, c'est un enrichissement
@@ -519,7 +523,7 @@ REGLES ANTI-DUPLICATION:
 function formatSignalHistoryInline(history: SignalHistoryEntry[]): string {
   if (!Array.isArray(history) || history.length === 0) return "";
   const lines = history
-    .slice(-8)
+    .slice(-5)
     .map((h) => {
       const sig = String(h.signal_type ?? "").trim().slice(0, 40);
       if (!sig) return null;
@@ -604,7 +608,7 @@ function buildActionSnapshotSection(
 ): string {
   if (!Array.isArray(actionSnapshot) || actionSnapshot.length === 0) return "";
   const lines = actionSnapshot
-    .slice(0, 30)
+    .slice(0, 20)
     .map((a) => {
       const title = String(a?.title ?? "").trim().slice(0, 80);
       if (!title) return null;
@@ -914,6 +918,7 @@ ${contextMessages}
     "interrupt": { "kind": "string", "confidence": "number" },
     "needs_explanation": { "value": "boolean", "confidence": "number" },
     "needs_research": { "value": "boolean", "confidence": "number", "query": "string|null", "domain_hint": "string|null" },
+    "checkup_intent": { "detected": "boolean", "confidence": "number", "trigger_phrase": "string|null" },
     "create_action": { "detected": "boolean" },
     "update_action": { "detected": "boolean" },
     "breakdown_action": { "detected": "boolean" },
@@ -936,7 +941,6 @@ ${contextMessages}
   ],
   "machine_signals": {
     /* VOIR SECTION SIGNAUX SPECIFIQUES - inclure seulement si une machine est active */
-    "checkup_intent": { "detected": "boolean", "confidence": "number", "trigger_phrase": "string|null" },
     "wants_to_continue_bilan": "boolean|null",
     "dont_want_continue_bilan": "boolean|null"
   }
@@ -947,7 +951,10 @@ REGLES:
 - "new_signals": UNIQUEMENT pour les signaux detectes dans le DERNIER message qui ne sont PAS dans l'historique
 - "enrichments": UNIQUEMENT pour mettre a jour le brief d'un signal existant avec du contexte NOUVEAU
 - Ne pas re-emettre un signal deja dans l'historique!
+- "signals" DOIT toujours etre complet, meme si "new_signals" est vide.
 - "machine_signals": INCLURE UNIQUEMENT si une machine est active (voir SIGNAUX SPECIFIQUES ci-dessus)
+- Tous les booleens doivent etre de vrais booleens JSON (true/false), jamais des strings.
+- Si aucune machine n'est active: omets entierement "machine_signals".
 
 Reponds UNIQUEMENT avec le JSON:`;
 
@@ -1059,6 +1066,16 @@ Reponds UNIQUEMENT avec le JSON:`;
       const d = signalsObj.needs_research.domain_hint.trim().slice(0, 30);
       return d.length > 0 ? d : undefined;
     })();
+    const checkupIntentDetected = Boolean(signalsObj?.checkup_intent?.detected);
+    const checkupIntentConf = Math.max(
+      0,
+      Math.min(1, Number(signalsObj?.checkup_intent?.confidence ?? 0.5) || 0.5),
+    );
+    const checkupIntentTriggerPhrase =
+      (typeof signalsObj?.checkup_intent?.trigger_phrase === "string" &&
+          signalsObj.checkup_intent.trigger_phrase.trim())
+        ? signalsObj.checkup_intent.trigger_phrase.trim().slice(0, 100)
+        : undefined;
 
     // Parse plan CRUD/discussion signals (simplified: binary detection)
     const createActionDetected = Boolean(signalsObj?.create_action?.detected);
@@ -1231,18 +1248,6 @@ Reponds UNIQUEMENT avec le JSON:`;
     if (obj?.machine_signals && typeof obj.machine_signals === "object") {
       const ms = obj.machine_signals;
       machineSignals = {};
-
-      // Checkup flow signals
-      if (ms.checkup_intent && typeof ms.checkup_intent === "object") {
-        const ci = ms.checkup_intent;
-        machineSignals.checkup_intent = {
-          detected: Boolean(ci.detected),
-          confidence: Math.min(1, Math.max(0, Number(ci.confidence ?? 0))),
-          trigger_phrase: typeof ci.trigger_phrase === "string"
-            ? ci.trigger_phrase.slice(0, 100)
-            : undefined,
-        };
-      }
       if (ms.wants_to_continue_bilan !== undefined) {
         machineSignals.wants_to_continue_bilan = Boolean(
           ms.wants_to_continue_bilan,
@@ -1297,6 +1302,11 @@ Reponds UNIQUEMENT avec le JSON:`;
           confidence: needsResearchConf,
           query: needsResearchQuery,
           domain_hint: needsResearchDomainHint,
+        },
+        checkup_intent: {
+          detected: checkupIntentDetected,
+          confidence: checkupIntentConf,
+          trigger_phrase: checkupIntentTriggerPhrase,
         },
         create_action: {
           detected: createActionDetected,

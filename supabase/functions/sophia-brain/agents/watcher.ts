@@ -8,6 +8,14 @@ type ExistingCheckin = {
   event_context: string
   origin: string | null
   status: string
+  draft_message?: string | null
+  message_payload?: Record<string, unknown> | null
+}
+
+function getWatcherIntervalMinutes(): number {
+  const raw = Number((Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "10").trim())
+  if (!Number.isFinite(raw) || raw <= 0) return 10
+  return Math.floor(raw)
 }
 
 function normalizeForMatch(text: string): string {
@@ -66,6 +74,35 @@ function relatesToActivePlanActions(eventContext: string, actionTitles: string[]
   return false
 }
 
+function compactOneLine(text: string, maxLen = 180): string {
+  return String(text ?? "")
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, maxLen)
+}
+
+function deriveTextContext(checkin: ExistingCheckin): string {
+  const draft = compactOneLine(String(checkin.draft_message ?? ""))
+  if (draft) return draft
+
+  const payload =
+    checkin.message_payload && typeof checkin.message_payload === "object"
+      ? (checkin.message_payload as Record<string, unknown>)
+      : null
+  if (!payload) return ""
+
+  const reminderInstruction = compactOneLine(String(payload.reminder_instruction ?? ""))
+  if (reminderInstruction) return reminderInstruction
+
+  const eventGrounding = compactOneLine(String(payload.event_grounding ?? ""))
+  if (eventGrounding) return eventGrounding
+
+  const genericInstruction = compactOneLine(String(payload.instruction ?? ""))
+  if (genericInstruction) return genericInstruction
+
+  return ""
+}
+
 async function aiValidateDayCoherence(params: {
   candidateEventContext: string
   candidateScheduledFor: string
@@ -82,7 +119,15 @@ async function aiValidateDayCoherence(params: {
         minute: "2-digit",
         hour12: false,
       }).format(new Date(c.scheduled_for))
-      return `${i + 1}. ${localTime} | origin=${c.origin ?? "unknown"} | status=${c.status} | context=${c.event_context}`
+      const textContext = deriveTextContext(c)
+      const details = [
+        `${i + 1}. ${localTime}`,
+        `origin=${c.origin ?? "unknown"}`,
+        `status=${c.status}`,
+        `event_context=${compactOneLine(c.event_context, 140) || "unknown"}`,
+        `text_context=${textContext || "(none)"}`,
+      ]
+      return details.join(" | ")
     })
     .join("\n")
 
@@ -211,21 +256,21 @@ export async function runWatcher(
     ? activeActionTitles.map((t, i) => `${i + 1}. ${t}`).join("\n")
     : "(aucune action active)"
 
-  // Use the last 48h for date resolution context ("demain", "lundi prochain", etc.).
-  const { data: recentMessages, error: recentErr } = await supabase
-    .from("chat_messages")
-    .select("role, content, created_at")
-    .eq("user_id", userId)
-    .eq("scope", scope)
-    .gt("created_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
-    .order("created_at", { ascending: true })
+  const watcherIntervalMinutes = getWatcherIntervalMinutes()
+  const windowStartMs = Date.now() - watcherIntervalMinutes * 60 * 1000
+  const windowMessages = messages.filter((m: any) => {
+    const ts = new Date(String(m?.created_at ?? "")).getTime()
+    return Number.isFinite(ts) && ts > windowStartMs
+  })
 
-  if (recentErr || !recentMessages || recentMessages.length === 0) {
-    console.log("[Veilleur] No recent messages for event detection", recentErr)
+  if (windowMessages.length === 0) {
+    console.log(
+      `[Veilleur] No messages in watcher window for event detection user=${userId} scope=${scope} window_min=${watcherIntervalMinutes}`,
+    )
     return
   }
 
-  const fullTranscript = recentMessages
+  const fullTranscript = windowMessages
     .map((m: any) => `[${m.created_at}] ${m.role}: ${m.content}`)
     .join("\n")
   const now = tctx.now_utc
@@ -241,6 +286,10 @@ Repères temporels (CRITIQUES):
 RÈGLE DE TEMPS:
 - Si l'utilisateur dit "aujourd'hui/demain/lundi prochain", interprète ces expressions en temps LOCAL utilisateur (timezone ci-dessus).
 - Tu DOIS retourner "scheduled_for" en UTC (ISO 8601).
+
+FENÊTRE D'OBSERVATION (STRICTE):
+- L'historique fourni couvre uniquement les ${watcherIntervalMinutes} dernières minutes.
+- Base ton analyse uniquement sur cette fenêtre. N'infère rien d'en-dehors.
 
 Objectif :
 1. Repérer les événements mentionnés (réunions, sorties, concerts, examens, rendez-vous, etc.).
@@ -282,7 +331,7 @@ ${activeActionsBlock}
   try {
     const responseText = await generateWithGemini(
       basePrompt,
-      `Voici l'historique des dernières 48h :\n\n${fullTranscript}`,
+      `Voici l'historique de la fenêtre d'observation (${watcherIntervalMinutes} minutes) :\n\n${fullTranscript}`,
       0.4,
       true,
       [],
@@ -315,7 +364,7 @@ ${activeActionsBlock}
 
     const { data: existingRows, error: existingErr } = await supabase
       .from("scheduled_checkins")
-      .select("scheduled_for,event_context,origin,status")
+      .select("scheduled_for,event_context,origin,status,draft_message,message_payload")
       .eq("user_id", userId)
       .in("status", ["pending", "awaiting_user", "sent"])
       .gte("scheduled_for", rangeStart)
@@ -375,6 +424,10 @@ ${activeActionsBlock}
         event_context: eventContext,
         origin: "watcher",
         status: "pending",
+        draft_message: null,
+        message_payload: {
+          event_grounding: candidate.eventGrounding || null,
+        },
       })
     }
 

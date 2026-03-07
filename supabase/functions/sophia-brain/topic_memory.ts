@@ -388,7 +388,8 @@ export interface PersistGateResult {
   value_score: number
   reason: string
   horizon: "short_term" | "long_term"
-  duplicate_structured_data: boolean
+  suspect_duplicate_structured_data: boolean
+  duplicate_match_type: "none" | "partial_overlap" | "same_canonical_fact" | "unknown"
 }
 
 /**
@@ -413,24 +414,32 @@ export async function shouldPersistTopicMemory(opts: {
       value_score: 0,
       reason: `new_information trop court (${info.length} chars)`,
       horizon: "short_term",
-      duplicate_structured_data: false,
+      suspect_duplicate_structured_data: false,
+      duplicate_match_type: "unknown",
     }
   }
 
   const prompt = `
-Tu évalues si une information thématique extraite d'une conversation mérite d'être persistée en mémoire long terme (2+ mois).
+Tu valides si une information extraite doit être stockée en mémoire long terme (utile dans 2+ mois).
 
-RÈGLES STRICTES :
-- persist=false pour : mises à jour quotidiennes d'exécution (ex: "a fait X aujourd'hui"), micro-ajustements de routine déjà suivis dans le plan, doublons de données structurées (plan, bilan, modules), infos très éphémères, small talk.
-- persist=true pour : contextes stables, contraintes de vie, patterns récurrents, relations significatives, objectifs/habitudes durables, infos qui resteront utiles au coach dans 2+ mois.
+Règles:
+- persist=false: updates du jour, micro-ajustements, small talk, infos très éphémères, contenu déjà couvert en données structurées.
+- persist=true: contexte de vie durable, patterns récurrents, relations importantes, objectifs/habitudes durables.
 
-Schema JSON strict :
+Important:
+- "duplicate" = même fait métier (pas forcément mot à mot).
+- Tu donnes une suspicion, pas une vérité DB.
+
+Si pas de contexte structuré fourni, mets duplicate_match_type="unknown" et évite d'affirmer un doublon fort.
+
+Réponds en JSON STRICT:
 {
   "persist": boolean,
-  "value_score": number (0-10),
-  "reason": string (court),
+  "value_score": number, // 0..10
+  "reason": string,
   "horizon": "short_term" | "long_term",
-  "duplicate_structured_data": boolean
+  "suspect_duplicate_structured_data": boolean,
+  "duplicate_match_type": "none" | "partial_overlap" | "same_canonical_fact" | "unknown"
 }
   `.trim()
 
@@ -439,6 +448,7 @@ Schema JSON strict :
     slug,
     title: extractedTopic.title,
     new_information: info.slice(0, 600),
+    structured_context: { available: false },
   })
 
   try {
@@ -455,18 +465,33 @@ Schema JSON strict :
     const value_score = Math.max(0, Math.min(10, Number(parsed.value_score) || 0))
     const reason = String(parsed.reason ?? "").trim() || (persist ? "Valeur long terme" : "Valeur insuffisante")
     const horizon = parsed.horizon === "long_term" ? "long_term" : "short_term"
-    const duplicate_structured_data = Boolean(parsed.duplicate_structured_data)
+    const suspect_duplicate_structured_data = Boolean(parsed.suspect_duplicate_structured_data)
+    const duplicateMatchTypeRaw = String(parsed.duplicate_match_type ?? "").trim()
+    const duplicate_match_type = (
+      duplicateMatchTypeRaw === "none" ||
+      duplicateMatchTypeRaw === "partial_overlap" ||
+      duplicateMatchTypeRaw === "same_canonical_fact" ||
+      duplicateMatchTypeRaw === "unknown"
+    ) ? duplicateMatchTypeRaw : "unknown"
 
     return {
       persist,
       value_score,
       reason,
       horizon,
-      duplicate_structured_data,
+      suspect_duplicate_structured_data,
+      duplicate_match_type,
     }
   } catch (e) {
     console.warn("[TopicMemory] Persist gate LLM failed, defaulting to persist=false:", e)
-    return { persist: false, value_score: 0, reason: "LLM fallback (fail-closed)", horizon: "short_term", duplicate_structured_data: false }
+    return {
+      persist: false,
+      value_score: 0,
+      reason: "LLM fallback (fail-closed)",
+      horizon: "short_term",
+      suspect_duplicate_structured_data: false,
+      duplicate_match_type: "unknown",
+    }
   }
 }
 

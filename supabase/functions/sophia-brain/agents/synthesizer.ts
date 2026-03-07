@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts"
-import { getUserState, normalizeScope, updateUserState } from "../state-manager.ts"
+import { getUserState, normalizeScope } from "../state-manager.ts"
 
 type ChatMessageRow = {
   role: "user" | "assistant" | "system"
@@ -25,37 +25,36 @@ function buildTranscript(rows: ChatMessageRow[]): string {
     .join("\n")
 }
 
+function toSafeNonNegativeInt(value: unknown): number {
+  const n = Number(value)
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, Math.floor(n))
+}
+
 export async function runSynthesizer(opts: {
   supabase: SupabaseClient
   userId: string
   scopeRaw: unknown
   maxRecentMessages?: number
   minNewMessages?: number
-  staleForceMinutes?: number
   meta?: { requestId?: string; forceRealAi?: boolean; model?: string }
 }): Promise<{ updated: boolean; reason: string; newMessages: number }> {
   const {
     supabase,
     userId,
     scopeRaw,
-    maxRecentMessages = 24,
-    minNewMessages = 12,
-    staleForceMinutes = 60,
+    maxRecentMessages = 15,
+    minNewMessages = 15,
     meta,
   } = opts
 
   const scope = normalizeScope(scopeRaw, "web")
   const state = await getUserState(supabase, userId, scope)
-  const tempMemory = safeObj((state as any)?.temp_memory)
   const prevContext = String(state.short_term_context ?? "").trim()
-  const jobState = safeObj(tempMemory.__job_state)
-  const synthState = safeObj(jobState.synthesizer)
-  const lastSynthMessageAt = asIso(
-    synthState.last_message_at ?? tempMemory.short_context_last_message_at,
-  )
-  const lastSynthUpdatedAt = asIso(
-    synthState.updated_at ?? tempMemory.short_context_updated_at,
-  )
+  const unprocessedMessages = toSafeNonNegativeInt((state as any)?.unprocessed_msg_count)
+  if (unprocessedMessages < minNewMessages) {
+    return { updated: false, reason: "below_threshold", newMessages: unprocessedMessages }
+  }
 
   const { data: recentRows, error: recentErr } = await supabase
     .from("chat_messages")
@@ -70,28 +69,8 @@ export async function runSynthesizer(opts: {
   const recent = ((recentRows ?? []) as ChatMessageRow[]).slice().reverse()
   if (recent.length === 0) return { updated: false, reason: "no_messages", newMessages: 0 }
 
-  const latestMessageAt = asIso(recent[recent.length - 1]?.created_at)
-  if (lastSynthMessageAt && latestMessageAt && latestMessageAt <= lastSynthMessageAt) {
-    return { updated: false, reason: "already_up_to_date", newMessages: 0 }
-  }
-
-  const newRows = lastSynthMessageAt
-    ? recent.filter((m) => asIso(m.created_at) > lastSynthMessageAt)
-    : recent
-  const newMessages = newRows.length
-  if (newMessages === 0) return { updated: false, reason: "no_new_messages", newMessages: 0 }
-
-  const staleEnough = (() => {
-    if (!lastSynthUpdatedAt) return true
-    const ms = Date.now() - new Date(lastSynthUpdatedAt).getTime()
-    return ms >= staleForceMinutes * 60 * 1000
-  })()
-  if (newMessages < minNewMessages && !staleEnough) {
-    return { updated: false, reason: "below_threshold", newMessages }
-  }
-
   const transcriptRecent = buildTranscript(recent)
-  const transcriptNew = buildTranscript(newRows.slice(-Math.min(16, newRows.length)))
+  const latestMessageAt = asIso(recent[recent.length - 1]?.created_at)
 
   const systemPrompt = `
 Tu es le Synthétiseur de contexte court terme de Sophia.
@@ -116,9 +95,6 @@ ANCIEN SHORT TERM CONTEXT:
 ${prevContext || "(vide)"}
 
 NOUVEAUX MESSAGES (priorité):
-${transcriptNew}
-
-FENÊTRE RÉCENTE (contexte):
 ${transcriptRecent}
   `.trim()
 
@@ -138,27 +114,63 @@ ${transcriptRecent}
     console.warn("[Synthesizer] LLM fusion failed, keeping previous context:", e)
   }
 
-  const mergedTempMemory = {
-    ...tempMemory,
-    __job_state: {
-      ...jobState,
-      synthesizer: {
-        last_message_at: latestMessageAt || lastSynthMessageAt || null,
-        updated_at: new Date().toISOString(),
-        new_messages: newMessages,
+  // Atomic-ish update with optimistic locking to avoid clobbering concurrent
+  // increments of unprocessed_msg_count while synthesis is running.
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const { data: row, error: rowErr } = await supabase
+      .from("user_chat_states")
+      .select("unprocessed_msg_count,temp_memory")
+      .eq("user_id", userId)
+      .eq("scope", scope)
+      .maybeSingle()
+
+    if (rowErr) throw rowErr
+    if (!row) throw new Error(`user_chat_states row missing for user=${userId} scope=${scope}`)
+
+    const currentCount = toSafeNonNegativeInt((row as any)?.unprocessed_msg_count)
+    if (currentCount < minNewMessages) {
+      return { updated: false, reason: "below_threshold_race", newMessages: currentCount }
+    }
+    const nextCount = Math.max(0, currentCount - minNewMessages)
+
+    const tempMemory = safeObj((row as any)?.temp_memory)
+    const jobState = safeObj(tempMemory.__job_state)
+    const synthState = safeObj(jobState.synthesizer)
+    const mergedTempMemory = {
+      ...tempMemory,
+      __job_state: {
+        ...jobState,
+        synthesizer: {
+          ...synthState,
+          last_message_at: latestMessageAt || null,
+          updated_at: new Date().toISOString(),
+          new_messages: minNewMessages,
+        },
       },
-    },
+    }
+    delete (mergedTempMemory as any).short_context_last_message_at
+    delete (mergedTempMemory as any).short_context_updated_at
+    delete (mergedTempMemory as any).short_context_new_messages
+
+    const { error: updateErr, count } = await supabase
+      .from("user_chat_states")
+      .update(
+        {
+          short_term_context: nextContext,
+          temp_memory: mergedTempMemory,
+          unprocessed_msg_count: nextCount,
+        },
+        { count: "exact" },
+      )
+      .eq("user_id", userId)
+      .eq("scope", scope)
+      .eq("unprocessed_msg_count", currentCount)
+
+    if (updateErr) throw updateErr
+    if ((count ?? 0) > 0) {
+      return { updated: true, reason: "updated", newMessages: minNewMessages }
+    }
   }
-  delete (mergedTempMemory as any).short_context_last_message_at
-  delete (mergedTempMemory as any).short_context_updated_at
-  delete (mergedTempMemory as any).short_context_new_messages
 
-  await updateUserState(supabase, userId, scope, {
-    short_term_context: nextContext,
-    temp_memory: mergedTempMemory,
-  } as any)
-
-  return { updated: true, reason: "updated", newMessages }
+  throw new Error(`Could not persist synthesizer update after retries user=${userId} scope=${scope}`)
 }
-
-

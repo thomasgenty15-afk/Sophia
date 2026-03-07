@@ -9,6 +9,17 @@ import {
 
 declare const Deno: any
 
+const COMPANION_PROMPT_MAX_TOKENS = 5000
+const COMPANION_PROMPT_MAX_CHARS = COMPANION_PROMPT_MAX_TOKENS * 4
+
+function applyCompanionPromptBudget(prompt: string): string {
+  const text = String(prompt ?? "")
+  if (text.length <= COMPANION_PROMPT_MAX_CHARS) return text
+  const suffix = "\n\n[... CONTEXTE TRONQUE POUR RESPECTER LE BUDGET PROMPT ...]\n"
+  const keep = Math.max(0, COMPANION_PROMPT_MAX_CHARS - suffix.length)
+  return text.slice(0, keep).trimEnd() + suffix
+}
+
 export type CompanionModelOutput =
   | string
   | { tool: "track_progress_action"; args: any }
@@ -310,7 +321,7 @@ export function buildCompanionSystemPrompt(opts: {
     - Risque actuel : ${userState?.risk_level ?? 0}/10
     ${context ? `\nCONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${context}` : ""}
   `
-  return basePrompt
+  return applyCompanionPromptBudget(basePrompt)
 }
 
 /**
@@ -433,11 +444,10 @@ export async function generateCompanionModelOutput(opts: {
   // IMPORTANT: do not hardcode Gemini preview models in prod.
   // Let `generateWithGemini` pick its default model chain (defaults to gpt-5-mini) unless meta.model overrides.
   const DEFAULT_MODEL = isEvalLike ? getGlobalAiModel("gemini-2.5-flash") : undefined;
-  const historyText = (opts.history ?? []).slice(-5).map((m: any) => `${m.role}: ${m.content}`).join('\n')
   const temperature = Number.isFinite(Number(opts.meta?.temperature)) ? Number(opts.meta?.temperature) : 0.7
   const response = await generateWithGemini(
     opts.systemPrompt,
-    `Historique:\n${historyText}\n\nUser: ${opts.message}`,
+    `User: ${opts.message}`,
     temperature,
     false,
     [

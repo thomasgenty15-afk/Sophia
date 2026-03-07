@@ -404,9 +404,16 @@ export async function loadContextForMode(
     if (context.trackProgressAddon) elementsLoaded.push("track_progress_addon");
   }
 
-  // 14. Dashboard redirect addon (CRUD intent detected by dispatcher)
   const dashboardRedirectAddon = (opts.tempMemory as any)
     ?.__dashboard_redirect_addon;
+  const dashboardPreferencesIntentAddon = (opts.tempMemory as any)
+    ?.__dashboard_preferences_intent_addon;
+  const dashboardRecurringReminderIntentAddon = (opts.tempMemory as any)
+    ?.__dashboard_recurring_reminder_intent_addon;
+  const dashboardCapabilitiesAddon = (opts.tempMemory as any)
+    ?.__dashboard_capabilities_addon;
+
+  // 14. Dashboard redirect addon (CRUD intent detected by dispatcher)
   if (
     dashboardRedirectAddon &&
     (opts.mode === "companion" || opts.mode === "investigator")
@@ -419,8 +426,17 @@ export async function loadContextForMode(
     }
   }
 
-  // 14b. Dashboard capabilities lite addon (always-on condensed overview)
-  if (opts.mode === "companion" || opts.mode === "investigator") {
+  // 14b. Dashboard capabilities lite addon (only when no specific dashboard addon is active)
+  const hasSpecificDashboardAddon = Boolean(
+    dashboardRedirectAddon ||
+      dashboardPreferencesIntentAddon ||
+      dashboardRecurringReminderIntentAddon ||
+      dashboardCapabilitiesAddon,
+  );
+  if (
+    (opts.mode === "companion" || opts.mode === "investigator") &&
+    !hasSpecificDashboardAddon
+  ) {
     context.dashboardCapabilitiesLiteAddon = formatDashboardCapabilitiesLiteAddon();
     if (context.dashboardCapabilitiesLiteAddon) {
       elementsLoaded.push("dashboard_capabilities_lite_addon");
@@ -438,8 +454,6 @@ export async function loadContextForMode(
   }
 
   // 15b. Dashboard preferences intent addon (dedicated UX/UI settings redirect)
-  const dashboardPreferencesIntentAddon = (opts.tempMemory as any)
-    ?.__dashboard_preferences_intent_addon;
   if (
     dashboardPreferencesIntentAddon &&
     (opts.mode === "companion" || opts.mode === "investigator")
@@ -454,8 +468,6 @@ export async function loadContextForMode(
   }
 
   // 15c. Dashboard recurring reminder intent addon (dedicated reminder settings redirect)
-  const dashboardRecurringReminderIntentAddon = (opts.tempMemory as any)
-    ?.__dashboard_recurring_reminder_intent_addon;
   if (
     dashboardRecurringReminderIntentAddon &&
     (opts.mode === "companion" || opts.mode === "investigator")
@@ -470,10 +482,14 @@ export async function loadContextForMode(
   }
 
   // 15d. Dashboard capabilities addon (umbrella "can be related to dashboard")
-  const dashboardCapabilitiesAddon = (opts.tempMemory as any)
-    ?.__dashboard_capabilities_addon;
-  if (
+  const shouldIncludeDashboardCapabilitiesAddon = Boolean(
     dashboardCapabilitiesAddon &&
+      !dashboardRedirectAddon &&
+      !dashboardPreferencesIntentAddon &&
+      !dashboardRecurringReminderIntentAddon,
+  );
+  if (
+    shouldIncludeDashboardCapabilitiesAddon &&
     (opts.mode === "companion" || opts.mode === "investigator")
   ) {
     context.dashboardCapabilitiesAddon = formatDashboardCapabilitiesAddon(

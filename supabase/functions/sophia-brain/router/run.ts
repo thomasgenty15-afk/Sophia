@@ -18,7 +18,7 @@ import {
 } from "../context/loader.ts";
 import { getContextProfile, getVectorResultsCount } from "../context/types.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
-import { getGlobalAiModel } from "../../_shared/gemini.ts";
+import { getGlobalAiModel, searchWithGeminiGrounding } from "../../_shared/gemini.ts";
 import { debounceAndBurstMerge } from "./debounce.ts";
 import {
   buildDispatcherStateSnapshot,
@@ -29,7 +29,7 @@ import {
   clearMachineStateTempMemory,
   detectMagicResetCommand,
 } from "./magic_reset.ts";
-import type { DispatcherSignals, MachineSignals } from "./dispatcher.ts";
+import type { DispatcherSignals } from "./dispatcher.ts";
 import { handleTracking } from "../lib/tracking.ts";
 import { updateEtoilePolaire } from "../lib/north_star_tools.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
@@ -51,6 +51,7 @@ function envBool(name: string, fallback: boolean): boolean {
 function envInt(name: string, fallback: number): number {
   const denoEnv = (globalThis as any)?.Deno?.env;
   const raw = String(denoEnv?.get?.(name) ?? "").trim();
+  if (!raw) return fallback;
   const n = Number(raw);
   if (!Number.isFinite(n)) return fallback;
   return Math.max(0, Math.floor(n));
@@ -220,8 +221,8 @@ function parseInvestigationStartedMs(state: any): number {
   return Number.isFinite(ms) ? ms : 0;
 }
 
-function detectCheckupIntent(_dispatcherSignals: DispatcherSignals, machineSignals?: MachineSignals): boolean {
-  const checkupIntentSignal = machineSignals?.checkup_intent;
+function detectCheckupIntent(dispatcherSignals: DispatcherSignals): boolean {
+  const checkupIntentSignal = dispatcherSignals?.checkup_intent;
   return (
     Boolean(checkupIntentSignal?.detected) &&
     Number(checkupIntentSignal?.confidence ?? 0) >= 0.6
@@ -231,17 +232,16 @@ function detectCheckupIntent(_dispatcherSignals: DispatcherSignals, machineSigna
 function selectTargetMode(args: {
   state: any;
   dispatcherSignals: DispatcherSignals;
-  machineSignals?: MachineSignals;
   onboardingActive: boolean;
 }): { targetMode: AgentMode; stopCheckup: boolean; checkupIntentDetected: boolean } {
-  const { state, dispatcherSignals, machineSignals, onboardingActive } = args;
+  const { state, dispatcherSignals, onboardingActive } = args;
 
   const checkupActive = isCheckupActive(state);
   const stopCheckup =
     (dispatcherSignals.interrupt.kind === "EXPLICIT_STOP" && dispatcherSignals.interrupt.confidence >= 0.6) ||
     (dispatcherSignals.interrupt.kind === "BORED" && dispatcherSignals.interrupt.confidence >= 0.65);
 
-  const checkupIntentDetected = detectCheckupIntent(dispatcherSignals, machineSignals);
+  const checkupIntentDetected = detectCheckupIntent(dispatcherSignals);
 
   if (
     dispatcherSignals.safety.level === "SENTRY" &&
@@ -265,14 +265,13 @@ function attachDynamicAddons(args: {
   tempMemory: any;
   state: any;
   dispatcherSignals: DispatcherSignals;
-  machineSignals?: MachineSignals;
   checkupIntentDetected: boolean;
 }) {
-  const { tempMemory, state, dispatcherSignals, machineSignals, checkupIntentDetected } = args;
+  const { tempMemory, state, dispatcherSignals, checkupIntentDetected } = args;
   const checkupActive = isCheckupActive(state);
 
   if (!checkupActive && checkupIntentDetected) {
-    const checkupIntentSignal = machineSignals?.checkup_intent;
+    const checkupIntentSignal = dispatcherSignals?.checkup_intent;
     (tempMemory as any).__checkup_not_triggerable_addon = {
       detected_at: new Date().toISOString(),
       confidence: Number(
@@ -537,6 +536,7 @@ export async function processMessage(
   let dispatcherLatencyMs: number | undefined;
   let contextLatencyMs: number | undefined;
   let agentLatencyMs: number | undefined;
+  let researchLatencyMs: number | undefined;
 
   const channel = meta?.channel ?? "web";
   const scope = normalizeScope(
@@ -652,6 +652,22 @@ export async function processMessage(
   const machineSignals = contextual.dispatcherResult?.machine_signals;
   tempMemory = contextual.tempMemory;
   const riskScore = Number(dispatcherSignals.risk_score ?? 0);
+  const needsResearchSignal = dispatcherSignals.needs_research;
+  const researchRequested =
+    needsResearchSignal?.value === true &&
+    Number(needsResearchSignal?.confidence ?? 0) >= 0.55;
+  const researchDomainHint = String(needsResearchSignal?.domain_hint ?? "").trim().slice(0, 30);
+  const researchQueryRaw = String(needsResearchSignal?.query ?? "").trim();
+  const researchQuery = (
+    researchQueryRaw.length > 0
+      ? researchQueryRaw
+      : String(userMessage ?? "").trim()
+  ).slice(0, 180);
+  let researchExecuted = false;
+  let researchText = "";
+  let researchSnippets: string[] = [];
+  let researchSources: string[] = [];
+  let researchError: string | null = null;
 
   // High-risk circuit breaker: clear machine/runtime states to avoid compounding loops
   // when user is in distress or conversation quality degrades sharply.
@@ -704,7 +720,7 @@ export async function processMessage(
   if (staleCheckup) {
     const wantsToContinueByDispatcher = machineSignals?.wants_to_continue_bilan === true;
     const dontWantToContinueByDispatcher = machineSignals?.dont_want_continue_bilan === true;
-    const checkupIntentNow = detectCheckupIntent(dispatcherSignals, machineSignals);
+    const checkupIntentNow = detectCheckupIntent(dispatcherSignals);
     const explicitConsent = resolveBinaryConsentLite(userMessage);
     const explicitContinue = explicitConsent === "yes";
     const explicitStop = explicitConsent === "no";
@@ -750,7 +766,6 @@ export async function processMessage(
   const { targetMode: routedMode, stopCheckup, checkupIntentDetected } = selectTargetMode({
     state,
     dispatcherSignals,
-    machineSignals,
     onboardingActive: onboarding.onboardingActive,
   });
 
@@ -763,7 +778,6 @@ export async function processMessage(
     tempMemory,
     state,
     dispatcherSignals,
-    machineSignals,
     checkupIntentDetected,
   });
 
@@ -816,6 +830,68 @@ export async function processMessage(
   }
 
   context = buildContextString(contextLoadResult.context);
+  if (researchRequested && researchQuery.length > 0) {
+    const researchStartMs = Date.now();
+    try {
+      await trace("brain:research_requested", "context", {
+        query: researchQuery,
+        domain_hint: researchDomainHint || null,
+        confidence: Number(needsResearchSignal?.confidence ?? 0),
+      }, "info");
+      const queryWithHint = researchDomainHint
+        ? `${researchQuery} [domaine: ${researchDomainHint}]`
+        : researchQuery;
+      const grounded = await searchWithGeminiGrounding(queryWithHint, {
+        requestId: meta?.requestId,
+      });
+      researchExecuted = true;
+      researchText = String(grounded?.text ?? "").trim();
+      researchSnippets = Array.isArray(grounded?.snippets)
+        ? grounded.snippets.map((s: unknown) => String(s ?? "").trim()).filter(Boolean).slice(0, 5)
+        : [];
+      researchSources = Array.isArray(grounded?.sources)
+        ? grounded.sources.map((s: unknown) => String(s ?? "").trim()).filter(Boolean).slice(0, 5)
+        : [];
+      researchLatencyMs = Date.now() - researchStartMs;
+      const researchAddonLines: string[] = [
+        "=== RECHERCHE WEB (informations fraiches) ===",
+        `Query: ${researchQuery}`,
+      ];
+      if (researchText) {
+        researchAddonLines.push(`Synthese: ${researchText.slice(0, 900)}`);
+      }
+      if (researchSnippets.length > 0) {
+        researchAddonLines.push("Snippets:");
+        for (const snippet of researchSnippets) {
+          researchAddonLines.push(`- ${snippet.slice(0, 240)}`);
+        }
+      }
+      if (researchSources.length > 0) {
+        researchAddonLines.push("Sources:");
+        for (const src of researchSources) {
+          researchAddonLines.push(`- ${src}`);
+        }
+      }
+      if (researchText || researchSnippets.length > 0 || researchSources.length > 0) {
+        context = `${context}\n\n${researchAddonLines.join("\n")}`;
+      }
+      await trace("brain:research_completed", "context", {
+        query: researchQuery,
+        duration_ms: researchLatencyMs,
+        has_text: Boolean(researchText),
+        snippets_count: researchSnippets.length,
+        sources_count: researchSources.length,
+      }, "info");
+    } catch (e) {
+      researchLatencyMs = Date.now() - researchStartMs;
+      researchError = String((e as any)?.message ?? e ?? "").slice(0, 200) || "research_failed";
+      await trace("brain:research_failed", "context", {
+        query: researchQuery,
+        duration_ms: researchLatencyMs,
+        error: researchError,
+      }, "warn");
+    }
+  }
 
   let consumedBilanStopped = false;
   try {
@@ -920,12 +996,12 @@ export async function processMessage(
   }
 
   const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
-  const nextLastProcessed = new Date().toISOString();
+  const nextLastInteraction = new Date().toISOString();
 
   await updateUserState(supabase, userId, scope, {
     current_mode: nextMode,
     unprocessed_msg_count: nextMsgCount,
-    last_processed_at: nextLastProcessed,
+    last_interaction_at: nextLastInteraction,
     temp_memory: mergedTempMemory,
   });
 
@@ -949,6 +1025,10 @@ export async function processMessage(
           stop_checkup: stopCheckup,
           safety_level: dispatcherSignals.safety.level,
           interrupt_kind: dispatcherSignals.interrupt.kind,
+          research_requested: researchRequested,
+          research_executed: researchExecuted,
+          research_query: researchRequested ? researchQuery : null,
+          research_sources_count: researchSources.length,
           llm_retry_queued: Boolean(llmRetryJobId),
           llm_retry_job_id: llmRetryJobId,
           outage_fallback: Boolean(agentOut.outageFallback),
@@ -1010,6 +1090,18 @@ export async function processMessage(
           model: String(meta?.model ?? getGlobalAiModel("gemini-2.5-flash")).trim(),
           outcome: (agentOut.toolExecution && agentOut.toolExecution !== "none") ? "tool_call" : "text",
           tool: agentOut.executedTools?.[0] ?? null,
+        },
+        research: {
+          requested: researchRequested,
+          executed: researchExecuted,
+          confidence: Number(needsResearchSignal?.confidence ?? 0),
+          query: researchRequested ? researchQuery : null,
+          domain_hint: researchDomainHint || null,
+          latency_ms: researchLatencyMs,
+          has_text: Boolean(researchText),
+          snippets_count: researchSnippets.length,
+          sources_count: researchSources.length,
+          error: researchError,
         },
         state_flags: {
           checkup_active: checkupActive,

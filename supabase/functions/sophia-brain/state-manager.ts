@@ -15,6 +15,7 @@ export interface UserChatState {
   short_term_context: string
   unprocessed_msg_count: number
   last_processed_at: string
+  last_interaction_at?: string
   // Free-form JSON used for lightweight, non-critical features (e.g. global parking-lot).
   temp_memory?: any
 }
@@ -50,6 +51,7 @@ export async function getUserState(
       short_term_context: '',
       unprocessed_msg_count: 0,
       last_processed_at: new Date().toISOString(),
+      last_interaction_at: new Date().toISOString(),
       temp_memory: {}
     }
     await supabase.from('user_chat_states').insert({ user_id: userId, scope, ...initialState })
