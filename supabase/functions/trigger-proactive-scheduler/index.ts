@@ -31,19 +31,32 @@ function looksLikeJwtToken(value: string): boolean {
   return parts.length === 3 && parts.every((p) => p.length > 0)
 }
 
-async function callEdge(functionName: string, body: unknown) {
+function bearerTokenFromAuthHeader(value: string | null): string {
+  const raw = String(value ?? "").trim()
+  if (!raw) return ""
+  if (!raw.toLowerCase().startsWith("bearer ")) return ""
+  return raw.slice(7).trim()
+}
+
+async function callEdge(functionName: string, body: unknown, req: Request) {
   const secret = internalSecret()
   if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET")
   const anon = anonKey()
   const serviceRole = serviceRoleKey()
+  const incomingApiKey = String(req.headers.get("apikey") ?? "").trim()
+  const incomingBearer = bearerTokenFromAuthHeader(req.headers.get("authorization"))
   const url = `${functionsBaseUrl()}/functions/v1/${functionName}`
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "X-Internal-Secret": secret,
   }
-  // Some runtimes verify the JWT at the gateway before the function checks X-Internal-Secret.
-  if (anon) headers.apikey = anon
-  if (looksLikeJwtToken(serviceRole)) headers.Authorization = `Bearer ${serviceRole}`
+  // Forward gateway-auth headers from the incoming request when available.
+  // This is the most reliable option in hosted environments using publishable/secret keys.
+  if (incomingApiKey) headers.apikey = incomingApiKey
+  else if (anon) headers.apikey = anon
+
+  if (looksLikeJwtToken(incomingBearer)) headers.Authorization = `Bearer ${incomingBearer}`
+  else if (looksLikeJwtToken(serviceRole)) headers.Authorization = `Bearer ${serviceRole}`
   const res = await fetch(url, {
     method: "POST",
     headers,
@@ -95,7 +108,7 @@ Deno.serve(async (req) => {
         const mapLocalDate = new Map(rows.map((r) => [String(r.user_id), String(r.local_date)]))
         const userIds = uniq(rows.map((r) => String(r.user_id)))
 
-        const resp = await callEdge("trigger-daily-bilan", { user_ids: userIds, scheduler: true })
+        const resp = await callEdge("trigger-daily-bilan", { user_ids: userIds, scheduler: true }, req)
         const sentUserIds = uniq((resp as any)?.sent_user_ids ?? [])
         const skippedUserIds = uniq((resp as any)?.skipped_user_ids ?? [])
         const deferredUserIds = uniq((resp as any)?.deferred_user_ids ?? [])
@@ -141,7 +154,7 @@ Deno.serve(async (req) => {
         const mapLocalDate = new Map(rows.map((r) => [String(r.user_id), String(r.local_date)]))
         const userIds = uniq(rows.map((r) => String(r.user_id)))
 
-        const resp = await callEdge("trigger-weekly-bilan", { user_ids: userIds, scheduler: true })
+        const resp = await callEdge("trigger-weekly-bilan", { user_ids: userIds, scheduler: true }, req)
         const sentUserIds = uniq((resp as any)?.sent_user_ids ?? [])
         const skippedUserIds = uniq((resp as any)?.skipped_user_ids ?? [])
         const handled = uniq([...sentUserIds, ...skippedUserIds])
@@ -184,7 +197,7 @@ Deno.serve(async (req) => {
         const mapLocalDate = new Map(rows.map((r) => [String(r.user_id), String(r.local_date)]))
         const userIds = uniq(rows.map((r) => String(r.user_id)))
 
-        const resp = await callEdge("trigger-memory-echo", { user_ids: userIds, scheduler: true })
+        const resp = await callEdge("trigger-memory-echo", { user_ids: userIds, scheduler: true }, req)
         const handledUserIds = uniq((resp as any)?.handled_user_ids ?? [])
         const skippedUserIds = uniq((resp as any)?.skipped_user_ids ?? [])
         // Errors are not marked as sent; they will be retried after attempt_cooldown.
