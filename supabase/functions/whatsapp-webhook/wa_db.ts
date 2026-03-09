@@ -16,11 +16,24 @@ export async function hasWhatsappPersonalFact(admin, userId) {
   return false;
 }
 export async function fetchLatestPending(admin, userId, kind) {
-  const { data, error } = await admin.from("whatsapp_pending_actions").select("id, kind, status, scheduled_checkin_id, payload, created_at").eq("user_id", userId).eq("kind", kind).eq("status", "pending").order("created_at", {
+  const nowIso = new Date().toISOString();
+  const { data, error } = await admin.from("whatsapp_pending_actions").select("id, kind, status, scheduled_checkin_id, payload, created_at, expires_at").eq("user_id", userId).eq("kind", kind).eq("status", "pending").order("created_at", {
     ascending: false
-  }).limit(1);
+  }).limit(20);
   if (error) throw error;
-  return (data ?? [])[0] ?? null;
+  const rows = data ?? [];
+  for (const row of rows) {
+    const expiresAt = typeof row?.expires_at === "string" ? row.expires_at : null;
+    if (expiresAt && expiresAt <= nowIso) {
+      await admin.from("whatsapp_pending_actions").update({
+        status: "expired",
+        processed_at: nowIso
+      }).eq("id", row.id).eq("status", "pending");
+      continue;
+    }
+    return row;
+  }
+  return null;
 }
 export async function markPending(admin, id, status) {
   await admin.from("whatsapp_pending_actions").update({

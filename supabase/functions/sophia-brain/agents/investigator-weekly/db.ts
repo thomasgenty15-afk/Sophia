@@ -45,7 +45,12 @@ export async function persistWeeklyRecap(params: {
     week_start: weekStart,
     execution: payload.execution ?? {},
     etoile_polaire: payload.etoile_polaire ?? {},
-    action_load: payload.action_load ?? {},
+    action_load: {
+      ...(payload.action_load ?? {}),
+      suggestion_state: payload.suggestion_state ?? null,
+      plan_window: payload.plan_window ?? null,
+      suggestion_outcomes: state.weekly_suggestion_outcomes ?? [],
+    },
     decisions_next_week: decisions,
     coach_note: coachNote,
     raw_summary: String(params.closingMessage ?? "").trim() || null,

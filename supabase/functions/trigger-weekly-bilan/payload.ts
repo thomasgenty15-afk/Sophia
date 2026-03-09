@@ -1,4 +1,5 @@
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
+import { generateWithGemini } from "../_shared/gemini.ts";
 
 export type ActionWeekSummary = {
   id: string;
@@ -8,6 +9,42 @@ export type ActionWeekSummary = {
   week_reps: number;
   completed_count: number;
   missed_count: number;
+};
+
+export type WeeklyPlanActionSnapshot = {
+  plan_action_id: string;
+  title: string;
+  type: "habitude" | "mission" | "framework" | "unknown";
+  quest_type: "main" | "side" | "unknown";
+  phase_index: number;
+  phase_title: string;
+  phase_status: string;
+  target_reps: number | null;
+  current_reps: number | null;
+  tracking_type: string | null;
+  time_of_day: string | null;
+  db_status: string | null;
+  is_current_phase: boolean;
+  is_next_phase: boolean;
+  week_reps: number;
+  missed_count: number;
+};
+
+export type WeeklySuggestionDecision = {
+  action_title: string;
+  action_type: WeeklyPlanActionSnapshot["type"];
+  phase_scope: "current" | "next";
+  recommendation: "keep_active" | "activate" | "deactivate" | "wait";
+  reason: string;
+  confidence: "low" | "medium" | "high";
+  related_action_title?: string | null;
+};
+
+export type WeeklySuggestionState = {
+  readiness: "hold" | "steady" | "expand";
+  should_activate_next_phase: boolean;
+  summary: string;
+  suggestions: WeeklySuggestionDecision[];
 };
 
 export interface WeeklyReviewPayload {
@@ -37,6 +74,16 @@ export interface WeeklyReviewPayload {
     decisions: string[];
     coach_note: string | null;
   } | null;
+  plan_window: {
+    current_phase_index: number | null;
+    current_phase_title: string | null;
+    next_phase_index: number | null;
+    next_phase_title: string | null;
+    current_actions: WeeklyPlanActionSnapshot[];
+    next_actions: WeeklyPlanActionSnapshot[];
+    active_action_titles: string[];
+  };
+  suggestion_state: WeeklySuggestionState;
   week_iso: string;
   week_start: string;
 }
@@ -103,6 +150,311 @@ function computeProgressionPct(start: number, current: number, target: number): 
   return Math.max(-100, Math.min(300, Math.round(pct)));
 }
 
+function safeJsonParse(raw: unknown): any {
+  const text = String(raw ?? "")
+    .replace(/```json\s*/gi, "")
+    .replace(/```/g, "")
+    .trim();
+  if (!text) return null;
+  try {
+    return JSON.parse(text);
+  } catch {
+    return null;
+  }
+}
+
+function normalizeActionType(v: unknown): WeeklyPlanActionSnapshot["type"] {
+  const raw = String(v ?? "").toLowerCase().trim();
+  if (raw === "habit" || raw === "habitude") return "habitude";
+  if (raw === "mission") return "mission";
+  if (raw === "framework") return "framework";
+  return "unknown";
+}
+
+function normalizeQuestType(v: unknown): WeeklyPlanActionSnapshot["quest_type"] {
+  const raw = String(v ?? "").toLowerCase().trim();
+  if (raw === "main" || raw === "side") return raw;
+  return "unknown";
+}
+
+function normalizeStatus(v: unknown): string | null {
+  const raw = String(v ?? "").toLowerCase().trim();
+  return raw || null;
+}
+
+function normalizedFamilyTokens(text: string): string[] {
+  return String(text ?? "")
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/\b\d+(?:[.,]\d+)?\b/g, " ")
+    .replace(/[^a-z\s]/g, " ")
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter((token) =>
+      token.length >= 3 &&
+      ![
+        "les",
+        "des",
+        "une",
+        "dans",
+        "pour",
+        "avec",
+        "sur",
+        "sans",
+        "par",
+        "min",
+        "mins",
+      ].includes(token)
+    );
+}
+
+function overlapScore(a: string, b: string): number {
+  const left = new Set(normalizedFamilyTokens(a));
+  const right = new Set(normalizedFamilyTokens(b));
+  if (left.size === 0 || right.size === 0) return 0;
+  let inter = 0;
+  for (const token of left) {
+    if (right.has(token)) inter += 1;
+  }
+  return inter / Math.max(left.size, right.size);
+}
+
+function findWeekSummary(
+  details: ActionWeekSummary[],
+  title: string,
+): ActionWeekSummary | null {
+  const normalized = String(title ?? "").trim().toLowerCase();
+  if (!normalized) return null;
+  return details.find((row) => String(row.title ?? "").trim().toLowerCase() === normalized) ?? null;
+}
+
+function findRelatedCurrentHabit(
+  currentActions: WeeklyPlanActionSnapshot[],
+  candidate: WeeklyPlanActionSnapshot,
+): WeeklyPlanActionSnapshot | null {
+  if (candidate.type !== "habitude") return null;
+  let best: WeeklyPlanActionSnapshot | null = null;
+  let bestScore = 0;
+  for (const current of currentActions) {
+    if (current.type !== "habitude") continue;
+    const score = overlapScore(current.title, candidate.title);
+    if (score > bestScore) {
+      best = current;
+      bestScore = score;
+    }
+  }
+  return bestScore >= 0.6 ? best : null;
+}
+
+function parseSuggestionDecision(raw: any): WeeklySuggestionDecision | null {
+  if (!raw || typeof raw !== "object") return null;
+  const recommendationRaw = String(raw.recommendation ?? "").trim();
+  const recommendation = recommendationRaw === "activate" || recommendationRaw === "deactivate" ||
+      recommendationRaw === "wait" || recommendationRaw === "keep_active"
+    ? recommendationRaw
+    : null;
+  const phaseScopeRaw = String(raw.phase_scope ?? "").trim();
+  const phaseScope = phaseScopeRaw === "current" || phaseScopeRaw === "next" ? phaseScopeRaw : null;
+  const confidenceRaw = String(raw.confidence ?? "").trim();
+  const confidence = confidenceRaw === "low" || confidenceRaw === "high" ? confidenceRaw : "medium";
+  const actionTitle = String(raw.action_title ?? "").trim();
+  const reason = String(raw.reason ?? "").trim();
+  if (!recommendation || !phaseScope || !actionTitle || !reason) return null;
+  return {
+    action_title: actionTitle,
+    action_type: normalizeActionType(raw.action_type),
+    phase_scope: phaseScope,
+    recommendation,
+    reason: reason.slice(0, 220),
+    confidence,
+    related_action_title: String(raw.related_action_title ?? "").trim() || null,
+  };
+}
+
+function fallbackSuggestionState(params: {
+  execution: WeeklyReviewPayload["execution"];
+  currentActions: WeeklyPlanActionSnapshot[];
+  nextActions: WeeklyPlanActionSnapshot[];
+}): WeeklySuggestionState {
+  const { execution, currentActions, nextActions } = params;
+  const hasZeroMomentum = execution.completed <= 0 || execution.rate_pct <= 0;
+  const shouldActivateNext = !hasZeroMomentum && execution.rate_pct >= 60 && execution.completed >= 2;
+  const readiness: WeeklySuggestionState["readiness"] = hasZeroMomentum
+    ? "hold"
+    : shouldActivateNext
+    ? "expand"
+    : "steady";
+
+  const suggestions: WeeklySuggestionDecision[] = [];
+
+  for (const next of nextActions) {
+    const relatedCurrent = findRelatedCurrentHabit(currentActions, next);
+    if (relatedCurrent && relatedCurrent.type === "habitude") {
+      if (shouldActivateNext) {
+        suggestions.push({
+          action_title: relatedCurrent.title,
+          action_type: relatedCurrent.type,
+          phase_scope: "current",
+          recommendation: "deactivate",
+          reason: "Cette habitude semble remplacée par une version plus avancée dans la phase suivante.",
+          confidence: "medium",
+          related_action_title: next.title,
+        });
+        suggestions.push({
+          action_title: next.title,
+          action_type: next.type,
+          phase_scope: "next",
+          recommendation: "activate",
+          reason: "La progression de cette semaine permet probablement de passer à la version suivante.",
+          confidence: "medium",
+          related_action_title: relatedCurrent.title,
+        });
+      } else {
+        suggestions.push({
+          action_title: next.title,
+          action_type: next.type,
+          phase_scope: "next",
+          recommendation: "wait",
+          reason: "Pas assez d'élan cette semaine pour ajouter la version suivante de cette habitude.",
+          confidence: "high",
+          related_action_title: relatedCurrent.title,
+        });
+      }
+      continue;
+    }
+
+    suggestions.push({
+      action_title: next.title,
+      action_type: next.type,
+      phase_scope: "next",
+      recommendation: shouldActivateNext ? "activate" : "wait",
+      reason: shouldActivateNext
+        ? "La charge semble compatible avec l'activation d'une action de la phase suivante."
+        : "Mieux vaut stabiliser les actions actuelles avant d'ajouter cette action.",
+      confidence: shouldActivateNext ? "medium" : "high",
+      related_action_title: null,
+    });
+  }
+
+  if (suggestions.length === 0 && currentActions.length > 0) {
+    suggestions.push({
+      action_title: currentActions[0].title,
+      action_type: currentActions[0].type,
+      phase_scope: "current",
+      recommendation: "keep_active",
+      reason: hasZeroMomentum
+        ? "Cette semaine appelle surtout à reprendre de l'élan sur les actions déjà en cours."
+        : "La priorité reste de consolider les actions déjà engagées.",
+      confidence: "high",
+      related_action_title: null,
+    });
+  }
+
+  return {
+    readiness,
+    should_activate_next_phase: shouldActivateNext,
+    summary: hasZeroMomentum
+      ? "Peu ou pas d'exécution cette semaine: on évite de proposer de nouvelles activations."
+      : shouldActivateNext
+      ? "La semaine montre assez de traction pour envisager une montée de phase ciblée."
+      : "Il y a du mouvement, mais pas encore assez de stabilité pour ouvrir plus large.",
+    suggestions: suggestions.slice(0, 6),
+  };
+}
+
+async function generateSuggestionState(params: {
+  execution: WeeklyReviewPayload["execution"];
+  currentActions: WeeklyPlanActionSnapshot[];
+  nextActions: WeeklyPlanActionSnapshot[];
+  activeActionTitles: string[];
+  currentPhaseIndex: number | null;
+  nextPhaseIndex: number | null;
+}): Promise<WeeklySuggestionState> {
+  const fallback = fallbackSuggestionState({
+    execution: params.execution,
+    currentActions: params.currentActions,
+    nextActions: params.nextActions,
+  });
+
+  if (params.currentActions.length === 0 && params.nextActions.length === 0) {
+    return fallback;
+  }
+
+  const prompt = [
+    "Tu analyses le plan hebdomadaire d'un user Sophia pour produire un suggestion_state.",
+    "Réponds UNIQUEMENT en JSON valide.",
+    'Format: {"readiness":"hold|steady|expand","should_activate_next_phase":boolean,"summary":"string","suggestions":[{"action_title":"string","action_type":"habitude|mission|framework|unknown","phase_scope":"current|next","recommendation":"keep_active|activate|deactivate|wait","reason":"string","confidence":"low|medium|high","related_action_title":"string|null"}]}',
+    "Règles métier obligatoires:",
+    "- Base-toi sur l'exécution réelle de la semaine + actions actives + phase actuelle + phase suivante.",
+    "- Si le user est à 0 répétition utile cette semaine, ne propose PAS d'activer une nouvelle action de la phase suivante.",
+    "- Tu peux recommander deactivate UNIQUEMENT pour une habitude actuelle qui serait remplacée par une version plus avancée de la phase suivante.",
+    "- Ne recommande jamais deactivate pour mission ou framework.",
+    "- Si une action de phase suivante est cumulative/complementaire, garde l'actuelle et propose activate seulement si la semaine montre assez de traction.",
+    "- Garde 6 suggestions max. Pas de blabla. Rationnels courts et concrets.",
+    `execution=${JSON.stringify(params.execution)}`,
+    `active_action_titles=${JSON.stringify(params.activeActionTitles)}`,
+    `current_phase_index=${JSON.stringify(params.currentPhaseIndex)}`,
+    `next_phase_index=${JSON.stringify(params.nextPhaseIndex)}`,
+    `current_phase_actions=${JSON.stringify(params.currentActions)}`,
+    `next_phase_actions=${JSON.stringify(params.nextActions)}`,
+  ].join("\n");
+
+  try {
+    const raw = await generateWithGemini(
+      prompt,
+      "Génère le suggestion_state.",
+      0.2,
+      true,
+      [],
+      "auto",
+      {
+        source: "trigger-weekly-bilan:suggestion-state",
+      },
+    );
+    const parsed = safeJsonParse(raw) ?? {};
+    const readinessRaw = String(parsed?.readiness ?? "").trim();
+    const readiness: WeeklySuggestionState["readiness"] = readinessRaw === "hold" || readinessRaw === "expand"
+      ? readinessRaw
+      : "steady";
+    const summary = String(parsed?.summary ?? "").trim();
+    const suggestions = Array.isArray(parsed?.suggestions)
+      ? parsed.suggestions.map(parseSuggestionDecision).filter(Boolean) as WeeklySuggestionDecision[]
+      : [];
+    const shouldActivateNext = Boolean(parsed?.should_activate_next_phase);
+
+    const normalized = {
+      readiness,
+      should_activate_next_phase: shouldActivateNext,
+      summary: summary.slice(0, 280) || fallback.summary,
+      suggestions: suggestions.slice(0, 6),
+    };
+
+    if (!normalized.summary || normalized.suggestions.length === 0) return fallback;
+
+    if (
+      params.execution.completed <= 0 &&
+      normalized.should_activate_next_phase
+    ) {
+      return {
+        ...normalized,
+        readiness: "hold",
+        should_activate_next_phase: false,
+        summary: "Peu ou pas d'exécution cette semaine: on reste sur la consolidation avant toute nouvelle activation.",
+        suggestions: normalized.suggestions.map((item) =>
+          item.phase_scope === "next" && item.recommendation === "activate"
+            ? { ...item, recommendation: "wait", reason: "Pas assez d'exécution cette semaine pour ouvrir une nouvelle action." }
+            : item
+        ),
+      };
+    }
+
+    return normalized;
+  } catch {
+    return fallback;
+  }
+}
+
 export async function buildWeeklyReviewPayload(
   admin: ReturnType<typeof createClient>,
   userId: string,
@@ -120,7 +472,7 @@ export async function buildWeeklyReviewPayload(
 
   const { data: activePlan } = await admin
     .from("user_plans")
-    .select("id, submission_id")
+    .select("id, submission_id, current_phase, content")
     .eq("user_id", userId)
     .in("status", ["active", "in_progress", "pending"])
     .order("created_at", { ascending: false })
@@ -129,10 +481,15 @@ export async function buildWeeklyReviewPayload(
 
   const planId = String((activePlan as any)?.id ?? "").trim();
   const submissionId = String((activePlan as any)?.submission_id ?? "").trim();
+  const planContent = ((activePlan as any)?.content && typeof (activePlan as any).content === "object")
+    ? (activePlan as any).content
+    : null;
+  const rawCurrentPhase = Number((activePlan as any)?.current_phase);
+  const currentPhaseIndex = Number.isFinite(rawCurrentPhase) && rawCurrentPhase >= 1 ? Math.floor(rawCurrentPhase) : null;
 
   const planActionsQuery = admin
     .from("user_actions")
-    .select("id,title,target_reps,current_reps,last_performed_at")
+    .select("id,title,target_reps,current_reps,last_performed_at,status,type,tracking_type,time_of_day")
     .eq("user_id", userId)
     .eq("status", "active");
 
@@ -145,6 +502,21 @@ export async function buildWeeklyReviewPayload(
     .select("id,title,target_reps,current_reps,last_performed_at")
     .eq("user_id", userId)
     .eq("status", "active");
+
+  const [{ data: allPlanActions }, { data: planFrameworks }] = planId
+    ? await Promise.all([
+      admin
+        .from("user_actions")
+        .select("id,title,target_reps,current_reps,last_performed_at,status,type,tracking_type,time_of_day")
+        .eq("user_id", userId)
+        .eq("plan_id", planId),
+      admin
+        .from("user_framework_tracking")
+        .select("id,action_id,title,target_reps,current_reps,last_performed_at,status,type")
+        .eq("user_id", userId)
+        .eq("plan_id", planId),
+    ])
+    : [{ data: [] as any[] }, { data: [] as any[] }];
 
   const planActionIds = (planActions ?? []).map((a: any) => String(a.id)).filter(Boolean);
 
@@ -270,15 +642,98 @@ export async function buildWeeklyReviewPayload(
     .eq("week_start", previousWeekStart)
     .maybeSingle();
 
+  const phases = Array.isArray((planContent as any)?.phases) ? (planContent as any).phases : [];
+  let resolvedCurrentPhaseIndex = currentPhaseIndex;
+  if (resolvedCurrentPhaseIndex === null && phases.length > 0) {
+    const phaseFromStatus = phases.findIndex((phase: any) => String(phase?.status ?? "").toLowerCase() === "active");
+    resolvedCurrentPhaseIndex = phaseFromStatus >= 0 ? phaseFromStatus + 1 : 1;
+  }
+  const resolvedNextPhaseIndex = resolvedCurrentPhaseIndex !== null && resolvedCurrentPhaseIndex < phases.length
+    ? resolvedCurrentPhaseIndex + 1
+    : null;
+
+  const actionRowsByTitle = new Map<string, any>();
+  const frameworkRowsById = new Map<string, any>();
+  const frameworkRowsByTitle = new Map<string, any>();
+  for (const row of (allPlanActions ?? []) as any[]) {
+    const title = String(row?.title ?? "").trim().toLowerCase();
+    if (title) actionRowsByTitle.set(title, row);
+  }
+  for (const row of (planFrameworks ?? []) as any[]) {
+    const actionId = String(row?.action_id ?? "").trim();
+    const title = String(row?.title ?? "").trim().toLowerCase();
+    if (actionId) frameworkRowsById.set(actionId, row);
+    if (title) frameworkRowsByTitle.set(title, row);
+  }
+
+  const buildPlanActionSnapshot = (phase: any, phaseIndex: number, action: any): WeeklyPlanActionSnapshot => {
+    const type = normalizeActionType(action?.type);
+    const planActionId = String(action?.id ?? "").trim();
+    const title = String(action?.title ?? "Action").trim() || "Action";
+    const actionRow = type === "framework"
+      ? frameworkRowsById.get(planActionId) ?? frameworkRowsByTitle.get(title.toLowerCase()) ?? null
+      : actionRowsByTitle.get(title.toLowerCase()) ?? null;
+    const weekSummary = findWeekSummary(details, title);
+    return {
+      plan_action_id: planActionId,
+      title,
+      type,
+      quest_type: normalizeQuestType(action?.questType),
+      phase_index: phaseIndex,
+      phase_title: String(phase?.title ?? `Phase ${phaseIndex}`).trim() || `Phase ${phaseIndex}`,
+      phase_status: String(phase?.status ?? "").trim(),
+      target_reps: actionRow
+        ? Math.max(1, Math.floor(parseNumber(actionRow?.target_reps, parseNumber(action?.targetReps, 1))))
+        : (typeof action?.targetReps === "number" ? Math.max(1, Math.floor(action.targetReps)) : null),
+      current_reps: actionRow ? Math.max(0, Math.floor(parseNumber(actionRow?.current_reps, 0))) : null,
+      tracking_type: actionRow?.tracking_type ? String(actionRow.tracking_type) : String(action?.tracking_type ?? "").trim() || null,
+      time_of_day: actionRow?.time_of_day ? String(actionRow.time_of_day) : String(action?.time_of_day ?? "").trim() || null,
+      db_status: normalizeStatus(actionRow?.status),
+      is_current_phase: phaseIndex === resolvedCurrentPhaseIndex,
+      is_next_phase: phaseIndex === resolvedNextPhaseIndex,
+      week_reps: Math.max(0, weekSummary?.week_reps ?? 0),
+      missed_count: Math.max(0, weekSummary?.missed_count ?? 0),
+    };
+  };
+
+  const currentActions = resolvedCurrentPhaseIndex === null
+    ? []
+    : ((phases[resolvedCurrentPhaseIndex - 1]?.actions ?? []) as any[]).map((action: any) =>
+      buildPlanActionSnapshot(phases[resolvedCurrentPhaseIndex - 1], resolvedCurrentPhaseIndex!, action)
+    );
+  const nextActions = resolvedNextPhaseIndex === null
+    ? []
+    : ((phases[resolvedNextPhaseIndex - 1]?.actions ?? []) as any[]).map((action: any) =>
+      buildPlanActionSnapshot(phases[resolvedNextPhaseIndex - 1], resolvedNextPhaseIndex!, action)
+    );
+  const activeActionTitles = [
+    ...((planActions ?? []) as any[]).map((row: any) => String(row?.title ?? "").trim()),
+    ...((personalActions ?? []) as any[]).map((row: any) => String(row?.title ?? "").trim()),
+    ...((planFrameworks ?? []) as any[])
+      .filter((row: any) => String(row?.status ?? "").toLowerCase() === "active")
+      .map((row: any) => String(row?.title ?? "").trim()),
+  ].filter(Boolean);
+
+  const executionPayload: WeeklyReviewPayload["execution"] = {
+    rate_pct: ratePct,
+    total,
+    completed: completedTotal,
+    top_action: (topAction && topAction.completed_count > 0) ? topAction.title : null,
+    blocker_action: (blockerAction && blockerAction.missed_count > 0) ? blockerAction.title : null,
+    details,
+  };
+
+  const suggestionState = await generateSuggestionState({
+    execution: executionPayload,
+    currentActions,
+    nextActions,
+    activeActionTitles,
+    currentPhaseIndex: resolvedCurrentPhaseIndex,
+    nextPhaseIndex: resolvedNextPhaseIndex,
+  });
+
   return {
-    execution: {
-      rate_pct: ratePct,
-      total,
-      completed: completedTotal,
-      top_action: (topAction && topAction.completed_count > 0) ? topAction.title : null,
-      blocker_action: (blockerAction && blockerAction.missed_count > 0) ? blockerAction.title : null,
-      details,
-    },
+    execution: executionPayload,
     etoile_polaire: etoile,
     action_load: {
       active_count: activeCount,
@@ -295,6 +750,20 @@ export async function buildWeeklyReviewPayload(
           : null,
       }
       : null,
+    plan_window: {
+      current_phase_index: resolvedCurrentPhaseIndex,
+      current_phase_title: resolvedCurrentPhaseIndex !== null
+        ? String(phases[resolvedCurrentPhaseIndex - 1]?.title ?? "").trim() || null
+        : null,
+      next_phase_index: resolvedNextPhaseIndex,
+      next_phase_title: resolvedNextPhaseIndex !== null
+        ? String(phases[resolvedNextPhaseIndex - 1]?.title ?? "").trim() || null
+        : null,
+      current_actions: currentActions,
+      next_actions: nextActions,
+      active_action_titles: [...new Set(activeActionTitles)],
+    },
+    suggestion_state: suggestionState,
     week_iso: isoWeekLabelFromYmd(weekStart),
     week_start: weekStart,
   };

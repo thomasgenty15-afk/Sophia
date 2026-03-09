@@ -73,7 +73,7 @@ function getFallbackTemplate(purpose: string | undefined) {
   }
   if (p === "weekly_bilan") {
     return {
-      name: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME") ?? "weekly_bilan_fin_semaine_v1_fr").trim(),
+      name: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME") ?? "sophia_bilan_weekly_v1").trim(),
       language: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
     }
   }
@@ -362,4 +362,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

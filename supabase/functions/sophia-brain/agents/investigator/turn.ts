@@ -5,7 +5,7 @@ import type { CheckupItem, InvestigationState, InvestigatorTurnResult, ItemProgr
 import { investigatorSay } from "./copy.ts"
 // NOTE: investigatorSay is used both in run.ts and here for the weekly target flow.
 import { isMegaTestMode } from "./utils.ts"
-import { logItem } from "./db.ts"
+import { logItem, logItemDetailed } from "./db.ts"
 import {
   checkAndHandleLevelUp,
   maybeHandleStreakAfterLog,
@@ -142,7 +142,25 @@ export async function handleInvestigatorModelOutput(opts: {
         note: String(message ?? "").trim().slice(0, 220) || null,
       }
       try {
-        await logItem(supabase, userId, argsWithId)
+        const logResult = await logItemDetailed(supabase, userId, argsWithId)
+        if (!argsWithId.note && logResult.entry_id) {
+          const pending = Array.isArray((currentState.temp_memory as any)?.pending_missed_reasons)
+            ? (currentState.temp_memory as any).pending_missed_reasons
+            : []
+          currentState.temp_memory = {
+            ...(currentState.temp_memory as any),
+            pending_missed_reasons: [
+              ...pending,
+              {
+                entry_id: logResult.entry_id,
+                item_id: currentItem.id,
+                item_type: currentItem.type,
+                item_title: currentItem.title,
+                created_at: new Date().toISOString(),
+              },
+            ],
+          }
+        }
       } catch (e) {
         const errMsg = e instanceof Error ? e.message : String(e)
         console.error("[Investigator] auto-log missed failed (unexpected):", errMsg)
@@ -253,7 +271,25 @@ export async function handleInvestigatorModelOutput(opts: {
     }
 
     try {
-      await logItem(supabase, userId, argsWithId)
+      const logResult = await logItemDetailed(supabase, userId, argsWithId)
+      if (argsWithId.status === "missed" && !String(argsWithId.note ?? "").trim() && logResult.entry_id) {
+        const pending = Array.isArray((currentState.temp_memory as any)?.pending_missed_reasons)
+          ? (currentState.temp_memory as any).pending_missed_reasons
+          : []
+        currentState.temp_memory = {
+          ...(currentState.temp_memory as any),
+          pending_missed_reasons: [
+            ...pending,
+            {
+              entry_id: logResult.entry_id,
+              item_id: currentItem.id,
+              item_type: currentItem.type,
+              item_title: currentItem.title,
+              created_at: new Date().toISOString(),
+            },
+          ],
+        }
+      }
     } catch (e) {
       const errMsg = e instanceof Error ? e.message : String(e)
       console.error("[Investigator] log_action_execution failed (unexpected):", errMsg)
@@ -696,4 +732,3 @@ export async function handleInvestigatorModelOutput(opts: {
     newState: stateAfterTextResponse,
   }
 }
-

@@ -66,6 +66,43 @@ export interface ItemProgress {
  */
 export type ItemProgressMap = Record<string, ItemProgress>;
 
+export type GlobalCheckupCoverageStatus =
+  | "completed"
+  | "missed"
+  | "partial"
+  | "value"
+  | "unclear"
+  | "not_addressed";
+
+export interface GlobalCheckupItemState {
+  item_id: string;
+  covered: boolean;
+  status: GlobalCheckupCoverageStatus;
+  evidence?: string | null;
+  obstacle?: string | null;
+  value?: number | null;
+  confidence?: number;
+  logged?: boolean;
+}
+
+export interface GlobalCheckupState {
+  opening_mode: "broad_open" | "continuation";
+  broad_opening_used: boolean;
+  freeform_user_update?: string | null;
+  overall_tone?: "positive" | "mixed" | "difficult" | "unclear" | null;
+  energy_signal?: "high" | "medium" | "low" | "unclear" | null;
+  items: Record<string, GlobalCheckupItemState>;
+  last_extracted_at?: string;
+}
+
+export interface PendingMissedReason {
+  entry_id: string;
+  item_id: string;
+  item_type: "action" | "vital" | "framework";
+  item_title: string;
+  created_at: string;
+}
+
 export interface InvestigationTempMemory {
   /** Pending offer dedicated to the weekly target increase flow. */
   pending_increase_target_offer?: PendingIncreaseTargetOffer;
@@ -82,6 +119,10 @@ export interface InvestigationTempMemory {
    * Ensures monotone progression (no backward transitions).
    */
   item_progress?: ItemProgressMap;
+  /** Global day review state used to absorb broad user updates before targeted follow-ups. */
+  global_checkup_state?: GlobalCheckupState;
+  /** Recently logged missed items that can still receive a reason on the next user turn. */
+  pending_missed_reasons?: PendingMissedReason[];
   /** Other fields... */
   [key: string]: unknown;
 }

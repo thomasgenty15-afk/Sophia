@@ -13,6 +13,8 @@ import {
 console.log("Process Checkins: Function initialized")
 
 const QUIET_WINDOW_MINUTES = Number.parseInt((Deno.env.get("WHATSAPP_QUIET_WINDOW_MINUTES") ?? "").trim() || "20", 10)
+const RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT = 5
+const RECURRING_REMINDER_TEMPLATE_QUOTA_KEY = "recurring_reminder_template"
 
 function internalSecret(): string {
   return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() || Deno.env.get("SECRET_KEY")?.trim() || "")
@@ -91,6 +93,54 @@ async function consumeUnansweredRecurringProbe(params: {
   }
 
   return pendingRows.length
+}
+
+function monthKeyInTimezone(now: Date, timezone: string): string {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: timezone,
+    year: "numeric",
+    month: "2-digit",
+  }).formatToParts(now)
+  const year = parts.find((p) => p.type === "year")?.value ?? "0000"
+  const month = parts.find((p) => p.type === "month")?.value ?? "01"
+  return `${year}-${month}`
+}
+
+async function consumeMonthlyWhatsappQuota(params: {
+  supabaseAdmin: ReturnType<typeof createClient>
+  userId: string
+  quotaKey: string
+  monthKey: string
+  limit: number
+}): Promise<{ allowed: boolean; usedCount: number }> {
+  const { data, error } = await params.supabaseAdmin.rpc("consume_whatsapp_monthly_quota", {
+    p_user_id: params.userId,
+    p_quota_key: params.quotaKey,
+    p_month_key: params.monthKey,
+    p_limit: params.limit,
+  })
+  if (error) throw error
+  const row = Array.isArray(data) ? data[0] : data
+  return {
+    allowed: Boolean((row as any)?.allowed),
+    usedCount: Number((row as any)?.used_count ?? 0),
+  }
+}
+
+async function releaseMonthlyWhatsappQuota(params: {
+  supabaseAdmin: ReturnType<typeof createClient>
+  userId: string
+  quotaKey: string
+  monthKey: string
+}): Promise<number> {
+  const { data, error } = await params.supabaseAdmin.rpc("release_whatsapp_monthly_quota", {
+    p_user_id: params.userId,
+    p_quota_key: params.quotaKey,
+    p_month_key: params.monthKey,
+  })
+  if (error) throw error
+  const row = Array.isArray(data) ? data[0] : data
+  return Number((row as any)?.used_count ?? 0)
 }
 
 Deno.serve(async (req) => {
@@ -204,6 +254,7 @@ Deno.serve(async (req) => {
     for (const checkin of checkins) {
       const eventContext = String((checkin as any)?.event_context ?? "")
       const recurringReminderId = getRecurringReminderIdFromEventContext(eventContext)
+      let userTimezone = "Europe/Paris"
 
       // Recurring reminders: if previous consent probes were unanswered, count them.
       // After 2 unanswered probes, auto-pause the reminder and stop future sends.
@@ -266,16 +317,34 @@ Deno.serve(async (req) => {
         }
       }
 
+      let in24hConversationWindow = false
+
       // Quiet window: don't interrupt an active WhatsApp conversation.
       // If the user was active recently, push the checkin a bit later instead of sending now.
       {
         const { data: profile } = await supabaseAdmin
           .from("profiles")
-          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone")
+          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone, whatsapp_coaching_paused_until")
           .eq("id", checkin.user_id)
           .maybeSingle()
+        userTimezone = String((profile as any)?.timezone ?? "").trim() || "Europe/Paris"
+        const coachingPauseUntilMs = (profile as any)?.whatsapp_coaching_paused_until
+          ? new Date((profile as any).whatsapp_coaching_paused_until).getTime()
+          : NaN
+        if (
+          eventContext === "morning_active_actions_nudge" &&
+          Number.isFinite(coachingPauseUntilMs) &&
+          coachingPauseUntilMs > Date.now()
+        ) {
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ status: "cancelled", processed_at: new Date().toISOString() })
+            .eq("id", checkin.id)
+          continue
+        }
         const lastInbound = profile?.whatsapp_last_inbound_at ? new Date(profile.whatsapp_last_inbound_at).getTime() : null
         const lastOutbound = (profile as any)?.whatsapp_last_outbound_at ? new Date((profile as any).whatsapp_last_outbound_at).getTime() : null
+        in24hConversationWindow = lastInbound !== null && Date.now() - lastInbound < 24 * 60 * 60 * 1000
         const lastActivity = Math.max(lastInbound ?? 0, lastOutbound ?? 0)
         if (lastActivity > 0 && Date.now() - lastActivity < quietMs) {
           const waitMs = Math.max(0, quietMs - (Date.now() - lastActivity))
@@ -286,6 +355,15 @@ Deno.serve(async (req) => {
             .eq("id", checkin.id)
           continue
         }
+      }
+
+      // Morning action nudges must never open a closed WhatsApp conversation via template.
+      if (eventContext === "morning_active_actions_nudge" && !in24hConversationWindow) {
+        await supabaseAdmin
+          .from("scheduled_checkins")
+          .update({ status: "cancelled", processed_at: new Date().toISOString() })
+          .eq("id", checkin.id)
+        continue
       }
 
       // 2) Prefer WhatsApp send (text if window open, template fallback if closed).
@@ -342,6 +420,39 @@ Deno.serve(async (req) => {
       const checkinPurpose = isBilanReschedule
         ? "daily_bilan"
         : (recurringReminderId ? "recurring_reminder" : "scheduled_checkin")
+      const recurringReminderNeedsTemplate = Boolean(recurringReminderId) && !in24hConversationWindow
+      let recurringReminderQuotaConsumed = false
+      let recurringReminderQuotaMonthKey: string | null = null
+
+      if (recurringReminderNeedsTemplate) {
+        recurringReminderQuotaMonthKey = monthKeyInTimezone(new Date(), userTimezone)
+        try {
+          const quotaResult = await consumeMonthlyWhatsappQuota({
+            supabaseAdmin,
+            userId: checkin.user_id,
+            quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
+            monthKey: recurringReminderQuotaMonthKey,
+            limit: RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT,
+          })
+          if (!quotaResult.allowed) {
+            await supabaseAdmin
+              .from("scheduled_checkins")
+              .update({ status: "cancelled", processed_at: new Date().toISOString() })
+              .eq("id", checkin.id)
+            console.log(
+              `[process-checkins] request_id=${requestId} recurring_reminder_monthly_template_cap_reached checkin_id=${checkin.id} user_id=${checkin.user_id} month_key=${recurringReminderQuotaMonthKey} used_count=${quotaResult.usedCount}`,
+            )
+            continue
+          }
+          recurringReminderQuotaConsumed = true
+        } catch (e) {
+          console.error(
+            `[process-checkins] request_id=${requestId} recurring_reminder_monthly_quota_check_failed checkin_id=${checkin.id}`,
+            e,
+          )
+          continue
+        }
+      }
 
       try {
         const resp = await callWhatsappSend({
@@ -362,6 +473,21 @@ Deno.serve(async (req) => {
       } catch (e) {
         const status = (e as any)?.status
         const msg = e instanceof Error ? e.message : String(e)
+        if (recurringReminderQuotaConsumed && recurringReminderQuotaMonthKey) {
+          try {
+            await releaseMonthlyWhatsappQuota({
+              supabaseAdmin,
+              userId: checkin.user_id,
+              quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
+              monthKey: recurringReminderQuotaMonthKey,
+            })
+          } catch (releaseErr) {
+            console.error(
+              `[process-checkins] request_id=${requestId} recurring_reminder_monthly_quota_release_failed checkin_id=${checkin.id}`,
+              releaseErr,
+            )
+          }
+        }
         // 429 throttle => retry later, keep pending.
         if (status === 429) {
           console.warn(`[process-checkins] request_id=${requestId} throttled checkin_id=${checkin.id}`)

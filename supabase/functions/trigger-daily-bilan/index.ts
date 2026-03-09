@@ -91,6 +91,35 @@ function localDowFromTimezone(
   }
 }
 
+function localYmdFromTimezone(
+  timezoneRaw: unknown,
+  nowMs = Date.now(),
+): string | null {
+  const timezone = String(timezoneRaw ?? "").trim() || "Europe/Paris";
+  try {
+    return new Intl.DateTimeFormat("en-CA", {
+      timeZone: timezone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+    }).format(new Date(nowMs));
+  } catch {
+    return null;
+  }
+}
+
+function sameLocalDateInTimezone(
+  isoRaw: unknown,
+  timezoneRaw: unknown,
+  referenceNowMs = Date.now(),
+): boolean {
+  const eventMs = parseTimestampMs(isoRaw);
+  if (eventMs === null) return false;
+  const eventYmd = localYmdFromTimezone(timezoneRaw, eventMs);
+  const refYmd = localYmdFromTimezone(timezoneRaw, referenceNowMs);
+  return Boolean(eventYmd && refYmd && eventYmd === refYmd);
+}
+
 type WinbackStep = 1 | 2 | 3;
 
 function nextWinbackStep(current: number): WinbackStep | null {
@@ -341,7 +370,7 @@ Deno.serve(async (req) => {
     const q = admin
       .from("profiles")
       .select(
-        "id, full_name, access_tier, whatsapp_bilan_opted_in, timezone, locale, whatsapp_last_inbound_at, whatsapp_last_outbound_at, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at",
+        "id, full_name, access_tier, whatsapp_bilan_opted_in, timezone, locale, whatsapp_last_inbound_at, whatsapp_last_outbound_at, whatsapp_bilan_paused_until, whatsapp_coaching_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step, whatsapp_bilan_last_winback_at",
       )
       .eq("whatsapp_opted_in", true)
       .eq("phone_invalid", false)
@@ -359,7 +388,7 @@ Deno.serve(async (req) => {
       : (profileLimit > 0 ? await q.limit(profileLimit) : await q);
 
     if (error) throw error;
-    const userIds = (profiles ?? []).map((p) => p.id);
+    const userIds = (profiles ?? []).map((p: any) => p.id);
     if (userIds.length === 0) {
       return jsonResponse(req, {
         message: "No opted-in users",
@@ -378,8 +407,8 @@ Deno.serve(async (req) => {
       .in("status", ["active", "in_progress", "pending"]);
 
     if (planErr) throw planErr;
-    const allowed = new Set((plans ?? []).map((p) => p.user_id));
-    const filtered = userIds.filter((id) => allowed.has(id));
+    const allowed = new Set((plans ?? []).map((p: any) => p.user_id));
+    const filtered = userIds.filter((id: string) => allowed.has(id));
 
     // Billing gate based on profile access tier (source of truth for proactive eligibility).
     // Eligible tiers: trial, alliance, architecte.
@@ -414,7 +443,7 @@ Deno.serve(async (req) => {
     const skippedUserIds: string[] = [];
     const skippedReasons: Record<string, string> = {};
 
-    const profilesById = new Map((profiles ?? []).map((p) => [p.id, p]));
+    const profilesById = new Map((profiles ?? []).map((p: any) => [p.id, p]));
 
     // ═══════════════════════════════════════════════════════════════════════════
     // BATCH FETCH: Load chat states for all users to check for active machines.
@@ -530,8 +559,51 @@ Deno.serve(async (req) => {
           skippedReasons[userId] = "sunday_reserved_for_weekly_bilan";
           continue;
         }
+        if (localDow === 1) {
+          try {
+            const { data: weeklyRecap } = await admin
+              .from("weekly_bilan_recaps")
+              .select("created_at")
+              .eq("user_id", userId)
+              .order("created_at", { ascending: false })
+              .limit(1)
+              .maybeSingle();
+            if (
+              weeklyRecap?.created_at &&
+              sameLocalDateInTimezone(weeklyRecap.created_at, p?.timezone)
+            ) {
+              skipped++;
+              skippedUserIds.push(userId);
+              skippedReasons[userId] = "monday_weekly_bilan_already_done";
+              if (logSkips) {
+                await logComm(admin, {
+                  user_id: userId,
+                  channel: "whatsapp",
+                  type: "daily_bilan_skipped",
+                  status: "skipped",
+                  metadata: {
+                    reason: "monday_weekly_bilan_already_done",
+                    weekly_bilan_created_at: weeklyRecap.created_at,
+                    request_id: requestId,
+                  },
+                });
+              }
+              continue;
+            }
+          } catch (e) {
+            console.error(
+              `[trigger-daily-bilan] weekly recap monday skip check failed for ${userId}:`,
+              e,
+            );
+          }
+        }
         const hasBilanOptIn = Boolean(p?.whatsapp_bilan_opted_in);
-        const pauseUntilMs = parseTimestampMs(p?.whatsapp_bilan_paused_until);
+        const bilanPauseUntilMs = parseTimestampMs(p?.whatsapp_bilan_paused_until);
+        const coachingPauseUntilMs = parseTimestampMs(p?.whatsapp_coaching_paused_until);
+        const pauseUntilMs = Math.max(
+          bilanPauseUntilMs ?? 0,
+          coachingPauseUntilMs ?? 0,
+        ) || null;
         const previousPromptMs = parseTimestampMs(p?.whatsapp_bilan_last_prompt_at);
         const lastInboundMs = parseTimestampMs(p?.whatsapp_last_inbound_at);
         const baselineMissed = Math.max(
@@ -570,7 +642,7 @@ Deno.serve(async (req) => {
               status: "skipped",
               metadata: {
                 reason: "bilan_paused_until",
-                pause_until: p?.whatsapp_bilan_paused_until ?? null,
+                pause_until: p?.whatsapp_coaching_paused_until ?? p?.whatsapp_bilan_paused_until ?? null,
                 request_id: requestId,
               },
             });

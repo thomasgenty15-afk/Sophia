@@ -380,7 +380,16 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
 }
 
 
-export async function logItem(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
+export type LogItemResult = {
+  message: string
+  entry_id: string | null
+}
+
+export async function logItemDetailed(
+  supabase: SupabaseClient,
+  userId: string,
+  args: any,
+): Promise<LogItemResult> {
   const { item_id, item_type, status, value, note, item_title } = args
   const hasNumericValue = Number.isFinite(Number(value))
   const normalizedStatusValue = hasNumericValue
@@ -419,7 +428,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
           : null
         const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
         if (lastPerformedDate && lastPerformedDate > eighteenHoursAgo) {
-          return "Logged (Skipped duplicate)"
+          return { message: "Logged (Skipped duplicate)", entry_id: null }
         }
 
         const tz = await getUserTimezone(supabase, userId)
@@ -444,7 +453,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
           last_performed_at: now.toISOString(),
         }).eq("id", item_id).eq("user_id", userId)
       }
-      return "Logged"
+      return { message: "Logged", entry_id: null }
     }
 
     // Idempotency / correction guard (all statuses):
@@ -469,7 +478,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
           console.log(
             `[Investigator] Recent action entry exists for ${item_id} (${prevStatus}), skipping duplicate insert.`,
           )
-          return "Logged (Skipped duplicate)"
+          return { message: "Logged (Skipped duplicate)", entry_id: String((recent as any).id ?? "") || null }
         }
         // Status changed within the same 18h window → update latest entry instead of inserting a new one.
         await supabase.from("user_action_entries").update({
@@ -482,6 +491,10 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
         console.log(
           `[Investigator] Updated recent action entry for ${item_id}: ${prevStatus} -> ${nextStatus}`,
         )
+        return {
+          message: "Logged",
+          entry_id: String((recent as any).id ?? "") || null,
+        }
         // If it's now completed, also update action stats as usual below.
       }
     }
@@ -503,7 +516,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
         console.log(
           `[Investigator] Action ${item_id} performed recently (${action?.last_performed_at}), skipping update & log.`,
         )
-        return "Logged (Skipped duplicate)"
+        return { message: "Logged (Skipped duplicate)", entry_id: null }
       }
 
       // Increment Reps (Si pas skipped)
@@ -541,26 +554,34 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
       .limit(1)
       .maybeSingle()
     const shouldInsert = !already?.id
-    const { error: logError } = shouldInsert ? await supabase.from("user_action_entries").insert({
-      user_id: userId,
-      action_id: item_id,
-      action_title: item_title,
-      status: status,
-      value: normalizedStatusValue,
-      note: note,
-      performed_at: now.toISOString(),
-      embedding: embedding,
-    }) : ({ error: null } as any)
+    const { data: insertedActionEntry, error: logError } = shouldInsert
+      ? await supabase.from("user_action_entries").insert({
+        user_id: userId,
+        action_id: item_id,
+        action_title: item_title,
+        status: status,
+        value: normalizedStatusValue,
+        note: note,
+        performed_at: now.toISOString(),
+        embedding: embedding,
+      }).select("id").single()
+      : ({ data: null, error: null } as any)
 
     if (logError) {
       const code = String((logError as any)?.code ?? "")
       if (code === "23505" && String(status ?? "") === "missed") {
         console.log("[Investigator] Missed entry dedup hit, skipping duplicate insert.")
-        return "Logged (Skipped duplicate)"
+        return { message: "Logged (Skipped duplicate)", entry_id: null }
       }
       console.error("[Investigator] ❌ Log Entry Error:", logError)
     } else {
       if (shouldInsert) console.log("[Investigator] ✅ Entry logged successfully")
+    }
+    return {
+      message: "Logged",
+      entry_id: shouldInsert
+        ? String((insertedActionEntry as any)?.id ?? "") || null
+        : String((already as any)?.id ?? "") || null,
     }
   } else if (item_type === "vital") {
     // Vital Sign
@@ -572,7 +593,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
     const { data: vital } = await supabase.from("user_vital_signs").select("plan_id, submission_id").eq("id", item_id)
       .single()
 
-    await supabase.from("user_vital_sign_entries").insert({
+    const { data: insertedVitalEntry } = await supabase.from("user_vital_sign_entries").insert({
       user_id: userId,
       vital_sign_id: item_id,
       plan_id: vital?.plan_id,
@@ -582,7 +603,11 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
       note: note,
       recorded_at: new Date().toISOString(),
       embedding: embedding,
-    })
+    }).select("id").single()
+    return {
+      message: "Logged",
+      entry_id: String((insertedVitalEntry as any)?.id ?? "") || null,
+    }
   } else if (item_type === "framework") {
     // Framework Tracking
     if (status === "completed") {
@@ -597,7 +622,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
 
       if (lastPerformedDate && lastPerformedDate > eighteenHoursAgo) {
         console.log(`[Investigator] Framework ${item_id} performed recently, skipping update.`)
-        return "Logged (Skipped duplicate)"
+        return { message: "Logged (Skipped duplicate)", entry_id: null }
       }
 
       const currReps = Number(fw?.current_reps || 0)
@@ -613,7 +638,7 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
         status: nextStatus,
       }).eq("id", item_id)
 
-      await supabase.from("user_framework_entries").insert({
+      const { data: insertedFrameworkEntry } = await supabase.from("user_framework_entries").insert({
         user_id: userId,
         plan_id: fw?.plan_id,
         action_id: fw?.action_id,
@@ -621,14 +646,18 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
         framework_type: "unknown",
         content: { status: status, note: note, checkup: true },
         created_at: now.toISOString(),
-      })
+      }).select("id").single()
+      return {
+        message: "Logged",
+        entry_id: String((insertedFrameworkEntry as any)?.id ?? "") || null,
+      }
     } else {
       const { data: fw } = await supabase.from("user_framework_tracking").select("action_id, plan_id, title").eq(
         "id",
         item_id,
       ).single()
 
-      await supabase.from("user_framework_entries").insert({
+      const { data: insertedFrameworkEntry } = await supabase.from("user_framework_entries").insert({
         user_id: userId,
         plan_id: fw?.plan_id,
         action_id: fw?.action_id,
@@ -636,11 +665,64 @@ export async function logItem(supabase: SupabaseClient, userId: string, args: an
         framework_type: "unknown",
         content: { status: status, note: note, checkup: true },
         created_at: now.toISOString(),
-      })
+      }).select("id").single()
+      return {
+        message: "Logged",
+        entry_id: String((insertedFrameworkEntry as any)?.id ?? "") || null,
+      }
     }
   }
 
-  return "Logged"
+  return { message: "Logged", entry_id: null }
+}
+
+export async function logItem(supabase: SupabaseClient, userId: string, args: any): Promise<string> {
+  const result = await logItemDetailed(supabase, userId, args)
+  return result.message
+}
+
+export async function updateLoggedItemReason(
+  supabase: SupabaseClient,
+  userId: string,
+  args: { entry_id: string; item_type: "action" | "vital" | "framework"; note: string },
+): Promise<void> {
+  const entryId = String(args.entry_id ?? "").trim()
+  const note = String(args.note ?? "").trim()
+  if (!entryId || !note) return
+
+  if (args.item_type === "action") {
+    await supabase
+      .from("user_action_entries")
+      .update({ note })
+      .eq("id", entryId)
+      .eq("user_id", userId)
+    return
+  }
+  if (args.item_type === "vital") {
+    await supabase
+      .from("user_vital_sign_entries")
+      .update({ note })
+      .eq("id", entryId)
+      .eq("user_id", userId)
+    return
+  }
+  const { data: current } = await supabase
+    .from("user_framework_entries")
+    .select("content")
+    .eq("id", entryId)
+    .eq("user_id", userId)
+    .maybeSingle()
+  const nextContent = {
+    ...(((current as any)?.content && typeof (current as any).content === "object")
+      ? (current as any).content
+      : {}),
+    note,
+  }
+  await supabase
+    .from("user_framework_entries")
+    .update({ content: nextContent })
+    .eq("id", entryId)
+    .eq("user_id", userId)
 }
 
 // Exposed for deterministic tool testing (DB writes). This does not change runtime behavior.

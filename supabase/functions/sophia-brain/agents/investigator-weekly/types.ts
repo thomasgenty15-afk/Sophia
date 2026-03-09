@@ -1,10 +1,28 @@
-import type { WeeklyReviewPayload } from "../../../trigger-weekly-bilan/payload.ts";
+import type {
+  WeeklyReviewPayload,
+  WeeklySuggestionDecision,
+} from "../../../trigger-weekly-bilan/payload.ts";
 
 export type WeeklyPhase = "execution" | "etoile_polaire" | "action_load" | "closing";
 
 export interface WeeklyRecapDraft {
   decisions_next_week: string[];
   coach_note?: string;
+}
+
+export interface WeeklySuggestionProposal {
+  id: string;
+  recommendation: "activate" | "deactivate" | "swap";
+  prompt: string;
+  decisions: WeeklySuggestionDecision[];
+}
+
+export interface WeeklySuggestionOutcome {
+  proposal_id: string;
+  outcome: "accepted" | "rejected" | "applied" | "failed";
+  summary: string;
+  applied_changes?: string[];
+  created_at: string;
 }
 
 export interface WeeklyInvestigationState {
@@ -16,6 +34,9 @@ export interface WeeklyInvestigationState {
   weekly_covered_topics: string[];
   weekly_stagnation_count: number;
   weekly_recap_draft: WeeklyRecapDraft;
+  weekly_suggestion_queue?: WeeklySuggestionProposal[];
+  weekly_pending_suggestion?: WeeklySuggestionProposal | null;
+  weekly_suggestion_outcomes?: WeeklySuggestionOutcome[];
   turn_count: number;
   started_at: string;
   updated_at?: string;
@@ -34,6 +55,9 @@ export function createWeeklyInvestigationState(
     weekly_covered_topics: [],
     weekly_stagnation_count: 0,
     weekly_recap_draft: { decisions_next_week: [] },
+    weekly_suggestion_queue: [],
+    weekly_pending_suggestion: null,
+    weekly_suggestion_outcomes: [],
     turn_count: 0,
     started_at: now,
     updated_at: now,

@@ -5,7 +5,7 @@ import {
   formatTopicMemoriesForPrompt,
   retrieveTopicMemories,
 } from "../../topic_memory.ts";
-import type { InvestigationState, InvestigatorTurnResult } from "./types.ts";
+import type { CheckupItem, InvestigationState, InvestigatorTurnResult } from "./types.ts";
 import { isExplicitStopBilan, resolveBinaryConsent } from "./utils.ts";
 import { investigatorSay } from "./copy.ts";
 import {
@@ -13,6 +13,9 @@ import {
   getPendingItems,
   getYesterdayCheckupSummary,
   increaseWeekTarget,
+  logItem,
+  logItemDetailed,
+  updateLoggedItemReason,
 } from "./db.ts";
 // NOTE: Investigator keeps a single deterministic offer flow: weekly target increase.
 import {
@@ -21,6 +24,22 @@ import {
   buildTargetExceededAddon,
   buildVitalProgressionAddon,
 } from "./prompt.ts";
+import {
+  buildBroadOpeningQuestion,
+  buildCompletedReactionMessage,
+  buildGroupedFollowUpMessage,
+  buildMissedReasonQuestion,
+  extractGlobalCheckupCoverage,
+  findFirstUnloggedIndex,
+  getNextUncoveredItems,
+  initializeGlobalCheckupState,
+  markItemsLoggedInGlobalState,
+  mergeGlobalExtraction,
+  normalizeLite,
+  spokenLabelForItem,
+} from "./global_state.ts";
+import { decideCheckupOpening } from "./opening_decider.ts";
+import { detectMissedReasonUpdate } from "./missed_reason.ts";
 import { INVESTIGATOR_TOOLS } from "./tools.ts";
 import { handleInvestigatorModelOutput } from "./turn.ts";
 import { getMissedStreakDaysForCheckupItem } from "./streaks.ts";
@@ -146,6 +165,39 @@ export async function runInvestigator(
   // (processMessage in run.ts). The investigation_state is cleaned up before we even
   // reach this function, so no "expired" message is ever sent to the user.
 
+  const pendingMissedReasons = Array.isArray(currentState?.temp_memory?.pending_missed_reasons)
+    ? currentState.temp_memory.pending_missed_reasons
+    : [];
+  if (
+    currentState?.status === "checking" &&
+    pendingMissedReasons.length > 0 &&
+    String(message ?? "").trim().length >= 3
+  ) {
+    const missedReasonDecision = await detectMissedReasonUpdate({
+      message,
+      pending: pendingMissedReasons,
+      history,
+      meta,
+    });
+    if (missedReasonDecision.reason && missedReasonDecision.matched_entry_ids.length > 0) {
+      for (const pending of pendingMissedReasons) {
+        if (!missedReasonDecision.matched_entry_ids.includes(pending.entry_id)) continue;
+        await updateLoggedItemReason(supabase, userId, {
+          entry_id: pending.entry_id,
+          item_type: pending.item_type,
+          note: missedReasonDecision.reason,
+        });
+      }
+    }
+    currentState = {
+      ...currentState,
+      temp_memory: {
+        ...(currentState.temp_memory || {}),
+        pending_missed_reasons: [],
+      },
+    };
+  }
+
   // Start: load items
   if (currentState.status === "init") {
     const items = await getPendingItems(supabase, userId);
@@ -225,6 +277,7 @@ export async function runInvestigator(
         missed_streaks_by_action: missedStreaksByAction,
         vital_progression: vitalProgression,
         item_progress: initializeItemProgress(items),
+        global_checkup_state: initializeGlobalCheckupState(items, "broad_open"),
       },
     };
   }
@@ -241,125 +294,61 @@ export async function runInvestigator(
       history,
     );
 
-    // Update item progress: first item is now awaiting_answer
-    let nextState = updateItemProgress(currentState, currentItem0.id, {
-      phase: "awaiting_answer",
-      last_question_kind: currentItem0.type === "vital"
-        ? "vital_value"
-        : "did_it",
-    });
+    let nextState: InvestigationState = {
+      ...currentState,
+      temp_memory: {
+        ...(currentState.temp_memory || {}),
+        global_checkup_state: {
+          ...(currentState.temp_memory?.global_checkup_state ??
+            initializeGlobalCheckupState(currentState.pending_items)),
+          broad_opening_used: true,
+        },
+      },
+    };
     nextState = {
       ...nextState,
       temp_memory: { ...(nextState.temp_memory || {}), opening_done: true },
     };
 
-    function normalizeLite(s: string): string {
-      return String(s ?? "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .replace(/[^a-z0-9\s]/g, " ")
-        .replace(/\s+/g, " ")
-        .trim();
-    }
-
-    function spokenLabelForItem(item: any): string {
-      const rawTitle = String(item?.title ?? "").trim();
-      const rawDesc = String(item?.description ?? "").trim();
-      const title = rawTitle || rawDesc || "";
-      if (!title) return "ce point";
-      const t = normalizeLite(title);
-
-      // Vitals: prefer natural spoken labels
-      if (item?.type === "vital") {
-        if (/ecran|screen|scroll|tiktok|instagram|youtube/i.test(t)) {
-          return "les écrans";
-        }
-        if (/sommeil|dormi|nuit|coucher|reveil|réveil/i.test(t)) {
-          return "ta nuit";
-        }
-        if (/endormissement|tete\s+sur\s+l.?oreiller|oreiller/i.test(t)) {
-          return "t'endormir";
-        }
-        if (/energie|humeur|moral|forme|batterie/i.test(t)) {
-          return "ton énergie";
-        }
-        if (/stress|anxieux|anxi[eé]t[eé]/i.test(t)) return "ton stress";
-      }
-
-      // Actions/frameworks: keep it short, but avoid "pour ça"
-      // Use the first 6-ish words, strip extra spaces.
-      const words = title.split(/\s+/).filter(Boolean);
-      const short = words.slice(0, 6).join(" ").trim();
-      return short || "ce point";
-    }
-
     const fallbackFirstQuestion = (() => {
-      // Use the item's own day_scope (based on time_of_day), fallback to global
-      const dayScope = String(
-        currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ??
-          "yesterday",
-      );
-      const dayRef = dayScope === "today" ? "aujourd'hui" : "hier";
-      const label = spokenLabelForItem(currentItem0);
-      const titleNorm = normalizeLite(label);
-
-      if (currentItem0.type === "vital") {
-        const unit = String((currentItem0 as any)?.unit ?? "").trim();
-        const unitSuffix = unit ? ` (en ${unit})` : "";
-        // Sommeil / endormissement
-        if (
-          /tete\s+sur\s+l.?oreiller|endormissement|temps\s+(entre|pour)/i.test(
-            titleNorm,
-          )
-        ) {
-          return `En ce moment, il te faut combien de temps pour t'endormir à peu près ?`;
-        }
-        // Écran / screen time
-        if (/ecran|screen/i.test(titleNorm)) {
-          return `Côté écrans ${dayRef}, tu dirais combien de temps à peu près ?${unitSuffix}`;
-        }
-        // Sommeil heures
-        if (/sommeil|dormi|nuit/i.test(titleNorm)) {
-          return `T'as dormi combien ${dayRef} ?`;
-        }
-        // Énergie / humeur
-        if (/energie|humeur|moral|forme/i.test(titleNorm)) {
-          return `Comment tu te sens niveau énergie ${dayRef} ?`;
-        }
-        // Default vital - always mention the label (never "pour ça")
-        // Keep it spoken: "Et {label} {dayRef}, tu dirais combien ?"
-        const prefix = dayRef === "hier" ? "Et" : "Et";
-        return `${prefix} ${label} ${dayRef}, tu dirais combien ?${unitSuffix}`;
-      }
-      if (currentItem0.type === "action") {
-        return `${label} — c'est fait ${dayRef} ?`;
-      }
-      if (currentItem0.type === "framework") {
-        return `${label} — tu l'as fait ${dayRef} ?`;
-      }
-      return `On commence par ça ?`;
+      return buildBroadOpeningQuestion();
     })();
 
     try {
       const summary = await getYesterdayCheckupSummary(supabase, userId);
-      const openingText = await investigatorSay(
-        "opening_first_item",
-        {
-          user_message: message,
-          channel: meta?.channel,
-          summary_yesterday: summary,
-          first_item: currentItem0,
-          recent_history: history.slice(-15),
-          opening_context: openingContext,
-          // Use the item's own day_scope (based on time_of_day)
-          day_scope: String(
-            currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ??
-              "yesterday",
-          ),
-        },
+      const openingDecision = await decideCheckupOpening({
+        message,
+        history,
+        focusItems: currentState.pending_items.slice(0, 2),
+        summaryYesterday: summary,
         meta,
-      );
+      });
+      if (openingDecision.decision === "defer") {
+        return {
+          content: openingDecision.opening_message ||
+            "Je te laisse là-dessus pour l'instant. On pourra faire le point du jour un peu plus tard si tu veux.",
+          investigationComplete: true,
+          newState: null,
+        };
+      }
+      const openingText = openingDecision.opening_message ||
+        await investigatorSay(
+          "opening_global_checkup",
+          {
+            user_message: message,
+            channel: meta?.channel,
+            summary_yesterday: summary,
+            first_item: currentItem0,
+            focus_items: currentState.pending_items.slice(0, 2),
+            recent_history: history.slice(-15),
+            opening_context: openingContext,
+            day_scope: String(
+              currentItem0.day_scope ?? currentState?.temp_memory?.day_scope ??
+                "yesterday",
+            ),
+          },
+          meta,
+        );
 
       // IMPORTANT: keep the AI's opening whenever the call succeeds.
       // Deterministic fallback is reserved for network/LLM failures (catch block).
@@ -372,14 +361,14 @@ export async function runInvestigator(
       console.error("[Investigator] opening summary failed:", e);
       const intros = openingContext.mode === "ongoing_conversation"
         ? [
-          "Si ca te va, on cale le bilan maintenant, comme ca c'est fait.",
-          "Je te prends 2 min pour le bilan, et ensuite on continue.",
-          "On glisse le bilan maintenant, tranquillement.",
+          "Si ca te va, on cale le bilan maintenant, comme ca c'est fait 🙂",
+          "Je te prends 2 min pour le bilan, et ensuite on continue 🙂",
+          "On glisse le bilan maintenant, tranquillement 🙂",
         ]
         : [
-          "Hey, c'est l'heure de ton bilan.",
-          "Petit check-in du jour.",
-          "On se fait le bilan du jour.",
+          "Hey, c'est l'heure de ton bilan 🙂",
+          "Petit check-in du jour 🙂",
+          "On se fait le bilan du jour 🙂",
         ];
       const intro = intros[Math.floor(Math.random() * intros.length)];
       const safe = `${intro}\n\n${fallbackFirstQuestion}`;
@@ -388,6 +377,120 @@ export async function runInvestigator(
         investigationComplete: false,
         newState: nextState,
       };
+    }
+  }
+
+  const pendingIncreaseOffer = (currentState as any)?.temp_memory
+    ?.pending_increase_target_offer;
+
+  if (
+    currentState.status === "checking" &&
+    currentState.temp_memory?.opening_done === true &&
+    !pendingIncreaseOffer &&
+    String(message ?? "").trim().length >= 3
+  ) {
+    const extraction = await extractGlobalCheckupCoverage({
+      message,
+      items: currentState.pending_items.filter((item) =>
+        String(getItemProgress(currentState, item.id).phase) !== "logged"
+      ),
+      history,
+      meta,
+    });
+
+    currentState = mergeGlobalExtraction(currentState, extraction);
+
+    const loggedItemIds: string[] = [];
+    for (const entry of extraction.items ?? []) {
+      if (!entry.covered) continue;
+      const item = currentState.pending_items.find((candidate) =>
+        candidate.id === entry.item_id
+      );
+      if (!item) continue;
+      const progress = getItemProgress(currentState, item.id);
+      if (progress.phase === "logged") continue;
+
+      const status = entry.status === "value"
+        ? "completed"
+        : entry.status;
+      const hasNumericValue = Number.isFinite(Number(entry.value));
+      if (
+        !["completed", "missed", "partial", "value"].includes(String(entry.status))
+      ) {
+        continue;
+      }
+      if (item.type === "vital" && !hasNumericValue) continue;
+      const logResult = await logItemDetailed(supabase, userId, {
+        item_id: item.id,
+        item_type: item.type,
+        item_title: item.title,
+        item_source: item.action_source,
+        status,
+        value: hasNumericValue ? Number(entry.value) : undefined,
+        note: entry.obstacle ?? entry.evidence ?? undefined,
+      });
+
+      currentState = updateItemProgress(currentState, item.id, {
+        phase: "logged",
+        logged_at: new Date().toISOString(),
+        logged_status: status,
+      });
+      loggedItemIds.push(item.id);
+      if (String(status) === "missed" && !String(entry.obstacle ?? entry.evidence ?? "").trim() && logResult.entry_id) {
+        const existingPending = Array.isArray(currentState.temp_memory?.pending_missed_reasons)
+          ? currentState.temp_memory.pending_missed_reasons
+          : [];
+        currentState = {
+          ...currentState,
+          temp_memory: {
+            ...(currentState.temp_memory || {}),
+            pending_missed_reasons: [
+              ...existingPending,
+              {
+                entry_id: logResult.entry_id,
+                item_id: item.id,
+                item_type: item.type,
+                item_title: item.title,
+                created_at: new Date().toISOString(),
+              },
+            ],
+          },
+        };
+      }
+    }
+
+    if (loggedItemIds.length > 0) {
+      currentState = markItemsLoggedInGlobalState(currentState, loggedItemIds);
+    }
+
+    if (loggedItemIds.length > 0) {
+      currentState = {
+        ...currentState,
+        current_item_index: findFirstUnloggedIndex(currentState),
+      };
+      const nextItems = getNextUncoveredItems(currentState, 2);
+      if (nextItems.length > 0) {
+        currentState = updateItemProgress(currentState, nextItems[0].id, {
+          phase: "awaiting_answer",
+          last_question_kind: nextItems[0].type === "vital"
+            ? "vital_value"
+            : "did_it",
+        });
+        const coveredItems = currentState.pending_items.filter((item) => loggedItemIds.includes(item.id));
+        const completedItems = coveredItems.filter((item) =>
+          String(getItemProgress(currentState, item.id).logged_status ?? "") === "completed"
+        );
+        const completedIntro = buildCompletedReactionMessage(completedItems);
+        const followUp = buildGroupedFollowUpMessage({
+          coveredItems,
+          nextItems,
+        });
+        return {
+          content: completedIntro ? `${completedIntro}\n\n${followUp}` : followUp,
+          investigationComplete: false,
+          newState: currentState,
+        };
+      }
     }
   }
 
@@ -455,10 +558,6 @@ export async function runInvestigator(
       };
     }
   }
-
-  // Handle pending weekly-target increase flow before normal item handling.
-  const pendingIncreaseOffer = (currentState as any)?.temp_memory
-    ?.pending_increase_target_offer;
 
   // ── AWAITING DAY CHOICE: user said yes to increase + action has scheduled_days → parse the day ──
   if (pendingIncreaseOffer?.stage === "awaiting_day_choice") {

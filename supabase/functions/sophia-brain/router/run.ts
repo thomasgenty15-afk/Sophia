@@ -18,7 +18,11 @@ import {
 } from "../context/loader.ts";
 import { getContextProfile, getVectorResultsCount } from "../context/types.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
-import { getGlobalAiModel, searchWithGeminiGrounding } from "../../_shared/gemini.ts";
+import {
+  generateWithGemini,
+  getGlobalAiModel,
+  searchWithGeminiGrounding,
+} from "../../_shared/gemini.ts";
 import { debounceAndBurstMerge } from "./debounce.ts";
 import {
   buildDispatcherStateSnapshot,
@@ -227,6 +231,106 @@ function detectCheckupIntent(dispatcherSignals: DispatcherSignals): boolean {
     Boolean(checkupIntentSignal?.detected) &&
     Number(checkupIntentSignal?.confidence ?? 0) >= 0.6
   );
+}
+
+export type StaleBilanDecision =
+  | "resume_bilan"
+  | "stop_for_today"
+  | "other_topic";
+
+export function deterministicStaleBilanDecision(text: string): StaleBilanDecision | null {
+  const lower = String(text ?? "").trim().toLowerCase();
+  if (!lower) return "other_topic";
+
+  if (
+    /\b(pas\s+maintenant|plus\s+tard|demain|on\s+verra|pas\s+dispo|une\s+autre\s+fois|laisse\s+tomber|stop|arr[êe]te|on\s+s['’]?arr[êe]te|bonne\s+nuit|à\s+demain|a\s+demain|je\s+te\s+laisse)\b/i
+      .test(lower)
+  ) {
+    return "stop_for_today";
+  }
+
+  if (
+    /^(oui|ok|okay|dac|d'accord|go|yes|ouais|yep)\b/i.test(lower) ||
+    /\b(on\s+reprend|reprenons|on\s+continue|continuons|vas[- ]?y|c['’]est\s+parti)\b/i
+      .test(lower)
+  ) {
+    return "resume_bilan";
+  }
+
+  return null;
+}
+
+async function classifyStaleBilanResponse(params: {
+  userMessage: string;
+  lastAssistantMessage: string;
+  history: Array<{ role?: string; content?: string }>;
+  requestId?: string;
+}): Promise<StaleBilanDecision> {
+  const text = String(params.userMessage ?? "").trim();
+  if (!text) return "other_topic";
+
+  const deterministic = deterministicStaleBilanDecision(text);
+  if (deterministic) return deterministic;
+
+  const recentContext = params.history.slice(-4).map((m) =>
+    `${m.role === "assistant" ? "SOPHIA" : "USER"}: ${String(m.content ?? "").trim()}`
+  ).join("\n");
+
+  const systemPrompt = [
+    "Tu classes la réponse d'un utilisateur à un bilan quotidien WhatsApp resté en pause plus de 4 heures.",
+    "Le bilan était en cours plus tôt, mais il a expiré.",
+    "Tu dois choisir UNE seule décision parmi :",
+    '- "resume_bilan" : l\'utilisateur veut clairement reprendre le bilan maintenant',
+    '- "stop_for_today" : l\'utilisateur dit non, veut reporter, arrêter, ou reprendre demain/plus tard',
+    '- "other_topic" : l\'utilisateur parle d\'autre chose, pose une question différente, ou change de sujet',
+    "",
+    "Règles importantes :",
+    "- Si l'utilisateur veut reprendre plus tard, demain, ou n'est pas dispo maintenant => stop_for_today.",
+    "- Si l'utilisateur envoie un vrai nouveau sujet sans parler du bilan => other_topic.",
+    "- N'utilise resume_bilan que si l'intention de reprendre le bilan maintenant est claire.",
+    "",
+    "Dernier message de Sophia :",
+    params.lastAssistantMessage || "(vide)",
+    "",
+    "Contexte récent :",
+    recentContext || "(vide)",
+    "",
+    'Réponds UNIQUEMENT en JSON valide: {"decision":"resume_bilan"|"stop_for_today"|"other_topic"}',
+  ].join("\n");
+
+  try {
+    const raw = await generateWithGemini(
+      systemPrompt,
+      `Message utilisateur: "${text}"`,
+      0.1,
+      true,
+      [],
+      "auto",
+      {
+        requestId: params.requestId,
+        model: getGlobalAiModel("gemini-2.5-flash"),
+        source: "bilan_stale_classify",
+        forceRealAi: true,
+      },
+    );
+    const cleaned = String(raw ?? "")
+      .replace(/```json?\s*/gi, "")
+      .replace(/```/g, "")
+      .trim();
+    const parsed = JSON.parse(cleaned);
+    const decision = String(parsed?.decision ?? "").trim();
+    if (
+      decision === "resume_bilan" ||
+      decision === "stop_for_today" ||
+      decision === "other_topic"
+    ) {
+      return decision;
+    }
+  } catch (e) {
+    console.warn("[Router] stale bilan classification failed, using fallback:", e);
+  }
+
+  return deterministicStaleBilanDecision(text) ?? "other_topic";
 }
 
 function selectTargetMode(args: {
@@ -721,40 +825,105 @@ export async function processMessage(
     const wantsToContinueByDispatcher = machineSignals?.wants_to_continue_bilan === true;
     const dontWantToContinueByDispatcher = machineSignals?.dont_want_continue_bilan === true;
     const checkupIntentNow = detectCheckupIntent(dispatcherSignals);
+    const staleDecision = await classifyStaleBilanResponse({
+      userMessage,
+      lastAssistantMessage,
+      history,
+      requestId: meta?.requestId,
+    });
+    const staleInvestigationMode = String((state as any)?.investigation_state?.mode ?? "");
     const explicitConsent = resolveBinaryConsentLite(userMessage);
-    const explicitContinue = explicitConsent === "yes";
-    const explicitStop = explicitConsent === "no";
-    const shouldContinue = (wantsToContinueByDispatcher && !dontWantToContinueByDispatcher) ||
-      explicitContinue ||
+    const shouldContinue = staleDecision === "resume_bilan" ||
+      ((wantsToContinueByDispatcher && !dontWantToContinueByDispatcher) && staleDecision !== "other_topic") ||
       checkupIntentNow;
-    const shouldAbandon = dontWantToContinueByDispatcher || explicitStop || !shouldContinue;
-    if (shouldAbandon) {
+    const shouldStopForToday = staleDecision === "stop_for_today";
+    const shouldAbandonForTopic = staleDecision === "other_topic" &&
+      (dontWantToContinueByDispatcher || !shouldContinue);
+    if (shouldStopForToday || shouldAbandonForTopic) {
+      let nextTempMemory = tempMemory;
+      if (shouldStopForToday) {
+        nextTempMemory = {
+          ...(tempMemory ?? {}),
+          __bilan_just_stopped: {
+            stopped_at: new Date().toISOString(),
+            reason: "stale_checkup_stop_for_today",
+          },
+        };
+      }
       await updateUserState(supabase, userId, scope, {
         investigation_state: null as any,
-        temp_memory: tempMemory,
+        temp_memory: nextTempMemory,
       });
       state = {
         ...state,
         investigation_state: null,
-        temp_memory: tempMemory,
+        temp_memory: nextTempMemory,
       } as any;
+      tempMemory = nextTempMemory;
       await trace("brain:stale_checkup_abandoned", "routing", {
         elapsed_ms: elapsedSinceStartMs,
         timeout_ms: staleTimeoutMs,
-        reason: dontWantToContinueByDispatcher
+        reason: shouldStopForToday
+          ? "stale_classifier_stop_for_today"
+          : dontWantToContinueByDispatcher
           ? "dispatcher_dont_want_continue_bilan"
-          : explicitStop
-          ? "explicit_user_stop"
           : "message_not_checkup_related",
+        stale_decision: staleDecision,
         wants_to_continue_bilan: wantsToContinueByDispatcher,
         dont_want_continue_bilan: dontWantToContinueByDispatcher,
         checkup_intent_now: checkupIntentNow,
         explicit_consent: explicitConsent,
       }, "info");
+      if (shouldStopForToday) {
+        const responseContent = staleInvestigationMode === "weekly_bilan"
+          ? "Pas de souci, on reprendra le bilan hebdo une autre fois."
+          : "Pas de souci, on ne peut pas le reporter plus tard ce soir. On fera le bilan demain.";
+        const nextMode: AgentMode = "companion";
+        const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
+        const nextLastInteraction = new Date().toISOString();
+        await updateUserState(supabase, userId, scope, {
+          current_mode: nextMode,
+          unprocessed_msg_count: nextMsgCount,
+          last_interaction_at: nextLastInteraction,
+          temp_memory: tempMemory,
+        });
+        if (logMessages) {
+          await logMessage(
+            supabase,
+            userId,
+            scope,
+            "assistant",
+            responseContent,
+            nextMode,
+            {
+              ...(opts?.messageMetadata ?? {}),
+              channel,
+              request_id: meta?.requestId ?? null,
+              router_decision_v2: {
+                target_mode: "companion",
+                next_mode: nextMode,
+                risk_score: riskScore,
+                checkup_active: true,
+                stop_checkup: true,
+                safety_level: dispatcherSignals.safety.level,
+                interrupt_kind: dispatcherSignals.interrupt.kind,
+                stale_bilan_decision: staleDecision,
+              },
+            },
+          );
+        }
+        return {
+          content: responseContent,
+          mode: nextMode,
+          tool_execution: "none",
+          executed_tools: [],
+        };
+      }
     } else {
       await trace("brain:stale_checkup_continues_implicitly", "routing", {
         elapsed_ms: elapsedSinceStartMs,
         timeout_ms: staleTimeoutMs,
+        stale_decision: staleDecision,
         wants_to_continue_bilan: wantsToContinueByDispatcher,
         dont_want_continue_bilan: dontWantToContinueByDispatcher,
         checkup_intent_now: checkupIntentNow,

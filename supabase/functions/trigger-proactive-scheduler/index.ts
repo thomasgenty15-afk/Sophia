@@ -9,6 +9,14 @@ function internalSecret(): string {
   return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() || Deno.env.get("SECRET_KEY")?.trim() || "")
 }
 
+function anonKey(): string {
+  return (Deno.env.get("SUPABASE_ANON_KEY") ?? "").trim()
+}
+
+function serviceRoleKey(): string {
+  return (Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "").trim()
+}
+
 function functionsBaseUrl(): string {
   const supabaseUrl = (Deno.env.get("SUPABASE_URL") ?? "").trim()
   if (!supabaseUrl) return "http://kong:8000"
@@ -16,16 +24,29 @@ function functionsBaseUrl(): string {
   return supabaseUrl.replace(/\/+$/, "")
 }
 
+function looksLikeJwtToken(value: string): boolean {
+  const token = String(value ?? "").trim()
+  if (!token) return false
+  const parts = token.split(".")
+  return parts.length === 3 && parts.every((p) => p.length > 0)
+}
+
 async function callEdge(functionName: string, body: unknown) {
   const secret = internalSecret()
   if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET")
+  const anon = anonKey()
+  const serviceRole = serviceRoleKey()
   const url = `${functionsBaseUrl()}/functions/v1/${functionName}`
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    "X-Internal-Secret": secret,
+  }
+  // Some runtimes verify the JWT at the gateway before the function checks X-Internal-Secret.
+  if (anon) headers.apikey = anon
+  if (looksLikeJwtToken(serviceRole)) headers.Authorization = `Bearer ${serviceRole}`
   const res = await fetch(url, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Internal-Secret": secret,
-    },
+    headers,
     body: JSON.stringify(body ?? {}),
   })
   const data = await res.json().catch(() => ({}))

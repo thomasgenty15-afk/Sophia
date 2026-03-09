@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
 
     const q = admin
       .from("profiles")
-      .select("id, locale, timezone, whatsapp_last_inbound_at")
+      .select("id, locale, timezone, access_tier, whatsapp_last_inbound_at, whatsapp_bilan_paused_until, whatsapp_coaching_paused_until")
       .eq("whatsapp_opted_in", true)
       .eq("phone_invalid", false)
       .not("phone_number", "is", null);
@@ -138,7 +138,7 @@ Deno.serve(async (req) => {
     if (planErr) throw planErr;
 
     const planEligible = new Set((plans ?? []).map((p: any) => String(p.user_id ?? "")));
-    const filtered = userIds.filter((id) => planEligible.has(id));
+    const filtered = userIds.filter((id: string) => planEligible.has(id));
     if (filtered.length === 0) {
       return jsonResponse(req, {
         success: true,
@@ -213,6 +213,17 @@ Deno.serve(async (req) => {
         }
 
         const p = profilesById.get(userId) as any;
+        const pauseUntilMs = Math.max(
+          parseTimestampMs(p?.whatsapp_bilan_paused_until) ?? 0,
+          parseTimestampMs(p?.whatsapp_coaching_paused_until) ?? 0,
+        ) || null;
+        if (pauseUntilMs && pauseUntilMs > Date.now()) {
+          skipped++;
+          skippedUserIds.push(userId);
+          skippedReasons[userId] = "coaching_paused_until";
+          continue;
+        }
+
         const payload = await buildWeeklyReviewPayload(admin as any, userId);
 
         const lastInboundMs = parseTimestampMs(p?.whatsapp_last_inbound_at);
@@ -223,7 +234,7 @@ Deno.serve(async (req) => {
             user_id: userId,
             message: {
               type: "template",
-              name: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME") ?? "weekly_bilan_fin_semaine_v1_fr").trim(),
+              name: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME") ?? "sophia_bilan_weekly_v1").trim(),
               language: whatsappLangFromLocale(
                 p?.locale ?? null,
                 (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG") ?? "fr").trim(),

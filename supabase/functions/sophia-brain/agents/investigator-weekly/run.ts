@@ -29,7 +29,7 @@ export async function runInvestigatorWeekly(
 
   if (!currentState?.weekly_payload) {
     return {
-      content: "On a perdu le contexte du bilan hebdo. On le relance dimanche prochain.",
+      content: "On a perdu le contexte du bilan hebdo, on le relance dimanche prochain 🙂",
       investigationComplete: true,
       newState: null,
     };
@@ -37,7 +37,7 @@ export async function runInvestigatorWeekly(
 
   if (isExplicitStopBilan(message)) {
     return {
-      content: "Pas de souci, on coupe le bilan hebdo ici. On reprendra au prochain créneau.",
+      content: "Pas de souci, on coupe le bilan hebdo ici 🙂 On reprendra au prochain créneau.",
       investigationComplete: true,
       newState: null,
     };
@@ -46,7 +46,7 @@ export async function runInvestigatorWeekly(
   if (currentState.status === "init") {
     if (consent === "no") {
       return {
-        content: "Pas de souci, ce n'est pas grave. On fera le bilan hebdo la semaine prochaine.",
+        content: "Pas de souci, ce n'est pas grave 🙂 On fera le bilan hebdo la semaine prochaine.",
         investigationComplete: true,
         newState: null,
       };
@@ -81,7 +81,7 @@ export async function runInvestigatorWeekly(
   if (currentState.awaiting_start_consent) {
     if (consent === "no") {
       return {
-        content: "Pas de souci, ce n'est pas grave. On fera le bilan hebdo la semaine prochaine.",
+        content: "Pas de souci, ce n'est pas grave 🙂 On fera le bilan hebdo la semaine prochaine.",
         investigationComplete: true,
         newState: null,
       };
@@ -101,8 +101,23 @@ export async function runInvestigatorWeekly(
         meta,
       });
     }
+    let reaskContent = "Tu veux qu'on fasse le bilan hebdo maintenant ou plus tard 🙂";
+    try {
+      reaskContent = await weeklyInvestigatorSay(
+        "weekly_bilan_reask_consent",
+        {
+          user_message: message,
+          weekly_payload: currentState.weekly_payload,
+          covered_topics: currentState.weekly_covered_topics,
+          recent_history: (history ?? []).slice(-12),
+        },
+        meta,
+      );
+    } catch {
+      // Keep a deterministic fallback only if copy generation fails.
+    }
     return {
-      content: "Pas de souci. Tu veux qu'on fasse le bilan hebdo maintenant ?",
+      content: reaskContent,
       investigationComplete: false,
       newState: {
         ...currentState,

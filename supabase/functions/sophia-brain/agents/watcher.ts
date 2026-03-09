@@ -12,6 +12,13 @@ type ExistingCheckin = {
   message_payload?: Record<string, unknown> | null
 }
 
+type CoachingPauseDecision = {
+  should_pause: boolean
+  confidence_score: number
+  pause_days: number
+  rationale?: string
+}
+
 function getWatcherIntervalMinutes(): number {
   const raw = Number((Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "10").trim())
   if (!Number.isFinite(raw) || raw <= 0) return 10
@@ -101,6 +108,139 @@ function deriveTextContext(checkin: ExistingCheckin): string {
   if (genericInstruction) return genericInstruction
 
   return ""
+}
+
+function clampPauseDays(value: unknown): number {
+  const n = Math.floor(Number(value))
+  if (!Number.isFinite(n)) return 0
+  return Math.max(0, Math.min(30, n))
+}
+
+function parseTimestampMs(value: unknown): number | null {
+  if (typeof value !== "string" || !value.trim()) return null
+  const ms = new Date(value).getTime()
+  return Number.isFinite(ms) ? ms : null
+}
+
+function computeLaterPauseUntil(currentValue: unknown, pauseDays: number): string {
+  const requestedMs = Date.now() + Math.max(1, pauseDays) * 24 * 60 * 60 * 1000
+  const existingMs = parseTimestampMs(currentValue)
+  const nextMs = existingMs && existingMs > requestedMs ? existingMs : requestedMs
+  return new Date(nextMs).toISOString()
+}
+
+async function detectCoachingPauseDecision(params: {
+  transcript: string
+  requestId?: string
+}): Promise<CoachingPauseDecision | null> {
+  const prompt = `
+Tu es un classifieur ultra-conservateur pour Sophia.
+Ta mission: détecter si l'utilisateur demande explicitement une pause temporaire sur le coaching lié aux objectifs.
+
+Cette pause coaching concerne uniquement:
+- le bilan quotidien du soir
+- le bilan hebdomadaire
+- le message de motivation du matin sur les actions actives
+
+N'inclus PAS:
+- les rappels récurrents configurés par l'utilisateur
+- les memory_echo
+- les check-ins ponctuels watcher d'événements
+- la simple volonté d'arrêter la conversation en cours
+- la pause d'une action précise
+
+Règles strictes:
+- Sois très conservateur.
+- N'active la pause que si la demande est explicite et vise bien ces sollicitations de coaching.
+- Si la durée n'est pas claire, retourne should_pause=false.
+- Interprète "quelques jours" seulement si c'est vraiment explicite et sans ambiguïté.
+- Le confidence_score est entre 0 et 10.
+- Retourne JSON strict uniquement.
+
+Schema:
+{"should_pause":true|false,"confidence_score":0,"pause_days":0,"rationale":"court"}
+  `.trim()
+
+  const userPrompt = `
+Analyse cette fenêtre de conversation récente et décide si l'utilisateur demande une pause coaching temporaire.
+
+${params.transcript}
+  `.trim()
+
+  try {
+    const out = await generateWithGemini(
+      prompt,
+      userPrompt,
+      0.1,
+      true,
+      [],
+      "auto",
+      { requestId: params.requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "trigger-watcher-batch:coaching-pause" },
+    )
+    const parsed = JSON.parse(String(out)) as Partial<CoachingPauseDecision>
+    return {
+      should_pause: Boolean(parsed?.should_pause),
+      confidence_score: Number(parsed?.confidence_score ?? 0),
+      pause_days: clampPauseDays(parsed?.pause_days),
+      rationale: compactOneLine(String(parsed?.rationale ?? ""), 180) || undefined,
+    }
+  } catch {
+    return null
+  }
+}
+
+async function applyCoachingPause(params: {
+  supabase: SupabaseClient
+  userId: string
+  pauseUntilIso: string
+}): Promise<void> {
+  const nowIso = new Date().toISOString()
+
+  const { error: profileErr } = await params.supabase
+    .from("profiles")
+    .update({
+      whatsapp_coaching_paused_until: params.pauseUntilIso,
+      whatsapp_bilan_paused_until: params.pauseUntilIso,
+    } as any)
+    .eq("id", params.userId)
+  if (profileErr) throw profileErr
+
+  const { error: morningCancelErr } = await params.supabase
+    .from("scheduled_checkins")
+    .update({
+      status: "cancelled",
+      processed_at: nowIso,
+    } as any)
+    .eq("user_id", params.userId)
+    .eq("event_context", "morning_active_actions_nudge")
+    .in("status", ["pending", "awaiting_user"])
+    .gte("scheduled_for", nowIso)
+    .lt("scheduled_for", params.pauseUntilIso)
+  if (morningCancelErr) throw morningCancelErr
+
+  const pendingKinds = ["weekly_bilan", "bilan_reschedule"] as const
+  const { error: pendingErr } = await params.supabase
+    .from("whatsapp_pending_actions")
+    .update({
+      status: "cancelled",
+      processed_at: nowIso,
+    } as any)
+    .eq("user_id", params.userId)
+    .in("kind", [...pendingKinds])
+    .eq("status", "pending")
+  if (pendingErr) throw pendingErr
+
+  const { error: morningPendingErr } = await params.supabase
+    .from("whatsapp_pending_actions")
+    .update({
+      status: "cancelled",
+      processed_at: nowIso,
+    } as any)
+    .eq("user_id", params.userId)
+    .eq("kind", "scheduled_checkin")
+    .eq("status", "pending")
+    .filter("payload->>event_context", "eq", "morning_active_actions_nudge")
+  if (morningPendingErr) throw morningPendingErr
 }
 
 async function aiValidateDayCoherence(params: {
@@ -234,7 +374,7 @@ export async function runWatcher(
   // Watcher-only mode: detect future events and schedule punctual check-ins.
   const { data: prof } = await supabase
     .from("profiles")
-    .select("timezone, locale")
+    .select("timezone, locale, whatsapp_coaching_paused_until, whatsapp_bilan_paused_until")
     .eq("id", userId)
     .maybeSingle()
   const tctx = buildUserTimeContextFromValues({
@@ -273,6 +413,34 @@ export async function runWatcher(
   const fullTranscript = windowMessages
     .map((m: any) => `[${m.created_at}] ${m.role}: ${m.content}`)
     .join("\n")
+  const pauseDecision = await detectCoachingPauseDecision({
+    transcript: fullTranscript,
+    requestId: meta?.requestId,
+  })
+  if (
+    pauseDecision?.should_pause &&
+    Number.isFinite(pauseDecision.confidence_score) &&
+    pauseDecision.confidence_score > 8 &&
+    pauseDecision.pause_days >= 1
+  ) {
+    const pauseUntilIso = computeLaterPauseUntil(
+      (() => {
+        const coachingMs = parseTimestampMs((prof as any)?.whatsapp_coaching_paused_until ?? null)
+        const bilanMs = parseTimestampMs((prof as any)?.whatsapp_bilan_paused_until ?? null)
+        if ((coachingMs ?? 0) >= (bilanMs ?? 0)) return (prof as any)?.whatsapp_coaching_paused_until ?? null
+        return (prof as any)?.whatsapp_bilan_paused_until ?? null
+      })(),
+      pauseDecision.pause_days,
+    )
+    await applyCoachingPause({
+      supabase,
+      userId,
+      pauseUntilIso,
+    })
+    console.log(
+      `[Veilleur] coaching_pause_applied user=${userId} days=${pauseDecision.pause_days} confidence=${pauseDecision.confidence_score} pause_until=${pauseUntilIso}`,
+    )
+  }
   const now = tctx.now_utc
   const basePrompt = `
 Tu es "Le Veilleur", une IA bienveillante intégrée à l'assistant Sophia.

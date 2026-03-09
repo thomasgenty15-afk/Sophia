@@ -265,12 +265,12 @@ export async function handlePendingActions(params) {
       return true;
     }
   }
-  // Memory echo: user accepts -> send a short intro then generate and send the actual echo.
+  // Memory echo: user accepts -> send a warmer intro then generate and send the actual echo.
   if (params.isEchoYes && !params.isOptInYes) {
     const pending = await fetchLatestPending(admin, userId, "memory_echo");
     // IMPORTANT: Don't swallow generic "vas-y"/"oui" if there is no pending memory_echo.
     if (!pending) return false;
-    const intro = "Ok 🙂 Laisse-moi 2 secondes, je te retrouve ça…";
+    const intro = "Je repensais a un sujet qu'on avait deja evoque ensemble, et j'avais envie de prendre de tes nouvelles la-dessus 🙂";
     const introResp = await sendWhatsAppTextTracked({
       admin,
       requestId,
@@ -303,7 +303,25 @@ export async function handlePendingActions(params) {
       timezone: prof?.timezone ?? null,
       locale: prof?.locale ?? null
     });
-    const prompt = `Tu es "L'Archiviste", une facette de Sophia.\n` + `Repères temporels (critiques):\n${tctx.prompt_block}\n\n` + `Stratégie: ${strategy}\n` + `Données: ${JSON.stringify(data)}\n\n` + `Génère un message bref, impactant et bienveillant qui reconnecte l'utilisateur à cet élément du passé.`;
+    const prompt =
+      `Tu es "L'Archiviste", une facette de Sophia.\n` +
+      `Repères temporels (critiques):\n${tctx.prompt_block}\n\n` +
+      `Strategie: ${strategy}\n` +
+      `Donnees: ${JSON.stringify(data)}\n\n` +
+      `Ton role: reprendre contact avec un sujet important du passe de facon naturelle, jamais abrupte.\n` +
+      `Le user doit comprendre en une lecture d'ou ca sort et pourquoi tu poses la question maintenant.\n\n` +
+      `CONSIGNES:\n` +
+      `- Ecris un message WhatsApp en 2 ou 3 petits paragraphes max.\n` +
+      `- Commence par une transition douce, pas seche. Exemples d'esprit: "Je repensais a un truc qu'on avait evoque il y a quelque temps..." / "Je me suis souvenu d'un sujet qu'on avait aborde ensemble...".\n` +
+      `- Fais une allusion courte au sujet ET au fait que ca remonte un peu (ex: il y a quelques semaines / il y a quelques mois), sans refaire tout l'historique.\n` +
+      `- Explique implicitement pourquoi tu relances: prendre des nouvelles, voir comment ca a bouge depuis, reconnecter le user a son chemin.\n` +
+      `- Puis pose 1 seule question simple, chaleureuse et concrete.\n` +
+      `- Ton: humain, doux, utile, pas dramatique, pas robot.\n` +
+      `- Pas de markdown. Pas de liste. Pas de gros pave.\n` +
+      `- Mets 1 emoji naturel maximum.\n` +
+      `- Interdit d'attaquer directement par une question seche sans contexte.\n` +
+      `- Interdit de commencer par Bonjour/Salut/Hello.\n\n` +
+      `Genere le message final.`;
     const echo = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7);
     const echoResp = await sendWhatsAppTextTracked({
       admin,

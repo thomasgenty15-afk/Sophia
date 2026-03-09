@@ -363,7 +363,7 @@ Pourquoi: WhatsApp impose un **template** hors fenêtre 24h. Donc pour chaque fl
 ### C) Scheduled check-in (Utility)
 - **Nom**: `sophia_checkin_v1` (ou `sophia_checkin_v2`)
 - **Langue**: `fr` (ou `en_US`)
-- **Body**: `Hey {{1}} 🙂 Petit check-in rapide ?`
+- **Body**: `Hello {{1}} 🙂 J’aimerais prendre rapidement de tes nouvelles. C’est ok pour toi ?`
 - **Quick replies**: `Oui` / `Plus tard`
 - **Backend**: `process-checkins` envoie texte personnalisé si fenêtre ouverte, sinon template fallback (purpose=`scheduled_checkin`)
 

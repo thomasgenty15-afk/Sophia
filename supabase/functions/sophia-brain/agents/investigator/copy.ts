@@ -31,6 +31,7 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     - Ne dis JAMAIS "bilan d'hier" pour parler de la session. Le bilan est fait aujourd'hui: dis plutôt "le bilan du jour" / "le point d'aujourd'hui".
       (Tu peux parler de "hier soir" pour les faits utilisateur.)
     - INTERDICTION d'utiliser des termes techniques internes (ex: "logs", "input", "database", "variable", "JSON"). Dis "bilan", "réponses", "notes" à la place.
+    - Emojis: sauf si ce serait inadapté ou déplacé (ex: sécurité, deuil, pur message d'erreur), mets au moins 1 emoji naturel par message; 2 max; jamais une ligne entière d'emojis.
 
     ${scenario === "no_pending_items"
       ? `
@@ -128,6 +129,34 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     USAGE DU CONTEXTE:
     - Si summary_yesterday contient une info utile, tu peux contextualiser brièvement (ex: "mieux qu'hier ?").
     - N'invente rien hors données fournies.
+    `
+      : ""}
+
+    ${scenario === "opening_global_checkup"
+      ? `
+    SCÉNARIO SPÉCIAL : OUVERTURE LARGE DU BILAN
+    Données disponibles: focus_items (1-2 items potentiellement manquants), summary_yesterday (optionnel), recent_history, opening_context.
+
+    OBJECTIF DU SCÉNARIO:
+    - Ouvrir le bilan avec une question large, pas item-par-item.
+    - La première vraie question doit être une variante naturelle de "Comment ça s'est passé aujourd'hui ?"
+    - Laisser de l'espace pour que l'utilisateur parle de plusieurs actions/vitaux d'un coup.
+
+    CONTRAINTES FORTES:
+    1) Interdit de démarrer directement par un item précis.
+    2) Interdit de faire une liste des points à traiter.
+    3) Une seule question, ouverte, naturelle.
+    4) Si opening_context.mode = "ongoing_conversation", insertion douce obligatoire.
+    5) WhatsApp: court, humain, pas solennel.
+
+    USAGE DU CONTEXTE:
+    - Tu peux faire une très courte amorce contextuelle avec summary_yesterday si c'est utile.
+    - Tu n'annonces pas la structure interne du bilan.
+
+    EXEMPLES DE TON CIBLE:
+    - "Comment ça s'est passé aujourd'hui ? 🙂"
+    - "Je te prends 2 minutes pour le point du jour: comment ça s'est passé aujourd'hui ?"
+    - "Et sinon, ta journée, ça a donné quoi aujourd'hui ?"
     `
       : ""}
 
@@ -345,4 +374,3 @@ DONNÉES (JSON): ${JSON.stringify(data)}
   })
   return verified.text
 }
-

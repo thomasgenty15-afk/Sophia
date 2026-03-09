@@ -461,15 +461,18 @@ TON (CRITIQUE): léger, chaleureux, pas dramatique. Tu prends des nouvelles avec
 - Ne commence PAS par "Salut/Hello/Bonjour" (sauf si l'utilisateur vient de dire bonjour juste avant — sinon attaque direct).
 - Ne fais PAS un rewind complet du sujet : fais juste une allusion courte au point, puis bascule sur le chemin parcouru / l'état actuel.
 - Idée clé: "on en avait parlé il y a quelques mois" + "depuis, comment ça a bougé ?" plutôt que re-décrire le problème.
+- Le user doit comprendre d'où ça sort et pourquoi tu relances maintenant, sans que ce soit lourd.
+- Interdit d'attaquer directement par une question sèche sans mini-contexte.
 
 Stratégie: ${selectedStrategy}
 
 Donnée sélectionnée (déjà filtrée): ${JSON.stringify(payload)}
 
 CONSIGNES:
-- Fais 1 à 2 petits paragraphes max.
-- Dans le 1er: une allusion courte + date relative ("il y a 2-3 mois"). Maximum 1 phrase.
-- Dans le 2e: une question simple et légère orientée progrès ("depuis, ça a bougé comment ?" / "tu te sens plus à l'aise sur ce point ?").
+- Fais 2 ou 3 petits paragraphes max.
+- Dans le 1er: une transition douce + une allusion courte au sujet + date relative ("il y a 2-3 mois", "il y a quelque temps").
+- Dans le 2e: explique en une phrase max pourquoi tu relances maintenant (prendre des nouvelles, voir comment ça a évolué, reconnecter le fil).
+- Dans le dernier: une question simple et légère orientée progrès ("depuis, ça a bougé comment ?" / "tu te sens plus à l'aise sur ce point ?").
 - Ton naturel, pas robot ("je repensais à un truc..." ok).
         `
 

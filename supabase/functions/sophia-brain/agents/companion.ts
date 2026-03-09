@@ -11,6 +11,26 @@ declare const Deno: any
 
 const COMPANION_PROMPT_MAX_TOKENS = 5000
 const COMPANION_PROMPT_MAX_CHARS = COMPANION_PROMPT_MAX_TOKENS * 4
+const QUESTION_RHYTHM_WINDOW_SIZE = 6
+
+type QuestionTendency = "low" | "normal" | "high"
+type QuestionGuidance = "avoid_now" | "optional" | "ask_now"
+
+type CompanionQuestionRhythmState = {
+  preference?: QuestionTendency
+  recent_turns?: number[]
+  turns_since_last_question?: number
+  last_turn_had_question?: boolean
+  last_updated_at?: string
+}
+
+type CompanionQuestionRhythmGuide = {
+  preference: QuestionTendency
+  recentTurns: number[]
+  questionsInWindow: number
+  turnsSinceLastQuestion: number
+  guidance: QuestionGuidance
+}
 
 function applyCompanionPromptBudget(prompt: string): string {
   const text = String(prompt ?? "")
@@ -18,6 +38,129 @@ function applyCompanionPromptBudget(prompt: string): string {
   const suffix = "\n\n[... CONTEXTE TRONQUE POUR RESPECTER LE BUDGET PROMPT ...]\n"
   const keep = Math.max(0, COMPANION_PROMPT_MAX_CHARS - suffix.length)
   return text.slice(0, keep).trimEnd() + suffix
+}
+
+function normalizeQuestionTendency(value: unknown): QuestionTendency {
+  const raw = String(value ?? "").trim().toLowerCase()
+  return raw === "low" || raw === "high" ? raw : "normal"
+}
+
+function parseQuestionTendencyFromContext(context: string): QuestionTendency {
+  const text = String(context ?? "")
+  const match = text.match(/coach\.question_tendency\s*=\s*\{"value":"(low|normal|high)"/i)
+  return normalizeQuestionTendency(match?.[1])
+}
+
+function readQuestionRhythmState(userState: any): CompanionQuestionRhythmState {
+  const raw = (userState?.temp_memory as any)?.companion_question_rhythm
+  if (!raw || typeof raw !== "object") return {}
+  const recentTurns = Array.isArray(raw.recent_turns)
+    ? raw.recent_turns
+      .map((v: unknown) => Number(v))
+      .filter((v: number) => v === 0 || v === 1)
+      .slice(-QUESTION_RHYTHM_WINDOW_SIZE)
+    : []
+  const turnsSinceLastQuestionRaw = Number(raw.turns_since_last_question)
+  return {
+    preference: normalizeQuestionTendency(raw.preference),
+    recent_turns: recentTurns,
+    turns_since_last_question: Number.isFinite(turnsSinceLastQuestionRaw)
+      ? Math.max(0, Math.floor(turnsSinceLastQuestionRaw))
+      : recentTurns.includes(1)
+      ? 0
+      : recentTurns.length,
+    last_turn_had_question: Boolean(raw.last_turn_had_question),
+    last_updated_at: typeof raw.last_updated_at === "string" ? raw.last_updated_at : undefined,
+  }
+}
+
+function buildQuestionRhythmGuide(context: string, userState: any): CompanionQuestionRhythmGuide {
+  const stored = readQuestionRhythmState(userState)
+  const preference = stored.preference ?? parseQuestionTendencyFromContext(context)
+  const recentTurns = Array.isArray(stored.recent_turns)
+    ? stored.recent_turns.slice(-QUESTION_RHYTHM_WINDOW_SIZE)
+    : []
+  const questionsInWindow = recentTurns.reduce((sum, value) => sum + (value === 1 ? 1 : 0), 0)
+  const turnsSinceLastQuestion = Number.isFinite(Number(stored.turns_since_last_question))
+    ? Math.max(0, Math.floor(Number(stored.turns_since_last_question)))
+    : recentTurns.includes(1)
+    ? 0
+    : recentTurns.length
+
+  const cfg = preference === "low"
+    ? { optionalAfter: 2, askAfter: 4, maxQuestionsInWindow: 1 }
+    : preference === "high"
+    ? { optionalAfter: 1, askAfter: 2, maxQuestionsInWindow: 3 }
+    : { optionalAfter: 1, askAfter: 3, maxQuestionsInWindow: 2 }
+
+  let guidance: QuestionGuidance = "avoid_now"
+  if (recentTurns.length >= QUESTION_RHYTHM_WINDOW_SIZE && questionsInWindow >= cfg.maxQuestionsInWindow) {
+    guidance = "avoid_now"
+  } else if (turnsSinceLastQuestion >= cfg.askAfter) {
+    guidance = "ask_now"
+  } else if (turnsSinceLastQuestion >= cfg.optionalAfter) {
+    guidance = "optional"
+  }
+
+  return {
+    preference,
+    recentTurns,
+    questionsInWindow,
+    turnsSinceLastQuestion,
+    guidance,
+  }
+}
+
+function buildQuestionRhythmPromptBlock(context: string, userState: any): string {
+  const guide = buildQuestionRhythmGuide(context, userState)
+  const windowSize = guide.recentTurns.length > 0 ? guide.recentTurns.length : QUESTION_RHYTHM_WINDOW_SIZE
+  const guidanceInstruction = guide.guidance === "ask_now"
+    ? "Pose idealement 1 question utile sur ce tour, sauf si le user attend surtout une reponse directe ou un apaisement."
+    : guide.guidance === "optional"
+    ? "La question est optionnelle sur ce tour. Si tu n'en poses pas, garde l'elan avec une hypothese, un reflet, une insinuation douce ou une prise de position."
+    : "Evite la question sur ce tour sauf necessite forte. Prefere hypothese, reflet emotionnel, insinuation douce ou reformulation qui fait avancer."
+  const ratioTarget = guide.preference === "low"
+    ? "environ 1 question tous les 4 tours"
+    : guide.preference === "high"
+    ? "environ 1 question tous les 2 tours"
+    : "environ 1 question tous les 3 tours"
+  return [
+    "=== QUESTION RHYTHM (CRITIQUE) ===",
+    `- Préférence user: ${guide.preference}. Cible: ${ratioTarget}.`,
+    `- Historique récent assistant: ${guide.questionsInWindow} question(s) sur les ${windowSize} derniers tours.`,
+    `- Tours depuis la dernière question: ${guide.turnsSinceLastQuestion}.`,
+    `- Guidance pour CE tour: ${guide.guidance}.`,
+    `- ${guidanceInstruction}`,
+    "- Même si guidance=ask_now, n'impose PAS de question dans ces cas: reponse factuelle attendue, message tres court/presse, moment emotionnel qui demande surtout presence, redirection dashboard deja faite juste avant.",
+    "- Si tu poses une question, elle doit etre unique, concrete et utile.",
+  ].join("\n")
+}
+
+function responseHasQuestion(text: string): boolean {
+  return /[?？]/.test(String(text ?? ""))
+}
+
+function buildNextQuestionRhythmState(args: {
+  userState: any
+  context: string
+  responseText: string
+}): CompanionQuestionRhythmState {
+  const previous = readQuestionRhythmState(args.userState)
+  const preference = previous.preference ?? parseQuestionTendencyFromContext(args.context)
+  const hadQuestion = responseHasQuestion(args.responseText)
+  const prevTurns = Array.isArray(previous.recent_turns) ? previous.recent_turns : []
+  const previousGap = Number.isFinite(Number(previous.turns_since_last_question))
+    ? Math.max(0, Math.floor(Number(previous.turns_since_last_question)))
+    : prevTurns.includes(1)
+    ? 0
+    : prevTurns.length
+  return {
+    preference,
+    recent_turns: [...prevTurns, hadQuestion ? 1 : 0].slice(-QUESTION_RHYTHM_WINDOW_SIZE),
+    turns_since_last_question: hadQuestion ? 0 : previousGap + 1,
+    last_turn_had_question: hadQuestion,
+    last_updated_at: new Date().toISOString(),
+  }
 }
 
 export type CompanionModelOutput =
@@ -32,6 +175,7 @@ export type CompanionRunResult = {
   text: string
   executed_tools: string[]
   tool_execution: "none" | "blocked" | "success" | "failed" | "uncertain"
+  temp_memory?: any
 }
 
 async function inferEtoileUpdateFromContext(args: {
@@ -97,6 +241,7 @@ export function buildCompanionSystemPrompt(opts: {
   userState: any
 }): string {
   const { isWhatsApp, lastAssistantMessage, context, userState } = opts
+  const questionRhythmBlock = buildQuestionRhythmPromptBlock(context, userState)
   const basePrompt = isWhatsApp ? `
     Tu es Sophia, une coach de vie orientée action.
     Tu tutoies l'utilisateur. Tu écris comme un humain, naturel, direct.
@@ -113,7 +258,7 @@ export function buildCompanionSystemPrompt(opts: {
     - Si le message user est court/pressé: 1–2 phrases MAX + 1 question oui/non ou A/B.
     - Pas de "Bonjour/Salut" au milieu d'une conversation.
     - Pas de ** (texte brut uniquement).
-    - Emojis: adapte au profil user si connu (conversation.use_emojis). Sans préférence explicite: 0 à 2 max, naturels, jamais une ligne entière d'emojis.
+    - Emojis: adapte au profil user si connu (conversation.use_emojis). Sauf si ce serait inadapté ou déplacé (ex: message de crise/sécurité, deuil, pur message d'erreur), mets au moins 1 emoji naturel par message; 2 max; jamais une ligne entière d'emojis.
     - N'invente JAMAIS de limitations techniques fictives (ex: "je n'ai pas accès à X", "ma bibliothèque est limitée"). Si tu ne sais pas, dis-le simplement.
     - Ne mentionne jamais des rôles internes (architecte/investigator/etc.) ni "je suis une IA".
     - Si tu utilises le contexte, ne l'expose pas ("je vois dans ta base..."): juste utilise-le.
@@ -197,6 +342,9 @@ export function buildCompanionSystemPrompt(opts: {
     - Si une préférence est absente, reste adaptative (longueur et relances proportionnelles au message user).
     - N'écrase pas une préférence explicite par une règle générique.
 
+    RYTHME DES QUESTIONS (CRITIQUE) :
+    ${questionRhythmBlock}
+
     DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 120)}..."
 
     CONTEXTE (si présent) :
@@ -219,7 +367,7 @@ export function buildCompanionSystemPrompt(opts: {
     - Sois réactive : Si l'utilisateur dit un truc triste, ne dis pas "Je comprends", dis "Ah merde..." ou "C'est dur ça."
     - Humour subtil autorisé.
     - INTERDICTION FORMELLE D'UTILISER LE GRAS (les astérisques **). Écris en texte brut.
-    - Emojis: adapte au profil user si connu (conversation.use_emojis). Sans préférence explicite: 0 à 2 max, naturels, jamais une ligne entière d'emojis.
+    - Emojis: adapte au profil user si connu (conversation.use_emojis). Sauf si ce serait inadapté ou déplacé (ex: message de crise/sécurité, deuil, pur message d'erreur), mets au moins 1 emoji naturel par message; 2 max; jamais une ligne entière d'emojis.
     - N'invente JAMAIS de limitations techniques fictives. Si tu ne sais pas, dis-le simplement.
     - NE JAMAIS DIRE AU REVOIR OU BONNE SOIRÉE EN PREMIER. Sauf si l'utilisateur le dit explicitement.
     - NE JAMAIS DIRE BONJOUR OU SALUT AU MILIEU D'UNE CONVERSATION. Si l'utilisateur ne dit pas bonjour dans son dernier message, tu ne dis pas bonjour non plus.
@@ -308,6 +456,9 @@ export function buildCompanionSystemPrompt(opts: {
       3) Règles génériques par défaut.
     - Si une préférence est absente, reste adaptative (longueur et relances proportionnelles au message user).
     - N'écrase pas une préférence explicite par une règle générique.
+
+    RYTHME DES QUESTIONS (CRITIQUE) :
+    ${questionRhythmBlock}
 
     ACTIONS COMPLETED (CRITIQUE) :
     - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
@@ -513,6 +664,7 @@ export async function handleCompanionModelOutput(opts: {
         FORMAT :
         - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
         - Pas de gras.
+        - Sauf si ce serait inadapté ou déplacé, mets au moins 1 emoji naturel.
       `
       const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
         requestId: meta?.requestId,
@@ -687,5 +839,19 @@ export async function runCompanion(
 
   const systemPrompt = buildCompanionSystemPrompt({ isWhatsApp, lastAssistantMessage, context, userState })
   const response = await generateCompanionModelOutput({ systemPrompt, message, history, meta })
-  return await handleCompanionModelOutput({ supabase, userId, scope, message, history, response, meta })
+  const result = await handleCompanionModelOutput({ supabase, userId, scope, message, history, response, meta })
+  const nextQuestionRhythm = buildNextQuestionRhythmState({
+    userState,
+    context,
+    responseText: result.text,
+  })
+  const nextTempMemory = {
+    ...((userState?.temp_memory ?? {}) as Record<string, unknown>),
+    companion_question_rhythm: nextQuestionRhythm,
+  }
+
+  return {
+    ...result,
+    temp_memory: nextTempMemory,
+  }
 }

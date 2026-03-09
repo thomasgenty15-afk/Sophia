@@ -317,6 +317,7 @@ export async function runAgentAndVerify(opts: {
           { ...(meta ?? {}), model: sophiaChatModel },
         );
         responseContent = out.text;
+        tempMemory = out.temp_memory ?? tempMemory;
         executedTools = out.executed_tools ?? [];
         toolExecution = out.tool_execution ?? "none";
       } catch (e) {
