@@ -214,8 +214,8 @@ export const useDashboardLogic = ({
         await supabase.from('user_goals').update({ status: 'completed' }).eq('id', activeGoalId);
         
         if (activePlanId) {
-             await supabase.from('user_actions').update({ status: 'abandoned' }).eq('plan_id', activePlanId).in('status', ['active', 'pending']);
-             await supabase.from('user_framework_tracking').update({ status: 'abandoned' }).eq('plan_id', activePlanId).in('status', ['active', 'pending']);
+             await supabase.from('user_actions').update({ status: 'abandoned' }).eq('plan_id', activePlanId).in('status', ['active', 'pending', 'deactivated']);
+             await supabase.from('user_framework_tracking').update({ status: 'abandoned' }).eq('plan_id', activePlanId).in('status', ['active', 'pending', 'deactivated']);
              const vitalStatus = finalStatus === 'completed' ? 'completed' : 'abandoned';
              await supabase.from('user_vital_signs').update({ status: vitalStatus }).eq('plan_id', activePlanId).in('status', ['active', 'pending']);
         }
@@ -253,8 +253,8 @@ export const useDashboardLogic = ({
           await supabase.from('user_goals').update({ status: 'completed' }).eq('id', activeGoalId);
           
           if (activePlanId) {
-             await supabase.from('user_actions').update({ status: 'abandoned' }).eq('plan_id', activePlanId).in('status', ['active', 'pending']);
-             await supabase.from('user_framework_tracking').update({ status: 'abandoned' }).eq('plan_id', activePlanId).in('status', ['active', 'pending']);
+             await supabase.from('user_actions').update({ status: 'abandoned' }).eq('plan_id', activePlanId).in('status', ['active', 'pending', 'deactivated']);
+             await supabase.from('user_framework_tracking').update({ status: 'abandoned' }).eq('plan_id', activePlanId).in('status', ['active', 'pending', 'deactivated']);
              const vitalStatus = finalStatus === 'completed' ? 'completed' : 'abandoned';
              await supabase.from('user_vital_signs').update({ status: vitalStatus }).eq('plan_id', activePlanId).in('status', ['active', 'pending']);
           }
@@ -998,10 +998,10 @@ export const useDashboardLogic = ({
         
         const prevPlan = activePlan;
         
-        // 1. Update Local State: mark action status as "pending" (paused/deactivated)
+        // 1. Update Local State: mark action status as "deactivated" (manual pause)
         const newPhases = activePlan.phases.map(p => ({
             ...p,
-            actions: p.actions.map(a => a.id === action.id ? { ...a, status: 'pending' as const } : a)
+            actions: p.actions.map(a => a.id === action.id ? { ...a, status: 'deactivated' as const } : a)
         }));
         
         const newPlan = { ...activePlan, phases: newPhases };
@@ -1011,15 +1011,15 @@ export const useDashboardLogic = ({
             // 2. Update Plan Content in DB
             await supabase.from('user_plans').update({ content: newPlan }).eq('id', activePlanId);
             
-            // 3. Update tracking table status to "pending"
+            // 3. Update tracking table status to "deactivated"
             const normalizedType = String(action.type ?? "").toLowerCase().trim();
             if (normalizedType === 'framework') {
-                await supabase.from('user_framework_tracking').update({ status: 'pending' }).eq('plan_id', activePlanId).eq('action_id', action.id);
+                await supabase.from('user_framework_tracking').update({ status: 'deactivated' }).eq('plan_id', activePlanId).eq('action_id', action.id);
             } else {
                 if (action.dbId) {
-                    await supabase.from('user_actions').update({ status: 'pending' }).eq('id', action.dbId);
+                    await supabase.from('user_actions').update({ status: 'deactivated' }).eq('id', action.dbId);
                 } else {
-                    await supabase.from('user_actions').update({ status: 'pending' }).eq('plan_id', activePlanId).eq('title', action.title);
+                    await supabase.from('user_actions').update({ status: 'deactivated' }).eq('plan_id', activePlanId).eq('title', action.title);
                 }
             }
         } catch (err) {

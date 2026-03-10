@@ -40,6 +40,27 @@ export function resolveBinaryConsent(
   return yes ? "yes" : "no";
 }
 
+export function resolveSuggestionConsent(
+  text: string,
+): "accept" | "reject" | "defer" | "unclear" {
+  const src = String(text ?? "").trim().toLowerCase();
+  if (!src) return "unclear";
+
+  if (/\b(plus tard|pas maintenant|pas tout de suite|on verra|a voir|à voir|une autre fois|pas ce soir)\b/i.test(src)) {
+    return "defer";
+  }
+
+  if (/\b(je sais pas|j'h[ée]site|pas s[ûu]r|peut[- ]?[êe]tre|bof|mouais)\b/i.test(src)) {
+    return "unclear";
+  }
+
+  const binary = resolveBinaryConsent(text);
+  if (binary === "yes") return "accept";
+  if (binary === "no") return "reject";
+
+  return "unclear";
+}
+
 export function isExplicitStopBilan(text: string): boolean {
   const m = (text ?? "").toString().trim();
   if (!m) return false;

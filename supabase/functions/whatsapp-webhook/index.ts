@@ -512,10 +512,11 @@ Deno.serve(async (req)=>{
         const isStop = isStopKeyword(msg.text ?? "", msg.interactive_id ?? null);
         // Opt-in: strict yes token only.
         const isOptInYesText = /^(oui|yes|absolument)\s*!?$/i.test(textLower);
-        // Scheduled check-in template buttons (V2): "Oui !" / "Plus tard..."
-        const isCheckinYes = /^oui\b/.test(textLower);
-        const isCheckinLater = /plus\s*tard/i.test(textLower);
-        // Memory echo template buttons (V2): "Oui ça m'intéresse !" / "Plus tard !"
+        // Scheduled / recurring reminder template buttons: "Oui !" / "Une prochaine fois !"
+        // and recurring reminder consent: "Avec plaisir !" / "Not this time"
+        const isCheckinYes = /^oui\b|avec\s+plaisir/i.test(textLower);
+        const isCheckinLater = /plus\s*tard|une\s+prochaine\s+fois|not\s+this\s+time/i.test(textLower);
+        // Memory echo template buttons (V2): "Oui ça m'intéresse !" / "Pas cette fois-ci !"
         const isEchoYes = /m['’]int[ée]resse|vas[-\s]*y|oui\b/i.test(textLower);
         const isEchoLater = /plus\s*tard/i.test(textLower);
         if (isWrongNumber) {

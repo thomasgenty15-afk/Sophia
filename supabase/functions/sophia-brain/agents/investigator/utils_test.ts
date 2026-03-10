@@ -1,4 +1,4 @@
-import { resolveBinaryConsent } from "./utils.ts";
+import { resolveBinaryConsent, resolveSuggestionConsent } from "./utils.ts";
 
 function assertEquals(actual: unknown, expected: unknown) {
   const a = JSON.stringify(actual);
@@ -26,4 +26,12 @@ Deno.test("resolveBinaryConsent: dispatcher override wins", () => {
     resolveBinaryConsent("oui", { overrideConfirmed: false }),
     "no",
   );
+});
+
+Deno.test("resolveSuggestionConsent: distinguishes defer and unclear", () => {
+  assertEquals(resolveSuggestionConsent("pas maintenant"), "defer");
+  assertEquals(resolveSuggestionConsent("on verra plus tard"), "defer");
+  assertEquals(resolveSuggestionConsent("je sais pas trop"), "unclear");
+  assertEquals(resolveSuggestionConsent("oui vas-y"), "accept");
+  assertEquals(resolveSuggestionConsent("non laisse comme ça"), "reject");
 });

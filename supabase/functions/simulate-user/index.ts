@@ -2284,7 +2284,7 @@ function stubNextMessage(
       return { next_message: "Carrément !", done: true, satisfied: ["whatsapp_bilan_reply_yes"] };
     }
     case "whatsapp_bilan_reply_not_now": {
-      return { next_message: "Pas tout de suite !", done: true, satisfied: ["whatsapp_bilan_reply_not_now"] };
+      return { next_message: "On le fait demain!", done: true, satisfied: ["whatsapp_bilan_reply_not_now"] };
     }
     case "whatsapp_bilan_reply_tomorrow": {
       return { next_message: "On fera ça demain.", done: true, satisfied: ["whatsapp_bilan_reply_tomorrow"] };
@@ -3290,5 +3290,4 @@ ${transcriptText || "(vide)"}
     return serverError(req, requestId);
   }
 });
-
 

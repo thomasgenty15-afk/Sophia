@@ -104,7 +104,7 @@ export const PlanPhaseBlock = ({
                     key={action.id}
                     action={action}
                     isLocked={isPhaseLocked} // Verrouillage visuel global
-                    isPending={action.status === 'pending'} // Verrouillage spécifique action
+                    isPending={action.status === 'pending' || action.status === 'deactivated'} // Verrouillage spécifique action
                     canActivate={canActivateActions} // NOUVEAU: Autorisation d'activation
                     onHelp={onHelpAction}
                     onOpenFramework={onOpenFramework}
@@ -137,4 +137,3 @@ export const PlanPhaseBlock = ({
     </div>
   );
 };
-

@@ -64,7 +64,7 @@ export function HabitSettingsModal(props: {
     setSaving(true);
     try {
       const scheduledDays = scheduleEnabled ? selectedDays : null;
-      const activateIfPending = mode === 'activate' || action.status === 'pending';
+      const activateIfPending = mode === 'activate' || action.status === 'pending' || action.status === 'deactivated';
       await onSave({ targetReps, scheduledDays, activateIfPending });
       onClose();
     } finally {
@@ -198,5 +198,4 @@ export function HabitSettingsModal(props: {
     </div>
   );
 }
-
 

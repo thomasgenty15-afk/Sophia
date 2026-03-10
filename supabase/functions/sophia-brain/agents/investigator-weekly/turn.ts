@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { generateWithGemini } from "../../../_shared/gemini.ts";
-import { resolveBinaryConsent } from "../investigator/utils.ts";
+import { resolveBinaryConsent, resolveSuggestionConsent } from "../investigator/utils.ts";
 import {
   UPDATE_ETOILE_POLAIRE_TOOL,
   updateEtoilePolaire,
@@ -298,6 +298,35 @@ function shiftProposalQueue(
   return { pending: pending ?? null, rest };
 }
 
+async function buildSuggestionConsentReask(opts: {
+  proposal: WeeklySuggestionProposal;
+  message: string;
+  state: WeeklyInvestigationState;
+  history: any[];
+  meta?: {
+    requestId?: string;
+    forceRealAi?: boolean;
+    channel?: "web" | "whatsapp";
+    model?: string;
+  };
+}): Promise<string> {
+  try {
+    return await weeklyInvestigatorSay(
+      "weekly_bilan_reask_suggestion",
+      {
+        user_message: opts.message,
+        suggestion_proposal: opts.proposal,
+        weekly_payload: opts.state.weekly_payload,
+        opening_context: opts.state.opening_context ?? null,
+        recent_history: (opts.history ?? []).slice(-12),
+      },
+      opts.meta,
+    );
+  } catch {
+    return `${opts.proposal.prompt} Si tu préfères, dis-moi simplement si on le fait maintenant, si on le laisse comme ça, ou si on en reparle plus tard.`;
+  }
+}
+
 export async function handleWeeklyTurn(opts: {
   supabase: SupabaseClient;
   userId: string;
@@ -314,11 +343,11 @@ export async function handleWeeklyTurn(opts: {
   const { supabase, userId, message, history, state, meta } = opts;
 
   if (state.weekly_phase === "action_load" && state.weekly_pending_suggestion) {
-    const consent = resolveBinaryConsent(message);
+    const consent = resolveSuggestionConsent(message);
     const proposal = state.weekly_pending_suggestion;
     const weekStart = String(state.weekly_payload?.week_start ?? "").trim();
 
-    if (consent === "yes") {
+    if (consent === "accept") {
       try {
         const applied = await applySuggestionProposal({ supabase, userId, proposal });
         await logWeeklySuggestionOutcome({
@@ -387,7 +416,7 @@ export async function handleWeeklyTurn(opts: {
       }
     }
 
-    if (consent === "no") {
+    if (consent === "reject" || consent === "defer") {
       const summary = "Ok, on ne touche pas à ça pour l'instant.";
       await logWeeklySuggestionOutcome({
         supabase,
@@ -421,7 +450,13 @@ export async function handleWeeklyTurn(opts: {
     }
 
     return {
-      content: `${proposal.prompt} Réponds-moi juste oui ou non.`,
+      content: await buildSuggestionConsentReask({
+        proposal,
+        message,
+        state,
+        history,
+        meta,
+      }),
       investigationComplete: false,
       newState: {
         ...state,

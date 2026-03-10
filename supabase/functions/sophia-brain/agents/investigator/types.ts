@@ -104,6 +104,7 @@ export interface PendingMissedReason {
 }
 
 export interface InvestigationTempMemory {
+  opening_response_clarify_count?: number;
   /** Pending offer dedicated to the weekly target increase flow. */
   pending_increase_target_offer?: PendingIncreaseTargetOffer;
   /** Cache of missed streaks by action id for the current bilan */

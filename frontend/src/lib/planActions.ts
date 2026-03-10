@@ -16,14 +16,14 @@ export const abandonPreviousActions = async (userId: string, excludePlanId: stri
           .update({ status: 'abandoned' })
           .eq('user_id', userId)
           .neq('plan_id', excludePlanId)
-          .in('status', ['active', 'pending']),
+          .in('status', ['active', 'pending', 'deactivated']),
 
       supabase
           .from('user_framework_tracking')
           .update({ status: 'abandoned' })
           .eq('user_id', userId)
           .neq('plan_id', excludePlanId)
-          .in('status', ['active', 'pending']),
+          .in('status', ['active', 'pending', 'deactivated']),
   ];
 
   await Promise.all(updates);

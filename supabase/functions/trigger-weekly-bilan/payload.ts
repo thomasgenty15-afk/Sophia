@@ -272,6 +272,69 @@ function parseSuggestionDecision(raw: any): WeeklySuggestionDecision | null {
   };
 }
 
+function buildSnapshotStatusMap(
+  snapshots: WeeklyPlanActionSnapshot[],
+): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const row of snapshots) {
+    const title = String(row?.title ?? "").trim().toLowerCase();
+    const status = String(row?.db_status ?? "").trim().toLowerCase();
+    if (!title || !status) continue;
+    out.set(title, status);
+  }
+  return out;
+}
+
+function normalizeSuggestedActionRecommendation(params: {
+  suggestion: WeeklySuggestionDecision;
+  statusByTitle: Map<string, string>;
+}): WeeklySuggestionDecision {
+  const { suggestion, statusByTitle } = params;
+  const normalizedTitle = String(suggestion.action_title ?? "").trim().toLowerCase();
+  const dbStatus = normalizedTitle ? statusByTitle.get(normalizedTitle) ?? null : null;
+
+  if (suggestion.recommendation === "activate" && (dbStatus === "active" || dbStatus === "completed" || dbStatus === "deactivated")) {
+    return {
+      ...suggestion,
+      recommendation: dbStatus === "active" ? "keep_active" : "wait",
+      reason: dbStatus === "active"
+        ? "Cette action est deja active dans le plan actuel."
+        : dbStatus === "completed"
+        ? "Cette action est deja realisee dans le plan, inutile de la reactiver."
+        : "Cette action a ete desactivee manuellement, on ne la repropose pas automatiquement.",
+      related_action_title: suggestion.related_action_title ?? null,
+    };
+  }
+
+  if (suggestion.recommendation === "deactivate" && dbStatus !== "active") {
+    return {
+      ...suggestion,
+      recommendation: dbStatus === "completed" ? "wait" : "keep_active",
+      reason: dbStatus === "completed"
+        ? "Cette action est deja realisee, il n'y a rien a mettre en pause."
+        : dbStatus === "deactivated"
+        ? "Cette action est deja desactivee, il n'y a rien a mettre en pause."
+        : "Cette action n'est pas active actuellement, donc elle ne peut pas etre mise en pause.",
+      related_action_title: suggestion.related_action_title ?? null,
+    };
+  }
+
+  return suggestion;
+}
+
+export function normalizeSuggestionDecisionsForPlan(
+  suggestions: WeeklySuggestionDecision[],
+  snapshots: WeeklyPlanActionSnapshot[],
+): WeeklySuggestionDecision[] {
+  const statusByTitle = buildSnapshotStatusMap(snapshots);
+  return (Array.isArray(suggestions) ? suggestions : []).map((item) =>
+    normalizeSuggestedActionRecommendation({
+      suggestion: item,
+      statusByTitle,
+    })
+  );
+}
+
 function fallbackSuggestionState(params: {
   execution: WeeklyReviewPayload["execution"];
   currentActions: WeeklyPlanActionSnapshot[];
@@ -388,6 +451,9 @@ async function generateSuggestionState(params: {
     "Règles métier obligatoires:",
     "- Base-toi sur l'exécution réelle de la semaine + actions actives + phase actuelle + phase suivante.",
     "- Si le user est à 0 répétition utile cette semaine, ne propose PAS d'activer une nouvelle action de la phase suivante.",
+    "- Ne recommande jamais activate pour une action dont db_status est deja active, completed ou deactivated.",
+    "- Une action db_status=completed est deja realisee dans le plan: ne la presente jamais comme a activer.",
+    "- Une action db_status=deactivated a ete mise de cote manuellement: ne la repropose pas automatiquement.",
     "- Tu peux recommander deactivate UNIQUEMENT pour une habitude actuelle qui serait remplacée par une version plus avancée de la phase suivante.",
     "- Ne recommande jamais deactivate pour mission ou framework.",
     "- Si une action de phase suivante est cumulative/complementaire, garde l'actuelle et propose activate seulement si la semaine montre assez de traction.",
@@ -419,7 +485,15 @@ async function generateSuggestionState(params: {
       : "steady";
     const summary = String(parsed?.summary ?? "").trim();
     const suggestions = Array.isArray(parsed?.suggestions)
-      ? parsed.suggestions.map(parseSuggestionDecision).filter(Boolean) as WeeklySuggestionDecision[]
+      ? normalizeSuggestionDecisionsForPlan(
+        parsed.suggestions
+          .map(parseSuggestionDecision)
+          .filter(Boolean) as WeeklySuggestionDecision[],
+        [
+          ...params.currentActions,
+          ...params.nextActions,
+        ],
+      )
       : [];
     const shouldActivateNext = Boolean(parsed?.should_activate_next_phase);
 

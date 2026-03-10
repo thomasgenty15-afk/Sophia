@@ -357,7 +357,7 @@ Pourquoi: WhatsApp impose un **template** hors fenêtre 24h. Donc pour chaque fl
 - **Nom**: `sophia_bilan_v1` (ou `sophia_bilan_v2`)
 - **Langue**: `fr` (ou `en_US`)
 - **Body**: `Hey {{1}} 🙂 Prêt pour ton bilan du soir ? Une minute pas plus promis !`
-- **Quick replies**: `Carrément!` / `Pas tout de suite`
+- **Quick replies**: `Carrément!` / `On le fait demain!`
 - **Backend**: `trigger-daily-bilan` (template si pas encore opt-in), puis texte personnalisé si opt-in
 
 ### C) Scheduled check-in (Utility)
@@ -373,6 +373,5 @@ Pourquoi: WhatsApp impose un **template** hors fenêtre 24h. Donc pour chaque fl
 - **Body**: `Hey {{1}} 🙂 Je repensais à un truc d’il y a quelque temps… ça te dit qu’on en parle ?`
 - **Quick replies**: `Oui` / `Plus tard`
 - **Backend**: `trigger-memory-echo` envoie texte personnalisé si fenêtre ouverte, sinon template fallback (purpose=`memory_echo`)
-
 
 

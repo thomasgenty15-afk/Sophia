@@ -39,6 +39,7 @@ import {
   spokenLabelForItem,
 } from "./global_state.ts";
 import { decideCheckupOpening } from "./opening_decider.ts";
+import { classifyDailyOpeningResponse } from "./opening_response_classifier.ts";
 import { detectMissedReasonUpdate } from "./missed_reason.ts";
 import { INVESTIGATOR_TOOLS } from "./tools.ts";
 import { handleInvestigatorModelOutput } from "./turn.ts";
@@ -389,6 +390,82 @@ export async function runInvestigator(
     !pendingIncreaseOffer &&
     String(message ?? "").trim().length >= 3
   ) {
+    const openingResponseCount = Number(currentState.temp_memory?.opening_response_clarify_count ?? 0);
+    const noItemLoggedYet = currentState.pending_items.every((item) =>
+      String(getItemProgress(currentState, item.id).phase) !== "logged"
+    );
+    const openingMode = String(currentState.temp_memory?.global_checkup_state?.opening_mode ?? "");
+    if (currentState.current_item_index === 0 && noItemLoggedYet && openingMode === "broad_open") {
+      const openingDecision = await classifyDailyOpeningResponse({
+        message,
+        history,
+        meta,
+      });
+
+      if (openingDecision === "cancel") {
+        return {
+          content: "Ok, on laisse le bilan du jour de côté pour l'instant 🙂",
+          investigationComplete: true,
+          newState: null,
+        };
+      }
+
+      if (openingDecision === "stay_human") {
+        return {
+          content: await investigatorSay(
+            "opening_global_checkup_stay_human",
+            {
+              user_message: message,
+              channel: meta?.channel,
+              recent_history: history.slice(-15),
+              opening_context: currentState.temp_memory?.opening_context ?? null,
+            },
+            meta,
+          ),
+          investigationComplete: true,
+          newState: null,
+        };
+      }
+
+      if (openingDecision === "unclear") {
+        if (openingResponseCount >= 1) {
+          return {
+            content: "Pas de souci, on laisse le point du jour de côté pour l'instant 🙂",
+            investigationComplete: true,
+            newState: null,
+          };
+        }
+        return {
+          content: await investigatorSay(
+            "opening_global_checkup_clarify",
+            {
+              user_message: message,
+              channel: meta?.channel,
+              recent_history: history.slice(-15),
+              opening_context: currentState.temp_memory?.opening_context ?? null,
+            },
+            meta,
+          ),
+          investigationComplete: false,
+          newState: {
+            ...currentState,
+            temp_memory: {
+              ...(currentState.temp_memory || {}),
+              opening_response_clarify_count: openingResponseCount + 1,
+            },
+          },
+        };
+      }
+
+      currentState = {
+        ...currentState,
+        temp_memory: {
+          ...(currentState.temp_memory || {}),
+          opening_response_clarify_count: 0,
+        },
+      };
+    }
+
     const extraction = await extractGlobalCheckupCoverage({
       message,
       items: currentState.pending_items.filter((item) =>

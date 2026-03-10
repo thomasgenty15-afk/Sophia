@@ -81,7 +81,7 @@ function deterministicBilanFallback(inboundText) {
 /**
  * Classify user's response to a daily bilan prompt.
  * Uses a fast LLM call (Gemini flash) with a deterministic fallback for
- * exact template-button text ("Carrément !", "Pas tout de suite", "On fera ça demain").
+ * exact template-button text ("Carrément !", "On le fait demain!", "On fera ça demain").
  */ export async function classifyBilanResponse(inboundText, recentMessages, requestId) {
   const text = (inboundText ?? "").trim();
   if (!text) return {

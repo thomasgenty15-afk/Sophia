@@ -5,6 +5,7 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { runSynthesizer } from "../sophia-brain/agents/synthesizer.ts"
+import { normalizeScope } from "../sophia-brain/state-manager.ts"
 
 console.log("trigger-synthesizer-batch: Function initialized")
 
@@ -12,12 +13,20 @@ const BATCH_LIMIT = Number((Deno.env.get("SOPHIA_SYNTH_BATCH_LIMIT") ?? "60").tr
 const MIN_NEW_MESSAGES = Number((Deno.env.get("SOPHIA_SYNTH_MIN_NEW_MESSAGES") ?? "15").trim()) || 15
 
 type CandidateKey = { user_id: string; scope: string; unprocessed_msg_count: number }
+type TriggerPayload = { user_id?: unknown; scope?: unknown }
 
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
   try {
     const authResp = ensureInternalRequest(req)
     if (authResp) return authResp
+
+    let payload: TriggerPayload = {}
+    try {
+      payload = await req.json()
+    } catch {
+      payload = {}
+    }
 
     const disabled = (Deno.env.get("SOPHIA_SYNTHESIZER_DISABLED") ?? "").trim() === "1"
     if (disabled) {
@@ -34,12 +43,30 @@ Deno.serve(async (req) => {
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     )
 
-    const { data: rows, error: rowsErr } = await admin
-      .from("user_chat_states")
-      .select("user_id,scope,unprocessed_msg_count")
-      .gte("unprocessed_msg_count", MIN_NEW_MESSAGES)
-      .order("unprocessed_msg_count", { ascending: false })
-      .limit(BATCH_LIMIT)
+    const targetedUserId = String(payload?.user_id ?? "").trim()
+    const targetedScope = normalizeScope(payload?.scope, "web")
+
+    let rows
+    let rowsErr
+    if (targetedUserId) {
+      const targetedQuery = await admin
+        .from("user_chat_states")
+        .select("user_id,scope,unprocessed_msg_count")
+        .eq("user_id", targetedUserId)
+        .eq("scope", targetedScope)
+        .limit(1)
+      rows = targetedQuery.data
+      rowsErr = targetedQuery.error
+    } else {
+      const batchQuery = await admin
+        .from("user_chat_states")
+        .select("user_id,scope,unprocessed_msg_count")
+        .gte("unprocessed_msg_count", MIN_NEW_MESSAGES)
+        .order("unprocessed_msg_count", { ascending: false })
+        .limit(BATCH_LIMIT)
+      rows = batchQuery.data
+      rowsErr = batchQuery.error
+    }
     if (rowsErr) throw rowsErr
 
     const candidates: CandidateKey[] = ((rows ?? []) as any[])
@@ -49,9 +76,15 @@ Deno.serve(async (req) => {
         unprocessed_msg_count: Number(r?.unprocessed_msg_count ?? 0),
       }))
       .filter((r) => Boolean(r.user_id))
+      .filter((r) => targetedUserId || r.unprocessed_msg_count >= MIN_NEW_MESSAGES)
 
     if (candidates.length === 0) {
-      return jsonResponse(req, { success: true, request_id: requestId, processed: 0 }, { includeCors: false })
+      return jsonResponse(req, {
+        success: true,
+        request_id: requestId,
+        processed: 0,
+        targeted: Boolean(targetedUserId),
+      }, { includeCors: false })
     }
 
     let processed = 0
@@ -94,6 +127,7 @@ Deno.serve(async (req) => {
     return jsonResponse(req, {
       success: true,
       request_id: requestId,
+      targeted: Boolean(targetedUserId),
       processed,
       updated,
       skipped,
@@ -116,4 +150,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

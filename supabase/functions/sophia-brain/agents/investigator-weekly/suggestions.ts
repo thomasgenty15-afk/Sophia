@@ -34,15 +34,61 @@ function toSinglePrompt(decision: WeeklySuggestionDecision): string {
   return `Vu ta semaine, je peux mettre en pause "${decision.action_title}" pour alléger un peu. Je le fais maintenant ?`;
 }
 
+function buildSnapshotStatusMap(payload: WeeklyReviewPayload): Map<string, string> {
+  const out = new Map<string, string>();
+  const rows = [
+    ...(Array.isArray(payload?.plan_window?.current_actions) ? payload.plan_window.current_actions : []),
+    ...(Array.isArray(payload?.plan_window?.next_actions) ? payload.plan_window.next_actions : []),
+  ];
+  for (const row of rows) {
+    const title = String((row as any)?.title ?? "").trim().toLowerCase();
+    const status = String((row as any)?.db_status ?? "").trim().toLowerCase();
+    if (!title || !status) continue;
+    out.set(title, status);
+  }
+  return out;
+}
+
+function isActionableSuggestion(
+  payload: WeeklyReviewPayload,
+  decision: WeeklySuggestionDecision,
+  statusByTitle: Map<string, string>,
+): boolean {
+  const title = String(decision.action_title ?? "").trim();
+  if (!title) return false;
+
+  const normalizedTitle = title.toLowerCase();
+  const dbStatus = statusByTitle.get(normalizedTitle) ?? null;
+  const activeTitles = new Set(
+    (Array.isArray(payload?.plan_window?.active_action_titles) ? payload.plan_window.active_action_titles : [])
+      .map((item) => String(item ?? "").trim().toLowerCase())
+      .filter(Boolean),
+  );
+
+  if (decision.recommendation === "activate") {
+    if (dbStatus === "active" || dbStatus === "completed" || dbStatus === "deactivated") return false;
+    if (activeTitles.has(normalizedTitle)) return false;
+    return true;
+  }
+
+  if (decision.recommendation === "deactivate") {
+    return dbStatus === "active";
+  }
+
+  return false;
+}
+
 export function buildSuggestionQueue(
   payload: WeeklyReviewPayload,
 ): WeeklySuggestionProposal[] {
   const suggestions = Array.isArray(payload?.suggestion_state?.suggestions)
     ? payload.suggestion_state.suggestions
     : [];
+  const statusByTitle = buildSnapshotStatusMap(payload);
 
   const actionable = suggestions.filter((item) =>
-    item.recommendation === "activate" || item.recommendation === "deactivate"
+    (item.recommendation === "activate" || item.recommendation === "deactivate") &&
+    isActionableSuggestion(payload, item, statusByTitle)
   );
 
   const used = new Set<string>();

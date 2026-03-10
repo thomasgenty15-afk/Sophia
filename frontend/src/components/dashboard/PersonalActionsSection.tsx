@@ -21,7 +21,7 @@ type PersonalActionRow = {
   target_reps: number | null;
   current_reps: number | null;
   scheduled_days: string[] | null;
-  status: 'pending' | 'active' | 'completed' | 'cancelled' | 'abandoned' | null;
+  status: 'pending' | 'active' | 'completed' | 'deactivated' | 'cancelled' | 'abandoned' | null;
   last_performed_at: string | null;
 };
 
@@ -68,7 +68,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
         .from('user_personal_actions')
         .select('id,user_id,title,description,quest_type,rationale,tips,time_of_day,target_reps,current_reps,scheduled_days,status,last_performed_at')
         .eq('user_id', userId)
-        .in('status', ['active', 'pending', 'completed'])
+        .in('status', ['active', 'pending', 'completed', 'deactivated'])
         .order('created_at', { ascending: false });
       if (error) throw error;
       setActions(((data ?? []) as PersonalActionRow[]).map(rowToAction));
@@ -214,10 +214,10 @@ export function PersonalActionsSection(props: { userId: string | null }) {
   const handleDeactivate = async (action: Action) => {
     const actionId = action.dbId || action.id;
     if (!actionId) return;
-    patchActionLocal(action.id, { status: 'pending' });
+    patchActionLocal(action.id, { status: 'deactivated' });
     const { error } = await supabase
       .from('user_personal_actions')
-      .update({ status: 'pending' })
+      .update({ status: 'deactivated' })
       .eq('id', actionId);
     if (error) {
       await loadActions();
@@ -373,7 +373,7 @@ export function PersonalActionsSection(props: { userId: string | null }) {
                 key={action.id}
                 action={action}
                 isLocked={false}
-                isPending={action.status === 'pending'}
+                isPending={action.status === 'pending' || action.status === 'deactivated'}
                 canActivate={true}
                 onHelp={() => {}}
                 onOpenFramework={() => {}}

@@ -8,6 +8,7 @@ import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
 import { createWeeklyInvestigationState } from "../sophia-brain/agents/investigator-weekly/types.ts";
 import { hasActiveStateMachine } from "../trigger-daily-bilan/state_machine_check.ts";
 import { buildWeeklyReviewPayload } from "./payload.ts";
+import type { WeeklyOpeningContext } from "../sophia-brain/agents/investigator-weekly/types.ts";
 
 function sleep(ms: number) {
   return new Promise<void>((resolve) => setTimeout(resolve, ms));
@@ -24,6 +25,26 @@ function parseTimestampMs(value: unknown): number | null {
   if (typeof value !== "string" || !value.trim()) return null;
   const ms = new Date(value).getTime();
   return Number.isFinite(ms) ? ms : null;
+}
+
+function deriveWeeklyOpeningContext(profile: any): WeeklyOpeningContext {
+  const inboundMs = parseTimestampMs(profile?.whatsapp_last_inbound_at);
+  const outboundMs = parseTimestampMs(profile?.whatsapp_last_outbound_at);
+  const lastMessageMs = Math.max(inboundMs ?? -Infinity, outboundMs ?? -Infinity);
+  if (!Number.isFinite(lastMessageMs)) {
+    return {
+      mode: "cold_relaunch",
+      hours_since_last_message: null,
+      last_message_at: null,
+    };
+  }
+  const deltaMs = Math.max(0, Date.now() - (lastMessageMs as number));
+  const hours = Number((deltaMs / (60 * 60 * 1000)).toFixed(2));
+  return {
+    mode: hours >= 4 ? "cold_relaunch" : "ongoing_conversation",
+    hours_since_last_message: hours,
+    last_message_at: new Date(lastMessageMs as number).toISOString(),
+  };
 }
 
 function uniq(ids: string[]): string[] {
@@ -106,7 +127,7 @@ Deno.serve(async (req) => {
 
     const q = admin
       .from("profiles")
-      .select("id, locale, timezone, access_tier, whatsapp_last_inbound_at, whatsapp_bilan_paused_until, whatsapp_coaching_paused_until")
+      .select("id, locale, timezone, access_tier, whatsapp_last_inbound_at, whatsapp_last_outbound_at, whatsapp_bilan_paused_until, whatsapp_coaching_paused_until")
       .eq("whatsapp_opted_in", true)
       .eq("phone_invalid", false)
       .not("phone_number", "is", null);
@@ -268,7 +289,8 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const initialState = createWeeklyInvestigationState(payload);
+        const openingContext = deriveWeeklyOpeningContext(p);
+        const initialState = createWeeklyInvestigationState(payload, openingContext);
         const invResult = await runInvestigator(
           admin as any,
           userId,

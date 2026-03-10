@@ -35,7 +35,15 @@ DONNÉES JSON: ${JSON.stringify(data)}
 
 Consignes par scénario:
 - weekly_bilan_opening: ouvre avec chaleur, formule douce, puis propose le démarrage avec une mini-question de consentement (ex: "on le fait maintenant ?"), sans ton abrupt.
+  - Si DONNÉES JSON.opening_context.mode === "ongoing_conversation", insertion douce obligatoire: surtout pas de "Salut", "Hello", "Bonjour" ni relance qui sonne comme un nouveau départ de conversation.
+  - Si DONNÉES JSON.opening_context.mode === "cold_relaunch", une formule d'ouverture chaleureuse est ok.
 - weekly_bilan_reask_consent: si la réponse user est ambiguë, réponds brièvement à ce flou si nécessaire puis redemande simplement si on lance le bilan hebdo maintenant ou plus tard. Garde 1 question max, ton humain, sans formulation mécanique.
+  - Si DONNÉES JSON.opening_context.mode === "ongoing_conversation", surtout pas de "Salut", "Hello", "Bonjour".
+  - Interdit de dire "réponds juste oui ou non".
+- weekly_bilan_reask_suggestion:
+  - L'utilisateur a répondu de manière ambiguë à une proposition d'ajustement du plan.
+  - Reformule très brièvement l'enjeu concret, puis pose UNE question simple pour savoir s'il veut qu'on l'applique maintenant, qu'on le laisse de côté, ou qu'on en reparle plus tard.
+  - Interdit de dire "réponds juste oui ou non".
 - weekly_bilan_execution: analyse exécution hebdo (wins + blocages) et pose 1 question utile.
 - weekly_bilan_etoile_polaire: fais le point Etoile Polaire + propose mise à jour de valeur si pertinent.
   Si DONNÉES JSON.etoile_polaire_missing === true:

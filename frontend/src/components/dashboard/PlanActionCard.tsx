@@ -35,6 +35,7 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeactivateConfirmOpen, setIsDeactivateConfirmOpen] = useState(false);
+  const isCompletedStatus = action.status === 'completed' || action.isCompleted;
 
   // Sync state with props when they change (e.g. after DB update)
   useEffect(() => {
@@ -168,7 +169,18 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
           {/* LOGIQUE D'INTERACTION */}
           {!isVisuallyLocked && (
             <div className="mt-2">
-              {isGroupA || isFramework ? (
+              {isGroupA && isCompletedStatus ? (
+                <div className="bg-emerald-50 rounded-lg p-3 border border-emerald-200">
+                  <div className="flex items-center justify-between gap-3">
+                    <span className="text-[10px] min-[330px]:text-xs font-bold text-emerald-700 uppercase">
+                      Statut
+                    </span>
+                    <span className="text-[10px] min-[330px]:text-xs font-bold text-emerald-700 bg-white border border-emerald-200 px-2 py-1 rounded-full">
+                      Complétée
+                    </span>
+                  </div>
+                </div>
+              ) : (isGroupA || isFramework) ? (
                 /* --- PROGRESS BAR (Habitudes & Tous les Frameworks) --- */
                 <div className="bg-gray-50 rounded-lg p-2 border border-gray-100">
                   <div className="flex flex-col items-start gap-1 min-[260px]:flex-row min-[260px]:items-center min-[260px]:justify-between mb-1.5">
@@ -248,7 +260,7 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
       </div>
 
       {/* Help / Settings Menu (Repositionné pour Mobile) */}
-      {!isLocked && !action.isCompleted && !isChecked && (
+      {!isLocked && !isCompletedStatus && !isChecked && (
         <div className="flex justify-center mt-2 min-[350px]:absolute min-[350px]:top-3 min-[350px]:right-3 min-[350px]:mt-0 z-30">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
@@ -321,9 +333,9 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
       {isDeactivateConfirmOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm animate-in fade-in duration-200">
             <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 animate-in zoom-in-95 duration-200">
-                <h3 className="text-lg font-bold text-slate-900 mb-2">Mettre en pause cette action ?</h3>
+                <h3 className="text-lg font-bold text-slate-900 mb-2">Désactiver cette action ?</h3>
                 <p className="text-sm text-slate-500 mb-6">
-                    L'action sera désactivée temporairement. Tu pourras la réactiver quand tu voudras.
+                    L'action passera en statut désactivé. Elle restera visible ici et tu pourras la réactiver manuellement plus tard.
                 </p>
                 <div className="flex gap-3">
                     <button
@@ -339,7 +351,7 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
                         }}
                         className="flex-1 py-2.5 px-4 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-200 transition-colors"
                     >
-                        Mettre en pause
+                        Désactiver
                     </button>
                 </div>
             </div>
@@ -377,4 +389,3 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
     </div>
   );
 };
-

@@ -25,10 +25,18 @@ export interface WeeklySuggestionOutcome {
   created_at: string;
 }
 
+export interface WeeklyOpeningContext {
+  mode: "cold_relaunch" | "ongoing_conversation";
+  hours_since_last_message: number | null;
+  last_message_at: string | null;
+}
+
 export interface WeeklyInvestigationState {
   mode: "weekly_bilan";
   status: "init" | "reviewing" | "closing";
   awaiting_start_consent?: boolean;
+  start_consent_clarify_count?: number;
+  opening_context?: WeeklyOpeningContext | null;
   weekly_phase: WeeklyPhase;
   weekly_payload: WeeklyReviewPayload;
   weekly_covered_topics: string[];
@@ -44,12 +52,15 @@ export interface WeeklyInvestigationState {
 
 export function createWeeklyInvestigationState(
   payload: WeeklyReviewPayload,
+  openingContext?: WeeklyOpeningContext | null,
 ): WeeklyInvestigationState {
   const now = new Date().toISOString();
   return {
     mode: "weekly_bilan",
     status: "init",
     awaiting_start_consent: false,
+    start_consent_clarify_count: 0,
+    opening_context: openingContext ?? null,
     weekly_phase: "execution",
     weekly_payload: payload,
     weekly_covered_topics: [],

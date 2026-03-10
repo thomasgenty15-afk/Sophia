@@ -25,10 +25,16 @@ export function jsonResponse(
     ...(opts?.headers ?? {}),
   };
   if (status >= 400 && !opts?.skipErrorLog) {
+    const bodyRequestId =
+      body && typeof body === "object" && "request_id" in body &&
+        typeof (body as { request_id?: unknown }).request_id === "string"
+        ? (body as { request_id: string }).request_id
+        : null;
     void logHttpErrorEvent({
       req,
       status,
       body,
+      requestId: bodyRequestId,
       metadata: opts?.errorLogMeta,
     });
   }
@@ -77,4 +83,3 @@ function zodIssues(err: ZodError) {
 }
 
 export { z };
-

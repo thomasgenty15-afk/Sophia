@@ -1,8 +1,8 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { isExplicitStopBilan } from "../investigator/utils.ts";
-import { resolveBinaryConsent } from "../investigator/utils.ts";
 import { weeklyInvestigatorSay } from "./copy.ts";
 import { handleWeeklyTurn } from "./turn.ts";
+import { classifyWeeklyStartConsent } from "./consent_classifier.ts";
 import type { WeeklyInvestigationState } from "./types.ts";
 
 type WeeklyTurnResult = {
@@ -25,8 +25,6 @@ export async function runInvestigatorWeekly(
   },
 ): Promise<WeeklyTurnResult> {
   const currentState = state;
-  const consent = resolveBinaryConsent(message);
-
   if (!currentState?.weekly_payload) {
     return {
       content: "On a perdu le contexte du bilan hebdo, on le relance dimanche prochain 🙂",
@@ -44,19 +42,12 @@ export async function runInvestigatorWeekly(
   }
 
   if (currentState.status === "init") {
-    if (consent === "no") {
-      return {
-        content: "Pas de souci, ce n'est pas grave 🙂 On fera le bilan hebdo la semaine prochaine.",
-        investigationComplete: true,
-        newState: null,
-      };
-    }
-
     const opening = await weeklyInvestigatorSay(
       "weekly_bilan_opening",
       {
         weekly_payload: currentState.weekly_payload,
         covered_topics: currentState.weekly_covered_topics,
+        opening_context: currentState.opening_context ?? null,
         recent_history: (history ?? []).slice(-12),
       },
       meta,
@@ -79,17 +70,20 @@ export async function runInvestigatorWeekly(
   }
 
   if (currentState.awaiting_start_consent) {
-    if (consent === "no") {
+    const decision = await classifyWeeklyStartConsent({ message, history, meta });
+
+    if (decision === "cancel") {
       return {
         content: "Pas de souci, ce n'est pas grave 🙂 On fera le bilan hebdo la semaine prochaine.",
         investigationComplete: true,
         newState: null,
       };
     }
-    if (consent === "yes") {
+    if (decision === "go") {
       const nextState: WeeklyInvestigationState = {
         ...currentState,
         awaiting_start_consent: false,
+        start_consent_clarify_count: 0,
         updated_at: new Date().toISOString(),
       };
       return await handleWeeklyTurn({
@@ -101,7 +95,16 @@ export async function runInvestigatorWeekly(
         meta,
       });
     }
-    let reaskContent = "Tu veux qu'on fasse le bilan hebdo maintenant ou plus tard 🙂";
+    const clarifyCount = Number(currentState.start_consent_clarify_count ?? 0);
+    if (clarifyCount >= 1) {
+      return {
+        content: "Pas de souci, on laisse le bilan hebdo de cote pour l'instant 🙂",
+        investigationComplete: true,
+        newState: null,
+      };
+    }
+
+    let reaskContent = "On peut faire le point hebdo maintenant, ou le laisser pour plus tard 🙂";
     try {
       reaskContent = await weeklyInvestigatorSay(
         "weekly_bilan_reask_consent",
@@ -109,6 +112,7 @@ export async function runInvestigatorWeekly(
           user_message: message,
           weekly_payload: currentState.weekly_payload,
           covered_topics: currentState.weekly_covered_topics,
+          opening_context: currentState.opening_context ?? null,
           recent_history: (history ?? []).slice(-12),
         },
         meta,
@@ -121,6 +125,7 @@ export async function runInvestigatorWeekly(
       investigationComplete: false,
       newState: {
         ...currentState,
+        start_consent_clarify_count: clarifyCount + 1,
         updated_at: new Date().toISOString(),
       },
     };
