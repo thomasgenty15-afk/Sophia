@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import type { CheckupItem, InvestigationState, ItemProgress } from "./types.ts"
+import type { CheckupItem, InvestigationState } from "./types.ts"
 import { addDays } from "./utils.ts"
 import { investigatorSay } from "./copy.ts"
 import { getItemProgress, updateItemProgress } from "./item_progress.ts"
@@ -139,56 +139,11 @@ export async function getMissedStreakDaysForCheckupItem(
 }
 
 export async function checkAndHandleLevelUp(
-  supabase: SupabaseClient,
-  userId: string,
-  actionId: string,
+  _supabase: SupabaseClient,
+  _userId: string,
+  _actionId: string,
 ): Promise<{ leveledUp: boolean; oldAction?: any; newAction?: any }> {
-  // 1. Get current action details
-  const { data: action, error } = await supabase
-    .from("user_actions")
-    .select("id, plan_id, title, type, current_reps, target_reps, status")
-    .eq("id", actionId)
-    .single()
-
-  if (error || !action) return { leveledUp: false }
-
-  // Habitudes: target_reps est une fréquence hebdo -> on ne "level up" pas le plan quand la cible hebdo est atteinte.
-  if (String((action as any).type ?? "") === "habit") {
-    return { leveledUp: false }
-  }
-
-  // 2. Check if target reached
-  const current = action.current_reps || 0
-  const target = action.target_reps || 1
-
-  if (current >= target) {
-    console.log(`[Investigator] 🚀 LEVEL UP DETECTED for action ${actionId} (${current}/${target})`)
-
-    // 3. Mark current as completed (so it stops appearing in daily check)
-    await supabase.from("user_actions").update({ status: "completed" }).eq("id", actionId)
-
-    // 4. Find next pending action in the same plan
-    const { data: nextActions } = await supabase
-      .from("user_actions")
-      .select("id, title, description")
-      .eq("plan_id", action.plan_id)
-      .eq("status", "pending")
-      .order("created_at", { ascending: true })
-      .limit(1)
-
-    if (nextActions && nextActions.length > 0) {
-      const nextAction = nextActions[0]
-      // 5. Activate it
-      await supabase.from("user_actions").update({ status: "active" }).eq("id", nextAction.id)
-      console.log(`[Investigator] 🔓 Unlocked next action: ${nextAction.title}`)
-
-      return { leveledUp: true, oldAction: action, newAction: nextAction }
-    } else {
-      console.log("[Investigator] 🏁 No next action found. Plan completed?")
-      return { leveledUp: true, oldAction: action, newAction: null }
-    }
-  }
-
+  // Product rule: investigator daily is log-only and must not mutate plan/action state.
   return { leveledUp: false }
 }
 
@@ -268,6 +223,4 @@ export async function maybeHandleStreakAfterLog(opts: {
 
   return null
 }
-
-
 

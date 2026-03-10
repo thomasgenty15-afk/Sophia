@@ -166,7 +166,10 @@ export const distributePlanActions = async (
           target_reps: typeof action.targetReps === 'number' ? action.targetReps : 1, // Force integer
           current_reps: 0,
           status: initialStatus,
-          tracking_type: trackingType // Ajout du tracking_type
+          tracking_type: trackingType, // Ajout du tracking_type
+          last_activated_at: initialStatus === 'active' ? new Date().toISOString() : null,
+          last_deactivated_at: null,
+          last_activation_reason: initialStatus === 'active' ? 'plan_distribution_initial_activation' : null,
         });
       }
       
@@ -203,7 +206,10 @@ export const distributePlanActions = async (
           current_reps: 0,
           status: initialStatus,
           tracking_type: trackingType, // Ajout du tracking_type
-          time_of_day: timeOfDay // Ajout du time_of_day
+          time_of_day: timeOfDay, // Ajout du time_of_day
+          last_activated_at: initialStatus === 'active' ? new Date().toISOString() : null,
+          last_deactivated_at: null,
+          last_activation_reason: initialStatus === 'active' ? 'plan_distribution_initial_activation' : null,
         });
       }
     });
@@ -301,7 +307,11 @@ export const distributePlanActions = async (
       safetyOps.push(
         supabase
           .from('user_actions')
-          .update({ status: 'pending' })
+          .update({
+            status: 'pending',
+            last_activated_at: null,
+            last_activation_reason: null,
+          })
           .eq('plan_id', planId)
           .in('title', Array.from(new Set(lockedPhaseActionTitles)).slice(0, 200))
           .eq('status', 'active')
@@ -311,7 +321,11 @@ export const distributePlanActions = async (
       safetyOps.push(
         supabase
           .from('user_framework_tracking')
-          .update({ status: 'pending' })
+          .update({
+            status: 'pending',
+            last_activated_at: null,
+            last_activation_reason: null,
+          })
           .eq('plan_id', planId)
           .in('action_id', Array.from(new Set(lockedPhaseFrameworkIds)).slice(0, 200))
           .eq('status', 'active')

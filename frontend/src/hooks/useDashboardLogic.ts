@@ -67,6 +67,40 @@ export const useDashboardLogic = ({
     throw error;
   };
 
+  const activationStamp = (reason: string) => ({
+    status: 'active' as const,
+    last_activated_at: new Date().toISOString(),
+    last_deactivated_at: null,
+    last_activation_reason: reason,
+  });
+
+  const deactivationStamp = () => ({
+    status: 'deactivated' as const,
+    last_deactivated_at: new Date().toISOString(),
+  });
+
+  const promotePhaseForAction = (plan: GeneratedPlan, actionId: string): GeneratedPlan => {
+    let changed = false;
+    const phases = plan.phases.map((phase) => {
+      const containsAction = phase.actions.some((candidate) => candidate.id === actionId);
+      if (!containsAction) return phase;
+      if (phase.status === 'active' || phase.status === 'completed') return phase;
+      changed = true;
+      return { ...phase, status: 'active' as const };
+    });
+    return changed ? { ...plan, phases } : plan;
+  };
+
+  const activateActionAndPhaseLocally = (plan: GeneratedPlan, actionId: string): GeneratedPlan => {
+    const phases = plan.phases.map((phase) => ({
+      ...phase,
+      actions: phase.actions.map((candidate) =>
+        candidate.id === actionId ? { ...candidate, status: 'active' as const } : candidate
+      ),
+    }));
+    return promotePhaseForAction({ ...plan, phases }, actionId);
+  };
+
   const runEthicalValidation = async (params: {
     entityType: 'action' | 'rendez_vous' | 'north_star' | 'vital_sign';
     operation: 'create' | 'update';
@@ -301,17 +335,17 @@ export const useDashboardLogic = ({
   const handleUnlockAction = async (action: Action) => {
       if (!activePlanId || !action.id) return;
       
-      const newPhases = activePlan?.phases.map(p => ({
-          ...p,
-          actions: p.actions.map(a => a.id === action.id ? { ...a, status: 'active' as const } : a)
-      }));
-      if (newPhases && activePlan) setActivePlan({ ...activePlan, phases: newPhases });
+      if (activePlan) setActivePlan(activateActionAndPhaseLocally(activePlan, action.id));
 
       try {
+          if (activePlan) {
+              const syncedPlan = activateActionAndPhaseLocally(activePlan, action.id);
+              await supabase.from('user_plans').update({ content: syncedPlan }).eq('id', activePlanId);
+          }
           if (action.type === 'framework') {
-              await supabase.from('user_framework_tracking').update({ status: 'active' }).eq('plan_id', activePlanId).eq('action_id', action.id);
+              await supabase.from('user_framework_tracking').update(activationStamp('manual_unlock_action')).eq('plan_id', activePlanId).eq('action_id', action.id);
           } else {
-              await supabase.from('user_actions').update({ status: 'active' }).eq('plan_id', activePlanId).eq('title', action.title);
+              await supabase.from('user_actions').update(activationStamp('manual_unlock_action')).eq('plan_id', activePlanId).eq('title', action.title);
           }
       } catch (err) { console.error("Error unlocking action:", err); }
   };
@@ -337,8 +371,10 @@ export const useDashboardLogic = ({
         if (isPhaseCompleted) {
             const pendingActions = nextPhase.actions.filter(a => a.status === 'pending');
             if (pendingActions.length > 0) {
+                const nextPhaseStatus = nextPhase.status === 'completed' ? 'completed' : 'active';
                 newPhases[i+1] = {
                     ...nextPhase,
+                    status: nextPhaseStatus,
                     actions: nextPhase.actions.map(a => a.status === 'pending' ? { ...a, status: 'active' } : a)
                 };
                 hasUpdates = true;
@@ -346,8 +382,8 @@ export const useDashboardLogic = ({
                 const pendingActionTitles = pendingActions.map(a => a.title);
                 const pendingActionIds = pendingActions.map(a => a.id);
 
-                if (pendingActionTitles.length > 0) await supabase.from('user_actions').update({ status: 'active' }).eq('plan_id', activePlanId).in('title', pendingActionTitles).eq('status', 'pending');
-                if (pendingActionIds.length > 0) await supabase.from('user_framework_tracking').update({ status: 'active' }).eq('plan_id', activePlanId).in('action_id', pendingActionIds).eq('status', 'pending');
+                if (pendingActionTitles.length > 0) await supabase.from('user_actions').update(activationStamp('phase_auto_unlock')).eq('plan_id', activePlanId).in('title', pendingActionTitles).eq('status', 'pending');
+                if (pendingActionIds.length > 0) await supabase.from('user_framework_tracking').update(activationStamp('phase_auto_unlock')).eq('plan_id', activePlanId).in('action_id', pendingActionIds).eq('status', 'pending');
             }
         }
     }
@@ -466,18 +502,16 @@ export const useDashboardLogic = ({
     if (!next) return;
 
     // Update local plan
-    const newPhases = activePlan.phases.map(p => ({
-      ...p,
-      actions: p.actions.map(a => a.id === next!.id ? ({ ...a, status: 'active' as const } as Action) : a),
-    }));
-    setActivePlan({ ...activePlan, phases: newPhases });
+    const syncedPlan = activateActionAndPhaseLocally(activePlan, next.id);
+    setActivePlan(syncedPlan);
 
     // Update DB
     try {
+      await supabase.from('user_plans').update({ content: syncedPlan }).eq('id', activePlanId);
       if (next.type === 'framework') {
-        await supabase.from('user_framework_tracking').update({ status: 'active' }).eq('plan_id', activePlanId).eq('action_id', next.id);
+        await supabase.from('user_framework_tracking').update(activationStamp('unlock_next_pending_after_completion')).eq('plan_id', activePlanId).eq('action_id', next.id);
       } else {
-        await supabase.from('user_actions').update({ status: 'active' }).eq('plan_id', activePlanId).eq('title', next.title);
+        await supabase.from('user_actions').update(activationStamp('unlock_next_pending_after_completion')).eq('plan_id', activePlanId).eq('title', next.title);
       }
     } catch (err) {
       console.error("Error unlocking next pending action:", err);
@@ -545,7 +579,10 @@ export const useDashboardLogic = ({
       ...p,
       actions: p.actions.map(nextAction),
     }));
-    const updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
+    let updatedPlan: GeneratedPlan = { ...activePlan, phases: newPhases };
+    if (payload.activateIfPending) {
+      updatedPlan = promotePhaseForAction(updatedPlan, action.id);
+    }
     setActivePlan(updatedPlan);
 
     try {
@@ -557,7 +594,7 @@ export const useDashboardLogic = ({
         target_reps: safeTarget,
         scheduled_days: safeDays,
       };
-      if (payload.activateIfPending) updates.status = 'active';
+      if (payload.activateIfPending) Object.assign(updates, activationStamp('habit_settings_activate'));
 
       const { error } = await supabase
         .from('user_actions')
@@ -652,7 +689,10 @@ export const useDashboardLogic = ({
              description: newAction.description,
              target_reps: newAction.targetReps || 1,
              current_reps: 0,
-             status: 'active'
+             status: 'active',
+             last_activated_at: new Date().toISOString(),
+             last_deactivated_at: null,
+             last_activation_reason: 'breakdown_generated_action',
         });
 
         setActivePlan(newPlan);
@@ -916,11 +956,14 @@ export const useDashboardLogic = ({
                  type: dbType,
                  title: newAction.title,
                  description: newAction.description,
-                 target_reps: safeReps,
-                 current_reps: 0,
-                 time_of_day: newAction.timeOfDay || 'any_time',
-                 scheduled_days: newAction.scheduledDays || null,
-                 status: 'active'
+             target_reps: safeReps,
+             current_reps: 0,
+             time_of_day: newAction.timeOfDay || 'any_time',
+             scheduled_days: newAction.scheduledDays || null,
+                 status: 'active',
+                 last_activated_at: new Date().toISOString(),
+                 last_deactivated_at: null,
+                 last_activation_reason: 'manual_create_action',
             });
     
         } catch (err) {
@@ -1014,12 +1057,12 @@ export const useDashboardLogic = ({
             // 3. Update tracking table status to "deactivated"
             const normalizedType = String(action.type ?? "").toLowerCase().trim();
             if (normalizedType === 'framework') {
-                await supabase.from('user_framework_tracking').update({ status: 'deactivated' }).eq('plan_id', activePlanId).eq('action_id', action.id);
+                await supabase.from('user_framework_tracking').update(deactivationStamp()).eq('plan_id', activePlanId).eq('action_id', action.id);
             } else {
                 if (action.dbId) {
-                    await supabase.from('user_actions').update({ status: 'deactivated' }).eq('id', action.dbId);
+                    await supabase.from('user_actions').update(deactivationStamp()).eq('id', action.dbId);
                 } else {
-                    await supabase.from('user_actions').update({ status: 'deactivated' }).eq('plan_id', activePlanId).eq('title', action.title);
+                    await supabase.from('user_actions').update(deactivationStamp()).eq('plan_id', activePlanId).eq('title', action.title);
                 }
             }
         } catch (err) {

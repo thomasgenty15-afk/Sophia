@@ -499,48 +499,26 @@ export async function logItemDetailed(
       }
     }
 
-    // Update Action Stats & Log Entry
+    // Log-only rule: investigator daily must not mutate user_actions state.
     if (status === "completed") {
-      // 1. Fetch current state to check 18h rule & increment reps
-      const { data: action } = await supabase
-        .from("user_actions")
-        .select("type, target_reps, last_performed_at, current_reps")
-        .eq("id", item_id)
-        .single()
+      const { data: recentEntry } = await supabase
+        .from("user_action_entries")
+        .select("id, performed_at")
+        .eq("user_id", userId)
+        .eq("action_id", item_id)
+        .eq("status", "completed")
+        .order("performed_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
-      const lastPerformedDate = action?.last_performed_at ? new Date(action.last_performed_at) : null
+      const lastPerformedDate = recentEntry?.performed_at ? new Date(recentEntry.performed_at) : null
       const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
-
-      // Check 18h rule : Si fait il y a moins de 18h, on ne re-log pas (doublon)
       if (lastPerformedDate && lastPerformedDate > eighteenHoursAgo) {
         console.log(
-          `[Investigator] Action ${item_id} performed recently (${action?.last_performed_at}), skipping update & log.`,
+          `[Investigator] Action ${item_id} already logged recently (${recentEntry?.performed_at}), skipping duplicate log.`,
         )
         return { message: "Logged (Skipped duplicate)", entry_id: null }
       }
-
-      // Increment Reps (Si pas skipped)
-      let base = Number(action?.current_reps || 0)
-      if (String(action?.type ?? "") === "habit") {
-        const tz = await getUserTimezone(supabase, userId)
-        const weekNow = isoWeekStartYmdInTz(now, tz)
-        const weekLast = lastPerformedDate ? isoWeekStartYmdInTz(lastPerformedDate, tz) : null
-        if (!weekLast || weekLast !== weekNow) base = 0
-      }
-      const newReps = base + 1
-
-      const actionType = String(action?.type ?? "").toLowerCase()
-      const isHabit = actionType === "habit"
-      const target = Math.max(1, Number(action?.target_reps ?? 1) || 1)
-      const shouldCompleteMission = !isHabit && newReps >= target
-
-      await supabase.from("user_actions").update({
-        last_performed_at: now.toISOString(),
-        current_reps: newReps,
-        ...(shouldCompleteMission ? { status: "completed" } : {}),
-      }).eq("id", item_id)
-
-      console.log(`[Investigator] Incremented reps for ${item_id} to ${newReps}`)
     }
     // Log Entry (only if we didn't update a recent one above)
     // NOTE: If a recent row existed with different status, we updated it and should not insert.
@@ -584,12 +562,6 @@ export async function logItemDetailed(
         : String((already as any)?.id ?? "") || null,
     }
   } else if (item_type === "vital") {
-    // Vital Sign
-    await supabase.from("user_vital_signs").update({
-      current_value: String(value),
-      last_checked_at: new Date().toISOString(),
-    }).eq("id", item_id)
-
     const { data: vital } = await supabase.from("user_vital_signs").select("plan_id, submission_id").eq("id", item_id)
       .single()
 
@@ -609,34 +581,29 @@ export async function logItemDetailed(
       entry_id: String((insertedVitalEntry as any)?.id ?? "") || null,
     }
   } else if (item_type === "framework") {
-    // Framework Tracking
+    // Log-only rule: investigator daily must not mutate framework tracking state.
     if (status === "completed") {
       const { data: fw } = await supabase
         .from("user_framework_tracking")
-        .select("last_performed_at, current_reps, target_reps, type, action_id, plan_id, title")
+        .select("action_id, plan_id, title")
         .eq("id", item_id)
         .single()
 
-      const lastPerformedDate = fw?.last_performed_at ? new Date(fw.last_performed_at) : null
-      const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
+      const { data: recentFrameworkEntry } = await supabase
+        .from("user_framework_entries")
+        .select("id, created_at")
+        .eq("user_id", userId)
+        .eq("action_id", fw?.action_id ?? "")
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle()
 
+      const lastPerformedDate = recentFrameworkEntry?.created_at ? new Date(recentFrameworkEntry.created_at) : null
+      const eighteenHoursAgo = new Date(now.getTime() - 18 * 60 * 60 * 1000)
       if (lastPerformedDate && lastPerformedDate > eighteenHoursAgo) {
-        console.log(`[Investigator] Framework ${item_id} performed recently, skipping update.`)
+        console.log(`[Investigator] Framework ${item_id} already logged recently, skipping duplicate log.`)
         return { message: "Logged (Skipped duplicate)", entry_id: null }
       }
-
-      const currReps = Number(fw?.current_reps || 0)
-      const newReps = currReps + 1
-      const target = Math.max(1, Number(fw?.target_reps ?? 1) || 1)
-      // Mark completed when target reached (one_shot usually has target=1)
-      const shouldComplete = newReps >= target
-      const nextStatus = shouldComplete ? "completed" : "active"
-
-      await supabase.from("user_framework_tracking").update({
-        last_performed_at: now.toISOString(),
-        current_reps: newReps,
-        status: nextStatus,
-      }).eq("id", item_id)
 
       const { data: insertedFrameworkEntry } = await supabase.from("user_framework_entries").insert({
         user_id: userId,

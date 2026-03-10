@@ -6,7 +6,6 @@ import { investigatorSay } from "./copy.ts"
 import { isMegaTestMode } from "./utils.ts"
 import { logItem, logItemDetailed } from "./db.ts"
 import {
-  checkAndHandleLevelUp,
   maybeHandleStreakAfterLog,
   getCompletedStreakDays,
   getMissedStreakDaysForCheckupItem,
@@ -410,57 +409,6 @@ export async function handleInvestigatorModelOutput(opts: {
       )
         return { content: transitionMsg, investigationComplete: false, newState: nextState }
       }
-
-    // --- LEVEL UP CHECK ---
-    if (
-      currentItem.type === "action" &&
-      currentItem.action_source !== "personal" &&
-      argsWithId.status === "completed"
-    ) {
-      try {
-        const levelUpResult = await checkAndHandleLevelUp(supabase, userId, currentItem.id)
-        if (levelUpResult.leveledUp) {
-          const nextIndex = stateWithLog.current_item_index + 1
-          let nextState = { ...stateWithLog, current_item_index: nextIndex }
-          
-          // Update next item to awaiting_answer if there is one
-          if (nextIndex < stateWithLog.pending_items.length) {
-            const nextItem = stateWithLog.pending_items[nextIndex]
-            nextState = updateItemProgress(nextState, nextItem.id, {
-              phase: "awaiting_answer",
-              last_question_kind: nextItem.type === "vital" ? "vital_value" : "did_it",
-            })
-          }
-
-          const levelUpMsg = await investigatorSay(
-            "level_up",
-            {
-              user_message: message,
-              old_action: levelUpResult.oldAction,
-              new_action: levelUpResult.newAction,
-              last_item_log: argsWithId,
-            },
-            meta,
-          )
-
-          if (nextIndex >= stateWithLog.pending_items.length) {
-            return {
-              content: levelUpMsg,
-              investigationComplete: true,
-              newState: nextState,
-            }
-          }
-
-          return {
-            content: levelUpMsg,
-            investigationComplete: false,
-            newState: nextState,
-          }
-        }
-      } catch (e) {
-        console.error("[Investigator] Level Up check failed:", e)
-      }
-    }
 
     try {
       const streakIntercept = await maybeHandleStreakAfterLog({

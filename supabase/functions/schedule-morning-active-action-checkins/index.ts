@@ -3,6 +3,7 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { ensureInternalRequest } from "../_shared/internal-auth.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { generateWithGemini } from "../_shared/gemini.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts"
@@ -48,6 +49,16 @@ function clampText(v: string, maxChars: number): string {
 
 function normalizeKey(v: unknown): string {
   return String(v ?? "").trim().toLowerCase()
+}
+
+function errorToMessage(error: unknown): string {
+  if (error instanceof Error) return error.message
+  if (typeof error === "string") return error
+  try {
+    return JSON.stringify(error)
+  } catch {
+    return String(error)
+  }
 }
 
 function fallbackDraftMessage(actionTitles: string[]): string {
@@ -311,6 +322,7 @@ async function generateWeeklyDrafts(params: {
     "- Chaque message: 3 à 5 lignes maximum, texte brut, 1 question max.",
     "- Ton chaleureux, encourageant, naturel, tutoiement.",
     "- Ouvre naturellement avec un bonjour positif du matin.",
+    "- Mets toujours 1 emoji naturel juste après le bonjour / l'ouverture du matin sur la première ligne.",
     "- Ne parle jamais d'automatisation, de cron, de template ou de rappel programmé.",
     "- Le but est d'aider la personne a lancer ses actions du jour, sans pression excessive.",
     "- Quand des actions sont fournies pour le jour, tu dois toutes les citer.",
@@ -322,11 +334,17 @@ async function generateWeeklyDrafts(params: {
     "  1. un bonjour positif,",
     "  2. un rappel de faire les actions du jour,",
     "  3. un rappel bref de pourquoi c'est important pour cette personne,",
-    "  4. une phrase de confiance type 'tu peux le faire'.",
+    "  4. une phrase de confiance ou d'elan final.",
     "- Le message ne doit pas etre culpabilisant.",
     "- Le rappel du pourquoi doit rester concret et personnel, pas abstrait.",
     "- Reste dense et clair, mais n'omets aucune action active du slot.",
     "- Vraie variation entre les messages d'un meme lot.",
+    "- Evite les enumerations mecaniques du type 'Aujourd'hui: action 1, action 2, action 3'.",
+    "- Evite que plusieurs messages du lot commencent ou se structurent de la meme facon.",
+    "- Varie la facon de citer les actions: parfois en sequence fluide dans une phrase, parfois en deux temps, parfois en mettant une action en avant puis les autres ensuite.",
+    "- Ne donne pas l'impression d'un template repete chaque matin.",
+    "- La derniere phrase doit varier d'un message a l'autre: interdiction de reutiliser systematiquement 'tu peux le faire'.",
+    "- Varie les fins avec des formulations comme elan, confiance, ancrage, pas concret, cap, souffle, demarrage, sans toujours reprendre la meme phrase.",
     "",
     "Repere temporel local utilisateur:",
     tctx.prompt_block,
@@ -416,7 +434,7 @@ Deno.serve(async (req) => {
     let activeUsersQuery = supabaseAdmin
       .from("profiles")
       .select("id,timezone,locale,whatsapp_coaching_paused_until")
-      .order("created_at", { ascending: true })
+      .order("id", { ascending: true })
 
     if (userIdFilter) activeUsersQuery = activeUsersQuery.eq("id", userIdFilter)
     const { data: profiles, error: profilesErr } = await activeUsersQuery
@@ -574,7 +592,15 @@ Deno.serve(async (req) => {
     )
   } catch (error) {
     console.error(`[schedule-morning-active-action-checkins] request_id=${requestId}`, error)
-    const message = error instanceof Error ? error.message : String(error)
+    const message = errorToMessage(error)
+    await logEdgeFunctionError({
+      functionName: "schedule-morning-active-action-checkins",
+      requestId,
+      error,
+      metadata: {
+        source: "edge",
+      },
+    })
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
