@@ -19,6 +19,28 @@ type CoachingPauseDecision = {
   rationale?: string
 }
 
+type WatcherEventCandidate = {
+  event_context?: string
+  scheduled_for?: string
+  confidence_score?: number | string
+  event_grounding?: string
+}
+
+type WatcherAnalysisResponse = {
+  pause_decision?: Partial<CoachingPauseDecision> | null
+  events?: WatcherEventCandidate[] | null
+}
+
+function simplePromptHash(input: string): string {
+  let hash = 2166136261
+  const text = String(input ?? "")
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0")
+}
+
 function getWatcherIntervalMinutes(): number {
   const raw = Number((Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "10").trim())
   if (!Number.isFinite(raw) || raw <= 0) return 10
@@ -129,66 +151,6 @@ function computeLaterPauseUntil(currentValue: unknown, pauseDays: number): strin
   return new Date(nextMs).toISOString()
 }
 
-async function detectCoachingPauseDecision(params: {
-  transcript: string
-  requestId?: string
-}): Promise<CoachingPauseDecision | null> {
-  const prompt = `
-Tu es un classifieur ultra-conservateur pour Sophia.
-Ta mission: détecter si l'utilisateur demande explicitement une pause temporaire sur le coaching lié aux objectifs.
-
-Cette pause coaching concerne uniquement:
-- le bilan quotidien du soir
-- le bilan hebdomadaire
-- le message de motivation du matin sur les actions actives
-
-N'inclus PAS:
-- les rappels récurrents configurés par l'utilisateur
-- les memory_echo
-- les check-ins ponctuels watcher d'événements
-- la simple volonté d'arrêter la conversation en cours
-- la pause d'une action précise
-
-Règles strictes:
-- Sois très conservateur.
-- N'active la pause que si la demande est explicite et vise bien ces sollicitations de coaching.
-- Si la durée n'est pas claire, retourne should_pause=false.
-- Interprète "quelques jours" seulement si c'est vraiment explicite et sans ambiguïté.
-- Le confidence_score est entre 0 et 10.
-- Retourne JSON strict uniquement.
-
-Schema:
-{"should_pause":true|false,"confidence_score":0,"pause_days":0,"rationale":"court"}
-  `.trim()
-
-  const userPrompt = `
-Analyse cette fenêtre de conversation récente et décide si l'utilisateur demande une pause coaching temporaire.
-
-${params.transcript}
-  `.trim()
-
-  try {
-    const out = await generateWithGemini(
-      prompt,
-      userPrompt,
-      0.1,
-      true,
-      [],
-      "auto",
-      { requestId: params.requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "trigger-watcher-batch:coaching-pause" },
-    )
-    const parsed = JSON.parse(String(out)) as Partial<CoachingPauseDecision>
-    return {
-      should_pause: Boolean(parsed?.should_pause),
-      confidence_score: Number(parsed?.confidence_score ?? 0),
-      pause_days: clampPauseDays(parsed?.pause_days),
-      rationale: compactOneLine(String(parsed?.rationale ?? ""), 180) || undefined,
-    }
-  } catch {
-    return null
-  }
-}
-
 async function applyCoachingPause(params: {
   supabase: SupabaseClient
   userId: string
@@ -271,7 +233,7 @@ async function aiValidateDayCoherence(params: {
     })
     .join("\n")
 
-  const prompt = `
+  const stablePrompt = `
 Tu es un arbitre de scheduling de check-ins Sophia.
 Ta mission: décider si un nouveau check-in watcher doit être accepté le même jour que d'autres check-ins déjà planifiés.
 
@@ -285,6 +247,11 @@ Retourne JSON strict:
 {"accept": true|false, "reason": "courte raison"}
   `.trim()
 
+  const semiStablePrompt = `
+Contexte runtime:
+- timezone utilisateur: ${params.timezone}
+`.trim()
+
   const candidateLocal = new Intl.DateTimeFormat("fr-FR", {
     timeZone: params.timezone,
     year: "numeric",
@@ -295,7 +262,7 @@ Retourne JSON strict:
     hour12: false,
   }).format(new Date(params.candidateScheduledFor))
 
-  const userPrompt = `
+  const volatilePrompt = `
 Nouveau candidat:
 - local_datetime: ${candidateLocal}
 - event_context: ${params.candidateEventContext}
@@ -306,9 +273,24 @@ ${dayList || "(aucun)"}
   `.trim()
 
   try {
+    console.log(JSON.stringify({
+      tag: "watcher_day_coherence_prompt_cache_ready",
+      request_id: params.requestId ?? null,
+      stable_hash: simplePromptHash(stablePrompt),
+      semi_stable_hash: simplePromptHash(semiStablePrompt),
+      stable_chars: stablePrompt.length,
+      semi_stable_chars: semiStablePrompt.length,
+      volatile_chars: volatilePrompt.length,
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + volatilePrompt.length,
+    }))
+  } catch {
+    // non-blocking
+  }
+
+  try {
     const out = await generateWithGemini(
-      prompt,
-      userPrompt,
+      `${stablePrompt}\n\n${semiStablePrompt}`,
+      volatilePrompt,
       0.1,
       true,
       [],
@@ -413,38 +395,12 @@ export async function runWatcher(
   const fullTranscript = windowMessages
     .map((m: any) => `[${m.created_at}] ${m.role}: ${m.content}`)
     .join("\n")
-  const pauseDecision = await detectCoachingPauseDecision({
-    transcript: fullTranscript,
-    requestId: meta?.requestId,
-  })
-  if (
-    pauseDecision?.should_pause &&
-    Number.isFinite(pauseDecision.confidence_score) &&
-    pauseDecision.confidence_score > 8 &&
-    pauseDecision.pause_days >= 1
-  ) {
-    const pauseUntilIso = computeLaterPauseUntil(
-      (() => {
-        const coachingMs = parseTimestampMs((prof as any)?.whatsapp_coaching_paused_until ?? null)
-        const bilanMs = parseTimestampMs((prof as any)?.whatsapp_bilan_paused_until ?? null)
-        if ((coachingMs ?? 0) >= (bilanMs ?? 0)) return (prof as any)?.whatsapp_coaching_paused_until ?? null
-        return (prof as any)?.whatsapp_bilan_paused_until ?? null
-      })(),
-      pauseDecision.pause_days,
-    )
-    await applyCoachingPause({
-      supabase,
-      userId,
-      pauseUntilIso,
-    })
-    console.log(
-      `[Veilleur] coaching_pause_applied user=${userId} days=${pauseDecision.pause_days} confidence=${pauseDecision.confidence_score} pause_until=${pauseUntilIso}`,
-    )
-  }
   const now = tctx.now_utc
-  const basePrompt = `
+  const stablePrompt = `
 Tu es "Le Veilleur", une IA bienveillante intégrée à l'assistant Sophia.
-Ta mission est d'analyser les conversations récentes pour identifier des événements futurs importants dans la vie de l'utilisateur.
+Ta mission est d'analyser les conversations récentes pour:
+1. détecter si l'utilisateur demande explicitement une pause temporaire sur le coaching lié aux objectifs
+2. identifier des événements futurs importants dans la vie de l'utilisateur
 
 Repères temporels (CRITIQUES):
 - Maintenant (UTC): ${now}
@@ -460,23 +416,47 @@ FENÊTRE D'OBSERVATION (STRICTE):
 - Base ton analyse uniquement sur cette fenêtre. N'infère rien d'en-dehors.
 
 Objectif :
-1. Repérer les événements mentionnés (réunions, sorties, concerts, examens, rendez-vous, etc.).
-2. Déterminer si un message de "suivi" (check-in) serait apprécié par l'utilisateur.
-3. Calculer le moment IDÉAL pour envoyer ce message.
-4. NE RÉDIGE PAS le message final ici. On génère le message au moment de l'envoi, avec le contexte le plus récent.
+1. Décider si l'utilisateur demande explicitement une pause temporaire sur le coaching lié aux objectifs.
+2. Repérer les événements mentionnés (réunions, sorties, concerts, examens, rendez-vous, etc.).
+3. Déterminer si un message de "suivi" (check-in) serait apprécié par l'utilisateur.
+4. Calculer le moment IDÉAL pour envoyer ce message.
+5. NE RÉDIGE PAS le message final ici. On génère le message au moment de l'envoi, avec le contexte le plus récent.
 
-Format de sortie attendu : JSON uniquement, un tableau d'objets.
-[
-  {
-    "event_context": "Courte description de l'événement (ex: Présentation client)",
-    "scheduled_for": "Date ISO 8601 précise (UTC) quand le message doit être envoyé",
-    "confidence_score": "Score entre 0 et 10",
-    "event_grounding": "1-2 phrases factuelles sur ce que l'utilisateur a dit (optionnel, max 280 caractères)"
-  }
-]
+Format de sortie attendu : JSON strict uniquement, un objet avec cette forme:
+{
+  "pause_decision": {
+    "should_pause": true|false,
+    "confidence_score": 0,
+    "pause_days": 0,
+    "rationale": "court"
+  },
+  "events": [
+    {
+      "event_context": "Courte description de l'événement (ex: Présentation client)",
+      "scheduled_for": "Date ISO 8601 précise (UTC) quand le message doit être envoyé",
+      "confidence_score": "Score entre 0 et 10",
+      "event_grounding": "1-2 phrases factuelles sur ce que l'utilisateur a dit (optionnel, max 280 caractères)"
+    }
+  ]
+}
 
 Règles CRITIQUES :
-- Ne génère RIEN si aucun événement pertinent n'est trouvé. Renvoie un tableau vide [].
+- Si aucun événement pertinent n'est trouvé, renvoie "events": [].
+- Si aucune pause coaching explicite avec durée claire n'est demandée, renvoie "pause_decision" avec should_pause=false, confidence_score=0, pause_days=0.
+- Pour la pause coaching, sois ULTRA conservateur.
+- La pause coaching concerne uniquement:
+  - le bilan quotidien du soir
+  - le bilan hebdomadaire
+  - le message de motivation du matin sur les actions actives
+- N'inclus PAS dans la pause coaching:
+  - les rappels récurrents configurés par l'utilisateur
+  - les memory_echo
+  - les check-ins ponctuels watcher d'événements
+  - la simple volonté d'arrêter la conversation en cours
+  - la pause d'une action précise
+- N'active la pause coaching que si la demande est explicite et vise bien ces sollicitations de coaching.
+- Si la durée de pause n'est pas claire, retourne should_pause=false.
+- Interprète "quelques jours" seulement si c'est vraiment explicite et sans ambiguïté.
 - Sois TRÈS CONSERVATEUR. Ne programme un check-in QUE pour des événements majeurs (examen, entretien important, etc.) OU si l'utilisateur demande explicitement qu'on le relance.
 - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
 - N'utilise PAS les actions actives du plan comme motif de check-in ponctuel watcher (elles sont déjà suivies ailleurs).
@@ -490,16 +470,50 @@ Règles CRITIQUES :
   - En cas de doute éthique, ne programme RIEN (renvoie []).
 - Ne programme JAMAIS de check-in avec un confidence_score inférieur à 8.
 - Ne propose pas de check-in pour des événements passés depuis longtemps.
-- Assure-toi que "scheduled_for" est dans le FUTUR par rapport à "Maintenant" (${now}).
+- Assure-toi que "scheduled_for" est dans le FUTUR par rapport à "Maintenant".
+
+Actions actives du plan (à exclure du watcher):
+`.trim()
+
+  const semiStablePrompt = `
+Repères temporels (CRITIQUES):
+- Maintenant (UTC): ${now}
+- Timezone utilisateur: ${tctx.user_timezone}
+- Maintenant (local utilisateur): ${tctx.user_local_datetime} (${tctx.user_local_human})
+
+RÈGLE DE TEMPS:
+- Si l'utilisateur dit "aujourd'hui/demain/lundi prochain", interprète ces expressions en temps LOCAL utilisateur (timezone ci-dessus).
+- Tu DOIS retourner "scheduled_for" en UTC (ISO 8601).
+
+FENÊTRE D'OBSERVATION (STRICTE):
+- L'historique fourni couvre uniquement les ${watcherIntervalMinutes} dernières minutes.
+- Base ton analyse uniquement sur cette fenêtre. N'infère rien d'en-dehors.
 
 Actions actives du plan (à exclure du watcher):
 ${activeActionsBlock}
-`
+`.trim()
+
+  const volatilePrompt = `Voici l'historique de la fenêtre d'observation (${watcherIntervalMinutes} minutes) :\n\n${fullTranscript}`
+
+  try {
+    console.log(JSON.stringify({
+      tag: "watcher_main_prompt_cache_ready",
+      request_id: meta?.requestId ?? null,
+      stable_hash: simplePromptHash(stablePrompt),
+      semi_stable_hash: simplePromptHash(semiStablePrompt),
+      stable_chars: stablePrompt.length,
+      semi_stable_chars: semiStablePrompt.length,
+      volatile_chars: volatilePrompt.length,
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + volatilePrompt.length,
+    }))
+  } catch {
+    // non-blocking
+  }
 
   try {
     const responseText = await generateWithGemini(
-      basePrompt,
-      `Voici l'historique de la fenêtre d'observation (${watcherIntervalMinutes} minutes) :\n\n${fullTranscript}`,
+      `${stablePrompt}\n\n${semiStablePrompt}`,
+      volatilePrompt,
       0.4,
       true,
       [],
@@ -507,8 +521,47 @@ ${activeActionsBlock}
       { requestId: meta?.requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "trigger-watcher-batch" },
     )
 
-    const events = JSON.parse(String(responseText))
-    if (!Array.isArray(events) || events.length === 0) return
+    const parsed = JSON.parse(String(responseText)) as WatcherAnalysisResponse | WatcherEventCandidate[]
+    const analysis: WatcherAnalysisResponse = Array.isArray(parsed)
+      ? { pause_decision: null, events: parsed }
+      : (parsed ?? {})
+
+    const pauseDecision = analysis.pause_decision
+      ? {
+        should_pause: Boolean(analysis.pause_decision.should_pause),
+        confidence_score: Number(analysis.pause_decision.confidence_score ?? 0),
+        pause_days: clampPauseDays(analysis.pause_decision.pause_days),
+        rationale: compactOneLine(String(analysis.pause_decision.rationale ?? ""), 180) || undefined,
+      }
+      : null
+
+    if (
+      pauseDecision?.should_pause &&
+      Number.isFinite(pauseDecision.confidence_score) &&
+      pauseDecision.confidence_score > 8 &&
+      pauseDecision.pause_days >= 1
+    ) {
+      const pauseUntilIso = computeLaterPauseUntil(
+        (() => {
+          const coachingMs = parseTimestampMs((prof as any)?.whatsapp_coaching_paused_until ?? null)
+          const bilanMs = parseTimestampMs((prof as any)?.whatsapp_bilan_paused_until ?? null)
+          if ((coachingMs ?? 0) >= (bilanMs ?? 0)) return (prof as any)?.whatsapp_coaching_paused_until ?? null
+          return (prof as any)?.whatsapp_bilan_paused_until ?? null
+        })(),
+        pauseDecision.pause_days,
+      )
+      await applyCoachingPause({
+        supabase,
+        userId,
+        pauseUntilIso,
+      })
+      console.log(
+        `[Veilleur] coaching_pause_applied user=${userId} days=${pauseDecision.pause_days} confidence=${pauseDecision.confidence_score} pause_until=${pauseUntilIso}`,
+      )
+    }
+
+    const events = Array.isArray(analysis.events) ? analysis.events : []
+    if (events.length === 0) return
 
     const candidates = events
       .map((event: any) => {

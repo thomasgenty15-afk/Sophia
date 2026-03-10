@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { ChevronDown, Check, ArrowRight, Sparkles } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -36,6 +36,40 @@ const GlobalPlan = () => {
   const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [currentTheme, setCurrentTheme] = useState<Theme>(DATA[0]);
+
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const autoScrollStartTimeoutRef = useRef<number | null>(null);
+  const autoScrollPauseTimeoutRef = useRef<number | null>(null);
+  const autoScrollForwardFrameRef = useRef<number | null>(null);
+  const autoScrollBackwardFrameRef = useRef<number | null>(null);
+  const [hasScrolledHint, setHasScrolledHint] = useState(false);
+
+  const clearAutoScroll = () => {
+    if (autoScrollStartTimeoutRef.current !== null) {
+      window.clearTimeout(autoScrollStartTimeoutRef.current);
+      autoScrollStartTimeoutRef.current = null;
+    }
+
+    if (autoScrollPauseTimeoutRef.current !== null) {
+      window.clearTimeout(autoScrollPauseTimeoutRef.current);
+      autoScrollPauseTimeoutRef.current = null;
+    }
+
+    if (autoScrollForwardFrameRef.current !== null) {
+      window.cancelAnimationFrame(autoScrollForwardFrameRef.current);
+      autoScrollForwardFrameRef.current = null;
+    }
+
+    if (autoScrollBackwardFrameRef.current !== null) {
+      window.cancelAnimationFrame(autoScrollBackwardFrameRef.current);
+      autoScrollBackwardFrameRef.current = null;
+    }
+  };
+
+  const stopAutoScroll = () => {
+    setHasScrolledHint(true);
+    clearAutoScroll();
+  };
 
   const [isLoaded, setIsLoaded] = useState(false);
   const [loadError, setLoadError] = useState<string | null>(null); // Nouvel état pour gérer l'erreur de chargement
@@ -455,6 +489,61 @@ const GlobalPlan = () => {
     }
   }, [currentTheme, selectedAxisByTheme]);
 
+  // Animation de scroll pour indiquer que c'est scrollable sur mobile
+  useEffect(() => {
+    if (!scrollContainerRef.current || hasScrolledHint) return;
+
+    // Seulement sur mobile/tablette (< 768px)
+    if (window.innerWidth >= 768) return;
+
+    const container = scrollContainerRef.current;
+    
+    // On attend un peu que tout soit bien rendu (images, polices, etc.)
+    autoScrollStartTimeoutRef.current = window.setTimeout(() => {
+      const animateScroll = () => {
+        const maxScroll = container.scrollWidth - container.clientWidth;
+        if (maxScroll <= 0) return;
+
+        const speed = maxScroll / 20000; // pixels par ms pour une vitesse constante sur 20 secondes
+        let lastTimestamp: number | null = null;
+
+        const step = (timestamp: number) => {
+          if (lastTimestamp === null) lastTimestamp = timestamp;
+          const delta = timestamp - lastTimestamp;
+          lastTimestamp = timestamp;
+
+          container.scrollLeft = Math.min(container.scrollLeft + speed * delta, maxScroll);
+
+          if (container.scrollLeft < maxScroll) {
+            autoScrollForwardFrameRef.current = window.requestAnimationFrame(step);
+          } else {
+            autoScrollPauseTimeoutRef.current = window.setTimeout(() => {
+              let lastBackTimestamp: number | null = null;
+              const stepBack = (timestampBack: number) => {
+                if (lastBackTimestamp === null) lastBackTimestamp = timestampBack;
+                const deltaBack = timestampBack - lastBackTimestamp;
+                lastBackTimestamp = timestampBack;
+
+                container.scrollLeft = Math.max(container.scrollLeft - speed * deltaBack, 0);
+
+                if (container.scrollLeft > 0) {
+                  autoScrollBackwardFrameRef.current = window.requestAnimationFrame(stepBack);
+                }
+              };
+              autoScrollBackwardFrameRef.current = window.requestAnimationFrame(stepBack);
+            }, 700);
+          }
+        };
+
+        autoScrollForwardFrameRef.current = window.requestAnimationFrame(step);
+      };
+
+      animateScroll();
+    }, 1500); // On attend 1.5s au lieu de 1s pour s'assurer que le layout est stable
+
+    return () => clearAutoScroll();
+  }, [hasScrolledHint, currentTheme]); // On rajoute currentTheme pour relancer si besoin au chargement initial
+
   // FILTRAGE DES THÈMES (SI MODE REFINE)
   const isRefineMode = searchParams.get('mode') === 'refine';
   const displayedThemes = isRefineMode 
@@ -487,7 +576,7 @@ const GlobalPlan = () => {
     const isReplacingInSameTheme = currentSelection !== null && currentSelection !== undefined;
 
     if (!isReplacingInSameTheme && totalSelectedAxes >= MAX_AXES) {
-      alert("Tu ne peux sélectionner que 3 axes maximum pour commencer.");
+      alert("Tu ne peux sélectionner que 3 transformations maximum pour commencer.");
       return;
     }
 
@@ -694,7 +783,13 @@ const GlobalPlan = () => {
                 </div>
             )}
 
-            <div className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-y-auto scrollbar-hide w-full pb-1 md:pb-0 px-1 h-full">
+            <div 
+              ref={scrollContainerRef}
+              onTouchStart={stopAutoScroll}
+              onMouseDown={stopAutoScroll}
+              onWheel={stopAutoScroll}
+              className="flex md:flex-col gap-2 md:space-y-2 overflow-x-auto md:overflow-y-auto scrollbar-hide w-full pb-1 md:pb-0 px-1 h-full"
+            >
             {displayedThemes.map(theme => {
                 const isAxisSelectedInTheme = selectedAxisByTheme[theme.id] != null;
                 
@@ -775,25 +870,6 @@ const GlobalPlan = () => {
         
         {/* Encart & Bouton (Desktop: top, Mobile: bottom) */}
         <div className="order-4 md:order-2 mt-8 md:mt-0 mb-0 md:mb-8">
-          {/* Encart Explicatif */}
-          <div className="bg-blue-50 border border-blue-100 rounded-lg p-4 mb-6 flex items-start gap-3">
-            <div className="bg-blue-100 p-2 rounded-full text-blue-600 mt-0.5">
-              <span className="font-bold text-sm">i</span>
-            </div>
-            <div>
-              <h3 className="font-bold text-blue-900 text-sm">
-                {isRefineMode ? "Réinitialisation du Plan" : "Règle des 3 Piliers"}
-              </h3>
-              <p className="text-blue-800 text-sm mt-1">
-                {isRefineMode ? (
-                  "Pour réinitialiser, commence par identifier une transformation dans le thème que tu avais choisi."
-                ) : (
-                   <>Pour être efficace, ne te disperse pas. Choisis jusqu'à <strong>3 transformations</strong> au total (maximum 1 par thème).</>
-                )}
-              </p>
-            </div>
-          </div>
-
           {/* BOUTON ASSISTANT SOPHIA */}
           {!isRefineMode && (
               <div className="mb-0 md:mb-8">
@@ -808,7 +884,7 @@ const GlobalPlan = () => {
                             </div>
                             <div className="text-left">
                                 <h3 className="font-bold text-base md:text-lg text-slate-900">Besoin d'aide pour choisir ?</h3>
-                                <p className="text-slate-500 text-xs md:text-sm">Laisse Sophia analyser tes besoins et te proposer un plan sur-mesure.</p>
+                                <p className="text-slate-500 text-xs md:text-sm">Laisse Sophia analyser tes besoins et te proposer les bonnes transformations.</p>
                             </div>
                         </div>
                         <div className="bg-violet-100 p-2 rounded-full text-violet-600 group-hover:bg-violet-200 transition-all">
@@ -826,7 +902,7 @@ const GlobalPlan = () => {
             <div className="flex flex-col">
               <h1 className="text-xl md:text-3xl font-bold mb-2">{currentTheme.title}</h1>
               {currentTheme.keywords && (
-                <div className="flex flex-wrap gap-1.5 md:gap-2">
+                <div className="max-[402px]:hidden flex flex-wrap gap-1.5 md:gap-2">
                   {currentTheme.keywords.slice(0, 4).map((kw, idx) => (
                     <span key={idx} className="bg-blue-50 text-blue-700 px-2 md:px-2.5 py-0.5 md:py-1 rounded-md text-[10px] md:text-xs font-medium border border-blue-100">
                       {kw}
@@ -839,14 +915,31 @@ const GlobalPlan = () => {
         </header>
 
         <div className="order-3 md:order-4 space-y-4">
+          <div className="mb-6 bg-blue-50 border border-blue-100 rounded-xl p-4 flex items-center gap-3">
+            <div className="bg-blue-100 p-1.5 rounded-md text-blue-600">
+              <Check className="w-4 h-4" />
+            </div>
+            <p className="text-blue-800 text-sm">
+              Choisis <strong>une seule transformation</strong> que tu veux atteindre pour le thème <strong>{currentTheme.title}</strong>.
+            </p>
+          </div>
+
           {(currentTheme.axes || []).map(axis => {
             const isSelected = selectedAxisByTheme[currentTheme.id] === axis.id;
+            const hasSelectionInTheme = selectedAxisByTheme[currentTheme.id] != null;
+            const isMaxReached = totalSelectedAxes >= MAX_AXES;
+            
+            const isDisabled = (!isSelected && hasSelectionInTheme) || (!isSelected && !hasSelectionInTheme && isMaxReached);
 
             return (
-              <div key={axis.id} id={`axis-${axis.id}`} className={`bg-white rounded-xl border transition-all ${isSelected ? 'border-blue-500 ring-1 ring-blue-500 shadow-lg' : 'border-gray-200 hover:border-gray-300'}`}>
+              <div key={axis.id} id={`axis-${axis.id}`} className={`bg-white rounded-xl border transition-all ${isSelected ? 'border-blue-500 ring-1 ring-blue-500 shadow-lg' : isDisabled ? 'border-gray-100 opacity-50 bg-gray-50' : 'border-gray-200 hover:border-gray-300'}`}>
                 <button
-                  onClick={() => toggleAxis(currentTheme.id, axis.id)}
-                  className="flex items-center justify-between w-full text-left p-6"
+                  onClick={() => {
+                    if (isDisabled) return;
+                    toggleAxis(currentTheme.id, axis.id);
+                  }}
+                  disabled={isDisabled}
+                  className={`flex items-center justify-between w-full text-left p-6 ${isDisabled ? 'cursor-not-allowed' : ''}`}
                 >
                   <div className="flex items-center gap-4">
                     {/* Radio Button Visuel pour renforcer l'idée de choix unique */}
@@ -940,8 +1033,8 @@ const GlobalPlan = () => {
 
       {/* BARRE DE VALIDATION FIXE (Sticky Footer) */}
       <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-gray-200 p-4 shadow-[0_-4px_20px_rgba(0,0,0,0.05)] z-50">
-        <div className="max-w-4xl mx-auto flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3 md:gap-0">
+          <div className="flex items-center gap-4 w-full md:w-auto justify-center md:justify-start">
             <div className="hidden md:block">
               <span className="text-sm text-gray-500 uppercase font-bold tracking-wide">Progression</span>
               <div className="flex items-center gap-2 mt-1">
@@ -952,11 +1045,11 @@ const GlobalPlan = () => {
                     className={`w-3 h-3 rounded-full transition-all ${num <= totalSelectedAxes ? 'bg-blue-600 scale-110' : 'bg-gray-200'}`}
                   />
                 ))}
-                <span className="ml-2 font-bold text-gray-900">{totalSelectedAxes} / {MAX_AXES} axes choisis</span>
+                <span className="ml-2 font-bold text-gray-900">{totalSelectedAxes} / {MAX_AXES} transformations choisies</span>
               </div>
             </div>
-            <div className="md:hidden font-bold text-gray-900">
-              {totalSelectedAxes} / {MAX_AXES} axes
+            <div className="md:hidden text-sm font-medium text-gray-500 uppercase tracking-wide">
+              {totalSelectedAxes} / {MAX_AXES} transformations
             </div>
           </div>
 
@@ -1096,7 +1189,7 @@ const GlobalPlan = () => {
               navigate('/plan-priorities', { state: navState });
             }}
             disabled={totalSelectedAxes === 0}
-            className={`px-8 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${totalSelectedAxes > 0
+            className={`w-full md:w-auto justify-center px-8 py-3 rounded-full font-bold flex items-center gap-2 transition-all ${totalSelectedAxes > 0
               ? 'bg-gray-900 text-white hover:bg-black hover:scale-105 shadow-lg'
               : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}

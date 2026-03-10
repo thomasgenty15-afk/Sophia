@@ -56,15 +56,22 @@ export interface DispatcherSignals {
     detected: boolean;
     target_hint?: string;
     status_hint?: "completed" | "missed" | "partial" | "unknown";
+    operation_hint?: "add" | "set";
+    value_hint?: number;
+    date_hint?: string;
   };
   track_progress_vital_sign: {
     detected: boolean;
     target_hint?: string;
     value_hint?: number;
+    operation_hint?: "add" | "set";
+    date_hint?: string;
   };
   track_progress_north_star: {
     detected: boolean;
     value_hint?: number;
+    note_hint?: string;
+    date_hint?: string;
   };
   action_discussion: {
     detected: boolean;
@@ -308,23 +315,43 @@ const TOOLS_SIGNALS_SECTION = `
 === SECTION TOOLS ===
 Objectif: détecter les intentions de tracking exploitables par les outils, hors bilan comme en conversation normale.
 
+REGLE DE CIBLE (CRITIQUE):
+- Si le SNAPSHOT PLAN contient deja la cible exacte, recopie le TITRE EXACT du snapshot dans "target_hint".
+- N'invente pas un synonyme si le snapshot fournit deja un titre canonique.
+- Si plusieurs cibles du snapshot sont plausibles, mets "target_hint" a null.
+- Si tu reconnais l'intention de tracking mais que la cible reste ambigue, garde detected=true et mets "target_hint" a null.
+- "target_hint" doit idealement etre soit un titre exact du snapshot, soit null.
+
 1) track_progress_action
 - Cas: user dit avoir fait / raté / partiellement fait une action ou framework.
-- Renseigne: detected + target_hint + status_hint (completed|missed|partial|unknown).
+- Renseigne: detected + target_hint + status_hint (completed|missed|partial|unknown) + operation_hint + value_hint + date_hint.
+- operation_hint:
+  * "add" par defaut pour une validation ponctuelle ("j'ai fait", "j'ai raté")
+  * "set" seulement si le user donne clairement une valeur absolue
+- value_hint:
+  * 1 pour "fait"
+  * 0 pour "raté"
+  * valeur numerique si explicite
+- date_hint:
+  * YYYY-MM-DD si une date est explicitement inferrable de façon fiable
+  * sinon null
 - Exemples:
-  * "je viens de faire ma séance de sport" -> detected=true, status_hint=completed
-  * "j'ai raté la méditation hier" -> detected=true, status_hint=missed
+  * "je viens de faire ma séance de sport" -> detected=true, status_hint=completed, operation_hint=add, value_hint=1
+  * "j'ai raté la méditation hier" -> detected=true, status_hint=missed, operation_hint=add, value_hint=0
 
 2) track_progress_vital_sign
 - Cas: user donne une mesure d'un signe vital (sommeil, poids, humeur notée, etc.).
-- Renseigne: detected + target_hint + value_hint (numérique).
+- Renseigne: detected + target_hint + value_hint (numérique) + operation_hint + date_hint.
+- operation_hint:
+  * "set" par defaut pour une mesure instantanee
+  * "add" seulement si le user parle explicitement d'un cumul / increment
 - Exemples:
-  * "j'ai dormi 6h30" -> detected=true, target_hint="sommeil", value_hint=6.5
-  * "mon stress est à 7" -> detected=true, target_hint="stress", value_hint=7
+  * "j'ai dormi 6h30" -> detected=true, target_hint="sommeil", value_hint=6.5, operation_hint=set
+  * "mon stress est à 7" -> detected=true, target_hint="stress", value_hint=7, operation_hint=set
 
 3) track_progress_north_star
 - Cas: user donne une nouvelle valeur actuelle de son étoile polaire.
-- Renseigne: detected + value_hint (numérique).
+- Renseigne: detected + value_hint (numérique) + note_hint + date_hint.
 - Exemples:
   * "mon étoile polaire est à 42" -> detected=true, value_hint=42
 `;
@@ -621,7 +648,89 @@ function buildActionSnapshotSection(
     })
     .filter(Boolean);
   if (lines.length === 0) return "";
-  return `\n=== SNAPSHOT PLAN (ACTIONS + VITALS + ETOILE POLAIRE) ===\n${lines.join("\n")}\n`;
+  return `\n=== SNAPSHOT PLAN (ACTIONS + VITALS + ETOILE POLAIRE) ===
+Utilise ce snapshot pour les cibles de tracking et de discussion.
+Si une cible correspond clairement, recopie exactement le titre du snapshot dans "target_hint" / "action_hint".
+Si tu hesites entre plusieurs lignes, mets le hint a null plutot que d'inventer.
+${lines.join("\n")}\n`;
+}
+
+function buildDispatcherStablePromptV1(): string {
+  return `Tu es le Dispatcher de Sophia (V2 simplifie). Ton role est d'analyser le message utilisateur et produire des SIGNAUX structures.
+${MOTHER_SIGNALS_SECTION}
+${LAST_MESSAGE_PROTOCOL_SECTION}
+${INTERRUPT_SECTION}
+${NEEDS_EXPLANATION_SECTION}
+${NEEDS_RESEARCH_SECTION}
+${TOOLS_SIGNALS_SECTION}
+${PLAN_SIGNALS_SECTION}`;
+}
+
+function buildDispatcherSemiStableSection(opts: {
+  activeMachine: string | null;
+  stateSnapshot: DispatcherInputV2["stateSnapshot"];
+  lastAssistantMessage: string;
+  flowContext?: FlowContext;
+}): string {
+  const {
+    activeMachine,
+    stateSnapshot,
+    lastAssistantMessage,
+    flowContext,
+  } = opts;
+
+  let prompt =
+    `DERNIER MESSAGE ASSISTANT:
+"${(lastAssistantMessage ?? "").slice(0, 220)}"
+
+ETAT ACTUEL:
+- Mode en cours: ${stateSnapshot.current_mode ?? "unknown"}
+- Bilan actif: ${stateSnapshot.investigation_active ? "OUI" : "NON"}${
+      stateSnapshot.investigation_status
+        ? ` (${stateSnapshot.investigation_status})`
+        : ""
+    }
+- Machine active: ${activeMachine ?? "AUCUNE"}
+`;
+
+  if (!stateSnapshot.investigation_active) {
+    prompt += CHECKUP_INTENT_DETECTION_SECTION;
+  }
+
+  prompt += buildMachineAddonWithContext(activeMachine, flowContext);
+  return prompt;
+}
+
+function buildDispatcherVolatileSection(opts: {
+  userMessage: string;
+  last5Messages: Array<{ role: string; content: string }>;
+  signalHistory: SignalHistoryEntry[];
+  actionSnapshot?: DispatcherInputV2["actionSnapshot"];
+}): string {
+  const contextMessages = buildContextMessagesWithSignals(
+    opts.last5Messages,
+    opts.signalHistory,
+  );
+
+  return `${buildActionSnapshotSection(opts.actionSnapshot)}${
+    formatSignalHistoryInline(opts.signalHistory)
+  }${buildAntiDuplicationSection(opts.signalHistory)}
+
+=== CONTEXTE DES 10 DERNIERS MESSAGES (5 TOURS) ===
+${contextMessages}
+
+=== MESSAGE A ANALYSER (dernier message utilisateur) ===
+"${(opts.userMessage ?? "").slice(0, 500)}"`;
+}
+
+function simplePromptHash(input: string): string {
+  let hash = 2166136261;
+  const text = String(input ?? "");
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 /**
@@ -810,56 +919,54 @@ Item en cours: "${currentItem}"`;
  */
 function buildDispatcherPromptV2(opts: {
   activeMachine: string | null;
+  userMessage: string;
+  last5Messages: Array<{ role: string; content: string }>;
   signalHistory: SignalHistoryEntry[];
   stateSnapshot: DispatcherInputV2["stateSnapshot"];
   lastAssistantMessage: string;
   flowContext?: FlowContext;
   actionSnapshot?: DispatcherInputV2["actionSnapshot"];
-}): string {
+}): {
+  stablePrompt: string;
+  semiStablePrompt: string;
+  volatilePrompt: string;
+  fullPrompt: string;
+} {
   const {
     activeMachine,
+    userMessage,
+    last5Messages,
     stateSnapshot,
     lastAssistantMessage,
     flowContext,
     actionSnapshot,
-  } =
-    opts;
+  } = opts;
 
-  let prompt =
-    `Tu es le Dispatcher de Sophia (V2 simplifie). Ton role est d'analyser le message utilisateur et produire des SIGNAUX structures.
+  const stablePrompt = buildDispatcherStablePromptV1();
+  const semiStablePrompt = buildDispatcherSemiStableSection({
+    activeMachine,
+    stateSnapshot,
+    lastAssistantMessage,
+    flowContext,
+  });
+  const volatilePrompt = buildDispatcherVolatileSection({
+    userMessage,
+    last5Messages,
+    signalHistory: opts.signalHistory,
+    actionSnapshot,
+  });
+  const fullPrompt = `${stablePrompt}
 
-DERNIER MESSAGE ASSISTANT:
-"${(lastAssistantMessage ?? "").slice(0, 220)}"
+${semiStablePrompt}
 
-ETAT ACTUEL:
-- Mode en cours: ${stateSnapshot.current_mode ?? "unknown"}
-- Bilan actif: ${stateSnapshot.investigation_active ? "OUI" : "NON"}${
-      stateSnapshot.investigation_status
-        ? ` (${stateSnapshot.investigation_status})`
-        : ""
-    }
-- Machine active: ${activeMachine ?? "AUCUNE"}
-`;
-  prompt += buildActionSnapshotSection(actionSnapshot);
+${volatilePrompt}`;
 
-  prompt += MOTHER_SIGNALS_SECTION;
-  prompt += LAST_MESSAGE_PROTOCOL_SECTION;
-  prompt += INTERRUPT_SECTION;
-  prompt += NEEDS_EXPLANATION_SECTION;
-  prompt += NEEDS_RESEARCH_SECTION;
-  prompt += TOOLS_SIGNALS_SECTION;
-  prompt += PLAN_SIGNALS_SECTION;
-  prompt += formatSignalHistoryInline(opts.signalHistory);
-  prompt += buildAntiDuplicationSection(opts.signalHistory);
-
-  if (!stateSnapshot.investigation_active) {
-    prompt += CHECKUP_INTENT_DETECTION_SECTION;
-  }
-
-  // Machine-specific addon (safety/bilan only in R2)
-  prompt += buildMachineAddonWithContext(activeMachine, flowContext);
-
-  return prompt;
+  return {
+    stablePrompt,
+    semiStablePrompt,
+    volatilePrompt,
+    fullPrompt,
+  };
 }
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -886,9 +993,11 @@ export async function analyzeSignalsV2(
     };
   }
 
-  // Build dynamic prompt with context and history
-  const basePrompt = buildDispatcherPromptV2({
+  // Build prompt blocks explicitly so the stable prefix can be cached later.
+  const promptParts = buildDispatcherPromptV2({
     activeMachine: input.activeMachine,
+    userMessage: input.userMessage,
+    last5Messages: input.last5Messages,
     signalHistory: input.signalHistory,
     stateSnapshot: input.stateSnapshot,
     lastAssistantMessage: input.lastAssistantMessage,
@@ -896,20 +1005,8 @@ export async function analyzeSignalsV2(
     actionSnapshot: input.actionSnapshot,
   });
 
-  // Build message context (last 5 turns / 10 messages for disambiguation, analyze only last)
-  const contextMessages = buildContextMessagesWithSignals(
-    input.last5Messages,
-    input.signalHistory,
-  );
-
   // Add the full signal output specification
-  const fullPrompt = `${basePrompt}
-
-=== CONTEXTE DES 10 DERNIERS MESSAGES (5 TOURS) ===
-${contextMessages}
-
-=== MESSAGE A ANALYSER (dernier message utilisateur) ===
-"${(input.userMessage ?? "").slice(0, 500)}"
+  const fullPrompt = `${promptParts.fullPrompt}
 
 === FORMAT DE SORTIE JSON ===
 {
@@ -922,9 +1019,9 @@ ${contextMessages}
     "create_action": { "detected": "boolean" },
     "update_action": { "detected": "boolean" },
     "breakdown_action": { "detected": "boolean" },
-    "track_progress_action": { "detected": "boolean", "target_hint": "string|null", "status_hint": "completed|missed|partial|unknown" },
-    "track_progress_vital_sign": { "detected": "boolean", "target_hint": "string|null", "value_hint": "number|null" },
-    "track_progress_north_star": { "detected": "boolean", "value_hint": "number|null" },
+    "track_progress_action": { "detected": "boolean", "target_hint": "string|null", "status_hint": "completed|missed|partial|unknown", "operation_hint": "add|set|null", "value_hint": "number|null", "date_hint": "YYYY-MM-DD|null" },
+    "track_progress_vital_sign": { "detected": "boolean", "target_hint": "string|null", "value_hint": "number|null", "operation_hint": "add|set|null", "date_hint": "YYYY-MM-DD|null" },
+    "track_progress_north_star": { "detected": "boolean", "value_hint": "number|null", "note_hint": "string|null", "date_hint": "YYYY-MM-DD|null" },
     "action_discussion": { "detected": "boolean", "action_hint": "string|null" },
     "activate_action": { "detected": "boolean" },
     "delete_action": { "detected": "boolean" },
@@ -957,6 +1054,21 @@ REGLES:
 - Si aucune machine n'est active: omets entierement "machine_signals".
 
 Reponds UNIQUEMENT avec le JSON:`;
+
+  try {
+    console.log(JSON.stringify({
+      tag: "dispatcher_prompt_cache_ready",
+      request_id: meta?.requestId ?? null,
+      stable_hash: simplePromptHash(promptParts.stablePrompt),
+      semi_stable_hash: simplePromptHash(promptParts.semiStablePrompt),
+      stable_chars: promptParts.stablePrompt.length,
+      semi_stable_chars: promptParts.semiStablePrompt.length,
+      volatile_chars: promptParts.volatilePrompt.length,
+      full_chars: fullPrompt.length,
+    }));
+  } catch {
+    // non-blocking
+  }
 
   try {
     const dispatcherModel =
@@ -1100,6 +1212,23 @@ Reponds UNIQUEMENT avec le JSON:`;
           | "partial"
           | "unknown"
         : "unknown";
+    const trackProgressActionOperationHintRaw = String(
+      signalsObj?.track_progress_action?.operation_hint ?? "",
+    ).toLowerCase();
+    const trackProgressActionOperationHint =
+      (["add", "set"] as const).includes(trackProgressActionOperationHintRaw as any)
+        ? trackProgressActionOperationHintRaw as "add" | "set"
+        : undefined;
+    const trackProgressActionValueHint =
+      (typeof signalsObj?.track_progress_action?.value_hint === "number" &&
+          !isNaN(signalsObj.track_progress_action.value_hint))
+        ? signalsObj.track_progress_action.value_hint
+        : undefined;
+    const trackProgressActionDateHint =
+      (typeof signalsObj?.track_progress_action?.date_hint === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(signalsObj.track_progress_action.date_hint.trim()))
+        ? signalsObj.track_progress_action.date_hint.trim()
+        : undefined;
     const trackProgressVitalDetected = Boolean(
       signalsObj?.track_progress_vital_sign?.detected,
     );
@@ -1113,6 +1242,18 @@ Reponds UNIQUEMENT avec le JSON:`;
           !isNaN(signalsObj.track_progress_vital_sign.value_hint))
         ? signalsObj.track_progress_vital_sign.value_hint
         : undefined;
+    const trackProgressVitalOperationHintRaw = String(
+      signalsObj?.track_progress_vital_sign?.operation_hint ?? "",
+    ).toLowerCase();
+    const trackProgressVitalOperationHint =
+      (["add", "set"] as const).includes(trackProgressVitalOperationHintRaw as any)
+        ? trackProgressVitalOperationHintRaw as "add" | "set"
+        : undefined;
+    const trackProgressVitalDateHint =
+      (typeof signalsObj?.track_progress_vital_sign?.date_hint === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(signalsObj.track_progress_vital_sign.date_hint.trim()))
+        ? signalsObj.track_progress_vital_sign.date_hint.trim()
+        : undefined;
     const trackProgressNorthStarDetected = Boolean(
       signalsObj?.track_progress_north_star?.detected,
     );
@@ -1120,6 +1261,16 @@ Reponds UNIQUEMENT avec le JSON:`;
       (typeof signalsObj?.track_progress_north_star?.value_hint === "number" &&
           !isNaN(signalsObj.track_progress_north_star.value_hint))
         ? signalsObj.track_progress_north_star.value_hint
+        : undefined;
+    const trackProgressNorthStarNoteHint =
+      (typeof signalsObj?.track_progress_north_star?.note_hint === "string" &&
+          signalsObj.track_progress_north_star.note_hint.trim())
+        ? signalsObj.track_progress_north_star.note_hint.trim().slice(0, 200)
+        : undefined;
+    const trackProgressNorthStarDateHint =
+      (typeof signalsObj?.track_progress_north_star?.date_hint === "string" &&
+          /^\d{4}-\d{2}-\d{2}$/.test(signalsObj.track_progress_north_star.date_hint.trim()))
+        ? signalsObj.track_progress_north_star.date_hint.trim()
         : undefined;
     const actionDiscussionDetected = Boolean(
       signalsObj?.action_discussion?.detected,
@@ -1321,15 +1472,22 @@ Reponds UNIQUEMENT avec le JSON:`;
           detected: trackProgressActionDetected,
           target_hint: trackProgressActionTargetHint,
           status_hint: trackProgressActionStatusHint,
+          operation_hint: trackProgressActionOperationHint,
+          value_hint: trackProgressActionValueHint,
+          date_hint: trackProgressActionDateHint,
         },
         track_progress_vital_sign: {
           detected: trackProgressVitalDetected,
           target_hint: trackProgressVitalTargetHint,
           value_hint: trackProgressVitalValueHint,
+          operation_hint: trackProgressVitalOperationHint,
+          date_hint: trackProgressVitalDateHint,
         },
         track_progress_north_star: {
           detected: trackProgressNorthStarDetected,
           value_hint: trackProgressNorthStarValueHint,
+          note_hint: trackProgressNorthStarNoteHint,
+          date_hint: trackProgressNorthStarDateHint,
         },
         action_discussion: {
           detected: actionDiscussionDetected,

@@ -1,7 +1,10 @@
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { fetchLatestPending, loadHistory, markPending } from "./wa_db.ts";
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts";
-import { generateDynamicWhatsAppCheckinMessage } from "../_shared/scheduled_checkins.ts";
+import {
+  applyWhatsappProactiveOpeningPolicy,
+  generateDynamicWhatsAppCheckinMessage,
+} from "../_shared/scheduled_checkins.ts";
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
 import { createWeeklyInvestigationState } from "../sophia-brain/agents/investigator-weekly/types.ts";
@@ -46,12 +49,17 @@ export async function handlePendingActions(params) {
         });
       } catch  {
         // best-effort fallback
-        textToSend = textToSend || "Petit check-in: comment ça va depuis tout à l’heure ?";
+        textToSend = textToSend || "Comment ça va depuis tout à l’heure ?";
       }
     }
     if (!textToSend.trim()) {
-      textToSend = "Petit check-in: comment ça va depuis tout à l'heure ?";
+      textToSend = "Comment ça va depuis tout à l'heure ?";
     }
+    textToSend = applyWhatsappProactiveOpeningPolicy({
+      text: textToSend,
+      hasMessagesToday: true,
+      fallback: "Comment ça va depuis tout à l'heure ?",
+    });
     if (textToSend.trim()) {
       const sendResp = await sendWhatsAppTextTracked({
         admin,

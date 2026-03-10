@@ -172,6 +172,15 @@
   background: rgba(255, 255, 255, 0.2);
 }
 
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
 /* SNAKE BORDER ANIMATION */
 @keyframes spin-gradient {
   0% {

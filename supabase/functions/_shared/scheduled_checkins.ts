@@ -21,11 +21,46 @@ function stripLeadingGreeting(text: string): string {
   ).trim()
 }
 
-export function applyScheduledCheckinGreetingPolicy(params: { text: string; hasMessagesToday: boolean }): string {
+function stripLeadingCheckinAnnouncement(text: string): string {
+  return String(text ?? "").trim().replace(
+    /^(petit|mini)?\s*check-?in(?:\s+(du|de la|de l[’'])\s+\w+)?\s*[:!,. -]*\s*/i,
+    "",
+  ).trim()
+}
+
+function uppercaseFirstLetter(text: string): string {
+  const value = String(text ?? "").trim()
+  const match = value.match(/[A-Za-zÀ-ÖØ-öø-ÿ]/)
+  if (!match || match.index == null) return value
+  const idx = match.index
+  return value.slice(0, idx) + value.charAt(idx).toUpperCase() + value.slice(idx + 1)
+}
+
+function pickColdOpenGreeting(): string {
+  const greetings = ["Hello!", "Salut !", "Hey !", "Coucou !"]
+  const idx = Math.floor(Math.random() * greetings.length)
+  return greetings[idx] ?? "Hello!"
+}
+
+export function applyWhatsappProactiveOpeningPolicy(params: {
+  text: string
+  hasMessagesToday: boolean
+  fallback?: string
+}): string {
+  const fallback = String(params.fallback ?? "Comment ça va ?").trim() || "Comment ça va ?"
   const noGreeting = stripLeadingGreeting(params.text)
-  const base = noGreeting || "Petit check-in: comment ça va depuis tout à l’heure ?"
-  if (params.hasMessagesToday) return base
-  return `Hello! ${base}`
+  const noAnnouncement = stripLeadingCheckinAnnouncement(noGreeting)
+  const normalized = uppercaseFirstLetter(noAnnouncement || fallback)
+  if (params.hasMessagesToday) return normalized
+  return `${pickColdOpenGreeting()} ${normalized}`
+}
+
+export function applyScheduledCheckinGreetingPolicy(params: { text: string; hasMessagesToday: boolean }): string {
+  return applyWhatsappProactiveOpeningPolicy({
+    text: params.text,
+    hasMessagesToday: params.hasMessagesToday,
+    fallback: "Comment ça va depuis tout à l'heure ?",
+  })
 }
 
 export async function hasAnyWhatsappMessagesInLocalDay(params: {
@@ -103,6 +138,8 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
       "- 1 message court (2–6 lignes), texte brut, pas de markdown.",
       "- 1 question MAX.",
       "- Naturel, chaleureux, tutoiement.",
+      "- N'annonce jamais que c'est un 'check-in' et ne commence jamais par 'Petit check-in', 'Mini check-in' ou équivalent.",
+      "- La première vraie lettre du message doit être en majuscule.",
       "- Ne promets pas d'autres relances automatiques.",
       "- N'invente pas de contexte non présent dans le transcript.",
       "",
@@ -127,7 +164,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   })
 
   const text = typeof out === "string" ? out : safeTrim((out as any)?.text ?? "")
-  return clampText(text.replace(/\*\*/g, ""), 900) || "Petit check-in: comment ça va depuis tout à l’heure ?"
+  return clampText(text.replace(/\*\*/g, ""), 900) || "Comment ça va depuis tout à l'heure ?"
 }
 
 // Convert a target local time in an IANA timezone to an ISO UTC timestamp.
@@ -191,5 +228,3 @@ export function computeScheduledForFromLocal(params: {
 
   return new Date(guess).toISOString()
 }
-
-

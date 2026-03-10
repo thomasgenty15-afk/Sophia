@@ -4,6 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { generateWithGemini, getGlobalAiModel } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { applyWhatsappProactiveOpeningPolicy, hasAnyWhatsappMessagesInLocalDay } from "../_shared/scheduled_checkins.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 import { whatsappLangFromLocale } from "../_shared/locale.ts"
 
@@ -198,7 +199,10 @@ Deno.serve(async (req) => {
         .select('user_id')
         .gt('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // Active in last week
       if (usersError) throw usersError
-      userIds = [...new Set((activeUsers ?? []).map((u: any) => u.user_id))]
+      const activeUserIds = (activeUsers ?? [])
+        .map((u: any) => String(u?.user_id ?? ""))
+        .filter((id: string) => id.length > 0)
+      userIds = [...new Set<string>(activeUserIds)]
     }
 
     let triggeredCount = 0
@@ -459,6 +463,8 @@ TON (CRITIQUE): léger, chaleureux, pas dramatique. Tu prends des nouvelles avec
 - Évite les guillemets et les termes trop cliniques ("hypervigilance", etc.). Préfère une paraphrase simple ("être sur ses gardes", "peur du regard").
 - Ne fais pas une "grosse" discussion thérapeutique: juste un check-in doux + une question claire.
 - Ne commence PAS par "Salut/Hello/Bonjour" (sauf si l'utilisateur vient de dire bonjour juste avant — sinon attaque direct).
+- N'annonce jamais que c'est un "check-in" et ne commence jamais par "Petit check-in", "Mini check-in" ou équivalent.
+- La première vraie lettre du message doit être en majuscule.
 - Ne fais PAS un rewind complet du sujet : fais juste une allusion courte au point, puis bascule sur le chemin parcouru / l'état actuel.
 - Idée clé: "on en avait parlé il y a quelques mois" + "depuis, comment ça a bougé ?" plutôt que re-décrire le problème.
 - Le user doit comprendre d'où ça sort et pourquoi tu relances maintenant, sans que ce soit lourd.
@@ -476,7 +482,17 @@ CONSIGNES:
 - Ton naturel, pas robot ("je repensais à un truc..." ok).
         `
 
-        const echoMessage = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7)
+        const rawEchoMessage = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7)
+        const hasMessagesToday = await hasAnyWhatsappMessagesInLocalDay({
+          admin: supabaseAdmin as any,
+          userId,
+          timezone: String((profile as any)?.timezone ?? "").trim() || "Europe/Paris",
+        })
+        const echoMessage = applyWhatsappProactiveOpeningPolicy({
+          text: String(rawEchoMessage ?? ""),
+          hasMessagesToday,
+          fallback: "Je repensais à un truc qu'on s'était dit il y a quelque temps. Depuis, ça a bougé comment ?",
+        })
 
         // E. Send via WhatsApp if possible (text if window open, template fallback if closed).
         // Also ensure a DB log with metadata.source='memory_echo' for cooldown tracking.

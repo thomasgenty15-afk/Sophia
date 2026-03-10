@@ -14,13 +14,22 @@ import {
 
 const ProductPlan = () => {
   const navigate = useNavigate();
+  const seoDescription = "Découvre le plan d'action IA de Sophia sur WhatsApp : un objectif clarifié, des relances proactives, un suivi continu et des ajustements pour tenir dans la vraie vie.";
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
       <SEO 
-        title="Le Plan - Ton coach IA proactif sur WhatsApp"
-        description="Sophia transforme un objectif flou en plan clair, te relance sur WhatsApp et ajuste ton exécution pour t'aider à tenir dans la vraie vie."
+        title="Plan d'action IA sur WhatsApp"
+        description={seoDescription}
         canonical="https://sophia-coach.ai/le-plan"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Le Plan",
+          "url": "https://sophia-coach.ai/le-plan",
+          "description": seoDescription,
+          "inLanguage": "fr-FR"
+        }}
       />
       
       {/* NAVBAR */}

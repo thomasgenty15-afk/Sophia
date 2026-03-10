@@ -1,10 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { generateWithGemini } from "../../../_shared/gemini.ts";
 import { resolveBinaryConsent, resolveSuggestionConsent } from "../investigator/utils.ts";
-import {
-  UPDATE_ETOILE_POLAIRE_TOOL,
-  updateEtoilePolaire,
-} from "../../lib/north_star_tools.ts";
+import { updateEtoilePolaire } from "../../lib/north_star_tools.ts";
 import { weeklyInvestigatorSay } from "./copy.ts";
 import { persistWeeklyRecap } from "./db.ts";
 import {
@@ -198,45 +195,6 @@ async function maybeHandleEtoileToolCall(opts: {
   // apply it directly to avoid asking the same question again.
   const effectiveValue = candidate ?? (consent === "yes" ? proposedFromHistory : null);
   if (effectiveValue === null) return null;
-
-  const toolPrompt = [
-    "Décide si on doit appeler l'outil update_etoile_polaire.",
-    "Si le message contient une nouvelle valeur actuelle explicite, appelle l'outil.",
-    "Sinon réponds en texte court 'no_tool'.",
-    `message=${JSON.stringify(opts.message)}`,
-    `payload_etoile=${JSON.stringify(opts.state.weekly_payload.etoile_polaire)}`,
-  ].join("\n");
-
-  try {
-    const out = await generateWithGemini(
-      toolPrompt,
-      "Décide l'appel outil.",
-      0.1,
-      false,
-      [UPDATE_ETOILE_POLAIRE_TOOL],
-      "auto",
-      {
-        requestId: opts.meta?.requestId,
-        model: opts.meta?.model,
-        source: "sophia-brain:investigator_weekly_tool_gate",
-        forceRealAi: opts.meta?.forceRealAi,
-      },
-    ) as any;
-
-    if (typeof out === "object" && out?.tool === "update_etoile_polaire") {
-      const newValue = Number((out?.args as any)?.new_value);
-      if (!Number.isFinite(newValue)) return null;
-      const updated = await updateEtoilePolaire(opts.supabase, opts.userId, {
-        new_value: newValue,
-        note: String((out?.args as any)?.note ?? opts.message ?? "").slice(0, 400),
-      });
-      return updated
-        ? { ...updated, source: consent === "yes" && candidate === null ? "consent_proposed_value" : "explicit_value" }
-        : updated;
-    }
-  } catch {
-    // ignore model/tool gate failures
-  }
 
   const updated = await updateEtoilePolaire(opts.supabase, opts.userId, {
     new_value: effectiveValue,

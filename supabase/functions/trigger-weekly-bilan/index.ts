@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
+import { applyWhatsappProactiveOpeningPolicy, hasAnyWhatsappMessagesInLocalDay } from "../_shared/scheduled_checkins.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
 import { createWeeklyInvestigationState } from "../sophia-brain/agents/investigator-weekly/types.ts";
 import { hasActiveStateMachine } from "../trigger-daily-bilan/state_machine_check.ts";
@@ -27,13 +28,23 @@ function parseTimestampMs(value: unknown): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
-function deriveWeeklyOpeningContext(profile: any): WeeklyOpeningContext {
+async function deriveWeeklyOpeningContext(
+  admin: ReturnType<typeof createClient>,
+  profile: any,
+  userId: string,
+): Promise<WeeklyOpeningContext> {
+  const has_messages_today = await hasAnyWhatsappMessagesInLocalDay({
+    admin: admin as any,
+    userId,
+    timezone: String(profile?.timezone ?? "").trim() || "Europe/Paris",
+  });
   const inboundMs = parseTimestampMs(profile?.whatsapp_last_inbound_at);
   const outboundMs = parseTimestampMs(profile?.whatsapp_last_outbound_at);
   const lastMessageMs = Math.max(inboundMs ?? -Infinity, outboundMs ?? -Infinity);
   if (!Number.isFinite(lastMessageMs)) {
     return {
       mode: "cold_relaunch",
+      has_messages_today,
       hours_since_last_message: null,
       last_message_at: null,
     };
@@ -42,6 +53,7 @@ function deriveWeeklyOpeningContext(profile: any): WeeklyOpeningContext {
   const hours = Number((deltaMs / (60 * 60 * 1000)).toFixed(2));
   return {
     mode: hours >= 4 ? "cold_relaunch" : "ongoing_conversation",
+    has_messages_today,
     hours_since_last_message: hours,
     last_message_at: new Date(lastMessageMs as number).toISOString(),
   };
@@ -289,7 +301,7 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const openingContext = deriveWeeklyOpeningContext(p);
+        const openingContext = await deriveWeeklyOpeningContext(admin, p, userId);
         const initialState = createWeeklyInvestigationState(payload, openingContext);
         const invResult = await runInvestigator(
           admin as any,
@@ -307,7 +319,11 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const openingMessage = String(invResult.content ?? "").trim();
+        const openingMessage = applyWhatsappProactiveOpeningPolicy({
+          text: String(invResult.content ?? "").trim(),
+          hasMessagesToday: openingContext.has_messages_today,
+          fallback: "On fait le bilan hebdo maintenant ?",
+        });
         if (!openingMessage) {
           skipped++;
           skippedUserIds.push(userId);

@@ -14,13 +14,22 @@ import {
 
 const ProductArchitect = () => {
   const navigate = useNavigate();
+  const seoDescription = "L'Architecte est l'offre premium de Sophia pour travailler l'identité, déconstruire les blocages et installer une transformation personnelle durable.";
 
   return (
     <div className="min-h-screen bg-slate-950 text-emerald-50 font-sans selection:bg-emerald-900 selection:text-emerald-50">
       <SEO 
-        title="L'Architecte - Bâtis ton Identité 2.0"
-        description="Changer ses actions ne suffit pas. Déconstruis tes blocages, forge ton caractère et deviens la personne qui réussit naturellement."
+        title="Transformation personnelle et identité"
+        description={seoDescription}
         canonical="https://sophia-coach.ai/l-architecte"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "L'Architecte",
+          "url": "https://sophia-coach.ai/l-architecte",
+          "description": seoDescription,
+          "inLanguage": "fr-FR"
+        }}
       />
 
       {/* NAVBAR (Dark Mode Variant) */}

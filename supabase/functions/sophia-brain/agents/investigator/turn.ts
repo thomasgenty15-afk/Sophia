@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { verifyInvestigatorMessage } from "../../verifier.ts"
 import { normalizeChatText } from "../../chat_text.ts"
 import type { CheckupItem, InvestigationState, InvestigatorTurnResult, ItemProgress } from "./types.ts"
 import { investigatorSay } from "./copy.ts"
@@ -701,29 +700,8 @@ export async function handleInvestigatorModelOutput(opts: {
     })
   }
 
-  // Text response: verify copy rules (unless in mega test)
-  if (typeof response === "string" && !isMegaTestMode(meta)) {
-    // Use item's own day_scope (based on time_of_day)
-    const dayScope = String(currentItem.day_scope ?? stateAfterTextResponse?.temp_memory?.day_scope ?? "yesterday")
-    const dayRef = dayScope === "today" ? "aujourd'hui" : "hier"
-    const verified = await verifyInvestigatorMessage({
-      draft: response,
-      scenario: "main_item_turn",
-      data: {
-        day_scope: dayScope,
-        day_ref: dayRef,
-        current_item: currentItem,
-        pending_items: stateAfterTextResponse?.pending_items ?? [],
-        current_item_index: stateAfterTextResponse?.current_item_index ?? 0,
-        recent_history: history.slice(-15),
-        user_message: message,
-        now_iso: new Date().toISOString(),
-        system_prompt_excerpt: String(opts.systemPrompt ?? "").slice(0, 1600),
-        tools_available: ["log_action_execution"],
-      },
-      meta: { ...meta, userId },
-    })
-    response = normalizeChatText(verified.text)
+  if (typeof response === "string") {
+    response = normalizeChatText(response)
   }
 
   return {

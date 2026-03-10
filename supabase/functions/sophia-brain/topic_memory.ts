@@ -36,6 +36,16 @@ const AUTO_MERGE_TITLE_JACCARD = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_T
 const MAX_TIMELINE_ITEMS = Number((Deno.env.get("SOPHIA_TOPIC_MAX_TIMELINE_ITEMS") ?? "10").trim()) || 10
 const TOPIC_DEBUG = (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1"
 
+function simplePromptHash(input: string): string {
+  let hash = 2166136261
+  const text = String(input ?? "")
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0")
+}
+
 const GENERIC_KEYWORDS = new Set([
   "sommeil", "sleep", "maman", "mere", "mother", "famille", "family",
   "travail", "work", "stress", "anxiete", "anxiety", "sante", "health",
@@ -302,7 +312,7 @@ export async function extractTopicsFromTranscript(opts: {
     ? `\nTOPICS DÉJÀ CONNUS pour cet utilisateur : ${existingTopicSlugs.join(", ")}\nSi une information enrichit un topic existant, utilise le MÊME slug.\n`
     : ""
 
-  const prompt = `
+  const stablePrompt = `
 Tu es un analyseur de mémoire thématique pour un coach IA.
 Tu lis un bloc de conversation et tu extrais les TOPICS significatifs.
 
@@ -343,8 +353,29 @@ SORTIE JSON ATTENDUE :
 }
   `.trim()
 
+  const semiStablePrompt = `
+INPUTS :
+- Contexte précédent : "${currentContext ?? "Aucun"}"
+${existingTopicsHint}
+  `.trim()
+
   try {
-    const raw = await generateWithGemini(prompt, transcript, 0.2, true, [], "json", {
+    console.log(JSON.stringify({
+      tag: "memorizer_topic_extraction_prompt_cache_ready",
+      request_id: meta?.requestId ?? null,
+      stable_hash: simplePromptHash(stablePrompt),
+      semi_stable_hash: simplePromptHash(semiStablePrompt),
+      stable_chars: stablePrompt.length,
+      semi_stable_chars: semiStablePrompt.length,
+      volatile_chars: transcript.length,
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + transcript.length,
+    }))
+  } catch {
+    // non-blocking
+  }
+
+  try {
+    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, transcript, 0.2, true, [], "json", {
       requestId: meta?.requestId,
       model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_extraction",
@@ -419,7 +450,7 @@ export async function shouldPersistTopicMemory(opts: {
     }
   }
 
-  const prompt = `
+  const stablePrompt = `
 Tu valides si une information extraite doit être stockée en mémoire long terme (utile dans 2+ mois).
 
 Règles:
@@ -451,8 +482,25 @@ Réponds en JSON STRICT:
     structured_context: { available: false },
   })
 
+  const semiStablePrompt = `source_type=${sourceType}`.trim()
+
   try {
-    const raw = await generateWithGemini(prompt, userPayload, 0.1, true, [], "json", {
+    console.log(JSON.stringify({
+      tag: "memorizer_topic_persist_gate_prompt_cache_ready",
+      request_id: meta?.requestId ?? null,
+      stable_hash: simplePromptHash(stablePrompt),
+      semi_stable_hash: simplePromptHash(semiStablePrompt),
+      stable_chars: stablePrompt.length,
+      semi_stable_chars: semiStablePrompt.length,
+      volatile_chars: userPayload.length,
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + userPayload.length,
+    }))
+  } catch {
+    // non-blocking
+  }
+
+  try {
+    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, userPayload, 0.1, true, [], "json", {
       requestId: meta?.requestId,
       model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_persist_gate",
@@ -775,17 +823,9 @@ export async function enrichTopicSynthesis(opts: {
     console.warn(`[TopicMemory] semantic no-op check failed topic=${topic.slug}:`, e)
   }
 
-  const prompt = `
+  const stablePrompt = `
 Tu es le gestionnaire de mémoire d'un coach IA.
 Tu dois décider si de nouvelles informations enrichissent un topic existant.
-
-TOPIC EXISTANT :
-- Titre : "${topic.title}"
-- Synthèse actuelle :
-"${topic.synthesis}"
-
-NOUVELLES INFORMATIONS :
-"${newInformation}"
 
 TES RÈGLES :
 1. Si les nouvelles infos sont un doublon ou n'apportent RIEN de nouveau → { "enriched": false }
@@ -805,8 +845,35 @@ ou
 { "enriched": false }
   `.trim()
 
+  const semiStablePrompt = `
+TOPIC EXISTANT :
+- Titre : "${topic.title}"
+- Synthèse actuelle :
+"${topic.synthesis}"
+  `.trim()
+
+  const volatilePrompt = `
+NOUVELLES INFORMATIONS :
+"${newInformation}"
+  `.trim()
+
   try {
-    const raw = await generateWithGemini(prompt, "", 0.1, true, [], "json", {
+    console.log(JSON.stringify({
+      tag: "memorizer_topic_enrichment_prompt_cache_ready",
+      request_id: meta?.requestId ?? null,
+      stable_hash: simplePromptHash(stablePrompt),
+      semi_stable_hash: simplePromptHash(semiStablePrompt),
+      stable_chars: stablePrompt.length,
+      semi_stable_chars: semiStablePrompt.length,
+      volatile_chars: volatilePrompt.length,
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + volatilePrompt.length,
+    }))
+  } catch {
+    // non-blocking
+  }
+
+  try {
+    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, volatilePrompt, 0.1, true, [], "json", {
       requestId: meta?.requestId,
       model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_enrichment",
@@ -922,18 +989,33 @@ export async function createTopic(opts: {
   const sourceType = opts.sourceType ?? "chat"
 
   // Générer la synthèse initiale (reformulation à la 3ème personne)
-  const prompt = `
+  const stablePrompt = `
 Reformule les informations suivantes en une synthèse à la 3ème personne.
 Sois dense, factuel, et organise par ordre chronologique si applicable.
 1-2 paragraphes maximum. Commence directement par le contenu.
-
-Informations : "${extractedTopic.new_information}"
-Sujet : "${extractedTopic.title}"
   `.trim()
+
+  const semiStablePrompt = `Sujet : "${extractedTopic.title}"`.trim()
+  const volatilePrompt = `Informations : "${extractedTopic.new_information}"`.trim()
+
+  try {
+    console.log(JSON.stringify({
+      tag: "memorizer_topic_initial_synthesis_prompt_cache_ready",
+      request_id: meta?.requestId ?? null,
+      stable_hash: simplePromptHash(stablePrompt),
+      semi_stable_hash: simplePromptHash(semiStablePrompt),
+      stable_chars: stablePrompt.length,
+      semi_stable_chars: semiStablePrompt.length,
+      volatile_chars: volatilePrompt.length,
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + volatilePrompt.length,
+    }))
+  } catch {
+    // non-blocking
+  }
 
   let synthesis: string
   try {
-    const raw = await generateWithGemini(prompt, "", 0.1, true, [], "auto", {
+    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, volatilePrompt, 0.1, true, [], "auto", {
       requestId: meta?.requestId,
       model: getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:topic_initial_synthesis",

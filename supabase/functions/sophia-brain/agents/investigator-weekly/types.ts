@@ -27,6 +27,7 @@ export interface WeeklySuggestionOutcome {
 
 export interface WeeklyOpeningContext {
   mode: "cold_relaunch" | "ongoing_conversation";
+  has_messages_today: boolean;
   hours_since_last_message: number | null;
   last_message_at: string | null;
 }

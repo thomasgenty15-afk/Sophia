@@ -4,11 +4,27 @@ interface SEOProps {
   title: string;
   description: string;
   canonical?: string;
+  image?: string;
+  robots?: string;
+  type?: string;
+  structuredData?: Record<string, unknown> | Array<Record<string, unknown>>;
 }
 
-const SEO = ({ title, description, canonical }: SEOProps) => {
+const DEFAULT_IMAGE = 'https://sophia-coach.ai/apple-touch-icon.png';
+const DEFAULT_ROBOTS = 'index,follow,max-image-preview:large,max-snippet:-1,max-video-preview:-1';
+
+const SEO = ({
+  title,
+  description,
+  canonical,
+  image = DEFAULT_IMAGE,
+  robots = DEFAULT_ROBOTS,
+  type = 'website',
+  structuredData,
+}: SEOProps) => {
   useEffect(() => {
     const fullTitle = `${title} | Sophia Coach`;
+    document.documentElement.lang = 'fr';
     document.title = fullTitle;
 
     const ensureMeta = (attrs: Record<string, string>, content: string) => {
@@ -37,6 +53,7 @@ const SEO = ({ title, description, canonical }: SEOProps) => {
 
     // Basic
     ensureMeta({ name: 'description' }, description);
+    ensureMeta({ name: 'robots' }, robots);
 
     // Canonical
     if (canonical) ensureLink('canonical', canonical);
@@ -44,14 +61,37 @@ const SEO = ({ title, description, canonical }: SEOProps) => {
     // Open Graph
     ensureMeta({ property: 'og:title' }, fullTitle);
     ensureMeta({ property: 'og:description' }, description);
-    ensureMeta({ property: 'og:type' }, 'website');
+    ensureMeta({ property: 'og:type' }, type);
+    ensureMeta({ property: 'og:site_name' }, 'Sophia Coach');
+    ensureMeta({ property: 'og:locale' }, 'fr_FR');
+    ensureMeta({ property: 'og:image' }, image);
+    ensureMeta({ property: 'og:image:alt' }, fullTitle);
     if (canonical) ensureMeta({ property: 'og:url' }, canonical);
 
     // Twitter
     ensureMeta({ name: 'twitter:card' }, 'summary_large_image');
     ensureMeta({ name: 'twitter:title' }, fullTitle);
     ensureMeta({ name: 'twitter:description' }, description);
-  }, [title, description, canonical]);
+    ensureMeta({ name: 'twitter:image' }, image);
+    ensureMeta({ name: 'twitter:image:alt' }, fullTitle);
+
+    // Structured data
+    document.head
+      .querySelectorAll('script[data-seo-structured-data="true"]')
+      .forEach((node) => node.remove());
+
+    if (structuredData) {
+      const items = Array.isArray(structuredData) ? structuredData : [structuredData];
+
+      items.forEach((item) => {
+        const script = document.createElement('script');
+        script.type = 'application/ld+json';
+        script.setAttribute('data-seo-structured-data', 'true');
+        script.text = JSON.stringify(item);
+        document.head.appendChild(script);
+      });
+    }
+  }, [title, description, canonical, image, robots, type, structuredData]);
 
   return null;
 };

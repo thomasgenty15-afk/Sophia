@@ -6,6 +6,7 @@ import SEO from '../components/SEO';
 const Legal = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const seoDescription = "Consulte les mentions légales, CGU, politique de confidentialité et CGV de Sophia Coach.";
 
   // Scroll to section if hash is present
   useEffect(() => {
@@ -23,8 +24,16 @@ const Legal = () => {
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 selection:bg-indigo-100 selection:text-indigo-900">
       <SEO 
         title="Mentions Légales & CGU"
-        description="Consultez nos mentions légales, conditions générales d'utilisation (CGU), politique de confidentialité et conditions générales de vente (CGV)."
+        description={seoDescription}
         canonical="https://sophia-coach.ai/legal"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Mentions Légales & CGU",
+          "url": "https://sophia-coach.ai/legal",
+          "description": seoDescription,
+          "inLanguage": "fr-FR"
+        }}
       />
       {/* Header */}
       <div className="bg-white border-b border-slate-200 sticky top-0 z-50 shadow-sm">

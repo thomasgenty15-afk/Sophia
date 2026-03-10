@@ -1,17 +1,12 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding, getGlobalAiModel } from '../../_shared/gemini.ts'
-import { handleTracking } from "../lib/tracking.ts"
-import { logEdgeFunctionError } from "../../_shared/error-log.ts"
-import {
-  UPDATE_ETOILE_POLAIRE_TOOL,
-  updateEtoilePolaire,
-} from "../lib/north_star_tools.ts"
 
 declare const Deno: any
 
 const COMPANION_PROMPT_MAX_TOKENS = 5000
 const COMPANION_PROMPT_MAX_CHARS = COMPANION_PROMPT_MAX_TOKENS * 4
 const QUESTION_RHYTHM_WINDOW_SIZE = 6
+const RESEARCH_CONTEXT_MARKER = "=== RECHERCHE WEB (informations fraiches) ==="
 
 type QuestionTendency = "low" | "normal" | "high"
 type QuestionGuidance = "avoid_now" | "optional" | "ask_now"
@@ -38,6 +33,90 @@ function applyCompanionPromptBudget(prompt: string): string {
   const suffix = "\n\n[... CONTEXTE TRONQUE POUR RESPECTER LE BUDGET PROMPT ...]\n"
   const keep = Math.max(0, COMPANION_PROMPT_MAX_CHARS - suffix.length)
   return text.slice(0, keep).trimEnd() + suffix
+}
+
+function simplePromptHash(input: string): string {
+  let hash = 2166136261
+  const text = String(input ?? "")
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0")
+}
+
+function splitPinnedResearchContext(context: string): { otherContext: string; researchContext: string } {
+  const text = String(context ?? "")
+  const markerIndex = text.indexOf(RESEARCH_CONTEXT_MARKER)
+  if (markerIndex < 0) {
+    return { otherContext: text.trim(), researchContext: "" }
+  }
+
+  const otherContext = text.slice(0, markerIndex).trim()
+  const researchContext = text.slice(markerIndex).trim()
+  return { otherContext, researchContext }
+}
+
+function buildCompanionContextBlock(context: string): string {
+  const { otherContext, researchContext } = splitPinnedResearchContext(context)
+  const parts: string[] = []
+
+  if (researchContext) {
+    parts.push(`CONTEXTE WEB PRIORITAIRE (A UTILISER EN PRIORITE SI LA QUESTION EST FACTUELLE OU FRAICHE) :\n${researchContext}`)
+  }
+  if (otherContext) {
+    parts.push(`CONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${otherContext}`)
+  }
+
+  return parts.join("\n\n")
+}
+
+function applyCompanionPromptBudgetWithPinnedContext(args: {
+  basePrompt: string
+  rawContext: string
+  researchPinned: boolean
+}): string {
+  const basePrompt = String(args.basePrompt ?? "").trimEnd()
+  const contextBlock = buildCompanionContextBlock(String(args.rawContext ?? ""))
+  if (!contextBlock) return applyCompanionPromptBudget(basePrompt)
+
+  const combined = `${basePrompt}\n${contextBlock}`
+  if (!args.researchPinned) return applyCompanionPromptBudget(combined)
+  if (combined.length <= COMPANION_PROMPT_MAX_CHARS) return combined
+
+  const suffix = "\n\n[... CONTEXTE TRONQUE POUR RESPECTER LE BUDGET PROMPT ...]\n"
+  const remaining = COMPANION_PROMPT_MAX_CHARS - basePrompt.length - 1
+  if (remaining <= 0) return applyCompanionPromptBudget(basePrompt)
+
+  const { otherContext, researchContext } = splitPinnedResearchContext(args.rawContext)
+  const pinnedParts: string[] = []
+  if (researchContext) {
+    pinnedParts.push(`CONTEXTE WEB PRIORITAIRE (A UTILISER EN PRIORITE SI LA QUESTION EST FACTUELLE OU FRAICHE) :\n${researchContext}`)
+  }
+  const pinnedBlock = pinnedParts.join("\n\n").trim()
+  const otherBlock = otherContext
+    ? `CONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${otherContext}`
+    : ""
+
+  if (!pinnedBlock) return applyCompanionPromptBudget(combined)
+
+  const pinnedWithSpacing = `\n${pinnedBlock}`
+  if (basePrompt.length + pinnedWithSpacing.length > COMPANION_PROMPT_MAX_CHARS) {
+    return applyCompanionPromptBudget(`${basePrompt}${pinnedWithSpacing}`)
+  }
+
+  const availableForOther = COMPANION_PROMPT_MAX_CHARS - basePrompt.length - pinnedWithSpacing.length
+  if (!otherBlock || availableForOther <= suffix.length) {
+    return `${basePrompt}${pinnedWithSpacing}`
+  }
+
+  const keep = Math.max(0, availableForOther - suffix.length - 2)
+  const truncatedOther = otherBlock.slice(0, keep).trimEnd()
+  const otherSection = truncatedOther
+    ? `\n\n${truncatedOther}${suffix}`
+    : ""
+
+  return `${basePrompt}${pinnedWithSpacing}${otherSection}`.trimEnd()
 }
 
 function normalizeQuestionTendency(value: unknown): QuestionTendency {
@@ -165,11 +244,6 @@ function buildNextQuestionRhythmState(args: {
 
 export type CompanionModelOutput =
   | string
-  | { tool: "track_progress_action"; args: any }
-  | { tool: "track_progress_vital_sign"; args: any }
-  | { tool: "track_progress_north_star"; args: any }
-  | { tool: "track_progress"; args: any } // backward compatibility alias
-  | { tool: "update_etoile_polaire"; args: any }
 
 export type CompanionRunResult = {
   text: string
@@ -178,71 +252,11 @@ export type CompanionRunResult = {
   temp_memory?: any
 }
 
-async function inferEtoileUpdateFromContext(args: {
-  message: string
-  history: any[]
-  proposedToolValue?: number | null
-  meta?: { requestId?: string; forceRealAi?: boolean; model?: string }
-}): Promise<{ allow_update: boolean; effective_value: number | null; user_declined: boolean }> {
-  const historySlice = (Array.isArray(args.history) ? args.history : [])
-    .slice(-8)
-    .map((m: any) => ({
-      role: String(m?.role ?? ""),
-      content: String(m?.content ?? "").slice(0, 280),
-    }))
-
-  const prompt = [
-    "Tu decides si Sophia peut mettre a jour l'Etoile Polaire MAINTENANT.",
-    "Reponds UNIQUEMENT en JSON valide.",
-    "Schema strict:",
-    '{"allow_update":boolean,"effective_value":number|null,"user_declined":boolean}',
-    "Regles:",
-    "- allow_update=true seulement si une valeur est explicite OU si le user confirme clairement une valeur proposee juste avant par Sophia.",
-    "- user_declined=true si le user refuse explicitement la mise a jour.",
-    "- Si ambigu, allow_update=false et effective_value=null.",
-    `user_message=${JSON.stringify(String(args.message ?? ""))}`,
-    `recent_history=${JSON.stringify(historySlice)}`,
-    `tool_proposed_value=${Number.isFinite(Number(args.proposedToolValue)) ? Number(args.proposedToolValue) : null}`,
-  ].join("\n")
-
-  try {
-    const raw = await generateWithGemini(
-      prompt,
-      "Analyse la decision.",
-      0.1,
-      true,
-      [],
-      "auto",
-      {
-        requestId: args.meta?.requestId,
-        model: args.meta?.model,
-        source: "sophia-brain:companion_etoile_update_gate",
-        forceRealAi: args.meta?.forceRealAi,
-      },
-    )
-    const parsed = typeof raw === "string" ? JSON.parse(raw) : raw
-    const allow = Boolean((parsed as any)?.allow_update)
-    const declined = Boolean((parsed as any)?.user_declined)
-    const n = Number((parsed as any)?.effective_value)
-    return {
-      allow_update: allow,
-      effective_value: Number.isFinite(n) ? n : null,
-      user_declined: declined,
-    }
-  } catch {
-    return { allow_update: false, effective_value: null, user_declined: false }
-  }
-}
-
-export function buildCompanionSystemPrompt(opts: {
+function buildCompanionStablePrompt(opts: {
   isWhatsApp: boolean
-  lastAssistantMessage: string
-  context: string
-  userState: any
 }): string {
-  const { isWhatsApp, lastAssistantMessage, context, userState } = opts
-  const questionRhythmBlock = buildQuestionRhythmPromptBlock(context, userState)
-  const basePrompt = isWhatsApp ? `
+  const { isWhatsApp } = opts
+  return isWhatsApp ? `
     Tu es Sophia, une coach de vie orientée action.
     Tu tutoies l'utilisateur. Tu écris comme un humain, naturel, direct.
 
@@ -318,10 +332,11 @@ export function buildCompanionSystemPrompt(opts: {
       - Quand SOS blocage est pertinent: tu poses d'abord 1 question de diagnostic concrète (cause, moment de blocage, contrainte), puis tu rediriges vers SOS blocage dashboard.
       - Interdit absolu: présenter SOS blocage comme un outil de départ pour "créer une stratégie" quand aucune action du plan n'existe encore.
 
-    TRACKING (TOOLS TOUJOURS DISPONIBLES) :
-    - Action/framework fait ou raté -> outil track_progress_action.
-    - Signe vital mesuré (sommeil, stress, etc.) -> outil track_progress_vital_sign.
-    - Nouvelle valeur Etoile Polaire -> outil track_progress_north_star.
+    TRACKING (ROUTER-FIRST, CRITIQUE) :
+    - Le tracking des actions, signes vitaux et de l'Etoile Polaire est géré par le router a partir des signaux du dispatcher.
+    - Si le contexte contient "=== ADDON TRACK_PROGRESS", ne relance jamais de tool et suis strictement l'add-on.
+    - Si un tracking semble ambigu et qu'aucun add-on ne confirme le log, demande UNE courte clarification.
+    - Nouvelle valeur Etoile Polaire: n'essaie pas de la mettre a jour depuis la conversation. Redirige vers le dashboard si besoin.
 
     ACTIONS COMPLETED (CRITIQUE) :
     - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
@@ -341,14 +356,6 @@ export function buildCompanionSystemPrompt(opts: {
       3) Règles génériques par défaut.
     - Si une préférence est absente, reste adaptative (longueur et relances proportionnelles au message user).
     - N'écrase pas une préférence explicite par une règle générique.
-
-    RYTHME DES QUESTIONS (CRITIQUE) :
-    ${questionRhythmBlock}
-
-    DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 120)}..."
-
-    CONTEXTE (si présent) :
-    ${context ? context : "(vide)"}
   ` : `
     Tu es Sophia, une coach de vie orientée action.
     Tu es une "Partenaire de Vie" mais AUSSI une IA experte très capable.
@@ -359,8 +366,6 @@ export function buildCompanionSystemPrompt(opts: {
     - Ne dis JAMAIS "ce n'est pas mon rôle", "je n'ai pas d'avis", ou "je ne suis pas là pour ça".
     - Si l'utilisateur te demande ton avis personnel, donne-le librement de manière humaine.
     - Agis comme une coach qui est fun. 
-
-    DERNIÈRE RÉPONSE DE SOPHIA : "${lastAssistantMessage.substring(0, 100)}..."
     
     TON STYLE (ORGANIC & FLUIDE) :
     - Écris comme on parle (Oralité). Utilise des tournures directes.
@@ -437,10 +442,11 @@ export function buildCompanionSystemPrompt(opts: {
       - Quand SOS blocage est vraiment pertinent: poser 1 question de diagnostic ciblée, puis rediriger vers SOS blocage dashboard.
       - Interdit absolu: dire que SOS blocage sert à démarrer quand aucune action du plan n'existe encore.
 
-    TRACKING (TOOLS TOUJOURS DISPONIBLES) :
-    - Action/framework fait ou raté -> outil track_progress_action.
-    - Signe vital mesuré (sommeil, stress, etc.) -> outil track_progress_vital_sign.
-    - Nouvelle valeur Etoile Polaire -> outil track_progress_north_star.
+    TRACKING (ROUTER-FIRST, CRITIQUE) :
+    - Le tracking des actions, signes vitaux et de l'Etoile Polaire est géré par le router a partir des signaux du dispatcher.
+    - Si le contexte contient "=== ADDON TRACK_PROGRESS", ne relance jamais de tool et suis strictement l'add-on.
+    - Si un tracking semble ambigu et qu'aucun add-on ne confirme le log, demande UNE courte clarification.
+    - Nouvelle valeur Etoile Polaire: n'essaie pas de la mettre a jour depuis la conversation. Redirige vers le dashboard si besoin.
 
     USER MODEL (PRÉFÉRENCES COACH) :
     - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
@@ -457,9 +463,6 @@ export function buildCompanionSystemPrompt(opts: {
     - Si une préférence est absente, reste adaptative (longueur et relances proportionnelles au message user).
     - N'écrase pas une préférence explicite par une règle générique.
 
-    RYTHME DES QUESTIONS (CRITIQUE) :
-    ${questionRhythmBlock}
-
     ACTIONS COMPLETED (CRITIQUE) :
     - Si le contexte contient des actions marquées "completed", NE LES MENTIONNE PAS de toi-même.
     - Tu n'en parles QUE si l'utilisateur en parle en premier. Sinon, ignore-les complètement.
@@ -467,12 +470,64 @@ export function buildCompanionSystemPrompt(opts: {
     CONTEXTE (CRITIQUE) :
     - N'affirme jamais "on a X dans ton plan" / "dans le plan" / "c'est prévu dans ton plan"
       sauf si le CONTEXTE OPÉRATIONNEL indique explicitement une action active correspondante.
-
-    CONTEXTE UTILISATEUR :
-    - Risque actuel : ${userState?.risk_level ?? 0}/10
-    ${context ? `\nCONTEXTE VIVANT (Ce que l'on sait de lui MAINTENANT) :\n${context}` : ""}
   `
-  return applyCompanionPromptBudget(basePrompt)
+}
+
+function buildCompanionSemiStablePrompt(opts: {
+  isWhatsApp: boolean
+  lastAssistantMessage: string
+  context: string
+  userState: any
+}): string {
+  const { isWhatsApp, lastAssistantMessage, context, userState } = opts
+  const questionRhythmBlock = buildQuestionRhythmPromptBlock(context, userState)
+  const lines = [
+    "=== META COMPAGNON ===",
+    `- Canal: ${isWhatsApp ? "whatsapp" : "web"}.`,
+    `- Risque actuel user: ${userState?.risk_level ?? 0}/10.`,
+    "",
+    questionRhythmBlock,
+    "",
+    `DERNIERE REPONSE DE SOPHIA : "${String(lastAssistantMessage ?? "").slice(0, isWhatsApp ? 120 : 100)}..."`,
+  ]
+  return lines.join("\n")
+}
+
+function buildCompanionPromptParts(opts: {
+  isWhatsApp: boolean
+  lastAssistantMessage: string
+  context: string
+  userState: any
+}): {
+  stablePrompt: string
+  semiStablePrompt: string
+  volatilePrompt: string
+  fullPrompt: string
+} {
+  const stablePrompt = buildCompanionStablePrompt({ isWhatsApp: opts.isWhatsApp }).trim()
+  const semiStablePrompt = buildCompanionSemiStablePrompt(opts).trim()
+  const volatilePrompt = buildCompanionContextBlock(String(opts.context ?? "")).trim()
+  const basePrompt = `${stablePrompt}\n\n${semiStablePrompt}`.trim()
+  const fullPrompt = applyCompanionPromptBudgetWithPinnedContext({
+    basePrompt,
+    rawContext: opts.context,
+    researchPinned: String(opts.context ?? "").includes(RESEARCH_CONTEXT_MARKER),
+  })
+  return {
+    stablePrompt,
+    semiStablePrompt,
+    volatilePrompt,
+    fullPrompt,
+  }
+}
+
+export function buildCompanionSystemPrompt(opts: {
+  isWhatsApp: boolean
+  lastAssistantMessage: string
+  context: string
+  userState: any
+}): string {
+  return buildCompanionPromptParts(opts).fullPrompt
 }
 
 /**
@@ -539,50 +594,6 @@ export async function retrieveContext(
 }
 
 // --- OUTILS ---
-const TRACK_PROGRESS_ACTION_TOOL = {
-  name: "track_progress_action",
-  description: "Enregistre une progression ou un raté sur une action/framework du plan.",
-  parameters: {
-    type: "OBJECT",
-    properties: {
-      target_name: { type: "STRING", description: "Nom approximatif de l'action/framework." },
-      value: { type: "NUMBER", description: "Valeur à ajouter (ex: 1 pour 'J'ai fait', 0 pour 'Raté')." },
-      operation: { type: "STRING", enum: ["add", "set"], description: "'add' = ajouter au total existant, 'set' = définir la valeur absolue." },
-      status: { type: "STRING", enum: ["completed", "missed", "partial"], description: "Statut de l'action : 'completed' (fait), 'missed' (pas fait/raté), 'partial' (à moitié)." },
-      date: { type: "STRING", description: "Date concernée (YYYY-MM-DD). Laisser vide pour aujourd'hui." }
-    },
-    required: ["target_name", "value", "operation"]
-  }
-}
-
-const TRACK_PROGRESS_VITAL_SIGN_TOOL = {
-  name: "track_progress_vital_sign",
-  description: "Enregistre une mesure de signe vital (sommeil, stress, poids, etc.).",
-  parameters: {
-    type: "OBJECT",
-    properties: {
-      target_name: { type: "STRING", description: "Nom du signe vital (ex: sommeil, stress)." },
-      value: { type: "NUMBER", description: "Valeur mesurée." },
-      operation: { type: "STRING", enum: ["set", "add"], description: "'set' recommandé pour une mesure instantanée." },
-      date: { type: "STRING", description: "Date concernée (YYYY-MM-DD). Laisser vide pour aujourd'hui." }
-    },
-    required: ["target_name", "value", "operation"]
-  }
-}
-
-const TRACK_PROGRESS_NORTH_STAR_TOOL = {
-  name: "track_progress_north_star",
-  description: "Met à jour la valeur actuelle de l'Étoile Polaire.",
-  parameters: {
-    type: "OBJECT",
-    properties: {
-      new_value: { type: "NUMBER", description: "Nouvelle valeur actuelle." },
-      note: { type: "STRING", description: "Note optionnelle (contexte)." },
-    },
-    required: ["new_value"],
-  },
-}
-
 export async function generateCompanionModelOutput(opts: {
   systemPrompt: string
   message: string
@@ -601,12 +612,7 @@ export async function generateCompanionModelOutput(opts: {
     `User: ${opts.message}`,
     temperature,
     false,
-    [
-      TRACK_PROGRESS_ACTION_TOOL,
-      TRACK_PROGRESS_VITAL_SIGN_TOOL,
-      TRACK_PROGRESS_NORTH_STAR_TOOL,
-      UPDATE_ETOILE_POLAIRE_TOOL,
-    ],
+    [],
     "auto",
     {
       requestId: opts.meta?.requestId,
@@ -627,178 +633,10 @@ export async function handleCompanionModelOutput(opts: {
   response: CompanionModelOutput
   meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string }
 }): Promise<CompanionRunResult> {
-  const { supabase, userId, scope, message, history, response, meta } = opts
+  const { response } = opts
 
   if (typeof response === 'string') {
     return { text: response.replace(/\*\*/g, ''), executed_tools: [], tool_execution: "none" }
-  }
-
-  if (
-    typeof response === "object" &&
-    (
-      (response as any)?.tool === "track_progress_action" ||
-      (response as any)?.tool === "track_progress_vital_sign" ||
-      (response as any)?.tool === "track_progress" // backward compatibility
-    )
-  ) {
-    const calledTool = String((response as any)?.tool ?? "")
-    const toolName = calledTool === "track_progress_vital_sign"
-      ? "track_progress_vital_sign"
-      : "track_progress_action"
-    try {
-      console.log(`[Companion] 🛠️ Tool Call: ${toolName}`)
-      await handleTracking(supabase, userId, (response as any).args, { source: meta?.channel ?? "chat" })
-
-      const confirmationPrompt = `
-        ACTION VALIDÉE : "${(response as any).args?.target_name ?? ""}"
-        STATUT : ${(response as any).args?.status === 'missed' ? 'Raté / Pas fait' : 'Réussi / Fait'}
-        
-        CONTEXTE CONVERSATION (POUR ÉVITER LES RÉPÉTITIONS) :
-        Dernier message de l'utilisateur : "${message}"
-        
-        TA MISSION :
-        1. Confirme que c'est pris en compte (sans dire "C'est enregistré dans la base de données").
-        2. Félicite (si réussi) ou Encourage (si raté).
-        3. SI l'utilisateur a donné des détails, REBONDIS SUR CES DÉTAILS. Ne pose pas une question générique.
-
-        FORMAT :
-        - Réponse aérée en 2 petits paragraphes séparés par une ligne vide.
-        - Pas de gras.
-        - Sauf si ce serait inadapté ou déplacé, mets au moins 1 emoji naturel.
-      `
-      const confirmationResponse = await generateWithGemini(confirmationPrompt, "Confirme et enchaîne.", 0.7, false, [], "auto", {
-        requestId: meta?.requestId,
-        model: meta?.model ?? (String(meta?.requestId ?? "").includes(":tools:") ? getGlobalAiModel("gemini-2.5-flash") : undefined),
-        source: "sophia-brain:companion_confirmation",
-        forceRealAi: meta?.forceRealAi,
-      })
-      return {
-        text: typeof confirmationResponse === 'string'
-          ? confirmationResponse.replace(/\*\*/g, '')
-          : "Ça marche, c'est noté.",
-        executed_tools: [toolName],
-        tool_execution: "success",
-      }
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e)
-      console.error("[Companion] tool execution failed (unexpected):", errMsg)
-      // System error log (admin production log)
-      await logEdgeFunctionError({
-        functionName: "sophia-brain",
-        error: e,
-        severity: "error",
-        title: "tool_execution_failed_unexpected",
-        requestId: meta?.requestId ?? null,
-        userId,
-        source: "sophia-brain:companion",
-        metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, channel: meta?.channel ?? "web" },
-      })
-      // Best-effort eval trace (during eval runs only).
-      try {
-        const { logVerifierEvalEvent } = await import("../lib/verifier_eval_log.ts")
-        const rid = String(meta?.requestId ?? "").trim()
-        if (rid) {
-          await logVerifierEvalEvent({
-            supabase: supabase as any,
-            requestId: rid,
-            source: "sophia-brain:verifier",
-            event: "verifier_tool_execution_fallback",
-            level: "warn",
-            payload: {
-              verifier_kind: "verifier_1:tool_execution_fallback",
-              agent_used: "companion",
-              channel: meta?.channel ?? "web",
-              tool_name: toolName,
-              err: errMsg.slice(0, 240),
-            },
-          })
-        }
-      } catch {}
-      return {
-        text: `Ok, j’ai eu un souci technique en notant ça.\n\nDis “retente” et je réessaie.`,
-        executed_tools: [toolName],
-        tool_execution: "failed",
-      }
-    }
-  }
-
-  if (
-    typeof response === "object" &&
-    (
-      (response as any)?.tool === "update_etoile_polaire" ||
-      (response as any)?.tool === "track_progress_north_star"
-    )
-  ) {
-    const calledTool = String((response as any)?.tool ?? "")
-    const toolName = calledTool === "track_progress_north_star"
-      ? "track_progress_north_star"
-      : "update_etoile_polaire"
-    try {
-      const effectiveArgs = calledTool === "track_progress_north_star"
-        ? {
-          new_value: Number((response as any)?.args?.new_value ?? (response as any)?.args?.value),
-          note: (response as any)?.args?.note,
-        }
-        : (response as any)?.args
-      const toolValue = Number((effectiveArgs as any)?.new_value)
-      const gate = await inferEtoileUpdateFromContext({
-        message,
-        history,
-        proposedToolValue: Number.isFinite(toolValue) ? toolValue : null,
-        meta,
-      })
-      if (!gate.allow_update || gate.effective_value === null) {
-        if (gate.user_declined) {
-          return {
-            text: "Parfait, on garde ta valeur actuelle pour l'Etoile Polaire.",
-            executed_tools: [toolName],
-            tool_execution: "blocked",
-          }
-        }
-        return {
-          text: "Je peux le faire, mais j'ai besoin de la valeur exacte. Tu veux la mettre a combien ?",
-          executed_tools: [toolName],
-          tool_execution: "blocked",
-        }
-      }
-      const note = String((effectiveArgs as any)?.note ?? "").trim().slice(0, 300)
-      const result = await updateEtoilePolaire(supabase, userId, {
-        new_value: gate.effective_value,
-        ...(note ? { note } : {}),
-      })
-      const unit = result.unit ? ` ${result.unit}` : ""
-      const deltaText = result.delta >= 0
-        ? `+${result.delta}${unit}`
-        : `${result.delta}${unit}`
-      const trendSinceStart = result.new_value === result.start_value
-        ? "Tu repars de ta base de depart."
-        : result.new_value > result.start_value
-        ? "Tu avances bien depuis le debut."
-        : "On est un peu en dessous du point de depart, on peut remonter ca pas a pas."
-      return {
-        text: `Top, je mets a jour ton Etoile Polaire a ${result.new_value}${unit}. ${trendSinceStart} Et par rapport a la derniere valeur: ${deltaText}.`,
-        executed_tools: [toolName],
-        tool_execution: "success",
-      }
-    } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e)
-      console.error("[Companion] update_etoile_polaire failed (unexpected):", errMsg)
-      await logEdgeFunctionError({
-        functionName: "sophia-brain",
-        error: e,
-        severity: "error",
-        title: "tool_execution_failed_unexpected",
-        requestId: meta?.requestId ?? null,
-        userId,
-        source: "sophia-brain:companion",
-        metadata: { reason: "tool_execution_failed_unexpected", tool_name: toolName, channel: meta?.channel ?? "web" },
-      })
-      return {
-        text: "J'ai eu un souci technique en mettant à jour ton Etoile Polaire. Tu peux me redonner la valeur ?",
-        executed_tools: [toolName],
-        tool_execution: "failed",
-      }
-    }
   }
 
   // Catch-all: never stringify arbitrary objects into chat (it becomes "[object Object]").
@@ -837,7 +675,24 @@ export async function runCompanion(
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
 
-  const systemPrompt = buildCompanionSystemPrompt({ isWhatsApp, lastAssistantMessage, context, userState })
+  const promptParts = buildCompanionPromptParts({ isWhatsApp, lastAssistantMessage, context, userState })
+  try {
+    console.log(JSON.stringify({
+      tag: "companion_prompt_cache_ready",
+      request_id: meta?.requestId ?? null,
+      channel: isWhatsApp ? "whatsapp" : "web",
+      stable_hash: simplePromptHash(promptParts.stablePrompt),
+      semi_stable_hash: simplePromptHash(promptParts.semiStablePrompt),
+      stable_chars: promptParts.stablePrompt.length,
+      semi_stable_chars: promptParts.semiStablePrompt.length,
+      volatile_chars: promptParts.volatilePrompt.length,
+      full_chars: promptParts.fullPrompt.length,
+    }))
+  } catch {
+    // non-blocking
+  }
+
+  const systemPrompt = promptParts.fullPrompt
   const response = await generateCompanionModelOutput({ systemPrompt, message, history, meta })
   const result = await handleCompanionModelOutput({ supabase, userId, scope, message, history, response, meta })
   const nextQuestionRhythm = buildNextQuestionRhythmState({

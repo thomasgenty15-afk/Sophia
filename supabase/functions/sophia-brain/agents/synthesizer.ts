@@ -8,6 +8,16 @@ type ChatMessageRow = {
   created_at: string
 }
 
+function simplePromptHash(input: string): string {
+  let hash = 2166136261
+  const text = String(input ?? "")
+  for (let i = 0; i < text.length; i++) {
+    hash ^= text.charCodeAt(i)
+    hash = Math.imul(hash, 16777619)
+  }
+  return (hash >>> 0).toString(16).padStart(8, "0")
+}
+
 function asIso(v: unknown): string {
   const s = String(v ?? "").trim()
   if (!s) return ""
@@ -72,7 +82,7 @@ export async function runSynthesizer(opts: {
   const transcriptRecent = buildTranscript(recent)
   const latestMessageAt = asIso(recent[recent.length - 1]?.created_at)
 
-  const systemPrompt = `
+  const stablePrompt = `
 Tu es le Synthétiseur de contexte court terme de Sophia.
 Tu dois FUSIONNER l'ancien contexte + les nouveaux messages.
 
@@ -90,6 +100,12 @@ Format de sortie JSON strict :
 }
   `.trim()
 
+  const semiStablePrompt = `
+Contrainte runtime:
+- max_recent_messages=${maxRecentMessages}
+- min_new_messages=${minNewMessages}
+  `.trim()
+
   const userPrompt = `
 ANCIEN SHORT TERM CONTEXT:
 ${prevContext || "(vide)"}
@@ -98,9 +114,24 @@ NOUVEAUX MESSAGES (priorité):
 ${transcriptRecent}
   `.trim()
 
+  try {
+    console.log(JSON.stringify({
+      tag: "memorizer_synthesizer_prompt_cache_ready",
+      request_id: meta?.requestId ?? null,
+      stable_hash: simplePromptHash(stablePrompt),
+      semi_stable_hash: simplePromptHash(semiStablePrompt),
+      stable_chars: stablePrompt.length,
+      semi_stable_chars: semiStablePrompt.length,
+      volatile_chars: userPrompt.length,
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + userPrompt.length,
+    }))
+  } catch {
+    // non-blocking
+  }
+
   let nextContext = prevContext
   try {
-    const raw = await generateWithGemini(systemPrompt, userPrompt, 0.15, true, [], "json", {
+    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, userPrompt, 0.15, true, [], "json", {
       requestId: meta?.requestId,
       model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
       source: "sophia-brain:synthesizer",

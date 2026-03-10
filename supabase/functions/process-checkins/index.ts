@@ -5,6 +5,7 @@ import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import {
+  applyWhatsappProactiveOpeningPolicy,
   applyScheduledCheckinGreetingPolicy,
   generateDynamicWhatsAppCheckinMessage,
   hasAnyWhatsappMessagesInLocalDay,
@@ -191,7 +192,30 @@ Deno.serve(async (req) => {
         const message = (p as any)?.message ?? null
         const requireOptedIn = (p as any)?.require_opted_in
         const metadataExtra = (p as any)?.metadata_extra
-        const bodyText = (message && (message as any).type === "text") ? String((message as any).body ?? "") : ""
+        let bodyText = (message && (message as any).type === "text") ? String((message as any).body ?? "") : ""
+        try {
+          const { data: profileForGreeting } = await supabaseAdmin
+            .from("profiles")
+            .select("timezone")
+            .eq("id", row.user_id)
+            .maybeSingle()
+          const timezone = String((profileForGreeting as any)?.timezone ?? "").trim() || "Europe/Paris"
+          const hasMessagesToday = await hasAnyWhatsappMessagesInLocalDay({
+            admin: supabaseAdmin as any,
+            userId: row.user_id,
+            timezone,
+          })
+          bodyText = applyWhatsappProactiveOpeningPolicy({
+            text: bodyText,
+            hasMessagesToday,
+            fallback: "Comment ça va ?",
+          })
+          if (message && (message as any).type === "text") {
+            ;(message as any).body = bodyText
+          }
+        } catch (e) {
+          console.warn(`[process-checkins] request_id=${requestId} deferred_greeting_policy_failed pending_id=${row.id}`, e)
+        }
 
         try {
           await callWhatsappSend({
@@ -388,17 +412,17 @@ Deno.serve(async (req) => {
         } catch (e) {
           // Fallback to stored draft if dynamic generation fails.
           console.warn(`[process-checkins] request_id=${requestId} dynamic_generation_failed checkin_id=${checkin.id}`, e)
-          bodyText = String((checkin as any)?.draft_message ?? "").trim() || "Petit check-in: comment ça va depuis tout à l'heure ?"
+          bodyText = String((checkin as any)?.draft_message ?? "").trim() || "Comment ça va depuis tout à l'heure ?"
         }
       }
       // Ensure bodyText is never empty/null for the fallback
       if (!bodyText.trim()) {
-        bodyText = "Petit check-in: comment ça va depuis tout à l'heure ?"
+        bodyText = "Comment ça va depuis tout à l'heure ?"
       }
 
       // Greeting policy for scheduled_checkins only:
       // - if messages were exchanged today (local user day): no greeting prefix
-      // - otherwise: prepend exact "Hello! "
+      // - otherwise: prepend a short cold-open greeting variant
       try {
         const { data: profileForGreeting } = await supabaseAdmin
           .from("profiles")

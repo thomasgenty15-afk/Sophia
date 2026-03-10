@@ -15,13 +15,22 @@ import {
 
 const Formules = () => {
   const navigate = useNavigate();
+  const seoDescription = "Consulte les tarifs de Sophia, le coach IA sur WhatsApp : essai gratuit, accès au Plan, suivi proactif et options premium.";
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
       <SEO 
-        title="Offres & Tarifs"
-        description="Commence gratuitement pendant 14 jours. Accède au Plan, au coach WhatsApp et à l'Architecte sans engagement."
+        title="Tarifs du coach IA WhatsApp"
+        description={seoDescription}
         canonical="https://sophia-coach.ai/formules"
+        structuredData={{
+          "@context": "https://schema.org",
+          "@type": "WebPage",
+          "name": "Formules Sophia Coach",
+          "url": "https://sophia-coach.ai/formules",
+          "description": seoDescription,
+          "inLanguage": "fr-FR"
+        }}
       />
       
       {/* NAVBAR */}

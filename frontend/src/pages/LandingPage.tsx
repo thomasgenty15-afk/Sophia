@@ -18,12 +18,40 @@ import {
 import Footer from '../components/Footer';
 
 const LandingPage = () => {
+  const seoDescription = "Sophia est un coach IA proactif sur WhatsApp qui transforme un objectif flou en plan clair, te relance, suit tes progrès et ajuste ton exécution dans la vraie vie.";
+
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-violet-100 selection:text-violet-900">
       <SEO 
-        title="Ton coach IA proactif sur WhatsApp"
-        description="Sophia transforme un objectif flou en plan clair, te relance sur WhatsApp, suit tes progrès et ajuste ton plan pour t'aider à tenir dans la vraie vie."
+        title="Coach IA WhatsApp pour passer à l'action"
+        description={seoDescription}
         canonical="https://sophia-coach.ai/"
+        structuredData={[
+          {
+            "@context": "https://schema.org",
+            "@type": "Organization",
+            "name": "Sophia Coach",
+            "url": "https://sophia-coach.ai/",
+            "logo": "https://sophia-coach.ai/apple-touch-icon.png"
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "WebSite",
+            "name": "Sophia Coach",
+            "url": "https://sophia-coach.ai/",
+            "inLanguage": "fr-FR"
+          },
+          {
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Sophia Coach",
+            "applicationCategory": "BusinessApplication",
+            "operatingSystem": "Web",
+            "url": "https://sophia-coach.ai/",
+            "description": seoDescription,
+            "inLanguage": "fr-FR"
+          }
+        ]}
       />
       
       {/* NAVBAR */}

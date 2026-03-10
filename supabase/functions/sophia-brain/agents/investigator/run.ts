@@ -68,6 +68,7 @@ function resolveOpeningContext(
   history: any[],
 ): {
   mode: "cold_relaunch" | "ongoing_conversation";
+  has_messages_today: boolean;
   hours_since_last_message: number | null;
   last_message_at: string | null;
 } {
@@ -76,6 +77,7 @@ function resolveOpeningContext(
   if (tmMode === "cold_relaunch" || tmMode === "ongoing_conversation") {
     return {
       mode: tmMode,
+      has_messages_today: tmContext?.has_messages_today === true,
       hours_since_last_message:
         Number.isFinite(Number(tmContext?.hours_since_last_message))
           ? Number(tmContext.hours_since_last_message)
@@ -95,6 +97,7 @@ function resolveOpeningContext(
   if (latestMs === null) {
     return {
       mode: "cold_relaunch",
+      has_messages_today: false,
       hours_since_last_message: null,
       last_message_at: null,
     };
@@ -104,6 +107,7 @@ function resolveOpeningContext(
   );
   return {
     mode: hours >= 4 ? "cold_relaunch" : "ongoing_conversation",
+    has_messages_today: false,
     hours_since_last_message: hours,
     last_message_at: new Date(latestMs).toISOString(),
   };
@@ -367,9 +371,9 @@ export async function runInvestigator(
           "On glisse le bilan maintenant, tranquillement 🙂",
         ]
         : [
-          "Hey, c'est l'heure de ton bilan 🙂",
-          "Petit check-in du jour 🙂",
           "On se fait le bilan du jour 🙂",
+          "Je te propose le bilan du jour 🙂",
+          "C'est l'heure du bilan du jour 🙂",
         ];
       const intro = intros[Math.floor(Math.random() * intros.length)];
       const safe = `${intro}\n\n${fallbackFirstQuestion}`;

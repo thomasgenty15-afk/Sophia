@@ -498,9 +498,22 @@ async function maybeTrackProgressParallel(args: {
   const trackNorthStar = dispatcherSignals.track_progress_north_star;
   const trackActionStatus = String(trackAction?.status_hint ?? "unknown");
   const trackActionTarget = String(trackAction?.target_hint ?? "").trim();
+  const trackActionOperation = String(trackAction?.operation_hint ?? "").trim().toLowerCase();
+  const trackActionValue = Number(trackAction?.value_hint);
+  const trackActionDate =
+    typeof trackAction?.date_hint === "string" && /^\d{4}-\d{2}-\d{2}$/.test(trackAction.date_hint)
+      ? trackAction.date_hint
+      : undefined;
   const trackVitalTarget = String(trackVital?.target_hint ?? "").trim();
   const trackVitalValue = Number(trackVital?.value_hint);
+  const trackVitalOperation = String(trackVital?.operation_hint ?? "").trim().toLowerCase();
+  const trackVitalDate =
+    typeof trackVital?.date_hint === "string" && /^\d{4}-\d{2}-\d{2}$/.test(trackVital.date_hint)
+      ? trackVital.date_hint
+      : undefined;
   const trackNorthStarValue = Number(trackNorthStar?.value_hint);
+  const trackNorthStarNote =
+    typeof trackNorthStar?.note_hint === "string" ? trackNorthStar.note_hint.trim().slice(0, 200) : "";
   const canTrackAction =
     trackAction?.detected === true &&
     trackActionTarget.length >= 2 &&
@@ -526,6 +539,7 @@ async function maybeTrackProgressParallel(args: {
     if (canTrackNorthStar) {
       const result = await updateEtoilePolaire(supabase, userId, {
         new_value: trackNorthStarValue,
+        ...(trackNorthStarNote ? { note: trackNorthStarNote } : {}),
       });
       raw =
         `Etoile Polaire mise à jour: ${result.title} -> ${result.new_value}${result.unit ? ` ${result.unit}` : ""}.`;
@@ -536,8 +550,9 @@ async function maybeTrackProgressParallel(args: {
         {
           target_name: trackVitalTarget,
           value: trackVitalValue,
-          operation: "set",
+          operation: trackVitalOperation === "add" ? "add" : "set",
           status: "completed",
+          ...(trackVitalDate ? { date: trackVitalDate } : {}),
         },
         { source: channel },
       );
@@ -548,9 +563,12 @@ async function maybeTrackProgressParallel(args: {
         userId,
         {
           target_name: trackActionTarget,
-          value: trackActionStatus === "missed" ? 0 : 1,
-          operation: "add",
+          value: Number.isFinite(trackActionValue)
+            ? trackActionValue
+            : (trackActionStatus === "missed" ? 0 : 1),
+          operation: trackActionOperation === "set" ? "set" : "add",
           status: trackActionStatus as "completed" | "missed" | "partial",
+          ...(trackActionDate ? { date: trackActionDate } : {}),
         },
         { source: channel },
       );
