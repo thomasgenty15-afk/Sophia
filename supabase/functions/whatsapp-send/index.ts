@@ -63,35 +63,41 @@ function getFallbackTemplate(purpose: string | undefined) {
     return {
       name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ?? "sophia_reminder_consent_v1_").trim(),
       language: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: false,
     }
   }
   if (p === "daily_bilan") {
     return {
       name: (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_NAME") ?? "sophia_bilan_v1").trim(),
       language: (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: true,
     }
   }
   if (p === "weekly_bilan") {
     return {
       name: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME") ?? "sophia_bilan_weekly_v1").trim(),
       language: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: true,
     }
   }
   if (p === "scheduled_checkin") {
     return {
       name: (Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_NAME") ?? "sophia_checkin_v1").trim(),
       language: (Deno.env.get("WHATSAPP_CHECKIN_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: true,
     }
   }
   if (p === "memory_echo") {
     return {
       name: (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_NAME") ?? "sophia_memory_echo_v1").trim(),
       language: (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: true,
     }
   }
   return {
     name: (Deno.env.get("WHATSAPP_OPTIN_TEMPLATE_NAME") ?? "sophia_optin_v1").trim(),
     language: (Deno.env.get("WHATSAPP_OPTIN_TEMPLATE_LANG") ?? "fr").trim(),
+    injectBodyNameParam: true,
   }
 }
 
@@ -195,6 +201,14 @@ Deno.serve(async (req) => {
       }
     } else {
       const fallback = getFallbackTemplate(body.purpose)
+      const fallbackComponents = fallback.injectBodyNameParam
+        ? [
+          {
+            type: "body",
+            parameters: [{ type: "text", text: profile.full_name || "!" }],
+          },
+        ]
+        : undefined
       const tpl = body.message.type === "template"
         ? body.message
         : {
@@ -202,12 +216,7 @@ Deno.serve(async (req) => {
           // Caller should provide a real template; this is a safe fallback.
           name: fallback.name,
           language: fallback.language,
-          components: [
-            {
-              type: "body",
-              parameters: [{ type: "text", text: profile.full_name || "!" }],
-            },
-          ],
+          components: fallbackComponents,
         }
 
       graphPayload = {
@@ -218,15 +227,10 @@ Deno.serve(async (req) => {
           name: tpl.name,
           language: { code: tpl.language },
           // If caller provides no components, we default to injecting the user's first name as {{1}}.
-          // This matches our templates `sophia_optin_v1` and `sophia_bilan_v1`.
+          // Some templates (for example recurring reminders) expect zero placeholders.
           components: (tpl.components && Array.isArray(tpl.components))
             ? tpl.components
-            : [
-              {
-                type: "body",
-                parameters: [{ type: "text", text: profile.full_name || "!" }],
-              },
-            ],
+            : fallbackComponents,
         },
       }
       templateName = String(graphPayload?.template?.name ?? "").trim() || null
