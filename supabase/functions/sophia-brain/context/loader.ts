@@ -162,6 +162,18 @@ export async function loadContextForMode(
     elementsLoaded.push("temporal");
   }
 
+  // 2b. Rendez-vous configured in dashboard (inject only when explicitly relevant)
+  if (shouldInjectRendezVousSummary(opts.mode, opts.message)) {
+    promises.push(
+      loadRendezVousSummary(opts.supabase, opts.userId).then((block) => {
+        if (block) {
+          context.rendezVousSummary = block;
+          elementsLoaded.push("rendez_vous_summary");
+        }
+      }),
+    );
+  }
+
   // 3. Identity (Temple)
   if (profile.identity) {
     promises.push(
@@ -555,6 +567,7 @@ export function buildContextString(loaded: LoadedContext): string {
   // Order matters for prompt coherence
   if (loaded.deferredUserPref) ctx += loaded.deferredUserPref;
   if (loaded.injectedContext) ctx += loaded.injectedContext;
+  if (loaded.rendezVousSummary) ctx += loaded.rendezVousSummary + "\n\n";
   if (loaded.temporal) ctx += loaded.temporal;
   if (loaded.facts) ctx += loaded.facts;
   if (loaded.shortTerm) ctx += loaded.shortTerm;
@@ -732,6 +745,7 @@ function formatDashboardCapabilitiesLiteAddon(): string {
     `    2) Amélioration du Temple: phase avancée débloquée après la construction.\n` +
     `- Règles d'usage:\n` +
     `  - Réponds d'abord au besoin immédiat du user, sans réciter toute la liste.\n` +
+    `  - Règle de choix: si Sophia doit envoyer un message planifié au bon moment, parle de Rendez-vous. Si le user doit faire une habitude ou une tâche récurrente lui-même, parle d'Actions Personnelles.\n` +
     `  - Si c'est pertinent ET confiance > 0.9, tu peux pousser UNE fonctionnalité du dashboard complémentaire.\n` +
     `- Interdiction: aucune création/modification réelle n'est exécutée dans le chat.\n`
   );
@@ -1008,21 +1022,92 @@ function formatDashboardRecurringReminderIntentAddon(addon: any): string {
   const fromBilan = Boolean(addon?.from_bilan);
 
   return (
-    `\n\n=== ADDON DASHBOARD RECURRING REMINDER INTENT ===\n` +
-    `- L'utilisateur veut configurer des rappels récurrents${confidenceText}.\n` +
+    `\n\n=== ADDON DASHBOARD RENDEZ-VOUS INTENT ===\n` +
+    `- L'utilisateur veut configurer des rendez-vous WhatsApp planifiés${confidenceText}.\n` +
     `- Paramètres détectés: ${fieldsText}.\n` +
     `- Cet add-on sert de support de connaissance pour orienter la configuration correctement.\n` +
-    `- Réponds clairement puis redirige vers les paramètres de rappels du dashboard.\n` +
+    `- Réponds clairement puis redirige vers la section Rendez-vous du dashboard.\n` +
     `- Anti-répétition: n'enchaîne pas la même redirection dashboard sur des messages consécutifs.\n` +
     `- Si la redirection vient d'être faite, continue la discussion sur le rendez-vous (heure/jours/message) sans re-rediriger immédiatement.\n` +
     `- Si besoin, précise les paramètres configurables: mode (daily/weekly/custom), days, time, timezone, channel (app/whatsapp), start_date, end_date, pause, message.\n` +
+    `- Règle de choix: si Sophia doit venir vers le user à un moment précis, c'est un Rendez-vous, pas une Action Personnelle.\n` +
     `- Demande seulement l'info manquante critique avant redirection si la demande est ambiguë.\n` +
-    `- Interdiction de programmer/éditer un rappel depuis le chat: toute création/modification se fait dans le dashboard.\n` +
+    `- Interdiction de programmer/éditer un rendez-vous depuis le chat: toute création/modification se fait dans le dashboard.\n` +
     (fromBilan
       ? `- Le bilan reste prioritaire: confirme la redirection puis reprends l'item du bilan.\n`
       : "") +
-    `- N'annonce aucune programmation de rappel comme déjà faite dans le chat.\n`
+    `- N'annonce aucune programmation de rendez-vous comme déjà faite dans le chat.\n`
   );
+}
+
+function shouldInjectRendezVousSummary(
+  mode: AgentMode,
+  message: string,
+): boolean {
+  if (mode !== "companion" && mode !== "investigator") return false;
+  const normalized = String(message ?? "").trim();
+  if (!normalized) return false;
+  return /\brappels?\b|\brendez[\s-]?vous\b/i.test(normalized);
+}
+
+async function loadRendezVousSummary(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string> {
+  try {
+    const { data, error } = await supabase
+      .from("user_recurring_reminders")
+      .select(
+        "message_instruction, local_time_hhmm, scheduled_days, status, rationale, updated_at",
+      )
+      .eq("user_id", userId)
+      .order("updated_at", { ascending: false })
+      .limit(8);
+
+    if (error || !data || data.length === 0) {
+      return (
+        "=== RENDEZ-VOUS CONFIGURÉS (SOURCE DE VÉRITÉ) ===\n" +
+        "- Aucun rendez-vous configuré actuellement dans user_recurring_reminders.\n" +
+        "- Si le user demande s'il en a déjà, réponds non.\n" +
+        "- N'invente jamais un rendez-vous existant.\n"
+      );
+    }
+
+    const active = data.filter((row: any) => String(row?.status ?? "") === "active");
+    const inactive = data.filter((row: any) => String(row?.status ?? "") !== "active");
+    let block = "=== RENDEZ-VOUS CONFIGURÉS (SOURCE DE VÉRITÉ) ===\n";
+    block += `- Total: ${data.length} | actifs: ${active.length} | inactifs: ${inactive.length}\n`;
+    block +=
+      "- Cette section reflète UNIQUEMENT user_recurring_reminders (configuration générique), pas les occurrences scheduled_checkins.\n";
+    block +=
+      "- Si le user demande s'il a déjà des rendez-vous, base-toi UNIQUEMENT sur cette section.\n";
+
+    if (active.length > 0) {
+      block += "Actifs:\n";
+      for (const row of active.slice(0, 5) as any[]) {
+        const instruction = String(row?.message_instruction ?? "").trim().slice(0, 120) || "Message non précisé";
+        const time = String(row?.local_time_hhmm ?? "").trim() || "?";
+        const days = Array.isArray(row?.scheduled_days) && row.scheduled_days.length > 0
+          ? row.scheduled_days.join(", ")
+          : "jours non précisés";
+        block += `- ${instruction} | ${days} | ${time}\n`;
+      }
+    }
+
+    if (inactive.length > 0) {
+      block += "Inactifs:\n";
+      for (const row of inactive.slice(0, 3) as any[]) {
+        const instruction = String(row?.message_instruction ?? "").trim().slice(0, 100) || "Message non précisé";
+        const time = String(row?.local_time_hhmm ?? "").trim() || "?";
+        block += `- ${instruction} | ${time} [inactif]\n`;
+      }
+    }
+
+    block += "- N'invente jamais d'autre rendez-vous que ceux listés ici.\n";
+    return block;
+  } catch {
+    return "";
+  }
 }
 
 function formatSafetyActiveAddon(addon: any): string {

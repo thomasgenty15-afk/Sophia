@@ -116,37 +116,6 @@ function detectHighMissedStreakBreakdownCandidate(
   };
 }
 
-function cleanupLegacyBilanFlags(tempMemory: any) {
-  if (!tempMemory || typeof tempMemory !== "object") return;
-  const legacyKeys = [
-    "__checkup_entry_pending",
-    "__ask_checkup_confirmation",
-    "__bilan_already_done_pending",
-    "__propose_track_progress",
-    "__track_progress_from_bilan_done",
-    "__checkup_addon",
-    "__bilan_tomorrow_addon",
-    "__safety_stabilization",
-    "__bilan_mass_reset",
-    "__expired_bilan_summary",
-    "memorizer_last_counts",
-    "memorizer_last_run_at",
-    "memorizer_last_message_at",
-    "short_context_updated_at",
-    "short_context_new_messages",
-    "short_context_last_message_at",
-    "__investigator_last_error",
-    "__investigator_last_error_at",
-  ];
-  for (const key of legacyKeys) {
-    try {
-      delete (tempMemory as any)[key];
-    } catch {
-      // best effort
-    }
-  }
-}
-
 function parseIsoMs(value: unknown): number {
   if (typeof value !== "string" || !value.trim()) return 0;
   const ms = new Date(value).getTime();
@@ -718,8 +687,6 @@ export async function processMessage(
 
   let state = await getUserState(supabase, userId, scope);
   let tempMemory: any = (state as any)?.temp_memory ?? {};
-
-  cleanupLegacyBilanFlags(tempMemory);
 
   const onboarding = stabilizeOnboardingFlag(tempMemory);
   tempMemory = onboarding.tempMemory;

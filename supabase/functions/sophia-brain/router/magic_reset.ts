@@ -40,14 +40,8 @@ export function clearMachineStateTempMemory(opts: {
     "__flow_just_closed_normally",
     "__flow_just_closed_aborted",
     "__abandon_message",
-    "__checkup_addon",
     "__track_progress_parallel",
-    // Checkup / onboarding pending flags
-    "__checkup_entry_pending",
-    "__ask_checkup_confirmation",
-    "__bilan_already_done_pending",
-    "__propose_track_progress",
-    "__track_progress_from_bilan_done",
+    // Onboarding runtime
     "__onboarding_flow",
     "__onboarding_active",
     "__onboarding_done_v2",

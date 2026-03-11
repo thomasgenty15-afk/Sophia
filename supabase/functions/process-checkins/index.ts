@@ -5,6 +5,11 @@ import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import {
+  enqueueProactiveTemplateCandidate,
+  proactiveTemplatePriorityForPurpose,
+  PROACTIVE_TEMPLATE_CANDIDATE_KIND,
+} from "../_shared/proactive_template_queue.ts"
+import {
   applyWhatsappProactiveOpeningPolicy,
   applyScheduledCheckinGreetingPolicy,
   generateDynamicWhatsAppCheckinMessage,
@@ -16,6 +21,7 @@ console.log("Process Checkins: Function initialized")
 const QUIET_WINDOW_MINUTES = Number.parseInt((Deno.env.get("WHATSAPP_QUIET_WINDOW_MINUTES") ?? "").trim() || "20", 10)
 const RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT = 5
 const RECURRING_REMINDER_TEMPLATE_QUOTA_KEY = "recurring_reminder_template"
+const RECURRING_REMINDER_TEMPLATE_MIN_INTERVAL_MS = 3 * 24 * 60 * 60 * 1000
 
 function internalSecret(): string {
   return (Deno.env.get("INTERNAL_FUNCTION_SECRET")?.trim() || Deno.env.get("SECRET_KEY")?.trim() || "")
@@ -107,6 +113,44 @@ function monthKeyInTimezone(now: Date, timezone: string): string {
   return `${year}-${month}`
 }
 
+function parseIsoMs(value: unknown): number | null {
+  if (typeof value !== "string" || !value.trim()) return null
+  const ms = new Date(value).getTime()
+  return Number.isFinite(ms) ? ms : null
+}
+
+function likelyHasDailyBilanWinbackCandidateToday(profile: Record<string, unknown> | null | undefined): boolean {
+  if (!profile) return false
+  if (!Boolean(profile.whatsapp_bilan_opted_in)) return false
+
+  const pauseUntilMs = Math.max(
+    parseIsoMs(profile.whatsapp_bilan_paused_until) ?? 0,
+    parseIsoMs(profile.whatsapp_coaching_paused_until) ?? 0,
+  )
+  if (pauseUntilMs > Date.now()) return false
+
+  const baselineMissed = Math.max(
+    0,
+    Math.min(30, Math.floor(Number(profile.whatsapp_bilan_missed_streak ?? 0))),
+  )
+  const currentWinbackStep = Math.max(
+    0,
+    Math.min(3, Math.floor(Number(profile.whatsapp_bilan_winback_step ?? 0))),
+  )
+  if (currentWinbackStep > 0 && currentWinbackStep < 3) return true
+
+  const previousPromptMs = parseIsoMs(profile.whatsapp_bilan_last_prompt_at)
+  const lastInboundMs = parseIsoMs(profile.whatsapp_last_inbound_at)
+  const unresolvedPreviousPrompt = Boolean(
+    previousPromptMs &&
+      (!lastInboundMs || (lastInboundMs as number) < (previousPromptMs as number)),
+  )
+  const nextMissed = unresolvedPreviousPrompt
+    ? Math.min(30, baselineMissed + 1)
+    : 0
+  return nextMissed >= 2
+}
+
 async function consumeMonthlyWhatsappQuota(params: {
   supabaseAdmin: ReturnType<typeof createClient>
   userId: string
@@ -142,6 +186,226 @@ async function releaseMonthlyWhatsappQuota(params: {
   if (error) throw error
   const row = Array.isArray(data) ? data[0] : data
   return Number((row as any)?.used_count ?? 0)
+}
+
+async function processPendingProactiveTemplateCandidates(params: {
+  supabaseAdmin: ReturnType<typeof createClient>
+  requestId: string
+}) {
+  const nowIso = new Date().toISOString()
+  const { data: rows, error } = await params.supabaseAdmin
+    .from("whatsapp_pending_actions")
+    .select("id,user_id,payload,created_at,expires_at,not_before")
+    .eq("kind", PROACTIVE_TEMPLATE_CANDIDATE_KIND)
+    .eq("status", "pending")
+    .or(`not_before.is.null,not_before.lte.${nowIso}`)
+    .or(`expires_at.is.null,expires_at.gt.${nowIso}`)
+    .order("created_at", { ascending: true })
+    .limit(200)
+  if (error) throw error
+  if (!rows || rows.length === 0) return 0
+
+  const grouped = new Map<string, any[]>()
+  for (const row of rows as any[]) {
+    const userId = String(row.user_id ?? "").trim()
+    if (!userId) continue
+    if (!grouped.has(userId)) grouped.set(userId, [])
+    grouped.get(userId)!.push(row)
+  }
+
+  let processed = 0
+  for (const [userId, userRows] of grouped.entries()) {
+    const sorted = userRows.slice().sort((a, b) => {
+      const ap = proactiveTemplatePriorityForPurpose(a?.payload?.purpose) || Number(a?.payload?.priority ?? 0)
+      const bp = proactiveTemplatePriorityForPurpose(b?.payload?.purpose) || Number(b?.payload?.priority ?? 0)
+      if (bp !== ap) return bp - ap
+      return new Date(String(a?.created_at ?? 0)).getTime() - new Date(String(b?.created_at ?? 0)).getTime()
+    })
+    const winner = sorted[0]
+    const losers = sorted.slice(1)
+    const payload = (winner?.payload ?? {}) as any
+    const purpose = String(payload.purpose ?? "").trim()
+
+    let recurringQuotaMonthKey: string | null = null
+    let recurringQuotaConsumed = false
+    if (String(payload.follow_up_kind ?? "") === "recurring_reminder") {
+      recurringQuotaMonthKey = monthKeyInTimezone(
+        new Date(),
+        String(payload.user_timezone ?? "Europe/Paris"),
+      )
+      try {
+        const quotaResult = await consumeMonthlyWhatsappQuota({
+          supabaseAdmin: params.supabaseAdmin,
+          userId,
+          quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
+          monthKey: recurringQuotaMonthKey,
+          limit: RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT,
+        })
+        if (!quotaResult.allowed) {
+          await params.supabaseAdmin
+            .from("whatsapp_pending_actions")
+            .update({ status: "cancelled", processed_at: new Date().toISOString() })
+            .eq("id", winner.id)
+            .eq("status", "pending")
+          if (payload.scheduled_checkin_id) {
+            await params.supabaseAdmin
+              .from("scheduled_checkins")
+              .update({ status: "cancelled", processed_at: new Date().toISOString() })
+              .eq("id", payload.scheduled_checkin_id)
+              .eq("status", "pending")
+          }
+          continue
+        }
+        recurringQuotaConsumed = true
+      } catch (e) {
+        console.error(`[process-checkins] request_id=${params.requestId} candidate_quota_check_failed user_id=${userId}`, e)
+        continue
+      }
+    }
+
+    let sendRes: any = null
+    try {
+      sendRes = await callWhatsappSend({
+        user_id: userId,
+        message: payload.message,
+        purpose,
+        require_opted_in: payload.require_opted_in !== false,
+        force_template: payload.force_template !== false,
+        metadata_extra: {
+          ...(payload.metadata_extra && typeof payload.metadata_extra === "object" ? payload.metadata_extra : {}),
+          proactive_candidate_id: winner.id,
+        },
+      })
+    } catch (e) {
+      if (recurringQuotaConsumed && recurringQuotaMonthKey) {
+        await releaseMonthlyWhatsappQuota({
+          supabaseAdmin: params.supabaseAdmin,
+          userId,
+          quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
+          monthKey: recurringQuotaMonthKey,
+        }).catch(() => undefined)
+      }
+      const status = (e as any)?.status
+      if (status === 429) continue
+      await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .update({ status: "cancelled", processed_at: new Date().toISOString() })
+        .eq("id", winner.id)
+        .eq("status", "pending")
+      if (payload.scheduled_checkin_id) {
+        await params.supabaseAdmin
+          .from("scheduled_checkins")
+          .update({ status: "cancelled", processed_at: new Date().toISOString() })
+          .eq("id", payload.scheduled_checkin_id)
+          .in("status", ["pending", "awaiting_user"] as any)
+      }
+      continue
+    }
+
+    const skipped = Boolean(sendRes?.skipped)
+    if (skipped && recurringQuotaConsumed && recurringQuotaMonthKey) {
+      await releaseMonthlyWhatsappQuota({
+        supabaseAdmin: params.supabaseAdmin,
+        userId,
+        quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
+        monthKey: recurringQuotaMonthKey,
+      }).catch(() => undefined)
+      if (payload.scheduled_checkin_id) {
+        await params.supabaseAdmin
+          .from("scheduled_checkins")
+          .update({ status: "cancelled", processed_at: new Date().toISOString() })
+          .eq("id", payload.scheduled_checkin_id)
+          .in("status", ["pending", "awaiting_user"] as any)
+      }
+    }
+
+    if (!skipped) {
+      const followUpKind = String(payload.follow_up_kind ?? "").trim()
+      if (followUpKind === "weekly_bilan") {
+        await params.supabaseAdmin.from("whatsapp_pending_actions").insert({
+          user_id: userId,
+          kind: "weekly_bilan",
+          status: "pending",
+          payload: {
+            weekly_review_payload: payload.weekly_review_payload ?? null,
+            source: "proactive_template_queue",
+          },
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        })
+      } else if (followUpKind === "memory_echo") {
+        await params.supabaseAdmin.from("whatsapp_pending_actions").insert({
+          user_id: userId,
+          kind: "memory_echo",
+          status: "pending",
+          payload: {
+            strategy: payload.strategy ?? null,
+            data: payload.data ?? null,
+          },
+          expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+        })
+      } else if (followUpKind === "recurring_reminder") {
+        if (payload.recurring_reminder_id) {
+          await params.supabaseAdmin
+            .from("user_recurring_reminders")
+            .update({
+              probe_last_sent_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+            } as any)
+            .eq("id", payload.recurring_reminder_id)
+            .eq("user_id", userId)
+        }
+        await params.supabaseAdmin
+          .from("whatsapp_pending_actions")
+          .insert({
+            user_id: userId,
+            kind: "scheduled_checkin",
+            status: "pending",
+            scheduled_checkin_id: payload.scheduled_checkin_id ?? null,
+            payload: {
+              draft_message: payload.draft_message ?? null,
+              event_context: payload.event_context ?? null,
+              message_mode: payload.message_mode ?? "static",
+              message_payload: payload.message_payload ?? {},
+              recurring_reminder_id: payload.recurring_reminder_id ?? null,
+            },
+            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+          })
+        if (payload.scheduled_checkin_id) {
+          await params.supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ status: "awaiting_user" })
+            .eq("id", payload.scheduled_checkin_id)
+            .eq("status", "pending")
+        }
+      }
+    }
+
+    await params.supabaseAdmin
+      .from("whatsapp_pending_actions")
+      .update({ status: skipped ? "cancelled" : "done", processed_at: new Date().toISOString() })
+      .eq("id", winner.id)
+      .eq("status", "pending")
+
+    for (const loser of losers) {
+      const loserPayload = (loser?.payload ?? {}) as any
+      await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .update({ status: "cancelled", processed_at: new Date().toISOString() })
+        .eq("id", loser.id)
+        .eq("status", "pending")
+      if (String(loserPayload.follow_up_kind ?? "") === "recurring_reminder" && loserPayload.scheduled_checkin_id) {
+        await params.supabaseAdmin
+          .from("scheduled_checkins")
+          .update({ status: "cancelled", processed_at: new Date().toISOString() })
+          .eq("id", loserPayload.scheduled_checkin_id)
+          .eq("status", "pending")
+      }
+    }
+
+    processed++
+  }
+
+  return processed
 }
 
 Deno.serve(async (req) => {
@@ -254,6 +518,11 @@ Deno.serve(async (req) => {
       }
     }
 
+    const processedQueuedBefore = await processPendingProactiveTemplateCandidates({
+      supabaseAdmin,
+      requestId,
+    })
+
     // 1. Fetch pending checkins that are due
     const { data: checkins, error: fetchError } = await supabaseAdmin
       .from('scheduled_checkins')
@@ -265,9 +534,18 @@ Deno.serve(async (req) => {
     if (fetchError) throw fetchError
 
     if (!checkins || checkins.length === 0) {
+      const processedQueuedAfter = await processPendingProactiveTemplateCandidates({
+        supabaseAdmin,
+        requestId,
+      })
       return jsonResponse(
         req,
-        { message: "No checkins to process", flushed_deferred: flushedCount, request_id: requestId },
+        {
+          message: "No checkins to process",
+          flushed_deferred: flushedCount,
+          processed_proactive_candidates: processedQueuedBefore + processedQueuedAfter,
+          request_id: requestId,
+        },
         { includeCors: false },
       )
     }
@@ -279,6 +557,7 @@ Deno.serve(async (req) => {
       const eventContext = String((checkin as any)?.event_context ?? "")
       const recurringReminderId = getRecurringReminderIdFromEventContext(eventContext)
       let userTimezone = "Europe/Paris"
+      let userProfileSnapshot: Record<string, unknown> | null = null
 
       // Recurring reminders: if previous consent probes were unanswered, count them.
       // After 2 unanswered probes, auto-pause the reminder and stop future sends.
@@ -292,7 +571,7 @@ Deno.serve(async (req) => {
 
           const { data: reminder } = await supabaseAdmin
             .from("user_recurring_reminders")
-            .select("id,status,unanswered_probe_count")
+            .select("id,status,unanswered_probe_count,probe_last_sent_at")
             .eq("id", recurringReminderId)
             .eq("user_id", checkin.user_id)
             .maybeSingle()
@@ -348,9 +627,10 @@ Deno.serve(async (req) => {
       {
         const { data: profile } = await supabaseAdmin
           .from("profiles")
-          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone, whatsapp_coaching_paused_until")
+          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at, timezone, whatsapp_coaching_paused_until, whatsapp_bilan_opted_in, whatsapp_bilan_paused_until, whatsapp_bilan_missed_streak, whatsapp_bilan_last_prompt_at, whatsapp_bilan_winback_step")
           .eq("id", checkin.user_id)
           .maybeSingle()
+        userProfileSnapshot = (profile as Record<string, unknown> | null) ?? null
         userTimezone = String((profile as any)?.timezone ?? "").trim() || "Europe/Paris"
         const coachingPauseUntilMs = (profile as any)?.whatsapp_coaching_paused_until
           ? new Date((profile as any).whatsapp_coaching_paused_until).getTime()
@@ -449,33 +729,64 @@ Deno.serve(async (req) => {
       let recurringReminderQuotaMonthKey: string | null = null
 
       if (recurringReminderNeedsTemplate) {
-        recurringReminderQuotaMonthKey = monthKeyInTimezone(new Date(), userTimezone)
-        try {
-          const quotaResult = await consumeMonthlyWhatsappQuota({
-            supabaseAdmin,
-            userId: checkin.user_id,
-            quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
-            monthKey: recurringReminderQuotaMonthKey,
-            limit: RECURRING_REMINDER_TEMPLATE_MONTHLY_LIMIT,
-          })
-          if (!quotaResult.allowed) {
-            await supabaseAdmin
-              .from("scheduled_checkins")
-              .update({ status: "cancelled", processed_at: new Date().toISOString() })
-              .eq("id", checkin.id)
-            console.log(
-              `[process-checkins] request_id=${requestId} recurring_reminder_monthly_template_cap_reached checkin_id=${checkin.id} user_id=${checkin.user_id} month_key=${recurringReminderQuotaMonthKey} used_count=${quotaResult.usedCount}`,
-            )
-            continue
-          }
-          recurringReminderQuotaConsumed = true
-        } catch (e) {
-          console.error(
-            `[process-checkins] request_id=${requestId} recurring_reminder_monthly_quota_check_failed checkin_id=${checkin.id}`,
-            e,
+        const { data: reminder } = await supabaseAdmin
+          .from("user_recurring_reminders")
+          .select("probe_last_sent_at")
+          .eq("id", recurringReminderId as string)
+          .eq("user_id", checkin.user_id)
+          .maybeSingle()
+        const lastProbeSentMs = parseIsoMs((reminder as any)?.probe_last_sent_at)
+        if (lastProbeSentMs !== null && Date.now() - lastProbeSentMs < RECURRING_REMINDER_TEMPLATE_MIN_INTERVAL_MS) {
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ status: "cancelled", processed_at: new Date().toISOString() })
+            .eq("id", checkin.id)
+          console.log(
+            `[process-checkins] request_id=${requestId} recurring_reminder_template_cooldown checkin_id=${checkin.id} user_id=${checkin.user_id}`,
           )
           continue
         }
+
+        if (likelyHasDailyBilanWinbackCandidateToday(userProfileSnapshot)) {
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ status: "cancelled", processed_at: new Date().toISOString() })
+            .eq("id", checkin.id)
+          console.log(
+            `[process-checkins] request_id=${requestId} recurring_reminder_skipped_for_bilan_winback checkin_id=${checkin.id} user_id=${checkin.user_id}`,
+          )
+          continue
+        }
+        await enqueueProactiveTemplateCandidate(supabaseAdmin as any, {
+          userId: checkin.user_id,
+          purpose: "recurring_reminder",
+          message: {
+            type: "template",
+            name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ?? "sophia_reminder_consent_v1_").trim(),
+            language: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_LANG") ?? "fr").trim(),
+          },
+          requireOptedIn: true,
+          forceTemplate: true,
+          metadataExtra: {
+            source: "scheduled_checkin",
+            event_context: checkin.event_context,
+            original_checkin_id: checkin.id,
+            purpose: checkinPurpose,
+            recurring_reminder_id: recurringReminderId,
+          },
+          payloadExtra: {
+            follow_up_kind: "recurring_reminder",
+            scheduled_checkin_id: checkin.id,
+            draft_message: (checkin as any)?.draft_message ?? null,
+            event_context: checkin.event_context,
+            message_mode: (checkin as any)?.message_mode ?? "static",
+            message_payload: (checkin as any)?.message_payload ?? {},
+            recurring_reminder_id: recurringReminderId,
+            user_timezone: userTimezone,
+          },
+          dedupeKey: `recurring_reminder:${checkin.id}`,
+        })
+        continue
       }
 
       try {
@@ -492,8 +803,32 @@ Deno.serve(async (req) => {
             recurring_reminder_id: recurringReminderId,
           },
         })
+        const skipped = Boolean((resp as any)?.skipped)
         usedTemplate = Boolean((resp as any)?.used_template)
-        sentViaWhatsapp = true
+        sentViaWhatsapp = !skipped
+        if (skipped && recurringReminderQuotaConsumed && recurringReminderQuotaMonthKey) {
+          try {
+            await releaseMonthlyWhatsappQuota({
+              supabaseAdmin,
+              userId: checkin.user_id,
+              quotaKey: RECURRING_REMINDER_TEMPLATE_QUOTA_KEY,
+              monthKey: recurringReminderQuotaMonthKey,
+            })
+            recurringReminderQuotaConsumed = false
+          } catch (releaseErr) {
+            console.error(
+              `[process-checkins] request_id=${requestId} recurring_reminder_monthly_quota_release_failed checkin_id=${checkin.id}`,
+              releaseErr,
+            )
+          }
+        }
+        if (skipped) {
+          await supabaseAdmin
+            .from("scheduled_checkins")
+            .update({ status: "cancelled", processed_at: new Date().toISOString() })
+            .eq("id", checkin.id)
+          continue
+        }
       } catch (e) {
         const status = (e as any)?.status
         const msg = e instanceof Error ? e.message : String(e)
@@ -615,9 +950,20 @@ Deno.serve(async (req) => {
       }
     }
 
+    const processedQueuedAfter = await processPendingProactiveTemplateCandidates({
+      supabaseAdmin,
+      requestId,
+    })
+
     return jsonResponse(
       req,
-      { success: true, processed: processedCount, flushed_deferred: flushedCount, request_id: requestId },
+      {
+        success: true,
+        processed: processedCount,
+        flushed_deferred: flushedCount,
+        processed_proactive_candidates: processedQueuedBefore + processedQueuedAfter,
+        request_id: requestId,
+      },
       { includeCors: false },
     )
 

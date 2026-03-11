@@ -54,9 +54,6 @@ import {
 } from "../investigator-weekly/types.ts";
 import { runInvestigatorWeekly } from "../investigator-weekly/run.ts";
 
-// Re-export for backward compatibility
-export { getItemProgress, updateItemProgress } from "./item_progress.ts";
-
 function parseIsoMs(raw: unknown): number | null {
   if (typeof raw !== "string" || !raw.trim()) return null;
   const ms = new Date(raw).getTime();
@@ -593,34 +590,19 @@ export async function runInvestigator(
       };
     }
 
-    // Otherwise (legacy behavior): scan for new pending items.
-    console.log(
-      "[Investigator] End of list reached. Scanning for new pending items...",
-    );
-    const freshItems = await getPendingItems(supabase, userId);
-    if (freshItems.length > 0) {
-      console.log(
-        `[Investigator] Found ${freshItems.length} new items. Extending session.`,
-      );
-      currentState.pending_items = [
-        ...currentState.pending_items,
-        ...freshItems,
-      ];
-    } else {
-      return {
-        content: await investigatorSay(
-          "end_checkup_no_more_items",
-          {
-            user_message: message,
-            channel: meta?.channel,
-            recent_history: history.slice(-15),
-          },
-          meta,
-        ),
-        investigationComplete: true,
-        newState: null,
-      };
-    }
+    return {
+      content: await investigatorSay(
+        "end_checkup_no_more_items",
+        {
+          user_message: message,
+          channel: meta?.channel,
+          recent_history: history.slice(-15),
+        },
+        meta,
+      ),
+      investigationComplete: true,
+      newState: null,
+    };
   }
 
   // 3. CURRENT ITEM

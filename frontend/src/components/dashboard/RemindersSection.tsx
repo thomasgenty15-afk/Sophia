@@ -289,7 +289,7 @@ export const RemindersSection: React.FC<RemindersSectionProps> = ({ userId, isLo
         >
           <div className="text-sm text-slate-500 max-w-3xl leading-relaxed mb-4 ml-7 space-y-3">
             <p>
-              Configure des rendez-vous pour que Sophia vienne vers toi selon tes besoins.
+              Configure des rendez-vous pour que Sophia vienne vers toi selon tes besoins, tu peux voir ça comme des rappels.
             </p>
             <p>
               Sois créatif ! Tu peux lui demander de t'envoyer du contenu inspirant, des rappels bienveillants ou simplement une pensée positive.

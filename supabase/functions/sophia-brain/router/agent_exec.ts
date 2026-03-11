@@ -291,8 +291,6 @@ export async function runAgentAndVerify(opts: {
             },
           },
         };
-        delete (tempMemory as any).__investigator_last_error_at;
-        delete (tempMemory as any).__investigator_last_error;
         responseContent = outageTemplate;
         nextMode = "companion";
         outageFallback = true;

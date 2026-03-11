@@ -561,6 +561,17 @@ Deno.serve(async (req)=>{
           },
           ...optOutUpdates
         }).eq("id", profile.id);
+        if (!isStop) {
+          await admin
+            .from("whatsapp_pending_actions")
+            .update({
+              status: "cancelled",
+              processed_at: nowIso,
+            })
+            .eq("user_id", profile.id)
+            .eq("kind", "proactive_template_candidate")
+            .eq("status", "pending");
+        }
         // Log inbound
         const { data: insertedIn, error: inErr } = await admin.from("chat_messages").insert({
           user_id: profile.id,

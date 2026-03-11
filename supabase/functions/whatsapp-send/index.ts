@@ -6,6 +6,7 @@ import { getEffectiveTierForUser } from "../_shared/billing-tier.ts"
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { logEdgeFunctionError } from "../_shared/error-log.ts"
 import { sendWhatsAppGraph } from "../_shared/whatsapp_graph.ts"
+import { computeScheduledForFromLocal } from "../_shared/scheduled_checkins.ts"
 import {
   createWhatsAppOutboundRow,
   markWhatsAppOutboundFailed,
@@ -101,6 +102,67 @@ function getFallbackTemplate(purpose: string | undefined) {
   }
 }
 
+const PROACTIVE_TEMPLATE_PURPOSE_PRIORITIES: Record<string, number> = {
+  daily_bilan_winback: 100,
+  weekly_bilan: 80,
+  daily_bilan: 70,
+  memory_echo: 50,
+  recurring_reminder: 10,
+}
+
+function localDayBounds(timezoneRaw: unknown, now = new Date()) {
+  const timezone = String(timezoneRaw ?? "").trim() || "Europe/Paris"
+  const startIso = computeScheduledForFromLocal({
+    timezone,
+    dayOffset: 0,
+    localTimeHHMM: "00:00",
+    now,
+  })
+  const endIso = computeScheduledForFromLocal({
+    timezone,
+    dayOffset: 1,
+    localTimeHHMM: "00:00",
+    now,
+  })
+  return { timezone, startIso, endIso }
+}
+
+function proactiveTemplatePriorityForPurpose(purposeRaw: unknown): number {
+  const purpose = String(purposeRaw ?? "").trim()
+  return PROACTIVE_TEMPLATE_PURPOSE_PRIORITIES[purpose] ?? 0
+}
+
+async function findSentProactiveTemplateToday(params: {
+  admin: ReturnType<typeof createClient>
+  userId: string
+  timezone: string
+}): Promise<{ id: string; purpose: string; created_at: string } | null> {
+  const { startIso, endIso } = localDayBounds(params.timezone)
+  const { data, error } = await params.admin
+    .from("whatsapp_outbound_messages")
+    .select("id,created_at,metadata")
+    .eq("user_id", params.userId)
+    .eq("message_type", "template")
+    .eq("status", "sent")
+    .gte("created_at", startIso)
+    .lt("created_at", endIso)
+    .filter("metadata->>proactive", "eq", "true")
+    .order("created_at", { ascending: false })
+    .limit(10)
+  if (error) throw error
+  for (const row of data ?? []) {
+    const purpose = String((row as any)?.metadata?.purpose ?? "").trim()
+    if (proactiveTemplatePriorityForPurpose(purpose) > 0) {
+      return {
+        id: String((row as any)?.id ?? ""),
+        purpose,
+        created_at: String((row as any)?.created_at ?? ""),
+      }
+    }
+  }
+  return null
+}
+
 async function countProactiveLast10h(admin: ReturnType<typeof createClient>, userId: string) {
   const since = new Date(Date.now() - 10 * 60 * 60 * 1000).toISOString()
   const { count, error } = await admin
@@ -137,7 +199,7 @@ Deno.serve(async (req) => {
 
     const { data: profile, error: profErr } = await admin
       .from("profiles")
-      .select("phone_number, full_name, whatsapp_opted_in, whatsapp_opted_out_at, phone_invalid, whatsapp_last_inbound_at, trial_end")
+      .select("phone_number, full_name, whatsapp_opted_in, whatsapp_opted_out_at, phone_invalid, whatsapp_last_inbound_at, trial_end, timezone")
       .eq("id", body.user_id)
       .maybeSingle()
 
@@ -176,6 +238,8 @@ Deno.serve(async (req) => {
     const now = Date.now()
     const isConversationRecent = lastInbound != null && now - lastInbound <= 10 * 60 * 60 * 1000
     const isProactive = !isConversationRecent
+    const purpose = String(body.purpose ?? "").trim()
+    const templatePolicyPriority = proactiveTemplatePriorityForPurpose(purpose)
 
     // Throttle only when proactive (per spec)
     if (isProactive) {
@@ -188,6 +252,32 @@ Deno.serve(async (req) => {
     // 24h window: if not in window, caller must send template (or force_template)
     const isIn24h = lastInbound != null && now - lastInbound <= 24 * 60 * 60 * 1000
     const mustUseTemplate = !isIn24h || Boolean(body.force_template)
+
+    if (isProactive && mustUseTemplate && templatePolicyPriority > 0) {
+      const timezone = String((profile as any)?.timezone ?? "").trim() || "Europe/Paris"
+      const existingTemplate = await findSentProactiveTemplateToday({
+        admin,
+        userId: body.user_id,
+        timezone,
+      })
+      if (existingTemplate) {
+        return jsonResponse(
+          req,
+          {
+            success: true,
+            skipped: true,
+            skip_reason: "proactive_template_daily_cap_reached",
+            existing_template_purpose: existingTemplate.purpose,
+            existing_template_sent_at: existingTemplate.created_at,
+            proactive: true,
+            used_template: true,
+            in_24h_window: Boolean(isIn24h),
+            request_id: requestId,
+          },
+          { includeCors: false },
+        )
+      }
+    }
 
     let graphPayload: any
     let templateName: string | null = null
@@ -254,6 +344,7 @@ Deno.serve(async (req) => {
         purpose: body.purpose ?? null,
         require_opted_in: requireOptedIn,
         proactive: isProactive,
+        template_policy_priority: templatePolicyPriority || null,
         used_template: Boolean(mustUseTemplate),
         in_24h_window: Boolean(isIn24h),
         template_name: templateName,

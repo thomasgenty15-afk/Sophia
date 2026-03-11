@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
+import { enqueueProactiveTemplateCandidate } from "../_shared/proactive_template_queue.ts";
 import { applyWhatsappProactiveOpeningPolicy, hasAnyWhatsappMessagesInLocalDay } from "../_shared/scheduled_checkins.ts";
 import { getPendingItems } from "../sophia-brain/agents/investigator/db.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
@@ -717,46 +718,28 @@ Deno.serve(async (req) => {
         }
 
         if (!hasBilanOptIn) {
-          // Send a template to ask for explicit opt-in to the daily bilan.
-          const resp = await callWhatsappSendWithRetry({
-            user_id: userId,
+          await enqueueProactiveTemplateCandidate(admin as any, {
+            userId,
+            purpose: "daily_bilan",
             message: {
               type: "template",
               name: (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_NAME") ??
                 "sophia_bilan_v1").trim(),
-              // For now, UI locks language to French; this mapping is future-proof for multi-lang.
               language: whatsappLangFromLocale(
                 (p as any)?.locale ?? null,
                 (Deno.env.get("WHATSAPP_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
               ),
-              // components will be auto-filled by whatsapp-send with {{1}} = full_name
             },
-            purpose: "daily_bilan",
-            require_opted_in: true,
-            force_template: true,
-          }, { maxAttempts, throttleMs });
-          if ((resp as any)?.skipped) {
-            skipped++;
-            skippedUserIds.push(userId);
-            const reason = String((resp as any)?.skip_reason ?? "skipped");
-            skippedReasons[userId] = reason;
-            if (logSkips) {
-              await logComm(admin, {
-                user_id: userId,
-                channel: "whatsapp",
-                type: "daily_bilan_skipped",
-                status: "skipped",
-                metadata: {
-                  reason,
-                  request_id: requestId,
-                  mode: "template_optin",
-                },
-              });
-            }
-          } else {
-            sent++;
-            sentUserIds.push(userId);
-          }
+            requireOptedIn: true,
+            forceTemplate: true,
+            metadataExtra: {
+              source: "trigger_daily_bilan",
+              mode: "template_optin",
+            },
+            dedupeKey: `daily_bilan:${userId}:${localYmdFromTimezone((p as any)?.timezone ?? null) ?? "today"}`,
+          });
+          sent++;
+          sentUserIds.push(userId);
         } else {
           const recentlyCompleted = await hasRecentFullCheckup(
             admin,
@@ -792,28 +775,22 @@ Deno.serve(async (req) => {
               skippedReasons[userId] = "winback_waiting_for_user_reply";
               continue;
             }
-            const resp = await callWhatsappSendWithRetry({
-              user_id: userId,
+            await enqueueProactiveTemplateCandidate(admin as any, {
+              userId,
+              purpose: "daily_bilan_winback",
               message: {
                 type: "template",
                 name: winbackTemplateName(step),
                 language: winbackTemplateLang((p as any)?.locale ?? null),
               },
-              purpose: "daily_bilan_winback",
-              require_opted_in: true,
-              force_template: true,
-              metadata_extra: {
+              requireOptedIn: true,
+              forceTemplate: true,
+              metadataExtra: {
                 winback_step: step,
                 source: "trigger_daily_bilan",
               },
-            }, { maxAttempts, throttleMs });
-            if ((resp as any)?.skipped) {
-              skipped++;
-              skippedUserIds.push(userId);
-              const reason = String((resp as any)?.skip_reason ?? "skipped");
-              skippedReasons[userId] = `winback:${reason}`;
-              continue;
-            }
+              dedupeKey: `daily_bilan_winback:${userId}:${step}:${localYmdFromTimezone((p as any)?.timezone ?? null) ?? "today"}`,
+            });
             await updateBilanProfileState(userId, {
               whatsapp_bilan_missed_streak: Math.max(2, nextMissed),
               whatsapp_bilan_winback_step: step,

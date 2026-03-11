@@ -15,7 +15,8 @@ const TARGET_LOCAL_TIME = "07:00"
 type ActiveActionRow = {
   id: string
   title: string
-  source: "plan" | "personal"
+  kind: "action" | "framework"
+  source: "plan" | "personal" | "framework"
   scheduled_days: string[] | null
   time_of_day: string | null
 }
@@ -34,7 +35,11 @@ type Slot = {
   scheduledFor: string
   slotLabel: string
   todayActionTitles: string[]
+  todayFrameworkTitles: string[]
+  todayItemTitles: string[]
   allActionTitles: string[]
+  allFrameworkTitles: string[]
+  allItemTitles: string[]
 }
 
 function cleanText(v: unknown, fallback = ""): string {
@@ -156,18 +161,29 @@ function buildSlots(params: {
   const startDow = (currentDow + startOffset) % 7
   const slotCount = ((7 - startDow) % 7) + 1
   const allActionTitles = params.actions.map((a) => a.title).filter(Boolean)
+  const allFrameworkTitles = params.actions
+    .filter((a) => a.kind === "framework")
+    .map((a) => a.title)
+    .filter(Boolean)
+  const allItemTitles = params.actions.map((a) => a.title).filter(Boolean)
 
   const slots: Slot[] = []
   for (let i = 0; i < slotCount; i++) {
     const dayOffset = startOffset + i
     const weekdayKey = weekdayKeyInTimezone({ timezone: params.timezone, dayOffset, now })
-    const todayActionTitles = params.actions
+    const todayItems = params.actions
       .filter((action) => {
         const days = Array.isArray(action.scheduled_days) ? action.scheduled_days : null
         return !days || days.length === 0 || days.includes(weekdayKey)
       })
+      .filter((action) => Boolean(action.title))
+    const todayActionTitles = todayItems
+      .filter((action) => action.kind === "action")
       .map((action) => action.title)
-      .filter(Boolean)
+    const todayFrameworkTitles = todayItems
+      .filter((action) => action.kind === "framework")
+      .map((action) => action.title)
+    const todayItemTitles = todayItems.map((action) => action.title)
     slots.push({
       dayOffset,
       weekdayKey,
@@ -179,7 +195,11 @@ function buildSlots(params: {
       }),
       slotLabel: `J+${dayOffset} (${weekdayKey})`,
       todayActionTitles,
+      todayFrameworkTitles,
+      todayItemTitles,
       allActionTitles,
+      allFrameworkTitles,
+      allItemTitles,
     })
   }
   return slots
@@ -220,6 +240,18 @@ async function fetchActiveActionsForUser(params: {
     .order("created_at", { ascending: true })
   if (personalErr) throw personalErr
 
+  const frameworksQuery = supabaseAdmin
+    .from("user_framework_tracking")
+    .select("id,title,created_at")
+    .eq("user_id", userId)
+    .eq("status", "active")
+    .order("created_at", { ascending: true })
+
+  const { data: activeFrameworks, error: frameworksErr } = planId
+    ? await frameworksQuery.eq("plan_id", planId)
+    : await frameworksQuery
+  if (frameworksErr) throw frameworksErr
+
   const orderedPlanTitles = Array.isArray((activePlan as any)?.content?.phases)
     ? ((activePlan as any).content.phases as any[])
       .flatMap((phase: any) => Array.isArray(phase?.actions) ? phase.actions : [])
@@ -248,6 +280,7 @@ async function fetchActiveActionsForUser(params: {
     rows.push({
       id: cleanText(row?.id),
       title,
+      kind: "action",
       source: "plan",
       scheduled_days: Array.isArray(row?.scheduled_days) ? row.scheduled_days : null,
       time_of_day: cleanText(row?.time_of_day) || null,
@@ -259,9 +292,22 @@ async function fetchActiveActionsForUser(params: {
     rows.push({
       id: cleanText(row?.id),
       title,
+      kind: "action",
       source: "personal",
       scheduled_days: Array.isArray(row?.scheduled_days) ? row.scheduled_days : null,
       time_of_day: cleanText(row?.time_of_day) || null,
+    })
+  }
+  for (const row of (activeFrameworks ?? []) as any[]) {
+    const title = cleanText(row?.title)
+    if (!title) continue
+    rows.push({
+      id: cleanText(row?.id),
+      title,
+      kind: "framework",
+      source: "framework",
+      scheduled_days: null,
+      time_of_day: null,
     })
   }
   const planContext = activePlan
@@ -294,10 +340,10 @@ async function generateWeeklyDrafts(params: {
     .join("\n")
   const slotsBlock = params.slots
     .map((slot, index) => {
-      const focus = slot.todayActionTitles.length > 0
-        ? slot.todayActionTitles.join(", ")
-        : slot.allActionTitles.join(", ")
-      return `${index + 1}. ${slot.slotLabel} | scheduled_for=${slot.scheduledFor} | actions=${focus || "aucune"}`
+      const focus = slot.todayItemTitles.length > 0
+        ? slot.todayItemTitles.join(", ")
+        : slot.allItemTitles.join(", ")
+      return `${index + 1}. ${slot.slotLabel} | scheduled_for=${slot.scheduledFor} | items=${focus || "aucun"}`
     })
     .join("\n")
   const planContextBlock = [
@@ -324,10 +370,13 @@ async function generateWeeklyDrafts(params: {
     "- Ouvre naturellement avec un bonjour positif du matin.",
     "- Mets toujours 1 emoji naturel juste après le bonjour / l'ouverture du matin sur la première ligne.",
     "- Ne parle jamais d'automatisation, de cron, de template ou de rappel programmé.",
-    "- Le but est d'aider la personne a lancer ses actions du jour, sans pression excessive.",
-    "- Quand des actions sont fournies pour le jour, tu dois toutes les citer.",
-    "- Respecte strictement l'ordre des actions tel qu'il est fourni dans le slot.",
-    "- N'invente aucune action absente du contexte.",
+    "- Le but est d'aider la personne a se mettre en mouvement pour sa journee, sans pression excessive.",
+    "- Meme si le message est envoye le matin, parle de la journee dans son ensemble, pas seulement de 'ce matin'.",
+    "- Evite les formulations qui reduisent le rappel a la matinee seule, sauf si une action est explicitement matinale.",
+    "- Les frameworks actifs comptent ici comme des actions a rappeler a l'utilisateur.",
+    "- Quand des items sont fournis pour le jour, tu dois tous les citer, y compris les frameworks.",
+    "- Respecte strictement l'ordre des items tel qu'il est fourni dans le slot.",
+    "- N'invente aucun item absent du contexte.",
     "- Si un contexte de plan est fourni, utilise-le pour choisir le bon angle d'encouragement.",
     "- Si un message special 'quand j'ai la flemme' est fourni, inspire-t-en sans le recopier mot pour mot a chaque fois.",
     "- Chaque message doit melanger 4 ingredients, de facon fluide et humaine:",
@@ -360,7 +409,7 @@ async function generateWeeklyDrafts(params: {
     "",
     "Auto-check avant de repondre:",
     `- Il y a exactement ${params.slots.length} messages.`,
-    "- Chaque message aide a passer a l'action ce matin.",
+    "- Chaque message aide a lancer la journee et a tenir le cap jusqu'au soir.",
   ].join("\n")
 
   let normalized: string[] = []
@@ -409,7 +458,7 @@ async function generateWeeklyDrafts(params: {
 
   if (normalized.length < params.slots.length) {
     return params.slots.map((slot, index) => normalized[index] || fallbackDraftMessage(
-      slot.todayActionTitles.length > 0 ? slot.todayActionTitles : slot.allActionTitles,
+      slot.todayItemTitles.length > 0 ? slot.todayItemTitles : slot.allItemTitles,
     ))
   }
 
@@ -533,13 +582,20 @@ Deno.serve(async (req) => {
 
       for (let index = 0; index < slots.length; index++) {
         const slot = slots[index]
-        const draftMessage = cleanText(weeklyDrafts[index], fallbackDraftMessage(slot.todayActionTitles))
+        const draftMessage = cleanText(
+          weeklyDrafts[index],
+          fallbackDraftMessage(slot.todayItemTitles.length > 0 ? slot.todayItemTitles : slot.allItemTitles),
+        )
         const payload = {
           source: "morning_active_actions_weekly",
           slot_day_offset: slot.dayOffset,
           slot_weekday: slot.weekdayKey,
           active_action_titles: slot.allActionTitles,
+          active_framework_titles: slot.allFrameworkTitles,
+          active_item_titles: slot.allItemTitles,
           today_action_titles: slot.todayActionTitles,
+          today_framework_titles: slot.todayFrameworkTitles,
+          today_item_titles: slot.todayItemTitles,
           generated_at: new Date().toISOString(),
         }
         const { error: upsertErr } = await supabaseAdmin

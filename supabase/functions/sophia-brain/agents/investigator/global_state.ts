@@ -253,6 +253,11 @@ IMPORTANT:
 - Les réponses vagues "oui", "non", "les deux", "comme d'hab" sans sujet explicite NE DOIVENT PAS être projetées sur plusieurs items.
 - Pour les vitals, utilise status="value" si une valeur est donnée.
 - Pour les actions/frameworks: status in {"completed","missed","partial","unclear"}.
+- Pour considérer qu'un utilisateur parle d'un item, il faut une référence explicite au titre de l'item ou plusieurs indices spécifiques concordants.
+- Ne mappe JAMAIS une réponse à un item sur la base d'un mot générique isolé présent dans son titre ou sa description.
+- Exemples de mots génériques insuffisants à eux seuls: "journée", "jour", "soir", "matin", "écrans", "travail", "sport".
+- Si l'utilisateur parle de sa journée au sens général, d'un ressenti global ou d'un contexte large, n'en déduis PAS qu'il parle d'une action contenant un de ces mots.
+- En cas de doute entre "bilan global de la journée" et "action spécifique", privilégie TOUJOURS le bilan global et n'extrais aucun item spécifique sans preuve supplémentaire.
 - Retourne uniquement du JSON valide.
 
 JSON attendu:

@@ -301,12 +301,14 @@ Tu détectes TOUJOURS:
 - checkup_intent (si l'utilisateur veut lancer le bilan maintenant, hors bilan actif)
 - CRUD action intents (create/update/breakdown/activate/delete/deactivate) pour redirection dashboard
 - dashboard_preferences_intent (si user veut modifier les préférences UX/UI Sophia)
-- dashboard_recurring_reminder_intent (si user veut régler ses rappels récurrents)
+- dashboard_recurring_reminder_intent (si user veut régler ses rendez-vous planifiés)
 - risk_score (0-10)
 
 IMPORTANT:
 - Les signaux CRUD servent à COMPRENDRE l'intention et déclencher une redirection dashboard.
 - Les 2 signaux dashboard_*_intent servent à orienter vers les bons écrans réglages dashboard.
+- Si le besoin est que Sophia envoie un message planifié au bon moment, privilégie dashboard_recurring_reminder_intent.
+- Si le besoin est que le user fasse une habitude ou une tâche récurrente lui-même, privilégie les intents CRUD d'action.
 - Si un message contient à la fois du tracking et une demande CRUD: garde les DEUX familles de signaux.
 - Tu ne décides jamais d'exécution d'outil ici.
 `;
@@ -409,15 +411,15 @@ Exemples:
   * "sois moins bavarde" -> chatty_level
   * "pose moi moins de questions" -> question_tendency
 
-3) dashboard_recurring_reminder_intent (redirection rappels récurrents)
-- Détecte quand le user veut configurer/éditer des rappels planifiés.
+3) dashboard_recurring_reminder_intent (redirection Rendez-vous)
+- Détecte quand le user veut configurer/éditer des rendez-vous planifiés où Sophia vient vers lui au bon moment.
 - Renseigne "reminder_fields" avec les infos à paramétrer si présentes:
   * mode (daily|weekly|custom), days, time, timezone,
     channel (app|whatsapp), start_date, end_date, pause, message
 - Exemples:
-  * "rappelle-moi tous les lundis à 8h" -> mode+days+time
-  * "pause mes rappels cette semaine" -> pause
-  * "mets le rappel sur WhatsApp" -> channel
+  * "fais-moi un rendez-vous tous les lundis à 8h" -> mode+days+time
+  * "pause mes rendez-vous cette semaine" -> pause
+  * "mets ce rendez-vous sur WhatsApp" -> channel
 `;
 
 const LAST_MESSAGE_PROTOCOL_SECTION = `

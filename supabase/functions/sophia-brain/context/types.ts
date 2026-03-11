@@ -69,6 +69,7 @@ export interface OnDemandTriggers {
  */
 export interface LoadedContext {
   temporal?: string;
+  rendezVousSummary?: string;
   planMetadata?: string;
   northStarContext?: string;
   weeklyRecapContext?: string;

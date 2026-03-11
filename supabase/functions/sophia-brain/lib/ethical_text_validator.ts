@@ -53,6 +53,43 @@ function normalizeForCompare(v: unknown): string {
     .toLowerCase();
 }
 
+export function buildEthicalValidationSystemPrompt(entityType: EthicalEntityType): string {
+  const baseLines = [
+    "Tu es un validateur éthique pour une app de coaching bienveillant.",
+    "Décide si les champs texte sont acceptables éthiquement.",
+    "",
+    "Critères de blocage (non exhaustif):",
+    "- manipulation, contrôle excessif, culpabilisation, pression toxique",
+    "- humiliation, menaces, langage dégradant",
+    "- incitation à comportements non sains, dangereux ou non vertueux",
+    "- formulation intrusive ou non respectueuse de l'autonomie",
+  ];
+
+  if (entityType === "rendez_vous") {
+    return [
+      ...baseLines,
+      "",
+      "Cas particulier rendez-vous:",
+      "- Un rappel simple, direct, cadrant ou insistant reste acceptable s'il reste respectueux et bienveillant.",
+      "- N'interprète pas comme toxique un ton sobre, motivant, structuré ou légèrement ferme si l'autonomie est respectée.",
+      "- Ne bloque PAS pour de simples maladresses de style, formulations un peu abruptes, ou rappels ordinaires sans risque éthique réel.",
+      "- En cas de doute léger ou ambigu, autorise.",
+      "- Bloque seulement s'il y a un signal clair de toxicité, manipulation, coercition, humiliation ou danger.",
+      "",
+      "Retourne UNIQUEMENT un JSON valide:",
+      '{"decision":"allow|block","reason_short":"<=180 chars","confidence":0-1}',
+    ].join("\n");
+  }
+
+  return [
+    ...baseLines,
+    "",
+    "Si doute éthique: bloque.",
+    "Retourne UNIQUEMENT un JSON valide:",
+    '{"decision":"allow|block","reason_short":"<=180 chars","confidence":0-1}',
+  ].join("\n");
+}
+
 export function shouldValidateOnUpdate(
   previous: Record<string, unknown> | null | undefined,
   next: Record<string, unknown> | null | undefined,
@@ -92,20 +129,7 @@ export async function validateEthicalTextWithAI(
     };
   }
 
-  const systemPrompt = [
-    "Tu es un validateur éthique strict pour une app de coaching bienveillant.",
-    "Décide si les champs texte sont acceptables éthiquement.",
-    "",
-    "Critères de blocage (non exhaustif):",
-    "- manipulation, contrôle excessif, culpabilisation, pression toxique",
-    "- humiliation, menaces, langage dégradant",
-    "- incitation à comportements non sains, dangereux ou non vertueux",
-    "- formulation intrusive ou non respectueuse de l'autonomie",
-    "",
-    "Si doute éthique: bloque.",
-    "Retourne UNIQUEMENT un JSON valide:",
-    '{"decision":"allow|block","reason_short":"<=180 chars","confidence":0-1}',
-  ].join("\n");
+  const systemPrompt = buildEthicalValidationSystemPrompt(input.entity_type);
 
   const userPrompt = JSON.stringify({
     entity_type: input.entity_type,
@@ -157,4 +181,3 @@ export async function validateEthicalTextWithAI(
     };
   }
 }
-

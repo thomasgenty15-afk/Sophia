@@ -4,6 +4,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
+import { enqueueProactiveTemplateCandidate } from "../_shared/proactive_template_queue.ts";
 import { applyWhatsappProactiveOpeningPolicy, hasAnyWhatsappMessagesInLocalDay } from "../_shared/scheduled_checkins.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
 import { createWeeklyInvestigationState } from "../sophia-brain/agents/investigator-weekly/types.ts";
@@ -263,8 +264,9 @@ Deno.serve(async (req) => {
         const in24h = lastInboundMs !== null && (Date.now() - lastInboundMs) <= 24 * 60 * 60 * 1000;
 
         if (!in24h) {
-          const sendRes = await callWhatsappSendWithRetry({
-            user_id: userId,
+          await enqueueProactiveTemplateCandidate(admin as any, {
+            userId,
+            purpose: "weekly_bilan",
             message: {
               type: "template",
               name: (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_NAME") ?? "sophia_bilan_weekly_v1").trim(),
@@ -273,27 +275,16 @@ Deno.serve(async (req) => {
                 (Deno.env.get("WHATSAPP_WEEKLY_BILAN_TEMPLATE_LANG") ?? "fr").trim(),
               ),
             },
-            purpose: "weekly_bilan",
-            require_opted_in: true,
-            force_template: true,
-          }, { maxAttempts, throttleMs });
-
-          if ((sendRes as any)?.skipped) {
-            skipped++;
-            skippedUserIds.push(userId);
-            skippedReasons[userId] = String((sendRes as any)?.skip_reason ?? "skipped");
-            continue;
-          }
-
-          await admin.from("whatsapp_pending_actions").insert({
-            user_id: userId,
-            kind: "weekly_bilan",
-            status: "pending",
-            payload: {
-              weekly_review_payload: payload,
+            requireOptedIn: true,
+            forceTemplate: true,
+            metadataExtra: {
               source: "trigger_weekly_bilan",
             },
-            expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
+            payloadExtra: {
+              follow_up_kind: "weekly_bilan",
+              weekly_review_payload: payload,
+            },
+            dedupeKey: `weekly_bilan:${userId}:${new Intl.DateTimeFormat("en-CA", { timeZone: String(p?.timezone ?? "").trim() || "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date())}`,
           });
 
           sent++;

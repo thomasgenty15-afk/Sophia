@@ -4,6 +4,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
 import { generateWithGemini, getGlobalAiModel } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { enqueueProactiveTemplateCandidate } from "../_shared/proactive_template_queue.ts"
 import { applyWhatsappProactiveOpeningPolicy, hasAnyWhatsappMessagesInLocalDay } from "../_shared/scheduled_checkins.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 import { whatsappLangFromLocale } from "../_shared/locale.ts"
@@ -403,38 +404,31 @@ Deno.serve(async (req) => {
         const quietOk = lastActivity > 0 ? (Date.now() - lastActivity >= quietMinutes * 60 * 1000) : true
 
         if (canWhatsapp && !in24h) {
-          // Window closed: send template + create pending action, generate later on "Oui".
+          // Window closed: enqueue template candidate; arbitration + send happens centrally.
           try {
-            const sendRes = await callWhatsappSend({
-              user_id: userId,
+            const localDay = new Intl.DateTimeFormat("en-CA", {
+              timeZone: String((profile as any)?.timezone ?? "").trim() || "Europe/Paris",
+              year: "numeric",
+              month: "2-digit",
+              day: "2-digit",
+            }).format(new Date())
+            const queued = await enqueueProactiveTemplateCandidate(supabaseAdmin as any, {
+              userId,
+              purpose: "memory_echo",
               message: {
                 type: "template",
                 name: (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_NAME") ?? "sophia_memory_echo_v1").trim(),
-                // For now, UI locks language to French; this mapping is future-proof for multi-lang.
                 language: whatsappLangFromLocale((profile as any)?.locale ?? null, (Deno.env.get("WHATSAPP_MEMORY_ECHO_TEMPLATE_LANG") ?? "fr").trim()),
               },
-              purpose: "memory_echo",
-              require_opted_in: true,
-              force_template: true,
-              metadata_extra: { source: "memory_echo", strategy: selectedStrategy },
+              requireOptedIn: true,
+              forceTemplate: true,
+              metadataExtra: { source: "memory_echo", strategy: selectedStrategy },
+              payloadExtra: { follow_up_kind: "memory_echo", strategy: selectedStrategy, data: payload },
+              dedupeKey: `memory_echo:${userId}:${selectedStrategy}:${localDay}`,
             })
-
-            await supabaseAdmin.from("whatsapp_pending_actions").insert({
-              user_id: userId,
-              kind: "memory_echo",
-              status: "pending",
-              payload: { strategy: selectedStrategy, data: payload },
-              expires_at: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-            })
-
-            // Count only if delivery wasn't skipped by whatsapp-send.
-            if ((sendRes as any)?.skipped) {
-              skippedUserIds.push(userId)
-            } else {
-              triggeredCount++
-              handledUserIds.push(userId)
-            }
-            if (debug) debugByUser.push({ user_id: userId, reason: "template_sent", strategy: selectedStrategy, whatsapp_send: sendRes })
+            triggeredCount++
+            handledUserIds.push(userId)
+            if (debug) debugByUser.push({ user_id: userId, reason: `template_queued:${queued.id}`, strategy: selectedStrategy })
           } catch (e) {
             // ignore user-level failures
             errorUserIds.push(userId)

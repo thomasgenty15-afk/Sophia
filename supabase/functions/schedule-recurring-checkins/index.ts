@@ -275,11 +275,15 @@ async function generateRecurringReminderWeeklyDrafts(params: {
     "- Chaque message: 2 à 5 lignes, texte brut, 1 question max.",
     "- Ton chaleureux, naturel, tutoiement.",
     "- N'ouvre pas avec Bonjour/Salut/Coucou/Hello.",
-    "- Le message doit commencer par une introduction douce et contextuelle (bilan/check-in de fin de journée) avant la question.",
+    "- Le message doit coller au type exact de rappel demandé par l'utilisateur. Ne transforme pas automatiquement le rappel en bilan de fin de journée.",
+    "- Si l'instruction demande une citation, une pensée, un recadrage ou un rappel de cap, commence directement par cela au lieu de demander comment s'est passée la journée.",
     "- N'ouvre jamais directement avec une métrique, un nombre de minutes, ou une question brute.",
     "- N'utilise pas de formulation qui demande l'autorisation de répondre (ex: 'si tu veux', 'tu peux', 'ça te dit').",
     "- Actionnable tout de suite.",
     "- Variations réelles entre les messages (pas de répétition).",
+    "- Interdiction de répéter la même idée avec deux formulations voisines dans un même message.",
+    "- Interdiction des doublons sémantiques du type 'point sur ta journée' + 'comment s'est passée ta journée'. Choisis une seule formulation, une seule intention, un seul angle principal.",
+    "- Une idée principale par message. Pas de paraphrase immédiate de la même idée juste après.",
     "",
     "Objectif utilisateur de ce rappel:",
     `- Instruction: ${clampText(params.reminderInstruction, 260)}`,
@@ -672,4 +676,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

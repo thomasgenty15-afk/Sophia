@@ -179,10 +179,6 @@ ${transcriptRecent}
         },
       },
     }
-    delete (mergedTempMemory as any).short_context_last_message_at
-    delete (mergedTempMemory as any).short_context_updated_at
-    delete (mergedTempMemory as any).short_context_new_messages
-
     const { error: updateErr, count } = await supabase
       .from("user_chat_states")
       .update(
