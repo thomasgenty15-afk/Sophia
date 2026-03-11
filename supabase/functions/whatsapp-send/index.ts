@@ -61,7 +61,7 @@ function getFallbackTemplate(purpose: string | undefined) {
   const p = (purpose ?? "").trim()
   if (p === "recurring_reminder") {
     return {
-      name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ?? "sophia_reminder_consent_v1").trim(),
+      name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ?? "sophia_reminder_consent_v1_").trim(),
       language: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_LANG") ?? "fr").trim(),
     }
   }

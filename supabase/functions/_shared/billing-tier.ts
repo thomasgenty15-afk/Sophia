@@ -20,6 +20,12 @@ function isActiveSubscription(row: any): boolean {
   return Number.isFinite(end) ? Date.now() < end : true;
 }
 
+function normalizePaidTier(value: unknown): PaidTier | null {
+  const t = String(value ?? "").trim().toLowerCase();
+  if (t === "system" || t === "alliance" || t === "architecte") return t;
+  return null;
+}
+
 export function tierFromStripePriceId(priceId: string | null | undefined): PaidTier | null {
   const id = (priceId ?? "").trim();
   if (!id) return null;
@@ -57,17 +63,31 @@ export async function getEffectiveTierForUser(
   userId: string,
 ): Promise<EffectiveTier> {
   try {
+    // `profiles.access_tier` is our DB source of truth and is kept in sync by SQL triggers.
+    // Prefer it here so entitlement checks do not depend solely on Stripe env mapping.
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("access_tier")
+      .eq("id", userId)
+      .maybeSingle();
+
+    const profileTier = normalizePaidTier((profile as any)?.access_tier ?? null);
+    if (profileTier) return profileTier;
+
     const { data } = await supabase
       .from("subscriptions")
-      .select("status,stripe_price_id,current_period_end")
+      .select("status,tier,stripe_price_id,current_period_end,updated_at")
       .eq("user_id", userId)
+      .order("updated_at", { ascending: false })
+      .limit(1)
       .maybeSingle();
     if (!isActiveSubscription(data)) return "none";
+    const subTier = normalizePaidTier((data as any)?.tier ?? null);
+    if (subTier) return subTier;
     return tierFromStripePriceId((data as any)?.stripe_price_id ?? null) ?? "none";
   } catch {
     return "none";
   }
 }
-
 
 
