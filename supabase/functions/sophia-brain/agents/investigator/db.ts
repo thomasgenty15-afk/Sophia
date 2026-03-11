@@ -402,7 +402,10 @@ export async function logItemDetailed(
     try {
       // On contextualise l'embedding avec le statut
       const textToEmbed = `Statut: ${status}. Note: ${note}`
-      embedding = await generateEmbedding(textToEmbed)
+      embedding = await generateEmbedding(textToEmbed, {
+        source: "sophia-brain:investigator_db",
+        operationName: "embedding.investigator_log_note",
+      })
     } catch (e) {
       console.error("Error generating embedding for log note:", e)
     }
@@ -880,7 +883,10 @@ export async function getItemHistory(
   if (itemType === "action") {
     try {
       const query = "Difficulté, échec, raison, note importante"
-      const embedding = await generateEmbedding(query)
+      const embedding = await generateEmbedding(query, {
+        source: "sophia-brain:investigator_db",
+        operationName: "embedding.investigator_similar_entries_query",
+      })
 
       const { data: similarEntries } = await supabase.rpc("match_action_entries", {
         query_embedding: embedding,

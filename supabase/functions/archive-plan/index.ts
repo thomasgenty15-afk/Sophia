@@ -202,7 +202,11 @@ Deno.serve(async (req) => {
     `
 
     console.log(`[ArchivePlan] Generating narrative for user ${userId}...`)
-    const narrative = await generateWithGemini(systemPrompt, context, 0.3)
+    const narrative = await generateWithGemini(systemPrompt, context, 0.3, false, [], "auto", {
+      requestId: ctx.requestId,
+      userId,
+      source: "archive-plan",
+    })
     console.log(`[ArchivePlan] Memory storage disabled. Narrative generated (${narrative.length} chars) for plan ${planId}.`)
 
     return new Response(JSON.stringify({ success: true }), { 

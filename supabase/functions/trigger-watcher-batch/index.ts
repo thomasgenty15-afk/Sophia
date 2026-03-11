@@ -19,6 +19,26 @@ const WATCHER_ACTIVITY_LOOKBACK_MINUTES = Number(
 /** Maximum number of users to process per cron invocation to avoid timeouts. */
 const BATCH_LIMIT = 50
 
+async function hasMessagesSince(params: {
+  admin: ReturnType<typeof createClient>
+  userId: string
+  scope: string
+  sinceIso?: string | null
+}): Promise<boolean> {
+  let query = params.admin
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", params.userId)
+    .eq("scope", params.scope)
+
+  const sinceIso = String(params.sinceIso ?? "").trim()
+  if (sinceIso) query = query.gt("created_at", sinceIso)
+
+  const { count, error } = await query.limit(1)
+  if (error) throw error
+  return Number(count ?? 0) > 0
+}
+
 async function acknowledgeWatcherRun(
   admin: ReturnType<typeof createClient>,
   userId: string,
@@ -108,6 +128,17 @@ Deno.serve(async (req) => {
       const channel: "web" | "whatsapp" = scope === "whatsapp" ? "whatsapp" : "web"
 
       try {
+        const hasNewMessages = await hasMessagesSince({
+          admin,
+          userId,
+          scope,
+          sinceIso: lastProcessedAt,
+        })
+        if (!hasNewMessages) {
+          skipped++
+          continue
+        }
+
         await runWatcher(admin as any, userId, scope, lastProcessedAt, {
           requestId,
           channel,

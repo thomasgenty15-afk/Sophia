@@ -202,7 +202,11 @@ serve(async (req) => {
         Fais un résumé dense à la 3ème personne ("Il est stressé par...").
         Inclus les mots-clés de la question.`;
 
-        aiSummary = await generateWithGemini(prompt, contentStr);
+        aiSummary = await generateWithGemini(prompt, contentStr, 0.7, false, [], "auto", {
+          requestId: ctx.requestId,
+          userId,
+          source: "complete-module",
+        });
 
         console.log(`[CompleteModule] Memory storage disabled; summary kept on module row (${moduleId}).`);
       }

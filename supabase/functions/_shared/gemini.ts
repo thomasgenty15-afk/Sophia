@@ -1245,6 +1245,13 @@ export async function generateEmbedding(
   text: string,
   meta?: { userId?: string; forceRealAi?: boolean; requestId?: string; source?: string; operationName?: string },
 ): Promise<number[]> {
+  const estimatePromptTokens = (input: string): number => {
+    const normalized = String(input ?? "").trim()
+    if (!normalized) return 0
+    // Heuristic fallback for Gemini embeddings when usageMetadata is absent.
+    return Math.max(1, Math.ceil(normalized.length / 4))
+  }
+
   // Test mode: deterministic stub embedding (vector(768)).
   // NOTE: We do NOT stub just because we're on local Supabase; if a developer has a GEMINI_API_KEY
   // they usually want embeddings to work locally (RAG, memories, etc.). Use MEGA_TEST_MODE=1 explicitly
@@ -1321,43 +1328,55 @@ export async function generateEmbedding(
   }
 
   const data = await response.json()
-  // Usage metadata (exact token counts) - best effort logging.
-  try {
-    const usage = (data as any)?.usageMetadata;
-    const promptTokens = usage?.promptTokenCount;
-    const totalTokens = usage?.totalTokenCount;
-    if (typeof promptTokens === "number" || typeof totalTokens === "number") {
-      const { computeCostUsd, logLlmUsageEvent, resolvePricing } = await import("./llm-usage.ts");
-      const price = await resolvePricing("gemini", model);
-      const costUsd = await computeCostUsd("gemini", model, promptTokens, 0);
-      await logLlmUsageEvent({
-        user_id: meta?.userId ?? null,
-        request_id: meta?.requestId ?? null,
-        source: meta?.source ?? "embedding",
-        provider: "gemini",
-        model,
-        kind: "embed",
-        prompt_tokens: typeof promptTokens === "number" ? promptTokens : null,
-        output_tokens: 0,
-        total_tokens: typeof totalTokens === "number" ? totalTokens : null,
-        cost_usd: costUsd,
-        operation_family: "embedding",
-        operation_name: meta?.operationName ?? "embedding.vectorize",
-        pricing_version: price?.pricing_version ?? null,
-        input_price_per_1k_tokens_usd: price?.input_per_1k_tokens_usd ?? null,
-        output_price_per_1k_tokens_usd: price?.output_per_1k_tokens_usd ?? null,
-        cost_unpriced: !price,
-        currency: price?.currency ?? "USD",
-        status: "success",
-        metadata: { embedding: true, source: meta?.source ?? null },
-      });
-    }
-  } catch {
-    // ignore telemetry failures
-  }
   const values = data?.embedding?.values
   if (!Array.isArray(values) || values.length !== outputDimensionality) {
     throw new Error(`Erreur Embedding: dimension invalide (${Array.isArray(values) ? values.length : "unknown"}), attendu=${outputDimensionality}`)
+  }
+
+  // Usage logging for embeddings must not depend on provider metadata presence.
+  try {
+    const usage = (data as any)?.usageMetadata;
+    const providerPromptTokens = usage?.promptTokenCount;
+    const providerTotalTokens = usage?.totalTokenCount;
+    const estimatedPromptTokens = estimatePromptTokens(text)
+    const promptTokens = typeof providerPromptTokens === "number" ? providerPromptTokens : estimatedPromptTokens
+    const totalTokens = typeof providerTotalTokens === "number" ? providerTotalTokens : promptTokens
+    const tokenSource = typeof providerPromptTokens === "number" || typeof providerTotalTokens === "number"
+      ? "provider"
+      : "estimated"
+
+    const { computeCostUsd, logLlmUsageEvent, resolvePricing } = await import("./llm-usage.ts");
+    const price = await resolvePricing("gemini", model);
+    const costUsd = await computeCostUsd("gemini", model, promptTokens, 0);
+    await logLlmUsageEvent({
+      user_id: meta?.userId ?? null,
+      request_id: meta?.requestId ?? null,
+      source: meta?.source ?? "embedding",
+      provider: "gemini",
+      model,
+      kind: "embed",
+      prompt_tokens: promptTokens,
+      output_tokens: 0,
+      total_tokens: totalTokens,
+      cost_usd: costUsd,
+      operation_family: "embedding",
+      operation_name: meta?.operationName ?? "embedding.vectorize",
+      pricing_version: price?.pricing_version ?? null,
+      input_price_per_1k_tokens_usd: price?.input_per_1k_tokens_usd ?? null,
+      output_price_per_1k_tokens_usd: price?.output_per_1k_tokens_usd ?? null,
+      cost_unpriced: !price,
+      currency: price?.currency ?? "USD",
+      status: "success",
+      metadata: {
+        embedding: true,
+        source: meta?.source ?? null,
+        token_source: tokenSource,
+        estimated_prompt_tokens: tokenSource === "estimated" ? estimatedPromptTokens : null,
+        usage_metadata_present: tokenSource === "provider",
+      },
+    });
+  } catch {
+    // ignore telemetry failures
   }
   return values
 }

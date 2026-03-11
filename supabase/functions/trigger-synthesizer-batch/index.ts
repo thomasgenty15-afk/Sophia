@@ -15,6 +15,21 @@ const MIN_NEW_MESSAGES = Number((Deno.env.get("SOPHIA_SYNTH_MIN_NEW_MESSAGES") ?
 type CandidateKey = { user_id: string; scope: string; unprocessed_msg_count: number }
 type TriggerPayload = { user_id?: unknown; scope?: unknown }
 
+async function hasAnyMessages(params: {
+  admin: ReturnType<typeof createClient>
+  userId: string
+  scope: string
+}): Promise<boolean> {
+  const { count, error } = await params.admin
+    .from("chat_messages")
+    .select("id", { count: "exact", head: true })
+    .eq("user_id", params.userId)
+    .eq("scope", params.scope)
+    .limit(1)
+  if (error) throw error
+  return Number(count ?? 0) > 0
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
   try {
@@ -94,6 +109,22 @@ Deno.serve(async (req) => {
 
     for (const c of candidates) {
       try {
+        const hasMessages = await hasAnyMessages({
+          admin,
+          userId: c.user_id,
+          scope: c.scope,
+        })
+        if (!hasMessages) {
+          skipped++
+          details.push({
+            user_id: c.user_id,
+            scope: c.scope,
+            updated: false,
+            reason: "no_messages",
+          })
+          continue
+        }
+
         const res = await runSynthesizer({
           supabase: admin as any,
           userId: c.user_id,

@@ -40,7 +40,11 @@ Deno.serve(async (req) => {
         Ton : Coach analytique.
     `;
 
-    const summary = await generateWithGemini(prompt, "", 0.3);
+    const summary = await generateWithGemini(prompt, "", 0.3, false, [], "auto", {
+      requestId: ctx.requestId,
+      userId: ctx.userId ?? null,
+      source: "create-round-table-summary",
+    });
 
     console.log(`[RoundTable] Memory storage disabled. Generated summary for ${moduleId}: ${String(summary).slice(0, 120)}`);
 

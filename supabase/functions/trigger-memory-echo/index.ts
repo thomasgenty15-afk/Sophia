@@ -476,7 +476,11 @@ CONSIGNES:
 - Ton naturel, pas robot ("je repensais à un truc..." ok).
         `
 
-        const rawEchoMessage = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7)
+        const rawEchoMessage = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7, false, [], "auto", {
+          requestId,
+          userId,
+          source: "trigger-memory-echo:message",
+        })
         const hasMessagesToday = await hasAnyWhatsappMessagesInLocalDay({
           admin: supabaseAdmin as any,
           userId,

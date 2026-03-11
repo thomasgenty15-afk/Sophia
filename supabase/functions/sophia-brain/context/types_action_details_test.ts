@@ -15,6 +15,7 @@ const ON_DEMAND_PROFILE: ContextProfile = {
   actions_details: "on_demand",
   identity: false,
   vectors: false,
+  event_memories: false,
   topic_memories: false,
   facts: false,
   candidates: false,

@@ -83,7 +83,9 @@ export async function processCoreIdentity(
       `;
   }
 
-  const newIdentityRaw = await generateWithGemini(systemPrompt, transcript, 0.3);
+  const newIdentityRaw = await generateWithGemini(systemPrompt, transcript, 0.3, false, [], "auto", {
+    source: "identity-manager",
+  });
   if (typeof newIdentityRaw !== "string") {
     throw new Error("Identity generation returned a tool call instead of text");
   }
@@ -91,7 +93,10 @@ export async function processCoreIdentity(
   if (!newIdentityContent) {
     throw new Error("Identity generation returned empty content");
   }
-  const identityEmbedding = await generateEmbedding(newIdentityContent);
+  const identityEmbedding = await generateEmbedding(newIdentityContent, {
+    source: "identity-manager",
+    operationName: "embedding.identity_manager_content",
+  });
 
   // 5. Sauvegarde et Archivage
   if (oldIdentity) {

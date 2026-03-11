@@ -37,6 +37,9 @@ export interface ContextProfile {
   /** Topic memories (mémoire thématique vivante) */
   topic_memories: boolean;
 
+  /** Event memories (événements spécifiques datés) */
+  event_memories: boolean;
+
   /** User facts (préférences structurées) */
   facts: boolean;
 
@@ -79,6 +82,7 @@ export interface LoadedContext {
   actionsDetails?: string;
   identity?: string;
   vectors?: string;
+  eventMemories?: string;
   topicMemories?: string;
   facts?: string;
   candidates?: string;
@@ -132,6 +136,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: "on_demand",
     identity: true,
     vectors: false,
+    event_memories: true,
     topic_memories: true,
     facts: true,
     candidates: true,
@@ -148,6 +153,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: "on_demand",
     identity: false,
     vectors: false, // RAG spécifique à l'item, géré par investigator/run.ts
+    event_memories: false,
     topic_memories: false,
     facts: false,
     candidates: false,
@@ -164,6 +170,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     vectors: false,
+    event_memories: false,
     topic_memories: false,
     facts: false,
     candidates: false,
@@ -181,6 +188,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     vectors: false,
+    event_memories: false,
     topic_memories: false,
     facts: false,
     candidates: false,
@@ -197,6 +205,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     vectors: false,
+    event_memories: false,
     topic_memories: false,
     facts: false,
     candidates: false,
@@ -218,6 +227,7 @@ export const DEFAULT_CONTEXT_PROFILE: ContextProfile = {
   actions_details: false,
   identity: false,
   vectors: false,
+  event_memories: false,
   topic_memories: false,
   facts: false,
   candidates: false,

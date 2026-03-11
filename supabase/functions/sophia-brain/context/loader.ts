@@ -31,6 +31,10 @@ import {
   retrieveTopicMemories,
   formatTopicMemoriesForPrompt,
 } from "../topic_memory.ts";
+import {
+  retrieveEventMemories,
+  formatEventMemoriesForPrompt,
+} from "../event_memory.ts";
 // R2: getActiveTopicSession removed (topic sessions disabled)
 import type {
   ContextProfile,
@@ -226,6 +230,32 @@ export async function loadContextForMode(
   }
 
   // 4b. Topic memories (mémoire thématique vivante)
+  if (profile.event_memories && opts.message) {
+    promises.push(
+      retrieveEventMemories({
+        supabase: opts.supabase,
+        userId: opts.userId,
+        message: opts.message,
+        nowIso: opts.userTime?.prompt_block
+          ? String(opts.userTime.prompt_block.match(/now_utc=([^\n]+)/)?.[1] ?? "")
+          : undefined,
+        maxResults: 2,
+      }).then((events) => {
+        const eventContext = formatEventMemoriesForPrompt(events);
+        if (eventContext) {
+          context.eventMemories = eventContext;
+          elementsLoaded.push("event_memories");
+        }
+      }).catch((e) => {
+        console.warn(
+          "[ContextLoader] failed to load event_memories (non-blocking):",
+          e,
+        );
+      }),
+    );
+  }
+
+  // 4c. Topic memories (mémoire thématique vivante)
   if (profile.topic_memories && opts.message) {
     const topicMaxResultsRaw = (Deno.env.get("SOPHIA_TOPIC_RETRIEVE_MAX_RESULTS") ?? "").trim();
     const topicMaxResultsParsed = Number(topicMaxResultsRaw);
@@ -581,6 +611,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.actionsDetails) ctx += loaded.actionsDetails + "\n\n";
   if (loaded.vitals) ctx += loaded.vitals + "\n\n";
   if (loaded.identity) ctx += loaded.identity;
+  if (loaded.eventMemories) ctx += loaded.eventMemories;
   if (loaded.topicMemories) ctx += loaded.topicMemories;
   if (loaded.vectors) {
     ctx += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${loaded.vectors}\n\n`;

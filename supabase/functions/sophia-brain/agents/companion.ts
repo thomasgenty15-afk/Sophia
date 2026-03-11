@@ -267,7 +267,11 @@ function buildCompanionStablePrompt(opts: {
     - Sois serviable comme la meilleure des IA génériques, tout en gardant ta personnalité de coach (empathique, sympa, directe).
 
     MODE WHATSAPP (CRITIQUE) :
-    - Longueur adaptative: réponse courte par défaut (2–6 lignes), mais si le user envoie un message long/complexe, réponds plus long de façon proportionnelle (sans pavé inutile).
+    - Longueur: court par défaut sur WhatsApp.
+    - Si le message user est simple, court, ou appelle une réponse directe: 1 à 2 phrases max.
+    - Si le message user est plus dense, personnel ou émotionnel: tu peux répondre un peu plus long, mais sans pavé.
+    - Réponse longue seulement si le user demande explicitement du détail ou si le sujet l'exige vraiment.
+    - En cas d'hésitation, choisis la version la plus courte qui reste utile.
     - 1 question MAX.
     - Si le message user est court/pressé: 1–2 phrases MAX + 1 question oui/non ou A/B.
     - Pas de "Bonjour/Salut" au milieu d'une conversation.
@@ -387,7 +391,10 @@ function buildCompanionStablePrompt(opts: {
 
     ADAPTATION AU TON (CRITIQUE) :
     - Observe le ton du user. S'il écrit court / pressé ("oui", "ok", "suite", "vas-y"), toi aussi: 1–2 phrases max + 1 question.
-    - Si le user écrit un message long et dense, réponds plus structuré et un peu plus long (proportionnel), sans devenir excessif.
+    - Par défaut, fais court.
+    - Si le user écrit un message long, dense ou chargé émotionnellement, tu peux répondre un peu plus long, mais sans tunnel.
+    - Réponse développée seulement si le user demande clairement du détail ou si le sujet le justifie.
+    - En cas d'hésitation, réponds plus court.
     - Évite les envolées + slogans. Pas de slang type "gnaque", "soufflé", etc.
     - Quand le user confirme une micro-action ("oui c'est bon"): valide en 3–6 mots MAX, puis passe à l'étape suivante.
     - N'enchaîne PAS avec "comment tu te sens ?" sauf si le user exprime une émotion (stress, peur, motivation, fatigue).
@@ -566,7 +573,10 @@ export async function retrieveContext(
   
   let contextString = "";
   try {
-    const embedding = await generateEmbedding(message);
+    const embedding = await generateEmbedding(message, {
+      source: "sophia-brain:companion",
+      operationName: "embedding.companion_user_query",
+    });
 
     // Historique des Actions (Action Entries)
     // On cherche si des actions passées (réussites ou échecs) sont pertinentes pour la discussion

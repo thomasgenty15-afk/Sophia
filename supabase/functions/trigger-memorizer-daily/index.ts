@@ -25,6 +25,10 @@ function trimTranscript(rows: Array<{ role: string; content: string; created_at:
   return picked.map((m) => `[${m.created_at}] ${String(m.role).toUpperCase()}: ${String(m.content ?? "")}`).join("\n")
 }
 
+function hasRealUserMessage(rows: Array<{ role: string; content: string; created_at: string }>): boolean {
+  return rows.some((row) => String(row.role ?? "").trim().toLowerCase() === "user")
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
   try {
@@ -81,6 +85,8 @@ Deno.serve(async (req) => {
     let processed = 0
     let created = 0
     let enriched = 0
+    let eventsCreated = 0
+    let eventsUpdated = 0
     let skipped = 0
     const details: Array<Record<string, unknown>> = []
 
@@ -90,6 +96,11 @@ Deno.serve(async (req) => {
         const rows = grouped.get(key) ?? []
         if (rows.length === 0) {
           skipped++
+          continue
+        }
+        if (!hasRealUserMessage(rows)) {
+          skipped++
+          details.push({ user_id: c.user_id, scope: c.scope, skipped: true, reason: "no_user_messages" })
           continue
         }
 
@@ -128,7 +139,12 @@ Deno.serve(async (req) => {
             ...memorizerState,
             last_message_at: latest || already || null,
             last_run_at: new Date().toISOString(),
-            last_counts: { created: result.topicsCreated, enriched: result.topicsEnriched },
+            last_counts: {
+              created: result.topicsCreated,
+              enriched: result.topicsEnriched,
+              events_created: result.eventsCreated,
+              events_updated: result.eventsUpdated,
+            },
           },
         }
         await updateUserState(admin as any, c.user_id, c.scope, {
@@ -138,11 +154,15 @@ Deno.serve(async (req) => {
         processed++
         created += result.topicsCreated
         enriched += result.topicsEnriched
+        eventsCreated += result.eventsCreated
+        eventsUpdated += result.eventsUpdated
         details.push({
           user_id: c.user_id,
           scope: c.scope,
           created: result.topicsCreated,
           enriched: result.topicsEnriched,
+          events_created: result.eventsCreated,
+          events_updated: result.eventsUpdated,
         })
       } catch (e) {
         skipped++
@@ -160,6 +180,8 @@ Deno.serve(async (req) => {
       processed,
       created_topics: created,
       enriched_topics: enriched,
+      created_events: eventsCreated,
+      updated_events: eventsUpdated,
       skipped,
       details,
     }, { includeCors: false })
@@ -180,4 +202,3 @@ Deno.serve(async (req) => {
     return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
   }
 })
-

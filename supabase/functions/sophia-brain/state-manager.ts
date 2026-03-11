@@ -117,7 +117,10 @@ export async function getCoreIdentity(
 
   if (message.length > 0) {
     try {
-      const queryEmbedding = await generateEmbedding(message)
+      const queryEmbedding = await generateEmbedding(message, {
+        source: "sophia-brain:state-manager",
+        operationName: "embedding.core_identity_query",
+      })
       const { data: matched, error: matchErr } = await supabase.rpc(
         "match_core_identity_by_embedding",
         {

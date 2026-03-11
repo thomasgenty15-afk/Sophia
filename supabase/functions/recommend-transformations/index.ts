@@ -260,13 +260,6 @@ serve(async (req) => {
 
     console.log("Calling Gemini API...")
 
-    const genOpts = {
-      source: "recommend-transformations",
-      // Force 2.5 first: we observed 3.0 flash preview can be slower / timeout in some environments.
-      // Keep `generateWithGemini` fallback chain intact.
-      model: getGlobalAiModel("gemini-2.5-flash"),
-    } as const
-
     const index = buildCatalogIndex(availableTransformations as CatalogTheme[])
 
     async function callGemini(promptOverride?: { system?: string; user?: string }) {
@@ -277,7 +270,12 @@ serve(async (req) => {
         true, // jsonMode
         [],
         "auto",
-        genOpts, // No userId
+        {
+          source: "recommend-transformations",
+          // Force 2.5 first: we observed 3.0 flash preview can be slower / timeout in some environments.
+          // Keep `generateWithGemini` fallback chain intact.
+          model: getGlobalAiModel("gemini-2.5-flash"),
+        }, // No userId
       )
     }
 

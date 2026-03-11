@@ -65,7 +65,11 @@ Deno.serve(async (req) => {
     Inclus les mots-clés de la question.
     Contexte : C'est une réponse à un exercice d'introspection.`;
 
-    const aiSummary = await generateWithGemini(prompt, contentStr);
+    const aiSummary = await generateWithGemini(prompt, contentStr, 0.7, false, [], "auto", {
+      requestId: ctx.requestId,
+      userId: ctx.userId ?? null,
+      source: "create-module-memory",
+    });
 
     console.log(`[create-module-memory] Memory storage disabled. Summary generated for ${moduleId}: ${String(aiSummary).slice(0, 120)}`);
 

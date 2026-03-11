@@ -56,6 +56,11 @@ function normalizeKey(v: unknown): string {
   return String(v ?? "").trim().toLowerCase()
 }
 
+function isWhatsappSchedulingTierEligible(accessTierRaw: unknown): boolean {
+  const tier = cleanText(accessTierRaw).toLowerCase()
+  return tier === "trial" || tier === "alliance" || tier === "architecte"
+}
+
 function errorToMessage(error: unknown): string {
   if (error instanceof Error) return error.message
   if (typeof error === "string") return error
@@ -323,6 +328,7 @@ async function fetchActiveActionsForUser(params: {
 }
 
 async function generateWeeklyDrafts(params: {
+  userId: string
   timezone: string
   locale: string | null
   recentDrafts: string[]
@@ -423,6 +429,7 @@ async function generateWeeklyDrafts(params: {
       "auto",
       {
         requestId: params.requestId,
+        userId: params.userId,
         model: MODEL,
         source: "schedule-morning-active-action-checkins",
         forceRealAi: true,
@@ -444,6 +451,7 @@ async function generateWeeklyDrafts(params: {
         "auto",
         {
           requestId: `${params.requestId}:repair`,
+          userId: params.userId,
           model: MODEL,
           source: "schedule-morning-active-action-checkins",
           forceRealAi: true,
@@ -482,7 +490,7 @@ Deno.serve(async (req) => {
 
     let activeUsersQuery = supabaseAdmin
       .from("profiles")
-      .select("id,timezone,locale,whatsapp_coaching_paused_until")
+      .select("id,timezone,locale,whatsapp_coaching_paused_until,whatsapp_opted_in,access_tier")
       .order("id", { ascending: true })
 
     if (userIdFilter) activeUsersQuery = activeUsersQuery.eq("id", userIdFilter)
@@ -496,6 +504,10 @@ Deno.serve(async (req) => {
     for (const profile of (profiles ?? []) as any[]) {
       const userId = cleanText(profile?.id)
       if (!userId) continue
+      if (!Boolean(profile?.whatsapp_opted_in)) {
+        skipped++
+        continue
+      }
       const coachingPauseUntilRaw = cleanText(profile?.whatsapp_coaching_paused_until)
       const coachingPauseUntilMs = coachingPauseUntilRaw ? new Date(coachingPauseUntilRaw).getTime() : NaN
       if (Number.isFinite(coachingPauseUntilMs) && coachingPauseUntilMs > Date.now()) {
@@ -526,6 +538,10 @@ Deno.serve(async (req) => {
           .in("status", ["pending", "awaiting_user"])
           .gte("scheduled_for", nowIso)
         if (resetErr) throw resetErr
+      }
+      if (!isWhatsappSchedulingTierEligible(profile?.access_tier)) {
+        skipped++
+        continue
       }
 
       const { actions, planContext } = await fetchActiveActionsForUser({ supabaseAdmin, userId })
@@ -570,6 +586,7 @@ Deno.serve(async (req) => {
         .slice(0, 3)
 
       const weeklyDrafts = await generateWeeklyDrafts({
+        userId,
         timezone,
         locale,
         recentDrafts,

@@ -330,7 +330,11 @@ export async function handlePendingActions(params) {
       `- Interdit d'attaquer directement par une question seche sans contexte.\n` +
       `- Interdit de commencer par Bonjour/Salut/Hello.\n\n` +
       `Genere le message final.`;
-    const echo = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7);
+    const echo = await generateWithGemini(prompt, "Génère le message d'écho.", 0.7, false, [], "auto", {
+      requestId,
+      userId,
+      source: "whatsapp-webhook:memory-echo",
+    });
     const echoResp = await sendWhatsAppTextTracked({
       admin,
       requestId,

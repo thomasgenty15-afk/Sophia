@@ -24,6 +24,8 @@ type ProfileRow = {
   id: string
   timezone: string | null
   locale: string | null
+  whatsapp_opted_in: boolean | null
+  access_tier: string | null
 }
 
 function weekdayKeyInTimezone(params: { timezone: string; dayOffset: number; now?: Date }): string {
@@ -57,6 +59,25 @@ function daysUntilNextSunday(timezone: string): number {
   const current = idx[key] ?? 1
   const delta = (7 - current) % 7
   return delta === 0 ? 7 : delta
+}
+
+function localTimeHHMMInTimezone(params: { timezone: string; now?: Date }): string {
+  const tz = String(params.timezone || "Europe/Paris").trim() || "Europe/Paris"
+  const now = params.now ?? new Date()
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: tz,
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(now)
+  const hh = parts.find((p) => p.type === "hour")?.value ?? "00"
+  const mm = parts.find((p) => p.type === "minute")?.value ?? "00"
+  return `${hh}:${mm}`
+}
+
+function isWhatsappSchedulingTierEligible(accessTierRaw: unknown): boolean {
+  const tier = String(accessTierRaw ?? "").trim().toLowerCase()
+  return tier === "trial" || tier === "alliance" || tier === "architecte"
 }
 
 function cleanText(v: unknown, fallback = ""): string {
@@ -105,12 +126,18 @@ function listUpcomingSlots(params: {
   localTimeHHMM: string
   scheduledDays: string[]
   horizonDays?: number
+  includeTodayIfFuture?: boolean
 }): Array<{ dayOffset: number; weekdayKey: string; scheduledFor: string; slotLabel: string }> {
-  const horizon = Math.max(1, Math.min(10, Number(params.horizonDays ?? 7)))
+  const maxDayOffset = Math.max(0, Math.min(10, Number(params.horizonDays ?? 7)))
+  const startOffset = params.includeTodayIfFuture ? 0 : 1
+  const nowLocalHHMM = params.includeTodayIfFuture
+    ? localTimeHHMMInTimezone({ timezone: params.timezone })
+    : null
   const slots: Array<{ dayOffset: number; weekdayKey: string; scheduledFor: string; slotLabel: string }> = []
-  for (let dayOffset = 1; dayOffset <= horizon; dayOffset++) {
+  for (let dayOffset = startOffset; dayOffset <= maxDayOffset; dayOffset++) {
     const weekdayKey = weekdayKeyInTimezone({ timezone: params.timezone, dayOffset, now: new Date() })
     if (!params.scheduledDays.includes(weekdayKey)) continue
+    if (dayOffset === 0 && nowLocalHHMM && nowLocalHHMM >= params.localTimeHHMM) continue
     const scheduledFor = computeScheduledForFromLocal({
       timezone: params.timezone,
       dayOffset,
@@ -241,6 +268,7 @@ async function buildPersonalContextBlock(params: {
 }
 
 async function generateRecurringReminderWeeklyDrafts(params: {
+  userId: string
   timezone: string
   locale: string | null
   reminderInstruction: string
@@ -328,6 +356,7 @@ async function generateRecurringReminderWeeklyDrafts(params: {
       "auto",
       {
         requestId: params.requestId,
+        userId: params.userId,
         model: RDV_GENERATION_MODEL,
         source: "schedule-recurring-checkins",
         forceRealAi: true,
@@ -358,6 +387,7 @@ async function generateRecurringReminderWeeklyDrafts(params: {
         "auto",
         {
           requestId: `${params.requestId}:repair`,
+          userId: params.userId,
           model: RDV_GENERATION_MODEL,
           source: "schedule-recurring-checkins",
           forceRealAi: true,
@@ -394,11 +424,35 @@ Deno.serve(async (req) => {
     const body = await req.json().catch(() => ({} as any))
     const reminderIdFilter = cleanText((body as any)?.reminder_id)
     const userIdFilter = cleanText((body as any)?.user_id)
+    const fullReset = Boolean((body as any)?.full_reset)
+    const includeTodayIfFuture = Boolean((body as any)?.include_today_if_future)
 
     const supabaseAdmin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
     )
+
+    if (fullReset && (reminderIdFilter || userIdFilter)) {
+      const nowIso = new Date().toISOString()
+      let cleanupQuery = supabaseAdmin
+        .from("scheduled_checkins")
+        .update({
+          status: "cancelled",
+          processed_at: nowIso,
+        } as any)
+        .in("status", ["pending", "awaiting_user"])
+        .gte("scheduled_for", nowIso)
+
+      if (reminderIdFilter) {
+        cleanupQuery = cleanupQuery.eq("event_context", `recurring_reminder:${reminderIdFilter}`)
+      } else {
+        cleanupQuery = cleanupQuery.like("event_context", "recurring_reminder:%")
+      }
+      if (userIdFilter) cleanupQuery = cleanupQuery.eq("user_id", userIdFilter)
+
+      const { error: cleanupErr } = await cleanupQuery
+      if (cleanupErr) throw cleanupErr
+    }
 
     let remindersQuery = supabaseAdmin
       .from("user_recurring_reminders")
@@ -427,7 +481,7 @@ Deno.serve(async (req) => {
     const userIds = [...new Set((reminders as RecurringReminderRow[]).map((r) => r.user_id))]
     const { data: profiles, error: profilesErr } = await supabaseAdmin
       .from("profiles")
-      .select("id,timezone,locale")
+      .select("id,timezone,locale,whatsapp_opted_in,access_tier")
       .in("id", userIds)
     if (profilesErr) throw profilesErr
 
@@ -438,6 +492,14 @@ Deno.serve(async (req) => {
 
     for (const reminder of reminders as RecurringReminderRow[]) {
       const profile = profileByUser.get(reminder.user_id)
+      if (!Boolean(profile?.whatsapp_opted_in)) {
+        skipped++
+        continue
+      }
+      if (!isWhatsappSchedulingTierEligible(profile?.access_tier)) {
+        skipped++
+        continue
+      }
       const timezone = cleanText(profile?.timezone, "Europe/Paris")
       const locale = profile?.locale ?? null
       const days = Array.isArray(reminder.scheduled_days) ? reminder.scheduled_days : []
@@ -449,6 +511,7 @@ Deno.serve(async (req) => {
         localTimeHHMM: reminder.local_time_hhmm,
         scheduledDays: days,
         horizonDays,
+        includeTodayIfFuture,
       })
       if (slots.length === 0) {
         skipped++
@@ -500,6 +563,7 @@ Deno.serve(async (req) => {
       let generationStats = { generatedCount: 0, missingCount: 0, repairAttempts: 0 }
       try {
         const generation = await generateRecurringReminderWeeklyDrafts({
+          userId: reminder.user_id,
           timezone,
           locale,
           reminderInstruction: reminder.message_instruction,

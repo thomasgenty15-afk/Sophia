@@ -103,6 +103,11 @@ function normalizeLegacyOperation(source: string): string {
   return s;
 }
 
+function rpcFilterValue(value: string): string | null {
+  const normalized = String(value || "").trim().toLowerCase();
+  return normalized && normalized !== "all" ? normalized : null;
+}
+
 export default function AdminUsageDashboard() {
   const { user, loading, isAdmin } = useAuth();
   const [dataLoading, setDataLoading] = useState(false);
@@ -154,12 +159,16 @@ export default function AdminUsageDashboard() {
       try {
         const startAt = new Date(`${appliedStartDate}T00:00:00.000Z`).toISOString();
         const endAt = new Date(`${appliedEndDate}T23:59:59.999Z`).toISOString();
+        const provider = rpcFilterValue(appliedProviderFilter);
+        const model = rpcFilterValue(appliedModelFilter);
+        const family = rpcFilterValue(appliedFamilyFilter);
+        const operation = rpcFilterValue(appliedOperationFilter);
         const [overviewRes, userRes, opRes, compareRes, dailyRes] = await Promise.all([
-          supabase.rpc("get_admin_cost_overview", { p_start: startAt, p_end: endAt, p_bucket: appliedBucket }),
-          supabase.rpc("get_admin_cost_by_user", { p_start: startAt, p_end: endAt, p_bucket: appliedBucket }),
-          supabase.rpc("get_admin_cost_by_operation", { p_start: startAt, p_end: endAt, p_bucket: appliedBucket }),
-          supabase.rpc("get_admin_cost_compare_previous", { p_start: startAt, p_end: endAt }),
-          supabase.rpc("get_admin_daily_cost_synthesis", { p_target_day: appliedEndDate }),
+          supabase.rpc("get_admin_cost_overview", { p_start: startAt, p_end: endAt, p_bucket: appliedBucket, p_provider: provider, p_model: model, p_family: family, p_operation: operation }),
+          supabase.rpc("get_admin_cost_by_user", { p_start: startAt, p_end: endAt, p_bucket: appliedBucket, p_provider: provider, p_model: model, p_family: family, p_operation: operation }),
+          supabase.rpc("get_admin_cost_by_operation", { p_start: startAt, p_end: endAt, p_bucket: appliedBucket, p_provider: provider, p_model: model, p_family: family, p_operation: operation }),
+          supabase.rpc("get_admin_cost_compare_previous", { p_start: startAt, p_end: endAt, p_provider: provider, p_model: model, p_family: family, p_operation: operation }),
+          supabase.rpc("get_admin_daily_cost_synthesis", { p_target_day: appliedEndDate, p_provider: provider, p_model: model, p_family: family, p_operation: operation }),
         ]);
         if (overviewRes.error) throw overviewRes.error;
         if (userRes.error) throw userRes.error;
@@ -207,10 +216,18 @@ export default function AdminUsageDashboard() {
       try {
         const startAt = new Date(`${appliedStartDate}T00:00:00.000Z`).toISOString();
         const endAt = new Date(`${appliedEndDate}T23:59:59.999Z`).toISOString();
+        const provider = rpcFilterValue(appliedProviderFilter);
+        const model = rpcFilterValue(appliedModelFilter);
+        const family = rpcFilterValue(appliedFamilyFilter);
+        const operation = rpcFilterValue(appliedOperationFilter);
         const res = await supabase.rpc("get_admin_user_operation_breakdown", {
           p_start: startAt,
           p_end: endAt,
           p_user_id: selectedUserId,
+          p_provider: provider,
+          p_model: model,
+          p_family: family,
+          p_operation: operation,
         });
         if (res.error) throw res.error;
         setUserOperationRows((res.data as UserOperationRow[] | null) ?? []);
@@ -272,19 +289,7 @@ export default function AdminUsageDashboard() {
     appliedOperationFilter,
   ]);
 
-  const filteredOps = useMemo(
-    () =>
-      operations.filter((o) => {
-        if (appliedModelFilter !== "all" && o.model !== appliedModelFilter) return false;
-        if (appliedProviderFilter !== "all" && o.provider !== appliedProviderFilter) return false;
-        const normalizedFamily = o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family;
-        const normalizedOperation = normalizeLegacyOperation(o.operation_name || o.source);
-        if (appliedFamilyFilter !== "all" && normalizedFamily !== appliedFamilyFilter) return false;
-        if (appliedOperationFilter !== "all" && normalizedOperation !== appliedOperationFilter) return false;
-        return true;
-      }),
-    [operations, appliedProviderFilter, appliedModelFilter, appliedFamilyFilter, appliedOperationFilter],
-  );
+  const filteredOps = operations;
   const hasActiveOpFilters =
     appliedProviderFilter !== "all" ||
     appliedModelFilter !== "all" ||
@@ -327,19 +332,7 @@ export default function AdminUsageDashboard() {
     [filteredUsers, selectedUserId],
   );
 
-  const filteredUserOps = useMemo(
-    () =>
-      userOperationRows.filter((o) => {
-        if (appliedModelFilter !== "all" && o.model !== appliedModelFilter) return false;
-        if (appliedProviderFilter !== "all" && o.provider !== appliedProviderFilter) return false;
-        const normalizedFamily = o.operation_family === "other" ? normalizeLegacyFamily(o.source) : o.operation_family;
-        const normalizedOperation = normalizeLegacyOperation(o.operation_name || o.source);
-        if (appliedFamilyFilter !== "all" && normalizedFamily !== appliedFamilyFilter) return false;
-        if (appliedOperationFilter !== "all" && normalizedOperation !== appliedOperationFilter) return false;
-        return true;
-      }),
-    [userOperationRows, appliedModelFilter, appliedProviderFilter, appliedFamilyFilter, appliedOperationFilter],
-  );
+  const filteredUserOps = userOperationRows;
 
   function applyFilters() {
     setAppliedBucket(bucket);
@@ -753,4 +746,3 @@ function FilterField({ label, children }: { label: string; children: ReactNode }
     </label>
   );
 }
-

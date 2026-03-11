@@ -17,6 +17,11 @@ function clampText(v: string, maxChars: number): string {
   return v.slice(0, maxChars - 1).trimEnd() + "…";
 }
 
+function isWhatsappSchedulingTierEligible(accessTierRaw: unknown): boolean {
+  const tier = str(accessTierRaw).toLowerCase();
+  return tier === "trial" || tier === "alliance" || tier === "architecte";
+}
+
 function normalizeDraftMessage(v: unknown): string {
   if (typeof v === "string") return v.trim();
   if (!v || typeof v !== "object") return "";
@@ -548,6 +553,8 @@ async function triggerRecurringSchedulingForReminder(params: {
   reminderId: string;
   userId: string;
   userAuthHeader?: string;
+  fullReset?: boolean;
+  includeTodayIfFuture?: boolean;
 }): Promise<number> {
   const secret = internalSecret();
   if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET");
@@ -576,6 +583,8 @@ async function triggerRecurringSchedulingForReminder(params: {
     body: JSON.stringify({
       reminder_id: params.reminderId,
       user_id: params.userId,
+      full_reset: Boolean(params.fullReset),
+      include_today_if_future: params.includeTodayIfFuture === true,
     }),
   });
   const data = await res.json().catch(() => ({} as any));
@@ -688,13 +697,24 @@ Deno.serve(async (req) => {
       if (purgeErr) throw purgeErr;
     }
 
+    const { data: profile, error: profileErr } = await admin
+      .from("profiles")
+      .select("access_tier")
+      .eq("id", userId)
+      .maybeSingle();
+    if (profileErr) throw profileErr;
+
     // Source-of-truth scheduling: delegate slot generation to schedule-recurring-checkins.
     // This avoids concurrent dual writers (classify + scheduler) creating duplicate rows.
-    const seededCheckins = await triggerRecurringSchedulingForReminder({
-      reminderId,
-      userId,
-      userAuthHeader: authHeader,
-    });
+    const seededCheckins = isWhatsappSchedulingTierEligible((profile as any)?.access_tier)
+      ? await triggerRecurringSchedulingForReminder({
+        reminderId,
+        userId,
+        userAuthHeader: authHeader,
+        fullReset,
+        includeTodayIfFuture: true,
+      })
+      : 0;
 
     return new Response(
       JSON.stringify({

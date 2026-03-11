@@ -20,6 +20,11 @@
 
 import { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 import { generateWithGemini, generateEmbedding, getGlobalAiModel } from "../_shared/gemini.ts"
+import { getUserTimeContext } from "../_shared/user_time_context.ts"
+import {
+  type ExtractedEventCandidate,
+  upsertEventMemoryFromCandidate,
+} from "./event_memory.ts"
 
 type TopicEnrichmentSource = "chat" | "onboarding" | "bilan" | "module" | "plan"
 
@@ -35,6 +40,11 @@ const AUTO_MERGE_TITLE_SIM = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE
 const AUTO_MERGE_TITLE_JACCARD = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_JACCARD") ?? "0.60").trim()) || 0.60
 const MAX_TIMELINE_ITEMS = Number((Deno.env.get("SOPHIA_TOPIC_MAX_TIMELINE_ITEMS") ?? "10").trim()) || 10
 const TOPIC_DEBUG = (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1"
+const TOPIC_COMPACTION_PENDING_COUNT = Number((Deno.env.get("SOPHIA_TOPIC_COMPACTION_PENDING_COUNT") ?? "3").trim()) || 3
+const TOPIC_COMPACTION_PENDING_CHARS = Number((Deno.env.get("SOPHIA_TOPIC_COMPACTION_PENDING_CHARS") ?? "420").trim()) || 420
+const MEMORY_ANALYSIS_MODEL = (Deno.env.get("SOPHIA_MEMORY_ANALYSIS_MODEL") ?? "gpt-5.3").trim() || "gpt-5.3"
+const MEMORY_VALIDATION_MODEL = (Deno.env.get("SOPHIA_MEMORY_VALIDATE_MODEL") ?? "gemini-3-flash-preview").trim() || "gemini-3-flash-preview"
+const TOPIC_COMPACTION_MODEL = (Deno.env.get("SOPHIA_TOPIC_COMPACTION_MODEL") ?? "gemini-3-flash-preview").trim() || "gemini-3-flash-preview"
 
 function simplePromptHash(input: string): string {
   let hash = 2166136261
@@ -44,6 +54,18 @@ function simplePromptHash(input: string): string {
     hash = Math.imul(hash, 16777619)
   }
   return (hash >>> 0).toString(16).padStart(8, "0")
+}
+
+function asIso(value: unknown): string | null {
+  const raw = String(value ?? "").trim()
+  if (!raw) return null
+  const dt = new Date(raw)
+  return Number.isFinite(dt.getTime()) ? dt.toISOString() : null
+}
+
+function clamp01(value: number): number {
+  if (!Number.isFinite(value)) return 0
+  return Math.max(0, Math.min(1, value))
 }
 
 const GENERIC_KEYWORDS = new Set([
@@ -251,6 +273,16 @@ export interface ExtractedTopic {
   domain?: string
 }
 
+export interface MemoryExtractionResult {
+  durable_topics: ExtractedTopic[]
+  event_candidates: ExtractedEventCandidate[]
+}
+
+export interface BatchValidationDecision {
+  topics_to_persist: string[]
+  events_to_persist: string[]
+}
+
 /** Topic tel qu'il existe en base */
 export interface TopicMemory {
   id: string
@@ -263,6 +295,9 @@ export interface TopicMemory {
   status: string
   mention_count: number
   enrichment_count: number
+  pending_enrichment_count?: number
+  pending_enrichment_chars?: number
+  summary_compacted_at?: string | null
   first_mentioned_at: string
   last_enriched_at: string | null
   last_retrieved_at: string | null
@@ -295,17 +330,14 @@ export interface TopicSearchResult {
 // 1. EXTRACTION — Analyser la conversation pour détecter des topics
 // ============================================================================
 
-/**
- * Extrait les topics d'un transcript de conversation.
- * Appelé par le Watcher après chaque batch de messages.
- */
-export async function extractTopicsFromTranscript(opts: {
+export async function extractMemoryCandidatesFromTranscript(opts: {
   transcript: string
   existingTopicSlugs: string[]
   currentContext?: string
   userId?: string
+  timeContextPrompt?: string
   meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
-}): Promise<ExtractedTopic[]> {
+}): Promise<MemoryExtractionResult> {
   const { transcript, existingTopicSlugs, currentContext, userId, meta } = opts
 
   const existingTopicsHint = existingTopicSlugs.length > 0
@@ -313,55 +345,71 @@ export async function extractTopicsFromTranscript(opts: {
     : ""
 
   const stablePrompt = `
-Tu es un analyseur de mémoire thématique pour un coach IA.
-Tu lis un bloc de conversation et tu extrais les TOPICS significatifs.
+Tu analyses un batch de conversation pour la mémoire d'un coach IA.
+Tu dois produire DEUX sorties distinctes :
+1. durable_topics : sujets durables utiles plus tard
+2. event_candidates : événements spécifiques datés ou quasi datés
 
-Un TOPIC = un sujet de vie récurrent ou important pour l'utilisateur.
-Exemples de topics : une personne (sœur, patron), une habitude (sport, cannabis), un objectif (changer de job), une émotion récurrente (anxiété sociale), un événement (déménagement).
+Un durable_topic = un sujet récurrent, un pattern, une relation importante, une habitude, une dynamique de vie.
+Un event_candidate = un fait ponctuel ou une échéance spécifique (rendez-vous, date, entretien, voyage, examen, etc.) avec pertinence court terme.
 
-INPUTS :
-- Conversation récente (ci-dessous)
-- Contexte précédent : "${currentContext ?? "Aucun"}"
-${existingTopicsHint}
+Règles topics :
+- Garde seulement les sujets substantiels et utiles dans le temps.
+- Maximum 4 durable_topics.
+- Le champ new_information doit être déjà dense et exploitable sans autre réécriture.
 
-TES RÈGLES :
-1. Ne crée un topic QUE s'il y a de l'information SUBSTANTIELLE (pas juste une mention passagère).
-2. Pour les PERSONNES mentionnées : le slug doit inclure le lien ET le prénom s'il est connu (ex: "soeur_tania", "patron_marc").
-3. Les keywords doivent inclure TOUTES les façons dont l'utilisateur pourrait référencer ce topic :
-   - Synonymes ("cannabis", "weed", "joint", "shit", "fumer")
-   - Liens familiaux ("ma sœur", "tania", "ma frangine")
-   - Termes connexes importants ("arrêter de fumer", "sevrage", "addiction")
-   - IMPORTANT: privilégie des keywords contextualisés (ex: "sommeil mere", "article sommeil", "routine soir")
-   - Évite les keywords trop génériques seuls (ex: "sommeil", "travail", "stress")
-   - Si tu utilises un mot générique, ajoute au moins un alias contextualisé correspondant.
-4. Le champ "new_information" doit contenir un résumé dense de ce qui a été dit dans CE bloc.
-5. Le champ "domain" aide à connecter des topics entre eux (ex: "alimentation" et "allergie" sont dans le domaine "santé").
-6. Maximum 4 topics par batch (garde seulement les plus significatifs).
-7. Si RIEN de significatif n'a été dit (small talk, "ok", "merci"), retourne un tableau vide.
+Règles events :
+- Crée un event si la conversation mentionne un événement spécifique, imminent, planifié ou émotionnellement central.
+- Maximum 3 event_candidates.
+- Si la date est relative, normalise-la en ISO 8601 si possible à partir du contexte temporel.
+- Si tu ne peux pas être exact, fournis la meilleure estimation possible + time_precision.
+- event_key doit être canonique et différencier deux événements proches.
+- Les events trop vagues ou sans intérêt conversationnel sont exclus.
 
-SORTIE JSON ATTENDUE :
+IMPORTANT :
+- Ne transforme PAS un simple thème durable en event.
+- Ne mets PAS dans durable_topics un détail purement éphémère si c'est surtout un event.
+- Si un event est lié à un topic, related_topic_slug peut le référencer.
+
+JSON STRICT ATTENDU :
 {
-  "topics": [
+  "durable_topics": [
     {
-      "slug": "cannabis_arret",
-      "title": "Cannabis / Arrêt",
-      "new_information": "L'utilisateur dit avoir réduit sa consommation de moitié depuis 2 semaines. Il ressent des insomnies mais se sent plus lucide le matin.",
-      "keywords": ["cannabis", "weed", "joint", "fumer", "arrêter de fumer", "sevrage"],
-      "domain": "santé"
+      "slug": "confiance_en_soi",
+      "title": "Confiance en soi",
+      "new_information": "Résumé dense et durable.",
+      "keywords": ["confiance en soi", "estime de soi"],
+      "domain": "relations"
+    }
+  ],
+  "event_candidates": [
+    {
+      "event_key": "rendez_vous_galant_2026_03_13",
+      "title": "Rendez-vous galant vendredi",
+      "summary": "L'utilisateur a un rendez-vous galant vendredi, ce qui réactive à la fois confiance et stress.",
+      "event_type": "romantic_date",
+      "starts_at": "2026-03-13T19:00:00+01:00",
+      "ends_at": null,
+      "relevance_until": "2026-03-16T00:00:00+01:00",
+      "time_precision": "approximate",
+      "confidence": 0.84,
+      "related_topic_slug": "confiance_en_soi",
+      "semantic_aliases": ["rendez-vous", "date", "vendredi"]
     }
   ]
 }
   `.trim()
 
   const semiStablePrompt = `
-INPUTS :
-- Contexte précédent : "${currentContext ?? "Aucun"}"
+CONTEXTE PRÉCÉDENT : "${currentContext ?? "Aucun"}"
 ${existingTopicsHint}
+REPÈRES TEMPORELS :
+${opts.timeContextPrompt ?? "now_utc inconnu"}
   `.trim()
 
   try {
     console.log(JSON.stringify({
-      tag: "memorizer_topic_extraction_prompt_cache_ready",
+      tag: "memorizer_memory_extraction_prompt_cache_ready",
       request_id: meta?.requestId ?? null,
       stable_hash: simplePromptHash(stablePrompt),
       semi_stable_hash: simplePromptHash(semiStablePrompt),
@@ -377,16 +425,20 @@ ${existingTopicsHint}
   try {
     const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, transcript, 0.2, true, [], "json", {
       requestId: meta?.requestId,
-      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
-      source: "sophia-brain:topic_extraction",
+      model: MEMORY_ANALYSIS_MODEL,
+      source: "sophia-brain:memory_extraction",
       forceRealAi: meta?.forceRealAi,
       userId,
+      forceInitialModel: true,
     })
 
     const parsed = JSON.parse(String(raw ?? "{}"))
-    const topics = Array.isArray(parsed?.topics) ? parsed.topics : []
+    const topicsRaw = Array.isArray(parsed?.durable_topics)
+      ? parsed.durable_topics
+      : Array.isArray(parsed?.topics) ? parsed.topics : []
+    const eventsRaw = Array.isArray(parsed?.event_candidates) ? parsed.event_candidates : []
 
-    return topics
+    const durable_topics = topicsRaw
       .filter((t: any) => t?.slug && t?.title && t?.new_information)
       .slice(0, 4)
       .map((t: any) => ({
@@ -401,9 +453,112 @@ ${existingTopicsHint}
         ),
         domain: t.domain ? String(t.domain).trim().toLowerCase() : undefined,
       }))
+
+    const event_candidates = eventsRaw
+      .filter((e: any) => e?.title && e?.summary)
+      .slice(0, 3)
+      .map((e: any) => ({
+        event_key: slugify(String(e.event_key ?? e.title)),
+        title: String(e.title ?? "").trim().slice(0, 140),
+        summary: String(e.summary ?? "").trim().slice(0, 420),
+        event_type: String(e.event_type ?? "generic").trim().toLowerCase().slice(0, 60) || "generic",
+        starts_at: asIso(e.starts_at),
+        ends_at: asIso(e.ends_at),
+        relevance_until: asIso(e.relevance_until),
+        time_precision: (
+          e.time_precision === "exact_datetime" ||
+          e.time_precision === "date_only" ||
+          e.time_precision === "relative_time" ||
+          e.time_precision === "approximate"
+        ) ? e.time_precision : "unknown",
+        confidence: clamp01(Number(e.confidence ?? 0.65)),
+        related_topic_slug: e.related_topic_slug ? slugify(String(e.related_topic_slug)) : null,
+        semantic_aliases: Array.isArray(e.semantic_aliases)
+          ? e.semantic_aliases.map((x: any) => String(x ?? "").trim()).filter(Boolean).slice(0, 8)
+          : [],
+      } as ExtractedEventCandidate))
+
+    return { durable_topics, event_candidates }
   } catch (e) {
-    console.error("[TopicMemory] Failed to extract topics:", e)
-    return []
+    console.error("[TopicMemory] Failed to extract memory candidates:", e)
+    return { durable_topics: [], event_candidates: [] }
+  }
+}
+
+/**
+ * Compat helper kept for existing callers/tests: only returns durable topics.
+ */
+export async function extractTopicsFromTranscript(opts: {
+  transcript: string
+  existingTopicSlugs: string[]
+  currentContext?: string
+  userId?: string
+  timeContextPrompt?: string
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+}): Promise<ExtractedTopic[]> {
+  const result = await extractMemoryCandidatesFromTranscript(opts)
+  return result.durable_topics
+}
+
+export async function validateMemoryCandidatesBatch(opts: {
+  durableTopics: ExtractedTopic[]
+  eventCandidates: ExtractedEventCandidate[]
+  sourceType?: TopicEnrichmentSource
+  userId?: string
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+}): Promise<BatchValidationDecision> {
+  if (opts.durableTopics.length === 0 && opts.eventCandidates.length === 0) {
+    return { topics_to_persist: [], events_to_persist: [] }
+  }
+
+  const stablePrompt = `
+Tu décides quoi persister en mémoire après une extraction batch.
+
+Deux familles existent :
+- durable_topics : mémoire thématique long terme
+- event_candidates : mémoire événementielle datée / court terme
+
+Règles :
+- topic -> persister si utile encore dans 2+ mois, ou si c'est un pattern / axe de vie durable.
+- event -> persister si l'événement est spécifique, émotionnellement utile, et potentiellement important avant / pendant / juste après sa date.
+- rejeter les mentions trop vagues, les micro-ajustements anecdotiques, et les détails métier déjà trop volatils.
+
+JSON STRICT :
+{
+  "topics_to_persist": ["slug1", "slug2"],
+  "events_to_persist": ["event_key_1", "event_key_2"]
+}
+  `.trim()
+
+  const payload = JSON.stringify({
+    source_type: opts.sourceType ?? "chat",
+    durable_topics: opts.durableTopics,
+    event_candidates: opts.eventCandidates,
+  })
+
+  try {
+    const raw = await generateWithGemini(stablePrompt, payload, 0.1, true, [], "json", {
+      requestId: opts.meta?.requestId,
+      model: MEMORY_VALIDATION_MODEL,
+      source: "sophia-brain:memory_validation",
+      forceRealAi: opts.meta?.forceRealAi,
+      userId: opts.userId,
+    })
+    const parsed = JSON.parse(String(raw ?? "{}"))
+    return {
+      topics_to_persist: Array.isArray(parsed?.topics_to_persist)
+        ? parsed.topics_to_persist.map((x: any) => slugify(String(x ?? ""))).filter(Boolean)
+        : [],
+      events_to_persist: Array.isArray(parsed?.events_to_persist)
+        ? parsed.events_to_persist.map((x: any) => slugify(String(x ?? ""))).filter(Boolean)
+        : [],
+    }
+  } catch (e) {
+    console.warn("[TopicMemory] Batch validation failed, fallback keep-all:", e)
+    return {
+      topics_to_persist: opts.durableTopics.map((t) => t.slug),
+      events_to_persist: opts.eventCandidates.map((e) => slugify(e.event_key)),
+    }
   }
 }
 
@@ -738,6 +893,111 @@ export async function findMatchingTopic(opts: {
 // 3. ENRICHISSEMENT — Mettre à jour la synthèse d'un topic existant
 // ============================================================================
 
+async function compactTopicSummary(opts: {
+  supabase: SupabaseClient
+  userId: string
+  topicId: string
+  requestId?: string
+  forceRealAi?: boolean
+}): Promise<string | undefined> {
+  const { data: topicRow } = await opts.supabase
+    .from("user_topic_memories")
+    .select("*")
+    .eq("id", opts.topicId)
+    .maybeSingle()
+  if (!topicRow) return undefined
+  const topic = topicRow as TopicMemory
+
+  const { data: pendingRows } = await opts.supabase
+    .from("user_topic_enrichment_log")
+    .select("id,enrichment_summary,created_at,source_type")
+    .eq("user_id", opts.userId)
+    .eq("topic_id", opts.topicId)
+    .eq("included_in_summary", false)
+    .order("created_at", { ascending: true })
+    .limit(8)
+
+  const pending = Array.isArray(pendingRows) ? pendingRows as Array<{
+    id: string
+    enrichment_summary: string
+    created_at: string
+    source_type?: string | null
+  }> : []
+  if (pending.length === 0) return undefined
+
+  const stablePrompt = `
+Tu compactes une mémoire thématique pour un coach IA.
+
+Objectif :
+- garder un résumé coeur compact et durable
+- intégrer les nouveaux enrichissements utiles
+- supprimer les redondances
+- éviter de surcharger avec des détails trop périssables
+- conserver les changements de trajectoire réellement importants
+
+Contraintes :
+- 1 à 2 paragraphes denses maximum
+- français
+- 3ème personne
+- pas de JSON
+  `.trim()
+
+  const volatilePrompt = JSON.stringify({
+    title: topic.title,
+    current_summary: topic.synthesis,
+    pending_enrichments: pending.map((row) => ({
+      created_at: row.created_at,
+      source_type: row.source_type ?? null,
+      summary: row.enrichment_summary,
+    })),
+  })
+
+  let compacted = String(topic.synthesis ?? "").trim()
+  try {
+    const raw = await generateWithGemini(stablePrompt, volatilePrompt, 0.1, false, [], "auto", {
+      requestId: opts.requestId,
+      model: TOPIC_COMPACTION_MODEL,
+      source: "sophia-brain:topic_compaction",
+      forceRealAi: opts.forceRealAi,
+      userId: opts.userId,
+    })
+    compacted = String(raw ?? compacted).trim() || compacted
+  } catch (e) {
+    console.warn(`[TopicMemory] topic compaction failed topic=${topic.slug}:`, e)
+    compacted = compacted || pending.map((row) => timelineNote(row.enrichment_summary, 180)).join(" ")
+  }
+
+  const now = new Date().toISOString()
+  const synthesisEmbedding = await generateEmbedding(compacted, {
+    userId: opts.userId,
+    requestId: opts.requestId,
+    source: "sophia-brain:topic_compaction",
+    operationName: "embedding.topic_compacted_summary",
+  })
+
+  await opts.supabase
+    .from("user_topic_memories")
+    .update({
+      synthesis: compacted,
+      synthesis_embedding: synthesisEmbedding,
+      summary_compacted_at: now,
+      pending_enrichment_count: 0,
+      pending_enrichment_chars: 0,
+      updated_at: now,
+    })
+    .eq("id", opts.topicId)
+
+  const ids = pending.map((row) => row.id).filter(Boolean)
+  if (ids.length > 0) {
+    await opts.supabase
+      .from("user_topic_enrichment_log")
+      .update({ included_in_summary: true } as any)
+      .in("id", ids)
+  }
+
+  return compacted
+}
+
 /**
  * Enrichit la synthèse d'un topic existant avec de nouvelles informations.
  * Le LLM décide si les nouvelles infos apportent quelque chose de nouveau.
@@ -822,111 +1082,26 @@ export async function enrichTopicSynthesis(opts: {
   } catch (e) {
     console.warn(`[TopicMemory] semantic no-op check failed topic=${topic.slug}:`, e)
   }
-
-  const stablePrompt = `
-Tu es le gestionnaire de mémoire d'un coach IA.
-Tu dois décider si de nouvelles informations enrichissent un topic existant.
-
-TES RÈGLES :
-1. Si les nouvelles infos sont un doublon ou n'apportent RIEN de nouveau → { "enriched": false }
-2. Si les nouvelles infos enrichissent le topic → produis une NOUVELLE SYNTHÈSE qui :
-   - Intègre les nouvelles infos DANS la synthèse existante (pas juste concaténer)
-   - Maintient une progression chronologique naturelle
-   - Respecte l'évolution du vécu au fil du temps (sans inventer de dates)
-   - Garde les informations importantes du passé
-   - Supprime les redondances
-   - Reste dense et factuel (max 5 paragraphes courts)
-   - Est écrite à la 3ème personne ("Il/Elle...")
-3. Si une info CONTREDIT une info précédente, mets à jour (ex: "Il a repris le cannabis" remplace "Il a arrêté")
-
-JSON ATTENDU :
-{ "enriched": true, "new_synthesis": "..." }
-ou
-{ "enriched": false }
-  `.trim()
-
-  const semiStablePrompt = `
-TOPIC EXISTANT :
-- Titre : "${topic.title}"
-- Synthèse actuelle :
-"${topic.synthesis}"
-  `.trim()
-
-  const volatilePrompt = `
-NOUVELLES INFORMATIONS :
-"${newInformation}"
-  `.trim()
-
   try {
-    console.log(JSON.stringify({
-      tag: "memorizer_topic_enrichment_prompt_cache_ready",
-      request_id: meta?.requestId ?? null,
-      stable_hash: simplePromptHash(stablePrompt),
-      semi_stable_hash: simplePromptHash(semiStablePrompt),
-      stable_chars: stablePrompt.length,
-      semi_stable_chars: semiStablePrompt.length,
-      volatile_chars: volatilePrompt.length,
-      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + volatilePrompt.length,
-    }))
-  } catch {
-    // non-blocking
-  }
-
-  try {
-    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, volatilePrompt, 0.1, true, [], "json", {
-      requestId: meta?.requestId,
-      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
-      source: "sophia-brain:topic_enrichment",
-      forceRealAi: meta?.forceRealAi,
-      userId,
-    })
-
-    const result = JSON.parse(String(raw ?? "{}"))
-
-    if (!result.enriched) {
-      const keywordStats = await upsertKeywords({
-        supabase,
-        userId,
-        topicId: topic.id,
-        keywords: newKeywords,
-        allowReassign: false,
-        requestId: meta?.requestId,
-      })
-      // Pas d'enrichissement, mais on incrémente le mention_count
-      await supabase
-        .from("user_topic_memories")
-        .update({
-          mention_count: (topic.mention_count ?? 0) + 1,
-          updated_at: new Date().toISOString(),
-        })
-        .eq("id", topic.id)
-
-      console.log(`[TopicMemory] NOOP (llm) topic=${topic.slug} keywords+${keywordStats.inserted}`)
-      return { enriched: false }
-    }
-
-    const newSynthesis = String(result.new_synthesis ?? "").trim()
-    if (!newSynthesis) return { enriched: false }
-
-    // Mettre à jour le topic
-    const synthesisEmbedding = await generateEmbedding(newSynthesis, {
-      userId,
-      requestId: meta?.requestId,
-      source: "sophia-brain:topic_enrichment",
-      operationName: "embedding.topic_enriched_synthesis",
-    })
     const now = new Date().toISOString()
+    const keywordStats = await upsertKeywords({
+      supabase,
+      userId,
+      topicId: topic.id,
+      keywords: newKeywords,
+      allowReassign: false,
+      requestId: meta?.requestId,
+    })
 
-    // Log l'enrichissement (audit trail)
     await supabase.from("user_topic_enrichment_log").insert({
       user_id: userId,
       topic_id: topic.id,
       enrichment_summary: newInformation.slice(0, 500),
-      previous_synthesis: topic.synthesis,
+      previous_synthesis: null,
       source_type: sourceType,
-    })
+      included_in_summary: false,
+    } as any)
 
-    // Mettre à jour le topic
     const baseMetadata = (topic.metadata && typeof topic.metadata === "object")
       ? topic.metadata
       : {}
@@ -938,14 +1113,17 @@ NOUVELLES INFORMATIONS :
         source: sourceType,
       },
     )
+    const nextPendingCount = Number(topic.pending_enrichment_count ?? 0) + 1
+    const nextPendingChars = Number(topic.pending_enrichment_chars ?? 0) + newInfo.length
+
     await supabase
       .from("user_topic_memories")
       .update({
-        synthesis: newSynthesis,
-        synthesis_embedding: synthesisEmbedding,
         mention_count: (topic.mention_count ?? 0) + 1,
         enrichment_count: (topic.enrichment_count ?? 0) + 1,
         last_enriched_at: now,
+        pending_enrichment_count: nextPendingCount,
+        pending_enrichment_chars: nextPendingChars,
         metadata: {
           ...baseMetadata,
           timeline,
@@ -954,17 +1132,24 @@ NOUVELLES INFORMATIONS :
       })
       .eq("id", topic.id)
 
-    // Ajouter les nouveaux keywords
-    const keywordStats = await upsertKeywords({
-      supabase,
-      userId,
-      topicId: topic.id,
-      keywords: newKeywords,
-      allowReassign: false,
-    })
+    let compacted: string | undefined
+    if (
+      nextPendingCount >= TOPIC_COMPACTION_PENDING_COUNT ||
+      nextPendingChars >= TOPIC_COMPACTION_PENDING_CHARS
+    ) {
+      compacted = await compactTopicSummary({
+        supabase,
+        userId,
+        topicId: topic.id,
+        requestId: meta?.requestId,
+        forceRealAi: meta?.forceRealAi,
+      })
+    }
 
-    console.log(`[TopicMemory] Enriched topic "${topic.title}" (id=${topic.id}) keywords+${keywordStats.inserted}`)
-    return { enriched: true, newSynthesis }
+    console.log(
+      `[TopicMemory] Enriched topic "${topic.title}" keywords+${keywordStats.inserted} compacted=${Boolean(compacted)}`,
+    )
+    return { enriched: true, newSynthesis: compacted }
   } catch (e) {
     console.error(`[TopicMemory] Failed to enrich topic "${topic.title}":`, e)
     return { enriched: false }
@@ -988,44 +1173,7 @@ export async function createTopic(opts: {
   const { supabase, userId, extractedTopic, meta } = opts
   const sourceType = opts.sourceType ?? "chat"
 
-  // Générer la synthèse initiale (reformulation à la 3ème personne)
-  const stablePrompt = `
-Reformule les informations suivantes en une synthèse à la 3ème personne.
-Sois dense, factuel, et organise par ordre chronologique si applicable.
-1-2 paragraphes maximum. Commence directement par le contenu.
-  `.trim()
-
-  const semiStablePrompt = `Sujet : "${extractedTopic.title}"`.trim()
-  const volatilePrompt = `Informations : "${extractedTopic.new_information}"`.trim()
-
-  try {
-    console.log(JSON.stringify({
-      tag: "memorizer_topic_initial_synthesis_prompt_cache_ready",
-      request_id: meta?.requestId ?? null,
-      stable_hash: simplePromptHash(stablePrompt),
-      semi_stable_hash: simplePromptHash(semiStablePrompt),
-      stable_chars: stablePrompt.length,
-      semi_stable_chars: semiStablePrompt.length,
-      volatile_chars: volatilePrompt.length,
-      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + volatilePrompt.length,
-    }))
-  } catch {
-    // non-blocking
-  }
-
-  let synthesis: string
-  try {
-    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, volatilePrompt, 0.1, true, [], "auto", {
-      requestId: meta?.requestId,
-      model: getGlobalAiModel("gemini-2.5-flash"),
-      source: "sophia-brain:topic_initial_synthesis",
-      forceRealAi: meta?.forceRealAi,
-      userId,
-    })
-    synthesis = String(raw ?? extractedTopic.new_information).trim()
-  } catch {
-    synthesis = extractedTopic.new_information
-  }
+  const synthesis = extractedTopic.new_information
 
   // Vectoriser la synthèse et le titre
   const [synthesisEmbedding, titleEmbedding] = await Promise.all([
@@ -1056,8 +1204,11 @@ Sois dense, factuel, et organise par ordre chronologique si applicable.
       status: "active",
       mention_count: 1,
       enrichment_count: 0,
+      pending_enrichment_count: 0,
+      pending_enrichment_chars: 0,
       first_mentioned_at: now,
       last_enriched_at: now,
+      summary_compacted_at: now,
       metadata: {
         domain: extractedTopic.domain ?? null,
         source_type: sourceType,
@@ -1497,7 +1648,7 @@ export async function retrieveTopicMemories(opts: {
       if (topicIds.length > 0) {
         const { data: enrichmentRows } = await supabase
           .from("user_topic_enrichment_log")
-          .select("topic_id, enrichment_summary, source_type, created_at")
+          .select("topic_id, enrichment_summary, source_type, created_at, included_in_summary")
           .eq("user_id", userId)
           .in("topic_id", topicIds)
           .order("created_at", { ascending: false })
@@ -1509,7 +1660,9 @@ export async function retrieveTopicMemories(opts: {
           if (!tid) continue
           const createdAt = String(row?.created_at ?? "").trim()
           const summary = String(row?.enrichment_summary ?? "").trim()
+          const included = Boolean(row?.included_in_summary)
           if (!createdAt || !summary) continue
+          if (included) continue
           const arr = byTopic.get(tid) ?? []
           if (arr.length >= 3) continue
           arr.push({
@@ -1637,7 +1790,14 @@ export async function processTopicsFromWatcher(opts: {
   currentContext?: string
   sourceType?: TopicEnrichmentSource
   meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
-}): Promise<{ topicsCreated: number; topicsEnriched: number; topicsNoop: number }> {
+}): Promise<{
+  topicsCreated: number
+  topicsEnriched: number
+  topicsNoop: number
+  eventsCreated: number
+  eventsUpdated: number
+  eventsNoop: number
+}> {
   const { supabase, userId, transcript, currentContext, meta } = opts
   const sourceType = opts.sourceType ?? "chat"
 
@@ -1651,38 +1811,88 @@ export async function processTopicsFromWatcher(opts: {
 
   const existingTopicSlugs = (existingTopics ?? []).map((t: any) => String(t.slug))
 
-  // 2. Extraire les topics de la conversation
-  const extractedTopics = await extractTopicsFromTranscript({
+  const userTime = await getUserTimeContext({ supabase, userId })
+
+  // 2. Extraire topics durables + events spécifiques en un seul appel.
+  const extracted = await extractMemoryCandidatesFromTranscript({
     transcript,
     existingTopicSlugs,
     currentContext,
+    timeContextPrompt: userTime.prompt_block,
     userId,
     meta,
   })
 
-  if (extractedTopics.length === 0) {
-    console.log("[TopicMemory] No topics extracted from transcript.")
-    return { topicsCreated: 0, topicsEnriched: 0, topicsNoop: 0 }
+  if (extracted.durable_topics.length === 0 && extracted.event_candidates.length === 0) {
+    console.log("[TopicMemory] No memory candidates extracted from transcript.")
+    return {
+      topicsCreated: 0,
+      topicsEnriched: 0,
+      topicsNoop: 0,
+      eventsCreated: 0,
+      eventsUpdated: 0,
+      eventsNoop: 0,
+    }
   }
 
-  console.log(`[TopicMemory] Extracted ${extractedTopics.length} topics: ${extractedTopics.map(t => t.slug).join(", ")}`)
+  const batchDecision = await validateMemoryCandidatesBatch({
+    durableTopics: extracted.durable_topics,
+    eventCandidates: extracted.event_candidates,
+    sourceType,
+    userId,
+    meta,
+  })
+
+  const extractedTopics = extracted.durable_topics
+    .filter((topic) => batchDecision.topics_to_persist.includes(topic.slug))
+  const allowEventPersistence = sourceType === "chat" || sourceType === "bilan"
+  const extractedEvents = (allowEventPersistence ? extracted.event_candidates : [])
+    .filter((event) => batchDecision.events_to_persist.includes(slugify(event.event_key)))
+
+  if (extractedTopics.length === 0 && extractedEvents.length === 0) {
+    console.log("[TopicMemory] Batch validation rejected all memory candidates.")
+    return {
+      topicsCreated: 0,
+      topicsEnriched: 0,
+      topicsNoop: 0,
+      eventsCreated: 0,
+      eventsUpdated: 0,
+      eventsNoop: 0,
+    }
+  }
+
+  console.log(
+    `[TopicMemory] Accepted topics=${extractedTopics.map(t => t.slug).join(", ") || "none"} events=${extractedEvents.map(e => e.event_key).join(", ") || "none"}`,
+  )
 
   let topicsCreated = 0
   let topicsEnriched = 0
   let topicsNoop = 0
+  let eventsCreated = 0
+  let eventsUpdated = 0
+  let eventsNoop = 0
+
+  for (const event of extractedEvents) {
+    try {
+      const result = await upsertEventMemoryFromCandidate({
+        supabase,
+        userId,
+        candidate: event,
+        requestId: meta?.requestId,
+        nowIso: userTime.now_utc,
+      })
+      if (result.created) eventsCreated++
+      else if (result.updated) eventsUpdated++
+      else eventsNoop++
+    } catch (e) {
+      console.error(`[TopicMemory] Failed to persist event "${event.event_key}":`, e)
+      eventsNoop++
+    }
+  }
 
   // 3. Pour chaque topic : gate de persistance, puis enrichir ou créer
   for (const extracted of extractedTopics) {
     try {
-      const gate = await shouldPersistTopicMemory({ extractedTopic: extracted, sourceType, userId, meta })
-      if (!gate.persist) {
-        topicsNoop++
-        console.log(
-          `[TopicMemory] Rejected slug=${extracted.slug} score=${gate.value_score} reason="${gate.reason.slice(0, 80)}"`,
-        )
-        continue
-      }
-
       const existingTopic = await findMatchingTopic({
         supabase,
         userId,
@@ -1721,8 +1931,17 @@ export async function processTopicsFromWatcher(opts: {
     }
   }
 
-  console.log(`[TopicMemory] Pipeline done: ${topicsCreated} created, ${topicsEnriched} enriched, ${topicsNoop} noop.`)
-  return { topicsCreated, topicsEnriched, topicsNoop }
+  console.log(
+    `[TopicMemory] Pipeline done: topics(created=${topicsCreated}, enriched=${topicsEnriched}, noop=${topicsNoop}) events(created=${eventsCreated}, updated=${eventsUpdated}, noop=${eventsNoop}).`,
+  )
+  return {
+    topicsCreated,
+    topicsEnriched,
+    topicsNoop,
+    eventsCreated,
+    eventsUpdated,
+    eventsNoop,
+  }
 }
 
 /**

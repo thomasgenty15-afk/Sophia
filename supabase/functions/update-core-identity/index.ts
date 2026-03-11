@@ -123,7 +123,11 @@ Deno.serve(async (req) => {
         `
     }
 
-    const newIdentityRaw = await generateWithGemini(systemPrompt, transcript, 0.3)
+    const newIdentityRaw = await generateWithGemini(systemPrompt, transcript, 0.3, false, [], "auto", {
+      requestId,
+      userId,
+      source: "update-core-identity",
+    })
     if (typeof newIdentityRaw !== "string") {
       throw new Error("Identity generation returned a tool call instead of text")
     }
@@ -131,7 +135,12 @@ Deno.serve(async (req) => {
     if (!newIdentityContent) {
       throw new Error("Identity generation returned empty content")
     }
-    const identityEmbedding = await generateEmbedding(newIdentityContent)
+    const identityEmbedding = await generateEmbedding(newIdentityContent, {
+      userId,
+      requestId,
+      source: "update-core-identity",
+      operationName: "embedding.update_core_identity_content",
+    })
 
     // 7. Sauvegarde et Archivage
     if (oldIdentity) {
