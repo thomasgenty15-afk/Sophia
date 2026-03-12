@@ -8,7 +8,7 @@ function assertEquals(actual: unknown, expected: unknown) {
   }
 }
 
-Deno.test("buildFlowContext: ignores dual_tool pending context in release-1 simplified mode", () => {
+Deno.test("buildFlowContext: ignores dual_tool pending context in simplified mode", () => {
   const ctx = buildFlowContext({
     __pending_dual_tool: {
       tool1: { verb: "activer", target_hint: "sport" },
@@ -19,7 +19,7 @@ Deno.test("buildFlowContext: ignores dual_tool pending context in release-1 simp
   assertEquals(ctx, undefined);
 });
 
-Deno.test("buildFlowContext: ignores resume_prompt pending context in release-1 simplified mode", () => {
+Deno.test("buildFlowContext: ignores resume_prompt pending context in simplified mode", () => {
   const ctx = buildFlowContext({
     __router_resume_prompt_v1: {
       kind: "safety_recovery",

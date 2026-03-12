@@ -4,7 +4,10 @@ export type EthicalEntityType =
   | "action"
   | "rendez_vous"
   | "north_star"
-  | "vital_sign";
+  | "vital_sign"
+  | "wish"
+  | "reflection"
+  | "story";
 
 export type EthicalOperation = "create" | "update";
 
@@ -35,6 +38,12 @@ function blockReasonByEntity(entityType: EthicalEntityType): string {
       return "Ce type d'etoile polaire n'est pas en accord avec les valeurs de Sophia.";
     case "vital_sign":
       return "Ce type de signe vital n'est pas en accord avec les valeurs de Sophia.";
+    case "wish":
+      return "Ce type de voeu n'est pas en accord avec les valeurs de Sophia.";
+    case "reflection":
+      return "Ce type de réflexion n'est pas en accord avec les valeurs de Sophia.";
+    case "story":
+      return "Ce type d'histoire n'est pas en accord avec les valeurs de Sophia.";
     default:
       return "Ce type de contenu n'est pas en accord avec les valeurs de Sophia.";
   }

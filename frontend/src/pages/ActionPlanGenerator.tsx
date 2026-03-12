@@ -37,6 +37,7 @@ const ActionPlanGenerator = () => {
     feedback,
     setFeedback,
     isRefining,
+    isValidatingPlan,
     handleGenerate,
     handleRegenerate,
     handleValidatePlan,
@@ -534,12 +535,12 @@ const ActionPlanGenerator = () => {
                   value={feedback}
                   onChange={e => setFeedback(e.target.value)}
                   placeholder="Ex: Je ne peux pas me lever à 7h le weekend..."
-                  disabled={isRefining}
+                  disabled={isRefining || isValidatingPlan}
                   className="flex-1 p-3 rounded-xl border border-slate-200 focus:ring-2 focus:ring-violet-500 outline-none text-sm md:text-base disabled:opacity-50 disabled:bg-slate-50"
                 />
                 <button 
                   onClick={handleRegenerate}
-                  disabled={!feedback || isRefining}
+                  disabled={!feedback || isRefining || isValidatingPlan}
                   className="px-3 md:px-4 bg-slate-100 text-slate-600 font-bold rounded-xl hover:bg-slate-200 disabled:opacity-50 transition-colors min-w-[50px] flex items-center justify-center"
                 >
                   {isRefining ? (
@@ -560,10 +561,20 @@ const ActionPlanGenerator = () => {
             {/* VALIDATION FINALE */}
             <button 
               onClick={handleValidatePlan}
-              className="w-full bg-emerald-600 text-white font-bold text-base md:text-lg py-4 md:py-5 rounded-xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 md:gap-3"
+              disabled={isValidatingPlan}
+              className="w-full bg-emerald-600 text-white font-bold text-base md:text-lg py-4 md:py-5 rounded-xl hover:bg-emerald-700 transition-all shadow-xl shadow-emerald-200 flex items-center justify-center gap-2 md:gap-3 disabled:opacity-80 disabled:cursor-wait"
             >
-              C'est parfait, on commence !
-              <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+              {isValidatingPlan ? (
+                <>
+                  <div className="w-5 h-5 border-2 border-white/70 border-t-transparent rounded-full animate-spin" />
+                  Enregistrement du plan...
+                </>
+              ) : (
+                <>
+                  C'est parfait, on commence !
+                  <ArrowRight className="w-4 h-4 md:w-5 md:h-5" />
+                </>
+              )}
             </button>
 
           </div>

@@ -1,7 +1,7 @@
 import { supabase } from "./supabase";
 import { newRequestId, requestHeaders } from "./requestId";
 
-export type EthicalEntityType = "action" | "rendez_vous" | "north_star" | "vital_sign";
+export type EthicalEntityType = "action" | "rendez_vous" | "north_star" | "vital_sign" | "wish" | "reflection" | "story";
 export type EthicalOperation = "create" | "update";
 
 export function normalizeTextForCompare(value: unknown): string {
@@ -68,4 +68,3 @@ export async function validateEthicalText(payload: ValidatePayload): Promise<{ d
     validated: Boolean((result.data as any)?.validated),
   };
 }
-

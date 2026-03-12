@@ -31,22 +31,16 @@ export interface ContextProfile {
   /** Identité profonde (Temple) */
   identity: boolean;
 
-  /** Mémoires vectorielles (Forge/RAG) - "minimal" = 2-3 résultats */
-  vectors: boolean | "minimal";
-
   /** Topic memories (mémoire thématique vivante) */
   topic_memories: boolean;
 
   /** Event memories (événements spécifiques datés) */
   event_memories: boolean;
 
-  /** User facts (préférences structurées) */
+  /** User facts structurés pour personnaliser la forme de réponse */
   facts: boolean;
 
-  /** Candidats de confirmation (user model) */
-  candidates: boolean;
-
-  /** Fil rouge (short_term_context du Watcher) */
+  /** Fil rouge synthétisé à partir des derniers échanges */
   short_term: boolean;
 
   /** Nombre de messages d'historique à inclure */
@@ -81,15 +75,12 @@ export interface LoadedContext {
   actionIndicators?: string;
   actionsDetails?: string;
   identity?: string;
-  vectors?: string;
   eventMemories?: string;
   topicMemories?: string;
   facts?: string;
-  candidates?: string;
   shortTerm?: string;
   recentTurns?: string;
   vitals?: string;
-  topicSession?: string;
   trackProgressAddon?: string;
   dashboardRedirectAddon?: string;
   dashboardCapabilitiesLiteAddon?: string;
@@ -122,10 +113,9 @@ export interface PlanMetadata {
  * Profils de contexte par mode d'agent.
  *
  * Principes:
- * - Companion: contexte conversationnel, pas besoin du plan JSON
- * - Architect: plan JSON seulement si opération détectée
- * - Investigator: RAG spécifique à l'item en cours
- * - Sentry: zéro contexte, réponse déterministe
+ * - Companion: contexte conversationnel le plus riche
+ * - Investigator: focalisé sur le suivi guidé / bilan, sans mémoire durable large
+ * - Dispatcher / watcher / sentry: contexte minimal ou nul
  */
 export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
   companion: {
@@ -135,11 +125,9 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_summary: true,
     actions_details: "on_demand",
     identity: true,
-    vectors: false,
     event_memories: true,
     topic_memories: true,
     facts: true,
-    candidates: true,
     short_term: true,
     history_depth: 15,
     vitals: true,
@@ -152,11 +140,9 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_summary: true,
     actions_details: "on_demand",
     identity: false,
-    vectors: false, // RAG spécifique à l'item, géré par investigator/run.ts
     event_memories: false,
     topic_memories: false,
     facts: false,
-    candidates: false,
     short_term: false,
     history_depth: 15,
     vitals: true,
@@ -169,11 +155,9 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_summary: false,
     actions_details: false,
     identity: false,
-    vectors: false,
     event_memories: false,
     topic_memories: false,
     facts: false,
-    candidates: false,
     short_term: false,
     history_depth: 0,
     vitals: false,
@@ -187,11 +171,9 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_summary: false,
     actions_details: false,
     identity: false,
-    vectors: false,
     event_memories: false,
     topic_memories: false,
     facts: false,
-    candidates: false,
     short_term: false,
     history_depth: 5,
     vitals: false,
@@ -204,11 +186,9 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_summary: false,
     actions_details: false,
     identity: false,
-    vectors: false,
     event_memories: false,
     topic_memories: false,
     facts: false,
-    candidates: false,
     short_term: false,
     history_depth: 0,
     vitals: false,
@@ -226,11 +206,9 @@ export const DEFAULT_CONTEXT_PROFILE: ContextProfile = {
   actions_summary: false,
   actions_details: false,
   identity: false,
-  vectors: false,
   event_memories: false,
   topic_memories: false,
   facts: false,
-  candidates: false,
   short_term: false,
   history_depth: 5,
   vitals: false,
@@ -282,13 +260,4 @@ export function shouldLoadActionsDetails(
       triggers.update_action_intent ||
       triggers.breakdown_recommended,
   );
-}
-
-/**
- * Nombre de résultats RAG selon le profil
- */
-export function getVectorResultsCount(profile: ContextProfile): number {
-  if (profile.vectors === false) return 0;
-  if (profile.vectors === "minimal") return 2;
-  return 5; // default pour true
 }

@@ -33,6 +33,7 @@ export const usePlanGeneratorLogic = (
   const [error, setError] = useState<string | null>(null);
   const [feedback, setFeedback] = useState('');
   const [isRefining, setIsRefining] = useState(false);
+  const [isValidatingPlan, setIsValidatingPlan] = useState(false);
 
   const [loadingMessage, setLoadingMessage] = useState<string>('');
 
@@ -269,6 +270,9 @@ export const usePlanGeneratorLogic = (
 
   // --- 3. VALIDATE PLAN ---
   const handleValidatePlan = async () => {
+    if (isValidatingPlan) return;
+    setIsValidatingPlan(true);
+
     if (user) {
       try {
         let { data: activeGoal } = await supabase.from('user_goals').select('id, submission_id').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1).maybeSingle();
@@ -364,6 +368,7 @@ export const usePlanGeneratorLogic = (
     feedback,
     setFeedback,
     isRefining,
+    isValidatingPlan,
     handleGenerate,
     handleRegenerate,
     handleValidatePlan,

@@ -30,11 +30,9 @@ App (après accès)
 
 Admin
 - "/admin" : Admin dashboard
-- "/admin/evals" : Admin evals
 - "/admin/usage" : Usage dashboard
 - "/admin/production-log" : Production log
 `.trim();
-
 
 
 

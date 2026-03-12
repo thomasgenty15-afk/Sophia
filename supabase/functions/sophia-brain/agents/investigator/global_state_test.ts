@@ -98,6 +98,27 @@ Deno.test("helpers keep broad opening and grouped follow-up natural", () => {
   })
   assertEquals(
     msg,
-    "Ok, je vois pour Meditation matinale. Et pour Lecture 30 min et ta nuit, ça a donné quoi ?",
+    "Ok, c'est noté pour Meditation matinale. Il me manque encore ta lecture et ta nuit. Ça a donné quoi de ce côté-là ?",
+  )
+})
+
+Deno.test("spoken labels turn rigid dashboard wording into natural phrasing", () => {
+  assertEquals(
+    spokenLabelForItem({
+      id: "f1",
+      type: "framework",
+      title: "Journal de Fin de Journée",
+      tracking_type: "boolean",
+    }),
+    "ton journal du soir",
+  )
+  assertEquals(
+    spokenLabelForItem({
+      id: "a1",
+      type: "action",
+      title: "Couvre-feu Digital Renforcé",
+      tracking_type: "boolean",
+    }),
+    "les écrans",
   )
 })

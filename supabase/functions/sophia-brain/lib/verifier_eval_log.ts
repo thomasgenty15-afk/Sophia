@@ -1,5 +1,30 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
-import { logEvalEvent } from "../../run-evals/lib/eval_trace.ts"
+
+type EvalTraceLevel = "debug" | "info" | "warn" | "error"
+
+async function logEvalEvent(opts: {
+  supabase: SupabaseClient
+  evalRunId: string | null
+  requestId: string
+  source: string
+  event: string
+  level?: EvalTraceLevel
+  payload?: any
+}): Promise<void> {
+  const { supabase, evalRunId, requestId, source, event } = opts
+  try {
+    await supabase.from("conversation_eval_events").insert({
+      eval_run_id: evalRunId,
+      request_id: requestId,
+      source: String(source ?? "unknown").slice(0, 80),
+      event: String(event ?? "event").slice(0, 120),
+      level: (opts.level ?? "info"),
+      payload: (opts.payload && typeof opts.payload === "object") ? opts.payload : { value: opts.payload ?? null },
+    } as any)
+  } catch {
+    // Best-effort. Never fail request handling because tracing insert failed.
+  }
+}
 
 // Cache in isolate memory to avoid repeated DB lookups per request_id during eval runs.
 function getCache(): Map<string, string> {
@@ -11,7 +36,7 @@ function getCache(): Map<string, string> {
 async function resolveEvalRunIdByRequestId(supabase: SupabaseClient, requestId: string): Promise<string | null> {
   const rid = String(requestId ?? "").trim()
   if (!rid) return null
-  // Only meaningful for eval runs (we use tagged request_ids in run-evals).
+  // Only meaningful for eval runs with tagged request ids.
   if (!rid.includes(":state_machines:") && !rid.includes(":tools:") && !rid.includes(":whatsapp:")) return null
   const cache = getCache()
   if (cache.has(rid)) return cache.get(rid) ?? null
@@ -50,8 +75,6 @@ export async function logVerifierEvalEvent(opts: {
     payload: opts.payload,
   })
 }
-
-
 
 
 

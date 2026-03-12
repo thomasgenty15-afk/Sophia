@@ -35,22 +35,22 @@ Deno.serve(async (req) => {
       )
     // Backward compatibility: some frontend calls used { mode, context } without { message }.
     // We synthesize a user message and a textual context override, and force the appropriate agent.
-    const legacyMode = (body?.mode ?? "").toString().trim()
-    const legacyContext = body?.context
-    if (!message && legacyMode && legacyContext && typeof legacyContext === 'object') {
-      const userPrompt = (legacyContext?.userPrompt ?? legacyContext?.prompt ?? "").toString().trim()
+    const compatibilityMode = (body?.mode ?? "").toString().trim()
+    const compatibilityContext = body?.context
+    if (!message && compatibilityMode && compatibilityContext && typeof compatibilityContext === 'object') {
+      const userPrompt = (compatibilityContext?.userPrompt ?? compatibilityContext?.prompt ?? "").toString().trim()
       message = userPrompt || "Aide-moi à avancer."
 
       if (!contextOverride) {
-        const safeContext = { ...legacyContext }
+        const safeContext = { ...compatibilityContext }
         // Avoid duplicating userPrompt in the context header.
         if ('userPrompt' in safeContext) delete (safeContext as any).userPrompt
         if ('prompt' in safeContext) delete (safeContext as any).prompt
-        contextOverride = `LegacyMode: ${legacyMode}\nLegacyContext: ${JSON.stringify(safeContext)}`
+        contextOverride = `CompatibilityMode: ${compatibilityMode}\nCompatibilityContext: ${JSON.stringify(safeContext)}`
       }
 
-      // Legacy content modes now map to companion in the simplified router.
-      if (!forceMode && (legacyMode === 'architect_help' || legacyMode === 'refine_module')) {
+      // Older content modes now map to companion in the simplified router.
+      if (!forceMode && (compatibilityMode === 'architect_help' || compatibilityMode === 'refine_module')) {
         forceMode = 'companion'
       }
     }

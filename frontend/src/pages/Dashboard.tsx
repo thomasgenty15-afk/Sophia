@@ -17,7 +17,10 @@ import {
   Check,
   Crown,
   Repeat,
-  Bell
+  Bell,
+  Lightbulb,
+  Quote,
+  ChevronDown
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
@@ -49,6 +52,11 @@ import { PersonalActionsSection } from '../components/dashboard/PersonalActionsS
 import { NorthStarSection } from '../components/dashboard/NorthStarSection';
 import { RemindersSection } from '../components/dashboard/RemindersSection';
 import { PreferencesSection } from '../components/dashboard/PreferencesSection';
+
+import { WishlistTab } from '../components/architect/WishlistTab';
+import { StoriesTab } from '../components/architect/StoriesTab';
+import { ReflectionsTab } from '../components/architect/ReflectionsTab';
+import { QuotesTab } from '../components/architect/QuotesTab';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -132,6 +140,7 @@ const Dashboard = () => {
   const [createActionPhaseIndex, setCreateActionPhaseIndex] = useState<number | null>(null);
   const [editingAction, setEditingAction] = useState<Action | null>(null);
   const [activeTab, setActiveTab] = useState<'plan' | 'personal' | 'north_star' | 'reminders' | 'preferences'>('plan');
+  const [architectTab, setArchitectTab] = useState<'coaching' | 'wishlist' | 'stories' | 'reflections' | 'quotes'>('coaching');
   const [northStarAttention, setNorthStarAttention] = useState(false);
 
   useEffect(() => {
@@ -491,17 +500,99 @@ const Dashboard = () => {
         )}
 
         {isArchitectMode ? (
-          <div className="animate-fade-in">
-            <div className="text-center mb-12">
-              <h1 className="text-2xl md:text-3xl font-serif font-bold text-emerald-100 mb-3">L'Atelier d'Identité</h1>
-              <p className="text-sm md:text-base text-emerald-400 max-w-lg mx-auto">
-                "On ne s'élève pas au niveau de ses objectifs. On tombe au niveau de ses systèmes."
-              </p>
+          <div className="animate-fade-in flex-1 flex flex-col">
+            {/* NOUVEAU : Barre de navigation des onglets Architecte */}
+            <div className="mb-8 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex w-max min-w-full justify-start md:justify-center">
+                <div className="flex bg-emerald-950/50 p-1.5 rounded-xl border border-emerald-800/50 shadow-lg min-w-max">
+                <button 
+                  onClick={() => setArchitectTab('coaching')}
+                  className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${architectTab === 'coaching' ? 'bg-emerald-600 text-white shadow-md scale-105' : 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30'}`}
+                >
+                  <Sparkles className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">L'Atelier</span>
+                </button>
+                <button 
+                  onClick={() => setArchitectTab('wishlist')}
+                  className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${architectTab === 'wishlist' ? 'bg-emerald-600 text-white shadow-md scale-105' : 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30'}`}
+                >
+                  <Target className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">Vœux</span>
+                </button>
+                <button 
+                  onClick={() => setArchitectTab('stories')}
+                  className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${architectTab === 'stories' ? 'bg-emerald-600 text-white shadow-md scale-105' : 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30'}`}
+                >
+                  <Book className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">Histoires</span>
+                </button>
+                <button 
+                  onClick={() => setArchitectTab('reflections')}
+                  className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${architectTab === 'reflections' ? 'bg-emerald-600 text-white shadow-md scale-105' : 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30'}`}
+                >
+                  <Lightbulb className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">Réflexions</span>
+                </button>
+                <button 
+                  onClick={() => setArchitectTab('quotes')}
+                  className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${architectTab === 'quotes' ? 'bg-emerald-600 text-white shadow-md scale-105' : 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30'}`}
+                >
+                  <Quote className="w-4 h-4 shrink-0" />
+                  <span className="whitespace-nowrap">Citations</span>
+                </button>
+                </div>
+              </div>
             </div>
 
-            <div className="max-w-3xl mx-auto">
-              {!isPhase1Completed ? (
-                <>
+            {architectTab === 'coaching' && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px] p-6 md:p-12">
+                <div className="max-w-4xl mx-auto w-full">
+                  <div className="text-center mb-12">
+                    <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">L'Atelier</h1>
+                    <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic mb-6">
+                      "On ne s'élève pas au niveau de ses objectifs. On tombe au niveau de ses systèmes."
+                    </p>
+                    
+                    <button 
+                      onClick={() => {
+                        const el = document.getElementById('atelier-explanation');
+                        if (el) {
+                          el.style.display = el.style.display === 'none' ? 'block' : 'none';
+                        }
+                      }}
+                      className="text-xs font-bold uppercase tracking-widest text-emerald-500 hover:text-emerald-400 flex items-center justify-center gap-2 mx-auto transition-colors"
+                    >
+                      Comment utiliser cet espace
+                      <ChevronDown className="w-4 h-4" />
+                    </button>
+                    
+                    <div id="atelier-explanation" style={{ display: 'none' }} className="mt-6 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
+                      <p className="mb-4">L'Atelier est le cœur de ta transformation identitaire. Il se déroule en deux phases distinctes :</p>
+                      
+                      <div className="space-y-4">
+                        <div className="bg-emerald-950/50 p-4 rounded-xl border border-emerald-800/30">
+                          <h4 className="text-emerald-400 font-bold uppercase tracking-widest text-xs mb-2 flex items-center gap-2">
+                            <Hammer className="w-3.5 h-3.5" /> Phase 1 : La construction du temple
+                          </h4>
+                          <p>Un parcours intensif de 12 semaines pour déconstruire tes blocages et poser de nouvelles fondations. Tu ne peux avancer qu'une semaine à la fois.</p>
+                        </div>
+                        
+                        <div className="bg-emerald-950/50 p-4 rounded-xl border border-emerald-800/30">
+                          <h4 className="text-amber-400 font-bold uppercase tracking-widest text-xs mb-2 flex items-center gap-2">
+                            <Sparkles className="w-3.5 h-3.5" /> Phase 2 : L'amélioration continue
+                          </h4>
+                          <p className="mb-2">Une fois les fondations posées, tu débloques l'accès à vie à deux outils majeurs :</p>
+                          <ul className="space-y-2 text-emerald-200/70">
+                            <li>• <strong>La Table Ronde :</strong> Ton rituel d'alignement hebdomadaire pour garder le cap.</li>
+                            <li>• <strong>La Forge :</strong> Une bibliothèque de plus de 140 modules spécifiques pour travailler des points précis de ton identité (leadership, argent, relations...) à la demande.</li>
+                          </ul>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {!isPhase1Completed && (
+                    <>
                   <div className="flex items-center justify-center gap-3 mb-8">
                     <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
                       <Hammer className="w-4 h-4" />
@@ -597,22 +688,44 @@ const Dashboard = () => {
                                       <Hammer className="w-3 h-3" /> Accès Ouvert
                                     </div>
                                 ) : (
-                                    <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
-                                      <Lock className="w-3 h-3" /> {getUnlockText(forgeModule)}
-                                    </div>
+                                  <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
+                                    <Lock className="w-3 h-3" /> {getUnlockText(forgeModule)}
+                                  </div>
                                 )}
                               </div>
                             </div>
-                        );
-                    })()}
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col gap-6 animate-fade-in">
-                  {/* ... Phase 2 Active ... (Mocked out based on original file logic for now) */}
+                          );
+                        })()}
+                      </div>
+                    </>
+                  )}
                 </div>
-              )}
-            </div>
+              </div>
+            )}
+
+            {architectTab === 'wishlist' && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
+                <WishlistTab />
+              </div>
+            )}
+            
+            {architectTab === 'stories' && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
+                <StoriesTab />
+              </div>
+            )}
+
+            {architectTab === 'reflections' && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
+                <ReflectionsTab />
+              </div>
+            )}
+
+            {architectTab === 'quotes' && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
+                <QuotesTab />
+              </div>
+            )}
           </div>
         ) : (
           <div className="animate-fade-in flex-1 flex flex-col">

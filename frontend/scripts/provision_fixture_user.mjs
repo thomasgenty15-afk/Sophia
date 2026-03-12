@@ -35,7 +35,7 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 function archetypesDir() {
-  // frontend/eval/archetypes
+  // Former eval archetypes lived under frontend/eval/archetypes
   return path.join(__dirname, "..", "eval", "archetypes");
 }
 
@@ -327,4 +327,3 @@ main().catch((e) => {
   console.error(e);
   process.exit(1);
 });
-

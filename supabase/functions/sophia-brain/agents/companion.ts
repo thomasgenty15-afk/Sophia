@@ -356,10 +356,10 @@ function buildCompanionStablePrompt(opts: {
     - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
     - Si des facts existent, adapte ton style/timing sans le dire.
     - Préférences coach prioritaires (si présentes):
-      1) coach.coaching_style: gentle | normal | challenging
-      2) coach.chatty_level: light | normal | high
-      3) coach.question_tendency: low | normal | high
-    - Les facts legacy (conversation.tone, conversation.verbosity, conversation.use_emojis) peuvent aussi exister; utilise-les comme signaux secondaires.
+      1) coach.tone, coach.challenge_level, coach.feedback_style
+      2) coach.talk_propensity, coach.message_length, coach.message_format, coach.question_tendency
+      3) coach.primary_focus, coach.emotional_personalization
+    - Des facts conversation.* historiques (conversation.tone, conversation.verbosity, conversation.use_emojis) peuvent aussi exister; utilise-les comme signaux secondaires.
     - Priorité de personnalisation:
       1) Contraintes safety/add-ons actifs,
       2) Préférences coach + facts user disponibles,
@@ -471,10 +471,10 @@ function buildCompanionStablePrompt(opts: {
     - Le contexte peut contenir "=== USER MODEL (FACTS) ===".
     - Si des facts existent, adapte ton style/timing sans le dire.
     - Préférences coach prioritaires (si présentes):
-      1) coach.coaching_style: gentle | normal | challenging
-      2) coach.chatty_level: light | normal | high
-      3) coach.question_tendency: low | normal | high
-    - Les facts legacy (conversation.tone, conversation.verbosity, conversation.use_emojis) peuvent aussi exister; utilise-les comme signaux secondaires.
+      1) coach.tone, coach.challenge_level, coach.feedback_style
+      2) coach.talk_propensity, coach.message_length, coach.message_format, coach.question_tendency
+      3) coach.primary_focus, coach.emotional_personalization
+    - Des facts conversation.* historiques (conversation.tone, conversation.verbosity, conversation.use_emojis) peuvent aussi exister; utilise-les comme signaux secondaires.
     - Priorité de personnalisation:
       1) Contraintes safety/add-ons actifs,
       2) Préférences coach + facts user disponibles,

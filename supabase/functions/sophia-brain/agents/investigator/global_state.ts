@@ -46,8 +46,16 @@ export function spokenLabelForItem(item: CheckupItem): string {
   if (!title) return "ce point"
   const t = normalizeLite(title)
 
+  if (/journal|decompression|decharge|brain dump|inventaire mental/i.test(t)) {
+    return "ton journal du soir"
+  }
+  if (/couvre feu digital|ecran|screen|scroll|tiktok|instagram|youtube/i.test(t)) {
+    return "les écrans"
+  }
+  if (/pompe|push up|pushup/i.test(t)) return "tes pompes"
+  if (/lecture|lire/i.test(t)) return "ta lecture"
+
   if (item?.type === "vital") {
-    if (/ecran|screen|scroll|tiktok|instagram|youtube/i.test(t)) return "les écrans"
     if (/sommeil|dormi|nuit|coucher|reveil|réveil/i.test(t)) return "ta nuit"
     if (/endormissement|tete\s+sur\s+l.?oreiller|oreiller/i.test(t)) return "t'endormir"
     if (/energie|humeur|moral|forme|batterie/i.test(t)) return "ton énergie"
@@ -195,23 +203,34 @@ export function buildGroupedFollowUpMessage(opts: {
     .map((item) => spokenLabelForItem(item))
     .filter(Boolean)
 
-  const coveredIntro = coveredLabels.length > 0
-    ? `Ok, je vois pour ${coveredLabels.join(" et ")}. `
-    : ""
-  if (nextLabels.length === 0) return `${coveredIntro}C'est bon pour le point d'aujourd'hui 🙂`
-  if (nextLabels.length === 1) return `${coveredIntro}Et pour ${nextLabels[0]}, ça a donné quoi ?`
-  return `${coveredIntro}Et pour ${nextLabels[0]} et ${nextLabels[1]}, ça a donné quoi ?`
-}
-
-export function buildCompletedReactionMessage(items: CheckupItem[]): string {
-  const labels = items.slice(0, 2).map((item) => spokenLabelForItem(item)).filter(Boolean)
-  if (labels.length === 0) return ""
-  if (labels.length === 1) return `Top pour ${labels[0]} 🙂`
-  return `Top pour ${labels[0]} et ${labels[1]} 🙂`
+  const firstNext = opts.nextItems[0]
+  const coveredIntro = buildCoveredIntro(coveredLabels, nextLabels.length > 0)
+  if (nextLabels.length === 0) return coveredIntro || "C'est bon pour le point d'aujourd'hui 🙂"
+  if (nextLabels.length === 1) {
+    return `${coveredIntro}${buildSingleNextQuestion(firstNext, nextLabels[0])}`.trim()
+  }
+  return `${coveredIntro}Il me manque encore ${nextLabels[0]} et ${nextLabels[1]}. Ça a donné quoi de ce côté-là ?`
 }
 
 export function buildMissedReasonQuestion(item: CheckupItem): string {
   return `Ok pour ${spokenLabelForItem(item)}. Qu'est-ce qui a coincé ?`
+}
+
+function buildCoveredIntro(labels: string[], hasNextItems: boolean): string {
+  if (labels.length === 0) return ""
+  if (labels.length === 1) {
+    return hasNextItems ? `Ok, c'est noté pour ${labels[0]}. ` : `Ok, c'est noté pour ${labels[0]}.`
+  }
+  return hasNextItems
+    ? `Ok, donc pour ${labels[0]} et ${labels[1]}, c'est noté. `
+    : `Ok, donc pour ${labels[0]} et ${labels[1]}, c'est noté.`
+}
+
+function buildSingleNextQuestion(item: CheckupItem | undefined, label: string): string {
+  if (!item) return `Il me manque juste ${label}. Ça a donné quoi ?`
+  if (item.type === "framework") return `Il me manque juste ${label}, tu as eu le temps ou pas ?`
+  if (item.type === "vital") return `Il me manque juste ${label}. Ça donnait quoi ?`
+  return `Il me manque juste ${label}, tu l'as fait ou pas finalement ?`
 }
 
 export async function extractGlobalCheckupCoverage(opts: {

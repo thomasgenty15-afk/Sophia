@@ -16,7 +16,6 @@ import {
   loadContextForMode,
   type OnDemandTriggers,
 } from "../context/loader.ts";
-import { getContextProfile, getVectorResultsCount } from "../context/types.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
 import {
   generateWithGemini,
@@ -403,7 +402,7 @@ function attachDynamicAddons(args: {
   if (dashboardPreferencesSignal?.detected) {
     (tempMemory as any).__dashboard_preferences_intent_addon = {
       keys: Array.isArray(dashboardPreferencesSignal.preference_keys)
-        ? dashboardPreferencesSignal.preference_keys.slice(0, 3)
+        ? dashboardPreferencesSignal.preference_keys.slice(0, 5)
         : [],
       confidence: Number(dashboardPreferencesSignal.confidence ?? 0),
       from_bilan: Boolean(state?.investigation_state),
@@ -707,7 +706,7 @@ export async function processMessage(
   }
 
   const { lastAssistantMessage } = buildLastAssistantInfo(history);
-  const stateSnapshot = buildDispatcherStateSnapshot({ tempMemory, state });
+  const stateSnapshot = buildDispatcherStateSnapshot({ state });
   let actionSnapshot: any[] | undefined = undefined;
   try {
     const planMeta = await getPlanMetadata(supabase, userId);
@@ -960,7 +959,6 @@ export async function processMessage(
   };
 
   let context = "";
-  const contextProfile = getContextProfile(targetMode);
   const contextLoadResult = await loadContextForMode({
     supabase,
     userId,
@@ -975,13 +973,6 @@ export async function processMessage(
     injectedContext: opts?.contextOverride,
   });
   contextLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0);
-
-  const vectorMaxResults = getVectorResultsCount(contextProfile);
-  if (vectorMaxResults > 0) {
-    console.warn(
-      `[Router] Legacy vector memories are disabled; requested vectorMaxResults=${vectorMaxResults}`,
-    );
-  }
 
   context = buildContextString(contextLoadResult.context);
   if (researchRequested && researchQuery.length > 0) {

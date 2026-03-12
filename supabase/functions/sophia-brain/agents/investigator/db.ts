@@ -145,24 +145,32 @@ export async function getYesterdayCheckupSummary(
   return { completed, missed, lastWinTitle, topBlocker }
 }
 
+export function resolveBilanReferenceDay(localHour: number): "today" | "yesterday" {
+  // Daily bilan is anchored to 20:00 local time.
+  // Before the evening slot, we still talk about the previous completed day.
+  if (!Number.isFinite(localHour) || localHour < 20) return "yesterday"
+  return "today"
+}
+
 /**
- * Compute the day_scope for an action based on its time_of_day and the current local hour.
- * - Before 16h: always "yesterday" (morning bilan = checking yesterday)
- * - After 16h: depends on the action's time_of_day
- *   - Evening/night actions → "yesterday" (asking about last night)
- *   - Morning/afternoon actions → "today" (asking about today)
+ * Compute the day_scope for an item based on the fixed bilan reference day.
+ * - Before 20h local: the bilan still refers to yesterday for everything.
+ * - From 20h local: daytime items refer to today, evening/night items still refer to yesterday
+ *   because "this evening / this night" has not completed yet when the bilan starts.
  */
-function computeActionDayScope(timeOfDay: string | null | undefined, localHour: number): "today" | "yesterday" {
-  // Before 16h = always "yesterday" (morning bilan)
-  if (!Number.isFinite(localHour) || localHour < 16) return "yesterday"
-  
-  // After 16h: evening/night actions → "yesterday", others → "today"
+export function computeActionDayScope(
+  timeOfDay: string | null | undefined,
+  localHour: number,
+): "today" | "yesterday" {
+  const bilanReferenceDay = resolveBilanReferenceDay(localHour)
+  if (bilanReferenceDay === "yesterday") return "yesterday"
+
   const eveningKeywords = ["evening", "night", "soir", "nuit"]
   const tod = String(timeOfDay ?? "").toLowerCase().trim()
   if (eveningKeywords.some(k => tod.includes(k))) {
-    return "yesterday"  // Action du soir/nuit → on demande pour hier soir
+    return "yesterday"
   }
-  return "today"  // Action de journée → on demande pour aujourd'hui
+  return "today"
 }
 
 export async function getPendingItems(supabase: SupabaseClient, userId: string): Promise<CheckupItem[]> {
@@ -171,11 +179,10 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
   const planRow = await fetchActivePlanRow(supabase, userId).catch(() => null)
   const planId = planRow?.id as string | undefined
 
-  // Day scope based on user's LOCAL hour (timezone-aware).
+  // Day scope based on the fixed 20:00 local bilan anchor.
   const tz = await getUserTimezone(supabase, userId)
   const localHour = localHourInTz(new Date(), tz)
-  // Global fallback day scope (used by frameworks and as safety fallback elsewhere)
-  const globalDayScope: "today" | "yesterday" = Number.isFinite(localHour) && localHour >= 16 ? "today" : "yesterday"
+  const globalDayScope = resolveBilanReferenceDay(localHour)
   const localTodayYmd = ymdInTz(new Date(), tz)
   const localDayYmd = globalDayScope === "today" ? localTodayYmd : addDays(localTodayYmd, -1)
   const weekdayKey = weekdayKeyFromYmd(localDayYmd)

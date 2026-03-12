@@ -15,6 +15,7 @@ import {
   increaseWeekTarget,
   logItem,
   logItemDetailed,
+  resolveBilanReferenceDay,
   updateLoggedItemReason,
 } from "./db.ts";
 // NOTE: Investigator keeps a single deterministic offer flow: weekly target increase.
@@ -26,7 +27,6 @@ import {
 } from "./prompt.ts";
 import {
   buildBroadOpeningQuestion,
-  buildCompletedReactionMessage,
   buildGroupedFollowUpMessage,
   buildMissedReasonQuestion,
   extractGlobalCheckupCoverage,
@@ -214,12 +214,10 @@ export async function runInvestigator(
       };
     }
 
-    // Day scope from user's LOCAL hour (timezone-aware).
-    // Note: Each item now has its own day_scope based on time_of_day, but we keep a global fallback.
+    // Fixed bilan anchor: before 20:00 local we still talk about yesterday,
+    // from 20:00 local we switch daytime items to today.
     const localHour = Number(timeCtx?.user_local_hour);
-    const initialDayScope = Number.isFinite(localHour) && localHour >= 16
-      ? "today"
-      : "yesterday";
+    const initialDayScope = resolveBilanReferenceDay(localHour);
 
     // Precompute missed streaks for all action/framework items (cache for the bilan)
     const actionItems = items.filter((i) =>
@@ -555,16 +553,12 @@ export async function runInvestigator(
             : "did_it",
         });
         const coveredItems = currentState.pending_items.filter((item) => loggedItemIds.includes(item.id));
-        const completedItems = coveredItems.filter((item) =>
-          String(getItemProgress(currentState, item.id).logged_status ?? "") === "completed"
-        );
-        const completedIntro = buildCompletedReactionMessage(completedItems);
         const followUp = buildGroupedFollowUpMessage({
           coveredItems,
           nextItems,
         });
         return {
-          content: completedIntro ? `${completedIntro}\n\n${followUp}` : followUp,
+          content: followUp,
           investigationComplete: false,
           newState: currentState,
         };

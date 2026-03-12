@@ -28,7 +28,6 @@ import ResetPassword from './pages/ResetPassword';
 import Legal from './pages/Legal'; // IMPORT PAGE LEGALE
 import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
 import { ChatPage } from './pages/ChatPage'; // Import ChatPage
-import AdminEvals from './pages/AdminEvals';
 import AdminDashboard from './pages/AdminDashboard';
 import AdminUsageDashboard from './pages/AdminUsageDashboard';
 import AdminProductionLog from './pages/AdminProductionLog';
@@ -71,7 +70,6 @@ function App() {
             <Route path="/architecte/:weekId" element={<RequireAppAccess><IdentityArchitect /></RequireAppAccess>} />
             <Route path="/architecte/alignment" element={<RequireArchitecte><WeeklyAlignment /></RequireArchitecte>} />
             <Route path="/architecte/evolution" element={<RequireArchitecte><IdentityEvolution /></RequireArchitecte>} />
-            <Route path="/admin/evals" element={<RequireAdmin><AdminEvals /></RequireAdmin>} />
             <Route path="/admin/usage" element={<RequireAdmin><AdminUsageDashboard /></RequireAdmin>} />
             <Route path="/admin/production-log" element={<RequireAdmin><AdminProductionLog /></RequireAdmin>} />
             <Route path="/admin" element={<RequireAdmin><AdminDashboard /></RequireAdmin>} />

@@ -43,7 +43,6 @@ import type {
 } from "./types.ts";
 import {
   getContextProfile,
-  getVectorResultsCount,
   shouldLoadActionsDetails,
   shouldLoadPlanJson,
 } from "./types.ts";
@@ -214,8 +213,8 @@ export async function loadContextForMode(
             `${factsContext}\n` +
             `=== CONSIGNE PERSONNALISATION FACTS ===\n` +
             `- Utilise ces facts comme support de connaissance pour personnaliser ton style de réponse.\n` +
-            `- En priorité pour: style de coaching (coach.coaching_style), niveau de bavardage (coach.chatty_level), tendance à poser des questions (coach.question_tendency).\n` +
-            `- Les facts legacy (ex: conversation.tone / conversation.verbosity / conversation.use_emojis) restent utilisables si présents.\n` +
+            `- En priorité pour: ton du coach (coach.tone), niveau de challenge (coach.challenge_level), style de feedback (coach.feedback_style), propension à parler (coach.talk_propensity), longueur et format des messages (coach.message_length, coach.message_format), fréquence des questions (coach.question_tendency), focus principal (coach.primary_focus), personnalisation émotionnelle (coach.emotional_personalization).\n` +
+            `- Des facts conversation.* historiques (ex: conversation.tone / conversation.verbosity / conversation.use_emojis) restent utilisables si présents.\n` +
             `- Ces facts orientent la forme de réponse (style/longueur), pas l'exécution d'actions.\n` +
             `- N'invente jamais un fact manquant; si absent, applique le style par défaut.\n\n`;
           elementsLoaded.push("facts");
@@ -337,7 +336,7 @@ export async function loadContextForMode(
         }
       }
 
-      // Keep legacy fallback for non-targeted operational requests.
+      // Keep broad fallback for non-targeted operational requests.
       if (!actionsDetailsLoaded && !actionsDetailsBlockedByAmbiguity && !actionHint) {
         const actionsDetails = await getActionsDetails(
           opts.supabase,
@@ -389,7 +388,7 @@ export async function loadContextForMode(
     }
   }
 
-  // 8. Short-term context (fil rouge)
+  // 8. Short-term context (fil rouge synthétisé)
   if (profile.short_term) {
     const shortTerm = (opts.state?.short_term_context ?? "").toString().trim();
     if (shortTerm) {
@@ -419,23 +418,20 @@ export async function loadContextForMode(
     }
   }
 
-  // 10. Topic session - DISABLED (R2 simplification: topic machines removed)
-  // Topic sessions are no longer created or maintained.
-
-  // 11. Injected context (from UI modules)
+  // 10. Injected context (from UI modules)
   if (opts.injectedContext) {
     context.injectedContext =
       `=== CONTEXTE MODULE (UI) ===\n${opts.injectedContext}\n\n`;
     elementsLoaded.push("injected_context");
   }
 
-  // 12. Deferred user pref context
+  // 11. Deferred user pref context
   if (opts.deferredUserPrefContext) {
     context.deferredUserPref = opts.deferredUserPrefContext;
     elementsLoaded.push("deferred_user_pref");
   }
 
-  // 13. Track progress addon (parallel tracking)
+  // 12. Track progress addon (parallel tracking)
   const trackProgressAddon = (opts.tempMemory as any)
     ?.__track_progress_parallel;
   if (
@@ -455,7 +451,7 @@ export async function loadContextForMode(
   const dashboardCapabilitiesAddon = (opts.tempMemory as any)
     ?.__dashboard_capabilities_addon;
 
-  // 14. Dashboard redirect addon (CRUD intent detected by dispatcher)
+  // 13. Dashboard redirect addon (CRUD intent detected by dispatcher)
   if (
     dashboardRedirectAddon &&
     (opts.mode === "companion" || opts.mode === "investigator")
@@ -468,7 +464,7 @@ export async function loadContextForMode(
     }
   }
 
-  // 14b. Dashboard capabilities lite addon (only when no specific dashboard addon is active)
+  // 13b. Dashboard capabilities lite addon (only when no specific dashboard addon is active)
   const hasSpecificDashboardAddon = Boolean(
     dashboardRedirectAddon ||
       dashboardPreferencesIntentAddon ||
@@ -485,7 +481,7 @@ export async function loadContextForMode(
     }
   }
 
-  // 15. Safety active addon (dynamic tone/protocol guidance)
+  // 14. Safety active addon (dynamic tone/protocol guidance)
   const safetyActiveAddon = (opts.tempMemory as any)?.__safety_active_addon;
   if (
     safetyActiveAddon &&
@@ -495,7 +491,7 @@ export async function loadContextForMode(
     if (context.safetyActiveAddon) elementsLoaded.push("safety_active_addon");
   }
 
-  // 15b. Dashboard preferences intent addon (dedicated UX/UI settings redirect)
+  // 14b. Dashboard preferences intent addon (dedicated UX/UI settings redirect)
   if (
     dashboardPreferencesIntentAddon &&
     (opts.mode === "companion" || opts.mode === "investigator")
@@ -509,7 +505,7 @@ export async function loadContextForMode(
     }
   }
 
-  // 15c. Dashboard recurring reminder intent addon (dedicated reminder settings redirect)
+  // 14c. Dashboard recurring reminder intent addon (dedicated reminder settings redirect)
   if (
     dashboardRecurringReminderIntentAddon &&
     (opts.mode === "companion" || opts.mode === "investigator")
@@ -523,7 +519,7 @@ export async function loadContextForMode(
     }
   }
 
-  // 15d. Dashboard capabilities addon (umbrella "can be related to dashboard")
+  // 14d. Dashboard capabilities addon (umbrella "can be related to dashboard")
   const shouldIncludeDashboardCapabilitiesAddon = Boolean(
     dashboardCapabilitiesAddon &&
       !dashboardRedirectAddon &&
@@ -542,14 +538,14 @@ export async function loadContextForMode(
     }
   }
 
-  // 16. Lightweight onboarding addon — applies when __onboarding_active is set.
+  // 15. Lightweight onboarding addon — applies when __onboarding_active is set.
   const onboardingState = (opts.tempMemory as any)?.__onboarding_active;
   if (onboardingState && opts.mode === "companion") {
     context.onboardingAddon = formatOnboardingAddon(onboardingState);
     if (context.onboardingAddon) elementsLoaded.push("onboarding_addon");
   }
 
-  // 17. Checkup intent addon (manual trigger requested, but bilan is cron-driven).
+  // 16. Checkup intent addon (manual trigger requested, but bilan is cron-driven).
   const checkupNotTriggerableAddon = (opts.tempMemory as any)
     ?.__checkup_not_triggerable_addon;
   if (checkupNotTriggerableAddon && opts.mode === "companion") {
@@ -561,7 +557,7 @@ export async function loadContextForMode(
     }
   }
 
-  // 18. Bilan just stopped addon (one-shot guidance after explicit stop/bored).
+  // 17. Bilan just stopped addon (one-shot guidance after explicit stop/bored).
   const bilanJustStopped = (opts.tempMemory as any)?.__bilan_just_stopped;
   if (bilanJustStopped && opts.mode === "companion") {
     context.bilanJustStoppedAddon = formatBilanJustStoppedAddon(bilanJustStopped);
@@ -613,10 +609,6 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.identity) ctx += loaded.identity;
   if (loaded.eventMemories) ctx += loaded.eventMemories;
   if (loaded.topicMemories) ctx += loaded.topicMemories;
-  if (loaded.vectors) {
-    ctx += `=== SOUVENIRS / CONTEXTE (FORGE) ===\n${loaded.vectors}\n\n`;
-  }
-  if (loaded.topicSession) ctx += loaded.topicSession;
   if (loaded.onboardingAddon) ctx += loaded.onboardingAddon;
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon;
   if (loaded.dashboardRedirectAddon) ctx += loaded.dashboardRedirectAddon;
@@ -770,7 +762,7 @@ function formatDashboardCapabilitiesLiteAddon(): string {
     `    1) Plan de Transformation: pilotage des actions du plan (activer, mettre en pause, supprimer, modifier). SOS blocage possible sur action existante en échec répété.\n` +
     `    2) Actions Personnelles: habitudes hors plan principal (créer, modifier, activer, pause, supprimer, suivi d'avancement) + Étoile Polaire (valeurs numériques départ/actuel/cible).\n` +
     `    3) Rendez-vous: configure les rendez-vous où Sophia vient vers le user au bon moment avec le bon ton (ex: citation du matin, message de soutien planifié, relance douce avant un passage important). C'est une vraie personnalisation de l'accompagnement (créer, modifier, activer, pause, supprimer; paramètres message/jours/heure).\n` +
-    `    4) Préférences: personnalisation du style de Sophia (style de coaching, niveau de bavardage, tendance à poser des questions).\n` +
+    `    4) Préférences: personnalisation fine du coach Sophia (ton global, niveau de challenge, bavardage, longueur de réponse, fréquence des questions).\n` +
     `  - Tableau de bord Architecte:\n` +
     `    1) Construction du Temple: fondations identitaires.\n` +
     `    2) Amélioration du Temple: phase avancée débloquée après la construction.\n` +
@@ -790,7 +782,7 @@ function formatDashboardPreferencesIntentAddon(addon: any): string {
   const keys = Array.isArray(addon?.keys)
     ? addon.keys
       .filter((v: unknown) => typeof v === "string")
-      .slice(0, 3)
+      .slice(0, 5)
     : [];
   const keysText = keys.length > 0 ? keys.join(", ") : "non précisé";
   const fromBilan = Boolean(addon?.from_bilan);
@@ -802,8 +794,8 @@ function formatDashboardPreferencesIntentAddon(addon: any): string {
     `- Cet add-on sert de support de connaissance pour guider correctement l'utilisateur.\n` +
     `- Réponds brièvement puis redirige vers l'écran Préférences du dashboard.\n` +
     `- Anti-répétition: évite la même redirection sur 2 tours d'affilée; entre-temps, traite les préférences demandées en conversation.\n` +
-    `- Les 3 catégories possibles à expliciter si utile: coaching_style, chatty_level, question_tendency.\n` +
-    `- Donne des exemples de valeurs rapides (ex: coaching_style=challenging, chatty_level=light, question_tendency=low).\n` +
+    `- Les 5 catégories possibles à expliciter si utile: coach.tone, coach.challenge_level, coach.talk_propensity, coach.message_length, coach.question_tendency.\n` +
+    `- Donne des exemples de valeurs rapides (ex: coach.tone=warm_direct, coach.challenge_level=high, coach.talk_propensity=light, coach.message_length=short, coach.question_tendency=low).\n` +
     `- Interdiction de créer/appliquer un réglage depuis le chat: toute modification se fait dans le dashboard.\n` +
     (fromBilan
       ? `- Le bilan reste prioritaire: confirme la redirection puis reprends l'item du bilan.\n`
@@ -849,8 +841,10 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
     `  4) Préférences:\n` +
     `     - Intérêt: personnaliser précisément le style du coach.\n` +
     `     - Reprendre EXACTEMENT les catégories/labels du dashboard:\n` +
-    `       * Style de coaching: Doux | Normal | Challengeant\n` +
-    `       * Niveau de bavardage: Léger | Normal | Élevé\n` +
+    `       * Ton global: Doux | Bienveillant ferme | Très direct\n` +
+    `       * Niveau de challenge: Léger | Équilibré | Élevé\n` +
+    `       * Niveau de bavardage: Léger | Équilibré | Élevé\n` +
+    `       * Longueur de réponse: Courte | Moyenne | Longue\n` +
     `       * Tendance à poser des questions: Faible | Normale | Élevée\n` +
     `\n` +
     `- DÉTAILS TABLEAU DE BORD ARCHITECTE (overview bref):\n` +

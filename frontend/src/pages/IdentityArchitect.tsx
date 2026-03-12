@@ -580,79 +580,81 @@ const IdentityArchitect = () => {
 
             {/* PANEL CHAT MOBILE INTÉGRÉ (OVERLAY) - MODE ZEN */}
             {showMobileChat && (
-              <div className="md:hidden absolute inset-0 z-[100] bg-emerald-950 flex flex-col h-full rounded-xl overflow-hidden">
-                  <div className="flex items-center justify-between p-4 border-b border-emerald-800 bg-emerald-900/50">
-                      <div className="flex items-center gap-2">
-                          <Bot className="w-5 h-5 text-emerald-400" />
-                          <span className="font-bold text-emerald-100">Sophia</span>
-                      </div>
-                      <button 
-                          onClick={(e) => {
-                              e.stopPropagation();
-                              setShowMobileChat(false);
-                          }}
-                          className="text-emerald-400 hover:text-white p-2"
-                      >
-                          <X className="w-6 h-6" />
-                      </button>
+              <div className="md:hidden fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm p-3">
+                <div className="relative h-full w-full rounded-[28px] border border-emerald-800/60 bg-emerald-950 shadow-2xl overflow-hidden flex flex-col">
+                  <div className="flex items-center justify-between p-4 border-b border-emerald-800 bg-emerald-900/40 shrink-0">
+                    <div className="flex items-center gap-2">
+                      <Bot className="w-5 h-5 text-emerald-400" />
+                      <span className="font-bold text-emerald-100">Sophia</span>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setShowMobileChat(false);
+                      }}
+                      className="text-emerald-400 hover:text-white p-2 rounded-lg hover:bg-emerald-900/50 transition-colors"
+                    >
+                      <X className="w-6 h-6" />
+                    </button>
                   </div>
                   
-                  {/* Zone de messages (Copie du chat desktop pour mobile) */}
-                  <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-800">
-                      <div className="bg-emerald-900/40 p-3 rounded-lg border border-emerald-800/50 mb-4">
-                          <div className="flex items-center gap-2 mb-2">
-                              <Sparkles className="w-3 h-3 text-amber-400" />
-                              <span className="text-xs font-bold text-amber-400 uppercase">Conseil</span>
-                          </div>
-                          <p className="text-xs text-emerald-200 italic">
-                              "{currentWeek.aiNuggets[0]}"
-                          </p>
+                  <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-800">
+                    <div className="bg-emerald-900/40 p-3 rounded-2xl border border-emerald-800/50">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="w-3 h-3 text-amber-400" />
+                        <span className="text-xs font-bold text-amber-400 uppercase">Conseil</span>
                       </div>
+                      <p className="text-xs text-emerald-200 italic">
+                        "{currentWeek.aiNuggets[0]}"
+                      </p>
+                    </div>
 
-                      {messages.map((msg) => (
-                          <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                              <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
-                                  msg.sender === 'user' 
-                                  ? 'bg-emerald-600 text-white rounded-br-none' 
-                                  : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
-                              }`}>
-                                  {displayChatText(msg.text)}
-                              </div>
-                          </div>
-                      ))}
-                      {isChatLoading && (
-                        <div className="flex justify-start">
-                          <div className="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
-                            <TypingDot />
-                          </div>
+                    {messages.map((msg) => (
+                      <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
+                          msg.sender === 'user'
+                            ? 'bg-emerald-600 text-white rounded-br-none'
+                            : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
+                        }`}>
+                          {displayChatText(msg.text)}
                         </div>
-                      )}
-                      {chatError && (
-                        <div className="text-xs text-red-300 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
-                          {chatError}
+                      </div>
+                    ))}
+                    {isChatLoading && (
+                      <div className="flex justify-start">
+                        <div className="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                          <TypingDot />
                         </div>
-                      )}
+                      </div>
+                    )}
+                    {chatError && (
+                      <div className="text-xs text-red-300 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
+                        {chatError}
+                      </div>
+                    )}
                   </div>
 
-                  {/* Input Chat Mobile */}
-                  <div className="p-4 border-t border-emerald-900 bg-emerald-950 relative">
+                  <div className="p-4 border-t border-emerald-900 bg-emerald-950 shrink-0">
+                    <div className="relative">
                       <input
-                          type="text"
-                          value={inputMessage}
-                          onChange={(e) => setInputMessage(e.target.value)}
-                          placeholder="Répondre..."
-                          className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:ring-1 focus:ring-emerald-500 outline-none"
+                        type="text"
+                        value={inputMessage}
+                        onChange={(e) => setInputMessage(e.target.value)}
+                        placeholder="Répondre..."
+                        className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-4 pr-12 py-3 text-sm text-white placeholder-emerald-600/80 focus:ring-1 focus:ring-emerald-500 outline-none"
                       />
-                      <button 
-                          onClick={(e) => {
-                              e.stopPropagation();
-                              handleSendMessage();
-                          }}
-                          className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-400"
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleSendMessage();
+                        }}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 p-2"
                       >
-                          <Send className="w-4 h-4" />
+                        <Send className="w-4 h-4" />
                       </button>
+                    </div>
                   </div>
+                </div>
               </div>
             )}
             
@@ -946,79 +948,81 @@ const IdentityArchitect = () => {
             >
               {/* PANEL CHAT MOBILE INTÉGRÉ (OVERLAY) */}
               {showMobileChat && activeQuestion === q.id && (
-                <div className="md:hidden absolute inset-0 z-[100] bg-emerald-950 flex flex-col h-full">
-                    <div className="flex items-center justify-between p-4 border-b border-emerald-800 bg-emerald-900/50">
-                        <div className="flex items-center gap-2">
-                            <Bot className="w-5 h-5 text-emerald-400" />
-                            <span className="font-bold text-emerald-100">Sophia</span>
-                        </div>
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                setShowMobileChat(false);
-                            }}
-                            className="text-emerald-400 hover:text-white p-2"
-                        >
-                            <X className="w-6 h-6" />
-                        </button>
+                <div className="md:hidden fixed inset-0 z-[100] bg-black/70 backdrop-blur-sm p-3">
+                  <div className="relative h-full w-full rounded-[28px] border border-emerald-800/60 bg-emerald-950 shadow-2xl overflow-hidden flex flex-col">
+                    <div className="flex items-center justify-between p-4 border-b border-emerald-800 bg-emerald-900/40 shrink-0">
+                      <div className="flex items-center gap-2">
+                        <Bot className="w-5 h-5 text-emerald-400" />
+                        <span className="font-bold text-emerald-100">Sophia</span>
+                      </div>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setShowMobileChat(false);
+                        }}
+                        className="text-emerald-400 hover:text-white p-2 rounded-lg hover:bg-emerald-900/50 transition-colors"
+                      >
+                        <X className="w-6 h-6" />
+                      </button>
                     </div>
                     
-                    {/* Zone de messages (Copie du chat desktop pour mobile) */}
-                    <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-800">
-                        <div className="bg-emerald-900/40 p-3 rounded-lg border border-emerald-800/50 mb-4">
-                            <div className="flex items-center gap-2 mb-2">
-                                <Sparkles className="w-3 h-3 text-amber-400" />
-                                <span className="text-xs font-bold text-amber-400 uppercase">Conseil</span>
-                            </div>
-                            <p className="text-xs text-emerald-200 italic">
-                                "{currentWeek.aiNuggets[0]}"
-                            </p>
+                    <div className="flex-1 min-h-0 overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-emerald-800">
+                      <div className="bg-emerald-900/40 p-3 rounded-2xl border border-emerald-800/50">
+                        <div className="flex items-center gap-2 mb-2">
+                          <Sparkles className="w-3 h-3 text-amber-400" />
+                          <span className="text-xs font-bold text-amber-400 uppercase">Conseil</span>
                         </div>
+                        <p className="text-xs text-emerald-200 italic">
+                          "{currentWeek.aiNuggets[0]}"
+                        </p>
+                      </div>
 
-                        {messages.map((msg) => (
-                            <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
-                                <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
-                                    msg.sender === 'user' 
-                                    ? 'bg-emerald-600 text-white rounded-br-none' 
-                                    : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
-                                }`}>
-                                    {displayChatText(msg.text)}
-                                </div>
-                            </div>
-                        ))}
-                        {isChatLoading && (
-                          <div className="flex justify-start">
-                            <div className="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
-                              <TypingDot />
-                            </div>
+                      {messages.map((msg) => (
+                        <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                          <div className={`max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed whitespace-pre-line ${
+                            msg.sender === 'user'
+                              ? 'bg-emerald-600 text-white rounded-br-none'
+                              : 'bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none'
+                          }`}>
+                            {displayChatText(msg.text)}
                           </div>
-                        )}
-                        {chatError && (
-                          <div className="text-xs text-red-300 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
-                            {chatError}
+                        </div>
+                      ))}
+                      {isChatLoading && (
+                        <div className="flex justify-start">
+                          <div className="max-w-[85%] p-3 rounded-2xl text-sm leading-relaxed bg-emerald-800 text-emerald-50 border border-emerald-700/50 rounded-bl-none">
+                            <TypingDot />
                           </div>
-                        )}
+                        </div>
+                      )}
+                      {chatError && (
+                        <div className="text-xs text-red-300 bg-red-950/30 border border-red-900/40 rounded-lg p-2">
+                          {chatError}
+                        </div>
+                      )}
                     </div>
 
-                    {/* Input Chat Mobile */}
-                    <div className="p-4 border-t border-emerald-900 bg-emerald-950 relative">
+                    <div className="p-4 border-t border-emerald-900 bg-emerald-950 shrink-0">
+                      <div className="relative">
                         <input
-                            type="text"
-                            value={inputMessage}
-                            onChange={(e) => setInputMessage(e.target.value)}
-                            placeholder="Répondre..."
-                            className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-4 pr-12 py-3 text-sm text-white focus:ring-1 focus:ring-emerald-500 outline-none"
+                          type="text"
+                          value={inputMessage}
+                          onChange={(e) => setInputMessage(e.target.value)}
+                          placeholder="Répondre..."
+                          className="w-full bg-emerald-900/50 border border-emerald-800 rounded-xl pl-4 pr-12 py-3 text-sm text-white placeholder-emerald-600/80 focus:ring-1 focus:ring-emerald-500 outline-none"
                         />
-                        <button 
-                            onClick={(e) => {
-                                e.stopPropagation();
-                                handleSendMessage();
-                            }}
-                            className="absolute right-6 top-1/2 -translate-y-1/2 text-emerald-400"
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleSendMessage();
+                          }}
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-emerald-400 p-2"
                         >
-                            <Send className="w-4 h-4" />
+                          <Send className="w-4 h-4" />
                         </button>
+                      </div>
                     </div>
+                  </div>
                 </div>
               )}
 

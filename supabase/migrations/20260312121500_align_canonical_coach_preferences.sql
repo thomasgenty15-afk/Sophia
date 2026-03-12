@@ -1,7 +1,14 @@
--- Run manually in Supabase SQL editor.
--- Purpose:
--- 1) Update signup defaults to the canonical coach preference schema.
--- 2) Reset all existing users to these default values.
+-- Align coach preferences across dashboard, signup defaults and sophia-brain.
+-- Canonical schema:
+--   coach.tone
+--   coach.challenge_level
+--   coach.feedback_style
+--   coach.talk_propensity
+--   coach.message_length
+--   coach.message_format
+--   coach.primary_focus
+--   coach.emotional_personalization
+--   coach.question_tendency
 
 create or replace function public.seed_default_coach_preferences(p_user_id uuid)
 returns void
@@ -50,7 +57,6 @@ begin
 end;
 $$;
 
--- Remove old and canonical coach preference rows before reseeding defaults.
 delete from public.user_profile_facts
 where key in (
   'coach.tone',
@@ -60,17 +66,21 @@ where key in (
   'coach.message_length',
   'coach.message_format',
   'coach.primary_focus',
-  'coach.inactivity_response',
   'coach.emotional_personalization',
+  'coach.question_tendency',
+  'coach.inactivity_response',
   'coach.coaching_style',
-  'coach.chatty_level',
-  'coach.question_tendency'
+  'coach.chatty_level'
 );
 
 do $$
 declare
   r record;
 begin
+  if to_regclass('public.user_profile_facts') is null or to_regclass('public.profiles') is null then
+    return;
+  end if;
+
   for r in select id from public.profiles
   loop
     perform public.seed_default_coach_preferences(r.id);

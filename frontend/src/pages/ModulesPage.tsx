@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useModules } from '../hooks/useModules';
 import type { EnrichedModule } from '../hooks/useModules';
-import { Check, Lock, Clock, ArrowRight } from 'lucide-react';
+import { Check, Lock, Clock, ArrowRight, BookOpen, Star, Sparkles } from 'lucide-react';
+import { WishlistTab } from '../components/architect/WishlistTab';
+import { StoriesTab } from '../components/architect/StoriesTab';
 
 const ModuleCard = ({ module, onComplete }: { module: EnrichedModule; onComplete: (id: string) => void }) => {
   // STYLE : Basé sur ton screenshot (Vert Foncé & Élégant)
@@ -105,6 +107,7 @@ const ModuleCard = ({ module, onComplete }: { module: EnrichedModule; onComplete
 
 export const ModulesPage = () => {
   const { modules, loading, completeModule } = useModules();
+  const [activeTab, setActiveTab] = useState<'coaching' | 'wishlist' | 'stories'>('coaching');
 
   if (loading) return (
     <div className="min-h-screen bg-[#021a15] flex items-center justify-center text-emerald-500">
@@ -117,75 +120,113 @@ export const ModulesPage = () => {
   const roundTables = Object.values(modules).filter(m => m.type === 'round_table');
 
   return (
-    <div className="min-h-screen bg-[#021a15] text-white p-6 md:p-12">
-      <div className="max-w-5xl mx-auto space-y-16">
-        
-        <header className="text-center space-y-4">
-            <h1 className="text-4xl md:text-5xl font-serif text-white tracking-tight">L'Atelier d'Identité</h1>
-            <p className="text-emerald-400/80 max-w-2xl mx-auto text-lg italic">
-                "On ne s'élève pas au niveau de ses objectifs. On tombe au niveau de ses systèmes."
-            </p>
-        </header>
-
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
-            
-            {/* COLONNE PRINCIPALE : LE TEMPLE (2/3 largeur) */}
-            <div className="lg:col-span-8 space-y-8">
-                <div className="flex items-center gap-3 mb-6">
-                    <div className="h-8 w-8 rounded-full bg-amber-600/20 text-amber-500 flex items-center justify-center border border-amber-600/40">
-                        🔨
-                    </div>
-                    <h2 className="text-xl font-bold tracking-wide text-emerald-100">PHASE 1 : LA CONSTRUCTION DU TEMPLE</h2>
-                </div>
-                
-                <div className="space-y-4">
-                    {weeks.map(m => (
-                    <ModuleCard key={m.id} module={m} onComplete={completeModule} />
-                    ))}
-                </div>
-
-                {/* LA FORGE (Apparaît en dessous après) */}
-                {forge.length > 0 && (
-                    <div className="pt-12 border-t border-white/10 mt-12">
-                         <div className="flex items-center gap-3 mb-6">
-                            <div className="h-8 w-8 rounded-full bg-red-600/20 text-red-500 flex items-center justify-center border border-red-600/40">
-                                🔥
-                            </div>
-                            <h2 className="text-xl font-bold tracking-wide text-red-100">PHASE 2 : LA FORGE</h2>
-                        </div>
-                        <div className="space-y-4">
-                            {forge.map(m => (
-                            <ModuleCard key={m.id} module={m} onComplete={completeModule} />
-                            ))}
-                        </div>
-                    </div>
-                )}
-            </div>
-
-            {/* SIDEBAR : RITUELS & TABLE RONDE (1/3 largeur) */}
-            <div className="lg:col-span-4 space-y-8">
-                 <div className="sticky top-8">
-                    <div className="p-6 rounded-2xl bg-[#05221d] border border-white/5">
-                        <h3 className="font-serif text-xl text-white mb-6 flex items-center gap-2">
-                            <span className="text-2xl">⚔️</span> Rituels
-                        </h3>
-                        
-                        {roundTables.length === 0 ? (
-                            <div className="text-center py-8 text-white/30 text-sm border-dashed border border-white/10 rounded-lg">
-                                <p>La Table Ronde s'ouvrira<br/>après la fin du Temple.</p>
-                            </div>
-                        ) : (
-                            <div className="space-y-4">
-                                {roundTables.map(m => (
-                                <ModuleCard key={m.id} module={m} onComplete={completeModule} />
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                 </div>
-            </div>
-
+    <div className="min-h-screen bg-[#021a15] text-white flex flex-col">
+      {/* NOUVEAU : Barre de navigation des onglets */}
+      <div className="sticky top-0 z-20 bg-[#021a15]/90 backdrop-blur-md border-b border-emerald-900/50 p-4 shrink-0">
+        <div className="max-w-5xl mx-auto flex justify-center">
+          <div className="flex bg-[#05221d] p-1.5 rounded-xl border border-emerald-800/30 shadow-lg">
+            <button 
+              onClick={() => setActiveTab('coaching')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'coaching' ? 'bg-emerald-600 text-white shadow-md scale-105' : 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30'}`}
+            >
+              <Sparkles className="w-4 h-4" />
+              Coaching
+            </button>
+            <button 
+              onClick={() => setActiveTab('wishlist')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'wishlist' ? 'bg-amber-600 text-white shadow-md scale-105' : 'text-amber-500/70 hover:text-amber-400 hover:bg-amber-900/30'}`}
+            >
+              <Star className="w-4 h-4" />
+              Life Wishlist
+            </button>
+            <button 
+              onClick={() => setActiveTab('stories')}
+              className={`flex items-center gap-2 px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${activeTab === 'stories' ? 'bg-emerald-600 text-white shadow-md scale-105' : 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30'}`}
+            >
+              <BookOpen className="w-4 h-4" />
+              Story Journal
+            </button>
+          </div>
         </div>
+      </div>
+
+      <div className="flex-1 flex flex-col relative">
+        {activeTab === 'coaching' && (
+          <div className="p-6 md:p-12">
+            <div className="max-w-5xl mx-auto space-y-16">
+              
+              <header className="text-center space-y-4">
+                  <h1 className="text-4xl md:text-5xl font-serif text-white tracking-tight">L'Atelier d'Identité</h1>
+                  <p className="text-emerald-400/80 max-w-2xl mx-auto text-lg italic">
+                      "On ne s'élève pas au niveau de ses objectifs. On tombe au niveau de ses systèmes."
+                  </p>
+              </header>
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-12">
+                  
+                  {/* COLONNE PRINCIPALE : LE TEMPLE (2/3 largeur) */}
+                  <div className="lg:col-span-8 space-y-8">
+                      <div className="flex items-center gap-3 mb-6">
+                          <div className="h-8 w-8 rounded-full bg-amber-600/20 text-amber-500 flex items-center justify-center border border-amber-600/40">
+                              🔨
+                          </div>
+                          <h2 className="text-xl font-bold tracking-wide text-emerald-100">PHASE 1 : LA CONSTRUCTION DU TEMPLE</h2>
+                      </div>
+                      
+                      <div className="space-y-4">
+                          {weeks.map(m => (
+                          <ModuleCard key={m.id} module={m} onComplete={completeModule} />
+                          ))}
+                      </div>
+
+                      {/* LA FORGE (Apparaît en dessous après) */}
+                      {forge.length > 0 && (
+                          <div className="pt-12 border-t border-white/10 mt-12">
+                               <div className="flex items-center gap-3 mb-6">
+                                  <div className="h-8 w-8 rounded-full bg-red-600/20 text-red-500 flex items-center justify-center border border-red-600/40">
+                                      🔥
+                                  </div>
+                                  <h2 className="text-xl font-bold tracking-wide text-red-100">PHASE 2 : LA FORGE</h2>
+                              </div>
+                              <div className="space-y-4">
+                                  {forge.map(m => (
+                                  <ModuleCard key={m.id} module={m} onComplete={completeModule} />
+                                  ))}
+                              </div>
+                          </div>
+                      )}
+                  </div>
+
+                  {/* SIDEBAR : RITUELS & TABLE RONDE (1/3 largeur) */}
+                  <div className="lg:col-span-4 space-y-8">
+                       <div className="sticky top-24">
+                          <div className="p-6 rounded-2xl bg-[#05221d] border border-white/5">
+                              <h3 className="font-serif text-xl text-white mb-6 flex items-center gap-2">
+                                  <span className="text-2xl">⚔️</span> Rituels
+                              </h3>
+                              
+                              {roundTables.length === 0 ? (
+                                  <div className="text-center py-8 text-white/30 text-sm border-dashed border border-white/10 rounded-lg">
+                                      <p>La Table Ronde s'ouvrira<br/>après la fin du Temple.</p>
+                                  </div>
+                              ) : (
+                                  <div className="space-y-4">
+                                      {roundTables.map(m => (
+                                      <ModuleCard key={m.id} module={m} onComplete={completeModule} />
+                                      ))}
+                                  </div>
+                              )}
+                          </div>
+                       </div>
+                  </div>
+
+              </div>
+            </div>
+          </div>
+        )}
+
+        {activeTab === 'wishlist' && <WishlistTab />}
+        {activeTab === 'stories' && <StoriesTab />}
       </div>
     </div>
   );

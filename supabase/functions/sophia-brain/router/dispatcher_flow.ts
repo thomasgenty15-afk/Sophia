@@ -26,19 +26,12 @@ export function buildLastAssistantInfo(history: any[]): { lastAssistantMessage: 
 }
 
 export function buildDispatcherStateSnapshot(opts: {
-  tempMemory: any
   state: any
 }): DispatcherInputV2["stateSnapshot"] {
   return {
     current_mode: opts.state?.current_mode,
     investigation_active: Boolean(opts.state?.investigation_state),
     investigation_status: opts.state?.investigation_state?.status,
-    toolflow_active: false,
-    toolflow_kind: undefined,
-    plan_confirm_pending: Boolean((opts.tempMemory as any)?.__wa_plan_confirm_pending),
-    topic_exploration_phase: undefined,
-    topic_exploration_type: undefined,
-    risk_level: opts.state?.risk_level,
   }
 }
 

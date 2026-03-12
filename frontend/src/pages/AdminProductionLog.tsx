@@ -178,13 +178,6 @@ export default function AdminProductionLog() {
               <BarChart3 className="w-4 h-4" />
               Usage & Costs
             </a>
-            <a
-              href="/admin/evals"
-              className="flex items-center gap-2 px-3 py-1.5 text-sm font-medium text-neutral-400 hover:text-white transition-colors"
-            >
-              <Activity className="w-4 h-4" />
-              Evals & Logs
-            </a>
           </div>
         </div>
       </header>
@@ -375,5 +368,4 @@ function KpiCard({
     </div>
   );
 }
-
 

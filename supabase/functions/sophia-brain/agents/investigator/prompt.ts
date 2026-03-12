@@ -145,6 +145,7 @@ export function buildMainItemSystemPrompt(opts: {
     - Titre : "${currentItem.title}"
     - Description : "${currentItem.description || ""}"
     - Tracking : ${currentItem.tracking_type} ${currentItem.unit ? `(Unité: ${currentItem.unit})` : ""}
+    - Référence temporelle du bilan pour cet item : ${currentItem.day_scope === "today" ? "aujourd'hui" : "hier"}
     ${currentItem.type === "action" && (currentItem as any).scheduled_days?.length
       ? `- Jours planifiés : ${(currentItem as any).scheduled_days.join(", ")} (jour prévu: ${String((currentItem as any).is_scheduled_day)})`
       : ""}
@@ -166,6 +167,9 @@ export function buildMainItemSystemPrompt(opts: {
     COHÉRENCE CONTEXTUELLE (CRITIQUE) :
     - Reconstitue le fil depuis le FIL ROUGE / contexte général + ces 15 derniers messages.
     - Réponds d'abord au DERNIER message user, puis continue le bilan sans rupture de contexte.
+    - La référence temporelle ci-dessus est prioritaire.
+    - Si elle vaut "hier", tu ne dois jamais demander cet item comme s'il concernait aujourd'hui.
+    - Si elle vaut "aujourd'hui", tu ne dois jamais basculer vers "hier" sans raison explicite.
 
     STYLE DE LANGAGE (ANTI-ROBOT - CRITIQUE) :
     - INTERDIT de citer le titre de l'item verbatim s'il est technique ou long.

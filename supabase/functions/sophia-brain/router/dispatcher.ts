@@ -1,8 +1,4 @@
-import type { AgentMode } from "../state-manager.ts";
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
-import {
-  type PendingResolutionType,
-} from "./pending_resolution.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DISPATCHER V2: STRUCTURED SIGNALS
@@ -91,7 +87,8 @@ export interface DispatcherSignals {
     /**
      * Preference keys user wants to change in dashboard settings.
      * Canonical keys expected by product:
-     * coaching_style, chatty_level, question_tendency
+     * coach.tone, coach.challenge_level, coach.talk_propensity,
+     * coach.message_length, coach.question_tendency
      */
     preference_keys?: string[];
     confidence: number;
@@ -105,8 +102,6 @@ export interface DispatcherSignals {
     reminder_fields?: string[];
     confidence: number;
   };
-  // deferred_signal: REMOVED (R2 simplification - deferred topics system disabled)
-  // consent_to_relaunch: REMOVED (R2 simplification - relaunch consent system disabled)
   risk_score: number; // 0..10 (compatibility)
 }
 
@@ -158,12 +153,6 @@ export interface DispatcherInputV2 {
     current_mode?: string;
     investigation_active?: boolean;
     investigation_status?: string;
-    toolflow_active?: boolean;
-    toolflow_kind?: string;
-    plan_confirm_pending?: boolean;
-    topic_exploration_phase?: string;
-    topic_exploration_type?: string;
-    risk_level?: number;
   };
   /** Flow context for enriching machine-specific prompts */
   flowContext?: FlowContext;
@@ -182,7 +171,7 @@ export interface DispatcherInputV2 {
 export interface NewSignalEntry {
   /** Signal type (mother signal identifier) */
   signal_type: string;
-  /** Brief description for deferred topic (max 100 chars) */
+  /** Brief description of the detected signal (max 100 chars) */
   brief: string;
   /** Detection confidence (0..1) */
   confidence: number;
@@ -202,7 +191,7 @@ export interface SignalEnrichment {
 
 /**
  * Machine-specific signals still consumed by router logic in R2.
- * Legacy machine-specific fields (tool flows/topic/deferred resolution) were removed.
+ * Removed machine-specific branches stay out of the dispatcher schema.
  */
 export interface MachineSignals {
   // Bilan stale continuation signals
@@ -222,11 +211,6 @@ export interface DispatcherOutputV2 {
   enrichments: SignalEnrichment[];
   /** NEW: Machine-specific signals (only present if a machine is active) */
   machine_signals?: MachineSignals;
-  /** NEW: Enrichment for an existing deferred topic (instead of creating new signal) */
-  deferred_enrichment?: {
-    topic_id: string;
-    new_brief: string;
-  };
   /** Model used for dispatch analysis */
   model_used?: string;
 }
@@ -403,13 +387,17 @@ Exemples:
 2) dashboard_preferences_intent (redirection réglages UX/UI)
 - Détecte quand le user veut changer ses préférences produit (pas une action du plan).
 - Renseigne "preference_keys" avec les clés canoniques détectées parmi:
-  * coaching_style: gentle | normal | challenging
-  * chatty_level: light | normal | high
-  * question_tendency: low | normal | high
+  * coach.tone: soft | warm_direct | direct
+  * coach.challenge_level: low | balanced | high
+  * coach.talk_propensity: light | balanced | high
+  * coach.message_length: short | medium | long
+  * coach.question_tendency: low | normal | high
 - Exemples:
-  * "sois plus challengeante" -> coaching_style
-  * "sois moins bavarde" -> chatty_level
-  * "pose moi moins de questions" -> question_tendency
+  * "sois plus douce" -> coach.tone
+  * "challenge-moi plus" -> coach.challenge_level
+  * "sois moins bavarde" -> coach.talk_propensity
+  * "fais plus court" -> coach.message_length
+  * "pose moi moins de questions" -> coach.question_tendency
 
 3) dashboard_recurring_reminder_intent (redirection Rendez-vous)
 - Détecte quand le user veut configurer/éditer des rendez-vous planifiés où Sophia vient vers lui au bon moment.
@@ -620,18 +608,6 @@ function buildContextMessagesWithSignals(
   return out.reverse().join("\n");
 }
 
-/**
- * Build the deferred topics section for dispatcher awareness.
- * Shows the dispatcher what topics are waiting in the queue so it can:
- * 1. Avoid re-flagging signals for topics that already exist
- * 2. Produce enrichments for existing topics instead of new signals
- */
-function buildDeferredTopicsSection(flowContext?: FlowContext): string {
-  // Release 1/2 simplification: deferred topics orchestration disabled.
-  // Keep dispatcher prompt focused on current-turn analysis only.
-  return "";
-}
-
 function buildActionSnapshotSection(
   actionSnapshot?: DispatcherInputV2["actionSnapshot"],
 ): string {
@@ -739,40 +715,9 @@ function simplePromptHash(input: string): string {
  * Flow context for enriching machine-specific addons.
  */
 export interface FlowContext {
-  /** For create_action_flow: the action being created */
-  actionLabel?: string;
-  actionType?: string;
-  actionStatus?: string; // exploring | awaiting_confirm | previewing | created | abandoned
-  clarificationCount?: number;
-  /** For update_action_flow: the action being updated */
-  targetActionTitle?: string;
-  proposedChanges?: string;
-  updateStatus?: string; // exploring | previewing | updated | abandoned
-  updateClarificationCount?: number;
-  /** For breakdown_action_flow: the action being broken down */
-  breakdownTarget?: string;
-  blocker?: string;
-  proposedStep?: string;
-  breakdownStatus?: string; // exploring | previewing | applied | abandoned
-  breakdownClarificationCount?: number;
-  /** For topic exploration: the topic being explored */
-  topicLabel?: string;
-  topicPhase?: string;
-  topicTurnCount?: number;
-  topicEngagement?: string;
-  /** For deep_reasons: the exploration context */
-  deepReasonsPhase?: string;
-  deepReasonsTopic?: string;
-  deepReasonsTurnCount?: number;
-  deepReasonsPattern?: string;
-  /** For profile confirmation: the fact being confirmed */
-  profileFactKey?: string;
-  profileFactValue?: string;
   /** For bilan (investigation): the current item being checked */
   currentItemTitle?: string;
-  currentItemId?: string;
   missedStreak?: number;
-  missedStreaksByAction?: Record<string, number>;
   isBilan?: boolean;
   bilanStale?: boolean;
   bilanAgeHours?: number;
@@ -787,67 +732,6 @@ export interface FlowContext {
     | "confirming"
     | "resolved";
   safetyTurnCount?: number;
-  /** Firefighter-specific: counts of stabilization vs distress signals */
-  stabilizationSignals?: number;
-  distressSignals?: number;
-  lastTechnique?: string;
-  /** Sentry-specific: safety confirmation status */
-  safetyConfirmed?: boolean;
-  externalHelpMentioned?: boolean;
-  /** Generic pending resolution context (priority over regular machine addons). */
-  pendingSignalResolution?: {
-    pending_type: PendingResolutionType;
-    dual_tool?: {
-      tool1_verb: string;
-      tool1_target?: string;
-      tool2_verb: string;
-      tool2_target?: string;
-    };
-    relaunch_consent?: {
-      machine_type: string;
-      action_target?: string;
-    };
-    resume_prompt?: {
-      kind: "toolflow" | "safety_recovery";
-    };
-  };
-  /** Pending relaunch consent: if set, dispatcher must detect consent_to_relaunch */
-  pendingRelaunchConsent?: {
-    machine_type: string;
-    action_target?: string;
-    summaries: string[];
-  };
-  /** Deferred topics summary for dispatcher awareness */
-  deferredTopicsSummary?: Array<{
-    id: string;
-    machine_type: string;
-    action_target?: string;
-    briefs: string[]; // signal_summaries (max 3)
-    trigger_count: number;
-    age_hours: number;
-  }>;
-  /** For activate_action_flow: the action being activated */
-  activateActionTarget?: string;
-  activateExerciseType?: string;
-  activateStatus?: string; // exploring | confirming | activated | abandoned
-  /** For delete_action_flow: the action being deleted */
-  deleteActionTarget?: string;
-  deleteActionReason?: string;
-  deleteActionStatus?: string; // exploring | confirming | deleted | abandoned
-  /** For deactivate_action_flow: the action being deactivated */
-  deactivateActionTarget?: string;
-  deactivateActionStatus?: string; // exploring | confirming | deactivated | abandoned
-  /** For track_progress: consent flow context */
-  trackProgressTarget?: string;
-  trackProgressStatusHint?: string;
-  trackProgressAwaiting?: boolean;
-  /** For legacy update_action_structure consent */
-  updateActionOldTarget?: string;
-  updateActionOldAwaiting?: boolean;
-  /** For profile confirmation: additional context */
-  profileConfirmPhase?: string; // presenting | awaiting_confirm | processing | completed
-  profileConfirmQueueSize?: number;
-  profileConfirmCurrentIndex?: number;
 }
 
 /**
@@ -906,9 +790,7 @@ Item en cours: "${currentItem}"`;
   return "";
 }
 
-// R2 cleanup: ~2100 lines of legacy machine addon code removed.
-// (dual_tool, relaunch_consent, create/update/breakdown/activate/delete/deactivate/
-//  deep_reasons/topic_session/profile_confirm machine addons, plus matchesSignalType helpers)
+// R2 simplification: dispatcher machine addons are limited to safety + bilan only.
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DISPATCHER PROMPT BUILDER
@@ -1296,14 +1178,16 @@ Reponds UNIQUEMENT avec le JSON:`;
       ? signalsObj.dashboard_preferences_intent.preference_keys
       : [];
     const dashboardPreferenceAllowed = new Set([
-      "coaching_style",
-      "chatty_level",
-      "question_tendency",
+      "coach.tone",
+      "coach.challenge_level",
+      "coach.talk_propensity",
+      "coach.message_length",
+      "coach.question_tendency",
     ]);
     const dashboardPreferenceKeys = dashboardPreferencesKeysRaw
       .map((v: unknown) => String(v ?? "").trim().toLowerCase())
       .filter((v: string) => dashboardPreferenceAllowed.has(v))
-      .slice(0, 3);
+      .slice(0, 5);
     const dashboardPreferencesConf = Math.max(
       0,
       Math.min(
@@ -1417,23 +1301,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       if (!hasAny) machineSignals = undefined;
     }
 
-    // Parse deferred_enrichment (if dispatcher identified enrichment for existing deferred topic)
-    let deferredEnrichment:
-      | { topic_id: string; new_brief: string }
-      | undefined = undefined;
-    if (
-      obj?.deferred_enrichment && typeof obj.deferred_enrichment === "object"
-    ) {
-      const de = obj.deferred_enrichment;
-      const topicId = typeof de.topic_id === "string" ? de.topic_id.trim() : "";
-      const newBrief = typeof de.new_brief === "string"
-        ? de.new_brief.trim().slice(0, 150)
-        : "";
-      if (topicId && newBrief) {
-        deferredEnrichment = { topic_id: topicId, new_brief: newBrief };
-      }
-    }
-
     return {
       signals: {
         safety: {
@@ -1519,7 +1386,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       new_signals: newSignals,
       enrichments,
       machine_signals: machineSignals,
-      deferred_enrichment: deferredEnrichment,
       model_used: dispatcherModel,
     };
   } catch (e) {
@@ -1536,40 +1402,6 @@ Reponds UNIQUEMENT avec le JSON:`;
       model_used: dispatcherModel,
     };
   }
-}
-
-// ═══════════════════════════════════════════════════════════════════════════════
-// DEFERRED SIGNAL HELPERS
-// ═══════════════════════════════════════════════════════════════════════════════
-
-type DeferredMachineType = string;
-
-/**
- * Determine which machine type a signal would trigger (if any).
- * R2 simplification: always returns null (tool flow machines disabled).
- * Kept for backward compat with callers that check the return value.
- */
-export function detectMachineTypeFromSignals(_signals: DispatcherSignals): {
-  machine_type: DeferredMachineType;
-  action_target?: string;
-  summary_hint?: string;
-} | null {
-  // R2: All tool flow machines disabled. No machine detection needed.
-  return null;
-}
-
-// R2 cleanup: detectMachineTypeFromSignals dead code removed (~140 lines).
-// Compatibility shim: kept for legacy deferred helpers still present in codebase.
-export function generateDeferredSignalSummary(args: {
-  signals: DispatcherSignals;
-  userMessage: string;
-  machine_type: DeferredMachineType;
-  action_target?: string;
-}): string {
-  const target = String(args.action_target ?? "").trim();
-  const direct = String(args.userMessage ?? "").trim().slice(0, 120);
-  const base = target || direct || "sujet évoqué";
-  return `${args.machine_type}: ${base}`.slice(0, 180);
 }
 
 /**

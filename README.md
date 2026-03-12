@@ -116,7 +116,6 @@ supabase db seed --file supabase/seeds/optin_templates.json
 
 Pour tester des morceaux de flux **en isolation** (onboarding + opt-in WhatsApp, bilan/investigator, détresse, décrochage…), on peut provisionner des **users fixtures** en base à partir d’“archetypes” versionnés.
 
-- Les archetypes sont dans `frontend/eval/archetypes/*.json`
 - Le script de provisioning: `frontend/scripts/provision_fixture_user.mjs`
 
 ### Provisionner un profil type

@@ -11,31 +11,17 @@ function parseIsoMs(raw: unknown): number {
 
 /**
  * Check if a machine type matches a signal type.
- * R2 simplified: only safety and track_progress mappings kept.
+ * R2 simplified: only safety mappings remain.
  */
 export function machineMatchesSignalType(
   machineType: string | null,
   signalType: string,
 ): boolean {
   if (!machineType || !signalType) return false;
-  const mappings: Record<string, string[]> = {
-    "track_progress_flow": [
-      "track_progress_action",
-      "track_progress_vital_sign",
-      "track_progress_north_star",
-    ],
-    "track_progress_consent": [
-      "track_progress_action",
-      "track_progress_vital_sign",
-      "track_progress_north_star",
-    ],
-    "safety_sentry_flow": [
-      "safety",
-      "sentry_resolution",
-      "vital_danger_resolution",
-    ],
-  };
-  return mappings[machineType]?.includes(signalType) ?? false;
+  if (machineType !== "safety_sentry_flow") return false;
+  return signalType === "safety" ||
+    signalType === "sentry_resolution" ||
+    signalType === "vital_danger_resolution";
 }
 
 /**
@@ -69,8 +55,6 @@ export function buildFlowContext(
       safetyFlowType: "sentry",
       safetyPhase: sentryFlow.phase,
       safetyTurnCount: sentryFlow.turn_count,
-      safetyConfirmed: sentryFlow.safety_confirmed,
-      externalHelpMentioned: sentryFlow.external_help_mentioned,
     };
   }
 
@@ -98,12 +82,7 @@ export function buildFlowContext(
     return {
       isBilan: true,
       currentItemTitle: currentItem?.title,
-      currentItemId: currentItem?.id,
       missedStreak,
-      missedStreaksByAction:
-        missedStreaksByAction && Object.keys(missedStreaksByAction).length > 0
-          ? missedStreaksByAction
-          : undefined,
       bilanStale: isStale,
       bilanAgeHours: ageHours,
       bilanStaleAfterHours: staleAfterHours,

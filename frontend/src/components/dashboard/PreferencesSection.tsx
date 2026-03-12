@@ -26,27 +26,51 @@ const FACT_SCOPE = 'global';
 
 const PREFERENCES: PreferenceDef[] = [
   {
-    key: 'coach.coaching_style',
+    key: 'coach.tone',
     icon: Mic2,
-    title: 'Style de coaching',
-    description: 'La façon dont Sophia te pousse vers l\'action: douce, équilibrée ou plus challengeante.',
-    defaultValue: 'normal',
+    title: 'Ton global',
+    description: 'La couleur relationnelle générale de Sophia: plus douce, bienveillante ferme ou très directe.',
+    defaultValue: 'warm_direct',
     options: [
-      { value: 'gentle', title: 'Doux', description: 'Soutenant et apaisant, sans pression forte.' },
-      { value: 'normal', title: 'Normal', description: 'Équilibré entre soutien et progression.' },
-      { value: 'challenging', title: 'Challengeant', description: 'Plus direct et exigeant pour accélérer.' },
+      { value: 'soft', title: 'Doux', description: 'Très soutenant, arrondi et rassurant.' },
+      { value: 'warm_direct', title: 'Bienveillant ferme', description: 'Chaleureux mais clair, sans tourner autour du pot.' },
+      { value: 'direct', title: 'Très direct', description: 'Va droit au point, avec peu d\'arrondis.' },
     ],
   },
   {
-    key: 'coach.chatty_level',
+    key: 'coach.challenge_level',
+    icon: Crown,
+    title: 'Niveau de challenge',
+    description: 'Définit à quel point Sophia te pousse et te confronte pour avancer.',
+    defaultValue: 'balanced',
+    options: [
+      { value: 'low', title: 'Léger', description: 'Peu de pression, priorité au soutien.' },
+      { value: 'balanced', title: 'Équilibré', description: 'Bon compromis entre soutien et exigence.' },
+      { value: 'high', title: 'Élevé', description: 'Plus exigeant pour accélérer la progression.' },
+    ],
+  },
+  {
+    key: 'coach.talk_propensity',
     icon: MessageCircle,
     title: 'Niveau de bavardage',
     description: 'Définit à quel point Sophia prolonge la conversation au-delà de la demande initiale.',
-    defaultValue: 'normal',
+    defaultValue: 'balanced',
     options: [
-      { value: 'light', title: 'Léger', description: 'Réponses concises, peu de relances.' },
-      { value: 'normal', title: 'Normal', description: 'Conversation naturelle, relances si utile.' },
-      { value: 'high', title: 'Élevé', description: 'Échange plus nourri, rebonds fréquents.' },
+      { value: 'light', title: 'Léger', description: 'Va vite à l\'essentiel, peu de rebonds.' },
+      { value: 'balanced', title: 'Équilibré', description: 'Conversation naturelle, relances si utile.' },
+      { value: 'high', title: 'Élevé', description: 'Plus de rebonds, plus de développement.' },
+    ],
+  },
+  {
+    key: 'coach.message_length',
+    icon: MessageSquare,
+    title: 'Longueur de réponse',
+    description: 'Règle la densité moyenne des réponses de Sophia.',
+    defaultValue: 'short',
+    options: [
+      { value: 'short', title: 'Courte', description: 'Réponses compactes, rapides à lire.' },
+      { value: 'medium', title: 'Moyenne', description: 'Un peu plus de contexte sans s\'étaler.' },
+      { value: 'long', title: 'Longue', description: 'Réponses plus développées quand c\'est utile.' },
     ],
   },
   {
