@@ -98,7 +98,7 @@ Deno.test("helpers keep broad opening and grouped follow-up natural", () => {
   })
   assertEquals(
     msg,
-    "Ok, c'est noté pour Meditation matinale. Il me manque encore ta lecture et ta nuit. Ça a donné quoi de ce côté-là ?",
+    "Et pour ta lecture et ta nuit, tu me dis ce qu'il en a été ?",
   )
 })
 
@@ -121,4 +121,26 @@ Deno.test("spoken labels turn rigid dashboard wording into natural phrasing", ()
     }),
     "les écrans",
   )
+})
+
+Deno.test("grouped follow-up collapses duplicate spoken labels", () => {
+  const msg = buildGroupedFollowUpMessage({
+    coveredItems: [],
+    nextItems: [
+      {
+        id: "a1",
+        type: "action",
+        title: "Couvre-feu Digital Renforcé",
+        tracking_type: "boolean",
+      },
+      {
+        id: "a2",
+        type: "action",
+        title: "Minutes d'écran de loisir après 19h",
+        tracking_type: "counter",
+      },
+    ],
+  })
+
+  assertEquals(msg, "Et pour les écrans, tu l'as fait finalement ?")
 })

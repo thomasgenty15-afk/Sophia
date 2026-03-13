@@ -194,22 +194,16 @@ export function buildGroupedFollowUpMessage(opts: {
   coveredItems: CheckupItem[]
   nextItems: CheckupItem[]
 }): string {
-  const coveredLabels = opts.coveredItems
-    .slice(0, 2)
-    .map((item) => spokenLabelForItem(item))
-    .filter(Boolean)
-  const nextLabels = opts.nextItems
-    .slice(0, 2)
-    .map((item) => spokenLabelForItem(item))
-    .filter(Boolean)
+  const coveredLabels = collectUniqueLabels(opts.coveredItems, 2)
+  const nextLabels = collectUniqueLabels(opts.nextItems, 2)
 
   const firstNext = opts.nextItems[0]
   const coveredIntro = buildCoveredIntro(coveredLabels, nextLabels.length > 0)
-  if (nextLabels.length === 0) return coveredIntro || "C'est bon pour le point d'aujourd'hui 🙂"
+  if (nextLabels.length === 0) return coveredIntro || "C'est bon pour les points du jour."
   if (nextLabels.length === 1) {
     return `${coveredIntro}${buildSingleNextQuestion(firstNext, nextLabels[0])}`.trim()
   }
-  return `${coveredIntro}Il me manque encore ${nextLabels[0]} et ${nextLabels[1]}. Ça a donné quoi de ce côté-là ?`
+  return `${coveredIntro}Et pour ${nextLabels[0]} et ${nextLabels[1]}, tu me dis ce qu'il en a été ?`.trim()
 }
 
 export function buildMissedReasonQuestion(item: CheckupItem): string {
@@ -218,19 +212,32 @@ export function buildMissedReasonQuestion(item: CheckupItem): string {
 
 function buildCoveredIntro(labels: string[], hasNextItems: boolean): string {
   if (labels.length === 0) return ""
-  if (labels.length === 1) {
-    return hasNextItems ? `Ok, c'est noté pour ${labels[0]}. ` : `Ok, c'est noté pour ${labels[0]}.`
-  }
-  return hasNextItems
-    ? `Ok, donc pour ${labels[0]} et ${labels[1]}, c'est noté. `
-    : `Ok, donc pour ${labels[0]} et ${labels[1]}, c'est noté.`
+  if (hasNextItems) return ""
+  if (labels.length === 1) return `C'est bon pour ${labels[0]}.`
+  return `C'est bon pour ${labels[0]} et ${labels[1]}.`
 }
 
 function buildSingleNextQuestion(item: CheckupItem | undefined, label: string): string {
-  if (!item) return `Il me manque juste ${label}. Ça a donné quoi ?`
-  if (item.type === "framework") return `Il me manque juste ${label}, tu as eu le temps ou pas ?`
-  if (item.type === "vital") return `Il me manque juste ${label}. Ça donnait quoi ?`
-  return `Il me manque juste ${label}, tu l'as fait ou pas finalement ?`
+  if (!item) return `Et pour ${label}, ça a donné quoi ?`
+  if (item.type === "framework") return `Et pour ${label}, tu as pu le faire ?`
+  if (item.type === "vital") return `Et pour ${label}, c'était comment ?`
+  return `Et pour ${label}, tu l'as fait finalement ?`
+}
+
+function collectUniqueLabels(items: CheckupItem[], limit: number): string[] {
+  const labels: string[] = []
+  const seen = new Set<string>()
+
+  for (const item of items) {
+    const label = spokenLabelForItem(item)
+    const key = normalizeLite(label)
+    if (!label || seen.has(key)) continue
+    seen.add(key)
+    labels.push(label)
+    if (labels.length >= limit) break
+  }
+
+  return labels
 }
 
 export async function extractGlobalCheckupCoverage(opts: {

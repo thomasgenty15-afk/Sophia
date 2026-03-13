@@ -517,7 +517,7 @@ const Dashboard = () => {
                   className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${architectTab === 'wishlist' ? 'bg-emerald-600 text-white shadow-md scale-105' : 'text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30'}`}
                 >
                   <Target className="w-4 h-4 shrink-0" />
-                  <span className="whitespace-nowrap">Vœux</span>
+                  <span className="whitespace-nowrap">Envies</span>
                 </button>
                 <button 
                   onClick={() => setArchitectTab('stories')}
@@ -1060,4 +1060,3 @@ const Dashboard = () => {
 };
 
 export default Dashboard;
-

@@ -105,7 +105,7 @@ export const WishlistTab: React.FC = () => {
     } catch (error) {
       console.error('[WishlistTab] load failed', error);
       setItems([]);
-      setStatusMsg("Impossible de charger tes voeux pour le moment.");
+      setStatusMsg("Impossible de charger tes envies pour le moment.");
     } finally {
       setLoading(false);
     }
@@ -157,7 +157,7 @@ export const WishlistTab: React.FC = () => {
       resetAddForm();
     } catch (error: any) {
       console.error('[WishlistTab] create failed', error);
-      setStatusMsg(String(error?.message || "Impossible d'ajouter ce voeu."));
+      setStatusMsg(String(error?.message || "Impossible d'ajouter cette envie."));
     } finally {
       setIsSubmitting(false);
     }
@@ -189,7 +189,7 @@ export const WishlistTab: React.FC = () => {
     } catch (error: any) {
       console.error('[WishlistTab] toggle failed', error);
       patchItemLocal(item.id, { isDone: item.isDone });
-      setStatusMsg(String(error?.message || "Impossible de mettre a jour ce voeu."));
+      setStatusMsg(String(error?.message || "Impossible de mettre a jour cette envie."));
     } finally {
       setBusyItemId(null);
     }
@@ -214,7 +214,7 @@ export const WishlistTab: React.FC = () => {
       setItemToDelete(null);
     } catch (error: any) {
       console.error('[WishlistTab] delete failed', error);
-      setStatusMsg(String(error?.message || "Impossible de supprimer ce voeu."));
+      setStatusMsg(String(error?.message || "Impossible de supprimer cette envie."));
     } finally {
       setBusyItemId(null);
     }
@@ -239,9 +239,9 @@ export const WishlistTab: React.FC = () => {
     <div className="flex-1 overflow-y-auto bg-transparent p-6 md:p-12">
       <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">Voeux</h1>
+          <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">Envies</h1>
           <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic mb-6">
-            "Ne demande pas que les choses soient plus faciles, demande a etre meilleur. Ne souhaite pas moins de problemes, souhaite plus de competences."
+            "Tes envies sont des signaux. Quand tu les ecoutes vraiment, elles dessinent la vie que tu veux construire."
           </p>
 
           <button
@@ -255,7 +255,7 @@ export const WishlistTab: React.FC = () => {
           {showExplanation && (
             <div className="mt-6 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
               <p className="mb-3">
-                Cet espace est ton sanctuaire d&apos;ambitions. Contrairement a une simple "to-do list", tes voeux representent les experiences profondes, les accomplissements majeurs et les contributions que tu souhaites realiser dans ta vie.
+                Cet espace recueille ce qui t&apos;attire profondement. Contrairement a une simple "to-do list", tes envies representent les experiences, les accomplissements et les contributions que tu veux vraiment faire exister dans ta vie.
               </p>
               <p>
                 Ajoute ici tout ce qui te fait vibrer : un voyage initiatique, la maitrise d&apos;une langue, la creation d&apos;une oeuvre, ou un impact specifique sur le monde. Coche-les au fur et a mesure que tu les realises pour visualiser ton evolution.
@@ -266,7 +266,7 @@ export const WishlistTab: React.FC = () => {
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-8">
           <div className="text-xs font-bold uppercase tracking-widest text-emerald-500">
-            {loading ? 'Chargement...' : `${items.length} voeux • ${completedCount} accomplis`}
+            {loading ? 'Chargement...' : `${items.length} envies • ${completedCount} accomplies`}
           </div>
           <button
             onClick={() => setIsAdding(true)}
@@ -274,7 +274,7 @@ export const WishlistTab: React.FC = () => {
             className="w-full sm:w-auto flex items-center justify-center gap-2 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800/60 disabled:text-emerald-200/50 text-white px-6 py-3 rounded-xl font-bold transition-colors shadow-lg shadow-emerald-900/50"
           >
             <Plus className="w-5 h-5" />
-            Ajouter un voeu
+            Ajouter une envie
           </button>
         </div>
 
@@ -290,7 +290,7 @@ export const WishlistTab: React.FC = () => {
               type="text"
               value={newItemTitle}
               onChange={(e) => setNewItemTitle(e.target.value)}
-              placeholder="Ton prochain voeu..."
+              placeholder="Ta prochaine envie..."
               className="w-full bg-transparent border-b border-emerald-700/80 text-lg md:text-2xl text-white placeholder-emerald-600/70 pb-2 focus:outline-none focus:border-emerald-500 mb-4"
               autoFocus
             />
@@ -298,7 +298,7 @@ export const WishlistTab: React.FC = () => {
             <textarea
               value={newItemDescription}
               onChange={(e) => setNewItemDescription(e.target.value)}
-              placeholder="Pourquoi ce voeu est important pour toi ?"
+              placeholder="Pourquoi cette envie est importante pour toi ?"
               className="w-full bg-transparent border-b border-emerald-700/70 text-sm text-emerald-100 placeholder-emerald-600/70 pb-2 focus:outline-none focus:border-emerald-500 mb-6 resize-none"
               rows={2}
             />
@@ -435,9 +435,9 @@ export const WishlistTab: React.FC = () => {
         <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-sm" onClick={() => setItemToDelete(null)} />
           <div className="relative bg-emerald-950 border border-emerald-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-fade-in">
-            <h3 className="text-xl font-serif font-bold text-white mb-2">Supprimer ce voeu ?</h3>
+            <h3 className="text-xl font-serif font-bold text-white mb-2">Supprimer cette envie ?</h3>
             <p className="text-emerald-200/70 text-sm mb-6">
-              Cette action est irreversible. Es-tu sur de vouloir supprimer ce voeu de ta liste ?
+              Cette action est irreversible. Es-tu sur de vouloir supprimer cette envie de ta liste ?
             </p>
             <div className="flex items-center justify-end gap-3">
               <button

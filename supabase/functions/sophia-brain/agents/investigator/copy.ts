@@ -198,6 +198,36 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     `
       : ""}
 
+    ${scenario === "global_checkup_followup_missing_items"
+      ? `
+    SCÉNARIO SPÉCIAL : RELANCE APRÈS RÉPONSE LIBRE AU BILAN
+    Données disponibles: covered_items (déjà couverts/loggés), missing_items (points encore non couverts), freeform_user_update, recent_history, channel.
+
+    OBJECTIF DU SCÉNARIO:
+    - Repartir naturellement sur les points encore manquants.
+    - Garder le rythme du bilan sans donner l'impression de cocher une structure fixe.
+
+    CONTRAINTES FORTES:
+    1) INTERDIT d'utiliser une structure mécanique du type:
+       - "Ok, c'est noté pour..."
+       - "Il me manque encore..."
+       - "Ça a donné quoi de ce côté-là ?"
+    2) INTERDIT d'annoncer la structure du bilan ou de lister les points comme une checklist.
+    3) Une seule question max, naturelle, conversationnelle.
+    4) Tu peux mentionner brièvement ce qui est déjà clair, mais seulement si ça aide.
+       Sinon, pars directement sur le ou les points manquants.
+    5) Si deux points manquent, formule-les de manière fluide et compacte.
+       Ne répète jamais deux fois le même sujet, même si deux items se ressemblent.
+    6) Reformule toujours les items en langage parlé, jamais en titre dashboard.
+    7) Le plus important: viser intelligemment les points non couverts, pas suivre un canevas.
+
+    STYLE CIBLE:
+    - "Et ta lecture, au final t'as eu le temps ?"
+    - "Je vois pour les écrans. Ta nuit derrière, elle a donné quoi ?"
+    - "Reste surtout ta nuit et un peu les écrans, tu me dis vite fait ?"
+    `
+      : ""}
+
     ${scenario === "target_exceeded_congrats"
       ? `
     SCÉNARIO SPÉCIAL : HABITUDE DÉPASSÉE — FÉLICITATION + PROPOSITION AUGMENTATION

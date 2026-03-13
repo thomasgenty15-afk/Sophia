@@ -195,7 +195,7 @@ export const StoriesTab: React.FC = () => {
     {
       id: 1,
       sender: 'ai',
-      text: "Je peux t'aider a transformer un souvenir en histoire utile pour parler, convaincre ou inspirer. Commence par me donner le contexte ou l'emotion cle.",
+      text: "Je peux t'aider a transformer un episode vecu en histoire utile pour parler, convaincre ou inspirer. On part de ton reel, pas d'une histoire inventee. Commence par me donner le contexte ou l'emotion cle.",
     },
   ]);
 
@@ -268,7 +268,7 @@ export const StoriesTab: React.FC = () => {
       {
         id: 1,
         sender: 'ai',
-        text: "Nouvelle histoire. Je vais t'aider a la structurer pour qu'elle soit memorable et reutilisable dans tes conversations.",
+        text: "Nouvelle histoire. Je vais t'aider a structurer un episode de ton vecu pour qu'il soit clair, memorable et reutilisable dans tes conversations.",
       },
     ]);
     setIsModalOpen(true);
@@ -286,7 +286,7 @@ export const StoriesTab: React.FC = () => {
       {
         id: 1,
         sender: 'ai',
-        text: "Je vois deja la base de ton histoire. On peut maintenant l'affiner pour qu'elle soit plus claire, plus vivante et plus utile en communication.",
+        text: "Je vois deja la base de ton histoire. On peut maintenant affiner ce vecu pour qu'il soit plus clair, plus vivant et plus utile en communication.",
       },
     ]);
     setIsModalOpen(true);
@@ -510,9 +510,44 @@ export const StoriesTab: React.FC = () => {
         <div className="max-w-4xl mx-auto text-center">
           <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">Histoires</h1>
           <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic mb-6">
-            &quot;Les faits informent, mais les histoires relient. Une bonne histoire ouvre une porte qu&apos;aucun
-            argument seul ne peut forcer.&quot;
+            &quot;Ici, tu ne crées pas de fiction. Tu transformes ton vécu en histoires transmissibles, utiles et incarnées.&quot;
           </p>
+
+          <div className="mb-6 rounded-3xl border border-amber-700/50 bg-gradient-to-br from-amber-900/30 via-amber-950/20 to-orange-900/10 p-5 md:p-6 text-left shadow-lg shadow-amber-950/20">
+            <div className="flex items-start gap-3 mb-4">
+              <div className="rounded-2xl bg-amber-500/15 p-2.5 text-amber-300 shrink-0">
+                <Sparkles className="w-5 h-5" />
+              </div>
+              <div>
+                <h2 className="text-base md:text-lg font-bold text-amber-50">
+                  Pourquoi travailler ses histoires change vraiment quelque chose
+                </h2>
+                <p className="text-sm text-amber-200/80 mt-1">
+                  C&apos;est une manière de mieux comprendre ce que tu as vécu, puis d&apos;en parler plus clairement.
+                </p>
+              </div>
+            </div>
+
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="rounded-2xl border border-amber-800/40 bg-amber-950/35 p-4">
+                <div className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
+                  Pour toi d&apos;abord
+                </div>
+                <p className="text-sm text-amber-50/85 leading-relaxed">
+                  Mettre ton vécu en histoire t&apos;aide a prendre du recul, a comprendre ce qui s&apos;est vraiment joué, a retenir les leçons et surtout a être capable de mieux en parler.
+                </p>
+              </div>
+
+              <div className="rounded-2xl border border-amber-800/40 bg-amber-950/35 p-4">
+                <div className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
+                  Et ensuite pour les autres
+                </div>
+                <p className="text-sm text-amber-50/85 leading-relaxed">
+                  Quand tu arrives a mieux en parler, les autres comprennent plus vite qui tu es, ce que tu as traversé et ce que tu veux transmettre. Tes histoires créent alors naturellement de l&apos;attention, de la confiance, de la connexion et de la mémorisation.
+                </p>
+              </div>
+            </div>
+          </div>
 
           <button
             type="button"
@@ -526,16 +561,18 @@ export const StoriesTab: React.FC = () => {
           {showExplanation && (
             <div className="mt-6 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
               <p className="mb-3">
-                Cet espace ne sert pas seulement a conserver des souvenirs. Il sert a construire une
-                bibliotheque d&apos;histoires utiles pour parler, convaincre, inspirer, enseigner et creer du lien.
+                Cet espace est reserve a des histoires ancrees dans ton vécu reel. Le but n&apos;est pas
+                d&apos;inventer des recits, mais de capturer des episodes que tu as vraiment traverses pour pouvoir
+                les raconter avec justesse.
               </p>
               <p className="mb-3">
-                Note ici les histoires que tu peux reutiliser dans une conversation, un rendez-vous, une prise
-                de parole, un contenu, un podcast, une vente ou un moment important de ta vie.
+                Note ici les situations, les tournants, les erreurs, les prises de conscience et les moments
+                marquants que tu peux reutiliser dans une conversation, un rendez-vous, une prise de parole, un
+                contenu, un podcast, une vente ou un moment important de ta vie.
               </p>
               <p>
-                Quand tu crees une histoire, Sophia t&apos;aide a clarifier l&apos;angle, l&apos;emotion, la lecon et le
-                contexte d&apos;usage pour la rendre vraiment exploitable.
+                Sophia t&apos;aide ensuite a clarifier l&apos;angle, l&apos;emotion, la lecon et le contexte d&apos;usage pour
+                transformer ce vécu en histoire claire, solide et vraiment exploitable.
               </p>
             </div>
           )}

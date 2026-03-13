@@ -553,10 +553,27 @@ export async function runInvestigator(
             : "did_it",
         });
         const coveredItems = currentState.pending_items.filter((item) => loggedItemIds.includes(item.id));
-        const followUp = buildGroupedFollowUpMessage({
+        let followUp = buildGroupedFollowUpMessage({
           coveredItems,
           nextItems,
         });
+        try {
+          followUp = await investigatorSay(
+            "global_checkup_followup_missing_items",
+            {
+              user_message: message,
+              channel: meta?.channel,
+              recent_history: history.slice(-15),
+              covered_items: coveredItems,
+              missing_items: nextItems,
+              freeform_user_update: extraction.freeform_user_update ?? null,
+              overall_tone: extraction.overall_tone ?? null,
+            },
+            meta,
+          );
+        } catch (e) {
+          console.error("[Investigator] grouped follow-up generation failed:", e);
+        }
         return {
           content: followUp,
           investigationComplete: false,
