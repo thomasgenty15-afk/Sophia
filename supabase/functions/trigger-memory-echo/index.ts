@@ -5,7 +5,7 @@ import { generateWithGemini, getGlobalAiModel } from '../_shared/gemini.ts'
 import { ensureInternalRequest } from '../_shared/internal-auth.ts'
 import { getRequestId, jsonResponse } from "../_shared/http.ts"
 import { enqueueProactiveTemplateCandidate } from "../_shared/proactive_template_queue.ts"
-import { applyWhatsappProactiveOpeningPolicy, hasAnyWhatsappMessagesInLocalDay } from "../_shared/scheduled_checkins.ts"
+import { allowRelaunchGreetingFromLastMessage, applyWhatsappProactiveOpeningPolicy } from "../_shared/scheduled_checkins.ts"
 import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
 import { whatsappLangFromLocale } from "../_shared/locale.ts"
 
@@ -481,14 +481,13 @@ CONSIGNES:
           userId,
           source: "trigger-memory-echo:message",
         })
-        const hasMessagesToday = await hasAnyWhatsappMessagesInLocalDay({
-          admin: supabaseAdmin as any,
-          userId,
-          timezone: String((profile as any)?.timezone ?? "").trim() || "Europe/Paris",
+        const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
+          lastInboundAt: (profile as any)?.whatsapp_last_inbound_at,
+          lastOutboundAt: (profile as any)?.whatsapp_last_outbound_at,
         })
         const echoMessage = applyWhatsappProactiveOpeningPolicy({
           text: String(rawEchoMessage ?? ""),
-          hasMessagesToday,
+          allowRelaunchGreeting,
           fallback: "Je repensais à un truc qu'on s'était dit il y a quelque temps. Depuis, ça a bougé comment ?",
         })
 

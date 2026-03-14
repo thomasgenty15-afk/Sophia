@@ -5,7 +5,7 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
 import { enqueueProactiveTemplateCandidate } from "../_shared/proactive_template_queue.ts";
-import { applyWhatsappProactiveOpeningPolicy, hasAnyWhatsappMessagesInLocalDay } from "../_shared/scheduled_checkins.ts";
+import { applyWhatsappProactiveOpeningPolicy } from "../_shared/scheduled_checkins.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
 import { createWeeklyInvestigationState } from "../sophia-brain/agents/investigator-weekly/types.ts";
 import { hasActiveStateMachine } from "../trigger-daily-bilan/state_machine_check.ts";
@@ -34,18 +34,13 @@ async function deriveWeeklyOpeningContext(
   profile: any,
   userId: string,
 ): Promise<WeeklyOpeningContext> {
-  const has_messages_today = await hasAnyWhatsappMessagesInLocalDay({
-    admin: admin as any,
-    userId,
-    timezone: String(profile?.timezone ?? "").trim() || "Europe/Paris",
-  });
   const inboundMs = parseTimestampMs(profile?.whatsapp_last_inbound_at);
   const outboundMs = parseTimestampMs(profile?.whatsapp_last_outbound_at);
   const lastMessageMs = Math.max(inboundMs ?? -Infinity, outboundMs ?? -Infinity);
   if (!Number.isFinite(lastMessageMs)) {
     return {
       mode: "cold_relaunch",
-      has_messages_today,
+      allow_relaunch_greeting: true,
       hours_since_last_message: null,
       last_message_at: null,
     };
@@ -54,7 +49,7 @@ async function deriveWeeklyOpeningContext(
   const hours = Number((deltaMs / (60 * 60 * 1000)).toFixed(2));
   return {
     mode: hours >= 4 ? "cold_relaunch" : "ongoing_conversation",
-    has_messages_today,
+    allow_relaunch_greeting: hours >= 10,
     hours_since_last_message: hours,
     last_message_at: new Date(lastMessageMs as number).toISOString(),
   };
@@ -312,7 +307,7 @@ Deno.serve(async (req) => {
 
         const openingMessage = applyWhatsappProactiveOpeningPolicy({
           text: String(invResult.content ?? "").trim(),
-          hasMessagesToday: openingContext.has_messages_today,
+          allowRelaunchGreeting: openingContext.allow_relaunch_greeting,
           fallback: "On fait le bilan hebdo maintenant ?",
         });
         if (!openingMessage) {

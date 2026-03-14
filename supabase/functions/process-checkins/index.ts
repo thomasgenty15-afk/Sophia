@@ -10,10 +10,10 @@ import {
   PROACTIVE_TEMPLATE_CANDIDATE_KIND,
 } from "../_shared/proactive_template_queue.ts"
 import {
+  allowRelaunchGreetingFromLastMessage,
   applyWhatsappProactiveOpeningPolicy,
   applyScheduledCheckinGreetingPolicy,
   generateDynamicWhatsAppCheckinMessage,
-  hasAnyWhatsappMessagesInLocalDay,
 } from "../_shared/scheduled_checkins.ts"
 
 console.log("Process Checkins: Function initialized")
@@ -460,18 +460,16 @@ Deno.serve(async (req) => {
         try {
           const { data: profileForGreeting } = await supabaseAdmin
             .from("profiles")
-            .select("timezone")
+            .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
             .eq("id", row.user_id)
             .maybeSingle()
-          const timezone = String((profileForGreeting as any)?.timezone ?? "").trim() || "Europe/Paris"
-          const hasMessagesToday = await hasAnyWhatsappMessagesInLocalDay({
-            admin: supabaseAdmin as any,
-            userId: row.user_id,
-            timezone,
+          const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
+            lastInboundAt: (profileForGreeting as any)?.whatsapp_last_inbound_at,
+            lastOutboundAt: (profileForGreeting as any)?.whatsapp_last_outbound_at,
           })
           bodyText = applyWhatsappProactiveOpeningPolicy({
             text: bodyText,
-            hasMessagesToday,
+            allowRelaunchGreeting,
             fallback: "Comment ça va ?",
           })
           if (message && (message as any).type === "text") {
@@ -706,16 +704,14 @@ Deno.serve(async (req) => {
       try {
         const { data: profileForGreeting } = await supabaseAdmin
           .from("profiles")
-          .select("timezone")
+          .select("whatsapp_last_inbound_at, whatsapp_last_outbound_at")
           .eq("id", checkin.user_id)
           .maybeSingle()
-        const timezone = String((profileForGreeting as any)?.timezone ?? "").trim() || "Europe/Paris"
-        const hasMessagesToday = await hasAnyWhatsappMessagesInLocalDay({
-          admin: supabaseAdmin as any,
-          userId: checkin.user_id,
-          timezone,
+        const allowRelaunchGreeting = allowRelaunchGreetingFromLastMessage({
+          lastInboundAt: (profileForGreeting as any)?.whatsapp_last_inbound_at,
+          lastOutboundAt: (profileForGreeting as any)?.whatsapp_last_outbound_at,
         })
-        bodyText = applyScheduledCheckinGreetingPolicy({ text: bodyText, hasMessagesToday })
+        bodyText = applyScheduledCheckinGreetingPolicy({ text: bodyText, allowRelaunchGreeting })
       } catch (e) {
         console.warn(`[process-checkins] request_id=${requestId} greeting_policy_failed checkin_id=${checkin.id}`, e)
       }

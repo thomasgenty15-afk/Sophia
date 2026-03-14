@@ -42,23 +42,45 @@ function pickColdOpenGreeting(): string {
   return greetings[idx] ?? "Hello!"
 }
 
+function parseTimestampMs(value: unknown): number | null {
+  if (typeof value !== "string" || !value.trim()) return null
+  const ms = new Date(value).getTime()
+  return Number.isFinite(ms) ? ms : null
+}
+
+export function allowRelaunchGreetingFromLastMessage(params: {
+  lastInboundAt?: unknown
+  lastOutboundAt?: unknown
+  thresholdHours?: number
+}): boolean {
+  const inboundMs = parseTimestampMs(params.lastInboundAt)
+  const outboundMs = parseTimestampMs(params.lastOutboundAt)
+  const lastMessageMs = Math.max(inboundMs ?? -Infinity, outboundMs ?? -Infinity)
+  if (!Number.isFinite(lastMessageMs)) return true
+  const thresholdHours = Number.isFinite(Number(params.thresholdHours))
+    ? Math.max(0, Number(params.thresholdHours))
+    : 10
+  const deltaHours = Math.max(0, Date.now() - lastMessageMs) / (60 * 60 * 1000)
+  return deltaHours >= thresholdHours
+}
+
 export function applyWhatsappProactiveOpeningPolicy(params: {
   text: string
-  hasMessagesToday: boolean
+  allowRelaunchGreeting: boolean
   fallback?: string
 }): string {
   const fallback = String(params.fallback ?? "Comment ça va ?").trim() || "Comment ça va ?"
   const noGreeting = stripLeadingGreeting(params.text)
   const noAnnouncement = stripLeadingCheckinAnnouncement(noGreeting)
   const normalized = uppercaseFirstLetter(noAnnouncement || fallback)
-  if (params.hasMessagesToday) return normalized
+  if (!params.allowRelaunchGreeting) return normalized
   return `${pickColdOpenGreeting()} ${normalized}`
 }
 
-export function applyScheduledCheckinGreetingPolicy(params: { text: string; hasMessagesToday: boolean }): string {
+export function applyScheduledCheckinGreetingPolicy(params: { text: string; allowRelaunchGreeting: boolean }): string {
   return applyWhatsappProactiveOpeningPolicy({
     text: params.text,
-    hasMessagesToday: params.hasMessagesToday,
+    allowRelaunchGreeting: params.allowRelaunchGreeting,
     fallback: "Comment ça va depuis tout à l'heure ?",
   })
 }

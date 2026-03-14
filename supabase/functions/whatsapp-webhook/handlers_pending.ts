@@ -57,7 +57,7 @@ export async function handlePendingActions(params) {
     }
     textToSend = applyWhatsappProactiveOpeningPolicy({
       text: textToSend,
-      hasMessagesToday: true,
+      allowRelaunchGreeting: false,
       fallback: "Comment ça va depuis tout à l'heure ?",
     });
     if (textToSend.trim()) {

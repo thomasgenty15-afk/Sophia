@@ -2,10 +2,11 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
+import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
 import { enqueueProactiveTemplateCandidate } from "../_shared/proactive_template_queue.ts";
-import { applyWhatsappProactiveOpeningPolicy, hasAnyWhatsappMessagesInLocalDay } from "../_shared/scheduled_checkins.ts";
+import { applyWhatsappProactiveOpeningPolicy } from "../_shared/scheduled_checkins.ts";
 import { getPendingItems } from "../sophia-brain/agents/investigator/db.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
 import {
@@ -154,7 +155,7 @@ function winbackTemplateLang(locale: unknown): string {
 
 type BilanOpeningContext = {
   mode: "cold_relaunch" | "ongoing_conversation";
-  has_messages_today: boolean;
+  allow_relaunch_greeting: boolean;
   hours_since_last_message: number | null;
   last_message_at: string | null;
 };
@@ -166,19 +167,13 @@ function parseIsoMs(raw: unknown): number | null {
 }
 
 async function deriveCronBilanOpeningContext(admin: ReturnType<typeof createClient>, profile: any, userId: string): Promise<BilanOpeningContext> {
-  const timezone = String(profile?.timezone ?? "").trim() || "Europe/Paris";
-  const hasMessagesToday = await hasAnyWhatsappMessagesInLocalDay({
-    admin: admin as any,
-    userId,
-    timezone,
-  });
   const inboundMs = parseIsoMs(profile?.whatsapp_last_inbound_at);
   const outboundMs = parseIsoMs(profile?.whatsapp_last_outbound_at);
   const lastMessageMs = Math.max(inboundMs ?? -Infinity, outboundMs ?? -Infinity);
   if (!Number.isFinite(lastMessageMs)) {
     return {
       mode: "cold_relaunch",
-      has_messages_today: hasMessagesToday,
+      allow_relaunch_greeting: true,
       hours_since_last_message: null,
       last_message_at: null,
     };
@@ -187,7 +182,7 @@ async function deriveCronBilanOpeningContext(admin: ReturnType<typeof createClie
   const hours = Number((deltaMs / (60 * 60 * 1000)).toFixed(2));
   return {
     mode: hours >= 4 ? "cold_relaunch" : "ongoing_conversation",
-    has_messages_today: hasMessagesToday,
+    allow_relaunch_greeting: hours >= 10,
     hours_since_last_message: hours,
     last_message_at: new Date(lastMessageMs as number).toISOString(),
   };
@@ -306,6 +301,26 @@ function classifyWhatsappSendFailure(
   }
   if (status === 400) return { kind: "skip", reason: "bad_request" };
   return { kind: "error" };
+}
+
+async function logDailyBilanUserError(args: {
+  userId: string;
+  requestId: string;
+  error: string;
+  stage: string;
+  metadata?: Record<string, unknown>;
+}) {
+  await logEdgeFunctionError({
+    functionName: "trigger-daily-bilan",
+    error: args.error,
+    requestId: args.requestId,
+    userId: args.userId,
+    source: "cron",
+    metadata: {
+      stage: args.stage,
+      ...(args.metadata ?? {}),
+    },
+  });
 }
 
 async function hasRecentFullCheckup(
@@ -888,7 +903,7 @@ Deno.serve(async (req) => {
 
           const openingMessage = applyWhatsappProactiveOpeningPolicy({
             text: String(invResult.content ?? "").trim(),
-            hasMessagesToday: openingContext.has_messages_today,
+            allowRelaunchGreeting: openingContext.allow_relaunch_greeting,
             fallback: "Comment ça s'est passé aujourd'hui ?",
           });
           if (!openingMessage) {
@@ -910,6 +925,12 @@ Deno.serve(async (req) => {
           };
           const persisted = await persistChatState(userId, nextChatState);
           if (!persisted) {
+            await logDailyBilanUserError({
+              userId,
+              requestId,
+              error: "failed_to_persist_investigation_state",
+              stage: "persist_opening_state",
+            });
             errors.push({
               user_id: userId,
               error: "failed_to_persist_investigation_state",
@@ -1001,6 +1022,12 @@ Deno.serve(async (req) => {
             }
           } else {
             errors.push({ user_id: userId, error: msg });
+            await logDailyBilanUserError({
+              userId,
+              requestId,
+              error: msg,
+              stage: "user_processing",
+            });
           }
         }
       }

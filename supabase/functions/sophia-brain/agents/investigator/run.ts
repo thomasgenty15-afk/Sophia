@@ -65,19 +65,27 @@ function resolveOpeningContext(
   history: any[],
 ): {
   mode: "cold_relaunch" | "ongoing_conversation";
-  has_messages_today: boolean;
+  allow_relaunch_greeting: boolean;
   hours_since_last_message: number | null;
   last_message_at: string | null;
 } {
   const tmContext = (tempMemory as any)?.opening_context;
   const tmMode = String(tmContext?.mode ?? "").trim();
+  const tmHours = Number(tmContext?.hours_since_last_message);
   if (tmMode === "cold_relaunch" || tmMode === "ongoing_conversation") {
     return {
       mode: tmMode,
-      has_messages_today: tmContext?.has_messages_today === true,
+      allow_relaunch_greeting:
+        typeof tmContext?.allow_relaunch_greeting === "boolean"
+          ? tmContext.allow_relaunch_greeting
+          : Number.isFinite(tmHours)
+          ? tmHours >= 10
+          : tmContext?.has_messages_today === true
+          ? false
+          : true,
       hours_since_last_message:
-        Number.isFinite(Number(tmContext?.hours_since_last_message))
-          ? Number(tmContext.hours_since_last_message)
+        Number.isFinite(tmHours)
+          ? tmHours
           : null,
       last_message_at: typeof tmContext?.last_message_at === "string"
         ? tmContext.last_message_at
@@ -94,7 +102,7 @@ function resolveOpeningContext(
   if (latestMs === null) {
     return {
       mode: "cold_relaunch",
-      has_messages_today: false,
+      allow_relaunch_greeting: true,
       hours_since_last_message: null,
       last_message_at: null,
     };
@@ -104,7 +112,7 @@ function resolveOpeningContext(
   );
   return {
     mode: hours >= 4 ? "cold_relaunch" : "ongoing_conversation",
-    has_messages_today: false,
+    allow_relaunch_greeting: hours >= 10,
     hours_since_last_message: hours,
     last_message_at: new Date(latestMs).toISOString(),
   };

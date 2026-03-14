@@ -27,6 +27,43 @@ type ExecMeta = {
 
 const INVESTIGATOR_FAILURE_COOLDOWN_MS = 120_000;
 
+function deriveCheckupCompletionFromState(invState: any): {
+  completionKind: "full" | "partial";
+  source: "chat" | "chat_stop";
+  stats: { items: number; completed: number; missed: number };
+} {
+  const completeStats = computeCheckupStatsFromInvestigationState(invState, {
+    fillUnloggedAsMissed: false,
+  });
+  const allItemsLogged =
+    completeStats.items > 0 && completeStats.logged >= completeStats.items;
+
+  if (allItemsLogged) {
+    return {
+      completionKind: "full",
+      source: "chat",
+      stats: {
+        items: completeStats.items,
+        completed: completeStats.completed,
+        missed: completeStats.missed,
+      },
+    };
+  }
+
+  const partialStats = computeCheckupStatsFromInvestigationState(invState, {
+    fillUnloggedAsMissed: true,
+  });
+  return {
+    completionKind: "partial",
+    source: "chat_stop",
+    stats: {
+      items: partialStats.items,
+      completed: partialStats.completed,
+      missed: partialStats.missed,
+    },
+  };
+}
+
 function isInvestigatorCooldownActive(tempMemory: any): boolean {
   try {
     const raw = String(tempMemory?.__investigator_retry_after ?? "").trim();
@@ -223,21 +260,15 @@ export async function runAgentAndVerify(opts: {
         if (invResult.investigationComplete) {
           const invState = (state as any)?.investigation_state;
           const isWeeklyBilan = String((invState as any)?.mode ?? "") === "weekly_bilan";
+          const completion = deriveCheckupCompletionFromState(invState);
           if (!isWeeklyBilan) {
-            const stats = computeCheckupStatsFromInvestigationState(invState, {
-              fillUnloggedAsMissed: true,
-            });
             try {
               await logCheckupCompletion(
                 supabase,
                 userId,
-                {
-                  items: stats.items,
-                  completed: stats.completed,
-                  missed: stats.missed,
-                },
-                "chat",
-                "full",
+                completion.stats,
+                completion.source,
+                completion.completionKind,
               );
             } catch {
               // non-blocking
@@ -247,9 +278,15 @@ export async function runAgentAndVerify(opts: {
           const tm0 = (state as any)?.temp_memory ?? tempMemory ?? {};
           const tm1: any = {
             ...(tm0 ?? {}),
-            __flow_just_closed_normally: true,
-            __flow_just_closed_aborted: false,
+            __flow_just_closed_normally: completion.completionKind === "full",
+            __flow_just_closed_aborted: completion.completionKind !== "full",
           };
+          if (completion.completionKind !== "full") {
+            tm1.__bilan_just_stopped = {
+              stopped_at: new Date().toISOString(),
+              reason: "investigator_incomplete_completion",
+            };
+          }
 
           await updateUserState(supabase, userId, scope, {
             investigation_state: null,
