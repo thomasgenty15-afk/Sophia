@@ -39,17 +39,58 @@ export function normalizeLite(text: string): string {
     .trim()
 }
 
+function itemText(item: CheckupItem): string {
+  return [item?.title ?? "", item?.description ?? ""]
+    .map((value) => String(value).trim())
+    .filter(Boolean)
+    .join(" ")
+}
+
+function isJournalItemText(text: string): boolean {
+  return /journal|decompression|decharge|brain dump|inventaire mental/i.test(text)
+}
+
+function isDigitalCurfewItemText(text: string): boolean {
+  return /couvre feu digital|ne pas deranger|hors de portee|hors de portee|autre piece|autre piece/i
+    .test(text)
+}
+
+function isScreenTimeItemText(text: string): boolean {
+  return /temps d ecran|temps ecran|minutes? d ecran|ecran.*coucher|screen time|scroll|tiktok|instagram|youtube/i
+    .test(text)
+}
+
+function spokenTopicKeyForItem(item: CheckupItem): string {
+  const t = normalizeLite(itemText(item))
+  if (!t) return "ce-point"
+  if (isJournalItemText(t)) return "journal"
+  if (isDigitalCurfewItemText(t)) return "digital-curfew"
+  if (isScreenTimeItemText(t)) return "screen-time"
+  if (/pompe|push up|pushup/i.test(t)) return "pushups"
+  if (/lecture|lire/i.test(t)) return "reading"
+  if (item?.type === "vital") {
+    if (/sommeil|dormi|nuit|coucher|reveil|réveil/i.test(t)) return "sleep"
+    if (/endormissement|tete\s+sur\s+l.?oreiller|oreiller/i.test(t)) return "fall-asleep"
+    if (/energie|humeur|moral|forme|batterie/i.test(t)) return "energy"
+    if (/stress|anxieux|anxiete/i.test(t)) return "stress"
+  }
+  return normalizeLite(String(item?.title ?? "")) || "ce-point"
+}
+
 export function spokenLabelForItem(item: CheckupItem): string {
   const rawTitle = String(item?.title ?? "").trim()
   const rawDesc = String(item?.description ?? "").trim()
   const title = rawTitle || rawDesc || ""
   if (!title) return "ce point"
-  const t = normalizeLite(title)
+  const t = normalizeLite(itemText(item))
 
-  if (/journal|decompression|decharge|brain dump|inventaire mental/i.test(t)) {
+  if (isJournalItemText(t)) {
     return "ton journal du soir"
   }
-  if (/couvre feu digital|ecran|screen|scroll|tiktok|instagram|youtube/i.test(t)) {
+  if (isDigitalCurfewItemText(t)) {
+    return "ton couvre-feu digital"
+  }
+  if (isScreenTimeItemText(t)) {
     return "les écrans"
   }
   if (/pompe|push up|pushup/i.test(t)) return "tes pompes"
@@ -230,7 +271,7 @@ function collectUniqueLabels(items: CheckupItem[], limit: number): string[] {
 
   for (const item of items) {
     const label = spokenLabelForItem(item)
-    const key = normalizeLite(label)
+    const key = spokenTopicKeyForItem(item)
     if (!label || seen.has(key)) continue
     seen.add(key)
     labels.push(label)
@@ -266,6 +307,8 @@ export async function extractGlobalCheckupCoverage(opts: {
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n")
 
+  const normalizedMessage = normalizeLite(message)
+
   const prompt = `
 Tu extrais un état global de bilan quotidien à partir d'une réponse libre utilisateur.
 
@@ -282,6 +325,9 @@ IMPORTANT:
 - Pour considérer qu'un utilisateur parle d'un item, il faut une référence explicite au titre de l'item ou plusieurs indices spécifiques concordants.
 - Ne mappe JAMAIS une réponse à un item sur la base d'un mot générique isolé présent dans son titre ou sa description.
 - Exemples de mots génériques insuffisants à eux seuls: "journée", "jour", "soir", "matin", "écrans", "travail", "sport".
+- Cas critique: "temps d'écran avant le coucher" et "couvre-feu digital" sont DEUX sujets différents.
+- Une durée du type "1h d'écrans" peut couvrir un vital d'écran.
+- Elle ne doit PAS couvrir à elle seule une action de type couvre-feu digital, sauf mention explicite du couvre-feu / téléphone posé loin / mode ne pas déranger / hors de portée.
 - Si l'utilisateur parle de sa journée au sens général, d'un ressenti global ou d'un contexte large, n'en déduis PAS qu'il parle d'une action contenant un de ces mots.
 - En cas de doute entre "bilan global de la journée" et "action spécifique", privilégie TOUJOURS le bilan global et n'extrais aucun item spécifique sans preuve supplémentaire.
 - Retourne uniquement du JSON valide.
@@ -342,6 +388,37 @@ ${historyBlock}
             obstacle: typeof item?.obstacle === "string" ? item.obstacle : null,
             confidence: sanitizeConfidence(item?.confidence),
           }))
+          .map((entry: ExtractedItemCoverage) => {
+            const item = opts.items.find((candidate) => candidate.id === entry.item_id)
+            if (!item) return entry
+
+            const itemTextNorm = normalizeLite(itemText(item))
+            const combinedEvidence = normalizeLite([
+              message,
+              entry.evidence ?? "",
+              entry.obstacle ?? "",
+            ].join(" "))
+            const hasCurfewSignal =
+              /couvre feu|ne pas deranger|hors de portee|autre piece|telephone loin|telephone pose|portable loin/i
+                .test(combinedEvidence)
+            const hasGenericScreenSignal =
+              /ecran|screen|scroll|tiktok|instagram|youtube/i.test(normalizedMessage)
+
+            if (
+              item.type === "action" &&
+              isDigitalCurfewItemText(itemTextNorm) &&
+              hasGenericScreenSignal &&
+              !hasCurfewSignal
+            ) {
+              return {
+                ...entry,
+                covered: false,
+                status: "unclear",
+              }
+            }
+
+            return entry
+          })
           .filter((item: ExtractedItemCoverage) => item.item_id.length > 0)
         : [],
     }

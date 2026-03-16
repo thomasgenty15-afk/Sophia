@@ -119,11 +119,11 @@ Deno.test("spoken labels turn rigid dashboard wording into natural phrasing", ()
       title: "Couvre-feu Digital Renforcé",
       tracking_type: "boolean",
     }),
-    "les écrans",
+    "ton couvre-feu digital",
   )
 })
 
-Deno.test("grouped follow-up collapses duplicate spoken labels", () => {
+Deno.test("grouped follow-up collapses duplicate labels for the same curfew topic", () => {
   const msg = buildGroupedFollowUpMessage({
     coveredItems: [],
     nextItems: [
@@ -136,11 +136,45 @@ Deno.test("grouped follow-up collapses duplicate spoken labels", () => {
       {
         id: "a2",
         type: "action",
-        title: "Minutes d'écran de loisir après 19h",
-        tracking_type: "counter",
+        title: "Couvre-feu Digital Léger",
+        tracking_type: "boolean",
       },
     ],
   })
 
-  assertEquals(msg, "Et pour les écrans, tu l'as fait finalement ?")
+  assertEquals(msg, "Et pour ton couvre-feu digital, tu l'as fait finalement ?")
+})
+
+Deno.test("grouped follow-up keeps screen time and digital curfew distinct", () => {
+  const msg = buildGroupedFollowUpMessage({
+    coveredItems: [
+      {
+        id: "v1",
+        type: "vital",
+        title: "Temps d'écran avant le coucher",
+        tracking_type: "counter",
+        unit: "min",
+      },
+    ],
+    nextItems: [
+      {
+        id: "a1",
+        type: "action",
+        title: "Couvre-feu Digital Léger",
+        description: "Mets ton téléphone en mode ne pas déranger et pose-le hors de portée",
+        tracking_type: "boolean",
+      },
+      {
+        id: "a2",
+        type: "action",
+        title: "10 pompes",
+        tracking_type: "boolean",
+      },
+    ],
+  })
+
+  assertEquals(
+    msg,
+    "Et pour ton couvre-feu digital et tes pompes, tu me dis ce qu'il en a été ?",
+  )
 })

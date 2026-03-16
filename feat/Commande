@@ -645,3 +645,69 @@ $$;
 
 
 Pour retrouver la conversation niveau bilan : To continue this session, run codex resume 019cec92-4f07-7c42-b559-6da34e0ce4df
+
+
+
+Rsset bilan pour moi : 
+
+
+ begin;
+
+  delete from public.user_action_entries
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and performed_at >= '2026-03-16 00:00:00+00'::timestamptz
+    and performed_at <  '2026-03-17 00:00:00+00'::timestamptz;
+
+  delete from public.user_vital_sign_entries
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and recorded_at >= '2026-03-16 00:00:00+00'::timestamptz
+    and recorded_at <  '2026-03-17 00:00:00+00'::timestamptz;
+
+  delete from public.user_framework_entries
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and created_at >= '2026-03-16 00:00:00+00'::timestamptz
+    and created_at <  '2026-03-17 00:00:00+00'::timestamptz;
+
+  delete from public.user_checkup_logs
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and completion_kind = 'full';
+
+  update public.user_chat_states
+  set
+    investigation_state = null,
+    temp_memory = '{}'::jsonb
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and scope = 'whatsapp';
+
+  update public.profiles
+  set
+    whatsapp_bilan_last_prompt_at = null,
+    whatsapp_bilan_paused_until = null,
+    whatsapp_bilan_winback_step = 0,
+    whatsapp_bilan_missed_streak = 0,
+    whatsapp_bilan_last_winback_at = null
+  where id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid;
+
+  update public.user_actions
+  set last_performed_at = null
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and status = 'active';
+
+  update public.user_personal_actions
+  set
+    last_performed_at = null,
+    current_reps = 0
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and status = 'active';
+
+  update public.user_vital_signs
+  set last_checked_at = null
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and status = 'active';
+
+  update public.user_framework_tracking
+  set last_performed_at = null
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and status = 'active';
+
+  commit;

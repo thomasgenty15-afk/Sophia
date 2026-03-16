@@ -79,6 +79,77 @@ export const useDashboardLogic = ({
     last_deactivated_at: new Date().toISOString(),
   });
 
+  const resolveUserActionDbId = async (action: Action): Promise<string> => {
+    if (action.dbId) return action.dbId;
+    if (!activePlanId) throw new Error("Plan actif introuvable pour résoudre l'action.");
+
+    const { data, error } = await supabase
+      .from('user_actions')
+      .select('id')
+      .eq('plan_id', activePlanId)
+      .eq('title', action.title)
+      .limit(2);
+    mustOk(error);
+
+    const rows = data ?? [];
+    if (rows.length !== 1) {
+      throw new Error(
+        rows.length === 0
+          ? `Action introuvable en base: ${action.title}`
+          : `Plusieurs actions en base correspondent à: ${action.title}`,
+      );
+    }
+    return String(rows[0].id);
+  };
+
+  const updateUserActionRow = async (action: Action, updates: Record<string, unknown>) => {
+    const actionDbId = await resolveUserActionDbId(action);
+    const { data, error } = await supabase
+      .from('user_actions')
+      .update(updates)
+      .eq('id', actionDbId)
+      .select('id')
+      .maybeSingle();
+    mustOk(error);
+    if (!data?.id) throw new Error(`Aucune ligne user_actions mise à jour pour: ${action.title}`);
+  };
+
+  const deleteUserActionRow = async (action: Action) => {
+    const actionDbId = await resolveUserActionDbId(action);
+    const { data, error } = await supabase
+      .from('user_actions')
+      .delete()
+      .eq('id', actionDbId)
+      .select('id')
+      .maybeSingle();
+    mustOk(error);
+    if (!data?.id) throw new Error(`Aucune ligne user_actions supprimée pour: ${action.title}`);
+  };
+
+  const updateUserActionsByIds = async (
+    actions: Action[],
+    updates: Record<string, unknown>,
+    opts?: { expectedStatus?: string },
+  ) => {
+    const resolvedIds = Array.from(
+      new Set(await Promise.all(actions.map((action) => resolveUserActionDbId(action)))),
+    );
+    if (resolvedIds.length === 0) return;
+
+    let query = supabase
+      .from('user_actions')
+      .update(updates)
+      .in('id', resolvedIds);
+    if (opts?.expectedStatus) query = query.eq('status', opts.expectedStatus);
+
+    const { data, error } = await query.select('id');
+    mustOk(error);
+    const updatedCount = Array.isArray(data) ? data.length : 0;
+    if (updatedCount !== resolvedIds.length) {
+      throw new Error(`Mise à jour partielle user_actions (${updatedCount}/${resolvedIds.length}).`);
+    }
+  };
+
   const promotePhaseForAction = (plan: GeneratedPlan, actionId: string): GeneratedPlan => {
     let changed = false;
     const phases = plan.phases.map((phase) => {
@@ -345,7 +416,7 @@ export const useDashboardLogic = ({
           if (action.type === 'framework') {
               await supabase.from('user_framework_tracking').update(activationStamp('manual_unlock_action')).eq('plan_id', activePlanId).eq('action_id', action.id);
           } else {
-              await supabase.from('user_actions').update(activationStamp('manual_unlock_action')).eq('plan_id', activePlanId).eq('title', action.title);
+              await updateUserActionRow(action, activationStamp('manual_unlock_action'));
           }
       } catch (err) { console.error("Error unlocking action:", err); }
   };
@@ -379,10 +450,9 @@ export const useDashboardLogic = ({
                 };
                 hasUpdates = true;
 
-                const pendingActionTitles = pendingActions.map(a => a.title);
                 const pendingActionIds = pendingActions.map(a => a.id);
 
-                if (pendingActionTitles.length > 0) await supabase.from('user_actions').update(activationStamp('phase_auto_unlock')).eq('plan_id', activePlanId).in('title', pendingActionTitles).eq('status', 'pending');
+                if (pendingActions.length > 0) await updateUserActionsByIds(pendingActions, activationStamp('phase_auto_unlock'), { expectedStatus: 'pending' });
                 if (pendingActionIds.length > 0) await supabase.from('user_framework_tracking').update(activationStamp('phase_auto_unlock')).eq('plan_id', activePlanId).in('action_id', pendingActionIds).eq('status', 'pending');
             }
         }
@@ -408,19 +478,9 @@ export const useDashboardLogic = ({
 
     try {
       if (newStatus === "completed") {
-        const { error } = await supabase
-          .from('user_actions')
-          .update({ status: newStatus, last_performed_at: new Date().toISOString() })
-          .eq('plan_id', activePlanId)
-          .eq('title', action.title);
-        mustOk(error);
+        await updateUserActionRow(action, { status: newStatus, last_performed_at: new Date().toISOString() });
       } else {
-        const { error } = await supabase
-          .from('user_actions')
-          .update({ status: newStatus })
-          .eq('plan_id', activePlanId)
-          .eq('title', action.title);
-        mustOk(error);
+        await updateUserActionRow(action, { status: newStatus });
       }
       await checkPhaseCompletionAndAutoUnlock(updatedPlan);
     } catch (err) {
@@ -466,12 +526,7 @@ export const useDashboardLogic = ({
     setActivePlan(updatedPlan);
 
     try {
-      const { error } = await supabase
-        .from('user_actions')
-        .update({ current_reps: newReps, status: newStatus, last_performed_at: new Date().toISOString() })
-        .eq('plan_id', activePlanId)
-        .eq('title', action.title);
-      mustOk(error);
+      await updateUserActionRow(action, { current_reps: newReps, status: newStatus, last_performed_at: new Date().toISOString() });
 
       if (reachedWeeklyTarget && currentReps < targetReps) {
         alert(`Bravo ! Objectif atteint : ${targetReps}× cette semaine.`);
@@ -511,7 +566,7 @@ export const useDashboardLogic = ({
       if (next.type === 'framework') {
         await supabase.from('user_framework_tracking').update(activationStamp('unlock_next_pending_after_completion')).eq('plan_id', activePlanId).eq('action_id', next.id);
       } else {
-        await supabase.from('user_actions').update(activationStamp('unlock_next_pending_after_completion')).eq('plan_id', activePlanId).eq('title', next.title);
+        await updateUserActionRow(next, activationStamp('unlock_next_pending_after_completion'));
       }
     } catch (err) {
       console.error("Error unlocking next pending action:", err);
@@ -536,12 +591,7 @@ export const useDashboardLogic = ({
     setActivePlan(updatedPlan);
 
     try {
-      const { error } = await supabase
-        .from('user_actions')
-        .update({ status: 'completed', last_performed_at: new Date().toISOString() })
-        .eq('plan_id', activePlanId)
-        .eq('title', action.title);
-      mustOk(error);
+      await updateUserActionRow(action, { status: 'completed', last_performed_at: new Date().toISOString() });
       await handleUnlockNextPendingAfter(action.id);
     } catch (err) {
       console.error("Error master habit:", err);
@@ -596,12 +646,7 @@ export const useDashboardLogic = ({
       };
       if (payload.activateIfPending) Object.assign(updates, activationStamp('habit_settings_activate'));
 
-      const { error } = await supabase
-        .from('user_actions')
-        .update(updates)
-        .eq('plan_id', activePlanId)
-        .eq('title', action.title);
-      mustOk(error);
+      await updateUserActionRow(action, updates);
     } catch (err) {
       console.error("Error saving habit settings:", err);
       setActivePlan(prevPlan);
@@ -1022,10 +1067,7 @@ export const useDashboardLogic = ({
             if ('scheduledDays' in updatedFields) updates.scheduled_days = updatedFields.scheduledDays || null;
             
             if (Object.keys(updates).length > 0) {
-                 await supabase.from('user_actions')
-                    .update(updates)
-                    .eq('plan_id', activePlanId)
-                    .eq('title', originalAction.title);
+                 await updateUserActionRow(originalAction, updates);
             }
             
         } catch (err) {
@@ -1059,11 +1101,7 @@ export const useDashboardLogic = ({
             if (normalizedType === 'framework') {
                 await supabase.from('user_framework_tracking').update(deactivationStamp()).eq('plan_id', activePlanId).eq('action_id', action.id);
             } else {
-                if (action.dbId) {
-                    await supabase.from('user_actions').update(deactivationStamp()).eq('id', action.dbId);
-                } else {
-                    await supabase.from('user_actions').update(deactivationStamp()).eq('plan_id', activePlanId).eq('title', action.title);
-                }
+                await updateUserActionRow(action, deactivationStamp());
             }
         } catch (err) {
             console.error("Error deactivating action:", err);
@@ -1096,13 +1134,7 @@ export const useDashboardLogic = ({
                 // For frameworks, action.id corresponds to action_id in user_framework_tracking
                 await supabase.from('user_framework_tracking').delete().eq('plan_id', activePlanId).eq('action_id', action.id);
             } else {
-                // For regular actions
-                if (action.dbId) {
-                     await supabase.from('user_actions').delete().eq('id', action.dbId);
-                } else {
-                     // Fallback: delete by title and plan_id
-                     await supabase.from('user_actions').delete().eq('plan_id', activePlanId).eq('title', action.title);
-                }
+                await deleteUserActionRow(action);
             }
         } catch (err) {
             console.error("Error deleting action:", err);
