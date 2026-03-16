@@ -225,6 +225,11 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
        - "ton couvre-feu digital" = téléphone posé loin / ne pas déranger / hors de portée
        - N'utilise jamais "les écrans et les écrans".
     9) Appuie-toi d'abord sur covered_spoken_items et missing_spoken_items pour éviter les doublons de formulation.
+    10) covered_item_briefs et missing_item_briefs donnent aussi le TYPE réel de chaque point ("action", "signe vital", "exercice").
+        Si une même donnée utilisateur couvre plusieurs points liés, tu peux le reconnaître, MAIS tu dois les nommer distinctement.
+        Exemple: "Je vois pour les écrans. Et pour ton couvre-feu digital hier soir, c'était raté du coup ?"
+    11) Pour chaque point encore ouvert, nomme explicitement le sujet avec le libellé fourni dans missing_spoken_items.
+        Interdit de remplacer ça par un raccourci flou ou un paquet global.
 
     STYLE CIBLE:
     - "Et ta lecture, au final t'as eu le temps ?"
@@ -422,7 +427,6 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
 SCÉNARIO: ${scenario}
 DONNÉES (JSON): ${JSON.stringify(data)}
   `.trim()
-
   const res = await generateWithGemini(
     basePrompt,
     "Rédige le prochain message à envoyer à l’utilisateur.",
@@ -432,7 +436,6 @@ DONNÉES (JSON): ${JSON.stringify(data)}
     "auto",
     {
       requestId: meta?.requestId,
-      // Avoid Gemini preview defaults in prod; rely on global default (gpt-5-mini) unless overridden.
       model: meta?.model,
       source: `sophia-brain:investigator_copy:${scenario}`,
       forceRealAi: meta?.forceRealAi,

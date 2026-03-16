@@ -1,0 +1,25 @@
+[2026-03-16T16:30:54.000264+00:00] [whatsapp] assistant (request_id=9c9915c5-08c9-4196-b32d-3643abee5365):
+C'est parti pour notre petit point quotidien. On va regarder ensemble comment ça s'est passé pour ton couvre-feu digital, mais avant d'entrer dans les détails, comment s'est passée ta journée de manière générale ?
+
+[2026-03-16T16:38:56.676902+00:00] [whatsapp] user (request_id=fc953ad5-db24-4833-b71b-c57b21081a67):
+Mmh je dirai que la journee sest plutot bien passé je me suis levé assez tôt, jai pas mal bosser, jaurais bien aime faire un footing mais jai pas eu le temps x)
+
+[2026-03-16T16:39:23.79429+00:00] [whatsapp] assistant:
+C'est dommage pour le footing, mais c'est déjà top si tu as bien avancé sur ton boulot et que tu as réussi à te lever tôt ! 🏃‍♂️
+
+Pour ton couvre-feu digital d'hier soir, tu as passé combien de temps sur les écrans avant de dormir ? La dernière fois, tu étais à 20 minutes, tu as fait mieux ? 📱
+
+[2026-03-16T16:39:56.991516+00:00] [whatsapp] user (request_id=68db4a8e-f511-4478-add2-4ffb7965b98c):
+Alors j'ai regardé une serie pendant environs 40 minutes en vrai, jai finis la serie one piece
+
+[2026-03-16T16:40:29.512283+00:00] [whatsapp] assistant:
+Ok, donc pour les écrans et les écrans, c'est noté. Il me manque encore tes pompes et ton journal du soir. Ça a donné quoi de ce côté-là ?
+
+[2026-03-16T16:41:20.024613+00:00] [whatsapp] user (request_id=d5a51a15-0df8-432d-8081-15142971327f):
+Alors oui jai fait mes pompes et jai pas fait le journal du soir...
+
+[2026-03-16T16:41:43.624658+00:00] [whatsapp] assistant:
+Ok, bilan du jour bouclé. Je suis contente que tu aies tenu bon sur les pompes, c'est top pour la régularité ! Pour le journal, on ne va pas en faire un drame, l'important c'est que ta journée ait été productive malgré le footing manqué.
+
+Tu te sens comment après cette grosse session de boulot ? 😊
+

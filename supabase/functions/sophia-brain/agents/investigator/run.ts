@@ -60,6 +60,21 @@ function parseIsoMs(raw: unknown): number | null {
   return Number.isFinite(ms) ? ms : null;
 }
 
+function buildCheckupItemBrief(item: CheckupItem): Record<string, unknown> {
+  return {
+    id: item.id,
+    type: item.type,
+    type_spoken: item.type === "vital"
+      ? "signe vital"
+      : item.type === "framework"
+      ? "exercice"
+      : "action",
+    title: item.title,
+    spoken_label: spokenLabelForItem(item),
+    day_scope: item.day_scope ?? "yesterday",
+  };
+}
+
 function resolveOpeningContext(
   tempMemory: Record<string, unknown> | undefined,
   history: any[],
@@ -573,13 +588,16 @@ export async function runInvestigator(
               channel: meta?.channel,
               recent_history: history.slice(-15),
               covered_items: coveredItems,
+              covered_item_briefs: coveredItems.map(buildCheckupItemBrief),
               covered_spoken_items: coveredItems.map((item) => spokenLabelForItem(item)),
               missing_items: nextItems,
+              missing_item_briefs: nextItems.map(buildCheckupItemBrief),
               missing_spoken_items: nextItems.map((item) => spokenLabelForItem(item)),
               freeform_user_update: extraction.freeform_user_update ?? null,
               overall_tone: extraction.overall_tone ?? null,
             },
             meta,
+            { temperature: 0.85 },
           );
         } catch (e) {
           console.error("[Investigator] grouped follow-up generation failed:", e);

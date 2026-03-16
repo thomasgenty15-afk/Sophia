@@ -307,8 +307,6 @@ export async function extractGlobalCheckupCoverage(opts: {
     .map((m) => `${m.role}: ${m.content}`)
     .join("\n")
 
-  const normalizedMessage = normalizeLite(message)
-
   const prompt = `
 Tu extrais un état global de bilan quotidien à partir d'une réponse libre utilisateur.
 
@@ -326,8 +324,9 @@ IMPORTANT:
 - Ne mappe JAMAIS une réponse à un item sur la base d'un mot générique isolé présent dans son titre ou sa description.
 - Exemples de mots génériques insuffisants à eux seuls: "journée", "jour", "soir", "matin", "écrans", "travail", "sport".
 - Cas critique: "temps d'écran avant le coucher" et "couvre-feu digital" sont DEUX sujets différents.
-- Une durée du type "1h d'écrans" peut couvrir un vital d'écran.
-- Elle ne doit PAS couvrir à elle seule une action de type couvre-feu digital, sauf mention explicite du couvre-feu / téléphone posé loin / mode ne pas déranger / hors de portée.
+- Une même donnée utilisateur peut couvrir plusieurs items liés SEULEMENT si elle permet vraiment de trancher chacun séparément.
+- Exemple: une durée d'écran avant le coucher peut couvrir le vital d'écran, et peut aussi couvrir une action liée si cette durée permet clairement de conclure que l'action a été ratée.
+- Si plusieurs items sont couverts par la même donnée, garde une evidence spécifique pour chaque item.
 - Si l'utilisateur parle de sa journée au sens général, d'un ressenti global ou d'un contexte large, n'en déduis PAS qu'il parle d'une action contenant un de ces mots.
 - En cas de doute entre "bilan global de la journée" et "action spécifique", privilégie TOUJOURS le bilan global et n'extrais aucun item spécifique sans preuve supplémentaire.
 - Retourne uniquement du JSON valide.
@@ -388,37 +387,6 @@ ${historyBlock}
             obstacle: typeof item?.obstacle === "string" ? item.obstacle : null,
             confidence: sanitizeConfidence(item?.confidence),
           }))
-          .map((entry: ExtractedItemCoverage) => {
-            const item = opts.items.find((candidate) => candidate.id === entry.item_id)
-            if (!item) return entry
-
-            const itemTextNorm = normalizeLite(itemText(item))
-            const combinedEvidence = normalizeLite([
-              message,
-              entry.evidence ?? "",
-              entry.obstacle ?? "",
-            ].join(" "))
-            const hasCurfewSignal =
-              /couvre feu|ne pas deranger|hors de portee|autre piece|telephone loin|telephone pose|portable loin/i
-                .test(combinedEvidence)
-            const hasGenericScreenSignal =
-              /ecran|screen|scroll|tiktok|instagram|youtube/i.test(normalizedMessage)
-
-            if (
-              item.type === "action" &&
-              isDigitalCurfewItemText(itemTextNorm) &&
-              hasGenericScreenSignal &&
-              !hasCurfewSignal
-            ) {
-              return {
-                ...entry,
-                covered: false,
-                status: "unclear",
-              }
-            }
-
-            return entry
-          })
           .filter((item: ExtractedItemCoverage) => item.item_id.length > 0)
         : [],
     }

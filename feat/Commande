@@ -711,3 +711,23 @@ Rsset bilan pour moi :
     and status = 'active';
 
   commit;
+
+  Pour lancer le bilan pour moi : 
+
+  select
+    net.http_post(
+      url := 'https://ybyqxwnwjvuxckolsddn.functions.supabase.co/trigger-daily-bilan',
+      headers := jsonb_build_object(
+        'Content-Type', 'application/json',
+        'X-Internal-Secret', (
+          select decrypted_secret
+          from vault.decrypted_secrets
+          where name = 'INTERNAL_FUNCTION_SECRET'
+          limit 1
+        )
+      ),
+      body := jsonb_build_object(
+        'user_ids', jsonb_build_array('cf470156-f09d-47f9-88f5-492401304264')
+      )
+    ) as request_id;
+    
