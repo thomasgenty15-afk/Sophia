@@ -103,6 +103,15 @@ export interface PendingMissedReason {
   created_at: string;
 }
 
+export interface FrameworkBilanAddon {
+  mode: "fresh_done" | "never_done" | "stale_done_before";
+  framework_id: string;
+  framework_title: string;
+  last_done_at?: string | null;
+  ever_done: boolean;
+  done_since_last_checkup: boolean;
+}
+
 export interface InvestigationTempMemory {
   opening_response_clarify_count?: number;
   /** Pending offer dedicated to the weekly target increase flow. */
@@ -122,6 +131,8 @@ export interface InvestigationTempMemory {
   item_progress?: ItemProgressMap;
   /** Global day review state used to absorb broad user updates before targeted follow-ups. */
   global_checkup_state?: GlobalCheckupState;
+  /** Optional contextual framework nudge/acknowledgement for this bilan. */
+  framework_bilan_addon?: FrameworkBilanAddon | null;
   /** Recently logged missed items that can still receive a reason on the next user turn. */
   pending_missed_reasons?: PendingMissedReason[];
   /** Other fields... */

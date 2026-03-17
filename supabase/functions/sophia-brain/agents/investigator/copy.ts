@@ -77,6 +77,42 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     `
       : ""}
 
+    ${((scenario.includes("end_checkup") || scenario === "no_pending_items") &&
+        (data as any)?.framework_bilan_addon)
+      ? `
+    ADD-ON CONTEXTUEL : FRAMEWORK
+    Un contexte framework pertinent a été calculé hors prompt principal. Tu peux t'en servir UNE seule fois, brièvement, sans faire dériver le bilan.
+
+    Donnée: framework_bilan_addon = {
+      mode: "fresh_done" | "never_done" | "stale_done_before",
+      framework_title,
+      last_done_at,
+      ever_done,
+      done_since_last_checkup
+    }
+
+    RÈGLES:
+    - N'en parle que si ça reste fluide dans la clôture.
+    - Interdiction d'en faire un nouvel item de checklist.
+    - Interdiction de redemander "tu l'as fait ?" : la DB a déjà servi à calculer ce contexte.
+    - Une seule mention framework max.
+
+    SI mode = "fresh_done":
+    - Reconnais que l'exercice a été fait depuis le dernier bilan.
+    - Félicite brièvement, sans lourdeur.
+
+    SI mode = "never_done":
+    - Angle: "ce serait bien de l'essayer au moins une fois".
+    - Rappelle brièvement l'intérêt concret.
+    - Pas de reproche.
+
+    SI mode = "stale_done_before":
+    - Angle: "tu l'as déjà fait, mais tu ne l'as pas repris récemment".
+    - Tu peux mentionner la dernière fois si ça aide.
+    - Si tu poses une question finale, elle peut porter là-dessus.
+    `
+      : ""}
+
     ${scenario === "level_up"
       ? `
     SCÉNARIO SPÉCIAL : LEVEL UP (OBJECTIF ATTEINT)
@@ -183,6 +219,18 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     - Si la conversation est déjà chaude, pas de "Salut/Bonjour/Hello".
     - Interdit de dire "réponds oui ou non".
     - Formulation attendue: simple, naturelle, du type "on le fait maintenant ou on laisse pour plus tard ?"
+    `
+      : ""}
+
+    ${scenario === "opening_global_checkup_cancel"
+      ? `
+    SCÉNARIO SPÉCIAL : ON LAISSE LE BILAN DE CÔTÉ
+    Le user ne veut pas poursuivre le bilan maintenant, ou reste trop ambigu après une relance.
+
+    OBJECTIF:
+    - Clore proprement le flux bilan.
+    - Rester simple, humain, sans pression.
+    - Pas de question supplémentaire.
     `
       : ""}
 
@@ -295,6 +343,17 @@ RÈGLE D'IDENTITÉ (CRITIQUE) :
     Si day_added est présent, mentionne aussi le jour ajouté.
     Exemple sans jour: "C'est passé à X×/semaine. On continue ?"
     Exemple avec jour: "C'est noté, mardi ajouté ! Objectif à X×/semaine maintenant."
+    `
+      : ""}
+
+    ${scenario === "increase_target_failed"
+      ? `
+    SCÉNARIO SPÉCIAL : AUGMENTATION NON APPLIQUÉE
+    L'utilisateur voulait augmenter, mais l'opération n'a pas pu être appliquée.
+    Message court, naturel:
+    - Dis que ça n'a pas pu passer cette fois.
+    - Si une erreur claire est disponible, reformule-la simplement.
+    - Pas de formulation technique.
     `
       : ""}
 

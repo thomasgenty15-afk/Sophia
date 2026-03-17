@@ -11,10 +11,10 @@ declare const Deno: any;
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import type { AgentMode } from "../state-manager.ts";
 import {
-  getActionDetailsByHint,
   formatActionsSummary,
   formatPlanJson,
   formatPlanMetadata,
+  getActionDetailsByHint,
   getActionsDetails,
   getActionsSummary,
   getCoreIdentity,
@@ -28,13 +28,17 @@ import {
   getUserProfileFacts,
 } from "../profile_facts.ts";
 import {
-  retrieveTopicMemories,
   formatTopicMemoriesForPrompt,
+  retrieveTopicMemories,
 } from "../topic_memory.ts";
 import {
-  retrieveEventMemories,
   formatEventMemoriesForPrompt,
+  retrieveEventMemories,
 } from "../event_memory.ts";
+import {
+  formatGlobalMemoriesForPrompt,
+  retrieveGlobalMemories,
+} from "../global_memory.ts";
 // R2: getActiveTopicSession removed (topic sessions disabled)
 import type {
   ContextProfile,
@@ -185,7 +189,8 @@ export async function loadContextForMode(
         maxItems: IDENTITY_MAX_ITEMS,
       }).then((identity) => {
         if (identity) {
-          const block = `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identity}\n\n`;
+          const block =
+            `=== PILIERS DE L'IDENTITÉ (TEMPLE) ===\n${identity}\n\n`;
           context.identity = truncateToTokenEstimate(
             block,
             IDENTITY_MAX_BLOCK_TOKENS,
@@ -209,8 +214,7 @@ export async function loadContextForMode(
           opts.scope,
         );
         if (factsContext) {
-          context.facts =
-            `${factsContext}\n` +
+          context.facts = `${factsContext}\n` +
             `=== CONSIGNE PERSONNALISATION FACTS ===\n` +
             `- Utilise ces facts comme support de connaissance pour personnaliser ton style de réponse.\n` +
             `- En priorité pour: ton du coach (coach.tone), niveau de challenge (coach.challenge_level), style de feedback (coach.feedback_style), propension à parler (coach.talk_propensity), longueur et format des messages (coach.message_length, coach.message_format), fréquence des questions (coach.question_tendency), focus principal (coach.primary_focus), personnalisation émotionnelle (coach.emotional_personalization).\n` +
@@ -236,7 +240,9 @@ export async function loadContextForMode(
         userId: opts.userId,
         message: opts.message,
         nowIso: opts.userTime?.prompt_block
-          ? String(opts.userTime.prompt_block.match(/now_utc=([^\n]+)/)?.[1] ?? "")
+          ? String(
+            opts.userTime.prompt_block.match(/now_utc=([^\n]+)/)?.[1] ?? "",
+          )
           : undefined,
         maxResults: 2,
       }).then((events) => {
@@ -255,13 +261,39 @@ export async function loadContextForMode(
   }
 
   // 4c. Topic memories (mémoire thématique vivante)
+  if (profile.global_memories && opts.message) {
+    promises.push(
+      retrieveGlobalMemories({
+        supabase: opts.supabase,
+        userId: opts.userId,
+        message: opts.message,
+        maxResults: 3,
+      }).then((memories) => {
+        const globalContext = formatGlobalMemoriesForPrompt(memories);
+        if (globalContext) {
+          context.globalMemories = globalContext;
+          elementsLoaded.push("global_memories");
+        }
+      }).catch((e) => {
+        console.warn(
+          "[ContextLoader] failed to load global_memories (non-blocking):",
+          e,
+        );
+      }),
+    );
+  }
+
+  // 4d. Topic memories (mémoire thématique vivante)
   if (profile.topic_memories && opts.message) {
-    const topicMaxResultsRaw = (Deno.env.get("SOPHIA_TOPIC_RETRIEVE_MAX_RESULTS") ?? "").trim();
+    const topicMaxResultsRaw =
+      (Deno.env.get("SOPHIA_TOPIC_RETRIEVE_MAX_RESULTS") ?? "").trim();
     const topicMaxResultsParsed = Number(topicMaxResultsRaw);
-    const topicMaxResults = Number.isFinite(topicMaxResultsParsed) && topicMaxResultsParsed >= 1
-      ? Math.floor(topicMaxResultsParsed)
-      : 3;
-    const topicDebug = (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
+    const topicMaxResults =
+      Number.isFinite(topicMaxResultsParsed) && topicMaxResultsParsed >= 1
+        ? Math.floor(topicMaxResultsParsed)
+        : 3;
+    const topicDebug =
+      (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
     promises.push(
       retrieveTopicMemories({
         supabase: opts.supabase,
@@ -314,7 +346,8 @@ export async function loadContextForMode(
     let actionsDetailsBlockedByAmbiguity = false;
 
     if (shouldLoadActionsDetails(profile, opts.triggers)) {
-      const actionHint = String(opts.triggers?.action_discussion_hint ?? "").trim();
+      const actionHint = String(opts.triggers?.action_discussion_hint ?? "")
+        .trim();
       if (actionHint) {
         const targeted = await getActionDetailsByHint(
           opts.supabase,
@@ -327,9 +360,10 @@ export async function loadContextForMode(
           elementsLoaded.push("actions_details_targeted");
           actionsDetailsLoaded = true;
         } else if (targeted.status === "ambiguous") {
-          context.actionsDetails =
-            `=== ACTION CIBLE AMBIGUE ===\n` +
-            `Le message semble viser plusieurs actions proches: ${targeted.candidates.join(", ")}.\n` +
+          context.actionsDetails = `=== ACTION CIBLE AMBIGUE ===\n` +
+            `Le message semble viser plusieurs actions proches: ${
+              targeted.candidates.join(", ")
+            }.\n` +
             `Demande une précision courte avant d'agir (ex: \"Tu parles de laquelle ?\").\n`;
           elementsLoaded.push("actions_details_ambiguous");
           actionsDetailsBlockedByAmbiguity = true;
@@ -337,7 +371,10 @@ export async function loadContextForMode(
       }
 
       // Keep broad fallback for non-targeted operational requests.
-      if (!actionsDetailsLoaded && !actionsDetailsBlockedByAmbiguity && !actionHint) {
+      if (
+        !actionsDetailsLoaded && !actionsDetailsBlockedByAmbiguity &&
+        !actionHint
+      ) {
         const actionsDetails = await getActionsDetails(
           opts.supabase,
           opts.userId,
@@ -475,7 +512,8 @@ export async function loadContextForMode(
     (opts.mode === "companion" || opts.mode === "investigator") &&
     !hasSpecificDashboardAddon
   ) {
-    context.dashboardCapabilitiesLiteAddon = formatDashboardCapabilitiesLiteAddon();
+    context.dashboardCapabilitiesLiteAddon =
+      formatDashboardCapabilitiesLiteAddon();
     if (context.dashboardCapabilitiesLiteAddon) {
       elementsLoaded.push("dashboard_capabilities_lite_addon");
     }
@@ -560,7 +598,9 @@ export async function loadContextForMode(
   // 17. Bilan just stopped addon (one-shot guidance after explicit stop/bored).
   const bilanJustStopped = (opts.tempMemory as any)?.__bilan_just_stopped;
   if (bilanJustStopped && opts.mode === "companion") {
-    context.bilanJustStoppedAddon = formatBilanJustStoppedAddon(bilanJustStopped);
+    context.bilanJustStoppedAddon = formatBilanJustStoppedAddon(
+      bilanJustStopped,
+    );
     if (context.bilanJustStoppedAddon) {
       elementsLoaded.push("bilan_just_stopped_addon");
     }
@@ -608,6 +648,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.vitals) ctx += loaded.vitals + "\n\n";
   if (loaded.identity) ctx += loaded.identity;
   if (loaded.eventMemories) ctx += loaded.eventMemories;
+  if (loaded.globalMemories) ctx += loaded.globalMemories;
   if (loaded.topicMemories) ctx += loaded.topicMemories;
   if (loaded.onboardingAddon) ctx += loaded.onboardingAddon;
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon;
@@ -626,7 +667,9 @@ export function buildContextString(loaded: LoadedContext): string {
   }
   if (loaded.safetyActiveAddon) ctx += loaded.safetyActiveAddon;
   if (loaded.expiredBilanContext) ctx += loaded.expiredBilanContext;
-  if (loaded.checkupNotTriggerableAddon) ctx += loaded.checkupNotTriggerableAddon;
+  if (loaded.checkupNotTriggerableAddon) {
+    ctx += loaded.checkupNotTriggerableAddon;
+  }
   if (loaded.bilanJustStoppedAddon) ctx += loaded.bilanJustStoppedAddon;
 
   return ctx.trim();
@@ -710,7 +753,9 @@ function formatDashboardRedirectAddon(addon: any): string {
   const fromBilan = Boolean(addon?.from_bilan);
   const isBreakdownIntent = intents.includes("breakdown_action");
   const highMissedStreakMeta = addon?.high_missed_streak_breakdown;
-  const highMissedStreakDaysRaw = Number(highMissedStreakMeta?.streak_days ?? 0);
+  const highMissedStreakDaysRaw = Number(
+    highMissedStreakMeta?.streak_days ?? 0,
+  );
   const highMissedStreakDays = Number.isFinite(highMissedStreakDaysRaw)
     ? Math.max(0, Math.floor(highMissedStreakDaysRaw))
     : 0;
@@ -737,7 +782,9 @@ function formatDashboardRedirectAddon(addon: any): string {
       ? `- Interdit: présenter SOS blocage comme un bouton "quand ça chauffe", "pulsion", "crack" ou urgence émotionnelle.\n`
       : "") +
     (hasHighMissedStreakBreakdown
-      ? `- Contexte bilan: l'action ${highMissedActionTitle ? `"${highMissedActionTitle}"` : "en cours"} coince depuis ~${highMissedStreakDays} jours.\n`
+      ? `- Contexte bilan: l'action ${
+        highMissedActionTitle ? `"${highMissedActionTitle}"` : "en cours"
+      } coince depuis ~${highMissedStreakDays} jours.\n`
       : "") +
     (hasHighMissedStreakBreakdown
       ? `- Formulation attendue: empathie courte ("je vois que c'est pas facile") + proposition claire d'utiliser SOS blocage dans le dashboard pour cette action.\n`
@@ -809,7 +856,9 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
     ? addon.intents.filter((v: unknown) => typeof v === "string").slice(0, 8)
     : [];
   const fromBilan = Boolean(addon?.from_bilan);
-  const intentsText = intents.length > 0 ? intents.join(", ") : "general_dashboard_intent";
+  const intentsText = intents.length > 0
+    ? intents.join(", ")
+    : "general_dashboard_intent";
   return (
     `\n\n=== ADDON DASHBOARD CAPABILITIES (CAN_BE_RELATED_TO_DASHBOARD) ===\n` +
     `- Signal synthétique détecté: la demande peut relever du tableau de bord (${intentsText}).\n` +
@@ -924,13 +973,16 @@ async function loadWeeklyRecapContext(
       .eq("id", userId)
       .maybeSingle();
 
-    const tz = String((profile as any)?.timezone ?? "").trim() || "Europe/Paris";
+    const tz = String((profile as any)?.timezone ?? "").trim() ||
+      "Europe/Paris";
     const weekStart = isoWeekStartYmdInTz(new Date(), tz);
     const previousWeekStart = addDaysYmd(weekStart, -7);
 
     const { data: recap, error } = await supabase
       .from("weekly_bilan_recaps")
-      .select("execution,etoile_polaire,decisions_next_week,coach_note,week_start")
+      .select(
+        "execution,etoile_polaire,decisions_next_week,coach_note,week_start",
+      )
       .eq("user_id", userId)
       .eq("week_start", previousWeekStart)
       .maybeSingle();
@@ -940,15 +992,26 @@ async function loadWeeklyRecapContext(
     const execution = (recap as any).execution ?? {};
     const etoile = (recap as any).etoile_polaire ?? {};
     const decisions = Array.isArray((recap as any).decisions_next_week)
-      ? (recap as any).decisions_next_week.map((x: unknown) => String(x)).filter(Boolean).slice(0, 5)
+      ? (recap as any).decisions_next_week.map((x: unknown) => String(x))
+        .filter(Boolean).slice(0, 5)
       : [];
     const coachNote = String((recap as any).coach_note ?? "").trim();
 
     let block = "=== RECAP BILAN HEBDO PRECEDENT ===\n";
-    block += `- Semaine: ${String((recap as any).week_start ?? previousWeekStart)}\n`;
-    block += `- Exécution: ${Number(execution?.rate_pct ?? 0)}% (${Number(execution?.completed ?? 0)}/${Number(execution?.total ?? 0)})\n`;
-    if (etoile && typeof etoile === "object" && Object.keys(etoile).length > 0) {
-      block += `- Etoile Polaire: ${String(etoile?.title ?? "Etoile Polaire")} | actuel=${String(etoile?.current ?? "?")} | cible=${String(etoile?.target ?? "?")}\n`;
+    block += `- Semaine: ${
+      String((recap as any).week_start ?? previousWeekStart)
+    }\n`;
+    block += `- Exécution: ${Number(execution?.rate_pct ?? 0)}% (${
+      Number(execution?.completed ?? 0)
+    }/${Number(execution?.total ?? 0)})\n`;
+    if (
+      etoile && typeof etoile === "object" && Object.keys(etoile).length > 0
+    ) {
+      block += `- Etoile Polaire: ${
+        String(etoile?.title ?? "Etoile Polaire")
+      } | actuel=${String(etoile?.current ?? "?")} | cible=${
+        String(etoile?.target ?? "?")
+      }\n`;
     }
     if (decisions.length > 0) {
       block += `- Décisions prises: ${decisions.join(" ; ")}\n`;
@@ -956,7 +1019,8 @@ async function loadWeeklyRecapContext(
     if (coachNote) {
       block += `- Note coach: ${coachNote.slice(0, 500)}\n`;
     }
-    block += "- Utilise ce recap pour assurer la continuité, sans le réciter mot à mot.\n";
+    block +=
+      "- Utilise ce recap pour assurer la continuité, sans le réciter mot à mot.\n";
     return block;
   } catch {
     return null;
@@ -968,7 +1032,8 @@ function shouldInjectNorthStarContext(args: {
   message: string;
   tempMemory?: any;
 }): boolean {
-  const isEligibleMode = args.mode === "companion" || args.mode === "investigator";
+  const isEligibleMode = args.mode === "companion" ||
+    args.mode === "investigator";
   if (!isEligibleMode) return false;
 
   const hasDashboardCapabilitiesSignal = Boolean(
@@ -987,7 +1052,9 @@ async function loadNorthStarContext(
   try {
     const { data, error } = await supabase
       .from("user_north_stars")
-      .select("title, metric_type, unit, start_value, current_value, target_value, status, updated_at")
+      .select(
+        "title, metric_type, unit, start_value, current_value, target_value, status, updated_at",
+      )
       .eq("user_id", userId)
       .in("status", ["active", "completed"])
       .order("updated_at", { ascending: false })
@@ -1013,7 +1080,10 @@ async function loadNorthStarContext(
     ) {
       const pct = Math.max(
         -100,
-        Math.min(300, ((currentValue - startValue) / (targetValue - startValue)) * 100),
+        Math.min(
+          300,
+          ((currentValue - startValue) / (targetValue - startValue)) * 100,
+        ),
       );
       progress = `\n- Progression estimée: ${pct.toFixed(0)}%`;
     }
@@ -1022,7 +1092,11 @@ async function loadNorthStarContext(
       `=== NORTH STAR ACTIVE ===\n` +
       `- Titre: ${title}\n` +
       `- Type métrique: ${metricType}\n` +
-      `- Valeurs: départ=${String((data as any).start_value)} | actuel=${String((data as any).current_value)} | cible=${String((data as any).target_value)}${unit ? ` ${unit}` : ""}\n` +
+      `- Valeurs: départ=${String((data as any).start_value)} | actuel=${
+        String((data as any).current_value)
+      } | cible=${String((data as any).target_value)}${
+        unit ? ` ${unit}` : ""
+      }\n` +
       `- Statut: ${status}` +
       `${progress}\n` +
       `- Consigne: si tu proposes/modifies des actions, relie-les explicitement à cette North Star.\n`
@@ -1098,10 +1172,15 @@ async function loadRendezVousSummary(
       );
     }
 
-    const active = data.filter((row: any) => String(row?.status ?? "") === "active");
-    const inactive = data.filter((row: any) => String(row?.status ?? "") !== "active");
+    const active = data.filter((row: any) =>
+      String(row?.status ?? "") === "active"
+    );
+    const inactive = data.filter((row: any) =>
+      String(row?.status ?? "") !== "active"
+    );
     let block = "=== RENDEZ-VOUS CONFIGURÉS (SOURCE DE VÉRITÉ) ===\n";
-    block += `- Total: ${data.length} | actifs: ${active.length} | inactifs: ${inactive.length}\n`;
+    block +=
+      `- Total: ${data.length} | actifs: ${active.length} | inactifs: ${inactive.length}\n`;
     block +=
       "- Cette section reflète UNIQUEMENT user_recurring_reminders (configuration générique), pas les occurrences scheduled_checkins.\n";
     block +=
@@ -1110,11 +1189,14 @@ async function loadRendezVousSummary(
     if (active.length > 0) {
       block += "Actifs:\n";
       for (const row of active.slice(0, 5) as any[]) {
-        const instruction = String(row?.message_instruction ?? "").trim().slice(0, 120) || "Message non précisé";
+        const instruction =
+          String(row?.message_instruction ?? "").trim().slice(0, 120) ||
+          "Message non précisé";
         const time = String(row?.local_time_hhmm ?? "").trim() || "?";
-        const days = Array.isArray(row?.scheduled_days) && row.scheduled_days.length > 0
-          ? row.scheduled_days.join(", ")
-          : "jours non précisés";
+        const days =
+          Array.isArray(row?.scheduled_days) && row.scheduled_days.length > 0
+            ? row.scheduled_days.join(", ")
+            : "jours non précisés";
         block += `- ${instruction} | ${days} | ${time}\n`;
       }
     }
@@ -1122,7 +1204,9 @@ async function loadRendezVousSummary(
     if (inactive.length > 0) {
       block += "Inactifs:\n";
       for (const row of inactive.slice(0, 3) as any[]) {
-        const instruction = String(row?.message_instruction ?? "").trim().slice(0, 100) || "Message non précisé";
+        const instruction =
+          String(row?.message_instruction ?? "").trim().slice(0, 100) ||
+          "Message non précisé";
         const time = String(row?.local_time_hhmm ?? "").trim() || "?";
         block += `- ${instruction} | ${time} [inactif]\n`;
       }
@@ -1137,7 +1221,8 @@ async function loadRendezVousSummary(
 
 function formatSafetyActiveAddon(addon: any): string {
   const level = "sentry";
-  const phase = String(addon?.phase ?? "active").trim().slice(0, 40) || "active";
+  const phase = String(addon?.phase ?? "active").trim().slice(0, 40) ||
+    "active";
 
   return (
     `\n\n=== ADDON SAFETY ACTIVE ===\n` +
@@ -1156,7 +1241,9 @@ function formatOnboardingAddon(onboardingState: any): string {
     "ton plan";
   const turns = Math.max(
     0,
-    Number(onboardingState?.user_turn_count ?? onboardingState?.turn_count ?? 0) ||
+    Number(
+      onboardingState?.user_turn_count ?? onboardingState?.turn_count ?? 0,
+    ) ||
       0,
   );
   const remainingTurns = Math.max(0, 10 - turns);

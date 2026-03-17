@@ -9,6 +9,7 @@ import { getActiveSafetySentryFlow } from "../supervisor.ts";
 import { runInvestigator } from "../agents/investigator.ts";
 import { logCheckupCompletion } from "../agents/investigator/db.ts";
 import { computeCheckupStatsFromInvestigationState } from "../agents/investigator/checkup_stats.ts";
+import { weeklyInvestigatorSay } from "../agents/investigator-weekly/copy.ts";
 import { runCompanion } from "../agents/companion.ts";
 import {
   buildToolAckContract,
@@ -206,7 +207,14 @@ export async function runAgentAndVerify(opts: {
 
       return {
         responseContent: isWeeklyBilan
-          ? "Pas de souci, on reprendra le bilan hebdo plus tard."
+          ? await weeklyInvestigatorSay(
+            "weekly_bilan_user_stopped",
+            {
+              user_message: userMessage,
+              recent_history: (history ?? []).slice(-12),
+            },
+            meta,
+          )
           : "Pas de souci, on fera le bilan demain soir.",
         nextMode: "companion",
         tempMemory: tm1,

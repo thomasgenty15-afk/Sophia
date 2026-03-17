@@ -330,10 +330,28 @@ export async function handleWeeklyTurn(opts: {
           applied.applied_changes.join(" • "),
         );
         const { pending: nextPending, rest: nextQueue } = shiftProposalQueue(state.weekly_suggestion_queue);
-        return {
-          content: nextPending
+        let content: string;
+        try {
+          content = await weeklyInvestigatorSay(
+            "weekly_bilan_suggestion_applied",
+            {
+              user_message: message,
+              weekly_payload: state.weekly_payload,
+              proposal,
+              proposal_outcome: outcome,
+              next_suggestion_proposal: nextPending,
+              suggestion_outcomes: state.weekly_suggestion_outcomes ?? [],
+              recent_history: (history ?? []).slice(-12),
+            },
+            meta,
+          );
+        } catch {
+          content = nextPending
             ? `${applied.summary} ${nextPending.prompt}`
-            : `${applied.summary} On garde ce réglage pour la semaine qui vient.`,
+            : `${applied.summary} On garde ce réglage pour la semaine qui vient.`;
+        }
+        return {
+          content,
           investigationComplete: false,
           newState: {
             ...state,
@@ -361,8 +379,25 @@ export async function handleWeeklyTurn(opts: {
           summary,
           created_at: new Date().toISOString(),
         };
+        let content: string;
+        try {
+          content = await weeklyInvestigatorSay(
+            "weekly_bilan_suggestion_failed",
+            {
+              user_message: message,
+              weekly_payload: state.weekly_payload,
+              proposal,
+              proposal_outcome: outcome,
+              suggestion_outcomes: state.weekly_suggestion_outcomes ?? [],
+              recent_history: (history ?? []).slice(-12),
+            },
+            meta,
+          );
+        } catch {
+          content = `${summary} On peut le garder comme recommandation pour plus tard.`;
+        }
         return {
-          content: `${summary} On peut le garder comme recommandation pour plus tard.`,
+          content,
           investigationComplete: false,
           newState: {
             ...state,
@@ -391,10 +426,28 @@ export async function handleWeeklyTurn(opts: {
         created_at: new Date().toISOString(),
       };
       const { pending: nextPending, rest: nextQueue } = shiftProposalQueue(state.weekly_suggestion_queue);
-      return {
-        content: nextPending
+      let content: string;
+      try {
+        content = await weeklyInvestigatorSay(
+          "weekly_bilan_suggestion_rejected",
+          {
+            user_message: message,
+            weekly_payload: state.weekly_payload,
+            proposal,
+            proposal_outcome: outcome,
+            next_suggestion_proposal: nextPending,
+            suggestion_outcomes: state.weekly_suggestion_outcomes ?? [],
+            recent_history: (history ?? []).slice(-12),
+          },
+          meta,
+        );
+      } catch {
+        content = nextPending
           ? `${summary} ${nextPending.prompt}`
-          : `${summary} On garde donc les actions comme elles sont.`,
+          : `${summary} On garde donc les actions comme elles sont.`;
+      }
+      return {
+        content,
         investigationComplete: false,
         newState: {
           ...state,

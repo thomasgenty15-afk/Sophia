@@ -1075,10 +1075,10 @@ export const useDashboardLogic = ({
             // 3. Update user_actions table (using original title to find the record)
             // Note: If title changed, we update it here too.
             const updates: any = {};
-            if (updatedFields.title) updates.title = updatedFields.title;
-            if (updatedFields.description) updates.description = updatedFields.description;
-            if (updatedFields.targetReps) updates.target_reps = updatedFields.targetReps;
-            if (updatedFields.timeOfDay) updates.time_of_day = updatedFields.timeOfDay;
+            if ('title' in updatedFields) updates.title = updatedFields.title;
+            if ('description' in updatedFields) updates.description = updatedFields.description;
+            if ('targetReps' in updatedFields) updates.target_reps = updatedFields.targetReps;
+            if ('timeOfDay' in updatedFields) updates.time_of_day = updatedFields.timeOfDay;
             if ('scheduledDays' in updatedFields) updates.scheduled_days = updatedFields.scheduledDays || null;
             
             if (Object.keys(updates).length > 0) {

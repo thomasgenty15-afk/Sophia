@@ -27,7 +27,14 @@ export async function runInvestigatorWeekly(
   const currentState = state;
   if (!currentState?.weekly_payload) {
     return {
-      content: "On a perdu le contexte du bilan hebdo, on le relance dimanche prochain 🙂",
+      content: await weeklyInvestigatorSay(
+        "weekly_bilan_state_lost",
+        {
+          user_message: message,
+          recent_history: (history ?? []).slice(-12),
+        },
+        meta,
+      ),
       investigationComplete: true,
       newState: null,
     };
@@ -35,7 +42,15 @@ export async function runInvestigatorWeekly(
 
   if (isExplicitStopBilan(message)) {
     return {
-      content: "Pas de souci, on coupe le bilan hebdo ici 🙂 On reprendra au prochain créneau.",
+      content: await weeklyInvestigatorSay(
+        "weekly_bilan_user_stopped",
+        {
+          user_message: message,
+          weekly_payload: currentState.weekly_payload,
+          recent_history: (history ?? []).slice(-12),
+        },
+        meta,
+      ),
       investigationComplete: true,
       newState: null,
     };
@@ -74,7 +89,17 @@ export async function runInvestigatorWeekly(
 
     if (decision === "cancel") {
       return {
-        content: "Pas de souci, ce n'est pas grave 🙂 On fera le bilan hebdo la semaine prochaine.",
+        content: await weeklyInvestigatorSay(
+          "weekly_bilan_cancel_initial",
+          {
+            user_message: message,
+            weekly_payload: currentState.weekly_payload,
+            covered_topics: currentState.weekly_covered_topics,
+            opening_context: currentState.opening_context ?? null,
+            recent_history: (history ?? []).slice(-12),
+          },
+          meta,
+        ),
         investigationComplete: true,
         newState: null,
       };
@@ -98,7 +123,17 @@ export async function runInvestigatorWeekly(
     const clarifyCount = Number(currentState.start_consent_clarify_count ?? 0);
     if (clarifyCount >= 1) {
       return {
-        content: "Pas de souci, on laisse le bilan hebdo de cote pour l'instant 🙂",
+        content: await weeklyInvestigatorSay(
+          "weekly_bilan_cancel_after_reask",
+          {
+            user_message: message,
+            weekly_payload: currentState.weekly_payload,
+            covered_topics: currentState.weekly_covered_topics,
+            opening_context: currentState.opening_context ?? null,
+            recent_history: (history ?? []).slice(-12),
+          },
+          meta,
+        ),
         investigationComplete: true,
         newState: null,
       };

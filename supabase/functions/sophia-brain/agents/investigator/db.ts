@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { generateEmbedding } from "../../../_shared/gemini.ts"
-import type { CheckupItem } from "./types.ts"
+import type { CheckupItem, FrameworkBilanAddon } from "./types.ts"
 import { addDays, isoDay } from "./utils.ts"
 import { getMissedStreakDays } from "./streaks.ts"
 
@@ -364,26 +364,134 @@ export async function getPendingItems(supabase: SupabaseClient, userId: string):
     }
   })
 
-  frameworks?.forEach((f: any) => {
-    const lastPerformedDate = f.last_performed_at ? new Date(f.last_performed_at) : null
-    if (!lastPerformedDate || lastPerformedDate < eighteenHoursAgo) {
-      const fwTrackingType = String(f.tracking_type ?? "boolean").toLowerCase().trim()
-      const trackingType = (fwTrackingType === "counter" ? "counter" : "boolean") as "boolean" | "counter"
-      pending.push({
-        id: f.id,
-        type: "framework",
-        title: f.title,
-        tracking_type: trackingType,
-        day_scope: globalDayScope,  // Frameworks use global day_scope
-      })
-    }
-  })
+  // Frameworks are handled via an optional bilan addon instead of the standard
+  // item-by-item check flow. This keeps the daily bilan lighter and avoids
+  // asking "tu l'as fait ?" when the DB already knows the answer.
 
-  // Tri : Vitals d'abord, puis Actions, puis Frameworks
+  // Tri : Vitals d'abord, puis Actions
   return pending.sort((a, b) => {
-    const typeOrder: Record<string, number> = { vital: 0, action: 1, framework: 2 }
+    const typeOrder: Record<string, number> = { vital: 0, action: 1 }
     return (typeOrder[a.type] ?? 99) - (typeOrder[b.type] ?? 99)
   })
+}
+
+export async function getFrameworkBilanAddon(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<FrameworkBilanAddon | null> {
+  try {
+    const planRow = await fetchActivePlanRow(supabase, userId).catch(() => null)
+    const planId = String(planRow?.id ?? "").trim()
+
+    const fwQuery = supabase
+      .from("user_framework_tracking")
+      .select("id, action_id, title, last_performed_at")
+      .eq("user_id", userId)
+      .eq("status", "active")
+    const { data: frameworks, error: fwError } = planId
+      ? await fwQuery.eq("plan_id", planId)
+      : await fwQuery
+    if (fwError || !Array.isArray(frameworks) || frameworks.length === 0) return null
+
+    const { data: lastCheckup } = await supabase
+      .from("user_checkup_logs")
+      .select("completed_at")
+      .eq("user_id", userId)
+      .eq("completion_kind", "full")
+      .order("completed_at", { ascending: false })
+      .limit(1)
+      .maybeSingle()
+    const lastCheckupAt = String((lastCheckup as any)?.completed_at ?? "").trim() || null
+
+    const { count: fullCheckupsCount } = await supabase
+      .from("user_checkup_logs")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("completion_kind", "full")
+
+    const shouldNudgeThisBilan = ((Number(fullCheckupsCount ?? 0) + 1) % 3) === 0
+
+    type FrameworkSnapshot = {
+      framework_id: string
+      framework_title: string
+      action_id: string | null
+      ever_done: boolean
+      last_done_at: string | null
+      done_since_last_checkup: boolean
+    }
+
+    const snapshots: FrameworkSnapshot[] = []
+    for (const framework of frameworks as any[]) {
+      const actionId = String(framework?.action_id ?? "").trim() || null
+      if (!actionId) continue
+      const { data: entries } = await supabase
+        .from("user_framework_entries")
+        .select("created_at")
+        .eq("user_id", userId)
+        .eq("action_id", actionId)
+        .order("created_at", { ascending: false })
+        .limit(5)
+
+      const lastDoneAt = Array.isArray(entries) && entries.length > 0
+        ? String((entries[0] as any)?.created_at ?? "").trim() || null
+        : null
+      snapshots.push({
+        framework_id: String(framework?.id ?? ""),
+        framework_title: String(framework?.title ?? "").trim() || "cet exercice",
+        action_id: actionId,
+        ever_done: Boolean(lastDoneAt),
+        last_done_at: lastDoneAt,
+        done_since_last_checkup: Boolean(
+          lastDoneAt && (!lastCheckupAt || new Date(lastDoneAt).getTime() > new Date(lastCheckupAt).getTime()),
+        ),
+      })
+    }
+
+    const freshDone = snapshots
+      .filter((snapshot) => snapshot.done_since_last_checkup)
+      .sort((a, b) => new Date(String(b.last_done_at ?? 0)).getTime() - new Date(String(a.last_done_at ?? 0)).getTime())[0]
+    if (freshDone) {
+      return {
+        mode: "fresh_done",
+        framework_id: freshDone.framework_id,
+        framework_title: freshDone.framework_title,
+        last_done_at: freshDone.last_done_at,
+        ever_done: freshDone.ever_done,
+        done_since_last_checkup: true,
+      }
+    }
+
+    if (!shouldNudgeThisBilan) return null
+
+    const neverDone = snapshots.find((snapshot) => !snapshot.ever_done)
+    if (neverDone) {
+      return {
+        mode: "never_done",
+        framework_id: neverDone.framework_id,
+        framework_title: neverDone.framework_title,
+        last_done_at: null,
+        ever_done: false,
+        done_since_last_checkup: false,
+      }
+    }
+
+    const staleDone = snapshots
+      .filter((snapshot) => snapshot.ever_done)
+      .sort((a, b) => new Date(String(a.last_done_at ?? 0)).getTime() - new Date(String(b.last_done_at ?? 0)).getTime())[0]
+    if (!staleDone) return null
+
+    return {
+      mode: "stale_done_before",
+      framework_id: staleDone.framework_id,
+      framework_title: staleDone.framework_title,
+      last_done_at: staleDone.last_done_at,
+      ever_done: true,
+      done_since_last_checkup: false,
+    }
+  } catch (e) {
+    console.error("[Investigator] getFrameworkBilanAddon failed:", e)
+    return null
+  }
 }
 
 

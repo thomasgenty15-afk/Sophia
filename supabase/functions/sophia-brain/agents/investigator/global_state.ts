@@ -46,35 +46,10 @@ function itemText(item: CheckupItem): string {
     .join(" ")
 }
 
-function isJournalItemText(text: string): boolean {
-  return /journal|decompression|decharge|brain dump|inventaire mental/i.test(text)
-}
-
-function isDigitalCurfewItemText(text: string): boolean {
-  return /couvre feu digital|ne pas deranger|hors de portee|hors de portee|autre piece|autre piece/i
-    .test(text)
-}
-
-function isScreenTimeItemText(text: string): boolean {
-  return /temps d ecran|temps ecran|minutes? d ecran|ecran.*coucher|screen time|scroll|tiktok|instagram|youtube/i
-    .test(text)
-}
-
 function spokenTopicKeyForItem(item: CheckupItem): string {
-  const t = normalizeLite(itemText(item))
-  if (!t) return "ce-point"
-  if (isJournalItemText(t)) return "journal"
-  if (isDigitalCurfewItemText(t)) return "digital-curfew"
-  if (isScreenTimeItemText(t)) return "screen-time"
-  if (/pompe|push up|pushup/i.test(t)) return "pushups"
-  if (/lecture|lire/i.test(t)) return "reading"
-  if (item?.type === "vital") {
-    if (/sommeil|dormi|nuit|coucher|reveil|réveil/i.test(t)) return "sleep"
-    if (/endormissement|tete\s+sur\s+l.?oreiller|oreiller/i.test(t)) return "fall-asleep"
-    if (/energie|humeur|moral|forme|batterie/i.test(t)) return "energy"
-    if (/stress|anxieux|anxiete/i.test(t)) return "stress"
-  }
-  return normalizeLite(String(item?.title ?? "")) || "ce-point"
+  const title = normalizeLite(String(item?.title ?? ""))
+  if (title) return title
+  return normalizeLite(itemText(item)) || "ce-point"
 }
 
 export function spokenLabelForItem(item: CheckupItem): string {
@@ -82,26 +57,6 @@ export function spokenLabelForItem(item: CheckupItem): string {
   const rawDesc = String(item?.description ?? "").trim()
   const title = rawTitle || rawDesc || ""
   if (!title) return "ce point"
-  const t = normalizeLite(itemText(item))
-
-  if (isJournalItemText(t)) {
-    return "ton journal du soir"
-  }
-  if (isDigitalCurfewItemText(t)) {
-    return "ton couvre-feu digital"
-  }
-  if (isScreenTimeItemText(t)) {
-    return "les écrans"
-  }
-  if (/pompe|push up|pushup/i.test(t)) return "tes pompes"
-  if (/lecture|lire/i.test(t)) return "ta lecture"
-
-  if (item?.type === "vital") {
-    if (/sommeil|dormi|nuit|coucher|reveil|réveil/i.test(t)) return "ta nuit"
-    if (/endormissement|tete\s+sur\s+l.?oreiller|oreiller/i.test(t)) return "t'endormir"
-    if (/energie|humeur|moral|forme|batterie/i.test(t)) return "ton énergie"
-    if (/stress|anxieux|anxiete/i.test(t)) return "ton stress"
-  }
 
   const words = title.split(/\s+/).filter(Boolean)
   return words.slice(0, 6).join(" ").trim() || "ce point"

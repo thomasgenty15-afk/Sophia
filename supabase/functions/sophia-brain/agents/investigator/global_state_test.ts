@@ -98,7 +98,7 @@ Deno.test("helpers keep broad opening and grouped follow-up natural", () => {
   })
   assertEquals(
     msg,
-    "Et pour ta lecture et ta nuit, tu me dis ce qu'il en a été ?",
+    "Et pour Lecture 30 min et Sommeil, tu me dis ce qu'il en a été ?",
   )
 })
 
@@ -110,7 +110,7 @@ Deno.test("spoken labels turn rigid dashboard wording into natural phrasing", ()
       title: "Journal de Fin de Journée",
       tracking_type: "boolean",
     }),
-    "ton journal du soir",
+    "Journal de Fin de Journée",
   )
   assertEquals(
     spokenLabelForItem({
@@ -119,11 +119,11 @@ Deno.test("spoken labels turn rigid dashboard wording into natural phrasing", ()
       title: "Couvre-feu Digital Renforcé",
       tracking_type: "boolean",
     }),
-    "ton couvre-feu digital",
+    "Couvre-feu Digital Renforcé",
   )
 })
 
-Deno.test("grouped follow-up collapses duplicate labels for the same curfew topic", () => {
+Deno.test("grouped follow-up keeps explicit item titles", () => {
   const msg = buildGroupedFollowUpMessage({
     coveredItems: [],
     nextItems: [
@@ -142,10 +142,10 @@ Deno.test("grouped follow-up collapses duplicate labels for the same curfew topi
     ],
   })
 
-  assertEquals(msg, "Et pour ton couvre-feu digital, tu l'as fait finalement ?")
+  assertEquals(msg, "Et pour Couvre-feu Digital Renforcé et Couvre-feu Digital Léger, tu me dis ce qu'il en a été ?")
 })
 
-Deno.test("grouped follow-up keeps screen time and digital curfew distinct", () => {
+Deno.test("grouped follow-up names remaining items explicitly", () => {
   const msg = buildGroupedFollowUpMessage({
     coveredItems: [
       {
@@ -175,6 +175,6 @@ Deno.test("grouped follow-up keeps screen time and digital curfew distinct", () 
 
   assertEquals(
     msg,
-    "Et pour ton couvre-feu digital et tes pompes, tu me dis ce qu'il en a été ?",
+    "Et pour Couvre-feu Digital Léger et 10 pompes, tu me dis ce qu'il en a été ?",
   )
 })

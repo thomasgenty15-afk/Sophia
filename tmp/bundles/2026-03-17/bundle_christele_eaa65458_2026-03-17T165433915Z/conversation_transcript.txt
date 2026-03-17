@@ -1,0 +1,56 @@
+[2026-03-16T18:33:03.524584+00:00] [whatsapp] assistant (request_id=bb4aaa86-3431-45cc-9e71-51342aee4787):
+[TEMPLATE:sophia_bilan_weekly_v1]
+
+[2026-03-16T18:42:03.191837+00:00] [whatsapp] assistant (request_id=7b4db9ee-a875-43c6-9d83-9acb76e6358a):
+[TEMPLATE:sophia_bilan_weekly_v1]
+
+[2026-03-16T19:20:54.065694+00:00] [whatsapp] user (request_id=ef8d18dc-4f87-4ef1-abed-6294468d3b01):
+Go !
+
+[2026-03-16T19:21:18.317638+00:00] [whatsapp] assistant:
+C'est parfait, on y va ! On va se poser un instant pour regarder ta progression vers ton Etoile Polaire et débriefer cette semaine, surtout avec ton weekend peinture bien rempli. 🎨
+
+On attaque par le point sur tes actions ?
+
+[2026-03-16T19:45:28.57284+00:00] [whatsapp] user (request_id=ed215c1b-9643-4530-92b5-c332f09d15f7):
+Oui !
+
+[2026-03-16T19:45:51.143264+00:00] [whatsapp] assistant:
+On dirait que le compteur est resté à zéro cette semaine sur tes objectifs officiels, même si tu as eu de super moments avec la peinture et ton sommeil. Est-ce que c'est juste le suivi qui a été mis de côté ou tu as vraiment eu du mal à trouver du temps pour tes actions ? 🎨
+
+[2026-03-16T19:53:09.209755+00:00] [whatsapp] user (request_id=dab1ac85-e898-405b-b62a-92755e0858dd):
+J'ai fait de la méditation tout les jours et ce matin presque 1 heure. J'ai fait 15 mn d'apprentissage ce matin en relation avec ma création d'entreprise et pour finir ce soir a 22h je serais dans mon lit car effectivement ces derniers jours mon heure de coucher a été très challenge a cause de la peinture et des dîners en famille ou entre amis.
+
+[2026-03-16T19:53:34.065953+00:00] [whatsapp] assistant:
+C'est génial que tu aies gardé le cap sur la méditation et ton projet malgré le chantier peinture ! Ton Etoile Polaire, c'est ton indice de vitalité globale, et on l'avait laissé à 7 sur 10. Après ce weekend intense et ton retour au calme ce soir, tu le situerais à combien aujourd'hui ? 📈
+
+[2026-03-16T19:54:42.809108+00:00] [whatsapp] user (request_id=e435026e-0b01-40b8-a18f-5f8102e85f5d):
+Je dois récupérer sur weekend peinture...j'ai mal partout !!! Donc je dirais que je suis a 6 mais c'est normal !! Je pense revenir a 7 demain et encore une 'uit et je devrais pouvoir augmenter
+
+[2026-03-16T19:54:44.192528+00:00] [whatsapp] assistant:
+Ok, pas de souci. On laisse le bilan hebdo pour une autre fois.
+
+[2026-03-16T19:55:17.705568+00:00] [whatsapp] user (request_id=00f7b92c-cf59-4789-87d1-90b1fb729dee):
+Pardon?
+
+[2026-03-16T19:55:39.510101+00:00] [whatsapp] assistant:
+Désolée, je me suis emmêlée les pinceaux, on continue bien sûr notre bilan ! C'est tout à fait normal ce 6/10 après un weekend aussi intense, l'important c'est que tu sentes que ça va vite remonter. On valide ce chiffre pour ton Etoile Polaire cette semaine ? 📉
+
+[2026-03-16T19:56:05.415655+00:00] [whatsapp] user (request_id=e46615ab-1582-450d-9c10-d5fbeb2e255e):
+Oui
+
+[2026-03-16T19:56:31.447986+00:00] [whatsapp] assistant:
+On a terminé ton bilan. Ta priorité sera de stabiliser ton rituel de coucher pour restaurer ton énergie. On ajuste le plan en mettant le micro-projet en pause pour l'instant, et ton garde-fou sera de maintenir le Soma breathing comme ancrage quotidien. On garde le cap sur ton Etoile Polaire de vitalité pour repartir du bon pied 🌙✨
+
+[2026-03-16T19:57:04.610758+00:00] [whatsapp] user (request_id=0d2434ac-4f7c-45f6-a762-f56f1e4a189c):
+Ça me semble parfait !
+
+[2026-03-16T19:57:13.996577+00:00] [whatsapp] assistant:
+Top ! On part là-dessus pour ta semaine. Profite bien de ton lit ce soir, tu l'as amplement mérité après tout ce travail manuel. Repose bien tes muscles, on se reparle demain pour voir si l'énergie remonte. 🌙✨
+
+[2026-03-16T19:57:35.979975+00:00] [whatsapp] user (request_id=e12c9882-0cad-414a-92e9-6cfc802311a7):
+Top
+
+[2026-03-16T19:57:45.580117+00:00] [whatsapp] assistant:
+Parfait. Allez, file te reposer, tes muscles te remercieront demain matin. Bonne nuit et à demain ! 🌙✨
+

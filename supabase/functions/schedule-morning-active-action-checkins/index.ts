@@ -15,8 +15,8 @@ const TARGET_LOCAL_TIME = "07:00"
 type ActiveActionRow = {
   id: string
   title: string
-  kind: "action" | "framework"
-  source: "plan" | "personal" | "framework"
+  kind: "action" | "framework" | "vital_sign"
+  source: "plan" | "personal" | "framework" | "vital_sign"
   scheduled_days: string[] | null
   time_of_day: string | null
 }
@@ -36,9 +36,11 @@ type Slot = {
   slotLabel: string
   todayActionTitles: string[]
   todayFrameworkTitles: string[]
+  todayVitalSignTitles: string[]
   todayItemTitles: string[]
   allActionTitles: string[]
   allFrameworkTitles: string[]
+  allVitalSignTitles: string[]
   allItemTitles: string[]
 }
 
@@ -170,6 +172,10 @@ function buildSlots(params: {
     .filter((a) => a.kind === "framework")
     .map((a) => a.title)
     .filter(Boolean)
+  const allVitalSignTitles = params.actions
+    .filter((a) => a.kind === "vital_sign")
+    .map((a) => a.title)
+    .filter(Boolean)
   const allItemTitles = params.actions.map((a) => a.title).filter(Boolean)
 
   const slots: Slot[] = []
@@ -188,6 +194,9 @@ function buildSlots(params: {
     const todayFrameworkTitles = todayItems
       .filter((action) => action.kind === "framework")
       .map((action) => action.title)
+    const todayVitalSignTitles = todayItems
+      .filter((action) => action.kind === "vital_sign")
+      .map((action) => action.title)
     const todayItemTitles = todayItems.map((action) => action.title)
     slots.push({
       dayOffset,
@@ -201,9 +210,11 @@ function buildSlots(params: {
       slotLabel: `J+${dayOffset} (${weekdayKey})`,
       todayActionTitles,
       todayFrameworkTitles,
+      todayVitalSignTitles,
       todayItemTitles,
       allActionTitles,
       allFrameworkTitles,
+      allVitalSignTitles,
       allItemTitles,
     })
   }
@@ -256,6 +267,15 @@ async function fetchActiveActionsForUser(params: {
     ? await frameworksQuery.eq("plan_id", planId)
     : await frameworksQuery
   if (frameworksErr) throw frameworksErr
+
+  const { data: activeVitalSigns, error: vitalSignsErr } = await supabaseAdmin
+    .from("user_vital_signs")
+    .select("id,label,time_of_day,created_at")
+    .eq("user_id", userId)
+    .in("status", ["active", "monitoring"])
+    .order("created_at", { ascending: true })
+
+  if (vitalSignsErr) throw vitalSignsErr
 
   const orderedPlanTitles = Array.isArray((activePlan as any)?.content?.phases)
     ? ((activePlan as any).content.phases as any[])
@@ -313,6 +333,18 @@ async function fetchActiveActionsForUser(params: {
       source: "framework",
       scheduled_days: null,
       time_of_day: null,
+    })
+  }
+  for (const row of (activeVitalSigns ?? []) as any[]) {
+    const title = cleanText(row?.label)
+    if (!title) continue
+    rows.push({
+      id: cleanText(row?.id),
+      title,
+      kind: "vital_sign",
+      source: "vital_sign",
+      scheduled_days: null,
+      time_of_day: cleanText(row?.time_of_day) || null,
     })
   }
   const planContext = activePlan
@@ -379,8 +411,8 @@ async function generateWeeklyDrafts(params: {
     "- Le but est d'aider la personne a se mettre en mouvement pour sa journee, sans pression excessive.",
     "- Meme si le message est envoye le matin, parle de la journee dans son ensemble, pas seulement de 'ce matin'.",
     "- Evite les formulations qui reduisent le rappel a la matinee seule, sauf si une action est explicitement matinale.",
-    "- Les frameworks actifs comptent ici comme des actions a rappeler a l'utilisateur.",
-    "- Quand des items sont fournis pour le jour, tu dois tous les citer, y compris les frameworks.",
+    "- Les frameworks actifs et les vital signs actifs comptent ici comme des items a rappeler a l'utilisateur.",
+    "- Quand des items sont fournis pour le jour, tu dois tous les citer, y compris les frameworks et les vital signs.",
     "- Respecte strictement l'ordre des items tel qu'il est fourni dans le slot.",
     "- N'invente aucun item absent du contexte.",
     "- Si un contexte de plan est fourni, utilise-le pour choisir le bon angle d'encouragement.",

@@ -34,6 +34,9 @@ export interface ContextProfile {
   /** Topic memories (mémoire thématique vivante) */
   topic_memories: boolean;
 
+  /** Global memories (sous-thèmes génériques durables) */
+  global_memories: boolean;
+
   /** Event memories (événements spécifiques datés) */
   event_memories: boolean;
 
@@ -76,6 +79,7 @@ export interface LoadedContext {
   actionsDetails?: string;
   identity?: string;
   eventMemories?: string;
+  globalMemories?: string;
   topicMemories?: string;
   facts?: string;
   shortTerm?: string;
@@ -126,6 +130,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: "on_demand",
     identity: true,
     event_memories: true,
+    global_memories: true,
     topic_memories: true,
     facts: true,
     short_term: true,
@@ -141,6 +146,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: "on_demand",
     identity: false,
     event_memories: false,
+    global_memories: false,
     topic_memories: false,
     facts: false,
     short_term: false,
@@ -156,6 +162,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     event_memories: false,
+    global_memories: false,
     topic_memories: false,
     facts: false,
     short_term: false,
@@ -172,6 +179,7 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     event_memories: false,
+    global_memories: false,
     topic_memories: false,
     facts: false,
     short_term: false,
@@ -187,13 +195,13 @@ export const CONTEXT_PROFILES: Partial<Record<AgentMode, ContextProfile>> = {
     actions_details: false,
     identity: false,
     event_memories: false,
+    global_memories: false,
     topic_memories: false,
     facts: false,
     short_term: false,
     history_depth: 0,
     vitals: false,
   },
-
 };
 
 /**
@@ -207,6 +215,7 @@ export const DEFAULT_CONTEXT_PROFILE: ContextProfile = {
   actions_details: false,
   identity: false,
   event_memories: false,
+  global_memories: false,
   topic_memories: false,
   facts: false,
   short_term: false,
@@ -256,7 +265,7 @@ export function shouldLoadActionsDetails(
 
   return Boolean(
     triggers.action_discussion_detected ||
-    triggers.create_action_intent ||
+      triggers.create_action_intent ||
       triggers.update_action_intent ||
       triggers.breakdown_recommended,
   );

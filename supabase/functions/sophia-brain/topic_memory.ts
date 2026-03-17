@@ -18,87 +18,155 @@
  * - Les topics pertinents sont injectés dans le contexte du prompt
  */
 
-import { SupabaseClient } from "jsr:@supabase/supabase-js@2"
-import { generateWithGemini, generateEmbedding, getGlobalAiModel } from "../_shared/gemini.ts"
-import { getUserTimeContext } from "../_shared/user_time_context.ts"
+import { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import {
+  generateEmbedding,
+  generateWithGemini,
+  getGlobalAiModel,
+} from "../_shared/gemini.ts";
+import { getUserTimeContext } from "../_shared/user_time_context.ts";
 import {
   type ExtractedEventCandidate,
   upsertEventMemoryFromCandidate,
-} from "./event_memory.ts"
+} from "./event_memory.ts";
+import {
+  GLOBAL_MEMORY_TAXONOMY_PROMPT_BLOCK,
+  type GlobalMemoryCandidate,
+  sanitizeGlobalMemoryCandidate,
+  upsertGlobalMemoryCandidate,
+} from "./global_memory.ts";
 
-type TopicEnrichmentSource = "chat" | "onboarding" | "bilan" | "module" | "plan"
+type TopicEnrichmentSource =
+  | "chat"
+  | "onboarding"
+  | "bilan"
+  | "module"
+  | "plan";
 
-const MATCH_HIGH = Number((Deno.env.get("SOPHIA_TOPIC_MATCH_HIGH") ?? "0.72").trim()) || 0.72
-const KEYWORD_STRONG = Number((Deno.env.get("SOPHIA_TOPIC_KEYWORD_STRONG") ?? "0.86").trim()) || 0.86
-const SYNTH_STRONG = Number((Deno.env.get("SOPHIA_TOPIC_SYNTH_STRONG") ?? "0.84").trim()) || 0.84
-const NOOP_SEMANTIC_SIM = Number((Deno.env.get("SOPHIA_TOPIC_NOOP_SEMANTIC_SIM") ?? "0.90").trim()) || 0.90
-const TITLE_STRONG = Number((Deno.env.get("SOPHIA_TOPIC_TITLE_STRONG") ?? "0.88").trim()) || 0.88
-const MAX_KEYWORDS_PER_TOPIC_UPDATE = Number((Deno.env.get("SOPHIA_TOPIC_MAX_KEYWORDS_PER_UPDATE") ?? "12").trim()) || 12
-const ALLOW_KEYWORD_REASSIGN = (Deno.env.get("SOPHIA_TOPIC_ALLOW_KEYWORD_REASSIGN") ?? "").trim() === "1"
-const AUTO_MERGE_SYNTH_SIM = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_SYNTH_SIM") ?? "0.93").trim()) || 0.93
-const AUTO_MERGE_TITLE_SIM = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_SIM") ?? "0.95").trim()) || 0.95
-const AUTO_MERGE_TITLE_JACCARD = Number((Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_JACCARD") ?? "0.60").trim()) || 0.60
-const MAX_TIMELINE_ITEMS = Number((Deno.env.get("SOPHIA_TOPIC_MAX_TIMELINE_ITEMS") ?? "10").trim()) || 10
-const TOPIC_DEBUG = (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1"
-const TOPIC_COMPACTION_PENDING_COUNT = Number((Deno.env.get("SOPHIA_TOPIC_COMPACTION_PENDING_COUNT") ?? "3").trim()) || 3
-const TOPIC_COMPACTION_PENDING_CHARS = Number((Deno.env.get("SOPHIA_TOPIC_COMPACTION_PENDING_CHARS") ?? "420").trim()) || 420
-const MEMORY_ANALYSIS_MODEL = (Deno.env.get("SOPHIA_MEMORY_ANALYSIS_MODEL") ?? "gpt-5.3").trim() || "gpt-5.3"
-const MEMORY_VALIDATION_MODEL = (Deno.env.get("SOPHIA_MEMORY_VALIDATE_MODEL") ?? "gemini-3-flash-preview").trim() || "gemini-3-flash-preview"
-const TOPIC_COMPACTION_MODEL = (Deno.env.get("SOPHIA_TOPIC_COMPACTION_MODEL") ?? "gemini-3-flash-preview").trim() || "gemini-3-flash-preview"
+const MATCH_HIGH =
+  Number((Deno.env.get("SOPHIA_TOPIC_MATCH_HIGH") ?? "0.72").trim()) || 0.72;
+const KEYWORD_STRONG =
+  Number((Deno.env.get("SOPHIA_TOPIC_KEYWORD_STRONG") ?? "0.86").trim()) ||
+  0.86;
+const SYNTH_STRONG =
+  Number((Deno.env.get("SOPHIA_TOPIC_SYNTH_STRONG") ?? "0.84").trim()) || 0.84;
+const NOOP_SEMANTIC_SIM =
+  Number((Deno.env.get("SOPHIA_TOPIC_NOOP_SEMANTIC_SIM") ?? "0.90").trim()) ||
+  0.90;
+const TITLE_STRONG =
+  Number((Deno.env.get("SOPHIA_TOPIC_TITLE_STRONG") ?? "0.88").trim()) || 0.88;
+const MAX_KEYWORDS_PER_TOPIC_UPDATE = Number(
+  (Deno.env.get("SOPHIA_TOPIC_MAX_KEYWORDS_PER_UPDATE") ?? "12").trim(),
+) || 12;
+const ALLOW_KEYWORD_REASSIGN =
+  (Deno.env.get("SOPHIA_TOPIC_ALLOW_KEYWORD_REASSIGN") ?? "").trim() === "1";
+const AUTO_MERGE_SYNTH_SIM = Number(
+  (Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_SYNTH_SIM") ?? "0.93").trim(),
+) || 0.93;
+const AUTO_MERGE_TITLE_SIM = Number(
+  (Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_SIM") ?? "0.95").trim(),
+) || 0.95;
+const AUTO_MERGE_TITLE_JACCARD = Number(
+  (Deno.env.get("SOPHIA_TOPIC_AUTO_MERGE_TITLE_JACCARD") ?? "0.60").trim(),
+) || 0.60;
+const MAX_TIMELINE_ITEMS =
+  Number((Deno.env.get("SOPHIA_TOPIC_MAX_TIMELINE_ITEMS") ?? "10").trim()) ||
+  10;
+const TOPIC_DEBUG = (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
+const TOPIC_COMPACTION_PENDING_COUNT = Number(
+  (Deno.env.get("SOPHIA_TOPIC_COMPACTION_PENDING_COUNT") ?? "3").trim(),
+) || 3;
+const TOPIC_COMPACTION_PENDING_CHARS = Number(
+  (Deno.env.get("SOPHIA_TOPIC_COMPACTION_PENDING_CHARS") ?? "420").trim(),
+) || 420;
+const MEMORY_ANALYSIS_MODEL =
+  (Deno.env.get("SOPHIA_MEMORY_ANALYSIS_MODEL") ?? "gpt-5.3").trim() ||
+  "gpt-5.3";
+const MEMORY_VALIDATION_MODEL =
+  (Deno.env.get("SOPHIA_MEMORY_VALIDATE_MODEL") ?? "gemini-3-flash-preview")
+    .trim() || "gemini-3-flash-preview";
+const TOPIC_COMPACTION_MODEL =
+  (Deno.env.get("SOPHIA_TOPIC_COMPACTION_MODEL") ?? "gemini-3-flash-preview")
+    .trim() || "gemini-3-flash-preview";
 
 function simplePromptHash(input: string): string {
-  let hash = 2166136261
-  const text = String(input ?? "")
+  let hash = 2166136261;
+  const text = String(input ?? "");
   for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
   }
-  return (hash >>> 0).toString(16).padStart(8, "0")
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function asIso(value: unknown): string | null {
-  const raw = String(value ?? "").trim()
-  if (!raw) return null
-  const dt = new Date(raw)
-  return Number.isFinite(dt.getTime()) ? dt.toISOString() : null
+  const raw = String(value ?? "").trim();
+  if (!raw) return null;
+  const dt = new Date(raw);
+  return Number.isFinite(dt.getTime()) ? dt.toISOString() : null;
 }
 
 function clamp01(value: number): number {
-  if (!Number.isFinite(value)) return 0
-  return Math.max(0, Math.min(1, value))
+  if (!Number.isFinite(value)) return 0;
+  return Math.max(0, Math.min(1, value));
 }
 
 const GENERIC_KEYWORDS = new Set([
-  "sommeil", "sleep", "maman", "mere", "mother", "famille", "family",
-  "travail", "work", "stress", "anxiete", "anxiety", "sante", "health",
-  "routine", "habitude", "habit", "probleme", "problem", "objectif", "goal",
-  "lecture", "book", "article", "temps", "time", "soir", "nuit", "jour",
-])
+  "sommeil",
+  "sleep",
+  "maman",
+  "mere",
+  "mother",
+  "famille",
+  "family",
+  "travail",
+  "work",
+  "stress",
+  "anxiete",
+  "anxiety",
+  "sante",
+  "health",
+  "routine",
+  "habitude",
+  "habit",
+  "probleme",
+  "problem",
+  "objectif",
+  "goal",
+  "lecture",
+  "book",
+  "article",
+  "temps",
+  "time",
+  "soir",
+  "nuit",
+  "jour",
+]);
 
 function toVector(v: unknown): number[] | null {
   if (Array.isArray(v)) {
-    const arr = v.map((x) => Number(x)).filter((n) => Number.isFinite(n))
-    return arr.length > 0 ? arr : null
+    const arr = v.map((x) => Number(x)).filter((n) => Number.isFinite(n));
+    return arr.length > 0 ? arr : null;
   }
-  return null
+  return null;
 }
 
 function cosineSimilarity(a: number[], b: number[]): number {
-  const n = Math.min(a.length, b.length)
-  if (n === 0) return 0
-  let dot = 0
-  let na = 0
-  let nb = 0
+  const n = Math.min(a.length, b.length);
+  if (n === 0) return 0;
+  let dot = 0;
+  let na = 0;
+  let nb = 0;
   for (let i = 0; i < n; i++) {
-    const av = a[i]
-    const bv = b[i]
-    dot += av * bv
-    na += av * av
-    nb += bv * bv
+    const av = a[i];
+    const bv = b[i];
+    dot += av * bv;
+    na += av * av;
+    nb += bv * bv;
   }
-  const den = Math.sqrt(na) * Math.sqrt(nb)
-  if (den <= 0) return 0
-  return Math.max(-1, Math.min(1, dot / den))
+  const den = Math.sqrt(na) * Math.sqrt(nb);
+  if (den <= 0) return 0;
+  return Math.max(-1, Math.min(1, dot / den));
 }
 
 function tokens(text: string): Set<string> {
@@ -109,8 +177,8 @@ function tokens(text: string): Set<string> {
     .replace(/[^a-z0-9\s]/g, " ")
     .split(/\s+/)
     .map((w) => w.trim())
-    .filter((w) => w.length >= 3)
-  return new Set(t)
+    .filter((w) => w.length >= 3);
+  return new Set(t);
 }
 
 function normalizeKeyword(raw: string): string {
@@ -120,139 +188,156 @@ function normalizeKeyword(raw: string): string {
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[_\-]+/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/\s+/g, " ");
 }
 
 function isGenericKeyword(raw: string): boolean {
-  const k = normalizeKeyword(raw)
-  if (!k) return true
-  if (GENERIC_KEYWORDS.has(k)) return true
+  const k = normalizeKeyword(raw);
+  if (!k) return true;
+  if (GENERIC_KEYWORDS.has(k)) return true;
   // A single short token is generally too broad as an anchor.
-  if (!k.includes(" ") && k.length <= 6) return true
-  return false
+  if (!k.includes(" ") && k.length <= 6) return true;
+  return false;
 }
 
 function keywordSpecificity(raw: string): number {
-  const k = normalizeKeyword(raw)
-  if (!k) return 0
-  const words = k.split(" ").filter(Boolean)
-  if (words.length >= 2) return 1
-  if (isGenericKeyword(k)) return 0.1
-  return 0.6
+  const k = normalizeKeyword(raw);
+  if (!k) return 0;
+  const words = k.split(" ").filter(Boolean);
+  if (words.length >= 2) return 1;
+  if (isGenericKeyword(k)) return 0.1;
+  return 0.6;
 }
 
-function sanitizeKeywords(rawKeywords: string[], fallbackTitle: string): string[] {
-  const normalized = [...new Set(
-    (Array.isArray(rawKeywords) ? rawKeywords : [])
-      .map((k) => normalizeKeyword(String(k ?? "")))
-      .filter(Boolean),
-  )]
+function sanitizeKeywords(
+  rawKeywords: string[],
+  fallbackTitle: string,
+): string[] {
+  const normalized = [
+    ...new Set(
+      (Array.isArray(rawKeywords) ? rawKeywords : [])
+        .map((k) => normalizeKeyword(String(k ?? "")))
+        .filter(Boolean),
+    ),
+  ];
 
-  const contextual = normalized.filter((k) => !isGenericKeyword(k))
-  const chosen = contextual.length > 0 ? contextual : normalized
+  const contextual = normalized.filter((k) => !isGenericKeyword(k));
+  const chosen = contextual.length > 0 ? contextual : normalized;
 
   // Ensure at least one anchor exists using title as fallback.
   if (chosen.length === 0) {
-    const fromTitle = normalizeKeyword(fallbackTitle)
-    if (fromTitle) return [fromTitle]
+    const fromTitle = normalizeKeyword(fallbackTitle);
+    if (fromTitle) return [fromTitle];
   }
 
-  return chosen.slice(0, MAX_KEYWORDS_PER_TOPIC_UPDATE)
+  return chosen.slice(0, MAX_KEYWORDS_PER_TOPIC_UPDATE);
 }
 
 function jaccard(a: Set<string>, b: Set<string>): number {
-  if (a.size === 0 || b.size === 0) return 0
-  let inter = 0
-  for (const v of a) if (b.has(v)) inter++
-  const union = a.size + b.size - inter
-  return union > 0 ? inter / union : 0
+  if (a.size === 0 || b.size === 0) return 0;
+  let inter = 0;
+  for (const v of a) if (b.has(v)) inter++;
+  const union = a.size + b.size - inter;
+  return union > 0 ? inter / union : 0;
 }
 
 function recencyScore(lastEnrichedAt: string | null | undefined): number {
-  if (!lastEnrichedAt) return 0.3
-  const ts = new Date(lastEnrichedAt).getTime()
-  if (!Number.isFinite(ts)) return 0.3
-  const days = Math.max(0, (Date.now() - ts) / (1000 * 60 * 60 * 24))
-  return Math.max(0, Math.min(1, 1 - days / 30))
+  if (!lastEnrichedAt) return 0.3;
+  const ts = new Date(lastEnrichedAt).getTime();
+  if (!Number.isFinite(ts)) return 0.3;
+  const days = Math.max(0, (Date.now() - ts) / (1000 * 60 * 60 * 24));
+  return Math.max(0, Math.min(1, 1 - days / 30));
 }
 
 function slugTokenKey(raw: string): string {
-  const norm = slugify(raw).replace(/_/g, " ").trim()
-  if (!norm) return ""
-  const parts = norm.split(/\s+/).map((p) => p.trim()).filter((p) => p.length >= 3)
-  return [...new Set(parts)].sort().join("_")
+  const norm = slugify(raw).replace(/_/g, " ").trim();
+  if (!norm) return "";
+  const parts = norm.split(/\s+/).map((p) => p.trim()).filter((p) =>
+    p.length >= 3
+  );
+  return [...new Set(parts)].sort().join("_");
 }
 
 function mergeSynthesisText(a: string, b: string): string {
-  const aa = String(a ?? "").trim()
-  const bb = String(b ?? "").trim()
-  if (!aa) return bb
-  if (!bb) return aa
-  const aLower = aa.toLowerCase()
-  const bLower = bb.toLowerCase()
-  if (aLower.includes(bLower)) return aa
-  if (bLower.includes(aLower)) return bb
-  return `${aa}\n\n${bb}`
+  const aa = String(a ?? "").trim();
+  const bb = String(b ?? "").trim();
+  if (!aa) return bb;
+  if (!bb) return aa;
+  const aLower = aa.toLowerCase();
+  const bLower = bb.toLowerCase();
+  if (aLower.includes(bLower)) return aa;
+  if (bLower.includes(aLower)) return bb;
+  return `${aa}\n\n${bb}`;
 }
 
 interface TimelineEvent {
-  at: string
-  note: string
-  source?: TopicEnrichmentSource | "merge"
+  at: string;
+  note: string;
+  source?: TopicEnrichmentSource | "merge";
 }
 
 function formatDateFrDayMonthYear(input: string | null | undefined): string {
-  if (!input) return "date inconnue"
-  const dt = new Date(input)
-  if (!Number.isFinite(dt.getTime())) return "date inconnue"
+  if (!input) return "date inconnue";
+  const dt = new Date(input);
+  if (!Number.isFinite(dt.getTime())) return "date inconnue";
   return new Intl.DateTimeFormat("fr-FR", {
     day: "2-digit",
     month: "long",
     year: "numeric",
-  }).format(dt)
+  }).format(dt);
 }
 
 function timelineNote(raw: string, maxLen = 220): string {
   const cleaned = String(raw ?? "")
     .replace(/\s+/g, " ")
-    .trim()
-  if (!cleaned) return "Mise à jour contextuelle."
-  if (cleaned.length <= maxLen) return cleaned
-  return `${cleaned.slice(0, maxLen - 1).trim()}…`
+    .trim();
+  if (!cleaned) return "Mise à jour contextuelle.";
+  if (cleaned.length <= maxLen) return cleaned;
+  return `${cleaned.slice(0, maxLen - 1).trim()}…`;
 }
 
 function readTimeline(metadata: unknown): TimelineEvent[] {
-  const md = (metadata && typeof metadata === "object") ? (metadata as Record<string, unknown>) : {}
-  const raw = md.timeline
-  if (!Array.isArray(raw)) return []
-  const events: TimelineEvent[] = []
+  const md = (metadata && typeof metadata === "object")
+    ? (metadata as Record<string, unknown>)
+    : {};
+  const raw = md.timeline;
+  if (!Array.isArray(raw)) return [];
+  const events: TimelineEvent[] = [];
   for (const item of raw) {
-    if (!item || typeof item !== "object") continue
-    const at = String((item as Record<string, unknown>).at ?? "").trim()
-    const note = String((item as Record<string, unknown>).note ?? "").trim()
-    const sourceRaw = String((item as Record<string, unknown>).source ?? "").trim()
-    if (!at || !note) continue
-    const parsed = new Date(at)
-    if (!Number.isFinite(parsed.getTime())) continue
-    const source = sourceRaw ? sourceRaw as TimelineEvent["source"] : undefined
-    events.push({ at: parsed.toISOString(), note, source })
+    if (!item || typeof item !== "object") continue;
+    const at = String((item as Record<string, unknown>).at ?? "").trim();
+    const note = String((item as Record<string, unknown>).note ?? "").trim();
+    const sourceRaw = String((item as Record<string, unknown>).source ?? "")
+      .trim();
+    if (!at || !note) continue;
+    const parsed = new Date(at);
+    if (!Number.isFinite(parsed.getTime())) continue;
+    const source = sourceRaw ? sourceRaw as TimelineEvent["source"] : undefined;
+    events.push({ at: parsed.toISOString(), note, source });
   }
   return events.sort((a, b) => {
-    const at = new Date(a.at).getTime()
-    const bt = new Date(b.at).getTime()
-    return at - bt
-  })
+    const at = new Date(a.at).getTime();
+    const bt = new Date(b.at).getTime();
+    return at - bt;
+  });
 }
 
-function appendTimelineEvent(timeline: TimelineEvent[], event: TimelineEvent): TimelineEvent[] {
-  const normalizedAt = new Date(event.at)
-  const safeAt = Number.isFinite(normalizedAt.getTime()) ? normalizedAt.toISOString() : new Date().toISOString()
-  const safeNote = timelineNote(event.note, 240)
-  const dedupKey = `${safeAt.slice(0, 10)}|${safeNote.toLowerCase()}`
-  const deduped = timeline.filter((e) => `${e.at.slice(0, 10)}|${e.note.toLowerCase()}` !== dedupKey)
+function appendTimelineEvent(
+  timeline: TimelineEvent[],
+  event: TimelineEvent,
+): TimelineEvent[] {
+  const normalizedAt = new Date(event.at);
+  const safeAt = Number.isFinite(normalizedAt.getTime())
+    ? normalizedAt.toISOString()
+    : new Date().toISOString();
+  const safeNote = timelineNote(event.note, 240);
+  const dedupKey = `${safeAt.slice(0, 10)}|${safeNote.toLowerCase()}`;
+  const deduped = timeline.filter((e) =>
+    `${e.at.slice(0, 10)}|${e.note.toLowerCase()}` !== dedupKey
+  );
   const next = [...deduped, { ...event, at: safeAt, note: safeNote }]
-    .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime())
-  return next.slice(-MAX_TIMELINE_ITEMS)
+    .sort((a, b) => new Date(a.at).getTime() - new Date(b.at).getTime());
+  return next.slice(-MAX_TIMELINE_ITEMS);
 }
 
 // ============================================================================
@@ -262,68 +347,70 @@ function appendTimelineEvent(timeline: TimelineEvent[], event: TimelineEvent): T
 /** Topic extrait d'une conversation par le LLM */
 export interface ExtractedTopic {
   /** Slug canonique (ex: "cannabis_arret", "soeur_tania") */
-  slug: string
+  slug: string;
   /** Titre lisible (ex: "Cannabis / Arrêt", "Sœur (Tania)") */
-  title: string
+  title: string;
   /** Nouvelles informations à intégrer dans la synthèse */
-  new_information: string
+  new_information: string;
   /** Mots-clés / aliases associés (ex: ["cannabis", "weed", "joint", "fumer"]) */
-  keywords: string[]
+  keywords: string[];
   /** Domaine sémantique (ex: "santé", "famille", "travail", "loisirs") */
-  domain?: string
+  domain?: string;
 }
 
 export interface MemoryExtractionResult {
-  durable_topics: ExtractedTopic[]
-  event_candidates: ExtractedEventCandidate[]
+  durable_topics: ExtractedTopic[];
+  event_candidates: ExtractedEventCandidate[];
+  global_memory_candidates: GlobalMemoryCandidate[];
 }
 
 export interface BatchValidationDecision {
-  topics_to_persist: string[]
-  events_to_persist: string[]
+  topics_to_persist: string[];
+  events_to_persist: string[];
+  global_memories_to_persist: string[];
 }
 
 /** Topic tel qu'il existe en base */
 export interface TopicMemory {
-  id: string
-  user_id: string
-  slug: string
-  title: string
-  synthesis: string
-  synthesis_embedding?: number[] | null
-  title_embedding?: number[] | null
-  status: string
-  mention_count: number
-  enrichment_count: number
-  pending_enrichment_count?: number
-  pending_enrichment_chars?: number
-  summary_compacted_at?: string | null
-  first_mentioned_at: string
-  last_enriched_at: string | null
-  last_retrieved_at: string | null
-  created_at?: string
-  updated_at?: string
-  metadata: Record<string, unknown>
+  id: string;
+  user_id: string;
+  slug: string;
+  title: string;
+  synthesis: string;
+  synthesis_embedding?: number[] | null;
+  title_embedding?: number[] | null;
+  status: string;
+  mention_count: number;
+  enrichment_count: number;
+  pending_enrichment_count?: number;
+  pending_enrichment_chars?: number;
+  summary_compacted_at?: string | null;
+  first_mentioned_at: string;
+  last_enriched_at: string | null;
+  last_retrieved_at: string | null;
+  created_at?: string;
+  updated_at?: string;
+  metadata: Record<string, unknown>;
 }
 
 /** Résultat de la recherche de topics par similarité */
 export interface TopicSearchResult {
-  topic_id: string
-  slug: string
-  title: string
-  synthesis: string
-  keyword_matched?: string
-  keyword_similarity?: number
-  synthesis_similarity?: number
-  title_similarity?: number
-  mention_count: number
-  last_enriched_at: string | null
-  metadata: Record<string, unknown>
+  topic_id: string;
+  slug: string;
+  title: string;
+  synthesis: string;
+  keyword_matched?: string;
+  keyword_similarity?: number;
+  synthesis_similarity?: number;
+  title_similarity?: number;
+  mention_count: number;
+  last_enriched_at: string | null;
+  metadata: Record<string, unknown>;
   recent_enrichments?: Array<{
-    created_at: string
-    enrichment_summary: string
-    source_type?: string | null
-  }>
+    created_at: string;
+    enrichment_summary: string;
+    source_type?: string | null;
+  }>;
 }
 
 // ============================================================================
@@ -331,49 +418,70 @@ export interface TopicSearchResult {
 // ============================================================================
 
 export async function extractMemoryCandidatesFromTranscript(opts: {
-  transcript: string
-  existingTopicSlugs: string[]
-  currentContext?: string
-  userId?: string
-  timeContextPrompt?: string
-  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+  transcript: string;
+  existingTopicSlugs: string[];
+  currentContext?: string;
+  userId?: string;
+  timeContextPrompt?: string;
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
 }): Promise<MemoryExtractionResult> {
-  const { transcript, existingTopicSlugs, currentContext, userId, meta } = opts
+  const { transcript, existingTopicSlugs, currentContext, userId, meta } = opts;
 
   const existingTopicsHint = existingTopicSlugs.length > 0
-    ? `\nTOPICS DÉJÀ CONNUS pour cet utilisateur : ${existingTopicSlugs.join(", ")}\nSi une information enrichit un topic existant, utilise le MÊME slug.\n`
-    : ""
+    ? `\nTOPICS DÉJÀ CONNUS pour cet utilisateur : ${
+      existingTopicSlugs.join(", ")
+    }\nSi une information enrichit un topic existant, utilise le MÊME slug.\n`
+    : "";
 
   const stablePrompt = `
-Tu analyses un batch de conversation pour la mémoire d'un coach IA.
-Tu dois produire DEUX sorties distinctes :
-1. durable_topics : sujets durables utiles plus tard
-2. event_candidates : événements spécifiques datés ou quasi datés
+	Tu analyses un batch de conversation pour la mémoire d'un coach IA.
+	Tu dois produire TROIS sorties distinctes :
+	1. durable_topics : sujets durables utiles plus tard
+	2. event_candidates : événements spécifiques datés ou quasi datés
+	3. global_memory_candidates : sous-thèmes globaux réutilisables pour répondre à des questions larges sur la personne
 
-Un durable_topic = un sujet récurrent, un pattern, une relation importante, une habitude, une dynamique de vie.
-Un event_candidate = un fait ponctuel ou une échéance spécifique (rendez-vous, date, entretien, voyage, examen, etc.) avec pertinence court terme.
+	Un durable_topic = un sujet récurrent, un pattern, une relation importante, une habitude, une dynamique de vie.
+	Un event_candidate = un fait ponctuel ou une échéance spécifique (rendez-vous, date, entretien, voyage, examen, etc.) avec pertinence court terme.
+	Un global_memory_candidate = une mise à jour durable sur un sous-thème générique produit (psychologie, travail, projets, etc.).
 
-Règles topics :
-- Garde seulement les sujets substantiels et utiles dans le temps.
-- Maximum 4 durable_topics.
-- Le champ new_information doit être déjà dense et exploitable sans autre réécriture.
+	Règles topics :
+	- Garde seulement les sujets substantiels et utiles dans le temps.
+	- Maximum 4 durable_topics.
+	- Le champ new_information doit être déjà dense et exploitable sans autre réécriture.
 
 Règles events :
 - Crée un event si la conversation mentionne un événement spécifique, imminent, planifié ou émotionnellement central.
 - Maximum 3 event_candidates.
 - Si la date est relative, normalise-la en ISO 8601 si possible à partir du contexte temporel.
 - Si tu ne peux pas être exact, fournis la meilleure estimation possible + time_precision.
-- event_key doit être canonique et différencier deux événements proches.
-- Les events trop vagues ou sans intérêt conversationnel sont exclus.
+	- event_key doit être canonique et différencier deux événements proches.
+	- Les events trop vagues ou sans intérêt conversationnel sont exclus.
 
-IMPORTANT :
-- Ne transforme PAS un simple thème durable en event.
-- Ne mets PAS dans durable_topics un détail purement éphémère si c'est surtout un event.
-- Si un event est lié à un topic, related_topic_slug peut le référencer.
+	Règles global memories :
+	- Utilise UNIQUEMENT les full_key autorisés ci-dessous.
+	- Maximum 4 global_memory_candidates.
+	- Un global_memory_candidate doit être générique et réutilisable produit.
+	- Les cas concrets comme "Sophia", "manager X", "projet Y" ne sont PAS des subthemes.
+	- Ces cas concrets restent des topic memories; relie-les via supporting_topic_slugs si utile.
+	- summary_delta doit être court, dense et durable.
+	- facts = faits explicites ou quasi explicites.
+	- inferences = inférences plausibles mais non certaines.
+	- active_issues = tensions, blocages ou chantiers encore actifs.
+	- goals = désirs, cap, intentions ou trajectoires visées.
+	- open_questions = zones incertaines ou incomplètes.
+	- Si tu n'es pas assez sûr, privilégie open_questions plutôt que d'affirmer une inference.
 
-JSON STRICT ATTENDU :
-{
-  "durable_topics": [
+	IMPORTANT :
+	- Ne transforme PAS un simple thème durable en event.
+	- Ne mets PAS dans durable_topics un détail purement éphémère si c'est surtout un event.
+	- Si un event est lié à un topic, related_topic_slug peut le référencer.
+	- Les global_memory_candidates servent aux questions larges du type "que sais-tu de ma psychologie / mon travail / mes projets ?"
+	- Ne crée PAS de global_memory_candidate vide ou générique au point d'être inutile.
+	${GLOBAL_MEMORY_TAXONOMY_PROMPT_BLOCK}
+
+	JSON STRICT ATTENDU :
+	{
+	  "durable_topics": [
     {
       "slug": "confiance_en_soi",
       "title": "Confiance en soi",
@@ -393,19 +501,34 @@ JSON STRICT ATTENDU :
       "relevance_until": "2026-03-16T00:00:00+01:00",
       "time_precision": "approximate",
       "confidence": 0.84,
-      "related_topic_slug": "confiance_en_soi",
-      "semantic_aliases": ["rendez-vous", "date", "vendredi"]
-    }
-  ]
-}
-  `.trim()
+	      "related_topic_slug": "confiance_en_soi",
+	      "semantic_aliases": ["rendez-vous", "date", "vendredi"]
+	    }
+	  ],
+	  "global_memory_candidates": [
+	    {
+	      "theme": "psychologie",
+	      "subtheme_key": "discipline",
+	      "full_key": "psychologie.discipline",
+	      "summary_delta": "L'utilisateur traite la discipline comme un levier central de transformation identitaire et de maîtrise de soi.",
+	      "facts": ["Il parle régulièrement de discipline et de contrôle des impulsions."],
+	      "inferences": ["La discipline semble structurante dans sa vision de lui-même."],
+	      "active_issues": ["Il décrit un écart entre son potentiel perçu et son exécution."],
+	      "goals": ["Construire une identité plus disciplinée et solide."],
+	      "open_questions": ["Le niveau réel de stabilité sur la durée reste à confirmer."],
+	      "supporting_topic_slugs": ["discipline_personnelle"],
+	      "confidence": 0.82
+	    }
+	  ]
+	}
+	  `.trim();
 
   const semiStablePrompt = `
 CONTEXTE PRÉCÉDENT : "${currentContext ?? "Aucun"}"
 ${existingTopicsHint}
 REPÈRES TEMPORELS :
 ${opts.timeContextPrompt ?? "now_utc inconnu"}
-  `.trim()
+  `.trim();
 
   try {
     console.log(JSON.stringify({
@@ -416,27 +539,40 @@ ${opts.timeContextPrompt ?? "now_utc inconnu"}
       stable_chars: stablePrompt.length,
       semi_stable_chars: semiStablePrompt.length,
       volatile_chars: transcript.length,
-      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + transcript.length,
-    }))
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 +
+        transcript.length,
+    }));
   } catch {
     // non-blocking
   }
 
   try {
-    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, transcript, 0.2, true, [], "json", {
-      requestId: meta?.requestId,
-      model: MEMORY_ANALYSIS_MODEL,
-      source: "sophia-brain:memory_extraction",
-      forceRealAi: meta?.forceRealAi,
-      userId,
-      forceInitialModel: true,
-    })
+    const raw = await generateWithGemini(
+      `${stablePrompt}\n\n${semiStablePrompt}`,
+      transcript,
+      0.2,
+      true,
+      [],
+      "json",
+      {
+        requestId: meta?.requestId,
+        model: MEMORY_ANALYSIS_MODEL,
+        source: "sophia-brain:memory_extraction",
+        forceRealAi: meta?.forceRealAi,
+        userId,
+        forceInitialModel: true,
+      },
+    );
 
-    const parsed = JSON.parse(String(raw ?? "{}"))
+    const parsed = JSON.parse(String(raw ?? "{}"));
     const topicsRaw = Array.isArray(parsed?.durable_topics)
       ? parsed.durable_topics
-      : Array.isArray(parsed?.topics) ? parsed.topics : []
-    const eventsRaw = Array.isArray(parsed?.event_candidates) ? parsed.event_candidates : []
+      : Array.isArray(parsed?.topics)
+      ? parsed.topics
+      : [];
+    const eventsRaw = Array.isArray(parsed?.event_candidates)
+      ? parsed.event_candidates
+      : [];
 
     const durable_topics = topicsRaw
       .filter((t: any) => t?.slug && t?.title && t?.new_information)
@@ -452,7 +588,7 @@ ${opts.timeContextPrompt ?? "now_utc inconnu"}
           String(t.title ?? ""),
         ),
         domain: t.domain ? String(t.domain).trim().toLowerCase() : undefined,
-      }))
+      }));
 
     const event_candidates = eventsRaw
       .filter((e: any) => e?.title && e?.summary)
@@ -461,27 +597,47 @@ ${opts.timeContextPrompt ?? "now_utc inconnu"}
         event_key: slugify(String(e.event_key ?? e.title)),
         title: String(e.title ?? "").trim().slice(0, 140),
         summary: String(e.summary ?? "").trim().slice(0, 420),
-        event_type: String(e.event_type ?? "generic").trim().toLowerCase().slice(0, 60) || "generic",
+        event_type:
+          String(e.event_type ?? "generic").trim().toLowerCase().slice(0, 60) ||
+          "generic",
         starts_at: asIso(e.starts_at),
         ends_at: asIso(e.ends_at),
         relevance_until: asIso(e.relevance_until),
         time_precision: (
-          e.time_precision === "exact_datetime" ||
-          e.time_precision === "date_only" ||
-          e.time_precision === "relative_time" ||
-          e.time_precision === "approximate"
-        ) ? e.time_precision : "unknown",
+            e.time_precision === "exact_datetime" ||
+            e.time_precision === "date_only" ||
+            e.time_precision === "relative_time" ||
+            e.time_precision === "approximate"
+          )
+          ? e.time_precision
+          : "unknown",
         confidence: clamp01(Number(e.confidence ?? 0.65)),
-        related_topic_slug: e.related_topic_slug ? slugify(String(e.related_topic_slug)) : null,
+        related_topic_slug: e.related_topic_slug
+          ? slugify(String(e.related_topic_slug))
+          : null,
         semantic_aliases: Array.isArray(e.semantic_aliases)
-          ? e.semantic_aliases.map((x: any) => String(x ?? "").trim()).filter(Boolean).slice(0, 8)
+          ? e.semantic_aliases.map((x: any) => String(x ?? "").trim()).filter(
+            Boolean,
+          ).slice(0, 8)
           : [],
-      } as ExtractedEventCandidate))
+      } as ExtractedEventCandidate));
 
-    return { durable_topics, event_candidates }
+    const globalMemoriesRaw = Array.isArray(parsed?.global_memory_candidates)
+      ? parsed.global_memory_candidates
+      : [];
+    const global_memory_candidates = globalMemoriesRaw
+      .map((row: any) => sanitizeGlobalMemoryCandidate(row))
+      .filter(Boolean)
+      .slice(0, 4) as GlobalMemoryCandidate[];
+
+    return { durable_topics, event_candidates, global_memory_candidates };
   } catch (e) {
-    console.error("[TopicMemory] Failed to extract memory candidates:", e)
-    return { durable_topics: [], event_candidates: [] }
+    console.error("[TopicMemory] Failed to extract memory candidates:", e);
+    return {
+      durable_topics: [],
+      event_candidates: [],
+      global_memory_candidates: [],
+    };
   }
 }
 
@@ -489,76 +645,111 @@ ${opts.timeContextPrompt ?? "now_utc inconnu"}
  * Compat helper kept for existing callers/tests: only returns durable topics.
  */
 export async function extractTopicsFromTranscript(opts: {
-  transcript: string
-  existingTopicSlugs: string[]
-  currentContext?: string
-  userId?: string
-  timeContextPrompt?: string
-  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+  transcript: string;
+  existingTopicSlugs: string[];
+  currentContext?: string;
+  userId?: string;
+  timeContextPrompt?: string;
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
 }): Promise<ExtractedTopic[]> {
-  const result = await extractMemoryCandidatesFromTranscript(opts)
-  return result.durable_topics
+  const result = await extractMemoryCandidatesFromTranscript(opts);
+  return result.durable_topics;
 }
 
 export async function validateMemoryCandidatesBatch(opts: {
-  durableTopics: ExtractedTopic[]
-  eventCandidates: ExtractedEventCandidate[]
-  sourceType?: TopicEnrichmentSource
-  userId?: string
-  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+  durableTopics: ExtractedTopic[];
+  eventCandidates: ExtractedEventCandidate[];
+  globalMemoryCandidates: GlobalMemoryCandidate[];
+  sourceType?: TopicEnrichmentSource;
+  userId?: string;
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
 }): Promise<BatchValidationDecision> {
-  if (opts.durableTopics.length === 0 && opts.eventCandidates.length === 0) {
-    return { topics_to_persist: [], events_to_persist: [] }
+  if (
+    opts.durableTopics.length === 0 && opts.eventCandidates.length === 0 &&
+    opts.globalMemoryCandidates.length === 0
+  ) {
+    return {
+      topics_to_persist: [],
+      events_to_persist: [],
+      global_memories_to_persist: [],
+    };
   }
 
   const stablePrompt = `
-Tu décides quoi persister en mémoire après une extraction batch.
+	Tu décides quoi persister en mémoire après une extraction batch.
 
-Deux familles existent :
-- durable_topics : mémoire thématique long terme
-- event_candidates : mémoire événementielle datée / court terme
+	Deux familles existent :
+	- durable_topics : mémoire thématique long terme
+	- event_candidates : mémoire événementielle datée / court terme
+	- global_memory_candidates : mémoire globale structurée par sous-thème produit
 
-Règles :
-- topic -> persister si utile encore dans 2+ mois, ou si c'est un pattern / axe de vie durable.
-- event -> persister si l'événement est spécifique, émotionnellement utile, et potentiellement important avant / pendant / juste après sa date.
-- rejeter les mentions trop vagues, les micro-ajustements anecdotiques, et les détails métier déjà trop volatils.
+	Règles :
+	- topic -> persister si utile encore dans 2+ mois, ou si c'est un pattern / axe de vie durable.
+	- event -> persister si l'événement est spécifique, émotionnellement utile, et potentiellement important avant / pendant / juste après sa date.
+	- global_memory_candidate -> persister si le signal aide plus tard à répondre à des questions larges sur la personne.
+	- rejeter les mentions trop vagues, les micro-ajustements anecdotiques, et les détails métier déjà trop volatils.
+	- rejeter les global_memory_candidates trop spéculatifs, redondants ou trop faibles.
 
-JSON STRICT :
-{
-  "topics_to_persist": ["slug1", "slug2"],
-  "events_to_persist": ["event_key_1", "event_key_2"]
-}
-  `.trim()
+	JSON STRICT :
+	{
+	  "topics_to_persist": ["slug1", "slug2"],
+	  "events_to_persist": ["event_key_1", "event_key_2"],
+	  "global_memories_to_persist": ["psychologie.discipline", "travail.conflits_professionnels"]
+	}
+	  `.trim();
 
   const payload = JSON.stringify({
     source_type: opts.sourceType ?? "chat",
     durable_topics: opts.durableTopics,
     event_candidates: opts.eventCandidates,
-  })
+    global_memory_candidates: opts.globalMemoryCandidates,
+  });
 
   try {
-    const raw = await generateWithGemini(stablePrompt, payload, 0.1, true, [], "json", {
-      requestId: opts.meta?.requestId,
-      model: MEMORY_VALIDATION_MODEL,
-      source: "sophia-brain:memory_validation",
-      forceRealAi: opts.meta?.forceRealAi,
-      userId: opts.userId,
-    })
-    const parsed = JSON.parse(String(raw ?? "{}"))
+    const raw = await generateWithGemini(
+      stablePrompt,
+      payload,
+      0.1,
+      true,
+      [],
+      "json",
+      {
+        requestId: opts.meta?.requestId,
+        model: MEMORY_VALIDATION_MODEL,
+        source: "sophia-brain:memory_validation",
+        forceRealAi: opts.meta?.forceRealAi,
+        userId: opts.userId,
+      },
+    );
+    const parsed = JSON.parse(String(raw ?? "{}"));
     return {
       topics_to_persist: Array.isArray(parsed?.topics_to_persist)
-        ? parsed.topics_to_persist.map((x: any) => slugify(String(x ?? ""))).filter(Boolean)
+        ? parsed.topics_to_persist.map((x: any) => slugify(String(x ?? "")))
+          .filter(Boolean)
         : [],
       events_to_persist: Array.isArray(parsed?.events_to_persist)
-        ? parsed.events_to_persist.map((x: any) => slugify(String(x ?? ""))).filter(Boolean)
+        ? parsed.events_to_persist.map((x: any) => slugify(String(x ?? "")))
+          .filter(Boolean)
         : [],
-    }
+      global_memories_to_persist:
+        Array.isArray(parsed?.global_memories_to_persist)
+          ? parsed.global_memories_to_persist.map((x: any) =>
+            String(x ?? "").trim().toLowerCase()
+          ).filter(Boolean)
+          : [],
+    };
   } catch (e) {
-    console.warn("[TopicMemory] Batch validation failed, fallback keep-all:", e)
+    console.warn(
+      "[TopicMemory] Batch validation failed, fallback keep-all:",
+      e,
+    );
     return {
       topics_to_persist: opts.durableTopics.map((t) => t.slug),
       events_to_persist: opts.eventCandidates.map((e) => slugify(e.event_key)),
-    }
+      global_memories_to_persist: opts.globalMemoryCandidates.map((m) =>
+        m.full_key
+      ),
+    };
   }
 }
 
@@ -567,15 +758,19 @@ JSON STRICT :
 // ============================================================================
 
 /** Min chars for new_information to pass prefilter (avoid LLM on tiny snippets) */
-const PREFILTER_MIN_INFO_LEN = 50
+const PREFILTER_MIN_INFO_LEN = 50;
 
 export interface PersistGateResult {
-  persist: boolean
-  value_score: number
-  reason: string
-  horizon: "short_term" | "long_term"
-  suspect_duplicate_structured_data: boolean
-  duplicate_match_type: "none" | "partial_overlap" | "same_canonical_fact" | "unknown"
+  persist: boolean;
+  value_score: number;
+  reason: string;
+  horizon: "short_term" | "long_term";
+  suspect_duplicate_structured_data: boolean;
+  duplicate_match_type:
+    | "none"
+    | "partial_overlap"
+    | "same_canonical_fact"
+    | "unknown";
 }
 
 /**
@@ -583,15 +778,15 @@ export interface PersistGateResult {
  * Prefilter rapide puis LLM pour éviter les mises à jour transitoires et doublons plan/bilan.
  */
 export async function shouldPersistTopicMemory(opts: {
-  extractedTopic: ExtractedTopic
-  sourceType?: TopicEnrichmentSource
-  userId?: string
-  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+  extractedTopic: ExtractedTopic;
+  sourceType?: TopicEnrichmentSource;
+  userId?: string;
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
 }): Promise<PersistGateResult> {
-  const { extractedTopic, meta, userId } = opts
-  const sourceType = opts.sourceType ?? "chat"
-  const info = String(extractedTopic.new_information ?? "").trim()
-  const slug = extractedTopic.slug ?? ""
+  const { extractedTopic, meta, userId } = opts;
+  const sourceType = opts.sourceType ?? "chat";
+  const info = String(extractedTopic.new_information ?? "").trim();
+  const slug = extractedTopic.slug ?? "";
 
   // Prefilter: avoid LLM on obvious low-value tiny snippets
   if (info.length < PREFILTER_MIN_INFO_LEN) {
@@ -602,7 +797,7 @@ export async function shouldPersistTopicMemory(opts: {
       horizon: "short_term",
       suspect_duplicate_structured_data: false,
       duplicate_match_type: "unknown",
-    }
+    };
   }
 
   const stablePrompt = `
@@ -627,7 +822,7 @@ Réponds en JSON STRICT:
   "suspect_duplicate_structured_data": boolean,
   "duplicate_match_type": "none" | "partial_overlap" | "same_canonical_fact" | "unknown"
 }
-  `.trim()
+  `.trim();
 
   const userPayload = JSON.stringify({
     source_type: sourceType,
@@ -635,9 +830,9 @@ Réponds en JSON STRICT:
     title: extractedTopic.title,
     new_information: info.slice(0, 600),
     structured_context: { available: false },
-  })
+  });
 
-  const semiStablePrompt = `source_type=${sourceType}`.trim()
+  const semiStablePrompt = `source_type=${sourceType}`.trim();
 
   try {
     console.log(JSON.stringify({
@@ -648,34 +843,52 @@ Réponds en JSON STRICT:
       stable_chars: stablePrompt.length,
       semi_stable_chars: semiStablePrompt.length,
       volatile_chars: userPayload.length,
-      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + userPayload.length,
-    }))
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 +
+        userPayload.length,
+    }));
   } catch {
     // non-blocking
   }
 
   try {
-    const raw = await generateWithGemini(`${stablePrompt}\n\n${semiStablePrompt}`, userPayload, 0.1, true, [], "json", {
-      requestId: meta?.requestId,
-      model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
-      source: "sophia-brain:topic_persist_gate",
-      forceRealAi: meta?.forceRealAi,
-      userId,
-    })
+    const raw = await generateWithGemini(
+      `${stablePrompt}\n\n${semiStablePrompt}`,
+      userPayload,
+      0.1,
+      true,
+      [],
+      "json",
+      {
+        requestId: meta?.requestId,
+        model: meta?.model ?? getGlobalAiModel("gemini-2.5-flash"),
+        source: "sophia-brain:topic_persist_gate",
+        forceRealAi: meta?.forceRealAi,
+        userId,
+      },
+    );
 
-    const parsed = JSON.parse(String(raw ?? "{}"))
-    const persist = Boolean(parsed.persist)
-    const value_score = Math.max(0, Math.min(10, Number(parsed.value_score) || 0))
-    const reason = String(parsed.reason ?? "").trim() || (persist ? "Valeur long terme" : "Valeur insuffisante")
-    const horizon = parsed.horizon === "long_term" ? "long_term" : "short_term"
-    const suspect_duplicate_structured_data = Boolean(parsed.suspect_duplicate_structured_data)
-    const duplicateMatchTypeRaw = String(parsed.duplicate_match_type ?? "").trim()
+    const parsed = JSON.parse(String(raw ?? "{}"));
+    const persist = Boolean(parsed.persist);
+    const value_score = Math.max(
+      0,
+      Math.min(10, Number(parsed.value_score) || 0),
+    );
+    const reason = String(parsed.reason ?? "").trim() ||
+      (persist ? "Valeur long terme" : "Valeur insuffisante");
+    const horizon = parsed.horizon === "long_term" ? "long_term" : "short_term";
+    const suspect_duplicate_structured_data = Boolean(
+      parsed.suspect_duplicate_structured_data,
+    );
+    const duplicateMatchTypeRaw = String(parsed.duplicate_match_type ?? "")
+      .trim();
     const duplicate_match_type = (
-      duplicateMatchTypeRaw === "none" ||
-      duplicateMatchTypeRaw === "partial_overlap" ||
-      duplicateMatchTypeRaw === "same_canonical_fact" ||
-      duplicateMatchTypeRaw === "unknown"
-    ) ? duplicateMatchTypeRaw : "unknown"
+        duplicateMatchTypeRaw === "none" ||
+        duplicateMatchTypeRaw === "partial_overlap" ||
+        duplicateMatchTypeRaw === "same_canonical_fact" ||
+        duplicateMatchTypeRaw === "unknown"
+      )
+      ? duplicateMatchTypeRaw
+      : "unknown";
 
     return {
       persist,
@@ -684,9 +897,12 @@ Réponds en JSON STRICT:
       horizon,
       suspect_duplicate_structured_data,
       duplicate_match_type,
-    }
+    };
   } catch (e) {
-    console.warn("[TopicMemory] Persist gate LLM failed, defaulting to persist=false:", e)
+    console.warn(
+      "[TopicMemory] Persist gate LLM failed, defaulting to persist=false:",
+      e,
+    );
     return {
       persist: false,
       value_score: 0,
@@ -694,7 +910,7 @@ Réponds en JSON STRICT:
       horizon: "short_term",
       suspect_duplicate_structured_data: false,
       duplicate_match_type: "unknown",
-    }
+    };
   }
 }
 
@@ -707,12 +923,12 @@ Réponds en JSON STRICT:
  * Utilise à la fois le slug exact ET la similarité sémantique des keywords.
  */
 export async function findMatchingTopic(opts: {
-  supabase: SupabaseClient
-  userId: string
-  extractedTopic: ExtractedTopic
-  meta?: { requestId?: string }
+  supabase: SupabaseClient;
+  userId: string;
+  extractedTopic: ExtractedTopic;
+  meta?: { requestId?: string };
 }): Promise<TopicMemory | null> {
-  const { supabase, userId, extractedTopic, meta } = opts
+  const { supabase, userId, extractedTopic, meta } = opts;
 
   // 1. Chercher par slug exact (match direct)
   const { data: exactMatch } = await supabase
@@ -721,43 +937,49 @@ export async function findMatchingTopic(opts: {
     .eq("user_id", userId)
     .eq("slug", extractedTopic.slug)
     .eq("status", "active")
-    .maybeSingle()
+    .maybeSingle();
 
-  if (exactMatch) return exactMatch as TopicMemory
+  if (exactMatch) return exactMatch as TopicMemory;
 
   // 1b. Match canonique de slug (ignore l'ordre des tokens)
-  const targetSlugKey = slugTokenKey(extractedTopic.slug)
+  const targetSlugKey = slugTokenKey(extractedTopic.slug);
   if (targetSlugKey) {
     const { data: activeTopics } = await supabase
       .from("user_topic_memories")
       .select("*")
       .eq("user_id", userId)
       .eq("status", "active")
-      .limit(120)
+      .limit(120);
 
     const sameSlugFamily = (Array.isArray(activeTopics) ? activeTopics : [])
       .filter((t: any) => slugTokenKey(String(t?.slug ?? "")) === targetSlugKey)
       .sort((a: any, b: any) => {
-        const byMentions = (Number(b?.mention_count ?? 0) || 0) - (Number(a?.mention_count ?? 0) || 0)
-        if (byMentions !== 0) return byMentions
-        const at = new Date(String(a?.last_enriched_at ?? a?.updated_at ?? 0)).getTime() || 0
-        const bt = new Date(String(b?.last_enriched_at ?? b?.updated_at ?? 0)).getTime() || 0
-        return bt - at
-      })
+        const byMentions = (Number(b?.mention_count ?? 0) || 0) -
+          (Number(a?.mention_count ?? 0) || 0);
+        if (byMentions !== 0) return byMentions;
+        const at = new Date(String(a?.last_enriched_at ?? a?.updated_at ?? 0))
+          .getTime() || 0;
+        const bt = new Date(String(b?.last_enriched_at ?? b?.updated_at ?? 0))
+          .getTime() || 0;
+        return bt - at;
+      });
 
     if (sameSlugFamily.length > 0) {
-      return sameSlugFamily[0] as TopicMemory
+      return sameSlugFamily[0] as TopicMemory;
     }
   }
 
   // 2) Recherche sémantique + re-ranking fusion
-  const searchText = `${extractedTopic.title}\n${extractedTopic.new_information}\n${extractedTopic.keywords.slice(0, 8).join(" ")}`
+  const searchText =
+    `${extractedTopic.title}\n${extractedTopic.new_information}\n${
+      extractedTopic.keywords.slice(0, 8).join(" ")
+    }`;
   const queryEmbedding = await generateEmbedding(searchText, {
     userId,
     requestId: meta?.requestId,
     source: "sophia-brain:topic_match_query_embedding",
     operationName: "embedding.topic_match_query",
-  })
+  });
 
   const [keywordRes, synthesisRes, titleRes] = await Promise.all([
     supabase.rpc("match_topic_memories_by_keywords", {
@@ -778,20 +1000,22 @@ export async function findMatchingTopic(opts: {
       match_threshold: 0.45,
       match_count: 4,
     } as any),
-  ])
+  ]);
 
   const byTopic = new Map<string, {
-    topic_id: string
-    title: string
-    keyword_similarity: number
-    synthesis_similarity: number
-    title_similarity: number
-    last_enriched_at: string | null
-  }>()
+    topic_id: string;
+    title: string;
+    keyword_similarity: number;
+    synthesis_similarity: number;
+    title_similarity: number;
+    last_enriched_at: string | null;
+  }>();
 
-  for (const r of (Array.isArray(keywordRes.data) ? keywordRes.data : []) as any[]) {
-    const id = String(r.topic_id ?? "").trim()
-    if (!id) continue
+  for (
+    const r of (Array.isArray(keywordRes.data) ? keywordRes.data : []) as any[]
+  ) {
+    const id = String(r.topic_id ?? "").trim();
+    if (!id) continue;
     const prev = byTopic.get(id) ?? {
       topic_id: id,
       title: String(r.title ?? ""),
@@ -799,16 +1023,23 @@ export async function findMatchingTopic(opts: {
       synthesis_similarity: 0,
       title_similarity: 0,
       last_enriched_at: null,
-    }
-    prev.keyword_similarity = Math.max(prev.keyword_similarity, Number(r.keyword_similarity ?? 0) || 0)
-    prev.title = prev.title || String(r.title ?? "")
-    prev.last_enriched_at = (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any
-    byTopic.set(id, prev)
+    };
+    prev.keyword_similarity = Math.max(
+      prev.keyword_similarity,
+      Number(r.keyword_similarity ?? 0) || 0,
+    );
+    prev.title = prev.title || String(r.title ?? "");
+    prev.last_enriched_at =
+      (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any;
+    byTopic.set(id, prev);
   }
 
-  for (const r of (Array.isArray(synthesisRes.data) ? synthesisRes.data : []) as any[]) {
-    const id = String(r.topic_id ?? "").trim()
-    if (!id) continue
+  for (
+    const r
+      of (Array.isArray(synthesisRes.data) ? synthesisRes.data : []) as any[]
+  ) {
+    const id = String(r.topic_id ?? "").trim();
+    if (!id) continue;
     const prev = byTopic.get(id) ?? {
       topic_id: id,
       title: String(r.title ?? ""),
@@ -816,16 +1047,22 @@ export async function findMatchingTopic(opts: {
       synthesis_similarity: 0,
       title_similarity: 0,
       last_enriched_at: null,
-    }
-    prev.synthesis_similarity = Math.max(prev.synthesis_similarity, Number(r.synthesis_similarity ?? 0) || 0)
-    prev.title = prev.title || String(r.title ?? "")
-    prev.last_enriched_at = (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any
-    byTopic.set(id, prev)
+    };
+    prev.synthesis_similarity = Math.max(
+      prev.synthesis_similarity,
+      Number(r.synthesis_similarity ?? 0) || 0,
+    );
+    prev.title = prev.title || String(r.title ?? "");
+    prev.last_enriched_at =
+      (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any;
+    byTopic.set(id, prev);
   }
 
-  for (const r of (Array.isArray(titleRes.data) ? titleRes.data : []) as any[]) {
-    const id = String(r.topic_id ?? "").trim()
-    if (!id) continue
+  for (
+    const r of (Array.isArray(titleRes.data) ? titleRes.data : []) as any[]
+  ) {
+    const id = String(r.topic_id ?? "").trim();
+    if (!id) continue;
     const prev = byTopic.get(id) ?? {
       topic_id: id,
       title: String(r.title ?? ""),
@@ -833,41 +1070,51 @@ export async function findMatchingTopic(opts: {
       synthesis_similarity: 0,
       title_similarity: 0,
       last_enriched_at: null,
-    }
-    prev.title_similarity = Math.max(prev.title_similarity, Number(r.title_similarity ?? 0) || 0)
-    prev.title = prev.title || String(r.title ?? "")
-    prev.last_enriched_at = (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any
-    byTopic.set(id, prev)
+    };
+    prev.title_similarity = Math.max(
+      prev.title_similarity,
+      Number(r.title_similarity ?? 0) || 0,
+    );
+    prev.title = prev.title || String(r.title ?? "");
+    prev.last_enriched_at =
+      (r.last_enriched_at ?? prev.last_enriched_at ?? null) as any;
+    byTopic.set(id, prev);
   }
 
   if (byTopic.size > 0) {
-    const queryTitleTokens = tokens(extractedTopic.title)
-    const specificity =
-      extractedTopic.keywords.length > 0
-        ? extractedTopic.keywords
-          .map((k) => keywordSpecificity(k))
-          .reduce((a, b) => a + b, 0) / extractedTopic.keywords.length
-        : 0.3
+    const queryTitleTokens = tokens(extractedTopic.title);
+    const specificity = extractedTopic.keywords.length > 0
+      ? extractedTopic.keywords
+        .map((k) => keywordSpecificity(k))
+        .reduce((a, b) => a + b, 0) / extractedTopic.keywords.length
+      : 0.3;
 
     const ranked = [...byTopic.values()]
       .map((c) => {
-        const titleLexical = jaccard(queryTitleTokens, tokens(c.title))
-        const titleSim = Math.max(titleLexical, c.title_similarity)
-        const rec = recencyScore(c.last_enriched_at)
-        const fused = 0.45 * c.keyword_similarity + 0.25 * c.synthesis_similarity + 0.20 * titleSim + 0.10 * rec
-        return { ...c, title_similarity: titleSim, recency_score: rec, fused_score: fused }
+        const titleLexical = jaccard(queryTitleTokens, tokens(c.title));
+        const titleSim = Math.max(titleLexical, c.title_similarity);
+        const rec = recencyScore(c.last_enriched_at);
+        const fused = 0.45 * c.keyword_similarity +
+          0.25 * c.synthesis_similarity + 0.20 * titleSim + 0.10 * rec;
+        return {
+          ...c,
+          title_similarity: titleSim,
+          recency_score: rec,
+          fused_score: fused,
+        };
       })
-      .sort((a, b) => b.fused_score - a.fused_score)
+      .sort((a, b) => b.fused_score - a.fused_score);
 
-    const best = ranked[0]
-    const keywordStrongEnough = best.keyword_similarity >= KEYWORD_STRONG && specificity >= 0.45
-    const synthesisStrongEnough = best.synthesis_similarity >= (SYNTH_STRONG + (specificity < 0.35 ? 0.03 : 0))
-    const titleStrongEnough = best.title_similarity >= TITLE_STRONG
-    const accept =
-      best.fused_score >= MATCH_HIGH ||
+    const best = ranked[0];
+    const keywordStrongEnough = best.keyword_similarity >= KEYWORD_STRONG &&
+      specificity >= 0.45;
+    const synthesisStrongEnough = best.synthesis_similarity >=
+      (SYNTH_STRONG + (specificity < 0.35 ? 0.03 : 0));
+    const titleStrongEnough = best.title_similarity >= TITLE_STRONG;
+    const accept = best.fused_score >= MATCH_HIGH ||
       keywordStrongEnough ||
       synthesisStrongEnough ||
-      titleStrongEnough
+      titleStrongEnough;
 
     if (accept) {
       const { data: fullTopic } = await supabase
@@ -875,18 +1122,24 @@ export async function findMatchingTopic(opts: {
         .select("*")
         .eq("id", best.topic_id)
         .eq("status", "active")
-        .maybeSingle()
+        .maybeSingle();
 
       if (fullTopic) {
         console.log(
-          `[TopicMemory] match accepted slug=${extractedTopic.slug} -> topic_id=${best.topic_id} fused=${best.fused_score.toFixed(3)} kw=${best.keyword_similarity.toFixed(3)} syn=${best.synthesis_similarity.toFixed(3)} title=${best.title_similarity.toFixed(3)} spec=${specificity.toFixed(3)} rec=${best.recency_score.toFixed(3)}`,
-        )
-        return fullTopic as TopicMemory
+          `[TopicMemory] match accepted slug=${extractedTopic.slug} -> topic_id=${best.topic_id} fused=${
+            best.fused_score.toFixed(3)
+          } kw=${best.keyword_similarity.toFixed(3)} syn=${
+            best.synthesis_similarity.toFixed(3)
+          } title=${best.title_similarity.toFixed(3)} spec=${
+            specificity.toFixed(3)
+          } rec=${best.recency_score.toFixed(3)}`,
+        );
+        return fullTopic as TopicMemory;
       }
     }
   }
 
-  return null
+  return null;
 }
 
 // ============================================================================
@@ -894,19 +1147,19 @@ export async function findMatchingTopic(opts: {
 // ============================================================================
 
 async function compactTopicSummary(opts: {
-  supabase: SupabaseClient
-  userId: string
-  topicId: string
-  requestId?: string
-  forceRealAi?: boolean
+  supabase: SupabaseClient;
+  userId: string;
+  topicId: string;
+  requestId?: string;
+  forceRealAi?: boolean;
 }): Promise<string | undefined> {
   const { data: topicRow } = await opts.supabase
     .from("user_topic_memories")
     .select("*")
     .eq("id", opts.topicId)
-    .maybeSingle()
-  if (!topicRow) return undefined
-  const topic = topicRow as TopicMemory
+    .maybeSingle();
+  if (!topicRow) return undefined;
+  const topic = topicRow as TopicMemory;
 
   const { data: pendingRows } = await opts.supabase
     .from("user_topic_enrichment_log")
@@ -915,15 +1168,17 @@ async function compactTopicSummary(opts: {
     .eq("topic_id", opts.topicId)
     .eq("included_in_summary", false)
     .order("created_at", { ascending: true })
-    .limit(8)
+    .limit(8);
 
-  const pending = Array.isArray(pendingRows) ? pendingRows as Array<{
-    id: string
-    enrichment_summary: string
-    created_at: string
-    source_type?: string | null
-  }> : []
-  if (pending.length === 0) return undefined
+  const pending = Array.isArray(pendingRows)
+    ? pendingRows as Array<{
+      id: string;
+      enrichment_summary: string;
+      created_at: string;
+      source_type?: string | null;
+    }>
+    : [];
+  if (pending.length === 0) return undefined;
 
   const stablePrompt = `
 Tu compactes une mémoire thématique pour un coach IA.
@@ -940,7 +1195,7 @@ Contraintes :
 - français
 - 3ème personne
 - pas de JSON
-  `.trim()
+  `.trim();
 
   const volatilePrompt = JSON.stringify({
     title: topic.title,
@@ -950,30 +1205,42 @@ Contraintes :
       source_type: row.source_type ?? null,
       summary: row.enrichment_summary,
     })),
-  })
+  });
 
-  let compacted = String(topic.synthesis ?? "").trim()
+  let compacted = String(topic.synthesis ?? "").trim();
   try {
-    const raw = await generateWithGemini(stablePrompt, volatilePrompt, 0.1, false, [], "auto", {
-      requestId: opts.requestId,
-      model: TOPIC_COMPACTION_MODEL,
-      source: "sophia-brain:topic_compaction",
-      forceRealAi: opts.forceRealAi,
-      userId: opts.userId,
-    })
-    compacted = String(raw ?? compacted).trim() || compacted
+    const raw = await generateWithGemini(
+      stablePrompt,
+      volatilePrompt,
+      0.1,
+      false,
+      [],
+      "auto",
+      {
+        requestId: opts.requestId,
+        model: TOPIC_COMPACTION_MODEL,
+        source: "sophia-brain:topic_compaction",
+        forceRealAi: opts.forceRealAi,
+        userId: opts.userId,
+      },
+    );
+    compacted = String(raw ?? compacted).trim() || compacted;
   } catch (e) {
-    console.warn(`[TopicMemory] topic compaction failed topic=${topic.slug}:`, e)
-    compacted = compacted || pending.map((row) => timelineNote(row.enrichment_summary, 180)).join(" ")
+    console.warn(
+      `[TopicMemory] topic compaction failed topic=${topic.slug}:`,
+      e,
+    );
+    compacted = compacted ||
+      pending.map((row) => timelineNote(row.enrichment_summary, 180)).join(" ");
   }
 
-  const now = new Date().toISOString()
+  const now = new Date().toISOString();
   const synthesisEmbedding = await generateEmbedding(compacted, {
     userId: opts.userId,
     requestId: opts.requestId,
     source: "sophia-brain:topic_compaction",
     operationName: "embedding.topic_compacted_summary",
-  })
+  });
 
   await opts.supabase
     .from("user_topic_memories")
@@ -985,17 +1252,17 @@ Contraintes :
       pending_enrichment_chars: 0,
       updated_at: now,
     })
-    .eq("id", opts.topicId)
+    .eq("id", opts.topicId);
 
-  const ids = pending.map((row) => row.id).filter(Boolean)
+  const ids = pending.map((row) => row.id).filter(Boolean);
   if (ids.length > 0) {
     await opts.supabase
       .from("user_topic_enrichment_log")
       .update({ included_in_summary: true } as any)
-      .in("id", ids)
+      .in("id", ids);
   }
 
-  return compacted
+  return compacted;
 }
 
 /**
@@ -1003,24 +1270,26 @@ Contraintes :
  * Le LLM décide si les nouvelles infos apportent quelque chose de nouveau.
  */
 export async function enrichTopicSynthesis(opts: {
-  supabase: SupabaseClient
-  userId: string
-  topic: TopicMemory
-  newInformation: string
-  newKeywords: string[]
-  sourceType?: TopicEnrichmentSource
-  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+  supabase: SupabaseClient;
+  userId: string;
+  topic: TopicMemory;
+  newInformation: string;
+  newKeywords: string[];
+  sourceType?: TopicEnrichmentSource;
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
 }): Promise<{ enriched: boolean; newSynthesis?: string }> {
-  const { supabase, userId, topic, newInformation, newKeywords, meta } = opts
-  const sourceType = opts.sourceType ?? "chat"
+  const { supabase, userId, topic, newInformation, newKeywords, meta } = opts;
+  const sourceType = opts.sourceType ?? "chat";
 
-  const oldSynth = String(topic.synthesis ?? "").trim()
-  const newInfo = String(newInformation ?? "").trim()
-  if (!newInfo) return { enriched: false }
+  const oldSynth = String(topic.synthesis ?? "").trim();
+  const newInfo = String(newInformation ?? "").trim();
+  if (!newInfo) return { enriched: false };
 
   // Fast no-op guard (lexical overlap) before costly LLM enrichment.
-  const lexSim = jaccard(tokens(oldSynth), tokens(newInfo))
-  if (lexSim >= 0.72 || oldSynth.toLowerCase().includes(newInfo.toLowerCase())) {
+  const lexSim = jaccard(tokens(oldSynth), tokens(newInfo));
+  if (
+    lexSim >= 0.72 || oldSynth.toLowerCase().includes(newInfo.toLowerCase())
+  ) {
     const keywordStats = await upsertKeywords({
       supabase,
       userId,
@@ -1028,16 +1297,20 @@ export async function enrichTopicSynthesis(opts: {
       keywords: newKeywords,
       allowReassign: false,
       requestId: meta?.requestId,
-    })
+    });
     await supabase
       .from("user_topic_memories")
       .update({
         mention_count: (topic.mention_count ?? 0) + 1,
         updated_at: new Date().toISOString(),
       })
-      .eq("id", topic.id)
-    console.log(`[TopicMemory] NOOP (lexical) topic=${topic.slug} lex=${lexSim.toFixed(3)} keywords+${keywordStats.inserted}`)
-    return { enriched: false }
+      .eq("id", topic.id);
+    console.log(
+      `[TopicMemory] NOOP (lexical) topic=${topic.slug} lex=${
+        lexSim.toFixed(3)
+      } keywords+${keywordStats.inserted}`,
+    );
+    return { enriched: false };
   }
 
   // Semantic no-op guard
@@ -1047,18 +1320,18 @@ export async function enrichTopicSynthesis(opts: {
       requestId: meta?.requestId,
       source: "sophia-brain:topic_enrichment",
       operationName: "embedding.topic_new_information",
-    })
-    let synthEmbedding = toVector((topic as any)?.synthesis_embedding)
+    });
+    let synthEmbedding = toVector((topic as any)?.synthesis_embedding);
     if (!synthEmbedding && oldSynth.length > 0) {
       synthEmbedding = await generateEmbedding(oldSynth, {
         userId,
         requestId: meta?.requestId,
         source: "sophia-brain:topic_enrichment",
         operationName: "embedding.topic_existing_synthesis",
-      })
+      });
     }
     if (synthEmbedding && infoEmbedding) {
-      const sem = cosineSimilarity(infoEmbedding, synthEmbedding)
+      const sem = cosineSimilarity(infoEmbedding, synthEmbedding);
       if (sem >= NOOP_SEMANTIC_SIM) {
         const keywordStats = await upsertKeywords({
           supabase,
@@ -1067,23 +1340,30 @@ export async function enrichTopicSynthesis(opts: {
           keywords: newKeywords,
           allowReassign: false,
           requestId: meta?.requestId,
-        })
+        });
         await supabase
           .from("user_topic_memories")
           .update({
             mention_count: (topic.mention_count ?? 0) + 1,
             updated_at: new Date().toISOString(),
           })
-          .eq("id", topic.id)
-        console.log(`[TopicMemory] NOOP (semantic) topic=${topic.slug} sem=${sem.toFixed(3)} keywords+${keywordStats.inserted}`)
-        return { enriched: false }
+          .eq("id", topic.id);
+        console.log(
+          `[TopicMemory] NOOP (semantic) topic=${topic.slug} sem=${
+            sem.toFixed(3)
+          } keywords+${keywordStats.inserted}`,
+        );
+        return { enriched: false };
       }
     }
   } catch (e) {
-    console.warn(`[TopicMemory] semantic no-op check failed topic=${topic.slug}:`, e)
+    console.warn(
+      `[TopicMemory] semantic no-op check failed topic=${topic.slug}:`,
+      e,
+    );
   }
   try {
-    const now = new Date().toISOString()
+    const now = new Date().toISOString();
     const keywordStats = await upsertKeywords({
       supabase,
       userId,
@@ -1091,7 +1371,7 @@ export async function enrichTopicSynthesis(opts: {
       keywords: newKeywords,
       allowReassign: false,
       requestId: meta?.requestId,
-    })
+    });
 
     await supabase.from("user_topic_enrichment_log").insert({
       user_id: userId,
@@ -1100,11 +1380,11 @@ export async function enrichTopicSynthesis(opts: {
       previous_synthesis: null,
       source_type: sourceType,
       included_in_summary: false,
-    } as any)
+    } as any);
 
     const baseMetadata = (topic.metadata && typeof topic.metadata === "object")
       ? topic.metadata
-      : {}
+      : {};
     const timeline = appendTimelineEvent(
       readTimeline(baseMetadata),
       {
@@ -1112,9 +1392,10 @@ export async function enrichTopicSynthesis(opts: {
         note: timelineNote(newInformation),
         source: sourceType,
       },
-    )
-    const nextPendingCount = Number(topic.pending_enrichment_count ?? 0) + 1
-    const nextPendingChars = Number(topic.pending_enrichment_chars ?? 0) + newInfo.length
+    );
+    const nextPendingCount = Number(topic.pending_enrichment_count ?? 0) + 1;
+    const nextPendingChars = Number(topic.pending_enrichment_chars ?? 0) +
+      newInfo.length;
 
     await supabase
       .from("user_topic_memories")
@@ -1130,9 +1411,9 @@ export async function enrichTopicSynthesis(opts: {
         },
         updated_at: now,
       })
-      .eq("id", topic.id)
+      .eq("id", topic.id);
 
-    let compacted: string | undefined
+    let compacted: string | undefined;
     if (
       nextPendingCount >= TOPIC_COMPACTION_PENDING_COUNT ||
       nextPendingChars >= TOPIC_COMPACTION_PENDING_CHARS
@@ -1143,16 +1424,18 @@ export async function enrichTopicSynthesis(opts: {
         topicId: topic.id,
         requestId: meta?.requestId,
         forceRealAi: meta?.forceRealAi,
-      })
+      });
     }
 
     console.log(
-      `[TopicMemory] Enriched topic "${topic.title}" keywords+${keywordStats.inserted} compacted=${Boolean(compacted)}`,
-    )
-    return { enriched: true, newSynthesis: compacted }
+      `[TopicMemory] Enriched topic "${topic.title}" keywords+${keywordStats.inserted} compacted=${
+        Boolean(compacted)
+      }`,
+    );
+    return { enriched: true, newSynthesis: compacted };
   } catch (e) {
-    console.error(`[TopicMemory] Failed to enrich topic "${topic.title}":`, e)
-    return { enriched: false }
+    console.error(`[TopicMemory] Failed to enrich topic "${topic.title}":`, e);
+    return { enriched: false };
   }
 }
 
@@ -1164,16 +1447,16 @@ export async function enrichTopicSynthesis(opts: {
  * Crée un nouveau topic à partir d'informations extraites.
  */
 export async function createTopic(opts: {
-  supabase: SupabaseClient
-  userId: string
-  extractedTopic: ExtractedTopic
-  sourceType?: TopicEnrichmentSource
-  meta?: { requestId?: string; forceRealAi?: boolean }
+  supabase: SupabaseClient;
+  userId: string;
+  extractedTopic: ExtractedTopic;
+  sourceType?: TopicEnrichmentSource;
+  meta?: { requestId?: string; forceRealAi?: boolean };
 }): Promise<TopicMemory | null> {
-  const { supabase, userId, extractedTopic, meta } = opts
-  const sourceType = opts.sourceType ?? "chat"
+  const { supabase, userId, extractedTopic, meta } = opts;
+  const sourceType = opts.sourceType ?? "chat";
 
-  const synthesis = extractedTopic.new_information
+  const synthesis = extractedTopic.new_information;
 
   // Vectoriser la synthèse et le titre
   const [synthesisEmbedding, titleEmbedding] = await Promise.all([
@@ -1189,8 +1472,8 @@ export async function createTopic(opts: {
       source: "sophia-brain:topic_initial_synthesis",
       operationName: "embedding.topic_title",
     }),
-  ])
-  const now = new Date().toISOString()
+  ]);
+  const now = new Date().toISOString();
 
   const { data: newTopic, error } = await supabase
     .from("user_topic_memories")
@@ -1222,11 +1505,14 @@ export async function createTopic(opts: {
       },
     })
     .select("*")
-    .single()
+    .single();
 
   if (error) {
-    console.error(`[TopicMemory] Failed to create topic "${extractedTopic.title}":`, error)
-    return null
+    console.error(
+      `[TopicMemory] Failed to create topic "${extractedTopic.title}":`,
+      error,
+    );
+    return null;
   }
 
   // Ajouter les keywords
@@ -1237,24 +1523,26 @@ export async function createTopic(opts: {
     keywords: extractedTopic.keywords,
     allowReassign: false,
     requestId: meta?.requestId,
-  })
+  });
 
-  console.log(`[TopicMemory] Created topic "${extractedTopic.title}" keywords+${keywordStats.inserted}`)
+  console.log(
+    `[TopicMemory] Created topic "${extractedTopic.title}" keywords+${keywordStats.inserted}`,
+  );
   return await maybeAutoMergeNewTopic({
     supabase,
     userId,
     newTopic: newTopic as TopicMemory,
     sourceType,
-  })
+  });
 }
 
 async function maybeAutoMergeNewTopic(opts: {
-  supabase: SupabaseClient
-  userId: string
-  newTopic: TopicMemory
-  sourceType: TopicEnrichmentSource
+  supabase: SupabaseClient;
+  userId: string;
+  newTopic: TopicMemory;
+  sourceType: TopicEnrichmentSource;
 }): Promise<TopicMemory> {
-  const { supabase, userId, newTopic, sourceType } = opts
+  const { supabase, userId, newTopic, sourceType } = opts;
 
   try {
     const { data: candidates } = await supabase
@@ -1263,64 +1551,70 @@ async function maybeAutoMergeNewTopic(opts: {
       .eq("user_id", userId)
       .eq("status", "active")
       .neq("id", newTopic.id)
-      .limit(120)
+      .limit(120);
 
     if (!Array.isArray(candidates) || candidates.length === 0) {
-      return newTopic
+      return newTopic;
     }
 
-    const currentSynth = toVector((newTopic as any).synthesis_embedding) ?? await generateEmbedding(newTopic.synthesis, {
-      userId,
-      source: "sophia-brain:topic_auto_merge",
-      operationName: "embedding.topic_auto_merge_synthesis",
-    })
-    const currentTitle = toVector((newTopic as any).title_embedding) ?? await generateEmbedding(newTopic.title, {
-      userId,
-      source: "sophia-brain:topic_auto_merge",
-      operationName: "embedding.topic_auto_merge_title",
-    })
-    const currentTitleTokens = tokens(newTopic.title)
+    const currentSynth = toVector((newTopic as any).synthesis_embedding) ??
+      await generateEmbedding(newTopic.synthesis, {
+        userId,
+        source: "sophia-brain:topic_auto_merge",
+        operationName: "embedding.topic_auto_merge_synthesis",
+      });
+    const currentTitle = toVector((newTopic as any).title_embedding) ??
+      await generateEmbedding(newTopic.title, {
+        userId,
+        source: "sophia-brain:topic_auto_merge",
+        operationName: "embedding.topic_auto_merge_title",
+      });
+    const currentTitleTokens = tokens(newTopic.title);
 
     const ranked = candidates
       .map((c: any) => {
-        const synth = toVector(c?.synthesis_embedding)
-        const title = toVector(c?.title_embedding)
-        const synthSim = synth ? cosineSimilarity(currentSynth, synth) : 0
-        const titleSim = title ? cosineSimilarity(currentTitle, title) : 0
-        const titleLex = jaccard(currentTitleTokens, tokens(String(c?.title ?? "")))
-        const score = 0.70 * synthSim + 0.20 * titleSim + 0.10 * titleLex
+        const synth = toVector(c?.synthesis_embedding);
+        const title = toVector(c?.title_embedding);
+        const synthSim = synth ? cosineSimilarity(currentSynth, synth) : 0;
+        const titleSim = title ? cosineSimilarity(currentTitle, title) : 0;
+        const titleLex = jaccard(
+          currentTitleTokens,
+          tokens(String(c?.title ?? "")),
+        );
+        const score = 0.70 * synthSim + 0.20 * titleSim + 0.10 * titleLex;
         return {
           topic: c as TopicMemory,
           synthSim,
           titleSim,
           titleLex,
           score,
-        }
+        };
       })
-      .sort((a, b) => b.score - a.score)
+      .sort((a, b) => b.score - a.score);
 
-    const best = ranked[0]
-    if (!best) return newTopic
+    const best = ranked[0];
+    if (!best) return newTopic;
 
-    const shouldMerge =
-      best.synthSim >= AUTO_MERGE_SYNTH_SIM ||
-      (best.titleSim >= AUTO_MERGE_TITLE_SIM && best.titleLex >= AUTO_MERGE_TITLE_JACCARD)
+    const shouldMerge = best.synthSim >= AUTO_MERGE_SYNTH_SIM ||
+      (best.titleSim >= AUTO_MERGE_TITLE_SIM &&
+        best.titleLex >= AUTO_MERGE_TITLE_JACCARD);
 
     if (!shouldMerge) {
-      return newTopic
+      return newTopic;
     }
 
-    const canonical = best.topic
-    const now = new Date().toISOString()
+    const canonical = best.topic;
+    const now = new Date().toISOString();
     const { data: duplicateKeywords } = await supabase
       .from("user_topic_keywords")
       .select("keyword")
       .eq("user_id", userId)
-      .eq("topic_id", newTopic.id)
+      .eq("topic_id", newTopic.id);
 
-    const dupKeywordList = (Array.isArray(duplicateKeywords) ? duplicateKeywords : [])
-      .map((r: any) => String(r?.keyword ?? "").trim())
-      .filter(Boolean)
+    const dupKeywordList =
+      (Array.isArray(duplicateKeywords) ? duplicateKeywords : [])
+        .map((r: any) => String(r?.keyword ?? "").trim())
+        .filter(Boolean);
 
     await upsertKeywords({
       supabase,
@@ -1328,28 +1622,34 @@ async function maybeAutoMergeNewTopic(opts: {
       topicId: canonical.id,
       keywords: dupKeywordList,
       allowReassign: true,
-    })
+    });
 
-    const mergedSynthesis = mergeSynthesisText(String(canonical.synthesis ?? ""), String(newTopic.synthesis ?? ""))
+    const mergedSynthesis = mergeSynthesisText(
+      String(canonical.synthesis ?? ""),
+      String(newTopic.synthesis ?? ""),
+    );
     const mergedSynthesisEmbedding = await generateEmbedding(mergedSynthesis, {
       userId,
       source: "sophia-brain:topic_auto_merge",
       operationName: "embedding.topic_auto_merge_merged_synthesis",
-    })
-    const canonicalMetadata = (canonical.metadata && typeof canonical.metadata === "object")
-      ? canonical.metadata
-      : {}
+    });
+    const canonicalMetadata =
+      (canonical.metadata && typeof canonical.metadata === "object")
+        ? canonical.metadata
+        : {};
     const canonicalTimeline = appendTimelineEvent(
       readTimeline(canonicalMetadata),
       {
         at: now,
-        note: `Fusion du topic "${newTopic.title}" (${newTopic.slug}) dans "${canonical.title}".`,
+        note:
+          `Fusion du topic "${newTopic.title}" (${newTopic.slug}) dans "${canonical.title}".`,
         source: "merge",
       },
-    )
-    const existingMergedFrom = Array.isArray((canonicalMetadata as any).merged_from)
-      ? (canonicalMetadata as any).merged_from
-      : []
+    );
+    const existingMergedFrom =
+      Array.isArray((canonicalMetadata as any).merged_from)
+        ? (canonicalMetadata as any).merged_from
+        : [];
     const mergedFrom = [
       ...existingMergedFrom,
       {
@@ -1357,15 +1657,17 @@ async function maybeAutoMergeNewTopic(opts: {
         slug: newTopic.slug,
         merged_at: now,
       },
-    ]
+    ];
 
     await supabase
       .from("user_topic_memories")
       .update({
         synthesis: mergedSynthesis,
         synthesis_embedding: mergedSynthesisEmbedding,
-        mention_count: (Number(canonical.mention_count ?? 0) || 0) + (Number(newTopic.mention_count ?? 0) || 0),
-        enrichment_count: (Number(canonical.enrichment_count ?? 0) || 0) + (Number(newTopic.enrichment_count ?? 0) || 0),
+        mention_count: (Number(canonical.mention_count ?? 0) || 0) +
+          (Number(newTopic.mention_count ?? 0) || 0),
+        enrichment_count: (Number(canonical.enrichment_count ?? 0) || 0) +
+          (Number(newTopic.enrichment_count ?? 0) || 0),
         last_enriched_at: now,
         metadata: {
           ...canonicalMetadata,
@@ -1374,11 +1676,12 @@ async function maybeAutoMergeNewTopic(opts: {
         },
         updated_at: now,
       })
-      .eq("id", canonical.id)
+      .eq("id", canonical.id);
 
-    const duplicateMetadata = (newTopic.metadata && typeof newTopic.metadata === "object")
-      ? newTopic.metadata
-      : {}
+    const duplicateMetadata =
+      (newTopic.metadata && typeof newTopic.metadata === "object")
+        ? newTopic.metadata
+        : {};
     const duplicateTimeline = appendTimelineEvent(
       readTimeline(duplicateMetadata),
       {
@@ -1386,7 +1689,7 @@ async function maybeAutoMergeNewTopic(opts: {
         note: `Topic fusionné dans "${canonical.title}" (${canonical.slug}).`,
         source: "merge",
       },
-    )
+    );
     await supabase
       .from("user_topic_memories")
       .update({
@@ -1399,29 +1702,35 @@ async function maybeAutoMergeNewTopic(opts: {
         },
         updated_at: now,
       })
-      .eq("id", newTopic.id)
+      .eq("id", newTopic.id);
 
     await supabase.from("user_topic_enrichment_log").insert({
       user_id: userId,
       topic_id: canonical.id,
-      enrichment_summary: `Auto-merge du topic "${newTopic.title}" (${newTopic.slug}) dans "${canonical.title}".`,
+      enrichment_summary:
+        `Auto-merge du topic "${newTopic.title}" (${newTopic.slug}) dans "${canonical.title}".`,
       previous_synthesis: canonical.synthesis,
       source_type: sourceType,
-    })
+    });
 
     const { data: refreshed } = await supabase
       .from("user_topic_memories")
       .select("*")
       .eq("id", canonical.id)
-      .maybeSingle()
+      .maybeSingle();
 
     console.log(
-      `[TopicMemory] Auto-merged topic "${newTopic.title}" -> "${canonical.title}" (synth=${best.synthSim.toFixed(3)} title=${best.titleSim.toFixed(3)} lexical=${best.titleLex.toFixed(3)})`,
-    )
-    return (refreshed as TopicMemory) ?? canonical
+      `[TopicMemory] Auto-merged topic "${newTopic.title}" -> "${canonical.title}" (synth=${
+        best.synthSim.toFixed(3)
+      } title=${best.titleSim.toFixed(3)} lexical=${best.titleLex.toFixed(3)})`,
+    );
+    return (refreshed as TopicMemory) ?? canonical;
   } catch (e) {
-    console.warn(`[TopicMemory] auto-merge failed for topic=${newTopic.slug}:`, e)
-    return newTopic
+    console.warn(
+      `[TopicMemory] auto-merge failed for topic=${newTopic.slug}:`,
+      e,
+    );
+    return newTopic;
   }
 }
 
@@ -1435,28 +1744,30 @@ async function maybeAutoMergeNewTopic(opts: {
  * La réaffectation est possible seulement via allowReassign (ou env flag).
  */
 async function upsertKeywords(opts: {
-  supabase: SupabaseClient
-  userId: string
-  topicId: string
-  keywords: string[]
-  allowReassign?: boolean
-  requestId?: string
+  supabase: SupabaseClient;
+  userId: string;
+  topicId: string;
+  keywords: string[];
+  allowReassign?: boolean;
+  requestId?: string;
 }): Promise<{ inserted: number; keptExisting: number; reassigned: number }> {
-  const { supabase, userId, topicId, keywords } = opts
-  const allowReassign = Boolean(opts.allowReassign) || ALLOW_KEYWORD_REASSIGN
+  const { supabase, userId, topicId, keywords } = opts;
+  const allowReassign = Boolean(opts.allowReassign) || ALLOW_KEYWORD_REASSIGN;
 
-  const uniqueKeywords = [...new Set(
-    keywords
-      .map((k) => normalizeKeyword(k))
-      .filter((k) => Boolean(k) && k.length >= 3),
-  )]
-  const filtered = uniqueKeywords.filter((k) => !isGenericKeyword(k))
+  const uniqueKeywords = [
+    ...new Set(
+      keywords
+        .map((k) => normalizeKeyword(k))
+        .filter((k) => Boolean(k) && k.length >= 3),
+    ),
+  ];
+  const filtered = uniqueKeywords.filter((k) => !isGenericKeyword(k));
   const finalKeywords = (filtered.length > 0 ? filtered : uniqueKeywords)
-    .slice(0, MAX_KEYWORDS_PER_TOPIC_UPDATE)
+    .slice(0, MAX_KEYWORDS_PER_TOPIC_UPDATE);
 
-  let inserted = 0
-  let keptExisting = 0
-  let reassigned = 0
+  let inserted = 0;
+  let keptExisting = 0;
+  let reassigned = 0;
 
   for (const keyword of finalKeywords) {
     try {
@@ -1465,7 +1776,7 @@ async function upsertKeywords(opts: {
         .select("id,topic_id")
         .eq("user_id", userId)
         .eq("keyword", keyword)
-        .maybeSingle()
+        .maybeSingle();
 
       if (!existing) {
         const embedding = await generateEmbedding(keyword, {
@@ -1473,7 +1784,7 @@ async function upsertKeywords(opts: {
           requestId: opts.requestId,
           source: "sophia-brain:topic_keyword_embedding",
           operationName: "embedding.topic_keyword",
-        })
+        });
         const { error: insErr } = await supabase
           .from("user_topic_keywords")
           .insert({
@@ -1482,22 +1793,22 @@ async function upsertKeywords(opts: {
             keyword,
             keyword_embedding: embedding,
             source: "llm_extracted",
-          } as any)
-        if (insErr) throw insErr
-        inserted++
-        continue
+          } as any);
+        if (insErr) throw insErr;
+        inserted++;
+        continue;
       }
 
-      const existingTopicId = String((existing as any)?.topic_id ?? "")
+      const existingTopicId = String((existing as any)?.topic_id ?? "");
       if (existingTopicId === topicId) {
-        keptExisting++
-        continue
+        keptExisting++;
+        continue;
       }
 
       if (!allowReassign) {
         // Anti-drift guard: avoid aggressively moving aliases across topics.
-        keptExisting++
-        continue
+        keptExisting++;
+        continue;
       }
 
       const embedding = await generateEmbedding(keyword, {
@@ -1505,7 +1816,7 @@ async function upsertKeywords(opts: {
         requestId: opts.requestId,
         source: "sophia-brain:topic_keyword_embedding",
         operationName: "embedding.topic_keyword_reassign",
-      })
+      });
       const { error: updErr } = await supabase
         .from("user_topic_keywords")
         .update({
@@ -1513,15 +1824,15 @@ async function upsertKeywords(opts: {
           keyword_embedding: embedding,
           source: "llm_extracted",
         } as any)
-        .eq("id", (existing as any).id)
-      if (updErr) throw updErr
-      reassigned++
+        .eq("id", (existing as any).id);
+      if (updErr) throw updErr;
+      reassigned++;
     } catch (e) {
-      console.warn(`[TopicMemory] Failed to upsert keyword "${keyword}":`, e)
+      console.warn(`[TopicMemory] Failed to upsert keyword "${keyword}":`, e);
     }
   }
 
-  return { inserted, keptExisting, reassigned }
+  return { inserted, keptExisting, reassigned };
 }
 
 // ============================================================================
@@ -1533,20 +1844,20 @@ async function upsertKeywords(opts: {
  * Combine la recherche par keywords ET par synthèse pour maximiser le recall.
  */
 export async function retrieveTopicMemories(opts: {
-  supabase: SupabaseClient
-  userId: string
-  message: string
-  maxResults?: number
-  meta?: { requestId?: string; forceRealAi?: boolean }
+  supabase: SupabaseClient;
+  userId: string;
+  message: string;
+  maxResults?: number;
+  meta?: { requestId?: string; forceRealAi?: boolean };
 }): Promise<TopicSearchResult[]> {
-  const { supabase, userId, message, maxResults = 3 } = opts
+  const { supabase, userId, message, maxResults = 3 } = opts;
 
   const embedding = await generateEmbedding(message, {
     userId,
     requestId: opts.meta?.requestId,
     source: "sophia-brain:topic_retrieve",
     operationName: "embedding.topic_retrieval_query",
-  })
+  });
 
   // Recherche parallèle : par keywords, synthèse ET title
   const [kwRaw, synRaw, titleRaw] = await Promise.all([
@@ -1570,119 +1881,164 @@ export async function retrieveTopicMemories(opts: {
       match_threshold: 0.55,
       match_count: maxResults,
     } as any),
-  ])
-  const keywordResults = (Array.isArray((kwRaw as any)?.data)
-    ? (kwRaw as any).data
-    : []) as TopicSearchResult[]
-  const synthesisResults = (Array.isArray((synRaw as any)?.data)
-    ? (synRaw as any).data
-    : []) as TopicSearchResult[]
-  const titleResults = (Array.isArray((titleRaw as any)?.data)
-    ? (titleRaw as any).data
-    : []) as TopicSearchResult[]
-  const kwErr = (kwRaw as any)?.error
-  const synErr = (synRaw as any)?.error
-  const titleErr = (titleRaw as any)?.error
+  ]);
+  const keywordResults =
+    (Array.isArray((kwRaw as any)?.data)
+      ? (kwRaw as any).data
+      : []) as TopicSearchResult[];
+  const synthesisResults =
+    (Array.isArray((synRaw as any)?.data)
+      ? (synRaw as any).data
+      : []) as TopicSearchResult[];
+  const titleResults =
+    (Array.isArray((titleRaw as any)?.data)
+      ? (titleRaw as any).data
+      : []) as TopicSearchResult[];
+  const kwErr = (kwRaw as any)?.error;
+  const synErr = (synRaw as any)?.error;
+  const titleErr = (titleRaw as any)?.error;
   if (TOPIC_DEBUG && (kwErr || synErr || titleErr)) {
     console.warn("[TopicMemory] retrieval RPC errors (non-blocking)", {
-      kw_error: kwErr ? String((kwErr as any)?.message ?? kwErr).slice(0, 200) : null,
-      syn_error: synErr ? String((synErr as any)?.message ?? synErr).slice(0, 200) : null,
-      title_error: titleErr ? String((titleErr as any)?.message ?? titleErr).slice(0, 200) : null,
-    })
+      kw_error: kwErr
+        ? String((kwErr as any)?.message ?? kwErr).slice(0, 200)
+        : null,
+      syn_error: synErr
+        ? String((synErr as any)?.message ?? synErr).slice(0, 200)
+        : null,
+      title_error: titleErr
+        ? String((titleErr as any)?.message ?? titleErr).slice(0, 200)
+        : null,
+    });
   }
 
   // Dédupliquer et fusionner les résultats (priorité: keywords > synthesis > title)
-  const byTopic = new Map<string, TopicSearchResult & {
-    keyword_similarity: number
-    synthesis_similarity: number
-    title_similarity: number
-    retrieval_score: number
-  }>()
+  const byTopic = new Map<
+    string,
+    TopicSearchResult & {
+      keyword_similarity: number;
+      synthesis_similarity: number;
+      title_similarity: number;
+      retrieval_score: number;
+    }
+  >();
 
   const upsertRow = (
     row: TopicSearchResult,
     kind: "keyword" | "synthesis" | "title",
   ) => {
-    const id = String(row.topic_id ?? "").trim()
-    if (!id) return
+    const id = String(row.topic_id ?? "").trim();
+    if (!id) return;
     const prev = byTopic.get(id) ?? {
       ...row,
       keyword_similarity: 0,
       synthesis_similarity: 0,
       title_similarity: 0,
       retrieval_score: 0,
+    };
+    if (kind === "keyword") {
+      prev.keyword_similarity = Math.max(
+        prev.keyword_similarity,
+        Number(row.keyword_similarity ?? 0) || 0,
+      );
     }
-    if (kind === "keyword") prev.keyword_similarity = Math.max(prev.keyword_similarity, Number(row.keyword_similarity ?? 0) || 0)
-    if (kind === "synthesis") prev.synthesis_similarity = Math.max(prev.synthesis_similarity, Number(row.synthesis_similarity ?? 0) || 0)
-    if (kind === "title") prev.title_similarity = Math.max(prev.title_similarity, Number(row.title_similarity ?? 0) || 0)
-    prev.mention_count = Math.max(Number(prev.mention_count ?? 0) || 0, Number(row.mention_count ?? 0) || 0)
-    if (!prev.last_enriched_at && row.last_enriched_at) prev.last_enriched_at = row.last_enriched_at
-    byTopic.set(id, prev)
-  }
+    if (kind === "synthesis") {
+      prev.synthesis_similarity = Math.max(
+        prev.synthesis_similarity,
+        Number(row.synthesis_similarity ?? 0) || 0,
+      );
+    }
+    if (kind === "title") {
+      prev.title_similarity = Math.max(
+        prev.title_similarity,
+        Number(row.title_similarity ?? 0) || 0,
+      );
+    }
+    prev.mention_count = Math.max(
+      Number(prev.mention_count ?? 0) || 0,
+      Number(row.mention_count ?? 0) || 0,
+    );
+    if (!prev.last_enriched_at && row.last_enriched_at) {
+      prev.last_enriched_at = row.last_enriched_at;
+    }
+    byTopic.set(id, prev);
+  };
 
-  for (const r of keywordResults) upsertRow(r, "keyword")
-  for (const r of synthesisResults) upsertRow(r, "synthesis")
-  for (const r of titleResults) upsertRow(r, "title")
+  for (const r of keywordResults) upsertRow(r, "keyword");
+  for (const r of synthesisResults) upsertRow(r, "synthesis");
+  for (const r of titleResults) upsertRow(r, "title");
 
   const merged = [...byTopic.values()]
     .map((r) => {
-      const rec = recencyScore(r.last_enriched_at)
-      const mention = Math.max(0, Number(r.mention_count ?? 0) || 0)
-      const mentionBoost = Math.min(1, Math.log1p(mention) / Math.log(10))
-      r.retrieval_score =
-        0.50 * r.keyword_similarity +
+      const rec = recencyScore(r.last_enriched_at);
+      const mention = Math.max(0, Number(r.mention_count ?? 0) || 0);
+      const mentionBoost = Math.min(1, Math.log1p(mention) / Math.log(10));
+      r.retrieval_score = 0.50 * r.keyword_similarity +
         0.30 * r.synthesis_similarity +
         0.20 * r.title_similarity +
         0.08 * rec +
-        0.04 * mentionBoost
-      return r
+        0.04 * mentionBoost;
+      return r;
     })
-    .sort((a, b) => b.retrieval_score - a.retrieval_score)
+    .sort((a, b) => b.retrieval_score - a.retrieval_score);
 
   // Mettre à jour last_retrieved_at pour les topics retournés
-  const top = merged.slice(0, maxResults)
+  const top = merged.slice(0, maxResults);
   // Optional: enrich top topics with latest linear enrichment snippets.
   if (top.length > 0) {
     try {
-      const topicIds = top.map((r) => String(r.topic_id)).filter(Boolean)
+      const topicIds = top.map((r) => String(r.topic_id)).filter(Boolean);
       if (topicIds.length > 0) {
         const { data: enrichmentRows } = await supabase
           .from("user_topic_enrichment_log")
-          .select("topic_id, enrichment_summary, source_type, created_at, included_in_summary")
+          .select(
+            "topic_id, enrichment_summary, source_type, created_at, included_in_summary",
+          )
           .eq("user_id", userId)
           .in("topic_id", topicIds)
           .order("created_at", { ascending: false })
-          .limit(Math.max(12, topicIds.length * 4))
+          .limit(Math.max(12, topicIds.length * 4));
 
-        const byTopic = new Map<string, Array<{ created_at: string; enrichment_summary: string; source_type?: string | null }>>()
+        const byTopic = new Map<
+          string,
+          Array<
+            {
+              created_at: string;
+              enrichment_summary: string;
+              source_type?: string | null;
+            }
+          >
+        >();
         for (const row of (enrichmentRows ?? []) as any[]) {
-          const tid = String(row?.topic_id ?? "").trim()
-          if (!tid) continue
-          const createdAt = String(row?.created_at ?? "").trim()
-          const summary = String(row?.enrichment_summary ?? "").trim()
-          const included = Boolean(row?.included_in_summary)
-          if (!createdAt || !summary) continue
-          if (included) continue
-          const arr = byTopic.get(tid) ?? []
-          if (arr.length >= 3) continue
+          const tid = String(row?.topic_id ?? "").trim();
+          if (!tid) continue;
+          const createdAt = String(row?.created_at ?? "").trim();
+          const summary = String(row?.enrichment_summary ?? "").trim();
+          const included = Boolean(row?.included_in_summary);
+          if (!createdAt || !summary) continue;
+          if (included) continue;
+          const arr = byTopic.get(tid) ?? [];
+          if (arr.length >= 3) continue;
           arr.push({
             created_at: createdAt,
             enrichment_summary: timelineNote(summary, 220),
             source_type: row?.source_type ? String(row.source_type) : null,
-          })
-          byTopic.set(tid, arr)
+          });
+          byTopic.set(tid, arr);
         }
 
         for (const r of top) {
-          const enrichments = byTopic.get(String(r.topic_id)) ?? []
+          const enrichments = byTopic.get(String(r.topic_id)) ?? [];
           if (enrichments.length > 0) {
-            (r as TopicSearchResult).recent_enrichments = enrichments
+            (r as TopicSearchResult).recent_enrichments = enrichments;
           }
         }
       }
     } catch (e) {
       if (TOPIC_DEBUG) {
-        console.warn("[TopicMemory] failed to load recent enrichment snippets (non-blocking):", e)
+        console.warn(
+          "[TopicMemory] failed to load recent enrichment snippets (non-blocking):",
+          e,
+        );
       }
     }
   }
@@ -1697,7 +2053,7 @@ export async function retrieveTopicMemories(opts: {
       retrieval_score: Number(r.retrieval_score.toFixed(3)),
       mention_count: Number(r.mention_count ?? 0),
       last_enriched_at: r.last_enriched_at ?? null,
-    }))
+    }));
     console.log(
       JSON.stringify({
         tag: "topic_retrieval_debug",
@@ -1713,66 +2069,73 @@ export async function retrieveTopicMemories(opts: {
         },
         top: topDebug,
       }),
-    )
+    );
   }
-  const topicIds = top.map((r) => r.topic_id)
+  const topicIds = top.map((r) => r.topic_id);
   if (topicIds.length > 0) {
     try {
       await supabase
         .from("user_topic_memories")
         .update({ last_retrieved_at: new Date().toISOString() })
-        .in("id", topicIds)
+        .in("id", topicIds);
     } catch {
       // non-blocking
     }
   }
 
   return top.map((r) => {
-    const { retrieval_score: _ignored, ...rest } = r
-    return rest
-  })
+    const { retrieval_score: _ignored, ...rest } = r;
+    return rest;
+  });
 }
 
 /**
  * Formate les topic memories pour injection dans le prompt du Companion.
  */
-export function formatTopicMemoriesForPrompt(topics: TopicSearchResult[]): string {
-  if (!topics || topics.length === 0) return ""
+export function formatTopicMemoriesForPrompt(
+  topics: TopicSearchResult[],
+): string {
+  if (!topics || topics.length === 0) return "";
 
-  let block = "=== MÉMOIRE THÉMATIQUE (CE QUE TU SAIS DE LUI/ELLE) ===\n"
+  let block = "=== MÉMOIRE THÉMATIQUE (CE QUE TU SAIS DE LUI/ELLE) ===\n";
 
   for (const topic of topics) {
     const enrichedAt = topic.last_enriched_at
       ? new Date(topic.last_enriched_at).toLocaleDateString("fr-FR")
-      : "inconnue"
-    const mentions = topic.mention_count ?? 0
+      : "inconnue";
+    const mentions = topic.mention_count ?? 0;
 
-    block += `\n📌 ${topic.title} (mentionné ${mentions}x, dernière màj: ${enrichedAt})\n`
-    block += `${topic.synthesis}\n`
+    block +=
+      `\n📌 ${topic.title} (mentionné ${mentions}x, dernière màj: ${enrichedAt})\n`;
+    block += `${topic.synthesis}\n`;
 
-    const timeline = readTimeline(topic.metadata).slice(-4)
+    const timeline = readTimeline(topic.metadata).slice(-4);
     if (timeline.length > 0) {
-      block += "Repères temporels (évolution):\n"
+      block += "Repères temporels (évolution):\n";
       for (const ev of timeline) {
-        block += `- ${formatDateFrDayMonthYear(ev.at)}: ${ev.note}\n`
+        block += `- ${formatDateFrDayMonthYear(ev.at)}: ${ev.note}\n`;
       }
     }
     const recent = Array.isArray(topic.recent_enrichments)
       ? topic.recent_enrichments.slice(0, 3)
-      : []
+      : [];
     if (recent.length > 0) {
-      block += "Derniers enrichissements (linéaires):\n"
+      block += "Derniers enrichissements (linéaires):\n";
       for (const e of recent) {
-        block += `- ${formatDateFrDayMonthYear(e.created_at)}: ${timelineNote(e.enrichment_summary, 220)}\n`
+        block += `- ${formatDateFrDayMonthYear(e.created_at)}: ${
+          timelineNote(e.enrichment_summary, 220)
+        }\n`;
       }
     }
   }
 
-  block += "\n- Utilise ces informations NATURELLEMENT, sans les exposer.\n"
-  block += "- Ne dis pas \"je sais que...\" ou \"dans ta mémoire...\". Juste utilise.\n"
-  block += "- Si un topic est pertinent, intègre-le subtilement dans ta réponse.\n\n"
+  block += "\n- Utilise ces informations NATURELLEMENT, sans les exposer.\n";
+  block +=
+    '- Ne dis pas "je sais que..." ou "dans ta mémoire...". Juste utilise.\n';
+  block +=
+    "- Si un topic est pertinent, intègre-le subtilement dans ta réponse.\n\n";
 
-  return block
+  return block;
 }
 
 // ============================================================================
@@ -1784,22 +2147,26 @@ export function formatTopicMemoriesForPrompt(topics: TopicSearchResult[]): strin
  * Appelé par le Watcher après l'extraction.
  */
 export async function processTopicsFromWatcher(opts: {
-  supabase: SupabaseClient
-  userId: string
-  transcript: string
-  currentContext?: string
-  sourceType?: TopicEnrichmentSource
-  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
+  supabase: SupabaseClient;
+  userId: string;
+  transcript: string;
+  currentContext?: string;
+  sourceType?: TopicEnrichmentSource;
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
 }): Promise<{
-  topicsCreated: number
-  topicsEnriched: number
-  topicsNoop: number
-  eventsCreated: number
-  eventsUpdated: number
-  eventsNoop: number
+  topicsCreated: number;
+  topicsEnriched: number;
+  topicsNoop: number;
+  eventsCreated: number;
+  eventsUpdated: number;
+  eventsNoop: number;
+  globalMemoriesCreated: number;
+  globalMemoriesUpdated: number;
+  globalMemoriesNoop: number;
+  globalMemoriesPendingCompaction: number;
 }> {
-  const { supabase, userId, transcript, currentContext, meta } = opts
-  const sourceType = opts.sourceType ?? "chat"
+  const { supabase, userId, transcript, currentContext, meta } = opts;
+  const sourceType = opts.sourceType ?? "chat";
 
   // 1. Charger les slugs existants pour le LLM
   const { data: existingTopics } = await supabase
@@ -1807,11 +2174,13 @@ export async function processTopicsFromWatcher(opts: {
     .select("slug")
     .eq("user_id", userId)
     .eq("status", "active")
-    .limit(50)
+    .limit(50);
 
-  const existingTopicSlugs = (existingTopics ?? []).map((t: any) => String(t.slug))
+  const existingTopicSlugs = (existingTopics ?? []).map((t: any) =>
+    String(t.slug)
+  );
 
-  const userTime = await getUserTimeContext({ supabase, userId })
+  const userTime = await getUserTimeContext({ supabase, userId });
 
   // 2. Extraire topics durables + events spécifiques en un seul appel.
   const extracted = await extractMemoryCandidatesFromTranscript({
@@ -1821,10 +2190,16 @@ export async function processTopicsFromWatcher(opts: {
     timeContextPrompt: userTime.prompt_block,
     userId,
     meta,
-  })
+  });
 
-  if (extracted.durable_topics.length === 0 && extracted.event_candidates.length === 0) {
-    console.log("[TopicMemory] No memory candidates extracted from transcript.")
+  if (
+    extracted.durable_topics.length === 0 &&
+    extracted.event_candidates.length === 0 &&
+    extracted.global_memory_candidates.length === 0
+  ) {
+    console.log(
+      "[TopicMemory] No memory candidates extracted from transcript.",
+    );
     return {
       topicsCreated: 0,
       topicsEnriched: 0,
@@ -1832,25 +2207,51 @@ export async function processTopicsFromWatcher(opts: {
       eventsCreated: 0,
       eventsUpdated: 0,
       eventsNoop: 0,
-    }
+      globalMemoriesCreated: 0,
+      globalMemoriesUpdated: 0,
+      globalMemoriesNoop: 0,
+      globalMemoriesPendingCompaction: 0,
+    };
   }
 
   const batchDecision = await validateMemoryCandidatesBatch({
     durableTopics: extracted.durable_topics,
     eventCandidates: extracted.event_candidates,
+    globalMemoryCandidates: extracted.global_memory_candidates,
     sourceType,
     userId,
     meta,
-  })
+  });
 
   const extractedTopics = extracted.durable_topics
-    .filter((topic) => batchDecision.topics_to_persist.includes(topic.slug))
-  const allowEventPersistence = sourceType === "chat" || sourceType === "bilan"
-  const extractedEvents = (allowEventPersistence ? extracted.event_candidates : [])
-    .filter((event) => batchDecision.events_to_persist.includes(slugify(event.event_key)))
+    .filter((topic) => batchDecision.topics_to_persist.includes(topic.slug));
+  const allowEventPersistence = sourceType === "chat" || sourceType === "bilan";
+  const extractedEvents =
+    (allowEventPersistence ? extracted.event_candidates : [])
+      .filter((event) =>
+        batchDecision.events_to_persist.includes(slugify(event.event_key))
+      );
+  const knownTopicSlugSet = new Set(existingTopicSlugs);
+  for (const topic of extractedTopics) knownTopicSlugSet.add(topic.slug);
+  const extractedGlobalMemories = extracted.global_memory_candidates
+    .filter((candidate) =>
+      batchDecision.global_memories_to_persist.includes(candidate.full_key)
+    )
+    .map((candidate) => ({
+      ...candidate,
+      supporting_topic_slugs: candidate.supporting_topic_slugs
+        .map((slug) => slugify(slug))
+        .filter((slug) => slug && knownTopicSlugSet.has(slug))
+        .slice(0, 8),
+    }));
 
-  if (extractedTopics.length === 0 && extractedEvents.length === 0) {
-    console.log("[TopicMemory] Batch validation rejected all memory candidates.")
+  if (
+    extractedTopics.length === 0 && extractedEvents.length === 0 &&
+    extractedGlobalMemories.length === 0
+  ) {
+    console.log(
+      "[TopicMemory] Batch validation rejected all memory candidates.",
+    );
     return {
       topicsCreated: 0,
       topicsEnriched: 0,
@@ -1858,19 +2259,33 @@ export async function processTopicsFromWatcher(opts: {
       eventsCreated: 0,
       eventsUpdated: 0,
       eventsNoop: 0,
-    }
+      globalMemoriesCreated: 0,
+      globalMemoriesUpdated: 0,
+      globalMemoriesNoop: 0,
+      globalMemoriesPendingCompaction: 0,
+    };
   }
 
   console.log(
-    `[TopicMemory] Accepted topics=${extractedTopics.map(t => t.slug).join(", ") || "none"} events=${extractedEvents.map(e => e.event_key).join(", ") || "none"}`,
-  )
+    `[TopicMemory] Accepted topics=${
+      extractedTopics.map((t) => t.slug).join(", ") || "none"
+    } events=${
+      extractedEvents.map((e) => e.event_key).join(", ") || "none"
+    } globals=${
+      extractedGlobalMemories.map((g) => g.full_key).join(", ") || "none"
+    }`,
+  );
 
-  let topicsCreated = 0
-  let topicsEnriched = 0
-  let topicsNoop = 0
-  let eventsCreated = 0
-  let eventsUpdated = 0
-  let eventsNoop = 0
+  let topicsCreated = 0;
+  let topicsEnriched = 0;
+  let topicsNoop = 0;
+  let eventsCreated = 0;
+  let eventsUpdated = 0;
+  let eventsNoop = 0;
+  let globalMemoriesCreated = 0;
+  let globalMemoriesUpdated = 0;
+  let globalMemoriesNoop = 0;
+  let globalMemoriesPendingCompaction = 0;
 
   for (const event of extractedEvents) {
     try {
@@ -1880,13 +2295,16 @@ export async function processTopicsFromWatcher(opts: {
         candidate: event,
         requestId: meta?.requestId,
         nowIso: userTime.now_utc,
-      })
-      if (result.created) eventsCreated++
-      else if (result.updated) eventsUpdated++
-      else eventsNoop++
+      });
+      if (result.created) eventsCreated++;
+      else if (result.updated) eventsUpdated++;
+      else eventsNoop++;
     } catch (e) {
-      console.error(`[TopicMemory] Failed to persist event "${event.event_key}":`, e)
-      eventsNoop++
+      console.error(
+        `[TopicMemory] Failed to persist event "${event.event_key}":`,
+        e,
+      );
+      eventsNoop++;
     }
   }
 
@@ -1898,7 +2316,7 @@ export async function processTopicsFromWatcher(opts: {
         userId,
         extractedTopic: extracted,
         meta: { requestId: meta?.requestId },
-      })
+      });
 
       if (existingTopic) {
         // Enrichir le topic existant
@@ -1910,9 +2328,9 @@ export async function processTopicsFromWatcher(opts: {
           newKeywords: extracted.keywords,
           sourceType,
           meta,
-        })
-        if (result.enriched) topicsEnriched++
-        else topicsNoop++
+        });
+        if (result.enriched) topicsEnriched++;
+        else topicsNoop++;
       } else {
         // Créer un nouveau topic
         const created = await createTopic({
@@ -1921,19 +2339,43 @@ export async function processTopicsFromWatcher(opts: {
           extractedTopic: extracted,
           sourceType,
           meta,
-        })
-        if (created) topicsCreated++
-        else topicsNoop++
+        });
+        if (created) topicsCreated++;
+        else topicsNoop++;
       }
     } catch (e) {
-      console.error(`[TopicMemory] Failed to process topic "${extracted.slug}":`, e)
-      topicsNoop++
+      console.error(
+        `[TopicMemory] Failed to process topic "${extracted.slug}":`,
+        e,
+      );
+      topicsNoop++;
+    }
+  }
+
+  for (const candidate of extractedGlobalMemories) {
+    try {
+      const result = await upsertGlobalMemoryCandidate({
+        supabase,
+        userId,
+        candidate,
+        sourceType,
+      });
+      if (result.created) globalMemoriesCreated++;
+      else if (result.updated) globalMemoriesUpdated++;
+      else globalMemoriesNoop++;
+      if (result.needsCompaction) globalMemoriesPendingCompaction++;
+    } catch (e) {
+      console.error(
+        `[TopicMemory] Failed to process global memory "${candidate.full_key}":`,
+        e,
+      );
+      globalMemoriesNoop++;
     }
   }
 
   console.log(
-    `[TopicMemory] Pipeline done: topics(created=${topicsCreated}, enriched=${topicsEnriched}, noop=${topicsNoop}) events(created=${eventsCreated}, updated=${eventsUpdated}, noop=${eventsNoop}).`,
-  )
+    `[TopicMemory] Pipeline done: topics(created=${topicsCreated}, enriched=${topicsEnriched}, noop=${topicsNoop}) events(created=${eventsCreated}, updated=${eventsUpdated}, noop=${eventsNoop}) globals(created=${globalMemoriesCreated}, updated=${globalMemoriesUpdated}, noop=${globalMemoriesNoop}, pending_compaction=${globalMemoriesPendingCompaction}).`,
+  );
   return {
     topicsCreated,
     topicsEnriched,
@@ -1941,7 +2383,11 @@ export async function processTopicsFromWatcher(opts: {
     eventsCreated,
     eventsUpdated,
     eventsNoop,
-  }
+    globalMemoriesCreated,
+    globalMemoriesUpdated,
+    globalMemoriesNoop,
+    globalMemoriesPendingCompaction,
+  };
 }
 
 /**
@@ -1949,37 +2395,61 @@ export async function processTopicsFromWatcher(opts: {
  * Utilise uniquement les champs user-authored stockés dans user_plans.
  */
 export async function processTopicsFromPlan(opts: {
-  supabase: SupabaseClient
-  userId: string
+  supabase: SupabaseClient;
+  userId: string;
   plan: {
-    id?: string
-    title?: string | null
-    inputs_why?: string | null
-    inputs_blockers?: string | null
-    recraft_reason?: string | null
-    recraft_challenges?: string | null
-  }
-  meta?: { requestId?: string; model?: string; forceRealAi?: boolean }
-}): Promise<{ topicsCreated: number; topicsEnriched: number; topicsNoop: number }> {
-  const { supabase, userId, plan, meta } = opts
+    id?: string;
+    title?: string | null;
+    inputs_why?: string | null;
+    inputs_blockers?: string | null;
+    recraft_reason?: string | null;
+    recraft_challenges?: string | null;
+  };
+  meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
+}): Promise<{
+  topicsCreated: number;
+  topicsEnriched: number;
+  topicsNoop: number;
+  eventsCreated: number;
+  eventsUpdated: number;
+  eventsNoop: number;
+  globalMemoriesCreated: number;
+  globalMemoriesUpdated: number;
+  globalMemoriesNoop: number;
+  globalMemoriesPendingCompaction: number;
+}> {
+  const { supabase, userId, plan, meta } = opts;
 
-  const rows: string[] = []
+  const rows: string[] = [];
   const pushIfPresent = (label: string, value?: string | null) => {
-    const text = String(value ?? "").trim()
-    if (text.length > 0) rows.push(`USER: ${label}: ${text}`)
-  }
+    const text = String(value ?? "").trim();
+    if (text.length > 0) rows.push(`USER: ${label}: ${text}`);
+  };
 
-  pushIfPresent("Mon pourquoi", plan.inputs_why)
-  pushIfPresent("Mes blocages", plan.inputs_blockers)
-  pushIfPresent("Raison du recraft", plan.recraft_reason)
-  pushIfPresent("Difficultés du recraft", plan.recraft_challenges)
+  pushIfPresent("Mon pourquoi", plan.inputs_why);
+  pushIfPresent("Mes blocages", plan.inputs_blockers);
+  pushIfPresent("Raison du recraft", plan.recraft_reason);
+  pushIfPresent("Difficultés du recraft", plan.recraft_challenges);
 
   if (rows.length === 0) {
-    return { topicsCreated: 0, topicsEnriched: 0, topicsNoop: 0 }
+    return {
+      topicsCreated: 0,
+      topicsEnriched: 0,
+      topicsNoop: 0,
+      eventsCreated: 0,
+      eventsUpdated: 0,
+      eventsNoop: 0,
+      globalMemoriesCreated: 0,
+      globalMemoriesUpdated: 0,
+      globalMemoriesNoop: 0,
+      globalMemoriesPendingCompaction: 0,
+    };
   }
 
-  const transcript = rows.join("\n")
-  const currentContext = `Extraction depuis plan${plan.title ? `: ${String(plan.title)}` : ""}${plan.id ? ` (id=${String(plan.id)})` : ""}`
+  const transcript = rows.join("\n");
+  const currentContext = `Extraction depuis plan${
+    plan.title ? `: ${String(plan.title)}` : ""
+  }${plan.id ? ` (id=${String(plan.id)})` : ""}`;
 
   return await processTopicsFromWatcher({
     supabase,
@@ -1988,7 +2458,7 @@ export async function processTopicsFromPlan(opts: {
     currentContext,
     sourceType: "plan",
     meta,
-  })
+  });
 }
 
 // ============================================================================
@@ -2002,8 +2472,8 @@ function slugify(text: string): string {
     .trim()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "") // Remove accents
-    .replace(/[^a-z0-9_]/g, "_")     // Replace non-alphanumeric with _
-    .replace(/_+/g, "_")             // Collapse multiple _
-    .replace(/^_|_$/g, "")           // Trim leading/trailing _
-    .slice(0, 80)                    // Max length
+    .replace(/[^a-z0-9_]/g, "_") // Replace non-alphanumeric with _
+    .replace(/_+/g, "_") // Collapse multiple _
+    .replace(/^_|_$/g, "") // Trim leading/trailing _
+    .slice(0, 80); // Max length
 }

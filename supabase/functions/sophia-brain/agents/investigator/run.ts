@@ -12,6 +12,7 @@ import {
   getItemHistory,
   getPendingItems,
   getYesterdayCheckupSummary,
+  getFrameworkBilanAddon,
   increaseWeekTarget,
   logItem,
   logItemDetailed,
@@ -226,11 +227,13 @@ export async function runInvestigator(
   // Start: load items
   if (currentState.status === "init") {
     const items = await getPendingItems(supabase, userId);
+    const frameworkBilanAddon = await getFrameworkBilanAddon(supabase, userId).catch(() => null);
     if (items.length === 0) {
       return {
         content: await investigatorSay("no_pending_items", {
           user_message: message,
           channel: meta?.channel,
+          framework_bilan_addon: frameworkBilanAddon,
         }, meta),
         investigationComplete: true,
         newState: null,
@@ -297,6 +300,7 @@ export async function runInvestigator(
         opening_done: false,
         locked_pending_items: true,
         day_scope: initialDayScope,
+        framework_bilan_addon: frameworkBilanAddon,
         missed_streaks_by_action: missedStreaksByAction,
         vital_progression: vitalProgression,
         item_progress: initializeItemProgress(items),
@@ -426,7 +430,16 @@ export async function runInvestigator(
 
       if (openingDecision === "cancel") {
         return {
-          content: "Ok, on laisse le bilan du jour de côté pour l'instant 🙂",
+          content: await investigatorSay(
+            "opening_global_checkup_cancel",
+            {
+              user_message: message,
+              channel: meta?.channel,
+              recent_history: history.slice(-15),
+              cancel_kind: "user_cancel",
+            },
+            meta,
+          ),
           investigationComplete: true,
           newState: null,
         };
@@ -452,7 +465,16 @@ export async function runInvestigator(
       if (openingDecision === "unclear") {
         if (openingResponseCount >= 1) {
           return {
-            content: "Pas de souci, on laisse le point du jour de côté pour l'instant 🙂",
+            content: await investigatorSay(
+              "opening_global_checkup_cancel",
+              {
+                user_message: message,
+                channel: meta?.channel,
+                recent_history: history.slice(-15),
+                cancel_kind: "unclear_after_reask",
+              },
+              meta,
+            ),
             investigationComplete: true,
             newState: null,
           };
@@ -621,6 +643,7 @@ export async function runInvestigator(
             user_message: message,
             channel: meta?.channel,
             recent_history: history.slice(-15),
+            framework_bilan_addon: currentState?.temp_memory?.framework_bilan_addon ?? null,
           },
           meta,
         ),
@@ -636,6 +659,7 @@ export async function runInvestigator(
           user_message: message,
           channel: meta?.channel,
           recent_history: history.slice(-15),
+          framework_bilan_addon: currentState?.temp_memory?.framework_bilan_addon ?? null,
         },
         meta,
       ),
@@ -721,13 +745,6 @@ export async function runInvestigator(
         const m: Record<string, string> = { mon: "lundi", tue: "mardi", wed: "mercredi", thu: "jeudi", fri: "vendredi", sat: "samedi", sun: "dimanche" };
         return m[d] ?? d;
       };
-      let prefix: string;
-      if (increaseResult?.success) {
-        prefix = `C'est fait, objectif passé à ${increaseResult.new_target}×/semaine avec ${dayTokenToFrench(parsedDay)} en plus. `;
-      } else {
-        prefix = `${increaseResult?.error ?? "Pas pu augmenter."} `;
-      }
-
       const scenario = increaseResult?.success ? "increase_target_confirmed" : null;
       const scenarioAck = scenario
         ? await investigatorSay(scenario, {
@@ -742,8 +759,15 @@ export async function runInvestigator(
               increase_result: increaseResult,
               day_added: dayTokenToFrench(parsedDay),
             }, meta)
-        : null;
-      const lead = scenarioAck ? `${scenarioAck}\n\n` : prefix;
+        : await investigatorSay("increase_target_failed", {
+              user_message: message,
+              channel: meta?.channel,
+              action_title: String(
+                pendingIncreaseOffer?.action_title ?? currentItem?.title ?? "",
+              ),
+              increase_result: increaseResult,
+            }, meta);
+      const lead = scenarioAck ? `${scenarioAck}\n\n` : "";
 
       if (nextIndex >= currentState.pending_items.length) {
         const base = await investigatorSay("end_checkup_after_last_log", {
@@ -754,6 +778,7 @@ export async function runInvestigator(
             last_item_log: pendingIncreaseOffer.last_item_log ?? null,
             day_scope: String(currentItem.day_scope ?? nextState?.temp_memory?.day_scope ?? "yesterday"),
             increase_result: increaseResult,
+            framework_bilan_addon: nextState?.temp_memory?.framework_bilan_addon ?? null,
           }, meta);
         return { content: `${lead}${base}`.trim(), investigationComplete: true, newState: null };
       }
@@ -901,15 +926,6 @@ export async function runInvestigator(
         };
       }
 
-      let prefix: string;
-      if (userSaysYes && increaseResult?.success) {
-        prefix = `C'est fait, objectif passé à ${increaseResult.new_target}×/semaine. `;
-      } else if (userSaysYes && !increaseResult?.success) {
-        prefix = `${increaseResult?.error ?? "Pas pu augmenter."} `;
-      } else {
-        prefix = "Ok, on garde l'objectif actuel. ";
-      }
-
       const scenario = userSaysYes && increaseResult?.success
         ? "increase_target_confirmed"
         : userSaysNo
@@ -931,8 +947,19 @@ export async function runInvestigator(
           },
           meta,
         )
-        : null;
-      const lead = scenarioAck ? `${scenarioAck}\n\n` : prefix;
+        : await investigatorSay(
+          "increase_target_failed",
+          {
+            user_message: message,
+            channel: meta?.channel,
+            action_title: String(
+              pendingIncreaseOffer?.action_title ?? currentItem?.title ?? "",
+            ),
+            ...(increaseResult ? { increase_result: increaseResult } : {}),
+          },
+          meta,
+        );
+      const lead = scenarioAck ? `${scenarioAck}\n\n` : "";
 
       if (nextIndex >= currentState.pending_items.length) {
         const base = await investigatorSay(
@@ -948,6 +975,7 @@ export async function runInvestigator(
                 "yesterday",
             ),
             ...(increaseResult ? { increase_result: increaseResult } : {}),
+            framework_bilan_addon: nextState?.temp_memory?.framework_bilan_addon ?? null,
           },
           meta,
         );
@@ -1080,6 +1108,7 @@ export async function runInvestigator(
             currentItem.day_scope ?? nextState?.temp_memory?.day_scope ??
               "yesterday",
           ),
+          framework_bilan_addon: nextState?.temp_memory?.framework_bilan_addon ?? null,
         },
         meta,
       );

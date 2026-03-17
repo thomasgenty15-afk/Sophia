@@ -43,6 +43,7 @@ import {
 import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
 import { enqueueLlmRetryJob } from "./emergency.ts";
 import { logEdgeFunctionError } from "../../_shared/error-log.ts";
+import { weeklyInvestigatorSay } from "../agents/investigator-weekly/copy.ts";
 
 function envBool(name: string, fallback: boolean): boolean {
   const denoEnv = (globalThis as any)?.Deno?.env;
@@ -860,7 +861,14 @@ export async function processMessage(
       }, "info");
       if (shouldStopForToday) {
         const responseContent = staleInvestigationMode === "weekly_bilan"
-          ? "Pas de souci, on reprendra le bilan hebdo une autre fois."
+          ? await weeklyInvestigatorSay(
+            "weekly_bilan_user_stopped",
+            {
+              user_message: userMessage,
+              recent_history: (history ?? []).slice(-12),
+            },
+            meta,
+          )
           : "Pas de souci, on ne peut pas le reporter plus tard ce soir. On fera le bilan demain.";
         const nextMode: AgentMode = "companion";
         const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
