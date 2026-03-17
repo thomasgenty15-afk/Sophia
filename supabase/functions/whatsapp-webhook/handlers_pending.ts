@@ -2,6 +2,13 @@ import { generateWithGemini } from "../_shared/gemini.ts";
 import { fetchLatestPending, loadHistory, markPending } from "./wa_db.ts";
 import { sendWhatsAppTextTracked } from "./wa_whatsapp_api.ts";
 import {
+  ACCESS_REACTIVATION_OFFER_KIND,
+  buildAccessEndedNegativeReply,
+  buildAccessEndedPositiveReply,
+  classifyAccessEndedIntent,
+  normalizeAccessEndedReason,
+} from "../_shared/access_ended_whatsapp.ts";
+import {
   applyWhatsappProactiveOpeningPolicy,
   generateDynamicWhatsAppCheckinMessage,
 } from "../_shared/scheduled_checkins.ts";
@@ -20,6 +27,75 @@ function classifyWeeklyBilanIntent(text) {
 }
 export async function handlePendingActions(params) {
   const { admin, userId, fromE164, requestId } = params;
+  const accessPending = await fetchLatestPending(admin, userId, ACCESS_REACTIVATION_OFFER_KIND);
+  if (accessPending && !params.isOptInYes) {
+    const reason = normalizeAccessEndedReason(accessPending?.payload?.ended_reason);
+    const intent = classifyAccessEndedIntent(params.inboundText);
+    if (reason && intent === "accept") {
+      await markPending(admin, accessPending.id, "done");
+      const upgradePath = String(accessPending?.payload?.upgrade_path ?? "/upgrade");
+      const upgradeUrl = `${String(params.siteUrl ?? "").replace(/\/+$/, "")}${upgradePath.startsWith("/") ? upgradePath : `/${upgradePath}`}`;
+      const txt = buildAccessEndedPositiveReply({ reason, upgradeUrl });
+      const sendResp = await sendWhatsAppTextTracked({
+        admin,
+        requestId,
+        userId,
+        toE164: fromE164,
+        body: txt,
+        purpose: "whatsapp_access_reactivation_positive",
+        isProactive: false
+      });
+      const outId = sendResp?.messages?.[0]?.id ?? null;
+      const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
+      await admin.from("chat_messages").insert({
+        user_id: userId,
+        scope: "whatsapp",
+        role: "assistant",
+        content: txt,
+        agent_used: "companion",
+        metadata: {
+          channel: "whatsapp",
+          wa_outbound_message_id: outId,
+          outbound_tracking_id: outboundTrackingId,
+          is_proactive: false,
+          source: "access_ended",
+          ended_reason: reason
+        }
+      });
+      return true;
+    }
+    if (reason && intent === "decline") {
+      await markPending(admin, accessPending.id, "cancelled");
+      const txt = buildAccessEndedNegativeReply();
+      const sendResp = await sendWhatsAppTextTracked({
+        admin,
+        requestId,
+        userId,
+        toE164: fromE164,
+        body: txt,
+        purpose: "whatsapp_access_reactivation_decline",
+        isProactive: false
+      });
+      const outId = sendResp?.messages?.[0]?.id ?? null;
+      const outboundTrackingId = sendResp?.outbound_tracking_id ?? null;
+      await admin.from("chat_messages").insert({
+        user_id: userId,
+        scope: "whatsapp",
+        role: "assistant",
+        content: txt,
+        agent_used: "companion",
+        metadata: {
+          channel: "whatsapp",
+          wa_outbound_message_id: outId,
+          outbound_tracking_id: outboundTrackingId,
+          is_proactive: false,
+          source: "access_ended",
+          ended_reason: reason
+        }
+      });
+      return true;
+    }
+  }
   // If user accepts a scheduled check-in template, send the actual draft_message immediately.
   if (params.isCheckinYes && !params.isOptInYes) {
     const pending = await fetchLatestPending(admin, userId, "scheduled_checkin");

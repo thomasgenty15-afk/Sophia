@@ -1,5 +1,5 @@
--- Weekly proactive job claim (Sunday 19:50 local), timezone-aware.
--- Reuses proactive_job_state with job='weekly_bilan'.
+-- Move weekly bilan claim earlier to leave time for payload computation and
+-- downstream template processing before users see the prompt around 20:00 local.
 
 create or replace function public.claim_due_weekly_bilan(
   p_batch int default 120,

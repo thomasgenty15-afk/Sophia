@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { PlayCircle, Loader2 } from 'lucide-react';
+import { PlayCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
+import YinYangLoader from './YinYangLoader';
 
 const ResumeOnboardingView = () => {
   const navigate = useNavigate();
@@ -115,8 +116,21 @@ const ResumeOnboardingView = () => {
         disabled={isLoading}
         className="bg-slate-900 text-white px-6 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-slate-800 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
       >
-        {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <PlayCircle className="w-5 h-5" />}
-        Reprendre
+        {isLoading ? (
+          <>
+            <YinYangLoader
+              label=""
+              className="gap-0"
+              symbolClassName="text-base text-white animate-[spin_1.8s_linear_infinite]"
+            />
+            Chargement...
+          </>
+        ) : (
+          <>
+            <PlayCircle className="w-5 h-5" />
+            Reprendre
+          </>
+        )}
       </button>
     </div>
   );

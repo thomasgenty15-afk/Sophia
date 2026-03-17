@@ -45,13 +45,13 @@ const CATEGORY_OPTIONS: Array<{
     id: 'growth',
     label: 'Croissance',
     icon: <Sparkles className="w-5 h-5 text-emerald-400" />,
-    desc: 'Apprentissages, competences, sante',
+    desc: 'Apprentissages, compétences, santé',
   },
   {
     id: 'contribution',
     label: 'Contribution',
     icon: <Heart className="w-5 h-5 text-rose-400" />,
-    desc: 'Impact sur les autres, dons, heritage',
+    desc: 'Impact sur les autres, dons, héritage',
   },
 ];
 
@@ -241,7 +241,7 @@ export const WishlistTab: React.FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">Envies</h1>
           <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic mb-6">
-            "Tes envies sont des signaux. Quand tu les ecoutes vraiment, elles dessinent la vie que tu veux construire."
+            "Tes envies sont des signaux. Quand tu les écoutes vraiment, elles dessinent la vie que tu veux construire."
           </p>
 
           <button
@@ -255,10 +255,10 @@ export const WishlistTab: React.FC = () => {
           {showExplanation && (
             <div className="mt-6 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
               <p className="mb-3">
-                Cet espace recueille ce qui t&apos;attire profondement. Contrairement a une simple "to-do list", tes envies representent les experiences, les accomplissements et les contributions que tu veux vraiment faire exister dans ta vie.
+                Cet espace recueille ce qui t&apos;attire profondément. Contrairement à une simple "to-do list", tes envies représentent les expériences, les accomplissements et les contributions que tu veux vraiment faire exister dans ta vie.
               </p>
               <p>
-                Ajoute ici tout ce qui te fait vibrer : un voyage initiatique, la maitrise d&apos;une langue, la creation d&apos;une oeuvre, ou un impact specifique sur le monde. Coche-les au fur et a mesure que tu les realises pour visualiser ton evolution.
+                Ajoute ici tout ce qui te fait vibrer : un voyage initiatique, la maîtrise d&apos;une langue, la création d&apos;une œuvre, ou un impact spécifique sur le monde. Coche-les au fur et à mesure que tu les réalises pour visualiser ton évolution.
               </p>
             </div>
           )}
@@ -304,7 +304,7 @@ export const WishlistTab: React.FC = () => {
             />
 
             <div className="mb-6">
-              <label className="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-3 block">Categorie</label>
+              <label className="text-xs font-bold uppercase tracking-widest text-emerald-500 mb-3 block">Catégorie</label>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {CATEGORY_OPTIONS.map((cat) => (
                   <button
@@ -437,7 +437,7 @@ export const WishlistTab: React.FC = () => {
           <div className="relative bg-emerald-950 border border-emerald-800 rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-fade-in">
             <h3 className="text-xl font-serif font-bold text-white mb-2">Supprimer cette envie ?</h3>
             <p className="text-emerald-200/70 text-sm mb-6">
-              Cette action est irreversible. Es-tu sur de vouloir supprimer cette envie de ta liste ?
+              Cette action est irréversible. Es-tu sûr de vouloir supprimer cette envie de ta liste ?
             </p>
             <div className="flex items-center justify-end gap-3">
               <button

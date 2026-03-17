@@ -14,6 +14,12 @@ export const useDashboardData = () => {
   const [loading, setLoading] = useState(true);
   const [isPlanLoading, setIsPlanLoading] = useState(true);
   const [isOnboardingCompleted, setIsOnboardingCompleted] = useState(false);
+  const [hasResolvedOnboardingStatus, setHasResolvedOnboardingStatus] = useState(false);
+  const [installPromptProfileState, setInstallPromptProfileState] = useState({
+    dismissedUntil: null as string | null,
+    markedInstalledAt: null as string | null,
+    lastPromptedAt: null as string | null,
+  });
   const [userInitials, setUserInitials] = useState("AH");
 
   // Mode (Architecte / Action)
@@ -47,7 +53,7 @@ export const useDashboardData = () => {
         try {
             const { data, error } = await supabase
                 .from('profiles')
-                .select('onboarding_completed, full_name')
+                .select('onboarding_completed, full_name, install_app_dismissed_until, install_app_marked_installed_at, install_app_last_prompted_at')
                 .eq('id', user.id)
                 .single();
             
@@ -68,6 +74,11 @@ export const useDashboardData = () => {
             }
 
             setIsOnboardingCompleted(data?.onboarding_completed ?? false);
+            setInstallPromptProfileState({
+              dismissedUntil: (data as any)?.install_app_dismissed_until ?? null,
+              markedInstalledAt: (data as any)?.install_app_marked_installed_at ?? null,
+              lastPromptedAt: (data as any)?.install_app_last_prompted_at ?? null,
+            });
             
             if (data?.full_name) {
               const firstName = data.full_name.split(' ')[0];
@@ -80,13 +91,21 @@ export const useDashboardData = () => {
         } catch (err) {
             console.error('Error checking onboarding status:', err);
             setIsOnboardingCompleted(false); 
+            setInstallPromptProfileState({
+              dismissedUntil: null,
+              markedInstalledAt: null,
+              lastPromptedAt: null,
+            });
         } finally {
+            setHasResolvedOnboardingStatus(true);
             setLoading(false);
         }
     };
 
     if (!authLoading) {
         if (!user) {
+            setHasResolvedOnboardingStatus(true);
+            setLoading(false);
             navigate('/auth');
         } else {
             checkUserStatus();
@@ -281,6 +300,8 @@ export const useDashboardData = () => {
         modulesLoading,
         authLoading,
         isOnboardingCompleted,
+        hasResolvedOnboardingStatus,
+        installPromptProfileState,
         userInitials,
         mode,
         setMode,

@@ -718,9 +718,24 @@ export const useDashboardLogic = ({
         const phaseIndex = newPlan.phases.findIndex(p => p.actions.some(a => a.id === helpingAction.id));
         if (phaseIndex === -1) return;
         const actionIndex = newPlan.phases[phaseIndex].actions.findIndex(a => a.id === helpingAction.id);
+        newPlan.phases[phaseIndex].actions[actionIndex] = {
+          ...newPlan.phases[phaseIndex].actions[actionIndex],
+          status: 'pending',
+        };
         newPlan.phases[phaseIndex].actions.splice(actionIndex, 0, newAction);
 
         await supabase.from('user_plans').update({ content: newPlan }).eq('id', activePlanId);
+
+        const normalizedHelpingType = String(helpingAction.type ?? '').toLowerCase().trim();
+        if (normalizedHelpingType === 'framework') {
+          await supabase
+            .from('user_framework_tracking')
+            .update({ status: 'pending' })
+            .eq('plan_id', activePlanId)
+            .eq('action_id', helpingAction.id);
+        } else {
+          await updateUserActionRow(helpingAction, { status: 'pending' });
+        }
         
         let dbType = 'mission';
         if (newAction.type === 'habitude') dbType = 'habit';

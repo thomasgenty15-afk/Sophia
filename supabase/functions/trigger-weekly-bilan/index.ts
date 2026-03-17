@@ -135,7 +135,7 @@ Deno.serve(async (req) => {
 
     const q = admin
       .from("profiles")
-      .select("id, locale, timezone, access_tier, whatsapp_last_inbound_at, whatsapp_last_outbound_at, whatsapp_bilan_paused_until, whatsapp_coaching_paused_until")
+      .select("id, locale, timezone, access_tier, trial_end, whatsapp_last_inbound_at, whatsapp_last_outbound_at, whatsapp_bilan_paused_until, whatsapp_coaching_paused_until")
       .eq("whatsapp_opted_in", true)
       .eq("phone_invalid", false)
       .not("phone_number", "is", null);
@@ -180,16 +180,17 @@ Deno.serve(async (req) => {
       }, { includeCors: false });
     }
 
-    // Keep eligibility aligned with trigger-daily-bilan:
-    // source of truth is profiles.access_tier (trial, alliance, architecte).
-    // This avoids daily/weekly divergence when subscriptions rows are stale/missing.
+    // Keep eligibility aligned with whatsapp-send:
+    // `trial` is only eligible while profiles.trial_end is still in the future.
     const paidEligible = new Set<string>();
     for (const p of (profiles ?? []) as any[]) {
       const userId = String(p?.id ?? "");
       const accessTier = String(p?.access_tier ?? "").toLowerCase().trim();
+      const trialEndMs = parseTimestampMs(p?.trial_end);
+      const inTrial = trialEndMs !== null && trialEndMs > Date.now();
       if (!userId) continue;
       if (
-        accessTier === "trial" ||
+        (accessTier === "trial" && inTrial) ||
         accessTier === "alliance" ||
         accessTier === "architecte"
       ) {

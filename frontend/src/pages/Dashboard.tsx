@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   Compass,
   Layout,
@@ -43,7 +43,9 @@ import { PlanPhaseBlock } from '../components/dashboard/PlanPhaseBlock';
 import { EmptyState } from '../components/dashboard/EmptyState';
 import { PlanSettingsModal } from '../components/dashboard/PlanSettingsModal';
 import { HabitSettingsModal } from '../components/dashboard/HabitSettingsModal';
+import { InstallAppModal } from '../components/dashboard/InstallAppModal';
 import ResumeOnboardingView from '../components/ResumeOnboardingView';
+import YinYangLoader from '../components/YinYangLoader';
 import UserProfile from '../components/UserProfile';
 import FrameworkHistoryModal from '../components/FrameworkHistoryModal';
 import { FeedbackModal, type FeedbackData } from '../components/dashboard/FeedbackModal';
@@ -57,6 +59,7 @@ import { WishlistTab } from '../components/architect/WishlistTab';
 import { StoriesTab } from '../components/architect/StoriesTab';
 import { ReflectionsTab } from '../components/architect/ReflectionsTab';
 import { QuotesTab } from '../components/architect/QuotesTab';
+import { useAppInstall } from '../hooks/useAppInstall';
 
 const Dashboard = () => {
   const navigate = useNavigate();
@@ -100,6 +103,8 @@ const Dashboard = () => {
     modulesLoading,
     authLoading,
     isOnboardingCompleted,
+    hasResolvedOnboardingStatus,
+    installPromptProfileState,
     userInitials,
     mode,
     setMode,
@@ -142,6 +147,72 @@ const Dashboard = () => {
   const [activeTab, setActiveTab] = useState<'plan' | 'personal' | 'north_star' | 'reminders' | 'preferences'>('plan');
   const [architectTab, setArchitectTab] = useState<'coaching' | 'wishlist' | 'stories' | 'reflections' | 'quotes'>('coaching');
   const [northStarAttention, setNorthStarAttention] = useState(false);
+  const [isInstallPromptOpen, setIsInstallPromptOpen] = useState(false);
+  const [isInstallActionLoading, setIsInstallActionLoading] = useState(false);
+  const [localInstallPromptState, setLocalInstallPromptState] = useState(installPromptProfileState);
+  const hasRecordedInstallPromptImpressionRef = useRef(false);
+  const hasAutoMarkedInstalledRef = useRef(false);
+  const {
+    platform: installPlatform,
+    isMobileDevice,
+    isInstalled: isAppInstalled,
+    canInstallDirectly,
+    promptInstall,
+  } = useAppInstall();
+
+  useEffect(() => {
+    setLocalInstallPromptState(installPromptProfileState);
+  }, [installPromptProfileState]);
+
+  const persistInstallPromptState = async (
+    updates: Partial<{
+      install_app_dismissed_until: string | null;
+      install_app_marked_installed_at: string | null;
+      install_app_last_prompted_at: string | null;
+    }>
+  ) => {
+    if (!user?.id || Object.keys(updates).length === 0) return;
+
+    const { error } = await supabase
+      .from('profiles')
+      .update(updates)
+      .eq('id', user.id);
+
+    if (error) throw error;
+
+    setLocalInstallPromptState((prev) => ({
+      dismissedUntil:
+        'install_app_dismissed_until' in updates
+          ? updates.install_app_dismissed_until ?? null
+          : prev.dismissedUntil,
+      markedInstalledAt:
+        'install_app_marked_installed_at' in updates
+          ? updates.install_app_marked_installed_at ?? null
+          : prev.markedInstalledAt,
+      lastPromptedAt:
+        'install_app_last_prompted_at' in updates
+          ? updates.install_app_last_prompted_at ?? null
+          : prev.lastPromptedAt,
+    }));
+  };
+
+  const markInstallPromptAsInstalled = async () => {
+    const nowIso = new Date().toISOString();
+    await persistInstallPromptState({
+      install_app_marked_installed_at: nowIso,
+      install_app_dismissed_until: null,
+      install_app_last_prompted_at: nowIso,
+    });
+  };
+
+  const postponeInstallPrompt = async () => {
+    const now = new Date();
+    const dismissedUntil = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000).toISOString();
+    await persistInstallPromptState({
+      install_app_dismissed_until: dismissedUntil,
+      install_app_last_prompted_at: now.toISOString(),
+    });
+  };
 
   useEffect(() => {
     const checkNorthStarAttention = async () => {
@@ -287,6 +358,101 @@ const Dashboard = () => {
   const hasActivePlan = activePlan !== null;
   const displayStrategy = activePlan?.strategy || "Chargement de la stratégie...";
   const isPhase1Completed = false; // Mock
+  const dashboardReady =
+    hasResolvedOnboardingStatus &&
+    isOnboardingCompleted &&
+    !authLoading &&
+    !loading &&
+    !isPlanLoading &&
+    !modulesLoading;
+  const installPromptDismissed =
+    !!localInstallPromptState.dismissedUntil &&
+    new Date(localInstallPromptState.dismissedUntil).getTime() > Date.now();
+  const shouldShowInstallPrompt =
+    dashboardReady &&
+    !!user?.id &&
+    isMobileDevice &&
+    !isAppInstalled &&
+    !localInstallPromptState.markedInstalledAt &&
+    !installPromptDismissed;
+
+  useEffect(() => {
+    if (!dashboardReady || !user?.id) return;
+    if (!isAppInstalled) return;
+    if (localInstallPromptState.markedInstalledAt) return;
+    if (hasAutoMarkedInstalledRef.current) return;
+
+    hasAutoMarkedInstalledRef.current = true;
+    void markInstallPromptAsInstalled().catch((err) => {
+      hasAutoMarkedInstalledRef.current = false;
+      console.error('Error marking app as installed:', err);
+    });
+  }, [dashboardReady, user?.id, isAppInstalled, localInstallPromptState.markedInstalledAt]);
+
+  useEffect(() => {
+    if (!shouldShowInstallPrompt) {
+      setIsInstallPromptOpen(false);
+      return;
+    }
+    if (hasRecordedInstallPromptImpressionRef.current) return;
+
+    hasRecordedInstallPromptImpressionRef.current = true;
+    setIsInstallPromptOpen(true);
+
+    const nowIso = new Date().toISOString();
+    void persistInstallPromptState({
+      install_app_last_prompted_at: nowIso,
+    }).catch((err) => {
+      console.error('Error recording install prompt impression:', err);
+    });
+  }, [shouldShowInstallPrompt]);
+
+  const handleInstallPromptInstall = async () => {
+    setIsInstallActionLoading(true);
+    try {
+      if (installPlatform === 'android' && canInstallDirectly) {
+        const outcome = await promptInstall();
+        if (outcome === 'accepted') {
+          await markInstallPromptAsInstalled();
+          setIsInstallPromptOpen(false);
+          return;
+        }
+      }
+
+      setIsInstallPromptOpen(false);
+      navigate('/installer-app');
+    } catch (err) {
+      console.error('Error triggering install flow:', err);
+      setIsInstallPromptOpen(false);
+      navigate('/installer-app');
+    } finally {
+      setIsInstallActionLoading(false);
+    }
+  };
+
+  const handleInstallPromptAlreadyInstalled = async () => {
+    setIsInstallActionLoading(true);
+    try {
+      await markInstallPromptAsInstalled();
+      setIsInstallPromptOpen(false);
+    } catch (err) {
+      console.error('Error saving installed app preference:', err);
+    } finally {
+      setIsInstallActionLoading(false);
+    }
+  };
+
+  const handleInstallPromptLater = async () => {
+    setIsInstallActionLoading(true);
+    try {
+      await postponeInstallPrompt();
+      setIsInstallPromptOpen(false);
+    } catch (err) {
+      console.error('Error postponing install prompt:', err);
+    } finally {
+      setIsInstallActionLoading(false);
+    }
+  };
 
   const nowMs = Date.now();
   const trialActive = accessTier === "trial";
@@ -334,13 +500,10 @@ const Dashboard = () => {
         return { id: weekNum, title: cleanTitle, subtitle, status };
     });
 
-  if (authLoading || loading || isPlanLoading || modulesLoading) {
+  if (!hasResolvedOnboardingStatus || authLoading || loading || isPlanLoading || modulesLoading) {
     return (
         <div className="min-h-screen flex items-center justify-center bg-gray-50">
-            <div className="animate-pulse flex flex-col items-center gap-4">
-                <div className="w-12 h-12 bg-gray-200 rounded-full"></div>
-                <div className="h-4 w-32 bg-gray-200 rounded"></div>
-            </div>
+            <YinYangLoader />
         </div>
     );
   }
@@ -384,6 +547,19 @@ const Dashboard = () => {
             onClose={() => setHistoryFrameworkAction(null)}
         />
       )}
+
+      <InstallAppModal
+        isOpen={isInstallPromptOpen}
+        platform={installPlatform}
+        isInstalling={isInstallActionLoading}
+        onInstall={handleInstallPromptInstall}
+        onAlreadyInstalled={handleInstallPromptAlreadyInstalled}
+        onLater={handleInstallPromptLater}
+        onOpenGuide={() => {
+          setIsInstallPromptOpen(false);
+          navigate('/installer-app');
+        }}
+      />
 
       {/* HEADER */}
       <header className={`${isArchitectMode ? "bg-emerald-900/50 border-emerald-800" : "bg-white border-gray-100"} px-3 md:px-6 py-3 md:py-4 sticky top-0 z-50 shadow-sm border-b backdrop-blur-md transition-colors duration-500`}>

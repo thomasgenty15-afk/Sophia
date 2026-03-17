@@ -25,6 +25,7 @@ import UpgradePlan from './pages/UpgradePlan'; // IMPORT UPGRADE PAGE
 import Auth from './pages/Auth'; 
 import EmailVerified from './pages/EmailVerified';
 import ResetPassword from './pages/ResetPassword';
+import InstallAppGuide from './pages/InstallAppGuide';
 import Legal from './pages/Legal'; // IMPORT PAGE LEGALE
 import { ModulesPage } from './pages/ModulesPage'; // IMPORT DE LA NOUVELLE PAGE
 import { ChatPage } from './pages/ChatPage'; // Import ChatPage
@@ -48,6 +49,7 @@ function App() {
             <Route path="/auth" element={<Auth />} /> 
             <Route path="/email-verified" element={<EmailVerified />} />
             <Route path="/reset-password" element={<ResetPassword />} />
+            <Route path="/installer-app" element={<InstallAppGuide />} />
             <Route path="/legal" element={<Legal />} /> {/* ROUTE LEGALE */}
             <Route path="/dashboard" element={<RequireAppAccess><Dashboard /></RequireAppAccess>} />
             <Route path="/global-plan" element={<RequirePrelaunchGate><GlobalPlan /></RequirePrelaunchGate>} />

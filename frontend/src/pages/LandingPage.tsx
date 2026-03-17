@@ -12,7 +12,8 @@ import {
   Play,
   Lock,
   Fish,
-  MessageCircle // Import MessageCircle
+  MessageCircle,
+  Smartphone
 } from 'lucide-react';
 
 import Footer from '../components/Footer';
@@ -119,6 +120,16 @@ const LandingPage = () => {
               <Play className="w-4 h-4 md:w-5 md:h-5 fill-current text-violet-600" />
               Comment ça marche ?
             </a>
+          </div>
+
+          <div className="mt-4 flex justify-center">
+            <Link
+              to="/installer-app"
+              className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-medium text-slate-700 hover:border-violet-200 hover:bg-violet-50 hover:text-violet-700 transition-colors"
+            >
+              <Smartphone className="w-4 h-4 text-violet-600" />
+              Installer Sophia et enregistrer mes identifiants
+            </Link>
           </div>
 
           <div className="mt-8 md:mt-10 flex flex-wrap items-center justify-center gap-3 text-xs md:text-sm text-slate-600">

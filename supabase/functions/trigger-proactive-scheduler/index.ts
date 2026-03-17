@@ -141,11 +141,11 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ---- WEEKLY BILAN (Sunday 20:00 local) ----
+    // ---- WEEKLY BILAN (Sunday 19:50 local) ----
     {
       const { data: claimed, error } = await admin.rpc("claim_due_weekly_bilan", {
         p_batch: 100,
-        p_target: "20:00",
+        p_target: "19:50",
       })
       if (error) throw error
       const rows = (claimed ?? []) as Array<{ user_id: string; local_date: string }>

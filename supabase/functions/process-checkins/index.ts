@@ -10,6 +10,13 @@ import {
   PROACTIVE_TEMPLATE_CANDIDATE_KIND,
 } from "../_shared/proactive_template_queue.ts"
 import {
+  ACCESS_ENDED_NOTIFICATION_KIND,
+  ACCESS_REACTIVATION_OFFER_KIND,
+  accessEndedPurpose,
+  buildAccessEndedInitialMessage,
+  normalizeAccessEndedReason,
+} from "../_shared/access_ended_whatsapp.ts"
+import {
   allowRelaunchGreetingFromLastMessage,
   applyWhatsappProactiveOpeningPolicy,
   applyScheduledCheckinGreetingPolicy,
@@ -408,6 +415,122 @@ async function processPendingProactiveTemplateCandidates(params: {
   return processed
 }
 
+async function processPendingAccessEndedNotifications(params: {
+  supabaseAdmin: ReturnType<typeof createClient>
+  requestId: string
+}) {
+  const nowIso = new Date().toISOString()
+  const { data: rows, error } = await params.supabaseAdmin
+    .from("whatsapp_pending_actions")
+    .select("id,user_id,payload,created_at,expires_at")
+    .eq("kind", ACCESS_ENDED_NOTIFICATION_KIND)
+    .eq("status", "pending")
+    .order("created_at", { ascending: true })
+    .limit(100)
+  if (error) throw error
+  if (!rows || rows.length === 0) return 0
+
+  let processed = 0
+  for (const row of rows as any[]) {
+    const expiresAt = typeof row?.expires_at === "string" ? row.expires_at : null
+    if (expiresAt && expiresAt <= nowIso) {
+      await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .update({ status: "expired", processed_at: nowIso })
+        .eq("id", row.id)
+        .eq("status", "pending")
+      continue
+    }
+
+    const payload = (row?.payload ?? {}) as Record<string, unknown>
+    const reason = normalizeAccessEndedReason(payload.ended_reason)
+    if (!reason) {
+      await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .update({ status: "cancelled", processed_at: nowIso })
+        .eq("id", row.id)
+        .eq("status", "pending")
+      continue
+    }
+
+    const { data: profile, error: profileErr } = await params.supabaseAdmin
+      .from("profiles")
+      .select("full_name")
+      .eq("id", row.user_id)
+      .maybeSingle()
+    if (profileErr) throw profileErr
+
+    const bodyText = buildAccessEndedInitialMessage({
+      reason,
+      firstName: String((profile as any)?.full_name ?? ""),
+    })
+
+    try {
+      const resp = await callWhatsappSend({
+        user_id: row.user_id,
+        message: { type: "text", body: bodyText },
+        purpose: accessEndedPurpose(reason),
+        require_opted_in: true,
+        metadata_extra: {
+          source: "access_ended",
+          ended_reason: reason,
+          access_ended_notification_id: row.id,
+          from_access_tier: payload.from_access_tier ?? null,
+        },
+      })
+
+      if (Boolean((resp as any)?.skipped)) {
+        await params.supabaseAdmin
+          .from("whatsapp_pending_actions")
+          .update({ status: "cancelled", processed_at: new Date().toISOString() })
+          .eq("id", row.id)
+          .eq("status", "pending")
+        continue
+      }
+
+      await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .update({ status: "cancelled", processed_at: new Date().toISOString() })
+        .eq("user_id", row.user_id)
+        .eq("kind", ACCESS_REACTIVATION_OFFER_KIND)
+        .eq("status", "pending")
+
+      const { error: replyErr } = await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .insert({
+          user_id: row.user_id,
+          kind: ACCESS_REACTIVATION_OFFER_KIND,
+          status: "pending",
+          payload: {
+            ended_reason: reason,
+            upgrade_path: String(payload.upgrade_path ?? "/upgrade"),
+            source: "access_ended_notification",
+          },
+          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        })
+      if (replyErr) throw replyErr
+
+      await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .update({ status: "done", processed_at: new Date().toISOString() })
+        .eq("id", row.id)
+        .eq("status", "pending")
+
+      processed++
+    } catch (e) {
+      const status = (e as any)?.status
+      if (status === 429) continue
+      await params.supabaseAdmin
+        .from("whatsapp_pending_actions")
+        .update({ status: "cancelled", processed_at: new Date().toISOString() })
+        .eq("id", row.id)
+        .eq("status", "pending")
+    }
+  }
+
+  return processed
+}
+
 Deno.serve(async (req) => {
   const requestId = getRequestId(req)
   try {
@@ -516,6 +639,11 @@ Deno.serve(async (req) => {
       }
     }
 
+    const processedAccessBefore = await processPendingAccessEndedNotifications({
+      supabaseAdmin,
+      requestId,
+    })
+
     const processedQueuedBefore = await processPendingProactiveTemplateCandidates({
       supabaseAdmin,
       requestId,
@@ -532,6 +660,10 @@ Deno.serve(async (req) => {
     if (fetchError) throw fetchError
 
     if (!checkins || checkins.length === 0) {
+      const processedAccessAfter = await processPendingAccessEndedNotifications({
+        supabaseAdmin,
+        requestId,
+      })
       const processedQueuedAfter = await processPendingProactiveTemplateCandidates({
         supabaseAdmin,
         requestId,
@@ -541,6 +673,7 @@ Deno.serve(async (req) => {
         {
           message: "No checkins to process",
           flushed_deferred: flushedCount,
+          processed_access_notifications: processedAccessBefore + processedAccessAfter,
           processed_proactive_candidates: processedQueuedBefore + processedQueuedAfter,
           request_id: requestId,
         },
@@ -946,6 +1079,10 @@ Deno.serve(async (req) => {
       }
     }
 
+    const processedAccessAfter = await processPendingAccessEndedNotifications({
+      supabaseAdmin,
+      requestId,
+    })
     const processedQueuedAfter = await processPendingProactiveTemplateCandidates({
       supabaseAdmin,
       requestId,
@@ -957,6 +1094,7 @@ Deno.serve(async (req) => {
         success: true,
         processed: processedCount,
         flushed_deferred: flushedCount,
+        processed_access_notifications: processedAccessBefore + processedAccessAfter,
         processed_proactive_candidates: processedQueuedBefore + processedQueuedAfter,
         request_id: requestId,
       },

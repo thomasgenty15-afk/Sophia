@@ -388,7 +388,7 @@ export const ReflectionsTab: React.FC = () => {
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">Réflexions</h1>
           <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic mb-6">
-            "La pensée non examinée est comme une graine non plantée. Prends le temps de cultiver ton esprit."
+            "Une idée non écrite n'est qu'une intuition. Prends le temps de la structurer pour affûter ton esprit critique."
           </p>
 
           <button

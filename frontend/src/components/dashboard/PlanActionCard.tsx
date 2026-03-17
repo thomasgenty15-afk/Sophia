@@ -349,7 +349,7 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
                             if (onDeactivate) onDeactivate(action);
                             setIsDeactivateConfirmOpen(false);
                         }}
-                        className="flex-1 py-2.5 px-4 rounded-xl font-bold text-white bg-amber-500 hover:bg-amber-600 shadow-lg shadow-amber-200 transition-colors"
+                        className="flex-1 py-2.5 px-4 rounded-xl font-bold text-white bg-emerald-600 hover:bg-emerald-700 shadow-lg shadow-emerald-200 transition-colors"
                     >
                         Désactiver
                     </button>

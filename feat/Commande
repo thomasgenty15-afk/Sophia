@@ -650,7 +650,6 @@ Pour retrouver la conversation niveau bilan : To continue this session, run code
 
 Rsset bilan pour moi : 
 
-
  begin;
 
   delete from public.user_action_entries
@@ -671,6 +670,11 @@ Rsset bilan pour moi :
   delete from public.user_checkup_logs
   where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
     and completion_kind = 'full';
+
+  delete from public.chat_messages
+  where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
+    and scope = 'whatsapp'
+    and created_at >= '2026-03-16 15:00:00+00'::timestamptz;
 
   update public.user_chat_states
   set
@@ -710,8 +714,9 @@ Rsset bilan pour moi :
   where user_id = 'cf470156-f09d-47f9-88f5-492401304264'::uuid
     and status = 'active';
 
-  commit;
+  
 
+  commit;
   Pour lancer le bilan pour moi : 
 
   select
@@ -730,4 +735,3 @@ Rsset bilan pour moi :
         'user_ids', jsonb_build_array('cf470156-f09d-47f9-88f5-492401304264')
       )
     ) as request_id;
-    

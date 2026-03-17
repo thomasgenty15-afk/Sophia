@@ -678,6 +678,37 @@ Deno.serve(async (req)=>{
           });
           continue;
         }
+        // Pending actions first: they are explicit outstanding asks and must win over
+        // generic paywall or bilan logic.
+        logWebhookTrace({
+          requestId,
+          processId,
+          phase: "before_pending_handler",
+          startedAtMs: processStartedAtMs
+        });
+        const didHandlePending = await handlePendingActions({
+          admin,
+          userId: profile.id,
+          fromE164,
+          requestId: processId,
+          siteUrl: SITE_URL,
+          isOptInYes,
+          isCheckinYes,
+          isCheckinLater,
+          isEchoYes,
+          isEchoLater,
+          inboundText: msg.text ?? ""
+        });
+        logWebhookTrace({
+          requestId,
+          processId,
+          phase: "after_pending_handler",
+          startedAtMs: processStartedAtMs,
+          extra: {
+            handled: didHandlePending
+          }
+        });
+        if (didHandlePending) continue;
         // Paywall notice: if user messages on WhatsApp but is out of trial and not on Alliance/Architecte,
         // answer with a helpful upgrade message instead of running the coaching flows.
         // This avoids confusing "silent" failures when WhatsApp is gated by plan.
@@ -731,35 +762,6 @@ Deno.serve(async (req)=>{
             continue;
           }
         }
-        // Pending actions first: they are explicit outstanding asks and must win over generic bilan context.
-        logWebhookTrace({
-          requestId,
-          processId,
-          phase: "before_pending_handler",
-          startedAtMs: processStartedAtMs
-        });
-        const didHandlePending = await handlePendingActions({
-          admin,
-          userId: profile.id,
-          fromE164,
-          requestId: processId,
-          isOptInYes,
-          isCheckinYes,
-          isCheckinLater,
-          isEchoYes,
-          isEchoLater,
-          inboundText: msg.text ?? ""
-        });
-        logWebhookTrace({
-          requestId,
-          processId,
-          phase: "after_pending_handler",
-          startedAtMs: processStartedAtMs,
-          extra: {
-            handled: didHandlePending
-          }
-        });
-        if (didHandlePending) continue;
         // Opt-in + daily bilan fast paths (may send messages / update state) AFTER inbound is logged.
         logWebhookTrace({
           requestId,

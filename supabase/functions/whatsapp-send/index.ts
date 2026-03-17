@@ -60,6 +60,20 @@ function normalizeToE164(input: string): string {
 
 function getFallbackTemplate(purpose: string | undefined) {
   const p = (purpose ?? "").trim()
+  if (p === "end_trial") {
+    return {
+      name: (Deno.env.get("WHATSAPP_END_TRIAL_TEMPLATE_NAME") ?? "end_trial_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_END_TRIAL_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: true,
+    }
+  }
+  if (p === "end_subscription") {
+    return {
+      name: (Deno.env.get("WHATSAPP_END_SUBSCRIPTION_TEMPLATE_NAME") ?? "end_subscription_v1").trim(),
+      language: (Deno.env.get("WHATSAPP_END_SUBSCRIPTION_TEMPLATE_LANG") ?? "fr").trim(),
+      injectBodyNameParam: true,
+    }
+  }
   if (p === "recurring_reminder") {
     return {
       name: (Deno.env.get("WHATSAPP_RECURRING_REMINDER_TEMPLATE_NAME") ?? "sophia_reminder_consent_v1_").trim(),
@@ -216,11 +230,13 @@ Deno.serve(async (req) => {
     const trialEndRaw = String((profile as any).trial_end ?? "").trim()
     const trialEndTs = trialEndRaw ? new Date(trialEndRaw).getTime() : NaN
     const inTrial = Number.isFinite(trialEndTs) ? Date.now() < trialEndTs : false
+  const purpose = String(body.purpose ?? "").trim()
+  const isLifecycleAccessMessage = purpose === "end_trial" || purpose === "end_subscription"
 
     // Plan gating: WhatsApp is available only on Alliance + Architecte.
     // This prevents "System" users from receiving proactive WhatsApp messages.
     // In MEGA test mode we keep behavior permissive to avoid flakiness.
-    if (!isMegaTestMode() && !inTrial) {
+  if (!isMegaTestMode() && !inTrial && !isLifecycleAccessMessage) {
       const tier = await getEffectiveTierForUser(admin, body.user_id)
       if (tier !== "alliance" && tier !== "architecte") {
         return jsonResponse(
@@ -238,7 +254,6 @@ Deno.serve(async (req) => {
     const now = Date.now()
     const isConversationRecent = lastInbound != null && now - lastInbound <= 10 * 60 * 60 * 1000
     const isProactive = !isConversationRecent
-    const purpose = String(body.purpose ?? "").trim()
     const templatePolicyPriority = proactiveTemplatePriorityForPurpose(purpose)
 
     // Throttle only when proactive (per spec)

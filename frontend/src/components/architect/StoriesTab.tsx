@@ -153,31 +153,32 @@ const buildSophiaReply = (story: Story, prompt: string) => {
   const hasTags = story.topicTags.length > 0;
 
   if (normalizedPrompt.includes('accroche') || normalizedPrompt.includes('intro')) {
-    return "Commence par une image concrete ou une scene precise. L'accroche doit donner envie d'entrer dans ton histoire en moins de dix secondes.";
+    return "Commence par une image concrète ou une scène précise. L'accroche doit donner envie d'entrer dans ton histoire en moins de dix secondes.";
   }
 
-  if (normalizedPrompt.includes('lecon') || normalizedPrompt.includes('morale')) {
-    return "Ta lecon doit etre simple, humaine et transferable. Demande-toi : qu'est-ce que cette histoire fait comprendre ou ressentir a l'autre ?";
+  if (normalizedPrompt.includes('leçon') || normalizedPrompt.includes('morale')) {
+    return "Ta leçon doit être simple, humaine et transférable. Demande-toi : qu'est-ce que cette histoire fait comprendre ou ressentir à l'autre ?";
   }
 
   if (!hasTitle) {
-    return "Commence par nommer l'histoire comme une promesse ou une tension. Un bon titre aide deja Sophia a comprendre l'angle de communication.";
+    return "Commence par nommer l'histoire comme une promesse ou une tension. Un bon titre aide déjà Sophia à comprendre l'angle de communication.";
   }
 
   if (filledBullets.length < 3) {
-    return "Tu peux renforcer ton histoire avec 4 temps simples : contexte, rupture, bascule, transformation. Note-les d'abord en bullet points, puis affine le recit.";
+    return "Tu peux renforcer ton histoire avec 4 temps simples : contexte, rupture, bascule, transformation. Note-les d'abord en bullet points, puis affine le récit.";
   }
 
   if (!hasTags) {
-    return "Ajoute 2 ou 3 tags d'usage, par exemple leadership, resilience, vente, famille, humour. Cela t'aidera a retrouver rapidement la bonne histoire au bon moment.";
+    return "Ajoute 2 ou 3 tags d'usage, par exemple leadership, résilience, vente, famille, humour. Cela t'aidera à retrouver rapidement la bonne histoire au bon moment.";
   }
 
-  return "Ton brouillon commence a devenir exploitable. Maintenant, verifie surtout : quelle emotion on ressent, quelle idee tu veux transmettre, et dans quel contexte tu pourras reutiliser cette histoire.";
+  return "Ton brouillon commence à devenir exploitable. Maintenant, vérifie surtout : quelle émotion on ressent, quelle idée tu veux transmettre, et dans quel contexte tu pourras réutiliser cette histoire.";
 };
 
 export const StoriesTab: React.FC = () => {
   const { user } = useAuth();
   const [showExplanation, setShowExplanation] = useState(false);
+  const [showWhy, setShowWhy] = useState(false);
   const [showMobileSophia, setShowMobileSophia] = useState(false);
   const [showMobileSophiaDetails, setShowMobileSophiaDetails] = useState(false);
   const [stories, setStories] = useState<Story[]>([]);
@@ -195,7 +196,7 @@ export const StoriesTab: React.FC = () => {
     {
       id: 1,
       sender: 'ai',
-      text: "Je peux t'aider a transformer un episode vecu en histoire utile pour parler, convaincre ou inspirer. On part de ton reel, pas d'une histoire inventee. Commence par me donner le contexte ou l'emotion cle.",
+      text: "Je peux t'aider à transformer un épisode vécu en histoire utile pour parler, convaincre ou inspirer. On part de ton réel, pas d'une histoire inventée. Commence par me donner le contexte ou l'émotion clé.",
     },
   ]);
 
@@ -268,7 +269,7 @@ export const StoriesTab: React.FC = () => {
       {
         id: 1,
         sender: 'ai',
-        text: "Nouvelle histoire. Je vais t'aider a structurer un episode de ton vecu pour qu'il soit clair, memorable et reutilisable dans tes conversations.",
+        text: "Nouvelle histoire. Je vais t'aider à structurer un épisode de ton vécu pour qu'il soit clair, mémorable et réutilisable dans tes conversations.",
       },
     ]);
     setIsModalOpen(true);
@@ -286,7 +287,7 @@ export const StoriesTab: React.FC = () => {
       {
         id: 1,
         sender: 'ai',
-        text: "Je vois deja la base de ton histoire. On peut maintenant affiner ce vecu pour qu'il soit plus clair, plus vivant et plus utile en communication.",
+        text: "Je vois déjà la base de ton histoire. On peut maintenant affiner ce vécu pour qu'il soit plus clair, plus vivant et plus utile en communication.",
       },
     ]);
     setIsModalOpen(true);
@@ -306,7 +307,7 @@ export const StoriesTab: React.FC = () => {
 
   const addBulletPoint = () => {
     if (draftStory.bulletPoints.length >= MAX_BULLET_POINTS) {
-      setStatusMsg(`Une histoire peut contenir jusqu'a ${MAX_BULLET_POINTS} bullet points.`);
+      setStatusMsg(`Une histoire peut contenir jusqu'à ${MAX_BULLET_POINTS} bullet points.`);
       return;
     }
     setStatusMsg(null);
@@ -329,7 +330,7 @@ export const StoriesTab: React.FC = () => {
     if (!value) return;
 
     if (draftStory.topicTags.length >= MAX_TOPIC_TAGS) {
-      setStatusMsg(`Une histoire peut contenir jusqu'a ${MAX_TOPIC_TAGS} tags.`);
+      setStatusMsg(`Une histoire peut contenir jusqu'à ${MAX_TOPIC_TAGS} tags.`);
       return;
     }
 
@@ -513,69 +514,75 @@ export const StoriesTab: React.FC = () => {
             &quot;Ici, tu ne crées pas de fiction. Tu transformes ton vécu en histoires transmissibles, utiles et incarnées.&quot;
           </p>
 
-          <div className="mb-6 rounded-3xl border border-amber-700/50 bg-gradient-to-br from-amber-900/30 via-amber-950/20 to-orange-900/10 p-5 md:p-6 text-left shadow-lg shadow-amber-950/20">
-            <div className="flex items-start gap-3 mb-4">
-              <div className="rounded-2xl bg-amber-500/15 p-2.5 text-amber-300 shrink-0">
-                <Sparkles className="w-5 h-5" />
-              </div>
-              <div>
-                <h2 className="text-base md:text-lg font-bold text-amber-50">
-                  Pourquoi travailler ses histoires change vraiment quelque chose
-                </h2>
-                <p className="text-sm text-amber-200/80 mt-1">
-                  C&apos;est une manière de mieux comprendre ce que tu as vécu, puis d&apos;en parler plus clairement.
-                </p>
-              </div>
+          <div className="flex flex-col gap-4 mb-8">
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowWhy(!showWhy)}
+                className="text-xs font-bold uppercase tracking-widest text-emerald-500 hover:text-emerald-400 flex items-center justify-center gap-2 mx-auto transition-colors"
+              >
+                {showWhy ? 'Masquer' : 'À quoi ça sert ?'}
+                {showWhy ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
+
+              {showWhy && (
+                <div className="mt-4 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
+                  <p className="mb-6">
+                    C&apos;est une manière de mieux comprendre ce que tu as vécu, puis d&apos;en parler plus clairement.
+                  </p>
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <div className="rounded-2xl border border-emerald-800/40 bg-emerald-950/35 p-4">
+                      <div className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-2">
+                        Pour toi d&apos;abord
+                      </div>
+                    <p className="text-sm text-emerald-50/85 leading-relaxed">
+                      Mettre ton vécu en histoire t&apos;aide à prendre du recul, à comprendre ce qui s&apos;est vraiment joué, à retenir les leçons et surtout à être capable de mieux en parler.
+                    </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-emerald-800/40 bg-emerald-950/35 p-4">
+                      <div className="text-xs font-bold uppercase tracking-widest text-emerald-400 mb-2">
+                        Et ensuite pour les autres
+                      </div>
+                    <p className="text-sm text-emerald-50/85 leading-relaxed">
+                      Quand tu arrives à mieux en parler, les autres comprennent plus vite qui tu es, ce que tu as traversé et ce que tu veux transmettre. Tes histoires créent alors naturellement de l&apos;attention, de la confiance, de la connexion et de la mémorisation.
+                    </p>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="rounded-2xl border border-amber-800/40 bg-amber-950/35 p-4">
-                <div className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
-                  Pour toi d&apos;abord
-                </div>
-                <p className="text-sm text-amber-50/85 leading-relaxed">
-                  Mettre ton vécu en histoire t&apos;aide a prendre du recul, a comprendre ce qui s&apos;est vraiment joué, a retenir les leçons et surtout a être capable de mieux en parler.
-                </p>
-              </div>
+            <div>
+              <button
+                type="button"
+                onClick={() => setShowExplanation(!showExplanation)}
+                className="text-xs font-bold uppercase tracking-widest text-emerald-500 hover:text-emerald-400 flex items-center justify-center gap-2 mx-auto transition-colors"
+              >
+                {showExplanation ? 'Masquer les explications' : 'Comment utiliser cet espace'}
+                {showExplanation ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+              </button>
 
-              <div className="rounded-2xl border border-amber-800/40 bg-amber-950/35 p-4">
-                <div className="text-xs font-bold uppercase tracking-widest text-amber-400 mb-2">
-                  Et ensuite pour les autres
-                </div>
-                <p className="text-sm text-amber-50/85 leading-relaxed">
-                  Quand tu arrives a mieux en parler, les autres comprennent plus vite qui tu es, ce que tu as traversé et ce que tu veux transmettre. Tes histoires créent alors naturellement de l&apos;attention, de la confiance, de la connexion et de la mémorisation.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={() => setShowExplanation(!showExplanation)}
-            className="text-xs font-bold uppercase tracking-widest text-emerald-500 hover:text-emerald-400 flex items-center justify-center gap-2 mx-auto transition-colors"
-          >
-            {showExplanation ? 'Masquer les explications' : 'Comment utiliser cet espace'}
-            {showExplanation ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-          </button>
-
-          {showExplanation && (
-            <div className="mt-6 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
+              {showExplanation && (
+                <div className="mt-4 p-6 bg-emerald-900/20 border border-emerald-800/50 rounded-2xl text-left text-emerald-100/80 text-sm leading-relaxed max-w-2xl mx-auto animate-fade-in">
               <p className="mb-3">
-                Cet espace est reserve a des histoires ancrees dans ton vécu reel. Le but n&apos;est pas
-                d&apos;inventer des recits, mais de capturer des episodes que tu as vraiment traverses pour pouvoir
+                Cet espace est réservé à des histoires ancrées dans ton vécu réel. Le but n&apos;est pas
+                d&apos;inventer des récits, mais de capturer des épisodes que tu as vraiment traversés pour pouvoir
                 les raconter avec justesse.
               </p>
               <p className="mb-3">
                 Note ici les situations, les tournants, les erreurs, les prises de conscience et les moments
-                marquants que tu peux reutiliser dans une conversation, un rendez-vous, une prise de parole, un
+                marquants que tu peux réutiliser dans une conversation, un rendez-vous, une prise de parole, un
                 contenu, un podcast, une vente ou un moment important de ta vie.
               </p>
               <p>
-                Sophia t&apos;aide ensuite a clarifier l&apos;angle, l&apos;emotion, la lecon et le contexte d&apos;usage pour
+                Sophia t&apos;aide ensuite à clarifier l&apos;angle, l&apos;émotion, la leçon et le contexte d&apos;usage pour
                 transformer ce vécu en histoire claire, solide et vraiment exploitable.
               </p>
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
       </div>
 
@@ -639,7 +646,7 @@ export const StoriesTab: React.FC = () => {
                 <>
                   <h3 className="text-xl md:text-2xl font-serif font-bold text-emerald-100 mb-2 md:mb-3">Aucune histoire pour le moment</h3>
                   <p className="text-sm md:text-base text-emerald-400 max-w-sm mx-auto mb-6 md:mb-8">
-                    Commence par documenter une experience forte que tu aimerais pouvoir raconter dans le bon contexte.
+                    Commence par documenter une expérience forte que tu aimerais pouvoir raconter dans le bon contexte.
                   </p>
                   <button
                     type="button"
@@ -815,7 +822,7 @@ export const StoriesTab: React.FC = () => {
                           type="text"
                           value={bullet}
                           onChange={(e) => updateBulletPoint(index, e.target.value)}
-                          placeholder={`Point cle ${index + 1}`}
+                          placeholder={`Point clé ${index + 1}`}
                           className="flex-1 bg-transparent border-b border-emerald-800/50 py-2 text-emerald-50 placeholder-emerald-600/70 focus:outline-none focus:border-emerald-500"
                         />
                         <button
@@ -955,7 +962,7 @@ export const StoriesTab: React.FC = () => {
                 </div>
 
                 <div className="mt-4 flex flex-wrap gap-2">
-                  {['Trouve une accroche', 'Clarifie la lecon', 'Rends-la plus memorable', "Ou l'utiliser ?"].map((suggestion) => (
+                          {['Trouve une accroche', 'Clarifie la leçon', 'Rends-la plus mémorable', "Où l'utiliser ?"].map((suggestion) => (
                     <button
                       key={suggestion}
                       type="button"
@@ -1058,7 +1065,7 @@ export const StoriesTab: React.FC = () => {
                       </div>
 
                       <div className="px-4 pb-4 flex flex-wrap gap-2">
-                        {['Trouve une accroche', 'Clarifie la lecon', 'Rends-la plus memorable', "Ou l'utiliser ?"].map((suggestion) => (
+                          {['Trouve une accroche', 'Clarifie la leçon', 'Rends-la plus mémorable', "Où l'utiliser ?"].map((suggestion) => (
                           <button
                             key={suggestion}
                             type="button"
