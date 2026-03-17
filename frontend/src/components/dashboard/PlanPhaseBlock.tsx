@@ -59,36 +59,49 @@ export const PlanPhaseBlock = ({
       </div>
 
       {/* En-tête Phase */}
-      <div className="mb-6 mt-1 flex items-start justify-between">
-        <div>
-            <h3 className={`text-sm min-[350px]:text-base font-bold uppercase tracking-wide ${isActive ? 'text-emerald-700' : isPhaseLocked ? 'text-gray-400' : 'text-emerald-900'
-            }`}>
-            {phase.title}
-            </h3>
-            <p className="text-xs min-[350px]:text-sm text-gray-400">{phase.subtitle}</p>
+      <div className="mb-6 mt-1">
+        <div className="flex items-start justify-between">
+          <div>
+              <h3 className={`text-sm min-[350px]:text-base font-bold uppercase tracking-wide ${isActive ? 'text-emerald-700' : isPhaseLocked ? 'text-gray-400' : 'text-emerald-900'
+              }`}>
+              {phase.title}
+              </h3>
+              <p className="text-xs min-[350px]:text-sm text-gray-400">{phase.subtitle}</p>
+          </div>
+          
+          {/* Badge indiquant que la phase est verrouillée car phases précédentes non complètes */}
+          {isPhaseLocked && !onUnlockPhase && (
+              <div className="relative group">
+                <button 
+                  type="button"
+                  className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-400 text-[10px] font-medium rounded-lg hover:bg-gray-100 transition-colors focus:outline-none focus:ring-2 focus:ring-gray-200"
+                >
+                    <Lock className="w-3 h-3" />
+                    <span className="hidden min-[350px]:inline">Verrouillé</span>
+                </button>
+                
+                {/* Tooltip (bulle) au hover ET au focus (pour mobile) */}
+                <div className="absolute bottom-full right-0 mb-2 w-48 p-2 bg-slate-800 text-white text-[10px] rounded-lg shadow-xl opacity-0 invisible group-hover:opacity-100 group-hover:visible group-focus-within:opacity-100 group-focus-within:visible transition-all duration-200 z-50 text-center pointer-events-none">
+                  Débloquez les phases précédentes pour activer {phase.title.toLowerCase()}.
+                  {/* Petite flèche en bas de la bulle */}
+                  <div className="absolute -bottom-1 right-6 w-2 h-2 bg-slate-800 rotate-45" />
+                </div>
+              </div>
+          )}
         </div>
-        
-        {/* Bouton Unlock Manuel de PHASE */}
+
+        {/* Bouton Unlock Manuel de PHASE (En dessous du titre) */}
         {isPhaseLocked && onUnlockPhase && (
             <button 
                 onClick={onUnlockPhase}
-                className="group relative px-4 py-2 bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white text-xs font-bold uppercase tracking-wider rounded-xl flex items-center gap-2 transition-all shadow-md hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+                className="mt-3 group relative px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 border border-indigo-200 text-xs font-medium rounded-xl flex items-center justify-center gap-2 transition-all w-full sm:w-auto"
             >
-                <div className="absolute inset-0 rounded-xl bg-white/20 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <Lock className="w-3.5 h-3.5 group-hover:hidden transition-all" />
                 <svg className="w-3.5 h-3.5 hidden group-hover:block transition-all" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M8 11V7a4 4 0 118 0m-4 8v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2z" />
                 </svg>
-                <span className="relative z-10">débloquer</span>
+                <span className="relative z-10">Débloquer la phase</span>
             </button>
-        )}
-        
-        {/* Badge indiquant que la phase est verrouillée car phases précédentes non complètes */}
-        {isPhaseLocked && !onUnlockPhase && (
-            <div className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 text-gray-400 text-[10px] font-medium rounded-lg">
-                <Lock className="w-3 h-3" />
-                <span>Activer les phases précédentes</span>
-            </div>
         )}
       </div>
 

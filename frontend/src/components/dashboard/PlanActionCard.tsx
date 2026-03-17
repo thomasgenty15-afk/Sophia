@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { 
   Sword, Shield, Zap, FileText, CheckCircle2, Sparkles, 
-  FastForward, PlusCircle, Check, LifeBuoy, Edit3, Lock, Settings, Trash2, PauseCircle
+  FastForward, PlusCircle, Check, LifeBuoy, Edit3, Lock, Settings, Trash2, PauseCircle, ChevronDown, ChevronUp
 } from 'lucide-react';
 import type { Action } from '../../types/dashboard';
 import { isSameIsoWeekLocal } from '../../lib/isoWeek';
@@ -36,6 +36,8 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const [isDeactivateConfirmOpen, setIsDeactivateConfirmOpen] = useState(false);
   const isCompletedStatus = action.status === 'completed' || action.isCompleted;
+
+  const [isRationaleExpanded, setIsRationaleExpanded] = useState(false);
 
   // Sync state with props when they change (e.g. after DB update)
   useEffect(() => {
@@ -157,12 +159,36 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
 
           {/* EXPLICATION STRATEGIQUE (RATIONALE) SI PRESENTE */}
           {action.rationale && (
-            <div className="bg-amber-50 border border-amber-100 rounded-lg p-2 min-[330px]:p-3 mb-3 text-[10px] min-[330px]:text-xs min-[350px]:text-sm text-amber-900 relative">
-              <div className="absolute -top-2 -left-2 bg-amber-100 rounded-full p-1">
-                <Sparkles className="w-2.5 h-2.5 min-[330px]:w-3 min-[330px]:h-3 text-amber-600" />
-              </div>
-              <span className="font-bold text-amber-700 block mb-0.5 uppercase text-[9px] min-[330px]:text-[10px] min-[350px]:text-xs tracking-wide">Pourquoi ça t'aide :</span>
-              {action.rationale}
+            <div className="bg-amber-50 border border-amber-100 rounded-lg mb-3 relative overflow-hidden">
+              <button 
+                onClick={() => setIsRationaleExpanded(!isRationaleExpanded)}
+                className="w-full p-2 min-[330px]:p-3 flex items-start justify-between gap-2 text-left"
+              >
+                <div className="flex items-start gap-2">
+                  <div className="bg-amber-100 rounded-full p-1 shrink-0 mt-0.5">
+                    <Sparkles className="w-2.5 h-2.5 min-[330px]:w-3 min-[330px]:h-3 text-amber-600" />
+                  </div>
+                  <div>
+                    <span className="font-bold text-amber-700 block uppercase text-[9px] min-[330px]:text-[10px] min-[350px]:text-xs tracking-wide">
+                      Pourquoi ça t'aide
+                    </span>
+                    {!isRationaleExpanded && (
+                      <p className="text-[10px] min-[330px]:text-xs min-[350px]:text-sm text-amber-900 mt-0.5 line-clamp-1">
+                        {action.rationale}
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="text-amber-500 shrink-0 mt-0.5">
+                  {isRationaleExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                </div>
+              </button>
+              
+              {isRationaleExpanded && (
+                <div className="px-2 min-[330px]:px-3 pb-2 min-[330px]:pb-3 pt-0 text-[10px] min-[330px]:text-xs min-[350px]:text-sm text-amber-900 animate-fade-in pl-8 min-[330px]:pl-9">
+                  {action.rationale}
+                </div>
+              )}
             </div>
           )}
 
@@ -259,9 +285,9 @@ export const PlanActionCard = ({ action, isLocked, isPending, canActivate = true
         </div>
       </div>
 
-      {/* Help / Settings Menu (Repositionné pour Mobile) */}
+      {/* Help / Settings Menu (Toujours en haut à droite) */}
       {!isLocked && !isCompletedStatus && !isChecked && (
-        <div className="flex justify-center mt-2 min-[350px]:absolute min-[350px]:top-3 min-[350px]:right-3 min-[350px]:mt-0 z-30">
+        <div className="absolute top-3 right-3 z-30">
           <button
             onClick={() => setIsMenuOpen(!isMenuOpen)}
             className="text-slate-300 hover:text-slate-600 hover:bg-slate-100 p-1 rounded-full transition-all"
