@@ -1,6 +1,8 @@
 import {
+  buildGlobalMemorySemanticSnapshot,
   formatGlobalMemoriesForPrompt,
   sanitizeGlobalMemoryCandidate,
+  shouldCompactGlobalMemory,
 } from "./global_memory.ts";
 
 function assert(cond: unknown, msg?: string) {
@@ -62,6 +64,10 @@ Deno.test("formatGlobalMemoriesForPrompt: renders structured block", () => {
       pending_count: 0,
       pending_chars: 0,
       confidence: 0.82,
+      semantic_snapshot:
+        "Sous-thème global: Psychologie > Discipline\nRésumé consolidé: La discipline est un axe de transformation central.",
+      needs_compaction: false,
+      needs_embedding_refresh: false,
       summary_compacted_at: "2026-03-17T10:00:00.000Z",
       first_observed_at: "2026-03-16T10:00:00.000Z",
       last_observed_at: "2026-03-17T10:00:00.000Z",
@@ -79,4 +85,57 @@ Deno.test("formatGlobalMemoriesForPrompt: renders structured block", () => {
     "missing human-readable labels",
   );
   assert(block.includes("Faits saillants"), "missing facts section");
+});
+
+Deno.test("buildGlobalMemorySemanticSnapshot: includes stable semantic sections", () => {
+  const snapshot = buildGlobalMemorySemanticSnapshot({
+    full_key: "psychologie.discipline",
+    canonical_summary:
+      "La discipline reste un axe de transformation durable et récurrent.",
+    facts: ["Il revient souvent sur le contrôle des impulsions."],
+    inferences: ["La rigueur semble liée à l'identité qu'il vise."],
+    active_issues: ["L'exécution reste irrégulière par moments."],
+    goals: ["Construire une discipline stable."],
+    open_questions: ["La stabilité récente est-elle durable ?"],
+    supporting_topic_slugs: ["discipline_personnelle", "controle_impulsions"],
+    pending_updates: [
+      {
+        at: "2026-03-18T10:00:00.000Z",
+        source_type: "chat",
+        summary_delta: "Il reparle d'une reprise stricte de ses routines.",
+        facts: [],
+        inferences: [],
+        active_issues: [],
+        goals: [],
+        open_questions: [],
+        supporting_topic_slugs: [],
+        confidence: 0.8,
+      },
+    ],
+  });
+
+  assert(snapshot.includes("Psychologie > Discipline"), "missing taxonomy labels");
+  assert(snapshot.includes("Résumé consolidé"), "missing summary section");
+  assert(snapshot.includes("Éléments récents"), "missing recent updates section");
+});
+
+Deno.test("shouldCompactGlobalMemory: triggers on pending thresholds", () => {
+  assert(
+    shouldCompactGlobalMemory({
+      pending_count: 5,
+      pending_chars: 300,
+      canonical_summary: "Résumé court",
+      needs_compaction: false,
+    }),
+    "pending_count threshold should trigger compaction",
+  );
+  assert(
+    shouldCompactGlobalMemory({
+      pending_count: 0,
+      pending_chars: 0,
+      canonical_summary: "Résumé court",
+      needs_compaction: true,
+    }),
+    "explicit flag should trigger compaction",
+  );
 });

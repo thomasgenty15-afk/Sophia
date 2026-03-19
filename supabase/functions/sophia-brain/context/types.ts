@@ -91,6 +91,7 @@ export interface LoadedContext {
   dashboardCapabilitiesAddon?: string;
   dashboardPreferencesIntentAddon?: string;
   dashboardRecurringReminderIntentAddon?: string;
+  surfaceOpportunityAddon?: string;
   safetyActiveAddon?: string;
   deferredUserPref?: string;
   injectedContext?: string;

@@ -9,6 +9,7 @@ import {
   proactiveTemplatePriorityForPurpose,
   PROACTIVE_TEMPLATE_CANDIDATE_KIND,
 } from "../_shared/proactive_template_queue.ts"
+import { computeNextRetryAtIso } from "../_shared/whatsapp_outbound_tracking.ts"
 import {
   ACCESS_ENDED_NOTIFICATION_KIND,
   ACCESS_REACTIVATION_OFFER_KIND,
@@ -45,22 +46,63 @@ async function callWhatsappSend(payload: unknown) {
   const secret = internalSecret()
   if (!secret) throw new Error("Missing INTERNAL_FUNCTION_SECRET")
   const url = `${functionsBaseUrl()}/functions/v1/whatsapp-send`
-  const res = await fetch(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "X-Internal-Secret": secret,
-    },
-    body: JSON.stringify(payload),
-  })
-  const data = await res.json().catch(() => ({}))
-  if (!res.ok) {
-    const err = new Error(`whatsapp-send failed (${res.status}): ${JSON.stringify(data)}`)
-    ;(err as any).status = res.status
-    ;(err as any).data = data
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Internal-Secret": secret,
+      },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json().catch(() => ({}))
+    if (!res.ok) {
+      const err = new Error(`whatsapp-send failed (${res.status}): ${JSON.stringify(data)}`)
+      ;(err as any).status = res.status
+      ;(err as any).data = data
+      throw err
+    }
+    return data
+  } catch (error) {
+    if ((error as any)?.status != null) throw error
+    const err = new Error(`whatsapp-send internal request failed: ${(error as any)?.message ?? String(error)}`)
+    ;(err as any).status = null
+    ;(err as any).data = null
     throw err
   }
-  return data
+}
+
+function shouldRetryScheduledCheckinDelivery(status: number | null | undefined): boolean {
+  if (status == null) return true
+  if (status === 429) return true
+  if (status >= 500) return true
+  return false
+}
+
+async function markScheduledCheckinDeliveryState(params: {
+  supabaseAdmin: ReturnType<typeof createClient>
+  checkinId: string
+  status: "retrying" | "failed" | "awaiting_user" | "sent" | "cancelled"
+  attemptCount?: number | null
+  scheduledFor?: string | null
+  errorMessage?: string | null
+  requestId?: string | null
+}) {
+  const patch: Record<string, unknown> = {
+    status: params.status,
+    processed_at: new Date().toISOString(),
+  }
+  if (params.attemptCount != null) patch.delivery_attempt_count = params.attemptCount
+  if (params.scheduledFor != null) patch.scheduled_for = params.scheduledFor
+  if (params.errorMessage !== undefined) {
+    patch.delivery_last_error = params.errorMessage
+    patch.delivery_last_error_at = params.errorMessage ? new Date().toISOString() : null
+  }
+  if (params.requestId !== undefined) patch.delivery_last_request_id = params.requestId
+  await params.supabaseAdmin
+    .from("scheduled_checkins")
+    .update(patch as any)
+    .eq("id", params.checkinId)
 }
 
 function getRecurringReminderIdFromEventContext(eventContext: string): string | null {
@@ -649,11 +691,11 @@ Deno.serve(async (req) => {
       requestId,
     })
 
-    // 1. Fetch pending checkins that are due
+    // 1. Fetch due checkins, including transiently retrying ones.
     const { data: checkins, error: fetchError } = await supabaseAdmin
       .from('scheduled_checkins')
-      .select('id, user_id, draft_message, event_context, message_mode, message_payload')
-      .eq('status', 'pending')
+      .select('id, user_id, draft_message, event_context, message_mode, message_payload, delivery_attempt_count')
+      .in('status', ['pending', 'retrying'])
       .lte('scheduled_for', new Date().toISOString())
       .limit(50) // Batch size limit
 
@@ -816,6 +858,7 @@ Deno.serve(async (req) => {
             admin: supabaseAdmin as any,
             userId: checkin.user_id,
             eventContext: String((checkin as any)?.event_context ?? "check-in"),
+            scheduledFor: String((checkin as any)?.scheduled_for ?? ""),
             instruction: String(payload?.instruction ?? payload?.note ?? ""),
             eventGrounding: String(payload?.event_grounding ?? ""),
             requestId,
@@ -856,6 +899,7 @@ Deno.serve(async (req) => {
       const recurringReminderNeedsTemplate = Boolean(recurringReminderId) && !in24hConversationWindow
       let recurringReminderQuotaConsumed = false
       let recurringReminderQuotaMonthKey: string | null = null
+      const attemptCount = Math.max(1, Number((checkin as any)?.delivery_attempt_count ?? 0) + 1)
 
       if (recurringReminderNeedsTemplate) {
         const { data: reminder } = await supabaseAdmin
@@ -952,15 +996,23 @@ Deno.serve(async (req) => {
           }
         }
         if (skipped) {
-          await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({ status: "cancelled", processed_at: new Date().toISOString() })
-            .eq("id", checkin.id)
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "cancelled",
+            attemptCount,
+            errorMessage: String((resp as any)?.skip_reason ?? "scheduled_checkin_skipped"),
+            requestId: String((resp as any)?.request_id ?? requestId),
+          })
           continue
         }
       } catch (e) {
         const status = (e as any)?.status
         const msg = e instanceof Error ? e.message : String(e)
+        const downstreamData = (e as any)?.data ?? null
+        const downstreamRequestId = typeof downstreamData?.request_id === "string"
+          ? String(downstreamData.request_id)
+          : requestId
         if (recurringReminderQuotaConsumed && recurringReminderQuotaMonthKey) {
           try {
             await releaseMonthlyWhatsappQuota({
@@ -976,19 +1028,45 @@ Deno.serve(async (req) => {
             )
           }
         }
-        // 429 throttle => retry later, keep pending.
-        if (status === 429) {
-          console.warn(`[process-checkins] request_id=${requestId} throttled checkin_id=${checkin.id}`)
+        await logEdgeFunctionError({
+          functionName: "process-checkins",
+          error: msg,
+          requestId,
+          userId: checkin.user_id,
+          source: "whatsapp",
+          metadata: {
+            checkin_id: checkin.id,
+            event_context: checkin.event_context,
+            checkin_purpose: checkinPurpose,
+            downstream_status: status ?? null,
+            downstream_request_id: downstreamRequestId,
+            downstream_error: downstreamData,
+          },
+        })
+        if (shouldRetryScheduledCheckinDelivery(status)) {
+          const nextRetryAt = computeNextRetryAtIso(attemptCount)
+          console.warn(`[process-checkins] request_id=${requestId} retrying_checkin checkin_id=${checkin.id} next_retry_at=${nextRetryAt}`)
+          await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "retrying",
+            attemptCount,
+            scheduledFor: nextRetryAt,
+            errorMessage: msg,
+            requestId: downstreamRequestId,
+          })
           continue
         }
-        // 409 not opted in / phone invalid => fall back to in-app log.
-        if (status === 409) {
-          sentViaWhatsapp = false
-        } else {
-          console.error(`[process-checkins] request_id=${requestId} whatsapp_send_failed checkin_id=${checkin.id}`, msg)
-          // fall back to in-app log on any other error
-          sentViaWhatsapp = false
-        }
+        console.error(`[process-checkins] request_id=${requestId} whatsapp_send_failed checkin_id=${checkin.id}`, msg)
+        await markScheduledCheckinDeliveryState({
+          supabaseAdmin,
+          checkinId: checkin.id,
+          status: "failed",
+          attemptCount,
+          errorMessage: msg,
+          requestId: downstreamRequestId,
+        })
+        continue
       }
 
       // If we had to use a template, we are outside the 24h window. We now wait for an explicit "Oui".
@@ -1025,51 +1103,43 @@ Deno.serve(async (req) => {
 
         if (pendErr) {
           console.error(`[process-checkins] request_id=${requestId} pending_insert_failed checkin_id=${checkin.id}`, pendErr)
-          // fall back to marking as sent to avoid infinite loop
+          await logEdgeFunctionError({
+            functionName: "process-checkins",
+            error: pendErr,
+            requestId,
+            userId: checkin.user_id,
+            source: "whatsapp",
+            metadata: {
+              checkin_id: checkin.id,
+              event_context: checkin.event_context,
+              checkin_purpose: checkinPurpose,
+              stage: "pending_action_insert",
+            },
+          })
+          // The template already went out on WhatsApp, so keep a terminal sent state.
         } else {
-          const { error: stErr } = await supabaseAdmin
-            .from("scheduled_checkins")
-            .update({ status: "awaiting_user" })
-            .eq("id", checkin.id)
+          const stErr = await markScheduledCheckinDeliveryState({
+            supabaseAdmin,
+            checkinId: checkin.id,
+            status: "awaiting_user",
+            attemptCount,
+            errorMessage: null,
+            requestId,
+          }).catch((error) => error)
           if (stErr) console.error(`[process-checkins] request_id=${requestId} mark_awaiting_failed checkin_id=${checkin.id}`, stErr)
           continue
         }
       }
 
-      // For bilan reschedules: log with purpose "daily_bilan" so the user's response
-      // gets intercepted by the bilan flow (hasBilanContext checks for this purpose).
-      if (!sentViaWhatsapp) {
-        // Use bodyText (which includes dynamically generated message) instead of draft_message
-        const { error: msgError } = await supabaseAdmin
-          .from('chat_messages')
-          .insert({
-            user_id: checkin.user_id,
-            role: 'assistant',
-            content: bodyText,
-            agent_used: 'companion',
-            metadata: {
-              channel: "whatsapp",
-              source: 'scheduled_checkin',
-              event_context: checkin.event_context,
-              original_checkin_id: checkin.id,
-              purpose: checkinPurpose,
-            }
-          })
-
-        if (msgError) {
-          console.error(`[process-checkins] request_id=${requestId} log_failed checkin_id=${checkin.id}`, msgError)
-          continue
-        }
-      }
-
       // 3. Mark as sent
-      const { error: updateError } = await supabaseAdmin
-        .from('scheduled_checkins')
-        .update({
-          status: 'sent',
-          processed_at: new Date().toISOString()
-        })
-        .eq('id', checkin.id)
+      const updateError = await markScheduledCheckinDeliveryState({
+        supabaseAdmin,
+        checkinId: checkin.id,
+        status: "sent",
+        attemptCount,
+        errorMessage: null,
+        requestId,
+      }).catch((error) => error)
 
       if (updateError) {
         console.error(`[process-checkins] request_id=${requestId} mark_sent_failed checkin_id=${checkin.id}`, updateError)

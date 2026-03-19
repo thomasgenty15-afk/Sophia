@@ -169,7 +169,10 @@ export async function handlePendingActions(params) {
     if (pending.scheduled_checkin_id) {
       await admin.from("scheduled_checkins").update({
         status: "sent",
-        processed_at: new Date().toISOString()
+        processed_at: new Date().toISOString(),
+        delivery_last_error: null,
+        delivery_last_error_at: null,
+        delivery_last_request_id: requestId,
       }).eq("id", pending.scheduled_checkin_id);
     }
     // Any explicit user response to recurring reminder probe resets unanswered counter.
@@ -194,7 +197,11 @@ export async function handlePendingActions(params) {
     if (pending?.scheduled_checkin_id) {
       await admin.from("scheduled_checkins").update({
         status: "pending",
-        scheduled_for: new Date(Date.now() + 10 * 60 * 1000).toISOString()
+        scheduled_for: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        processed_at: null,
+        delivery_last_error: null,
+        delivery_last_error_at: null,
+        delivery_last_request_id: requestId,
       }).eq("id", pending.scheduled_checkin_id);
     }
     const payloadEventContext = String(pending?.payload?.event_context ?? "");

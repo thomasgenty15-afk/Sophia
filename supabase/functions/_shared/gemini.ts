@@ -1243,7 +1243,14 @@ export async function searchWithGeminiGrounding(
 
 export async function generateEmbedding(
   text: string,
-  meta?: { userId?: string; forceRealAi?: boolean; requestId?: string; source?: string; operationName?: string },
+  meta?: {
+    userId?: string;
+    forceRealAi?: boolean;
+    requestId?: string;
+    source?: string;
+    operationName?: string;
+    outputDimensionality?: number;
+  },
 ): Promise<number[]> {
   const estimatePromptTokens = (input: string): number => {
     const normalized = String(input ?? "").trim()
@@ -1252,7 +1259,13 @@ export async function generateEmbedding(
     return Math.max(1, Math.ceil(normalized.length / 4))
   }
 
-  // Test mode: deterministic stub embedding (vector(768)).
+  const requestedOutputDimensionality = Number(meta?.outputDimensionality ?? 768);
+  const outputDimensionality = Number.isFinite(requestedOutputDimensionality) &&
+      requestedOutputDimensionality >= 128
+    ? Math.floor(requestedOutputDimensionality)
+    : 768;
+
+  // Test mode: deterministic stub embedding.
   // NOTE: We do NOT stub just because we're on local Supabase; if a developer has a GEMINI_API_KEY
   // they usually want embeddings to work locally (RAG, memories, etc.). Use MEGA_TEST_MODE=1 explicitly
   // for offline/stubbed runs.
@@ -1260,16 +1273,13 @@ export async function generateEmbedding(
   const megaEnabled = megaRaw === "1";
 
   if (megaEnabled && !meta?.forceRealAi) {
-    // Postgres expects exact dimension for vector(768).
-    return Array.from({ length: 768 }, () => 0);
+    return Array.from({ length: outputDimensionality }, () => 0);
   }
 
   const GEMINI_API_KEY = Deno.env.get('GEMINI_API_KEY')
   if (!GEMINI_API_KEY) throw new Error('Clé API Gemini manquante')
 
   const model = (Deno.env.get("GEMINI_EMBEDDING_MODEL") ?? "gemini-embedding-001").trim() || "gemini-embedding-001"
-  // Keep embeddings compatible with Postgres vector(768) columns.
-  const outputDimensionality = 768
   const base = "https://generativelanguage.googleapis.com"
   const urlV1beta = `${base}/v1beta/models/${model}:embedContent?key=${GEMINI_API_KEY}`
   const urlV1 = `${base}/v1/models/${model}:embedContent?key=${GEMINI_API_KEY}`

@@ -30,15 +30,25 @@ import {
 import {
   formatTopicMemoriesForPrompt,
   retrieveTopicMemories,
+  type TopicSearchResult,
 } from "../topic_memory.ts";
 import {
   formatEventMemoriesForPrompt,
   retrieveEventMemories,
+  type EventSearchResult,
 } from "../event_memory.ts";
 import {
   formatGlobalMemoriesForPrompt,
   retrieveGlobalMemories,
+  retrieveGlobalMemoriesByFullKeys,
+  retrieveGlobalMemoriesByThemes,
+  type GlobalMemorySearchResult,
 } from "../global_memory.ts";
+import type { DispatcherMemoryPlan } from "../router/dispatcher.ts";
+import type { SurfaceRuntimeAddon } from "../surface_state.ts";
+import {
+  getSurfaceDefinition,
+} from "../surface_registry.ts";
 // R2: getActiveTopicSession removed (topic sessions disabled)
 import type {
   ContextProfile,
@@ -53,6 +63,77 @@ import {
 
 const IDENTITY_MAX_ITEMS = 2;
 const IDENTITY_MAX_BLOCK_TOKENS = 280;
+
+type DispatcherMemoryBudget = {
+  globalThemeMax: number;
+  explicitTopicQueriesMax: number;
+  explicitEventQueriesMax: number;
+  explicitTopicResultsPerQuery: number;
+  explicitEventResultsPerQuery: number;
+  semanticGlobalMax: number;
+  semanticTopicMax: number;
+  semanticEventMax: number;
+};
+
+type DispatcherMemoryLoadStrategy = {
+  usePlan: boolean;
+  skipAllMemory: boolean;
+  loadIdentity: boolean;
+  globalThemeKeys: string[];
+  globalSubthemeKeys: string[];
+  topicQueries: string[];
+  eventQueries: string[];
+  fallbackSemanticGlobalMax: number;
+  fallbackSemanticTopicMax: number;
+  fallbackSemanticEventMax: number;
+  budget: DispatcherMemoryBudget;
+};
+
+const DISPATCHER_MEMORY_BUDGETS: Record<
+  NonNullable<DispatcherMemoryPlan["context_budget_tier"]>,
+  DispatcherMemoryBudget
+> = {
+  tiny: {
+    globalThemeMax: 2,
+    explicitTopicQueriesMax: 1,
+    explicitEventQueriesMax: 1,
+    explicitTopicResultsPerQuery: 1,
+    explicitEventResultsPerQuery: 1,
+    semanticGlobalMax: 1,
+    semanticTopicMax: 1,
+    semanticEventMax: 1,
+  },
+  small: {
+    globalThemeMax: 3,
+    explicitTopicQueriesMax: 1,
+    explicitEventQueriesMax: 1,
+    explicitTopicResultsPerQuery: 1,
+    explicitEventResultsPerQuery: 1,
+    semanticGlobalMax: 2,
+    semanticTopicMax: 1,
+    semanticEventMax: 1,
+  },
+  medium: {
+    globalThemeMax: 4,
+    explicitTopicQueriesMax: 2,
+    explicitEventQueriesMax: 2,
+    explicitTopicResultsPerQuery: 2,
+    explicitEventResultsPerQuery: 1,
+    semanticGlobalMax: 3,
+    semanticTopicMax: 2,
+    semanticEventMax: 2,
+  },
+  large: {
+    globalThemeMax: 6,
+    explicitTopicQueriesMax: 3,
+    explicitEventQueriesMax: 2,
+    explicitTopicResultsPerQuery: 2,
+    explicitEventResultsPerQuery: 2,
+    semanticGlobalMax: 4,
+    semanticTopicMax: 3,
+    semanticEventMax: 2,
+  },
+};
 
 /**
  * Options pour le chargement du contexte
@@ -70,6 +151,7 @@ export interface ContextLoaderOptions {
   triggers?: OnDemandTriggers;
   injectedContext?: string;
   deferredUserPrefContext?: string;
+  memoryPlan?: DispatcherMemoryPlan;
 }
 
 /**
@@ -82,6 +164,151 @@ export interface ContextLoadResult {
     elements_loaded: string[];
     load_ms: number;
     estimated_tokens: number;
+  };
+}
+
+function uniqueStrings(values: Array<string | undefined | null>): string[] {
+  const out: string[] = [];
+  const seen = new Set<string>();
+  for (const raw of values) {
+    const value = String(raw ?? "").trim();
+    if (!value) continue;
+    const key = value.toLowerCase();
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(value);
+  }
+  return out;
+}
+
+function dedupeTopicResults(results: TopicSearchResult[]): TopicSearchResult[] {
+  const byId = new Map<string, TopicSearchResult>();
+  for (const row of results) {
+    const id = String(row?.topic_id ?? "").trim();
+    if (!id || byId.has(id)) continue;
+    byId.set(id, row);
+  }
+  return [...byId.values()];
+}
+
+function dedupeEventResults(results: EventSearchResult[]): EventSearchResult[] {
+  const byId = new Map<string, EventSearchResult>();
+  for (const row of results) {
+    const id = String(row?.event_id ?? "").trim();
+    if (!id || byId.has(id)) continue;
+    byId.set(id, row);
+  }
+  return [...byId.values()];
+}
+
+function dedupeGlobalResults(
+  results: GlobalMemorySearchResult[],
+): GlobalMemorySearchResult[] {
+  const byId = new Map<string, GlobalMemorySearchResult>();
+  for (const row of results) {
+    const id = String(row?.id ?? "").trim();
+    if (!id || byId.has(id)) continue;
+    byId.set(id, row);
+  }
+  return [...byId.values()];
+}
+
+export function deriveDispatcherMemoryLoadStrategy(params: {
+  mode: AgentMode;
+  profile: ContextProfile;
+  message: string;
+  memoryPlan?: DispatcherMemoryPlan | null;
+}): DispatcherMemoryLoadStrategy {
+  const plan = params.memoryPlan ?? null;
+  const fallbackBudget = DISPATCHER_MEMORY_BUDGETS.small;
+
+  if (!plan || params.mode !== "companion") {
+    return {
+      usePlan: false,
+      skipAllMemory: false,
+      loadIdentity: params.profile.identity,
+      globalThemeKeys: [],
+      globalSubthemeKeys: [],
+      topicQueries: [],
+      eventQueries: [],
+      fallbackSemanticGlobalMax: 0,
+      fallbackSemanticTopicMax: 0,
+      fallbackSemanticEventMax: 0,
+      budget: fallbackBudget,
+    };
+  }
+
+  const budget = DISPATCHER_MEMORY_BUDGETS[plan.context_budget_tier] ??
+    fallbackBudget;
+  const skipAllMemory = plan.memory_mode === "none";
+  const targets = Array.isArray(plan.targets) ? plan.targets : [];
+  const globalThemeKeys = uniqueStrings(
+    targets
+      .filter((target) => target.type === "global_theme")
+      .map((target) => target.key),
+  );
+  const globalSubthemeKeys = uniqueStrings(
+    targets
+      .filter((target) => target.type === "global_subtheme")
+      .map((target) => target.key),
+  );
+  const topicQueries = uniqueStrings(
+    targets
+      .filter((target) => target.type === "topic")
+      .map((target) => target.query_hint ?? target.key),
+  );
+  const eventQueries = uniqueStrings(
+    targets
+      .filter((target) => target.type === "event")
+      .map((target) => target.query_hint ?? target.key),
+  );
+  const loadIdentity = !skipAllMemory &&
+    targets.some((target) => target.type === "core_identity");
+  const hasExplicitGlobalTargets = globalThemeKeys.length > 0 ||
+    globalSubthemeKeys.length > 0;
+  const wantsTopicSupport = targets.some((target) =>
+    target.expansion_policy === "add_supporting_topics" ||
+    target.expansion_policy === "add_topics_and_events"
+  );
+  const wantsEventSupport = targets.some((target) =>
+    target.expansion_policy === "add_topics_and_events"
+  );
+  const nonInventoryIntent = plan.response_intent !== "inventory";
+  const semanticFallbackAllowed = !skipAllMemory &&
+    plan.context_need !== "minimal";
+
+  return {
+    usePlan: true,
+    skipAllMemory,
+    loadIdentity,
+    globalThemeKeys,
+    globalSubthemeKeys,
+    topicQueries,
+    eventQueries,
+    fallbackSemanticGlobalMax:
+      semanticFallbackAllowed && !hasExplicitGlobalTargets &&
+        params.profile.global_memories
+        ? budget.semanticGlobalMax
+        : 0,
+    fallbackSemanticTopicMax:
+      params.profile.topic_memories &&
+        (
+            (semanticFallbackAllowed && !hasExplicitGlobalTargets &&
+              nonInventoryIntent) ||
+            (hasExplicitGlobalTargets && wantsTopicSupport)
+          )
+        ? budget.semanticTopicMax
+        : 0,
+    fallbackSemanticEventMax:
+      params.profile.event_memories &&
+        (
+            (semanticFallbackAllowed && !hasExplicitGlobalTargets &&
+              plan.context_need === "targeted" && nonInventoryIntent) ||
+            (hasExplicitGlobalTargets && wantsEventSupport)
+          )
+        ? budget.semanticEventMax
+        : 0,
+    budget,
   };
 }
 
@@ -105,6 +332,12 @@ export async function loadContextForMode(
 ): Promise<ContextLoadResult> {
   const startTime = Date.now();
   const profile = getContextProfile(opts.mode);
+  const memoryStrategy = deriveDispatcherMemoryLoadStrategy({
+    mode: opts.mode,
+    profile,
+    message: opts.message,
+    memoryPlan: opts.memoryPlan,
+  });
   const context: LoadedContext = {};
   const elementsLoaded: string[] = [];
 
@@ -182,7 +415,7 @@ export async function loadContextForMode(
   }
 
   // 3. Identity (Temple)
-  if (profile.identity) {
+  if (profile.identity && !memoryStrategy.skipAllMemory && memoryStrategy.loadIdentity) {
     promises.push(
       getCoreIdentity(opts.supabase, opts.userId, {
         message: opts.message,
@@ -232,98 +465,293 @@ export async function loadContextForMode(
     );
   }
 
-  // 4b. Topic memories (mémoire thématique vivante)
-  if (profile.event_memories && opts.message) {
-    promises.push(
-      retrieveEventMemories({
-        supabase: opts.supabase,
-        userId: opts.userId,
-        message: opts.message,
-        nowIso: opts.userTime?.prompt_block
-          ? String(
-            opts.userTime.prompt_block.match(/now_utc=([^\n]+)/)?.[1] ?? "",
-          )
-          : undefined,
-        maxResults: 2,
-      }).then((events) => {
-        const eventContext = formatEventMemoriesForPrompt(events);
-        if (eventContext) {
-          context.eventMemories = eventContext;
-          elementsLoaded.push("event_memories");
-        }
-      }).catch((e) => {
-        console.warn(
-          "[ContextLoader] failed to load event_memories (non-blocking):",
-          e,
-        );
-      }),
-    );
-  }
+  // 4b/4c/4d. Mémoire dynamique pilotée par memory_plan si disponible,
+  // sinon fallback au comportement historique sémantique.
+  if (memoryStrategy.usePlan) {
+    const nowIsoForEvents = opts.userTime?.prompt_block
+      ? String(
+        opts.userTime.prompt_block.match(/now_utc=([^\n]+)/)?.[1] ?? "",
+      )
+      : undefined;
 
-  // 4c. Topic memories (mémoire thématique vivante)
-  if (profile.global_memories && opts.message) {
-    promises.push(
-      retrieveGlobalMemories({
-        supabase: opts.supabase,
-        userId: opts.userId,
-        message: opts.message,
-        maxResults: 3,
-      }).then((memories) => {
-        const globalContext = formatGlobalMemoriesForPrompt(memories);
-        if (globalContext) {
-          context.globalMemories = globalContext;
-          elementsLoaded.push("global_memories");
-        }
-      }).catch((e) => {
-        console.warn(
-          "[ContextLoader] failed to load global_memories (non-blocking):",
-          e,
-        );
-      }),
-    );
-  }
-
-  // 4d. Topic memories (mémoire thématique vivante)
-  if (profile.topic_memories && opts.message) {
-    const topicMaxResultsRaw =
-      (Deno.env.get("SOPHIA_TOPIC_RETRIEVE_MAX_RESULTS") ?? "").trim();
-    const topicMaxResultsParsed = Number(topicMaxResultsRaw);
-    const topicMaxResults =
-      Number.isFinite(topicMaxResultsParsed) && topicMaxResultsParsed >= 1
-        ? Math.floor(topicMaxResultsParsed)
-        : 3;
-    const topicDebug =
-      (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
-    promises.push(
-      retrieveTopicMemories({
-        supabase: opts.supabase,
-        userId: opts.userId,
-        message: opts.message,
-        maxResults: topicMaxResults,
-      }).then((topics) => {
-        const topicContext = formatTopicMemoriesForPrompt(topics);
-        if (topicContext) {
-          context.topicMemories = topicContext;
-          elementsLoaded.push("topic_memories");
-        } else if (topicDebug) {
-          console.log(
-            JSON.stringify({
-              tag: "context_topic_memories_empty",
-              mode: opts.mode,
-              user_id: opts.userId,
-              message_preview: String(opts.message ?? "").slice(0, 120),
-              topic_candidates: Array.isArray(topics) ? topics.length : 0,
-              max_results: topicMaxResults,
-            }),
+    if (
+      profile.event_memories && !memoryStrategy.skipAllMemory &&
+      (memoryStrategy.eventQueries.length > 0 ||
+        memoryStrategy.fallbackSemanticEventMax > 0)
+    ) {
+      promises.push(
+        (async () => {
+          const eventResults: EventSearchResult[] = [];
+          const explicitQueries = memoryStrategy.eventQueries.slice(
+            0,
+            memoryStrategy.budget.explicitEventQueriesMax,
           );
-        }
-      }).catch((e) => {
-        console.warn(
-          "[ContextLoader] failed to load topic_memories (non-blocking):",
-          e,
-        );
-      }),
-    );
+          if (explicitQueries.length > 0) {
+            const batches = await Promise.all(
+              explicitQueries.map((query) =>
+                retrieveEventMemories({
+                  supabase: opts.supabase,
+                  userId: opts.userId,
+                  message: query,
+                  nowIso: nowIsoForEvents,
+                  maxResults: memoryStrategy.budget.explicitEventResultsPerQuery,
+                })
+              ),
+            );
+            eventResults.push(...batches.flat());
+          }
+          if (
+            eventResults.length === 0 && memoryStrategy.fallbackSemanticEventMax > 0 &&
+            opts.message
+          ) {
+            eventResults.push(
+              ...await retrieveEventMemories({
+                supabase: opts.supabase,
+                userId: opts.userId,
+                message: opts.message,
+                nowIso: nowIsoForEvents,
+                maxResults: memoryStrategy.fallbackSemanticEventMax,
+              }),
+            );
+          }
+
+          const eventContext = formatEventMemoriesForPrompt(
+            dedupeEventResults(eventResults),
+          );
+          if (eventContext) {
+            context.eventMemories = eventContext;
+            elementsLoaded.push("event_memories_planned");
+          }
+        })().catch((e) => {
+          console.warn(
+            "[ContextLoader] failed to load planned event_memories (non-blocking):",
+            e,
+          );
+        }),
+      );
+    }
+
+    if (
+      profile.global_memories && !memoryStrategy.skipAllMemory &&
+      (
+        memoryStrategy.globalThemeKeys.length > 0 ||
+        memoryStrategy.globalSubthemeKeys.length > 0 ||
+        memoryStrategy.fallbackSemanticGlobalMax > 0
+      )
+    ) {
+      promises.push(
+        (async () => {
+          const explicitGlobal: GlobalMemorySearchResult[] = [];
+          if (memoryStrategy.globalSubthemeKeys.length > 0) {
+            explicitGlobal.push(
+              ...await retrieveGlobalMemoriesByFullKeys({
+                supabase: opts.supabase,
+                userId: opts.userId,
+                fullKeys: memoryStrategy.globalSubthemeKeys,
+              }),
+            );
+          }
+          if (memoryStrategy.globalThemeKeys.length > 0) {
+            explicitGlobal.push(
+              ...await retrieveGlobalMemoriesByThemes({
+                supabase: opts.supabase,
+                userId: opts.userId,
+                themes: memoryStrategy.globalThemeKeys,
+                maxResults: memoryStrategy.budget.globalThemeMax *
+                  Math.max(1, memoryStrategy.globalThemeKeys.length),
+              }),
+            );
+          }
+
+          let globalResults = dedupeGlobalResults(explicitGlobal);
+          if (
+            globalResults.length === 0 &&
+            memoryStrategy.fallbackSemanticGlobalMax > 0 &&
+            opts.message
+          ) {
+            globalResults = await retrieveGlobalMemories({
+              supabase: opts.supabase,
+              userId: opts.userId,
+              message: opts.message,
+              maxResults: memoryStrategy.fallbackSemanticGlobalMax,
+            });
+          }
+
+          const globalContext = formatGlobalMemoriesForPrompt(globalResults);
+          if (globalContext) {
+            context.globalMemories = globalContext;
+            elementsLoaded.push("global_memories_planned");
+          }
+        })().catch((e) => {
+          console.warn(
+            "[ContextLoader] failed to load planned global_memories (non-blocking):",
+            e,
+          );
+        }),
+      );
+    }
+
+    if (
+      profile.topic_memories && !memoryStrategy.skipAllMemory &&
+      (memoryStrategy.topicQueries.length > 0 ||
+        memoryStrategy.fallbackSemanticTopicMax > 0)
+    ) {
+      const topicDebug =
+        (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
+      promises.push(
+        (async () => {
+          const topicResults: TopicSearchResult[] = [];
+          const explicitQueries = memoryStrategy.topicQueries.slice(
+            0,
+            memoryStrategy.budget.explicitTopicQueriesMax,
+          );
+          if (explicitQueries.length > 0) {
+            const batches = await Promise.all(
+              explicitQueries.map((query) =>
+                retrieveTopicMemories({
+                  supabase: opts.supabase,
+                  userId: opts.userId,
+                  message: query,
+                  maxResults: memoryStrategy.budget.explicitTopicResultsPerQuery,
+                })
+              ),
+            );
+            topicResults.push(...batches.flat());
+          }
+          if (
+            topicResults.length === 0 && memoryStrategy.fallbackSemanticTopicMax > 0 &&
+            opts.message
+          ) {
+            topicResults.push(
+              ...await retrieveTopicMemories({
+                supabase: opts.supabase,
+                userId: opts.userId,
+                message: opts.message,
+                maxResults: memoryStrategy.fallbackSemanticTopicMax,
+              }),
+            );
+          }
+
+          const dedupedTopics = dedupeTopicResults(topicResults);
+          const topicContext = formatTopicMemoriesForPrompt(dedupedTopics);
+          if (topicContext) {
+            context.topicMemories = topicContext;
+            elementsLoaded.push("topic_memories_planned");
+          } else if (topicDebug) {
+            console.log(
+              JSON.stringify({
+                tag: "context_topic_memories_empty_planned",
+                mode: opts.mode,
+                user_id: opts.userId,
+                message_preview: String(opts.message ?? "").slice(0, 120),
+                topic_candidates: dedupedTopics.length,
+                explicit_queries: explicitQueries,
+                semantic_max: memoryStrategy.fallbackSemanticTopicMax,
+              }),
+            );
+          }
+        })().catch((e) => {
+          console.warn(
+            "[ContextLoader] failed to load planned topic_memories (non-blocking):",
+            e,
+          );
+        }),
+      );
+    }
+  } else {
+    // 4b. Event memories (historical semantic fallback)
+    if (profile.event_memories && opts.message) {
+      promises.push(
+        retrieveEventMemories({
+          supabase: opts.supabase,
+          userId: opts.userId,
+          message: opts.message,
+          nowIso: opts.userTime?.prompt_block
+            ? String(
+              opts.userTime.prompt_block.match(/now_utc=([^\n]+)/)?.[1] ?? "",
+            )
+            : undefined,
+          maxResults: 2,
+        }).then((events) => {
+          const eventContext = formatEventMemoriesForPrompt(events);
+          if (eventContext) {
+            context.eventMemories = eventContext;
+            elementsLoaded.push("event_memories");
+          }
+        }).catch((e) => {
+          console.warn(
+            "[ContextLoader] failed to load event_memories (non-blocking):",
+            e,
+          );
+        }),
+      );
+    }
+
+    // 4c. Global memories (historical semantic fallback)
+    if (profile.global_memories && opts.message) {
+      promises.push(
+        retrieveGlobalMemories({
+          supabase: opts.supabase,
+          userId: opts.userId,
+          message: opts.message,
+          maxResults: 3,
+        }).then((memories) => {
+          const globalContext = formatGlobalMemoriesForPrompt(memories);
+          if (globalContext) {
+            context.globalMemories = globalContext;
+            elementsLoaded.push("global_memories");
+          }
+        }).catch((e) => {
+          console.warn(
+            "[ContextLoader] failed to load global_memories (non-blocking):",
+            e,
+          );
+        }),
+      );
+    }
+
+    // 4d. Topic memories (historical semantic fallback)
+    if (profile.topic_memories && opts.message) {
+      const topicMaxResultsRaw =
+        (Deno.env.get("SOPHIA_TOPIC_RETRIEVE_MAX_RESULTS") ?? "").trim();
+      const topicMaxResultsParsed = Number(topicMaxResultsRaw);
+      const topicMaxResults =
+        Number.isFinite(topicMaxResultsParsed) && topicMaxResultsParsed >= 1
+          ? Math.floor(topicMaxResultsParsed)
+          : 3;
+      const topicDebug =
+        (Deno.env.get("SOPHIA_TOPIC_DEBUG") ?? "").trim() === "1";
+      promises.push(
+        retrieveTopicMemories({
+          supabase: opts.supabase,
+          userId: opts.userId,
+          message: opts.message,
+          maxResults: topicMaxResults,
+        }).then((topics) => {
+          const topicContext = formatTopicMemoriesForPrompt(topics);
+          if (topicContext) {
+            context.topicMemories = topicContext;
+            elementsLoaded.push("topic_memories");
+          } else if (topicDebug) {
+            console.log(
+              JSON.stringify({
+                tag: "context_topic_memories_empty",
+                mode: opts.mode,
+                user_id: opts.userId,
+                message_preview: String(opts.message ?? "").slice(0, 120),
+                topic_candidates: Array.isArray(topics) ? topics.length : 0,
+                max_results: topicMaxResults,
+              }),
+            );
+          }
+        }).catch((e) => {
+          console.warn(
+            "[ContextLoader] failed to load topic_memories (non-blocking):",
+            e,
+          );
+        }),
+      );
+    }
   }
 
   // Wait for plan metadata before loading dependent elements
@@ -435,6 +863,29 @@ export async function loadContextForMode(
     }
   }
 
+  // 8b. Surface opportunity addon (feature push orchestration)
+  const surfaceOpportunityAddon = (opts.tempMemory as any)
+    ?.__surface_opportunity_addon as SurfaceRuntimeAddon | undefined;
+  if (surfaceOpportunityAddon && opts.mode === "companion") {
+    try {
+      const block = await loadSurfaceOpportunityAddon({
+        supabase: opts.supabase,
+        userId: opts.userId,
+        addon: surfaceOpportunityAddon,
+        message: opts.message,
+      });
+      if (block) {
+        context.surfaceOpportunityAddon = block;
+        elementsLoaded.push("surface_opportunity_addon");
+      }
+    } catch (e) {
+      console.warn(
+        "[ContextLoader] failed to load surface opportunity addon (non-blocking):",
+        e,
+      );
+    }
+  }
+
   // 9. Recent turns (history)
   if (profile.history_depth > 0 && opts.history?.length) {
     const recentTurns = (opts.history ?? [])
@@ -487,6 +938,9 @@ export async function loadContextForMode(
     ?.__dashboard_recurring_reminder_intent_addon;
   const dashboardCapabilitiesAddon = (opts.tempMemory as any)
     ?.__dashboard_capabilities_addon;
+  const hasSurfaceOpportunityAddon = Boolean(
+    (opts.tempMemory as any)?.__surface_opportunity_addon,
+  );
 
   // 13. Dashboard redirect addon (CRUD intent detected by dispatcher)
   if (
@@ -506,7 +960,8 @@ export async function loadContextForMode(
     dashboardRedirectAddon ||
       dashboardPreferencesIntentAddon ||
       dashboardRecurringReminderIntentAddon ||
-      dashboardCapabilitiesAddon,
+      dashboardCapabilitiesAddon ||
+      hasSurfaceOpportunityAddon,
   );
   if (
     (opts.mode === "companion" || opts.mode === "investigator") &&
@@ -650,6 +1105,7 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.eventMemories) ctx += loaded.eventMemories;
   if (loaded.globalMemories) ctx += loaded.globalMemories;
   if (loaded.topicMemories) ctx += loaded.topicMemories;
+  if (loaded.surfaceOpportunityAddon) ctx += loaded.surfaceOpportunityAddon;
   if (loaded.onboardingAddon) ctx += loaded.onboardingAddon;
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon;
   if (loaded.dashboardRedirectAddon) ctx += loaded.dashboardRedirectAddon;
@@ -678,6 +1134,355 @@ export function buildContextString(loaded: LoadedContext): string {
 // ============================================================================
 // Helper functions
 // ============================================================================
+
+function normalizeSurfaceRankText(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s]/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function scoreSurfaceText(text: string, query: string): number {
+  const haystack = normalizeSurfaceRankText(text);
+  const needle = normalizeSurfaceRankText(query);
+  if (!needle) return 0;
+  let score = 0;
+  if (haystack.includes(needle)) score += 3;
+  const tokens = needle.split(" ").filter((token) => token.length >= 3);
+  for (const token of tokens) {
+    if (haystack.includes(token)) score += 1;
+  }
+  return score;
+}
+
+function rankSurfaceItems<T>(
+  items: T[],
+  query: string,
+  toText: (item: T) => string,
+  limit: number,
+): T[] {
+  const ranked = [...items].sort((a, b) =>
+    scoreSurfaceText(toText(b), query) - scoreSurfaceText(toText(a), query)
+  );
+  return ranked.slice(0, limit);
+}
+
+function describeSurfaceLevel(level: number): string {
+  if (level <= 2) {
+    return "Allusion légère seulement. Pas de gros bloc ni de CTA appuyé.";
+  }
+  if (level === 3) {
+    return "Suggestion légère, naturelle, 1 phrase utile maximum.";
+  }
+  if (level === 4) {
+    return "Bloc compact ou CTA clair si cela s'intègre naturellement.";
+  }
+  return "Mise en avant explicite autorisée si cela aide vraiment le user maintenant.";
+}
+
+function describeSurfaceCtaStyle(style: SurfaceRuntimeAddon["cta_style"]): string {
+  if (style === "direct") {
+    return "CTA direct autorisé si la surface colle vraiment au besoin.";
+  }
+  if (style === "soft") {
+    return "Préférer une invitation douce plutôt qu'une injonction.";
+  }
+  return "Pas de CTA explicite. Rester dans une allusion ou une proposition implicite.";
+}
+
+async function loadPersonalActionsSurfaceSummary(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("user_personal_actions")
+    .select("title,status,target_reps,current_reps")
+    .eq("user_id", userId)
+    .in("status", ["active", "pending", "completed", "deactivated"])
+    .order("created_at", { ascending: false })
+    .limit(6);
+  if (error) return null;
+  const rows = Array.isArray(data) ? data as Array<Record<string, unknown>> : [];
+  if (rows.length === 0) {
+    return "- Aucune action personnelle configurée actuellement.\n";
+  }
+  const active = rows.filter((row) => {
+    const status = String(row.status ?? "");
+    return status === "active" || status === "pending";
+  });
+  const lines = [
+    `- Actions personnelles connues: ${rows.length} (${active.length} actives/pending).`,
+  ];
+  for (const row of active.slice(0, 3)) {
+    lines.push(
+      `- ${String(row.title ?? "").trim().slice(0, 80)} | progression ${
+        String(row.current_reps ?? 0)
+      }/${String(row.target_reps ?? 1)}`,
+    );
+  }
+  return `${lines.join("\n")}\n`;
+}
+
+async function loadPreferencesSurfaceSummary(
+  supabase: SupabaseClient,
+  userId: string,
+): Promise<string | null> {
+  const keys = [
+    "coach.tone",
+    "coach.challenge_level",
+    "coach.talk_propensity",
+    "coach.message_length",
+    "coach.question_tendency",
+  ];
+  const { data, error } = await supabase
+    .from("user_profile_facts")
+    .select("key,value")
+    .eq("user_id", userId)
+    .eq("scope", "global")
+    .in("key", keys);
+  if (error) return null;
+  const rows = Array.isArray(data) ? data as Array<Record<string, any>> : [];
+  if (rows.length === 0) {
+    return "- Aucune préférence coach explicite enregistrée pour l'instant.\n";
+  }
+  const lines = rows.slice(0, 5).map((row) => {
+    const label = String(row?.key ?? "").trim();
+    const value = String(row?.value?.label ?? row?.value?.value ?? "")
+      .trim()
+      .slice(0, 60);
+    return `- ${label}: ${value || "non défini"}`;
+  });
+  return `${lines.join("\n")}\n`;
+}
+
+async function loadWishlistSurfaceSummary(
+  supabase: SupabaseClient,
+  userId: string,
+  query: string,
+  limit: number,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("user_architect_wishes")
+    .select("title,description,category,status,completed_at,created_at")
+    .eq("user_id", userId)
+    .order("created_at", { ascending: false })
+    .limit(12);
+  if (error) return null;
+  const rows = Array.isArray(data) ? data as Array<Record<string, unknown>> : [];
+  if (rows.length === 0) return null;
+  const ranked = rankSurfaceItems(
+    rows,
+    query,
+    (row) =>
+      `${String(row.title ?? "")} ${String(row.description ?? "")} ${
+        String(row.category ?? "")
+      }`,
+    limit,
+  );
+  const lines = ranked.map((row) =>
+    `- ${String(row.title ?? "").trim().slice(0, 90)}${
+      String(row.description ?? "").trim()
+        ? ` — ${String(row.description ?? "").trim().slice(0, 120)}`
+        : ""
+    }`
+  );
+  return lines.length > 0 ? `${lines.join("\n")}\n` : null;
+}
+
+async function loadStoriesSurfaceSummary(
+  supabase: SupabaseClient,
+  userId: string,
+  query: string,
+  limit: number,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("user_architect_stories")
+    .select("title,duration_label,bullet_points,speech_map,topic_tags,updated_at")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(12);
+  if (error) return null;
+  const rows = Array.isArray(data) ? data as Array<Record<string, any>> : [];
+  if (rows.length === 0) return null;
+  const ranked = rankSurfaceItems(
+    rows,
+    query,
+    (row) =>
+      `${String(row.title ?? "")} ${String(row.speech_map ?? "")} ${
+        Array.isArray(row.topic_tags) ? row.topic_tags.join(" ") : ""
+      } ${Array.isArray(row.bullet_points) ? row.bullet_points.join(" ") : ""}`,
+    limit,
+  );
+  const lines = ranked.map((row) => {
+    const title = String(row.title ?? "").trim().slice(0, 90);
+    const tags = Array.isArray(row.topic_tags)
+      ? row.topic_tags.slice(0, 4).join(", ")
+      : "";
+    return `- ${title}${tags ? ` | tags: ${tags}` : ""}`;
+  });
+  return lines.length > 0 ? `${lines.join("\n")}\n` : null;
+}
+
+async function loadReflectionsSurfaceSummary(
+  supabase: SupabaseClient,
+  userId: string,
+  query: string,
+  limit: number,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("user_architect_reflections")
+    .select("title,content,tags,updated_at")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(12);
+  if (error) return null;
+  const rows = Array.isArray(data) ? data as Array<Record<string, any>> : [];
+  if (rows.length === 0) return null;
+  const ranked = rankSurfaceItems(
+    rows,
+    query,
+    (row) =>
+      `${String(row.title ?? "")} ${String(row.content ?? "")} ${
+        Array.isArray(row.tags) ? row.tags.join(" ") : ""
+      }`,
+    limit,
+  );
+  const lines = ranked.map((row) => {
+    const title = String(row.title ?? "").trim().slice(0, 90);
+    const preview = String(row.content ?? "").trim().replace(/\s+/g, " ")
+      .slice(0, 120);
+    return `- ${title}${preview ? ` — ${preview}` : ""}`;
+  });
+  return lines.length > 0 ? `${lines.join("\n")}\n` : null;
+}
+
+async function loadQuotesSurfaceSummary(
+  supabase: SupabaseClient,
+  userId: string,
+  query: string,
+  limit: number,
+): Promise<string | null> {
+  const { data, error } = await supabase
+    .from("user_architect_quotes")
+    .select("quote_text,author,source_context,tags,updated_at")
+    .eq("user_id", userId)
+    .order("updated_at", { ascending: false })
+    .limit(12);
+  if (error) return null;
+  const rows = Array.isArray(data) ? data as Array<Record<string, any>> : [];
+  if (rows.length === 0) return null;
+  const ranked = rankSurfaceItems(
+    rows,
+    query,
+    (row) =>
+      `${String(row.quote_text ?? "")} ${String(row.author ?? "")} ${
+        String(row.source_context ?? "")
+      } ${Array.isArray(row.tags) ? row.tags.join(" ") : ""}`,
+    limit,
+  );
+  const lines = ranked.map((row) => {
+    const quote = String(row.quote_text ?? "").trim().replace(/\s+/g, " ")
+      .slice(0, 140);
+    const author = String(row.author ?? "").trim().slice(0, 60);
+    return `- "${quote}"${author ? ` — ${author}` : ""}`;
+  });
+  return lines.length > 0 ? `${lines.join("\n")}\n` : null;
+}
+
+async function loadSurfaceSupportingContent(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  addon: SurfaceRuntimeAddon;
+  message: string;
+}): Promise<string> {
+  const query = String(args.addon.query_hint ?? args.message ?? "").trim();
+  const contentLimit = args.addon.level >= 4 ? 2 : 1;
+  const definition = getSurfaceDefinition(args.addon.surface_id);
+  if (!definition) return "";
+
+  switch (definition.contentSource) {
+    case "none":
+      return "";
+    case "north_star": {
+      const block = await loadNorthStarContext(args.supabase, args.userId);
+      return block ? `${block.trim()}\n` : "- Aucune étoile polaire active connue.\n";
+    }
+    case "reminders": {
+      const block = await loadRendezVousSummary(args.supabase, args.userId);
+      return block ? `${block.trim()}\n` : "";
+    }
+    case "personal_actions":
+      return await loadPersonalActionsSurfaceSummary(args.supabase, args.userId) ?? "";
+    case "preferences":
+      return await loadPreferencesSurfaceSummary(args.supabase, args.userId) ?? "";
+    case "wishlist":
+      return await loadWishlistSurfaceSummary(
+        args.supabase,
+        args.userId,
+        query,
+        contentLimit,
+      ) ?? "";
+    case "stories":
+      return await loadStoriesSurfaceSummary(
+        args.supabase,
+        args.userId,
+        query,
+        contentLimit,
+      ) ?? "";
+    case "reflections":
+      return await loadReflectionsSurfaceSummary(
+        args.supabase,
+        args.userId,
+        query,
+        contentLimit,
+      ) ?? "";
+    case "quotes":
+      return await loadQuotesSurfaceSummary(
+        args.supabase,
+        args.userId,
+        query,
+        contentLimit,
+      ) ?? "";
+    default:
+      return "";
+  }
+}
+
+export async function loadSurfaceOpportunityAddon(args: {
+  supabase: SupabaseClient;
+  userId: string;
+  addon: SurfaceRuntimeAddon;
+  message: string;
+}): Promise<string | null> {
+  const definition = getSurfaceDefinition(args.addon.surface_id);
+  if (!definition) return null;
+  const supportingContent = args.addon.content_need === "none"
+    ? ""
+    : await loadSurfaceSupportingContent(args);
+  const blocks = [
+    "=== ADDON SURFACE OPPORTUNITY ===",
+    `- Surface cible: ${definition.label} (${definition.id}).`,
+    `- Famille: ${definition.family}.`,
+    `- Raison actuelle: ${args.addon.reason}`,
+    `- Niveau actuel: ${args.addon.level}/5.`,
+    `- Règle d'expression: ${describeSurfaceLevel(args.addon.level)}`,
+    `- Style de suggestion: ${describeSurfaceCtaStyle(args.addon.cta_style)}`,
+    `- Priorité: réponds d'abord au besoin immédiat du user, puis seulement si c'est naturel tu peux activer cette surface.`,
+    `- Garde-fou: ne pousse jamais plus d'une surface sur ce tour et n'en fais rien si cela crée du bruit.`,
+    `- Finalité produit: ${definition.goal}`,
+  ];
+  if (args.addon.query_hint) {
+    blocks.push(`- Indice de contenu: ${args.addon.query_hint}`);
+  }
+  if (supportingContent.trim()) {
+    blocks.push("Supports internes utiles:");
+    blocks.push(supportingContent.trimEnd());
+  }
+  return `\n\n${blocks.join("\n")}\n`;
+}
 
 /**
  * Format topic session for context

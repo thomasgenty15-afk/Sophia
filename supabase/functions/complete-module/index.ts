@@ -202,11 +202,12 @@ serve(async (req) => {
         Fais un résumé dense à la 3ème personne ("Il est stressé par...").
         Inclus les mots-clés de la question.`;
 
-        aiSummary = await generateWithGemini(prompt, contentStr, 0.7, false, [], "auto", {
+        const aiSummaryRaw = await generateWithGemini(prompt, contentStr, 0.7, false, [], "auto", {
           requestId: ctx.requestId,
-          userId,
+          userId: user.id,
           source: "complete-module",
         });
+        aiSummary = typeof aiSummaryRaw === "string" ? aiSummaryRaw : null;
 
         console.log(`[CompleteModule] Memory storage disabled; summary kept on module row (${moduleId}).`);
       }
@@ -302,26 +303,13 @@ serve(async (req) => {
       const weekNum = parseInt(moduleId.replace('week_', ''));
       if (!isNaN(weekNum)) {
           // On lance la construction du Temple pour cette semaine
-          await processCoreIdentity(supabaseClient, user.id, weekNum, 'completion');
-      }
-  }
-  
-  // Cas B : Update Module Forge (ex: 'a1_c2_m1')
-  // Note: complete-module est appelé quand on valide. Si on met juste à jour le contenu sans valider, c'est une autre route ?
-  // Généralement complete-module est appelé à la fin. Si l'user revient dessus et sauvegarde, ça passe par où ?
-  // Si c'est juste un 'update' SQL depuis le front, complete-module n'est PAS appelé.
-  // C'est là que le bat blesse pour le "Temps 2" (Mise à jour).
-  // SI le front appelle 'complete-module' même pour une mise à jour d'un module déjà complété, alors c'est bon.
-  // SINON, il faut que le front appelle cette fonction explicitement.
-  // Supposons pour l'instant que 'complete-module' est appelé aussi lors des updates de la Forge (re-validation).
-  
-  else if (moduleId.startsWith('a') && !moduleId.startsWith('round_table')) {
-      // Regex pour extraire l'axe (weekNum) : a(\d+)_
-      const match = moduleId.match(/^a(\d+)_/);
-      if (match) {
-          const weekNum = parseInt(match[1]);
-          // On lance la mise à jour du Temple
-          await processCoreIdentity(supabaseClient, user.id, weekNum, 'update_forge');
+          await processCoreIdentity(
+            supabaseClient,
+            user.id,
+            weekNum,
+            'completion',
+            { requestId: ctx.requestId },
+          );
       }
   }
 

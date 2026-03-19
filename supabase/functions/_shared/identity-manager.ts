@@ -6,8 +6,12 @@ export async function processCoreIdentity(
   supabase: SupabaseClient, 
   userId: string, 
   weekNum: number,
-  triggerReason: 'completion' | 'update_forge'
-) {
+  triggerReason: 'completion' | 'update_forge',
+  opts?: {
+    requestId?: string;
+    forceRealAi?: boolean;
+  },
+): Promise<{ created: boolean; updated: boolean; noop: boolean }> {
   console.log(`[IdentityManager] Processing Week ${weekNum} for user ${userId} (${triggerReason})`);
 
   // 1. Récupérer TOUTES les réponses de cette semaine (Contexte complet)
@@ -20,7 +24,7 @@ export async function processCoreIdentity(
   
   if (modError || !modules || modules.length === 0) {
       console.log('[IdentityManager] No modules found for this week yet.');
-      return;
+      return { created: false, updated: false, noop: true };
   }
 
   // 2. Construire le Transcript de la semaine
@@ -29,7 +33,7 @@ export async function processCoreIdentity(
   // On essaie de mapper avec les questions réelles si possible
   const weekContent = (WEEKS_CONTENT as any)[`week_${weekNum}`];
   
-  modules.forEach(m => {
+  modules.forEach((m: { module_id?: string; content?: unknown }) => {
       let question = "Question inconnue";
       // Tentative de retrouver le texte de la question
       if (weekContent && weekContent.subQuestions) {
@@ -49,7 +53,7 @@ export async function processCoreIdentity(
       .select('*')
       .eq('user_id', userId)
       .eq('week_id', `week_${weekNum}`)
-      .single();
+      .maybeSingle();
 
   // 4. Générer le Résumé Identitaire avec Gemini
   let systemPrompt = "";
@@ -84,7 +88,10 @@ export async function processCoreIdentity(
   }
 
   const newIdentityRaw = await generateWithGemini(systemPrompt, transcript, 0.3, false, [], "auto", {
+    requestId: opts?.requestId,
+    userId,
     source: "identity-manager",
+    forceRealAi: opts?.forceRealAi,
   });
   if (typeof newIdentityRaw !== "string") {
     throw new Error("Identity generation returned a tool call instead of text");
@@ -94,9 +101,17 @@ export async function processCoreIdentity(
     throw new Error("Identity generation returned empty content");
   }
   const identityEmbedding = await generateEmbedding(newIdentityContent, {
+    requestId: opts?.requestId,
+    userId,
     source: "identity-manager",
     operationName: "embedding.identity_manager_content",
   });
+
+  const oldContent = String((oldIdentity as any)?.content ?? "").trim();
+  if (oldContent && oldContent === newIdentityContent) {
+      console.log(`[IdentityManager] No identity change for Week ${weekNum}`);
+      return { created: false, updated: false, noop: true };
+  }
 
   // 5. Sauvegarde et Archivage
   if (oldIdentity) {
@@ -117,6 +132,7 @@ export async function processCoreIdentity(
       }).eq('id', oldIdentity.id);
       
       console.log(`[IdentityManager] Updated identity for Week ${weekNum}`);
+      return { created: false, updated: true, noop: false };
   } else {
       // Création
       await supabase.from('user_core_identity').insert({
@@ -126,5 +142,6 @@ export async function processCoreIdentity(
           identity_embedding: identityEmbedding,
       });
       console.log(`[IdentityManager] Created identity for Week ${weekNum}`);
+      return { created: true, updated: false, noop: false };
   }
 }

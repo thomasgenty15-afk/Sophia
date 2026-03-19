@@ -108,6 +108,14 @@ export async function runContextualDispatcherV2(opts: {
     new_signals_count: newSignalsDetected.length,
     enrichments_count: signalEnrichments.length,
     pruned_count: historyUpdate.prunedCount,
+    memory_mode: dispatcherResult.memory_plan?.memory_mode,
+    context_need: dispatcherResult.memory_plan?.context_need,
+    reasoning_complexity: dispatcherResult.memory_plan?.reasoning_complexity,
+    model_tier_hint: dispatcherResult.memory_plan?.model_tier_hint,
+    memory_targets_count: dispatcherResult.memory_plan?.targets?.length ?? 0,
+    surface_mode: dispatcherResult.surface_plan?.surface_mode,
+    surface_horizon: dispatcherResult.surface_plan?.planning_horizon,
+    surface_candidates_count: dispatcherResult.surface_plan?.candidates?.length ?? 0,
   })
 
   // Trace new signals detected

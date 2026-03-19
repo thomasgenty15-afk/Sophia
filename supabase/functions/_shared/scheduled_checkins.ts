@@ -2,6 +2,18 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts"
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3"
 import { generateWithGemini } from "./gemini.ts"
 import { buildUserTimeContextFromValues } from "./user_time_context.ts"
+import {
+  formatEventMemoriesForPrompt,
+  retrieveEventMemories,
+} from "../sophia-brain/event_memory.ts"
+import {
+  formatGlobalMemoriesForPrompt,
+  retrieveGlobalMemories,
+} from "../sophia-brain/global_memory.ts"
+import {
+  formatTopicMemoriesForPrompt,
+  retrieveTopicMemories,
+} from "../sophia-brain/topic_memory.ts"
 const RDV_GENERATION_MODEL = "gpt-5.2"
 
 function safeTrim(s: unknown): string {
@@ -26,6 +38,33 @@ function stripLeadingCheckinAnnouncement(text: string): string {
     /^(petit|mini)?\s*check-?in(?:\s+(du|de la|de l[’'])\s+\w+)?\s*[:!,. -]*\s*/i,
     "",
   ).trim()
+}
+
+function stripLeadingAcknowledgementStarter(text: string): string {
+  let value = String(text ?? "").trim()
+  const patterns = [
+    /^(?:ok(?:ay)?|d['’]accord|ça marche|ca marche|c['’]est parti|parfait)\b\s*[,!:. -]*/i,
+  ]
+  for (let i = 0; i < 3; i++) {
+    const before = value
+    for (const pattern of patterns) value = value.replace(pattern, "").trim()
+    if (value === before) break
+  }
+  return value
+}
+
+function stripLeadingContinuationStarter(text: string): string {
+  let value = String(text ?? "").trim()
+  const patterns = [
+    /^(toi|et toi)\b\s*[,!:. -]*/i,
+    /^(et|d['’]ailleurs|du coup|alors|bon|bah|eh bien|sinon)\b\s*[,!:. -]*/i,
+  ]
+  for (let i = 0; i < 3; i++) {
+    const before = value
+    for (const pattern of patterns) value = value.replace(pattern, "").trim()
+    if (value === before) break
+  }
+  return value
 }
 
 function uppercaseFirstLetter(text: string): string {
@@ -72,7 +111,9 @@ export function applyWhatsappProactiveOpeningPolicy(params: {
   const fallback = String(params.fallback ?? "Comment ça va ?").trim() || "Comment ça va ?"
   const noGreeting = stripLeadingGreeting(params.text)
   const noAnnouncement = stripLeadingCheckinAnnouncement(noGreeting)
-  const normalized = uppercaseFirstLetter(noAnnouncement || fallback)
+  const noAcknowledgementStarter = stripLeadingAcknowledgementStarter(noAnnouncement)
+  const noContinuationStarter = stripLeadingContinuationStarter(noAcknowledgementStarter)
+  const normalized = uppercaseFirstLetter(noContinuationStarter || fallback)
   if (!params.allowRelaunchGreeting) return normalized
   return `${pickColdOpenGreeting()} ${normalized}`
 }
@@ -120,6 +161,7 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
   admin: SupabaseClient
   userId: string
   eventContext: string
+  scheduledFor?: string
   instruction?: string
   eventGrounding?: string
   requestId?: string
@@ -151,6 +193,47 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
     .reverse()
     .map((m: any) => `${m.created_at} ${m.role.toUpperCase()}: ${String(m.content ?? "")}`)
     .join("\n")
+  const retrievalQuery = [
+    eventContext,
+    eventGrounding,
+    instruction,
+    transcript
+      .split("\n")
+      .slice(-4)
+      .join("\n"),
+  ].filter(Boolean).join("\n");
+  let memoryContextBlock = ""
+  try {
+    const [events, topics, globals] = await Promise.all([
+      retrieveEventMemories({
+        supabase: admin as any,
+        userId,
+        message: retrievalQuery || eventContext,
+        maxResults: 2,
+        requestId: params.requestId,
+      }),
+      retrieveTopicMemories({
+        supabase: admin as any,
+        userId,
+        message: retrievalQuery || eventContext,
+        maxResults: 2,
+        meta: params.requestId ? { requestId: params.requestId } : undefined,
+      }),
+      retrieveGlobalMemories({
+        supabase: admin as any,
+        userId,
+        message: retrievalQuery || eventContext,
+        maxResults: 2,
+      }),
+    ])
+    memoryContextBlock = [
+      formatEventMemoriesForPrompt(events),
+      formatTopicMemoriesForPrompt(topics),
+      formatGlobalMemoriesForPrompt(globals),
+    ].filter(Boolean).join("\n")
+  } catch (e) {
+    console.warn("[scheduled_checkins] semantic retrieval failed (non-blocking):", e)
+  }
 
   const systemPrompt =
     [
@@ -161,16 +244,32 @@ export async function generateDynamicWhatsAppCheckinMessage(params: {
       "- 1 question MAX.",
       "- Naturel, chaleureux, tutoiement.",
       "- N'annonce jamais que c'est un 'check-in' et ne commence jamais par 'Petit check-in', 'Mini check-in' ou équivalent.",
+      "- Le corps du message doit rester naturel MEME si une courte salutation type 'Hello !' est ajoutée juste avant au moment de l'envoi.",
+      "- Donc le message doit fonctionner aussi SANS salutation: commence par une phrase autonome, jamais par 'Toi,', 'Et', 'D'ailleurs', 'Du coup', ou un simple connecteur.",
       "- La première vraie lettre du message doit être en majuscule.",
       "- Ne promets pas d'autres relances automatiques.",
       "- N'invente pas de contexte non présent dans le transcript.",
+      "- Si un vieux contexte contient une durée relative ('dans deux semaines', 'demain', etc.), ne la répète pas mécaniquement.",
+      "- Si tu mentionnes le timing de l'événement, base-toi d'abord sur le repère absolu 'scheduled_for_local' ci-dessous.",
+      "- Si la mémoire DB et le transcript récent ne racontent pas exactement la même chose, fais confiance d'abord au transcript le plus récent, puis aux dates/heures absolues.",
       "",
       "Repères temporels (critiques):",
       tctx.prompt_block,
       "",
       `Contexte de relance (event_context): ${eventContext}`,
+      params.scheduledFor
+        ? `scheduled_for_local: ${new Intl.DateTimeFormat((prof as any)?.locale || "fr-FR", {
+          timeZone: tctx.user_timezone,
+          weekday: "long",
+          day: "2-digit",
+          month: "long",
+          hour: "2-digit",
+          minute: "2-digit",
+        }).format(new Date(params.scheduledFor))}`
+        : "",
       eventGrounding ? `Contexte figé de l'événement (watcher): ${eventGrounding}` : "",
       instruction ? `Instruction additionnelle: ${instruction}` : "",
+      memoryContextBlock ? `Mémoire DB pertinente pour ce sujet:\n${memoryContextBlock}` : "",
       "",
       "Tu dois prendre en compte la conversation récente ci-dessous (si elle est vide, reste générique).",
     ]

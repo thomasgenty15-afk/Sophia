@@ -1,5 +1,10 @@
 import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
 import { generateWithGemini, generateEmbedding, getGlobalAiModel } from '../../_shared/gemini.ts'
+import {
+  buildOneShotReminderAddon,
+  maybeCreateOneShotReminder,
+  summarizeOneShotReminderOutcome,
+} from "../lib/one_shot_reminder_tool.ts";
 
 declare const Deno: any
 
@@ -304,6 +309,7 @@ function buildCompanionStablePrompt(opts: {
     - Tu peux refaire un rappel dashboard plus tard seulement si nécessaire (ordre de grandeur: ~5 tours, ou quand l'utilisateur redemande une action UI explicite).
     - Si le contexte contient "=== ADDON DASHBOARD CAPABILITIES (CAN_BE_RELATED_TO_DASHBOARD) ===", utilise ces capacités produit pour répondre de manière détaillée et cohérente, puis pose 1 question de diagnostic utile.
     - Règle de choix CRITIQUE: si Sophia doit envoyer un message planifié au bon moment, oriente vers Rendez-vous. Si le user doit faire lui-même une habitude ou une tâche récurrente, oriente vers Actions Personnelles.
+    - Si le contexte contient "=== ADDON SURFACE OPPORTUNITY ===", traite-le comme une opportunité produit graduelle: réponds d'abord au besoin du tour, puis fais au maximum l'allusion/suggestion/CTA autorisé par le niveau indiqué. N'en rajoute pas.
     - Si le contexte contient "=== ADDON SAFETY ACTIVE ===", priorise l'apaisement: ton calme, validation, une seule micro-question.
 
     LOGIQUE DE BILAN (CRITIQUE) :
@@ -319,8 +325,9 @@ function buildCompanionStablePrompt(opts: {
       - Tu n'annonces jamais qu'une action a été modifiée depuis le chat.
     - EXCEPTION RAPPEL PONCTUEL:
       - Si l'utilisateur demande un rappel ponctuel (one-shot, date/heure précise, non récurrent), ne redirige PAS vers dashboard/rendez-vous.
-      - Tu acquiesces simplement et clairement (ex: "Oui, c'est noté.").
-      - Le watcher gère ce type de rappel en arrière-plan.
+      - Un tool de rappel ponctuel tente de programmer ce rappel directement depuis la conversation.
+      - Tu ne peux confirmer le rappel que si le contexte runtime dit explicitement que le tool a réussi.
+      - Si l'horaire exact n'a pas pu être résolu, demande UNE précision courte au lieu de prétendre que c'est programmé.
     - RENDEZ-VOUS VS ACTIONS PERSONNELLES:
       - Rendez-vous = Sophia vient vers le user via un message planifié.
       - Actions Personnelles = le user fait une habitude ou une tâche récurrente.
@@ -423,6 +430,7 @@ function buildCompanionStablePrompt(opts: {
     - Tu peux refaire un rappel dashboard plus tard seulement si nécessaire (ordre de grandeur: ~5 tours, ou quand l'utilisateur redemande une action UI explicite).
     - Si le contexte contient "=== ADDON DASHBOARD CAPABILITIES (CAN_BE_RELATED_TO_DASHBOARD) ===", utilise ces capacités produit pour répondre de manière détaillée et cohérente, puis pose 1 question de diagnostic utile.
     - Règle de choix CRITIQUE: si Sophia doit envoyer un message planifié au bon moment, oriente vers Rendez-vous. Si le user doit faire lui-même une habitude ou une tâche récurrente, oriente vers Actions Personnelles.
+    - Si le contexte contient "=== ADDON SURFACE OPPORTUNITY ===", traite-le comme une opportunité produit graduelle: réponds d'abord au besoin du tour, puis fais au maximum l'allusion/suggestion/CTA autorisé par le niveau indiqué. N'en rajoute pas.
     - Si le contexte contient "=== ADDON SAFETY ACTIVE ===", priorise l'apaisement: validation émotionnelle + 1 seule micro-question.
 
     LOGIQUE DE BILAN (CRITIQUE) :
@@ -438,8 +446,9 @@ function buildCompanionStablePrompt(opts: {
     - Interdit d'affirmer qu'une action a été créée/modifiée/activée/supprimée depuis le chat.
     - EXCEPTION RAPPEL PONCTUEL:
       - Si l'utilisateur demande un rappel ponctuel (one-shot, date/heure précise, non récurrent), ne redirige PAS vers dashboard/rendez-vous.
-      - Tu acquiesces simplement et clairement (ex: "Oui, c'est noté.").
-      - Le watcher gère ce type de rappel en arrière-plan.
+      - Un tool de rappel ponctuel tente de programmer ce rappel directement depuis la conversation.
+      - Tu ne peux confirmer le rappel que si le contexte runtime dit explicitement que le tool a réussi.
+      - Si l'horaire exact n'a pas pu être résolu, demande UNE précision courte au lieu de prétendre que c'est programmé.
     - RENDEZ-VOUS VS ACTIONS PERSONNELLES:
       - Rendez-vous = Sophia vient vers le user via un message planifié.
       - Actions Personnelles = le user fait une habitude ou une tâche récurrente.
@@ -696,8 +705,28 @@ export async function runCompanion(
 ): Promise<CompanionRunResult> {
   const lastAssistantMessage = history.filter((m: any) => m.role === 'assistant').pop()?.content || "";
   const isWhatsApp = (meta?.channel ?? "web") === "whatsapp"
+  const oneShotReminderOutcome = isWhatsApp
+    ? await maybeCreateOneShotReminder({
+      supabase,
+      userId,
+      message,
+      requestId: meta?.requestId,
+    })
+    : { detected: false } as const;
+  const oneShotReminderAddon = buildOneShotReminderAddon(oneShotReminderOutcome);
+  const oneShotReminderToolSummary = summarizeOneShotReminderOutcome(
+    oneShotReminderOutcome,
+  );
+  const augmentedContext = oneShotReminderAddon
+    ? `${context}\n${oneShotReminderAddon}`.trim()
+    : context;
 
-  const promptParts = buildCompanionPromptParts({ isWhatsApp, lastAssistantMessage, context, userState })
+  const promptParts = buildCompanionPromptParts({
+    isWhatsApp,
+    lastAssistantMessage,
+    context: augmentedContext,
+    userState,
+  })
   try {
     console.log(JSON.stringify({
       tag: "companion_prompt_cache_ready",
@@ -719,7 +748,7 @@ export async function runCompanion(
   const result = await handleCompanionModelOutput({ supabase, userId, scope, message, history, response, meta })
   const nextQuestionRhythm = buildNextQuestionRhythmState({
     userState,
-    context,
+    context: augmentedContext,
     responseText: result.text,
   })
   const nextTempMemory = {
@@ -729,6 +758,18 @@ export async function runCompanion(
 
   return {
     ...result,
+    executed_tools: Array.from(new Set([
+      ...oneShotReminderToolSummary.executedTools,
+      ...(result.executed_tools ?? []),
+    ])),
+    tool_execution:
+      oneShotReminderToolSummary.toolExecution === "failed"
+        ? "failed"
+        : oneShotReminderToolSummary.toolExecution === "success"
+        ? "success"
+        : oneShotReminderToolSummary.toolExecution === "blocked"
+        ? (result.tool_execution === "failed" ? "failed" : "blocked")
+        : result.tool_execution,
     temp_memory: nextTempMemory,
   }
 }

@@ -348,6 +348,7 @@ export async function runInvestigator(
         history,
         focusItems: currentState.pending_items.slice(0, 2),
         summaryYesterday: summary,
+        openingContext,
         meta,
       });
       if (openingDecision.decision === "defer") {

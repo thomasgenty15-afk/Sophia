@@ -57,8 +57,12 @@ Deno.test("internal endpoints: detect-future-events + process-checkins + trigger
   const anonKey = getEnv("VITE_SUPABASE_ANON_KEY");
   const serviceRoleKey = getEnv("SUPABASE_SERVICE_ROLE_KEY");
 
-  const anon = createClient<any>(supabaseUrl, anonKey, { auth: { persistSession: false, autoRefreshToken: false } });
-  const admin = createClient<any>(supabaseUrl, serviceRoleKey, { auth: { persistSession: false, autoRefreshToken: false } });
+  const anon = createClient(supabaseUrl, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
+  const admin = createClient(supabaseUrl, serviceRoleKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+  });
 
   const { userId } = await createTestUserAndSession(anon);
 
@@ -106,13 +110,23 @@ Deno.test("internal endpoints: detect-future-events + process-checkins + trigger
   assert(typeof firstId === "string" && firstId.length > 0, "missing checkin id");
   {
     const { error } = await admin
+      .from("profiles")
+      .update({
+        phone_invalid: false,
+        whatsapp_opted_in: true,
+      } as any)
+      .eq("id", userId);
+    if (error) throw error;
+  }
+  {
+    const { error } = await admin
       .from("scheduled_checkins")
       .update({ scheduled_for: new Date(Date.now() - 60_000).toISOString() })
       .eq("id", firstId);
     if (error) throw error;
   }
 
-  // 2) process-checkins should process at least 1 (falls back to in-app log when WhatsApp not opted in)
+  // 2) process-checkins should process at least 1 and send it through the WhatsApp stub.
   const proc = await postInternal("process-checkins", {});
   assertEquals(proc.res.status, 200);
 
@@ -127,7 +141,7 @@ Deno.test("internal endpoints: detect-future-events + process-checkins + trigger
     .eq("role", "assistant")
     .filter("metadata->>source", "eq", "scheduled_checkin");
   if (msgErr) throw msgErr;
-  assert((msgCount ?? 0) >= 1, "process-checkins should log an in-app assistant message when WhatsApp send is not possible");
+  assert((msgCount ?? 0) >= 1, "process-checkins should log an assistant message after a successful WhatsApp stub send");
 
   // 3) trigger-memory-echo should generate and log one memory echo (WhatsApp not opted in => in-app log)
   const echo = await postInternal("trigger-memory-echo", {});
@@ -147,7 +161,6 @@ Deno.test("internal endpoints: detect-future-events + process-checkins + trigger
   const bilan = await postInternal("trigger-daily-bilan", {});
   assertEquals(bilan.res.status, 200);
 });
-
 
 
 

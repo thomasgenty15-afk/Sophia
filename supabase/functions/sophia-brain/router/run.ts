@@ -32,7 +32,12 @@ import {
   clearMachineStateTempMemory,
   detectMagicResetCommand,
 } from "./magic_reset.ts";
-import type { DispatcherSignals } from "./dispatcher.ts";
+import type {
+  DispatcherMemoryPlan,
+  DispatcherModelTierHint,
+  DispatcherSignals,
+} from "./dispatcher.ts";
+import { buildSurfaceRuntimeDecision } from "../surface_state.ts";
 import { handleTracking } from "../lib/tracking.ts";
 import { updateEtoilePolaire } from "../lib/north_star_tools.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
@@ -59,6 +64,84 @@ function envInt(name: string, fallback: number): number {
   const n = Number(raw);
   if (!Number.isFinite(n)) return fallback;
   return Math.max(0, Math.floor(n));
+}
+
+function envString(name: string, fallback = ""): string {
+  const denoEnv = (globalThis as any)?.Deno?.env;
+  const raw = String(denoEnv?.get?.(name) ?? "").trim();
+  return raw || fallback;
+}
+
+export function resolveAgentChatModel(args: {
+  effectiveMode: AgentMode;
+  memoryPlan?: DispatcherMemoryPlan | null;
+  explicitModel?: string | null;
+}): {
+  model: string;
+  source:
+    | "explicit_override"
+    | "non_companion_default"
+    | "companion_default"
+    | "memory_plan_lite"
+    | "memory_plan_standard"
+    | "memory_plan_deep";
+  tier: DispatcherModelTierHint | "default" | "explicit";
+} {
+  const explicitModel = String(args.explicitModel ?? "").trim();
+  if (explicitModel) {
+    return {
+      model: explicitModel,
+      source: "explicit_override",
+      tier: "explicit",
+    };
+  }
+
+  const defaultModel = String(getGlobalAiModel("gemini-2.5-flash")).trim();
+  if (args.effectiveMode !== "companion") {
+    return {
+      model: defaultModel,
+      source: "non_companion_default",
+      tier: "default",
+    };
+  }
+
+  const plan = args.memoryPlan ?? null;
+  const confidence = Number(plan?.plan_confidence ?? 0);
+  const hint = String(plan?.model_tier_hint ?? "").trim().toLowerCase();
+  if (
+    confidence < 0.6 ||
+    (hint !== "lite" && hint !== "standard" && hint !== "deep")
+  ) {
+    return {
+      model: defaultModel,
+      source: "companion_default",
+      tier: "default",
+    };
+  }
+
+  const tierModelMap: Record<DispatcherModelTierHint, string> = {
+    lite: envString(
+      "SOPHIA_COMPANION_MODEL_LITE",
+      "gemini-3.1-flash-lite-preview",
+    ),
+    standard: envString(
+      "SOPHIA_COMPANION_MODEL_STANDARD",
+      "gemini-3-flash-preview",
+    ),
+    deep: envString(
+      "SOPHIA_COMPANION_MODEL_DEEP",
+      "gemini-3.1-pro-preview",
+    ),
+  };
+
+  return {
+    model: tierModelMap[hint as DispatcherModelTierHint],
+    source: `memory_plan_${hint}` as
+      | "memory_plan_lite"
+      | "memory_plan_standard"
+      | "memory_plan_deep",
+    tier: hint as DispatcherModelTierHint,
+  };
 }
 
 function extractDashboardRedirectIntents(signals: DispatcherSignals): string[] {
@@ -942,6 +1025,25 @@ export async function processMessage(
     checkupIntentDetected,
   });
 
+  const surfaceRuntime = buildSurfaceRuntimeDecision({
+    tempMemory,
+    memoryPlan: contextual.dispatcherResult?.memory_plan,
+    surfacePlan: contextual.dispatcherResult?.surface_plan,
+    dispatcherSignals,
+    userMessage,
+    targetMode,
+  });
+  const surfaceAddon = surfaceRuntime.addon;
+  if (surfaceAddon) {
+    await trace("brain:surface_opportunity_selected", "routing", {
+      surface_id: surfaceAddon.surface_id,
+      level: surfaceAddon.level,
+      cta_style: surfaceAddon.cta_style,
+      content_need: surfaceAddon.content_need,
+      confidence: surfaceAddon.confidence,
+    }, "debug");
+  }
+
   await maybeTrackProgressParallel({
     supabase,
     userId,
@@ -979,6 +1081,7 @@ export async function processMessage(
     userTime,
     triggers: onDemandTriggers,
     injectedContext: opts?.contextOverride,
+    memoryPlan: contextual.dispatcherResult?.memory_plan,
   });
   contextLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0);
 
@@ -1063,6 +1166,17 @@ export async function processMessage(
 
   const checkupActive = isCheckupActive(state);
   const isPostCheckup = state?.investigation_state?.status === "post_checkup";
+  const effectiveModeForModelSelection: AgentMode =
+    checkupActive &&
+      !stopCheckup &&
+      targetMode !== "sentry"
+      ? "investigator"
+      : targetMode;
+  const agentModelSelection = resolveAgentChatModel({
+    effectiveMode: effectiveModeForModelSelection,
+    memoryPlan: contextual.dispatcherResult?.memory_plan,
+    explicitModel: meta?.model,
+  });
 
   const agentOut = await runAgentAndVerify({
     supabase,
@@ -1080,9 +1194,7 @@ export async function processMessage(
     stopCheckup,
     isPostCheckup,
     outageTemplate: "J'ai un petit souci technique, je reviens vers toi dès que c'est réglé!",
-    sophiaChatModel: String(
-      getGlobalAiModel("gemini-2.5-flash"),
-    ).trim(),
+    sophiaChatModel: agentModelSelection.model,
     tempMemory,
   });
   agentLatencyMs =
@@ -1175,13 +1287,18 @@ export async function processMessage(
           next_mode: nextMode,
           risk_score: riskScore,
           checkup_active: checkupActive,
-          stop_checkup: stopCheckup,
-          safety_level: dispatcherSignals.safety.level,
-          interrupt_kind: dispatcherSignals.interrupt.kind,
-          research_requested: researchRequested,
-          research_executed: researchExecuted,
-          research_query: researchRequested ? researchQuery : null,
+                stop_checkup: stopCheckup,
+                safety_level: dispatcherSignals.safety.level,
+                interrupt_kind: dispatcherSignals.interrupt.kind,
+                agent_model: agentModelSelection.model,
+                agent_model_source: agentModelSelection.source,
+                agent_model_tier: agentModelSelection.tier,
+                research_requested: researchRequested,
+                research_executed: researchExecuted,
+                research_query: researchRequested ? researchQuery : null,
           research_sources_count: researchSources.length,
+          surface_id: surfaceAddon?.surface_id ?? null,
+          surface_level: surfaceAddon?.level ?? null,
           llm_retry_queued: Boolean(llmRetryJobId),
           llm_retry_job_id: llmRetryJobId,
           outage_fallback: Boolean(agentOut.outageFallback),
@@ -1199,6 +1316,12 @@ export async function processMessage(
     checkup_active: checkupActive,
     stop_checkup: stopCheckup,
     checkup_intent_detected: checkupIntentDetected,
+    effective_mode_for_model: effectiveModeForModelSelection,
+    agent_model: agentModelSelection.model,
+    agent_model_source: agentModelSelection.source,
+    agent_model_tier: agentModelSelection.tier,
+    surface_id: surfaceAddon?.surface_id ?? null,
+    surface_level: surfaceAddon?.level ?? null,
   }, "info");
 
   // Persist one turn_summary row per router turn (powers bundle brain_trace exports).
@@ -1240,7 +1363,10 @@ export async function processMessage(
           risk_score: riskScore,
         },
         agent: {
-          model: String(meta?.model ?? getGlobalAiModel("gemini-2.5-flash")).trim(),
+          model: agentModelSelection.model,
+          model_source: agentModelSelection.source,
+          model_tier: agentModelSelection.tier,
+          effective_mode: effectiveModeForModelSelection,
           outcome: (agentOut.toolExecution && agentOut.toolExecution !== "none") ? "tool_call" : "text",
           tool: agentOut.executedTools?.[0] ?? null,
         },
@@ -1267,6 +1393,12 @@ export async function processMessage(
           tool_execution: agentOut.toolExecution,
           executed_tools: agentOut.executedTools ?? [],
           tool_ack: agentOut.toolAck ?? null,
+          surface_plan_mode:
+            contextual.dispatcherResult?.surface_plan?.surface_mode ?? null,
+          surface_candidates_count:
+            contextual.dispatcherResult?.surface_plan?.candidates?.length ?? 0,
+          selected_surface_id: surfaceAddon?.surface_id ?? null,
+          selected_surface_level: surfaceAddon?.level ?? null,
           outage_fallback: Boolean(agentOut.outageFallback),
           outage_failed_mode: agentOut.outageFailedMode ?? null,
           outage_error: agentOut.outageErrorMessage ?? null,

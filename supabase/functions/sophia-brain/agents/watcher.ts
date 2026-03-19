@@ -42,8 +42,8 @@ function simplePromptHash(input: string): string {
 }
 
 function getWatcherIntervalMinutes(): number {
-  const raw = Number((Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "10").trim())
-  if (!Number.isFinite(raw) || raw <= 0) return 10
+  const raw = Number((Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "240").trim())
+  if (!Number.isFinite(raw) || raw <= 0) return 240
   return Math.floor(raw)
 }
 
@@ -108,6 +108,21 @@ function compactOneLine(text: string, maxLen = 180): string {
     .replace(/\s+/g, " ")
     .trim()
     .slice(0, maxLen)
+}
+
+function stripRelativeTimePhrases(text: string): string {
+  return String(text ?? "")
+    .replace(/\b(?:dans\s+(?:\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|quelques)\s+(?:minutes?|heures?|jours?|semaines?|mois))\b/gi, " ")
+    .replace(/\b(?:aujourd['’]hui|demain|apr[eè]s-demain|ce\s+soir|cet\s+apr[eè]s-midi|la\s+semaine\s+prochaine|le\s+mois\s+prochain|lundi\s+prochain|mardi\s+prochain|mercredi\s+prochain|jeudi\s+prochain|vendredi\s+prochain|samedi\s+prochain|dimanche\s+prochain)\b/gi, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\s+([,.:;!?])/g, "$1")
+    .trim()
+}
+
+function sanitizeWatcherEventContext(text: string): string {
+  const compact = compactOneLine(text, 180)
+  const withoutRelative = stripRelativeTimePhrases(compact)
+  return compactOneLine(withoutRelative || compact, 180)
 }
 
 function deriveTextContext(checkin: ExistingCheckin): string {
@@ -175,7 +190,7 @@ async function applyCoachingPause(params: {
     } as any)
     .eq("user_id", params.userId)
     .eq("event_context", "morning_active_actions_nudge")
-    .in("status", ["pending", "awaiting_user"])
+    .in("status", ["pending", "retrying", "awaiting_user"])
     .gte("scheduled_for", nowIso)
     .lt("scheduled_for", params.pauseUntilIso)
   if (morningCancelErr) throw morningCancelErr
@@ -460,8 +475,13 @@ Règles CRITIQUES :
 - Sois TRÈS CONSERVATEUR. Ne programme un check-in QUE pour des événements majeurs (examen, entretien important, etc.) OU si l'utilisateur demande explicitement qu'on le relance.
 - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
 - N'utilise PAS les actions actives du plan comme motif de check-in ponctuel watcher (elles sont déjà suivies ailleurs).
+- Si l'utilisateur demande explicitement un rappel ponctuel a Sophia ("rappelle-moi", "envoie-moi un rappel", etc.), renvoie []: ce cas est géré par le tool de reminder one-shot, pas par le watcher.
 - Si le sujet/rappel semble déjà pris en charge via le flux rendez-vous/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event watcher pour ce sujet.
 - Si l'échange montre qu'un rendez-vous couvre déjà le besoin, renvoie [] pour éviter les doublons.
+- event_context doit être une étiquette canonique et stable de l'événement, pas une formulation relative.
+- Interdit dans event_context: "dans deux semaines", "demain", "vendredi prochain", "ce soir", etc.
+- Préfère une formulation absolue ou neutre, par exemple "Rendez-vous galant" ou "Rendez-vous galant du 20 mars".
+- event_grounding doit rester factuel. Si tu peux déduire une date/heure absolue grâce au contexte temporel, préfère-la aux formulations relatives.
 - ÉTHIQUE / VERTU (OBLIGATOIRE):
   - Les check-ins doivent rester bienveillants, respectueux, non intrusifs et proportionnés.
   - Ne crée JAMAIS de check-in à tonalité culpabilisante, contrôlante, manipulatoire ou anxiogène.
@@ -600,7 +620,7 @@ ${activeActionsBlock}
     for (const candidate of candidates) {
       const score = Number(candidate.score)
       const scheduledFor = String(candidate.scheduledFor)
-      const eventContext = String(candidate.eventContext)
+      const eventContext = sanitizeWatcherEventContext(String(candidate.eventContext))
 
       // Hard product rule: avoid check-ins about plan objectives unless exceptional support need (>0.9).
       if (isPlanObjectiveContext(eventContext) && score <= 9) continue

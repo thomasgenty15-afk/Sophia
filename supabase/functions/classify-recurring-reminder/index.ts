@@ -242,7 +242,7 @@ async function seedReminderUntilNextSunday(params: {
     } as any)
     .eq("user_id", reminder.user_id)
     .eq("event_context", eventContext)
-    .in("status", ["pending", "awaiting_user"])
+    .in("status", ["pending", "retrying", "awaiting_user"])
     .gte("scheduled_for", nowIso)
     .lt("scheduled_for", horizonEndIso);
 

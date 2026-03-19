@@ -553,7 +553,7 @@ Deno.serve(async (req) => {
           } as any)
           .eq("user_id", userId)
           .eq("event_context", EVENT_CONTEXT)
-          .in("status", ["pending", "awaiting_user"])
+          .in("status", ["pending", "retrying", "awaiting_user"])
           .gte("scheduled_for", nowIso)
           .lt("scheduled_for", pauseUntilIso)
         if (pauseCancelErr) throw pauseCancelErr
@@ -567,7 +567,7 @@ Deno.serve(async (req) => {
           .delete()
           .eq("user_id", userId)
           .eq("event_context", EVENT_CONTEXT)
-          .in("status", ["pending", "awaiting_user"])
+          .in("status", ["pending", "retrying", "awaiting_user"])
           .gte("scheduled_for", nowIso)
         if (resetErr) throw resetErr
       }
@@ -594,7 +594,7 @@ Deno.serve(async (req) => {
         .select("id")
         .eq("user_id", userId)
         .eq("event_context", EVENT_CONTEXT)
-        .in("status", ["pending", "awaiting_user"])
+        .in("status", ["pending", "retrying", "awaiting_user"])
         .gte("scheduled_for", new Date().toISOString())
         .lt("scheduled_for", horizonEndIso)
         .limit(1)
@@ -672,7 +672,7 @@ Deno.serve(async (req) => {
         .select("message_payload")
         .eq("user_id", userId)
         .eq("event_context", EVENT_CONTEXT)
-        .in("status", ["pending", "awaiting_user"])
+        .in("status", ["pending", "retrying", "awaiting_user"])
 
       const finalOffsets = new Set<number>(
         (finalRows ?? [])

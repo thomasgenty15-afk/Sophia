@@ -29,6 +29,12 @@ export async function decideCheckupOpening(opts: {
   history: any[]
   focusItems: CheckupItem[]
   summaryYesterday?: unknown
+  openingContext?: {
+    mode: "cold_relaunch" | "ongoing_conversation"
+    allow_relaunch_greeting: boolean
+    hours_since_last_message: number | null
+    last_message_at: string | null
+  }
   meta?: { requestId?: string; forceRealAi?: boolean; model?: string; channel?: "web" | "whatsapp" }
 }): Promise<OpeningDecision> {
   const historyBlock = (opts.history ?? [])
@@ -44,6 +50,7 @@ MISSION:
 1. Regarder les derniers tours.
 2. Décider s'il est pertinent de lancer le bilan maintenant.
 3. Si oui, produire un message d'ouverture naturel qui propose le bilan de façon fluide et se termine par une question large sur la journée.
+4. Considérer l'historique comme un contexte indicatif de continuité, pas comme une demande à laquelle il faudrait répondre point par point.
 
 SORTIES POSSIBLES:
 - "open_now": le bilan peut démarrer directement.
@@ -55,6 +62,11 @@ RÈGLES:
 - Si la conversation est compatible mais déjà engagée sur un autre sujet, préfère "open_softly".
 - Si tu ouvres le bilan, le message doit inclure l'idée du point du jour puis finir par une variante naturelle de "Comment ça s'est passé aujourd'hui ?"
 - Si tu diffères, le message ne lance PAS le bilan. Il reste humain, bref, et suit le contexte.
+- Le message d'ouverture est une initiative proactive autonome, pas une réponse directe à un message précis.
+- L'historique récent sert surtout à doser la douceur d'entrée et éviter les faux raccords.
+- Un acquiescement de départ ("Ça marche", "Ok", "D'accord", "Parfait", etc.) n'est autorisé QUE si le dernier message utilisateur est très récent et appelle explicitement une validation.
+- Si l'historique est ancien, vide, ou sans demande/accord explicite sur le bilan, interdiction de commencer par un acquiescement.
+- "Entrer en douceur" ne veut pas dire approuver le dernier message; cela veut dire raccorder naturellement sans effet de réponse automatique.
 - Pas de ton robotique. Pas de jargon technique. Français uniquement.
 - Retourne uniquement du JSON valide.
 
@@ -68,6 +80,7 @@ JSON attendu:
 CANAL: ${opts.meta?.channel ?? "web"}
 FOCUS ITEMS: ${itemsBlock}
 SUMMARY YESTERDAY: ${JSON.stringify(opts.summaryYesterday ?? null)}
+OPENING CONTEXT: ${JSON.stringify(opts.openingContext ?? null)}
 HISTORIQUE RÉCENT:
 ${historyBlock}
 `.trim()

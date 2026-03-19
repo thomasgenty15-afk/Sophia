@@ -1,4 +1,15 @@
 import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
+import {
+  GLOBAL_MEMORY_TAXONOMY_PROMPT_BLOCK,
+  isAllowedGlobalMemoryFullKey,
+  isAllowedGlobalMemoryThemeKey,
+} from "../global_memory.ts";
+import {
+  getSurfaceDefinition,
+  isAllowedSurfaceId,
+  SURFACE_REGISTRY_PROMPT_BLOCK,
+  type SurfaceId,
+} from "../surface_registry.ts";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // DISPATCHER V2: STRUCTURED SIGNALS
@@ -199,12 +210,125 @@ export interface MachineSignals {
   dont_want_continue_bilan?: boolean; // User switched topic / unrelated while stale bilan active
 }
 
+export type DispatcherResponseIntent =
+  | "direct_answer"
+  | "inventory"
+  | "problem_solving"
+  | "reflection"
+  | "support"
+  | "planning"
+  | "tooling";
+
+export type DispatcherReasoningComplexity = "low" | "medium" | "high";
+export type DispatcherContextNeed = "minimal" | "targeted" | "broad" | "dossier";
+export type DispatcherMemoryMode = "none" | "light" | "targeted" | "broad" | "dossier";
+export type DispatcherModelTierHint = "lite" | "standard" | "deep";
+export type DispatcherContextBudgetTier = "tiny" | "small" | "medium" | "large";
+export type DispatcherMemoryTargetType =
+  | "event"
+  | "topic"
+  | "global_subtheme"
+  | "global_theme"
+  | "core_identity";
+export type DispatcherMemoryTimeScope =
+  | "recent"
+  | "all_time"
+  | "specific_window";
+export type DispatcherMemoryTargetPriority = "high" | "medium" | "low";
+export type DispatcherMemoryRetrievalPolicy =
+  | "force_taxonomy"
+  | "taxonomy_first"
+  | "semantic_first"
+  | "semantic_only";
+export type DispatcherMemoryExpansionPolicy =
+  | "exact_only"
+  | "add_supporting_topics"
+  | "add_topics_and_events"
+  | "expand_theme_subthemes";
+export type DispatcherSurfaceMode =
+  | "none"
+  | "light"
+  | "opportunistic"
+  | "guided"
+  | "push";
+export type DispatcherSurfacePlanningHorizon =
+  | "this_turn"
+  | "watch_next_turns"
+  | "multi_turn";
+export type DispatcherSurfaceOpportunityType =
+  | "utility"
+  | "support"
+  | "reflection"
+  | "identity"
+  | "habit"
+  | "activation";
+export type DispatcherSurfaceEvidenceWindow =
+  | "current_turn"
+  | "recent_turns"
+  | "both";
+export type DispatcherSurfacePersistenceHorizon =
+  | "1_turn"
+  | "3_turns"
+  | "session";
+export type DispatcherSurfaceCtaStyle = "none" | "soft" | "direct";
+export type DispatcherSurfaceContentNeed =
+  | "none"
+  | "light"
+  | "ranked"
+  | "full";
+
+export interface DispatcherMemoryTarget {
+  type: DispatcherMemoryTargetType;
+  key?: string;
+  query_hint?: string;
+  time_scope?: DispatcherMemoryTimeScope;
+  priority: DispatcherMemoryTargetPriority;
+  retrieval_policy: DispatcherMemoryRetrievalPolicy;
+  expansion_policy: DispatcherMemoryExpansionPolicy;
+  why?: string;
+}
+
+export interface DispatcherMemoryPlan {
+  response_intent: DispatcherResponseIntent;
+  reasoning_complexity: DispatcherReasoningComplexity;
+  context_need: DispatcherContextNeed;
+  memory_mode: DispatcherMemoryMode;
+  model_tier_hint: DispatcherModelTierHint;
+  context_budget_tier: DispatcherContextBudgetTier;
+  targets: DispatcherMemoryTarget[];
+  plan_confidence: number;
+}
+
+export interface DispatcherSurfaceCandidate {
+  surface_id: SurfaceId;
+  opportunity_type: DispatcherSurfaceOpportunityType;
+  confidence: number;
+  suggested_level: number;
+  reason: string;
+  evidence_window: DispatcherSurfaceEvidenceWindow;
+  persistence_horizon: DispatcherSurfacePersistenceHorizon;
+  cta_style: DispatcherSurfaceCtaStyle;
+  content_need: DispatcherSurfaceContentNeed;
+  content_query_hint?: string;
+}
+
+export interface DispatcherSurfacePlan {
+  surface_mode: DispatcherSurfaceMode;
+  planning_horizon: DispatcherSurfacePlanningHorizon;
+  candidates: DispatcherSurfaceCandidate[];
+  plan_confidence: number;
+}
+
 /**
  * Enhanced dispatcher output with new signals and enrichments.
  */
 export interface DispatcherOutputV2 {
   /** Existing signals (backward compatible) */
   signals: DispatcherSignals;
+  /** NEW: memory routing plan for later context selection/model choice */
+  memory_plan: DispatcherMemoryPlan;
+  /** NEW: surface opportunity plan for product feature pushes */
+  surface_plan: DispatcherSurfacePlan;
   /** NEW: Signals detected on last turn only (not already in history) */
   new_signals: NewSignalEntry[];
   /** NEW: Enrichments for existing signals in history */
@@ -261,6 +385,92 @@ export const DEFAULT_SIGNALS: DispatcherSignals = {
     confidence: 0.5,
   },
   risk_score: 0,
+};
+
+const RESPONSE_INTENTS = [
+  "direct_answer",
+  "inventory",
+  "problem_solving",
+  "reflection",
+  "support",
+  "planning",
+  "tooling",
+] as const;
+const REASONING_COMPLEXITIES = ["low", "medium", "high"] as const;
+const CONTEXT_NEEDS = ["minimal", "targeted", "broad", "dossier"] as const;
+const MEMORY_MODES = ["none", "light", "targeted", "broad", "dossier"] as const;
+const MODEL_TIER_HINTS = ["lite", "standard", "deep"] as const;
+const CONTEXT_BUDGET_TIERS = ["tiny", "small", "medium", "large"] as const;
+const MEMORY_TARGET_TYPES = [
+  "event",
+  "topic",
+  "global_subtheme",
+  "global_theme",
+  "core_identity",
+] as const;
+const MEMORY_TIME_SCOPES = ["recent", "all_time", "specific_window"] as const;
+const MEMORY_TARGET_PRIORITIES = ["high", "medium", "low"] as const;
+const MEMORY_RETRIEVAL_POLICIES = [
+  "force_taxonomy",
+  "taxonomy_first",
+  "semantic_first",
+  "semantic_only",
+] as const;
+const MEMORY_EXPANSION_POLICIES = [
+  "exact_only",
+  "add_supporting_topics",
+  "add_topics_and_events",
+  "expand_theme_subthemes",
+] as const;
+const SURFACE_MODES = [
+  "none",
+  "light",
+  "opportunistic",
+  "guided",
+  "push",
+] as const;
+const SURFACE_PLANNING_HORIZONS = [
+  "this_turn",
+  "watch_next_turns",
+  "multi_turn",
+] as const;
+const SURFACE_OPPORTUNITY_TYPES = [
+  "utility",
+  "support",
+  "reflection",
+  "identity",
+  "habit",
+  "activation",
+] as const;
+const SURFACE_EVIDENCE_WINDOWS = [
+  "current_turn",
+  "recent_turns",
+  "both",
+] as const;
+const SURFACE_PERSISTENCE_HORIZONS = [
+  "1_turn",
+  "3_turns",
+  "session",
+] as const;
+const SURFACE_CTA_STYLES = ["none", "soft", "direct"] as const;
+const SURFACE_CONTENT_NEEDS = ["none", "light", "ranked", "full"] as const;
+
+export const DEFAULT_MEMORY_PLAN: DispatcherMemoryPlan = {
+  response_intent: "direct_answer",
+  reasoning_complexity: "low",
+  context_need: "minimal",
+  memory_mode: "none",
+  model_tier_hint: "lite",
+  context_budget_tier: "tiny",
+  targets: [],
+  plan_confidence: 0.5,
+};
+
+export const DEFAULT_SURFACE_PLAN: DispatcherSurfacePlan = {
+  surface_mode: "none",
+  planning_horizon: "watch_next_turns",
+  candidates: [],
+  plan_confidence: 0.35,
 };
 
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -508,6 +718,100 @@ ATTENTION - NE PAS CONFONDRE:
 - "j'ai pas fait X" hors bilan = track_progress_action, PAS checkup
 `;
 
+const MEMORY_PLAN_SECTION = `
+=== MEMORY PLAN (OBLIGATOIRE) ===
+En plus de "signals", tu dois produire un objet "memory_plan" qui servira PLUS TARD a choisir:
+- quelle memoire charger
+- combien de contexte injecter
+- quel tier de modele utiliser
+
+Le memory_plan n'exécute rien. Il donne seulement un PLAN DE CONTEXTE.
+
+1) CHAMPS OBLIGATOIRES
+- response_intent: direct_answer | inventory | problem_solving | reflection | support | planning | tooling
+- reasoning_complexity: low | medium | high
+- context_need: minimal | targeted | broad | dossier
+- memory_mode: none | light | targeted | broad | dossier
+- model_tier_hint: lite | standard | deep
+- context_budget_tier: tiny | small | medium | large
+- targets: liste de cibles mémoire
+- plan_confidence: 0..1
+
+2) TYPES DE MEMOIRE
+- event: fait ponctuel, date/contextualise, recent ou localise dans le temps
+- topic: sujet concret ou dossier vivant (projet, personne, conflit, sujet recurrent)
+- global_subtheme: dynamique durable ciblee dans la taxonomie globale
+- global_theme: vue large sur plusieurs sous-themes d'un meme theme global
+- core_identity: synthese identitaire lente et rare, JAMAIS memoire primaire
+
+3) REGLES
+- Si aucune memoire n'est utile: memory_mode=none et targets=[]
+- Pour une question "que sais-tu sur..." / "resume moi..." / "dis-moi tout sur..." -> souvent inventory + global_theme
+- Pour un probleme concret localise -> souvent problem_solving + global_subtheme puis topic en support
+- Pour topic/event: si tu n'as pas de slug canonique fiable, mets key=null et utilise query_hint
+- Pour global_subtheme: key DOIT etre une cle canonique complete "theme.sous_theme"
+- Pour global_theme: key DOIT etre uniquement la cle du theme parent
+- N'invente jamais une cle hors taxonomie
+- core_identity doit rester rare et de priorite basse, seulement comme overlay identitaire
+- Si le message est simple mais demande un gros inventaire memoire, mets reasoning_complexity bas/moyen mais context_need=broad ou dossier
+
+4) TAXONOMIE GLOBALE AUTORISEE
+${GLOBAL_MEMORY_TAXONOMY_PROMPT_BLOCK}
+
+5) EXEMPLES
+- "Qu'est-ce que tu sais sur ma psychologie ?" -> inventory + global_theme(psychologie)
+- "Je galere avec mes relations au travail" -> problem_solving + global_subtheme(travail.relations_professionnelles)
+- "J'ai mal dormi cette semaine" -> support + global_subtheme(sante.sommeil)
+- "Aide-moi a repondre a ce message" -> souvent memory_mode=none ou light
+- "Dis-moi tout ce que tu sais sur mon travail" -> inventory + global_theme(travail)
+`;
+
+const SURFACE_PLAN_SECTION = `
+=== SURFACE PLAN (OBLIGATOIRE) ===
+En plus de "memory_plan", tu dois produire un objet "surface_plan".
+
+Le surface_plan sert a detecter UNE opportunite produit potentiellement utile.
+Il ne force rien. Il signale juste quelle surface du produit pourrait etre poussee de maniere progressive.
+
+1) CHAMPS OBLIGATOIRES
+- surface_mode: none | light | opportunistic | guided | push
+- planning_horizon: this_turn | watch_next_turns | multi_turn
+- candidates: liste de candidats surface (0 a 2 max)
+- plan_confidence: 0..1
+
+2) SURFACES AUTORISEES
+${SURFACE_REGISTRY_PROMPT_BLOCK}
+
+3) REGLES
+- N'invente jamais une surface hors registre.
+- Maximum 2 candidats, et 1 seul candidat fort dans la plupart des cas.
+- Le surface_plan sert a pousser une feature si elle est pertinente, PAS a remplacer la reponse immediate.
+- Si le besoin est deja une redirection dashboard explicite via CRUD/preferences/rendez-vous, ne sur-pousse pas la meme surface ici.
+- Les surfaces utility sont pour le dashboard. Les surfaces transformational sont pour Architecte.
+- Pour une opportunite faible ou naissante, prefere suggested_level=1 ou 2.
+- Reserve suggested_level=4 ou 5 aux cas explicites ou tres pertinents.
+
+4) CHAMPS D'UN CANDIDAT
+- surface_id: une cle canonique exacte du registre
+- opportunity_type: utility | support | reflection | identity | habit | activation
+- confidence: 0..1
+- suggested_level: entier 1..5
+- reason: texte court, concret
+- evidence_window: current_turn | recent_turns | both
+- persistence_horizon: 1_turn | 3_turns | session
+- cta_style: none | soft | direct
+- content_need: none | light | ranked | full
+- content_query_hint: texte libre optionnel pour aider a recuperer du contenu interne pertinent
+
+5) EXEMPLES
+- "Je ne sais plus ou je vais en ce moment" -> dashboard.north_star
+- "J'oublie toujours de ne pas fumer apres le dejeuner" -> dashboard.reminders ou dashboard.personal_actions selon le sens
+- "J'aimerais que tu sois plus cash avec moi" -> dashboard.preferences
+- "J'ai vecu un truc fort hier, je sais pas comment le raconter" -> architect.stories
+- "J'ai une idee sur pourquoi les gens sabotent leur discipline" -> architect.reflections
+- "J'ai envie d'une vie plus alignee avec ce qui m'attire" -> architect.wishlist
+`;
+
 /**
  * Build the anti-duplication section from signal history.
  * Tells the LLM which signals have already been detected.
@@ -641,7 +945,9 @@ ${INTERRUPT_SECTION}
 ${NEEDS_EXPLANATION_SECTION}
 ${NEEDS_RESEARCH_SECTION}
 ${TOOLS_SIGNALS_SECTION}
-${PLAN_SIGNALS_SECTION}`;
+${PLAN_SIGNALS_SECTION}
+${MEMORY_PLAN_SECTION}
+${SURFACE_PLAN_SECTION}`;
 }
 
 function buildDispatcherSemiStableSection(opts: {
@@ -853,6 +1159,259 @@ ${volatilePrompt}`;
   };
 }
 
+function readEnum<T extends readonly string[]>(
+  raw: unknown,
+  allowed: T,
+  fallback: T[number],
+): T[number] {
+  const value = String(raw ?? "").trim().toLowerCase();
+  return (allowed as readonly string[]).includes(value) ? value as T[number] : fallback;
+}
+
+function readMaybeString(raw: unknown, maxLen: number): string | undefined {
+  if (typeof raw !== "string") return undefined;
+  const value = raw.trim().slice(0, maxLen);
+  return value.length > 0 ? value : undefined;
+}
+
+function clamp01(value: unknown, fallback: number): number {
+  const n = Number(value);
+  if (!Number.isFinite(n)) return fallback;
+  return Math.max(0, Math.min(1, n));
+}
+
+function clamp(value: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, value));
+}
+
+export function sanitizeDispatcherMemoryPlan(raw: unknown): DispatcherMemoryPlan {
+  const row = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+  const targetsRaw = Array.isArray(row.targets) ? row.targets : [];
+  const targets: DispatcherMemoryTarget[] = [];
+
+  for (const targetRaw of targetsRaw.slice(0, 5)) {
+    if (!targetRaw || typeof targetRaw !== "object") continue;
+    const target = targetRaw as Record<string, unknown>;
+    const type = readEnum(
+      target.type,
+      MEMORY_TARGET_TYPES,
+      "topic",
+    ) as DispatcherMemoryTargetType;
+    const key = readMaybeString(target.key, 120);
+    const queryHint = readMaybeString(target.query_hint, 140);
+    const why = readMaybeString(target.why, 160);
+    const timeScope = readEnum(
+      target.time_scope,
+      MEMORY_TIME_SCOPES,
+      "all_time",
+    ) as DispatcherMemoryTimeScope;
+    const priority = readEnum(
+      target.priority,
+      MEMORY_TARGET_PRIORITIES,
+      "medium",
+    ) as DispatcherMemoryTargetPriority;
+    const retrievalPolicy = readEnum(
+      target.retrieval_policy,
+      MEMORY_RETRIEVAL_POLICIES,
+      type === "global_theme" ? "force_taxonomy" : "taxonomy_first",
+    ) as DispatcherMemoryRetrievalPolicy;
+    const expansionPolicy = readEnum(
+      target.expansion_policy,
+      MEMORY_EXPANSION_POLICIES,
+      type === "global_theme" ? "expand_theme_subthemes" : "exact_only",
+    ) as DispatcherMemoryExpansionPolicy;
+
+    if (type === "global_subtheme") {
+      if (!key || !isAllowedGlobalMemoryFullKey(key)) continue;
+    } else if (type === "global_theme") {
+      if (!key || !isAllowedGlobalMemoryThemeKey(key)) continue;
+    } else if (type === "core_identity") {
+      if (key && key !== "core_identity") continue;
+    } else if (!key && !queryHint) {
+      continue;
+    }
+
+    targets.push({
+      type,
+      key: key ?? (type === "core_identity" ? "core_identity" : undefined),
+      query_hint: queryHint,
+      time_scope: timeScope,
+      priority,
+      retrieval_policy: retrievalPolicy,
+      expansion_policy: expansionPolicy,
+      why,
+    });
+  }
+
+  return {
+    response_intent: readEnum(
+      row.response_intent,
+      RESPONSE_INTENTS,
+      DEFAULT_MEMORY_PLAN.response_intent,
+    ) as DispatcherResponseIntent,
+    reasoning_complexity: readEnum(
+      row.reasoning_complexity,
+      REASONING_COMPLEXITIES,
+      DEFAULT_MEMORY_PLAN.reasoning_complexity,
+    ) as DispatcherReasoningComplexity,
+    context_need: readEnum(
+      row.context_need,
+      CONTEXT_NEEDS,
+      DEFAULT_MEMORY_PLAN.context_need,
+    ) as DispatcherContextNeed,
+    memory_mode: readEnum(
+      row.memory_mode,
+      MEMORY_MODES,
+      DEFAULT_MEMORY_PLAN.memory_mode,
+    ) as DispatcherMemoryMode,
+    model_tier_hint: readEnum(
+      row.model_tier_hint,
+      MODEL_TIER_HINTS,
+      DEFAULT_MEMORY_PLAN.model_tier_hint,
+    ) as DispatcherModelTierHint,
+    context_budget_tier: readEnum(
+      row.context_budget_tier,
+      CONTEXT_BUDGET_TIERS,
+      DEFAULT_MEMORY_PLAN.context_budget_tier,
+    ) as DispatcherContextBudgetTier,
+    targets,
+    plan_confidence: clamp01(
+      row.plan_confidence,
+      DEFAULT_MEMORY_PLAN.plan_confidence,
+    ),
+  };
+}
+
+export function sanitizeDispatcherSurfacePlan(raw: unknown): DispatcherSurfacePlan {
+  const row = raw && typeof raw === "object" ? raw as Record<string, unknown> : {};
+  const rawPlanConfidence = clamp01(
+    row.plan_confidence,
+    DEFAULT_SURFACE_PLAN.plan_confidence,
+  );
+  let surfaceMode = readEnum(
+    row.surface_mode,
+    SURFACE_MODES,
+    DEFAULT_SURFACE_PLAN.surface_mode,
+  ) as DispatcherSurfaceMode;
+  const planningHorizon = readEnum(
+    row.planning_horizon,
+    SURFACE_PLANNING_HORIZONS,
+    DEFAULT_SURFACE_PLAN.planning_horizon,
+  ) as DispatcherSurfacePlanningHorizon;
+
+  if (rawPlanConfidence < 0.55) {
+    surfaceMode = "none";
+  } else if (rawPlanConfidence < 0.72 && surfaceMode === "push") {
+    surfaceMode = "guided";
+  }
+
+  const candidatesRaw = Array.isArray(row.candidates) ? row.candidates : [];
+  const candidates: DispatcherSurfaceCandidate[] = [];
+
+  if (surfaceMode === "none") {
+    return {
+      surface_mode: "none",
+      planning_horizon: planningHorizon,
+      candidates: [],
+      plan_confidence: rawPlanConfidence,
+    };
+  }
+
+  for (const candidateRaw of candidatesRaw.slice(0, 2)) {
+    if (!candidateRaw || typeof candidateRaw !== "object") continue;
+    const candidate = candidateRaw as Record<string, unknown>;
+    const surfaceId = readMaybeString(candidate.surface_id, 80);
+    const reason = readMaybeString(candidate.reason, 200);
+    if (!surfaceId || !isAllowedSurfaceId(surfaceId) || !reason) continue;
+    const surface = getSurfaceDefinition(surfaceId);
+    if (!surface) continue;
+
+    let suggestedLevel = clamp(
+      Math.round(Number(candidate.suggested_level ?? 2)),
+      1,
+      surface.defaultLevelCap,
+    );
+    if (surfaceMode === "light") {
+      suggestedLevel = Math.min(suggestedLevel, 2);
+    } else if (surfaceMode === "opportunistic") {
+      suggestedLevel = Math.min(suggestedLevel, 3);
+    } else if (surfaceMode === "guided") {
+      suggestedLevel = Math.min(suggestedLevel, 4);
+    }
+
+    let persistenceHorizon = readEnum(
+      candidate.persistence_horizon,
+      SURFACE_PERSISTENCE_HORIZONS,
+      "3_turns",
+    ) as DispatcherSurfacePersistenceHorizon;
+    if (planningHorizon === "this_turn") {
+      persistenceHorizon = "1_turn";
+    } else if (
+      planningHorizon === "watch_next_turns" &&
+      persistenceHorizon === "session"
+    ) {
+      persistenceHorizon = "3_turns";
+    }
+
+    let ctaStyle = readEnum(
+      candidate.cta_style,
+      SURFACE_CTA_STYLES,
+      "soft",
+    ) as DispatcherSurfaceCtaStyle;
+    if (suggestedLevel <= 2) {
+      ctaStyle = "none";
+    } else if (suggestedLevel === 3 && ctaStyle === "direct") {
+      ctaStyle = "soft";
+    }
+
+    let contentNeed = readEnum(
+      candidate.content_need,
+      SURFACE_CONTENT_NEEDS,
+      "light",
+    ) as DispatcherSurfaceContentNeed;
+    if (surface.contentSource === "none" || suggestedLevel <= 2) {
+      contentNeed = "none";
+    } else if (
+      suggestedLevel === 3 &&
+      (contentNeed === "ranked" || contentNeed === "full")
+    ) {
+      contentNeed = "light";
+    }
+
+    const contentQueryHint = contentNeed === "none"
+      ? undefined
+      : readMaybeString(candidate.content_query_hint, 140);
+
+    candidates.push({
+      surface_id: surfaceId,
+      opportunity_type: readEnum(
+        candidate.opportunity_type,
+        SURFACE_OPPORTUNITY_TYPES,
+        "support",
+      ) as DispatcherSurfaceOpportunityType,
+      confidence: clamp01(candidate.confidence, 0.5),
+      suggested_level: suggestedLevel,
+      reason,
+      evidence_window: readEnum(
+        candidate.evidence_window,
+        SURFACE_EVIDENCE_WINDOWS,
+        "current_turn",
+      ) as DispatcherSurfaceEvidenceWindow,
+      persistence_horizon: persistenceHorizon,
+      cta_style: ctaStyle,
+      content_need: contentNeed,
+      content_query_hint: contentQueryHint,
+    });
+  }
+
+  return {
+    surface_mode: surfaceMode,
+    planning_horizon: planningHorizon,
+    candidates,
+    plan_confidence: rawPlanConfidence,
+  };
+}
+
 // ═══════════════════════════════════════════════════════════════════════════════
 // DISPATCHER V2 CONTEXTUAL: Enhanced version with signal history
 // ═══════════════════════════════════════════════════════════════════════════════
@@ -872,6 +1431,8 @@ export async function analyzeSignalsV2(
   if (mega) {
     return {
       signals: { ...DEFAULT_SIGNALS },
+      memory_plan: { ...DEFAULT_MEMORY_PLAN },
+      surface_plan: { ...DEFAULT_SURFACE_PLAN },
       new_signals: [],
       enrichments: [],
     };
@@ -914,6 +1475,46 @@ export async function analyzeSignalsV2(
     "dashboard_recurring_reminder_intent": { "detected": "boolean", "reminder_fields": ["string"], "confidence": "number" },
     "risk_score": "number"
   },
+  "memory_plan": {
+    "response_intent": "direct_answer|inventory|problem_solving|reflection|support|planning|tooling",
+    "reasoning_complexity": "low|medium|high",
+    "context_need": "minimal|targeted|broad|dossier",
+    "memory_mode": "none|light|targeted|broad|dossier",
+    "model_tier_hint": "lite|standard|deep",
+    "context_budget_tier": "tiny|small|medium|large",
+    "targets": [
+      {
+        "type": "event|topic|global_subtheme|global_theme|core_identity",
+        "key": "string|null",
+        "query_hint": "string|null",
+        "time_scope": "recent|all_time|specific_window|null",
+        "priority": "high|medium|low",
+        "retrieval_policy": "force_taxonomy|taxonomy_first|semantic_first|semantic_only",
+        "expansion_policy": "exact_only|add_supporting_topics|add_topics_and_events|expand_theme_subthemes",
+        "why": "string|null"
+      }
+    ],
+    "plan_confidence": "number"
+  },
+  "surface_plan": {
+    "surface_mode": "none|light|opportunistic|guided|push",
+    "planning_horizon": "this_turn|watch_next_turns|multi_turn",
+    "candidates": [
+      {
+        "surface_id": "string",
+        "opportunity_type": "utility|support|reflection|identity|habit|activation",
+        "confidence": "number",
+        "suggested_level": "number",
+        "reason": "string",
+        "evidence_window": "current_turn|recent_turns|both",
+        "persistence_horizon": "1_turn|3_turns|session",
+        "cta_style": "none|soft|direct",
+        "content_need": "none|light|ranked|full",
+        "content_query_hint": "string|null"
+      }
+    ],
+    "plan_confidence": "number"
+  },
   "new_signals": [
     { "signal_type": "string", "brief": "description max 100 chars", "confidence": "number", "action_target": "string|null" }
   ],
@@ -929,6 +1530,8 @@ export async function analyzeSignalsV2(
 
 REGLES:
 - "signals": contient l'analyse complete comme avant (backward compatible)
+- "memory_plan": DOIT toujours etre present, meme si targets=[]
+- "surface_plan": DOIT toujours etre present, meme si candidates=[]
 - "new_signals": UNIQUEMENT pour les signaux detectes dans le DERNIER message qui ne sont PAS dans l'historique
 - "enrichments": UNIQUEMENT pour mettre a jour le brief d'un signal existant avec du contexte NOUVEAU
 - Ne pas re-emettre un signal deja dans l'historique!
@@ -986,6 +1589,8 @@ Reponds UNIQUEMENT avec le JSON:`;
 
     // Parse the classic signals (reuse existing parsing logic)
     const signalsObj = obj?.signals ?? obj;
+    const memoryPlan = sanitizeDispatcherMemoryPlan(obj?.memory_plan);
+    const surfacePlan = sanitizeDispatcherSurfacePlan(obj?.surface_plan);
 
     // Parse safety
     const safetyLevel =
@@ -1383,6 +1988,8 @@ Reponds UNIQUEMENT avec le JSON:`;
         },
         risk_score: riskScore,
       },
+      memory_plan: memoryPlan,
+      surface_plan: surfacePlan,
       new_signals: newSignals,
       enrichments,
       machine_signals: machineSignals,
@@ -1396,6 +2003,8 @@ Reponds UNIQUEMENT avec le JSON:`;
       getGlobalAiModel("gemini-2.5-flash");
     return {
       signals: { ...DEFAULT_SIGNALS },
+      memory_plan: { ...DEFAULT_MEMORY_PLAN },
+      surface_plan: { ...DEFAULT_SURFACE_PLAN },
       new_signals: [],
       enrichments: [],
       machine_signals: undefined,

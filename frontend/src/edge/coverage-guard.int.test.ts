@@ -90,6 +90,7 @@ describe("coverage guard: new triggers/functions must be acknowledged", () => {
       "summarize-context",
       "test-env",
       "trigger-daily-bilan",
+      "trigger-global-memory-compaction",
       "trigger-memorizer-daily",
       "trigger-memory-echo",
       "trigger-proactive-scheduler",

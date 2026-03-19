@@ -440,7 +440,7 @@ Deno.serve(async (req) => {
           status: "cancelled",
           processed_at: nowIso,
         } as any)
-        .in("status", ["pending", "awaiting_user"])
+        .in("status", ["pending", "retrying", "awaiting_user"])
         .gte("scheduled_for", nowIso)
 
       if (reminderIdFilter) {
@@ -528,7 +528,7 @@ Deno.serve(async (req) => {
         .select("id")
         .eq("user_id", reminder.user_id)
         .eq("event_context", eventContext)
-        .in("status", ["pending", "awaiting_user"])
+        .in("status", ["pending", "retrying", "awaiting_user"])
         .gte("scheduled_for", new Date().toISOString())
         .lt("scheduled_for", horizonEndIso)
         .limit(1)
@@ -638,7 +638,7 @@ Deno.serve(async (req) => {
         .select("scheduled_for,message_payload")
         .eq("user_id", reminder.user_id)
         .eq("event_context", eventContext)
-        .in("status", ["pending", "awaiting_user"])
+        .in("status", ["pending", "retrying", "awaiting_user"])
 
       const existingOffsets = new Set<number>(
         (existingRows ?? [])
@@ -684,7 +684,7 @@ Deno.serve(async (req) => {
         .select("message_payload")
         .eq("user_id", reminder.user_id)
         .eq("event_context", eventContext)
-        .in("status", ["pending", "awaiting_user"])
+        .in("status", ["pending", "retrying", "awaiting_user"])
 
       const finalOffsets = new Set<number>(
         (finalRows ?? [])

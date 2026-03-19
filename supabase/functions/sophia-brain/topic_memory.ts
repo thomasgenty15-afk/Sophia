@@ -35,6 +35,7 @@ import {
   sanitizeGlobalMemoryCandidate,
   upsertGlobalMemoryCandidate,
 } from "./global_memory.ts";
+import { mergeMemoryProvenanceRefs } from "./memory_provenance.ts";
 
 type TopicEnrichmentSource =
   | "chat"
@@ -454,6 +455,8 @@ Règles events :
 - Maximum 3 event_candidates.
 - Si la date est relative, normalise-la en ISO 8601 si possible à partir du contexte temporel.
 - Si tu ne peux pas être exact, fournis la meilleure estimation possible + time_precision.
+- Si starts_at est connu ou estimable, évite dans summary les formulations purement relatives du type "dans deux semaines", "demain", "vendredi prochain".
+- Préfère une formulation stable ou absolue dans summary, afin qu'elle reste vraie plus tard.
 	- event_key doit être canonique et différencier deux événements proches.
 	- Les events trop vagues ou sans intérêt conversationnel sont exclus.
 
@@ -1276,9 +1279,18 @@ export async function enrichTopicSynthesis(opts: {
   newInformation: string;
   newKeywords: string[];
   sourceType?: TopicEnrichmentSource;
+  provenance?: Record<string, unknown>;
   meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
 }): Promise<{ enriched: boolean; newSynthesis?: string }> {
-  const { supabase, userId, topic, newInformation, newKeywords, meta } = opts;
+  const {
+    supabase,
+    userId,
+    topic,
+    newInformation,
+    newKeywords,
+    meta,
+    provenance,
+  } = opts;
   const sourceType = opts.sourceType ?? "chat";
 
   const oldSynth = String(topic.synthesis ?? "").trim();
@@ -1380,11 +1392,16 @@ export async function enrichTopicSynthesis(opts: {
       previous_synthesis: null,
       source_type: sourceType,
       included_in_summary: false,
+      metadata: provenance ?? {},
     } as any);
 
     const baseMetadata = (topic.metadata && typeof topic.metadata === "object")
       ? topic.metadata
       : {};
+    const nextSourceRefs = mergeMemoryProvenanceRefs(
+      (baseMetadata as any)?.source_refs,
+      provenance,
+    );
     const timeline = appendTimelineEvent(
       readTimeline(baseMetadata),
       {
@@ -1408,6 +1425,9 @@ export async function enrichTopicSynthesis(opts: {
         metadata: {
           ...baseMetadata,
           timeline,
+          source_refs: nextSourceRefs,
+          latest_source_ref: provenance ?? (baseMetadata as any)?.latest_source_ref ??
+            null,
         },
         updated_at: now,
       })
@@ -1451,9 +1471,10 @@ export async function createTopic(opts: {
   userId: string;
   extractedTopic: ExtractedTopic;
   sourceType?: TopicEnrichmentSource;
+  provenance?: Record<string, unknown>;
   meta?: { requestId?: string; forceRealAi?: boolean };
 }): Promise<TopicMemory | null> {
-  const { supabase, userId, extractedTopic, meta } = opts;
+  const { supabase, userId, extractedTopic, meta, provenance } = opts;
   const sourceType = opts.sourceType ?? "chat";
 
   const synthesis = extractedTopic.new_information;
@@ -1495,6 +1516,8 @@ export async function createTopic(opts: {
       metadata: {
         domain: extractedTopic.domain ?? null,
         source_type: sourceType,
+        source_refs: mergeMemoryProvenanceRefs([], provenance),
+        latest_source_ref: provenance ?? null,
         timeline: [
           {
             at: now,
@@ -2152,6 +2175,7 @@ export async function processTopicsFromWatcher(opts: {
   transcript: string;
   currentContext?: string;
   sourceType?: TopicEnrichmentSource;
+  provenance?: Record<string, unknown>;
   meta?: { requestId?: string; model?: string; forceRealAi?: boolean };
 }): Promise<{
   topicsCreated: number;
@@ -2165,7 +2189,8 @@ export async function processTopicsFromWatcher(opts: {
   globalMemoriesNoop: number;
   globalMemoriesPendingCompaction: number;
 }> {
-  const { supabase, userId, transcript, currentContext, meta } = opts;
+  const { supabase, userId, transcript, currentContext, meta, provenance } =
+    opts;
   const sourceType = opts.sourceType ?? "chat";
 
   // 1. Charger les slugs existants pour le LLM
@@ -2225,7 +2250,8 @@ export async function processTopicsFromWatcher(opts: {
 
   const extractedTopics = extracted.durable_topics
     .filter((topic) => batchDecision.topics_to_persist.includes(topic.slug));
-  const allowEventPersistence = sourceType === "chat" || sourceType === "bilan";
+  const allowEventPersistence = sourceType === "chat" || sourceType === "bilan" ||
+    sourceType === "module";
   const extractedEvents =
     (allowEventPersistence ? extracted.event_candidates : [])
       .filter((event) =>
@@ -2295,6 +2321,7 @@ export async function processTopicsFromWatcher(opts: {
         candidate: event,
         requestId: meta?.requestId,
         nowIso: userTime.now_utc,
+        sourceMetadata: provenance,
       });
       if (result.created) eventsCreated++;
       else if (result.updated) eventsUpdated++;
@@ -2327,6 +2354,7 @@ export async function processTopicsFromWatcher(opts: {
           newInformation: extracted.new_information,
           newKeywords: extracted.keywords,
           sourceType,
+          provenance,
           meta,
         });
         if (result.enriched) topicsEnriched++;
@@ -2338,6 +2366,7 @@ export async function processTopicsFromWatcher(opts: {
           userId,
           extractedTopic: extracted,
           sourceType,
+          provenance,
           meta,
         });
         if (created) topicsCreated++;
@@ -2359,6 +2388,7 @@ export async function processTopicsFromWatcher(opts: {
         userId,
         candidate,
         sourceType,
+        sourceMetadata: provenance,
       });
       if (result.created) globalMemoriesCreated++;
       else if (result.updated) globalMemoriesUpdated++;

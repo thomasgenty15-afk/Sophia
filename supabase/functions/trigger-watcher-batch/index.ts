@@ -10,8 +10,8 @@ console.log("trigger-watcher-batch: Function initialized")
 
 /** Minimum elapsed time (in minutes) since last_processed_at before the watcher runs for a user. */
 const WATCHER_INTERVAL_MINUTES = Number(
-  (Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "10").trim(),
-) || 10
+  (Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "240").trim(),
+) || 240
 const WATCHER_ACTIVITY_LOOKBACK_MINUTES = Number(
   (Deno.env.get("SOPHIA_WATCHER_ACTIVITY_LOOKBACK_MINUTES") ?? "1440").trim(),
 ) || 1440

@@ -87,8 +87,16 @@ describe("edge functions: internal jobs (require X-Internal-Secret) [FULL]", () 
     expect(new Date(data!.scheduled_for).getTime()).toBeGreaterThan(Date.now());
   });
 
-  it.skipIf(!IS_FULL)("process-checkins: sends due checkins to chat_messages and marks them sent", async () => {
+  it.skipIf(!IS_FULL)("process-checkins: sends due checkins via WhatsApp and marks them sent", async () => {
     const scheduledFor = new Date(Date.now() - 5_000).toISOString();
+    const { error: profileErr } = await admin
+      .from("profiles")
+      .update({
+        phone_invalid: false,
+        whatsapp_opted_in: true,
+      } as any)
+      .eq("id", userId);
+    if (profileErr) throw profileErr;
 
     const { data: row, error: insErr } = await admin
       .from("scheduled_checkins")

@@ -1,5 +1,6 @@
 import { SupabaseClient } from "jsr:@supabase/supabase-js@2"
 import { generateEmbedding } from "../_shared/gemini.ts"
+import { mergeMemoryProvenanceRefs } from "./memory_provenance.ts"
 
 export type EventTimePrecision =
   | "exact_datetime"
@@ -91,11 +92,19 @@ function compactEventKey(value: unknown): string {
     .slice(0, 120)
 }
 
+function summaryLooksRelative(value: string): boolean {
+  return /\b(?:dans\s+(?:\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|quelques)\s+(?:minutes?|heures?|jours?|semaines?|mois)|aujourd['’]hui|demain|apr[eè]s-demain|ce\s+soir|cet\s+apr[eè]s-midi|la\s+semaine\s+prochaine|le\s+mois\s+prochain|lundi\s+prochain|mardi\s+prochain|mercredi\s+prochain|jeudi\s+prochain|vendredi\s+prochain|samedi\s+prochain|dimanche\s+prochain)\b/i
+    .test(String(value ?? ""))
+}
+
 function mergeSummary(existing: string, incoming: string): string {
   const a = compactText(existing, 500)
   const b = compactText(incoming, 500)
   if (!a) return b
   if (!b) return a
+  const aRelative = summaryLooksRelative(a)
+  const bRelative = summaryLooksRelative(b)
+  if (aRelative !== bRelative) return aRelative ? b : a
   const al = a.toLowerCase()
   const bl = b.toLowerCase()
   if (al.includes(bl)) return a
@@ -332,6 +341,7 @@ export async function upsertEventMemoryFromCandidate(params: {
   candidate: ExtractedEventCandidate
   requestId?: string
   nowIso?: string
+  sourceMetadata?: Record<string, unknown>
 }): Promise<{ created: boolean; updated: boolean; noop: boolean; eventId?: string }> {
   const nowIso = asIso(params.nowIso) ?? new Date().toISOString()
   const candidate: ExtractedEventCandidate = {
@@ -400,6 +410,8 @@ export async function upsertEventMemoryFromCandidate(params: {
         metadata: {
           related_topic_slug: candidate.related_topic_slug ?? null,
           semantic_aliases: candidate.semantic_aliases ?? [],
+          source_refs: mergeMemoryProvenanceRefs([], params.sourceMetadata),
+          latest_source_ref: params.sourceMetadata ?? null,
         },
       })
       .select("id")
@@ -427,6 +439,11 @@ export async function upsertEventMemoryFromCandidate(params: {
     ...(existing.metadata && typeof existing.metadata === "object" ? existing.metadata : {}),
     related_topic_slug: candidate.related_topic_slug ?? (existing.metadata as any)?.related_topic_slug ?? null,
     semantic_aliases: mergeAliases((existing.metadata as any)?.semantic_aliases, candidate.semantic_aliases),
+    source_refs: mergeMemoryProvenanceRefs(
+      (existing.metadata as any)?.source_refs,
+      params.sourceMetadata,
+    ),
+    latest_source_ref: params.sourceMetadata ?? (existing.metadata as any)?.latest_source_ref ?? null,
   }
 
   const isNoop =
@@ -540,6 +557,8 @@ export function formatEventMemoriesForPrompt(events: EventSearchResult[]): strin
     block += `${compactText(event.summary, 260)}\n`
   }
   block += "\n- Priorité aux événements imminents ou encore actifs.\n"
+  block += "- Le champ 'quand=' ci-dessus est la source de vérité temporelle.\n"
+  block += "- Si un résumé contient une vieille formulation relative, ne la reprends pas si elle contredit la date absolue.\n"
   block += "- Si un événement est pertinent, utilise-le naturellement sans citer la mémoire.\n\n"
   return block
 }

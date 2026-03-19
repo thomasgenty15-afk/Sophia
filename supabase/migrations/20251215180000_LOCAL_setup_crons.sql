@@ -3,7 +3,7 @@
 -- Schedules:
 -- - detect-future-events: every day at 04:00
 -- - process-checkins: every 3 minutes
--- - trigger-watcher-batch: every 10 minutes
+-- - trigger-watcher-batch: every 4 hours
 -- - trigger-daily-bilan: every day at 21:01
 -- - trigger-memory-echo: every other Sunday at 10:00 (based on week number parity)
 --
@@ -122,11 +122,11 @@ select cron.schedule(
   $$
 );
 
--- 5) Watcher batch: every 10 minutes
+-- 5) Watcher batch: every 4 hours
 -- Runs the Veilleur (context/memory analysis) for users with unprocessed messages.
 select cron.schedule(
   'trigger-watcher-batch',
-  '*/10 * * * *',
+  '0 */4 * * *',
   $$
   select
     net.http_post(
@@ -139,5 +139,4 @@ select cron.schedule(
     ) as request_id;
   $$
 );
-
 

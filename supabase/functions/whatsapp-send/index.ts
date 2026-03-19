@@ -48,6 +48,38 @@ type Body = {
   force_template?: boolean
 }
 
+async function preflightErrorResponse(params: {
+  req: Request
+  requestId: string
+  userId: string | null
+  status: number
+  error: string
+  purpose?: string
+  metadataExtra?: Record<string, unknown>
+  extra?: Record<string, unknown>
+}) {
+  await logEdgeFunctionError({
+    functionName: "whatsapp-send",
+    error: params.error,
+    title: `http_status_${params.status}`,
+    requestId: params.requestId,
+    userId: params.userId,
+    source: "whatsapp",
+    metadata: {
+      category: "preflight_rejection",
+      http_status: params.status,
+      purpose: params.purpose ?? null,
+      ...(params.metadataExtra ?? {}),
+      ...(params.extra ?? {}),
+    },
+  });
+  return jsonResponse(
+    params.req,
+    { error: params.error, request_id: params.requestId, ...(params.extra ?? {}) },
+    { status: params.status, includeCors: false, skipErrorLog: true },
+  );
+}
+
 function normalizeToE164(input: string): string {
   const s = (input ?? "").trim().replace(/[()\s-]/g, "")
   if (!s) return ""
@@ -202,9 +234,19 @@ Deno.serve(async (req) => {
 
     const body = (await req.json()) as Body
     if (!body?.user_id || !body?.message) {
-      return jsonResponse(req, { error: "Missing user_id/message", request_id: requestId }, { status: 400, includeCors: false })
+      return await preflightErrorResponse({
+        req,
+        requestId,
+        userId: null,
+        status: 400,
+        error: "Missing user_id/message",
+      })
     }
     userIdForLog = body.user_id
+    const purpose = String(body.purpose ?? "").trim()
+    const metadataExtra = body.metadata_extra && typeof body.metadata_extra === "object"
+      ? body.metadata_extra
+      : {}
 
     const admin = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -218,11 +260,39 @@ Deno.serve(async (req) => {
       .maybeSingle()
 
     if (profErr) throw profErr
-    if (!profile) return jsonResponse(req, { error: "Profile not found", request_id: requestId }, { status: 404, includeCors: false })
-    if (profile.phone_invalid) return jsonResponse(req, { error: "Phone marked invalid", request_id: requestId }, { status: 409, includeCors: false })
+    if (!profile) {
+      return await preflightErrorResponse({
+        req,
+        requestId,
+        userId: userIdForLog,
+        status: 404,
+        error: "Profile not found",
+        purpose,
+        metadataExtra,
+      })
+    }
+    if (profile.phone_invalid) {
+      return await preflightErrorResponse({
+        req,
+        requestId,
+        userId: userIdForLog,
+        status: 409,
+        error: "Phone marked invalid",
+        purpose,
+        metadataExtra,
+      })
+    }
     const requireOptedIn = body.require_opted_in !== false
     if (requireOptedIn && (!profile.whatsapp_opted_in || profile.whatsapp_opted_out_at)) {
-      return jsonResponse(req, { error: "User not opted in", request_id: requestId }, { status: 409, includeCors: false })
+      return await preflightErrorResponse({
+        req,
+        requestId,
+        userId: userIdForLog,
+        status: 409,
+        error: "User not opted in",
+        purpose,
+        metadataExtra,
+      })
     }
 
     // Trial gating: while in trial, WhatsApp access is allowed even without a paid subscription.
@@ -230,8 +300,7 @@ Deno.serve(async (req) => {
     const trialEndRaw = String((profile as any).trial_end ?? "").trim()
     const trialEndTs = trialEndRaw ? new Date(trialEndRaw).getTime() : NaN
     const inTrial = Number.isFinite(trialEndTs) ? Date.now() < trialEndTs : false
-  const purpose = String(body.purpose ?? "").trim()
-  const isLifecycleAccessMessage = purpose === "end_trial" || purpose === "end_subscription"
+    const isLifecycleAccessMessage = purpose === "end_trial" || purpose === "end_subscription"
 
     // Plan gating: WhatsApp is available only on Alliance + Architecte.
     // This prevents "System" users from receiving proactive WhatsApp messages.
@@ -239,16 +308,31 @@ Deno.serve(async (req) => {
   if (!isMegaTestMode() && !inTrial && !isLifecycleAccessMessage) {
       const tier = await getEffectiveTierForUser(admin, body.user_id)
       if (tier !== "alliance" && tier !== "architecte") {
-        return jsonResponse(
+        return await preflightErrorResponse({
           req,
-          { error: "Paywall: WhatsApp requires alliance or architecte", tier, request_id: requestId },
-          { status: 402, includeCors: false },
-        )
+          requestId,
+          userId: userIdForLog,
+          status: 402,
+          error: "Paywall: WhatsApp requires alliance or architecte",
+          purpose,
+          metadataExtra,
+          extra: { tier },
+        })
       }
     }
 
     const toE164 = normalizeToE164(body.to ?? profile.phone_number ?? "")
-    if (!toE164) return jsonResponse(req, { error: "Missing phone number", request_id: requestId }, { status: 400, includeCors: false })
+    if (!toE164) {
+      return await preflightErrorResponse({
+        req,
+        requestId,
+        userId: userIdForLog,
+        status: 400,
+        error: "Missing phone number",
+        purpose,
+        metadataExtra,
+      })
+    }
 
     const lastInbound = profile.whatsapp_last_inbound_at ? new Date(profile.whatsapp_last_inbound_at).getTime() : null
     const now = Date.now()
@@ -260,7 +344,15 @@ Deno.serve(async (req) => {
     if (isProactive) {
       const sent = await countProactiveLast10h(admin, body.user_id)
       if (sent >= 2) {
-        return jsonResponse(req, { error: "Proactive throttle (2/10h)", request_id: requestId }, { status: 429, includeCors: false })
+        return await preflightErrorResponse({
+          req,
+          requestId,
+          userId: userIdForLog,
+          status: 429,
+          error: "Proactive throttle (2/10h)",
+          purpose,
+          metadataExtra,
+        })
       }
     }
 
@@ -365,6 +457,7 @@ Deno.serve(async (req) => {
         template_name: templateName,
         template_language: templateLanguage,
         unit_cost_eur: graphPayload?.type === "template" ? 0.0712 : null,
+        ...(metadataExtra ?? {}),
       },
     })
 

@@ -35,6 +35,9 @@ type TurnMetricsLike = {
   };
   agent: {
     model?: string;
+    model_source?: string;
+    model_tier?: string;
+    effective_mode?: string;
     outcome?: "text" | "tool_call";
     tool?: string;
   };
@@ -153,5 +156,4 @@ export async function persistTurnSummaryLog(opts: {
     doWrite().then(() => {}).catch(() => {});
   }
 }
-
 

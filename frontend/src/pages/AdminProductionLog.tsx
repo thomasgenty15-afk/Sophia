@@ -63,7 +63,9 @@ function meaningFor(row: ProductionLogRow): string | null {
   if (row.event_type === "scheduled_checkin") {
     const status = row.details?.status;
     if (status === "awaiting_user") return "Check-in en attente d’une action utilisateur (souvent opt-in/template WhatsApp).";
-    if (status === "sent") return "Check-in envoyé.";
+    if (status === "retrying") return "Check-in en retry après un échec transitoire d’envoi WhatsApp.";
+    if (status === "failed") return "Check-in non envoyé sur WhatsApp (échec terminal ou blocage pré-envoi).";
+    if (status === "sent") return "Check-in réellement envoyé sur WhatsApp.";
     if (status === "pending") return "Check-in planifié (pas encore envoyé).";
     return "Événement lié aux check-ins planifiés.";
   }

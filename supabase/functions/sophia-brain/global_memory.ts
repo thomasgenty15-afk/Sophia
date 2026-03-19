@@ -1,4 +1,9 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import {
+  generateEmbedding,
+  generateWithGemini,
+} from "../_shared/gemini.ts";
+import { mergeMemoryProvenanceRefs } from "./memory_provenance.ts";
 
 export type GlobalMemorySource =
   | "chat"
@@ -7,13 +12,13 @@ export type GlobalMemorySource =
   | "module"
   | "plan";
 
-type TaxonomySubtheme = {
+export type TaxonomySubtheme = {
   key: string;
   label: string;
   aliases: string[];
 };
 
-type TaxonomyTheme = {
+export type TaxonomyTheme = {
   key: string;
   label: string;
   aliases: string[];
@@ -31,6 +36,24 @@ type PendingGlobalMemoryUpdate = {
   open_questions: string[];
   supporting_topic_slugs: string[];
   confidence: number;
+  source_ref?: Record<string, unknown>;
+};
+
+type GlobalMemoryCompactionPayload = {
+  canonical_summary: string;
+  facts: string[];
+  inferences: string[];
+  active_issues: string[];
+  goals: string[];
+  open_questions: string[];
+};
+
+type GlobalMemoryRpcMatchRow = {
+  memory_id: string;
+  full_key: string;
+  theme: string;
+  subtheme_key: string;
+  semantic_similarity: number;
 };
 
 export interface GlobalMemoryCandidate {
@@ -67,6 +90,10 @@ export interface GlobalMemory {
   pending_count: number;
   pending_chars: number;
   confidence: number;
+  semantic_snapshot: string;
+  embedding_updated_at?: string | null;
+  needs_compaction: boolean;
+  needs_embedding_refresh: boolean;
   summary_compacted_at?: string | null;
   first_observed_at: string;
   last_observed_at: string | null;
@@ -78,7 +105,44 @@ export interface GlobalMemory {
 
 export interface GlobalMemorySearchResult extends GlobalMemory {
   match_score?: number;
+  lexical_score?: number;
+  semantic_similarity?: number;
 }
+
+export const GLOBAL_MEMORY_EMBED_DIM = 1536;
+
+const GLOBAL_MEMORY_SELECT_COLUMNS = [
+  "id",
+  "user_id",
+  "theme",
+  "subtheme_key",
+  "full_key",
+  "status",
+  "canonical_summary",
+  "facts",
+  "inferences",
+  "active_issues",
+  "goals",
+  "open_questions",
+  "supporting_topic_slugs",
+  "pending_updates",
+  "mention_count",
+  "enrichment_count",
+  "pending_count",
+  "pending_chars",
+  "confidence",
+  "semantic_snapshot",
+  "embedding_updated_at",
+  "needs_compaction",
+  "needs_embedding_refresh",
+  "summary_compacted_at",
+  "first_observed_at",
+  "last_observed_at",
+  "last_retrieved_at",
+  "metadata",
+  "created_at",
+  "updated_at",
+].join(",");
 
 const GLOBAL_MEMORY_PENDING_LIMIT = 12;
 const GLOBAL_MEMORY_FACTS_LIMIT = 10;
@@ -89,8 +153,28 @@ const GLOBAL_MEMORY_QUESTIONS_LIMIT = 6;
 const GLOBAL_MEMORY_SUPPORTING_TOPICS_LIMIT = 20;
 const GLOBAL_MEMORY_SUMMARY_DELTA_MAX = 320;
 const GLOBAL_MEMORY_ITEM_MAX = 180;
+const GLOBAL_MEMORY_SUMMARY_MAX = 1800;
+const GLOBAL_MEMORY_SNAPSHOT_MAX = 2200;
+const GLOBAL_MEMORY_RETRIEVAL_SCAN_LIMIT = 80;
+const GLOBAL_MEMORY_SEMANTIC_RPC_LIMIT = 8;
+const GLOBAL_MEMORY_COMPACTION_PENDING_COUNT = Number(
+  (Deno.env.get("SOPHIA_GLOBAL_MEMORY_PENDING_COUNT") ?? "5").trim(),
+) || 5;
+const GLOBAL_MEMORY_COMPACTION_PENDING_CHARS = Number(
+  (Deno.env.get("SOPHIA_GLOBAL_MEMORY_PENDING_CHARS") ?? "1200").trim(),
+) || 1200;
+const GLOBAL_MEMORY_COMPACTION_SUMMARY_CHARS = Number(
+  (Deno.env.get("SOPHIA_GLOBAL_MEMORY_SUMMARY_CHARS") ?? "1800").trim(),
+) || 1800;
+const GLOBAL_MEMORY_EMBED_THRESHOLD = Number(
+  (Deno.env.get("SOPHIA_GLOBAL_MEMORY_MATCH_THRESHOLD") ?? "0.42").trim(),
+) || 0.42;
+const GLOBAL_MEMORY_COMPACTION_MODEL =
+  (Deno.env.get("SOPHIA_GLOBAL_MEMORY_COMPACTION_MODEL") ??
+    "gemini-3-flash-preview")
+    .trim() || "gemini-3-flash-preview";
 
-const GLOBAL_MEMORY_TAXONOMY: TaxonomyTheme[] = [
+export const GLOBAL_MEMORY_TAXONOMY: TaxonomyTheme[] = [
   {
     key: "psychologie",
     label: "Psychologie",
@@ -476,6 +560,16 @@ const SUBTHEME_BY_FULL_KEY = new Map<
 );
 const ALLOWED_FULL_KEYS = new Set<string>(SUBTHEME_BY_FULL_KEY.keys());
 
+export function isAllowedGlobalMemoryThemeKey(themeKey: unknown): boolean {
+  const key = String(themeKey ?? "").trim().toLowerCase();
+  return THEME_BY_KEY.has(key);
+}
+
+export function isAllowedGlobalMemoryFullKey(fullKey: unknown): boolean {
+  const key = String(fullKey ?? "").trim().toLowerCase();
+  return ALLOWED_FULL_KEYS.has(key);
+}
+
 function normalizeText(value: unknown): string {
   return String(value ?? "")
     .toLowerCase()
@@ -563,9 +657,18 @@ function readPendingUpdates(value: unknown): PendingGlobalMemoryUpdate[] {
       supporting_topic_slugs: readStringArray(row.supporting_topic_slugs, 8, 80)
         .map(slugifyKey).filter(Boolean),
       confidence: clampConfidence(row.confidence, 0.5),
+      source_ref: row.source_ref && typeof row.source_ref === "object"
+        ? row.source_ref as Record<string, unknown>
+        : undefined,
     });
   }
   return out.slice(-GLOBAL_MEMORY_PENDING_LIMIT);
+}
+
+function descriptorFor(
+  fullKey: string,
+): { theme: TaxonomyTheme; subtheme: TaxonomySubtheme } | null {
+  return SUBTHEME_BY_FULL_KEY.get(fullKey) ?? null;
 }
 
 function toGlobalMemoryRow(row: any): GlobalMemory {
@@ -576,7 +679,10 @@ function toGlobalMemoryRow(row: any): GlobalMemory {
     subtheme_key: String(row?.subtheme_key ?? ""),
     full_key: String(row?.full_key ?? ""),
     status: String(row?.status ?? "active"),
-    canonical_summary: compactText(row?.canonical_summary, 1200),
+    canonical_summary: compactText(
+      row?.canonical_summary,
+      GLOBAL_MEMORY_SUMMARY_MAX,
+    ),
     facts: readStringArray(row?.facts, GLOBAL_MEMORY_FACTS_LIMIT),
     inferences: readStringArray(
       row?.inferences,
@@ -602,6 +708,17 @@ function toGlobalMemoryRow(row: any): GlobalMemory {
     pending_count: Math.max(0, Number(row?.pending_count ?? 0) || 0),
     pending_chars: Math.max(0, Number(row?.pending_chars ?? 0) || 0),
     confidence: clampConfidence(row?.confidence, 0.5),
+    semantic_snapshot: compactText(
+      row?.semantic_snapshot,
+      GLOBAL_MEMORY_SNAPSHOT_MAX,
+    ),
+    embedding_updated_at: row?.embedding_updated_at
+      ? String(row.embedding_updated_at)
+      : null,
+    needs_compaction: Boolean(row?.needs_compaction),
+    needs_embedding_refresh: row?.needs_embedding_refresh === false
+      ? false
+      : true,
     summary_compacted_at: row?.summary_compacted_at
       ? String(row.summary_compacted_at)
       : null,
@@ -625,17 +742,6 @@ function sumPendingChars(updates: PendingGlobalMemoryUpdate[]): number {
     (acc, row) => acc + String(row.summary_delta ?? "").length,
     0,
   );
-}
-
-function computeRecencyScore(iso: string | null | undefined): number {
-  if (!iso) return 0.2;
-  const ts = new Date(iso).getTime();
-  if (!Number.isFinite(ts)) return 0.2;
-  const diffDays = Math.max(0, (Date.now() - ts) / (1000 * 60 * 60 * 24));
-  if (diffDays <= 2) return 1;
-  if (diffDays <= 7) return 0.8;
-  if (diffDays <= 30) return 0.45;
-  return 0.15;
 }
 
 function tokenize(value: string): Set<string> {
@@ -668,20 +774,15 @@ function aliasPhraseScore(messageNorm: string, aliases: string[]): number {
   return best;
 }
 
-function descriptorFor(
-  fullKey: string,
-): { theme: TaxonomyTheme; subtheme: TaxonomySubtheme } | null {
-  return SUBTHEME_BY_FULL_KEY.get(fullKey) ?? null;
-}
-
-function buildSearchText(memory: GlobalMemory): string {
-  return [
-    memory.full_key,
-    memory.supporting_topic_slugs.join(" "),
-    memory.facts.slice(0, 4).join(" "),
-    memory.goals.slice(0, 3).join(" "),
-    memory.active_issues.slice(0, 3).join(" "),
-  ].join(" ");
+function computeRecencyScore(iso: string | null | undefined): number {
+  if (!iso) return 0.2;
+  const ts = new Date(iso).getTime();
+  if (!Number.isFinite(ts)) return 0.2;
+  const diffDays = Math.max(0, (Date.now() - ts) / (1000 * 60 * 60 * 24));
+  if (diffDays <= 2) return 1;
+  if (diffDays <= 7) return 0.8;
+  if (diffDays <= 30) return 0.45;
+  return 0.15;
 }
 
 function mergeLists(
@@ -696,6 +797,7 @@ function buildPendingUpdate(
   candidate: GlobalMemoryCandidate,
   sourceType: GlobalMemorySource,
   now: string,
+  sourceMetadata?: Record<string, unknown>,
 ): PendingGlobalMemoryUpdate {
   return {
     at: now,
@@ -708,6 +810,7 @@ function buildPendingUpdate(
     open_questions: candidate.open_questions,
     supporting_topic_slugs: candidate.supporting_topic_slugs,
     confidence: candidate.confidence,
+    source_ref: sourceMetadata ?? undefined,
   };
 }
 
@@ -743,6 +846,383 @@ function hasNovelSignal(
     candidate.summary_delta,
   ].map((item) => normalizeText(item)).filter(Boolean);
   return incoming.some((item) => !baseline.includes(item));
+}
+
+function composeCanonicalSummary(opts: {
+  currentSummary?: string;
+  summaryDelta?: string;
+  facts?: string[];
+  activeIssues?: string[];
+  goals?: string[];
+  pendingUpdates?: PendingGlobalMemoryUpdate[];
+}): string {
+  const parts = [
+    compactText(opts.currentSummary, 360),
+    compactText(opts.summaryDelta, 280),
+    ...(opts.pendingUpdates ?? []).slice(-3).map((row) =>
+      compactText(row.summary_delta, 220)
+    ),
+    ...(opts.facts ?? []).slice(0, 2).map((item) => compactText(item, 160)),
+    ...(opts.activeIssues ?? []).slice(0, 1).map((item) =>
+      compactText(item, 160)
+    ),
+    ...(opts.goals ?? []).slice(0, 1).map((item) => compactText(item, 160)),
+  ].filter(Boolean);
+  return uniqueStrings(parts, 4, 280).join(" ");
+}
+
+function toSentenceList(items: string[]): string {
+  return items.map((item) => compactText(item, 180)).join(" | ");
+}
+
+export function buildGlobalMemorySemanticSnapshot(
+  memory: Pick<
+    GlobalMemory,
+    | "full_key"
+    | "canonical_summary"
+    | "facts"
+    | "inferences"
+    | "active_issues"
+    | "goals"
+    | "open_questions"
+    | "supporting_topic_slugs"
+    | "pending_updates"
+  >,
+): string {
+  const descriptor = descriptorFor(memory.full_key);
+  const themeLabel = descriptor?.theme.label ?? memory.full_key.split(".")[0] ??
+    memory.full_key;
+  const subthemeLabel = descriptor?.subtheme.label ??
+    memory.full_key.split(".")[1] ?? memory.full_key;
+  const sections = [
+    `Sous-thème global: ${themeLabel} > ${subthemeLabel}`,
+    memory.canonical_summary
+      ? `Résumé consolidé: ${
+        compactText(memory.canonical_summary, 600)
+      }`
+      : "",
+    memory.facts.length > 0
+      ? `Faits importants: ${toSentenceList(memory.facts.slice(0, 6))}`
+      : "",
+    memory.inferences.length > 0
+      ? `Inférences plausibles: ${
+        toSentenceList(memory.inferences.slice(0, 5))
+      }`
+      : "",
+    memory.active_issues.length > 0
+      ? `Chantiers actifs: ${
+        toSentenceList(memory.active_issues.slice(0, 5))
+      }`
+      : "",
+    memory.goals.length > 0
+      ? `Buts ou désirs: ${toSentenceList(memory.goals.slice(0, 4))}`
+      : "",
+    memory.open_questions.length > 0
+      ? `Zones d'incertitude: ${
+        toSentenceList(memory.open_questions.slice(0, 4))
+      }`
+      : "",
+    memory.pending_updates.length > 0
+      ? `Éléments récents: ${
+        memory.pending_updates.slice(-4).map((row) =>
+          compactText(row.summary_delta, 170)
+        ).join(" | ")
+      }`
+      : "",
+    memory.supporting_topic_slugs.length > 0
+      ? `Topics liés: ${
+        memory.supporting_topic_slugs.slice(0, 8).map((slug) =>
+          slug.replace(/_/g, " ")
+        ).join(", ")
+      }`
+      : "",
+  ].filter(Boolean);
+  return compactText(sections.join("\n"), GLOBAL_MEMORY_SNAPSHOT_MAX);
+}
+
+export function shouldCompactGlobalMemory(
+  memory: Pick<GlobalMemory, "pending_count" | "pending_chars" | "canonical_summary" | "needs_compaction">,
+): boolean {
+  return Boolean(
+    memory.needs_compaction ||
+      memory.pending_count >= GLOBAL_MEMORY_COMPACTION_PENDING_COUNT ||
+      memory.pending_chars >= GLOBAL_MEMORY_COMPACTION_PENDING_CHARS ||
+      memory.canonical_summary.length >= GLOBAL_MEMORY_COMPACTION_SUMMARY_CHARS,
+  );
+}
+
+function buildSearchText(memory: GlobalMemory): string {
+  return [
+    memory.full_key,
+    memory.semantic_snapshot,
+    memory.supporting_topic_slugs.join(" "),
+    memory.facts.slice(0, 4).join(" "),
+    memory.goals.slice(0, 3).join(" "),
+    memory.active_issues.slice(0, 3).join(" "),
+  ].join(" ");
+}
+
+function extractJsonObject(raw: string): Record<string, unknown> | null {
+  const text = String(raw ?? "").trim();
+  if (!text) return null;
+  const candidates = [
+    text,
+    text.replace(/^```json\s*/i, "").replace(/```$/i, "").trim(),
+  ];
+  const firstBrace = text.indexOf("{");
+  const lastBrace = text.lastIndexOf("}");
+  if (firstBrace >= 0 && lastBrace > firstBrace) {
+    candidates.push(text.slice(firstBrace, lastBrace + 1));
+  }
+  for (const candidate of candidates) {
+    try {
+      const parsed = JSON.parse(candidate);
+      if (parsed && typeof parsed === "object") {
+        return parsed as Record<string, unknown>;
+      }
+    } catch {
+      // ignore
+    }
+  }
+  return null;
+}
+
+function compactDeterministically(
+  memory: GlobalMemory,
+): GlobalMemoryCompactionPayload {
+  const pendingFacts = memory.pending_updates.flatMap((row) => row.facts);
+  const pendingInferences = memory.pending_updates.flatMap((row) =>
+    row.inferences
+  );
+  const pendingIssues = memory.pending_updates.flatMap((row) =>
+    row.active_issues
+  );
+  const pendingGoals = memory.pending_updates.flatMap((row) => row.goals);
+  const pendingQuestions = memory.pending_updates.flatMap((row) =>
+    row.open_questions
+  );
+  const facts = mergeLists(
+    memory.facts,
+    pendingFacts,
+    GLOBAL_MEMORY_FACTS_LIMIT,
+  );
+  const inferences = mergeLists(
+    memory.inferences,
+    pendingInferences,
+    GLOBAL_MEMORY_INFERENCES_LIMIT,
+  );
+  const activeIssues = mergeLists(
+    memory.active_issues,
+    pendingIssues,
+    GLOBAL_MEMORY_ISSUES_LIMIT,
+  );
+  const goals = mergeLists(
+    memory.goals,
+    pendingGoals,
+    GLOBAL_MEMORY_GOALS_LIMIT,
+  );
+  const openQuestions = mergeLists(
+    memory.open_questions,
+    pendingQuestions,
+    GLOBAL_MEMORY_QUESTIONS_LIMIT,
+  );
+  const canonicalSummary = compactText(
+    composeCanonicalSummary({
+      currentSummary: memory.canonical_summary,
+      facts,
+      activeIssues,
+      goals,
+      pendingUpdates: memory.pending_updates,
+    }),
+    GLOBAL_MEMORY_SUMMARY_MAX,
+  );
+  return {
+    canonical_summary: canonicalSummary,
+    facts,
+    inferences,
+    active_issues: activeIssues,
+    goals,
+    open_questions: openQuestions,
+  };
+}
+
+async function compactWithModel(params: {
+  memory: GlobalMemory;
+  meta?: { requestId?: string | null };
+}): Promise<GlobalMemoryCompactionPayload> {
+  const { memory } = params;
+  const descriptor = descriptorFor(memory.full_key);
+  const themeLabel = descriptor?.theme.label ?? memory.theme;
+  const subthemeLabel = descriptor?.subtheme.label ?? memory.subtheme_key;
+  const pendingBlock = memory.pending_updates.length > 0
+    ? memory.pending_updates.map((row, index) =>
+      `${index + 1}. ${row.summary_delta}\n` +
+      `facts=${row.facts.join(" | ")}\n` +
+      `inferences=${row.inferences.join(" | ")}\n` +
+      `active_issues=${row.active_issues.join(" | ")}\n` +
+      `goals=${row.goals.join(" | ")}\n` +
+      `open_questions=${row.open_questions.join(" | ")}`
+    ).join("\n\n")
+    : "(aucune)";
+
+  const systemPrompt = `
+Tu compactes une mémoire globale utilisateur pour un sous-thème durable.
+
+Règles :
+- Tu n'inventes rien.
+- Si une information est incertaine, tu la mets dans open_questions ou éventuellement inferences, jamais dans facts.
+- Tu gardes uniquement ce qui est durable, réutilisable et utile dans 2+ mois.
+- Tu élimines les doublons et la redondance.
+- canonical_summary doit être compacte, concrète, en 2 à 5 phrases max.
+- facts = faits explicites et récurrents.
+- inferences = inférences fortes mais prudentes.
+- active_issues = problèmes/chantiers actifs.
+- goals = désirs, intentions, directions.
+- open_questions = zones d'incertitude importantes.
+- Réponds en JSON strict uniquement.
+
+JSON attendu :
+{
+  "canonical_summary": "string",
+  "facts": ["string"],
+  "inferences": ["string"],
+  "active_issues": ["string"],
+  "goals": ["string"],
+  "open_questions": ["string"]
+}
+`.trim();
+
+  const userPrompt = `
+Sous-thème : ${themeLabel} > ${subthemeLabel} (${memory.full_key})
+
+Résumé canonique actuel :
+${memory.canonical_summary || "(vide)"}
+
+Facts actuels :
+${memory.facts.join(" | ") || "(aucun)"}
+
+Inferences actuelles :
+${memory.inferences.join(" | ") || "(aucune)"}
+
+Active issues actuelles :
+${memory.active_issues.join(" | ") || "(aucune)"}
+
+Goals actuels :
+${memory.goals.join(" | ") || "(aucun)"}
+
+Open questions actuelles :
+${memory.open_questions.join(" | ") || "(aucune)"}
+
+Pending updates à intégrer :
+${pendingBlock}
+`.trim();
+
+  try {
+    const raw = await generateWithGemini(
+      systemPrompt,
+      userPrompt,
+      0.15,
+      true,
+      [],
+      "auto",
+      {
+        requestId: params.meta?.requestId ?? undefined,
+        source: "sophia-brain:global_memory_compaction",
+        model: GLOBAL_MEMORY_COMPACTION_MODEL,
+      },
+    );
+    const parsed = typeof raw === "string" ? extractJsonObject(raw) : null;
+    if (!parsed) {
+      return compactDeterministically(memory);
+    }
+    const payload: GlobalMemoryCompactionPayload = {
+      canonical_summary: compactText(
+        parsed.canonical_summary ?? memory.canonical_summary,
+        GLOBAL_MEMORY_SUMMARY_MAX,
+      ),
+      facts: readStringArray(parsed.facts, GLOBAL_MEMORY_FACTS_LIMIT),
+      inferences: readStringArray(
+        parsed.inferences,
+        GLOBAL_MEMORY_INFERENCES_LIMIT,
+      ),
+      active_issues: readStringArray(
+        parsed.active_issues,
+        GLOBAL_MEMORY_ISSUES_LIMIT,
+      ),
+      goals: readStringArray(parsed.goals, GLOBAL_MEMORY_GOALS_LIMIT),
+      open_questions: readStringArray(
+        parsed.open_questions,
+        GLOBAL_MEMORY_QUESTIONS_LIMIT,
+      ),
+    };
+    if (
+      !payload.canonical_summary && payload.facts.length === 0 &&
+      payload.inferences.length === 0 && payload.active_issues.length === 0 &&
+      payload.goals.length === 0 && payload.open_questions.length === 0
+    ) {
+      return compactDeterministically(memory);
+    }
+    payload.canonical_summary = payload.canonical_summary ||
+      compactText(
+        composeCanonicalSummary({
+          currentSummary: memory.canonical_summary,
+          facts: payload.facts,
+          activeIssues: payload.active_issues,
+          goals: payload.goals,
+        }),
+        GLOBAL_MEMORY_SUMMARY_MAX,
+      );
+    return payload;
+  } catch (error) {
+    console.warn("[GlobalMemory] compaction fallback", {
+      full_key: memory.full_key,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    return compactDeterministically(memory);
+  }
+}
+
+async function updateGlobalMemoryRow(params: {
+  supabase: SupabaseClient;
+  memoryId: string;
+  payload: Record<string, unknown>;
+}): Promise<void> {
+  const { error } = await params.supabase
+    .from("user_global_memories")
+    .update(params.payload as any)
+    .eq("id", params.memoryId);
+  if (error) throw error;
+}
+
+async function loadGlobalMemory(params: {
+  supabase: SupabaseClient;
+  memoryId?: string;
+  userId?: string;
+  fullKey?: string;
+}): Promise<GlobalMemory | null> {
+  let query = params.supabase
+    .from("user_global_memories")
+    .select(GLOBAL_MEMORY_SELECT_COLUMNS)
+    .eq("status", "active");
+  if (params.memoryId) query = query.eq("id", params.memoryId);
+  else {
+    query = query.eq("user_id", params.userId ?? "").eq(
+      "full_key",
+      params.fullKey ?? "",
+    );
+  }
+  const { data, error } = await query.maybeSingle();
+  if (error || !data) return null;
+  return toGlobalMemoryRow(data);
+}
+
+function shouldUseSemanticRetrieval(params: {
+  lexicalTop: number;
+  message: string;
+}): boolean {
+  const messageTokens = tokenize(params.message);
+  if (messageTokens.size >= 5) return true;
+  return params.lexicalTop < 0.72;
 }
 
 export function getGlobalMemoryTaxonomyPromptBlock(): string {
@@ -823,6 +1303,7 @@ export async function upsertGlobalMemoryCandidate(opts: {
   userId: string;
   candidate: GlobalMemoryCandidate;
   sourceType?: GlobalMemorySource;
+  sourceMetadata?: Record<string, unknown>;
 }): Promise<
   {
     created: boolean;
@@ -842,11 +1323,12 @@ export async function upsertGlobalMemoryCandidate(opts: {
     };
   }
   const sourceType = opts.sourceType ?? "chat";
+  const sourceMetadata = opts.sourceMetadata;
   const now = new Date().toISOString();
 
   const { data: existingRow, error: existingErr } = await supabase
     .from("user_global_memories")
-    .select("*")
+    .select(GLOBAL_MEMORY_SELECT_COLUMNS)
     .eq("user_id", userId)
     .eq("full_key", candidate.full_key)
     .eq("status", "active")
@@ -854,6 +1336,46 @@ export async function upsertGlobalMemoryCandidate(opts: {
   if (existingErr) throw existingErr;
 
   if (!existingRow) {
+    const initialSummary = compactText(
+      composeCanonicalSummary({
+        summaryDelta: candidate.summary_delta,
+        facts: candidate.facts,
+        activeIssues: candidate.active_issues,
+        goals: candidate.goals,
+      }),
+      GLOBAL_MEMORY_SUMMARY_MAX,
+    );
+    const draftMemory = toGlobalMemoryRow({
+      id: "draft",
+      user_id: userId,
+      theme: candidate.theme,
+      subtheme_key: candidate.subtheme_key,
+      full_key: candidate.full_key,
+      status: "active",
+      canonical_summary: initialSummary,
+      facts: candidate.facts,
+      inferences: candidate.inferences,
+      active_issues: candidate.active_issues,
+      goals: candidate.goals,
+      open_questions: candidate.open_questions,
+      supporting_topic_slugs: candidate.supporting_topic_slugs,
+      pending_updates: [],
+      mention_count: 1,
+      enrichment_count: 0,
+      pending_count: 0,
+      pending_chars: 0,
+      confidence: candidate.confidence,
+      semantic_snapshot: "",
+      needs_compaction: false,
+      needs_embedding_refresh: true,
+      summary_compacted_at: now,
+      first_observed_at: now,
+      last_observed_at: now,
+      metadata: { source_type: sourceType },
+      created_at: now,
+      updated_at: now,
+    });
+    const semanticSnapshot = buildGlobalMemorySemanticSnapshot(draftMemory);
     const { error: insertErr } = await supabase
       .from("user_global_memories")
       .insert({
@@ -862,7 +1384,7 @@ export async function upsertGlobalMemoryCandidate(opts: {
         subtheme_key: candidate.subtheme_key,
         full_key: candidate.full_key,
         status: "active",
-        canonical_summary: candidate.summary_delta,
+        canonical_summary: initialSummary,
         facts: candidate.facts,
         inferences: candidate.inferences,
         active_issues: candidate.active_issues,
@@ -875,11 +1397,16 @@ export async function upsertGlobalMemoryCandidate(opts: {
         pending_count: 0,
         pending_chars: 0,
         confidence: candidate.confidence,
+        semantic_snapshot: semanticSnapshot,
+        needs_compaction: false,
+        needs_embedding_refresh: true,
         summary_compacted_at: now,
         first_observed_at: now,
         last_observed_at: now,
         metadata: {
           source_type: sourceType,
+          source_refs: mergeMemoryProvenanceRefs([], sourceMetadata),
+          latest_source_ref: sourceMetadata ?? null,
         },
         updated_at: now,
       } as any);
@@ -928,7 +1455,9 @@ export async function upsertGlobalMemoryCandidate(opts: {
     !pendingUpdateExists(pendingUpdates, candidate);
 
   if (shouldAppendPending) {
-    pendingUpdates.push(buildPendingUpdate(candidate, sourceType, now));
+    pendingUpdates.push(
+      buildPendingUpdate(candidate, sourceType, now, sourceMetadata),
+    );
   }
   const trimmedPending = pendingUpdates.slice(-GLOBAL_MEMORY_PENDING_LIMIT);
   const pendingCount = trimmedPending.length;
@@ -941,6 +1470,29 @@ export async function upsertGlobalMemoryCandidate(opts: {
     mergedGoals.length !== existing.goals.length ||
     mergedQuestions.length !== existing.open_questions.length ||
     mergedSupportingTopics.length !== existing.supporting_topic_slugs.length;
+  const nextNeedsCompaction = shouldCompactGlobalMemory({
+    pending_count: pendingCount,
+    pending_chars: pendingChars,
+    canonical_summary: existing.canonical_summary,
+    needs_compaction: false,
+  });
+  const draftMemory: GlobalMemory = {
+    ...existing,
+    facts: mergedFacts,
+    inferences: mergedInferences,
+    active_issues: mergedIssues,
+    goals: mergedGoals,
+    open_questions: mergedQuestions,
+    supporting_topic_slugs: mergedSupportingTopics,
+    pending_updates: trimmedPending,
+    pending_count: pendingCount,
+    pending_chars: pendingChars,
+    confidence: nextConfidence,
+    needs_compaction: nextNeedsCompaction,
+    needs_embedding_refresh: changed || existing.needs_embedding_refresh,
+    last_observed_at: now,
+  };
+  const semanticSnapshot = buildGlobalMemorySemanticSnapshot(draftMemory);
 
   const { error: updateErr } = await supabase
     .from("user_global_memories")
@@ -959,19 +1511,193 @@ export async function upsertGlobalMemoryCandidate(opts: {
         ? Math.max(0, existing.enrichment_count) + 1
         : existing.enrichment_count,
       confidence: nextConfidence,
+      semantic_snapshot: semanticSnapshot,
+      needs_compaction: nextNeedsCompaction,
+      needs_embedding_refresh: changed || existing.needs_embedding_refresh,
+      metadata: {
+        ...(existing.metadata && typeof existing.metadata === "object"
+          ? existing.metadata
+          : {}),
+        source_refs: mergeMemoryProvenanceRefs(
+          (existing.metadata as any)?.source_refs,
+          sourceMetadata,
+        ),
+        latest_source_ref: sourceMetadata ??
+          (existing.metadata as any)?.latest_source_ref ?? null,
+      },
       last_observed_at: now,
       updated_at: now,
     } as any)
     .eq("id", existing.id);
   if (updateErr) throw updateErr;
 
-  const needsCompaction = pendingCount >= 5 || pendingChars >= 1200 ||
-    existing.canonical_summary.length >= 1800;
   return {
     created: false,
     updated: changed,
     noop: !changed,
-    needsCompaction,
+    needsCompaction: nextNeedsCompaction,
+  };
+}
+
+export async function runGlobalMemoryMaintenance(params: {
+  supabase: SupabaseClient;
+  memoryId?: string;
+  userId?: string;
+  fullKey?: string;
+  meta?: { requestId?: string | null };
+}): Promise<{
+  updated: boolean;
+  compacted: boolean;
+  embedded: boolean;
+  reason: string;
+}> {
+  let memory = await loadGlobalMemory({
+    supabase: params.supabase,
+    memoryId: params.memoryId,
+    userId: params.userId,
+    fullKey: params.fullKey,
+  });
+  if (!memory) {
+    return {
+      updated: false,
+      compacted: false,
+      embedded: false,
+      reason: "not_found",
+    };
+  }
+
+  let updated = false;
+  let compacted = false;
+  const now = new Date().toISOString();
+
+  if (shouldCompactGlobalMemory(memory)) {
+    const compactedPayload = await compactWithModel({
+      memory,
+      meta: params.meta,
+    });
+    const compactedMemory: GlobalMemory = {
+      ...memory,
+      canonical_summary: compactText(
+        compactedPayload.canonical_summary,
+        GLOBAL_MEMORY_SUMMARY_MAX,
+      ),
+      facts: compactedPayload.facts,
+      inferences: compactedPayload.inferences,
+      active_issues: compactedPayload.active_issues,
+      goals: compactedPayload.goals,
+      open_questions: compactedPayload.open_questions,
+      pending_updates: [],
+      pending_count: 0,
+      pending_chars: 0,
+      needs_compaction: false,
+      needs_embedding_refresh: true,
+      summary_compacted_at: now,
+      updated_at: now,
+    };
+    const semanticSnapshot = buildGlobalMemorySemanticSnapshot(compactedMemory);
+    await updateGlobalMemoryRow({
+      supabase: params.supabase,
+      memoryId: memory.id,
+      payload: {
+        canonical_summary: compactedMemory.canonical_summary,
+        facts: compactedMemory.facts,
+        inferences: compactedMemory.inferences,
+        active_issues: compactedMemory.active_issues,
+        goals: compactedMemory.goals,
+        open_questions: compactedMemory.open_questions,
+        pending_updates: [],
+        pending_count: 0,
+        pending_chars: 0,
+        semantic_snapshot: semanticSnapshot,
+        needs_compaction: false,
+        needs_embedding_refresh: true,
+        summary_compacted_at: now,
+        updated_at: now,
+      },
+    });
+    memory = {
+      ...compactedMemory,
+      semantic_snapshot: semanticSnapshot,
+    };
+    updated = true;
+    compacted = true;
+  }
+
+  const semanticSnapshot = buildGlobalMemorySemanticSnapshot(memory);
+  if (semanticSnapshot !== memory.semantic_snapshot) {
+    await updateGlobalMemoryRow({
+      supabase: params.supabase,
+      memoryId: memory.id,
+      payload: {
+        semantic_snapshot: semanticSnapshot,
+        needs_embedding_refresh: true,
+        updated_at: now,
+      },
+    });
+    memory = {
+      ...memory,
+      semantic_snapshot: semanticSnapshot,
+      needs_embedding_refresh: true,
+      updated_at: now,
+    };
+    updated = true;
+  }
+
+  if (!memory.semantic_snapshot) {
+    return {
+      updated,
+      compacted,
+      embedded: false,
+      reason: updated ? "snapshot_only" : "empty_snapshot",
+    };
+  }
+
+  if (memory.needs_embedding_refresh || !memory.embedding_updated_at) {
+    try {
+      const embedding = await generateEmbedding(memory.semantic_snapshot, {
+        requestId: params.meta?.requestId ?? undefined,
+        source: "sophia-brain:global_memory_embedding",
+        operationName: "embedding.global_memory_snapshot",
+        userId: memory.user_id,
+        outputDimensionality: GLOBAL_MEMORY_EMBED_DIM,
+      });
+      await updateGlobalMemoryRow({
+        supabase: params.supabase,
+        memoryId: memory.id,
+        payload: {
+          semantic_embedding: embedding,
+          embedding_updated_at: now,
+          needs_embedding_refresh: false,
+          updated_at: now,
+        },
+      });
+      return {
+        updated: true,
+        compacted,
+        embedded: true,
+        reason: compacted ? "compacted_and_embedded" : "embedded",
+      };
+    } catch (error) {
+      console.warn("[GlobalMemory] embedding refresh failed", {
+        full_key: memory.full_key,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return {
+        updated,
+        compacted,
+        embedded: false,
+        reason: `embedding_failed:${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      };
+    }
+  }
+
+  return {
+    updated,
+    compacted,
+    embedded: false,
+    reason: updated ? "snapshot_refreshed" : "noop",
   };
 }
 
@@ -980,6 +1706,7 @@ export async function retrieveGlobalMemories(params: {
   userId: string;
   message: string;
   maxResults?: number;
+  requestId?: string;
 }): Promise<GlobalMemorySearchResult[]> {
   const maxResults = Math.max(
     1,
@@ -987,18 +1714,17 @@ export async function retrieveGlobalMemories(params: {
   );
   const { data, error } = await params.supabase
     .from("user_global_memories")
-    .select("*")
+    .select(GLOBAL_MEMORY_SELECT_COLUMNS)
     .eq("user_id", params.userId)
     .eq("status", "active")
     .order("last_observed_at", { ascending: false })
-    .limit(80);
+    .limit(GLOBAL_MEMORY_RETRIEVAL_SCAN_LIMIT);
   if (error || !Array.isArray(data) || data.length === 0) return [];
 
+  const rows = (data as any[]).map((row) => toGlobalMemoryRow(row));
   const messageNorm = normalizeText(params.message);
   const messageTokens = tokenize(params.message);
-
-  const ranked = (data as any[])
-    .map((row) => toGlobalMemoryRow(row))
+  const lexicalRanked = rows
     .map((row) => {
       const descriptor = descriptorFor(row.full_key);
       const themeAliases = descriptor
@@ -1032,10 +1758,73 @@ export async function retrieveGlobalMemories(params: {
         0.03 * confidenceScore;
       return {
         ...row,
+        lexical_score: matchScore,
         match_score: matchScore,
       };
     })
-    .filter((row) => (row.match_score ?? 0) >= 0.12)
+    .sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0));
+
+  const lexicalTop = lexicalRanked[0]?.lexical_score ?? 0;
+  const semanticById = new Map<string, number>();
+
+  if (shouldUseSemanticRetrieval({ lexicalTop, message: params.message })) {
+    try {
+      const queryEmbedding = await generateEmbedding(params.message, {
+        requestId: params.requestId,
+        source: "sophia-brain:global_memory_query_embedding",
+        operationName: "embedding.global_memory_query",
+        userId: params.userId,
+        outputDimensionality: GLOBAL_MEMORY_EMBED_DIM,
+      });
+      const { data: semanticRows, error: semanticErr } = await params.supabase
+        .rpc("match_global_memories", {
+          target_user_id: params.userId,
+          query_embedding: queryEmbedding,
+          match_threshold: GLOBAL_MEMORY_EMBED_THRESHOLD,
+          match_count: Math.max(
+            GLOBAL_MEMORY_SEMANTIC_RPC_LIMIT,
+            maxResults * 3,
+          ),
+        } as any);
+      if (!semanticErr && Array.isArray(semanticRows)) {
+        for (const raw of semanticRows as GlobalMemoryRpcMatchRow[]) {
+          const id = String(raw.memory_id ?? "").trim();
+          if (!id) continue;
+          semanticById.set(
+            id,
+            Math.max(
+              semanticById.get(id) ?? 0,
+              clampConfidence(raw.semantic_similarity, 0),
+            ),
+          );
+        }
+      }
+    } catch {
+      // Non-blocking: lexical retrieval remains available.
+    }
+  }
+
+  const ranked = lexicalRanked
+    .map((row) => {
+      const semanticSimilarity = semanticById.get(row.id) ?? 0;
+      const recencyScore = computeRecencyScore(row.last_observed_at);
+      const confidenceScore = clampConfidence(row.confidence, 0.5);
+      const lexicalScore = row.lexical_score ?? 0;
+      const matchScore = semanticSimilarity > 0
+        ? 0.45 * semanticSimilarity + 0.35 * lexicalScore +
+          0.12 * recencyScore + 0.08 * confidenceScore
+        : 0.82 * lexicalScore + 0.10 * recencyScore + 0.08 * confidenceScore;
+      return {
+        ...row,
+        semantic_similarity: semanticSimilarity > 0
+          ? semanticSimilarity
+          : undefined,
+        match_score: matchScore,
+      };
+    })
+    .filter((row) =>
+      (row.match_score ?? 0) >= (row.semantic_similarity ? 0.22 : 0.12)
+    )
     .sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0))
     .slice(0, maxResults);
 
@@ -1047,6 +1836,94 @@ export async function retrieveGlobalMemories(params: {
       .in("id", ranked.map((row) => row.id));
   }
 
+  return ranked;
+}
+
+function sortExplicitGlobalMemories(
+  memories: GlobalMemory[],
+): GlobalMemorySearchResult[] {
+  return [...memories]
+    .map((memory) => ({
+      ...memory,
+      match_score: 0.9 * clampConfidence(memory.confidence, 0.5) +
+        0.1 * computeRecencyScore(memory.last_observed_at),
+    }))
+    .sort((a, b) => (b.match_score ?? 0) - (a.match_score ?? 0));
+}
+
+async function touchRetrievedGlobalMemories(params: {
+  supabase: SupabaseClient;
+  memoryIds: string[];
+}): Promise<void> {
+  const ids = params.memoryIds.filter(Boolean);
+  if (ids.length === 0) return;
+  await params.supabase
+    .from("user_global_memories")
+    .update({ last_retrieved_at: new Date().toISOString() } as any)
+    .in("id", ids);
+}
+
+export async function retrieveGlobalMemoriesByFullKeys(params: {
+  supabase: SupabaseClient;
+  userId: string;
+  fullKeys: string[];
+}): Promise<GlobalMemorySearchResult[]> {
+  const normalized = [...new Set(
+    params.fullKeys.map((key) => String(key ?? "").trim().toLowerCase())
+      .filter((key) => isAllowedGlobalMemoryFullKey(key)),
+  )];
+  if (normalized.length === 0) return [];
+
+  const { data, error } = await params.supabase
+    .from("user_global_memories")
+    .select(GLOBAL_MEMORY_SELECT_COLUMNS)
+    .eq("user_id", params.userId)
+    .eq("status", "active")
+    .in("full_key", normalized);
+  if (error || !Array.isArray(data) || data.length === 0) return [];
+
+  const ranked = sortExplicitGlobalMemories(
+    (data as any[]).map((row) => toGlobalMemoryRow(row)),
+  );
+  await touchRetrievedGlobalMemories({
+    supabase: params.supabase,
+    memoryIds: ranked.map((row) => row.id),
+  });
+  return ranked;
+}
+
+export async function retrieveGlobalMemoriesByThemes(params: {
+  supabase: SupabaseClient;
+  userId: string;
+  themes: string[];
+  maxResults?: number;
+}): Promise<GlobalMemorySearchResult[]> {
+  const normalized = [...new Set(
+    params.themes.map((key) => String(key ?? "").trim().toLowerCase())
+      .filter((key) => isAllowedGlobalMemoryThemeKey(key)),
+  )];
+  if (normalized.length === 0) return [];
+
+  const maxResults = Math.max(
+    normalized.length,
+    Math.min(12, Math.floor(params.maxResults ?? Math.max(4, normalized.length * 3))),
+  );
+
+  const { data, error } = await params.supabase
+    .from("user_global_memories")
+    .select(GLOBAL_MEMORY_SELECT_COLUMNS)
+    .eq("user_id", params.userId)
+    .eq("status", "active")
+    .in("theme", normalized);
+  if (error || !Array.isArray(data) || data.length === 0) return [];
+
+  const ranked = sortExplicitGlobalMemories(
+    (data as any[]).map((row) => toGlobalMemoryRow(row)),
+  ).slice(0, maxResults);
+  await touchRetrievedGlobalMemories({
+    supabase: params.supabase,
+    memoryIds: ranked.map((row) => row.id),
+  });
   return ranked;
 }
 
