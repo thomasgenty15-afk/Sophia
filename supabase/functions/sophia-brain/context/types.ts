@@ -86,6 +86,8 @@ export interface LoadedContext {
   recentTurns?: string;
   vitals?: string;
   trackProgressAddon?: string;
+  momentumBlockersAddon?: string;
+  coachingInterventionAddon?: string;
   dashboardRedirectAddon?: string;
   dashboardCapabilitiesLiteAddon?: string;
   dashboardCapabilitiesAddon?: string;

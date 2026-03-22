@@ -1,80 +1,71 @@
-import { assertEquals } from "https://deno.land/std@0.168.0/testing/asserts.ts";
+import { assertEquals, assertStringIncludes } from "jsr:@std/assert@1";
+import {
+  buildSuggestionQueue,
+  describeSuggestionProposalForDashboard,
+} from "./suggestions.ts";
 import type { WeeklyReviewPayload } from "../../../trigger-weekly-bilan/payload.ts";
-import { buildSuggestionQueue } from "./suggestions.ts";
+import type { WeeklySuggestionProposal } from "./types.ts";
 
-function basePayload(): WeeklyReviewPayload {
-  return {
-    execution: {
-      rate_pct: 0,
-      total: 0,
-      completed: 0,
-      top_action: null,
-      blocker_action: null,
-      details: [],
-    },
-    etoile_polaire: null,
-    action_load: {
-      active_count: 1,
-      verdict: "low",
-      titles: [],
-    },
-    previous_recap: null,
+Deno.test("buildSuggestionQueue phrases proposals as dashboard recommendations", () => {
+  const payload = {
     plan_window: {
-      current_phase_index: 1,
-      current_phase_title: "Phase 1",
-      next_phase_index: 2,
-      next_phase_title: "Phase 2",
-      current_actions: [{
-        plan_action_id: "p1a1",
-        title: "Zone Sans Ecran Sacree",
-        type: "mission",
-        quest_type: "main",
-        phase_index: 1,
-        phase_title: "Phase 1",
-        phase_status: "active",
-        target_reps: 1,
-        current_reps: 1,
-        tracking_type: "boolean",
-        time_of_day: "night",
-        db_status: "completed",
-        is_current_phase: true,
-        is_next_phase: false,
-        week_reps: 0,
-        missed_count: 0,
-      }],
-      next_actions: [],
-      active_action_titles: [],
+      current_actions: [
+        { title: "Marcher 10 min", db_status: "active" },
+      ],
+      next_actions: [
+        { title: "Marcher 20 min", db_status: "pending" },
+      ],
+      active_action_titles: ["Marcher 10 min"],
     },
     suggestion_state: {
-      readiness: "hold",
-      should_activate_next_phase: false,
-      summary: "Test",
-      suggestions: [{
-        action_title: "Zone Sans Ecran Sacree",
-        action_type: "mission",
-        phase_scope: "current",
-        recommendation: "activate",
-        reason: "Mission a activer.",
-        confidence: "high",
-        related_action_title: null,
-      }],
+      suggestions: [
+        {
+          recommendation: "activate",
+          action_title: "Marcher 20 min",
+          related_action_title: "Marcher 10 min",
+          action_type: "habitude",
+        },
+        {
+          recommendation: "deactivate",
+          action_title: "Marcher 10 min",
+          related_action_title: "Marcher 20 min",
+          action_type: "habitude",
+        },
+      ],
     },
-    week_iso: "2026-W11",
-    week_start: "2026-03-09",
-  };
-}
-
-Deno.test("buildSuggestionQueue ignores activate for completed actions", () => {
-  const queue = buildSuggestionQueue(basePayload());
-  assertEquals(queue.length, 0);
-});
-
-Deno.test("buildSuggestionQueue ignores activate for deactivated actions", () => {
-  const payload = basePayload();
-  payload.plan_window.current_actions[0].db_status = "deactivated";
-  payload.suggestion_state.suggestions[0].action_title = "Zone Sans Ecran Sacree";
-  payload.suggestion_state.suggestions[0].recommendation = "activate";
+  } as unknown as WeeklyReviewPayload;
 
   const queue = buildSuggestionQueue(payload);
-  assertEquals(queue.length, 0);
+
+  assertEquals(queue.length, 1);
+  assertStringIncludes(queue[0].prompt, "dashboard");
+  assertStringIncludes(queue[0].prompt, "Tu veux qu'on retienne");
+});
+
+Deno.test("describeSuggestionProposalForDashboard keeps recommendation as dashboard-only action", () => {
+  const proposal: WeeklySuggestionProposal = {
+    id: "swap:1",
+    recommendation: "swap",
+    prompt: "",
+    decisions: [
+      {
+        recommendation: "deactivate",
+        action_title: "Marcher 10 min",
+        related_action_title: "Marcher 20 min",
+        action_type: "habitude",
+      } as any,
+      {
+        recommendation: "activate",
+        action_title: "Marcher 20 min",
+        related_action_title: "Marcher 10 min",
+        action_type: "habitude",
+      } as any,
+    ],
+  };
+
+  const described = describeSuggestionProposalForDashboard(proposal);
+
+  assertStringIncludes(described.summary, "dashboard");
+  assertStringIncludes(described.retained_changes[0], "dashboard");
+  assertStringIncludes(described.decision_note, "dashboard");
 });

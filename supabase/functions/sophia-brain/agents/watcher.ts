@@ -1,50 +1,70 @@
-import { SupabaseClient } from 'jsr:@supabase/supabase-js@2'
-import { normalizeScope } from '../state-manager.ts' // Need access to state
-import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts"
-import { buildUserTimeContextFromValues } from "../../_shared/user_time_context.ts"
+import { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import {
+  getUserState,
+  normalizeScope,
+  updateUserState,
+} from "../state-manager.ts"; // Need access to state
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
+import {
+  buildWatcherScopePromptBlock,
+  fetchCheckinExclusionSnapshot,
+  formatWatcherExclusionSnapshot,
+  sanitizeWatcherGrounding,
+  watcherEventContextTouchesExcludedScope,
+} from "../../_shared/checkin_scope.ts";
+import { logMomentumStateObservability } from "../../_shared/momentum-observability.ts";
+import { buildUserTimeContextFromValues } from "../../_shared/user_time_context.ts";
+import {
+  consolidateMomentumState,
+  readMomentumState,
+  summarizeMomentumStateForLog,
+  writeMomentumState,
+} from "../momentum_state.ts";
 
 type ExistingCheckin = {
-  scheduled_for: string
-  event_context: string
-  origin: string | null
-  status: string
-  draft_message?: string | null
-  message_payload?: Record<string, unknown> | null
-}
+  scheduled_for: string;
+  event_context: string;
+  origin: string | null;
+  status: string;
+  draft_message?: string | null;
+  message_payload?: Record<string, unknown> | null;
+};
 
 type CoachingPauseDecision = {
-  should_pause: boolean
-  confidence_score: number
-  pause_days: number
-  rationale?: string
-}
+  should_pause: boolean;
+  confidence_score: number;
+  pause_days: number;
+  rationale?: string;
+};
 
 type WatcherEventCandidate = {
-  event_context?: string
-  scheduled_for?: string
-  confidence_score?: number | string
-  event_grounding?: string
-}
+  event_context?: string;
+  scheduled_for?: string;
+  confidence_score?: number | string;
+  event_grounding?: string;
+};
 
 type WatcherAnalysisResponse = {
-  pause_decision?: Partial<CoachingPauseDecision> | null
-  events?: WatcherEventCandidate[] | null
-}
+  pause_decision?: Partial<CoachingPauseDecision> | null;
+  events?: WatcherEventCandidate[] | null;
+};
 
 function simplePromptHash(input: string): string {
-  let hash = 2166136261
-  const text = String(input ?? "")
+  let hash = 2166136261;
+  const text = String(input ?? "");
   for (let i = 0; i < text.length; i++) {
-    hash ^= text.charCodeAt(i)
-    hash = Math.imul(hash, 16777619)
+    hash ^= text.charCodeAt(i);
+    hash = Math.imul(hash, 16777619);
   }
-  return (hash >>> 0).toString(16).padStart(8, "0")
+  return (hash >>> 0).toString(16).padStart(8, "0");
 }
 
 function getWatcherIntervalMinutes(): number {
-  const raw = Number((Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "240").trim())
-  if (!Number.isFinite(raw) || raw <= 0) return 240
-  return Math.floor(raw)
+  const raw = Number(
+    (Deno.env.get("SOPHIA_WATCHER_INTERVAL_MINUTES") ?? "240").trim(),
+  );
+  if (!Number.isFinite(raw) || raw <= 0) return 240;
+  return Math.floor(raw);
 }
 
 function normalizeForMatch(text: string): string {
@@ -54,124 +74,145 @@ function normalizeForMatch(text: string): string {
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9\s]/g, " ")
     .replace(/\s+/g, " ")
-    .trim()
+    .trim();
 }
 
 function dayKeyInTimezone(isoOrMs: string | number, timezone: string): string {
-  const date = typeof isoOrMs === "number" ? new Date(isoOrMs) : new Date(isoOrMs)
+  const date = typeof isoOrMs === "number"
+    ? new Date(isoOrMs)
+    : new Date(isoOrMs);
   return new Intl.DateTimeFormat("en-CA", {
     timeZone: timezone,
     year: "numeric",
     month: "2-digit",
     day: "2-digit",
-  }).format(date)
+  }).format(date);
 }
 
 function isPlanObjectiveContext(eventContext: string): boolean {
-  const text = String(eventContext ?? "").toLowerCase()
-  return /\b(plan|objectif|objectifs|habitude|routine|discipline|phase|north star|action du plan)\b/.test(text)
+  const text = String(eventContext ?? "").toLowerCase();
+  return /\b(plan|objectif|objectifs|habitude|routine|discipline|phase|north star|action du plan)\b/
+    .test(text);
 }
 
-function isInsideDailyBilanWindow(params: { scheduledFor: string; timezone: string }): boolean {
-  const date = new Date(params.scheduledFor)
-  if (Number.isNaN(date.getTime())) return false
+function isInsideDailyBilanWindow(
+  params: { scheduledFor: string; timezone: string },
+): boolean {
+  const date = new Date(params.scheduledFor);
+  if (Number.isNaN(date.getTime())) return false;
   const parts = new Intl.DateTimeFormat("en-GB", {
     timeZone: params.timezone,
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).formatToParts(date)
-  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? "0")
-  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? "0")
-  const minutes = hh * 60 + mm
-  return minutes >= 19 * 60 + 30 && minutes < 20 * 60 + 30
+  }).formatToParts(date);
+  const hh = Number(parts.find((p) => p.type === "hour")?.value ?? "0");
+  const mm = Number(parts.find((p) => p.type === "minute")?.value ?? "0");
+  const minutes = hh * 60 + mm;
+  return minutes >= 19 * 60 + 30 && minutes < 20 * 60 + 30;
 }
 
-function relatesToActivePlanActions(eventContext: string, actionTitles: string[]): boolean {
-  if (!eventContext || actionTitles.length === 0) return false
-  const ctx = normalizeForMatch(eventContext)
-  if (!ctx) return false
+function relatesToActivePlanActions(
+  eventContext: string,
+  actionTitles: string[],
+): boolean {
+  if (!eventContext || actionTitles.length === 0) return false;
+  const ctx = normalizeForMatch(eventContext);
+  if (!ctx) return false;
   for (const title of actionTitles) {
-    const t = normalizeForMatch(title)
-    if (!t || t.length < 5) continue
-    if (ctx.includes(t) || t.includes(ctx)) return true
-    const tTokens = t.split(" ").filter((w) => w.length >= 4)
-    if (tTokens.length === 0) continue
-    const hitCount = tTokens.filter((w) => ctx.includes(w)).length
-    if (hitCount >= Math.min(2, tTokens.length)) return true
+    const t = normalizeForMatch(title);
+    if (!t || t.length < 5) continue;
+    if (ctx.includes(t) || t.includes(ctx)) return true;
+    const tTokens = t.split(" ").filter((w) => w.length >= 4);
+    if (tTokens.length === 0) continue;
+    const hitCount = tTokens.filter((w) => ctx.includes(w)).length;
+    if (hitCount >= Math.min(2, tTokens.length)) return true;
   }
-  return false
+  return false;
 }
 
 function compactOneLine(text: string, maxLen = 180): string {
   return String(text ?? "")
     .replace(/\s+/g, " ")
     .trim()
-    .slice(0, maxLen)
+    .slice(0, maxLen);
 }
 
 function stripRelativeTimePhrases(text: string): string {
   return String(text ?? "")
-    .replace(/\b(?:dans\s+(?:\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|quelques)\s+(?:minutes?|heures?|jours?|semaines?|mois))\b/gi, " ")
-    .replace(/\b(?:aujourd['’]hui|demain|apr[eè]s-demain|ce\s+soir|cet\s+apr[eè]s-midi|la\s+semaine\s+prochaine|le\s+mois\s+prochain|lundi\s+prochain|mardi\s+prochain|mercredi\s+prochain|jeudi\s+prochain|vendredi\s+prochain|samedi\s+prochain|dimanche\s+prochain)\b/gi, " ")
+    .replace(
+      /\b(?:dans\s+(?:\d+|un|une|deux|trois|quatre|cinq|six|sept|huit|neuf|dix|quelques)\s+(?:minutes?|heures?|jours?|semaines?|mois))\b/gi,
+      " ",
+    )
+    .replace(
+      /\b(?:aujourd['’]hui|demain|apr[eè]s-demain|ce\s+soir|cet\s+apr[eè]s-midi|la\s+semaine\s+prochaine|le\s+mois\s+prochain|lundi\s+prochain|mardi\s+prochain|mercredi\s+prochain|jeudi\s+prochain|vendredi\s+prochain|samedi\s+prochain|dimanche\s+prochain)\b/gi,
+      " ",
+    )
     .replace(/\s+/g, " ")
     .replace(/\s+([,.:;!?])/g, "$1")
-    .trim()
+    .trim();
 }
 
 function sanitizeWatcherEventContext(text: string): string {
-  const compact = compactOneLine(text, 180)
-  const withoutRelative = stripRelativeTimePhrases(compact)
-  return compactOneLine(withoutRelative || compact, 180)
+  const compact = compactOneLine(text, 180);
+  const withoutRelative = stripRelativeTimePhrases(compact);
+  return compactOneLine(withoutRelative || compact, 180);
 }
 
 function deriveTextContext(checkin: ExistingCheckin): string {
-  const draft = compactOneLine(String(checkin.draft_message ?? ""))
-  if (draft) return draft
+  const draft = compactOneLine(String(checkin.draft_message ?? ""));
+  if (draft) return draft;
 
   const payload =
     checkin.message_payload && typeof checkin.message_payload === "object"
       ? (checkin.message_payload as Record<string, unknown>)
-      : null
-  if (!payload) return ""
+      : null;
+  if (!payload) return "";
 
-  const reminderInstruction = compactOneLine(String(payload.reminder_instruction ?? ""))
-  if (reminderInstruction) return reminderInstruction
+  const reminderInstruction = compactOneLine(
+    String(payload.reminder_instruction ?? ""),
+  );
+  if (reminderInstruction) return reminderInstruction;
 
-  const eventGrounding = compactOneLine(String(payload.event_grounding ?? ""))
-  if (eventGrounding) return eventGrounding
+  const eventGrounding = compactOneLine(String(payload.event_grounding ?? ""));
+  if (eventGrounding) return eventGrounding;
 
-  const genericInstruction = compactOneLine(String(payload.instruction ?? ""))
-  if (genericInstruction) return genericInstruction
+  const genericInstruction = compactOneLine(String(payload.instruction ?? ""));
+  if (genericInstruction) return genericInstruction;
 
-  return ""
+  return "";
 }
 
 function clampPauseDays(value: unknown): number {
-  const n = Math.floor(Number(value))
-  if (!Number.isFinite(n)) return 0
-  return Math.max(0, Math.min(30, n))
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n)) return 0;
+  return Math.max(0, Math.min(30, n));
 }
 
 function parseTimestampMs(value: unknown): number | null {
-  if (typeof value !== "string" || !value.trim()) return null
-  const ms = new Date(value).getTime()
-  return Number.isFinite(ms) ? ms : null
+  if (typeof value !== "string" || !value.trim()) return null;
+  const ms = new Date(value).getTime();
+  return Number.isFinite(ms) ? ms : null;
 }
 
-function computeLaterPauseUntil(currentValue: unknown, pauseDays: number): string {
-  const requestedMs = Date.now() + Math.max(1, pauseDays) * 24 * 60 * 60 * 1000
-  const existingMs = parseTimestampMs(currentValue)
-  const nextMs = existingMs && existingMs > requestedMs ? existingMs : requestedMs
-  return new Date(nextMs).toISOString()
+function computeLaterPauseUntil(
+  currentValue: unknown,
+  pauseDays: number,
+): string {
+  const requestedMs = Date.now() + Math.max(1, pauseDays) * 24 * 60 * 60 * 1000;
+  const existingMs = parseTimestampMs(currentValue);
+  const nextMs = existingMs && existingMs > requestedMs
+    ? existingMs
+    : requestedMs;
+  return new Date(nextMs).toISOString();
 }
 
 async function applyCoachingPause(params: {
-  supabase: SupabaseClient
-  userId: string
-  pauseUntilIso: string
+  supabase: SupabaseClient;
+  userId: string;
+  pauseUntilIso: string;
 }): Promise<void> {
-  const nowIso = new Date().toISOString()
+  const nowIso = new Date().toISOString();
 
   const { error: profileErr } = await params.supabase
     .from("profiles")
@@ -179,8 +220,8 @@ async function applyCoachingPause(params: {
       whatsapp_coaching_paused_until: params.pauseUntilIso,
       whatsapp_bilan_paused_until: params.pauseUntilIso,
     } as any)
-    .eq("id", params.userId)
-  if (profileErr) throw profileErr
+    .eq("id", params.userId);
+  if (profileErr) throw profileErr;
 
   const { error: morningCancelErr } = await params.supabase
     .from("scheduled_checkins")
@@ -192,10 +233,10 @@ async function applyCoachingPause(params: {
     .eq("event_context", "morning_active_actions_nudge")
     .in("status", ["pending", "retrying", "awaiting_user"])
     .gte("scheduled_for", nowIso)
-    .lt("scheduled_for", params.pauseUntilIso)
-  if (morningCancelErr) throw morningCancelErr
+    .lt("scheduled_for", params.pauseUntilIso);
+  if (morningCancelErr) throw morningCancelErr;
 
-  const pendingKinds = ["weekly_bilan", "bilan_reschedule"] as const
+  const pendingKinds = ["weekly_bilan", "bilan_reschedule"] as const;
   const { error: pendingErr } = await params.supabase
     .from("whatsapp_pending_actions")
     .update({
@@ -204,8 +245,8 @@ async function applyCoachingPause(params: {
     } as any)
     .eq("user_id", params.userId)
     .in("kind", [...pendingKinds])
-    .eq("status", "pending")
-  if (pendingErr) throw pendingErr
+    .eq("status", "pending");
+  if (pendingErr) throw pendingErr;
 
   const { error: morningPendingErr } = await params.supabase
     .from("whatsapp_pending_actions")
@@ -216,17 +257,17 @@ async function applyCoachingPause(params: {
     .eq("user_id", params.userId)
     .eq("kind", "scheduled_checkin")
     .eq("status", "pending")
-    .filter("payload->>event_context", "eq", "morning_active_actions_nudge")
-  if (morningPendingErr) throw morningPendingErr
+    .filter("payload->>event_context", "eq", "morning_active_actions_nudge");
+  if (morningPendingErr) throw morningPendingErr;
 }
 
 async function aiValidateDayCoherence(params: {
-  candidateEventContext: string
-  candidateScheduledFor: string
-  candidateScore: number
-  timezone: string
-  sameDayCheckins: ExistingCheckin[]
-  requestId?: string
+  candidateEventContext: string;
+  candidateScheduledFor: string;
+  candidateScore: number;
+  timezone: string;
+  sameDayCheckins: ExistingCheckin[];
+  requestId?: string;
 }): Promise<boolean> {
   const dayList = params.sameDayCheckins
     .map((c, i) => {
@@ -235,18 +276,18 @@ async function aiValidateDayCoherence(params: {
         hour: "2-digit",
         minute: "2-digit",
         hour12: false,
-      }).format(new Date(c.scheduled_for))
-      const textContext = deriveTextContext(c)
+      }).format(new Date(c.scheduled_for));
+      const textContext = deriveTextContext(c);
       const details = [
         `${i + 1}. ${localTime}`,
         `origin=${c.origin ?? "unknown"}`,
         `status=${c.status}`,
         `event_context=${compactOneLine(c.event_context, 140) || "unknown"}`,
         `text_context=${textContext || "(none)"}`,
-      ]
-      return details.join(" | ")
+      ];
+      return details.join(" | ");
     })
-    .join("\n")
+    .join("\n");
 
   const stablePrompt = `
 Tu es un arbitre de scheduling de check-ins Sophia.
@@ -260,12 +301,12 @@ Règles strictes:
 
 Retourne JSON strict:
 {"accept": true|false, "reason": "courte raison"}
-  `.trim()
+  `.trim();
 
   const semiStablePrompt = `
 Contexte runtime:
 - timezone utilisateur: ${params.timezone}
-`.trim()
+`.trim();
 
   const candidateLocal = new Intl.DateTimeFormat("fr-FR", {
     timeZone: params.timezone,
@@ -275,7 +316,7 @@ Contexte runtime:
     hour: "2-digit",
     minute: "2-digit",
     hour12: false,
-  }).format(new Date(params.candidateScheduledFor))
+  }).format(new Date(params.candidateScheduledFor));
 
   const volatilePrompt = `
 Nouveau candidat:
@@ -285,7 +326,7 @@ Nouveau candidat:
 
 Check-ins déjà planifiés ce jour:
 ${dayList || "(aucun)"}
-  `.trim()
+  `.trim();
 
   try {
     console.log(JSON.stringify({
@@ -296,8 +337,9 @@ ${dayList || "(aucun)"}
       stable_chars: stablePrompt.length,
       semi_stable_chars: semiStablePrompt.length,
       volatile_chars: volatilePrompt.length,
-      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + volatilePrompt.length,
-    }))
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 +
+        volatilePrompt.length,
+    }));
   } catch {
     // non-blocking
   }
@@ -310,50 +352,76 @@ ${dayList || "(aucun)"}
       true,
       [],
       "auto",
-      { requestId: params.requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "trigger-watcher-batch:day-coherence" },
-    )
-    const parsed = JSON.parse(String(out))
-    return Boolean((parsed as any)?.accept)
+      {
+        requestId: params.requestId,
+        model: getGlobalAiModel("gemini-2.5-flash"),
+        source: "trigger-watcher-batch:day-coherence",
+      },
+    );
+    const parsed = JSON.parse(String(out));
+    return Boolean((parsed as any)?.accept);
   } catch {
     // Fail-safe: when coherence check fails, avoid adding potentially spammy check-ins.
-    return false
+    return false;
   }
 }
 
 export async function runWatcher(
-  supabase: SupabaseClient, 
-  userId: string, 
+  supabase: SupabaseClient,
+  userId: string,
   scopeRaw: unknown,
   lastProcessedAt: string,
-  meta?: { requestId?: string; forceRealAi?: boolean; channel?: "web" | "whatsapp"; model?: string; scope?: string }
+  meta?: {
+    requestId?: string;
+    forceRealAi?: boolean;
+    channel?: "web" | "whatsapp";
+    model?: string;
+    scope?: string;
+  },
 ) {
   const watcherDisabled =
     (Deno.env.get("SOPHIA_WATCHER_DISABLED") ?? "").trim() === "1" ||
-    (Deno.env.get("SOPHIA_VEILLEUR_DISABLED") ?? "").trim() === "1"
-  if (watcherDisabled) return
+    (Deno.env.get("SOPHIA_VEILLEUR_DISABLED") ?? "").trim() === "1";
+  if (watcherDisabled) return;
 
-  const channel = meta?.channel ?? "web"
-  const scope = normalizeScope(scopeRaw ?? meta?.scope, channel === "whatsapp" ? "whatsapp" : "web")
-  console.log(`[Veilleur] Triggered for user ${userId} scope=${scope}`)
+  const channel = meta?.channel ?? "web";
+  const scope = normalizeScope(
+    scopeRaw ?? meta?.scope,
+    channel === "whatsapp" ? "whatsapp" : "web",
+  );
+  let latestTempMemory: any = {};
+  console.log(`[Veilleur] Triggered for user ${userId} scope=${scope}`);
+
+  try {
+    const currentState = await getUserState(supabase as any, userId, scope);
+    latestTempMemory =
+      currentState?.temp_memory && typeof currentState.temp_memory === "object"
+        ? { ...currentState.temp_memory }
+        : {};
+  } catch {
+    latestTempMemory = {};
+  }
 
   // Fetch messages since last_processed_at (watcher scope: punctual checkins/signals only)
   const { data: messages, error } = await supabase
-    .from('chat_messages')
-    .select('role, content, created_at')
-    .eq('user_id', userId)
-    .eq('scope', scope)
-    .gt('created_at', lastProcessedAt)
-    .order('created_at', { ascending: true })
+    .from("chat_messages")
+    .select("role, content, created_at")
+    .eq("user_id", userId)
+    .eq("scope", scope)
+    .gt("created_at", lastProcessedAt)
+    .order("created_at", { ascending: true });
 
   if (error || !messages || messages.length === 0) {
-    console.log('[Veilleur] No new messages found or error', error)
-    return
+    console.log("[Veilleur] No new messages found or error", error);
+    return;
   }
 
   // 3. Prepare transcript (kept for future punctual checkin detection)
-  const batch = messages.slice(-50) // Safe upper limit
-  const transcript = batch.map((m: any) => `${m.role.toUpperCase()}: ${m.content}`).join('\n')
-  void transcript
+  const batch = messages.slice(-50); // Safe upper limit
+  const transcript = batch.map((m: any) =>
+    `${m.role.toUpperCase()}: ${m.content}`
+  ).join("\n");
+  void transcript;
 
   // Deterministic mode (MEGA): keep behavior stable for integration tests.
   const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim();
@@ -371,46 +439,51 @@ export async function runWatcher(
   // Watcher-only mode: detect future events and schedule punctual check-ins.
   const { data: prof } = await supabase
     .from("profiles")
-    .select("timezone, locale, whatsapp_coaching_paused_until, whatsapp_bilan_paused_until")
+    .select(
+      "timezone, locale, whatsapp_coaching_paused_until, whatsapp_bilan_paused_until",
+    )
     .eq("id", userId)
-    .maybeSingle()
+    .maybeSingle();
   const tctx = buildUserTimeContextFromValues({
     timezone: (prof as any)?.timezone ?? null,
     locale: (prof as any)?.locale ?? null,
-  })
+  });
 
-  const { data: activeActions } = await supabase
-    .from("user_actions")
-    .select("title")
-    .eq("user_id", userId)
-    .eq("status", "active")
-    .order("updated_at", { ascending: false })
-    .limit(20)
-  const activeActionTitles = Array.isArray(activeActions)
-    ? activeActions.map((a: any) => String(a?.title ?? "").trim()).filter(Boolean)
-    : []
-  const activeActionsBlock = activeActionTitles.length > 0
-    ? activeActionTitles.map((t, i) => `${i + 1}. ${t}`).join("\n")
-    : "(aucune action active)"
+  const exclusionSnapshot = await fetchCheckinExclusionSnapshot({
+    admin: supabase as any,
+    userId,
+  });
+  const activeActionTitles = exclusionSnapshot.planActionTitles;
+  const activeActionsBlock = exclusionSnapshot.planActionTitles.length > 0
+    ? exclusionSnapshot.planActionTitles.map((t, i) => `${i + 1}. ${t}`).join(
+      "\n",
+    )
+    : "(aucune action active)";
+  const exclusionSnapshotBlock = formatWatcherExclusionSnapshot(
+    exclusionSnapshot,
+  );
+  const watcherScopePromptBlock = buildWatcherScopePromptBlock(
+    exclusionSnapshot,
+  );
 
-  const watcherIntervalMinutes = getWatcherIntervalMinutes()
-  const windowStartMs = Date.now() - watcherIntervalMinutes * 60 * 1000
+  const watcherIntervalMinutes = getWatcherIntervalMinutes();
+  const windowStartMs = Date.now() - watcherIntervalMinutes * 60 * 1000;
   const windowMessages = messages.filter((m: any) => {
-    const ts = new Date(String(m?.created_at ?? "")).getTime()
-    return Number.isFinite(ts) && ts > windowStartMs
-  })
+    const ts = new Date(String(m?.created_at ?? "")).getTime();
+    return Number.isFinite(ts) && ts > windowStartMs;
+  });
 
   if (windowMessages.length === 0) {
     console.log(
       `[Veilleur] No messages in watcher window for event detection user=${userId} scope=${scope} window_min=${watcherIntervalMinutes}`,
-    )
-    return
+    );
+    return;
   }
 
   const fullTranscript = windowMessages
     .map((m: any) => `[${m.created_at}] ${m.role}: ${m.content}`)
-    .join("\n")
-  const now = tctx.now_utc
+    .join("\n");
+  const now = tctx.now_utc;
   const stablePrompt = `
 Tu es "Le Veilleur", une IA bienveillante intégrée à l'assistant Sophia.
 Ta mission est d'analyser les conversations récentes pour:
@@ -493,7 +566,10 @@ Règles CRITIQUES :
 - Assure-toi que "scheduled_for" est dans le FUTUR par rapport à "Maintenant".
 
 Actions actives du plan (à exclure du watcher):
-`.trim()
+${activeActionsBlock}
+
+${watcherScopePromptBlock}
+`.trim();
 
   const semiStablePrompt = `
 Repères temporels (CRITIQUES):
@@ -509,11 +585,12 @@ FENÊTRE D'OBSERVATION (STRICTE):
 - L'historique fourni couvre uniquement les ${watcherIntervalMinutes} dernières minutes.
 - Base ton analyse uniquement sur cette fenêtre. N'infère rien d'en-dehors.
 
-Actions actives du plan (à exclure du watcher):
-${activeActionsBlock}
-`.trim()
+Snapshot primaire d'exclusion (appartient a d'autres pipelines):
+${exclusionSnapshotBlock}
+`.trim();
 
-  const volatilePrompt = `Voici l'historique de la fenêtre d'observation (${watcherIntervalMinutes} minutes) :\n\n${fullTranscript}`
+  const volatilePrompt =
+    `Voici l'historique de la fenêtre d'observation (${watcherIntervalMinutes} minutes) :\n\n${fullTranscript}`;
 
   try {
     console.log(JSON.stringify({
@@ -524,8 +601,9 @@ ${activeActionsBlock}
       stable_chars: stablePrompt.length,
       semi_stable_chars: semiStablePrompt.length,
       volatile_chars: volatilePrompt.length,
-      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 + volatilePrompt.length,
-    }))
+      full_chars: stablePrompt.length + 2 + semiStablePrompt.length + 2 +
+        volatilePrompt.length,
+    }));
   } catch {
     // non-blocking
   }
@@ -538,22 +616,31 @@ ${activeActionsBlock}
       true,
       [],
       "auto",
-      { requestId: meta?.requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "trigger-watcher-batch" },
-    )
+      {
+        requestId: meta?.requestId,
+        model: getGlobalAiModel("gemini-2.5-flash"),
+        source: "trigger-watcher-batch",
+      },
+    );
 
-    const parsed = JSON.parse(String(responseText)) as WatcherAnalysisResponse | WatcherEventCandidate[]
+    const parsed = JSON.parse(String(responseText)) as
+      | WatcherAnalysisResponse
+      | WatcherEventCandidate[];
     const analysis: WatcherAnalysisResponse = Array.isArray(parsed)
       ? { pause_decision: null, events: parsed }
-      : (parsed ?? {})
+      : (parsed ?? {});
 
     const pauseDecision = analysis.pause_decision
       ? {
         should_pause: Boolean(analysis.pause_decision.should_pause),
         confidence_score: Number(analysis.pause_decision.confidence_score ?? 0),
         pause_days: clampPauseDays(analysis.pause_decision.pause_days),
-        rationale: compactOneLine(String(analysis.pause_decision.rationale ?? ""), 180) || undefined,
+        rationale: compactOneLine(
+          String(analysis.pause_decision.rationale ?? ""),
+          180,
+        ) || undefined,
       }
-      : null
+      : null;
 
     if (
       pauseDecision?.should_pause &&
@@ -563,74 +650,111 @@ ${activeActionsBlock}
     ) {
       const pauseUntilIso = computeLaterPauseUntil(
         (() => {
-          const coachingMs = parseTimestampMs((prof as any)?.whatsapp_coaching_paused_until ?? null)
-          const bilanMs = parseTimestampMs((prof as any)?.whatsapp_bilan_paused_until ?? null)
-          if ((coachingMs ?? 0) >= (bilanMs ?? 0)) return (prof as any)?.whatsapp_coaching_paused_until ?? null
-          return (prof as any)?.whatsapp_bilan_paused_until ?? null
+          const coachingMs = parseTimestampMs(
+            (prof as any)?.whatsapp_coaching_paused_until ?? null,
+          );
+          const bilanMs = parseTimestampMs(
+            (prof as any)?.whatsapp_bilan_paused_until ?? null,
+          );
+          if ((coachingMs ?? 0) >= (bilanMs ?? 0)) {
+            return (prof as any)?.whatsapp_coaching_paused_until ?? null;
+          }
+          return (prof as any)?.whatsapp_bilan_paused_until ?? null;
         })(),
         pauseDecision.pause_days,
-      )
+      );
       await applyCoachingPause({
         supabase,
         userId,
         pauseUntilIso,
-      })
+      });
       console.log(
         `[Veilleur] coaching_pause_applied user=${userId} days=${pauseDecision.pause_days} confidence=${pauseDecision.confidence_score} pause_until=${pauseUntilIso}`,
-      )
+      );
     }
 
-    const events = Array.isArray(analysis.events) ? analysis.events : []
-    if (events.length === 0) return
+    const events = Array.isArray(analysis.events) ? analysis.events : [];
+    if (events.length === 0) return;
 
     const candidates = events
       .map((event: any) => {
-        const score = Number(event?.confidence_score)
-        const scheduledFor = String(event?.scheduled_for ?? "")
-        const scheduledTime = new Date(scheduledFor)
-        const eventContext = String(event?.event_context ?? "").trim()
-        const eventGrounding = String(event?.event_grounding ?? "").trim().slice(0, 280)
-        return { score, scheduledFor, scheduledTime, eventContext, eventGrounding }
+        const score = Number(event?.confidence_score);
+        const scheduledFor = String(event?.scheduled_for ?? "");
+        const scheduledTime = new Date(scheduledFor);
+        const eventContext = String(event?.event_context ?? "").trim();
+        const eventGrounding = String(event?.event_grounding ?? "").trim()
+          .slice(0, 280);
+        return {
+          score,
+          scheduledFor,
+          scheduledTime,
+          eventContext,
+          eventGrounding,
+        };
       })
       .filter((c: any) => !Number.isNaN(c.score) && c.score >= 8)
-      .filter((c: any) => !Number.isNaN(c.scheduledTime.getTime()) && c.scheduledTime.getTime() > Date.now())
-      .filter((c: any) => Boolean(c.eventContext))
+      .filter((c: any) =>
+        !Number.isNaN(c.scheduledTime.getTime()) &&
+        c.scheduledTime.getTime() > Date.now()
+      )
+      .filter((c: any) => Boolean(c.eventContext));
 
-    if (candidates.length === 0) return
+    if (candidates.length === 0) return;
 
-    const minMs = Math.min(...candidates.map((c: any) => c.scheduledTime.getTime()))
-    const maxMs = Math.max(...candidates.map((c: any) => c.scheduledTime.getTime()))
-    const rangeStart = new Date(minMs - 72 * 60 * 60 * 1000).toISOString()
-    const rangeEnd = new Date(maxMs + 72 * 60 * 60 * 1000).toISOString()
+    const minMs = Math.min(
+      ...candidates.map((c: any) => c.scheduledTime.getTime()),
+    );
+    const maxMs = Math.max(
+      ...candidates.map((c: any) => c.scheduledTime.getTime()),
+    );
+    const rangeStart = new Date(minMs - 72 * 60 * 60 * 1000).toISOString();
+    const rangeEnd = new Date(maxMs + 72 * 60 * 60 * 1000).toISOString();
 
     const { data: existingRows, error: existingErr } = await supabase
       .from("scheduled_checkins")
-      .select("scheduled_for,event_context,origin,status,draft_message,message_payload")
+      .select(
+        "scheduled_for,event_context,origin,status,draft_message,message_payload",
+      )
       .eq("user_id", userId)
       .in("status", ["pending", "awaiting_user", "sent"])
       .gte("scheduled_for", rangeStart)
-      .lte("scheduled_for", rangeEnd)
-    if (existingErr) throw existingErr
+      .lte("scheduled_for", rangeEnd);
+    if (existingErr) throw existingErr;
 
     const occupied: ExistingCheckin[] = Array.isArray(existingRows)
       ? (existingRows as ExistingCheckin[])
-      : []
+      : [];
 
-    const rows: Array<Record<string, unknown>> = []
+    const rows: Array<Record<string, unknown>> = [];
     for (const candidate of candidates) {
-      const score = Number(candidate.score)
-      const scheduledFor = String(candidate.scheduledFor)
-      const eventContext = sanitizeWatcherEventContext(String(candidate.eventContext))
+      const score = Number(candidate.score);
+      const scheduledFor = String(candidate.scheduledFor);
+      const eventContext = sanitizeWatcherEventContext(
+        String(candidate.eventContext),
+      );
+      const eventGrounding = sanitizeWatcherGrounding(
+        String(candidate.eventGrounding ?? ""),
+        exclusionSnapshot,
+      );
 
       // Hard product rule: avoid check-ins about plan objectives unless exceptional support need (>0.9).
-      if (isPlanObjectiveContext(eventContext) && score <= 9) continue
-      if (relatesToActivePlanActions(eventContext, activeActionTitles)) continue
-      if (isInsideDailyBilanWindow({ scheduledFor, timezone: tctx.user_timezone })) continue
+      if (isPlanObjectiveContext(eventContext) && score <= 9) continue;
+      if (
+        watcherEventContextTouchesExcludedScope(eventContext, exclusionSnapshot)
+      ) continue;
+      if (relatesToActivePlanActions(eventContext, activeActionTitles)) {
+        continue;
+      }
+      if (
+        isInsideDailyBilanWindow({ scheduledFor, timezone: tctx.user_timezone })
+      ) continue;
 
-      const candidateDay = dayKeyInTimezone(scheduledFor, tctx.user_timezone)
+      const candidateDay = dayKeyInTimezone(scheduledFor, tctx.user_timezone);
       const sameDayCheckins = occupied.filter(
-        (c) => dayKeyInTimezone(c.scheduled_for, tctx.user_timezone) === candidateDay,
-      )
+        (c) =>
+          dayKeyInTimezone(c.scheduled_for, tctx.user_timezone) ===
+            candidateDay,
+      );
 
       // Trigger AI verification only when the day already has at least one check-in.
       if (sameDayCheckins.length > 0) {
@@ -641,8 +765,8 @@ ${activeActionsBlock}
           timezone: tctx.user_timezone,
           sameDayCheckins,
           requestId: meta?.requestId,
-        })
-        if (!accepted) continue
+        });
+        if (!accepted) continue;
       }
 
       rows.push({
@@ -655,11 +779,11 @@ ${activeActionsBlock}
           source: "trigger-watcher-batch",
           instruction:
             "Relance courte liée à l'événement. Utilise le tutoiement. 1 question max. Pas de markdown.",
-          event_grounding: candidate.eventGrounding || null,
+          event_grounding: eventGrounding || null,
         },
         scheduled_for: scheduledFor,
         status: "pending",
-      })
+      });
       occupied.push({
         scheduled_for: scheduledFor,
         event_context: eventContext,
@@ -667,19 +791,65 @@ ${activeActionsBlock}
         status: "pending",
         draft_message: null,
         message_payload: {
-          event_grounding: candidate.eventGrounding || null,
+          event_grounding: eventGrounding || null,
         },
-      })
+      });
     }
 
-    if (rows.length === 0) return
+    if (rows.length === 0) return;
 
     const { error: upsertErr } = await supabase
       .from("scheduled_checkins")
-      .upsert(rows as any, { onConflict: "user_id,event_context,scheduled_for" })
-    if (upsertErr) throw upsertErr
-    console.log(`[Veilleur] scheduled_checkins_inserted=${rows.length} user=${userId} scope=${scope}`)
+      .upsert(rows as any, {
+        onConflict: "user_id,event_context,scheduled_for",
+      });
+    if (upsertErr) throw upsertErr;
+    console.log(
+      `[Veilleur] scheduled_checkins_inserted=${rows.length} user=${userId} scope=${scope}`,
+    );
   } catch (e) {
-    console.error(`[Veilleur] event_detection_error user=${userId} scope=${scope}`, e)
+    console.error(
+      `[Veilleur] event_detection_error user=${userId} scope=${scope}`,
+      e,
+    );
+  }
+
+  try {
+    const previousMomentum = readMomentumState(latestTempMemory);
+    const consolidatedMomentum = await consolidateMomentumState({
+      supabase,
+      userId,
+      scope,
+      tempMemory: latestTempMemory,
+      nowIso: new Date().toISOString(),
+    });
+    const nextTempMemory = writeMomentumState(
+      latestTempMemory,
+      consolidatedMomentum,
+    );
+    await updateUserState(supabase as any, userId, scope, {
+      temp_memory: nextTempMemory,
+    });
+    await logMomentumStateObservability({
+      supabase: supabase as any,
+      userId,
+      requestId: meta?.requestId ?? null,
+      channel: scope === "whatsapp" ? "whatsapp" : "web",
+      scope,
+      source: "watcher",
+      previous: previousMomentum,
+      next: consolidatedMomentum,
+    });
+    console.log(JSON.stringify({
+      tag: "watcher_momentum_state_updated",
+      user_id: userId,
+      scope,
+      momentum: summarizeMomentumStateForLog(consolidatedMomentum),
+    }));
+  } catch (e) {
+    console.error(
+      `[Veilleur] momentum_consolidation_error user=${userId} scope=${scope}`,
+      e,
+    );
   }
 }

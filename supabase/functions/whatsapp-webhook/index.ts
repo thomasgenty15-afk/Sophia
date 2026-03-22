@@ -530,7 +530,7 @@ Deno.serve(async (req)=>{
           });
           continue;
         }
-        const { isOptInYes, hasBilanContext } = await computeOptInAndBilanContext({
+        const { isOptInYes, hasBilanContext, recentBilanPurpose } = await computeOptInAndBilanContext({
           admin,
           userId: profile.id,
           textLower,
@@ -776,6 +776,7 @@ Deno.serve(async (req)=>{
           fullName: String(profile.full_name ?? ""),
           isOptInYes,
           hasBilanContext,
+          recentBilanPurpose,
           siteUrl: SITE_URL,
           replyWithBrain,
           requestId: processId,

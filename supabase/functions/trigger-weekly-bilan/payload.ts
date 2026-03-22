@@ -1,5 +1,12 @@
 import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
-import { generateWithGemini } from "../_shared/gemini.ts";
+    import { generateWithGemini } from "../_shared/gemini.ts";
+import {
+  getTopMomentumBlocker,
+  readMomentumState,
+  summarizeMomentumBlockersForPrompt,
+} from "../sophia-brain/momentum_state.ts";
+import { readCoachingInterventionMemory } from "../sophia-brain/coaching_intervention_tracking.ts";
+import type { CoachingInterventionOutcome } from "../sophia-brain/coaching_intervention_selector.ts";
 
 export type ActionWeekSummary = {
   id: string;
@@ -47,6 +54,52 @@ export type WeeklySuggestionState = {
   suggestions: WeeklySuggestionDecision[];
 };
 
+export type WeeklyBlockerSnapshot = {
+  action_title: string;
+  category: string;
+  stage: "new" | "recurrent" | "chronic";
+  status: "active" | "cooling" | "resolved";
+  first_seen_at: string;
+  last_seen_at: string;
+  mention_count_21d: number;
+  reason_excerpt: string | null;
+};
+
+export type WeeklyBlockerState = {
+  active_blockers_count: number;
+  chronic_blockers_count: number;
+  top_blocker_action: string | null;
+  top_blocker_category: string | null;
+  top_blocker_stage: "new" | "recurrent" | "chronic" | null;
+  top_blocker_status: "active" | "cooling" | "resolved" | null;
+  blocker_summary: string | null;
+  blockers: WeeklyBlockerSnapshot[];
+};
+
+export type WeeklyCoachingInterventionSnapshot = {
+  technique_id: string;
+  blocker_type: string | null;
+  outcome: CoachingInterventionOutcome;
+  target_action_title: string | null;
+  helpful: boolean | null;
+  last_used_at: string | null;
+};
+
+export type WeeklyCoachingInterventionState = {
+  proposed_count_7d: number;
+  resolved_count_7d: number;
+  helpful_count_7d: number;
+  not_helpful_count_7d: number;
+  behavior_change_count_7d: number;
+  pending_technique_id: string | null;
+  pending_blocker_type: string | null;
+  top_helpful_technique: string | null;
+  top_unhelpful_technique: string | null;
+  recommendation: "none" | "keep_best" | "switch_technique" | "keep_testing";
+  summary: string | null;
+  recent_resolved: WeeklyCoachingInterventionSnapshot[];
+};
+
 export interface WeeklyReviewPayload {
   execution: {
     rate_pct: number;
@@ -84,8 +137,126 @@ export interface WeeklyReviewPayload {
     active_action_titles: string[];
   };
   suggestion_state: WeeklySuggestionState;
+  blocker_state: WeeklyBlockerState;
+  coaching_intervention_state: WeeklyCoachingInterventionState;
   week_iso: string;
   week_start: string;
+}
+
+export function buildWeeklyBlockerState(tempMemory: any): WeeklyBlockerState {
+  const momentum = readMomentumState(tempMemory);
+  const top = getTopMomentumBlocker(momentum);
+  const blockers = (momentum.blocker_memory.actions ?? []).slice(0, 4).map((item) => ({
+    action_title: item.action_title,
+    category: item.current_category,
+    stage: item.stage,
+    status: item.status,
+    first_seen_at: item.first_seen_at,
+    last_seen_at: item.last_seen_at,
+    mention_count_21d: item.mention_count_21d,
+    reason_excerpt: item.last_reason_excerpt ?? null,
+  }));
+  const summaryLines = summarizeMomentumBlockersForPrompt(momentum, 3);
+  return {
+    active_blockers_count: momentum.metrics.active_blockers_count ?? 0,
+    chronic_blockers_count: momentum.metrics.chronic_blockers_count ?? 0,
+    top_blocker_action: top?.action_title ?? null,
+    top_blocker_category: top?.current_category ?? null,
+    top_blocker_stage: top?.stage ?? null,
+    top_blocker_status: top?.status ?? null,
+    blocker_summary: summaryLines.length > 0 ? summaryLines.join(" || ") : null,
+    blockers,
+  };
+}
+
+function countTechniqueOutcomes(
+  rows: Array<{ technique_id: string; outcome: CoachingInterventionOutcome }>,
+  targetOutcomes: CoachingInterventionOutcome[],
+): string | null {
+  const counts = new Map<string, number>();
+  for (const row of rows) {
+    if (!targetOutcomes.includes(row.outcome)) continue;
+    counts.set(row.technique_id, (counts.get(row.technique_id) ?? 0) + 1);
+  }
+  const sorted = [...counts.entries()].sort((a, b) => b[1] - a[1]);
+  return sorted[0]?.[0] ?? null;
+}
+
+export function buildWeeklyCoachingInterventionState(
+  tempMemory: any,
+): WeeklyCoachingInterventionState {
+  const memory = readCoachingInterventionMemory(tempMemory);
+  const nowMs = Date.now();
+  const sevenDaysMs = 7 * 24 * 60 * 60 * 1000;
+  const recentHistory = memory.history.filter((item) => {
+    const ts = new Date(String(item.resolved_at ?? item.proposed_at ?? "")).getTime();
+    return Number.isFinite(ts) && nowMs - ts <= sevenDaysMs;
+  });
+  const resolved = recentHistory.filter((item) => item.status === "resolved");
+  const helpfulCount = resolved.filter((item) =>
+    item.outcome === "tried_helpful" || item.outcome === "behavior_changed"
+  ).length;
+  const notHelpfulCount = resolved.filter((item) =>
+    item.outcome === "tried_not_helpful"
+  ).length;
+  const behaviorChangeCount = resolved.filter((item) =>
+    item.outcome === "behavior_changed"
+  ).length;
+  const topHelpfulTechnique = countTechniqueOutcomes(
+    resolved.map((item) => ({
+      technique_id: item.technique_id,
+      outcome: item.outcome,
+    })),
+    ["tried_helpful", "behavior_changed"],
+  );
+  const topUnhelpfulTechnique = countTechniqueOutcomes(
+    resolved.map((item) => ({
+      technique_id: item.technique_id,
+      outcome: item.outcome,
+    })),
+    ["tried_not_helpful"],
+  );
+
+  let recommendation: WeeklyCoachingInterventionState["recommendation"] = "none";
+  let summary: string | null = null;
+  if (memory.pending) {
+    recommendation = "keep_testing";
+    summary = `Une technique est encore en cours de test: ${memory.pending.technique_id}.`;
+  } else if (helpfulCount > 0 && notHelpfulCount === 0 && topHelpfulTechnique) {
+    recommendation = "keep_best";
+    summary =
+      `La technique ${topHelpfulTechnique} semble utile cette semaine. On peut la garder comme reflexe prioritaire.`;
+  } else if (notHelpfulCount > 0 && helpfulCount === 0 && topUnhelpfulTechnique) {
+    recommendation = "switch_technique";
+    summary =
+      `La technique ${topUnhelpfulTechnique} n'a pas assez aide. Mieux vaut changer d'approche sur le prochain blocage.`;
+  } else if (helpfulCount > 0 || notHelpfulCount > 0) {
+    recommendation = "keep_testing";
+    summary =
+      "Les essais de techniques coach sont mitiges cette semaine. On garde ce qui aide et on change ce qui ne prend pas.";
+  }
+
+  return {
+    proposed_count_7d: recentHistory.length,
+    resolved_count_7d: resolved.length,
+    helpful_count_7d: helpfulCount,
+    not_helpful_count_7d: notHelpfulCount,
+    behavior_change_count_7d: behaviorChangeCount,
+    pending_technique_id: memory.pending?.technique_id ?? null,
+    pending_blocker_type: memory.pending?.blocker_type ?? null,
+    top_helpful_technique: topHelpfulTechnique,
+    top_unhelpful_technique: topUnhelpfulTechnique,
+    recommendation,
+    summary,
+    recent_resolved: resolved.slice(-3).map((item) => ({
+      technique_id: item.technique_id,
+      blocker_type: item.blocker_type ?? null,
+      outcome: item.outcome,
+      target_action_title: item.target_action_title ?? null,
+      helpful: item.helpful ?? null,
+      last_used_at: item.resolved_at ?? item.proposed_at ?? null,
+    })),
+  };
 }
 
 function ymdInTz(d: Date, timeZone: string): string {
@@ -322,6 +493,124 @@ function normalizeSuggestedActionRecommendation(params: {
   return suggestion;
 }
 
+function normalizeDecisionReason(reason: string, fallback: string): string {
+  const text = String(reason ?? "").trim();
+  return (text || fallback).slice(0, 220);
+}
+
+function isStrongBlockerPressure(params: {
+  blockerState: WeeklyBlockerState;
+  execution: WeeklyReviewPayload["execution"];
+  currentActions: WeeklyPlanActionSnapshot[];
+}): boolean {
+  const blocker = params.blockerState;
+  const topAction = String(blocker.top_blocker_action ?? "").trim().toLowerCase();
+  const topOnCurrentAction = Boolean(
+    topAction &&
+      params.currentActions.some((item) => String(item.title ?? "").trim().toLowerCase() === topAction),
+  );
+  if (blocker.chronic_blockers_count > 0 && topOnCurrentAction) return true;
+  if (
+    blocker.top_blocker_status === "active" &&
+    blocker.top_blocker_stage === "recurrent" &&
+    topOnCurrentAction &&
+    params.execution.completed <= 2
+  ) return true;
+  if (blocker.active_blockers_count >= 2 && params.execution.rate_pct < 70) return true;
+  return false;
+}
+
+export function applyBlockerPolicyToSuggestionState(params: {
+  suggestionState: WeeklySuggestionState;
+  blockerState: WeeklyBlockerState;
+  execution: WeeklyReviewPayload["execution"];
+  currentActions: WeeklyPlanActionSnapshot[];
+}): WeeklySuggestionState {
+  const { suggestionState, blockerState, execution, currentActions } = params;
+  if (
+    blockerState.active_blockers_count <= 0 &&
+    blockerState.chronic_blockers_count <= 0
+  ) {
+    return suggestionState;
+  }
+
+  const topBlockerAction = String(blockerState.top_blocker_action ?? "").trim();
+  const topBlockerCategory = String(blockerState.top_blocker_category ?? "").trim();
+  const topBlockerStage = String(blockerState.top_blocker_stage ?? "").trim();
+  const topActionLower = topBlockerAction.toLowerCase();
+  const currentTitles = new Set(
+    currentActions.map((item) => String(item.title ?? "").trim().toLowerCase()).filter(Boolean),
+  );
+  const topOnCurrentAction = topActionLower ? currentTitles.has(topActionLower) : false;
+  const strongPressure = isStrongBlockerPressure({
+    blockerState,
+    execution,
+    currentActions,
+  });
+
+  const adjustedSuggestions = suggestionState.suggestions.map((item) => {
+    if (
+      strongPressure &&
+      item.phase_scope === "next" &&
+      item.recommendation === "activate"
+    ) {
+      return {
+        ...item,
+        recommendation: "wait" as const,
+        confidence: "high" as const,
+        reason: normalizeDecisionReason(
+          item.reason,
+          topBlockerAction
+            ? `Le blocage ${topBlockerStage || "actif"} sur "${topBlockerAction}" suggere de consolider avant d'ouvrir une nouvelle action.`
+            : "Les blocages actifs de la semaine appellent d'abord a consolider avant d'ouvrir une nouvelle action.",
+        ),
+      };
+    }
+    if (
+      strongPressure &&
+      item.recommendation === "deactivate" &&
+      item.related_action_title &&
+      topOnCurrentAction
+    ) {
+      return {
+        ...item,
+        recommendation: "keep_active" as const,
+        confidence: "high" as const,
+        reason: normalizeDecisionReason(
+          item.reason,
+          topBlockerAction
+            ? `On evite un remplacement trop vite tant que "${topBlockerAction}" bloque encore de maniere ${topBlockerStage || "active"}.`
+            : "On evite un remplacement trop vite tant que le blocage principal n'est pas stabilise.",
+        ),
+      };
+    }
+    return item;
+  });
+
+  const summaryPrefix = topBlockerAction
+    ? `Blocage ${topBlockerStage || "actif"} sur "${topBlockerAction}"${
+      topBlockerCategory ? ` (${topBlockerCategory})` : ""
+    }: `
+    : "Blocages actifs cette semaine: ";
+
+  return {
+    ...suggestionState,
+    readiness: strongPressure
+      ? (execution.completed <= 0 ? "hold" : "steady")
+      : suggestionState.readiness,
+    should_activate_next_phase: strongPressure
+      ? false
+      : suggestionState.should_activate_next_phase,
+    summary: strongPressure
+      ? normalizeDecisionReason(
+        `${summaryPrefix}on privilegie d'abord la consolidation et un ajustement realiste avant toute expansion.`,
+        suggestionState.summary,
+      )
+      : suggestionState.summary,
+    suggestions: adjustedSuggestions,
+  };
+}
+
 export function normalizeSuggestionDecisionsForPlan(
   suggestions: WeeklySuggestionDecision[],
   snapshots: WeeklyPlanActionSnapshot[],
@@ -339,12 +628,21 @@ function fallbackSuggestionState(params: {
   execution: WeeklyReviewPayload["execution"];
   currentActions: WeeklyPlanActionSnapshot[];
   nextActions: WeeklyPlanActionSnapshot[];
+  blockerState: WeeklyBlockerState;
 }): WeeklySuggestionState {
-  const { execution, currentActions, nextActions } = params;
+  const { execution, currentActions, nextActions, blockerState } = params;
   const hasZeroMomentum = execution.completed <= 0 || execution.rate_pct <= 0;
-  const shouldActivateNext = !hasZeroMomentum && execution.rate_pct >= 60 && execution.completed >= 2;
+  const strongBlockers = isStrongBlockerPressure({
+    blockerState,
+    execution,
+    currentActions,
+  });
+  const shouldActivateNext = !hasZeroMomentum && !strongBlockers &&
+    execution.rate_pct >= 60 && execution.completed >= 2;
   const readiness: WeeklySuggestionState["readiness"] = hasZeroMomentum
     ? "hold"
+    : strongBlockers
+    ? "steady"
     : shouldActivateNext
     ? "expand"
     : "steady";
@@ -414,16 +712,23 @@ function fallbackSuggestionState(params: {
     });
   }
 
-  return {
+  return applyBlockerPolicyToSuggestionState({
+    blockerState,
+    execution,
+    currentActions,
+    suggestionState: {
     readiness,
     should_activate_next_phase: shouldActivateNext,
     summary: hasZeroMomentum
       ? "Peu ou pas d'exécution cette semaine: on évite de proposer de nouvelles activations."
+      : strongBlockers
+      ? "La semaine montre encore une friction significative sur une action en cours: on consolide avant d'ouvrir plus large."
       : shouldActivateNext
       ? "La semaine montre assez de traction pour envisager une montée de phase ciblée."
       : "Il y a du mouvement, mais pas encore assez de stabilité pour ouvrir plus large.",
     suggestions: suggestions.slice(0, 6),
-  };
+    },
+  });
 }
 
 async function generateSuggestionState(params: {
@@ -433,11 +738,13 @@ async function generateSuggestionState(params: {
   activeActionTitles: string[];
   currentPhaseIndex: number | null;
   nextPhaseIndex: number | null;
+  blockerState: WeeklyBlockerState;
 }): Promise<WeeklySuggestionState> {
   const fallback = fallbackSuggestionState({
     execution: params.execution,
     currentActions: params.currentActions,
     nextActions: params.nextActions,
+    blockerState: params.blockerState,
   });
 
   if (params.currentActions.length === 0 && params.nextActions.length === 0) {
@@ -450,7 +757,11 @@ async function generateSuggestionState(params: {
     'Format: {"readiness":"hold|steady|expand","should_activate_next_phase":boolean,"summary":"string","suggestions":[{"action_title":"string","action_type":"habitude|mission|framework|unknown","phase_scope":"current|next","recommendation":"keep_active|activate|deactivate|wait","reason":"string","confidence":"low|medium|high","related_action_title":"string|null"}]}',
     "Règles métier obligatoires:",
     "- Base-toi sur l'exécution réelle de la semaine + actions actives + phase actuelle + phase suivante.",
+    "- Base-toi AUSSI sur blocker_state: blockers actifs, recurrents ou chroniques doivent peser dans la recommandation.",
     "- Si le user est à 0 répétition utile cette semaine, ne propose PAS d'activer une nouvelle action de la phase suivante.",
+    "- Si blocker_state.top_blocker_stage est recurrent ou chronic sur une action actuelle, privilégie la consolidation et évite d'ouvrir une nouvelle action de phase suivante.",
+    "- Si blocker_state.chronic_blockers_count > 0, should_activate_next_phase doit rester false sauf cas exceptionnel tres clairement soutenu par l'exécution, ce qui est rare.",
+    "- Si un blocage chronique touche une action actuelle, n'encourage pas un remplacement agressif par une version plus avancée la meme semaine.",
     "- Ne recommande jamais activate pour une action dont db_status est deja active, completed ou deactivated.",
     "- Une action db_status=completed est deja realisee dans le plan: ne la presente jamais comme a activer.",
     "- Une action db_status=deactivated a ete mise de cote manuellement: ne la repropose pas automatiquement.",
@@ -462,6 +773,7 @@ async function generateSuggestionState(params: {
     `active_action_titles=${JSON.stringify(params.activeActionTitles)}`,
     `current_phase_index=${JSON.stringify(params.currentPhaseIndex)}`,
     `next_phase_index=${JSON.stringify(params.nextPhaseIndex)}`,
+    `blocker_state=${JSON.stringify(params.blockerState)}`,
     `current_phase_actions=${JSON.stringify(params.currentActions)}`,
     `next_phase_actions=${JSON.stringify(params.nextActions)}`,
   ].join("\n");
@@ -497,12 +809,17 @@ async function generateSuggestionState(params: {
       : [];
     const shouldActivateNext = Boolean(parsed?.should_activate_next_phase);
 
-    const normalized = {
+    const normalized = applyBlockerPolicyToSuggestionState({
+      blockerState: params.blockerState,
+      execution: params.execution,
+      currentActions: params.currentActions,
+      suggestionState: {
       readiness,
       should_activate_next_phase: shouldActivateNext,
       summary: summary.slice(0, 280) || fallback.summary,
       suggestions: suggestions.slice(0, 6),
-    };
+      },
+    });
 
     if (!normalized.summary || normalized.suggestions.length === 0) return fallback;
 
@@ -532,6 +849,7 @@ async function generateSuggestionState(params: {
 export async function buildWeeklyReviewPayload(
   admin: ReturnType<typeof createClient>,
   userId: string,
+  opts?: { tempMemory?: any },
 ): Promise<WeeklyReviewPayload> {
   const { data: profile } = await admin
     .from("profiles")
@@ -796,6 +1114,10 @@ export async function buildWeeklyReviewPayload(
     blocker_action: (blockerAction && blockerAction.missed_count > 0) ? blockerAction.title : null,
     details,
   };
+  const blockerState = buildWeeklyBlockerState(opts?.tempMemory ?? {});
+  const coachingInterventionState = buildWeeklyCoachingInterventionState(
+    opts?.tempMemory ?? {},
+  );
 
   const suggestionState = await generateSuggestionState({
     execution: executionPayload,
@@ -804,6 +1126,7 @@ export async function buildWeeklyReviewPayload(
     activeActionTitles,
     currentPhaseIndex: resolvedCurrentPhaseIndex,
     nextPhaseIndex: resolvedNextPhaseIndex,
+    blockerState,
   });
 
   return {
@@ -838,6 +1161,8 @@ export async function buildWeeklyReviewPayload(
       active_action_titles: [...new Set(activeActionTitles)],
     },
     suggestion_state: suggestionState,
+    blocker_state: blockerState,
+    coaching_intervention_state: coachingInterventionState,
     week_iso: isoWeekLabelFromYmd(weekStart),
     week_start: weekStart,
   };

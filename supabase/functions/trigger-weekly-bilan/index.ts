@@ -4,10 +4,14 @@ import { createClient } from "jsr:@supabase/supabase-js@2.87.3";
 import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
+import { logMomentumObservabilityEvent } from "../_shared/momentum-observability.ts";
+import { logCoachingObservabilityEvent } from "../_shared/coaching-observability.ts";
 import { enqueueProactiveTemplateCandidate } from "../_shared/proactive_template_queue.ts";
 import { applyWhatsappProactiveOpeningPolicy } from "../_shared/scheduled_checkins.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
 import { createWeeklyInvestigationState } from "../sophia-brain/agents/investigator-weekly/types.ts";
+import { decideMomentumProactive } from "../sophia-brain/momentum_proactive_selector.ts";
+import { buildWeeklyCoachingSummaryAuditPayload } from "../sophia-brain/coaching_intervention_observability.ts";
 import { hasActiveStateMachine } from "../trigger-daily-bilan/state_machine_check.ts";
 import { buildWeeklyReviewPayload } from "./payload.ts";
 import type { WeeklyOpeningContext } from "../sophia-brain/agents/investigator-weekly/types.ts";
@@ -254,7 +258,53 @@ Deno.serve(async (req) => {
           continue;
         }
 
-        const payload = await buildWeeklyReviewPayload(admin as any, userId);
+        const momentumDecision = decideMomentumProactive({
+          kind: "weekly_bilan",
+          tempMemory: chatState?.temp_memory ?? {},
+        });
+        await logMomentumObservabilityEvent({
+          supabase: admin as any,
+          userId,
+          requestId,
+          channel: "whatsapp",
+          scope: "whatsapp",
+          sourceComponent: "trigger_weekly_bilan",
+          eventName: "weekly_bilan_momentum_decision",
+          payload: {
+            decision_kind: "momentum_policy_gate",
+            target_kind: "weekly_bilan",
+            state_at_decision: momentumDecision.state ?? null,
+            decision: momentumDecision.decision,
+            decision_reason: momentumDecision.reason,
+            proactive_policy: momentumDecision.proactive_policy ?? null,
+            policy_action: momentumDecision.policy_action ?? null,
+          },
+        });
+        if (momentumDecision.decision === "skip") {
+          skipped++;
+          skippedUserIds.push(userId);
+          skippedReasons[userId] = momentumDecision.reason;
+          continue;
+        }
+
+        const payload = await buildWeeklyReviewPayload(admin as any, userId, {
+          tempMemory: chatState?.temp_memory ?? {},
+        });
+        await logCoachingObservabilityEvent({
+          supabase: admin as any,
+          userId,
+          requestId,
+          channel: "whatsapp",
+          scope: "whatsapp",
+          sourceComponent: "trigger_weekly_bilan",
+          eventName: "coaching_weekly_summary_generated",
+          payload: {
+            momentum_state: momentumDecision.state ?? null,
+            ...buildWeeklyCoachingSummaryAuditPayload(
+              payload.coaching_intervention_state,
+            ),
+          },
+        });
 
         const lastInboundMs = parseTimestampMs(p?.whatsapp_last_inbound_at);
         const in24h = lastInboundMs !== null && (Date.now() - lastInboundMs) <= 24 * 60 * 60 * 1000;

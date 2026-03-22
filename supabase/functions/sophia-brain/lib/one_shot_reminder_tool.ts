@@ -1,4 +1,5 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2.87.3";
+import { generateWithGemini, getGlobalAiModel } from "../../_shared/gemini.ts";
 import { getUserTimeContext } from "../../_shared/user_time_context.ts";
 
 export type OneShotReminderToolOutcome =
@@ -35,10 +36,23 @@ type ParsedReminderRequest = {
   eventContext: string;
 };
 
+type AiReminderFallbackExtraction = {
+  is_one_shot?: boolean;
+  confidence?: number;
+  normalized_request?: string | null;
+  reminder_instruction?: string | null;
+  scheduled_for_utc?: string | null;
+};
+
+const REMINDER_REQUEST_PREFIX_REGEX =
+  /\b(?:rappelle(?:-|\s)?moi|tu\s+peux\s+me\s+rappeler|peux-tu\s+me\s+rappeler|peux\s+tu\s+me\s+rappeler|tu\s+peux\s+m['’]envoyer\s+un\s+rappel|peux-tu\s+m['’]envoyer\s+un\s+rappel|peux\s+tu\s+m['’]envoyer\s+un\s+rappel|tu\s+peux\s+me\s+faire\s+un\s+rappel|peux-tu\s+me\s+faire\s+un\s+rappel|peux\s+tu\s+me\s+faire\s+un\s+rappel|tu\s+pourrais\s+me\s+faire\s+un\s+rappel|tu\s+pourrais\s+m['’]envoyer\s+un\s+rappel|est(?:-|\s)?ce\s+que\s+tu\s+peux\s+me\s+faire\s+un\s+rappel|est(?:-|\s)?ce\s+que\s+tu\s+peux\s+m['’]envoyer\s+un\s+rappel|envoie(?:-|\s)?moi\s+un\s+rappel|fais(?:-|\s)?moi\s+un\s+rappel|mets(?:-|\s)?moi\s+un\s+rappel|remind\s+me)\b([\s\S]*)$/i;
+
 function compactText(value: unknown, maxLen = 240): string {
   const text = String(value ?? "").replace(/\s+/g, " ").trim();
   if (!text) return "";
-  return text.length <= maxLen ? text : `${text.slice(0, maxLen - 1).trimEnd()}…`;
+  return text.length <= maxLen
+    ? text
+    : `${text.slice(0, maxLen - 1).trimEnd()}…`;
 }
 
 function safeTrim(value: unknown): string {
@@ -56,9 +70,7 @@ function slugify(value: unknown): string {
 }
 
 function extractReminderClause(message: string): string {
-  const match = message.match(
-    /\b(?:rappelle(?:-|\s)?moi|tu\s+peux\s+me\s+rappeler|peux-tu\s+me\s+rappeler|peux\s+tu\s+me\s+rappeler|tu\s+peux\s+m['’]envoyer\s+un\s+rappel|envoie(?:-|\s)?moi\s+un\s+rappel|fais(?:-|\s)?moi\s+un\s+rappel|mets(?:-|\s)?moi\s+un\s+rappel|remind\s+me)\b([\s\S]*)$/i,
-  );
+  const match = message.match(REMINDER_REQUEST_PREFIX_REGEX);
   return compactText(match?.[1] ?? "");
 }
 
@@ -67,6 +79,23 @@ function isRecurringReminderRequest(message: string): boolean {
   if (!/\brappel|rappelle|remind\b/.test(text)) return false;
   return /\b(tous?\s+les|toutes?\s+les|chaque|quotidien|quotidienne|tous?\s+les\s+jours|chaque\s+jour|hebdo|hebdomadaire)\b/i
     .test(text);
+}
+
+function hasResolvableOneShotTimeHint(message: string): boolean {
+  const text = String(message ?? "");
+  return /\bdans\s+un\s+quart\s+d['’]heure\b/i.test(text) ||
+    /\bdans\s+une\s+demi(?:-|\s)heure\b/i.test(text) ||
+    /\bdans\s+\d{1,3}\s*(?:minutes?|min|heures?|h|jours?)\b/i.test(text) ||
+    /\b(aujourd['’]hui|ce\s+soir|cet\s+apr[eè]s-midi|demain|apr[eè]s-demain)\b/i
+      .test(text);
+}
+
+export function isLikelyOneShotReminderRequest(message: string): boolean {
+  const text = compactText(message, 500);
+  if (!text || isRecurringReminderRequest(text)) return false;
+  if (extractReminderClause(text)) return true;
+  if (!/\brappel|rappelle|remind\b/i.test(text)) return false;
+  return hasResolvableOneShotTimeHint(text);
 }
 
 function addMinutes(iso: string, minutes: number): string {
@@ -127,19 +156,32 @@ function computeScheduledForFromLocal(params: {
   const month = Number(nowParts.find((p) => p.type === "month")?.value ?? "1");
   const day = Number(nowParts.find((p) => p.type === "day")?.value ?? "1");
 
-  const targetUtcGuess = new Date(Date.UTC(year, month - 1, day + dayOffset, hh, mm, 0));
+  const targetUtcGuess = new Date(
+    Date.UTC(year, month - 1, day + dayOffset, hh, mm, 0),
+  );
   const localParts = dtf.formatToParts(targetUtcGuess);
-  const localYear = Number(localParts.find((p) => p.type === "year")?.value ?? year);
-  const localMonth = Number(localParts.find((p) => p.type === "month")?.value ?? month);
-  const localDay = Number(localParts.find((p) => p.type === "day")?.value ?? day);
-  const localHour = Number(localParts.find((p) => p.type === "hour")?.value ?? "0");
-  const localMinute = Number(localParts.find((p) => p.type === "minute")?.value ?? "0");
+  const localYear = Number(
+    localParts.find((p) => p.type === "year")?.value ?? year,
+  );
+  const localMonth = Number(
+    localParts.find((p) => p.type === "month")?.value ?? month,
+  );
+  const localDay = Number(
+    localParts.find((p) => p.type === "day")?.value ?? day,
+  );
+  const localHour = Number(
+    localParts.find((p) => p.type === "hour")?.value ?? "0",
+  );
+  const localMinute = Number(
+    localParts.find((p) => p.type === "minute")?.value ?? "0",
+  );
 
   const minuteDelta = (hh - localHour) * 60 + (mm - localMinute);
-  const dayDelta =
-    Date.UTC(year, month - 1, day + dayOffset) -
+  const dayDelta = Date.UTC(year, month - 1, day + dayOffset) -
     Date.UTC(localYear, localMonth - 1, localDay);
-  const corrected = new Date(targetUtcGuess.getTime() + minuteDelta * 60_000 + dayDelta);
+  const corrected = new Date(
+    targetUtcGuess.getTime() + minuteDelta * 60_000 + dayDelta,
+  );
   return corrected.toISOString();
 }
 
@@ -156,10 +198,11 @@ function parseScheduledForFromAbsoluteHint(args: {
 
   const dayHint = match[1].toLowerCase();
   const hhmm = parseHHMM(match[2], match[3]);
-  const dayOffset =
-    /apr[eè]s-demain/i.test(dayHint) ? 2 :
-    /demain/i.test(dayHint) ? 1 :
-    0;
+  const dayOffset = /apr[eè]s-demain/i.test(dayHint)
+    ? 2
+    : /demain/i.test(dayHint)
+    ? 1
+    : 0;
 
   const scheduledFor = computeScheduledForFromLocal({
     timezone: args.timezone,
@@ -195,7 +238,10 @@ function parseScheduledForFromRelativeHint(args: {
 
   const dayMatch = text.match(/\bdans\s+(\d{1,2})\s*jours?\b/i);
   if (dayMatch) {
-    const target = new Date(new Date(args.nowIso).getTime() + Number(dayMatch[1]) * 24 * 60 * 60 * 1000);
+    const target = new Date(
+      new Date(args.nowIso).getTime() +
+        Number(dayMatch[1]) * 24 * 60 * 60 * 1000,
+    );
     return target.toISOString();
   }
 
@@ -206,16 +252,36 @@ function extractReminderInstruction(message: string): string {
   const full = compactText(message, 500);
   const clause = extractReminderClause(full) || full;
 
-  const explicitTarget =
-    clause.match(/\bpour\s+me\s+(?:dire|rappeler|faire\s+penser)(?:\s+de)?\s+(.+)$/i)?.[1] ??
+  let explicitTarget = clause.match(
+      /\b(?:de\s+manière\s+à\s+ce\s+que|de\s+maniere\s+à\s+ce\s+que|de\s+maniere\s+a\s+ce\s+que|de\s+façon\s+à\s+ce\s+que|de\s+facon\s+a\s+ce\s+que|pour\s+que)\s+je\s+fasse\s+(.+)$/i,
+    )?.[1]
+    ? `faire ${
+      clause.match(
+        /\b(?:de\s+manière\s+à\s+ce\s+que|de\s+maniere\s+à\s+ce\s+que|de\s+maniere\s+a\s+ce\s+que|de\s+façon\s+à\s+ce\s+que|de\s+facon\s+a\s+ce\s+que|pour\s+que)\s+je\s+fasse\s+(.+)$/i,
+      )?.[1] ?? ""
+    }`
+    : undefined;
+  explicitTarget = explicitTarget ??
+    clause.match(
+      /\bpour\s+me\s+(?:dire|rappeler|faire\s+penser)(?:\s+de)?\s+(.+)$/i,
+    )?.[1] ??
     clause.match(/\bde\s+(.+)$/i)?.[1] ??
     clause.match(/\bpour\s+(.+)$/i)?.[1] ??
     "";
 
   const cleaned = compactText(
     explicitTarget
+      .replace(/\bmanière\s+à\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
+      .replace(/\bmaniere\s+à\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
+      .replace(/\bmaniere\s+a\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
+      .replace(/\bfaçon\s+à\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
+      .replace(/\bfacon\s+a\s+ce\s+que\s+je\s+fasse\s+/gi, "faire ")
+      .replace(/\bpour\s+que\s+je\s+fasse\s+/gi, "faire ")
+      .replace(/\bce\s+que\s+je\s+fasse\s+/gi, "faire ")
       .replace(/\b(?:stp|s['’]il te plaît|s'il te plait|please)\b/gi, " ")
-      .replace(/[?.!]+$/g, ""),
+      .replace(/\s*(?:[?!.]+|[:;]-?[)(DPp/]+)+\s*$/g, "")
+      .replace(/\s*(?:<3|xd|xD|XD)+\s*$/g, "")
+      .replace(/[?!.]+$/g, ""),
     140,
   );
   if (cleaned) return cleaned;
@@ -254,6 +320,94 @@ export function parseOneShotReminderRequest(args: {
   };
 }
 
+function parseAiReminderFallbackOutput(
+  raw: unknown,
+): AiReminderFallbackExtraction | null {
+  const text = String(raw ?? "").trim();
+  if (!text) return null;
+  const jsonCandidate = text.match(/\{[\s\S]*\}/)?.[0] ?? text;
+  try {
+    const parsed = JSON.parse(jsonCandidate);
+    return parsed && typeof parsed === "object"
+      ? parsed as AiReminderFallbackExtraction
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function inferOneShotReminderRequestWithAi(args: {
+  message: string;
+  timezone: string;
+  nowIso: string;
+  requestId?: string;
+}): Promise<ParsedReminderRequest | null> {
+  const systemPrompt = [
+    "Tu es un extracteur ultra strict de rappels ponctuels.",
+    "Tu dois detecter si le message utilisateur demande un rappel one-shot (non recurrent), puis normaliser la demande.",
+    "Retourne uniquement du JSON valide.",
+    'Schema: {"is_one_shot":true|false,"confidence":0..1,"normalized_request":"...","reminder_instruction":"...","scheduled_for_utc":"ISO8601|null"}',
+    "Règles:",
+    "- true uniquement si la demande est bien un rappel ponctuel demande a Sophia.",
+    "- false si c'est recurrent, ambigu, ou si le user ne demande pas vraiment un rappel.",
+    '- normalized_request doit reformuler en francais simple type: "Rappelle-moi dans 10 minutes de faire mes pompes".',
+    "- reminder_instruction doit etre bref et actionnable.",
+    "- scheduled_for_utc doit etre un ISO UTC seulement si l'heure est deduisible de facon fiable depuis le message + maintenant + timezone.",
+    `- Maintenant UTC: ${args.nowIso}`,
+    `- Timezone utilisateur: ${args.timezone}`,
+  ].join("\n");
+
+  try {
+    const raw = await generateWithGemini(
+      systemPrompt,
+      compactText(args.message, 500),
+      0.1,
+      true,
+      [],
+      "auto",
+      {
+        requestId: args.requestId,
+        model: getGlobalAiModel("gemini-2.5-flash"),
+        source: "one_shot_reminder_tool:fallback",
+      },
+    );
+    const parsed = parseAiReminderFallbackOutput(raw);
+    if (!parsed?.is_one_shot) return null;
+    const confidence = Number(parsed.confidence ?? 0);
+    if (!Number.isFinite(confidence) || confidence < 0.72) return null;
+
+    const normalizedRequest = compactText(parsed.normalized_request ?? "", 240);
+    if (normalizedRequest) {
+      const reparsed = parseOneShotReminderRequest({
+        message: normalizedRequest,
+        timezone: args.timezone,
+        nowIso: args.nowIso,
+      });
+      if (reparsed) return reparsed;
+    }
+
+    const reminderInstruction = compactText(
+      parsed.reminder_instruction ?? "",
+      140,
+    );
+    const scheduledForRaw = safeTrim(parsed.scheduled_for_utc ?? "");
+    const scheduledMs = scheduledForRaw
+      ? new Date(scheduledForRaw).getTime()
+      : NaN;
+    if (!reminderInstruction || !Number.isFinite(scheduledMs)) return null;
+
+    return {
+      scheduledFor: new Date(scheduledMs).toISOString(),
+      reminderInstruction,
+      eventContext: `one_shot_reminder:${
+        slugify(reminderInstruction) || "generic"
+      }`,
+    };
+  } catch {
+    return null;
+  }
+}
+
 function formatLocalReminderLabel(args: {
   scheduledFor: string;
   timezone: string;
@@ -275,8 +429,7 @@ export async function maybeCreateOneShotReminder(params: {
   message: string;
   requestId?: string;
 }): Promise<OneShotReminderToolOutcome> {
-  const reminderClause = extractReminderClause(params.message);
-  if (!reminderClause || isRecurringReminderRequest(params.message)) {
+  if (!isLikelyOneShotReminderRequest(params.message)) {
     return { detected: false };
   }
 
@@ -288,6 +441,11 @@ export async function maybeCreateOneShotReminder(params: {
     message: params.message,
     timezone: tctx.user_timezone,
     nowIso: tctx.now_utc,
+  }) ?? await inferOneShotReminderRequestWithAi({
+    message: params.message,
+    timezone: tctx.user_timezone,
+    nowIso: tctx.now_utc,
+    requestId: params.requestId,
   });
   if (!parsed) {
     return {
@@ -322,7 +480,8 @@ export async function maybeCreateOneShotReminder(params: {
           source: "companion_one_shot_reminder_tool",
           reminder_kind: "one_shot",
           reminder_instruction: parsed.reminderInstruction,
-          instruction: `Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de ${parsed.reminderInstruction}.`,
+          instruction:
+            `Rappel ponctuel demandé explicitement par l'utilisateur. Rappelle-lui de ${parsed.reminderInstruction}.`,
           event_grounding: compactText(
             `L'utilisateur a demandé explicitement un rappel ponctuel à propos de: ${parsed.reminderInstruction}.`,
             240,
@@ -339,7 +498,9 @@ export async function maybeCreateOneShotReminder(params: {
       .single();
     if (error) throw error;
 
-    const actualScheduledFor = String((data as any)?.scheduled_for ?? parsed.scheduledFor);
+    const actualScheduledFor = String(
+      (data as any)?.scheduled_for ?? parsed.scheduledFor,
+    );
     return {
       detected: true,
       status: "success",
@@ -351,7 +512,9 @@ export async function maybeCreateOneShotReminder(params: {
         locale: tctx.user_locale,
       }),
       reminder_instruction: parsed.reminderInstruction,
-      event_context: String((data as any)?.event_context ?? parsed.eventContext),
+      event_context: String(
+        (data as any)?.event_context ?? parsed.eventContext,
+      ),
       inserted_checkin_id: String((data as any)?.id ?? ""),
     };
   } catch (error) {
@@ -368,7 +531,9 @@ export async function maybeCreateOneShotReminder(params: {
   }
 }
 
-export function buildOneShotReminderAddon(outcome: OneShotReminderToolOutcome): string {
+export function buildOneShotReminderAddon(
+  outcome: OneShotReminderToolOutcome,
+): string {
   if (!outcome.detected) return "";
 
   if (outcome.status === "success") {
@@ -376,7 +541,9 @@ export function buildOneShotReminderAddon(outcome: OneShotReminderToolOutcome): 
       "",
       "=== ADDON ONE-SHOT REMINDER TOOL ===",
       "- Le reminder tool a deja reussi.",
-      `- Confirmation DB: scheduled_checkin_id=${outcome.inserted_checkin_id || "ok"}.`,
+      `- Confirmation DB: scheduled_checkin_id=${
+        outcome.inserted_checkin_id || "ok"
+      }.`,
       `- Heure locale programmee: ${outcome.scheduled_for_local_label}.`,
       `- Objet du rappel: ${outcome.reminder_instruction}.`,
       "- Tu peux confirmer clairement que le rappel est programme.",
@@ -411,7 +578,10 @@ export function buildOneShotReminderAddon(outcome: OneShotReminderToolOutcome): 
 
 export function summarizeOneShotReminderOutcome(
   outcome: OneShotReminderToolOutcome,
-): { executedTools: string[]; toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain" } {
+): {
+  executedTools: string[];
+  toolExecution: "none" | "blocked" | "success" | "failed" | "uncertain";
+} {
   if (!outcome.detected) {
     return { executedTools: [], toolExecution: "none" };
   }

@@ -1,5 +1,6 @@
 import { analyzeSignalsV2 } from "../sophia-brain/router/dispatcher.ts";
 import { generateWithGemini, getGlobalAiModel } from "../_shared/gemini.ts";
+import { classifyWinbackReplyIntent } from "../_shared/whatsapp_winback.ts";
 import { loadOnboardingContext, setDeferredOnboardingSteps } from "./onboarding_helpers.ts";
 import { buildAdaptiveOnboardingContext } from "./onboarding_context.ts";
 
@@ -15,7 +16,7 @@ export async function computeOptInAndBilanContext(params) {
     return Boolean(data);
   }
   const isOptInYes = params.actionId === "OPTIN_YES" || (params.isOptInYesText ? await hasRecentOptInPrompt(params.admin, params.userId) : false);
-  async function hasRecentDailyBilanPrompt(admin, userId) {
+  async function getRecentBilanPromptPurpose(admin, userId) {
     const since = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString() // 6h window
     ;
     const { data, error } = await admin
@@ -41,14 +42,17 @@ export async function computeOptInAndBilanContext(params) {
       "daily_bilan",
       "daily_bilan_reschedule",
       "daily_bilan_winback",
-    ].includes(purpose);
+    ].includes(purpose)
+      ? purpose
+      : null;
   }
   // Always check DB for recent bilan prompt — no longer gated by regex match.
   // This allows free-form responses ("non je suis pas dispo") to be recognized as bilan context.
-  const hasBilanContext = await hasRecentDailyBilanPrompt(params.admin, params.userId);
+  const recentBilanPurpose = await getRecentBilanPromptPurpose(params.admin, params.userId);
   return {
     isOptInYes,
-    hasBilanContext
+    hasBilanContext: Boolean(recentBilanPurpose),
+    recentBilanPurpose
   };
 }
 function deterministicBilanFallback(inboundText) {
@@ -200,11 +204,12 @@ async function detectAdaptiveFlow(inboundText, requestId) {
 export async function handleOptInAndDailyBilanActions(params) {
   const actionId = String(params.actionId ?? "").trim().toLowerCase();
   const textLower = String(params.textLower ?? params.inboundText ?? "").trim().toLowerCase();
-  const isWinbackPause48h = actionId === "winback_pause_48h" || /pause\s*(de)?\s*2\s*jour/.test(textLower);
-  const isWinbackResume = actionId === "winback_resume" || actionId === "winback_restart" || /on\s*(reprend|relance)|je\s*m['’]?y\s*remets/.test(textLower);
-  const isWinbackOverwhelmed = actionId === "winback_overwhelmed" || actionId === "winback_adapt_plan" || actionId === "winback_low_energy" || /trop\s*charg[eé]|adapter|coup\s*de\s*mou/.test(textLower);
-  const isWinbackSleepInfinite = actionId === "winback_sleep_infinite" || /pas\s*tout\s*de\s*suite/.test(textLower);
-  if (isWinbackPause48h || isWinbackResume || isWinbackOverwhelmed || isWinbackSleepInfinite) {
+  const recentPurpose = String(params.recentBilanPurpose ?? "").trim();
+  if (recentPurpose === "daily_bilan_winback") {
+    const winbackIntent = classifyWinbackReplyIntent({
+      actionId,
+      text: params.inboundText,
+    });
     const nowIso = new Date().toISOString();
     const patchBase: Record<string, any> = {
       whatsapp_bilan_opted_in: true,
@@ -213,14 +218,17 @@ export async function handleOptInAndDailyBilanActions(params) {
       whatsapp_bilan_last_winback_at: nowIso,
       whatsapp_bilan_paused_until: null
     };
-    if (isWinbackPause48h) {
-      patchBase.whatsapp_bilan_paused_until = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
+    if (winbackIntent === "pause_short") {
+      patchBase.whatsapp_bilan_paused_until = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
     }
-    if (isWinbackSleepInfinite) {
-      patchBase.whatsapp_bilan_paused_until = "2099-12-31T00:00:00.000Z";
+    if (winbackIntent === "pause_week") {
+      patchBase.whatsapp_bilan_paused_until = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+    }
+    if (winbackIntent === "wait_for_user") {
+      patchBase.whatsapp_bilan_paused_until = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString();
     }
     await params.admin.from("profiles").update(patchBase).eq("id", params.userId);
-    if (isWinbackPause48h) {
+    if (winbackIntent === "pause_short") {
       await params.replyWithBrain({
         admin: params.admin,
         userId: params.userId,
@@ -231,11 +239,11 @@ export async function handleOptInAndDailyBilanActions(params) {
         purpose: "daily_bilan_winback_pause_ack",
         whatsappMode: "normal",
         forceMode: "companion",
-        contextOverride: `=== CONTEXTE WHATSAPP ===\n` + `L'utilisateur a choisi une pause de 2 jours pour le bilan.\n\n` + `CONSIGNE DE TOUR:\n` + `- Confirme clairement que le bilan est mis en pause 2 jours.\n` + `- Dis que le bilan reprendra automatiquement apres ce delai.\n` + `- Message court (1-2 phrases), chaleureux, sans question.\n`
+        contextOverride: `=== CONTEXTE WHATSAPP ===\n` + `L'utilisateur veut qu'on lui laisse un peu d'espace avant toute reprise.\n\n` + `CONSIGNE DE TOUR:\n` + `- Confirme simplement que tu lui laisses quelques jours.\n` + `- Pas de mention du bilan.\n` + `- Message court (1-2 phrases), chaleureux, sans question.\n`
       });
       return true;
     }
-    if (isWinbackSleepInfinite) {
+    if (winbackIntent === "pause_week") {
       await params.replyWithBrain({
         admin: params.admin,
         userId: params.userId,
@@ -243,13 +251,71 @@ export async function handleOptInAndDailyBilanActions(params) {
         inboundText: params.inboundText,
         requestId: params.requestId,
         replyToWaMessageId: params.waMessageId,
-        purpose: "daily_bilan_winback_sleep_ack",
+        purpose: "daily_bilan_winback_pause_week_ack",
         whatsappMode: "normal",
         forceMode: "companion",
-        contextOverride: `=== CONTEXTE WHATSAPP ===\n` + `L'utilisateur veut rester en pause pour le moment.\n\n` + `CONSIGNE DE TOUR:\n` + `- Confirme que tu restes discrete.\n` + `- Dis qu'un simple message de sa part relancera les bilans.\n` + `- Message court (1-2 phrases), sans question.\n`
+        contextOverride: `=== CONTEXTE WHATSAPP ===\n` + `L'utilisateur veut qu'on lui laisse de l'espace cette semaine.\n\n` + `CONSIGNE DE TOUR:\n` + `- Confirme calmement que tu lui laisses la semaine.\n` + `- Pas de mention du bilan.\n` + `- Message court (1-2 phrases), sans question.\n`
       });
       return true;
     }
+    if (winbackIntent === "wait_for_user") {
+      await params.replyWithBrain({
+        admin: params.admin,
+        userId: params.userId,
+        fromE164: params.fromE164,
+        inboundText: params.inboundText,
+        requestId: params.requestId,
+        replyToWaMessageId: params.waMessageId,
+        purpose: "daily_bilan_winback_wait_ack",
+        whatsappMode: "normal",
+        forceMode: "companion",
+        contextOverride: `=== CONTEXTE WHATSAPP ===\n` + `L'utilisateur prefere revenir de lui-meme plus tard.\n\n` + `CONSIGNE DE TOUR:\n` + `- Confirme simplement que tu lui laisses la main.\n` + `- Dis qu'il peut te recrire quand il veut.\n` + `- Pas de mention du bilan.\n` + `- Message court (1-2 phrases), sans question.\n`
+      });
+      return true;
+    }
+    if (winbackIntent === "simplify") {
+      await params.replyWithBrain({
+        admin: params.admin,
+        userId: params.userId,
+        fromE164: params.fromE164,
+        inboundText: params.inboundText,
+        requestId: params.requestId,
+        replyToWaMessageId: params.waMessageId,
+        purpose: "daily_bilan_winback_simplify_ai",
+        whatsappMode: "normal",
+        forceMode: "companion",
+        contextOverride: `=== CONTEXTE WHATSAPP ===\n` + `L'utilisateur repond a un message de reprise et veut quelque chose de plus simple.\n\n` + `CONSIGNE DE TOUR:\n` + `- Tu ne lances PAS un bilan.\n` + `- Tu repars tres doucement, version simple et basse pression.\n` + `- Une seule question maximum.\n` + `- Ton message doit sonner humain, pas procedural.\n`
+      });
+      return true;
+    }
+    if (winbackIntent === "resume") {
+      await params.replyWithBrain({
+        admin: params.admin,
+        userId: params.userId,
+        fromE164: params.fromE164,
+        inboundText: params.inboundText,
+        requestId: params.requestId,
+        replyToWaMessageId: params.waMessageId,
+        purpose: "daily_bilan_winback_resume_ai",
+        whatsappMode: "normal",
+        forceMode: "companion",
+        contextOverride: `=== CONTEXTE WHATSAPP ===\n` + `L'utilisateur repond positivement a un message de reprise.\n\n` + `CONSIGNE DE TOUR:\n` + `- Tu ne lances PAS un bilan.\n` + `- Tu repars doucement dans la conversation, sans pression.\n` + `- Une seule question maximum, tres legere.\n` + `- Ton message doit sonner humain, pas procedural.\n`
+      });
+      return true;
+    }
+    await params.replyWithBrain({
+      admin: params.admin,
+      userId: params.userId,
+      fromE164: params.fromE164,
+      inboundText: params.inboundText,
+      requestId: params.requestId,
+      replyToWaMessageId: params.waMessageId,
+      purpose: "daily_bilan_winback_freeform_ai",
+      whatsappMode: "normal",
+      forceMode: "companion",
+      contextOverride: `=== CONTEXTE WHATSAPP ===\n` + `L'utilisateur repond librement a un message de reprise.\n\n` + `CONSIGNE DE TOUR:\n` + `- Tu prends appui sur ce qu'il vient de dire.\n` + `- Tu ne lances PAS un bilan.\n` + `- Tu repars doucement dans l'echange, sans pression ni recap global.\n` + `- Une seule question maximum.\n`
+    });
+    return true;
   }
   // If there's a bilan context and this is NOT an opt-in action, classify the response via LLM.
   if (params.hasBilanContext && !params.isOptInYes) {
@@ -263,7 +329,10 @@ export async function handleOptInAndDailyBilanActions(params) {
     // ACCEPT: kick off the bilan conversation
     if (classification.intent === "accept") {
       await params.admin.from("profiles").update({
-        whatsapp_bilan_opted_in: true
+        whatsapp_bilan_opted_in: true,
+        whatsapp_bilan_winback_step: 0,
+        whatsapp_bilan_missed_streak: 0,
+        whatsapp_bilan_paused_until: null
       }).eq("id", params.userId);
       await params.replyWithBrain({
         admin: params.admin,

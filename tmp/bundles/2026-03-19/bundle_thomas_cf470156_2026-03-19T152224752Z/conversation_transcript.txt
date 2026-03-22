@@ -1,0 +1,33 @@
+[2026-03-19T06:00:11.856139+00:00] [whatsapp] assistant (request_id=d1e604cd-4bbb-4e3b-bff8-d592ba2f013a):
+🌿
+Garde le fil aujourd’hui : Couvre-feu Digital Léger puis Couvre-feu Digital Renforcé, pour protéger ton attention.
+À un moment qui te convient, fais tes 10 pompes, et en fin de journée ouvre ton Journal de Fin de Journée.
+Tout ça sert ton “pourquoi” concret : énergie au réveil, présence, et moins d’écran qui décide pour toi.
+Respire, et laisse la journée se construire dans ce sens.
+
+[2026-03-19T11:24:56.71577+00:00] [whatsapp] user (request_id=b13d01f1-4a45-493a-bdb1-78f76927d6cf):
+Ok merci pour les encouragements, ça va toi?
+
+[2026-03-19T11:25:18.418581+00:00] [whatsapp] assistant:
+Ça va super, je suis ravie que tu sois en forme aujourd'hui !
+
+Dis-moi, on prend un petit moment pour faire le point du jour maintenant ou tu préfères qu'on voie ça plus tard ? 😊
+
+[2026-03-19T11:25:37.762604+00:00] [whatsapp] user (request_id=e27badf3-e45d-49ea-885f-217f8bf5e6d7):
+On voit ça plus tard :)
+
+[2026-03-19T11:25:45.732002+00:00] [whatsapp] assistant:
+Pas de souci, on ne peut pas le reporter plus tard ce soir. On fera le bilan demain.
+
+[2026-03-19T11:28:40.674684+00:00] [whatsapp] user (request_id=8479d30b-9934-429d-bf5f-63a2ba10d285):
+Okok si tu veux ! Est ce que tu peux me faire un rappel dans 10 minutes de manière à ce que je fasse mes pompes ? :)
+
+[2026-03-19T11:28:58.411492+00:00] [whatsapp] assistant:
+C'est noté, je t'envoie un message à 12h38 pile pour tes pompes. Prépare-toi à tout donner ! 💪
+
+[2026-03-19T11:30:45.574291+00:00] [whatsapp] user (request_id=90fa2ad6-26b0-4378-b1ac-68be51f62270):
+Parfait :)
+
+[2026-03-19T11:30:58.799615+00:00] [whatsapp] assistant:
+Ça marche. Profite de ces quelques minutes pour déconnecter avant de tout donner. On se reparle à 12h38 précise ! ⚡️
+

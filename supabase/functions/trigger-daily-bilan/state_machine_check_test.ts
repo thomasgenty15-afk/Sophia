@@ -17,7 +17,10 @@ function assertEquals(actual: unknown, expected: unknown, msg?: string) {
 
 Deno.test("hasActiveStateMachine: detects active bilan", () => {
   const result = hasActiveStateMachine({
-    investigation_state: { status: "checking", started_at: "2026-02-10T20:00:00Z" },
+    investigation_state: {
+      status: "checking",
+      started_at: "2026-02-10T20:00:00Z",
+    },
     temp_memory: {},
   });
   assertEquals(result, {
@@ -57,9 +60,9 @@ Deno.test("hasActiveStateMachine: ignores tool/supervisor flows in simplified mo
   const result = hasActiveStateMachine({
     temp_memory: {
       supervisor: {
-        stack: [{ type: "create_action_flow", status: "active" }],
+        stack: [{ type: "legacy_tool_flow", status: "active" }],
       },
-      create_action_flow: { phase: "confirm" },
+      legacy_tool_flow_state: { phase: "confirm" },
       __pending_relaunch_consent: { machine_type: "topic_light" },
     },
   });
@@ -91,7 +94,10 @@ Deno.test("cleanupHardExpiredStateMachines: removes stale investigation + safety
   const out = cleanupHardExpiredStateMachines(input, { now });
   assertEquals(out.changed, true);
   assertEquals(Boolean(out.chatState?.investigation_state), false);
-  assertEquals(Boolean(out.chatState?.temp_memory?.__safety_sentry_flow), false);
+  assertEquals(
+    Boolean(out.chatState?.temp_memory?.__safety_sentry_flow),
+    false,
+  );
 });
 
 Deno.test("clearActiveMachineForDailyBilan: clears onboarding", () => {

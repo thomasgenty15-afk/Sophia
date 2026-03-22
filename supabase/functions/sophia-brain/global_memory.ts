@@ -3,6 +3,7 @@ import {
   generateEmbedding,
   generateWithGemini,
 } from "../_shared/gemini.ts";
+import { logMemoryObservabilityEvent } from "../_shared/memory-observability.ts";
 import { mergeMemoryProvenanceRefs } from "./memory_provenance.ts";
 
 export type GlobalMemorySource =
@@ -1551,6 +1552,30 @@ export async function runGlobalMemoryMaintenance(params: {
   embedded: boolean;
   reason: string;
 }> {
+  const emitMaintenanceEvent = async (
+    memory: GlobalMemory | null,
+    outcome: { updated: boolean; compacted: boolean; embedded: boolean; reason: string },
+  ): Promise<void> => {
+    if (!memory) return;
+    await logMemoryObservabilityEvent({
+      supabase: params.supabase,
+      userId: memory.user_id,
+      requestId: params.meta?.requestId ?? null,
+      sourceComponent: "global_memory",
+      eventName: "global_memory.maintenance_completed",
+      payload: {
+        full_key: memory.full_key,
+        theme: memory.theme,
+        subtheme_key: memory.subtheme_key,
+        needs_compaction: memory.needs_compaction,
+        needs_embedding_refresh: memory.needs_embedding_refresh,
+        pending_count: memory.pending_count,
+        pending_chars: memory.pending_chars,
+        outcome,
+      },
+    });
+  };
+
   let memory = await loadGlobalMemory({
     supabase: params.supabase,
     memoryId: params.memoryId,
@@ -1644,12 +1669,14 @@ export async function runGlobalMemoryMaintenance(params: {
   }
 
   if (!memory.semantic_snapshot) {
-    return {
+    const outcome = {
       updated,
       compacted,
       embedded: false,
       reason: updated ? "snapshot_only" : "empty_snapshot",
     };
+    await emitMaintenanceEvent(memory, outcome);
+    return outcome;
   }
 
   if (memory.needs_embedding_refresh || !memory.embedding_updated_at) {
@@ -1671,18 +1698,20 @@ export async function runGlobalMemoryMaintenance(params: {
           updated_at: now,
         },
       });
-      return {
+      const outcome = {
         updated: true,
         compacted,
         embedded: true,
         reason: compacted ? "compacted_and_embedded" : "embedded",
       };
+      await emitMaintenanceEvent(memory, outcome);
+      return outcome;
     } catch (error) {
       console.warn("[GlobalMemory] embedding refresh failed", {
         full_key: memory.full_key,
         error: error instanceof Error ? error.message : String(error),
       });
-      return {
+      const outcome = {
         updated,
         compacted,
         embedded: false,
@@ -1690,15 +1719,19 @@ export async function runGlobalMemoryMaintenance(params: {
           error instanceof Error ? error.message : String(error)
         }`,
       };
+      await emitMaintenanceEvent(memory, outcome);
+      return outcome;
     }
   }
 
-  return {
+  const outcome = {
     updated,
     compacted,
     embedded: false,
     reason: updated ? "snapshot_refreshed" : "noop",
   };
+  await emitMaintenanceEvent(memory, outcome);
+  return outcome;
 }
 
 export async function retrieveGlobalMemories(params: {

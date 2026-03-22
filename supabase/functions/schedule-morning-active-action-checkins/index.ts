@@ -221,6 +221,14 @@ function buildSlots(params: {
   return slots
 }
 
+function buildNextSlot(params: {
+  timezone: string
+  actions: ActiveActionRow[]
+  now?: Date
+}): Slot | null {
+  return buildSlots(params)[0] ?? null
+}
+
 async function fetchActiveActionsForUser(params: {
   supabaseAdmin: ReturnType<typeof createClient>
   userId: string
@@ -581,106 +589,63 @@ Deno.serve(async (req) => {
       candidates++
 
       const timezone = cleanText(profile?.timezone, "Europe/Paris")
-      const locale = profile?.locale ?? null
-      const slots = buildSlots({ timezone, actions })
-      if (slots.length === 0) {
+      const slot = buildNextSlot({ timezone, actions })
+      if (!slot) {
         skipped++
         continue
       }
 
-      const horizonEndIso = new Date(Date.now() + 8 * 24 * 60 * 60 * 1000).toISOString()
-      const { data: existingFutureRows } = await supabaseAdmin
+      const nowIso = new Date().toISOString()
+      const { error: resetFutureErr } = await supabaseAdmin
         .from("scheduled_checkins")
-        .select("id")
+        .delete()
         .eq("user_id", userId)
         .eq("event_context", EVENT_CONTEXT)
         .in("status", ["pending", "retrying", "awaiting_user"])
-        .gte("scheduled_for", new Date().toISOString())
-        .lt("scheduled_for", horizonEndIso)
-        .limit(1)
-      if ((existingFutureRows ?? []).length > 0) {
-        skipped++
-        continue
+        .gte("scheduled_for", nowIso)
+      if (resetFutureErr) throw resetFutureErr
+
+      const payload = {
+        source: "morning_active_actions_daily_dynamic",
+        slot_day_offset: slot.dayOffset,
+        slot_weekday: slot.weekdayKey,
+        active_action_titles: slot.allActionTitles,
+        active_framework_titles: slot.allFrameworkTitles,
+        active_vital_sign_titles: slot.allVitalSignTitles,
+        active_item_titles: slot.allItemTitles,
+        today_action_titles: slot.todayActionTitles,
+        today_framework_titles: slot.todayFrameworkTitles,
+        today_vital_sign_titles: slot.todayVitalSignTitles,
+        today_item_titles: slot.todayItemTitles,
+        plan_deep_why: planContext?.deepWhy ?? null,
+        plan_blockers: planContext?.blockers ?? null,
+        plan_low_motivation_message: planContext?.lowMotivationMessage ?? null,
+        generated_at: new Date().toISOString(),
       }
-
-      const { data: historyRows } = await supabaseAdmin
-        .from("scheduled_checkins")
-        .select("draft_message")
-        .eq("user_id", userId)
-        .eq("event_context", EVENT_CONTEXT)
-        .not("draft_message", "is", null)
-        .order("created_at", { ascending: false })
-        .limit(3)
-
-      const recentDrafts = (historyRows ?? [])
-        .map((row: any) => cleanText(row?.draft_message))
-        .filter(Boolean)
-        .slice(0, 3)
-
-      const weeklyDrafts = await generateWeeklyDrafts({
-        userId,
-        timezone,
-        locale,
-        recentDrafts,
-        slots,
-        planContext,
-        requestId: `${requestId}:${userId}`,
-      })
-
-      const expectedDayOffsets = new Set(slots.map((slot) => slot.dayOffset))
-
-      for (let index = 0; index < slots.length; index++) {
-        const slot = slots[index]
-        const draftMessage = cleanText(
-          weeklyDrafts[index],
-          fallbackDraftMessage(slot.todayItemTitles.length > 0 ? slot.todayItemTitles : slot.allItemTitles),
-        )
-        const payload = {
-          source: "morning_active_actions_weekly",
-          slot_day_offset: slot.dayOffset,
-          slot_weekday: slot.weekdayKey,
-          active_action_titles: slot.allActionTitles,
-          active_framework_titles: slot.allFrameworkTitles,
-          active_item_titles: slot.allItemTitles,
-          today_action_titles: slot.todayActionTitles,
-          today_framework_titles: slot.todayFrameworkTitles,
-          today_item_titles: slot.todayItemTitles,
-          generated_at: new Date().toISOString(),
-        }
-        const { error: upsertErr } = await supabaseAdmin
-          .from("scheduled_checkins")
-          .upsert(
-            {
-              user_id: userId,
-              origin: "rendez_vous",
-              event_context: EVENT_CONTEXT,
-              draft_message: draftMessage,
-              message_mode: "static",
-              message_payload: payload,
-              scheduled_for: slot.scheduledFor,
-              status: "pending",
-            } as any,
-            { onConflict: "user_id,event_context,scheduled_for" },
-          )
-        if (upsertErr) {
-          console.error(`[schedule-morning-active-action-checkins] request_id=${requestId} upsert_failed user_id=${userId}`, upsertErr)
-        }
-      }
-
-      const { data: finalRows } = await supabaseAdmin
-        .from("scheduled_checkins")
-        .select("message_payload")
-        .eq("user_id", userId)
-        .eq("event_context", EVENT_CONTEXT)
-        .in("status", ["pending", "retrying", "awaiting_user"])
-
-      const finalOffsets = new Set<number>(
-        (finalRows ?? [])
-          .map((row: any) => Number((row?.message_payload ?? {})?.slot_day_offset))
-          .filter((n: number) => Number.isFinite(n) && expectedDayOffsets.has(n)),
+      const draftMessage = fallbackDraftMessage(
+        slot.todayItemTitles.length > 0 ? slot.todayItemTitles : slot.allItemTitles,
       )
+      const { error: upsertErr } = await supabaseAdmin
+        .from("scheduled_checkins")
+        .upsert(
+          {
+            user_id: userId,
+            origin: "rendez_vous",
+            event_context: EVENT_CONTEXT,
+            draft_message: draftMessage,
+            message_mode: "dynamic",
+            message_payload: payload,
+            scheduled_for: slot.scheduledFor,
+            status: "pending",
+          } as any,
+          { onConflict: "user_id,event_context,scheduled_for" },
+        )
+      if (upsertErr) {
+        console.error(`[schedule-morning-active-action-checkins] request_id=${requestId} upsert_failed user_id=${userId}`, upsertErr)
+        continue
+      }
 
-      scheduled += finalOffsets.size
+      scheduled += 1
     }
 
     return jsonResponse(

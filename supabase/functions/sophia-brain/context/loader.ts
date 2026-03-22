@@ -9,6 +9,7 @@
 declare const Deno: any;
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
 import type { AgentMode } from "../state-manager.ts";
 import {
   formatActionsSummary,
@@ -60,6 +61,11 @@ import {
   shouldLoadActionsDetails,
   shouldLoadPlanJson,
 } from "./types.ts";
+import {
+  readMomentumState,
+  summarizeMomentumBlockersForPrompt,
+} from "../momentum_state.ts";
+import { formatCoachingInterventionAddon } from "../coaching_intervention_selector.ts";
 
 const IDENTITY_MAX_ITEMS = 2;
 const IDENTITY_MAX_BLOCK_TOKENS = 280;
@@ -141,6 +147,8 @@ const DISPATCHER_MEMORY_BUDGETS: Record<
 export interface ContextLoaderOptions {
   supabase: SupabaseClient;
   userId: string;
+  requestId?: string;
+  channel?: "web" | "whatsapp";
   mode: AgentMode;
   message: string;
   history: any[];
@@ -211,6 +219,63 @@ function dedupeGlobalResults(
     byId.set(id, row);
   }
   return [...byId.values()];
+}
+
+function summarizeTopicResults(
+  results: TopicSearchResult[],
+): Array<Record<string, unknown>> {
+  return results.map((row) => ({
+    topic_id: row.topic_id,
+    slug: row.slug,
+    title: row.title,
+    keyword_matched: row.keyword_matched ?? null,
+    keyword_similarity: row.keyword_similarity ?? null,
+    synthesis_similarity: row.synthesis_similarity ?? null,
+    title_similarity: row.title_similarity ?? null,
+    mention_count: row.mention_count ?? null,
+  }));
+}
+
+function summarizeEventResults(
+  results: EventSearchResult[],
+): Array<Record<string, unknown>> {
+  return results.map((row) => ({
+    event_id: row.event_id,
+    event_key: row.event_key,
+    title: row.title,
+    event_type: row.event_type,
+    status: row.status,
+    starts_at: row.starts_at ?? null,
+    event_similarity: row.event_similarity ?? null,
+    confidence: row.confidence ?? null,
+  }));
+}
+
+function summarizeGlobalResults(
+  results: GlobalMemorySearchResult[],
+): Array<Record<string, unknown>> {
+  return results.map((row) => ({
+    id: row.id,
+    full_key: row.full_key,
+    theme: row.theme,
+    subtheme_key: row.subtheme_key,
+    match_score: row.match_score ?? null,
+    lexical_score: row.lexical_score ?? null,
+    semantic_similarity: row.semantic_similarity ?? null,
+    confidence: row.confidence ?? null,
+  }));
+}
+
+function summarizeInjectedMemoryBlock(
+  text: string | undefined,
+  extra?: Record<string, unknown>,
+): Record<string, unknown> | null {
+  if (!text) return null;
+  return {
+    chars: text.length,
+    preview: text.slice(0, 500),
+    ...(extra ?? {}),
+  };
 }
 
 export function deriveDispatcherMemoryLoadStrategy(params: {
@@ -340,6 +405,9 @@ export async function loadContextForMode(
   });
   const context: LoadedContext = {};
   const elementsLoaded: string[] = [];
+  let observedEventResults: EventSearchResult[] = [];
+  let observedGlobalResults: GlobalMemorySearchResult[] = [];
+  let observedTopicResults: TopicSearchResult[] = [];
 
   // Plan metadata (needed for planId in subsequent queries)
   let planMeta: PlanMetadataResult | null = null;
@@ -495,6 +563,7 @@ export async function loadContextForMode(
                   message: query,
                   nowIso: nowIsoForEvents,
                   maxResults: memoryStrategy.budget.explicitEventResultsPerQuery,
+                  requestId: opts.requestId,
                 })
               ),
             );
@@ -511,13 +580,31 @@ export async function loadContextForMode(
                 message: opts.message,
                 nowIso: nowIsoForEvents,
                 maxResults: memoryStrategy.fallbackSemanticEventMax,
+                requestId: opts.requestId,
               }),
             );
           }
 
-          const eventContext = formatEventMemoriesForPrompt(
-            dedupeEventResults(eventResults),
-          );
+          const dedupedEvents = dedupeEventResults(eventResults);
+          observedEventResults = dedupedEvents;
+          await logMemoryObservabilityEvent({
+            supabase: opts.supabase,
+            userId: opts.userId,
+            requestId: opts.requestId,
+            channel: opts.channel,
+            scope: opts.scope,
+            sourceComponent: "context_loader",
+            eventName: "retrieval.event_completed",
+            payload: {
+              strategy: "memory_plan",
+              explicit_queries: explicitQueries,
+              fallback_semantic_max: memoryStrategy.fallbackSemanticEventMax,
+              now_iso: nowIsoForEvents ?? null,
+              results: summarizeEventResults(dedupedEvents),
+            },
+          });
+
+          const eventContext = formatEventMemoriesForPrompt(dedupedEvents);
           if (eventContext) {
             context.eventMemories = eventContext;
             elementsLoaded.push("event_memories_planned");
@@ -574,8 +661,27 @@ export async function loadContextForMode(
               userId: opts.userId,
               message: opts.message,
               maxResults: memoryStrategy.fallbackSemanticGlobalMax,
+              requestId: opts.requestId,
             });
           }
+
+          observedGlobalResults = globalResults;
+          await logMemoryObservabilityEvent({
+            supabase: opts.supabase,
+            userId: opts.userId,
+            requestId: opts.requestId,
+            channel: opts.channel,
+            scope: opts.scope,
+            sourceComponent: "context_loader",
+            eventName: "retrieval.global_completed",
+            payload: {
+              strategy: "memory_plan",
+              explicit_theme_keys: memoryStrategy.globalThemeKeys,
+              explicit_subtheme_keys: memoryStrategy.globalSubthemeKeys,
+              fallback_semantic_max: memoryStrategy.fallbackSemanticGlobalMax,
+              results: summarizeGlobalResults(globalResults),
+            },
+          });
 
           const globalContext = formatGlobalMemoriesForPrompt(globalResults);
           if (globalContext) {
@@ -613,6 +719,7 @@ export async function loadContextForMode(
                   userId: opts.userId,
                   message: query,
                   maxResults: memoryStrategy.budget.explicitTopicResultsPerQuery,
+                  meta: { requestId: opts.requestId },
                 })
               ),
             );
@@ -628,11 +735,28 @@ export async function loadContextForMode(
                 userId: opts.userId,
                 message: opts.message,
                 maxResults: memoryStrategy.fallbackSemanticTopicMax,
+                meta: { requestId: opts.requestId },
               }),
             );
           }
 
           const dedupedTopics = dedupeTopicResults(topicResults);
+          observedTopicResults = dedupedTopics;
+          await logMemoryObservabilityEvent({
+            supabase: opts.supabase,
+            userId: opts.userId,
+            requestId: opts.requestId,
+            channel: opts.channel,
+            scope: opts.scope,
+            sourceComponent: "context_loader",
+            eventName: "retrieval.topic_completed",
+            payload: {
+              strategy: "memory_plan",
+              explicit_queries: explicitQueries,
+              fallback_semantic_max: memoryStrategy.fallbackSemanticTopicMax,
+              results: summarizeTopicResults(dedupedTopics),
+            },
+          });
           const topicContext = formatTopicMemoriesForPrompt(dedupedTopics);
           if (topicContext) {
             context.topicMemories = topicContext;
@@ -672,6 +796,23 @@ export async function loadContextForMode(
             )
             : undefined,
           maxResults: 2,
+          requestId: opts.requestId,
+        }).then((events) => {
+          observedEventResults = events;
+          return logMemoryObservabilityEvent({
+            supabase: opts.supabase,
+            userId: opts.userId,
+            requestId: opts.requestId,
+            channel: opts.channel,
+            scope: opts.scope,
+            sourceComponent: "context_loader",
+            eventName: "retrieval.event_completed",
+            payload: {
+              strategy: "fallback_semantic",
+              query: opts.message,
+              results: summarizeEventResults(events),
+            },
+          }).then(() => events);
         }).then((events) => {
           const eventContext = formatEventMemoriesForPrompt(events);
           if (eventContext) {
@@ -695,6 +836,23 @@ export async function loadContextForMode(
           userId: opts.userId,
           message: opts.message,
           maxResults: 3,
+          requestId: opts.requestId,
+        }).then((memories) => {
+          observedGlobalResults = memories;
+          return logMemoryObservabilityEvent({
+            supabase: opts.supabase,
+            userId: opts.userId,
+            requestId: opts.requestId,
+            channel: opts.channel,
+            scope: opts.scope,
+            sourceComponent: "context_loader",
+            eventName: "retrieval.global_completed",
+            payload: {
+              strategy: "fallback_semantic",
+              query: opts.message,
+              results: summarizeGlobalResults(memories),
+            },
+          }).then(() => memories);
         }).then((memories) => {
           const globalContext = formatGlobalMemoriesForPrompt(memories);
           if (globalContext) {
@@ -727,6 +885,24 @@ export async function loadContextForMode(
           userId: opts.userId,
           message: opts.message,
           maxResults: topicMaxResults,
+          meta: { requestId: opts.requestId },
+        }).then((topics) => {
+          observedTopicResults = topics;
+          return logMemoryObservabilityEvent({
+            supabase: opts.supabase,
+            userId: opts.userId,
+            requestId: opts.requestId,
+            channel: opts.channel,
+            scope: opts.scope,
+            sourceComponent: "context_loader",
+            eventName: "retrieval.topic_completed",
+            payload: {
+              strategy: "fallback_semantic",
+              query: opts.message,
+              max_results: topicMaxResults,
+              results: summarizeTopicResults(topics),
+            },
+          }).then(() => topics);
         }).then((topics) => {
           const topicContext = formatTopicMemoriesForPrompt(topics);
           if (topicContext) {
@@ -930,6 +1106,30 @@ export async function loadContextForMode(
     if (context.trackProgressAddon) elementsLoaded.push("track_progress_addon");
   }
 
+  if (
+    opts.tempMemory &&
+    (opts.mode === "companion" || opts.mode === "investigator")
+  ) {
+    context.momentumBlockersAddon = formatMomentumBlockersAddon(opts.tempMemory);
+    if (context.momentumBlockersAddon) {
+      elementsLoaded.push("momentum_blockers_addon");
+    }
+  }
+
+  const coachingInterventionAddon = (opts.tempMemory as any)
+    ?.__coaching_intervention_addon;
+  if (
+    coachingInterventionAddon &&
+    opts.mode === "companion"
+  ) {
+    context.coachingInterventionAddon = formatCoachingInterventionAddon(
+      coachingInterventionAddon,
+    );
+    if (context.coachingInterventionAddon) {
+      elementsLoaded.push("coaching_intervention_addon");
+    }
+  }
+
   const dashboardRedirectAddon = (opts.tempMemory as any)
     ?.__dashboard_redirect_addon;
   const dashboardPreferencesIntentAddon = (opts.tempMemory as any)
@@ -1068,6 +1268,48 @@ export async function loadContextForMode(
 
   const loadMs = Date.now() - startTime;
 
+  await logMemoryObservabilityEvent({
+    supabase: opts.supabase,
+    userId: opts.userId,
+    requestId: opts.requestId,
+    channel: opts.channel,
+    scope: opts.scope,
+    sourceComponent: "context_loader",
+    eventName: "context.memory_injected",
+    payload: {
+      mode: opts.mode,
+      elements_loaded: elementsLoaded,
+      estimated_tokens: Math.ceil(totalLength / 4),
+      memory_blocks: {
+        identity: summarizeInjectedMemoryBlock(context.identity, {
+          loaded: Boolean(context.identity),
+        }),
+        events: summarizeInjectedMemoryBlock(context.eventMemories, {
+          loaded: Boolean(context.eventMemories),
+          results: summarizeEventResults(observedEventResults),
+        }),
+        globals: summarizeInjectedMemoryBlock(context.globalMemories, {
+          loaded: Boolean(context.globalMemories),
+          results: summarizeGlobalResults(observedGlobalResults),
+        }),
+        topics: summarizeInjectedMemoryBlock(context.topicMemories, {
+          loaded: Boolean(context.topicMemories),
+          results: summarizeTopicResults(observedTopicResults),
+        }),
+      },
+      surface_addon: summarizeInjectedMemoryBlock(
+        context.surfaceOpportunityAddon,
+        {
+          loaded: Boolean(context.surfaceOpportunityAddon),
+          surface_id: (opts.tempMemory as any)?.__surface_opportunity_addon
+            ?.surface_id ?? null,
+          level: (opts.tempMemory as any)?.__surface_opportunity_addon?.level ??
+            null,
+        },
+      ),
+    },
+  });
+
   return {
     context,
     profile,
@@ -1108,6 +1350,8 @@ export function buildContextString(loaded: LoadedContext): string {
   if (loaded.surfaceOpportunityAddon) ctx += loaded.surfaceOpportunityAddon;
   if (loaded.onboardingAddon) ctx += loaded.onboardingAddon;
   if (loaded.trackProgressAddon) ctx += loaded.trackProgressAddon;
+  if (loaded.momentumBlockersAddon) ctx += loaded.momentumBlockersAddon;
+  if (loaded.coachingInterventionAddon) ctx += loaded.coachingInterventionAddon;
   if (loaded.dashboardRedirectAddon) ctx += loaded.dashboardRedirectAddon;
   if (loaded.dashboardCapabilitiesLiteAddon) {
     ctx += loaded.dashboardCapabilitiesLiteAddon;
@@ -1545,9 +1789,23 @@ function formatTrackProgressAddon(addon: any): string {
   const msg = String(addon?.message ?? "").trim();
   if (!msg) return "";
   if (mode === "needs_clarify") {
-    return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le user a parlé de progression, mais le log auto n'a pas pu être confirmé.\n- Si possible, demande une précision courte (quelle action + fait/raté/partiel).\n- Si ça reste ambigu, propose 2 options: mise à jour directe dans le dashboard OU attendre le prochain bilan.\n- Indice interne: ${msg}\n`;
+    return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le user a parlé de progression, mais le log auto n'a pas pu être confirmé.\n- Le chat peut seulement TRACKER le progrès, pas créer/modifier/breakdown une action.\n- Si possible, demande une précision courte (quelle action + fait/raté/partiel).\n- Si ça reste ambigu, propose 2 options: mise à jour directe dans le dashboard OU attendre le prochain bilan.\n- Indice interne: ${msg}\n`;
   }
-  return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le progrès a été loggé automatiquement (ne relance pas le tool).\n- Tu peux continuer le flow normalement et acquiescer si besoin.\n- Résultat: ${msg}\n`;
+  return `\n\n=== ADDON TRACK_PROGRESS (PARALLELE) ===\n- Le progrès a été loggé automatiquement (ne relance pas le tool).\n- Le chat peut seulement TRACKER le progrès, pas créer/modifier/breakdown une action.\n- Tu peux continuer le flow normalement et acquiescer si besoin.\n- Résultat: ${msg}\n`;
+}
+
+function formatMomentumBlockersAddon(tempMemory: any): string {
+  const momentum = readMomentumState(tempMemory);
+  const lines = summarizeMomentumBlockersForPrompt(momentum, 3);
+  if (lines.length === 0) return "";
+  return (
+    `\n\n=== ADDON BLOCKERS MOMENTUM ===\n` +
+    `- Blockers connus récents sur actions:\n` +
+    lines.map((line) => `  - ${line}\n`).join("") +
+    `- Si un blocker est déjà connu, ne repose pas la question depuis zéro.\n` +
+    `- Utilise ce contexte pour confirmer, nuancer ou préparer une redirection dashboard si un ajustement d'action devient nécessaire.\n` +
+    `- Rappel produit: dans le chat, Sophia peut seulement comprendre, clarifier et tracker le progrès. Elle ne crée pas, ne modifie pas et ne breakdown pas une action dans le chat.\n`
+  );
 }
 
 function formatDashboardRedirectAddon(addon: any): string {
@@ -1574,6 +1832,7 @@ function formatDashboardRedirectAddon(addon: any): string {
     `- Intention détectée: ${intentText}.\n` +
     `- Cet add-on est un support de connaissance pour bien orienter l'utilisateur (pas un exécuteur).\n` +
     `- Réponds utilement et naturellement, puis redirige vers le tableau de bord.\n` +
+    `- Règle produit forte: dans le chat, Sophia peut seulement tracker le progrès et clarifier le besoin. Toute création/modification/breakdown d'action se fait par le user dans le dashboard.\n` +
     `- Anti-répétition: ne répète jamais la même redirection dashboard sur 2 tours consécutifs.\n` +
     `- Si la redirection vient d'être donnée, continue sur le contenu (paramètres, clarifications) sans renvoyer encore vers l'UI.\n` +
     `- Rappel dashboard possible plus tard si utile (ordre de grandeur: ~5 tours) ou si l'utilisateur redemande explicitement l'exécution UI.\n` +
@@ -1621,6 +1880,7 @@ function formatDashboardCapabilitiesLiteAddon(): string {
     `- Règles d'usage:\n` +
     `  - Réponds d'abord au besoin immédiat du user, sans réciter toute la liste.\n` +
     `  - Règle de choix: si Sophia doit envoyer un message planifié au bon moment, parle de Rendez-vous. Si le user doit faire une habitude ou une tâche récurrente lui-même, parle d'Actions Personnelles.\n` +
+    `  - Dans le chat, seule l'action TRACK_PROGRESS peut être exécutée. Toute création/modification/suppression/breakdown doit être préparée en conversation puis faite dans le dashboard.\n` +
     `  - Si c'est pertinent ET confiance > 0.9, tu peux pousser UNE fonctionnalité du dashboard complémentaire.\n` +
     `- Interdiction: aucune création/modification réelle n'est exécutée dans le chat.\n`
   );
@@ -1718,6 +1978,7 @@ function formatDashboardCapabilitiesAddon(addon: any): string {
     `  D) Propose ensuite le bon chemin dashboard (section/fonction) en restant concret.\n` +
     `  E) Si pertinent, ajoute UNE suggestion produit complémentaire à forte valeur (pas plus d'une).\n` +
     `- Interdictions:\n` +
+    `  - Dans le chat, seule l'action TRACK_PROGRESS peut être exécutée.\n` +
     `  - N'affirme jamais qu'une modification dashboard est déjà appliquée depuis le chat.\n` +
     `  - N'invente pas de features non supportées.\n` +
     (fromBilan

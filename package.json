@@ -9,6 +9,8 @@
     "db:dump": "npx supabase db dump --local > schema.sql",
     "fixtures:provision": "node ./frontend/scripts/provision_fixture_user.mjs",
     "prod:bundle:user": "node ./scripts/export_user_bundle_prod.mjs",
+    "memory:audit:export": "node ./scripts/export_memory_audit_bundle.mjs",
+    "coaching:audit:export": "node ./scripts/export_coaching_intervention_audit_bundle.mjs",
     "test:mega": "node ./scripts/mega-test.mjs"
   },
   "devDependencies": {

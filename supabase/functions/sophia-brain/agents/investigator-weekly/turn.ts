@@ -5,8 +5,8 @@ import { updateEtoilePolaire } from "../../lib/north_star_tools.ts";
 import { weeklyInvestigatorSay } from "./copy.ts";
 import { persistWeeklyRecap } from "./db.ts";
 import {
-  applySuggestionProposal,
   buildSuggestionQueue,
+  describeSuggestionProposalForDashboard,
   logWeeklySuggestionOutcome,
 } from "./suggestions.ts";
 import type {
@@ -267,7 +267,7 @@ async function buildSuggestionConsentReask(opts: {
     channel?: "web" | "whatsapp";
     model?: string;
   };
-}): Promise<string> {
+  }): Promise<string> {
   try {
     return await weeklyInvestigatorSay(
       "weekly_bilan_reask_suggestion",
@@ -281,7 +281,7 @@ async function buildSuggestionConsentReask(opts: {
       opts.meta,
     );
   } catch {
-    return `${opts.proposal.prompt} Si tu préfères, dis-moi simplement si on le fait maintenant, si on le laisse comme ça, ou si on en reparle plus tard.`;
+    return `${opts.proposal.prompt} Si tu préfères, dis-moi simplement si on retient cette reco pour le dashboard, si on la laisse de côté, ou si on en reparle plus tard.`;
   }
 }
 
@@ -306,111 +306,66 @@ export async function handleWeeklyTurn(opts: {
     const weekStart = String(state.weekly_payload?.week_start ?? "").trim();
 
     if (consent === "accept") {
-      try {
-        const applied = await applySuggestionProposal({ supabase, userId, proposal });
-        await logWeeklySuggestionOutcome({
-          supabase,
-          userId,
-          weekStart,
-          proposal,
-          outcome: "applied",
-          summary: applied.summary,
-          appliedChanges: applied.applied_changes,
-        }).catch(() => null);
+      const retained = describeSuggestionProposalForDashboard(proposal);
+      await logWeeklySuggestionOutcome({
+        supabase,
+        userId,
+        weekStart,
+        proposal,
+        outcome: "accepted",
+        summary: retained.summary,
+        appliedChanges: retained.retained_changes,
+      }).catch(() => null);
 
-        const outcome: WeeklySuggestionOutcome = {
-          proposal_id: proposal.id,
-          outcome: "applied",
-          summary: applied.summary,
-          applied_changes: applied.applied_changes,
-          created_at: new Date().toISOString(),
-        };
-        const nextDraft = mergeDecisionNote(
-          state.weekly_recap_draft ?? { decisions_next_week: [] },
-          applied.applied_changes.join(" • "),
+      const outcome: WeeklySuggestionOutcome = {
+        proposal_id: proposal.id,
+        outcome: "accepted",
+        summary: retained.summary,
+        applied_changes: retained.retained_changes,
+        created_at: new Date().toISOString(),
+      };
+      const nextDraft = mergeDecisionNote(
+        state.weekly_recap_draft ?? { decisions_next_week: [] },
+        retained.decision_note,
+      );
+      const { pending: nextPending, rest: nextQueue } = shiftProposalQueue(state.weekly_suggestion_queue);
+      let content: string;
+      try {
+        content = await weeklyInvestigatorSay(
+          "weekly_bilan_suggestion_applied",
+          {
+            user_message: message,
+            weekly_payload: state.weekly_payload,
+            proposal,
+            proposal_outcome: outcome,
+            next_suggestion_proposal: nextPending,
+            suggestion_outcomes: state.weekly_suggestion_outcomes ?? [],
+            recent_history: (history ?? []).slice(-12),
+          },
+          meta,
         );
-        const { pending: nextPending, rest: nextQueue } = shiftProposalQueue(state.weekly_suggestion_queue);
-        let content: string;
-        try {
-          content = await weeklyInvestigatorSay(
-            "weekly_bilan_suggestion_applied",
-            {
-              user_message: message,
-              weekly_payload: state.weekly_payload,
-              proposal,
-              proposal_outcome: outcome,
-              next_suggestion_proposal: nextPending,
-              suggestion_outcomes: state.weekly_suggestion_outcomes ?? [],
-              recent_history: (history ?? []).slice(-12),
-            },
-            meta,
-          );
-        } catch {
-          content = nextPending
-            ? `${applied.summary} ${nextPending.prompt}`
-            : `${applied.summary} On garde ce réglage pour la semaine qui vient.`;
-        }
-        return {
-          content,
-          investigationComplete: false,
-          newState: {
-            ...state,
-            weekly_recap_draft: nextDraft,
-            weekly_pending_suggestion: nextPending,
-            weekly_suggestion_queue: nextQueue,
-            weekly_suggestion_outcomes: withOutcome(state.weekly_suggestion_outcomes, outcome),
-            turn_count: (state.turn_count ?? 0) + 1,
-            updated_at: new Date().toISOString(),
-          },
-        };
       } catch {
-        const summary = "Je n'ai pas réussi à appliquer ce changement tout de suite.";
-        await logWeeklySuggestionOutcome({
-          supabase,
-          userId,
-          weekStart,
-          proposal,
-          outcome: "failed",
-          summary,
-        }).catch(() => null);
-        const outcome: WeeklySuggestionOutcome = {
-          proposal_id: proposal.id,
-          outcome: "failed",
-          summary,
-          created_at: new Date().toISOString(),
-        };
-        let content: string;
-        try {
-          content = await weeklyInvestigatorSay(
-            "weekly_bilan_suggestion_failed",
-            {
-              user_message: message,
-              weekly_payload: state.weekly_payload,
-              proposal,
-              proposal_outcome: outcome,
-              suggestion_outcomes: state.weekly_suggestion_outcomes ?? [],
-              recent_history: (history ?? []).slice(-12),
-            },
-            meta,
-          );
-        } catch {
-          content = `${summary} On peut le garder comme recommandation pour plus tard.`;
-        }
-        return {
-          content,
-          investigationComplete: false,
-          newState: {
-            ...state,
-            weekly_suggestion_outcomes: withOutcome(state.weekly_suggestion_outcomes, outcome),
-            turn_count: (state.turn_count ?? 0) + 1,
-            updated_at: new Date().toISOString(),
-          },
-        };
+        content = nextPending
+          ? `${retained.summary} ${nextPending.prompt}`
+          : `${retained.summary} On garde ce réglage comme recommandation pour la semaine qui vient.`;
       }
+      return {
+        content,
+        investigationComplete: false,
+        newState: {
+          ...state,
+          weekly_recap_draft: nextDraft,
+          weekly_pending_suggestion: nextPending,
+          weekly_suggestion_queue: nextQueue,
+          weekly_suggestion_outcomes: withOutcome(state.weekly_suggestion_outcomes, outcome),
+          turn_count: (state.turn_count ?? 0) + 1,
+          updated_at: new Date().toISOString(),
+        },
+      };
     }
 
     if (consent === "reject" || consent === "defer") {
-      const summary = "Ok, on ne touche pas à ça pour l'instant.";
+      const summary = "Ok, on ne retient pas cet ajustement pour l'instant.";
       await logWeeklySuggestionOutcome({
         supabase,
         userId,
@@ -444,7 +399,7 @@ export async function handleWeeklyTurn(opts: {
       } catch {
         content = nextPending
           ? `${summary} ${nextPending.prompt}`
-          : `${summary} On garde donc les actions comme elles sont.`;
+          : `${summary} On garde donc le plan comme il est pour l'instant.`;
       }
       return {
         content,

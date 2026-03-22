@@ -24,6 +24,7 @@ import {
   generateWithGemini,
   getGlobalAiModel,
 } from "../_shared/gemini.ts";
+import { logMemoryObservabilityEvent } from "../_shared/memory-observability.ts";
 import { getUserTimeContext } from "../_shared/user_time_context.ts";
 import {
   type ExtractedEventCandidate,
@@ -369,6 +370,51 @@ export interface BatchValidationDecision {
   topics_to_persist: string[];
   events_to_persist: string[];
   global_memories_to_persist: string[];
+}
+
+function summarizeObservedTopic(topic: ExtractedTopic): Record<string, unknown> {
+  return {
+    slug: topic.slug,
+    title: topic.title,
+    keywords: topic.keywords.slice(0, 6),
+    domain: topic.domain ?? null,
+    new_information: topic.new_information,
+  };
+}
+
+function summarizeObservedEvent(
+  event: ExtractedEventCandidate,
+): Record<string, unknown> {
+  return {
+    event_key: event.event_key,
+    title: event.title,
+    event_type: event.event_type,
+    starts_at: event.starts_at ?? null,
+    ends_at: event.ends_at ?? null,
+    relevance_until: event.relevance_until ?? null,
+    time_precision: event.time_precision ?? null,
+    confidence: event.confidence ?? null,
+    related_topic_slug: event.related_topic_slug ?? null,
+    summary: event.summary,
+  };
+}
+
+function summarizeObservedGlobalMemory(
+  candidate: GlobalMemoryCandidate,
+): Record<string, unknown> {
+  return {
+    full_key: candidate.full_key,
+    theme: candidate.theme,
+    subtheme_key: candidate.subtheme_key,
+    confidence: candidate.confidence ?? null,
+    supporting_topic_slugs: candidate.supporting_topic_slugs.slice(0, 6),
+    summary_delta: candidate.summary_delta,
+    facts: candidate.facts.slice(0, 4),
+    inferences: candidate.inferences.slice(0, 3),
+    active_issues: candidate.active_issues.slice(0, 3),
+    goals: candidate.goals.slice(0, 3),
+    open_questions: candidate.open_questions.slice(0, 3),
+  };
 }
 
 /** Topic tel qu'il existe en base */
@@ -2217,6 +2263,31 @@ export async function processTopicsFromWatcher(opts: {
     meta,
   });
 
+  await logMemoryObservabilityEvent({
+    supabase,
+    userId,
+    requestId: meta?.requestId,
+    sourceComponent: "topic_memory",
+    eventName: "memorizer.extraction_completed",
+    payload: {
+      source_type: sourceType,
+      transcript_preview: transcript.slice(0, 900),
+      current_context_preview: String(currentContext ?? "").slice(0, 600),
+      existing_topic_slugs: existingTopicSlugs,
+      extracted_counts: {
+        durable_topics: extracted.durable_topics.length,
+        event_candidates: extracted.event_candidates.length,
+        global_memory_candidates: extracted.global_memory_candidates.length,
+      },
+      durable_topics: extracted.durable_topics.map(summarizeObservedTopic),
+      event_candidates: extracted.event_candidates.map(summarizeObservedEvent),
+      global_memory_candidates: extracted.global_memory_candidates.map(
+        summarizeObservedGlobalMemory,
+      ),
+      provenance,
+    },
+  });
+
   if (
     extracted.durable_topics.length === 0 &&
     extracted.event_candidates.length === 0 &&
@@ -2271,6 +2342,50 @@ export async function processTopicsFromWatcher(opts: {
         .slice(0, 8),
     }));
 
+  const acceptedTopicSlugs = new Set(
+    extractedTopics.map((topic) => topic.slug),
+  );
+  const acceptedEventKeys = new Set(
+    extractedEvents.map((event) => slugify(event.event_key)),
+  );
+  const acceptedGlobalKeys = new Set(
+    extractedGlobalMemories.map((candidate) => candidate.full_key),
+  );
+
+  await logMemoryObservabilityEvent({
+    supabase,
+    userId,
+    requestId: meta?.requestId,
+    sourceComponent: "topic_memory",
+    eventName: "memorizer.validation_completed",
+    payload: {
+      source_type: sourceType,
+      accepted_counts: {
+        topics: extractedTopics.length,
+        events: extractedEvents.length,
+        globals: extractedGlobalMemories.length,
+      },
+      accepted: {
+        topics: extractedTopics.map(summarizeObservedTopic),
+        events: extractedEvents.map(summarizeObservedEvent),
+        globals: extractedGlobalMemories.map(summarizeObservedGlobalMemory),
+      },
+      rejected: {
+        topics: extracted.durable_topics
+          .filter((topic) => !acceptedTopicSlugs.has(topic.slug))
+          .map(summarizeObservedTopic),
+        events: extracted.event_candidates
+          .filter((event) => !acceptedEventKeys.has(slugify(event.event_key)))
+          .map(summarizeObservedEvent),
+        globals: extracted.global_memory_candidates
+          .filter((candidate) => !acceptedGlobalKeys.has(candidate.full_key))
+          .map(summarizeObservedGlobalMemory),
+      },
+      batch_decision: batchDecision,
+      allow_event_persistence: allowEventPersistence,
+    },
+  });
+
   if (
     extractedTopics.length === 0 && extractedEvents.length === 0 &&
     extractedGlobalMemories.length === 0
@@ -2312,6 +2427,9 @@ export async function processTopicsFromWatcher(opts: {
   let globalMemoriesUpdated = 0;
   let globalMemoriesNoop = 0;
   let globalMemoriesPendingCompaction = 0;
+  const topicOutcomes: Array<Record<string, unknown>> = [];
+  const eventOutcomes: Array<Record<string, unknown>> = [];
+  const globalOutcomes: Array<Record<string, unknown>> = [];
 
   for (const event of extractedEvents) {
     try {
@@ -2326,12 +2444,28 @@ export async function processTopicsFromWatcher(opts: {
       if (result.created) eventsCreated++;
       else if (result.updated) eventsUpdated++;
       else eventsNoop++;
+      eventOutcomes.push({
+        event_key: event.event_key,
+        title: event.title,
+        outcome: result.created
+          ? "created"
+          : result.updated
+          ? "updated"
+          : "noop",
+        event_id: result.eventId ?? null,
+      });
     } catch (e) {
       console.error(
         `[TopicMemory] Failed to persist event "${event.event_key}":`,
         e,
       );
       eventsNoop++;
+      eventOutcomes.push({
+        event_key: event.event_key,
+        title: event.title,
+        outcome: "error",
+        error: String((e as any)?.message ?? e ?? "").slice(0, 220),
+      });
     }
   }
 
@@ -2359,6 +2493,13 @@ export async function processTopicsFromWatcher(opts: {
         });
         if (result.enriched) topicsEnriched++;
         else topicsNoop++;
+        topicOutcomes.push({
+          slug: extracted.slug,
+          title: extracted.title,
+          matched_topic_id: existingTopic.id,
+          matched_slug: existingTopic.slug,
+          outcome: result.enriched ? "enriched" : "noop",
+        });
       } else {
         // Créer un nouveau topic
         const created = await createTopic({
@@ -2371,6 +2512,11 @@ export async function processTopicsFromWatcher(opts: {
         });
         if (created) topicsCreated++;
         else topicsNoop++;
+        topicOutcomes.push({
+          slug: extracted.slug,
+          title: extracted.title,
+          outcome: created ? "created" : "noop",
+        });
       }
     } catch (e) {
       console.error(
@@ -2378,6 +2524,12 @@ export async function processTopicsFromWatcher(opts: {
         e,
       );
       topicsNoop++;
+      topicOutcomes.push({
+        slug: extracted.slug,
+        title: extracted.title,
+        outcome: "error",
+        error: String((e as any)?.message ?? e ?? "").slice(0, 220),
+      });
     }
   }
 
@@ -2394,14 +2546,56 @@ export async function processTopicsFromWatcher(opts: {
       else if (result.updated) globalMemoriesUpdated++;
       else globalMemoriesNoop++;
       if (result.needsCompaction) globalMemoriesPendingCompaction++;
+      globalOutcomes.push({
+        full_key: candidate.full_key,
+        outcome: result.created
+          ? "created"
+          : result.updated
+          ? "updated"
+          : "noop",
+        needs_compaction: result.needsCompaction,
+      });
     } catch (e) {
       console.error(
         `[TopicMemory] Failed to process global memory "${candidate.full_key}":`,
         e,
       );
       globalMemoriesNoop++;
+      globalOutcomes.push({
+        full_key: candidate.full_key,
+        outcome: "error",
+        error: String((e as any)?.message ?? e ?? "").slice(0, 220),
+      });
     }
   }
+
+  await logMemoryObservabilityEvent({
+    supabase,
+    userId,
+    requestId: meta?.requestId,
+    sourceComponent: "topic_memory",
+    eventName: "memorizer.persistence_completed",
+    payload: {
+      source_type: sourceType,
+      counts: {
+        topics_created: topicsCreated,
+        topics_enriched: topicsEnriched,
+        topics_noop: topicsNoop,
+        events_created: eventsCreated,
+        events_updated: eventsUpdated,
+        events_noop: eventsNoop,
+        global_memories_created: globalMemoriesCreated,
+        global_memories_updated: globalMemoriesUpdated,
+        global_memories_noop: globalMemoriesNoop,
+        global_memories_pending_compaction: globalMemoriesPendingCompaction,
+      },
+      outcomes: {
+        topics: topicOutcomes,
+        events: eventOutcomes,
+        globals: globalOutcomes,
+      },
+    },
+  });
 
   console.log(
     `[TopicMemory] Pipeline done: topics(created=${topicsCreated}, enriched=${topicsEnriched}, noop=${topicsNoop}) events(created=${eventsCreated}, updated=${eventsUpdated}, noop=${eventsNoop}) globals(created=${globalMemoriesCreated}, updated=${globalMemoriesUpdated}, noop=${globalMemoriesNoop}, pending_compaction=${globalMemoriesPendingCompaction}).`,

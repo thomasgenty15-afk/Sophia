@@ -5,10 +5,20 @@ import { ensureInternalRequest } from "../_shared/internal-auth.ts";
 import { logEdgeFunctionError } from "../_shared/error-log.ts";
 import { getRequestId, jsonResponse } from "../_shared/http.ts";
 import { whatsappLangFromLocale } from "../_shared/locale.ts";
+import { logMomentumObservabilityEvent } from "../_shared/momentum-observability.ts";
 import { enqueueProactiveTemplateCandidate } from "../_shared/proactive_template_queue.ts";
 import { applyWhatsappProactiveOpeningPolicy } from "../_shared/scheduled_checkins.ts";
+import {
+  evaluateWhatsAppWinback,
+  type WinbackStep,
+} from "../_shared/whatsapp_winback.ts";
 import { getPendingItems } from "../sophia-brain/agents/investigator/db.ts";
 import { runInvestigator } from "../sophia-brain/agents/investigator/run.ts";
+import { scheduleMomentumOutreach } from "../sophia-brain/momentum_outreach.ts";
+import {
+  decideMomentumProactive,
+  summarizeMomentumProactiveDecision,
+} from "../sophia-brain/momentum_proactive_selector.ts";
 import {
   cleanupHardExpiredStateMachines,
   hasActiveStateMachine,
@@ -121,16 +131,6 @@ function sameLocalDateInTimezone(
   const eventYmd = localYmdFromTimezone(timezoneRaw, eventMs);
   const refYmd = localYmdFromTimezone(timezoneRaw, referenceNowMs);
   return Boolean(eventYmd && refYmd && eventYmd === refYmd);
-}
-
-type WinbackStep = 1 | 2 | 3;
-
-function nextWinbackStep(current: number): WinbackStep | null {
-  const step = Math.floor(Number(current) || 0);
-  if (step >= 3) return null;
-  if (step <= 0) return 1;
-  if (step === 1) return 2;
-  return 3;
 }
 
 function winbackTemplateName(step: WinbackStep): string {
@@ -464,10 +464,13 @@ Deno.serve(async (req) => {
 
     let sent = 0;
     let skipped = 0;
+    let scheduledStateOutreach = 0;
     const errors: Array<{ user_id: string; error: string }> = [];
     const sentUserIds: string[] = [];
     const skippedUserIds: string[] = [];
+    const scheduledStateOutreachUserIds: string[] = [];
     const skippedReasons: Record<string, string> = {};
+    const scheduledStateOutreachReasons: Record<string, string> = {};
 
     const profilesById = new Map((profiles ?? []).map((p: any) => [p.id, p]));
 
@@ -624,37 +627,16 @@ Deno.serve(async (req) => {
           }
         }
         const hasBilanOptIn = Boolean(p?.whatsapp_bilan_opted_in);
-        const bilanPauseUntilMs = parseTimestampMs(p?.whatsapp_bilan_paused_until);
-        const coachingPauseUntilMs = parseTimestampMs(p?.whatsapp_coaching_paused_until);
+        const bilanPauseUntilMs = parseTimestampMs(
+          p?.whatsapp_bilan_paused_until,
+        );
+        const coachingPauseUntilMs = parseTimestampMs(
+          p?.whatsapp_coaching_paused_until,
+        );
         const pauseUntilMs = Math.max(
           bilanPauseUntilMs ?? 0,
           coachingPauseUntilMs ?? 0,
         ) || null;
-        const previousPromptMs = parseTimestampMs(p?.whatsapp_bilan_last_prompt_at);
-        const lastInboundMs = parseTimestampMs(p?.whatsapp_last_inbound_at);
-        const baselineMissed = Math.max(
-          0,
-          Math.min(30, Math.floor(Number(p?.whatsapp_bilan_missed_streak ?? 0))),
-        );
-        const currentWinbackStep = Math.max(
-          0,
-          Math.min(3, Math.floor(Number(p?.whatsapp_bilan_winback_step ?? 0))),
-        );
-        const unresolvedPreviousPrompt = Boolean(
-          previousPromptMs &&
-            (!lastInboundMs || (lastInboundMs as number) < (previousPromptMs as number)),
-        );
-        const nextMissed = currentWinbackStep > 0
-          ? baselineMissed
-          : (unresolvedPreviousPrompt
-            ? Math.min(30, baselineMissed + 1)
-            : 0);
-
-        if (nextMissed !== baselineMissed) {
-          await updateBilanProfileState(userId, {
-            whatsapp_bilan_missed_streak: nextMissed,
-          });
-        }
 
         if (pauseUntilMs && (pauseUntilMs as number) > Date.now()) {
           skipped++;
@@ -710,7 +692,7 @@ Deno.serve(async (req) => {
 
         // STATE MACHINE CHECK (all proactive sends):
         // while a machine is active, avoid injecting proactive prompts.
-        if (machineCheck.active && !hasBilanOptIn) {
+        if (machineCheck.active) {
           skipped++;
           skippedUserIds.push(userId);
           skippedReasons[userId] =
@@ -725,7 +707,236 @@ Deno.serve(async (req) => {
                 reason: "active_state_machine",
                 active_machine: machineCheck.machineLabel,
                 request_id: requestId,
-                mode: "template_optin",
+              },
+            });
+          }
+          continue;
+        }
+
+        const winbackDecision = evaluateWhatsAppWinback({
+          whatsappBilanOptedIn: p?.whatsapp_bilan_opted_in,
+          whatsappBilanPausedUntil: p?.whatsapp_bilan_paused_until,
+          whatsappCoachingPausedUntil: p?.whatsapp_coaching_paused_until,
+          whatsappLastInboundAt: p?.whatsapp_last_inbound_at,
+          whatsappBilanWinbackStep: p?.whatsapp_bilan_winback_step,
+          whatsappBilanLastWinbackAt: p?.whatsapp_bilan_last_winback_at,
+        });
+        if (hasBilanOptIn && winbackDecision.decision === "send" && winbackDecision.step) {
+          await enqueueProactiveTemplateCandidate(admin as any, {
+            userId,
+            purpose: "daily_bilan_winback",
+            message: {
+              type: "template",
+              name: winbackTemplateName(winbackDecision.step),
+              language: winbackTemplateLang((p as any)?.locale ?? null),
+            },
+            requireOptedIn: true,
+            forceTemplate: true,
+            metadataExtra: {
+              winback_step: winbackDecision.step,
+              winback_reason: winbackDecision.reason,
+              inactivity_days: winbackDecision.inactivity_days,
+              source: "trigger_daily_bilan",
+            },
+            dedupeKey:
+              `daily_bilan_winback:${userId}:${winbackDecision.step}:${
+                localYmdFromTimezone((p as any)?.timezone ?? null) ?? "today"
+              }`,
+          });
+          await updateBilanProfileState(userId, {
+            whatsapp_bilan_missed_streak: 0,
+            whatsapp_bilan_winback_step: winbackDecision.step,
+            whatsapp_bilan_last_winback_at: new Date().toISOString(),
+          });
+          sent++;
+          sentUserIds.push(userId);
+          continue;
+        }
+        if (hasBilanOptIn && winbackDecision.suppress_other_proactives) {
+          skipped++;
+          skippedUserIds.push(userId);
+          skippedReasons[userId] = winbackDecision.reason;
+          if (logSkips) {
+            await logComm(admin, {
+              user_id: userId,
+              channel: "whatsapp",
+              type: "daily_bilan_skipped",
+              status: "skipped",
+              metadata: {
+                reason: winbackDecision.reason,
+                request_id: requestId,
+                source: "winback_inactivity",
+                inactivity_days: winbackDecision.inactivity_days,
+                current_step: winbackDecision.current_step,
+              },
+            });
+          }
+          continue;
+        }
+
+        const momentumDecision = decideMomentumProactive({
+          kind: "daily_bilan",
+          tempMemory: chatState?.temp_memory ?? {},
+        });
+        await logMomentumObservabilityEvent({
+          supabase: admin as any,
+          userId,
+          requestId,
+          channel: "whatsapp",
+          scope: "whatsapp",
+          sourceComponent: "trigger_daily_bilan",
+          eventName: "daily_bilan_momentum_decision",
+          payload: {
+            decision_kind: "momentum_policy_gate",
+            target_kind: "daily_bilan",
+            state_at_decision: momentumDecision.state ?? null,
+            decision: momentumDecision.decision,
+            decision_reason: momentumDecision.reason,
+            policy_summary: summarizeMomentumProactiveDecision(momentumDecision),
+          },
+        });
+        if (momentumDecision.decision === "skip") {
+          if (hasBilanOptIn) {
+            const recentlyCompleted = await hasRecentFullCheckup(
+              admin,
+              userId,
+              recentCheckupWindowHours,
+            );
+            if (recentlyCompleted) {
+              skipped++;
+              skippedUserIds.push(userId);
+              skippedReasons[userId] =
+                `recent_full_checkup_lt_${recentCheckupWindowHours}h`;
+              if (logSkips) {
+                await logComm(admin, {
+                  user_id: userId,
+                  channel: "whatsapp",
+                  type: "daily_bilan_skipped",
+                  status: "skipped",
+                  metadata: {
+                    reason: "recent_full_checkup",
+                    recent_window_hours: recentCheckupWindowHours,
+                    request_id: requestId,
+                    source: "momentum_outreach_gate",
+                  },
+                });
+              }
+              continue;
+            }
+
+            const outreachDecision = await scheduleMomentumOutreach({
+              admin: admin as any,
+              userId,
+              tempMemory: chatState?.temp_memory ?? {},
+              nowIso: new Date().toISOString(),
+            });
+            await logMomentumObservabilityEvent({
+              supabase: admin as any,
+              userId,
+              requestId,
+              channel: "whatsapp",
+              scope: "whatsapp",
+              sourceComponent: "trigger_daily_bilan",
+              eventName: "momentum_outreach_decision",
+              payload: {
+                decision_kind: "state_outreach_fallback",
+                target_kind: "momentum_outreach",
+                state_at_decision: outreachDecision.state ?? momentumDecision.state ?? null,
+                decision: outreachDecision.decision,
+                decision_reason: outreachDecision.reason,
+                event_context: outreachDecision.event_context ?? null,
+                scheduled_checkin_id: outreachDecision.scheduled_checkin_id ?? null,
+                scheduled_for: outreachDecision.scheduled_for ?? null,
+              },
+            });
+            if (outreachDecision.decision === "scheduled") {
+              await logMomentumObservabilityEvent({
+                supabase: admin as any,
+                userId,
+                requestId,
+                channel: "whatsapp",
+                scope: "whatsapp",
+                sourceComponent: "trigger_daily_bilan",
+                eventName: "momentum_outreach_scheduled",
+                payload: {
+                  outreach_state: outreachDecision.state ?? null,
+                  event_context: outreachDecision.event_context ?? null,
+                  scheduled_checkin_id: outreachDecision.scheduled_checkin_id ?? null,
+                  scheduled_for: outreachDecision.scheduled_for ?? null,
+                  decision_reason: outreachDecision.reason,
+                },
+              });
+              scheduledStateOutreach++;
+              scheduledStateOutreachUserIds.push(userId);
+              scheduledStateOutreachReasons[userId] = outreachDecision.reason;
+              if (logSkips) {
+                await logComm(admin, {
+                  user_id: userId,
+                  channel: "whatsapp",
+                  type: "momentum_outreach_scheduled",
+                  status: "scheduled",
+                  metadata: {
+                    reason: outreachDecision.reason,
+                    request_id: requestId,
+                    state: outreachDecision.state ?? null,
+                    event_context: outreachDecision.event_context ?? null,
+                    scheduled_checkin_id: outreachDecision.scheduled_checkin_id ?? null,
+                    scheduled_for: outreachDecision.scheduled_for ?? null,
+                  },
+                });
+              }
+              continue;
+            }
+
+            await logMomentumObservabilityEvent({
+              supabase: admin as any,
+              userId,
+              requestId,
+              channel: "whatsapp",
+              scope: "whatsapp",
+              sourceComponent: "trigger_daily_bilan",
+              eventName: "momentum_outreach_schedule_skipped",
+              payload: {
+                outreach_state: outreachDecision.state ?? null,
+                event_context: outreachDecision.event_context ?? null,
+                decision_reason: outreachDecision.reason,
+              },
+            });
+            skipped++;
+            skippedUserIds.push(userId);
+            skippedReasons[userId] = outreachDecision.reason;
+            if (logSkips) {
+              await logComm(admin, {
+                user_id: userId,
+                channel: "whatsapp",
+                type: "daily_bilan_skipped",
+                status: "skipped",
+                metadata: {
+                  reason: outreachDecision.reason,
+                  request_id: requestId,
+                  source: "momentum_outreach",
+                  state: outreachDecision.state ?? null,
+                  event_context: outreachDecision.event_context ?? null,
+                },
+              });
+            }
+            continue;
+          }
+
+          skipped++;
+          skippedUserIds.push(userId);
+          skippedReasons[userId] = momentumDecision.reason;
+          if (logSkips) {
+            await logComm(admin, {
+              user_id: userId,
+              channel: "whatsapp",
+              type: "daily_bilan_skipped",
+              status: "skipped",
+              metadata: {
+                reason: momentumDecision.reason,
+                request_id: requestId,
+                source: "momentum_policy",
+                momentum: summarizeMomentumProactiveDecision(momentumDecision),
               },
             });
           }
@@ -774,65 +985,6 @@ Deno.serve(async (req) => {
                 metadata: {
                   reason: "recent_full_checkup",
                   recent_window_hours: recentCheckupWindowHours,
-                  request_id: requestId,
-                },
-              });
-            }
-            continue;
-          }
-
-          // Missed two bilans in a row: suspend regular bilan and trigger win-back templates.
-          if (nextMissed >= 2) {
-            const step = nextWinbackStep(currentWinbackStep);
-            if (!step) {
-              skipped++;
-              skippedUserIds.push(userId);
-              skippedReasons[userId] = "winback_waiting_for_user_reply";
-              continue;
-            }
-            await enqueueProactiveTemplateCandidate(admin as any, {
-              userId,
-              purpose: "daily_bilan_winback",
-              message: {
-                type: "template",
-                name: winbackTemplateName(step),
-                language: winbackTemplateLang((p as any)?.locale ?? null),
-              },
-              requireOptedIn: true,
-              forceTemplate: true,
-              metadataExtra: {
-                winback_step: step,
-                source: "trigger_daily_bilan",
-              },
-              dedupeKey: `daily_bilan_winback:${userId}:${step}:${localYmdFromTimezone((p as any)?.timezone ?? null) ?? "today"}`,
-            });
-            await updateBilanProfileState(userId, {
-              whatsapp_bilan_missed_streak: Math.max(2, nextMissed),
-              whatsapp_bilan_winback_step: step,
-              whatsapp_bilan_last_winback_at: new Date().toISOString(),
-            });
-            sent++;
-            sentUserIds.push(userId);
-            continue;
-          }
-
-          // ═══════════════════════════════════════════════════════════════════
-          // STATE MACHINE CHECK: skip if bilan/safety/onboarding is active.
-          // ═══════════════════════════════════════════════════════════════════
-          if (machineCheck.active) {
-            skipped++;
-            skippedUserIds.push(userId);
-            skippedReasons[userId] =
-              `skipped:active_machine:${machineCheck.machineLabel}`;
-            if (logSkips) {
-              await logComm(admin, {
-                user_id: userId,
-                channel: "whatsapp",
-                type: "daily_bilan_skipped",
-                status: "skipped",
-                metadata: {
-                  reason: "active_state_machine",
-                  active_machine: machineCheck.machineLabel,
                   request_id: requestId,
                 },
               });
@@ -978,7 +1130,7 @@ Deno.serve(async (req) => {
             await updateBilanProfileState(userId, {
               whatsapp_bilan_last_prompt_at: new Date().toISOString(),
               whatsapp_bilan_winback_step: 0,
-              whatsapp_bilan_missed_streak: nextMissed,
+              whatsapp_bilan_missed_streak: 0,
             });
           }
         }
@@ -1039,9 +1191,12 @@ Deno.serve(async (req) => {
         success: true,
         sent,
         skipped,
+        scheduled_state_outreach: scheduledStateOutreach,
         sent_user_ids: sentUserIds,
         skipped_user_ids: skippedUserIds,
+        scheduled_state_outreach_user_ids: scheduledStateOutreachUserIds,
         skipped_reasons: skippedReasons,
+        scheduled_state_outreach_reasons: scheduledStateOutreachReasons,
         errors,
         throttle_ms: throttleMs,
         max_send_attempts: maxAttempts,

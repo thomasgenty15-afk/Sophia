@@ -1,6 +1,7 @@
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import { generateWithGemini } from "../_shared/gemini.ts";
 import { processCoreIdentity } from "../_shared/identity-manager.ts";
+import { logMemoryObservabilityEvent } from "../_shared/memory-observability.ts";
 import { WEEKS_CONTENT } from "../_shared/weeksContent.ts";
 import {
   type MemoryProvenanceRef,
@@ -395,6 +396,19 @@ export async function ingestArchitectMemorySource(params: {
   const record = params.record ?? {};
   const userId = String(record.user_id ?? "").trim();
   const moduleId = String(record.module_id ?? "").trim();
+  const emitIngestionEvent = async (
+    payload: Record<string, unknown>,
+  ): Promise<void> => {
+    if (!userId) return;
+    await logMemoryObservabilityEvent({
+      supabase: params.supabase,
+      userId,
+      requestId: params.requestId ?? null,
+      sourceComponent: "architect_memory",
+      eventName: "architect_memory.ingestion_completed",
+      payload,
+    });
+  };
   if (!userId || !moduleId) {
     return {
       processed: false,
@@ -429,7 +443,7 @@ export async function ingestArchitectMemorySource(params: {
     : extractStructuredText((params.oldRecord ?? {}).content);
 
   if (newText.length < 20) {
-    return {
+    const result = {
       processed: false,
       skipped: true,
       reason: "content_too_short",
@@ -446,10 +460,19 @@ export async function ingestArchitectMemorySource(params: {
       identityUpdated: false,
       provenance: null,
     };
+    await emitIngestionEvent({
+      source_type: kind,
+      table_name: tableName,
+      module_id: moduleId,
+      reason: result.reason,
+      skipped: result.skipped,
+      processed: result.processed,
+    });
+    return result;
   }
 
   if (oldText && isTrivialReformulation(oldText, newText)) {
-    return {
+    const result = {
       processed: false,
       skipped: true,
       reason: "trivial_reformulation",
@@ -466,6 +489,15 @@ export async function ingestArchitectMemorySource(params: {
       identityUpdated: false,
       provenance: null,
     };
+    await emitIngestionEvent({
+      source_type: kind,
+      table_name: tableName,
+      module_id: moduleId,
+      reason: result.reason,
+      skipped: result.skipped,
+      processed: result.processed,
+    });
+    return result;
   }
 
   const weekNum = deriveWeekNumFromModuleId(moduleId);
@@ -562,7 +594,7 @@ export async function ingestArchitectMemorySource(params: {
     }
   }
 
-  return {
+  const ingestionResult = {
     processed: true,
     skipped: false,
     reason: "ok",
@@ -571,4 +603,33 @@ export async function ingestArchitectMemorySource(params: {
     identityReason,
     provenance,
   };
+  await emitIngestionEvent({
+      source_type: kind,
+      table_name: tableName,
+      module_id: moduleId,
+      week_num: weekNum ?? null,
+      update_kind: updateKind,
+      reason: ingestionResult.reason,
+      skipped: ingestionResult.skipped,
+      processed: ingestionResult.processed,
+      counts: {
+        topics_created: ingestionResult.topicsCreated,
+        topics_enriched: ingestionResult.topicsEnriched,
+        topics_noop: ingestionResult.topicsNoop,
+        events_created: ingestionResult.eventsCreated,
+        events_updated: ingestionResult.eventsUpdated,
+        events_noop: ingestionResult.eventsNoop,
+        global_memories_created: ingestionResult.globalMemoriesCreated,
+        global_memories_updated: ingestionResult.globalMemoriesUpdated,
+        global_memories_noop: ingestionResult.globalMemoriesNoop,
+        global_memories_pending_compaction:
+          ingestionResult.globalMemoriesPendingCompaction,
+      },
+      identity: {
+        updated: ingestionResult.identityUpdated,
+        reason: ingestionResult.identityReason ?? null,
+      },
+      provenance: ingestionResult.provenance ?? null,
+  });
+  return ingestionResult;
 }

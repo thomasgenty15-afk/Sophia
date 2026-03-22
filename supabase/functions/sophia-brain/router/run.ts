@@ -3,13 +3,13 @@ import "jsr:@supabase/functions-js/edge-runtime.d.ts";
 
 import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
 import {
+  type AgentMode,
   getDispatcherActionSnapshot,
   getPlanMetadata,
   getUserState,
   logMessage,
   normalizeScope,
   updateUserState,
-  type AgentMode,
 } from "../state-manager.ts";
 import {
   buildContextString,
@@ -22,6 +22,11 @@ import {
   getGlobalAiModel,
   searchWithGeminiGrounding,
 } from "../../_shared/gemini.ts";
+import {
+  logMomentumStateObservability,
+  logMomentumUserReplyAfterOutreachIfRelevant,
+} from "../../_shared/momentum-observability.ts";
+import { logCoachingObservabilityEvent } from "../../_shared/coaching-observability.ts";
 import { debounceAndBurstMerge } from "./debounce.ts";
 import {
   buildDispatcherStateSnapshot,
@@ -37,7 +42,10 @@ import type {
   DispatcherModelTierHint,
   DispatcherSignals,
 } from "./dispatcher.ts";
-import { buildSurfaceRuntimeDecision } from "../surface_state.ts";
+import {
+  buildSurfaceRuntimeDecision,
+  readSurfaceState,
+} from "../surface_state.ts";
 import { handleTracking } from "../lib/tracking.ts";
 import { updateEtoilePolaire } from "../lib/north_star_tools.ts";
 import { runAgentAndVerify } from "./agent_exec.ts";
@@ -45,10 +53,41 @@ import {
   type BrainTracePhase,
   logBrainTrace,
 } from "../../_shared/brain-trace.ts";
+import { logMemoryObservabilityEvent } from "../../_shared/memory-observability.ts";
 import { persistTurnSummaryLog } from "./turn_summary_writer.ts";
 import { enqueueLlmRetryJob } from "./emergency.ts";
 import { logEdgeFunctionError } from "../../_shared/error-log.ts";
 import { weeklyInvestigatorSay } from "../agents/investigator-weekly/copy.ts";
+import { isLikelyOneShotReminderRequest } from "../lib/one_shot_reminder_tool.ts";
+import {
+  buildCoachingInterventionRuntimeAddon,
+  buildKnownCoachingBlockersFromTempMemory,
+  detectCoachingInterventionTrigger,
+  type CoachingInterventionRuntimeAddon,
+  type CoachingInterventionSelectorInput,
+  type CoachingInterventionTriggerDetection,
+  runCoachingInterventionSelector,
+} from "../coaching_intervention_selector.ts";
+import {
+  buildTechniqueHistoryForSelector,
+  readCoachingInterventionMemory,
+  reconcileCoachingInterventionStateFromUserTurn,
+  recordCoachingInterventionProposal,
+} from "../coaching_intervention_tracking.ts";
+import {
+  buildCoachingCustomizationContext,
+  buildCoachingHistorySnapshot,
+  deriveCoachingFollowUpAudit,
+  detectCoachingInterventionRender,
+  findCoachingDeprioritizedTechniques,
+} from "../coaching_intervention_observability.ts";
+import {
+  applyRouterMomentumSignals,
+  getTopMomentumBlocker,
+  readMomentumState,
+  summarizeMomentumStateForLog,
+  writeMomentumState,
+} from "../momentum_state.ts";
 
 function envBool(name: string, fallback: boolean): boolean {
   const denoEnv = (globalThis as any)?.Deno?.env;
@@ -227,7 +266,8 @@ function stabilizeOnboardingFlag(tempMemory: any): {
   const elapsedMs = startedMs > 0 ? nowMs - startedMs : 0;
   const turnCount = Number(active.user_turn_count ?? 0) + 1;
 
-  const shouldExpire = turnCount >= ONBOARDING_MAX_TURNS || elapsedMs >= ONBOARDING_MAX_MS;
+  const shouldExpire = turnCount >= ONBOARDING_MAX_TURNS ||
+    elapsedMs >= ONBOARDING_MAX_MS;
   if (shouldExpire) {
     try {
       delete (tempMemory as any).__onboarding_active;
@@ -253,14 +293,19 @@ function isCheckupActive(state: any): boolean {
   const inv = state?.investigation_state;
   if (!inv || typeof inv !== "object") return false;
   const status = String(inv.status ?? "");
-  return Boolean(status) && status !== "post_checkup" && status !== "post_checkup_done";
+  return Boolean(status) && status !== "post_checkup" &&
+    status !== "post_checkup_done";
 }
 
 function resolveBinaryConsentLite(text: unknown): "yes" | "no" | null {
   const t = String(text ?? "").trim().toLowerCase();
   if (!t) return null;
-  const yes = /\b(oui|ouais|ok|okay|d'accord|dac|vas[- ]?y|go|yep|yes|on reprend|reprenons)\b/i.test(t);
-  const no = /\b(non|nope|nan|pas maintenant|plus tard|laisse|stop|on laisse|on verra)\b/i.test(t);
+  const yes =
+    /\b(oui|ouais|ok|okay|d'accord|dac|vas[- ]?y|go|yep|yes|on reprend|reprenons)\b/i
+      .test(t);
+  const no =
+    /\b(non|nope|nan|pas maintenant|plus tard|laisse|stop|on laisse|on verra)\b/i
+      .test(t);
   if (yes === no) return null;
   return yes ? "yes" : "no";
 }
@@ -268,8 +313,7 @@ function resolveBinaryConsentLite(text: unknown): "yes" | "no" | null {
 function parseInvestigationStartedMs(state: any): number {
   const inv = state?.investigation_state;
   if (!inv || typeof inv !== "object") return 0;
-  const raw =
-    String(inv?.started_at ?? "").trim() ||
+  const raw = String(inv?.started_at ?? "").trim() ||
     String(inv?.updated_at ?? "").trim() ||
     String(inv?.temp_memory?.started_at ?? "").trim();
   if (!raw) return 0;
@@ -290,7 +334,9 @@ export type StaleBilanDecision =
   | "stop_for_today"
   | "other_topic";
 
-export function deterministicStaleBilanDecision(text: string): StaleBilanDecision | null {
+export function deterministicStaleBilanDecision(
+  text: string,
+): StaleBilanDecision | null {
   const lower = String(text ?? "").trim().toLowerCase();
   if (!lower) return "other_topic";
 
@@ -325,7 +371,9 @@ async function classifyStaleBilanResponse(params: {
   if (deterministic) return deterministic;
 
   const recentContext = params.history.slice(-4).map((m) =>
-    `${m.role === "assistant" ? "SOPHIA" : "USER"}: ${String(m.content ?? "").trim()}`
+    `${m.role === "assistant" ? "SOPHIA" : "USER"}: ${
+      String(m.content ?? "").trim()
+    }`
   ).join("\n");
 
   const systemPrompt = [
@@ -334,7 +382,7 @@ async function classifyStaleBilanResponse(params: {
     "Tu dois choisir UNE seule décision parmi :",
     '- "resume_bilan" : l\'utilisateur veut clairement reprendre le bilan maintenant',
     '- "stop_for_today" : l\'utilisateur dit non, veut reporter, arrêter, ou reprendre demain/plus tard',
-    '- "other_topic" : l\'utilisateur parle d\'autre chose, pose une question différente, ou change de sujet',
+    "- \"other_topic\" : l'utilisateur parle d'autre chose, pose une question différente, ou change de sujet",
     "",
     "Règles importantes :",
     "- Si l'utilisateur veut reprendre plus tard, demain, ou n'est pas dispo maintenant => stop_for_today.",
@@ -379,7 +427,10 @@ async function classifyStaleBilanResponse(params: {
       return decision;
     }
   } catch (e) {
-    console.warn("[Router] stale bilan classification failed, using fallback:", e);
+    console.warn(
+      "[Router] stale bilan classification failed, using fallback:",
+      e,
+    );
   }
 
   return deterministicStaleBilanDecision(text) ?? "other_topic";
@@ -389,13 +440,18 @@ function selectTargetMode(args: {
   state: any;
   dispatcherSignals: DispatcherSignals;
   onboardingActive: boolean;
-}): { targetMode: AgentMode; stopCheckup: boolean; checkupIntentDetected: boolean } {
+}): {
+  targetMode: AgentMode;
+  stopCheckup: boolean;
+  checkupIntentDetected: boolean;
+} {
   const { state, dispatcherSignals, onboardingActive } = args;
 
   const checkupActive = isCheckupActive(state);
-  const stopCheckup =
-    (dispatcherSignals.interrupt.kind === "EXPLICIT_STOP" && dispatcherSignals.interrupt.confidence >= 0.6) ||
-    (dispatcherSignals.interrupt.kind === "BORED" && dispatcherSignals.interrupt.confidence >= 0.65);
+  const stopCheckup = (dispatcherSignals.interrupt.kind === "EXPLICIT_STOP" &&
+    dispatcherSignals.interrupt.confidence >= 0.6) ||
+    (dispatcherSignals.interrupt.kind === "BORED" &&
+      dispatcherSignals.interrupt.confidence >= 0.65);
 
   const checkupIntentDetected = detectCheckupIntent(dispatcherSignals);
 
@@ -422,8 +478,15 @@ function attachDynamicAddons(args: {
   state: any;
   dispatcherSignals: DispatcherSignals;
   checkupIntentDetected: boolean;
+  userMessage: string;
 }) {
-  const { tempMemory, state, dispatcherSignals, checkupIntentDetected } = args;
+  const {
+    tempMemory,
+    state,
+    dispatcherSignals,
+    checkupIntentDetected,
+    userMessage,
+  } = args;
   const checkupActive = isCheckupActive(state);
 
   if (!checkupActive && checkupIntentDetected) {
@@ -450,7 +513,9 @@ function attachDynamicAddons(args: {
     state,
     dispatcherSignals,
   );
-  const dashboardRedirectIntents = extractDashboardRedirectIntents(dispatcherSignals);
+  const dashboardRedirectIntents = extractDashboardRedirectIntents(
+    dispatcherSignals,
+  );
   if (
     highMissedStreakBreakdown &&
     !dashboardRedirectIntents.includes("breakdown_action")
@@ -502,7 +567,14 @@ function attachDynamicAddons(args: {
 
   const dashboardRecurringReminderSignal =
     dispatcherSignals.dashboard_recurring_reminder_intent;
-  if (dashboardRecurringReminderSignal?.detected) {
+  const suppressDashboardRecurringReminderAddon =
+    isLikelyOneShotReminderRequest(
+      userMessage,
+    );
+  if (
+    dashboardRecurringReminderSignal?.detected &&
+    !suppressDashboardRecurringReminderAddon
+  ) {
     (tempMemory as any).__dashboard_recurring_reminder_intent_addon = {
       fields: Array.isArray(dashboardRecurringReminderSignal.reminder_fields)
         ? dashboardRecurringReminderSignal.reminder_fields.slice(0, 9)
@@ -543,46 +615,57 @@ async function maybeTrackProgressParallel(args: {
   loggedMessageId: string | null;
   channel: "web" | "whatsapp";
 }) {
-  const { supabase, userId, state, tempMemory, dispatcherSignals, loggedMessageId, channel } = args;
+  const {
+    supabase,
+    userId,
+    state,
+    tempMemory,
+    dispatcherSignals,
+    loggedMessageId,
+    channel,
+  } = args;
 
   const trackAction = dispatcherSignals.track_progress_action;
   const trackVital = dispatcherSignals.track_progress_vital_sign;
   const trackNorthStar = dispatcherSignals.track_progress_north_star;
   const trackActionStatus = String(trackAction?.status_hint ?? "unknown");
   const trackActionTarget = String(trackAction?.target_hint ?? "").trim();
-  const trackActionOperation = String(trackAction?.operation_hint ?? "").trim().toLowerCase();
+  const trackActionOperation = String(trackAction?.operation_hint ?? "").trim()
+    .toLowerCase();
   const trackActionValue = Number(trackAction?.value_hint);
-  const trackActionDate =
-    typeof trackAction?.date_hint === "string" && /^\d{4}-\d{2}-\d{2}$/.test(trackAction.date_hint)
-      ? trackAction.date_hint
-      : undefined;
+  const trackActionDate = typeof trackAction?.date_hint === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(trackAction.date_hint)
+    ? trackAction.date_hint
+    : undefined;
   const trackVitalTarget = String(trackVital?.target_hint ?? "").trim();
   const trackVitalValue = Number(trackVital?.value_hint);
-  const trackVitalOperation = String(trackVital?.operation_hint ?? "").trim().toLowerCase();
-  const trackVitalDate =
-    typeof trackVital?.date_hint === "string" && /^\d{4}-\d{2}-\d{2}$/.test(trackVital.date_hint)
-      ? trackVital.date_hint
-      : undefined;
+  const trackVitalOperation = String(trackVital?.operation_hint ?? "").trim()
+    .toLowerCase();
+  const trackVitalDate = typeof trackVital?.date_hint === "string" &&
+      /^\d{4}-\d{2}-\d{2}$/.test(trackVital.date_hint)
+    ? trackVital.date_hint
+    : undefined;
   const trackNorthStarValue = Number(trackNorthStar?.value_hint);
-  const trackNorthStarNote =
-    typeof trackNorthStar?.note_hint === "string" ? trackNorthStar.note_hint.trim().slice(0, 200) : "";
-  const canTrackAction =
-    trackAction?.detected === true &&
+  const trackNorthStarNote = typeof trackNorthStar?.note_hint === "string"
+    ? trackNorthStar.note_hint.trim().slice(0, 200)
+    : "";
+  const canTrackAction = trackAction?.detected === true &&
     trackActionTarget.length >= 2 &&
-    (trackActionStatus === "completed" || trackActionStatus === "missed" || trackActionStatus === "partial");
-  const canTrackVital =
-    trackVital?.detected === true &&
+    (trackActionStatus === "completed" || trackActionStatus === "missed" ||
+      trackActionStatus === "partial");
+  const canTrackVital = trackVital?.detected === true &&
     trackVitalTarget.length >= 2 &&
     Number.isFinite(trackVitalValue);
-  const canTrackNorthStar =
-    trackNorthStar?.detected === true &&
+  const canTrackNorthStar = trackNorthStar?.detected === true &&
     Number.isFinite(trackNorthStarValue);
-  const canTrack = !isCheckupActive(state) && (canTrackAction || canTrackVital || canTrackNorthStar);
+  const canTrack = !isCheckupActive(state) &&
+    (canTrackAction || canTrackVital || canTrackNorthStar);
 
   const alreadyLogged =
     (tempMemory as any)?.__track_progress_parallel?.source_message_id &&
     loggedMessageId &&
-    (tempMemory as any).__track_progress_parallel.source_message_id === loggedMessageId;
+    (tempMemory as any).__track_progress_parallel.source_message_id ===
+      loggedMessageId;
 
   if (!canTrack || alreadyLogged) return;
 
@@ -594,7 +677,9 @@ async function maybeTrackProgressParallel(args: {
         ...(trackNorthStarNote ? { note: trackNorthStarNote } : {}),
       });
       raw =
-        `Etoile Polaire mise à jour: ${result.title} -> ${result.new_value}${result.unit ? ` ${result.unit}` : ""}.`;
+        `Etoile Polaire mise à jour: ${result.title} -> ${result.new_value}${
+          result.unit ? ` ${result.unit}` : ""
+        }.`;
     } else if (canTrackVital) {
       const trackingMsg = await handleTracking(
         supabase,
@@ -645,10 +730,140 @@ async function maybeTrackProgressParallel(args: {
     console.warn("[Router] parallel track_progress failed (non-blocking):", e);
     (tempMemory as any).__track_progress_parallel = {
       mode: "needs_clarify",
-      message: "Impossible de logger automatiquement. Oriente vers le dashboard pour mise à jour immédiate, ou propose d'attendre le prochain bilan.",
+      message:
+        "Impossible de logger automatiquement. Oriente vers le dashboard pour mise à jour immédiate, ou propose d'attendre le prochain bilan.",
       source_message_id: loggedMessageId ?? null,
     };
   }
+}
+
+function buildRecentContextSummaryForSelector(history: any[]): string | null {
+  const lines = (history ?? [])
+    .slice(-4)
+    .map((item: any) => {
+      const role = String(item?.role ?? "").trim();
+      const content = String(item?.content ?? "").trim().slice(0, 180);
+      if (!role || !content) return "";
+      return `${role}: ${content}`;
+    })
+    .filter(Boolean);
+  return lines.length > 0 ? lines.join("\n") : null;
+}
+
+type CoachingAddonAttempt = {
+  trigger: CoachingInterventionTriggerDetection;
+  input: CoachingInterventionSelectorInput;
+  selector: Awaited<ReturnType<typeof runCoachingInterventionSelector>>;
+  addon: CoachingInterventionRuntimeAddon | null;
+};
+
+async function maybeAttachCoachingInterventionAddon(args: {
+  userId: string;
+  userMessage: string;
+  history: any[];
+  tempMemory: any;
+  dispatcherSignals: DispatcherSignals;
+  targetMode: AgentMode;
+  meta?: { requestId?: string; forceRealAi?: boolean; model?: string };
+}): Promise<CoachingAddonAttempt | null> {
+  const {
+    userId,
+    userMessage,
+    history,
+    tempMemory,
+    dispatcherSignals,
+    targetMode,
+    meta,
+  } = args;
+
+  if (targetMode !== "companion") {
+    try {
+      delete (tempMemory as any).__coaching_intervention_addon;
+    } catch {
+      // best effort
+    }
+    return null;
+  }
+
+  const momentum = readMomentumState(tempMemory);
+  const topBlocker = getTopMomentumBlocker(momentum);
+  const actionHint = String(
+    dispatcherSignals.action_discussion?.action_hint ??
+      dispatcherSignals.track_progress_action?.target_hint ?? "",
+  )
+    .trim()
+    .slice(0, 120);
+  const trigger = detectCoachingInterventionTrigger({
+    userMessage,
+    actionHint: actionHint || null,
+    progressStatusHint: dispatcherSignals.track_progress_action?.status_hint,
+    topBlockerStage: topBlocker?.stage ?? null,
+  });
+
+  if (!trigger) {
+    try {
+      delete (tempMemory as any).__coaching_intervention_addon;
+    } catch {
+      // best effort
+    }
+    return null;
+  }
+
+  const knownBlockers = buildKnownCoachingBlockersFromTempMemory(tempMemory);
+  const orderedKnownBlockers = trigger.blocker_hint
+    ? [
+      { blocker_type: trigger.blocker_hint, confidence: "medium" as const },
+      ...knownBlockers.filter((item) => item.blocker_type !== trigger.blocker_hint),
+    ].slice(0, 3)
+    : knownBlockers;
+
+  const selectorInput: CoachingInterventionSelectorInput = {
+    momentum_state: momentum.current_state ?? null,
+    explicit_help_request: trigger.explicit_help_request,
+    trigger_kind: trigger.trigger_kind,
+    last_user_message: userMessage,
+    recent_context_summary: buildRecentContextSummaryForSelector(history),
+    target_action_title: actionHint || null,
+    known_blockers: orderedKnownBlockers,
+    technique_history: buildTechniqueHistoryForSelector(tempMemory),
+    safety: {
+      distress_detected: dispatcherSignals.safety.level === "SENTRY",
+      pause_requested: momentum.current_state === "pause_consentie",
+    },
+  };
+
+  const selector = await runCoachingInterventionSelector({
+    input: selectorInput,
+    meta: {
+      requestId: meta?.requestId,
+      forceRealAi: meta?.forceRealAi,
+      model: meta?.model,
+      userId,
+    },
+  });
+
+  const addon = buildCoachingInterventionRuntimeAddon({
+    input: selectorInput,
+    output: selector.output,
+    source: selector.source,
+  });
+
+  if (addon) {
+    (tempMemory as any).__coaching_intervention_addon = addon;
+  } else {
+    try {
+      delete (tempMemory as any).__coaching_intervention_addon;
+    } catch {
+      // best effort
+    }
+  }
+
+  return {
+    trigger,
+    input: selectorInput,
+    selector,
+    addon,
+  };
 }
 
 function clearOneShotKeys(tempMemory: any, consumedBilanStopped: boolean) {
@@ -659,6 +874,7 @@ function clearOneShotKeys(tempMemory: any, consumedBilanStopped: boolean) {
     "__dashboard_capabilities_addon",
     "__dashboard_preferences_intent_addon",
     "__dashboard_recurring_reminder_intent_addon",
+    "__coaching_intervention_addon",
     "__safety_active_addon",
     "__track_progress_parallel",
     "__dual_tool_addon",
@@ -762,7 +978,9 @@ export async function processMessage(
       userMessage,
     });
     if (debounced.aborted) {
-      await trace("brain:debounce_aborted", "io", { reason: "debounceAndBurstMerge" }, "debug");
+      await trace("brain:debounce_aborted", "io", {
+        reason: "debounceAndBurstMerge",
+      }, "debug");
       return { content: "", mode: "companion" as AgentMode, aborted: true };
     }
     userMessage = debounced.userMessage;
@@ -773,18 +991,68 @@ export async function processMessage(
 
   const onboarding = stabilizeOnboardingFlag(tempMemory);
   tempMemory = onboarding.tempMemory;
+  const coachingMemoryBeforeReconcile = readCoachingInterventionMemory(tempMemory);
+  tempMemory = await reconcileCoachingInterventionStateFromUserTurn({
+    tempMemory,
+    userMessage,
+    history,
+    meta: {
+      requestId: meta?.requestId,
+      forceRealAi: meta?.forceRealAi,
+      model: meta?.model,
+      userId,
+    },
+  });
+  const coachingMemoryAfterReconcile = readCoachingInterventionMemory(tempMemory);
+  const coachingFollowUpAudit = deriveCoachingFollowUpAudit({
+    before: coachingMemoryBeforeReconcile,
+    after: coachingMemoryAfterReconcile,
+  });
+  if (coachingFollowUpAudit) {
+    await logCoachingObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "router",
+      eventName: "coaching_followup_classified",
+      payload: {
+        momentum_state: readMomentumState(tempMemory).current_state ?? null,
+        follow_up_outcome: coachingFollowUpAudit.follow_up_outcome,
+        helpful: coachingFollowUpAudit.helpful,
+        blocker_type: coachingFollowUpAudit.blocker_type,
+        recommended_technique: coachingFollowUpAudit.technique_id,
+        intervention_id: coachingFollowUpAudit.intervention_id,
+        previous_status: coachingFollowUpAudit.previous_status,
+        next_status: coachingFollowUpAudit.next_status,
+        follow_up_needed: false,
+        selector_source: coachingFollowUpAudit.selector_source,
+        customization_context: {
+          target_action_title: coachingFollowUpAudit.target_action_title ?? null,
+        },
+        outcome_reason: coachingFollowUpAudit.outcome_reason,
+        history_snapshot: buildCoachingHistorySnapshot(
+          buildTechniqueHistoryForSelector(tempMemory),
+        ),
+      },
+    });
+  }
 
   // Magic Reset Check (abracadabra)
   const magicResetVariant = detectMagicResetCommand(userMessage);
   if (magicResetVariant) {
-    const { tempMemory: cleared, clearedKeys } = clearMachineStateTempMemory({ tempMemory });
+    const { tempMemory: cleared, clearedKeys } = clearMachineStateTempMemory({
+      tempMemory,
+    });
     tempMemory = cleared;
     await trace("brain:magic_reset_command", "routing", {
       variant: magicResetVariant,
       cleared_keys: clearedKeys,
-      cleared_count: clearedKeys.length
+      cleared_count: clearedKeys.length,
     }, "warn");
-    
+
     // Force immediate persist to ensure reset sticks even if later logic fails
     await updateUserState(supabase, userId, scope, { temp_memory: tempMemory });
   }
@@ -823,12 +1091,41 @@ export async function processMessage(
   const dispatcherSignals = contextual.dispatcherSignals;
   const machineSignals = contextual.dispatcherResult?.machine_signals;
   tempMemory = contextual.tempMemory;
+  await Promise.all([
+    logMemoryObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "router",
+      eventName: "dispatcher.memory_plan_generated",
+      payload: {
+        user_message_preview: String(userMessage ?? "").slice(0, 320),
+        memory_plan: contextual.dispatcherResult?.memory_plan ?? null,
+      },
+    }),
+    logMemoryObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "router",
+      eventName: "dispatcher.surface_plan_generated",
+      payload: {
+        surface_plan: contextual.dispatcherResult?.surface_plan ?? null,
+      },
+    }),
+  ]);
   const riskScore = Number(dispatcherSignals.risk_score ?? 0);
   const needsResearchSignal = dispatcherSignals.needs_research;
-  const researchRequested =
-    needsResearchSignal?.value === true &&
+  const researchRequested = needsResearchSignal?.value === true &&
     Number(needsResearchSignal?.confidence ?? 0) >= 0.55;
-  const researchDomainHint = String(needsResearchSignal?.domain_hint ?? "").trim().slice(0, 30);
+  const researchDomainHint = String(needsResearchSignal?.domain_hint ?? "")
+    .trim().slice(0, 30);
   const researchQueryRaw = String(needsResearchSignal?.query ?? "").trim();
   const researchQuery = (
     researchQueryRaw.length > 0
@@ -846,11 +1143,13 @@ export async function processMessage(
   const riskResetThreshold = Number(
     envInt("SOPHIA_RISK_RESET_THRESHOLD", 7),
   );
-  const shouldResetForRisk = Number.isFinite(riskScore) && riskScore >= riskResetThreshold;
+  const shouldResetForRisk = Number.isFinite(riskScore) &&
+    riskScore >= riskResetThreshold;
   if (shouldResetForRisk) {
-    const { tempMemory: clearedTemp, clearedKeys } = clearMachineStateTempMemory({
-      tempMemory,
-    });
+    const { tempMemory: clearedTemp, clearedKeys } =
+      clearMachineStateTempMemory({
+        tempMemory,
+      });
     const invWasActive = Boolean((state as any)?.investigation_state);
     tempMemory = {
       ...(clearedTemp ?? {}),
@@ -884,14 +1183,20 @@ export async function processMessage(
   // - continue if message answers the current bilan thread
   // - abandon if user starts a new/unrelated topic
   // No explicit "do you want to continue?" question.
-  const staleTimeoutMs = envInt("SOPHIA_BILAN_STALE_TIMEOUT_MS", 4 * 60 * 60 * 1000);
+  const staleTimeoutMs = envInt(
+    "SOPHIA_BILAN_STALE_TIMEOUT_MS",
+    4 * 60 * 60 * 1000,
+  );
   const checkupActiveNow = isCheckupActive(state);
   const startedMs = parseInvestigationStartedMs(state);
   const elapsedSinceStartMs = startedMs > 0 ? Date.now() - startedMs : 0;
-  const staleCheckup = checkupActiveNow && startedMs > 0 && elapsedSinceStartMs >= staleTimeoutMs;
+  const staleCheckup = checkupActiveNow && startedMs > 0 &&
+    elapsedSinceStartMs >= staleTimeoutMs;
   if (staleCheckup) {
-    const wantsToContinueByDispatcher = machineSignals?.wants_to_continue_bilan === true;
-    const dontWantToContinueByDispatcher = machineSignals?.dont_want_continue_bilan === true;
+    const wantsToContinueByDispatcher =
+      machineSignals?.wants_to_continue_bilan === true;
+    const dontWantToContinueByDispatcher =
+      machineSignals?.dont_want_continue_bilan === true;
     const checkupIntentNow = detectCheckupIntent(dispatcherSignals);
     const staleDecision = await classifyStaleBilanResponse({
       userMessage,
@@ -899,10 +1204,13 @@ export async function processMessage(
       history,
       requestId: meta?.requestId,
     });
-    const staleInvestigationMode = String((state as any)?.investigation_state?.mode ?? "");
+    const staleInvestigationMode = String(
+      (state as any)?.investigation_state?.mode ?? "",
+    );
     const explicitConsent = resolveBinaryConsentLite(userMessage);
     const shouldContinue = staleDecision === "resume_bilan" ||
-      ((wantsToContinueByDispatcher && !dontWantToContinueByDispatcher) && staleDecision !== "other_topic") ||
+      ((wantsToContinueByDispatcher && !dontWantToContinueByDispatcher) &&
+        staleDecision !== "other_topic") ||
       checkupIntentNow;
     const shouldStopForToday = staleDecision === "stop_for_today";
     const shouldAbandonForTopic = staleDecision === "other_topic" &&
@@ -954,7 +1262,8 @@ export async function processMessage(
           )
           : "Pas de souci, on ne peut pas le reporter plus tard ce soir. On fera le bilan demain.";
         const nextMode: AgentMode = "companion";
-        const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
+        const nextMsgCount =
+          Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
         const nextLastInteraction = new Date().toISOString();
         await updateUserState(supabase, userId, scope, {
           current_mode: nextMode,
@@ -1007,11 +1316,12 @@ export async function processMessage(
     }
   }
 
-  const { targetMode: routedMode, stopCheckup, checkupIntentDetected } = selectTargetMode({
-    state,
-    dispatcherSignals,
-    onboardingActive: onboarding.onboardingActive,
-  });
+  const { targetMode: routedMode, stopCheckup, checkupIntentDetected } =
+    selectTargetMode({
+      state,
+      dispatcherSignals,
+      onboardingActive: onboarding.onboardingActive,
+    });
 
   let targetMode: AgentMode = routedMode;
   if (opts?.forceMode && targetMode !== "sentry") {
@@ -1023,8 +1333,120 @@ export async function processMessage(
     state,
     dispatcherSignals,
     checkupIntentDetected,
+    userMessage,
   });
 
+  const coachingAttempt = await maybeAttachCoachingInterventionAddon({
+    userId,
+    userMessage,
+    history,
+    tempMemory,
+    dispatcherSignals,
+    targetMode,
+    meta,
+  });
+  if (coachingAttempt) {
+    const selectorOutput = coachingAttempt.selector.output;
+    const gateDecision = coachingAttempt.selector.gateDecision;
+    const historySnapshot = buildCoachingHistorySnapshot(
+      coachingAttempt.input.technique_history,
+    );
+    const customizationContext = buildCoachingCustomizationContext(
+      coachingAttempt.input,
+      coachingAttempt.addon,
+    );
+    await logCoachingObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "router",
+      eventName: "coaching_trigger_detected",
+      payload: {
+        momentum_state: coachingAttempt.input.momentum_state ?? null,
+        trigger_type: coachingAttempt.trigger.trigger_kind,
+        blocker_type: coachingAttempt.trigger.blocker_hint ?? null,
+        confidence: coachingAttempt.trigger.blocker_hint ? "medium" : "low",
+        customization_context: customizationContext,
+      },
+    });
+    await logCoachingObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "router",
+      eventName: "coaching_gate_evaluated",
+      payload: {
+        momentum_state: coachingAttempt.input.momentum_state ?? null,
+        trigger_type: coachingAttempt.trigger.trigger_kind,
+        eligible: gateDecision.eligible,
+        skip_reason: gateDecision.eligible ? null : gateDecision.reason,
+        gate: gateDecision.gate,
+        confidence: selectorOutput.confidence,
+        blocker_type: selectorOutput.blocker_type,
+        customization_context: customizationContext,
+      },
+    });
+    await logCoachingObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "coaching_selector",
+      eventName: "coaching_selector_run",
+      payload: {
+        momentum_state: coachingAttempt.input.momentum_state ?? null,
+        trigger_type: coachingAttempt.trigger.trigger_kind,
+        blocker_type: selectorOutput.blocker_type,
+        confidence: selectorOutput.confidence,
+        eligible: selectorOutput.eligible,
+        skip_reason: selectorOutput.decision === "skip" ? selectorOutput.reason : null,
+        recommended_technique: selectorOutput.recommended_technique,
+        candidate_techniques: selectorOutput.technique_candidates,
+        follow_up_needed: selectorOutput.follow_up_needed,
+        clarification_needed: selectorOutput.need_clarification,
+        selector_source: coachingAttempt.selector.source,
+        decision: selectorOutput.decision,
+        customization_context: customizationContext,
+        history_snapshot: historySnapshot,
+      },
+    });
+    const deprioritizedTechniques = findCoachingDeprioritizedTechniques({
+      blocker_type: selectorOutput.blocker_type,
+      technique_history: coachingAttempt.input.technique_history,
+      recommended_technique: selectorOutput.recommended_technique,
+    });
+    if (deprioritizedTechniques.length > 0) {
+      await logCoachingObservabilityEvent({
+        supabase,
+        userId,
+        requestId: meta?.requestId,
+        turnId: loggedMessageId,
+        channel,
+        scope,
+        sourceComponent: "coaching_selector",
+        eventName: "coaching_technique_deprioritized",
+        payload: {
+          momentum_state: coachingAttempt.input.momentum_state ?? null,
+          trigger_type: coachingAttempt.trigger.trigger_kind,
+          blocker_type: selectorOutput.blocker_type,
+          recommended_technique: selectorOutput.recommended_technique,
+          candidate_techniques: selectorOutput.technique_candidates,
+          history_snapshot: historySnapshot,
+          deprioritized_techniques: deprioritizedTechniques,
+        },
+      });
+    }
+  }
+
+  const surfaceStateBefore = readSurfaceState(tempMemory);
   const surfaceRuntime = buildSurfaceRuntimeDecision({
     tempMemory,
     memoryPlan: contextual.dispatcherResult?.memory_plan,
@@ -1043,6 +1465,26 @@ export async function processMessage(
       confidence: surfaceAddon.confidence,
     }, "debug");
   }
+  await logMemoryObservabilityEvent({
+    supabase,
+    userId,
+    requestId: meta?.requestId,
+    turnId: loggedMessageId,
+    channel,
+    scope,
+    sourceComponent: "surface_state",
+    eventName: "surface.state_transition",
+    payload: {
+      before: surfaceStateBefore,
+      after: surfaceRuntime.state,
+      addon: surfaceAddon ?? null,
+      target_mode: targetMode,
+      memory_plan_intent: contextual.dispatcherResult?.memory_plan
+        ?.response_intent ?? null,
+      memory_plan_context_need: contextual.dispatcherResult?.memory_plan
+        ?.context_need ?? null,
+    },
+  });
 
   await maybeTrackProgressParallel({
     supabase,
@@ -1058,13 +1500,17 @@ export async function processMessage(
     await updateUserState(supabase, userId, scope, { risk_level: riskScore });
   }
 
-  const userTime = await getUserTimeContext({ supabase, userId }).catch(() => null as any);
+  const userTime = await getUserTimeContext({ supabase, userId }).catch(() =>
+    null as any
+  );
 
   const onDemandTriggers: OnDemandTriggers = {
     create_action_intent: dispatcherSignals.create_action?.detected ?? false,
     update_action_intent: dispatcherSignals.update_action?.detected ?? false,
-    breakdown_recommended: dispatcherSignals.breakdown_action?.detected ?? false,
-    action_discussion_detected: dispatcherSignals.action_discussion?.detected ?? false,
+    breakdown_recommended: dispatcherSignals.breakdown_action?.detected ??
+      false,
+    action_discussion_detected: dispatcherSignals.action_discussion?.detected ??
+      false,
     action_discussion_hint: dispatcherSignals.action_discussion?.action_hint,
   };
 
@@ -1082,6 +1528,8 @@ export async function processMessage(
     triggers: onDemandTriggers,
     injectedContext: opts?.contextOverride,
     memoryPlan: contextual.dispatcherResult?.memory_plan,
+    requestId: meta?.requestId,
+    channel,
   });
   contextLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0);
 
@@ -1103,10 +1551,14 @@ export async function processMessage(
       researchExecuted = true;
       researchText = String(grounded?.text ?? "").trim();
       researchSnippets = Array.isArray(grounded?.snippets)
-        ? grounded.snippets.map((s: unknown) => String(s ?? "").trim()).filter(Boolean).slice(0, 5)
+        ? grounded.snippets.map((s: unknown) => String(s ?? "").trim()).filter(
+          Boolean,
+        ).slice(0, 5)
         : [];
       researchSources = Array.isArray(grounded?.sources)
-        ? grounded.sources.map((s: unknown) => String(s ?? "").trim()).filter(Boolean).slice(0, 5)
+        ? grounded.sources.map((s: unknown) => String(s ?? "").trim()).filter(
+          Boolean,
+        ).slice(0, 5)
         : [];
       researchLatencyMs = Date.now() - researchStartMs;
       const researchAddonLines: string[] = [
@@ -1128,7 +1580,10 @@ export async function processMessage(
           researchAddonLines.push(`- ${src}`);
         }
       }
-      if (researchText || researchSnippets.length > 0 || researchSources.length > 0) {
+      if (
+        researchText || researchSnippets.length > 0 ||
+        researchSources.length > 0
+      ) {
         context = `${context}\n\n${researchAddonLines.join("\n")}`;
       }
       await trace("brain:research_completed", "context", {
@@ -1140,7 +1595,8 @@ export async function processMessage(
       }, "info");
     } catch (e) {
       researchLatencyMs = Date.now() - researchStartMs;
-      researchError = String((e as any)?.message ?? e ?? "").slice(0, 200) || "research_failed";
+      researchError = String((e as any)?.message ?? e ?? "").slice(0, 200) ||
+        "research_failed";
       await trace("brain:research_failed", "context", {
         query: researchQuery,
         duration_ms: researchLatencyMs,
@@ -1166,16 +1622,34 @@ export async function processMessage(
 
   const checkupActive = isCheckupActive(state);
   const isPostCheckup = state?.investigation_state?.status === "post_checkup";
-  const effectiveModeForModelSelection: AgentMode =
-    checkupActive &&
+  const effectiveModeForModelSelection: AgentMode = checkupActive &&
       !stopCheckup &&
       targetMode !== "sentry"
-      ? "investigator"
-      : targetMode;
+    ? "investigator"
+    : targetMode;
   const agentModelSelection = resolveAgentChatModel({
     effectiveMode: effectiveModeForModelSelection,
     memoryPlan: contextual.dispatcherResult?.memory_plan,
     explicitModel: meta?.model,
+  });
+  await logMemoryObservabilityEvent({
+    supabase,
+    userId,
+    requestId: meta?.requestId,
+    turnId: loggedMessageId,
+    channel,
+    scope,
+    sourceComponent: "router",
+    eventName: "router.model_selected",
+    payload: {
+      effective_mode: effectiveModeForModelSelection,
+      requested_target_mode: targetMode,
+      model: agentModelSelection.model,
+      source: agentModelSelection.source,
+      tier: agentModelSelection.tier,
+      explicit_model: meta?.model ?? null,
+      memory_plan: contextual.dispatcherResult?.memory_plan ?? null,
+    },
   });
 
   const agentOut = await runAgentAndVerify({
@@ -1193,15 +1667,55 @@ export async function processMessage(
     checkupActive,
     stopCheckup,
     isPostCheckup,
-    outageTemplate: "J'ai un petit souci technique, je reviens vers toi dès que c'est réglé!",
+    outageTemplate:
+      "J'ai un petit souci technique, je reviens vers toi dès que c'est réglé!",
     sophiaChatModel: agentModelSelection.model,
     tempMemory,
   });
-  agentLatencyMs =
-    Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0) - (contextLatencyMs ?? 0);
+  agentLatencyMs = Date.now() - turnStartMs - (dispatcherLatencyMs ?? 0) -
+    (contextLatencyMs ?? 0);
 
   let responseContent = String(agentOut.responseContent ?? "").trim();
   const nextMode = agentOut.nextMode;
+  const coachingAddonUsed = (tempMemory as any)?.__coaching_intervention_addon ??
+    null;
+  const coachingRenderAudit = detectCoachingInterventionRender({
+    addon: coachingAddonUsed,
+    responseContent,
+  });
+  if (coachingAddonUsed) {
+    await logCoachingObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "router",
+      eventName: "coaching_intervention_rendered",
+      payload: {
+        momentum_state: readMomentumState(tempMemory).current_state ?? null,
+        trigger_type: coachingAddonUsed.trigger_kind,
+        blocker_type: coachingAddonUsed.blocker_type,
+        confidence: coachingAddonUsed.confidence,
+        eligible: coachingAddonUsed.eligible,
+        recommended_technique: coachingAddonUsed.recommended_technique,
+        candidate_techniques: coachingAddonUsed.technique_candidates,
+        follow_up_needed: coachingAddonUsed.follow_up_needed,
+        customization_context: {
+          target_action_title: coachingAddonUsed.target_action_title ?? null,
+          message_angle: coachingAddonUsed.message_angle ?? null,
+          intensity: coachingAddonUsed.intensity ?? null,
+          selector_source: coachingAddonUsed.selector_source,
+        },
+        rendered: coachingRenderAudit.rendered,
+        render_confidence: coachingRenderAudit.render_confidence,
+        render_signal: coachingRenderAudit.render_signal,
+        technique_signal_detected: coachingRenderAudit.technique_signal_detected,
+        response_excerpt: coachingRenderAudit.response_excerpt,
+      },
+    });
+  }
   let llmRetryJobId: string | null = null;
   if (agentOut.outageFallback) {
     llmRetryJobId = await enqueueLlmRetryJob({
@@ -1220,7 +1734,8 @@ export async function processMessage(
       functionName: "sophia-brain",
       severity: "warn",
       title: "router_outage_fallback",
-      error: agentOut.outageErrorMessage ?? `agent_failure:${String(agentOut.outageFailedMode ?? "unknown")}`,
+      error: agentOut.outageErrorMessage ??
+        `agent_failure:${String(agentOut.outageFailedMode ?? "unknown")}`,
       requestId: meta?.requestId ?? null,
       userId,
       source: channel,
@@ -1247,9 +1762,60 @@ export async function processMessage(
     // keep current mergedTempMemory
   }
 
+  const coachingMemoryBeforeProposal = readCoachingInterventionMemory(
+    mergedTempMemory,
+  );
+  mergedTempMemory = recordCoachingInterventionProposal({
+    tempMemory: mergedTempMemory,
+    addon: coachingAddonUsed,
+  });
+  const coachingMemoryAfterProposal = readCoachingInterventionMemory(
+    mergedTempMemory,
+  );
+  if (
+    coachingAddonUsed?.decision === "propose" &&
+    coachingMemoryAfterProposal.pending &&
+    coachingMemoryAfterProposal.pending.intervention_id !==
+      coachingMemoryBeforeProposal.pending?.intervention_id
+  ) {
+    await logCoachingObservabilityEvent({
+      supabase,
+      userId,
+      requestId: meta?.requestId,
+      turnId: loggedMessageId,
+      channel,
+      scope,
+      sourceComponent: "router",
+      eventName: "coaching_intervention_proposed",
+      payload: {
+        momentum_state: readMomentumState(mergedTempMemory).current_state ?? null,
+        trigger_type: coachingAddonUsed.trigger_kind,
+        blocker_type: coachingAddonUsed.blocker_type,
+        confidence: coachingAddonUsed.confidence,
+        eligible: coachingAddonUsed.eligible,
+        recommended_technique: coachingAddonUsed.recommended_technique,
+        candidate_techniques: coachingAddonUsed.technique_candidates,
+        follow_up_needed: coachingAddonUsed.follow_up_needed,
+        intervention_id: coachingMemoryAfterProposal.pending.intervention_id,
+        follow_up_due_at: coachingMemoryAfterProposal.pending.follow_up_due_at ?? null,
+        history_snapshot: buildCoachingHistorySnapshot(
+          buildTechniqueHistoryForSelector(mergedTempMemory),
+        ),
+        customization_context: {
+          target_action_title: coachingAddonUsed.target_action_title ?? null,
+          message_angle: coachingAddonUsed.message_angle ?? null,
+          intensity: coachingAddonUsed.intensity ?? null,
+          selector_source: coachingAddonUsed.selector_source,
+        },
+      },
+    });
+  }
+
   clearOneShotKeys(mergedTempMemory, consumedBilanStopped);
   try {
-    const retryAfterRaw = String((mergedTempMemory as any)?.__investigator_retry_after ?? "").trim();
+    const retryAfterRaw = String(
+      (mergedTempMemory as any)?.__investigator_retry_after ?? "",
+    ).trim();
     if (retryAfterRaw) {
       const retryTs = Date.parse(retryAfterRaw);
       if (!Number.isFinite(retryTs) || retryTs <= Date.now()) {
@@ -1260,6 +1826,15 @@ export async function processMessage(
     // best effort
   }
 
+  const previousMomentumState = readMomentumState(mergedTempMemory);
+  const momentumState = applyRouterMomentumSignals({
+    tempMemory: mergedTempMemory,
+    userMessage,
+    dispatcherSignals,
+    nowIso: new Date().toISOString(),
+  });
+  mergedTempMemory = writeMomentumState(mergedTempMemory, momentumState);
+
   const nextMsgCount = Number((state as any)?.unprocessed_msg_count ?? 0) + 1;
   const nextLastInteraction = new Date().toISOString();
 
@@ -1269,6 +1844,28 @@ export async function processMessage(
     last_interaction_at: nextLastInteraction,
     temp_memory: mergedTempMemory,
   });
+  await logMomentumStateObservability({
+    supabase,
+    userId,
+    requestId: meta?.requestId ?? null,
+    turnId: loggedMessageId,
+    channel,
+    scope,
+    source: "router",
+    previous: previousMomentumState,
+    next: momentumState,
+  });
+  await logMomentumUserReplyAfterOutreachIfRelevant({
+    supabase,
+    userId,
+    requestId: meta?.requestId ?? null,
+    channel,
+    scope,
+    userMessage,
+    stateBeforeReply: previousMomentumState.current_state ?? null,
+    stateAfterReply: momentumState.current_state ?? null,
+  });
+  const coachingMemory = readCoachingInterventionMemory(mergedTempMemory);
 
   if (logMessages) {
     await logMessage(
@@ -1287,15 +1884,15 @@ export async function processMessage(
           next_mode: nextMode,
           risk_score: riskScore,
           checkup_active: checkupActive,
-                stop_checkup: stopCheckup,
-                safety_level: dispatcherSignals.safety.level,
-                interrupt_kind: dispatcherSignals.interrupt.kind,
-                agent_model: agentModelSelection.model,
-                agent_model_source: agentModelSelection.source,
-                agent_model_tier: agentModelSelection.tier,
-                research_requested: researchRequested,
-                research_executed: researchExecuted,
-                research_query: researchRequested ? researchQuery : null,
+          stop_checkup: stopCheckup,
+          safety_level: dispatcherSignals.safety.level,
+          interrupt_kind: dispatcherSignals.interrupt.kind,
+          agent_model: agentModelSelection.model,
+          agent_model_source: agentModelSelection.source,
+          agent_model_tier: agentModelSelection.tier,
+          research_requested: researchRequested,
+          research_executed: researchExecuted,
+          research_query: researchRequested ? researchQuery : null,
           research_sources_count: researchSources.length,
           surface_id: surfaceAddon?.surface_id ?? null,
           surface_level: surfaceAddon?.level ?? null,
@@ -1304,6 +1901,7 @@ export async function processMessage(
           outage_fallback: Boolean(agentOut.outageFallback),
           outage_failed_mode: agentOut.outageFailedMode ?? null,
           outage_error: agentOut.outageErrorMessage ?? null,
+          coaching_intervention_pending: coachingMemory.pending,
         },
       },
     );
@@ -1322,6 +1920,8 @@ export async function processMessage(
     agent_model_tier: agentModelSelection.tier,
     surface_id: surfaceAddon?.surface_id ?? null,
     surface_level: surfaceAddon?.level ?? null,
+    momentum_state: momentumState.current_state ?? null,
+    momentum_summary: summarizeMomentumStateForLog(momentumState),
   }, "info");
 
   // Persist one turn_summary row per router turn (powers bundle brain_trace exports).
@@ -1345,7 +1945,12 @@ export async function processMessage(
           agent: agentLatencyMs,
         },
         dispatcher: {
-          model: String(meta?.model ?? (globalThis as any)?.Deno?.env?.get?.("SOPHIA_DISPATCHER_MODEL") ?? getGlobalAiModel("gemini-2.5-flash")).trim(),
+          model: String(
+            meta?.model ??
+              (globalThis as any)?.Deno?.env?.get?.(
+                "SOPHIA_DISPATCHER_MODEL",
+              ) ?? getGlobalAiModel("gemini-2.5-flash"),
+          ).trim(),
           signals: {
             safety: String(dispatcherSignals.safety.level ?? "NONE"),
             interrupt: String(dispatcherSignals.interrupt.kind ?? "NONE"),
@@ -1367,7 +1972,9 @@ export async function processMessage(
           model_source: agentModelSelection.source,
           model_tier: agentModelSelection.tier,
           effective_mode: effectiveModeForModelSelection,
-          outcome: (agentOut.toolExecution && agentOut.toolExecution !== "none") ? "tool_call" : "text",
+          outcome: (agentOut.toolExecution && agentOut.toolExecution !== "none")
+            ? "tool_call"
+            : "text",
           tool: agentOut.executedTools?.[0] ?? null,
         },
         research: {
@@ -1385,7 +1992,9 @@ export async function processMessage(
         state_flags: {
           checkup_active: checkupActive,
           toolflow_active: false,
-          supervisor_stack_top: String((mergedTempMemory as any)?.__toolflow_owner?.machine_type ?? ""),
+          supervisor_stack_top: String(
+            (mergedTempMemory as any)?.__toolflow_owner?.machine_type ?? "",
+          ),
         },
         details: {
           source: "sophia-brain/router/run.ts",
@@ -1404,6 +2013,8 @@ export async function processMessage(
           outage_error: agentOut.outageErrorMessage ?? null,
           llm_retry_queued: Boolean(llmRetryJobId),
           llm_retry_job_id: llmRetryJobId,
+          momentum: summarizeMomentumStateForLog(momentumState),
+          coaching_intervention_pending: coachingMemory.pending,
         },
         aborted: false,
       },

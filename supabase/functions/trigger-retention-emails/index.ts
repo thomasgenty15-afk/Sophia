@@ -7,19 +7,44 @@ import { getRequestContext } from "../_shared/request_context.ts";
 
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-const WHATSAPP_PHONE_NUMBER = Deno.env.get("WHATSAPP_PHONE_NUMBER") || "33674637278";
+const WHATSAPP_PHONE_NUMBER = Deno.env.get("WHATSAPP_PHONE_NUMBER") ||
+  "33674637278";
 
-const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ?? "Sophia <sophia@sophia-coach.ai>"; 
+const SENDER_EMAIL = Deno.env.get("SENDER_EMAIL") ??
+  "Sophia <sophia@sophia-coach.ai>";
+const RETENTION_UPGRADE_URL = "https://sophia-coach.ai/upgrade";
 
 // Types d'emails de rétention
 const RETENTION_STEPS = [
-  { days: -1, type: "trial_warning_j_minus_1", subject: "Demain, je me mets en pause (et j’aimerais éviter ça)" },
-  { days: 1, type: "trial_ended_j_plus_1", subject: "Je me suis arrêtée hier… tu veux qu’on reprenne ?" },
-  { days: 3, type: "trial_ended_j_plus_3", subject: "Question honnête : ces 3 derniers jours, ça s’est passé comment ?" },
-  { days: 5, type: "trial_ended_j_plus_5", subject: "Je te laisse tranquille après ça (promis)" },
+  {
+    days: -1,
+    type: "trial_warning_j_minus_1",
+    subject: "Demain, je me mets en pause (et j’aimerais éviter ça)",
+  },
+  {
+    days: 1,
+    type: "trial_ended_j_plus_1",
+    subject: "Je me suis arrêtée hier… tu veux qu’on reprenne ?",
+  },
+  {
+    days: 3,
+    type: "trial_ended_j_plus_3",
+    subject:
+      "Question honnête : ces 3 derniers jours, ça s’est passé comment ?",
+  },
+  {
+    days: 5,
+    type: "trial_ended_j_plus_5",
+    subject: "Je te laisse tranquille après ça (promis)",
+  },
 ];
 
-function hasActiveSubscription(row: { status: string | null; current_period_end: string | null } | null | undefined): boolean {
+function hasActiveSubscription(
+  row:
+    | { status: string | null; current_period_end: string | null }
+    | null
+    | undefined,
+): boolean {
   if (!row) return false;
   const status = String(row.status ?? "").toLowerCase();
   if (status !== "active" && status !== "trialing") return false;
@@ -29,30 +54,33 @@ function hasActiveSubscription(row: { status: string | null; current_period_end:
 }
 
 serve(async (req) => {
-  const ctx = getRequestContext(req)
+  const ctx = getRequestContext(req);
   const guardRes = ensureInternalRequest(req);
   if (guardRes) return guardRes;
 
   try {
     const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
-    console.log(`[trigger-retention-emails] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"} start`);
+    console.log(
+      `[trigger-retention-emails] request_id=${ctx.requestId} user_id=${
+        ctx.userId ?? "null"
+      } start`,
+    );
     // In MEGA_TEST_MODE, Resend is skipped by the shared helper; keep the job safe anyway.
 
-    // Configurable links per environment (DB-driven)
-    const subscribeLink =
-      (await getConfigValue(supabase, "subscribe_url")) ||
-      "https://app.sophia.com/subscribe";
+    const subscribeLink = RETENTION_UPGRADE_URL;
 
     // 1. Récupérer les users potentiellement concernés
     // On cherche ceux dont le trial_end est "autour" de nos jours cibles
     // Pour simplifier, on prend tous ceux dont le trial est fini ou finit bientôt, et on filtre en JS
     // Optimisation: On pourrait faire une requête SQL précise avec des OR
-    
+
     // On prend large : trial_end entre J-2 et J+6
     const now = new Date();
-    const rangeStart = new Date(now); rangeStart.setDate(rangeStart.getDate() - 6);
-    const rangeEnd = new Date(now); rangeEnd.setDate(rangeEnd.getDate() + 2);
+    const rangeStart = new Date(now);
+    rangeStart.setDate(rangeStart.getDate() - 6);
+    const rangeEnd = new Date(now);
+    rangeEnd.setDate(rangeEnd.getDate() + 2);
 
     const { data: users, error } = await supabase
       .from("profiles")
@@ -67,7 +95,9 @@ serve(async (req) => {
 
     if (error) throw error;
 
-    console.log(`${users.length} utilisateurs trouvés dans la fenêtre de dates.`);
+    console.log(
+      `${users.length} utilisateurs trouvés dans la fenêtre de dates.`,
+    );
 
     let sentCount = 0;
 
@@ -90,7 +120,7 @@ serve(async (req) => {
       const diffDays = Math.round(diffTime / (1000 * 60 * 60 * 24));
 
       // Trouver l'étape correspondante
-      const step = RETENTION_STEPS.find(s => s.days === diffDays);
+      const step = RETENTION_STEPS.find((s) => s.days === diffDays);
 
       if (!step) continue; // Pas un jour d'envoi
 
@@ -105,11 +135,17 @@ serve(async (req) => {
       if (existingLogs && existingLogs.length > 0) continue; // Déjà fait
 
       // Si on arrive ici, on doit envoyer !
-      console.log(`Envoi email ${step.type} à user ${user.id} (Delta: ${diffDays}j)`);
+      console.log(
+        `Envoi email ${step.type} à user ${user.id} (Delta: ${diffDays}j)`,
+      );
 
       // Générer le contenu
-      const content = getEmailContent(step.type, user.full_name || "L'Architecte", subscribeLink);
-      
+      const content = getEmailContent(
+        step.type,
+        user.full_name || "L'Architecte",
+        subscribeLink,
+      );
+
       // Récupérer l'email (si pas dans profiles, check auth - mais ici profiles devrait l'avoir si sync, sinon skip ou call admin)
       // Note: Dans ta migration 20251213181000_add_email_to_profile.sql tu as ajouté l'email.
       let targetEmail = user.email;
@@ -135,7 +171,11 @@ serve(async (req) => {
           channel: "email",
           type: step.type,
           status: "sent",
-          metadata: { resend_id: (out as any).data?.id ?? null, delta_days: diffDays, skipped: Boolean((out as any).skipped) }
+          metadata: {
+            resend_id: (out as any).data?.id ?? null,
+            delta_days: diffDays,
+            skipped: Boolean((out as any).skipped),
+          },
         });
         sentCount++;
       } else {
@@ -143,12 +183,19 @@ serve(async (req) => {
       }
     }
 
-    return new Response(JSON.stringify({ processed: users.length, sent: sentCount }), {
-      headers: { "Content-Type": "application/json" },
-    });
-
+    return new Response(
+      JSON.stringify({ processed: users.length, sent: sentCount }),
+      {
+        headers: { "Content-Type": "application/json" },
+      },
+    );
   } catch (err) {
-    console.error(`[trigger-retention-emails] request_id=${ctx.requestId} user_id=${ctx.userId ?? "null"}`, err);
+    console.error(
+      `[trigger-retention-emails] request_id=${ctx.requestId} user_id=${
+        ctx.userId ?? "null"
+      }`,
+      err,
+    );
     await logEdgeFunctionError({
       functionName: "trigger-retention-emails",
       error: err,
@@ -156,16 +203,29 @@ serve(async (req) => {
       userId: ctx.userId,
       source: "email",
       metadata: { client_request_id: ctx.clientRequestId },
-    })
-    return new Response(JSON.stringify({ error: err.message }), { status: 500 });
+    });
+    return new Response(
+      JSON.stringify({
+        error: err instanceof Error ? err.message : String(err),
+      }),
+      {
+        status: 500,
+      },
+    );
   }
 });
 
 // Générateur de templates (Contenu)
-function getEmailContent(type: string, name: string, subscribeLink: string): string {
-  const prenom = name.split(' ')[0];
-  const commonStyle = `font-family: sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto;`;
-  const btnStyle = `display: inline-block; background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 20px;`;
+function getEmailContent(
+  type: string,
+  name: string,
+  subscribeLink: string,
+): string {
+  const prenom = name.split(" ")[0];
+  const commonStyle =
+    `font-family: sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto;`;
+  const btnStyle =
+    `display: inline-block; background-color: #000; color: #fff; padding: 12px 24px; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 20px;`;
 
   if (type === "trial_warning_j_minus_1") {
     return `
@@ -242,20 +302,3 @@ function getEmailContent(type: string, name: string, subscribeLink: string): str
 
   return "";
 }
-
-async function getConfigValue(supabase: any, key: string): Promise<string | null> {
-  try {
-    const { data, error } = await supabase
-      .from("app_config")
-      .select("value")
-      .eq("key", key)
-      .limit(1)
-      .maybeSingle();
-
-    if (error) return null;
-    return data?.value ?? null;
-  } catch {
-    return null;
-  }
-}
-

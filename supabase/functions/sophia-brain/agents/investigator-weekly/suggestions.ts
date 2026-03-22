@@ -24,14 +24,14 @@ function toSwapPrompt(decisions: WeeklySuggestionDecision[]): string {
   const activate = decisions.find((item) => item.recommendation === "activate");
   const oldTitle = deactivate?.action_title ?? "l'action actuelle";
   const nextTitle = activate?.action_title ?? "la suivante";
-  return `Vu ta semaine, je te proposerais de remplacer "${oldTitle}" par "${nextTitle}" pour la suite. Je le fais maintenant ?`;
+  return `Vu ta semaine, je te proposerais de remplacer "${oldTitle}" par "${nextTitle}" pour la suite. Si ça te va, tu pourras l'ajuster dans le dashboard. Tu veux qu'on retienne ça ?`;
 }
 
 function toSinglePrompt(decision: WeeklySuggestionDecision): string {
   if (decision.recommendation === "activate") {
-    return `Vu ta semaine, je peux activer "${decision.action_title}" pour la suite. Je le fais maintenant ?`;
+    return `Vu ta semaine, je te proposerais d'activer "${decision.action_title}" pour la suite. Si ça te va, tu pourras l'ajuster dans le dashboard. Tu veux qu'on retienne ça ?`;
   }
-  return `Vu ta semaine, je peux mettre en pause "${decision.action_title}" pour alléger un peu. Je le fais maintenant ?`;
+  return `Vu ta semaine, je te proposerais de mettre en pause "${decision.action_title}" pour alléger un peu. Si ça te va, tu pourras l'ajuster dans le dashboard. Tu veux qu'on retienne ça ?`;
 }
 
 function buildSnapshotStatusMap(payload: WeeklyReviewPayload): Map<string, string> {
@@ -130,182 +130,36 @@ export function buildSuggestionQueue(
   return proposals.slice(0, 3);
 }
 
-async function fetchActivePlanRow(
-  supabase: SupabaseClient,
-  userId: string,
-): Promise<any | null> {
-  const { data, error } = await supabase
-    .from("user_plans")
-    .select("id, submission_id, content")
-    .eq("user_id", userId)
-    .in("status", ["active", "in_progress", "pending"])
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  if (error) throw error;
-  return data ?? null;
-}
+export function describeSuggestionProposalForDashboard(
+  proposal: WeeklySuggestionProposal,
+): { summary: string; retained_changes: string[]; decision_note: string } {
+  const titles = proposal.decisions.map((item) => String(item.action_title ?? "").trim()).filter(Boolean);
+  const activate = proposal.decisions.find((item) => item.recommendation === "activate");
+  const deactivate = proposal.decisions.find((item) => item.recommendation === "deactivate");
 
-async function updatePlanContentStatus(
-  supabase: SupabaseClient,
-  planId: string,
-  match: { actionId?: string | null; title?: string | null },
-  nextStatus: "active" | "pending",
-): Promise<void> {
-  const { data: plan, error } = await supabase
-    .from("user_plans")
-    .select("content")
-    .eq("id", planId)
-    .maybeSingle();
-  if (error) throw error;
-  const content = (plan as any)?.content;
-  const phases = Array.isArray(content?.phases) ? content.phases : null;
-  if (!phases) return;
-  const matchId = String(match.actionId ?? "").trim();
-  const matchTitle = String(match.title ?? "").trim().toLowerCase();
-  const nextPhases = phases.map((phase: any) => ({
-    ...phase,
-    actions: Array.isArray(phase?.actions)
-      ? phase.actions.map((action: any) =>
-        (
-          (matchId && String(action?.id ?? "").trim() === matchId) ||
-          (matchTitle && String(action?.title ?? "").trim().toLowerCase() === matchTitle)
-        )
-          ? { ...action, status: nextStatus }
-          : action
-      )
-      : [],
-  }));
-  await supabase.from("user_plans").update({ content: { ...content, phases: nextPhases } }).eq("id", planId);
-}
-
-async function setActionStatus(params: {
-  supabase: SupabaseClient;
-  userId: string;
-  planId: string;
-  decision: WeeklySuggestionDecision;
-  nextStatus: "active" | "pending";
-}): Promise<{ label: string; rollback: () => Promise<void> }> {
-  const { supabase, userId, planId, decision, nextStatus } = params;
-  const title = String(decision.action_title ?? "").trim();
-  if (!title) throw new Error("missing_action_title");
-
-  if (decision.recommendation === "deactivate" && decision.action_type !== "habitude") {
-    throw new Error("deactivate_forbidden_for_non_habit");
-  }
-
-  if (decision.action_type === "framework") {
-    const { data: rows, error } = await supabase
-      .from("user_framework_tracking")
-      .select("id, action_id, title, status")
-      .eq("user_id", userId)
-      .eq("plan_id", planId)
-      .eq("title", title)
-      .limit(1);
-    if (error || !rows || rows.length === 0) throw error ?? new Error("framework_not_found");
-    const row = rows[0] as any;
-    const previousStatus = String(row?.status ?? "").trim() || "pending";
-    const actionId = String(row?.action_id ?? "").trim() || null;
-
-    const { error: updateError } = await supabase
-      .from("user_framework_tracking")
-      .update({ status: nextStatus })
-      .eq("id", row.id)
-      .eq("user_id", userId);
-    if (updateError) throw updateError;
-
-    await updatePlanContentStatus(supabase, planId, { actionId, title }, nextStatus);
-
+  if (proposal.recommendation === "swap") {
+    const oldTitle = deactivate?.action_title ?? titles[0] ?? "l'action actuelle";
+    const nextTitle = activate?.action_title ?? titles[1] ?? "la suivante";
     return {
-      label: `${decision.recommendation === "activate" ? "Activée" : "Mise en pause"}: ${title}`,
-      rollback: async () => {
-        await supabase
-          .from("user_framework_tracking")
-          .update({ status: previousStatus })
-          .eq("id", row.id)
-          .eq("user_id", userId);
-        await updatePlanContentStatus(supabase, planId, { actionId, title }, previousStatus === "active" ? "active" : "pending");
-      },
+      summary: `Ok, on retient l'idée de remplacer "${oldTitle}" par "${nextTitle}". Tu pourras l'ajuster dans le dashboard quand ce sera le bon moment.`,
+      retained_changes: [`Remplacer "${oldTitle}" par "${nextTitle}" dans le dashboard`],
+      decision_note: `Ajustement retenu pour le dashboard: remplacer "${oldTitle}" par "${nextTitle}"`,
     };
   }
 
-  const { data: rows, error } = await supabase
-    .from("user_actions")
-    .select("id, title, status, type")
-    .eq("user_id", userId)
-    .eq("plan_id", planId)
-    .eq("title", title)
-    .limit(1);
-  if (error || !rows || rows.length === 0) throw error ?? new Error("action_not_found");
-  const row = rows[0] as any;
-  const previousStatus = String(row?.status ?? "").trim() || "pending";
-  const actionType = String(row?.type ?? "").trim();
-  if (decision.recommendation === "deactivate" && actionType !== "habit") {
-    throw new Error("deactivate_forbidden_for_non_habit");
+  const title = String(proposal.decisions[0]?.action_title ?? "").trim() || "cette action";
+  if (proposal.recommendation === "activate") {
+    return {
+      summary: `Ok, on retient l'idée d'activer "${title}" pour la suite. Tu pourras le faire dans le dashboard quand tu voudras valider ce réglage.`,
+      retained_changes: [`Activer "${title}" dans le dashboard`],
+      decision_note: `Ajustement retenu pour le dashboard: activer "${title}"`,
+    };
   }
 
-  const { error: updateError } = await supabase
-    .from("user_actions")
-    .update({ status: nextStatus })
-    .eq("id", row.id)
-    .eq("user_id", userId);
-  if (updateError) throw updateError;
-
-  await updatePlanContentStatus(supabase, planId, { title }, nextStatus);
-
   return {
-    label: `${decision.recommendation === "activate" ? "Activée" : "Mise en pause"}: ${title}`,
-    rollback: async () => {
-      await supabase
-        .from("user_actions")
-        .update({ status: previousStatus })
-        .eq("id", row.id)
-        .eq("user_id", userId);
-      await updatePlanContentStatus(supabase, planId, { title }, previousStatus === "active" ? "active" : "pending");
-    },
-  };
-}
-
-export async function applySuggestionProposal(params: {
-  supabase: SupabaseClient;
-  userId: string;
-  proposal: WeeklySuggestionProposal;
-}): Promise<{ summary: string; applied_changes: string[] }> {
-  const planRow = await fetchActivePlanRow(params.supabase, params.userId);
-  const planId = String((planRow as any)?.id ?? "").trim();
-  if (!planId) throw new Error("missing_active_plan");
-
-  const appliedChanges: string[] = [];
-  const rollbacks: Array<() => Promise<void>> = [];
-  try {
-    for (const decision of params.proposal.decisions) {
-      const nextStatus = decision.recommendation === "activate" ? "active" : "pending";
-      const applied = await setActionStatus({
-        supabase: params.supabase,
-        userId: params.userId,
-        planId,
-        decision,
-        nextStatus,
-      });
-      appliedChanges.push(applied.label);
-      rollbacks.unshift(applied.rollback);
-    }
-  } catch (error) {
-    for (const rollback of rollbacks) {
-      await rollback().catch(() => null);
-    }
-    throw error;
-  }
-
-  const summary = params.proposal.recommendation === "swap"
-    ? "J'ai fait le passage vers la version suivante."
-    : params.proposal.recommendation === "activate"
-    ? "C'est activé."
-    : "C'est mis en pause.";
-
-  return {
-    summary,
-    applied_changes: uniqText(appliedChanges),
+    summary: `Ok, on retient l'idée de mettre en pause "${title}" pour alléger un peu. Tu pourras le faire dans le dashboard si tu confirmes ce réglage.`,
+    retained_changes: [`Mettre en pause "${title}" dans le dashboard`],
+    decision_note: `Ajustement retenu pour le dashboard: mettre en pause "${title}"`,
   };
 }
 

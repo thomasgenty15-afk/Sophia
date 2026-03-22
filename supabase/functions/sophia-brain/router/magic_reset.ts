@@ -45,18 +45,6 @@ export function clearMachineStateTempMemory(opts: {
     "__onboarding_flow",
     "__onboarding_active",
     "__onboarding_done_v2",
-    // Legacy flow keys (defensive cleanup)
-    "create_action_flow",
-    "update_action_flow",
-    "breakdown_action_flow",
-    "deep_reasons_state",
-    "__create_action_signal",
-    "__update_action_signal",
-    "__breakdown_action_signal",
-    "__activate_action_signal",
-    "__delete_action_signal",
-    "__deactivate_action_signal",
-    "__deep_reasons_opportunity",
   ];
 
   const clearedKeys: string[] = [];
