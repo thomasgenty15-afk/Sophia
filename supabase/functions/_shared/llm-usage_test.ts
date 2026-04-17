@@ -1,0 +1,25 @@
+import { assertEquals } from "https://deno.land/std@0.224.0/assert/mod.ts";
+import { inferOperationFromSource } from "./llm-usage.ts";
+
+Deno.test("inferOperationFromSource maps known families", () => {
+  assertEquals(inferOperationFromSource("sophia-brain:dispatcher-v2-contextual").operation_family, "dispatcher");
+  assertEquals(inferOperationFromSource("generate-questionnaire-v2").operation_family, "plan_generation");
+  assertEquals(inferOperationFromSource("conversation-summary").operation_family, "summary_generation");
+  assertEquals(inferOperationFromSource("ethical-text-validator").operation_family, "ethics_check");
+  assertEquals(inferOperationFromSource("trigger-watcher-batch").operation_family, "watcher");
+  assertEquals(inferOperationFromSource("generate-plan").operation_family, "plan_generation");
+  assertEquals(inferOperationFromSource("topic_memory").operation_family, "memorizer");
+  assertEquals(inferOperationFromSource("sophia-brain:topic_initial_synthesis").operation_family, "memorizer");
+  assertEquals(inferOperationFromSource("sophia-brain:synthesizer").operation_family, "memorizer");
+  assertEquals(inferOperationFromSource("sophia-brain:companion").operation_family, "message_generation");
+  assertEquals(inferOperationFromSource("sophia-brain:investigator").operation_family, "message_generation");
+  assertEquals(inferOperationFromSource("sophia-brain:firefighter").operation_family, "message_generation");
+  assertEquals(inferOperationFromSource("sophia-brain:sentry").operation_family, "message_generation");
+  assertEquals(inferOperationFromSource("scheduled_checkins:dynamic_whatsapp").operation_family, "scheduling");
+  assertEquals(inferOperationFromSource("some-embedding-call").operation_family, "embedding");
+});
+
+Deno.test("inferOperationFromSource falls back to other", () => {
+  assertEquals(inferOperationFromSource("custom-unknown-source").operation_family, "other");
+  assertEquals(inferOperationFromSource("").operation_family, "other");
+});

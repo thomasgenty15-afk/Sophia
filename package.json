@@ -1,0 +1,28 @@
+{
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm run preview",
+    "db:start": "npx supabase start",
+    "db:stop": "npx supabase stop",
+    "db:reset": "npx supabase db reset",
+    "db:dump": "npx supabase db dump --local > schema.sql",
+    "fixtures:provision": "node ./frontend/scripts/provision_fixture_user.mjs",
+    "prod:bundle:user": "node ./scripts/export_user_bundle_prod.mjs",
+    "memory:audit:export": "node ./scripts/export_memory_audit_bundle.mjs",
+    "coaching:audit:export": "node ./scripts/export_coaching_intervention_audit_bundle.mjs",
+    "plan-gen:audit:export": "node ./scripts/export_plan_generation_audit_bundle.mjs",
+    "plan-exec:audit:export": "node ./scripts/export_plan_execution_audit_bundle.mjs",
+    "memory-v2:audit:export": "node ./scripts/export_memory_v2_audit_bundle.mjs",
+    "momentum-v2:audit:export": "node ./scripts/export_momentum_v2_audit_bundle.mjs",
+    "bilans-v2:audit:export": "node ./scripts/export_bilans_v2_audit_bundle.mjs",
+    "pulse-v2:audit:export": "node ./scripts/export_conversation_pulse_v2_audit_bundle.mjs",
+    "coaching-v2:audit:export": "node ./scripts/export_coaching_v2_audit_bundle.mjs",
+    "proactive-v2:audit:export": "node ./scripts/export_proactive_v2_audit_bundle.mjs",
+    "llm-cost:audit:export": "node ./scripts/export_llm_cost_audit_bundle.mjs",
+    "test:mega": "node ./scripts/mega-test.mjs"
+  },
+  "devDependencies": {
+    "supabase": "^2.67.1"
+  }
+}

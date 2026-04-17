@@ -1,0 +1,42 @@
+[2026-03-16T15:52:16.653837+00:00] [whatsapp] assistant (request_id=aae12194-5a6e-444b-9609-d7237c1e123f):
+Hey ! Ça marche, on peut faire ça maintenant. C'est le moment de faire notre petit point quotidien pour voir où tu en es. Alors, comment s'est passée ta journée dans l'ensemble ?
+
+[2026-03-16T15:52:26.641554+00:00] [whatsapp] user (request_id=94b94a5e-8a9b-4f58-9e8a-738ca87a5a2b):
+Carrément!
+
+[2026-03-16T15:52:54.772315+00:00] [whatsapp] assistant:
+Hier soir, tu as passé combien de temps sur les écrans avant de te coucher ? La dernière fois tu étais à 20 minutes, tu as réussi à baisser encore ? 📱
+
+[2026-03-16T15:53:48.773155+00:00] [whatsapp] user (request_id=36e1eb97-d8d1-46f5-a5f7-494823401f84):
+Alors hier non jai regardé genre 1h d'ecrans!
+
+[2026-03-16T15:54:22.39611+00:00] [whatsapp] assistant:
+Ok, donc pour les écrans et les écrans, c'est noté. Il me manque encore tes pompes et ton journal du soir. Ça a donné quoi de ce côté-là ?
+
+[2026-03-16T15:54:56.938786+00:00] [whatsapp] user (request_id=448d73c0-0eab-48da-803e-6f8381401aeb):
+Et les écrans ça veut dire quoi?
+
+[2026-03-16T15:55:23.904842+00:00] [whatsapp] assistant:
+Les écrans, ça concerne ton habitude de limiter le téléphone le soir pour protéger ton sommeil et ton énergie. 📱
+
+Pour tes 10 pompes d'hier, tu as réussi à les faire ? On est à 0/7 pour l'instant cette semaine, c'est le moment de lancer la machine ! 👊
+
+[2026-03-16T15:56:25.97506+00:00] [whatsapp] user (request_id=9b65ab75-7c5a-4f25-92d7-b428c740f538):
+Mais cest par rapport a mon couvre feu dital ? 
+Oui jai reussie a les faire !
+
+[2026-03-16T15:56:42.65522+00:00] [whatsapp] assistant:
+Ok, c'est noté pour tes pompes. Il me manque juste ton journal du soir, tu as eu le temps ou pas ?
+
+[2026-03-16T15:57:21.783683+00:00] [whatsapp] user (request_id=b991b511-8ec7-4c5b-abe8-0d7ad4ab15e5):
+Tu veux pas me repondre par rpoort au couvre feu ? Normalement javais le couvre feu digital aussi! 
+
+Non j'ai pas eu le temps
+
+[2026-03-16T15:57:45.066923+00:00] [whatsapp] assistant:
+Ah mais si, carrément ! Quand je parlais des écrans, c'était bien pour ton couvre-feu digital, je me suis sans doute mal exprimée.
+
+Bilan du jour bouclé. Je suis contente que tu aies repris les pompes, c'est un bon début pour la semaine. Pour le reste, on ne lâche rien, on verra ça demain.
+
+Tu te sens comment pour la suite de ta journée ? ☀️
+

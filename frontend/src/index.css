@@ -1,0 +1,271 @@
+@import "tailwindcss";
+
+@layer base {
+  body {
+    @apply bg-gray-50 text-gray-900;
+  }
+}
+
+@theme {
+  --color-background: #f9fafb;
+  --color-primary: #7c3aed;
+  --color-secondary: #2563eb;
+  --color-accent: #db2777;
+  --color-success: #16a34a;
+  
+  /* Ensure emoji/symbol fallback fonts exist across OS/browsers (prevents tofu/diamond placeholders). */
+  --font-sans: Inter, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+}
+
+/* ANIMATIONS WAHOU V3 (ANTI-FLASH) */
+
+/* Le Scan Laser (Plus subtil) */
+@keyframes scan-down {
+  0% {
+    top: -20%;
+    opacity: 0;
+  }
+  10% {
+    opacity: 0.8;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    top: 120%;
+    opacity: 0;
+  }
+}
+
+/* Révélation depuis le sombre */
+@keyframes reveal-blur {
+  0% {
+    opacity: 0; /* Départ invisible */
+    filter: blur(12px);
+    transform: scale(0.98);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0);
+    transform: scale(1);
+  }
+}
+
+/* Cascade fluide vers le haut */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Déploiement ligne verticale */
+@keyframes grow-line {
+  0% { height: 0; opacity: 0; }
+  100% { height: 100%; opacity: 1; }
+}
+
+.animate-scan-down {
+  animation: scan-down 2s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+  pointer-events: none;
+}
+
+.animate-reveal {
+  animation: reveal-blur 1s ease-out forwards; /* Durée un peu plus courte pour la réactivité */
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  opacity: 0;
+}
+
+.animate-grow-line {
+  animation: grow-line 1.5s ease-out forwards;
+  transform-origin: top;
+}
+
+/* Cascade fluide vers le bas */
+@keyframes fade-in-down {
+  0% {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Pulsation lente pour le texte IA */
+@keyframes pulse-slow {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+.animate-fade-in-down {
+  animation: fade-in-down 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
+/* ALERT PULSE (SOFT LOCK) */
+@keyframes alert-pulse-amber {
+  0% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(245, 158, 11, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0);
+  }
+}
+
+@keyframes alert-pulse-emerald {
+  0% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
+  }
+}
+
+.animate-alert-pulse-amber {
+  animation: alert-pulse-amber 2s infinite;
+}
+
+.animate-alert-pulse-emerald {
+  animation: alert-pulse-emerald 2s infinite;
+}
+
+/* Délais */
+.delay-100 { animation-delay: 100ms; }
+.delay-200 { animation-delay: 200ms; }
+.delay-300 { animation-delay: 300ms; }
+.delay-500 { animation-delay: 500ms; }
+
+/* Custom Scrollbar */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 3px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* SNAKE BORDER ANIMATION */
+@keyframes spin-gradient {
+  0% {
+    transform: translate(-50%, -50%) rotate(0deg);
+  }
+  100% {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+.snake-border-box {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+  -webkit-mask-composite: xor;
+  padding: 2px; /* Width of the border */
+  z-index: 10;
+  overflow: hidden; /* Fixes potential scrollbar issues with large gradient */
+}
+
+.snake-border-gradient {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 200vmax; /* Huge size to ensure it covers corners of any rectangular shape */
+  height: 200vmax;
+  background: conic-gradient(transparent 270deg, #8b5cf6 360deg); /* Violet tail */
+  animation: spin-gradient 3s linear infinite;
+}
+
+/* Shimmer sweep for principle unlock */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+
+/* ── Plan Generation – orbital system ─────────────────────────────────── */
+@keyframes orbit-cw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes orbit-ccw {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(-360deg); }
+}
+
+@keyframes glow-core {
+  0%, 100% {
+    box-shadow:
+      0 0 20px 8px  rgba(139, 92, 246, 0.55),
+      0 0 60px 20px rgba(139, 92, 246, 0.22);
+    transform: scale(1);
+  }
+  50% {
+    box-shadow:
+      0 0 32px 14px rgba(139, 92, 246, 0.80),
+      0 0 90px 34px rgba(139, 92, 246, 0.30);
+    transform: scale(1.12);
+  }
+}
+
+@keyframes float-star {
+  0%, 100% { transform: translateY(0)   scale(1);    opacity: 0.35; }
+  50%       { transform: translateY(-10px) scale(1.3); opacity: 0.80; }
+}
+
+@keyframes msg-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0);   }
+}
+
+/* Confetti burst animation */
+@keyframes confetti-fall {
+  0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(40px) rotate(360deg); opacity: 0; }
+}
+.confetti-dot {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  animation: confetti-fall 0.8s ease-out forwards;
+}

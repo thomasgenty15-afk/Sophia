@@ -1,0 +1,485 @@
+import { useEffect, useMemo, useState } from "react";
+import { ArrowLeft, ArrowRight, Loader2 } from "lucide-react";
+
+import type { QuestionnaireSchemaV2 } from "../../lib/onboardingV2";
+
+type QuestionnaireAnswerValue = string | string[];
+const OTHER_PREFIX = "__other__:";
+const TIME_OF_DAY_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+
+function extractOtherText(value: QuestionnaireAnswerValue | undefined): string {
+  if (typeof value === "string") {
+    return value.startsWith(OTHER_PREFIX) ? value.slice(OTHER_PREFIX.length) : "";
+  }
+  if (Array.isArray(value)) {
+    const match = value.find((item) => item.startsWith(OTHER_PREFIX));
+    return match ? match.slice(OTHER_PREFIX.length) : "";
+  }
+  return "";
+}
+
+function hasOtherSelected(value: QuestionnaireAnswerValue | undefined): boolean {
+  if (typeof value === "string") {
+    return value.startsWith(OTHER_PREFIX);
+  }
+  if (Array.isArray(value)) {
+    return value.some((item) => item.startsWith(OTHER_PREFIX));
+  }
+  return false;
+}
+
+type CustomQuestionnaireProps = {
+  schema: QuestionnaireSchemaV2;
+  initialAnswers?: Record<string, unknown>;
+  onSubmit: (answers: Record<string, QuestionnaireAnswerValue>) => void;
+  onBack?: () => void;
+  isSubmitting: boolean;
+};
+
+function normalizeAnswers(
+  initialAnswers: Record<string, unknown> | undefined,
+  schema?: QuestionnaireSchemaV2,
+): Record<string, QuestionnaireAnswerValue> {
+  const normalized: Record<string, QuestionnaireAnswerValue> = {};
+  if (initialAnswers) {
+    for (const [key, value] of Object.entries(initialAnswers)) {
+      if (typeof value === "string") normalized[key] = value;
+      if (typeof value === "number" && Number.isFinite(value)) {
+        normalized[key] = String(value);
+      }
+      if (Array.isArray(value)) {
+        normalized[key] = value.filter((item): item is string =>
+          typeof item === "string"
+        );
+      }
+    }
+  }
+  if (schema) {
+    for (const question of schema.questions) {
+      if (
+        question.kind === "number" &&
+        normalized[question.id] == null &&
+        typeof question.suggested_value === "number" &&
+        Number.isFinite(question.suggested_value)
+      ) {
+        normalized[question.id] = String(question.suggested_value);
+      }
+    }
+  }
+  return normalized;
+}
+
+function isClockTimeQuestion(question: QuestionnaireSchemaV2["questions"][number]): boolean {
+  if (question.kind === "time") return true;
+  if (question.kind !== "number") return false;
+  if (
+    question.capture_goal === "_system_metric_baseline" ||
+    question.capture_goal === "_system_metric_target"
+  ) {
+    return false;
+  }
+
+  const haystack = [
+    question.question,
+    question.helper_text,
+    question.placeholder,
+    question.unit,
+  ]
+    .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
+    .join(" ")
+    .toLowerCase();
+
+  if (!haystack) return false;
+
+  const mentionsDuration =
+    haystack.includes("minute") ||
+    haystack.includes("minutes") ||
+    haystack.includes("min avant") ||
+    haystack.includes("heure avant") ||
+    haystack.includes("heures avant") ||
+    haystack.includes("dur") ||
+    haystack.includes("combien de temps");
+
+  if (mentionsDuration) return false;
+
+  return (
+    haystack.includes("quelle heure") ||
+    haystack.includes("à quelle heure") ||
+    haystack.includes("a quelle heure") ||
+    haystack.includes("heure precise") ||
+    haystack.includes("heure précise") ||
+    haystack.includes("format hh:mm") ||
+    haystack.includes("22:30")
+  );
+}
+
+function isValidTimeValue(value: string): boolean {
+  return TIME_OF_DAY_PATTERN.test(value.trim());
+}
+
+function getSelectionHint(question: QuestionnaireSchemaV2["questions"][number]): string {
+  if (question.kind === "time" || isClockTimeQuestion(question)) {
+    return "Heure precise attendue";
+  }
+
+  if (question.kind === "number") {
+    return question.unit
+      ? `Valeur numerique attendue (${question.unit})`
+      : "Valeur numerique attendue";
+  }
+
+  if (question.kind === "text") {
+    return question.required ? "Reponse libre attendue" : "Reponse libre optionnelle";
+  }
+
+  if (question.kind === "single_choice") {
+    return "1 reponse attendue";
+  }
+
+  if (
+    typeof question.max_selections === "number" &&
+    Number.isFinite(question.max_selections) &&
+    question.max_selections > 1
+  ) {
+    return "Plusieurs reponses possibles";
+  }
+
+  return "Plusieurs reponses possibles";
+}
+
+export function CustomQuestionnaire({
+  schema,
+  initialAnswers,
+  onSubmit,
+  onBack,
+  isSubmitting,
+}: CustomQuestionnaireProps) {
+  const [index, setIndex] = useState(0);
+  const [answers, setAnswers] = useState<
+    Record<string, QuestionnaireAnswerValue>
+  >(
+    () => normalizeAnswers(initialAnswers, schema),
+  );
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setAnswers(normalizeAnswers(initialAnswers, schema));
+  }, [initialAnswers, schema]);
+
+  const questions = schema.questions;
+  const currentQuestion = questions[index];
+  const currentAnswer = answers[currentQuestion.id];
+  const currentQuestionUsesTimeInput = isClockTimeQuestion(currentQuestion);
+
+  const progress = useMemo(
+    () => ((index + 1) / Math.max(questions.length, 1)) * 100,
+    [index, questions.length],
+  );
+  const currentOtherText = extractOtherText(currentAnswer);
+  const otherSelected = hasOtherSelected(currentAnswer);
+
+  function updateSingleValue(value: string) {
+    setAnswers((current) => ({ ...current, [currentQuestion.id]: value }));
+    setError(null);
+    if (
+      currentQuestion.kind === "single_choice" && index < questions.length - 1
+      && value !== `${OTHER_PREFIX}`
+    ) {
+      window.setTimeout(
+        () => setIndex((currentIndex) => currentIndex + 1),
+        150,
+      );
+    }
+  }
+
+  function toggleMultiValue(value: string) {
+    const current = Array.isArray(currentAnswer) ? currentAnswer : [];
+    const next = current.includes(value)
+      ? current.filter((item) => item !== value)
+      : [...current, value];
+    setAnswers((all) => ({ ...all, [currentQuestion.id]: next }));
+    setError(null);
+  }
+
+  function toggleOtherValue() {
+    if (currentQuestion.kind === "single_choice") {
+      if (otherSelected) {
+        setAnswers((current) => {
+          const next = { ...current };
+          delete next[currentQuestion.id];
+          return next;
+        });
+      } else {
+        setAnswers((current) => ({
+          ...current,
+          [currentQuestion.id]: `${OTHER_PREFIX}`,
+        }));
+      }
+      setError(null);
+      return;
+    }
+
+    const current = Array.isArray(currentAnswer) ? currentAnswer : [];
+    const next = otherSelected
+      ? current.filter((item) => !item.startsWith(OTHER_PREFIX))
+      : [...current, `${OTHER_PREFIX}`];
+    setAnswers((all) => ({ ...all, [currentQuestion.id]: next }));
+    setError(null);
+  }
+
+  function updateOtherText(value: string) {
+    const encoded = `${OTHER_PREFIX}${value}`;
+    if (currentQuestion.kind === "single_choice") {
+      setAnswers((current) => ({
+        ...current,
+        [currentQuestion.id]: encoded,
+      }));
+      setError(null);
+      return;
+    }
+
+    const current = Array.isArray(currentAnswer) ? currentAnswer : [];
+    const withoutOther = current.filter((item) => !item.startsWith(OTHER_PREFIX));
+    setAnswers((all) => ({
+      ...all,
+      [currentQuestion.id]: [...withoutOther, encoded],
+    }));
+    setError(null);
+  }
+
+  function validateQuestion(): boolean {
+    if (!currentQuestion.required) return true;
+    if (currentQuestionUsesTimeInput) {
+      return typeof currentAnswer === "string" && isValidTimeValue(currentAnswer);
+    }
+    if (currentQuestion.kind === "number") {
+      return typeof currentAnswer === "string" &&
+        currentAnswer.trim().length > 0 &&
+        Number.isFinite(Number(currentAnswer));
+    }
+    if (currentQuestion.kind === "text") {
+      return typeof currentAnswer === "string" && currentAnswer.trim().length > 0;
+    }
+    if (currentQuestion.kind === "single_choice") {
+      return typeof currentAnswer === "string" &&
+        currentAnswer.trim().length > 0 &&
+        (!otherSelected || currentOtherText.trim().length > 0);
+    }
+    return Array.isArray(currentAnswer) &&
+      currentAnswer.length > 0 &&
+      (!otherSelected || currentOtherText.trim().length > 0);
+  }
+
+  function handleNext() {
+    if (!validateQuestion()) {
+      setError("Réponds à cette question pour continuer.");
+      return;
+    }
+    setError(null);
+    if (index === questions.length - 1) {
+      onSubmit(answers);
+      return;
+    }
+    setIndex((current) => current + 1);
+  }
+
+  function handlePrevious() {
+    if (index === 0) {
+      onBack?.();
+      return;
+    }
+    setIndex((current) => Math.max(0, current - 1));
+  }
+
+  return (
+    <section className="mx-auto w-full max-w-3xl">
+      <div className="mb-6 h-2 overflow-hidden rounded-full bg-gray-200">
+        <div
+          className="h-full rounded-full bg-blue-600 transition-all"
+          style={{ width: `${progress}%` }}
+        />
+      </div>
+
+      <div className="rounded-2xl border border-blue-100 bg-white p-6 pb-24 shadow-sm md:p-8 md:pb-8">
+        <p className="mb-3 text-xs font-bold uppercase tracking-wide text-blue-600">
+          Question {index + 1} / {questions.length}
+        </p>
+        <h1 className="mb-3 font-serif text-2xl font-bold tracking-tight text-gray-900 md:text-4xl">
+          {currentQuestion.question}
+        </h1>
+        <p className="mb-4 text-xs font-medium uppercase tracking-[0.18em] text-gray-400">
+          {getSelectionHint(currentQuestion)}
+        </p>
+        {currentQuestion.helper_text && (
+          <p className="mb-5 text-base leading-relaxed text-gray-600">
+            {currentQuestion.helper_text}
+          </p>
+        )}
+
+        <div className="space-y-3">
+          {currentQuestionUsesTimeInput ? (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                Heure
+              </label>
+              <input
+                type="time"
+                step={60}
+                value={typeof currentAnswer === "string" ? currentAnswer : ""}
+                onChange={(event) => {
+                  setAnswers((current) => ({
+                    ...current,
+                    [currentQuestion.id]: event.target.value,
+                  }));
+                  setError(null);
+                }}
+                className="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+              />
+              <p className="mt-3 text-xs text-gray-500">
+                Choisis une heure de la journee, par exemple 22:30.
+              </p>
+            </div>
+          ) : currentQuestion.kind === "number" ? (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+                {currentQuestion.unit ? `Valeur (${currentQuestion.unit})` : "Valeur"}
+              </label>
+              <input
+                type="number"
+                inputMode="decimal"
+                value={typeof currentAnswer === "string" ? currentAnswer : ""}
+                min={typeof currentQuestion.min_value === "number" ? currentQuestion.min_value : undefined}
+                max={typeof currentQuestion.max_value === "number" ? currentQuestion.max_value : undefined}
+                onChange={(event) => {
+                  setAnswers((current) => ({
+                    ...current,
+                    [currentQuestion.id]: event.target.value,
+                  }));
+                  setError(null);
+                }}
+                placeholder={currentQuestion.placeholder ?? "Entre une valeur numerique"}
+                className="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+              />
+              {typeof currentQuestion.suggested_value === "number" ? (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAnswers((current) => ({
+                      ...current,
+                      [currentQuestion.id]: String(currentQuestion.suggested_value),
+                    }));
+                    setError(null);
+                  }}
+                  className="mt-3 inline-flex items-center rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-xs font-semibold text-blue-800"
+                >
+                  Utiliser la suggestion : {currentQuestion.suggested_value}
+                  {currentQuestion.unit ? ` ${currentQuestion.unit}` : ""}
+                </button>
+              ) : null}
+            </div>
+          ) : currentQuestion.kind === "text" ? (
+            <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
+              <textarea
+                value={typeof currentAnswer === "string" ? currentAnswer : ""}
+                onChange={(event) => {
+                  setAnswers((current) => ({
+                    ...current,
+                    [currentQuestion.id]: event.target.value,
+                  }));
+                  setError(null);
+                }}
+                placeholder={currentQuestion.placeholder ?? "Ecris ici ta reponse"}
+                className="min-h-[160px] w-full rounded-xl border border-gray-200 bg-white p-4 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+              />
+            </div>
+          ) : (
+            currentQuestion.options.map((option) => {
+              const selected = currentQuestion.kind === "multiple_choice"
+                ? Array.isArray(currentAnswer) &&
+                  currentAnswer.includes(option.id)
+                : currentAnswer === option.id;
+              return (
+                <button
+                  key={option.id}
+                  type="button"
+                  onClick={() =>
+                    currentQuestion.kind === "multiple_choice"
+                      ? toggleMultiValue(option.id)
+                      : updateSingleValue(option.id)}
+                  className={`w-full rounded-xl border px-4 py-4 text-left transition ${
+                    selected
+                      ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200"
+                      : "border-gray-200 bg-gray-50 text-gray-900 hover:border-blue-200"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              );
+            })
+          )}
+
+          {currentQuestion.kind !== "number" && currentQuestion.kind !== "time" && currentQuestion.allow_other && (
+            <>
+              <button
+                type="button"
+                onClick={toggleOtherValue}
+                className={`w-full rounded-xl border px-4 py-4 text-left transition ${
+                  otherSelected
+                    ? "border-blue-600 bg-blue-600 text-white shadow-md shadow-blue-200"
+                    : "border-gray-200 bg-gray-50 text-gray-900 hover:border-blue-200"
+                }`}
+              >
+                Autre
+              </button>
+              {otherSelected && (
+                <textarea
+                  value={currentOtherText}
+                  onChange={(event) => updateOtherText(event.target.value)}
+                  placeholder={currentQuestion.placeholder ?? "Précise ici ta réponse"}
+                  className="min-h-[140px] w-full rounded-xl border border-gray-200 bg-white p-4 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                />
+              )}
+            </>
+          )}
+        </div>
+
+        {error && (
+          <p className="mt-4 text-sm font-medium text-rose-700">{error}</p>
+        )}
+
+        <div className="fixed bottom-0 left-0 right-0 z-10 flex items-center justify-between gap-3 border-t border-gray-200 bg-white/95 p-4 backdrop-blur md:static md:mt-8 md:border-none md:bg-transparent md:p-0">
+          <div>
+            {index > 0 && (
+              <button
+                type="button"
+                onClick={handlePrevious}
+                className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-white px-4 py-3 text-sm font-medium text-gray-600 shadow-sm transition hover:border-blue-200 hover:text-gray-900"
+              >
+                <ArrowLeft className="h-4 w-4" />
+                Précédent
+              </button>
+            )}
+          </div>
+          <button
+            type="button"
+            onClick={handleNext}
+            disabled={isSubmitting}
+            className="inline-flex items-center gap-2 rounded-full bg-blue-600 px-5 py-3 text-sm font-bold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Chargement…
+              </>
+            ) : (
+              <>
+                {index === questions.length - 1 ? "Continuer" : "Suivant"}
+                <ArrowRight className="h-4 w-4" />
+              </>
+            )}
+          </button>
+        </div>
+      </div>
+    </section>
+  );
+}

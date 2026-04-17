@@ -1,0 +1,232 @@
+/// <reference path="../tsserver-shims.d.ts" />
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+import { createClient } from 'jsr:@supabase/supabase-js@2.87.3'
+import { generateWithGemini, getGlobalAiModel } from '../_shared/gemini.ts'
+import { ensureInternalRequest } from '../_shared/internal-auth.ts'
+import { getRequestId, jsonResponse } from "../_shared/http.ts"
+import { buildUserTimeContextFromValues } from "../_shared/user_time_context.ts"
+
+console.log("Detect Events: Function initialized")
+
+Deno.serve(async (req) => {
+  const requestId = getRequestId(req)
+  try {
+    const authResp = ensureInternalRequest(req)
+    if (authResp) return authResp
+
+    // Service Role client to bypass RLS and access all users' data
+    const supabaseAdmin = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    )
+
+    // Deterministic test mode: always schedule one checkin per active user (no LLM / no network).
+    const megaRaw = (Deno.env.get("MEGA_TEST_MODE") ?? "").trim()
+    const isLocalSupabase =
+      (Deno.env.get("SUPABASE_INTERNAL_HOST_PORT") ?? "").trim() === "54321" ||
+      (Deno.env.get("SUPABASE_URL") ?? "").includes("http://kong:8000")
+    const megaEnabled = megaRaw === "1" || (megaRaw === "" && isLocalSupabase)
+
+    if (megaEnabled) {
+      const { data: activeUsers, error: usersError } = await supabaseAdmin
+        .from('chat_messages')
+        .select('user_id')
+        .eq('role', 'user')
+        .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+
+      if (usersError) throw usersError
+      const userIds = [...new Set((activeUsers ?? []).map(u => u.user_id))]
+
+      const now = Date.now()
+      const results = userIds.map((userId) => ({
+        user_id: userId,
+        origin: "watcher",
+        event_context: "MEGA_TEST_STUB_EVENT",
+        draft_message: "MEGA_TEST_STUB: checkin",
+        scheduled_for: new Date(now + 60 * 60 * 1000).toISOString(),
+        status: 'pending',
+      }))
+
+      if (results.length > 0) {
+        const { error: insertError } = await supabaseAdmin
+          .from('scheduled_checkins')
+          .upsert(results, { onConflict: 'user_id,event_context,scheduled_for' })
+        if (insertError) throw insertError
+      }
+
+      return jsonResponse(req, { success: true, count: results.length, request_id: requestId }, { includeCors: false })
+    }
+
+    // 1. Identify active users in the last 24h
+    // We check for messages from 'user' role in the last 24h
+    const { data: activeUsers, error: usersError } = await supabaseAdmin
+      .from('chat_messages')
+      .select('user_id')
+      .eq('role', 'user')
+      .gt('created_at', new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString())
+      // Use .csv() or a transform if we want distinct, but Supabase JS doesn't have .distinct() easily on select
+      // We'll just fetch and dedup in JS for now (assuming not huge scale yet)
+
+    if (usersError) throw usersError
+
+    // Deduplicate user IDs
+    const userIds = [...new Set(activeUsers.map(u => u.user_id))]
+    console.log(`[detect-future-events] request_id=${requestId} active_users=${userIds.length}`)
+
+    const results = []
+
+    for (const userId of userIds) {
+      const { data: prof } = await supabaseAdmin
+        .from("profiles")
+        .select("timezone, locale")
+        .eq("id", userId)
+        .maybeSingle()
+      const tctx = buildUserTimeContextFromValues({ timezone: (prof as any)?.timezone ?? null, locale: (prof as any)?.locale ?? null })
+
+      // 2. Fetch chat history for this user (last 48h to have context)
+      // We take 48h to capture "Demain j'ai un truc" said yesterday
+      const { data: messages, error: msgError } = await supabaseAdmin
+        .from('chat_messages')
+        .select('role, content, created_at')
+        .eq('user_id', userId)
+        .gt('created_at', new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString())
+        .order('created_at', { ascending: true })
+
+      if (msgError) {
+        console.error(`[detect-future-events] request_id=${requestId} fetch_messages_error`, msgError)
+        continue
+      }
+
+      if (!messages || messages.length === 0) continue
+
+      // Format transcript
+      const transcript = messages.map(m => `[${m.created_at}] ${m.role}: ${m.content}`).join('\n')
+      const now = tctx.now_utc
+
+      // 3. Prompt Gemini
+      const basePrompt = `
+        Tu es "Le Veilleur", une IA bienveillante intégrée à l'assistant Sophia.
+        Ta mission est d'analyser les conversations récentes pour identifier des événements futurs importants dans la vie de l'utilisateur.
+        
+        Repères temporels (CRITIQUES):
+        - Maintenant (UTC): ${now}
+        - Timezone utilisateur: ${tctx.user_timezone}
+        - Maintenant (local utilisateur): ${tctx.user_local_datetime} (${tctx.user_local_human})
+        
+        RÈGLE DE TEMPS:
+        - Si l'utilisateur dit "aujourd'hui/demain/lundi prochain", interprète ces expressions en temps LOCAL utilisateur (timezone ci-dessus).
+        - Tu DOIS retourner "scheduled_for" en UTC (ISO 8601).
+        
+        Objectif :
+        1. Repérer les événements mentionnés (réunions, sorties, concerts, examens, rendez-vous, etc.).
+        2. Déterminer si un message de "suivi" (check-in) serait apprécié par l'utilisateur.
+        3. Calculer le moment IDÉAL pour envoyer ce message.
+           - Si c'est un événement stressant (réunion), on demande après (ex: 1h ou 2h après la fin probable).
+           - Si c'est une soirée, on peut demander le lendemain matin ou tard le soir même.
+           - Si c'est un concert, le lendemain matin.
+        4. NE RÉDIGE PAS le message final ici. On génère le message au moment de l'envoi, avec le contexte le plus récent.
+        
+        Format de sortie attendu : JSON uniquement, un tableau d'objets.
+        [
+          {
+            "event_context": "Courte description de l'événement (ex: Présentation client)",
+            "scheduled_for": "Date ISO 8601 précise (UTC) quand le message doit être envoyé",
+            "confidence_score": "Score entre 0 et 10"
+          }
+        ]
+
+        Règles CRITIQUES :
+        - Ne génère RIEN si aucun événement pertinent n'est trouvé. Renvoie un tableau vide [].
+        - Sois TRÈS CONSERVATEUR. Ne programme un check-in QUE pour des événements majeurs (examen, entretien important, etc.) OU si l'utilisateur demande explicitement qu'on le relance.
+        - IGNORE les événements mineurs, routiniers, ou le fait que l'utilisateur dise simplement "à demain" ou "bonne nuit".
+        - Si le sujet/rappel est déjà pris en charge via rendez-vous/dashboard (création/édition d'action, rappel récurrent, réglage de plan), ne crée PAS de future event.
+        - Si la conversation montre qu'un rendez-vous couvre déjà ce besoin, renvoie [] pour éviter les doublons.
+        - ÉTHIQUE / VERTU (OBLIGATOIRE):
+          - Les check-ins doivent être bienveillants, respectueux, non intrusifs et proportionnés.
+          - Interdit de proposer des relances culpabilisantes, manipulatoires, contrôlantes ou anxiogènes.
+          - Respecte l'autonomie de l'utilisateur: pas de pression, pas de harcèlement de relance.
+          - En cas de doute éthique, ne programme RIEN (renvoie []).
+        - Ne programme JAMAIS de check-in avec un confidence_score inférieur à 8.
+        - Ne propose pas de check-in pour des événements passés depuis longtemps.
+        - Assure-toi que "scheduled_for" est dans le FUTUR par rapport à "Maintenant" (${now}).
+        - Le message doit être chaleureux, comme un ami qui prend des nouvelles.
+      `
+      const systemPrompt = basePrompt
+
+      try {
+        const responseText = await generateWithGemini(
+            systemPrompt, 
+            `Voici l'historique des dernières 48h :\n\n${transcript}`, 
+            0.4, // Low temperature for factual extraction
+            true, // JSON mode
+            [],
+            "auto",
+            { requestId, model: getGlobalAiModel("gemini-2.5-flash"), source: "detect-future-events" }
+        )
+
+        const events = JSON.parse(responseText as string)
+
+        if (Array.isArray(events) && events.length > 0) {
+            
+            for (const event of events) {
+                // Check confidence score to avoid spamming the user
+                const score = Number(event.confidence_score)
+                if (isNaN(score) || score < 8) {
+                    console.log(`[detect-future-events] Skipped event due to low confidence:`, event)
+                    continue
+                }
+
+                // Validate scheduled_for is valid date and in future
+                const scheduledTime = new Date(event.scheduled_for)
+                if (isNaN(scheduledTime.getTime())) {
+                    console.warn("Invalid date:", event.scheduled_for)
+                    continue
+                }
+                
+                // Add to results to insert
+                results.push({
+                    user_id: userId,
+                    origin: "watcher",
+                    event_context: event.event_context,
+                    // Dynamic checkin: message generated at send time.
+                    draft_message: null,
+                    message_mode: "dynamic",
+                    message_payload: {
+                      source: "detect-future-events",
+                      instruction:
+                        "Relance courte liée à l'événement. Utilise le tutoiement. 1 question max. Pas de markdown.",
+                    },
+                    scheduled_for: event.scheduled_for,
+                    status: 'pending'
+                })
+            }
+        }
+
+      } catch (err) {
+        console.error(`[detect-future-events] request_id=${requestId} gemini_error`, err)
+      }
+    }
+
+    // 4. Insert into database
+    if (results.length > 0) {
+        const { error: insertError } = await supabaseAdmin
+            .from('scheduled_checkins')
+            // Idempotency: if the job runs twice, we don't create duplicates.
+            // Requires a unique index on (user_id, event_context, scheduled_for).
+            .upsert(results as any, { onConflict: 'user_id,event_context,scheduled_for' })
+        
+        if (insertError) throw insertError
+        console.log(`[detect-future-events] request_id=${requestId} inserted_checkins=${results.length}`)
+    } else {
+        console.log(`[detect-future-events] request_id=${requestId} inserted_checkins=0`)
+    }
+
+    return jsonResponse(req, { success: true, count: results.length, request_id: requestId }, { includeCors: false })
+
+  } catch (error) {
+    console.error(`[detect-future-events] request_id=${requestId}`, error)
+    const message = error instanceof Error ? error.message : String(error)
+    return jsonResponse(req, { error: message, request_id: requestId }, { status: 500, includeCors: false })
+  }
+})
+

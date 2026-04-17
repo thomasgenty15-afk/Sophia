@@ -1,0 +1,92 @@
+const PROFILE_KEY_MAP = {
+  "conversation.tone": "tone",
+  "conversation.verbosity": "verbosity",
+  "conversation.use_emojis": "useEmojis",
+  "schedule.wake_time": "wakeTime",
+  "schedule.sleep_time": "sleepTime",
+  "schedule.work_hours": "workHours",
+  "schedule.energy_peaks": "energyPeaks",
+  "personal.job": "job",
+  "personal.hobbies": "hobbies",
+  "personal.family": "family"
+};
+export async function loadProfileFactsForOnboarding(admin, userId) {
+  const { data, error } = await admin.from("user_profile_facts").select("key, value").eq("user_id", userId).in("scope", [
+    "global",
+    "whatsapp"
+  ]).eq("status", "active");
+  if (error) {
+    console.warn("[onboarding_helpers] loadProfileFacts failed:", error);
+    return {};
+  }
+  const facts = {};
+  for (const row of data ?? []){
+    const key = String(row?.key ?? "").trim();
+    const factKey = PROFILE_KEY_MAP[key];
+    if (factKey && row?.value != null) {
+      facts[factKey] = typeof row.value === "string" ? row.value : JSON.stringify(row.value);
+    }
+  }
+  return facts;
+}
+export async function loadRecentMemoriesForOnboarding(admin, userId, queryText, limit = 3) {
+  void admin;
+  void userId;
+  void queryText;
+  void limit;
+  return [];
+}
+// ═══════════════════════════════════════════════════════════════════════════════
+// CHECK IF RETURNING USER (has prior interactions)
+// ═══════════════════════════════════════════════════════════════════════════════
+export async function isReturningUser(admin, userId) {
+  // Check for prior WhatsApp messages
+  const { count: waCount } = await admin.from("chat_messages").select("id", {
+    count: "exact",
+    head: true
+  }).eq("user_id", userId).eq("scope", "whatsapp").eq("role", "user").limit(1);
+  // Check for prior web messages
+  const { count: webCount } = await admin.from("chat_messages").select("id", {
+    count: "exact",
+    head: true
+  }).eq("user_id", userId).eq("scope", "web").eq("role", "user").limit(1);
+  const hasWhatsAppHistory = (waCount ?? 0) > 0;
+  const hasWebHistory = (webCount ?? 0) > 0;
+  const returning = hasWhatsAppHistory || hasWebHistory;
+  return {
+    returning,
+    hasWebHistory,
+    hasWhatsAppHistory
+  };
+}
+export async function loadOnboardingContext(admin, userId, queryText = "") {
+  // Load all in parallel for speed
+  const [profileFacts, memories, returningStatus] = await Promise.all([
+    loadProfileFactsForOnboarding(admin, userId),
+    loadRecentMemoriesForOnboarding(admin, userId, queryText, 3),
+    isReturningUser(admin, userId)
+  ]);
+  return {
+    profileFacts,
+    memories,
+    isReturning: returningStatus.returning,
+    hasWebHistory: returningStatus.hasWebHistory,
+    hasWhatsAppHistory: returningStatus.hasWhatsAppHistory
+  };
+}
+export async function getDeferredOnboardingSteps(admin, userId) {
+  const { data } = await admin.from("profiles").select("whatsapp_deferred_onboarding").eq("id", userId).maybeSingle();
+  const raw = data?.whatsapp_deferred_onboarding;
+  if (!Array.isArray(raw)) return [];
+  return raw.filter((s)=>s === "motivation" || s === "personal_fact");
+}
+export async function setDeferredOnboardingSteps(admin, userId, steps) {
+  await admin.from("profiles").update({
+    whatsapp_deferred_onboarding: steps.length > 0 ? steps : null
+  }).eq("id", userId);
+}
+export async function removeDeferredOnboardingStep(admin, userId, step) {
+  const current = await getDeferredOnboardingSteps(admin, userId);
+  const updated = current.filter((s)=>s !== step);
+  await setDeferredOnboardingSteps(admin, userId, updated);
+}

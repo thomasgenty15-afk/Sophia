@@ -1,0 +1,1828 @@
+import { useState, useEffect, useMemo } from "react";
+import {
+  ArrowRight,
+  Bell,
+  Book,
+  ChevronDown,
+  ChevronUp,
+  Compass,
+  Hammer,
+  Layout,
+  Lightbulb,
+  Loader2,
+  Lock,
+  Quote,
+  RefreshCcw,
+  Repeat,
+  Settings,
+  Shield,
+  Sparkles,
+  Map,
+  Plus,
+  Zap,
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+import { useAuth } from "../context/AuthContext";
+import { useOnboardingAmbientAudio } from "../hooks/useOnboardingAmbientAudio";
+import { hasArchitecteAccess } from "../lib/entitlements";
+
+import { PlanActionCardsByLevel } from "../components/dashboard-v2/ActionCardsResourcePanel";
+import { AtelierInspirations } from "../components/dashboard-v2/AtelierInspirations";
+import { BaseDeVieSection } from "../components/dashboard-v2/BaseDeVieSection";
+import { DefenseCard, DefenseCardSkeleton } from "../components/dashboard-v2/DefenseCard";
+import { DimensionSection } from "../components/dashboard-v2/DimensionSection";
+import { LabCardsPanel } from "../components/dashboard-v2/LabCardsPanel";
+import { LevelCompletionModal } from "../components/dashboard-v2/LevelCompletionModal";
+import { Phase1FoundationCard } from "../components/dashboard-v2/Phase1FoundationCard";
+import { Phase1KickoffFlow } from "../components/dashboard-v2/Phase1KickoffFlow";
+import { PhaseProgression } from "../components/dashboard-v2/PhaseProgression";
+import { ProfessionalSupportTrackerCard } from "../components/dashboard-v2/ProfessionalSupportTrackerCard";
+import {
+  PlanRevisionPanel,
+  type PlanRevisionProposal,
+  type PlanRevisionThreadEntry,
+} from "../components/dashboard-v2/PlanRevisionPanel";
+import { PreferencesSection } from "../components/dashboard-v2/PreferencesSection";
+import { RemindersSection } from "../components/dashboard-v2/RemindersSection";
+import { StrategyHeader } from "../components/dashboard-v2/StrategyHeader";
+import { TransformationClosureModal } from "../components/dashboard-v2/TransformationClosureModal";
+import { UnlockPreview } from "../components/dashboard-v2/UnlockPreview";
+
+import { WeekCard } from "../components/dashboard/WeekCard";
+import { WishlistTab } from "../components/architect/WishlistTab";
+import { StoriesTab } from "../components/architect/StoriesTab";
+import { ReflectionsTab } from "../components/architect/ReflectionsTab";
+import { QuotesTab } from "../components/architect/QuotesTab";
+
+import { useDashboardV2Data, type DashboardV2PlanItemRuntime } from "../hooks/useDashboardV2Data";
+import {
+  useDashboardV2Logic,
+  type DashboardV2DimensionGroup,
+} from "../hooks/useDashboardV2Logic";
+import { useDefenseCard } from "../hooks/useDefenseCard";
+import { useLabCards } from "../hooks/useLabCards";
+import { useModules } from "../hooks/useModules";
+import { usePhase1 } from "../hooks/usePhase1";
+import { usePotions } from "../hooks/usePotions";
+import { exportDefenseCardAsPdf } from "../lib/exportDefenseCard";
+import { getPhase1MandatoryProgress } from "../lib/phase1";
+import {
+  buildBaseDeVieDraft,
+  getBaseDeViePayload,
+  isPlanReadyForClosure,
+} from "../lib/baseDeVie";
+import type { LabScopeInput } from "../lib/labScope";
+import { buildLevelReviewQuestions } from "../lib/levelCompletion";
+import { extractProfessionalSupport } from "../lib/professionalSupport";
+import { parsePlanScheduleAnchor } from "../lib/planSchedule";
+import { supabase } from "../lib/supabase";
+import UserProfile from "../components/UserProfile";
+
+const EMPTY_DIMENSION_GROUP: DashboardV2DimensionGroup = {
+  all: [],
+  active: [],
+  pending: [],
+  maintenance: [],
+  stalled: [],
+  completed: [],
+};
+
+type DashboardTab = "plan" | "lab" | "inspiration" | "reminders" | "preferences";
+type ArchitectTab = "coaching" | "wishlist" | "stories" | "reflections" | "quotes";
+type DashboardScopeId = string | "out_of_plan";
+
+type ReviewPlanResponse = {
+  request_id: string;
+  review_id: string;
+  review_kind: PlanRevisionProposal["review_kind"];
+  adjustment_scope: PlanRevisionProposal["adjustment_scope"];
+  decision: PlanRevisionProposal["decision"];
+  understanding: string;
+  impact: string;
+  proposed_changes: string[];
+  control_mode: PlanRevisionProposal["control_mode"];
+  resistance_note: string | null;
+  principle_reminder: string | null;
+  offer_complete_level: boolean;
+  regeneration_feedback: string | null;
+  clarification_question: string | null;
+  assistant_summary: string;
+};
+
+type CompleteLevelResponse = {
+  request_id: string;
+  review_id: string;
+  generation_event_id: string;
+  decision: "keep" | "shorten" | "extend" | "lighten";
+  decision_reason: string;
+  summary: string;
+  next_level: {
+    phase_id: string;
+    level_order: number;
+    title: string;
+    duration_weeks: number;
+  } | null;
+};
+
+type ResourceFocusTarget = {
+  defenseTriggerKey: string;
+  token: number;
+};
+
+export default function DashboardV2() {
+  const navigate = useNavigate();
+  const { startSession } = useOnboardingAmbientAudio();
+  const { subscription, accessTier } = useAuth();
+  const [selectedScopeId, setSelectedScopeId] = useState<DashboardScopeId | null>(null);
+
+  const {
+    user,
+    authLoading,
+    loading,
+    error,
+    profile,
+    cycle,
+    transformations,
+    transformation,
+    plan,
+    planContent,
+    planContentV3,
+    planItems,
+    professionalSupportRecommendations,
+    nextTransformation,
+    hasIncompleteCycle,
+    refetch,
+  } = useDashboardV2Data(
+    selectedScopeId && selectedScopeId !== "out_of_plan" ? selectedScopeId : null,
+  );
+
+  const activePlanContent = planContentV3 ?? planContent;
+  const isV3 = planContentV3 != null;
+  const labScope: LabScopeInput = useMemo(() => {
+    if (!cycle) return null;
+    if (selectedScopeId === "out_of_plan") {
+      return {
+        kind: "out_of_plan",
+        cycleId: cycle.id,
+      };
+    }
+    if (!transformation) return null;
+    return {
+      kind: "transformation",
+      cycleId: cycle.id,
+      transformationId: transformation.id,
+    };
+  }, [cycle, selectedScopeId, transformation]);
+
+  const defense = useDefenseCard(labScope);
+  const labCards = useLabCards(labScope);
+  const potions = usePotions(labScope);
+  const phase1 = usePhase1(isV3 ? transformation : null, refetch);
+  const phase1Progress = getPhase1MandatoryProgress(phase1.phase1);
+  const phase1Completed = phase1Progress.completed >= phase1Progress.total;
+
+  const logic = useDashboardV2Logic({
+    cycle,
+    transformation,
+    plan,
+    planItems,
+    planContentV3,
+    phase1Completed,
+    refetch,
+  });
+  const currentLevel = logic.phases.find((phase) => phase.state === "active") ?? null;
+  const scheduleAnchor = useMemo(
+    () => parsePlanScheduleAnchor(planContentV3?.metadata?.schedule_anchor),
+    [planContentV3],
+  );
+
+  const { modules } = useModules();
+
+  const [mode, setMode] = useState<"action" | "architecte">("action");
+  const [isLabUsageOpen, setIsLabUsageOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState<DashboardTab>("plan");
+  const [architectTab, setArchitectTab] = useState<ArchitectTab>("coaching");
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [profileInitialTab, setProfileInitialTab] = useState<
+    "general" | "subscription" | "settings"
+  >("general");
+  const [dashboardActionBusy, setDashboardActionBusy] = useState<string | null>(null);
+  const [dashboardActionError, setDashboardActionError] = useState<string | null>(null);
+  const [professionalSupportBootstrapId, setProfessionalSupportBootstrapId] =
+    useState<string | null>(null);
+  const [planReviewInput, setPlanReviewInput] = useState("");
+  const [planReviewThread, setPlanReviewThread] = useState<PlanRevisionThreadEntry[]>([]);
+  const [planReviewProposal, setPlanReviewProposal] = useState<PlanRevisionProposal | null>(null);
+  const [planReviewBusy, setPlanReviewBusy] = useState(false);
+  const [isLevelCompletionModalOpen, setIsLevelCompletionModalOpen] = useState(false);
+  const [levelCompletionBusy, setLevelCompletionBusy] = useState(false);
+  const [levelCompletionError, setLevelCompletionError] = useState<string | null>(null);
+  const [levelCompletionSummary, setLevelCompletionSummary] = useState<string | null>(null);
+  const [resourceFocusTarget, setResourceFocusTarget] = useState<ResourceFocusTarget | null>(null);
+  const [isTransformationLimitModalOpen, setIsTransformationLimitModalOpen] = useState(false);
+  const [isClosureModalOpen, setIsClosureModalOpen] = useState(false);
+  const [closureModalDismissedForId, setClosureModalDismissedForId] = useState<string | null>(null);
+  const [completingTransformation, setCompletingTransformation] = useState(false);
+
+  const isOutOfPlanScope = selectedScopeId === "out_of_plan";
+  const shouldBlockForPhase1 = Boolean(
+    isV3 &&
+      transformation &&
+      !isOutOfPlanScope &&
+      !phase1Completed,
+  );
+  const scopeTransformations = transformations.filter((item) =>
+    item.status === "active" || item.status === "completed"
+  );
+  const engagedTransformations = transformations.filter((item) =>
+    item.status === "active" || item.status === "ready" || item.status === "pending"
+  );
+  const remainingTransformations = transformations.filter((item) =>
+    item.status === "ready" || item.status === "pending"
+  );
+  const recommendedAdditionalTransformation = nextTransformation ?? remainingTransformations[0] ?? null;
+  const canAddTransformation = engagedTransformations.length < 2;
+  const currentBaseDeViePayload = useMemo(
+    () => getBaseDeViePayload(transformation?.base_de_vie_payload ?? null),
+    [transformation?.base_de_vie_payload],
+  );
+
+  const openPlanDefenseResourceEditor = (item: DashboardV2PlanItemRuntime) => {
+    const impulse = item.linked_defense_card?.content.impulses.find((entry) =>
+      Array.isArray(entry.triggers) && entry.triggers.length > 0,
+    );
+    const trigger = impulse?.triggers?.[0];
+    if (!item.linked_defense_card || !trigger) return;
+
+    setResourceFocusTarget({
+      defenseTriggerKey: `${item.linked_defense_card.id}:${trigger.trigger_id}`,
+      token: Date.now(),
+    });
+    setActiveTab("lab");
+  };
+  const completedPlanItemTitles = useMemo(
+    () =>
+      planItems
+        .filter((item) => item.status === "completed" || item.status === "in_maintenance")
+        .map((item) => item.title),
+    [planItems],
+  );
+  const closureDraft = useMemo(
+    () =>
+      transformation
+        ? buildBaseDeVieDraft({
+            transformation,
+            activePlanContent,
+            completedItemTitles: completedPlanItemTitles,
+          })
+        : null,
+    [activePlanContent, completedPlanItemTitles, transformation],
+  );
+  const currentLevelReviewQuestions = useMemo(
+    () =>
+      currentLevel
+        ? buildLevelReviewQuestions({
+            title: currentLevel.title,
+            durationWeeks: currentLevel.duration_weeks,
+            weeks: currentLevel.weeks,
+            reviewFocus: currentLevel.review_focus,
+            dimensions: [...new Set(currentLevel.items.map((item) => item.dimension))],
+          })
+        : [],
+    [currentLevel],
+  );
+  const isTransformationReadyForClosure = Boolean(
+    transformation &&
+      plan &&
+      !isOutOfPlanScope &&
+      transformation.status === "active" &&
+      isPlanReadyForClosure(planItems.map((item) => item.status)) &&
+      !currentBaseDeViePayload?.validated_at,
+  );
+
+  useEffect(() => {
+    if (selectedScopeId === "out_of_plan") return;
+    if (transformation?.id && selectedScopeId !== transformation.id) {
+      setSelectedScopeId(transformation.id);
+    }
+  }, [selectedScopeId, transformation?.id]);
+
+  useEffect(() => {
+    if (isOutOfPlanScope && activeTab !== "lab") {
+      setActiveTab("lab");
+    }
+  }, [activeTab, isOutOfPlanScope]);
+
+  useEffect(() => {
+    if (
+      isTransformationReadyForClosure &&
+      transformation &&
+      closureModalDismissedForId !== transformation.id
+    ) {
+      setIsClosureModalOpen(true);
+    }
+  }, [
+    closureModalDismissedForId,
+    isTransformationReadyForClosure,
+    transformation,
+  ]);
+
+  useEffect(() => {
+    if (!transformation || closureModalDismissedForId == null) return;
+    if (closureModalDismissedForId !== transformation.id) {
+      setClosureModalDismissedForId(null);
+    }
+  }, [closureModalDismissedForId, transformation]);
+
+  useEffect(() => {
+    const deepWhyAlreadyPrepared =
+      (phase1.phase1?.deep_why?.questions?.length ?? 0) > 0;
+
+    if (
+      !shouldBlockForPhase1 ||
+      phase1.preparingStart ||
+      phase1.phase1StartCooldownActive ||
+      deepWhyAlreadyPrepared
+    ) {
+      return;
+    }
+    void phase1.prepareStart();
+  }, [
+    phase1.phase1StartCooldownActive,
+    phase1.phase1?.deep_why?.questions?.length,
+    phase1.prepareStart,
+    phase1.preparingStart,
+    shouldBlockForPhase1,
+  ]);
+
+  useEffect(() => {
+    if (!transformation || !plan || !isV3) return;
+    if (professionalSupportBootstrapId === transformation.id) return;
+
+    const supportPayload = extractProfessionalSupport(transformation.handoff_payload);
+    const supportAlreadyStructured = Boolean(
+      supportPayload && (
+        supportPayload.should_recommend === false ||
+        supportPayload.recommendations.every((item) =>
+          typeof item.priority_rank === "number" &&
+          typeof item.timing_kind === "string" &&
+          typeof item.timing_reason === "string"
+        )
+      ),
+    );
+
+    if (
+      professionalSupportRecommendations.length > 0 ||
+      supportAlreadyStructured
+    ) {
+      return;
+    }
+
+    setProfessionalSupportBootstrapId(transformation.id);
+    void supabase.functions
+      .invoke("classify-professional-support-v2", {
+        body: { transformation_id: transformation.id },
+      })
+      .then(async ({ error: invokeError }) => {
+        if (invokeError) throw invokeError;
+        await refetch();
+      })
+      .catch((invokeError) => {
+        console.error("[DashboardV2] professional support bootstrap failed", invokeError);
+      });
+  }, [
+    isV3,
+    plan,
+    professionalSupportBootstrapId,
+    professionalSupportRecommendations.length,
+    refetch,
+    transformation,
+  ]);
+
+  useEffect(() => {
+    setPlanReviewInput("");
+    setPlanReviewThread([]);
+    setPlanReviewProposal(null);
+    setPlanReviewBusy(false);
+    setIsLevelCompletionModalOpen(false);
+    setLevelCompletionBusy(false);
+    setLevelCompletionError(null);
+    setLevelCompletionSummary(null);
+  }, [plan?.id, transformation?.id]);
+
+  const isArchitectMode = mode === "architecte";
+  const canAccessWhatsappFeatures =
+    accessTier === "alliance" || accessTier === "architecte" || accessTier === "trial";
+  const userInitials = (
+    profile?.firstName?.trim()?.[0] ??
+    user?.email?.trim()?.[0] ??
+    "U"
+  ).toUpperCase();
+  const dashboardTabs: ReadonlyArray<{
+    key: DashboardTab;
+    icon: typeof Map;
+    label: string;
+    activeColor: string;
+    activeBg: string;
+  }> = isOutOfPlanScope
+    ? [
+        {
+          key: "lab",
+          icon: Book,
+          label: "Base de vie",
+          activeColor: "text-emerald-600",
+          activeBg: "bg-emerald-50",
+        },
+      ]
+    : [
+        {
+          key: "plan",
+          icon: Map,
+          label: "Plan",
+          activeColor: "text-blue-600",
+          activeBg: "bg-blue-50",
+        },
+        {
+          key: "lab",
+          icon: Hammer,
+          label: "Ressources",
+          activeColor: "text-emerald-600",
+          activeBg: "bg-emerald-50",
+        },
+        {
+          key: "inspiration",
+          icon: Compass,
+          label: "Boussole",
+          activeColor: "text-violet-600",
+          activeBg: "bg-violet-50",
+        },
+        {
+          key: "reminders",
+          icon: Bell,
+          label: "Initiatives",
+          activeColor: "text-amber-600",
+          activeBg: "bg-amber-50",
+        },
+      ];
+
+  const architectWeeks = Object.values(modules)
+    .filter((m) => m.type === "week")
+    .sort((a, b) => {
+      const numA = parseInt(a.id.replace("week_", ""));
+      const numB = parseInt(b.id.replace("week_", ""));
+      return numA - numB;
+    })
+    .map((m) => {
+      const weekNum = m.id.replace("week_", "");
+      const cleanTitle = m.title.replace(/^Semaine \d+ : /, "");
+      let status = "locked";
+      const nextModuleIds = (m as any).nextModuleIds || [];
+      const isNextModuleStartedOrCompleted = nextModuleIds.some((nextId: string) => {
+        const nextModule = modules[nextId];
+        return !!nextModule?.state?.first_updated_at || nextModule?.state?.status === "completed";
+      });
+
+      if (m.state?.status === "completed") {
+        status = isNextModuleStartedOrCompleted ? "completed" : "active";
+      } else if (!m.isLocked && m.isAvailableNow) {
+        if (m.id === "week_1" && isNextModuleStartedOrCompleted) status = "completed";
+        else status = "active";
+      }
+
+      return { id: weekNum, title: cleanTitle, status };
+    });
+
+  if (authLoading || loading) {
+    return (
+      <div className="grid min-h-screen place-items-center bg-slate-50 px-4">
+        <div className="flex items-center gap-3 rounded-full border border-stone-200 bg-white px-5 py-3 text-sm font-medium text-stone-700 shadow-sm">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          Chargement du dashboard
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) return null;
+
+  if (hasIncompleteCycle) {
+    return (
+      <div className="min-h-screen bg-slate-50 px-4 py-8">
+        <div className="mx-auto max-w-2xl rounded-[32px] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.38)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+            Parcours en cours
+          </p>
+          <h1 className="mt-3 text-3xl font-bold text-stone-950">
+            Ton cycle n'est pas encore terminé
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-stone-600">
+            Il faut reprendre l'onboarding avant d'afficher un dashboard
+            d'exécution complet.
+          </p>
+          <button
+            type="button"
+            onClick={handleStartOnboarding}
+            className="mt-6 inline-flex items-center gap-2 rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white"
+          >
+            Reprendre l'onboarding
+            <ArrowRight className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!cycle) {
+    return (
+      <div className="min-h-screen bg-slate-50 px-4 py-8">
+        <div className="mx-auto max-w-2xl rounded-[32px] border border-stone-200 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.38)]">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+            Dashboard
+          </p>
+          <h1 className="mt-3 text-3xl font-bold text-stone-950">
+            Aucun plan actif
+          </h1>
+          <p className="mt-3 text-sm leading-6 text-stone-600">
+            Le cycle est peut-être en génération, ou aucun plan d'exécution
+            n'a encore été activé.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={handleStartOnboarding}
+              className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-4 py-2 text-sm font-semibold text-white"
+            >
+              Lancer un parcours
+              <ArrowRight className="h-4 w-4" />
+            </button>
+            <button
+              type="button"
+              onClick={() => void refetch()}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-700"
+            >
+              <RefreshCcw className="h-4 w-4" />
+              Réessayer
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const handleItemAdapt = (itemId: string) => {
+    navigate("/chat", {
+      state: {
+        source: "dashboard_v2_item_adjustment",
+        plan_item_id: itemId,
+      },
+    });
+  };
+
+  const handleRoadmapReview = () => {
+    navigate("/chat", {
+      state: {
+        source: "dashboard_v2_roadmap_review",
+      },
+    });
+  };
+
+  const handlePlanReviewSubmit = async () => {
+    if (!transformation || !plan || !planContentV3) return;
+    const userComment = planReviewInput.trim();
+    if (!userComment) return;
+
+    setPlanReviewBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke<ReviewPlanResponse>(
+        "review-plan-v1",
+        {
+          body: {
+            transformation_id: transformation.id,
+            plan_id: plan.id,
+            scope: "active_plan",
+            user_comment: userComment,
+            prior_thread: planReviewThread.map((entry) => ({
+              role: entry.role,
+              content: entry.content,
+            })),
+            current_level_context: currentLevel
+              ? {
+                  phase_id: currentLevel.phase_id,
+                  phase_order: currentLevel.phase_order,
+                  title: currentLevel.title,
+                  objective: currentLevel.phase_objective,
+                }
+              : null,
+            plan_content: planContentV3,
+          },
+        },
+      );
+
+      if (fnError) throw fnError;
+      if (!data) throw new Error("La proposition de révision est vide.");
+
+      const now = new Date().toISOString();
+      setPlanReviewThread((current) => [
+        ...current,
+        { role: "user", content: userComment, created_at: now },
+        { role: "assistant", content: data.assistant_summary, created_at: now },
+      ]);
+      setPlanReviewProposal({
+        review_id: data.review_id,
+        review_kind: data.review_kind,
+        adjustment_scope: data.adjustment_scope,
+        decision: data.decision,
+        understanding: data.understanding,
+        impact: data.impact,
+        proposed_changes: data.proposed_changes,
+        control_mode: data.control_mode,
+        resistance_note: data.resistance_note,
+        principle_reminder: data.principle_reminder,
+        offer_complete_level: data.offer_complete_level,
+        regeneration_feedback: data.regeneration_feedback,
+        clarification_question: data.clarification_question,
+        assistant_summary: data.assistant_summary,
+      });
+      setPlanReviewInput("");
+    } catch (reviewError) {
+      console.error("[DashboardV2] active plan review failed", reviewError);
+      setDashboardActionError(
+        reviewError instanceof Error
+          ? reviewError.message
+          : "Impossible d'analyser cette demande de révision pour le moment.",
+      );
+    } finally {
+      setPlanReviewBusy(false);
+    }
+  };
+
+  const handlePlanReviewDismiss = async () => {
+    if (!planReviewProposal) return;
+
+    const reviewId = planReviewProposal.review_id;
+    setPlanReviewProposal(null);
+
+    const { error: updateError } = await supabase
+      .from("user_plan_review_requests")
+      .update({
+        status: "dismissed",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", reviewId);
+
+    if (updateError) {
+      console.error("[DashboardV2] dismiss active plan review failed", updateError);
+    }
+  };
+
+  const handleLevelCompletionSubmit = async (answers: Record<string, string>) => {
+    if (!transformation || !plan || !currentLevel) return;
+
+    setLevelCompletionBusy(true);
+    setLevelCompletionError(null);
+    setDashboardActionError(null);
+
+    try {
+      const { data, error: fnError } = await supabase.functions.invoke<CompleteLevelResponse>(
+        "complete-level-v1",
+        {
+          body: {
+            transformation_id: transformation.id,
+            plan_id: plan.id,
+            answers,
+          },
+        },
+      );
+
+      if (fnError) throw fnError;
+      if (!data) throw new Error("La transition de niveau est vide.");
+
+      setLevelCompletionSummary(data.summary);
+      setIsLevelCompletionModalOpen(false);
+      await refetch();
+    } catch (actionError) {
+      console.error("[DashboardV2] level completion failed", actionError);
+      setLevelCompletionError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de valider ce niveau pour le moment.",
+      );
+    } finally {
+      setLevelCompletionBusy(false);
+    }
+  };
+
+  const handleCloseClosureModal = () => {
+    if (!transformation) {
+      setIsClosureModalOpen(false);
+      return;
+    }
+    setClosureModalDismissedForId(transformation.id);
+    setIsClosureModalOpen(false);
+  };
+
+  const handleCompleteTransformation = async (payload: {
+    lineRedEntries: string[];
+    declicsDraft: typeof closureDraft;
+    declicsUser: NonNullable<typeof closureDraft>;
+  }) => {
+    if (!transformation) return;
+
+    setCompletingTransformation(true);
+    setDashboardActionError(null);
+
+    try {
+      const { error } = await supabase.functions.invoke("complete-transformation-v1", {
+        body: {
+          transformation_id: transformation.id,
+          line_red_entries: payload.lineRedEntries,
+          declics_draft: payload.declicsDraft,
+          declics_user: payload.declicsUser,
+        },
+      });
+      if (error) throw error;
+
+      setIsClosureModalOpen(false);
+      setClosureModalDismissedForId(null);
+      await refetch();
+      setSelectedScopeId("out_of_plan");
+      setActiveTab("lab");
+    } catch (actionError) {
+      console.error("[DashboardV2] transformation completion failed", actionError);
+      setDashboardActionError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de clôturer cette transformation pour le moment.",
+      );
+    } finally {
+      setCompletingTransformation(false);
+    }
+  };
+
+  const handleOpenAdditionalPlanFlow = () => {
+    if (!cycle) return;
+    setDashboardActionError(null);
+    if (!canAddTransformation) {
+      setIsTransformationLimitModalOpen(true);
+      return;
+    }
+    startSession();
+    navigate("/transformations/new");
+  };
+
+  function handleStartOnboarding() {
+    startSession();
+    navigate("/onboarding-v2");
+  }
+
+  const handleStopCycle = async () => {
+    if (!cycle) return;
+    if (!window.confirm("Arrêter ce cycle et abandonner les transformations encore en cours ?")) {
+      return;
+    }
+
+    const now = new Date().toISOString();
+    setDashboardActionBusy("stop_cycle");
+    setDashboardActionError(null);
+
+    try {
+      const [{ error: cycleError }, { error: planError }, { error: transformationError }] =
+        await Promise.all([
+          supabase
+            .from("user_cycles")
+            .update({
+              status: "abandoned",
+              active_transformation_id: null,
+              updated_at: now,
+            })
+            .eq("id", cycle.id),
+          supabase
+            .from("user_plans_v2")
+            .update({
+              status: "archived",
+              archived_at: now,
+              updated_at: now,
+            })
+            .eq("cycle_id", cycle.id)
+            .in("status", ["draft", "active", "paused"]),
+          supabase
+            .from("user_transformations")
+            .update({
+              status: "abandoned",
+              updated_at: now,
+            })
+            .eq("cycle_id", cycle.id)
+            .in("status", ["draft", "ready", "pending", "active"]),
+        ]);
+
+      if (cycleError) throw cycleError;
+      if (planError) throw planError;
+      if (transformationError) throw transformationError;
+
+      await refetch();
+      handleStartOnboarding();
+    } catch (error) {
+      console.error("[DashboardV2] stop cycle failed", error);
+      setDashboardActionError(
+        error instanceof Error
+          ? error.message
+          : "Impossible d’arrêter ce cycle pour le moment.",
+      );
+    } finally {
+      setDashboardActionBusy(null);
+    }
+  };
+
+  return (
+    <div
+      className={`min-h-screen flex flex-col transition-colors duration-500 pb-24 ${
+        isArchitectMode
+          ? "bg-emerald-950 text-emerald-50"
+          : "bg-slate-50 text-slate-900"
+      }`}
+    >
+      {/* ── HEADER ────────────────────────────────────────────────────── */}
+      <header
+        className={`${
+          isArchitectMode
+            ? "bg-emerald-900/50 border-emerald-800"
+            : "bg-white border-gray-100"
+        } px-3 md:px-6 py-3 md:py-4 sticky top-0 z-50 shadow-sm border-b backdrop-blur-md transition-colors duration-500`}
+      >
+        <div className="max-w-5xl mx-auto flex justify-between items-center gap-2">
+            <div className="flex items-center gap-2 md:gap-4">
+              <div
+                className="flex items-center gap-2 cursor-pointer"
+                onClick={() => navigate("/dashboard")}
+              >
+                <img
+                  src="/apple-touch-icon.png"
+                  alt="Sophia"
+                  className="w-10 h-10 rounded-full drop-shadow-sm"
+                />
+              </div>
+
+              <div className="flex flex-row bg-gray-100/10 p-1 rounded-full border border-gray-200/20 gap-0 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setMode("action")}
+                  className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${
+                    !isArchitectMode
+                      ? "bg-white text-blue-600 shadow-sm"
+                      : "text-emerald-300 hover:text-white"
+                  }`}
+                >
+                  <Zap className="w-3 h-3" />
+                  <span className="hidden min-[360px]:inline">Action</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setMode("architecte")}
+                  className={`px-3 sm:px-4 py-2 rounded-full text-xs sm:text-sm font-bold uppercase tracking-wide transition-all flex items-center justify-center gap-1 sm:gap-2 ${
+                    isArchitectMode
+                      ? "bg-emerald-600 text-white shadow-lg shadow-emerald-900/50"
+                      : "text-gray-400 hover:text-gray-600"
+                  }`}
+                >
+                  <Compass className="w-3 h-3" />
+                  <span className="hidden min-[360px]:inline">Architecte</span>
+                </button>
+              </div>
+            </div>
+
+            <div
+              role="button"
+              tabIndex={0}
+              onClick={() => {
+                setProfileInitialTab("general");
+                setIsProfileOpen(true);
+              }}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  setProfileInitialTab("general");
+                  setIsProfileOpen(true);
+                }
+              }}
+              className="w-8 h-8 min-[310px]:w-10 min-[310px]:h-10 rounded-full bg-gray-200/20 flex items-center justify-center font-bold text-xs min-[310px]:text-base border-2 border-white/10 shadow-sm cursor-pointer hover:scale-105 transition-transform shrink-0 z-30"
+            >
+              {isArchitectMode ? "🏛️" : userInitials}
+            </div>
+          </div>
+        </header>
+
+      {/* ── MAIN ──────────────────────────────────────────────────────── */}
+      <main className="max-w-5xl mx-auto px-4 md:px-6 py-10 w-full flex-1 flex flex-col">
+        {error ? (
+          <div className="mb-4 rounded-[24px] border border-rose-200 bg-rose-50 px-4 py-4 text-sm text-rose-800">
+            {error}
+          </div>
+        ) : null}
+
+        {logic.actionError ? (
+          <div className="mb-4 rounded-[24px] border border-amber-200 bg-amber-50 px-4 py-4 text-sm text-amber-900">
+            {logic.actionError}
+          </div>
+        ) : null}
+
+        {isArchitectMode ? (
+          /* ══════════════════════════════════════════════════════════════
+             MODE ARCHITECTE
+             ══════════════════════════════════════════════════════════════ */
+          <div className="animate-fade-in flex-1 flex flex-col">
+            {/* Architect sub-tabs */}
+            <div className="mb-8 overflow-x-auto pb-2 scrollbar-hide">
+              <div className="flex w-full justify-start md:justify-center">
+                <div className="flex bg-emerald-950/50 p-1.5 rounded-xl border border-emerald-800/50 shadow-lg min-w-max">
+                  {(
+                    [
+                      { key: "coaching", icon: Sparkles, label: "L'Atelier" },
+                      { key: "wishlist", icon: Map, label: "Envies" },
+                      { key: "stories", icon: Book, label: "Histoires" },
+                      { key: "reflections", icon: Lightbulb, label: "Réflexions" },
+                      { key: "quotes", icon: Quote, label: "Citations" },
+                    ] as const
+                  ).map((tab) => {
+                    const Icon = tab.icon;
+                    return (
+                      <button
+                        key={tab.key}
+                        type="button"
+                        onClick={() => setArchitectTab(tab.key)}
+                        className={`flex items-center gap-2 px-4 md:px-6 py-2.5 rounded-lg text-sm font-bold transition-all duration-300 ${
+                          architectTab === tab.key
+                            ? "bg-emerald-600 text-white shadow-md scale-105"
+                            : "text-emerald-500/70 hover:text-emerald-400 hover:bg-emerald-900/30"
+                        }`}
+                      >
+                        <Icon className="w-4 h-4 shrink-0" />
+                        <span className="whitespace-nowrap">{tab.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Architect tab content */}
+            {architectTab === "coaching" && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px] p-6 md:p-12">
+                <div className="max-w-4xl mx-auto w-full">
+                  <div className="text-center mb-12">
+                    <h1 className="text-3xl md:text-5xl font-serif font-bold text-emerald-100 mb-4">
+                      L'Atelier
+                    </h1>
+                    <p className="text-sm md:text-base text-emerald-400 max-w-2xl mx-auto italic">
+                      "On ne s'élève pas au niveau de ses objectifs. On tombe au niveau de ses systèmes."
+                    </p>
+                  </div>
+
+                  <div className="flex items-center justify-center gap-3 mb-8">
+                    <div className="w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
+                      <Hammer className="w-4 h-4" />
+                    </div>
+                    <h2 className="text-xs sm:text-sm md:text-lg font-bold text-emerald-400 uppercase tracking-widest text-center">
+                      Niveau de plan 1 : La construction du temple
+                    </h2>
+                  </div>
+
+                  <div className="relative h-[600px] rounded-3xl bg-gradient-to-b from-emerald-950/30 via-emerald-900/05 to-emerald-950/30 shadow-inner overflow-hidden">
+                    <div className="absolute top-0 left-0 right-0 h-4 bg-gradient-to-b from-emerald-950 via-emerald-950/80 to-transparent z-10 pointer-events-none" />
+                    <div className="absolute bottom-0 left-0 right-0 h-4 bg-gradient-to-t from-emerald-950 via-emerald-950/80 to-transparent z-10 pointer-events-none" />
+                    <div className="h-full overflow-y-auto snap-y snap-mandatory scroll-smooth scrollbar-hide p-4 relative z-0">
+                      <div className="space-y-4 py-20">
+                        {architectWeeks.map((week) => (
+                          <WeekCard key={week.id} week={week} />
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mt-8 md:mt-12 pt-8 md:pt-12 border-t border-emerald-800/50 pb-20">
+                    <div className="flex items-center gap-3 mb-8 justify-center">
+                      <div className="w-8 h-8 md:w-10 md:h-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-400">
+                        <Sparkles className="w-4 h-4 md:w-5 md:h-5" />
+                      </div>
+                      <h2 className="text-xs sm:text-sm md:text-lg font-bold text-emerald-400 uppercase tracking-widest text-center">
+                        Niveau de plan 2 : Amélioration du Temple
+                      </h2>
+                    </div>
+
+                    {(() => {
+                      const forgeModule = modules["forge_access"];
+                      const roundTableModule = modules["round_table_1"];
+                      const now = new Date();
+
+                      const isForgeUnlocked =
+                        forgeModule?.state &&
+                        (!forgeModule.state.available_at ||
+                          new Date(forgeModule.state.available_at) <= now);
+                      const isRoundTableUnlocked =
+                        roundTableModule?.state &&
+                        (!roundTableModule.state.available_at ||
+                          new Date(roundTableModule.state.available_at) <= now);
+
+                      const getUnlockText = (mod: any) => {
+                        if (!mod?.state) return "Débloqué après Semaine 12";
+                        if (mod.state.available_at) {
+                          const unlockDate = new Date(mod.state.available_at);
+                          if (unlockDate > now) {
+                            const diffDays = Math.ceil(
+                              Math.abs(unlockDate.getTime() - now.getTime()) /
+                                (1000 * 60 * 60 * 24),
+                            );
+                            return `Disponible dans ${diffDays} jour${diffDays > 1 ? "s" : ""}`;
+                          }
+                        }
+                        return "Débloqué après Semaine 12";
+                      };
+
+                      return (
+                        <div className="grid md:grid-cols-2 gap-6">
+                          <div
+                            onClick={() => {
+                              if (!isRoundTableUnlocked) return;
+                              if (!hasArchitecteAccess(subscription))
+                                return navigate("/upgrade");
+                              navigate("/architecte/alignment");
+                            }}
+                            className={`bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden transition-transform group ${
+                              isRoundTableUnlocked
+                                ? "cursor-pointer hover:scale-[1.02]"
+                                : "cursor-not-allowed opacity-70"
+                            }`}
+                          >
+                            <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                              <Map className="w-12 h-12 md:w-24 md:h-24" />
+                            </div>
+                            <h3 className="text-white font-bold text-lg md:text-xl mb-2">
+                              La Table Ronde
+                            </h3>
+                            <p className="text-emerald-400 text-xs md:text-sm mb-6">
+                              Rituel du Dimanche · 15 min
+                            </p>
+
+                            {isRoundTableUnlocked ? (
+                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-950 bg-emerald-400 py-2 px-4 rounded-lg w-fit shadow-lg shadow-emerald-900/50">
+                                <Zap className="w-3 h-3" /> Accès Ouvert
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
+                                <Lock className="w-3 h-3" />{" "}
+                                {getUnlockText(roundTableModule)}
+                              </div>
+                            )}
+                          </div>
+
+                          <div
+                            onClick={() => {
+                              if (!isForgeUnlocked) return;
+                              if (!hasArchitecteAccess(subscription))
+                                return navigate("/upgrade");
+                              navigate("/architecte/evolution");
+                            }}
+                            className={`bg-gradient-to-br from-emerald-900 to-emerald-950 border border-emerald-800 p-6 md:p-8 rounded-2xl relative overflow-hidden transition-transform group ${
+                              isForgeUnlocked
+                                ? "cursor-pointer hover:scale-[1.02]"
+                                : "cursor-not-allowed opacity-70"
+                            }`}
+                          >
+                            <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
+                              <Layout className="w-12 h-12 md:w-24 md:h-24" />
+                            </div>
+                            <h3 className="text-white font-bold text-lg md:text-xl mb-2">
+                              La Forge
+                            </h3>
+                            <p className="text-emerald-400 text-xs md:text-sm mb-6">
+                              Patch Notes · v2.1, v2.2...
+                            </p>
+
+                            {isForgeUnlocked ? (
+                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-950 bg-amber-400 py-2 px-4 rounded-lg w-fit shadow-lg shadow-amber-900/50">
+                                <Hammer className="w-3 h-3" /> Accès Ouvert
+                              </div>
+                            ) : (
+                              <div className="flex items-center gap-2 text-[10px] md:text-xs font-bold text-emerald-200 bg-emerald-950/50 py-2 px-4 rounded-lg w-fit border border-emerald-800">
+                                <Lock className="w-3 h-3" />{" "}
+                                {getUnlockText(forgeModule)}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })()}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {architectTab === "wishlist" && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
+                <WishlistTab />
+              </div>
+            )}
+
+            {architectTab === "stories" && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
+                <StoriesTab />
+              </div>
+            )}
+
+            {architectTab === "reflections" && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
+                <ReflectionsTab />
+              </div>
+            )}
+
+            {architectTab === "quotes" && (
+              <div className="flex-1 bg-emerald-950/20 rounded-3xl border border-emerald-800/30 overflow-hidden flex flex-col min-h-[600px]">
+                <QuotesTab />
+              </div>
+            )}
+          </div>
+        ) : (
+          /* ══════════════════════════════════════════════════════════════
+            MODE ACTION
+             ══════════════════════════════════════════════════════════════ */
+          <div className="animate-fade-in flex-1 flex flex-col">
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10">
+              {/* ── SIDEBAR (Niveau 2 : Scope & Préférences) ── */}
+              <div className="lg:col-span-3 space-y-4">
+                <div className="rounded-[24px] border border-stone-200 bg-white p-4 shadow-sm flex flex-col gap-1">
+                  <div className="px-3 pb-2 pt-1 text-[11px] font-bold uppercase tracking-wider text-stone-400">
+                    Mes Parcours
+                  </div>
+                  
+                  {scopeTransformations.map((item) => {
+                    const isActiveScope =
+                      !isOutOfPlanScope && transformation?.id === item.id;
+                    return (
+                      <button
+                        key={item.id}
+                        type="button"
+                        onClick={() => setSelectedScopeId(item.id)}
+                        className={`text-left px-4 py-3 rounded-[16px] text-sm font-semibold transition-colors ${
+                          isActiveScope
+                            ? "bg-blue-50 text-blue-700 border border-blue-100"
+                            : "text-stone-600 hover:bg-stone-50 border border-transparent"
+                        }`}
+                      >
+                        {item.title || `Transformation ${item.priority_order}`}
+                      </button>
+                    );
+                  })}
+
+                  <button
+                    type="button"
+                    onClick={() => setSelectedScopeId("out_of_plan")}
+                    className={`text-left px-4 py-3 rounded-[16px] text-sm font-semibold transition-colors mt-1 ${
+                      isOutOfPlanScope
+                        ? "bg-emerald-50 text-emerald-700 border border-emerald-100"
+                        : "text-stone-600 hover:bg-stone-50 border border-transparent"
+                    }`}
+                  >
+                    Base de vie
+                  </button>
+
+                  <div className="h-px bg-stone-100 my-3" />
+
+                  <button
+                    type="button"
+                    onClick={handleOpenAdditionalPlanFlow}
+                    className="flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors border border-transparent"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Ajouter une transformation
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => setActiveTab("preferences")}
+                    className={`flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold transition-colors border ${
+                      activeTab === "preferences"
+                        ? "bg-stone-900 text-white border-stone-900"
+                        : "text-stone-600 hover:bg-stone-50 border-transparent"
+                    }`}
+                  >
+                    <Settings className="h-4 w-4" />
+                    Préférences
+                  </button>
+                </div>
+              </div>
+
+              {/* ── MAIN CONTENT (Niveau 3 : Outils & Contenu) ── */}
+              <div className="lg:col-span-9 space-y-5">
+                {/* ── TAB NAVIGATION ─────────────────────────────────── */}
+                <div className="flex w-full justify-start md:justify-center overflow-x-auto pb-2 scrollbar-hide">
+                  <div className="flex bg-slate-200/50 p-1.5 rounded-2xl border border-slate-200/50 min-w-max w-full">
+                    {dashboardTabs.map((tab) => {
+                      const Icon = tab.icon;
+                      const isActive = activeTab === tab.key;
+                      return (
+                        <button
+                          key={tab.key}
+                          type="button"
+                          onClick={() => setActiveTab(tab.key)}
+                          className={`flex items-center justify-center gap-2 px-4 md:px-6 py-2.5 rounded-xl text-sm font-bold transition-all duration-200 flex-1 ${
+                            isActive
+                              ? `bg-white text-slate-900 shadow-sm border border-slate-200/50`
+                              : "text-slate-500 hover:text-slate-700 hover:bg-slate-200/50"
+                          }`}
+                        >
+                          <Icon
+                            className={`w-4 h-4 shrink-0 ${isActive ? tab.activeColor : ""}`}
+                          />
+                          <span className="whitespace-nowrap">{tab.label}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* ── TAB CONTENT ─────────────────────────────────────── */}
+                {shouldBlockForPhase1 ? (
+                  <div className="animate-fade-in">
+                    <Phase1KickoffFlow
+                      key={transformation?.id ?? "phase1-kickoff"}
+                      phase1={phase1.phase1}
+                      transformationTitle={
+                        activePlanContent?.title ||
+                        transformation?.title ||
+                        "ton plan"
+                      }
+                      preparingStart={phase1.preparingStart}
+                      deepWhyPreparing={phase1.preparingDeepWhy}
+                      storyPreparing={phase1.preparingStory}
+                      savingDeepWhy={phase1.savingDeepWhy}
+                      onPrepareStart={() => void phase1.prepareStart({ force: true })}
+                      onPrepareStory={() => void phase1.prepareStory()}
+                      onRevealStory={() => void phase1.markStoryViewed()}
+                      onSaveDeepWhyAnswers={(answers) =>
+                        void phase1.saveDeepWhyAnswers(answers)}
+                    />
+                  </div>
+                ) : activeTab === "plan" ? (
+                  <div className="animate-fade-in space-y-5">
+                    {!transformation || !activePlanContent ? (
+                      <section className="rounded-[30px] border border-dashed border-stone-300 bg-white px-5 py-8 shadow-sm">
+                        <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+                          Plan de transformation
+                        </p>
+                        <h3 className="mt-3 text-2xl font-semibold text-stone-950">
+                          Aucun plan actif pour ce scope
+                        </h3>
+                        <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-600">
+                          Lance un plan supplémentaire depuis le bouton en haut, ou repasse sur une
+                          transformation déjà active pour retrouver son exécution.
+                        </p>
+                        <div className="mt-5 flex flex-wrap gap-3">
+                          <button
+                            type="button"
+                            onClick={handleOpenAdditionalPlanFlow}
+                            className="inline-flex items-center gap-2 rounded-full bg-stone-900 px-4 py-2 text-sm font-semibold text-white"
+                          >
+                            <Plus className="h-4 w-4" />
+                            Ajouter une transformation
+                          </button>
+                        </div>
+                      </section>
+                    ) : (
+                      <>
+                        {isTransformationReadyForClosure && transformation && closureDraft ? (
+                          <section className="rounded-[30px] border border-emerald-200 bg-[linear-gradient(180deg,rgba(236,253,245,1),rgba(255,255,255,1))] px-5 py-5 shadow-sm">
+                            <div className="flex flex-wrap items-start justify-between gap-4">
+                              <div>
+                                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-emerald-700">
+                                  Rituel de passage
+                                </p>
+                                <h3 className="mt-3 text-2xl font-semibold text-stone-950">
+                                  Cette transformation est prête à être clôturée
+                                </h3>
+                                <p className="mt-2 max-w-2xl text-sm leading-6 text-stone-700">
+                                  Tous les éléments du plan sont terminés. Il ne reste plus qu'à
+                                  valider ta Ligne Rouge et tes Déclics avant de faire entrer cette
+                                  étape dans ta Base de vie.
+                                </p>
+                              </div>
+                              <button
+                                type="button"
+                                onClick={() => setIsClosureModalOpen(true)}
+                                className="inline-flex items-center gap-2 rounded-full bg-emerald-700 px-5 py-3 text-sm font-semibold text-white transition hover:bg-emerald-800"
+                              >
+                                Clôturer la transformation
+                                <ArrowRight className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </section>
+                        ) : null}
+
+                        {levelCompletionSummary ? (
+                          <section className="rounded-[30px] border border-blue-100 bg-[linear-gradient(180deg,rgba(239,246,255,1),rgba(255,255,255,1))] px-5 py-5 shadow-sm">
+                            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-blue-700">
+                              Suite du parcours
+                            </p>
+                            <p className="mt-3 text-sm leading-6 text-stone-700">
+                              {levelCompletionSummary}
+                            </p>
+                          </section>
+                        ) : null}
+
+                        <StrategyHeader
+                          title={
+                            activePlanContent.title ||
+                            transformation.title ||
+                            "Transformation active"
+                          }
+                          summary={
+                            activePlanContent.user_summary ||
+                            transformation.user_summary
+                          }
+                          situationContext={planContentV3?.situation_context ?? null}
+                          mechanismAnalysis={planContentV3?.mechanism_analysis ?? null}
+                          keyUnderstanding={planContentV3?.key_understanding ?? null}
+                          progressionLogic={planContentV3?.progression_logic ?? null}
+                          primaryMetric={planContentV3?.primary_metric ?? null}
+                          successDefinition={
+                            activePlanContent.strategy.success_definition
+                          }
+                          journeyContext={activePlanContent.journey_context}
+                          professionalSupport={null}
+                        />
+
+                        <ProfessionalSupportTrackerCard
+                          recommendations={professionalSupportRecommendations}
+                          currentLevelOrder={currentLevel?.phase_order ?? null}
+                          phase1Completed={phase1Completed}
+                          onChanged={refetch}
+                        />
+
+                        {isV3 ? (
+                          <PhaseProgression
+                            phases={logic.phases}
+                            scheduleAnchor={scheduleAnchor}
+                            phase1Node={
+                              <Phase1FoundationCard
+                                phase1={phase1.phase1}
+                                onOpenInspiration={() => setActiveTab("inspiration")}
+                              />
+                            }
+                            activePhaseFooterNode={
+                              <PlanRevisionPanel
+                                value={planReviewInput}
+                                thread={planReviewThread}
+                                proposal={planReviewProposal}
+                                isBusy={planReviewBusy}
+                                currentLevelOrder={currentLevel?.phase_order ?? null}
+                                currentLevelTitle={currentLevel?.title ?? null}
+                                onChange={setPlanReviewInput}
+                                onSubmit={handlePlanReviewSubmit}
+                                onDismissProposal={handlePlanReviewDismiss}
+                                onCompleteLevel={() => {
+                                  setLevelCompletionError(null);
+                                  setIsLevelCompletionModalOpen(true);
+                                }}
+                              />
+                            }
+                            primaryMetricLabel={planContentV3?.primary_metric?.label ?? null}
+                            unlockStateByItemId={logic.unlockStateByItemId}
+                            busyItemId={logic.mutatingItemId}
+                            onComplete={logic.completeItem}
+                            onActivate={logic.activateItem}
+                            onPrepareCards={logic.prepareItemCards}
+                            onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
+                            onBlocker={logic.markItemBlocked}
+                            onDeactivate={logic.deactivateItem}
+                            onRemove={logic.removeItem}
+                            onAdapt={(item) => handleItemAdapt(item.id)}
+                            onLogHeartbeat={() =>
+                              navigate("/chat", {
+                                state: {
+                                  source: "dashboard_v2_heartbeat_checkin",
+                                },
+                              })
+                            }
+                            onCompleteLevel={() => {
+                              setLevelCompletionError(null);
+                              setIsLevelCompletionModalOpen(true);
+                            }}
+                            completeLevelBusy={levelCompletionBusy}
+                            onRoadmapReview={handleRoadmapReview}
+                            journeyContext={activePlanContent.journey_context}
+                          />
+                        ) : (
+                          <>
+                            <DimensionSection
+                              dimension="clarifications"
+                              title="Clarifications"
+                              subtitle="Les repères utiles pour mieux lire la route, comprendre le vrai blocage et choisir la bonne direction."
+                              icon={Shield}
+                              groups={
+                                logic.dimensionGroups.get("clarifications") ??
+                                EMPTY_DIMENSION_GROUP
+                              }
+                              unlockStateByItemId={logic.unlockStateByItemId}
+                              busyItemId={logic.mutatingItemId}
+                              onComplete={logic.completeItem}
+                              onActivate={logic.activateItem}
+                              onPrepareCards={logic.prepareItemCards}
+                              onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
+                              onBlocker={logic.markItemBlocked}
+                              onDeactivate={logic.deactivateItem}
+                              onRemove={logic.removeItem}
+                              onAdapt={(item) => handleItemAdapt(item.id)}
+                            />
+
+                            <DimensionSection
+                              dimension="missions"
+                              title="Missions"
+                              subtitle="Les actions ponctuelles qui font avancer concrètement cette transformation."
+                              icon={Hammer}
+                              groups={
+                                logic.dimensionGroups.get("missions") ??
+                                EMPTY_DIMENSION_GROUP
+                              }
+                              unlockStateByItemId={logic.unlockStateByItemId}
+                              busyItemId={logic.mutatingItemId}
+                              onComplete={logic.completeItem}
+                              onActivate={logic.activateItem}
+                              onPrepareCards={logic.prepareItemCards}
+                              onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
+                              onBlocker={logic.markItemBlocked}
+                              onDeactivate={logic.deactivateItem}
+                              onRemove={logic.removeItem}
+                              onAdapt={(item) => handleItemAdapt(item.id)}
+                            />
+
+                            <DimensionSection
+                              dimension="habits"
+                              title="Habitudes"
+                              subtitle="Les répétitions qui installent la transformation dans le quotidien."
+                              icon={Repeat}
+                              groups={
+                                logic.dimensionGroups.get("habits") ??
+                                EMPTY_DIMENSION_GROUP
+                              }
+                              unlockStateByItemId={logic.unlockStateByItemId}
+                              busyItemId={logic.mutatingItemId}
+                              onComplete={logic.completeItem}
+                              onActivate={logic.activateItem}
+                              onPrepareCards={logic.prepareItemCards}
+                              onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
+                              onBlocker={logic.markItemBlocked}
+                              onDeactivate={logic.deactivateItem}
+                              onRemove={logic.removeItem}
+                              onAdapt={(item) => handleItemAdapt(item.id)}
+                            />
+
+                            <UnlockPreview
+                              preview={logic.nextUnlock}
+                            />
+                          </>
+                        )}
+
+                        <section className="rounded-[30px] border border-stone-200 bg-white px-5 py-5 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)]">
+                          <div className="flex flex-wrap items-start justify-between gap-4">
+                            <div>
+                              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
+                                Actions du cycle
+                              </p>
+                              <h3 className="mt-3 text-2xl font-semibold text-stone-950">
+                                Gérer la suite du parcours
+                              </h3>
+                              <p className="mt-2 text-sm leading-6 text-stone-600">
+                                Retrouve ici les options globales du cycle: lancer un plan supplémentaire,
+                                revoir la roadmap, ou arrêter le cycle.
+                              </p>
+                            </div>
+                            {remainingTransformations.length > 0 &&
+                            recommendedAdditionalTransformation ? (
+                              <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-950">
+                                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
+                                  Prochain focus
+                                </p>
+                                <p className="mt-2 font-semibold">
+                                  {recommendedAdditionalTransformation.title ||
+                                    `Transformation ${recommendedAdditionalTransformation.priority_order}`}
+                                </p>
+                                <p className="mt-1 text-blue-900/80">
+                                  {recommendedAdditionalTransformation.user_summary}
+                                </p>
+                              </div>
+                            ) : null}
+                          </div>
+
+                          {dashboardActionError ? (
+                            <div className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">
+                              {dashboardActionError}
+                            </div>
+                          ) : null}
+
+                          <div className="mt-5 flex flex-wrap gap-3">
+                            <button
+                              type="button"
+                              onClick={handleRoadmapReview}
+                              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-blue-200 hover:text-gray-900"
+                            >
+                              Revoir la roadmap
+                            </button>
+                            <button
+                              type="button"
+                              onClick={handleOpenAdditionalPlanFlow}
+                              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700"
+                            >
+                              Ajouter une transformation
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => void handleStopCycle()}
+                              disabled={dashboardActionBusy === "stop_cycle"}
+                              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
+                            >
+                              {dashboardActionBusy === "stop_cycle" ? (
+                                <>
+                                  <Loader2 className="h-4 w-4 animate-spin" />
+                                  Arrêt en cours…
+                                </>
+                              ) : (
+                                "Arrêter le cycle"
+                              )}
+                            </button>
+                          </div>
+                        </section>
+                      </>
+                    )}
+                  </div>
+                ) : activeTab === "lab" ? (
+                  <div className="animate-fade-in">
+                    {isOutOfPlanScope ? (
+                      <BaseDeVieSection
+                        cycleId={cycle.id}
+                        userId={user.id}
+                        transformations={transformations}
+                        isLocked={!canAccessWhatsappFeatures}
+                        onUnlockRequest={() => navigate("/upgrade")}
+                      />
+                    ) : isV3 ? (
+                      <div className="space-y-5">
+                        <section className="rounded-[30px] border border-stone-200 bg-white px-5 py-5 shadow-sm">
+                          <button
+                            type="button"
+                            onClick={() => setIsLabUsageOpen((value) => !value)}
+                            className="flex w-full items-center justify-center gap-2 text-center text-xs font-bold uppercase tracking-widest text-stone-500 transition-colors hover:text-stone-700"
+                          >
+                            {isLabUsageOpen ? "Masquer les explications" : "Comment utiliser cet espace"}
+                            {isLabUsageOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+                          </button>
+
+                          {isLabUsageOpen ? (
+                            <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 px-5 py-4 text-left text-sm leading-6 text-stone-700 animate-fade-in">
+                              <p className="mb-3">
+                                Cet espace sert a te donner des appuis concrets selon le moment que tu traverses. L'idee n'est pas
+                                de tout theoriser, mais d'avoir la bonne aide au bon moment.
+                              </p>
+                              <p className="mb-3">
+                                Les cartes de defense servent quand quelque chose surgit et que tu as besoin d'une reponse simple,
+                                claire et applicable sur le moment. Les cartes d'attaque servent plus en amont, pour preparer le
+                                terrain, reduire la friction et rendre le bon geste plus naturel.
+                              </p>
+                              <p>
+                                Les potions, elles, servent a traverser un etat interieur quand il prend trop de place:
+                                confusion, decrochage, peur, pression, culpabilite ou manque de douceur. Tu peux donc utiliser
+                                cet espace soit pour reagir, soit pour te preparer, soit pour te recentrer.
+                              </p>
+                              <p className="mt-3">
+                                Les cartes liees au plan sont optionnelles: tu peux lancer leur creation depuis une mission ou une
+                                habitude quand tu sens que ca t'aiderait. Ensuite, elles se rangent directement dans les categories
+                                Defense et Attaque, par niveau, sans t'empecher de creer aussi tes propres cartes en dehors de ces actions.
+                              </p>
+                            </div>
+                          ) : null}
+                        </section>
+
+                        {defense.loading ? (
+                          <DefenseCardSkeleton />
+                        ) : (
+                          <DefenseCard
+                            content={defense.card?.content ?? { impulses: [] }}
+                            onQuickLog={defense.logWin}
+                            onExport={() => {
+                              if (defense.card) {
+                                void exportDefenseCardAsPdf(
+                                  defense.card.content,
+                                  defense.totalWins,
+                                );
+                              }
+                            }}
+                            onAddCard={(input) => defense.addCard(input)}
+                            onPrepareAddCard={(need) => defense.prepareAddCard(need)}
+                            onGenerateAddCardDraft={(need, answers) =>
+                              defense.generateAddCardDraft(need, answers)}
+                            onRemoveCard={(input) => defense.removeCard(input)}
+                            onUpdateCard={(input) => defense.updateCard(input)}
+                            busy={defense.loggingWin}
+                            addingCard={defense.addingCard}
+                            preparingCardDraft={defense.preparingCardDraft}
+                            generatingCardDraft={defense.generatingCardDraft}
+                            removingCard={defense.removingCard}
+                            regenerating={defense.generating}
+                            updatingCard={defense.updatingCard}
+                            focusPlanDefenseTriggerKey={resourceFocusTarget?.defenseTriggerKey ?? null}
+                            focusPlanDefenseToken={resourceFocusTarget?.token ?? null}
+                            planCardsNode={
+                              <PlanActionCardsByLevel
+                                kind="defense"
+                                planContentV3={planContentV3}
+                                planItems={planItems}
+                                embedded
+                                onCardsChanged={refetch}
+                                focusDefenseTriggerKey={resourceFocusTarget?.defenseTriggerKey ?? null}
+                                focusDefenseToken={resourceFocusTarget?.token ?? null}
+                              />
+                            }
+                            freeSectionTitle="Cartes de defense libres"
+                            freeSectionSubtitle="Pour des actions qui peuvent t'aider, mais qui ne sont pas dans le plan."
+                          />
+                        )}
+
+                        <LabCardsPanel
+                          loading={labCards.loading}
+                          generatingAttack={labCards.generatingAttack}
+                          generatingTechniqueKey={labCards.generatingTechniqueKey}
+                          analyzingTechniqueKey={labCards.analyzingTechniqueKey}
+                          attackCard={labCards.attackCard?.content ?? null}
+                          onGenerateAttack={() => void labCards.generateAttack()}
+                          onRegenerateAttack={() => void labCards.regenerateAttack()}
+                          onGenerateTechnique={(techniqueKey, answers, options) =>
+                            labCards.generateTechnique(techniqueKey, answers, options)}
+                          onAnalyzeTechniqueAdjustment={(techniqueKey, reasonKey, notes) =>
+                            labCards.analyzeTechniqueAdjustment(techniqueKey, reasonKey, notes)}
+                          potionsLoading={potions.loading}
+                          potionDefinitions={potions.definitions}
+                          potionLatestSessions={potions.latestSessionByType}
+                          potionUsageCount={potions.usageCountByType}
+                          activatingPotionType={potions.activatingPotionType}
+                          schedulingPotionSessionId={potions.schedulingSessionId}
+                          onActivatePotion={potions.activatePotion}
+                          onReactivatePotion={potions.reactivatePotion}
+                          onSchedulePotionFollowUp={potions.schedulePotionFollowUp}
+                          planAttackCardsNode={
+                            <PlanActionCardsByLevel
+                              kind="attack"
+                              planContentV3={planContentV3}
+                              planItems={planItems}
+                              embedded
+                              onCardsChanged={refetch}
+                            />
+                          }
+                        />
+                      </div>
+                    ) : (
+                      <section className="rounded-[30px] border border-stone-200 bg-white px-5 py-8 text-center shadow-sm">
+                        <Compass className="mx-auto h-10 w-10 text-stone-300" />
+                        <p className="mt-4 text-sm text-stone-500">
+                          L'espace Ressources est disponible avec les plans V3.
+                        </p>
+                      </section>
+                    )}
+                  </div>
+                ) : activeTab === "inspiration" ? (
+                  <div className="animate-fade-in">
+                    {isOutOfPlanScope ? (
+                      <BaseDeVieSection
+                        cycleId={cycle.id}
+                        userId={user.id}
+                        transformations={transformations}
+                        isLocked={!canAccessWhatsappFeatures}
+                        onUnlockRequest={() => navigate("/upgrade")}
+                      />
+                    ) : isV3 && planContentV3 && transformation ? (
+                      <AtelierInspirations
+                        key={transformation.id}
+                        inspirationNarrative={
+                          planContentV3.inspiration_narrative
+                        }
+                        transformationTitle={
+                          planContentV3.title || transformation.title
+                        }
+                        phase1Story={phase1.phase1?.story ?? null}
+                        phase1DeepWhy={phase1.phase1?.deep_why ?? null}
+                        storyPreparing={phase1.preparingStory}
+                        deepWhyPreparing={phase1.preparingDeepWhy}
+                        savingDeepWhy={phase1.savingDeepWhy}
+                        onPrepareStory={(detailsAnswer) => void phase1.prepareStory(detailsAnswer)}
+                        onPrepareDeepWhy={() => void phase1.prepareDeepWhy()}
+                        onSaveDeepWhyAnswers={(answers) =>
+                          void phase1.saveDeepWhyAnswers(answers)}
+                        unlockedPrinciples={
+                          transformation.unlocked_principles ?? {
+                            kaizen: true,
+                          }
+                        }
+                      />
+                    ) : (
+                      <section className="rounded-[30px] border border-stone-200 bg-white px-5 py-8 text-center shadow-sm">
+                        <Sparkles className="mx-auto h-10 w-10 text-stone-300" />
+                        <p className="mt-4 text-sm text-stone-500">
+                          L'espace Boussole est disponible avec les plans V3.
+                        </p>
+                      </section>
+                    )}
+                  </div>
+                ) : activeTab === "reminders" ? (
+                  <div className="animate-fade-in">
+                    <RemindersSection
+                      userId={user.id}
+                      isLocked={!canAccessWhatsappFeatures}
+                      onUnlockRequest={() => navigate("/upgrade")}
+                    />
+                  </div>
+                ) : (
+                  <div className="animate-fade-in">
+                    <PreferencesSection
+                      isLocked={!canAccessWhatsappFeatures}
+                      onUnlockRequest={() => navigate("/upgrade")}
+                    />
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <UserProfile
+        isOpen={isProfileOpen}
+        onClose={() => setIsProfileOpen(false)}
+        mode={mode}
+        initialTab={profileInitialTab}
+      />
+
+      {isTransformationLimitModalOpen ? (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-stone-950/45 px-4">
+          <div className="w-full max-w-lg rounded-[28px] border border-amber-200 bg-white p-6 shadow-[0_24px_80px_-32px_rgba(15,23,42,0.45)]">
+            <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-700">
+              Limite atteinte
+            </p>
+            <h2 className="mt-3 text-2xl font-semibold text-stone-950">
+              C&apos;est limite a 2 transformations
+            </h2>
+            <p className="mt-3 text-sm leading-6 text-stone-600">
+              Si tu veux absolument en lancer une autre, il faut d&apos;abord mettre en pause ou
+              supprimer une transformation active.
+            </p>
+            <div className="mt-6 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setIsTransformationLimitModalOpen(false)}
+                className="inline-flex items-center rounded-full bg-stone-900 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-800"
+              >
+                Compris
+              </button>
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      <TransformationClosureModal
+        isOpen={Boolean(
+          isClosureModalOpen &&
+            transformation &&
+            closureDraft &&
+            isTransformationReadyForClosure,
+        )}
+        mode="create"
+        transformationTitle={
+          transformation?.title ??
+          (transformation ? `Transformation ${transformation.priority_order}` : "")
+        }
+        initialLineRedEntries={currentBaseDeViePayload?.line_red_entries ?? []}
+        initialDeclicsDraft={closureDraft}
+        initialDeclicsUser={currentBaseDeViePayload?.declics_user ?? null}
+        busy={completingTransformation}
+        onClose={handleCloseClosureModal}
+        onSubmit={handleCompleteTransformation}
+      />
+
+      <LevelCompletionModal
+        isOpen={Boolean(
+          isLevelCompletionModalOpen &&
+            currentLevel &&
+            currentLevel.transition_ready,
+        )}
+        levelOrder={currentLevel?.phase_order ?? null}
+        levelTitle={currentLevel?.title ?? ""}
+        questions={currentLevelReviewQuestions}
+        busy={levelCompletionBusy}
+        error={levelCompletionError}
+        onClose={() => {
+          if (levelCompletionBusy) return;
+          setIsLevelCompletionModalOpen(false);
+        }}
+        onSubmit={handleLevelCompletionSubmit}
+      />
+    </div>
+  );
+}

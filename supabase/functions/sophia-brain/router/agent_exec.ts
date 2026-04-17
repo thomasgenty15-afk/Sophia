@@ -1,0 +1,448 @@
+/// <reference path="../../tsserver-shims.d.ts" />
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+import type { SupabaseClient } from "jsr:@supabase/supabase-js@2";
+import type { AgentMode } from "../state-manager.ts";
+import { updateUserState } from "../state-manager.ts";
+import { runSentry, type SentryFlowContext } from "../agents/sentry.ts";
+import { getActiveSafetySentryFlow } from "../supervisor.ts";
+import { runInvestigator } from "../agents/investigator.ts";
+import { logCheckupCompletion } from "../agents/investigator/db.ts";
+import { computeCheckupStatsFromInvestigationState } from "../agents/investigator/checkup_stats.ts";
+import { weeklyInvestigatorSay } from "../agents/investigator-weekly/copy.ts";
+import { runCompanion } from "../agents/companion.ts";
+import { runRoadmapReview } from "../agents/roadmap_review.ts";
+import {
+  buildToolAckContract,
+  type ToolAckContract,
+  type ToolExecutionStatus,
+} from "../tool_ack.ts";
+
+type ExecMeta = {
+  requestId?: string;
+  forceRealAi?: boolean;
+  channel?: "web" | "whatsapp";
+  model?: string;
+  evalRunId?: string | null;
+  forceBrainTrace?: boolean;
+};
+
+const INVESTIGATOR_FAILURE_COOLDOWN_MS = 120_000;
+
+function deriveCheckupCompletionFromState(invState: any): {
+  completionKind: "full" | "partial";
+  source: "chat" | "chat_stop";
+  stats: { items: number; completed: number; missed: number };
+} {
+  const completeStats = computeCheckupStatsFromInvestigationState(invState, {
+    fillUnloggedAsMissed: false,
+  });
+  const allItemsLogged =
+    completeStats.items > 0 && completeStats.logged >= completeStats.items;
+
+  if (allItemsLogged) {
+    return {
+      completionKind: "full",
+      source: "chat",
+      stats: {
+        items: completeStats.items,
+        completed: completeStats.completed,
+        missed: completeStats.missed,
+      },
+    };
+  }
+
+  const partialStats = computeCheckupStatsFromInvestigationState(invState, {
+    fillUnloggedAsMissed: true,
+  });
+  return {
+    completionKind: "partial",
+    source: "chat_stop",
+    stats: {
+      items: partialStats.items,
+      completed: partialStats.completed,
+      missed: partialStats.missed,
+    },
+  };
+}
+
+function isInvestigatorCooldownActive(tempMemory: any): boolean {
+  try {
+    const raw = String(tempMemory?.__investigator_retry_after ?? "").trim();
+    if (!raw) return false;
+    const ts = Date.parse(raw);
+    return Number.isFinite(ts) && ts > Date.now();
+  } catch {
+    return false;
+  }
+}
+
+function normalizeAgentText(text: unknown): string {
+  return String(text ?? "")
+    .replace(/\\n/g, "\n")
+    .replace(/\*\*/g, "")
+    .trim();
+}
+
+function toSentryContext(tempMemory: any): SentryFlowContext {
+  const flow = getActiveSafetySentryFlow(tempMemory);
+  const phaseRaw = String(flow?.phase ?? "acute");
+  const phase: SentryFlowContext["phase"] =
+    phaseRaw === "confirming" || phaseRaw === "resolved" ? phaseRaw : "acute";
+  return {
+    phase,
+    turnCount: Number(flow?.turn_count ?? 0),
+    safetyConfirmed: Boolean(flow?.safety_confirmed),
+    externalHelpMentioned: Boolean(flow?.external_help_mentioned),
+  };
+}
+
+export async function runAgentAndVerify(opts: {
+  supabase: SupabaseClient;
+  userId: string;
+  scope: string;
+  channel: "web" | "whatsapp";
+  userMessage: string;
+  history: any[];
+  state: any;
+  context: string;
+  meta?: ExecMeta;
+  targetMode: AgentMode;
+  nCandidates?: 1 | 3;
+  checkupActive: boolean;
+  stopCheckup: boolean;
+  isPostCheckup: boolean;
+  outageTemplate: string;
+  sophiaChatModel: string;
+  tempMemory?: any;
+  dispatcherDeferredTopic?: string | null;
+  toolResultStatusHook?: (args: {
+    payload: Record<string, unknown>;
+    level: "debug" | "info" | "warn" | "error";
+  }) => Promise<void> | void;
+}): Promise<{
+  responseContent: string;
+  nextMode: AgentMode;
+  tempMemory?: any;
+  toolExecution: ToolExecutionStatus;
+  executedTools: string[];
+  toolAck: ToolAckContract;
+  outageFallback: boolean;
+  outageFailedMode: AgentMode | null;
+  outageErrorMessage: string | null;
+}> {
+  const {
+    supabase,
+    userId,
+    scope,
+    channel,
+    userMessage,
+    history,
+    state,
+    context,
+    meta,
+    targetMode,
+    checkupActive,
+    stopCheckup,
+    isPostCheckup,
+    outageTemplate,
+    sophiaChatModel,
+  } = opts;
+
+  let responseContent = "";
+  let nextMode: AgentMode = targetMode;
+  let tempMemory = opts.tempMemory ?? {};
+  let executedTools: string[] = [];
+  let toolExecution: ToolExecutionStatus = "none";
+  let outageFallback = false;
+  let outageFailedMode: AgentMode | null = null;
+  let outageErrorMessage: string | null = null;
+
+  const computeToolAck = (): ToolAckContract =>
+    buildToolAckContract({ status: toolExecution, executedTools });
+
+  // Forced bilan stop on explicit stop / boredom.
+  {
+    const activeSentryFlow = getActiveSafetySentryFlow(tempMemory);
+    const shouldForceStop = checkupActive && stopCheckup && !activeSentryFlow;
+    if (shouldForceStop) {
+      const invState = (state as any)?.investigation_state;
+      const isWeeklyBilan = String((invState as any)?.mode ?? "") === "weekly_bilan";
+      if (!isWeeklyBilan) {
+        const stats = computeCheckupStatsFromInvestigationState(invState, {
+          fillUnloggedAsMissed: true,
+        });
+        try {
+          await logCheckupCompletion(
+            supabase,
+            userId,
+            { items: stats.items, completed: stats.completed, missed: stats.missed },
+            "chat_stop",
+            "partial",
+          );
+        } catch {
+          // non-blocking
+        }
+      }
+
+      const tm0 = (state as any)?.temp_memory ?? tempMemory ?? {};
+      const tm1: any = {
+        ...(tm0 ?? {}),
+        __flow_just_closed_aborted: true,
+        __flow_just_closed_normally: false,
+        __bilan_just_stopped: {
+          stopped_at: new Date().toISOString(),
+          reason: "interrupt_stop_or_bored",
+        },
+      };
+      try {
+        delete tm1.__flow_just_closed_normally;
+      } catch {
+        // best effort
+      }
+
+      await updateUserState(supabase, userId, scope, {
+        investigation_state: null,
+        temp_memory: tm1,
+      } as any);
+
+      return {
+        responseContent: isWeeklyBilan
+          ? await weeklyInvestigatorSay(
+            "weekly_bilan_user_stopped",
+            {
+              user_message: userMessage,
+              recent_history: (history ?? []).slice(-12),
+            },
+            meta,
+          )
+          : "Pas de souci, on fera le bilan demain soir.",
+        nextMode: "companion",
+        tempMemory: tm1,
+        toolExecution,
+        executedTools,
+        toolAck: computeToolAck(),
+        outageFallback,
+        outageFailedMode,
+        outageErrorMessage,
+      };
+    }
+  }
+
+  // If an active bilan exists, investigator remains owner unless safety took over.
+  const effectiveMode: AgentMode =
+    checkupActive &&
+      !stopCheckup &&
+      targetMode !== "sentry" &&
+      !isInvestigatorCooldownActive(tempMemory)
+      ? "investigator"
+      : targetMode;
+
+  switch (effectiveMode) {
+    case "sentry": {
+      try {
+        const flowContext = toSentryContext(tempMemory);
+        responseContent = await runSentry(userMessage, { ...(meta ?? {}), model: sophiaChatModel }, flowContext);
+        nextMode = "sentry";
+      } catch (e) {
+        console.error("[Router] sentry failed:", e);
+        responseContent = outageTemplate;
+        nextMode = "companion";
+        outageFallback = true;
+        outageFailedMode = "sentry";
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
+      }
+      break;
+    }
+
+    case "investigator": {
+      try {
+        const invResult = await runInvestigator(
+          supabase,
+          userId,
+          userMessage,
+          history,
+          (state as any)?.investigation_state,
+          meta,
+        );
+
+        if (invResult.investigationComplete) {
+          const invState = (state as any)?.investigation_state;
+          const isWeeklyBilan = String((invState as any)?.mode ?? "") === "weekly_bilan";
+          const completion = deriveCheckupCompletionFromState(invState);
+          if (!isWeeklyBilan) {
+            try {
+              await logCheckupCompletion(
+                supabase,
+                userId,
+                completion.stats,
+                completion.source,
+                completion.completionKind,
+              );
+            } catch {
+              // non-blocking
+            }
+          }
+
+          const tm0 = (state as any)?.temp_memory ?? tempMemory ?? {};
+          const tm1: any = {
+            ...(tm0 ?? {}),
+            __flow_just_closed_normally: completion.completionKind === "full",
+            __flow_just_closed_aborted: completion.completionKind !== "full",
+          };
+          if (completion.completionKind !== "full") {
+            tm1.__bilan_just_stopped = {
+              stopped_at: new Date().toISOString(),
+              reason: "investigator_incomplete_completion",
+            };
+          }
+
+          await updateUserState(supabase, userId, scope, {
+            investigation_state: null,
+            temp_memory: tm1,
+          } as any);
+
+          tempMemory = tm1;
+          responseContent = invResult.content;
+          nextMode = "companion";
+        } else {
+          await updateUserState(supabase, userId, scope, {
+            investigation_state: invResult.newState,
+          } as any);
+          responseContent = invResult.content;
+          nextMode = "investigator";
+        }
+      } catch (e) {
+        console.error("[Router] investigator failed:", e);
+        const retryAfterIso = new Date(Date.now() + INVESTIGATOR_FAILURE_COOLDOWN_MS).toISOString();
+        const currentTm = {
+          ...((state as any)?.temp_memory ?? {}),
+          ...(tempMemory ?? {}),
+        };
+        const jobState = (currentTm.__job_state && typeof currentTm.__job_state === "object")
+          ? { ...(currentTm.__job_state as Record<string, unknown>) }
+          : {};
+        const investigatorState = (jobState.investigator && typeof jobState.investigator === "object")
+          ? { ...(jobState.investigator as Record<string, unknown>) }
+          : {};
+        tempMemory = {
+          ...currentTm,
+          __investigator_retry_after: retryAfterIso,
+          __job_state: {
+            ...jobState,
+            investigator: {
+              ...investigatorState,
+              last_error_at: new Date().toISOString(),
+              last_error: String((e as any)?.message ?? e ?? "unknown").slice(0, 240),
+            },
+          },
+        };
+        responseContent = outageTemplate;
+        nextMode = "companion";
+        outageFallback = true;
+        outageFailedMode = "investigator";
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
+      }
+      break;
+    }
+
+    case "roadmap_review": {
+      try {
+        const roadmapMeta = (opts as any)?.roadmapContext ?? null;
+        if (roadmapMeta?.cycleId) {
+          const out = await runRoadmapReview(
+            supabase,
+            userId,
+            userMessage,
+            history,
+            context,
+            {
+              cycleId: roadmapMeta.cycleId,
+              transformations: roadmapMeta.transformations ?? [],
+              isFirstOnboarding: roadmapMeta.isFirstOnboarding ?? true,
+              previousTransformation: roadmapMeta.previousTransformation ?? null,
+            },
+            { ...(meta ?? {}), model: sophiaChatModel },
+          );
+          responseContent = out.text;
+          executedTools = out.executed_tools ?? [];
+          toolExecution = out.tool_execution === "success"
+            ? "success"
+            : out.tool_execution === "error"
+              ? "failed"
+              : "none";
+        } else {
+          console.warn("[Router] roadmap_review: no cycleId in context, falling back to companion");
+          const out = await runCompanion(
+            supabase,
+            userId,
+            scope,
+            userMessage,
+            history,
+            state,
+            context,
+            { ...(meta ?? {}), model: sophiaChatModel },
+          );
+          responseContent = out.text;
+          executedTools = out.executed_tools ?? [];
+          toolExecution = out.tool_execution ?? "none";
+          nextMode = "companion";
+        }
+      } catch (e) {
+        console.error("[Router] roadmap_review failed:", e);
+        responseContent = outageTemplate;
+        outageFallback = true;
+        outageFailedMode = "roadmap_review";
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
+      }
+      if (nextMode !== "companion") nextMode = "roadmap_review";
+      break;
+    }
+
+    case "companion":
+    default: {
+      // Simplified runtime: everything non-safety/non-bilan goes through Companion.
+      try {
+        const out = await runCompanion(
+          supabase,
+          userId,
+          scope,
+          userMessage,
+          history,
+          state,
+          context,
+          { ...(meta ?? {}), model: sophiaChatModel },
+        );
+        responseContent = out.text;
+        tempMemory = out.temp_memory ?? tempMemory;
+        executedTools = out.executed_tools ?? [];
+        toolExecution = out.tool_execution ?? "none";
+      } catch (e) {
+        console.error("[Router] companion failed:", e);
+        responseContent = outageTemplate;
+        outageFallback = true;
+        outageFailedMode = "companion";
+        outageErrorMessage = String((e as any)?.message ?? e ?? "unknown").slice(0, 240);
+      }
+      nextMode = "companion";
+      break;
+    }
+  }
+
+  // During post-checkup assistant turns, enforce phrasing consistency.
+  if (isPostCheckup && responseContent) {
+    responseContent = responseContent.replace(/\bbilan\s+d['’]hier\b/gi, "bilan du jour");
+  }
+
+  return {
+    responseContent: normalizeAgentText(responseContent),
+    nextMode,
+    tempMemory,
+    toolExecution,
+    executedTools,
+    toolAck: computeToolAck(),
+    outageFallback,
+    outageFailedMode,
+    outageErrorMessage,
+  };
+}

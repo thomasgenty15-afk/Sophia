@@ -1,0 +1,68 @@
+[2026-03-12T16:59:40.066112+00:00] [whatsapp] user (request_id=36fc17e1-550f-4a67-986b-c119153572d8):
+Salut ! Bah écoute je vais tenter ça !
+
+[2026-03-12T16:59:51.239375+00:00] [whatsapp] assistant:
+Parfait, c'est l'esprit ! Avec ton virus, l'idée c'est vraiment de ne pas forcer mais de garder le contact avec tes bonnes habitudes. 👊
+
+Comment tu te sens physiquement cet après-midi, tu as un peu plus d'énergie qu'hier ?
+
+[2026-03-12T19:00:36.15725+00:00] [whatsapp] assistant (request_id=7f152813-e199-481e-b76d-e81090db30fe):
+C'est parti pour notre petit point quotidien. On va pouvoir regarder tes objectifs de déconnexion, mais avant ça, comment s'est passée ta journée dans l'ensemble ?
+
+[2026-03-12T21:34:33.405287+00:00] [whatsapp] user (request_id=413f0d3c-63e2-42ed-b97e-41d5de5f2a3b):
+Bah ma journée s'est très bien passée merci :)
+
+[2026-03-12T21:34:57.77186+00:00] [whatsapp] assistant:
+Je suis ravie que ta journée se soit bien passée ! On va regarder ça ensemble. ☀️
+
+Pour ton temps d'écran hier soir, tu dirais que tu as passé combien de minutes devant tes appareils avant de dormir ? C'était mieux que les 120 minutes de la veille ? 📱
+
+[2026-03-12T21:35:25.031833+00:00] [whatsapp] user (request_id=46abb6f2-b515-45d7-ae2e-df955e122c56):
+Oui cetait mieux jai fait 90 minutes!!
+
+[2026-03-12T21:35:54.887268+00:00] [whatsapp] assistant:
+Ok, c'est noté pour les écrans. Il me manque encore les écrans et les écrans. Ça a donné quoi de ce côté-là ?
+
+[2026-03-12T21:36:16.804513+00:00] [whatsapp] user (request_id=031ca7a1-3bba-4df7-997a-4a36711abd85):
+Les ecrans et les ecrans ?
+
+[2026-03-12T21:36:50.876785+00:00] [whatsapp] assistant:
+Désolée pour la confusion juste avant, je me suis un peu emmêlée les pinceaux ! 😅
+
+On passe donc à ton couvre-feu digital léger pour hier soir. L'idée, c'est de mettre le téléphone en "Ne pas déranger" et de le poser loin de toi 30 minutes avant de fermer les yeux.
+
+Comme tu as passé 90 minutes sur les écrans, est-ce que tu as quand même réussi à couper et à l'isoler pour cette dernière demi-heure ? On en est à 0/3 pour ton objectif de la semaine. 📱💤
+
+[2026-03-12T21:37:23.424332+00:00] [whatsapp] user (request_id=7c7b7ac6-48b4-4587-81d1-3190f00e1e64):
+Oui jai reussie jai lu pendant 45 minutes!
+
+[2026-03-12T21:37:41.016383+00:00] [whatsapp] assistant:
+Ok, donc pour les écrans et les écrans, c'est noté. Il me manque encore tes pompes et ton journal du soir. Ça a donné quoi de ce côté-là ?
+
+[2026-03-13T00:00:16.448108+00:00] [whatsapp] assistant (request_id=22b12e08-3bda-4124-880c-c5c2d4076ea5):
+Coucou ! Le calme de la fin de journée est là, comme une lumière plus douce dans ta tête.
+« Tu diriges tes choix : maintenant, ton choix, c’est de dormir. »
+Le sommeil te recharge pour demain et fait émerger ta force intérieure, sans effort.
+Pose ton corps, relâche la mâchoire, et glisse vers le sommeil.
+
+[2026-03-13T06:00:14.448874+00:00] [whatsapp] assistant (request_id=9b8da1a7-ee6e-4a07-a75b-52c1b03e20cd):
+😊
+Dans ta journée, glisse tes 10 pompes, et protège ton attention avec le Couvre-feu Digital Léger puis le Couvre-feu Digital Renforcé.
+Avant de dormir, ton Journal de Fin de Journée te remet au centre.
+Tu construis cette énergie du matin et ce temps à toi, plutôt que de le laisser filer sur les écrans.
+Garde le cap, sans te crisper.
+
+[2026-03-13T19:02:49.694463+00:00] [whatsapp] user (request_id=aa9a7427-1898-49b7-90c9-66d93aa0444a):
+Pas de bilan ce soir ?
+
+[2026-03-13T19:03:09.166152+00:00] [whatsapp] assistant:
+Mais si, je suis là, je suis prête ! C'est super que tu prennes les devants pour notre point d'aujourd'hui. Alors, comment s'est passée ta journée ? 😊
+
+[2026-03-13T19:03:42.464097+00:00] [whatsapp] user (request_id=a9757a01-d945-4011-8d79-ae2bddebca9c):
+Bah ma journée sest plutot bien passée merci!
+
+[2026-03-13T19:04:03.271902+00:00] [whatsapp] assistant:
+Tant mieux, ça fait plaisir à entendre ! Surtout que tu avais ce rendez-vous important aujourd'hui, j'espère que ton énergie a tenu le coup malgré le virus.
+
+On regarde tes actions de la journée ? Pour tes 10 pompes et ton journal, tu as pu les caler ? ☀️
+
