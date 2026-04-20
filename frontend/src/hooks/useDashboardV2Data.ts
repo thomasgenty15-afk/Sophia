@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
+import { resolveDashboardTransformations } from "../lib/dashboardTransformations";
 import { supabase } from "../lib/supabase";
 import type {
   PlanContentV2,
@@ -9,6 +10,7 @@ import type {
   UserCycleRow,
   UserDefenseCardRow,
   UserAttackCardRow,
+  UserLevelToolRecommendationRow,
   UserPlanItemEntryRow,
   UserPlanItemRow,
   UserPlanV2Row,
@@ -38,6 +40,22 @@ export type DashboardV2PlanItemRuntime = UserPlanItemRow & {
 type DashboardV2Profile = {
   firstName: string;
 };
+
+function isMissingLevelToolRecommendationsStorage(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+
+  const code = "code" in error && typeof error.code === "string"
+    ? error.code
+    : "";
+  const message = "message" in error && typeof error.message === "string"
+    ? error.message
+    : "";
+
+  return (
+    (code === "PGRST205" || code === "42P01") &&
+    message.includes("user_level_tool_recommendations")
+  );
+}
 
 function getFirstName(fullName: string | null, fallbackEmail?: string | null) {
   const candidate = fullName?.trim();
@@ -87,10 +105,6 @@ function mapPlanItemRuntime(
   });
 }
 
-function isVisibleTransformationStatus(status: UserTransformationRow["status"]) {
-  return status !== "abandoned" && status !== "cancelled" && status !== "archived";
-}
-
 export function useDashboardV2Data(selectedTransformationId: string | null) {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
@@ -111,6 +125,10 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
   const [planItems, setPlanItems] = useState<DashboardV2PlanItemRuntime[]>([]);
   const [professionalSupportRecommendations, setProfessionalSupportRecommendations] =
     useState<UserProfessionalSupportRecommendationRow[]>([]);
+  const [levelToolRecommendations, setLevelToolRecommendations] =
+    useState<UserLevelToolRecommendationRow[]>([]);
+  const [levelToolRecommendationsAvailable, setLevelToolRecommendationsAvailable] =
+    useState<boolean | null>(null);
   const [nextTransformation, setNextTransformation] =
     useState<UserTransformationRow | null>(null);
   const [hasIncompleteCycle, setHasIncompleteCycle] = useState(false);
@@ -120,6 +138,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
 
     setLoading(true);
     setError(null);
+    setLevelToolRecommendationsAvailable(null);
 
     try {
       const { data: profileRow, error: profileError } = await supabase
@@ -168,6 +187,8 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
         setPlanContentV3(null);
         setPlanItems([]);
         setProfessionalSupportRecommendations([]);
+        setLevelToolRecommendations([]);
+        setLevelToolRecommendationsAvailable(null);
         setNextTransformation(null);
         return;
       }
@@ -188,41 +209,24 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
         (transformationRows as UserTransformationRow[] | null) ?? [];
       setTransformations(allTransformations);
 
-      const visibleTransformations = allTransformations.filter((row) =>
-        isVisibleTransformationStatus(row.status)
-      );
+      const resolvedTransformations = resolveDashboardTransformations({
+        transformations: allTransformations,
+        cycleActiveTransformationId: cycleRow.active_transformation_id,
+        selectedTransformationId,
+      });
 
-      const resolvedActiveTransformation =
-        (cycleRow.active_transformation_id
-          ? visibleTransformations.find((row) => row.id === cycleRow.active_transformation_id)
-          : null) ??
-        visibleTransformations.find((row) => row.status === "active") ??
-        visibleTransformations[0] ??
-        null;
+      setActiveTransformation(resolvedTransformations.activeTransformation);
+      setTransformation(resolvedTransformations.transformation);
+      setNextTransformation(resolvedTransformations.nextTransformation);
 
-      setActiveTransformation(resolvedActiveTransformation);
-
-      const resolvedTransformation =
-        (selectedTransformationId
-          ? visibleTransformations.find((row) => row.id === selectedTransformationId)
-          : null) ??
-        resolvedActiveTransformation;
-
-      setTransformation(resolvedTransformation ?? null);
-
-      const remainingTransformation =
-        visibleTransformations.find((row) =>
-          (row.status === "ready" || row.status === "pending") &&
-          row.id !== resolvedTransformation?.id
-        ) ?? null;
-      setNextTransformation(remainingTransformation);
-
-      if (!resolvedTransformation) {
+      if (!resolvedTransformations.transformation) {
         setPlan(null);
         setPlanContent(null);
         setPlanContentV3(null);
         setPlanItems([]);
         setProfessionalSupportRecommendations([]);
+        setLevelToolRecommendations([]);
+        setLevelToolRecommendationsAvailable(null);
         return;
       }
 
@@ -230,7 +234,7 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
         .from("user_plans_v2")
         .select("*")
         .eq("cycle_id", cycleRow.id)
-        .eq("transformation_id", resolvedTransformation.id)
+        .eq("transformation_id", resolvedTransformations.transformation.id)
         .in("status", ["active", "paused", "completed"])
         .order("activated_at", { ascending: false })
         .order("updated_at", { ascending: false })
@@ -248,10 +252,12 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
       if (!activePlan) {
         setPlanItems([]);
         setProfessionalSupportRecommendations([]);
+        setLevelToolRecommendations([]);
+        setLevelToolRecommendationsAvailable(null);
         return;
       }
 
-      const [planItemsResult, entriesResult, professionalSupportResult] = await Promise.all([
+      const [planItemsResult, entriesResult, professionalSupportResult, levelToolsResult] = await Promise.all([
         supabase
           .from("user_plan_items")
           .select("*")
@@ -268,8 +274,16 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
         supabase
           .from("user_professional_support_recommendations")
           .select("*")
-          .eq("transformation_id", resolvedTransformation.id)
+          .eq("transformation_id", resolvedTransformations.transformation.id)
           .eq("is_active", true)
+          .order("priority_rank", { ascending: true })
+          .order("generated_at", { ascending: true }),
+        supabase
+          .from("user_level_tool_recommendations")
+          .select("*")
+          .eq("transformation_id", resolvedTransformations.transformation.id)
+          .eq("is_active", true)
+          .order("target_level_order", { ascending: true })
           .order("priority_rank", { ascending: true })
           .order("generated_at", { ascending: true }),
       ]);
@@ -282,6 +296,23 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
       setProfessionalSupportRecommendations(
         (professionalSupportResult.data as UserProfessionalSupportRecommendationRow[] | null) ?? [],
       );
+      if (levelToolsResult.error) {
+        if (isMissingLevelToolRecommendationsStorage(levelToolsResult.error)) {
+          console.warn(
+            "[useDashboardV2Data] level tool recommendations unavailable locally; skipping optional feature",
+            levelToolsResult.error,
+          );
+          setLevelToolRecommendations([]);
+          setLevelToolRecommendationsAvailable(false);
+        } else {
+          throw levelToolsResult.error;
+        }
+      } else {
+        setLevelToolRecommendations(
+          (levelToolsResult.data as UserLevelToolRecommendationRow[] | null) ?? [],
+        );
+        setLevelToolRecommendationsAvailable(true);
+      }
       const defenseIds = rawPlanItems
         .map((item) => item.defense_card_id)
         .filter((value): value is string => typeof value === "string" && value.length > 0);
@@ -345,6 +376,8 @@ export function useDashboardV2Data(selectedTransformationId: string | null) {
     planContentV3,
     planItems,
     professionalSupportRecommendations,
+    levelToolRecommendations,
+    levelToolRecommendationsAvailable,
     nextTransformation,
     hasIncompleteCycle,
     refetch,

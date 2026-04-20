@@ -164,6 +164,30 @@ function extractSystemNumericValue(
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function extractSystemMetricTextValue(
+  questionnaireAnswers: Record<string, unknown>,
+  systemQuestions: Map<string, QuestionnaireSystemQuestionDescriptor>,
+  captureGoal: "_system_metric_baseline" | "_system_metric_target",
+  unit: string | null,
+): string | null {
+  const descriptor = systemQuestions.get(captureGoal) ?? null;
+  const rawValue = getSystemAnswerValue(
+    questionnaireAnswers,
+    descriptor,
+    captureGoal,
+  );
+  const scalarValue = Array.isArray(rawValue) ? rawValue[0] : rawValue;
+
+  if (typeof scalarValue === "number" && Number.isFinite(scalarValue)) {
+    return formatMetricValue(scalarValue, unit);
+  }
+
+  if (typeof scalarValue !== "string") return null;
+  const trimmed = scalarValue.trim();
+  if (!trimmed) return null;
+  return unit && !trimmed.includes(unit) ? `${trimmed} ${unit}` : trimmed;
+}
+
 function extractSystemConfidenceValue(
   questionnaireAnswers: Record<string, unknown>,
   systemQuestions: Map<string, QuestionnaireSystemQuestionDescriptor>,
@@ -302,6 +326,18 @@ export function extractStructuredCalibrationFields(
     systemQuestions,
     "_system_metric_target",
   );
+  const metricBaselineText = extractSystemMetricTextValue(
+    questionnaireAnswers,
+    systemQuestions,
+    "_system_metric_baseline",
+    measurementHints.unit,
+  );
+  const metricTargetText = extractSystemMetricTextValue(
+    questionnaireAnswers,
+    systemQuestions,
+    "_system_metric_target",
+    measurementHints.unit,
+  );
 
   const priorAttempts = extractSystemSingleChoiceLabel(
     questionnaireAnswers,
@@ -320,7 +356,8 @@ export function extractStructuredCalibrationFields(
 
   return {
     struggle_duration: struggleDuration,
-    starting_point: formatMetricValue(metricBaselineValue, measurementHints.unit),
+    starting_point:
+      metricBaselineText ?? formatMetricValue(metricBaselineValue, measurementHints.unit),
     main_blocker: mainBlocker,
     priority_goal: priorityGoal,
     perceived_difficulty: perceivedDifficulty,
@@ -328,14 +365,20 @@ export function extractStructuredCalibrationFields(
     prior_attempts: priorAttempts,
     self_confidence:
       extractedSelfConfidence ?? inferConfidenceFromDifficulty(perceivedDifficulty),
-    success_indicator: successIndicator ?? formatMetricValue(metricTargetValue, measurementHints.unit) ?? priorityGoal,
+    success_indicator:
+      successIndicator ??
+      metricTargetText ??
+      formatMetricValue(metricTargetValue, measurementHints.unit) ??
+      priorityGoal,
     metric_label: measurementHints.metric_label,
     metric_unit: measurementHints.unit,
     metric_direction: measurementHints.direction,
     metric_measurement_mode: measurementHints.measurement_mode,
     metric_baseline_value: metricBaselineValue,
     metric_target_value: metricTargetValue,
-    metric_baseline_text: formatMetricValue(metricBaselineValue, measurementHints.unit),
-    metric_target_text: formatMetricValue(metricTargetValue, measurementHints.unit),
+    metric_baseline_text:
+      metricBaselineText ?? formatMetricValue(metricBaselineValue, measurementHints.unit),
+    metric_target_text:
+      metricTargetText ?? formatMetricValue(metricTargetValue, measurementHints.unit),
   };
 }

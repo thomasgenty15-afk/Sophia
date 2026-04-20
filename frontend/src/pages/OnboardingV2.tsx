@@ -30,6 +30,10 @@ import {
   toTransformationPreview,
   type TransformationPreviewV2,
 } from "../lib/onboardingV2";
+import {
+  isMultiPartTransitionQuestionnaireSchema,
+  MULTI_PART_TRANSITION_QUESTIONNAIRE_SOURCE,
+} from "../lib/multiPartTransitionQuestionnaire";
 import { newRequestId, requestHeaders } from "../lib/requestId";
 import { supabase } from "../lib/supabase";
 import type {
@@ -121,6 +125,36 @@ function buildPlanRegenerationFeedback(
   }
 
   return quickFeedback || trimmedFeedback;
+}
+
+function mergeTransitionDebriefIntoHandoffPayload(args: {
+  handoffPayload: Record<string, unknown> | null;
+  answers: Record<string, string | string[]>;
+  questionnaireSchema: QuestionnaireSchemaV2;
+  previousTransformationId: string | null;
+}): Record<string, unknown> {
+  const current = args.handoffPayload && typeof args.handoffPayload === "object" &&
+      !Array.isArray(args.handoffPayload)
+    ? { ...args.handoffPayload }
+    : {};
+  const onboardingV2 = current.onboarding_v2 && typeof current.onboarding_v2 === "object" &&
+      !Array.isArray(current.onboarding_v2)
+    ? { ...(current.onboarding_v2 as Record<string, unknown>) }
+    : {};
+
+  return {
+    ...current,
+    onboarding_v2: {
+      ...onboardingV2,
+      transition_debrief: {
+        source: MULTI_PART_TRANSITION_QUESTIONNAIRE_SOURCE,
+        previous_transformation_id: args.previousTransformationId,
+        answered_at: new Date().toISOString(),
+        questionnaire_schema: args.questionnaireSchema,
+        answers: args.answers,
+      },
+    },
+  };
 }
 
 function getErrorMessage(error: unknown, fallback: string): string {
@@ -437,6 +471,8 @@ export default function OnboardingV2() {
   const [storedProfileFields, setStoredProfileFields] = useState({
     birthDate: false,
     gender: false,
+    birthDateValue: "",
+    genderValue: "",
   });
   const [onboardingAuthMode, setOnboardingAuthMode] = useState<
     OnboardingAuthMode
@@ -539,6 +575,8 @@ export default function OnboardingV2() {
       setStoredProfileFields({
         birthDate: Boolean(data?.birth_date),
         gender: Boolean(data?.gender),
+        birthDateValue: data?.birth_date ?? "",
+        genderValue: data?.gender ?? "",
       });
       if (!data) return;
       // Use functional setter so we read the *current* draft without adding
@@ -1556,6 +1594,93 @@ export default function OnboardingV2() {
   ) {
     setError(null);
 
+    if (isMultiPartTransitionQuestionnaireSchema(draft.questionnaire_schema)) {
+      if (!effectiveUser || !currentTransformation || !draft.questionnaire_schema) {
+        setError("Impossible de préparer la 2e partie pour le moment.");
+        return;
+      }
+
+      try {
+        setLoadingLabel("Sophia prépare la 2e partie…");
+
+        const { data: transformationRow, error: transformationLoadError } = await supabase
+          .from("user_transformations")
+          .select("handoff_payload")
+          .eq("id", currentTransformation.id)
+          .maybeSingle();
+        if (transformationLoadError) throw transformationLoadError;
+
+        const handoffPayload = mergeTransitionDebriefIntoHandoffPayload({
+          handoffPayload:
+            (transformationRow as { handoff_payload?: Record<string, unknown> | null } | null)
+              ?.handoff_payload ?? null,
+          answers,
+          questionnaireSchema: draft.questionnaire_schema,
+          previousTransformationId: preservedCycleActiveTransformationId,
+        });
+
+        const now = new Date().toISOString();
+        const { error: updateError } = await supabase
+          .from("user_transformations")
+          .update({
+            questionnaire_schema: draft.questionnaire_schema,
+            questionnaire_answers: answers,
+            handoff_payload: handoffPayload,
+            updated_at: now,
+          })
+          .eq("id", currentTransformation.id);
+        if (updateError) throw updateError;
+
+        persistDraft(setDraft, {
+          questionnaire_answers: answers,
+          transformations: draft.transformations.map((transformation) =>
+            transformation.id === currentTransformation.id
+              ? {
+                ...transformation,
+                questionnaire_schema: draft.questionnaire_schema,
+                questionnaire_answers: answers,
+              }
+              : transformation
+          ),
+          stage: "generating_plan",
+          plan_review: null,
+          roadmap_transition: null,
+        });
+
+        const response = await invokeFunction<GeneratePlanResponse>("generate-plan-v2", {
+          transformation_id: currentTransformation.id,
+          mode: "preview",
+          pace: draft.profile.pace || undefined,
+        }, {
+          timeoutMs: 180_000,
+        });
+        if (!response.plan_preview) {
+          throw new Error("Le preview du plan est manquant.");
+        }
+
+        const planReview: PlanReviewDraft = {
+          plan_preview: response.plan_preview,
+          feedback: "",
+        };
+
+        persistDraft(setDraft, {
+          stage: "plan_review",
+          plan_review: planReview,
+        });
+      } catch (submitError) {
+        persistDraft(setDraft, { stage: "questionnaire" });
+        setError(
+          getErrorMessage(
+            submitError,
+            "Impossible de préparer la 2e partie pour le moment.",
+          ),
+        );
+      } finally {
+        setLoadingLabel(null);
+      }
+      return;
+    }
+
     // For guest users, we can proceed even if currentTransformation is null —
     // we just need to store the answers and redirect to auth.
     if (!effectiveUser) {
@@ -1665,6 +1790,10 @@ export default function OnboardingV2() {
 
     setError(null);
     let updatedTransformations: TransformationPreviewV2[] | null = null;
+    const resolvedBirthDate =
+      draft.profile.birthDate || storedProfileFields.birthDateValue || null;
+    const resolvedGender =
+      draft.profile.gender || storedProfileFields.genderValue || null;
 
     try {
       setLoadingLabel("Sophia génère ton plan…");
@@ -1678,8 +1807,8 @@ export default function OnboardingV2() {
       const { error: profileError } = await supabase
         .from("profiles")
         .update({
-          birth_date: draft.profile.birthDate || null,
-          gender: draft.profile.gender || null,
+          birth_date: resolvedBirthDate,
+          gender: resolvedGender,
         })
         .eq("id", effectiveUser.id);
       if (profileError) throw profileError;
@@ -1687,8 +1816,8 @@ export default function OnboardingV2() {
       const { error: cycleError } = await supabase
         .from("user_cycles")
         .update({
-          birth_date_snapshot: draft.profile.birthDate || null,
-          gender_snapshot: draft.profile.gender || null,
+          birth_date_snapshot: resolvedBirthDate,
+          gender_snapshot: resolvedGender,
           requested_pace: draft.profile.pace || null,
           duration_months: 2,
           status: "ready_for_plan",
@@ -1872,7 +2001,8 @@ export default function OnboardingV2() {
       await invokeFunction<GeneratePlanResponse>("generate-plan-v2", {
         transformation_id: currentTransformation.id,
         mode: "confirm",
-        ...(preservedCycleActiveTransformationId
+        ...(!isMultiPartTransitionQuestionnaireSchema(draft.questionnaire_schema) &&
+            preservedCycleActiveTransformationId
           ? { preserve_active_transformation_id: preservedCycleActiveTransformationId }
           : {}),
       }, {
@@ -2031,7 +2161,10 @@ export default function OnboardingV2() {
     return <div className="min-h-screen bg-slate-50" />;
   }
 
-  const requiresAuth = !effectiveUser;
+  const isCycleReprioritizationCapture =
+    draft.entry_mode === "add_transformation" &&
+    draft.stage === "capture" &&
+    Boolean(draft.cycle_id);
 
   const getStepInfo = (stage: OnboardingV2Draft["stage"]) => {
     switch (stage) {
@@ -2042,7 +2175,13 @@ export default function OnboardingV2() {
         return { current: 2, total: 5, label: "Choix du focus" };
       case "questionnaire_setup":
       case "questionnaire":
-        return { current: 3, total: 5, label: "Questionnaire sur mesure" };
+        return {
+          current: 3,
+          total: 5,
+          label: isMultiPartTransitionQuestionnaireSchema(draft.questionnaire_schema)
+            ? "Bilan de transition"
+            : "Questionnaire sur mesure",
+        };
       case "profile":
         return { current: 4, total: 5, label: "Profil & Engagements" };
       case "generating_plan":
@@ -2166,12 +2305,37 @@ export default function OnboardingV2() {
           onSubmit={handleAnalyze}
           isSubmitting={Boolean(loadingLabel)}
           clarificationPrompt={draft.clarification_prompt}
-          requiresAuth={requiresAuth}
+          introTitle={
+            isCycleReprioritizationCapture
+              ? "Sophia repart de ton cycle actuel."
+              : undefined
+          }
+          introText={
+            isCycleReprioritizationCapture
+              ? "Décris le sujet que tu veux faire passer devant. Sophia va relire les transformations déjà connues, fusionner les infos utiles et éviter les doublons."
+              : undefined
+          }
+          title={
+            isCycleReprioritizationCapture
+              ? "Quel autre sujet veux-tu faire passer en priorité ?"
+              : undefined
+          }
+          description={
+            isCycleReprioritizationCapture
+              ? "Tu peux ajouter un nouveau besoin, reformuler un sujet déjà présent, ou préciser ce qui compte le plus maintenant. La suite du cycle sera réanalysée sans repartir de zéro."
+              : undefined
+          }
+          submitLabel={
+            isCycleReprioritizationCapture
+              ? "Réanalyser la suite du cycle"
+              : undefined
+          }
         />
       )}
 
       {draft.stage === "priorities" && (
         <TransformationFocusStep
+          key={`${draft.active_transformation_id ?? "none"}:${draft.transformations.map((item) => item.id).join(",")}`}
           transformations={draft.transformations}
           initialSelectedId={draft.active_transformation_id}
           onConfirm={handleTransformationFocusConfirm}
@@ -2211,6 +2375,10 @@ export default function OnboardingV2() {
           initialAnswers={draft.questionnaire_answers}
           onSubmit={handleQuestionnaireSubmit}
           onBack={() => {
+            if (isMultiPartTransitionQuestionnaireSchema(draft.questionnaire_schema)) {
+              navigate("/dashboard");
+              return;
+            }
             void handleStageBack("priorities");
           }}
           isSubmitting={Boolean(loadingLabel)}

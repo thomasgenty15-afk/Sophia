@@ -11,6 +11,7 @@ import { enforceCors, handleCorsOptions } from "../_shared/cors.ts";
 import { distributePlanItemsV3 } from "../_shared/v2-plan-distribution.ts";
 import { buildPhase1Context, mergePhase1Payload } from "../_shared/v2-phase1.ts";
 import { classifyAndPersistProfessionalSupport } from "../_shared/professional-support-v2.ts";
+import { classifyAndPersistLevelToolRecommendations } from "../_shared/level-tool-recommendations-v1.ts";
 import {
   buildPlanGenerationV3UserPrompt,
   PLAN_GENERATION_V3_SYSTEM_PROMPT,
@@ -70,6 +71,8 @@ type TransformationContext = {
       "id" | "status" | "version" | "generation_attempts" | "created_at"
     >
   >;
+  previousTransformation: UserTransformationRow | null;
+  previousTransformationPlan: PlanContentV3 | null;
 };
 
 // StructuredCalibrationFields, QuestionnaireOptionDescriptor, and
@@ -113,6 +116,22 @@ type DayCode = typeof DAY_CODES[number];
 type JourneyContextResponse = NonNullable<PlanContentV3["journey_context"]> & {
   parts: JourneyPartResponse[];
 };
+
+type MultiPartJourneyPayload = {
+  is_multi_part: true;
+  part_number: number | null;
+  estimated_total_parts: number | null;
+  continuation_hint: string | null;
+  estimated_total_duration_months: number | null;
+  previous_transformation_id: string | null;
+  next_transformation_id: string | null;
+};
+
+function isPlanContentV3(value: unknown): value is PlanContentV3 {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+  const candidate = value as Record<string, unknown>;
+  return candidate.version === 3 && Array.isArray(candidate.phases);
+}
 
 type GeneratePlanMode = "generate_and_activate" | "preview" | "confirm";
 
@@ -944,6 +963,19 @@ export async function generatePlanV2ForTransformation(params: {
     metric_target_value: calibrationFields.metric_target_value,
     metric_baseline_text: calibrationFields.metric_baseline_text,
     metric_target_text: transformationScopedGuidance.metricTargetText,
+    previous_transformation_title: context.previousTransformation?.title ?? null,
+    previous_transformation_summary: context.previousTransformation?.user_summary ?? null,
+    previous_transformation_success_definition:
+      context.previousTransformation?.success_definition ?? null,
+    previous_transformation_completion_summary:
+      context.previousTransformation?.completion_summary ?? null,
+    previous_transformation_questionnaire_answers:
+      isRecord(context.previousTransformation?.questionnaire_answers)
+        ? context.previousTransformation.questionnaire_answers
+        : null,
+    previous_transformation_questionnaire_schema:
+      context.previousTransformation?.questionnaire_schema ?? null,
+    previous_transformation_plan_preview: context.previousTransformationPlan,
     user_requested_pace: requestedPace,
     user_age: calculateAgeFromBirthDate(context.cycle.birth_date_snapshot, now),
     user_gender: context.cycle.gender_snapshot,
@@ -1191,6 +1223,89 @@ function cleanOptionalText(value: unknown): string | null {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
+function parsePositiveInteger(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.trunc(value);
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return Math.trunc(parsed);
+    }
+  }
+  return null;
+}
+
+function parsePositiveNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return value;
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+  return null;
+}
+
+function mergeOnboardingV2Payload(
+  handoffPayload: UserTransformationRow["handoff_payload"],
+  patch: Record<string, unknown>,
+): Record<string, unknown> {
+  const current = isRecord(handoffPayload) ? { ...handoffPayload } : {};
+  const onboardingV2 = extractOnboardingV2Payload(handoffPayload);
+  return {
+    ...current,
+    onboarding_v2: {
+      ...onboardingV2,
+      ...patch,
+    },
+  };
+}
+
+function extractMultiPartJourneyPayload(
+  handoffPayload: UserTransformationRow["handoff_payload"],
+): MultiPartJourneyPayload | null {
+  const onboardingV2 = extractOnboardingV2Payload(handoffPayload);
+  const raw = onboardingV2.multi_part_journey;
+  if (!isRecord(raw)) return null;
+
+  const rawIsMultiPart = raw.is_multi_part;
+  if (!(rawIsMultiPart === true || rawIsMultiPart === "true")) {
+    return null;
+  }
+
+  return {
+    is_multi_part: true,
+    part_number: parsePositiveInteger(raw.part_number),
+    estimated_total_parts: parsePositiveInteger(raw.estimated_total_parts),
+    continuation_hint: cleanOptionalText(raw.continuation_hint),
+    estimated_total_duration_months: parsePositiveNumber(raw.estimated_total_duration_months),
+    previous_transformation_id: cleanOptionalText(raw.previous_transformation_id),
+    next_transformation_id: cleanOptionalText(raw.next_transformation_id),
+  };
+}
+
+function buildStoredMultiPartJourney(args: {
+  partNumber: number;
+  estimatedTotalParts: number;
+  continuationHint: string | null;
+  estimatedTotalDurationMonths: number | null;
+  previousTransformationId: string | null;
+  nextTransformationId: string | null;
+}): MultiPartJourneyPayload {
+  return {
+    is_multi_part: true,
+    part_number: args.partNumber,
+    estimated_total_parts: args.estimatedTotalParts,
+    continuation_hint: args.continuationHint,
+    estimated_total_duration_months: args.estimatedTotalDurationMonths,
+    previous_transformation_id: args.previousTransformationId,
+    next_transformation_id: args.nextTransformationId,
+  };
+}
+
 function deriveTransformationScopedGuidance(args: {
   transformation: UserTransformationRow;
   calibrationFields: StructuredCalibrationFields;
@@ -1204,7 +1319,11 @@ function deriveTransformationScopedGuidance(args: {
   const baseSuccessIndicator = cleanOptionalText(args.calibrationFields.success_indicator);
   const baseMetricTargetText = cleanOptionalText(args.calibrationFields.metric_target_text);
   const classification = args.planTypeClassification;
-  const splitGuidance = classification?.split_metric_guidance?.transformation_1 ?? null;
+  const journey = extractMultiPartJourneyPayload(args.transformation.handoff_payload);
+  const partNumber = journey?.part_number === 2 ? 2 : 1;
+  const splitGuidance = partNumber === 2
+    ? classification?.split_metric_guidance?.transformation_2 ?? null
+    : classification?.split_metric_guidance?.transformation_1 ?? null;
 
   if (classification?.journey_strategy?.mode !== "two_transformations") {
     return {
@@ -1216,11 +1335,19 @@ function deriveTransformationScopedGuidance(args: {
 
   const splitSuccessDefinition =
     cleanOptionalText(splitGuidance?.success_definition) ??
-    cleanOptionalText(classification.journey_strategy.transformation_1_goal) ??
+    cleanOptionalText(
+      partNumber === 2
+        ? classification.journey_strategy.transformation_2_goal
+        : classification.journey_strategy.transformation_1_goal,
+    ) ??
     baseSuccessDefinition;
   const splitTargetText =
     cleanOptionalText(splitGuidance?.target_text) ??
-    cleanOptionalText(classification.journey_strategy.transformation_1_goal) ??
+    cleanOptionalText(
+      partNumber === 2
+        ? classification.journey_strategy.transformation_2_goal
+        : classification.journey_strategy.transformation_1_goal,
+    ) ??
     baseMetricTargetText;
 
   return {
@@ -1294,7 +1421,253 @@ async function ensureSplitTransformation(args: {
   plan: PlanContentV3;
   now: string;
 }): Promise<string | null> {
-  return null;
+  const classification = extractPlanTypeClassification(args.transformation.handoff_payload);
+  if (classification?.journey_strategy?.mode !== "two_transformations") {
+    return null;
+  }
+
+  const currentJourney = extractMultiPartJourneyPayload(args.transformation.handoff_payload);
+  if (currentJourney?.part_number != null && currentJourney.part_number >= 2) {
+    return null;
+  }
+
+  const continuationHint =
+    cleanOptionalText(classification.journey_strategy.transformation_2_title) ??
+    cleanOptionalText(classification.journey_strategy.transformation_2_goal) ??
+    currentJourney?.continuation_hint ??
+    null;
+  const estimatedTotalDurationMonths =
+    parsePositiveNumber(classification.journey_strategy.total_estimated_duration_months) ??
+    currentJourney?.estimated_total_duration_months ??
+    null;
+
+  const nextPartNumber = 2;
+  const nextTransformationTitle =
+    cleanOptionalText(classification.journey_strategy.transformation_2_title) ??
+    deriveSplitTransformationTitle({
+      currentTitle: args.transformation.title,
+      continuationHint,
+      nextPartNumber,
+    });
+  const nextTransformationGoal =
+    cleanOptionalText(classification.journey_strategy.transformation_2_goal);
+  const nextSuccessDefinition =
+    cleanOptionalText(classification.split_metric_guidance?.transformation_2?.success_definition) ??
+    nextTransformationGoal;
+  const seed = buildSplitTransformationSeed({
+    currentTitle: args.transformation.title,
+    continuationHint: nextTransformationTitle,
+    nextPartNumber,
+  });
+
+  const { data, error } = await args.admin
+    .from("user_transformations")
+    .select("id, priority_order, status, title, handoff_payload")
+    .eq("cycle_id", args.cycle.id)
+    .order("priority_order", { ascending: true });
+  if (error) {
+    throw new GeneratePlanV2Error(500, "Failed to load transformations for split generation", {
+      cause: error,
+    });
+  }
+
+  const rows = (data as Array<Pick<
+    UserTransformationRow,
+    "id" | "priority_order" | "status" | "title" | "handoff_payload"
+  >> | null) ?? [];
+  const rowsById = new Map(rows.map((row) => [row.id, row]));
+  let nextTransformation = currentJourney?.next_transformation_id
+    ? rowsById.get(currentJourney.next_transformation_id) ?? null
+    : null;
+
+  if (!nextTransformation) {
+    nextTransformation = rows.find((row) => {
+      const journey = extractMultiPartJourneyPayload(row.handoff_payload);
+      return journey?.previous_transformation_id === args.transformation.id;
+    }) ?? null;
+  }
+
+  const currentMaxPriority = Math.max(
+    0,
+    ...rows.map((row) => row.priority_order ?? 0),
+  );
+
+  if (!nextTransformation) {
+    const nextTransformationId = crypto.randomUUID();
+    const nextHandoffPayload = mergeOnboardingV2Payload(null, {
+      plan_type_classification: classification,
+      ordering_rationale: seed.orderingRationale,
+      questionnaire_context: seed.questionnaireContext,
+      multi_part_journey: buildStoredMultiPartJourney({
+        partNumber: 2,
+        estimatedTotalParts: 2,
+        continuationHint,
+        estimatedTotalDurationMonths,
+        previousTransformationId: args.transformation.id,
+        nextTransformationId: null,
+      }),
+      source: "generate_plan_split",
+    });
+
+    const { error: insertError } = await args.admin
+      .from("user_transformations")
+      .insert({
+        id: nextTransformationId,
+        cycle_id: args.cycle.id,
+        priority_order: currentMaxPriority + 1,
+        status: "pending",
+        title: nextTransformationTitle,
+        user_summary: nextTransformationGoal
+          ? `Cette deuxième transformation vise ${nextTransformationGoal}.`
+          : seed.userSummary,
+        internal_summary: nextTransformationGoal
+          ? `Transformation 2 du parcours en 2 parties. Objectif: ${nextTransformationGoal}.`
+          : seed.internalSummary,
+        success_definition: nextSuccessDefinition,
+        main_constraint: null,
+        questionnaire_schema: null,
+        questionnaire_answers: null,
+        completion_summary: null,
+        handoff_payload: nextHandoffPayload,
+        created_at: args.now,
+        updated_at: args.now,
+        activated_at: null,
+        completed_at: null,
+      } as any);
+
+    if (insertError) {
+      throw new GeneratePlanV2Error(500, "Failed to create split transformation", {
+        cause: insertError,
+      });
+    }
+
+    nextTransformation = {
+      id: nextTransformationId,
+      priority_order: currentMaxPriority + 1,
+      status: "pending",
+      title: nextTransformationTitle,
+      handoff_payload: nextHandoffPayload,
+    };
+    rows.push(nextTransformation);
+  }
+
+  const orderedIds = rows
+    .sort((left, right) => left.priority_order - right.priority_order)
+    .map((row) => row.id)
+    .filter((id) => id !== nextTransformation.id);
+  const currentIndex = orderedIds.indexOf(args.transformation.id);
+  orderedIds.splice(currentIndex >= 0 ? currentIndex + 1 : orderedIds.length, 0, nextTransformation.id);
+
+  const alreadyNormalized = orderedIds.every((id, index) => {
+    const row = rowsById.get(id) ?? (id === nextTransformation.id ? nextTransformation : null);
+    return row?.priority_order === index + 1;
+  });
+
+  if (!alreadyNormalized) {
+    const stagingBasePriority = Math.max(
+      0,
+      ...rows.map((row) => row.priority_order ?? 0),
+    );
+    for (const [index, id] of orderedIds.entries()) {
+      const { error: stageError } = await args.admin
+        .from("user_transformations")
+        .update({
+          priority_order: stagingBasePriority + index + 1,
+          updated_at: args.now,
+        })
+        .eq("id", id)
+        .eq("cycle_id", args.cycle.id);
+
+      if (stageError) {
+        throw new GeneratePlanV2Error(500, "Failed to stage split transformation ordering", {
+          cause: stageError,
+        });
+      }
+    }
+
+    for (const [index, id] of orderedIds.entries()) {
+      const { error: normalizeError } = await args.admin
+        .from("user_transformations")
+        .update({
+          priority_order: index + 1,
+          updated_at: args.now,
+        })
+        .eq("id", id)
+        .eq("cycle_id", args.cycle.id);
+
+      if (normalizeError) {
+        throw new GeneratePlanV2Error(500, "Failed to normalize split transformation ordering", {
+          cause: normalizeError,
+        });
+      }
+    }
+  }
+
+  const currentPayload = mergeOnboardingV2Payload(args.transformation.handoff_payload, {
+    plan_type_classification: classification,
+    multi_part_journey: buildStoredMultiPartJourney({
+      partNumber: 1,
+      estimatedTotalParts: 2,
+      continuationHint,
+      estimatedTotalDurationMonths,
+      previousTransformationId: null,
+      nextTransformationId: nextTransformation.id,
+    }),
+  });
+  const nextPayload = mergeOnboardingV2Payload(nextTransformation.handoff_payload ?? null, {
+    plan_type_classification: classification,
+    ordering_rationale: seed.orderingRationale,
+    questionnaire_context: seed.questionnaireContext,
+    multi_part_journey: buildStoredMultiPartJourney({
+      partNumber: 2,
+      estimatedTotalParts: 2,
+      continuationHint,
+      estimatedTotalDurationMonths,
+      previousTransformationId: args.transformation.id,
+      nextTransformationId: null,
+    }),
+    source: "generate_plan_split",
+  });
+
+  const [{ error: currentUpdateError }, { error: nextUpdateError }] = await Promise.all([
+    args.admin
+      .from("user_transformations")
+      .update({
+        handoff_payload: currentPayload,
+        updated_at: args.now,
+      })
+      .eq("id", args.transformation.id)
+      .eq("cycle_id", args.cycle.id),
+    args.admin
+      .from("user_transformations")
+      .update({
+        title: nextTransformationTitle,
+        user_summary: nextTransformationGoal
+          ? `Cette deuxième transformation vise ${nextTransformationGoal}.`
+          : seed.userSummary,
+        internal_summary: nextTransformationGoal
+          ? `Transformation 2 du parcours en 2 parties. Objectif: ${nextTransformationGoal}.`
+          : seed.internalSummary,
+        success_definition: nextSuccessDefinition,
+        handoff_payload: nextPayload,
+        updated_at: args.now,
+      })
+      .eq("id", nextTransformation.id)
+      .eq("cycle_id", args.cycle.id),
+  ]);
+
+  if (currentUpdateError) {
+    throw new GeneratePlanV2Error(500, "Failed to persist current split journey metadata", {
+      cause: currentUpdateError,
+    });
+  }
+  if (nextUpdateError) {
+    throw new GeneratePlanV2Error(500, "Failed to persist next split transformation metadata", {
+      cause: nextUpdateError,
+    });
+  }
+
+  return nextTransformation.id;
 }
 
 async function loadLatestDraftPlan(args: {
@@ -1587,6 +1960,27 @@ async function activatePersistedPlan(args: {
     eventWarnings.push(`Failed to classify professional support: ${message}`);
   }
 
+  try {
+    await classifyAndPersistLevelToolRecommendations({
+      admin: args.admin,
+      requestId: `generate-plan-v2:${args.planRow.id}`,
+      userId: args.userId,
+      cycle: args.context.cycle,
+      transformation: {
+        ...args.context.transformation,
+        ...transformationPatch,
+      },
+      planRow: {
+        ...args.planRow,
+        ...planPatch,
+      },
+      plan,
+    });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    eventWarnings.push(`Failed to classify level tools: ${message}`);
+  }
+
   for (
     const [eventType, reason] of [
       [V2_EVENT_TYPES.PLAN_ACTIVATED, "plan_status_active"],
@@ -1615,6 +2009,34 @@ async function activatePersistedPlan(args: {
     currentPlanDurationMonths: plan.duration_months,
     plan,
   });
+  const planWithJourneyContext = journeyContext
+    ? {
+      ...plan,
+      journey_context: {
+        is_multi_part: journeyContext.is_multi_part,
+        part_number: journeyContext.part_number,
+        estimated_total_parts: journeyContext.estimated_total_parts,
+        continuation_hint: journeyContext.continuation_hint,
+        estimated_total_duration_months: journeyContext.estimated_total_duration_months,
+      },
+    }
+    : plan;
+
+  if (journeyContext) {
+    const { error: planJourneyContextError } = await args.admin
+      .from("user_plans_v2")
+      .update({
+        content: planWithJourneyContext as unknown as Record<string, unknown>,
+        updated_at: args.now,
+      })
+      .eq("id", args.planRow.id);
+
+    if (planJourneyContextError) {
+      throw new GeneratePlanV2Error(500, "Failed to persist journey context on active plan", {
+        cause: planJourneyContextError,
+      });
+    }
+  }
 
   return {
     cycle: { ...args.context.cycle, ...cyclePatch },
@@ -1622,8 +2044,12 @@ async function activatePersistedPlan(args: {
       ...args.context.transformation,
       ...transformationPatch,
     },
-    plan,
-    planRow: { ...args.planRow, ...planPatch },
+    plan: planWithJourneyContext,
+    planRow: {
+      ...args.planRow,
+      ...planPatch,
+      content: planWithJourneyContext as unknown as Record<string, unknown>,
+    },
     distribution: {
       ...distribution,
       warnings: eventWarnings,
@@ -1734,11 +2160,59 @@ async function loadTransformationContext(
     });
   }
 
+  let previousTransformation: UserTransformationRow | null = null;
+  let previousTransformationPlan: PlanContentV3 | null = null;
+
+  const journey = extractMultiPartJourneyPayload(transformation.handoff_payload);
+  const previousTransformationId =
+    journey?.part_number === 2 && journey.previous_transformation_id
+      ? journey.previous_transformation_id
+      : null;
+
+  if (previousTransformationId) {
+    const { data: previousTransformationData, error: previousTransformationError } = await admin
+      .from("user_transformations")
+      .select("*")
+      .eq("id", previousTransformationId)
+      .eq("cycle_id", transformation.cycle_id)
+      .maybeSingle();
+    if (previousTransformationError) {
+      throw new GeneratePlanV2Error(500, "Failed to load previous transformation", {
+        cause: previousTransformationError,
+      });
+    }
+
+    previousTransformation = (previousTransformationData as UserTransformationRow | null) ?? null;
+
+    if (previousTransformation) {
+      const { data: previousPlanData, error: previousPlanError } = await admin
+        .from("user_plans_v2")
+        .select("content,status,updated_at,activated_at,completed_at")
+        .eq("transformation_id", previousTransformation.id)
+        .in("status", ["active", "paused", "completed"])
+        .order("updated_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      if (previousPlanError) {
+        throw new GeneratePlanV2Error(500, "Failed to load previous transformation plan", {
+          cause: previousPlanError,
+        });
+      }
+
+      const previousPlanContent = (previousPlanData as { content?: unknown } | null)?.content;
+      if (isPlanContentV3(previousPlanContent)) {
+        previousTransformationPlan = previousPlanContent;
+      }
+    }
+  }
+
   return {
     transformation,
     cycle: cycleData as UserCycleRow,
     existingPlans:
       ((existingPlansData ?? []) as TransformationContext["existingPlans"]),
+    previousTransformation,
+    previousTransformationPlan,
   };
 }
 
@@ -1768,7 +2242,99 @@ async function buildJourneyContextResponse(args: {
   currentPlanDurationMonths: number;
   plan: PlanContentV3;
 }): Promise<JourneyContextResponse | null> {
-  return null;
+  const { data, error } = await args.admin
+    .from("user_transformations")
+    .select("id, title, status, priority_order, handoff_payload")
+    .eq("cycle_id", args.cycleId)
+    .order("priority_order", { ascending: true });
+  if (error) {
+    throw new GeneratePlanV2Error(500, "Failed to load transformations for journey context", {
+      cause: error,
+    });
+  }
+
+  const rows = (data as Array<Pick<
+    UserTransformationRow,
+    "id" | "title" | "status" | "priority_order" | "handoff_payload"
+  >> | null) ?? [];
+  const currentTransformation = rows.find((row) => row.id === args.currentTransformationId) ?? null;
+  if (!currentTransformation) return null;
+
+  const currentJourney = extractMultiPartJourneyPayload(currentTransformation.handoff_payload);
+  const classification = extractPlanTypeClassification(currentTransformation.handoff_payload);
+  const isMultiPart =
+    currentJourney?.is_multi_part === true ||
+    classification?.journey_strategy?.mode === "two_transformations";
+  if (!isMultiPart) return null;
+
+  const currentPartNumber = currentJourney?.part_number ?? 1;
+  const estimatedTotalParts = currentJourney?.estimated_total_parts ?? 2;
+  const continuationHint =
+    currentJourney?.continuation_hint ??
+    cleanOptionalText(classification?.journey_strategy?.transformation_2_title) ??
+    cleanOptionalText(classification?.journey_strategy?.transformation_2_goal) ??
+    null;
+  const estimatedTotalDurationMonths =
+    currentJourney?.estimated_total_duration_months ??
+    parsePositiveNumber(classification?.journey_strategy?.total_estimated_duration_months) ??
+    null;
+
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  const previousTransformation =
+    currentJourney?.previous_transformation_id
+      ? byId.get(currentJourney.previous_transformation_id) ?? null
+      : currentPartNumber === 2
+        ? rows.find((row) => row.priority_order === currentTransformation.priority_order - 1) ?? null
+        : null;
+  const nextTransformation =
+    currentJourney?.next_transformation_id
+      ? byId.get(currentJourney.next_transformation_id) ?? null
+      : currentPartNumber === 1
+        ? rows.find((row) => row.priority_order === currentTransformation.priority_order + 1) ?? null
+        : null;
+
+  const remainingDuration =
+    estimatedTotalDurationMonths != null
+      ? Math.max(estimatedTotalDurationMonths - args.currentPlanDurationMonths, 1)
+      : null;
+
+  const parts: JourneyPartResponse[] = [];
+  if (currentPartNumber === 2 && previousTransformation) {
+    parts.push({
+      transformation_id: previousTransformation.id,
+      title: previousTransformation.title,
+      part_number: 1,
+      estimated_duration_months: remainingDuration,
+      status: previousTransformation.status,
+    });
+  }
+
+  parts.push({
+    transformation_id: currentTransformation.id,
+    title: currentTransformation.title ?? args.currentTransformationTitle,
+    part_number: currentPartNumber,
+    estimated_duration_months: args.currentPlanDurationMonths,
+    status: currentTransformation.status,
+  });
+
+  if (currentPartNumber === 1 && nextTransformation) {
+    parts.push({
+      transformation_id: nextTransformation.id,
+      title: nextTransformation.title,
+      part_number: 2,
+      estimated_duration_months: remainingDuration,
+      status: nextTransformation.status,
+    });
+  }
+
+  return {
+    is_multi_part: true,
+    part_number: currentPartNumber,
+    estimated_total_parts: estimatedTotalParts,
+    continuation_hint: continuationHint,
+    estimated_total_duration_months: estimatedTotalDurationMonths,
+    parts,
+  };
 }
 
 const VALID_PRIMARY_METRIC_MEASUREMENT_MODES: ReadonlySet<string> = new Set([

@@ -88,6 +88,14 @@ export type PlanGenerationInput = {
   metric_target_text?: string | null;
   /** Plan précédent à utiliser comme base lors d'une régénération. */
   previous_plan_preview?: PlanContentV3 | null;
+  /** Contexte hérité de la transformation précédente dans un parcours en plusieurs parties. */
+  previous_transformation_title?: string | null;
+  previous_transformation_summary?: string | null;
+  previous_transformation_success_definition?: string | null;
+  previous_transformation_completion_summary?: string | null;
+  previous_transformation_questionnaire_answers?: Record<string, unknown> | null;
+  previous_transformation_questionnaire_schema?: Record<string, unknown> | null;
+  previous_transformation_plan_preview?: PlanContentV3 | null;
   /** Feedback explicite de l'utilisateur sur une version précédente du plan. */
   regeneration_feedback?: string | null;
   /** Feedback technique interne si une première sortie a échoué la validation. */
@@ -1667,6 +1675,40 @@ ${feedbackValue}`
 
 ${summarizePreviousPlanForPrompt(input.previous_plan_preview)}`
     : "";
+  const previousTransformationAnswers =
+    input.previous_transformation_questionnaire_answers &&
+      Object.keys(input.previous_transformation_questionnaire_answers).length > 0
+      ? formatAnswers(
+        input.previous_transformation_questionnaire_answers,
+        input.previous_transformation_questionnaire_schema ?? null,
+      )
+      : null;
+  const previousTransformationBlock =
+    input.previous_transformation_title ||
+      input.previous_transformation_summary ||
+      input.previous_transformation_success_definition ||
+      input.previous_transformation_completion_summary ||
+      input.previous_transformation_plan_preview ||
+      previousTransformationAnswers
+      ? `\n\n## Héritage de la partie précédente
+
+- Titre : ${input.previous_transformation_title ?? "Non renseigné"}
+- Résumé : ${input.previous_transformation_summary ?? "Non renseigné"}
+- Définition de réussite visée : ${input.previous_transformation_success_definition ?? "Non renseignée"}
+- Bilan / completion summary : ${input.previous_transformation_completion_summary ?? "Non renseigné"}${
+        previousTransformationAnswers
+          ? `\n\n### Réponses au questionnaire de la partie précédente\n\n${previousTransformationAnswers}`
+          : ""
+      }${
+        input.previous_transformation_plan_preview
+          ? `\n\n### Plan de la partie précédente à prendre en compte\n\n${
+            summarizePreviousPlanForPrompt(input.previous_transformation_plan_preview)
+          }`
+          : ""
+      }
+
+Tu dois t'appuyer explicitement sur cet héritage pour dessiner la partie suivante : conserve ce qui a aidé, retire ce qui a moins bien servi, et fais progresser le plan au lieu de repartir de zéro.`
+      : "";
 
   const validationFeedback = Array.isArray(input.system_validation_feedback)
     ? input.system_validation_feedback
@@ -1762,7 +1804,7 @@ ${input.user_summary}
 
 ## Profil utilisateur
 
-${profileBlock}${calibrationBlock}${answersBlock}${classificationBlock}${timeBlock}${previousPlanBlock}${feedbackBlock}${validationFeedbackBlock}
+${profileBlock}${calibrationBlock}${answersBlock}${classificationBlock}${timeBlock}${previousTransformationBlock}${previousPlanBlock}${feedbackBlock}${validationFeedbackBlock}
 
 ## Rythme souhaite par l'utilisateur
 

@@ -18,6 +18,9 @@ import {
   getPlanWeekCalendar,
   type PlanScheduleAnchor,
 } from "../../lib/planSchedule";
+import { supabase } from "../../lib/supabase";
+import type { UserLevelToolRecommendationRow } from "../../types/v2";
+import { LevelToolRecommendationsCard } from "./LevelToolRecommendationsCard";
 import { PlanItemCard } from "./PlanItemCard";
 import { WeekPlanningModal } from "./WeekPlanningModal";
 type JourneyContext = {
@@ -31,12 +34,23 @@ type WeekItemAssignment = NonNullable<
 >[number];
 
 type WeekPlanningStatus = "pending_confirmation" | "confirmed";
+type DayCode = "mon" | "tue" | "wed" | "thu" | "fri" | "sat" | "sun";
+
+const DAY_CODES: DayCode[] = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"];
 
 type PhaseProgressionProps = {
   phases: PhaseRuntimeData[];
   scheduleAnchor?: PlanScheduleAnchor | null;
   phase1Node?: React.ReactNode;
   activePhaseFooterNode?: React.ReactNode;
+  renderPhaseFooterNode?: (phase: PhaseRuntimeData) => React.ReactNode;
+  /**
+   * Recos d'outils par niveau, indexees par phase_id BRUT (ex: "phase-2"),
+   * pas par phase_order affiche (qui est decale via getDisplayPhaseOrder).
+   * Source de verite: table user_level_tool_recommendations.
+   */
+  levelToolRecommendationsByPhaseId?: Map<string, UserLevelToolRecommendationRow[]>;
+  onLevelToolRecommendationChanged?: () => Promise<void>;
   primaryMetricLabel?: string | null;
   unlockStateByItemId: Map<string, DashboardV2UnlockState>;
   busyItemId: string | null;
@@ -51,7 +65,9 @@ type PhaseProgressionProps = {
   onLogHeartbeat?: () => void;
   onCompleteLevel?: () => void;
   completeLevelBusy?: boolean;
-  onRoadmapReview?: () => void;
+  onCompletionAction?: () => void;
+  completionActionLabel?: string | null;
+  completionActionHint?: string | null;
   journeyContext?: JourneyContext | null;
 };
 
@@ -130,6 +146,50 @@ function normalizeWeekdays(days: string[] | null | undefined): string[] {
   return (days ?? [])
     .map((day) => day.trim().toLowerCase())
     .filter((day, index, array) => day.length > 0 && array.indexOf(day) === index);
+}
+
+function normalizeDayCodes(days: string[] | null | undefined): DayCode[] {
+  return normalizeWeekdays(days).filter((day): day is DayCode =>
+    DAY_CODES.includes(day as DayCode)
+  );
+}
+
+function dateFromYmdUtc(ymd: string): Date {
+  const [year, month, day] = ymd.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
+}
+
+function addDay(date: Date, days: number): Date {
+  const copy = new Date(date.getTime());
+  copy.setUTCDate(copy.getUTCDate() + days);
+  return copy;
+}
+
+function dayCodeFromUtc(date: Date): DayCode {
+  const day = date.getUTCDay();
+  if (day === 0) return "sun";
+  return DAY_CODES[day - 1];
+}
+
+function getAllowedDaysForWeek(startDate: string, endDate: string): DayCode[] {
+  const days: DayCode[] = [];
+  let cursor = dateFromYmdUtc(startDate);
+  const end = dateFromYmdUtc(endDate);
+  while (cursor.getTime() <= end.getTime()) {
+    days.push(dayCodeFromUtc(cursor));
+    cursor = addDay(cursor, 1);
+  }
+  return days;
+}
+
+function weeklyTargetForItem(
+  item: DashboardV2PlanItemRuntime,
+  allowedDayCount: number,
+): number {
+  if (item.dimension === "habits") {
+    return Math.max(0, Math.min(allowedDayCount, item.target_reps ?? 0));
+  }
+  return 1;
 }
 
 function isOneShotWeekItem(item: DashboardV2PlanItemRuntime) {
@@ -235,9 +295,13 @@ function PhaseFocusSummary({ phase }: { phase: PhaseRuntimeData }) {
 function CompletedPhase({
   phase,
   primaryMetricLabel,
+  levelToolRecommendations,
+  onLevelToolRecommendationChanged,
 }: {
   phase: PhaseRuntimeData;
   primaryMetricLabel?: string | null;
+  levelToolRecommendations: UserLevelToolRecommendationRow[];
+  onLevelToolRecommendationChanged: () => Promise<void>;
 }) {
   const [expanded, setExpanded] = useState(false);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -310,6 +374,12 @@ function CompletedPhase({
                 </div>
               ))}
             </div>
+            {levelToolRecommendations.length > 0 ? (
+              <LevelToolRecommendationsCard
+                recommendations={levelToolRecommendations}
+                onChanged={onLevelToolRecommendationChanged}
+              />
+            ) : null}
           </div>
         </div>
       </div>
@@ -333,6 +403,8 @@ function ActivePhase({
   onAdapt,
   onCompleteLevel,
   completeLevelBusy = false,
+  levelToolRecommendations,
+  onLevelToolRecommendationChanged,
 }: {
   phase: PhaseRuntimeData;
   scheduleAnchor?: PlanScheduleAnchor | null;
@@ -350,6 +422,8 @@ function ActivePhase({
   onLogHeartbeat?: () => void;
   onCompleteLevel?: () => void;
   completeLevelBusy?: boolean;
+  levelToolRecommendations: UserLevelToolRecommendationRow[];
+  onLevelToolRecommendationChanged: () => Promise<void>;
 }) {
   const sections = buildSections(phase.items);
   const [showLevelDetails, setShowLevelDetails] = useState(false);
@@ -384,6 +458,70 @@ function ActivePhase({
   const planningModalEntry = weekEntries.find((entry) =>
     entry.weekCalendar?.anchorWeekStart === planningModalWeekKey
   ) ?? null;
+
+  useEffect(() => {
+    const currentEntries = weekEntries.filter((entry) =>
+      entry.status === "current" &&
+      entry.weekCalendar &&
+      entry.weekItems.length > 0
+    );
+
+    if (currentEntries.length === 0) return;
+
+    let cancelled = false;
+
+    void (async () => {
+      const nextStatuses: Record<string, WeekPlanningStatus> = {};
+
+      await Promise.all(currentEntries.map(async (entry) => {
+        const weekCalendar = entry.weekCalendar;
+        if (!weekCalendar) return;
+
+        const allowedDays = getAllowedDaysForWeek(
+          weekCalendar.startDate,
+          weekCalendar.endDate,
+        );
+
+        const items = entry.weekItems.map((item) => {
+          const preferred = item.dimension === "habits"
+            ? allowedDays
+            : normalizeDayCodes(entry.weekMissionTiming.recommendedDaysByItemId.get(item.id));
+          return {
+            plan_item_id: item.id,
+            preferred_days: preferred.length > 0 ? preferred : allowedDays,
+            target_reps_override: weeklyTargetForItem(item, allowedDays.length),
+          };
+        });
+
+        try {
+          const { data, error } = await supabase.functions.invoke("habit-week-planning-v1", {
+            body: {
+              action: "get_bundle_state",
+              week_start_date: weekCalendar.anchorWeekStart,
+              items,
+            },
+          });
+          if (error) throw error;
+          const bundle = data as { bundle_status?: WeekPlanningStatus };
+          nextStatuses[weekCalendar.anchorWeekStart] =
+            bundle.bundle_status === "confirmed" ? "confirmed" : "pending_confirmation";
+        } catch (error) {
+          console.error("[PhaseProgression] week planning hydration failed", error);
+        }
+      }));
+
+      if (cancelled || Object.keys(nextStatuses).length === 0) return;
+
+      setWeekPlanningStatusByKey((current) => ({
+        ...current,
+        ...nextStatuses,
+      }));
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [weekEntries]);
 
   return (
     <div className="relative overflow-hidden rounded-3xl border border-stone-200 bg-white p-6 shadow-[0_24px_80px_-52px_rgba(15,23,42,0.32)] md:p-8">
@@ -624,6 +762,8 @@ function ActivePhase({
                               key={`${phase.phase_id}-week-${week.week_order}-${item.id}`}
                               item={item}
                               weekCalendar={weekCalendar}
+                              weekStatus={status}
+                              weekOrder={week.week_order}
                               recommendedDays={weekMissionTiming.recommendedDaysByItemId.get(item.id) ?? null}
                               onOpenWeekPlanning={status === "current" && weekCalendar
                                 ? () => setPlanningModalWeekKey(weekCalendar.anchorWeekStart)
@@ -703,6 +843,8 @@ function ActivePhase({
                 key={item.id}
                 item={item}
                 weekCalendar={null}
+                weekStatus={null}
+                weekOrder={null}
                 recommendedDays={null}
                 onOpenWeekPlanning={null}
                 unlockState={unlockStateByItemId.get(item.id) ?? null}
@@ -718,6 +860,15 @@ function ActivePhase({
               />
             ))
           )}
+        </div>
+      ) : null}
+
+      {levelToolRecommendations.length > 0 ? (
+        <div className="mt-8">
+          <LevelToolRecommendationsCard
+            recommendations={levelToolRecommendations}
+            onChanged={onLevelToolRecommendationChanged}
+          />
         </div>
       ) : null}
     </div>
@@ -857,6 +1008,9 @@ export function PhaseProgression({
   scheduleAnchor,
   phase1Node,
   activePhaseFooterNode,
+  renderPhaseFooterNode,
+  levelToolRecommendationsByPhaseId,
+  onLevelToolRecommendationChanged,
   primaryMetricLabel,
   unlockStateByItemId,
   busyItemId,
@@ -871,9 +1025,15 @@ export function PhaseProgression({
   onLogHeartbeat,
   onCompleteLevel,
   completeLevelBusy,
-  onRoadmapReview,
+  onCompletionAction,
+  completionActionLabel,
+  completionActionHint,
   journeyContext,
 }: PhaseProgressionProps) {
+  const noopRefetch = async () => {};
+  const recosFor = (phaseId: string) =>
+    levelToolRecommendationsByPhaseId?.get(phaseId) ?? [];
+  const handleRecoChanged = onLevelToolRecommendationChanged ?? noopRefetch;
   const showTimeline = phases.length > 1 || (phases.length > 0 && !!phase1Node);
   const allCompleted = phases.length > 0 && phases.every((p) => p.state === "completed");
   const isMultiPart = journeyContext?.is_multi_part === true;
@@ -899,17 +1059,19 @@ export function PhaseProgression({
               : "Transformation achevée !"}
           </h3>
           <p className="mt-2 text-sm leading-relaxed text-emerald-700">
-            {isMultiPart && totalParts
-              ? `Tu as complété le niveau ${currentPart} sur ${totalParts}. Lance un Roadmap Review avec Sophia pour passer à la suite.`
-              : "Tu as complété tous les niveaux. C'est le moment idéal pour revoir ta roadmap avec Sophia et définir la suite."}
+            {completionActionHint
+              ? completionActionHint
+              : isMultiPart && totalParts
+                ? `Tu as complété le niveau ${currentPart} sur ${totalParts}.`
+                : "Tu as complété tous les niveaux de ce plan."}
           </p>
-          {onRoadmapReview ? (
+          {onCompletionAction && completionActionLabel ? (
             <button
               type="button"
-              onClick={onRoadmapReview}
+              onClick={onCompletionAction}
               className="mt-4 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition-all hover:bg-emerald-700 active:scale-[0.97]"
             >
-              Revoir ma roadmap
+              {completionActionLabel}
             </button>
           ) : null}
         </div>
@@ -958,31 +1120,48 @@ export function PhaseProgression({
               ) : null}
 
               {phase.state === "completed" ? (
-                <CompletedPhase phase={phase} primaryMetricLabel={primaryMetricLabel} />
+                <div className="space-y-4">
+                  <CompletedPhase
+                    phase={phase}
+                    primaryMetricLabel={primaryMetricLabel}
+                    levelToolRecommendations={recosFor(phase.phase_id)}
+                    onLevelToolRecommendationChanged={handleRecoChanged}
+                  />
+                  {renderPhaseFooterNode?.(phase)}
+                </div>
               ) : phase.state === "active" ? (
                 <div className="space-y-4">
-          <ActivePhase
-            phase={phase}
-            scheduleAnchor={scheduleAnchor}
-            primaryMetricLabel={primaryMetricLabel}
-            unlockStateByItemId={unlockStateByItemId}
+                  <ActivePhase
+                    phase={phase}
+                    scheduleAnchor={scheduleAnchor}
+                    primaryMetricLabel={primaryMetricLabel}
+                    unlockStateByItemId={unlockStateByItemId}
                     busyItemId={busyItemId}
-	                    onComplete={onComplete}
-	                    onActivate={onActivate}
-	                    onPrepareCards={onPrepareCards}
-	                    onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
-	                    onBlocker={onBlocker}
+                    onComplete={onComplete}
+                    onActivate={onActivate}
+                    onPrepareCards={onPrepareCards}
+                    onOpenDefenseResourceEditor={onOpenDefenseResourceEditor}
+                    onBlocker={onBlocker}
                     onDeactivate={onDeactivate}
                     onRemove={onRemove}
                     onAdapt={onAdapt}
                     onLogHeartbeat={onLogHeartbeat}
                     onCompleteLevel={onCompleteLevel}
                     completeLevelBusy={completeLevelBusy}
+                    levelToolRecommendations={recosFor(phase.phase_id)}
+                    onLevelToolRecommendationChanged={handleRecoChanged}
                   />
+                  {renderPhaseFooterNode?.(phase)}
                   {activePhaseFooterNode}
                 </div>
               ) : (
-                <FuturePhase phase={phase} primaryMetricLabel={primaryMetricLabel} />
+                <div className="space-y-4">
+                  <FuturePhase
+                    phase={phase}
+                    primaryMetricLabel={primaryMetricLabel}
+                  />
+                  {renderPhaseFooterNode?.(phase)}
+                </div>
               )}
             </div>
           ))}

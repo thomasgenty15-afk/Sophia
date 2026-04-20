@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { BriefcaseMedical, CheckCircle2, Clock3, Stethoscope, XCircle } from "lucide-react";
+import { BriefcaseMedical, CheckCircle2, ChevronDown, Clock3, Stethoscope, XCircle } from "lucide-react";
 
 import {
   getProfessionalDefinition,
@@ -55,7 +55,9 @@ export function ProfessionalSupportTrackerCard({
   const visibleRecommendations = useMemo(
     () =>
       recommendations.filter((recommendation) =>
-        shouldRevealRecommendation(recommendation, currentLevelOrder, phase1Completed)
+        shouldRevealRecommendation(recommendation, currentLevelOrder, phase1Completed) &&
+        recommendation.status !== "not_needed" &&
+        recommendation.status !== "completed"
       ),
     [currentLevelOrder, phase1Completed, recommendations],
   );
@@ -70,38 +72,50 @@ export function ProfessionalSupportTrackerCard({
     return null;
   }
 
+  async function dismissNotNeededRecommendation(
+    recommendation: UserProfessionalSupportRecommendationRow,
+    options?: {
+      reasonKey?: string | null;
+      note?: string | null;
+    },
+  ) {
+    const { error: updateError } = await supabase
+      .from("user_professional_support_recommendations")
+      .update({
+        status: "not_needed",
+        updated_at: new Date().toISOString(),
+      })
+      .eq("id", recommendation.id);
+    if (updateError) throw updateError;
+
+    const { error: eventError } = await supabase
+      .from("user_professional_support_events")
+      .insert({
+        recommendation_id: recommendation.id,
+        user_id: recommendation.user_id,
+        cycle_id: recommendation.cycle_id,
+        transformation_id: recommendation.transformation_id,
+        plan_id: recommendation.plan_id,
+        event_type: "dismissed_not_needed",
+        payload: {
+          reason_key: options?.reasonKey ?? null,
+          note: options?.note ?? null,
+        },
+      });
+    if (eventError) throw eventError;
+  }
+
   async function handleSubmitModal() {
     if (!modalState || submitting) return;
-    if (modalState.kind === "not_needed" && !notNeededReason.trim()) return;
     if (modalState.kind === "completed" && !completionHelp.trim()) return;
 
     setSubmitting(true);
     try {
       if (modalState.kind === "not_needed") {
-        const { error: updateError } = await supabase
-          .from("user_professional_support_recommendations")
-          .update({
-            status: "not_needed",
-            updated_at: new Date().toISOString(),
-          })
-          .eq("id", modalState.recommendation.id);
-        if (updateError) throw updateError;
-
-        const { error: eventError } = await supabase
-          .from("user_professional_support_events")
-          .insert({
-            recommendation_id: modalState.recommendation.id,
-            user_id: modalState.recommendation.user_id,
-            cycle_id: modalState.recommendation.cycle_id,
-            transformation_id: modalState.recommendation.transformation_id,
-            plan_id: modalState.recommendation.plan_id,
-            event_type: "dismissed_not_needed",
-            payload: {
-              reason_key: notNeededReason,
-              note: notNeededNote.trim() || null,
-            },
-          });
-        if (eventError) throw eventError;
+        await dismissNotNeededRecommendation(modalState.recommendation, {
+          reasonKey: notNeededReason,
+          note: notNeededNote.trim() || null,
+        });
       } else {
         const nextStatus = completionAction === "booked" ? "booked" : "completed";
         const eventType = nextStatus === "booked"
@@ -143,6 +157,21 @@ export function ProfessionalSupportTrackerCard({
     }
   }
 
+  async function handleSkipNotNeededModal() {
+    if (!modalState || modalState.kind !== "not_needed" || submitting) return;
+
+    setSubmitting(true);
+    try {
+      await dismissNotNeededRecommendation(modalState.recommendation);
+      await onChanged();
+      closeModal();
+    } catch (error) {
+      console.error("[ProfessionalSupportTrackerCard] skip not needed failed", error);
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
   function openModal(
     kind: NonNullable<ModalState>["kind"],
     recommendation: UserProfessionalSupportRecommendationRow,
@@ -162,62 +191,65 @@ export function ProfessionalSupportTrackerCard({
   return (
     <>
       <section className="rounded-[30px] border border-amber-200 bg-[linear-gradient(180deg,rgba(255,251,235,1),rgba(255,255,255,1))] px-5 py-5 shadow-sm">
-        <div className="flex flex-wrap items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2">
-              <BriefcaseMedical className="h-4 w-4 text-amber-700" />
-              <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-800">
-                Appui professionnel
+        <details className="group">
+          <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-4">
+            <div>
+              <div className="flex items-center gap-2">
+                <BriefcaseMedical className="h-4 w-4 text-amber-700" />
+                <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-amber-800">
+                  Appui professionnel
+                </p>
+              </div>
+              <h3 className="mt-2 text-base font-medium text-stone-800">
+                Si besoin, un appui externe peut t'aider a mieux tenir ce parcours
+              </h3>
+              <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-700">
+                Ces recommandations ne font pas partie de ton plan d'execution. Elles servent a te dire
+                qui peut t'aider, a quel moment du parcours, et a garder une trace de ce qui t'a aide ou non.
               </p>
             </div>
-            <h3 className="mt-3 text-2xl font-semibold text-stone-950">
-              Si besoin, un appui externe peut t'aider a mieux tenir ce parcours
-            </h3>
-            <p className="mt-2 max-w-3xl text-sm leading-6 text-stone-700">
-              Ces recommandations ne font pas partie de ton plan d'execution. Elles servent a te dire
-              qui peut t'aider, a quel moment du parcours, et a garder une trace de ce qui t'a aide ou non.
-            </p>
-          </div>
-        </div>
+            <span className="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-amber-200 bg-white text-amber-900">
+              <ChevronDown className="h-4 w-4 transition-transform group-open:rotate-180" />
+            </span>
+          </summary>
 
-        <div className="mt-5 grid gap-4">
-          {visibleRecommendations.map((recommendation) => {
-            const definition = getProfessionalDefinition(recommendation.professional_key);
-            const displayLevelOrder = recommendation.target_level_order != null
-              ? getDisplayPhaseOrder(recommendation.target_level_order)
-              : null;
-            const canMarkCompleted = recommendation.status === "pending" ||
-              recommendation.status === "booked";
+          <div className="mt-5 grid gap-4">
+            {visibleRecommendations.map((recommendation) => {
+              const definition = getProfessionalDefinition(recommendation.professional_key);
+              const displayLevelOrder = recommendation.target_level_order != null
+                ? getDisplayPhaseOrder(recommendation.target_level_order)
+                : null;
+              const canMarkCompleted = recommendation.status === "pending" ||
+                recommendation.status === "booked";
 
-            return (
-              <article
-                key={recommendation.id}
-                className="rounded-[26px] border border-white/80 bg-white/90 px-5 py-5 shadow-sm"
-              >
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Stethoscope className="h-4 w-4 text-amber-700" />
-                      <h4 className="text-lg font-semibold text-stone-950">
-                        {recommendation.priority_rank}. {definition.label}
-                      </h4>
+              return (
+                <article
+                  key={recommendation.id}
+                  className="rounded-[26px] border border-white/80 bg-white/90 px-5 py-5 shadow-sm"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <Stethoscope className="h-4 w-4 text-amber-700" />
+                        <h4 className="text-lg font-semibold text-stone-950">
+                          {recommendation.priority_rank}. {definition.label}
+                        </h4>
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-stone-700">
+                        {recommendation.reason}
+                      </p>
                     </div>
-                    <p className="mt-2 text-sm leading-6 text-stone-700">
-                      {recommendation.reason}
-                    </p>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-900">
+                        {getProfessionalSupportLevelLabel(recommendation.recommendation_level)}
+                      </span>
+                      <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[11px] font-semibold text-stone-700">
+                        {getProfessionalSupportStatusLabel(recommendation.status)}
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex flex-wrap items-center gap-2">
-                    <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-[11px] font-semibold text-amber-900">
-                      {getProfessionalSupportLevelLabel(recommendation.recommendation_level)}
-                    </span>
-                    <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[11px] font-semibold text-stone-700">
-                      {getProfessionalSupportStatusLabel(recommendation.status)}
-                    </span>
-                  </div>
-                </div>
 
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
+                  <div className="mt-4 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
                     <div className="flex items-center gap-2">
                       <Clock3 className="h-4 w-4 text-stone-500" />
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
@@ -235,45 +267,35 @@ export function ProfessionalSupportTrackerCard({
                     </p>
                   </div>
 
-                  <div className="rounded-2xl border border-stone-200 bg-stone-50 px-4 py-3">
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
-                      Ce que Sophia retient
-                    </p>
-                    <p className="mt-2 text-sm leading-6 text-stone-700">
-                      {recommendation.summary ||
-                        "Un appui externe cible peut rendre ce parcours plus simple a tenir."}
-                    </p>
-                  </div>
-                </div>
-
-                {recommendation.status === "completed" || recommendation.status === "not_needed" ? null : (
-                  <div className="mt-4 flex flex-wrap gap-3">
-                    {recommendation.status === "pending" ? (
-                      <button
-                        type="button"
-                        onClick={() => openModal("not_needed", recommendation)}
-                        className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-stone-300 hover:text-stone-900"
-                      >
-                        <XCircle className="h-4 w-4" />
-                        Je n'en ai pas besoin
-                      </button>
-                    ) : null}
-                    {canMarkCompleted ? (
-                      <button
-                        type="button"
-                        onClick={() => openModal("completed", recommendation)}
-                        className="inline-flex items-center gap-2 rounded-full bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800"
-                      >
-                        <CheckCircle2 className="h-4 w-4" />
-                        C'est fait
-                      </button>
-                    ) : null}
-                  </div>
-                )}
-              </article>
-            );
-          })}
-        </div>
+                  {recommendation.status === "completed" || recommendation.status === "not_needed" ? null : (
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      {recommendation.status === "pending" ? (
+                        <button
+                          type="button"
+                          onClick={() => openModal("not_needed", recommendation)}
+                          className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-stone-300 hover:text-stone-900"
+                        >
+                          <XCircle className="h-4 w-4" />
+                          Je n'en ai pas besoin
+                        </button>
+                      ) : null}
+                      {canMarkCompleted ? (
+                        <button
+                          type="button"
+                          onClick={() => openModal("completed", recommendation)}
+                          className="inline-flex items-center gap-2 rounded-full bg-amber-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-amber-800"
+                        >
+                          <CheckCircle2 className="h-4 w-4" />
+                          C'est fait
+                        </button>
+                      ) : null}
+                    </div>
+                  )}
+                </article>
+              );
+            })}
+          </div>
+        </details>
       </section>
 
       {modalState ? (
@@ -363,6 +385,16 @@ export function ProfessionalSupportTrackerCard({
               >
                 Annuler
               </button>
+              {modalState.kind === "not_needed" ? (
+                <button
+                  type="button"
+                  onClick={() => void handleSkipNotNeededModal()}
+                  disabled={submitting}
+                  className="rounded-full border border-stone-200 bg-white px-4 py-2 text-sm font-semibold text-stone-700 transition hover:border-stone-300 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  Passer
+                </button>
+              ) : null}
               <button
                 type="button"
                 onClick={() => void handleSubmitModal()}

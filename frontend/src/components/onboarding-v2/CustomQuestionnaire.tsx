@@ -5,7 +5,11 @@ import type { QuestionnaireSchemaV2 } from "../../lib/onboardingV2";
 
 type QuestionnaireAnswerValue = string | string[];
 const OTHER_PREFIX = "__other__:";
-const TIME_OF_DAY_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/;
+const TIME_OF_DAY_PATTERN = /^([01]\d|2[0-3]):(00|30)$/;
+const TIME_HOUR_OPTIONS = Array.from({ length: 24 }, (_, index) =>
+  String(index).padStart(2, "0")
+);
+const TIME_MINUTE_OPTIONS = ["00", "30"] as const;
 
 function extractOtherText(value: QuestionnaireAnswerValue | undefined): string {
   if (typeof value === "string") {
@@ -72,12 +76,6 @@ function normalizeAnswers(
 function isClockTimeQuestion(question: QuestionnaireSchemaV2["questions"][number]): boolean {
   if (question.kind === "time") return true;
   if (question.kind !== "number") return false;
-  if (
-    question.capture_goal === "_system_metric_baseline" ||
-    question.capture_goal === "_system_metric_target"
-  ) {
-    return false;
-  }
 
   const haystack = [
     question.question,
@@ -115,6 +113,28 @@ function isClockTimeQuestion(question: QuestionnaireSchemaV2["questions"][number
 
 function isValidTimeValue(value: string): boolean {
   return TIME_OF_DAY_PATTERN.test(value.trim());
+}
+
+function getTimeParts(value: QuestionnaireAnswerValue | undefined): {
+  hour: string;
+  minute: string;
+} {
+  if (typeof value !== "string") {
+    return { hour: "", minute: "" };
+  }
+
+  const trimmed = value.trim();
+  const match = trimmed.match(/^(\d{0,2})(?::(\d{0,2}))?$/);
+  if (!match) {
+    return { hour: "", minute: "" };
+  }
+
+  const hour = TIME_HOUR_OPTIONS.includes(match[1]) ? match[1] : "";
+  const minute = TIME_MINUTE_OPTIONS.includes(match[2] as typeof TIME_MINUTE_OPTIONS[number])
+    ? match[2] ?? ""
+    : "";
+
+  return { hour, minute };
 }
 
 function getSelectionHint(question: QuestionnaireSchemaV2["questions"][number]): string {
@@ -177,6 +197,9 @@ export function CustomQuestionnaire({
   );
   const currentOtherText = extractOtherText(currentAnswer);
   const otherSelected = hasOtherSelected(currentAnswer);
+  const currentTimeParts = currentQuestionUsesTimeInput
+    ? getTimeParts(currentAnswer)
+    : { hour: "", minute: "" };
 
   function updateSingleValue(value: string) {
     setAnswers((current) => ({ ...current, [currentQuestion.id]: value }));
@@ -319,24 +342,79 @@ export function CustomQuestionnaire({
         <div className="space-y-3">
           {currentQuestionUsesTimeInput ? (
             <div className="rounded-xl border border-gray-200 bg-gray-50 p-4">
-              <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-                Heure
-              </label>
-              <input
-                type="time"
-                step={60}
-                value={typeof currentAnswer === "string" ? currentAnswer : ""}
-                onChange={(event) => {
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className="block text-[11px] font-medium tracking-[0.08em] text-gray-500">
+                  Heure
+                  <select
+                    value={currentTimeParts.hour}
+                    onChange={(event) => {
+                      const nextHour = event.target.value;
+                      const nextMinute = currentTimeParts.minute;
+                      const nextValue = nextHour && nextMinute
+                        ? `${nextHour}:${nextMinute}`
+                        : nextHour
+                        ? `${nextHour}:`
+                        : "";
+                      setAnswers((current) => ({
+                        ...current,
+                        [currentQuestion.id]: nextValue,
+                      }));
+                      setError(null);
+                    }}
+                    className="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">Choisis l'heure</option>
+                    {TIME_HOUR_OPTIONS.map((hour) => (
+                      <option key={hour} value={hour}>
+                        {hour}h
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="block text-[11px] font-medium tracking-[0.08em] text-gray-500">
+                  Minutes
+                  <select
+                    value={currentTimeParts.minute}
+                    onChange={(event) => {
+                      const nextMinute = event.target.value;
+                      const nextHour = currentTimeParts.hour;
+                      const nextValue = nextHour && nextMinute
+                        ? `${nextHour}:${nextMinute}`
+                        : nextMinute
+                        ? `:${nextMinute}`
+                        : "";
+                      setAnswers((current) => ({
+                        ...current,
+                        [currentQuestion.id]: nextValue,
+                      }));
+                      setError(null);
+                    }}
+                    className="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
+                  >
+                    <option value="">Choisis les minutes</option>
+                    {TIME_MINUTE_OPTIONS.map((minute) => (
+                      <option key={minute} value={minute}>
+                        {minute}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
                   setAnswers((current) => ({
                     ...current,
-                    [currentQuestion.id]: event.target.value,
+                    [currentQuestion.id]: "",
                   }));
                   setError(null);
                 }}
-                className="mt-3 w-full rounded-xl border border-gray-200 bg-white px-4 py-3 text-base text-gray-900 outline-none focus:border-blue-300 focus:ring-2 focus:ring-blue-100"
-              />
+                className="mt-3 inline-flex items-center rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700"
+              >
+                Effacer
+              </button>
               <p className="mt-3 text-xs text-gray-500">
-                Choisis une heure de la journee, par exemple 22:30.
+                Choisis uniquement une heure pile ou une demi-heure, par exemple 22:00 ou 22:30.
               </p>
             </div>
           ) : currentQuestion.kind === "number" ? (

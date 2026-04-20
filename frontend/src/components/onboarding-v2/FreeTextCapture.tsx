@@ -1,4 +1,4 @@
-import { Loader2, Save, Sparkles } from "lucide-react";
+import { Loader2, Sparkles } from "lucide-react";
 
 type FreeTextCaptureProps = {
   value: string;
@@ -6,7 +6,11 @@ type FreeTextCaptureProps = {
   onSubmit: () => void;
   isSubmitting: boolean;
   clarificationPrompt?: string | null;
-  requiresAuth?: boolean;
+  introTitle?: string;
+  introText?: string;
+  title?: string;
+  description?: string;
+  submitLabel?: string;
 };
 
 export function FreeTextCapture({
@@ -15,7 +19,11 @@ export function FreeTextCapture({
   onSubmit,
   isSubmitting,
   clarificationPrompt,
-  requiresAuth = false,
+  introTitle = "Sophia écoute d'abord.",
+  introText = "Écris comme tu parles. Il n'y a rien à formuler « correctement ».",
+  title = "Qu'aimerais-tu changer ou améliorer en ce moment ?",
+  description = "Plus ton texte est concret, plus la suite sera utile. Tu peux parler de ce qui bloque, de ce que tu voudrais retrouver, ou de ce que tu n'arrives plus à tenir.",
+  submitLabel,
 }: FreeTextCaptureProps) {
   const isDisabled = value.trim().length < 8 || isSubmitting;
 
@@ -28,10 +36,10 @@ export function FreeTextCapture({
           </div>
           <div>
             <p className="font-bold text-gray-900">
-              Sophia écoute d'abord.
+              {introTitle}
             </p>
             <p>
-              Écris comme tu parles. Il n'y a rien à formuler « correctement ».
+              {introText}
             </p>
           </div>
         </div>
@@ -40,12 +48,10 @@ export function FreeTextCapture({
           Expression libre
         </p>
         <h1 className="mb-3 font-serif text-2xl font-bold leading-tight text-gray-900 md:text-4xl">
-          Qu'aimerais-tu changer ou améliorer en ce moment ?
+          {title}
         </h1>
         <p className="mb-6 max-w-2xl text-base leading-relaxed text-gray-600">
-          Plus ton texte est concret, plus la suite sera utile. Tu peux parler
-          de ce qui bloque, de ce que tu voudrais retrouver, ou de ce que tu
-          n'arrives plus à tenir.
+          {description}
         </p>
 
         {clarificationPrompt && (
@@ -80,7 +86,7 @@ export function FreeTextCapture({
           className="flex w-full items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 py-4 text-base font-bold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-gray-300 disabled:shadow-none"
         >
           {isSubmitting && <Loader2 className="h-4 w-4 animate-spin" />}
-          {clarificationPrompt ? "Réessayer" : "Continuer"}
+          {submitLabel ?? (clarificationPrompt ? "Réessayer" : "Continuer")}
         </button>
       </div>
     </section>

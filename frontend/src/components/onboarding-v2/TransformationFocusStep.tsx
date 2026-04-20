@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   ArrowRight,
   CheckCircle2,
@@ -14,11 +14,24 @@ type ConfirmPayload = {
   transformations: TransformationPreviewV2[];
 };
 
+type AlternatePayload = {
+  selectedTransformationId: string | null;
+  transformations: TransformationPreviewV2[];
+};
+
 type TransformationFocusStepProps = {
   transformations: TransformationPreviewV2[];
   initialSelectedId: string | null;
   onConfirm: (payload: ConfirmPayload) => void;
   isSubmitting: boolean;
+  badgeLabel?: string;
+  title?: string;
+  description?: string;
+  primaryActionLabel?: string;
+  allowManualAdd?: boolean;
+  alternateActionLabel?: string | null;
+  alternateActionDescription?: string | null;
+  onAlternateAction?: (payload: AlternatePayload) => void;
 };
 
 function sortByPriority(items: TransformationPreviewV2[]) {
@@ -75,6 +88,14 @@ export function TransformationFocusStep({
   initialSelectedId,
   onConfirm,
   isSubmitting,
+  badgeLabel = "Choix du point de départ",
+  title = "Par quoi veux-tu commencer ?",
+  description = "Sophia te propose le sujet le plus pertinent pour démarrer. Tu peux garder cette proposition, en choisir un autre, ou ajouter un sujet si quelque chose manque.",
+  primaryActionLabel = "Continuer avec cette transformation",
+  allowManualAdd = true,
+  alternateActionLabel = null,
+  alternateActionDescription = null,
+  onAlternateAction,
 }: TransformationFocusStepProps) {
   const [transformations, setTransformations] = useState<TransformationPreviewV2[]>(
     () => sortByPriority(initialTransformations),
@@ -85,12 +106,6 @@ export function TransformationFocusStep({
   const [newTransformationTitle, setNewTransformationTitle] = useState("");
   const [newTransformationContext, setNewTransformationContext] = useState("");
   const [showAddForm, setShowAddForm] = useState(false);
-
-  useEffect(() => {
-    const sorted = sortByPriority(initialTransformations);
-    setTransformations(sorted);
-    setSelectedId(initialSelectedId ?? sorted[0]?.id ?? null);
-  }, [initialSelectedId, initialTransformations]);
 
   const recommended = useMemo(
     () => recommendedTransformation(transformations),
@@ -172,20 +187,25 @@ export function TransformationFocusStep({
     });
   }
 
+  function handleAlternateAction() {
+    onAlternateAction?.({
+      selectedTransformationId: selectedId,
+      transformations,
+    });
+  }
+
   return (
     <section className="mx-auto flex w-full max-w-4xl flex-col gap-6">
       <div className="text-center">
         <div className="mb-4 inline-flex items-center gap-2 rounded-full bg-blue-50 px-4 py-2 text-xs font-bold uppercase tracking-wide text-blue-700">
           <Sparkles className="h-3.5 w-3.5" />
-          Choix du point de départ
+          {badgeLabel}
         </div>
         <h1 className="mb-3 text-3xl font-semibold tracking-tight text-gray-900 md:text-5xl">
-          Par quoi veux-tu commencer ?
+          {title}
         </h1>
         <p className="mx-auto max-w-3xl text-base leading-relaxed text-gray-600 md:text-lg">
-          Sophia te propose le sujet le plus pertinent pour démarrer. Tu peux
-          garder cette proposition, en choisir un autre, ou ajouter un sujet si
-          quelque chose manque.
+          {description}
         </p>
       </div>
 
@@ -271,17 +291,19 @@ export function TransformationFocusStep({
               Tu peux changer de focus en un tap.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => setShowAddForm((current) => !current)}
-            className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:bg-white hover:text-gray-900"
-          >
-            <Plus className="h-4 w-4" />
-            Ajouter une transformation
-          </button>
+          {allowManualAdd ? (
+            <button
+              type="button"
+              onClick={() => setShowAddForm((current) => !current)}
+              className="inline-flex items-center gap-2 rounded-full border border-gray-200 bg-gray-50 px-4 py-2 text-sm font-medium text-gray-700 transition hover:border-blue-200 hover:bg-white hover:text-gray-900"
+            >
+              <Plus className="h-4 w-4" />
+              Ajouter une transformation
+            </button>
+          ) : null}
         </div>
 
-        {showAddForm ? (
+        {allowManualAdd && showAddForm ? (
           <div className="mt-4 rounded-2xl border border-blue-100 bg-blue-50 p-4">
             <div className="flex items-start justify-between gap-3">
               <label className="block text-sm font-medium text-gray-700">
@@ -353,6 +375,29 @@ export function TransformationFocusStep({
         </div>
       </div>
 
+      {onAlternateAction && alternateActionLabel ? (
+        <div className="rounded-3xl border border-stone-200 bg-stone-50 p-5 shadow-sm">
+          <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-stone-500">
+            Autre sujet prioritaire
+          </p>
+          {alternateActionDescription ? (
+            <p className="mt-2 text-sm leading-6 text-stone-600">
+              {alternateActionDescription}
+            </p>
+          ) : null}
+          <div className="mt-4">
+            <button
+              type="button"
+              onClick={handleAlternateAction}
+              disabled={isSubmitting}
+              className="inline-flex items-center gap-2 rounded-full border border-stone-200 bg-white px-4 py-2.5 text-sm font-semibold text-stone-700 transition hover:border-blue-200 hover:text-stone-900 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {alternateActionLabel}
+            </button>
+          </div>
+        </div>
+      ) : null}
+
       <div className="sticky bottom-4 z-20">
         <button
           type="button"
@@ -360,7 +405,7 @@ export function TransformationFocusStep({
           disabled={isSubmitting || !selectedTransformation}
           className="group flex w-full items-center justify-center gap-2 rounded-full bg-blue-600 py-3.5 text-base font-bold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-70 md:py-4"
         >
-          Continuer avec cette transformation
+          {primaryActionLabel}
           <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
         </button>
       </div>

@@ -25,6 +25,10 @@ export type Phase1PromptContext = {
   previous_completed_transformation?: string | null;
 };
 
+function containsVouvoiement(value: string): boolean {
+  return /\b(vous|votre|vos)\b/i.test(value);
+}
+
 export const PHASE1_DEEP_WHY_SYSTEM_PROMPT = `Tu écris les questions de "pourquoi profond" pour Sophia.
 
 Objectif:
@@ -37,6 +41,9 @@ Objectif:
 Règles:
 - une seule question par item
 - formulation simple, humaine, concrète
+- tu t'adresses directement à la personne en tutoiement, tout le temps, sans aucune exception
+- n'utilise jamais le vouvoiement, ni dans les questions, ni dans les suggestions de réponse
+- emploie systématiquement "tu", "ton", "ta", "tes"
 - pas de jargon thérapeutique
 - pas de "pourquoi veux-tu changer ?" générique
 - les questions doivent aller un cran plus loin que ce qui a déjà été dit dans le questionnaire
@@ -142,8 +149,14 @@ export function validatePhase1DeepWhyOutput(
       issues.push(`question[${index}] id must be ${expectedIds[index]}`);
     }
     if (!question) issues.push(`question[${index}] missing question`);
+    if (question && containsVouvoiement(question)) {
+      issues.push(`question[${index}] must use tutoiement only`);
+    }
     if (suggestedAnswers.length !== 2) {
       issues.push(`question[${index}] must have exactly 2 suggested_answers`);
+    }
+    if (suggestedAnswers.some((entry) => containsVouvoiement(entry))) {
+      issues.push(`question[${index}] suggested_answers must use tutoiement only`);
     }
     return id && question && suggestedAnswers.length === 2 && id === expectedIds[index]
       ? [{ id, question, suggested_answers: suggestedAnswers }]

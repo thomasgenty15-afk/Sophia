@@ -17,7 +17,7 @@ import {
   Settings,
   Shield,
   Sparkles,
-  Map,
+  Map as MapIcon,
   Plus,
   Zap,
 } from "lucide-react";
@@ -34,6 +34,7 @@ import { DefenseCard, DefenseCardSkeleton } from "../components/dashboard-v2/Def
 import { DimensionSection } from "../components/dashboard-v2/DimensionSection";
 import { LabCardsPanel } from "../components/dashboard-v2/LabCardsPanel";
 import { LevelCompletionModal } from "../components/dashboard-v2/LevelCompletionModal";
+import { MultiPartTransitionGateModal } from "../components/dashboard-v2/MultiPartTransitionGateModal";
 import { Phase1FoundationCard } from "../components/dashboard-v2/Phase1FoundationCard";
 import { Phase1KickoffFlow } from "../components/dashboard-v2/Phase1KickoffFlow";
 import { PhaseProgression } from "../components/dashboard-v2/PhaseProgression";
@@ -65,6 +66,7 @@ import { useLabCards } from "../hooks/useLabCards";
 import { useModules } from "../hooks/useModules";
 import { usePhase1 } from "../hooks/usePhase1";
 import { usePotions } from "../hooks/usePotions";
+import { isVisibleTransformationStatus } from "../lib/dashboardTransformations";
 import { exportDefenseCardAsPdf } from "../lib/exportDefenseCard";
 import { getPhase1MandatoryProgress } from "../lib/phase1";
 import {
@@ -74,9 +76,16 @@ import {
 } from "../lib/baseDeVie";
 import type { LabScopeInput } from "../lib/labScope";
 import { buildLevelReviewQuestions } from "../lib/levelCompletion";
+import {
+  createEmptyOnboardingV2Draft,
+  persistOnboardingV2DraftLocally,
+  toTransformationPreview,
+} from "../lib/onboardingV2";
+import { buildMultiPartTransitionQuestionnaireSchema } from "../lib/multiPartTransitionQuestionnaire";
 import { extractProfessionalSupport } from "../lib/professionalSupport";
 import { parsePlanScheduleAnchor } from "../lib/planSchedule";
 import { supabase } from "../lib/supabase";
+import { extractLevelToolRecommendationState } from "../lib/toolRecommendations";
 import UserProfile from "../components/UserProfile";
 
 const EMPTY_DIMENSION_GROUP: DashboardV2DimensionGroup = {
@@ -87,6 +96,130 @@ const EMPTY_DIMENSION_GROUP: DashboardV2DimensionGroup = {
   stalled: [],
   completed: [],
 };
+
+function toPositiveIntegerOrNull(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value) && value > 0) {
+    return Math.trunc(value);
+  }
+  if (typeof value === "string" && value.trim().length > 0) {
+    const parsed = Number(value);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return Math.trunc(parsed);
+    }
+  }
+  return null;
+}
+
+function extractTransformationJourneyMetadata(
+  handoffPayload: Record<string, unknown> | null,
+): {
+  isMultiPart: boolean;
+  partNumber: number | null;
+  estimatedTotalParts: number | null;
+  continuationHint: string | null;
+} | null {
+  const onboardingV2 = (
+    handoffPayload as { onboarding_v2?: unknown } | null | undefined
+  )?.onboarding_v2;
+  if (!onboardingV2 || typeof onboardingV2 !== "object" || Array.isArray(onboardingV2)) {
+    return null;
+  }
+
+  const multiPartJourney = (
+    onboardingV2 as { multi_part_journey?: unknown }
+  ).multi_part_journey;
+  if (!multiPartJourney || typeof multiPartJourney !== "object" || Array.isArray(multiPartJourney)) {
+    return null;
+  }
+
+  const raw = multiPartJourney as Record<string, unknown>;
+  const rawIsMultiPart = raw.is_multi_part;
+  const isMultiPart = rawIsMultiPart === true || rawIsMultiPart === "true";
+  if (!isMultiPart) return null;
+
+  return {
+    isMultiPart: true,
+    partNumber: toPositiveIntegerOrNull(raw.part_number),
+    estimatedTotalParts: toPositiveIntegerOrNull(raw.estimated_total_parts),
+    continuationHint:
+      typeof raw.continuation_hint === "string" && raw.continuation_hint.trim().length > 0
+        ? raw.continuation_hint.trim()
+        : null,
+  };
+}
+
+function extractTransformationJourneyMode(
+  handoffPayload: Record<string, unknown> | null,
+): string | null {
+  const onboardingV2 = (
+    handoffPayload as { onboarding_v2?: unknown } | null | undefined
+  )?.onboarding_v2;
+  if (!onboardingV2 || typeof onboardingV2 !== "object" || Array.isArray(onboardingV2)) {
+    return null;
+  }
+
+  const classification = (onboardingV2 as { plan_type_classification?: unknown }).plan_type_classification;
+  if (!classification || typeof classification !== "object" || Array.isArray(classification)) {
+    return null;
+  }
+
+  const journeyStrategy = (classification as { journey_strategy?: unknown }).journey_strategy;
+  if (!journeyStrategy || typeof journeyStrategy !== "object" || Array.isArray(journeyStrategy)) {
+    return null;
+  }
+
+  return typeof (journeyStrategy as { mode?: unknown }).mode === "string"
+    ? String((journeyStrategy as { mode?: unknown }).mode)
+    : null;
+}
+
+function extractSplitTransformationGoal(
+  handoffPayload: Record<string, unknown> | null,
+  partNumber: 1 | 2,
+): string | null {
+  const onboardingV2 = (
+    handoffPayload as { onboarding_v2?: unknown } | null | undefined
+  )?.onboarding_v2;
+  if (!onboardingV2 || typeof onboardingV2 !== "object" || Array.isArray(onboardingV2)) {
+    return null;
+  }
+
+  const classification = (onboardingV2 as { plan_type_classification?: unknown }).plan_type_classification;
+  if (!classification || typeof classification !== "object" || Array.isArray(classification)) {
+    return null;
+  }
+
+  const splitMetricGuidance = (classification as { split_metric_guidance?: unknown }).split_metric_guidance;
+  if (splitMetricGuidance && typeof splitMetricGuidance === "object" && !Array.isArray(splitMetricGuidance)) {
+    const transformationKey = partNumber === 2 ? "transformation_2" : "transformation_1";
+    const splitPart = (
+      splitMetricGuidance as {
+        transformation_1?: unknown;
+        transformation_2?: unknown;
+      }
+    )[transformationKey];
+
+    if (splitPart && typeof splitPart === "object" && !Array.isArray(splitPart)) {
+      const successDefinition = (splitPart as { success_definition?: unknown }).success_definition;
+      if (typeof successDefinition === "string" && successDefinition.trim().length > 0) {
+        return successDefinition.trim();
+      }
+    }
+  }
+
+  const journeyStrategy = (classification as { journey_strategy?: unknown }).journey_strategy;
+  if (!journeyStrategy || typeof journeyStrategy !== "object" || Array.isArray(journeyStrategy)) {
+    return null;
+  }
+
+  const goalKey = partNumber === 2 ? "transformation_2_goal" : "transformation_1_goal";
+  const goal = (journeyStrategy as {
+    transformation_1_goal?: unknown;
+    transformation_2_goal?: unknown;
+  })[goalKey];
+
+  return typeof goal === "string" && goal.trim().length > 0 ? goal.trim() : null;
+}
 
 type DashboardTab = "plan" | "lab" | "inspiration" | "reminders" | "preferences";
 type ArchitectTab = "coaching" | "wishlist" | "stories" | "reflections" | "quotes";
@@ -150,6 +283,8 @@ export default function DashboardV2() {
     planContentV3,
     planItems,
     professionalSupportRecommendations,
+    levelToolRecommendations,
+    levelToolRecommendationsAvailable,
     nextTransformation,
     hasIncompleteCycle,
     refetch,
@@ -179,7 +314,13 @@ export default function DashboardV2() {
   const labCards = useLabCards(labScope);
   const potions = usePotions(labScope);
   const phase1 = usePhase1(isV3 ? transformation : null, refetch);
-  const phase1Progress = getPhase1MandatoryProgress(phase1.phase1);
+  const {
+    phase1: phase1State,
+    preparingStart: phase1PreparingStart,
+    phase1StartCooldownActive,
+    prepareStart: preparePhase1Start,
+  } = phase1;
+  const phase1Progress = getPhase1MandatoryProgress(phase1State);
   const phase1Completed = phase1Progress.completed >= phase1Progress.total;
 
   const logic = useDashboardV2Logic({
@@ -192,6 +333,27 @@ export default function DashboardV2() {
     refetch,
   });
   const currentLevel = logic.phases.find((phase) => phase.state === "active") ?? null;
+  const levelToolState = useMemo(
+    () => extractLevelToolRecommendationState(transformation?.handoff_payload ?? null),
+    [transformation?.handoff_payload],
+  );
+  const currentPlanLevelToolRecommendations = useMemo(
+    () =>
+      plan
+        ? levelToolRecommendations.filter((recommendation) => recommendation.plan_id === plan.id)
+        : [],
+    [levelToolRecommendations, plan],
+  );
+  const hasCurrentPlanLevelToolRecommendations =
+    currentPlanLevelToolRecommendations.length > 0;
+  const levelToolStateCoversCurrentLevel = Boolean(
+    !currentLevel ||
+      currentLevel.phase_order < 2 ||
+      levelToolState?.levels.some((entry) =>
+        entry.target_level_id === currentLevel.phase_id &&
+        entry.target_level_order === currentLevel.phase_order
+      ),
+  );
   const scheduleAnchor = useMemo(
     () => parsePlanScheduleAnchor(planContentV3?.metadata?.schedule_anchor),
     [planContentV3],
@@ -207,9 +369,10 @@ export default function DashboardV2() {
   const [profileInitialTab, setProfileInitialTab] = useState<
     "general" | "subscription" | "settings"
   >("general");
-  const [dashboardActionBusy, setDashboardActionBusy] = useState<string | null>(null);
   const [dashboardActionError, setDashboardActionError] = useState<string | null>(null);
   const [professionalSupportBootstrapId, setProfessionalSupportBootstrapId] =
+    useState<string | null>(null);
+  const [levelToolBootstrapId, setLevelToolBootstrapId] =
     useState<string | null>(null);
   const [planReviewInput, setPlanReviewInput] = useState("");
   const [planReviewThread, setPlanReviewThread] = useState<PlanRevisionThreadEntry[]>([]);
@@ -224,6 +387,8 @@ export default function DashboardV2() {
   const [isClosureModalOpen, setIsClosureModalOpen] = useState(false);
   const [closureModalDismissedForId, setClosureModalDismissedForId] = useState<string | null>(null);
   const [completingTransformation, setCompletingTransformation] = useState(false);
+  const [isMultiPartTransitionModalOpen, setIsMultiPartTransitionModalOpen] = useState(false);
+  const [multiPartTransitionBusy, setMultiPartTransitionBusy] = useState(false);
 
   const isOutOfPlanScope = selectedScopeId === "out_of_plan";
   const shouldBlockForPhase1 = Boolean(
@@ -232,17 +397,17 @@ export default function DashboardV2() {
       !isOutOfPlanScope &&
       !phase1Completed,
   );
-  const scopeTransformations = transformations.filter((item) =>
-    item.status === "active" || item.status === "completed"
-  );
-  const engagedTransformations = transformations.filter((item) =>
-    item.status === "active" || item.status === "ready" || item.status === "pending"
+  const activeTransformations = transformations.filter((item) => item.status === "active");
+  const scopeTransformations = activeTransformations;
+  const visibleTransformations = useMemo(
+    () => transformations.filter((item) => isVisibleTransformationStatus(item.status)),
+    [transformations],
   );
   const remainingTransformations = transformations.filter((item) =>
     item.status === "ready" || item.status === "pending"
   );
   const recommendedAdditionalTransformation = nextTransformation ?? remainingTransformations[0] ?? null;
-  const canAddTransformation = engagedTransformations.length < 2;
+  const canAddTransformation = activeTransformations.length < 2;
   const currentBaseDeViePayload = useMemo(
     () => getBaseDeViePayload(transformation?.base_de_vie_payload ?? null),
     [transformation?.base_de_vie_payload],
@@ -292,6 +457,22 @@ export default function DashboardV2() {
         : [],
     [currentLevel],
   );
+  const levelToolRecommendationsByPhaseId = useMemo(() => {
+    const grouped = new globalThis.Map<
+      string,
+      typeof currentPlanLevelToolRecommendations
+    >();
+
+    for (const recommendation of currentPlanLevelToolRecommendations) {
+      const phaseId = recommendation.target_level_id;
+      if (!phaseId) continue;
+      const bucket = grouped.get(phaseId) ?? [];
+      bucket.push(recommendation);
+      grouped.set(phaseId, bucket);
+    }
+
+    return grouped;
+  }, [currentPlanLevelToolRecommendations]);
   const isTransformationReadyForClosure = Boolean(
     transformation &&
       plan &&
@@ -300,6 +481,116 @@ export default function DashboardV2() {
       isPlanReadyForClosure(planItems.map((item) => item.status)) &&
       !currentBaseDeViePayload?.validated_at,
   );
+  const phase1DeepWhyQuestionsLength = phase1State?.deep_why?.questions?.length ?? 0;
+  const allPhasesCompleted =
+    logic.phases.length > 0 && logic.phases.every((phase) => phase.state === "completed");
+  const transformationJourneyMetadata = useMemo(
+    () => extractTransformationJourneyMetadata(transformation?.handoff_payload ?? null),
+    [transformation?.handoff_payload],
+  );
+  const transformationJourneyMode = useMemo(
+    () => extractTransformationJourneyMode(transformation?.handoff_payload ?? null),
+    [transformation?.handoff_payload],
+  );
+  const journeyContext = activePlanContent?.journey_context ?? null;
+  const rawJourneyIsMultiPart = (journeyContext as { is_multi_part?: unknown } | null)?.is_multi_part;
+  const journeyIsMultiPart =
+    rawJourneyIsMultiPart === true ||
+    rawJourneyIsMultiPart === "true" ||
+    transformationJourneyMetadata?.isMultiPart === true ||
+    transformationJourneyMode === "two_transformations";
+  const inferredJourneyPartNumber = useMemo(() => {
+    const explicitPartNumber = toPositiveIntegerOrNull(journeyContext?.part_number);
+    if (explicitPartNumber != null) return explicitPartNumber;
+    if (transformationJourneyMetadata?.partNumber != null) {
+      return transformationJourneyMetadata.partNumber;
+    }
+    if (journeyIsMultiPart && recommendedAdditionalTransformation) return 1;
+    if (!transformation || visibleTransformations.length !== 2) return null;
+    const currentIndex = visibleTransformations.findIndex((item) => item.id === transformation.id);
+    return currentIndex >= 0 ? currentIndex + 1 : null;
+  }, [
+    journeyContext?.part_number,
+    transformationJourneyMetadata?.partNumber,
+    journeyIsMultiPart,
+    recommendedAdditionalTransformation,
+    transformation,
+    visibleTransformations,
+  ]);
+  const inferredJourneyTotalParts = useMemo(() => {
+    const explicitTotalParts = toPositiveIntegerOrNull(journeyContext?.estimated_total_parts);
+    if (explicitTotalParts != null) return explicitTotalParts;
+    if (transformationJourneyMetadata?.estimatedTotalParts != null) {
+      return transformationJourneyMetadata.estimatedTotalParts;
+    }
+    if (journeyIsMultiPart && recommendedAdditionalTransformation) return 2;
+    return visibleTransformations.length === 2 ? 2 : null;
+  }, [
+    journeyContext?.estimated_total_parts,
+    transformationJourneyMetadata?.estimatedTotalParts,
+    journeyIsMultiPart,
+    recommendedAdditionalTransformation,
+    visibleTransformations.length,
+  ]);
+  const isMultiPartJourney = Boolean(
+    !isOutOfPlanScope &&
+      transformation &&
+      (journeyIsMultiPart ||
+        (inferredJourneyPartNumber != null &&
+          inferredJourneyTotalParts != null &&
+          inferredJourneyTotalParts > 1)),
+  );
+  const hasSequencedNextTransformation = Boolean(
+    isMultiPartJourney &&
+      (inferredJourneyPartNumber ?? 1) === 1 &&
+      (inferredJourneyTotalParts ?? 2) >= 2 &&
+      recommendedAdditionalTransformation,
+  );
+  const transitionCheckpointReached = Boolean(
+    hasSequencedNextTransformation &&
+      (allPhasesCompleted || transformation?.status === "completed" || isTransformationReadyForClosure),
+  );
+  const hasSimpleNextTransformation = Boolean(
+    !hasSequencedNextTransformation &&
+      recommendedAdditionalTransformation,
+  );
+  const canShowTransformationEndAction = Boolean(
+    transformation &&
+      transformation.status === "active" &&
+      !isOutOfPlanScope,
+  );
+  const nextSequencedTransformation = hasSequencedNextTransformation
+    ? recommendedAdditionalTransformation
+    : null;
+  const nextSequencedTransformationTitle =
+    nextSequencedTransformation?.title ||
+    (nextSequencedTransformation
+      ? `Transformation ${nextSequencedTransformation.priority_order}`
+      : null);
+  const nextRecommendedTransformationTitle =
+    recommendedAdditionalTransformation?.title ||
+    (recommendedAdditionalTransformation
+      ? `Transformation ${recommendedAdditionalTransformation.priority_order}`
+      : null);
+  const transitionTargetLabel = planContentV3?.primary_metric?.label ?? null;
+  const transitionTargetValue = planContentV3?.primary_metric?.success_target ?? null;
+  const nextSequencedTransformationObjective = useMemo(
+    () =>
+      nextSequencedTransformation?.success_definition?.trim() ||
+      extractSplitTransformationGoal(nextSequencedTransformation?.handoff_payload ?? null, 2) ||
+      extractSplitTransformationGoal(transformation?.handoff_payload ?? null, 2) ||
+      nextSequencedTransformation?.user_summary?.trim() ||
+      null,
+    [
+      nextSequencedTransformation?.handoff_payload,
+      nextSequencedTransformation?.success_definition,
+      nextSequencedTransformation?.user_summary,
+      transformation?.handoff_payload,
+    ],
+  );
+  const transitionGlobalObjective = hasSequencedNextTransformation
+    ? nextSequencedTransformationObjective
+    : planContentV3?.global_objective ?? null;
 
   useEffect(() => {
     if (selectedScopeId === "out_of_plan") return;
@@ -307,6 +598,19 @@ export default function DashboardV2() {
       setSelectedScopeId(transformation.id);
     }
   }, [selectedScopeId, transformation?.id]);
+
+  useEffect(() => {
+    if (loading || !cycle || isOutOfPlanScope || transformation) return;
+    if (activeTransformations.length === 0) {
+      setSelectedScopeId("out_of_plan");
+    }
+  }, [
+    activeTransformations.length,
+    cycle,
+    isOutOfPlanScope,
+    loading,
+    transformation,
+  ]);
 
   useEffect(() => {
     if (isOutOfPlanScope && activeTab !== "lab") {
@@ -336,23 +640,22 @@ export default function DashboardV2() {
   }, [closureModalDismissedForId, transformation]);
 
   useEffect(() => {
-    const deepWhyAlreadyPrepared =
-      (phase1.phase1?.deep_why?.questions?.length ?? 0) > 0;
+    const deepWhyAlreadyPrepared = phase1DeepWhyQuestionsLength > 0;
 
     if (
       !shouldBlockForPhase1 ||
-      phase1.preparingStart ||
-      phase1.phase1StartCooldownActive ||
+      phase1PreparingStart ||
+      phase1StartCooldownActive ||
       deepWhyAlreadyPrepared
     ) {
       return;
     }
-    void phase1.prepareStart();
+    void preparePhase1Start();
   }, [
-    phase1.phase1StartCooldownActive,
-    phase1.phase1?.deep_why?.questions?.length,
-    phase1.prepareStart,
-    phase1.preparingStart,
+    phase1StartCooldownActive,
+    phase1DeepWhyQuestionsLength,
+    phase1PreparingStart,
+    preparePhase1Start,
     shouldBlockForPhase1,
   ]);
 
@@ -401,6 +704,46 @@ export default function DashboardV2() {
   ]);
 
   useEffect(() => {
+    if (!transformation || !plan || !isV3) return;
+    if (levelToolRecommendationsAvailable !== true) return;
+    if (hasCurrentPlanLevelToolRecommendations) return;
+
+    const stateMatchesCurrentPlan = Boolean(
+      levelToolState &&
+        levelToolState.plan_id === plan.id &&
+        levelToolState.plan_version === plan.version &&
+        levelToolState.plan_updated_at === plan.updated_at,
+    );
+    if (stateMatchesCurrentPlan && levelToolStateCoversCurrentLevel) return;
+
+    const bootstrapKey = `${transformation.id}:${plan.id}:${plan.updated_at}`;
+    if (levelToolBootstrapId === bootstrapKey) return;
+
+    setLevelToolBootstrapId(bootstrapKey);
+    void supabase.functions
+      .invoke("classify-level-tools-v1", {
+        body: { transformation_id: transformation.id },
+      })
+      .then(async ({ error: invokeError }) => {
+        if (invokeError) throw invokeError;
+        await refetch();
+      })
+      .catch((invokeError) => {
+        console.error("[DashboardV2] level tool bootstrap failed", invokeError);
+      });
+  }, [
+    isV3,
+    hasCurrentPlanLevelToolRecommendations,
+    levelToolBootstrapId,
+    levelToolRecommendationsAvailable,
+    levelToolStateCoversCurrentLevel,
+    plan,
+    refetch,
+    levelToolState,
+    transformation,
+  ]);
+
+  useEffect(() => {
     setPlanReviewInput("");
     setPlanReviewThread([]);
     setPlanReviewProposal(null);
@@ -421,7 +764,7 @@ export default function DashboardV2() {
   ).toUpperCase();
   const dashboardTabs: ReadonlyArray<{
     key: DashboardTab;
-    icon: typeof Map;
+    icon: typeof MapIcon;
     label: string;
     activeColor: string;
     activeBg: string;
@@ -438,7 +781,7 @@ export default function DashboardV2() {
     : [
         {
           key: "plan",
-          icon: Map,
+          icon: MapIcon,
           label: "Plan",
           activeColor: "text-blue-600",
           activeBg: "bg-blue-50",
@@ -477,7 +820,7 @@ export default function DashboardV2() {
       const weekNum = m.id.replace("week_", "");
       const cleanTitle = m.title.replace(/^Semaine \d+ : /, "");
       let status = "locked";
-      const nextModuleIds = (m as any).nextModuleIds || [];
+      const nextModuleIds = m.nextModuleIds ?? [];
       const isNextModuleStartedOrCompleted = nextModuleIds.some((nextId: string) => {
         const nextModule = modules[nextId];
         return !!nextModule?.state?.first_updated_at || nextModule?.state?.status === "completed";
@@ -579,17 +922,9 @@ export default function DashboardV2() {
     });
   };
 
-  const handleRoadmapReview = () => {
-    navigate("/chat", {
-      state: {
-        source: "dashboard_v2_roadmap_review",
-      },
-    });
-  };
-
-  const handlePlanReviewSubmit = async () => {
+  const handlePlanReviewSubmit = async (overrideComment?: string) => {
     if (!transformation || !plan || !planContentV3) return;
-    const userComment = planReviewInput.trim();
+    const userComment = (overrideComment ?? planReviewInput).trim();
     if (!userComment) return;
 
     setPlanReviewBusy(true);
@@ -773,68 +1108,243 @@ export default function DashboardV2() {
     navigate("/transformations/new");
   };
 
+  const handleOpenMultiPartTransitionGate = () => {
+    if (!hasSequencedNextTransformation && !hasSimpleNextTransformation) return;
+    setDashboardActionError(null);
+    setIsMultiPartTransitionModalOpen(true);
+  };
+
+  const handoffToNextTransformationSelection = () => {
+    startSession();
+    navigate("/transformations/new");
+  };
+
+  const releaseCurrentTransformationForNextStep = async (
+    nextStatus: "completed" | "abandoned",
+  ) => {
+    if (!transformation || !cycle) return;
+
+    const now = new Date().toISOString();
+    const planUpdate =
+      nextStatus === "completed"
+        ? supabase
+          .from("user_plans_v2")
+          .update({
+            status: "completed",
+            completed_at: now,
+            updated_at: now,
+          })
+          .eq("transformation_id", transformation.id)
+          .in("status", ["active", "paused"])
+        : supabase
+          .from("user_plans_v2")
+          .update({
+            status: "archived",
+            archived_at: now,
+            updated_at: now,
+          })
+          .eq("transformation_id", transformation.id)
+          .in("status", ["draft", "active", "paused"]);
+
+    const [{ error: planError }, { error: transformationError }, cycleUpdateResult] =
+      await Promise.all([
+        planUpdate,
+        supabase
+          .from("user_transformations")
+          .update({
+            status: nextStatus,
+            ...(nextStatus === "completed" ? { completed_at: now } : {}),
+            updated_at: now,
+          })
+          .eq("id", transformation.id)
+          .in("status", ["draft", "ready", "pending", "active"]),
+        cycle.active_transformation_id === transformation.id
+          ? supabase
+            .from("user_cycles")
+            .update({
+              active_transformation_id: null,
+              updated_at: now,
+            })
+            .eq("id", cycle.id)
+          : Promise.resolve({ error: null }),
+      ]);
+
+    if (planError) throw planError;
+    if (transformationError) throw transformationError;
+    if (cycleUpdateResult.error) throw cycleUpdateResult.error;
+  };
+
+  const handleEndSimpleTransformation = async () => {
+    if (!transformation || !cycle) return;
+
+    if (isTransformationReadyForClosure) {
+      setIsClosureModalOpen(true);
+      return;
+    }
+
+    const confirmed = window.confirm(
+      "Mettre fin à cette transformation maintenant ? Le plan en cours sera arrêté et cette transformation sortira du parcours actif.",
+    );
+    if (!confirmed) return;
+
+    setMultiPartTransitionBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      await releaseCurrentTransformationForNextStep("abandoned");
+
+      setSelectedScopeId("out_of_plan");
+      setActiveTab("lab");
+      await refetch();
+    } catch (actionError) {
+      console.error("[DashboardV2] simple transformation end failed", actionError);
+      setDashboardActionError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de mettre fin à cette transformation pour le moment.",
+      );
+    } finally {
+      setMultiPartTransitionBusy(false);
+    }
+  };
+
+  const handleAdjustCurrentPlanForTransition = async (reason: string | null) => {
+    if (!planContentV3) return;
+
+    const targetSummary = transitionTargetLabel && transitionTargetValue
+      ? `${transitionTargetLabel}: ${transitionTargetValue}`
+      : transitionTargetValue || transitionTargetLabel || "l'objectif de cette 1re partie";
+
+    const transitionComment = hasSequencedNextTransformation
+      ? transitionCheckpointReached
+        ? [
+            `Je suis à la fin de cette première partie mais je n'ai pas encore atteint ${targetSummary}.`,
+            reason ? `Pourquoi je voulais quand même passer à la suite : ${reason}` : null,
+            "Aide-moi à ajuster la fin du plan pour atteindre ce cap avant de débloquer la 2e partie.",
+          ].filter(Boolean).join("\n\n")
+        : [
+            "Je ne suis pas encore au point de passage vers la 2e partie.",
+            `Cap à atteindre avant la suite : ${targetSummary}.`,
+            "Aide-moi à ajuster le plan actuel pour rendre cette première partie atteignable et réaliste avant de débloquer la suite.",
+          ].join("\n\n")
+      : [
+          `Je n'ai pas encore atteint l'objectif global de cette transformation : ${targetSummary}.`,
+          reason ? `Ce qui me fait envisager la suite maintenant : ${reason}` : null,
+          "Aide-moi à ajuster le plan actuel avant de passer à la prochaine transformation.",
+        ].filter(Boolean).join("\n\n");
+
+    setActiveTab("plan");
+    setIsMultiPartTransitionModalOpen(false);
+    setPlanReviewInput(transitionComment);
+    await handlePlanReviewSubmit(transitionComment);
+  };
+
+  const handleContinueToNextPart = async () => {
+    if (!cycle || !nextSequencedTransformation) return;
+
+    setMultiPartTransitionBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      await releaseCurrentTransformationForNextStep("completed");
+
+      const baseDraft = createEmptyOnboardingV2Draft();
+      const visibleTransformationPreviews = visibleTransformations.map((item) =>
+        toTransformationPreview(item)
+      );
+
+      persistOnboardingV2DraftLocally({
+        ...baseDraft,
+        entry_mode: "add_transformation",
+        preserved_active_transformation_id:
+          transformation?.id ?? activePlanContent?.transformation_id ?? null,
+        cycle_id: cycle.id,
+        cycle_status: "questionnaire_in_progress",
+        stage: "questionnaire",
+        raw_intake_text: cycle.raw_intake_text,
+        transformations: visibleTransformationPreviews,
+        active_transformation_id: nextSequencedTransformation.id,
+        questionnaire_schema: buildMultiPartTransitionQuestionnaireSchema({
+          transformationId: nextSequencedTransformation.id,
+          currentTransformationTitle: transformation?.title ?? activePlanContent?.title ?? null,
+          nextTransformationTitle: nextSequencedTransformation.title,
+          previousTransformationId:
+            transformation?.id ?? activePlanContent?.transformation_id ?? null,
+        }),
+        questionnaire_answers: {},
+        plan_review: null,
+        roadmap_transition: null,
+      });
+
+      setIsMultiPartTransitionModalOpen(false);
+      startSession();
+      navigate("/onboarding-v2");
+    } catch (actionError) {
+      console.error("[DashboardV2] next part transition failed", actionError);
+      setDashboardActionError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de préparer la 2e partie pour le moment.",
+      );
+    } finally {
+      setMultiPartTransitionBusy(false);
+    }
+  };
+
+  const handleContinueToNextSimpleTransformation = async () => {
+    if (!hasSimpleNextTransformation) return;
+
+    setMultiPartTransitionBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      await releaseCurrentTransformationForNextStep("completed");
+      setIsMultiPartTransitionModalOpen(false);
+      await refetch();
+      handoffToNextTransformationSelection();
+    } catch (actionError) {
+      console.error("[DashboardV2] simple transformation handoff failed", actionError);
+      setDashboardActionError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible de passer à la prochaine transformation pour le moment.",
+      );
+    } finally {
+      setMultiPartTransitionBusy(false);
+    }
+  };
+
+  const handleLetGoAndContinueToNextTransformation = async (reason: string) => {
+    if (!hasSimpleNextTransformation) return;
+
+    setMultiPartTransitionBusy(true);
+    setDashboardActionError(null);
+
+    try {
+      console.info("[DashboardV2] simple transformation abandoned before next handoff", {
+        transformation_id: transformation?.id ?? null,
+        reason,
+      });
+      await releaseCurrentTransformationForNextStep("abandoned");
+      setIsMultiPartTransitionModalOpen(false);
+      await refetch();
+      handoffToNextTransformationSelection();
+    } catch (actionError) {
+      console.error("[DashboardV2] let go and continue failed", actionError);
+      setDashboardActionError(
+        actionError instanceof Error
+          ? actionError.message
+          : "Impossible d'abandonner cette transformation pour le moment.",
+      );
+    } finally {
+      setMultiPartTransitionBusy(false);
+    }
+  };
+
   function handleStartOnboarding() {
     startSession();
     navigate("/onboarding-v2");
   }
-
-  const handleStopCycle = async () => {
-    if (!cycle) return;
-    if (!window.confirm("Arrêter ce cycle et abandonner les transformations encore en cours ?")) {
-      return;
-    }
-
-    const now = new Date().toISOString();
-    setDashboardActionBusy("stop_cycle");
-    setDashboardActionError(null);
-
-    try {
-      const [{ error: cycleError }, { error: planError }, { error: transformationError }] =
-        await Promise.all([
-          supabase
-            .from("user_cycles")
-            .update({
-              status: "abandoned",
-              active_transformation_id: null,
-              updated_at: now,
-            })
-            .eq("id", cycle.id),
-          supabase
-            .from("user_plans_v2")
-            .update({
-              status: "archived",
-              archived_at: now,
-              updated_at: now,
-            })
-            .eq("cycle_id", cycle.id)
-            .in("status", ["draft", "active", "paused"]),
-          supabase
-            .from("user_transformations")
-            .update({
-              status: "abandoned",
-              updated_at: now,
-            })
-            .eq("cycle_id", cycle.id)
-            .in("status", ["draft", "ready", "pending", "active"]),
-        ]);
-
-      if (cycleError) throw cycleError;
-      if (planError) throw planError;
-      if (transformationError) throw transformationError;
-
-      await refetch();
-      handleStartOnboarding();
-    } catch (error) {
-      console.error("[DashboardV2] stop cycle failed", error);
-      setDashboardActionError(
-        error instanceof Error
-          ? error.message
-          : "Impossible d’arrêter ce cycle pour le moment.",
-      );
-    } finally {
-      setDashboardActionBusy(null);
-    }
-  };
 
   return (
     <div
@@ -940,7 +1450,7 @@ export default function DashboardV2() {
                   {(
                     [
                       { key: "coaching", icon: Sparkles, label: "L'Atelier" },
-                      { key: "wishlist", icon: Map, label: "Envies" },
+                      { key: "wishlist", icon: MapIcon, label: "Envies" },
                       { key: "stories", icon: Book, label: "Histoires" },
                       { key: "reflections", icon: Lightbulb, label: "Réflexions" },
                       { key: "quotes", icon: Quote, label: "Citations" },
@@ -1025,7 +1535,9 @@ export default function DashboardV2() {
                         (!roundTableModule.state.available_at ||
                           new Date(roundTableModule.state.available_at) <= now);
 
-                      const getUnlockText = (mod: any) => {
+                      const getUnlockText = (
+                        mod: typeof forgeModule | typeof roundTableModule | undefined,
+                      ) => {
                         if (!mod?.state) return "Débloqué après Semaine 12";
                         if (mod.state.available_at) {
                           const unlockDate = new Date(mod.state.available_at);
@@ -1056,7 +1568,7 @@ export default function DashboardV2() {
                             }`}
                           >
                             <div className="hidden min-[350px]:block absolute top-0 right-0 p-4 opacity-10 group-hover:opacity-20 transition-opacity">
-                              <Map className="w-12 h-12 md:w-24 md:h-24" />
+                              <MapIcon className="w-12 h-12 md:w-24 md:h-24" />
                             </div>
                             <h3 className="text-white font-bold text-lg md:text-xl mb-2">
                               La Table Ronde
@@ -1189,14 +1701,20 @@ export default function DashboardV2() {
 
                   <div className="h-px bg-stone-100 my-3" />
 
-                  <button
-                    type="button"
-                    onClick={handleOpenAdditionalPlanFlow}
-                    className="flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors border border-transparent"
-                  >
-                    <Plus className="h-4 w-4" />
-                    Ajouter une transformation
-                  </button>
+                  {!hasSequencedNextTransformation ? (
+                    <button
+                      type="button"
+                      onClick={handleOpenAdditionalPlanFlow}
+                      className="flex items-center gap-3 px-4 py-3 rounded-[16px] text-sm font-semibold text-blue-600 hover:bg-blue-50 transition-colors border border-transparent"
+                    >
+                      <Plus className="h-4 w-4" />
+                      Ajouter une transformation
+                    </button>
+                  ) : (
+                    <div className="mx-1 rounded-[16px] border border-amber-100 bg-amber-50/80 px-4 py-3 text-sm font-medium text-amber-900">
+                      La 2e partie de ce parcours se débloque depuis la page du plan.
+                    </div>
+                  )}
 
                   <button
                     type="button"
@@ -1360,58 +1878,108 @@ export default function DashboardV2() {
                         />
 
                         {isV3 ? (
-                          <PhaseProgression
-                            phases={logic.phases}
-                            scheduleAnchor={scheduleAnchor}
-                            phase1Node={
-                              <Phase1FoundationCard
-                                phase1={phase1.phase1}
-                                onOpenInspiration={() => setActiveTab("inspiration")}
-                              />
-                            }
-                            activePhaseFooterNode={
+                          <>
+                            <PhaseProgression
+                              phases={logic.phases}
+                              scheduleAnchor={scheduleAnchor}
+                              phase1Node={
+                                <Phase1FoundationCard
+                                  phase1={phase1.phase1}
+                                  onOpenInspiration={() => setActiveTab("inspiration")}
+                                />
+                              }
+                              activePhaseFooterNode={
+                                <>
+                                  <PlanRevisionPanel
+                                    value={planReviewInput}
+                                    thread={planReviewThread}
+                                    proposal={planReviewProposal}
+                                    isBusy={planReviewBusy}
+                                    currentLevelOrder={currentLevel?.phase_order ?? null}
+                                    currentLevelTitle={currentLevel?.title ?? null}
+                                    onChange={setPlanReviewInput}
+                                    onSubmit={handlePlanReviewSubmit}
+                                    onDismissProposal={handlePlanReviewDismiss}
+                                    onCompleteLevel={() => {
+                                      setLevelCompletionError(null);
+                                      setIsLevelCompletionModalOpen(true);
+                                    }}
+                                  />
+                                </>
+                              }
+                              levelToolRecommendationsByPhaseId={levelToolRecommendationsByPhaseId}
+                              onLevelToolRecommendationChanged={refetch}
+                              primaryMetricLabel={planContentV3?.primary_metric?.label ?? null}
+                              unlockStateByItemId={logic.unlockStateByItemId}
+                              busyItemId={logic.mutatingItemId}
+                              onComplete={logic.completeItem}
+                              onActivate={logic.activateItem}
+                              onPrepareCards={logic.prepareItemCards}
+                              onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
+                              onBlocker={logic.markItemBlocked}
+                              onDeactivate={logic.deactivateItem}
+                              onRemove={logic.removeItem}
+                              onAdapt={(item) => handleItemAdapt(item.id)}
+                              onLogHeartbeat={() =>
+                                navigate("/chat", {
+                                  state: {
+                                    source: "dashboard_v2_heartbeat_checkin",
+                                  },
+                                })
+                              }
+                              onCompleteLevel={() => {
+                                setLevelCompletionError(null);
+                                setIsLevelCompletionModalOpen(true);
+                              }}
+                              completeLevelBusy={levelCompletionBusy}
+                              onCompletionAction={
+                                hasSequencedNextTransformation
+                                  ? handleOpenMultiPartTransitionGate
+                                  : hasSimpleNextTransformation
+                                    ? handleOpenMultiPartTransitionGate
+                                  : canShowTransformationEndAction
+                                    ? handleEndSimpleTransformation
+                                  : undefined
+                              }
+                              completionActionLabel={
+                                hasSequencedNextTransformation
+                                  ? "Passer à la 2ème transformation"
+                                  : hasSimpleNextTransformation
+                                    ? "Passer à la prochaine transformation"
+                                  : canShowTransformationEndAction
+                                    ? "Mettre fin à la transformation"
+                                  : null
+                              }
+                              completionActionHint={
+                                hasSequencedNextTransformation
+                                  ? transitionCheckpointReached
+                                    ? "Avant d'ouvrir la suite, confirme que l'objectif de cette 1re partie est réellement atteint."
+                                    : "La 2e partie restera verrouillée tant que cette 1re partie n'est pas vraiment bouclée."
+                                  : hasSimpleNextTransformation
+                                    ? "Avant d'ouvrir la transformation suivante, confirme que l'objectif global de ta transformation actuelle est vraiment atteint."
+                                  : canShowTransformationEndAction
+                                    ? isTransformationReadyForClosure
+                                      ? "La transformation est terminée. Il ne reste plus qu'à valider la clôture pour la faire entrer dans ta Base de vie."
+                                      : "Si tu veux arrêter ce chantier ici, tu peux mettre fin à cette transformation depuis ce bloc."
+                                  : null
+                              }
+                              journeyContext={activePlanContent.journey_context}
+                            />
+                            {allPhasesCompleted ? (
                               <PlanRevisionPanel
                                 value={planReviewInput}
                                 thread={planReviewThread}
                                 proposal={planReviewProposal}
                                 isBusy={planReviewBusy}
-                                currentLevelOrder={currentLevel?.phase_order ?? null}
-                                currentLevelTitle={currentLevel?.title ?? null}
+                                currentLevelOrder={null}
+                                currentLevelTitle={null}
                                 onChange={setPlanReviewInput}
                                 onSubmit={handlePlanReviewSubmit}
                                 onDismissProposal={handlePlanReviewDismiss}
-                                onCompleteLevel={() => {
-                                  setLevelCompletionError(null);
-                                  setIsLevelCompletionModalOpen(true);
-                                }}
+                                onCompleteLevel={() => {}}
                               />
-                            }
-                            primaryMetricLabel={planContentV3?.primary_metric?.label ?? null}
-                            unlockStateByItemId={logic.unlockStateByItemId}
-                            busyItemId={logic.mutatingItemId}
-                            onComplete={logic.completeItem}
-                            onActivate={logic.activateItem}
-                            onPrepareCards={logic.prepareItemCards}
-                            onOpenDefenseResourceEditor={openPlanDefenseResourceEditor}
-                            onBlocker={logic.markItemBlocked}
-                            onDeactivate={logic.deactivateItem}
-                            onRemove={logic.removeItem}
-                            onAdapt={(item) => handleItemAdapt(item.id)}
-                            onLogHeartbeat={() =>
-                              navigate("/chat", {
-                                state: {
-                                  source: "dashboard_v2_heartbeat_checkin",
-                                },
-                              })
-                            }
-                            onCompleteLevel={() => {
-                              setLevelCompletionError(null);
-                              setIsLevelCompletionModalOpen(true);
-                            }}
-                            completeLevelBusy={levelCompletionBusy}
-                            onRoadmapReview={handleRoadmapReview}
-                            journeyContext={activePlanContent.journey_context}
-                          />
+                            ) : null}
+                          </>
                         ) : (
                           <>
                             <DimensionSection
@@ -1487,29 +2055,39 @@ export default function DashboardV2() {
                           <div className="flex flex-wrap items-start justify-between gap-4">
                             <div>
                               <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-stone-500">
-                                Actions du cycle
+                                Suite du parcours
                               </p>
                               <h3 className="mt-3 text-2xl font-semibold text-stone-950">
-                                Gérer la suite du parcours
+                                Choisir la bonne prochaine étape
                               </h3>
                               <p className="mt-2 text-sm leading-6 text-stone-600">
-                                Retrouve ici les options globales du cycle: lancer un plan supplémentaire,
-                                revoir la roadmap, ou arrêter le cycle.
+                                {hasSequencedNextTransformation
+                                  ? "Ici, la suite n'est pas un choix libre: l'étape 2 se débloque seulement quand l'étape 1 a vraiment atteint son cap."
+                                  : hasSimpleNextTransformation
+                                    ? "Ici, tu peux passer à la prochaine transformation. Pour ajouter une nouvelle transformation en parallèle (max 2), passe par le menu."
+                                    : "Aucune transformation suivante n'est prête ici pour le moment. Si tu veux en ajouter une, passe par le menu."}
                               </p>
                             </div>
-                            {remainingTransformations.length > 0 &&
-                            recommendedAdditionalTransformation ? (
+                            {hasSequencedNextTransformation && nextSequencedTransformation ? (
                               <div className="rounded-2xl border border-blue-100 bg-blue-50 px-4 py-3 text-sm text-blue-950">
                                 <p className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-700">
-                                  Prochain focus
+                                  Étape 2 verrouillée
                                 </p>
                                 <p className="mt-2 font-semibold">
-                                  {recommendedAdditionalTransformation.title ||
-                                    `Transformation ${recommendedAdditionalTransformation.priority_order}`}
+                                  {nextSequencedTransformationTitle}
                                 </p>
-                                <p className="mt-1 text-blue-900/80">
-                                  {recommendedAdditionalTransformation.user_summary}
-                                </p>
+                                {transitionGlobalObjective ? (
+                                  <p className="mt-1 text-blue-900/80">
+                                    {hasSequencedNextTransformation
+                                      ? `Objectif de la 2ème transformation : ${transitionGlobalObjective}`
+                                      : `Objectif global : ${transitionGlobalObjective}`}
+                                  </p>
+                                ) : null}
+                                {nextSequencedTransformation.user_summary ? (
+                                  <p className="mt-2 text-blue-900/80">
+                                    {nextSequencedTransformation.user_summary}
+                                  </p>
+                                ) : null}
                               </div>
                             ) : null}
                           </div>
@@ -1521,35 +2099,32 @@ export default function DashboardV2() {
                           ) : null}
 
                           <div className="mt-5 flex flex-wrap gap-3">
-                            <button
-                              type="button"
-                              onClick={handleRoadmapReview}
-                              className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 transition hover:border-blue-200 hover:text-gray-900"
-                            >
-                              Revoir la roadmap
-                            </button>
-                            <button
-                              type="button"
-                              onClick={handleOpenAdditionalPlanFlow}
-                              className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700"
-                            >
-                              Ajouter une transformation
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void handleStopCycle()}
-                              disabled={dashboardActionBusy === "stop_cycle"}
-                              className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-semibold text-rose-700 transition hover:bg-rose-100 disabled:cursor-not-allowed disabled:opacity-60"
-                            >
-                              {dashboardActionBusy === "stop_cycle" ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 animate-spin" />
-                                  Arrêt en cours…
-                                </>
-                              ) : (
-                                "Arrêter le cycle"
-                              )}
-                            </button>
+                            {hasSequencedNextTransformation ? (
+                              <button
+                                type="button"
+                                onClick={handleOpenMultiPartTransitionGate}
+                                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700"
+                              >
+                                Passer à la 2ème transformation
+                              </button>
+                            ) : hasSimpleNextTransformation ? (
+                              <button
+                                type="button"
+                                onClick={handleOpenMultiPartTransitionGate}
+                                className="inline-flex items-center gap-2 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white shadow-md shadow-blue-200 transition hover:bg-blue-700"
+                              >
+                                Passer à la prochaine transformation
+                              </button>
+                            ) : null}
+                            {canShowTransformationEndAction ? (
+                              <button
+                                type="button"
+                                onClick={() => void handleEndSimpleTransformation()}
+                                className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+                              >
+                                Mettre fin à cette transformation
+                              </button>
+                            ) : null}
                           </div>
                         </section>
                       </>
@@ -1767,10 +2342,10 @@ export default function DashboardV2() {
               Limite atteinte
             </p>
             <h2 className="mt-3 text-2xl font-semibold text-stone-950">
-              C&apos;est limite a 2 transformations
+              C'est limite a 2 transformations
             </h2>
             <p className="mt-3 text-sm leading-6 text-stone-600">
-              Si tu veux absolument en lancer une autre, il faut d&apos;abord mettre en pause ou
+              Si tu veux absolument en lancer une autre, il faut d'abord mettre en pause ou
               supprimer une transformation active.
             </p>
             <div className="mt-6 flex justify-end">
@@ -1785,6 +2360,44 @@ export default function DashboardV2() {
           </div>
         </div>
       ) : null}
+
+      <MultiPartTransitionGateModal
+        key={`${isMultiPartTransitionModalOpen ? "open" : "closed"}:${transitionCheckpointReached ? "checkpoint" : "locked"}`}
+        mode={hasSequencedNextTransformation ? "multi_part" : "simple"}
+        isOpen={Boolean(
+          isMultiPartTransitionModalOpen &&
+            (hasSequencedNextTransformation || hasSimpleNextTransformation),
+        )}
+        canEvaluateTarget={hasSequencedNextTransformation ? transitionCheckpointReached : true}
+        busy={multiPartTransitionBusy || planReviewBusy}
+        currentTransformationTitle={
+          transformation?.title ??
+          (transformation ? `Transformation ${transformation.priority_order}` : "Transformation active")
+        }
+        nextTransformationTitle={
+          hasSequencedNextTransformation
+            ? nextSequencedTransformationTitle
+            : nextRecommendedTransformationTitle
+        }
+        targetLabel={transitionTargetLabel}
+        targetValue={transitionTargetValue}
+        globalObjective={transitionGlobalObjective}
+        onClose={() => {
+          if (multiPartTransitionBusy || planReviewBusy) return;
+          setIsMultiPartTransitionModalOpen(false);
+        }}
+        onConfirmReached={
+          hasSequencedNextTransformation
+            ? handleContinueToNextPart
+            : handleContinueToNextSimpleTransformation
+        }
+        onAdjustPlan={handleAdjustCurrentPlanForTransition}
+        onLetGoAndContinue={
+          hasSimpleNextTransformation
+            ? handleLetGoAndContinueToNextTransformation
+            : undefined
+        }
+      />
 
       <TransformationClosureModal
         isOpen={Boolean(

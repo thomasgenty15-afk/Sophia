@@ -59,11 +59,13 @@ export function MinimalProfile({
   hasStoredBirthDate = false,
   hasStoredGender = false,
 }: MinimalProfileProps) {
-  const canSubmit = Boolean(value.birthDate) && Boolean(value.gender) &&
-    Boolean(value.pace) && !isSubmitting;
   const transformationLabel = currentTransformationTitle?.trim() || null;
   const shouldAskBirthDate = !hasStoredBirthDate;
   const shouldAskGender = !hasStoredGender;
+  const canSubmit = Boolean(shouldAskBirthDate ? value.birthDate : hasStoredBirthDate) &&
+    Boolean(shouldAskGender ? value.gender : hasStoredGender) &&
+    Boolean(value.pace) &&
+    !isSubmitting;
   const journeyStrategy = planTypeClassification?.journey_strategy ?? null;
   const splitMetricGuidance = planTypeClassification?.split_metric_guidance ?? null;
   const showsTwoTransformationSplit = journeyStrategy?.mode === "two_transformations";

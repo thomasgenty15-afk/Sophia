@@ -28,6 +28,8 @@ import { HabitWeekModal } from "./HabitWeekModal";
 type PlanItemCardProps = {
   item: DashboardV2PlanItemRuntime;
   weekCalendar?: PlanWeekCalendar | null;
+  weekStatus?: "completed" | "current" | "upcoming" | null;
+  weekOrder?: number | null;
   recommendedDays?: string[] | null;
   onOpenWeekPlanning?: (() => void) | null;
   unlockState?: DashboardV2UnlockState | null;
@@ -65,6 +67,8 @@ function renderIcon(item: DashboardV2PlanItemRuntime, className: string) {
 export function PlanItemCard({
   item,
   weekCalendar,
+  weekStatus = null,
+  weekOrder = null,
   recommendedDays,
   onOpenWeekPlanning,
   unlockState,
@@ -114,6 +118,10 @@ export function PlanItemCard({
   const defensePreview = resolveDefensePreview(item.linked_defense_card);
   const attackPreview = resolveAttackPreview(item.linked_attack_card);
   const showPendingLock = isPending && !unlockState?.isReady;
+  const futureWeekLocked = weekStatus === "upcoming";
+  const futureWeekLabel = weekOrder != null
+    ? `Disponible semaine ${weekOrder}`
+    : "Disponible pendant sa semaine";
   const canPrepareCards = !isPending && cardsRequired && !cardsReady;
   useEffect(() => {
     if (descriptionExpanded) return;
@@ -318,7 +326,7 @@ export function PlanItemCard({
         </div>
       ) : null}
 
-      {canPrepareCards ? (
+      {canPrepareCards && !futureWeekLocked ? (
         <div className={`mb-3 rounded-2xl border px-3 py-3 ${
           cardsStatus === "failed"
             ? "border-rose-200 bg-rose-50"
@@ -403,6 +411,15 @@ export function PlanItemCard({
                 <Check className="w-4 h-4" />
                 {item.status === "completed" ? "Terminé" : "En maintien"}
               </div>
+            ) : futureWeekLocked ? (
+              <button
+                type="button"
+                disabled
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-stone-50 text-stone-400 text-sm font-bold border border-stone-200 cursor-not-allowed disabled:opacity-100"
+              >
+                <Lock className="w-4 h-4" />
+                {futureWeekLabel}
+              </button>
             ) : isMission ? (
               <button
                 type="button"

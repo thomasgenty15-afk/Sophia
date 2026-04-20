@@ -201,6 +201,11 @@ export function usePhase1(
       });
       if (error) throw error;
 
+      // Refresh as soon as the deep why is saved so the UI can move
+      // immediately to the story-loading state instead of waiting for the
+      // story generation request to complete.
+      await refetch();
+
       if (shouldPrepareStory) {
         setPreparingStory(true);
         try {
@@ -210,12 +215,11 @@ export function usePhase1(
             },
           });
           if (storyError) throw storyError;
+          await refetch();
         } finally {
           setPreparingStory(false);
         }
       }
-
-      await refetch();
     } catch (error) {
       console.error("[usePhase1] saveDeepWhyAnswers failed:", error);
     } finally {

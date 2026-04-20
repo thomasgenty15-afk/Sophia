@@ -1150,6 +1150,111 @@ export type UserProfessionalSupportEventRow = {
   created_at: string;
 };
 
+export type ToolRecommendationType =
+  | "app"
+  | "product";
+
+export type ToolRecommendationCategoryKey =
+  | "measurement_tracking"
+  | "symptom_tracking"
+  | "sleep_support"
+  | "nutrition_prep"
+  | "hydration_support"
+  | "movement_training"
+  | "recovery_mobility"
+  | "pain_relief_support"
+  | "distraction_blocking"
+  | "reproductive_health"
+  | "consumption_reduction"
+  | "workspace_ergonomics";
+
+export type ToolRecommendationStatus =
+  | "recommended"
+  | "installed"
+  | "purchased"
+  | "already_owned"
+  | "not_relevant";
+
+export type LevelToolRecommendationSupersededReason =
+  | "level_rewritten"
+  | "level_removed"
+  | "regenerated_after_plan_change"
+  | "level_recommendation_set_changed";
+
+export type LevelSnapshot = {
+  level_id: string;
+  level_order: number;
+  level_title: string;
+  level_objective: string;
+  what_this_level_targets: string | null;
+  why_this_now: string | null;
+  how_this_level_works: string | null;
+};
+
+export type UserLevelToolRecommendationRow = {
+  id: string;
+  user_id: string;
+  cycle_id: string;
+  transformation_id: string;
+  plan_id: string;
+  plan_version: number;
+  plan_updated_at: string;
+  target_level_id: string | null;
+  target_level_order: number;
+  priority_rank: number;
+  tool_type: ToolRecommendationType;
+  category_key: ToolRecommendationCategoryKey;
+  subcategory_key: string | null;
+  display_name: string;
+  brand_name: string | null;
+  reason: string;
+  why_this_level: string;
+  confidence_score: number;
+  status: ToolRecommendationStatus;
+  is_active: boolean;
+  superseded_by_recommendation_id: string | null;
+  superseded_reason: LevelToolRecommendationSupersededReason | null;
+  level_snapshot: LevelSnapshot;
+  metadata: Record<string, unknown>;
+  generated_at: string;
+  updated_at: string;
+};
+
+export type LevelToolRecommendationEventType =
+  | "generated"
+  | "marked_installed"
+  | "marked_purchased"
+  | "marked_already_owned"
+  | "marked_not_relevant"
+  | "superseded_after_plan_adjustment"
+  | "regenerated_after_plan_adjustment";
+
+export type UserLevelToolRecommendationEventRow = {
+  id: string;
+  recommendation_id: string;
+  user_id: string;
+  cycle_id: string;
+  transformation_id: string;
+  plan_id: string;
+  event_type: LevelToolRecommendationEventType;
+  payload: Record<string, unknown>;
+  created_at: string;
+};
+
+export type LevelToolRecommendationState = {
+  version: 1;
+  plan_id: string;
+  plan_version: number;
+  plan_updated_at: string;
+  generated_at: string;
+  levels: Array<{
+    target_level_id: string | null;
+    target_level_order: number;
+    recommendation_count: number;
+    no_recommendation_reason: string | null;
+  }>;
+};
+
 export type Phase1Context = {
   cycle_id: string;
   transformation_id: string;
